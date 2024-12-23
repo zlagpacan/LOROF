@@ -1,31 +1,109 @@
 # alu_pipeline
 - backend pipeline for ALU operations
-- accepts ALU ops from ALU Issue Queue, waiting for operands to be ready via forwarding or register reads from the Physical Register File, or immediates from the ALU Issue Queue
 - bandwidth of 1 ALU op per cycle
+- accepts ALU ops from ALU Issue Queue, waiting for operands to be ready via forwarding or register reads from the Physical Register File, or immediates from the ALU Issue Queue
 - stalls when required operands not all ready
+    - only OC Stage is stalled
+    - EX and WB Stages of pipeline are always guaranteed to continue forward
 
-## RTL Diagram:
+## RTL Diagram
 ![alu_pipeline RTL Diagram](alu_pipeline_rtl.png)
 
-## Interfaces:
-- ALU op issue from ALU IQ
-- reg read info and data from PRF
-- forward data from PRF
-- ready feedback to ALU IQ
-- writeback data to PRF
+## Interfaces
+- these signals are interdependent on functionality described in [Operand Collection (OC) Stage](#operand-collection-oc)
+
+### ALU op issue from ALU IQ
+- valid_in
+    - indicate that there is a new op issuing from the ALU IQ for this pipeline to accept
+    - ignore the incoming op issue even if this siganl is high if OC stage is stalled on a valid op
+        - essentially, ignore if ready_out is low
+- op_in
+    - see [Supported Ops](#supported-ops)
+- is_imm_in
+    - indicate if op should use the immediate data value for operand B
+- imm_in
+    - immediate data value
+- A_unneeded_in
+    - indicate if op does not require operand A (and so does not need to wait for it to be ready)
+- A_forward_in
+    - indicate if operand A should take the forward data on the next cycle
+- A_bank_in
+    - indicate which bank operand A should take its forward or reg data from
+- B_forward_in
+    - indicate if operand B should take the forward data on the next cycle
+- B_bank_in
+    - indicate which bank operand B should take its forward or reg data from
+- dest_PR_in
+    - indicate which Physical Register to writeback to
+
+### reg read info and data from PRF
+- A_reg_read_valid_in
+    - indicate if op should use the current reg read data this cycle for operand A
+        - whether an op is waiting on this signal can be inferred by operand being needed/not immediate and not being forwarded
+        - this can be valid at earliest on the cycle after the op is issued and the pipeline is ready
+            - essentially, at earliest on the cycle the op first enters Operand Collection stage
+        - this can be valid at latest after any delay
+- B_reg_read_valid_in
+    - indicate if op should use the current reg read data this cycle for operand B
+- reg_read_data_by_bank_in
+    - reg read data values for each bank
+    - select data value of interest using previous A_bank_in/B_bank_in value
+
+### forward data from PRF
+- forward_data_by_bank_in
+    - forward data values for each bank
+    - select data value of interest using previous A_bank_in/B_bank_in value
+
+### ready feedback to ALU IQ
+- ready_out
+    - indicate that pipeline is ready for a new op to be issued into it
+    - this is true if the OC Stage does not have an op or the op is not stalled
+
+### writeback data to PRF
+- WB_valid_out
+    - indicate if writeback is to be performed
+    - this should be high for as many cycles as valid ops issued into the pipeline
+- WB_data_out
+    - writeback data value to write
+- WB_PR_out
+    - Physical Register to writeback data value to
 
 ## Pipeline Stages:
 
 ### Operand Collection (OC)
-- 
+- collect operand data values
+- track which operands have been collected
+- determine if pipeline needs to stall (valid op, operands not ready)
+    - operand A ready conditions (stimulus guarantees to be mutually exclusive):
+        - operand not needed
+        - have saved value
+            - from previous cycle forwarded value or reg read value
+        - have forwarded value
+            - on this cycle
+                - previous cycle during issue input, was told to collect value
+        - have reg read value
+            - on this cycle
+    - operand B ready conditions (stimulus guarantees to be mutually exclusive)
+        - operand is immediate
+        - have saved value
+        - have forwarded value
+        - have reg read value
+    - on a stall, the operands collected on the cycle of interest where the operands are valid must be saved
+        - signals like A_reg_read_valid_in + reg_read_data_by_bank_in are allowed to change after the cycle A_reg_read_valid_in is high
+    - if there is no stall, pipeline can accept next new op from IQ (if valid)
+    - essentially, the pipeline stalls whenever there is an operand that must come from a reg read, and the associated reg read has not been triggered yet
+- determine if pipeline is ready for new op (invalid op or operands ready)
 
 ### Execute (EX)
-- 
+- perform ALU op on A and B operands
+- pass on if op is valid
+- valid op here if had valid op in OC stage which had operands ready on the previous cycle
 
 ### Writeback (WB)
-- 
+- present ALU op output info to writeback if op is valid
+- valid op here if had valid op in EX stage on the previous cycle
 
-## Supported ops:
+## Supported Ops
 - 4'b0000: Out = A + B
 - 4'b0001: Out = A << B[4:0]
 - 4'b0010: Out = signed(A) < signed(B)
@@ -38,7 +116,7 @@
 - 4'b1101: Out = signed(A) >>> B[4:0]
 - 4'b1111: Out = B
 
-## Targeted Instructions:
+## Targeted Instructions
 - LUI
     - op_in = 4'b1111
     - A_unneeded_in = 1
