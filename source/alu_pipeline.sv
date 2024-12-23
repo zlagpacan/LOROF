@@ -25,7 +25,7 @@ module alu_pipeline #() (
     input logic [LOG_PRF_BANK_COUNT-1:0] A_bank_in,
     input logic B_forward_in,
     input logic [LOG_PRF_BANK_COUNT-1:0] B_bank_in,
-    input logic [LOG_PR_COUNT-1:0] dest_PR_in
+    input logic [LOG_PR_COUNT-1:0] dest_PR_in,
 
     // reg read info and data from PRF
     input logic A_reg_read_valid_in,
@@ -45,7 +45,7 @@ module alu_pipeline #() (
 );
 
     // ----------------------------------------------------------------
-    // OC Stage:
+    // OC Stage Signals:
 
     logic valid_OC;
     logic [3:0] op_OC;
@@ -68,6 +68,25 @@ module alu_pipeline #() (
     logic [31:0] next_A_EX;
     logic [31:0] next_B_EX;
     logic [LOG_PR_COUNT-1:0] next_dest_PR_EX;
+
+    // ----------------------------------------------------------------
+    // EX Stage Signals:
+
+    logic valid_EX;
+    logic [3:0] op_EX;
+    logic [31:0] A_EX;
+    logic [31:0] B_EX;
+    logic [LOG_PR_COUNT-1:0] dest_PR_EX;
+
+    logic next_WB_valid_out;
+    logic [31:0] next_WB_data_out;
+    logic [LOG_PR_COUNT-1:0] next_WB_PR_out;
+
+    // ----------------------------------------------------------------
+    // WB Stage Signals:
+
+    // ----------------------------------------------------------------
+    // OC Stage Logic:
 
     // FF
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -144,17 +163,7 @@ module alu_pipeline #() (
     end
 
     // ----------------------------------------------------------------
-    // EX Stage:
-
-    logic valid_EX;
-    logic [3:0] op_EX;
-    logic [31:0] A_EX;
-    logic [31:0] B_EX;
-    logic [LOG_PR_COUNT-1:0] dest_PR_EX;
-
-    logic next_WB_valid_out;
-    logic [31:0] next_WB_data_out;
-    logic [LOG_PR_COUNT-1:0] next_WB_PR_out;
+    // EX Stage Logic:
 
     // FF
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -196,7 +205,7 @@ module alu_pipeline #() (
     end
 
     // ----------------------------------------------------------------
-    // WB Stage:
+    // WB Stage Logic:
 
     // FF
     always_ff @ (posedge CLK, negedge nRST) begin
