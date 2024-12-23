@@ -140,7 +140,7 @@ module alu_pipeline #() (
     assign ready_out = ~valid_OC | launch_ready_OC;
     assign stall_OC = ~ready_out;
 
-    assign next_valid_EX = valid_OC & launch_ready_OC
+    assign next_valid_EX = valid_OC & launch_ready_OC;
     assign next_op_EX = op_OC;
     assign next_dest_PR_EX = dest_PR_OC;
 
