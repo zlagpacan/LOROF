@@ -8,7 +8,7 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module alu_pipeline #() (
+module alu_pipeline (
 
     // seq
     input logic CLK,
