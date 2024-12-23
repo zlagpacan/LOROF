@@ -7,7 +7,7 @@
 
 `timescale 1ns/100ps
 
-`include "core_types.vh"
+`include "core_types_pkg.vh"
 import core_types_pkg::*;
 
 module alu_pipeline_tb ();
@@ -64,9 +64,7 @@ module alu_pipeline_tb ();
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
     // DUT instantiation:
 
-	alu_pipeline #(
-fill in params
-	) DUT (
+	alu_pipeline DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
@@ -157,22 +155,22 @@ fill in params
 		// reset
 		nRST = 1'b0;
 	    // ALU op issue from ALU IQ
-		tb_valid_in = 
-		tb_op_in = 
-		tb_is_imm_in = 
-		tb_imm_in = 
-		tb_A_unneeded_in = 
-		tb_A_forward_in = 
-		tb_A_bank_in = 
-		tb_B_forward_in = 
-		tb_B_bank_in = 
-		tb_dest_PR_in = 
+		tb_valid_in = 1'b0;
+		tb_op_in = 4'b0000;
+		tb_is_imm_in = 1'b0;
+		tb_imm_in = 32'h0;
+		tb_A_unneeded_in = 1'b0;
+		tb_A_forward_in = 1'b0;
+		tb_A_bank_in = 2'h0;
+		tb_B_forward_in = 1'b0;
+		tb_B_bank_in = 2'h0;
+		tb_dest_PR_in = 6'h0;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid_in = 
-		tb_B_reg_read_valid_in = 
-		tb_reg_read_data_by_bank_in = 
+		tb_A_reg_read_valid_in = 1'b0;
+		tb_B_reg_read_valid_in = 1'b0;
+		tb_reg_read_data_by_bank_in = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // forward data from PRF
-		tb_forward_data_by_bank_in = 
+		tb_forward_data_by_bank_in = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // ready feedback to ALU IQ
 	    // writeback data to PRF
 
@@ -184,14 +182,13 @@ fill in params
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // ready feedback to ALU IQ
-		expected_ready_out = 
+		expected_ready_out = 1'b1;
 	    // writeback data to PRF
-		expected_WB_valid_out = 
-		expected_WB_data_out = 
-		expected_WB_PR_out = 
+		expected_WB_valid_out = 1'b0;
+		expected_WB_data_out = 32'h0;
+		expected_WB_PR_out = 6'h0;
 
 		check_outputs();
-fill in ^
 
         // inputs:
         sub_test_case = "deassert reset";
@@ -200,22 +197,22 @@ fill in ^
 		// reset
 		nRST = 1'b1;
 	    // ALU op issue from ALU IQ
-		tb_valid_in = 
-		tb_op_in = 
-		tb_is_imm_in = 
-		tb_imm_in = 
-		tb_A_unneeded_in = 
-		tb_A_forward_in = 
-		tb_A_bank_in = 
-		tb_B_forward_in = 
-		tb_B_bank_in = 
-		tb_dest_PR_in = 
+		tb_valid_in = 1'b0;
+		tb_op_in = 4'b0000;
+		tb_is_imm_in = 1'b0;
+		tb_imm_in = 32'h0;
+		tb_A_unneeded_in = 1'b0;
+		tb_A_forward_in = 1'b0;
+		tb_A_bank_in = 2'h0;
+		tb_B_forward_in = 1'b0;
+		tb_B_bank_in = 2'h0;
+		tb_dest_PR_in = 6'h0;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid_in = 
-		tb_B_reg_read_valid_in = 
-		tb_reg_read_data_by_bank_in = 
+		tb_A_reg_read_valid_in = 1'b0;
+		tb_B_reg_read_valid_in = 1'b0;
+		tb_reg_read_data_by_bank_in = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // forward data from PRF
-		tb_forward_data_by_bank_in = 
+		tb_forward_data_by_bank_in = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // ready feedback to ALU IQ
 	    // writeback data to PRF
 
@@ -227,14 +224,13 @@ fill in ^
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // ready feedback to ALU IQ
-		expected_ready_out = 
+		expected_ready_out = 1'b1;
 	    // writeback data to PRF
-		expected_WB_valid_out = 
-		expected_WB_data_out = 
-		expected_WB_PR_out = 
+		expected_WB_valid_out = 1'b0;
+		expected_WB_data_out = 32'h0;
+		expected_WB_PR_out = 6'h0;
 
 		check_outputs();
-fill in ^
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////
         // default:
@@ -251,22 +247,22 @@ fill in ^
 		// reset
 		nRST = 1'b1;
 	    // ALU op issue from ALU IQ
-		tb_valid_in = 
-		tb_op_in = 
-		tb_is_imm_in = 
-		tb_imm_in = 
-		tb_A_unneeded_in = 
-		tb_A_forward_in = 
-		tb_A_bank_in = 
-		tb_B_forward_in = 
-		tb_B_bank_in = 
-		tb_dest_PR_in = 
+		tb_valid_in = 1'b0;
+		tb_op_in = 4'b0000;
+		tb_is_imm_in = 1'b0;
+		tb_imm_in = 32'h0;
+		tb_A_unneeded_in = 1'b0;
+		tb_A_forward_in = 1'b0;
+		tb_A_bank_in = 2'h0;
+		tb_B_forward_in = 1'b0;
+		tb_B_bank_in = 2'h0;
+		tb_dest_PR_in = 6'h0;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid_in = 
-		tb_B_reg_read_valid_in = 
-		tb_reg_read_data_by_bank_in = 
+		tb_A_reg_read_valid_in = 1'b0;
+		tb_B_reg_read_valid_in = 1'b0;
+		tb_reg_read_data_by_bank_in = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // forward data from PRF
-		tb_forward_data_by_bank_in = 
+		tb_forward_data_by_bank_in = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // ready feedback to ALU IQ
 	    // writeback data to PRF
 
@@ -278,14 +274,13 @@ fill in ^
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // ready feedback to ALU IQ
-		expected_ready_out = 
+		expected_ready_out = 1'b1;
 	    // writeback data to PRF
-		expected_WB_valid_out = 
-		expected_WB_data_out = 
-		expected_WB_PR_out = 
+		expected_WB_valid_out = 1'b0;
+		expected_WB_data_out = 32'h0;
+		expected_WB_PR_out = 6'h0;
 
 		check_outputs();
-fill in ^
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////
         // finish:
