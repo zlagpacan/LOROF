@@ -3,7 +3,6 @@
     Author: zlagpacan
     Description: RTL for ALU Pipeline
     Spec: LOROF/spec/design/alu_pipeline.md
-    RTL Diagram: 
 */
 
 `include "core_types_pkg.vh"
