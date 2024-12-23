@@ -4,11 +4,12 @@
     Author   : Adam Keith
 */
 
-`ifndef ALU_PIPELINE_IF_VH
-`define ALU_PIPELINE_IF_VH
+`ifndef ALU_PIPELINE_IF_SV
+`define ALU_PIPELINE_IF_SV
 
 // --- Dependencies --- //
 `include "core_types_pkg.vh"
+import core_types_pkg::*;
 
 // --- ALU Pipeline Interface --- //
 interface alu_pipeline_if (input CLK);
