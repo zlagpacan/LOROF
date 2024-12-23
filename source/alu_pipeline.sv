@@ -1,36 +1,9 @@
 /*
     Filename: alu_pipeline.sv
     Author: zlagpacan
-    Description: 
-        
-        alu_pipeline module
-
-        RTL for ALU Pipeline. Bandwidth of 1 ALU op per cycle. 
-
-        Supported ops:
-            - 0000: Out = A + B
-            - 0001: Out = A << B[4:0]
-            - 0010: Out = signed(A) < signed(B)
-            - 0011: Out = A < B
-            - 0100: Out = A ^ B
-            - 0101: Out = A >> B[4:0]
-            - 0110: Out = A | B
-            - 0111: Out = A & B
-            - 1000: Out = A - B
-            - 1101: Out = signed(A) >>> B[4:0]
-            - 1111: Out = B
-        
-        Interfaces:
-            - ALU op issue from ALU IQ
-            - reg read data from PRF
-            - forward data from PRF
-            - ready feedback to ALU IQ
-            - writeback data to PRF
-
-        Pipeline Stages:
-            - Operand Collection (OC)
-            - EXecute (EX)
-            - WriteBack (WB)
+    Description: RTL for ALU Pipeline
+    Spec: LOROF/spec/design/alu_pipeline.md
+    RTL Diagram: 
 */
 
 `include "core_types_pkg.vh"
@@ -54,12 +27,12 @@ module alu_pipeline #() (
     input logic [LOG_PRF_BANK_COUNT-1:0] B_bank_in,
     input logic [LOG_PR_COUNT-1:0] dest_PR_in
 
-    // reg read data from PRF
+    // reg read info and data from PRF
     input logic A_reg_read_valid_in,
     input logic B_reg_read_valid_in,
+    input logic [PRF_BANK_COUNT-1:0][31:0] reg_read_data_by_bank_in,
 
     // forward data from PRF
-    input logic [PRF_BANK_COUNT-1:0][31:0] reg_read_data_by_bank_in,
     input logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank_in,
 
     // ready feedback to ALU IQ
@@ -79,8 +52,10 @@ module alu_pipeline #() (
     logic is_imm_OC;
     logic [31:0] imm_OC;
     logic A_unneeded_OC;
+    logic A_saved_OC;
     logic A_forward_OC;
     logic [LOG_PRF_BANK_COUNT-1:0] A_bank_OC;
+    logic B_saved_OC;
     logic B_forward_OC;
     logic [LOG_PRF_BANK_COUNT-1:0] B_bank_OC;
     logic [LOG_PR_COUNT-1:0] dest_PR_OC;
@@ -102,8 +77,10 @@ module alu_pipeline #() (
             is_imm_OC <= 1'b0;
             imm_OC <= 32'h0;
             A_unneeded_OC <= 1'b0;
+            A_saved_OC <= 1'b0;
             A_forward_OC <= 1'b0;
             A_bank_OC <= '0;
+            B_saved_OC <= 1'b0;
             B_forward_OC <= 1'b0;
             B_bank_OC <= '0;
             dest_PR_OC <= '0;
@@ -114,9 +91,11 @@ module alu_pipeline #() (
             is_imm_OC <= is_imm_OC;
             imm_OC <= imm_OC;
             A_unneeded_OC <= A_unneeded_OC;
-            A_forward_OC <= A_forward_OC;
+            A_saved_OC <= A_saved_OC | A_forward_OC | A_reg_read_valid_in;
+            A_forward_OC <= 1'b0;
             A_bank_OC <= A_bank_OC;
-            B_forward_OC <= B_forward_OC;
+            B_saved_OC <= B_saved_OC | B_forward_OC | B_reg_read_valid_in;
+            B_forward_OC <= 1'b0;
             B_bank_OC <= B_bank_OC;
             dest_PR_OC <= dest_PR_OC;
         end
@@ -135,9 +114,9 @@ module alu_pipeline #() (
     end
 
     assign launch_ready_OC = 
-        (A_unneeded_OC | A_forward_OC | A_reg_read_valid_in)
+        (A_unneeded_OC | A_saved_OC | A_forward_OC | A_reg_read_valid_in)
         & 
-        (is_imm_OC | B_forward_OC | B_reg_read_valid_in)
+        (is_imm_OC | B_saved_OC | B_forward_OC | B_reg_read_valid_in)
     ;
     assign ready_out = ~valid_OC | launch_ready_OC;
     assign stall_OC = ~ready_out;
@@ -145,13 +124,18 @@ module alu_pipeline #() (
     assign next_valid_EX = valid_OC & launch_ready_OC
     assign next_op_EX = op_OC;
     assign next_dest_PR_EX = dest_PR_OC;
+
     always_comb begin
-        if (A_forward_OC)
+        if (A_saved_OC)
+            next_A_EX = A_EX;
+        else if (A_forward_OC)
             next_A_EX = forward_data_by_bank_in[A_bank_OC];
         else 
             next_A_EX = reg_read_data_by_bank_in[A_bank_OC];
 
-        if (is_imm_OC)
+        if (B_saved_OC)
+            next_B_EX = B_EX;
+        else if (is_imm_OC)
             next_B_EX = imm_OC;
         else if (B_forward_OC)
             next_B_EX = forward_data_by_bank_in[B_bank_OC];
