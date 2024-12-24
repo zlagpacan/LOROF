@@ -58,15 +58,19 @@
 - ready_out
     - indicate that pipeline is ready for a new op to be issued into it
     - this is true if the OC Stage does not have an op or the op is not stalled
+    - ON RESET: 1'b1
 
 ### writeback data to PRF
 - WB_valid_out
     - indicate if writeback is to be performed
     - this should be high for as many cycles as valid ops issued into the pipeline
+    - ON RESET: 1'b0
 - WB_data_out
     - writeback data value to write
+    - ON RESET: 32'h0
 - WB_PR_out
     - Physical Register to writeback data value to
+    - ON RESET: 6'h0
 
 ## Pipeline Stages:
 
