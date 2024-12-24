@@ -1,0 +1,11 @@
+Name,Test Case ID,Description,Requirements - Function,Requirements - Coverage,Test Case Type,Weight,Satisfied - Function,Satisfied - Coverage
+Power-on-Reset,ALP0,Tests that all DUT outputs return to specified reset value after non-zero functional stimulus.,ready_out is set high and rest of the functional outputs return to zero,TBD,Generic UVM Sequence,1,NO,NO
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
