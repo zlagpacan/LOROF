@@ -73,7 +73,7 @@
     - Physical Register to writeback data value to
     - ON RESET: 6'h0
 
-## Pipeline Stages:
+## Pipeline Stages
 
 ### Operand Collection (OC)
 - collect operand data values
