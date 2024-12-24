@@ -110,6 +110,11 @@ module alu_iq (
         issue_B_bank = B_PR_by_entry[0][1:0];
         issue_dest_PR = dest_PR_by_entry[0];
 
+        PRF_req_A_valid = 1'b0;
+        PRF_req_A_PR = A_PR_by_entry[0];
+        PRF_req_B_valid = 1'b0;
+        PRF_req_B_PR = B_PR_by_entry[0];
+
         if (op_ready_by_entry[0]) begin
 
             issue_mask = 4'b1111;
@@ -124,6 +129,11 @@ module alu_iq (
             issue_B_forward = B_forward_by_entry[0];
             issue_B_bank = B_PR_by_entry[0][1:0];
             issue_dest_PR = dest_PR_by_entry[0];
+
+            PRF_req_A_valid = ~A_unneeded_by_entry[0] & ~A_forward_by_entry[0];
+            PRF_req_A_PR = A_PR_by_entry[0];
+            PRF_req_B_valid = ~is_imm_by_entry[0] & ~B_forward_by_entry[0];
+            PRF_req_B_PR = B_PR_by_entry[0];
         end
         else if (op_ready_by_entry[1]) begin
             
@@ -139,6 +149,11 @@ module alu_iq (
             issue_B_forward = B_forward_by_entry[1];
             issue_B_bank = B_PR_by_entry[1][1:0];
             issue_dest_PR = dest_PR_by_entry[1];
+
+            PRF_req_A_valid = ~A_unneeded_by_entry[1] & ~A_forward_by_entry[1];
+            PRF_req_A_PR = A_PR_by_entry[1];
+            PRF_req_B_valid = ~is_imm_by_entry[1] & ~B_forward_by_entry[1];
+            PRF_req_B_PR = B_PR_by_entry[1];
         end
         else if (op_ready_by_entry[2]) begin
 
@@ -154,6 +169,11 @@ module alu_iq (
             issue_B_forward = B_forward_by_entry[2];
             issue_B_bank = B_PR_by_entry[2][1:0];
             issue_dest_PR = dest_PR_by_entry[2];
+
+            PRF_req_A_valid = ~A_unneeded_by_entry[2] & ~A_forward_by_entry[2];
+            PRF_req_A_PR = A_PR_by_entry[2];
+            PRF_req_B_valid = ~is_imm_by_entry[2] & ~B_forward_by_entry[2];
+            PRF_req_B_PR = B_PR_by_entry[2];
         end
         else if (op_ready_by_entry[3]) begin
 
@@ -169,6 +189,11 @@ module alu_iq (
             issue_B_forward = B_forward_by_entry[3];
             issue_B_bank = B_PR_by_entry[3][1:0];
             issue_dest_PR = dest_PR_by_entry[3];
+
+            PRF_req_A_valid = ~A_unneeded_by_entry[3] & ~A_forward_by_entry[3];
+            PRF_req_A_PR = A_PR_by_entry[3];
+            PRF_req_B_valid = ~is_imm_by_entry[3] & ~B_forward_by_entry[3];
+            PRF_req_B_PR = B_PR_by_entry[3];
         end
     end
 
