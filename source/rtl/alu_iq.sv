@@ -26,9 +26,15 @@ module alu_iq (
     input logic [3:0]                       dispatch_B_ready_by_entry,
     input logic [3:0][LOG_PR_COUNT-1:0]     dispatch_dest_PR_by_entry,
 
+    // ALU op dispatch feedback by entry
+    output logic [3:0] dispatch_open_by_entry,
+
+    // ALU pipeline feedback
+    input logic pipeline_ready,
+
     // writeback bus
-    input logic [LOG_PRF_BANK_COUNT-1:0]                                        WB_valid_by_bank,
-    input logic [LOG_PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]   WB_upper_PR_by_bank,
+    input logic [PRF_BANK_COUNT-1:0]                                        WB_valid_by_bank,
+    input logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]   WB_upper_PR_by_bank,
 
     // ALU op issue to ALU pipeline
     output logic                            issue_valid,
@@ -87,7 +93,9 @@ module alu_iq (
     end
 
     assign op_ready_by_entry = 
-        valid_by_entry 
+        {4{pipeline_ready}}
+        &
+        valid_by_entry
         &
         (A_unneeded_by_entry | A_ready_by_entry | A_forward_by_entry)
         &
@@ -208,6 +216,8 @@ module alu_iq (
         // 3 can't take above
         take_above_mask[3] = 1'b0;
     end
+
+    assign dispatch_open_by_entry = ~take_above_mask & ~take_self_mask;
 
     ////////////////////////////////
     // IQ entry next state logic: //

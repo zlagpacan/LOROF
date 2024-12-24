@@ -45,9 +45,15 @@ module alu_iq_tb ();
 	logic [3:0] tb_dispatch_B_ready_by_entry;
 	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_dest_PR_by_entry;
 
+    // ALU op dispatch feedback by entry
+    logic [3:0] DUT_dispatch_open_by_entry, expected_dispatch_open_by_entry;
+
+    // ALU pipeline feedback
+    logic tb_pipeline_ready;
+
     // writeback bus
-	logic [LOG_PRF_BANK_COUNT-1:0] tb_WB_valid_by_bank;
-	logic [LOG_PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] tb_WB_upper_PR_by_bank;
+	logic [PRF_BANK_COUNT-1:0] tb_WB_valid_by_bank;
+	logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] tb_WB_upper_PR_by_bank;
 
     // ALU op issue to ALU pipeline
 	logic DUT_issue_valid, expected_issue_valid;
@@ -71,10 +77,10 @@ module alu_iq_tb ();
     // DUT instantiation:
 
 	alu_iq DUT (
+
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
-
 
 	    // ALU op dispatch by entry
 		.dispatch_valid_by_entry(tb_dispatch_valid_by_entry),
@@ -87,6 +93,12 @@ module alu_iq_tb ();
 		.dispatch_is_imm_by_entry(tb_dispatch_is_imm_by_entry),
 		.dispatch_B_ready_by_entry(tb_dispatch_B_ready_by_entry),
 		.dispatch_dest_PR_by_entry(tb_dispatch_dest_PR_by_entry),
+
+        // ALU op dispatch feedback by entry
+        .dispatch_open_by_entry(DUT_dispatch_open_by_entry),
+
+        // ALU pipeline feedback
+        .pipeline_ready(tb_pipeline_ready),
 
 	    // writeback bus
 		.WB_valid_by_bank(tb_WB_valid_by_bank),
@@ -116,6 +128,13 @@ module alu_iq_tb ();
 
     task check_outputs();
     begin
+		if (expected_dispatch_open_by_entry !== DUT_dispatch_open_by_entry) begin
+			$display("TB ERROR: expected_dispatch_open_by_entry (%h) != DUT_dispatch_open_by_entry (%h)",
+				expected_dispatch_open_by_entry, DUT_dispatch_open_by_entry);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_issue_valid !== DUT_issue_valid) begin
 			$display("TB ERROR: expected_issue_valid (%h) != DUT_issue_valid (%h)",
 				expected_issue_valid, DUT_issue_valid);
@@ -247,6 +266,9 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+        // ALU op dispatch feedback by entry
+        // ALU pipeline feedback
+        tb_pipeline_ready = 1'b1;
 	    // writeback bus
 		tb_WB_valid_by_bank = 4'b0000;
 		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
@@ -258,6 +280,9 @@ module alu_iq_tb ();
 		// outputs:
 
 	    // ALU op dispatch by entry
+        // ALU op dispatch feedback by entry
+        expected_dispatch_open_by_entry = 4'b1111;
+        // ALU pipeline feedback
 	    // writeback bus
 	    // ALU op issue to ALU pipeline
 		expected_issue_valid = 1'b0;
@@ -295,6 +320,9 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+        // ALU op dispatch feedback by entry
+        // ALU pipeline feedback
+        tb_pipeline_ready = 1'b1;
 	    // writeback bus
 		tb_WB_valid_by_bank = 4'b0000;
 		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
@@ -306,6 +334,9 @@ module alu_iq_tb ();
 		// outputs:
 
 	    // ALU op dispatch by entry
+        // ALU op dispatch feedback by entry
+        expected_dispatch_open_by_entry = 4'b1111;
+        // ALU pipeline feedback
 	    // writeback bus
 	    // ALU op issue to ALU pipeline
 		expected_issue_valid = 1'b0;
@@ -327,8 +358,8 @@ module alu_iq_tb ();
 		check_outputs();
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////
-        // simple ready's:
-        test_case = "simple ready's";
+        // simple chain:
+        test_case = "simple chain";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
@@ -336,7 +367,10 @@ module alu_iq_tb ();
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
-            "dispatch: ADD p1, p2:r, p3:r", "\n\t\t",
+            "dispatch3: NOP", "\n\t\t",
+            "dispatch2: NOP", "\n\t\t",
+            "dispatch1: NOP", "\n\t\t",
+            "dispatch0: ADD p3, p1:r, p2:r", "\n\t\t",
             "IQ3: NOP", "\n\t\t",
             "IQ2: NOP", "\n\t\t",
             "IQ1: NOP", "\n\t\t",
@@ -348,16 +382,19 @@ module alu_iq_tb ();
 		// reset
 		nRST = 1'b1;
 	    // ALU op dispatch by entry
-		tb_dispatch_valid_by_entry = 4'b0000;
+		tb_dispatch_valid_by_entry = 4'b0001;
 		tb_dispatch_op_by_entry = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
 		tb_dispatch_imm_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_A_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_A_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h1};
 		tb_dispatch_A_unneeded_by_entry = 4'b0000;
-		tb_dispatch_A_ready_by_entry = 4'b0000;
-		tb_dispatch_B_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_A_ready_by_entry = 4'b0001;
+		tb_dispatch_B_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h2};
 		tb_dispatch_is_imm_by_entry = 4'b0000;
-		tb_dispatch_B_ready_by_entry = 4'b0000;
-		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_B_ready_by_entry = 4'b0001;
+		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h3};
+        // ALU op dispatch feedback by entry
+        // ALU pipeline feedback
+        tb_pipeline_ready = 1'b1;
 	    // writeback bus
 		tb_WB_valid_by_bank = 4'b0000;
 		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
@@ -369,6 +406,75 @@ module alu_iq_tb ();
 		// outputs:
 
 	    // ALU op dispatch by entry
+        // ALU op dispatch feedback by entry
+        expected_dispatch_open_by_entry = 4'b1111;
+        // ALU pipeline feedback
+	    // writeback bus
+	    // ALU op issue to ALU pipeline
+		expected_issue_valid = 1'b0;
+		expected_issue_op = 4'b0000;
+		expected_issue_is_imm = 1'b0;
+		expected_issue_imm = 32'h0;
+		expected_issue_A_unneeded = 1'b0;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_bank = 2'h0;
+		expected_issue_B_forward = 1'b0;
+		expected_issue_B_bank = 2'h0;
+		expected_issue_dest_PR = 6'h0;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b0;
+		expected_PRF_req_A_PR = 6'h0;
+		expected_PRF_req_B_valid = 1'b0;
+		expected_PRF_req_B_PR = 6'h0;
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = {"\n\t\t", 
+            "dispatch3: NOP", "\n\t\t",
+            "dispatch2: NOP", "\n\t\t",
+            "dispatch1: NOP", "\n\t\t",
+            "dispatch0: SLL p6, p4:f, p5:r", "\n\t\t",
+            "IQ3: NOP", "\n\t\t",
+            "IQ2: NOP", "\n\t\t",
+            "IQ1: NOP", "\n\t\t",
+            "IQ0: ADD p1, p2:r, p3:r", "\n\t\t",
+            "issue: ADD p1, p2:r, p3:r", "\n\t\t"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // ALU op dispatch by entry
+		tb_dispatch_valid_by_entry = 4'b0001;
+		tb_dispatch_op_by_entry = {4'b0000, 4'b0000, 4'b0000, 4'b0001};
+		tb_dispatch_imm_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
+		tb_dispatch_A_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h4};
+		tb_dispatch_A_unneeded_by_entry = 4'b0000;
+		tb_dispatch_A_ready_by_entry = 4'b0000;
+		tb_dispatch_B_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h5};
+		tb_dispatch_is_imm_by_entry = 4'b0000;
+		tb_dispatch_B_ready_by_entry = 4'b0001;
+		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h6};
+        // ALU op dispatch feedback by entry
+        // ALU pipeline feedback
+        tb_pipeline_ready = 1'b1;
+	    // writeback bus
+		tb_WB_valid_by_bank = 4'b0000;
+		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
+	    // ALU op issue to ALU pipeline
+	    // reg read req to PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // ALU op dispatch by entry
+        // ALU op dispatch feedback by entry
+        expected_dispatch_open_by_entry = 4'b1111;
+        // ALU pipeline feedback
 	    // writeback bus
 	    // ALU op issue to ALU pipeline
 		expected_issue_valid = 1'b0;
