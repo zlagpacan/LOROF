@@ -48,7 +48,6 @@ module alu_iq_tb ();
     // writeback bus
 	logic [LOG_PRF_BANK_COUNT-1:0] tb_WB_valid_by_bank;
 	logic [LOG_PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] tb_WB_upper_PR_by_bank;
-	logic [LOG_PRF_BANK_COUNT-1:0][31:0] tb_WB_data_by_bank;
 
     // ALU op issue to ALU pipeline
 	logic DUT_issue_valid, expected_issue_valid;
@@ -92,7 +91,6 @@ module alu_iq_tb ();
 	    // writeback bus
 		.WB_valid_by_bank(tb_WB_valid_by_bank),
 		.WB_upper_PR_by_bank(tb_WB_upper_PR_by_bank),
-		.WB_data_by_bank(tb_WB_data_by_bank),
 
 	    // ALU op issue to ALU pipeline
 		.issue_valid(DUT_issue_valid),
@@ -229,7 +227,7 @@ module alu_iq_tb ();
         ///////////////////////////////////////////////////////////////////////////////////////////////////
         // reset:
         test_case = "reset";
-        $display("\ntest %d: %s", test_num, test_case);
+        $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
         // inputs:
@@ -252,7 +250,6 @@ module alu_iq_tb ();
 	    // writeback bus
 		tb_WB_valid_by_bank = 4'b0000;
 		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
-		tb_WB_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -301,7 +298,6 @@ module alu_iq_tb ();
 	    // writeback bus
 		tb_WB_valid_by_bank = 4'b0000;
 		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
-		tb_WB_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -331,15 +327,22 @@ module alu_iq_tb ();
 		check_outputs();
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////
-        // default:
-        test_case = "default";
-        $display("\ntest %d: %s", test_num, test_case);
+        // simple ready's:
+        test_case = "simple ready's";
+        $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK);
 
 		// inputs
-		sub_test_case = "default";
+		sub_test_case = {"\n\t\t", 
+            "dispatch: ADD p1, p2:r, p3:r", "\n\t\t",
+            "IQ3: NOP", "\n\t\t",
+            "IQ2: NOP", "\n\t\t",
+            "IQ1: NOP", "\n\t\t",
+            "IQ0: NOP", "\n\t\t",
+            "issue: NOP", "\n\t\t"
+        };
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -358,7 +361,6 @@ module alu_iq_tb ();
 	    // writeback bus
 		tb_WB_valid_by_bank = 4'b0000;
 		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
-		tb_WB_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -392,7 +394,7 @@ module alu_iq_tb ();
         @(posedge CLK);
         
         test_case = "finish";
-        $display("\ntest %d: %s", test_num, test_case);
+        $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
         @(posedge CLK);

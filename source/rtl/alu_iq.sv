@@ -29,7 +29,6 @@ module alu_iq (
     // writeback bus
     input logic [LOG_PRF_BANK_COUNT-1:0]                                        WB_valid_by_bank,
     input logic [LOG_PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]   WB_upper_PR_by_bank,
-    input logic [LOG_PRF_BANK_COUNT-1:0][31:0]                                  WB_data_by_bank,
 
     // ALU op issue to ALU pipeline
     output logic                            issue_valid,
@@ -200,10 +199,14 @@ module alu_iq (
     assign take_self_mask = valid_by_entry & ~issue_mask;
 
     always_comb begin
-        take_above_mask[3] = 1'b0;
+
+        // 0:2 can take above
         for (int i = 0; i < 3; i++) begin
             take_above_mask[i] = valid_by_entry[i+1] & issue_mask[i];
         end
+
+        // 3 can't take above
+        take_above_mask[3] = 1'b0;
     end
 
     ////////////////////////////////

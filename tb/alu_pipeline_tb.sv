@@ -145,7 +145,7 @@ module alu_pipeline_tb ();
         ///////////////////////////////////////////////////////////////////////////////////////////////////
         // reset:
         test_case = "reset";
-        $display("\ntest %d: %s", test_num, test_case);
+        $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
         // inputs:
@@ -235,7 +235,7 @@ module alu_pipeline_tb ();
         ///////////////////////////////////////////////////////////////////////////////////////////////////
         // default:
         test_case = "default";
-        $display("\ntest %d: %s", test_num, test_case);
+        $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK);
@@ -287,7 +287,7 @@ module alu_pipeline_tb ();
         @(posedge CLK);
         
         test_case = "finish";
-        $display("\ntest %d: %s", test_num, test_case);
+        $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
         @(posedge CLK);
