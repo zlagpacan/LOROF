@@ -15,21 +15,21 @@ module alu_pipeline (
     input logic nRST,
 
     // ALU op issue from ALU IQ
-    input logic valid_in,
-    input logic [3:0] op_in,
-    input logic is_imm_in,
-    input logic [31:0] imm_in,
-    input logic A_unneeded_in,
-    input logic A_forward_in,
-    input logic [LOG_PRF_BANK_COUNT-1:0] A_bank_in,
-    input logic B_forward_in,
-    input logic [LOG_PRF_BANK_COUNT-1:0] B_bank_in,
-    input logic [LOG_PR_COUNT-1:0] dest_PR_in,
+    input logic                             valid_in,
+    input logic [3:0]                       op_in,
+    input logic                             is_imm_in,
+    input logic [31:0]                      imm_in,
+    input logic                             A_unneeded_in,
+    input logic                             A_forward_in,
+    input logic [LOG_PRF_BANK_COUNT-1:0]    A_bank_in,
+    input logic                             B_forward_in,
+    input logic [LOG_PRF_BANK_COUNT-1:0]    B_bank_in,
+    input logic [LOG_PR_COUNT-1:0]          dest_PR_in,
 
     // reg read info and data from PRF
-    input logic A_reg_read_valid_in,
-    input logic B_reg_read_valid_in,
-    input logic [PRF_BANK_COUNT-1:0][31:0] reg_read_data_by_bank_in,
+    input logic                             A_reg_read_valid_in,
+    input logic                             B_reg_read_valid_in,
+    input logic [PRF_BANK_COUNT-1:0][31:0]  reg_read_data_by_bank_in,
 
     // forward data from PRF
     input logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank_in,
@@ -38,48 +38,48 @@ module alu_pipeline (
     output logic ready_out,
 
     // writeback data to PRF
-    output logic WB_valid_out,
-    output logic [31:0] WB_data_out,
-    output logic [LOG_PR_COUNT-1:0] WB_PR_out
+    output logic                        WB_valid_out,
+    output logic [31:0]                 WB_data_out,
+    output logic [LOG_PR_COUNT-1:0]     WB_PR_out
 );
 
     // ----------------------------------------------------------------
     // OC Stage Signals:
 
-    logic valid_OC;
-    logic [3:0] op_OC;
-    logic is_imm_OC;
-    logic [31:0] imm_OC;
-    logic A_unneeded_OC;
-    logic A_saved_OC;
-    logic A_forward_OC;
-    logic [LOG_PRF_BANK_COUNT-1:0] A_bank_OC;
-    logic B_saved_OC;
-    logic B_forward_OC;
-    logic [LOG_PRF_BANK_COUNT-1:0] B_bank_OC;
-    logic [LOG_PR_COUNT-1:0] dest_PR_OC;
+    logic                           valid_OC;
+    logic [3:0]                     op_OC;
+    logic                           is_imm_OC;
+    logic [31:0]                    imm_OC;
+    logic                           A_unneeded_OC;
+    logic                           A_saved_OC;
+    logic                           A_forward_OC;
+    logic [LOG_PRF_BANK_COUNT-1:0]  A_bank_OC;
+    logic                           B_saved_OC;
+    logic                           B_forward_OC;
+    logic [LOG_PRF_BANK_COUNT-1:0]  B_bank_OC;
+    logic [LOG_PR_COUNT-1:0]        dest_PR_OC;
 
     logic launch_ready_OC;
     logic stall_OC;
 
-    logic next_valid_EX;
-    logic [3:0] next_op_EX;
-    logic [31:0] next_A_EX;
-    logic [31:0] next_B_EX;
-    logic [LOG_PR_COUNT-1:0] next_dest_PR_EX;
+    logic                       next_valid_EX;
+    logic [3:0]                 next_op_EX;
+    logic [31:0]                next_A_EX;
+    logic [31:0]                next_B_EX;
+    logic [LOG_PR_COUNT-1:0]    next_dest_PR_EX;
 
     // ----------------------------------------------------------------
     // EX Stage Signals:
 
-    logic valid_EX;
-    logic [3:0] op_EX;
-    logic [31:0] A_EX;
-    logic [31:0] B_EX;
-    logic [LOG_PR_COUNT-1:0] dest_PR_EX;
+    logic                       valid_EX;
+    logic [3:0]                 op_EX;
+    logic [31:0]                A_EX;
+    logic [31:0]                B_EX;
+    logic [LOG_PR_COUNT-1:0]    dest_PR_EX;
 
-    logic next_WB_valid_out;
-    logic [31:0] next_WB_data_out;
-    logic [LOG_PR_COUNT-1:0] next_WB_PR_out;
+    logic                       next_WB_valid_out;
+    logic [31:0]                next_WB_data_out;
+    logic [LOG_PR_COUNT-1:0]    next_WB_PR_out;
 
     // ----------------------------------------------------------------
     // WB Stage Signals:
