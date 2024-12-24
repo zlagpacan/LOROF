@@ -1,6 +1,7 @@
 # alu_pipeline
 - backend pipeline for ALU operations
-- bandwidth of 1 ALU op per cycle
+- bandwidth of up to 1 ALU op executed per cycle
+- up to 1 issued ALU op accepted per cycle
 - accepts ALU ops from ALU Issue Queue, waiting for operands to be ready via forwarding or register reads from the Physical Register File, or immediates from the ALU Issue Queue
 - stalls when required operands not all ready
     - only OC Stage is stalled
