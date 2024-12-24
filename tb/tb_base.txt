@@ -57,7 +57,7 @@ module <design_name>_tb ();
         ///////////////////////////////////////////////////////////////////////////////////////////////////
         // reset:
         test_case = "reset";
-        $display("\ntest %d: %s", test_num, test_case);
+        $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
         // inputs:
@@ -77,7 +77,7 @@ fill in ^
         ///////////////////////////////////////////////////////////////////////////////////////////////////
         // default:
         test_case = "default";
-        $display("\ntest %d: %s", test_num, test_case);
+        $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 <default test case>
@@ -88,7 +88,7 @@ fill in ^
         @(posedge CLK);
         
         test_case = "finish";
-        $display("\ntest %d: %s", test_num, test_case);
+        $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
         @(posedge CLK);
