@@ -15,7 +15,7 @@ import core_types_pkg::*;
 interface alu_pipeline_if (input CLK);
 
     // --- Sequence --- //    
-    input logic nRST;
+    logic                            nRST;
 
     // --- OP Issue From IQ --- //
     logic                             valid_in;
@@ -48,6 +48,7 @@ interface alu_pipeline_if (input CLK);
     // --- DUT Modport --- //
     modport mp_dut (
         // --- Inputs --- //
+        input  logic nRST,
         input  logic valid_in,
         input  logic op_in,
         input  logic imm_in,
