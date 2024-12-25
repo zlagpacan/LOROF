@@ -50,8 +50,8 @@ class alu_pipeline_agent extends uvm_agent;
         alu_pipeline_mon = alu_pipeline_monitor::type_id::create("alu_pipeline_mon", this);
 
         if(!uvm_config_db #(virtual alu_pipeline_if)::get(this, "", "vif", vif)) begin
-			`uvm_fatal("alu_pipeline_agent", "No virtual interface for alu_pipeline_if")
-		end
+            `uvm_fatal("alu_pipeline_agent", "No virtual interface for alu_pipeline_if")
+        end
     endfunction : build_phase
 
     // --- Connect Phase --- //
