@@ -4,8 +4,8 @@
     Author   : Adam Keith
 */
 
-`ifndef ALU_PIPELINE_AGENT_SV
-`define ALU_PIPELINE_AGENT_SV
+`ifndef ALU_PIPELINE_ENV_SV
+`define ALU_PIPELINE_ENV_SV
 
 // --- UVM --- //
 `include "uvm_macros.svh"
