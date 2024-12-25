@@ -43,7 +43,7 @@ class alu_pipeline_monitor extends uvm_monitor;
 	    alu_pipeline_ap = new("alu_pipeline_ap", this);
 
 		if(!uvm_config_db #(virtual alu_pipeline_if)::get(this, "", "vif", vif)) begin
-			`uvm_fatal("alu_pipeline", "No virtual interface for alu_pipeline_if")
+			`uvm_fatal("alu_pipeline_monitor", "No virtual interface for alu_pipeline_if")
 		end
 	endfunction : build_phase
 
