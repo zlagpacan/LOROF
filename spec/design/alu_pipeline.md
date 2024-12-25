@@ -16,7 +16,7 @@
 ### ALU op issue from ALU IQ
 - valid_in
     - indicate that there is a new op issuing from the ALU IQ for this pipeline to accept
-    - ignore the incoming op issue even if this siganl is high if OC stage is stalled on a valid op
+    - ignore the incoming op issue even if this signal is high if OC stage is stalled on a valid op
         - essentially, ignore if ready_out is low
 - op_in
     - see [Supported Ops](#supported-ops)
