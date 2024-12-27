@@ -18,24 +18,34 @@
     - indicate that there is a new op issuing from the ALU IQ for this pipeline to accept
     - ignore the incoming op issue even if this signal is high if OC stage is stalled on a valid op
         - essentially, ignore if ready_out is low
+    - IDLE VALUE: 1'b0
 - op_in
     - see [Supported Ops](#supported-ops)
+    - IDLE VALUE: 4'bx
 - is_imm_in
     - indicate if op should use the immediate data value for operand B
+    - IDLE VALUE: 1'bx
 - imm_in
     - immediate data value
+    - IDLE VALUE: 32'hx
 - A_unneeded_in
     - indicate if op does not require operand A (and so does not need to wait for it to be ready)
+    - IDLE VALUE: 1'bx
 - A_forward_in
     - indicate if operand A should take the forward data on the next cycle
+    - IDLE VALUE: 1'bx
 - A_bank_in
     - indicate which bank operand A should take its forward or reg data from
+    - IDLE VALUE: 2'hx
 - B_forward_in
     - indicate if operand B should take the forward data on the next cycle
+    - IDLE VALUE: 1'bx
 - B_bank_in
     - indicate which bank operand B should take its forward or reg data from
+    - IDLE VALUE: 2'hx
 - dest_PR_in
     - indicate which Physical Register to writeback to
+    - IDLE VALUE: 6'hx
 
 ### reg read info and data from PRF
 - A_reg_read_valid_in
@@ -44,34 +54,39 @@
         - this can be valid at earliest on the cycle after the op is issued and the pipeline is ready
             - essentially, at earliest on the cycle the op first enters Operand Collection stage
         - this can be valid at latest after any delay
+    - IDLE VALUE: 1'b0
 - B_reg_read_valid_in
     - indicate if op should use the current reg read data this cycle for operand B
+    - IDLE VALUE: 1'b0
 - reg_read_data_by_bank_in
     - reg read data values for each bank
     - select data value of interest using previous A_bank_in/B_bank_in value
+    - IDLE VALUE: {32'hx, 32'hx, 32'hx, 32'hx}
 
 ### forward data from PRF
 - forward_data_by_bank_in
     - forward data values for each bank
     - select data value of interest using previous A_bank_in/B_bank_in value
+    - IDLE VALUE: {32'hx, 32'hx, 32'hx, 32'hx}
 
 ### ready feedback to ALU IQ
 - ready_out
     - indicate that pipeline is ready for a new op to be issued into it
     - this is true if the OC Stage does not have an op or the op is not stalled
-    - ON RESET: 1'b1
+    - RESET VALUE: 1'b1
 
 ### writeback data to PRF
 - WB_valid_out
     - indicate if writeback is to be performed
     - this should be high for as many cycles as valid ops issued into the pipeline
-    - ON RESET: 1'b0
+    - if WB_valid_out is low, the remaining signals in this "writeback data to PRF" interface are don't-cares. this implementation chooses the values to follow a 2-cycle delay from the OC stage values. 
+    - RESET VALUE: 1'b0
 - WB_data_out
     - writeback data value to write
-    - ON RESET: 32'h0
+    - RESET VALUE: 32'h0
 - WB_PR_out
     - Physical Register to writeback data value to
-    - ON RESET: 6'h0
+    - RESET VALUE: 6'hx
 
 ## Pipeline Stages
 
