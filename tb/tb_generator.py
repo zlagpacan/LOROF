@@ -481,7 +481,7 @@ if __name__ == "__main__":
         with open("tb_base.txt", "r") as fp:
             tb_base_lines = fp.readlines()
     except:
-        assert False, "could not find testbench/tb_base.txt"
+        assert False, "could not find tb_base.txt"
             
     # run generator algo
     design_name, design_signals = parse_design(design_lines)
@@ -492,4 +492,4 @@ if __name__ == "__main__":
     with open("tb_output.txt", "w") as fp:
         fp.writelines(output_lines)
 
-    print("output tb base written tb_output.txt")
+    print("generated tb in tb_output.txt")

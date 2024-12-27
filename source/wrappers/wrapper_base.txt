@@ -1,0 +1,43 @@
+/*
+    Filename: <design_name>_wrapper.sv
+    Author: zlagpacan
+    Description: RTL wrapper around <design_name> module. 
+    Spec: LOROF/spec/design/<design_name>.md
+*/
+
+`timescale 1ns/100ps
+
+`include "core_types_pkg.vh"
+import core_types_pkg::*;
+
+module <design_name>_wrapper (
+
+    // seq
+    input logic CLK,
+    input logic nRST,
+<wrapper io signals>
+);
+
+    // ----------------------------------------------------------------
+    // Direct Module Connections:
+<raw signals>
+
+    // ----------------------------------------------------------------
+    // Module Instantiation:
+
+    <design_name> WRAPPED_MODULE (.*);
+
+    // ----------------------------------------------------------------
+    // Wrapper Registers:
+
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+<reset wrapper signals>
+fill in ^
+        end
+        else begin
+<latched wrapper signals>
+        end
+    end
+
+endmodule
