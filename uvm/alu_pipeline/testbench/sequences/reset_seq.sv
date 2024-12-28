@@ -12,7 +12,7 @@
 import uvm_pkg::*;
 
 // --- Dependencies --- //
-`include "sequence_item.sv"
+`include "../sequence_item.sv"
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
@@ -41,5 +41,30 @@ class alu_pipeline_rst_seq extends uvm_sequence;
     endtask : body
 
 endclass : alu_pipeline_rst_seq
+
+class alu_pipeline_garbage_seq extends uvm_sequence;
+    `uvm_object_utils(alu_pipeline_garbage_seq)
+
+    alu_pipeline_seq_item garbage_pkt;
+
+    // --- Constructor --- //
+    function new (string name = "alu_pipeline_garbage_seq");
+        super.new(name);
+        `uvm_info("alu_pipeline_garbage_seq", "Constructor", UVM_HIGH)
+    endfunction : new
+
+    // --- Body Task --- //
+    task body ();
+        `uvm_info("alu_pipeline_garbage_seq", "Body", UVM_HIGH)
+        
+        // --- Randomize With Reset --- //
+        garbage_pkt = alu_pipeline_garbage_seq::type_id::create("garbage_pkt");
+        start_item(garbage_pkt);
+        garbage_pkt.randomize() with {nRST == 1'b1;};
+        finish_item(garbage_pkt);
+            
+    endtask : body
+
+endclass : alu_pipeline_garbage_seq
 
 `endif
