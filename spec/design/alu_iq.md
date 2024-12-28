@@ -66,12 +66,15 @@
 ### writeback bus
 - WB_valid_by_bank
     - indicate that writeback is being performed on the associated bank
+        - a writeback indicates that the value is available for forwarding on the next cycle. an op is a contender for issue if its operands are all ready or forwardable on the next cycle.
+        - if an op cannot be issued on this cycle but it sees an operand PR writeback, then the operand's status becomes ready
     - IDLE VALUE: 4'b0000
 - WB_upper_PR_by_bank
     - indicate the upper PR bits which writeback is being performed on by the associated bank
         - PR's are identified by 6 bits
         - there are 4 banks, and the 2 lowest bits of a PR indicate the bank it belongs to
         - a PR can be uniquely identified as being written back to by going to the bank it belongs to and checking waiting for the associated upper 4 bits to receive a writeback
+    - simultaneous writeback is allowed for different PR's if there are no bank conflicts
     - IDLE VALUE: {4'x, 4'x, 4'x, 4'x}
 
 ### ALU op issue to ALU pipeline
@@ -124,9 +127,85 @@
 ## Issue Queue Entries
 - Frontend dispatch is responsible for dispatching valid ops into this issue queue from the oldest/closest to 0 open/invalid entry first, as advertised by dispatch_open_by_entry
 - This issue queue is responsible for maintaining a contiguous order of valid ops from oldest to youngest, starting from entry 0, whilst entries are issued out of the issue queue cycle by cycle, one at a time
+- Issue queue entries track if their ops are contenders for issue, when all of their operands are either unneeded, an immediate, ready, or forwardable next cycle.
 
 ## Example Operation
-- 
+
+### Cycle 0
+![alu_iq Cycle 0 Diagram](alu_iq_cycle_0.png)
+- all issue queue entries are empty/invalid
+- no ops are being dispatched
+- no op is being issued as none are valid
+- since all issue queue entries are empty, all entries are open for dispatch. externally, the Frontend has decided not to dispatch any ops.
+
+### Cycle 1
+![alu_iq Cycle 1 Diagram](alu_iq_cycle_1.png)
+- all issue queue entries are empty/invalid
+- 3 ops are being dispatched, the oldest to entry 0 (ADD), the second oldest to entry 1 (SLTI), and the youngest to entry 2 (SRL)
+- no op is being issued as none are valid
+- since all issue queue entries are empty, all entries are open for dispatch. externally, the Frontend has decided to dispatch 3 ops, which must be at the oldest 3 entries, 0:2. 
+
+### Cycle 2
+![alu_iq Cycle 2 Diagram](alu_iq_cycle_2.png)
+- issue queue entries 0:2 are valid
+    - issue queue entry 0 (ADD) has p2 not ready, so it is NOT a contender to be issued
+    - issue queue entry 1 (SLTI) has p4 ready and an imm, so it is a contender to be issued
+    - issue queue entry 2 (SRL) has p7 not ready, so it is NOT a contender to be issued
+- the op in entry 1 (SLTI) is being issued as it is the oldest (and only) contender which can be issued. this op requires a reg read for p4.
+    - issue queue entry 2 will be shifted to entry 1
+- 1 op (ORI) is being dispatched to entry 2, which is the oldest available entry open as advertised by dispatch_open_by_entry. The Frontend could have chosen to also dispatch into entry 3 but did not. 
+
+### Cycle 3
+![alu_iq Cycle 3 Diagram](alu_iq_cycle_3.png)
+- issue queue entries 0:2 are valid
+    - issue queue entry 0 (ADD) has p2 not ready, so it is NOT a contender to be issued
+    - issue queue entry 1 (SRL) has p7 not ready, so it is NOT a contender to be issued
+    - issue queue entry 2 (ORI) has p9 not ready, so it is NOT a contender to be issued
+- no op is being issued as there are no contenders which can be issued. 
+- 1 op (SUB) is being dispatched to entry 3, which is the oldest and only available entry open as advertised by dispatch_open_by_entry
+
+### Cycle 4
+![alu_iq Cycle 4 Diagram](alu_iq_cycle_4.png)
+- issue queue entries 0:3 are valid
+    - issue queue entry 0 (ADD) has p2 not ready, so it is NOT a contender to be issued
+    - issue queue entry 1 (SRL) has p7 not ready, so it is NOT a contender to be issued
+    - issue queue entry 2 (ORI) has p9 not ready, so it is NOT a contender to be issued
+    - issue queue entry 3 (SUB) has p11 and p12 ready, so it is a contender to be issued
+- no op is being issued as even though there is at least one contender, pipeline_ready = 1'b0 indicates that the pipeline is not ready for an op issue.
+- no ops can be dispatched as there are no available issue queue entries, as advertised by dispatch_open_by_entry
+
+### Cycle 5
+![alu_iq Cycle 5 Diagram](alu_iq_cycle_5.png)
+- issue queue entries 0:3 are valid
+    - issue queue entry 0 (ADD) has p1 ready and p2 forwardable as there is a p2 writeback, so it is a contender to be issued
+    - issue queue entry 1 (SRL) has p7 not ready, so it is NOT a contender to be issued
+    - issue queue entry 2 (ORI) has p9 forwardable as there is a p9 writeback, so it is a contender to be issued
+    - issue queue entry 3 (SUB) has p11 and p12 ready, so it is a contender to be issued
+- the op in entry 0 (ADD) is being issued as it is the oldest contender which can be issued. this op requires a reg read for p1 but p2 can be forwarded.
+    - issue queue entry 1 will be shifted to entry 0
+    - issue queue entry 2 will be shifted to entry 1
+        - p9 was forwardable so it will become ready
+    - issue queue entry 3 will be shifted to entry 2
+- no op is being dispatched by the Frontend but issue queue entry 3 is available for dispatch as advertised by dispatch_open_by_entry
+
+### Cycle 6
+![alu_iq Cycle 6 Diagram](alu_iq_cycle_6.png)
+- issue queue entries 0:2 are valid
+    - issue queue entry 0 (SRL) has p7 not ready, so it is NOT a contender to be issued
+    - issue queue entry 1 (ORI) has p9 ready and imm, so it is a contender to be issued
+        - p9 became ready on the last cycle when there was a p9 writeback but this op wasn't issued
+    - issue queue entry 2 (SUB) has p11 and p12 ready, so it is a contender to be issued
+- the op in entry 1 (ORI) is being issued as it is the oldest contender which can be issued. this op requires a reg read for p9.
+    - issue queue entry 2 will be shifted to entry 1
+- no op is being dispatched by the Frontend but issue queue entries 2:3 are available for dispatch as advertised by dispatch_open_by_entry
+
+### Cycle 7
+![alu_iq Cycle 7 Diagram](alu_iq_cycle_7.png)
+- issue queue entries 0:1 are valid
+    - issue queue entry 0 (SRL) has p7 not ready, so it is NOT a contender to be issued
+    - issue queue entry 1 (SUB) has p11 and p12 ready, so it is a contender to be issued
+- the op in entry 1 (SUB) is being issued as it is the oldest (and only) contender which can be issued. this op requires a reg read for p11 and p12.
+- no op is being dispatched by the Frontend but issue queue entries 1:3 are available for dispatch as advertised by dispatch_open_by_entry
 
 ## Supported Ops
 - 4'b0000: Out = A + B
