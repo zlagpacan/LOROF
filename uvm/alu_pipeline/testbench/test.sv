@@ -1,3 +1,21 @@
+/*
+    Module   : alu_pipeline
+    Filename : test.sv
+    Author   : Adam Keith
+*/
+
+`ifndef ALU_PIPELINE_TEST_SV
+`define ALU_PIPELINE_TEST_SV
+
+// --- UVM --- //
+`include "uvm_macros.svh"
+import uvm_pkg::*;
+
+// --- Dependencies --- //
+`include "core_types_pkg.vh"
+import core_types_pkg::*;
+
+// --- ALU Pipeline Test --- //
 class alu_pipeline_test extends uvm_test;
   `uvm_component_utils(alu_pipeline_test)
 
@@ -43,10 +61,13 @@ class alu_pipeline_test extends uvm_test;
     repeat (4 * CLK_PERIOD) begin
         bogus_pkt = alu_pipeline_garbage_seq::type_id::create("bogus_pkt");
         bogus_pkt.start(env.alu_pipeline_agnt.alu_pipeline_sqr);
-        #(2 * CLK_PERIOD);
+        #(CLK_PERIOD);
     end
 
     // --- Reset Sequence --- //
+    rst_pkt = alu_pipeline_rst_seq::type_id::create("rst_pkt");
+    rst_pkt.start(env.alu_pipeline_agnt.alu_pipeline_sqr);
+    #(2 * CLK_PERIOD);
 
     phase.drop_objection(this);
 
