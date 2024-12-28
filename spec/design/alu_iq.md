@@ -132,21 +132,27 @@
 ## Example Operation
 
 ### Cycle 0
-![alu_iq Cycle 0 Diagram](alu_iq_cycle_0.png)
+<!-- ![alu_iq Cycle 0 Diagram](alu_iq_cycle_0.png) -->
+<img src="alu_iq_cycle_0.png" alt="alu_iq Cycle 0 Diagram" width="400">
+
 - all issue queue entries are empty/invalid
 - no ops are being dispatched
 - no op is being issued as none are valid
 - since all issue queue entries are empty, all entries are open for dispatch. externally, the Frontend has decided not to dispatch any ops.
 
 ### Cycle 1
-![alu_iq Cycle 1 Diagram](alu_iq_cycle_1.png)
+<!-- ![alu_iq Cycle 1 Diagram](alu_iq_cycle_1.png) -->
+<img src="alu_iq_cycle_1.png" alt="alu_iq Cycle 1 Diagram" width="400">
+
 - all issue queue entries are empty/invalid
 - 3 ops are being dispatched, the oldest to entry 0 (ADD), the second oldest to entry 1 (SLTI), and the youngest to entry 2 (SRL)
 - no op is being issued as none are valid
 - since all issue queue entries are empty, all entries are open for dispatch. externally, the Frontend has decided to dispatch 3 ops, which must be at the oldest 3 entries, 0:2. 
 
 ### Cycle 2
-![alu_iq Cycle 2 Diagram](alu_iq_cycle_2.png)
+<!-- ![alu_iq Cycle 2 Diagram](alu_iq_cycle_2.png) -->
+<img src="alu_iq_cycle_2.png" alt="alu_iq Cycle 2 Diagram" width="400">
+
 - issue queue entries 0:2 are valid
     - issue queue entry 0 (ADD) has p2 not ready, so it is NOT a contender to be issued
     - issue queue entry 1 (SLTI) has p4 ready and an imm, so it is a contender to be issued
@@ -156,7 +162,9 @@
 - 1 op (ORI) is being dispatched to entry 2, which is the oldest available entry open as advertised by dispatch_open_by_entry. The Frontend could have chosen to also dispatch into entry 3 but did not. 
 
 ### Cycle 3
-![alu_iq Cycle 3 Diagram](alu_iq_cycle_3.png)
+<!-- ![alu_iq Cycle 3 Diagram](alu_iq_cycle_3.png) -->
+<img src="alu_iq_cycle_3.png" alt="alu_iq Cycle 3 Diagram" width="400">
+
 - issue queue entries 0:2 are valid
     - issue queue entry 0 (ADD) has p2 not ready, so it is NOT a contender to be issued
     - issue queue entry 1 (SRL) has p7 not ready, so it is NOT a contender to be issued
@@ -165,7 +173,9 @@
 - 1 op (SUB) is being dispatched to entry 3, which is the oldest and only available entry open as advertised by dispatch_open_by_entry
 
 ### Cycle 4
-![alu_iq Cycle 4 Diagram](alu_iq_cycle_4.png)
+<!-- ![alu_iq Cycle 4 Diagram](alu_iq_cycle_4.png) -->
+<img src="alu_iq_cycle_4.png" alt="alu_iq Cycle 4 Diagram" width="400">
+
 - issue queue entries 0:3 are valid
     - issue queue entry 0 (ADD) has p2 not ready, so it is NOT a contender to be issued
     - issue queue entry 1 (SRL) has p7 not ready, so it is NOT a contender to be issued
@@ -175,7 +185,9 @@
 - no ops can be dispatched as there are no available issue queue entries, as advertised by dispatch_open_by_entry
 
 ### Cycle 5
-![alu_iq Cycle 5 Diagram](alu_iq_cycle_5.png)
+<!-- ![alu_iq Cycle 5 Diagram](alu_iq_cycle_5.png) -->
+<img src="alu_iq_cycle_5.png" alt="alu_iq Cycle 5 Diagram" width="400">
+
 - issue queue entries 0:3 are valid
     - issue queue entry 0 (ADD) has p1 ready and p2 forwardable as there is a p2 writeback, so it is a contender to be issued
     - issue queue entry 1 (SRL) has p7 not ready, so it is NOT a contender to be issued
@@ -189,7 +201,9 @@
 - no op is being dispatched by the Frontend but issue queue entry 3 is available for dispatch as advertised by dispatch_open_by_entry
 
 ### Cycle 6
-![alu_iq Cycle 6 Diagram](alu_iq_cycle_6.png)
+<!-- ![alu_iq Cycle 6 Diagram](alu_iq_cycle_6.png) -->
+<img src="alu_iq_cycle_6.png" alt="alu_iq Cycle 6 Diagram" width="400">
+
 - issue queue entries 0:2 are valid
     - issue queue entry 0 (SRL) has p7 not ready, so it is NOT a contender to be issued
     - issue queue entry 1 (ORI) has p9 ready and imm, so it is a contender to be issued
@@ -200,7 +214,9 @@
 - no op is being dispatched by the Frontend but issue queue entries 2:3 are available for dispatch as advertised by dispatch_open_by_entry
 
 ### Cycle 7
-![alu_iq Cycle 7 Diagram](alu_iq_cycle_7.png)
+<!-- ![alu_iq Cycle 7 Diagram](alu_iq_cycle_7.png) -->
+<img src="alu_iq_cycle_7.png" alt="alu_iq Cycle 7 Diagram" width="400">
+
 - issue queue entries 0:1 are valid
     - issue queue entry 0 (SRL) has p7 not ready, so it is NOT a contender to be issued
     - issue queue entry 1 (SUB) has p11 and p12 ready, so it is a contender to be issued
