@@ -18,10 +18,12 @@
     - IDLE VALUE: {1'b0, 1'b0, 1'b0, 1'b0}
 - dispatch_op_by_entry
     - see [Supported Ops](#supported-ops)
+    - essentially a pass-through value to the output of the issue queue
     - indexed by IQ entry
     - IDLE VALUE: {4'bx, 4'bx, 4'bx, 4'bx}
 - dispatch_imm_by_entry
     - immediate data value
+    - essentially a pass-through value to the output of the issue queue
     - indexed by IQ entry
     - IDLE VALUE: {32'hx, 32'hx, 32'hx, 32'hx}
 - dispatch_A_PR_by_entry
@@ -49,7 +51,12 @@
     - IDLE VALUE: {1'bx, 1'bx, 1'bx, 1'bx}
 - dispatch_dest_PR_by_entry
     - indicate which physical register to writeback to
+    - essentially a pass-through value to the output of the issue queue
     - indexed by IQ entry
+    - IDLE VALUE: {6'hx, 6'hx, 6'hx, 6'hx}
+- dispatch_ROB_index_by_entry
+    - indicate which ROB index to set as complete
+    - essentially a pass-through value to the output of the issue queue
     - IDLE VALUE: {6'hx, 6'hx, 6'hx, 6'hx}
 
 ### ALU op dispatch feedback by entry
@@ -108,6 +115,9 @@
     - RESET VALUE: 2'h0
 - issue_dest_PR
     - indicate which Physical Register to writeback to
+    - RESET VALUE: 6'h0
+- issue_ROB_index
+    - indicate which ROB index to set as complete
     - RESET VALUE: 6'h0
 
 ### reg read req to PRF

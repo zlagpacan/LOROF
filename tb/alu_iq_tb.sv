@@ -44,6 +44,7 @@ module alu_iq_tb ();
 	logic [3:0] tb_dispatch_is_imm_by_entry;
 	logic [3:0] tb_dispatch_B_ready_by_entry;
 	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_dest_PR_by_entry;
+	logic [3:0][LOG_ROB_ENTRIES-1:0] tb_dispatch_ROB_index_by_entry;
 
     // ALU op dispatch feedback by entry
     logic [3:0] DUT_dispatch_open_by_entry, expected_dispatch_open_by_entry;
@@ -66,6 +67,7 @@ module alu_iq_tb ();
 	logic DUT_issue_B_forward, expected_issue_B_forward;
 	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_B_bank, expected_issue_B_bank;
 	logic [LOG_PR_COUNT-1:0] DUT_issue_dest_PR, expected_issue_dest_PR;
+	logic [3:0][LOG_ROB_ENTRIES-1:0] DUT_issue_ROB_index, expected_issue_ROB_index;
 
     // reg read req to PRF
 	logic DUT_PRF_req_A_valid, expected_PRF_req_A_valid;
@@ -93,6 +95,7 @@ module alu_iq_tb ();
 		.dispatch_is_imm_by_entry(tb_dispatch_is_imm_by_entry),
 		.dispatch_B_ready_by_entry(tb_dispatch_B_ready_by_entry),
 		.dispatch_dest_PR_by_entry(tb_dispatch_dest_PR_by_entry),
+		.dispatch_ROB_index_by_entry(tb_dispatch_ROB_index_by_entry),
 
         // ALU op dispatch feedback by entry
         .dispatch_open_by_entry(DUT_dispatch_open_by_entry),
@@ -115,6 +118,7 @@ module alu_iq_tb ();
 		.issue_B_forward(DUT_issue_B_forward),
 		.issue_B_bank(DUT_issue_B_bank),
 		.issue_dest_PR(DUT_issue_dest_PR),
+		.issue_ROB_index(DUT_issue_ROB_index),
 
 	    // reg read req to PRF
 		.PRF_req_A_valid(DUT_PRF_req_A_valid),
@@ -205,6 +209,13 @@ module alu_iq_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_issue_ROB_index !== DUT_issue_ROB_index) begin
+			$display("TB ERROR: expected_issue_ROB_index (%h) != DUT_issue_ROB_index (%h)",
+				expected_issue_ROB_index, DUT_issue_ROB_index);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_PRF_req_A_valid !== DUT_PRF_req_A_valid) begin
 			$display("TB ERROR: expected_PRF_req_A_valid (%h) != DUT_PRF_req_A_valid (%h)",
 				expected_PRF_req_A_valid, DUT_PRF_req_A_valid);
@@ -266,6 +277,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -295,6 +307,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'h0;
+		expected_issue_ROB_index = 6'h0;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 6'h0;
@@ -320,6 +333,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -349,6 +363,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'h0;
+		expected_issue_ROB_index = 6'h0;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 6'h0;
@@ -370,7 +385,7 @@ module alu_iq_tb ();
             "dispatch3: NOP", "\n\t\t",
             "dispatch2: NOP", "\n\t\t",
             "dispatch1: NOP", "\n\t\t",
-            "dispatch0: ADD p3, p1:r, p2:r", "\n\t\t",
+            "dispatch0: 0: ADD p3, p1:r, p2:r", "\n\t\t",
             "IQ3: NOP", "\n\t\t",
             "IQ2: NOP", "\n\t\t",
             "IQ1: NOP", "\n\t\t",
@@ -392,6 +407,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0001;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h3};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -421,6 +437,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'h0;
+		expected_issue_ROB_index = 6'h0;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 6'h0;
@@ -433,15 +450,15 @@ module alu_iq_tb ();
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
-            "dispatch3: NOP", "\n\t\t",
-            "dispatch2: NOP", "\n\t\t",
-            "dispatch1: NOP", "\n\t\t",
-            "dispatch0: SLL p6, p4:f, p5:r", "\n\t\t",
-            "IQ3: NOP", "\n\t\t",
-            "IQ2: NOP", "\n\t\t",
-            "IQ1: NOP", "\n\t\t",
-            "IQ0: ADD p3, p1:r, p2:r", "\n\t\t",
-            "issue: ADD p3, p1:r, p2:r", "\n\t\t"
+            "dispatch3: i NOP", "\n\t\t",
+            "dispatch2: i NOP", "\n\t\t",
+            "dispatch1: i NOP", "\n\t\t",
+            "dispatch0: v 1: SLL p6, p4:f, p5:r", "\n\t\t",
+            "IQ3: i NOP", "\n\t\t",
+            "IQ2: i NOP", "\n\t\t",
+            "IQ1: i NOP", "\n\t\t",
+            "IQ0: v 0: ADD p3, p1:r, p2:r", "\n\t\t",
+            "issue: v 0: ADD p3, p1:r, p2:r", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -458,6 +475,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0001;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h6};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h1};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -487,6 +505,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h2;
 		expected_issue_dest_PR = 6'h3;
+		expected_issue_ROB_index = 6'h0;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b1;
 		expected_PRF_req_A_PR = 6'h1;
@@ -499,15 +518,15 @@ module alu_iq_tb ();
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
-            "dispatch3: OR p12, p11:r, p8:f", "\n\t\t",
-            "dispatch2: XORI p10, p8:f, 0xFFFFFFFF", "\n\t\t",
-            "dispatch1: SLTI p9, p8:f, 0x678", "\n\t\t",
-            "dispatch0: LUI p7, 0x12345000", "\n\t\t",
-            "IQ3: NOP", "\n\t\t",
-            "IQ2: NOP", "\n\t\t",
-            "IQ1: NOP", "\n\t\t",
-            "IQ0: v SLL p6, p4:F, p5:r", "\n\t\t",
-            "issue: SLL p6, p4:F, p5:r", "\n\t\t",
+            "dispatch3: v 5: OR p12, p11:r, p8:f", "\n\t\t",
+            "dispatch2: v 4: XORI p10, p8:f, 0xFFFFFFFF", "\n\t\t",
+            "dispatch1: v 3: SLTI p9, p8:f, 0x678", "\n\t\t",
+            "dispatch0: v 2: LUI p7, 0x12345000", "\n\t\t",
+            "IQ3: i NOP", "\n\t\t",
+            "IQ2: i NOP", "\n\t\t",
+            "IQ1: i NOP", "\n\t\t",
+            "IQ0: v 1: SLL p6, p4:F, p5:r", "\n\t\t",
+            "issue: v 1: SLL p6, p4:F, p5:r", "\n\t\t",
 			"activity: WB p4", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -525,6 +544,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0111;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'hC, 6'hA, 6'h9, 6'h7};
+		tb_dispatch_ROB_index_by_entry = {6'h5, 6'h4, 6'h3, 6'h2};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -554,6 +574,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h1;
 		expected_issue_dest_PR = 6'h6;
+		expected_issue_ROB_index = 6'h1;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 6'h4;
@@ -570,11 +591,11 @@ module alu_iq_tb ();
             "dispatch2: i NOP", "\n\t\t",
             "dispatch1: i NOP", "\n\t\t",
             "dispatch0: i NOP", "\n\t\t",
-            "IQ3: v OR p12, p11:r, p8:f", "\n\t\t",
-            "IQ2: v XORI p10, p8:f, 0xFFFFFFFF", "\n\t\t",
-            "IQ1: v SLTI p9, p8:f, 0x678", "\n\t\t",
-            "IQ0: v LUI p7, 0x12345000", "\n\t\t",
-            "issue: i LUI p7, 0x12345000", "\n\t\t",
+            "IQ3: v 5: OR p12, p11:r, p8:f", "\n\t\t",
+            "IQ2: v 4: XORI p10, p8:f, 0xFFFFFFFF", "\n\t\t",
+            "IQ1: v 3: SLTI p9, p8:f, 0x678", "\n\t\t",
+            "IQ0: v 2: LUI p7, 0x12345000", "\n\t\t",
+            "issue: i 2: LUI p7, 0x12345000", "\n\t\t",
 			"activity: pipeline not ready", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -592,6 +613,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b0;
@@ -621,6 +643,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'h7;
+		expected_issue_ROB_index = 6'h2;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 6'h0;
@@ -633,15 +656,15 @@ module alu_iq_tb ();
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
-            "dispatch3: v SRAI p14, p13:r, 0x123", "\n\t\t",
+            "dispatch3: v 6: SRAI p14, p13:r, 0x123", "\n\t\t",
             "dispatch2: i NOP", "\n\t\t",
             "dispatch1: i NOP", "\n\t\t",
             "dispatch0: i NOP", "\n\t\t",
-            "IQ3: v OR p12, p11:r, p8:f", "\n\t\t",
-            "IQ2: v XORI p10, p8:f, 0xFFFFFFFF", "\n\t\t",
-            "IQ1: v SLTI p9, p8:f, 0x678", "\n\t\t",
-            "IQ0: v LUI p7, 0x12345000", "\n\t\t",
-            "issue: v LUI p7, 0x12345000", "\n\t\t",
+            "IQ3: v 5: OR p12, p11:r, p8:f", "\n\t\t",
+            "IQ2: v 4: XORI p10, p8:f, 0xFFFFFFFF", "\n\t\t",
+            "IQ1: v 3: SLTI p9, p8:f, 0x678", "\n\t\t",
+            "IQ0: v 2: LUI p7, 0x12345000", "\n\t\t",
+            "issue: v 2: LUI p7, 0x12345000", "\n\t\t",
 			"activity: ", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -659,6 +682,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b1000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'hE, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h6, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -688,6 +712,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'h7;
+		expected_issue_ROB_index = 6'h2;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 6'h0;
@@ -704,11 +729,11 @@ module alu_iq_tb ();
             "dispatch2: i NOP", "\n\t\t",
             "dispatch1: i NOP", "\n\t\t",
             "dispatch0: i NOP", "\n\t\t",
-            "IQ3: v SRAI p14, p13:r, 0x123", "\n\t\t",
-            "IQ2: v OR p12, p11:r, p8:f", "\n\t\t",
-            "IQ1: v XORI p10, p8:f, 0xFFFFFFFF", "\n\t\t",
-            "IQ0: v SLTI p9, p8:f, 0x678", "\n\t\t",
-            "issue: v SRAI p14, p13:r, 0x123", "\n\t\t",
+            "IQ3: v 6: SRAI p14, p13:r, 0x123", "\n\t\t",
+            "IQ2: v 5: OR p12, p11:r, p8:f", "\n\t\t",
+            "IQ1: v 4: XORI p10, p8:f, 0xFFFFFFFF", "\n\t\t",
+            "IQ0: v 3: SLTI p9, p8:f, 0x678", "\n\t\t",
+            "issue: v 6: SRAI p14, p13:r, 0x123", "\n\t\t",
 			"activity: ", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -726,6 +751,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -755,6 +781,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'hE;
+		expected_issue_ROB_index = 6'h6;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b1;
 		expected_PRF_req_A_PR = 6'hD;
@@ -772,10 +799,10 @@ module alu_iq_tb ();
             "dispatch1: i NOP", "\n\t\t",
             "dispatch0: i NOP", "\n\t\t",
             "IQ3: i NOP", "\n\t\t",
-            "IQ2: v OR p12, p11:r, p8:Fr", "\n\t\t",
-            "IQ1: v XORI p10, p8:Fr, 0xFFFFFFFF", "\n\t\t",
-            "IQ0: v SLTI p9, p8:F, 0x678", "\n\t\t",
-            "issue: v SLTI p9, p8:F, 0x678", "\n\t\t",
+            "IQ2: v 5: OR p12, p11:r, p8:Fr", "\n\t\t",
+            "IQ1: v 4: XORI p10, p8:Fr, 0xFFFFFFFF", "\n\t\t",
+            "IQ0: v 3: SLTI p9, p8:F, 0x678", "\n\t\t",
+            "issue: v 3: SLTI p9, p8:F, 0x678", "\n\t\t",
 			"activity: WB p8", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -793,6 +820,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -822,6 +850,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'h9;
+		expected_issue_ROB_index = 6'h3;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 6'h8;
@@ -834,15 +863,15 @@ module alu_iq_tb ();
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
-            "dispatch3: v SLTIU p19, p18:f, 0x543", "\n\t\t",
-            "dispatch2: v OR p17, p15:f, p16:f", "\n\t\t",
+            "dispatch3: v 8: SLTIU p19, p18:f, 0x543", "\n\t\t",
+            "dispatch2: v 7: OR p17, p15:f, p16:f", "\n\t\t",
             "dispatch1: i NOP", "\n\t\t",
             "dispatch0: i NOP", "\n\t\t",
             "IQ3: i NOP", "\n\t\t",
             "IQ2: i NOP", "\n\t\t",
-            "IQ1: v OR p12, p11:r, p8:r", "\n\t\t",
-            "IQ0: v XORI p10, p8:r, 0xFFFFFFFF", "\n\t\t",
-            "issue: i XORI p10, p8:r, 0xFFFFFFFF", "\n\t\t",
+            "IQ1: v 5: OR p12, p11:r, p8:r", "\n\t\t",
+            "IQ0: v 4: XORI p10, p8:r, 0xFFFFFFFF", "\n\t\t",
+            "issue: i 4: XORI p10, p8:r, 0xFFFFFFFF", "\n\t\t",
 			"activity: pipeline not ready", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -860,6 +889,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b1000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h13, 6'h11, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h8, 6'h7, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b0;
@@ -889,6 +919,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'hA;
+		expected_issue_ROB_index = 6'h4;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 6'h8;
@@ -905,11 +936,11 @@ module alu_iq_tb ();
             "dispatch2: i NOP", "\n\t\t",
             "dispatch1: i NOP", "\n\t\t",
             "dispatch0: i NOP", "\n\t\t",
-            "IQ3: v SLTIU p19, p18:f, 0x543", "\n\t\t",
-            "IQ2: v OR p17, p15:f, p16:f", "\n\t\t",
-            "IQ1: v OR p12, p11:r, p8:r", "\n\t\t",
-            "IQ0: v XORI p10, p8:r, 0xFFFFFFFF", "\n\t\t",
-            "issue: v XORI p10, p8:r, 0xFFFFFFFF", "\n\t\t",
+            "IQ3: v 8: SLTIU p19, p18:f, 0x543", "\n\t\t",
+            "IQ2: v 7: OR p17, p15:f, p16:f", "\n\t\t",
+            "IQ1: v 5: OR p12, p11:r, p8:r", "\n\t\t",
+            "IQ0: v 4: XORI p10, p8:r, 0xFFFFFFFF", "\n\t\t",
+            "issue: v 4: XORI p10, p8:r, 0xFFFFFFFF", "\n\t\t",
 			"activity: ", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -927,6 +958,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -956,6 +988,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'hA;
+		expected_issue_ROB_index = 6'h4;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b1;
 		expected_PRF_req_A_PR = 6'h8;
@@ -973,10 +1006,10 @@ module alu_iq_tb ();
             "dispatch1: i NOP", "\n\t\t",
             "dispatch0: i NOP", "\n\t\t",
             "IQ3: i NOP", "\n\t\t",
-            "IQ2: v SLTIU p19, p18:f, 0x543", "\n\t\t",
-            "IQ1: v OR p17, p15:f, p16:f", "\n\t\t",
-            "IQ0: v OR p12, p11:r, p8:r", "\n\t\t",
-            "issue: v OR p12, p11:r, p8:r", "\n\t\t",
+            "IQ2: v 8: SLTIU p19, p18:f, 0x543", "\n\t\t",
+            "IQ1: v 7: OR p17, p15:f, p16:f", "\n\t\t",
+            "IQ0: v 5: OR p12, p11:r, p8:r", "\n\t\t",
+            "issue: v 5: OR p12, p11:r, p8:r", "\n\t\t",
 			"activity: ", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -994,6 +1027,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -1023,6 +1057,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'hC;
+		expected_issue_ROB_index = 6'h5;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b1;
 		expected_PRF_req_A_PR = 6'hB;
@@ -1041,9 +1076,9 @@ module alu_iq_tb ();
             "dispatch0: i NOP", "\n\t\t",
             "IQ3: i NOP", "\n\t\t",
             "IQ2: i NOP", "\n\t\t",
-            "IQ1: v SLTIU p19, p18:Fr, 0x543", "\n\t\t",
-            "IQ0: v OR p17, p15:F, p16:F", "\n\t\t",
-            "issue: v OR p17, p15:F, p16:F", "\n\t\t",
+            "IQ1: v 8: SLTIU p19, p18:Fr, 0x543", "\n\t\t",
+            "IQ0: v 7: OR p17, p15:F, p16:F", "\n\t\t",
+            "issue: v 7: OR p17, p15:F, p16:F", "\n\t\t",
 			"activity: WB p15, p16, p18", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1061,6 +1096,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -1090,6 +1126,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b1;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'h11;
+		expected_issue_ROB_index = 6'h7;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 6'hF;
@@ -1103,14 +1140,14 @@ module alu_iq_tb ();
 		// inputs
 		sub_test_case = {"\n\t\t", 
             "dispatch3: i NOP", "\n\t\t",
-            "dispatch2: v ADD p27, p26:f, p26:f", "\n\t\t",
-            "dispatch1: v SRL p25, p23:f, p24:f", "\n\t\t",
-            "dispatch0: v SUB p22, p20:f, p21:f", "\n\t\t",
+            "dispatch2: v B: ADD p27, p26:f, p26:f", "\n\t\t",
+            "dispatch1: v A: SRL p25, p23:f, p24:f", "\n\t\t",
+            "dispatch0: v 9: SUB p22, p20:f, p21:f", "\n\t\t",
             "IQ3: i NOP", "\n\t\t",
             "IQ2: i NOP", "\n\t\t",
             "IQ1: i NOP", "\n\t\t",
-            "IQ0: v SLTIU p19, p18:r, 0x543", "\n\t\t",
-            "issue: v SLTIU p19, p18:r, 0x543", "\n\t\t",
+            "IQ0: v 8: SLTIU p19, p18:r, 0x543", "\n\t\t",
+            "issue: v 8: SLTIU p19, p18:r, 0x543", "\n\t\t",
 			"activity: ", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1128,6 +1165,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h1B, 6'h19, 6'h16};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'hB, 6'hA, 6'h9};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -1157,6 +1195,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'h13;
+		expected_issue_ROB_index = 6'h8;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b1;
 		expected_PRF_req_A_PR = 6'h12;
@@ -1174,10 +1213,10 @@ module alu_iq_tb ();
             "dispatch1: i NOP", "\n\t\t",
             "dispatch0: i NOP", "\n\t\t",
             "IQ3: i NOP", "\n\t\t",
-            "IQ2: v ADD p27, p26:f, p26:f", "\n\t\t",
-            "IQ1: v SRL p25, p23:f, p24:f", "\n\t\t",
-            "IQ0: v SUB p22, p20:F, p21:F", "\n\t\t",
-            "issue: v SUB p22, p20:F, p21:F", "\n\t\t",
+            "IQ2: v B: ADD p27, p26:f, p26:f", "\n\t\t",
+            "IQ1: v A: SRL p25, p23:f, p24:f", "\n\t\t",
+            "IQ0: v 9: SUB p22, p20:F, p21:F", "\n\t\t",
+            "issue: v 9: SUB p22, p20:F, p21:F", "\n\t\t",
 			"activity: WB p20, p21", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1195,6 +1234,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -1224,6 +1264,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b1;
 		expected_issue_B_bank = 2'h1;
 		expected_issue_dest_PR = 6'h16;
+		expected_issue_ROB_index = 6'h9;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 6'h14;
@@ -1242,9 +1283,9 @@ module alu_iq_tb ();
             "dispatch0: i NOP", "\n\t\t",
             "IQ3: i NOP", "\n\t\t",
             "IQ2: i NOP", "\n\t\t",
-            "IQ1: v ADD p27, p26:f, p26:f", "\n\t\t",
-            "IQ0: v SRL p25, p23:f, p24:Fr", "\n\t\t",
-            "issue: i SRL p25, p23:f, p24:Fr", "\n\t\t",
+            "IQ1: v B: ADD p27, p26:f, p26:f", "\n\t\t",
+            "IQ0: v A: SRL p25, p23:f, p24:Fr", "\n\t\t",
+            "issue: i A: SRL p25, p23:f, p24:Fr", "\n\t\t",
 			"activity: WB p24", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1262,6 +1303,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -1291,6 +1333,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b1;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'h19;
+		expected_issue_ROB_index = 6'hA;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 6'h17;
@@ -1309,9 +1352,9 @@ module alu_iq_tb ();
             "dispatch0: i NOP", "\n\t\t",
             "IQ3: i NOP", "\n\t\t",
             "IQ2: i NOP", "\n\t\t",
-            "IQ1: v ADD p27, p26:f, p26:f", "\n\t\t",
-            "IQ0: v SRL p25, p23:F, p24:r", "\n\t\t",
-            "issue: v SRL p25, p23:F, p24:r", "\n\t\t",
+            "IQ1: v B: ADD p27, p26:f, p26:f", "\n\t\t",
+            "IQ0: v A: SRL p25, p23:F, p24:r", "\n\t\t",
+            "issue: v A: SRL p25, p23:F, p24:r", "\n\t\t",
 			"activity: WB p23", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1329,6 +1372,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -1358,6 +1402,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'h19;
+		expected_issue_ROB_index = 6'hA;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 6'h17;
@@ -1377,8 +1422,8 @@ module alu_iq_tb ();
             "IQ3: i NOP", "\n\t\t",
             "IQ2: i NOP", "\n\t\t",
             "IQ1: i NOP", "\n\t\t",
-            "IQ0: v ADD p27, p26:f, p26:f", "\n\t\t",
-            "issue: i ADD p27, p26:f, p26:f", "\n\t\t",
+            "IQ0: v B: ADD p27, p26:f, p26:f", "\n\t\t",
+            "issue: i B: ADD p27, p26:f, p26:f", "\n\t\t",
 			"activity: inv WB p26", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1396,6 +1441,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -1425,6 +1471,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h2;
 		expected_issue_dest_PR = 6'h1B;
+		expected_issue_ROB_index = 6'hB;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 6'h1A;
@@ -1440,12 +1487,12 @@ module alu_iq_tb ();
             "dispatch3: i NOP", "\n\t\t",
             "dispatch2: i NOP", "\n\t\t",
             "dispatch1: i NOP", "\n\t\t",
-            "dispatch0: v SLLI p29, p28:f, 0x3", "\n\t\t",
+            "dispatch0: v C: SLLI p29, p28:f, 0x3", "\n\t\t",
             "IQ3: i NOP", "\n\t\t",
             "IQ2: i NOP", "\n\t\t",
             "IQ1: i NOP", "\n\t\t",
-            "IQ0: v ADD p27, p26:f, p26:f", "\n\t\t",
-            "issue: v ADD p27, p26:f, p26:f", "\n\t\t",
+            "IQ0: v B: ADD p27, p26:f, p26:f", "\n\t\t",
+            "issue: v B: ADD p27, p26:f, p26:f", "\n\t\t",
 			"activity: WB p26", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1463,6 +1510,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0001;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h1D};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'hC};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -1492,6 +1540,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b1;
 		expected_issue_B_bank = 2'h2;
 		expected_issue_dest_PR = 6'h1B;
+		expected_issue_ROB_index = 6'hB;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 6'h1A;
@@ -1511,8 +1560,8 @@ module alu_iq_tb ();
             "IQ3: i NOP", "\n\t\t",
             "IQ2: i NOP", "\n\t\t",
             "IQ1: i NOP", "\n\t\t",
-            "IQ0: v SLLI p29, p28:Fr, 0x3", "\n\t\t",
-            "issue: i SLLI p29, p28:Fr, 0x3", "\n\t\t",
+            "IQ0: v C: SLLI p29, p28:Fr, 0x3", "\n\t\t",
+            "issue: i C: SLLI p29, p28:Fr, 0x3", "\n\t\t",
 			"activity: WB p28, pipeline not ready", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1530,6 +1579,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b0;
@@ -1559,6 +1609,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'h1D;
+		expected_issue_ROB_index = 6'hC;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 6'h1C;
@@ -1578,8 +1629,8 @@ module alu_iq_tb ();
             "IQ3: i NOP", "\n\t\t",
             "IQ2: i NOP", "\n\t\t",
             "IQ1: i NOP", "\n\t\t",
-            "IQ0: v SLLI p29, p28:r, 0x3", "\n\t\t",
-            "issue: v SLLI p29, p28:r, 0x3", "\n\t\t",
+            "IQ0: v C: SLLI p29, p28:r, 0x3", "\n\t\t",
+            "issue: v C: SLLI p29, p28:r, 0x3", "\n\t\t",
 			"activity: ", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1597,6 +1648,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -1626,6 +1678,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'h1D;
+		expected_issue_ROB_index = 6'hC;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b1;
 		expected_PRF_req_A_PR = 6'h1C;
@@ -1664,6 +1717,7 @@ module alu_iq_tb ();
 		tb_dispatch_is_imm_by_entry = 4'b0000;
 		tb_dispatch_B_ready_by_entry = 4'b0000;
 		tb_dispatch_dest_PR_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
+		tb_dispatch_ROB_index_by_entry = {6'h0, 6'h0, 6'h0, 6'h0};
         // ALU op dispatch feedback by entry
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
@@ -1693,6 +1747,7 @@ module alu_iq_tb ();
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_dest_PR = 6'h0;
+		expected_issue_ROB_index = 6'h0;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 6'h0;

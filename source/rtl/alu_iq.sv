@@ -25,6 +25,7 @@ module alu_iq (
     input logic [3:0]                       dispatch_is_imm_by_entry,
     input logic [3:0]                       dispatch_B_ready_by_entry,
     input logic [3:0][LOG_PR_COUNT-1:0]     dispatch_dest_PR_by_entry,
+    input logic [3:0][LOG_ROB_ENTRIES-1:0]  dispatch_ROB_index_by_entry,
 
     // ALU op dispatch feedback by entry
     output logic [3:0] dispatch_open_by_entry,
@@ -47,6 +48,7 @@ module alu_iq (
     output logic                            issue_B_forward,
     output logic [LOG_PRF_BANK_COUNT-1:0]   issue_B_bank,
     output logic [LOG_PR_COUNT-1:0]         issue_dest_PR,
+    output logic [LOG_ROB_ENTRIES-1:0]      issue_ROB_index,
 
     // reg read req to PRF
     output logic                        PRF_req_A_valid,
@@ -59,16 +61,17 @@ module alu_iq (
     // Signals:
 
     // IQ entries
-    logic [3:0]                     valid_by_entry;
-    logic [3:0][3:0]                op_by_entry;
-    logic [3:0][31:0]               imm_by_entry;
-    logic [3:0][LOG_PR_COUNT-1:0]   A_PR_by_entry;
-    logic [3:0]                     A_unneeded_by_entry;
-    logic [3:0]                     A_ready_by_entry;
-    logic [3:0][LOG_PR_COUNT-1:0]   B_PR_by_entry;
-    logic [3:0]                     is_imm_by_entry;
-    logic [3:0]                     B_ready_by_entry;
-    logic [3:0][LOG_PR_COUNT-1:0]   dest_PR_by_entry;
+    logic [3:0]                         valid_by_entry;
+    logic [3:0][3:0]                    op_by_entry;
+    logic [3:0][31:0]                   imm_by_entry;
+    logic [3:0][LOG_PR_COUNT-1:0]       A_PR_by_entry;
+    logic [3:0]                         A_unneeded_by_entry;
+    logic [3:0]                         A_ready_by_entry;
+    logic [3:0][LOG_PR_COUNT-1:0]       B_PR_by_entry;
+    logic [3:0]                         is_imm_by_entry;
+    logic [3:0]                         B_ready_by_entry;
+    logic [3:0][LOG_PR_COUNT-1:0]       dest_PR_by_entry;
+    logic [3:0][LOG_ROB_ENTRIES-1:0]    ROB_index_by_entry;
 
     // issue logic helper signals
     logic [3:0] A_forward_by_entry;
@@ -116,6 +119,7 @@ module alu_iq (
         issue_B_forward = B_forward_by_entry[0];
         issue_B_bank = B_PR_by_entry[0][1:0];
         issue_dest_PR = dest_PR_by_entry[0];
+        issue_ROB_index = ROB_index_by_entry[0];
 
         PRF_req_A_valid = 1'b0;
         PRF_req_A_PR = A_PR_by_entry[0];
@@ -136,6 +140,7 @@ module alu_iq (
             issue_B_forward = B_forward_by_entry[0];
             issue_B_bank = B_PR_by_entry[0][1:0];
             issue_dest_PR = dest_PR_by_entry[0];
+            issue_ROB_index = ROB_index_by_entry[0];
 
             PRF_req_A_valid = ~A_unneeded_by_entry[0] & ~A_forward_by_entry[0];
             PRF_req_A_PR = A_PR_by_entry[0];
@@ -156,6 +161,7 @@ module alu_iq (
             issue_B_forward = B_forward_by_entry[1];
             issue_B_bank = B_PR_by_entry[1][1:0];
             issue_dest_PR = dest_PR_by_entry[1];
+            issue_ROB_index = ROB_index_by_entry[1];
 
             PRF_req_A_valid = ~A_unneeded_by_entry[1] & ~A_forward_by_entry[1];
             PRF_req_A_PR = A_PR_by_entry[1];
@@ -176,6 +182,7 @@ module alu_iq (
             issue_B_forward = B_forward_by_entry[2];
             issue_B_bank = B_PR_by_entry[2][1:0];
             issue_dest_PR = dest_PR_by_entry[2];
+            issue_ROB_index = ROB_index_by_entry[2];
 
             PRF_req_A_valid = ~A_unneeded_by_entry[2] & ~A_forward_by_entry[2];
             PRF_req_A_PR = A_PR_by_entry[2];
@@ -196,6 +203,7 @@ module alu_iq (
             issue_B_forward = B_forward_by_entry[3];
             issue_B_bank = B_PR_by_entry[3][1:0];
             issue_dest_PR = dest_PR_by_entry[3];
+            issue_ROB_index = ROB_index_by_entry[3];
 
             PRF_req_A_valid = ~A_unneeded_by_entry[3] & ~A_forward_by_entry[3];
             PRF_req_A_PR = A_PR_by_entry[3];
@@ -235,6 +243,7 @@ module alu_iq (
             is_imm_by_entry <= 1'b0;
             B_ready_by_entry <= 1'b0;
             dest_PR_by_entry <= '0;
+            ROB_index_by_entry <= '0;
         end
         else begin
 
@@ -251,6 +260,7 @@ module alu_iq (
                     is_imm_by_entry[i] <= is_imm_by_entry[i+1];
                     B_ready_by_entry[i] <= B_ready_by_entry[i+1] | B_forward_by_entry[i+1];
                     dest_PR_by_entry[i] <= dest_PR_by_entry[i+1];
+                    ROB_index_by_entry[i] <= ROB_index_by_entry[i+1];
                 end
                 else if (take_self_mask[i]) begin
                     valid_by_entry[i] <= valid_by_entry[i];
@@ -263,6 +273,7 @@ module alu_iq (
                     is_imm_by_entry[i] <= is_imm_by_entry[i];
                     B_ready_by_entry[i] <= B_ready_by_entry[i] | B_forward_by_entry[i];
                     dest_PR_by_entry[i] <= dest_PR_by_entry[i];
+                    ROB_index_by_entry[i] <= ROB_index_by_entry[i];
                 end
                 else begin
                     valid_by_entry[i] <= dispatch_valid_by_entry[i];
@@ -275,6 +286,7 @@ module alu_iq (
                     is_imm_by_entry[i] <= dispatch_is_imm_by_entry[i];
                     B_ready_by_entry[i] <= dispatch_B_ready_by_entry[i];
                     dest_PR_by_entry[i] <= dispatch_dest_PR_by_entry[i];
+                    ROB_index_by_entry[i] <= dispatch_ROB_index_by_entry[i];
                 end
             end
 
@@ -291,6 +303,7 @@ module alu_iq (
                 is_imm_by_entry[3] <= is_imm_by_entry[3];
                 B_ready_by_entry[3] <= B_ready_by_entry[3] | B_forward_by_entry[3];
                 dest_PR_by_entry[3] <= dest_PR_by_entry[3];
+                ROB_index_by_entry[3] <= ROB_index_by_entry[3];
             end
             else begin
                 valid_by_entry[3] <= dispatch_valid_by_entry[3];
@@ -303,6 +316,7 @@ module alu_iq (
                 is_imm_by_entry[3] <= dispatch_is_imm_by_entry[3];
                 B_ready_by_entry[3] <= dispatch_B_ready_by_entry[3];
                 dest_PR_by_entry[3] <= dispatch_dest_PR_by_entry[3];
+                ROB_index_by_entry[3] <= dispatch_ROB_index_by_entry[3];
             end
         end
     end
