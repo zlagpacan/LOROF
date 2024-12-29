@@ -12,7 +12,7 @@ import core_types_pkg::*;
 
 module alu_pipeline_tb ();
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ----------------------------------------------------------------
     // TB setup:
 
     // parameters
@@ -29,7 +29,7 @@ module alu_pipeline_tb ();
     // clock gen
     always begin #(PERIOD/2); CLK = ~CLK; end
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ----------------------------------------------------------------
     // DUT signals:
 
 
@@ -44,6 +44,7 @@ module alu_pipeline_tb ();
 	logic tb_B_forward_in;
 	logic [LOG_PRF_BANK_COUNT-1:0] tb_B_bank_in;
 	logic [LOG_PR_COUNT-1:0] tb_dest_PR_in;
+	logic [LOG_ROB_ENTRIES-1:0] tb_ROB_index_in;
 
     // reg read info and data from PRF
 	logic tb_A_reg_read_valid_in;
@@ -60,8 +61,9 @@ module alu_pipeline_tb ();
 	logic DUT_WB_valid_out, expected_WB_valid_out;
 	logic [31:0] DUT_WB_data_out, expected_WB_data_out;
 	logic [LOG_PR_COUNT-1:0] DUT_WB_PR_out, expected_WB_PR_out;
+	logic [LOG_ROB_ENTRIES-1:0] DUT_WB_ROB_index_out, expected_WB_ROB_index_out;
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ----------------------------------------------------------------
     // DUT instantiation:
 
 	alu_pipeline DUT (
@@ -81,6 +83,7 @@ module alu_pipeline_tb ();
 		.B_forward_in(tb_B_forward_in),
 		.B_bank_in(tb_B_bank_in),
 		.dest_PR_in(tb_dest_PR_in),
+		.ROB_index_in(tb_ROB_index_in),
 
 	    // reg read info and data from PRF
 		.A_reg_read_valid_in(tb_A_reg_read_valid_in),
@@ -96,10 +99,11 @@ module alu_pipeline_tb ();
 	    // writeback data to PRF
 		.WB_valid_out(DUT_WB_valid_out),
 		.WB_data_out(DUT_WB_data_out),
-		.WB_PR_out(DUT_WB_PR_out)
+		.WB_PR_out(DUT_WB_PR_out),
+		.WB_ROB_index_out(DUT_WB_ROB_index_out)
 	);
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ----------------------------------------------------------------
     // tasks:
 
     task check_outputs();
@@ -132,17 +136,24 @@ module alu_pipeline_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_WB_ROB_index_out !== DUT_WB_ROB_index_out) begin
+			$display("TB ERROR: expected_WB_ROB_index_out (%h) != DUT_WB_ROB_index_out (%h)",
+				expected_WB_ROB_index_out, DUT_WB_ROB_index_out);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
         #(PERIOD / 10);
         tb_error = 1'b0;
     end
     endtask
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ----------------------------------------------------------------
     // initial block:
 
     initial begin
 
-        ///////////////////////////////////////////////////////////////////////////////////////////////////
+        // ------------------------------------------------------------
         // reset:
         test_case = "reset";
         $display("\ntest %0d: %s", test_num, test_case);
@@ -165,6 +176,7 @@ module alu_pipeline_tb ();
 		tb_B_forward_in = 1'b0;
 		tb_B_bank_in = 2'h0;
 		tb_dest_PR_in = 6'h0;
+		tb_ROB_index_in = 6'h0;
 	    // reg read info and data from PRF
 		tb_A_reg_read_valid_in = 1'b0;
 		tb_B_reg_read_valid_in = 1'b0;
@@ -187,6 +199,7 @@ module alu_pipeline_tb ();
 		expected_WB_valid_out = 1'b0;
 		expected_WB_data_out = 32'h0;
 		expected_WB_PR_out = 6'h0;
+		expected_WB_ROB_index_out = 6'h0;
 
 		check_outputs();
 
@@ -207,6 +220,7 @@ module alu_pipeline_tb ();
 		tb_B_forward_in = 1'b0;
 		tb_B_bank_in = 2'h0;
 		tb_dest_PR_in = 6'h0;
+		tb_ROB_index_in = 6'h0;
 	    // reg read info and data from PRF
 		tb_A_reg_read_valid_in = 1'b0;
 		tb_B_reg_read_valid_in = 1'b0;
@@ -229,10 +243,11 @@ module alu_pipeline_tb ();
 		expected_WB_valid_out = 1'b0;
 		expected_WB_data_out = 32'h0;
 		expected_WB_PR_out = 6'h0;
+		expected_WB_ROB_index_out = 6'h0;
 
 		check_outputs();
 
-        ///////////////////////////////////////////////////////////////////////////////////////////////////
+        // ------------------------------------------------------------
         // default:
         test_case = "default";
         $display("\ntest %0d: %s", test_num, test_case);
@@ -257,6 +272,7 @@ module alu_pipeline_tb ();
 		tb_B_forward_in = 1'b0;
 		tb_B_bank_in = 2'h0;
 		tb_dest_PR_in = 6'h0;
+		tb_ROB_index_in = 6'h0;
 	    // reg read info and data from PRF
 		tb_A_reg_read_valid_in = 1'b0;
 		tb_B_reg_read_valid_in = 1'b0;
@@ -279,10 +295,11 @@ module alu_pipeline_tb ();
 		expected_WB_valid_out = 1'b0;
 		expected_WB_data_out = 32'h0;
 		expected_WB_PR_out = 6'h0;
+		expected_WB_ROB_index_out = 6'h0;
 
 		check_outputs();
 
-        ///////////////////////////////////////////////////////////////////////////////////////////////////
+        // ------------------------------------------------------------
         // finish:
         @(posedge CLK);
         
@@ -305,4 +322,3 @@ module alu_pipeline_tb ();
     end
 
 endmodule
-

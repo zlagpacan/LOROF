@@ -10,6 +10,8 @@ package core_types_pkg;
     parameter PRF_BANK_COUNT = 4;
     parameter LOG_PRF_BANK_COUNT = $clog2(PRF_BANK_COUNT);
 
+    parameter ROB_ENTRIES = 64;
+    parameter LOG_ROB_ENTRIES = $clog2(ROB_ENTRIES);
 
 endpackage
 

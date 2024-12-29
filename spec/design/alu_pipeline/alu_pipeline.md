@@ -45,6 +45,11 @@
     - IDLE VALUE: 2'hx
 - dest_PR_in
     - indicate which Physical Register to writeback to
+    - essentially a pass-through value to the end of the pipeline
+    - IDLE VALUE: 6'hx
+- ROB_index_in
+    - indicate which ROB index to set as complete
+    - essentially a pass-through value to the end of the pipeline
     - IDLE VALUE: 6'hx
 
 ### reg read info and data from PRF
@@ -86,7 +91,10 @@
     - RESET VALUE: 32'h0
 - WB_PR_out
     - Physical Register to writeback data value to
-    - RESET VALUE: 6'hx
+    - RESET VALUE: 6'h0
+- WB_ROB_index_out
+    - indicate which ROB index to set as complete
+    - RESET VALUE: 6'h0
 
 ## Pipeline Stages
 
