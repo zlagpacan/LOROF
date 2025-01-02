@@ -34,8 +34,8 @@ module alu_iq (
     input logic pipeline_ready,
 
     // writeback bus
-    input logic [PRF_BANK_COUNT-1:0]                                        WB_valid_by_bank,
-    input logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]   WB_upper_PR_by_bank,
+    input logic [PRF_BANK_COUNT-1:0]                                        WB_bus_valid_by_bank,
+    input logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]   WB_bus_upper_PR_by_bank,
 
     // ALU op issue to ALU pipeline
     output logic                            issue_valid,
@@ -90,8 +90,8 @@ module alu_iq (
 
     always_comb begin
         for (int i = 0; i < 4; i++) begin
-            A_forward_by_entry[i] = (A_PR_by_entry[i][5:2] == WB_upper_PR_by_bank[A_PR_by_entry[i][1:0]]) & WB_valid_by_bank[A_PR_by_entry[i][1:0]];
-            B_forward_by_entry[i] = (B_PR_by_entry[i][5:2] == WB_upper_PR_by_bank[B_PR_by_entry[i][1:0]]) & WB_valid_by_bank[B_PR_by_entry[i][1:0]];
+            A_forward_by_entry[i] = (A_PR_by_entry[i][5:2] == WB_bus_upper_PR_by_bank[A_PR_by_entry[i][1:0]]) & WB_bus_valid_by_bank[A_PR_by_entry[i][1:0]];
+            B_forward_by_entry[i] = (B_PR_by_entry[i][5:2] == WB_bus_upper_PR_by_bank[B_PR_by_entry[i][1:0]]) & WB_bus_valid_by_bank[B_PR_by_entry[i][1:0]];
         end
     end
 

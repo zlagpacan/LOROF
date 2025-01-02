@@ -53,8 +53,8 @@ module alu_iq_tb ();
     logic tb_pipeline_ready;
 
     // writeback bus
-	logic [PRF_BANK_COUNT-1:0] tb_WB_valid_by_bank;
-	logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] tb_WB_upper_PR_by_bank;
+	logic [PRF_BANK_COUNT-1:0] tb_WB_bus_valid_by_bank;
+	logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] tb_WB_bus_upper_PR_by_bank;
 
     // ALU op issue to ALU pipeline
 	logic DUT_issue_valid, expected_issue_valid;
@@ -104,8 +104,8 @@ module alu_iq_tb ();
         .pipeline_ready(tb_pipeline_ready),
 
 	    // writeback bus
-		.WB_valid_by_bank(tb_WB_valid_by_bank),
-		.WB_upper_PR_by_bank(tb_WB_upper_PR_by_bank),
+		.WB_bus_valid_by_bank(tb_WB_bus_valid_by_bank),
+		.WB_bus_upper_PR_by_bank(tb_WB_bus_upper_PR_by_bank),
 
 	    // ALU op issue to ALU pipeline
 		.issue_valid(DUT_issue_valid),
@@ -282,8 +282,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0000;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -338,8 +338,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0000;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -412,8 +412,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0000;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -480,8 +480,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0000;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -549,8 +549,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0001;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h1};
+		tb_WB_bus_valid_by_bank = 4'b0001;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h1};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -618,8 +618,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b0;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0000;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -687,8 +687,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0000;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -756,8 +756,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0000;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -825,8 +825,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0001;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h2};
+		tb_WB_bus_valid_by_bank = 4'b0001;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h2};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -894,8 +894,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b0;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0000;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -963,8 +963,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0000;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -1032,8 +1032,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0000;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -1101,8 +1101,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b1101;
-		tb_WB_upper_PR_by_bank = {4'h3, 4'h4, 4'h0, 4'h4};
+		tb_WB_bus_valid_by_bank = 4'b1101;
+		tb_WB_bus_upper_PR_by_bank = {4'h3, 4'h4, 4'h0, 4'h4};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -1170,8 +1170,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0000;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -1239,8 +1239,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0011;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h5, 4'h5};
+		tb_WB_bus_valid_by_bank = 4'b0011;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h5, 4'h5};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -1308,8 +1308,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0001;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h6};
+		tb_WB_bus_valid_by_bank = 4'b0001;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h6};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -1377,8 +1377,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b1000;
-		tb_WB_upper_PR_by_bank = {4'h5, 4'h0, 4'h0, 4'h0};
+		tb_WB_bus_valid_by_bank = 4'b1000;
+		tb_WB_bus_upper_PR_by_bank = {4'h5, 4'h0, 4'h0, 4'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -1446,8 +1446,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b1011;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h6, 4'h0, 4'h0};
+		tb_WB_bus_valid_by_bank = 4'b1011;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h6, 4'h0, 4'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -1515,8 +1515,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0100;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h6, 4'h0, 4'h0};
+		tb_WB_bus_valid_by_bank = 4'b0100;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h6, 4'h0, 4'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -1584,8 +1584,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b0;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0001;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h7};
+		tb_WB_bus_valid_by_bank = 4'b0001;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h7};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -1653,8 +1653,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0000;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
@@ -1722,8 +1722,8 @@ module alu_iq_tb ();
         // ALU pipeline feedback
         tb_pipeline_ready = 1'b1;
 	    // writeback bus
-		tb_WB_valid_by_bank = 4'b0000;
-		tb_WB_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {4'h0, 4'h0, 4'h0, 4'h0};
 	    // ALU op issue to ALU pipeline
 	    // reg read req to PRF
 
