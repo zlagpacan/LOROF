@@ -31,9 +31,9 @@ module alu_pipeline_v2 (
     output logic issue_ready,
 
     // reg read info and data from PRF
-    input logic                                     A_reg_read_valid,
+    input logic                                     A_reg_read_ack,
     input logic                                     A_reg_read_port,
-    input logic                                     B_reg_read_valid,
+    input logic                                     B_reg_read_ack,
     input logic                                     B_reg_read_port,
     input logic [PRF_BANK_COUNT-1:0][1:0][31:0]     reg_read_data_by_bank_by_port,
 
@@ -140,10 +140,10 @@ module alu_pipeline_v2 (
             is_imm_OC <= is_imm_OC;
             imm_OC <= imm_OC;
             A_unneeded_OC <= A_unneeded_OC;
-            A_saved_OC <= A_saved_OC | A_forward_OC | A_reg_read_valid;
+            A_saved_OC <= A_saved_OC | A_forward_OC | A_reg_read_ack;
             A_forward_OC <= 1'b0;
             A_bank_OC <= A_bank_OC;
-            B_saved_OC <= B_saved_OC | B_forward_OC | B_reg_read_valid;
+            B_saved_OC <= B_saved_OC | B_forward_OC | B_reg_read_ack;
             B_forward_OC <= 1'b0;
             B_bank_OC <= B_bank_OC;
             dest_PR_OC <= dest_PR_OC;
@@ -184,10 +184,10 @@ module alu_pipeline_v2 (
         ~stall_OC
         &
         // A operand present
-        (A_unneeded_OC | A_saved_OC | A_forward_OC | A_reg_read_valid)
+        (A_unneeded_OC | A_saved_OC | A_forward_OC | A_reg_read_ack)
         &
         // B operand present
-        (is_imm_OC | B_saved_OC | B_forward_OC | B_reg_read_valid)
+        (is_imm_OC | B_saved_OC | B_forward_OC | B_reg_read_ack)
     ;
     assign issue_ready = ~valid_OC | launch_ready_OC;
     

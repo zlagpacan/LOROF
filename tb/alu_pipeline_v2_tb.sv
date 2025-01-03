@@ -47,9 +47,9 @@ module alu_pipeline_v2_tb ();
 	logic [LOG_ROB_ENTRIES-1:0] tb_issue_ROB_index;
 
     // reg read info and data from PRF
-	logic tb_A_reg_read_valid;
+	logic tb_A_reg_read_ack;
 	logic tb_A_reg_read_port;
-	logic tb_B_reg_read_valid;
+	logic tb_B_reg_read_ack;
 	logic tb_B_reg_read_port;
 	logic [PRF_BANK_COUNT-1:0][1:0][31:0] tb_reg_read_data_by_bank_by_port;
 
@@ -91,9 +91,9 @@ module alu_pipeline_v2_tb ();
 		.issue_ROB_index(tb_issue_ROB_index),
 
 	    // reg read info and data from PRF
-		.A_reg_read_valid(tb_A_reg_read_valid),
+		.A_reg_read_ack(tb_A_reg_read_ack),
 		.A_reg_read_port(tb_A_reg_read_port),
-		.B_reg_read_valid(tb_B_reg_read_valid),
+		.B_reg_read_ack(tb_B_reg_read_ack),
 		.B_reg_read_port(tb_B_reg_read_port),
 		.reg_read_data_by_bank_by_port(tb_reg_read_data_by_bank_by_port),
 
@@ -188,9 +188,9 @@ module alu_pipeline_v2_tb ();
 		tb_issue_dest_PR = 6'h0;
 		tb_issue_ROB_index = 6'h0;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
 		tb_reg_read_data_by_bank_by_port = {
 			{32'h0, 32'h0},
@@ -242,9 +242,9 @@ module alu_pipeline_v2_tb ();
 		tb_issue_dest_PR = 6'h0;
 		tb_issue_ROB_index = 6'h0;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
 		tb_reg_read_data_by_bank_by_port = {
 			{32'h0, 32'h0},
@@ -310,9 +310,9 @@ module alu_pipeline_v2_tb ();
 		tb_issue_dest_PR = 6'h0;
 		tb_issue_ROB_index = 6'h0;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
 		tb_reg_read_data_by_bank_by_port = {
 			{32'h0, 32'h0},
@@ -372,9 +372,9 @@ module alu_pipeline_v2_tb ();
 		tb_issue_dest_PR = 6'h2;
 		tb_issue_ROB_index = 6'h0;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
 		tb_reg_read_data_by_bank_by_port = {
 			{32'h0, 32'h0},
@@ -434,9 +434,9 @@ module alu_pipeline_v2_tb ();
 		tb_issue_dest_PR = 6'h4;
 		tb_issue_ROB_index = 6'h1;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid = 1'b1;
+		tb_A_reg_read_ack = 1'b1;
 		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_valid = 1'b1;
+		tb_B_reg_read_ack = 1'b1;
 		tb_B_reg_read_port = 1'b1;
 		tb_reg_read_data_by_bank_by_port = {
 			{32'h0, 32'h0},
@@ -496,9 +496,9 @@ module alu_pipeline_v2_tb ();
 		tb_issue_dest_PR = 6'h7;
 		tb_issue_ROB_index = 6'h2;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid = 1'b1;
+		tb_A_reg_read_ack = 1'b1;
 		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
 		tb_reg_read_data_by_bank_by_port = {
 			{32'h0, 32'h3},
@@ -558,9 +558,9 @@ module alu_pipeline_v2_tb ();
 		tb_issue_dest_PR = 6'h9;
 		tb_issue_ROB_index = 6'h3;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_valid = 1'b1;
+		tb_B_reg_read_ack = 1'b1;
 		tb_B_reg_read_port = 1'b1;
 		tb_reg_read_data_by_bank_by_port = {
 			{32'h0, 32'h0},
@@ -620,9 +620,9 @@ module alu_pipeline_v2_tb ();
 		tb_issue_dest_PR = 6'hC;
 		tb_issue_ROB_index = 6'h4;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
 		tb_reg_read_data_by_bank_by_port = {
 			{32'h0, 32'h0},
@@ -682,9 +682,9 @@ module alu_pipeline_v2_tb ();
 		tb_issue_dest_PR = 6'hC;
 		tb_issue_ROB_index = 6'h4;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid = 1'b1;
+		tb_A_reg_read_ack = 1'b1;
 		tb_A_reg_read_port = 1'b1;
-		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
 		tb_reg_read_data_by_bank_by_port = {
 			{32'h0, 32'h0},
@@ -744,9 +744,9 @@ module alu_pipeline_v2_tb ();
 		tb_issue_dest_PR = 6'hE;
 		tb_issue_ROB_index = 6'h5;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid = 1'b1;
+		tb_A_reg_read_ack = 1'b1;
 		tb_A_reg_read_port = 1'b1;
-		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
 		tb_reg_read_data_by_bank_by_port = {
 			{32'h0, 32'h0},
@@ -806,9 +806,9 @@ module alu_pipeline_v2_tb ();
 		tb_issue_dest_PR = 6'hE;
 		tb_issue_ROB_index = 6'h5;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid = 1'b1;
+		tb_A_reg_read_ack = 1'b1;
 		tb_A_reg_read_port = 1'b1;
-		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
 		tb_reg_read_data_by_bank_by_port = {
 			{32'h0, 32'h0},
@@ -868,9 +868,9 @@ module alu_pipeline_v2_tb ();
 		tb_issue_dest_PR = 6'hF;
 		tb_issue_ROB_index = 6'h6;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
 		tb_reg_read_data_by_bank_by_port = {
 			{32'h0, 32'h0},
@@ -930,9 +930,9 @@ module alu_pipeline_v2_tb ();
 		tb_issue_dest_PR = 6'hF;
 		tb_issue_ROB_index = 6'h6;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
 		tb_reg_read_data_by_bank_by_port = {
 			{32'h0, 32'h0},
@@ -992,9 +992,9 @@ module alu_pipeline_v2_tb ();
 		tb_issue_dest_PR = 6'hF;
 		tb_issue_ROB_index = 6'h6;
 	    // reg read info and data from PRF
-		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
 		tb_reg_read_data_by_bank_by_port = {
 			{32'h0, 32'h0},
