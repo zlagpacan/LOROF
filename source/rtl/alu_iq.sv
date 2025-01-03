@@ -33,7 +33,7 @@ module alu_iq (
     // ALU pipeline feedback
     input logic pipeline_ready,
 
-    // writeback bus
+    // writeback bus by bank
     input logic [PRF_BANK_COUNT-1:0]                                        WB_bus_valid_by_bank,
     input logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]   WB_bus_upper_PR_by_bank,
 
