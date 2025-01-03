@@ -106,10 +106,10 @@ module alu_pipeline_v2 (
     // ----------------------------------------------------------------
     // Control Logic: 
 
-    assign stall_WB = ~WB_ready;
-    assign stall_EX = stall_WB & WB_valid;
+    assign stall_WB = WB_valid & ~WB_ready;
+    assign stall_EX = valid_EX & stall_WB;
         // stall_WB shouldn't happen with WB_valid anyway
-    assign stall_OC = stall_EX & valid_EX;
+    assign stall_OC = stall_EX & valid_OC;
         // this stall doesn't strictly "stall" OC
         // indicates that should stall values in OC if OC valid
 
@@ -149,7 +149,7 @@ module alu_pipeline_v2 (
             dest_PR_OC <= dest_PR_OC;
             ROB_index_OC <= ROB_index_OC;
         end
-        // pass input issue to 
+        // pass input issue to OC
         else begin
             valid_OC <= issue_valid;
             op_OC <= issue_op;

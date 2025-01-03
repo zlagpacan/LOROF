@@ -48,8 +48,10 @@ module alu_pipeline_v2_tb ();
 
     // reg read info and data from PRF
 	logic tb_A_reg_read_valid;
+	logic tb_A_reg_read_port;
 	logic tb_B_reg_read_valid;
-	logic [PRF_BANK_COUNT-1:0][31:0] tb_reg_read_data_by_bank;
+	logic tb_B_reg_read_port;
+	logic [PRF_BANK_COUNT-1:0][1:0][31:0] tb_reg_read_data_by_bank_by_port;
 
     // forward data from PRF
 	logic [PRF_BANK_COUNT-1:0][31:0] tb_forward_data_by_bank;
@@ -90,8 +92,10 @@ module alu_pipeline_v2_tb ();
 
 	    // reg read info and data from PRF
 		.A_reg_read_valid(tb_A_reg_read_valid),
+		.A_reg_read_port(tb_A_reg_read_port),
 		.B_reg_read_valid(tb_B_reg_read_valid),
-		.reg_read_data_by_bank(tb_reg_read_data_by_bank),
+		.B_reg_read_port(tb_B_reg_read_port),
+		.reg_read_data_by_bank_by_port(tb_reg_read_data_by_bank_by_port),
 
 	    // forward data from PRF
 		.forward_data_by_bank(tb_forward_data_by_bank),
@@ -185,8 +189,15 @@ module alu_pipeline_v2_tb ();
 		tb_issue_ROB_index = 6'h0;
 	    // reg read info and data from PRF
 		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_port = 1'b0;
 		tb_B_reg_read_valid = 1'b0;
-		tb_reg_read_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
+		tb_B_reg_read_port = 1'b0;
+		tb_reg_read_data_by_bank_by_port = {
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0}
+		};
 	    // forward data from PRF
 		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // ready feedback to ALU IQ
@@ -232,8 +243,15 @@ module alu_pipeline_v2_tb ();
 		tb_issue_ROB_index = 6'h0;
 	    // reg read info and data from PRF
 		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_port = 1'b0;
 		tb_B_reg_read_valid = 1'b0;
-		tb_reg_read_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
+		tb_B_reg_read_port = 1'b0;
+		tb_reg_read_data_by_bank_by_port = {
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0}
+		};
 	    // forward data from PRF
 		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // ready feedback to ALU IQ
@@ -293,8 +311,15 @@ module alu_pipeline_v2_tb ();
 		tb_issue_ROB_index = 6'h0;
 	    // reg read info and data from PRF
 		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_port = 1'b0;
 		tb_B_reg_read_valid = 1'b0;
-		tb_reg_read_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
+		tb_B_reg_read_port = 1'b0;
+		tb_reg_read_data_by_bank_by_port = {
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0}
+		};
 	    // forward data from PRF
 		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // ready feedback to ALU IQ
@@ -324,7 +349,7 @@ module alu_pipeline_v2_tb ();
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
-            "issue: v 0: ADD p2, p0:r, p1:r", "\n\t\t",
+            "issue: v 0: ADD p2, p0:0r, p1:1r", "\n\t\t",
             "OC: i NOP", "\n\t\t",
             "EX: i NOP", "\n\t\t",
             "WB: i NOP", "\n\t\t",
@@ -348,8 +373,15 @@ module alu_pipeline_v2_tb ();
 		tb_issue_ROB_index = 6'h0;
 	    // reg read info and data from PRF
 		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_port = 1'b0;
 		tb_B_reg_read_valid = 1'b0;
-		tb_reg_read_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
+		tb_B_reg_read_port = 1'b0;
+		tb_reg_read_data_by_bank_by_port = {
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0}
+		};
 	    // forward data from PRF
 		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // ready feedback to ALU IQ
@@ -379,8 +411,8 @@ module alu_pipeline_v2_tb ();
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
-            "issue: v 1: SLLI p4, p3:r, 0x4", "\n\t\t",
-            "OC: v 0: ADD p2, p0:r, p1:r", "\n\t\t",
+            "issue: v 1: SLLI p4, p3:0r, 0x4", "\n\t\t",
+            "OC: v 0: ADD p2, p0:0r, p1:1r", "\n\t\t",
             "EX: i NOP", "\n\t\t",
             "WB: i NOP", "\n\t\t",
 			"activity: reg read p0, p1", "\n\t\t"
@@ -403,8 +435,15 @@ module alu_pipeline_v2_tb ();
 		tb_issue_ROB_index = 6'h1;
 	    // reg read info and data from PRF
 		tb_A_reg_read_valid = 1'b1;
+		tb_A_reg_read_port = 1'b0;
 		tb_B_reg_read_valid = 1'b1;
-		tb_reg_read_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h1};
+		tb_B_reg_read_port = 1'b1;
+		tb_reg_read_data_by_bank_by_port = {
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h1, 32'h0},
+			{32'h0, 32'h0}
+		};
 	    // forward data from PRF
 		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // ready feedback to ALU IQ
@@ -434,9 +473,9 @@ module alu_pipeline_v2_tb ();
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
-            "issue: v 2: SLT p7, p5:f, p6:r", "\n\t\t",
-            "OC: v 1: SLLI p4, p3:r, 0x4", "\n\t\t",
-            "EX: v 0: ADD p2, p0:r, p1:r", "\n\t\t",
+            "issue: v 2: SLT p7, p5:f, p6:1r", "\n\t\t",
+            "OC: v 1: SLLI p4, p3:0r, 0x4", "\n\t\t",
+            "EX: v 0: ADD p2, p0:0r, p1:1r", "\n\t\t",
             "WB: i NOP", "\n\t\t",
 			"activity: reg read p3", "\n\t\t"
         };
@@ -458,8 +497,15 @@ module alu_pipeline_v2_tb ();
 		tb_issue_ROB_index = 6'h2;
 	    // reg read info and data from PRF
 		tb_A_reg_read_valid = 1'b1;
+		tb_A_reg_read_port = 1'b0;
 		tb_B_reg_read_valid = 1'b0;
-		tb_reg_read_data_by_bank = {32'h3, 32'h0, 32'h0, 32'h0};
+		tb_B_reg_read_port = 1'b0;
+		tb_reg_read_data_by_bank_by_port = {
+			{32'h0, 32'h3},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0}
+		};
 	    // forward data from PRF
 		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // ready feedback to ALU IQ
@@ -481,6 +527,502 @@ module alu_pipeline_v2_tb ();
 		expected_WB_data = 32'h0;
 		expected_WB_PR = 6'h0;
 		expected_WB_ROB_index = 6'h0;
+	    // writeback backpressure from PRF
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = {"\n\t\t", 
+            "issue: v 3: SLTIU p9, p8:1r, 0x7", "\n\t\t",
+            "OC: v 2: SLT p7, p5:f, p6:1r", "\n\t\t",
+            "EX: v 1: SLLI p4, p3:0r, 0x4", "\n\t\t",
+            "WB: v 0: ADD p2, p0:0r, p1:1r", "\n\t\t",
+			"activity: forward p5, reg read p6", "\n\t\t"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // ALU op issue from ALU IQ
+		tb_issue_valid = 1'b1;
+		tb_issue_op = 4'b0011;
+		tb_issue_is_imm = 1'b1;
+		tb_issue_imm = 32'h7;
+		tb_issue_A_unneeded = 1'b0;
+		tb_issue_A_forward = 1'b0;
+		tb_issue_A_bank = 2'h0;
+		tb_issue_B_forward = 1'b0;
+		tb_issue_B_bank = 2'h0;
+		tb_issue_dest_PR = 6'h9;
+		tb_issue_ROB_index = 6'h3;
+	    // reg read info and data from PRF
+		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_port = 1'b0;
+		tb_B_reg_read_valid = 1'b1;
+		tb_B_reg_read_port = 1'b1;
+		tb_reg_read_data_by_bank_by_port = {
+			{32'h0, 32'h0},
+			{32'h6, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0}
+		};
+	    // forward data from PRF
+		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h5, 32'h0};
+	    // ready feedback to ALU IQ
+	    // writeback data to PRF
+	    // writeback backpressure from PRF
+		tb_WB_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // ALU op issue from ALU IQ
+	    // reg read info and data from PRF
+	    // forward data from PRF
+	    // ready feedback to ALU IQ
+		expected_issue_ready = 1'b1;
+	    // writeback data to PRF
+		expected_WB_valid = 1'b1;
+		expected_WB_data = 32'h1;
+		expected_WB_PR = 6'h2;
+		expected_WB_ROB_index = 6'h0;
+	    // writeback backpressure from PRF
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = {"\n\t\t", 
+            "issue: vi 4: XOR pC, pA:f, pB:f", "\n\t\t",
+            "OC: v 3: SLTIU p9, p8:1r, 0x7", "\n\t\t",
+            "EX: v 2: SLT p7, p5:f, p6:1r", "\n\t\t",
+            "WB: v 1: SLLI p4, p3:0r, 0x4", "\n\t\t",
+			"activity: NO reg read p8", "\n\t\t"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // ALU op issue from ALU IQ
+		tb_issue_valid = 1'b1;
+		tb_issue_op = 4'b0100;
+		tb_issue_is_imm = 1'b0;
+		tb_issue_imm = 32'h0;
+		tb_issue_A_unneeded = 1'b0;
+		tb_issue_A_forward = 1'b1;
+		tb_issue_A_bank = 2'h2;
+		tb_issue_B_forward = 1'b1;
+		tb_issue_B_bank = 2'h3;
+		tb_issue_dest_PR = 6'hC;
+		tb_issue_ROB_index = 6'h4;
+	    // reg read info and data from PRF
+		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_port = 1'b0;
+		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_port = 1'b0;
+		tb_reg_read_data_by_bank_by_port = {
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0}
+		};
+	    // forward data from PRF
+		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
+	    // ready feedback to ALU IQ
+	    // writeback data to PRF
+	    // writeback backpressure from PRF
+		tb_WB_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // ALU op issue from ALU IQ
+	    // reg read info and data from PRF
+	    // forward data from PRF
+	    // ready feedback to ALU IQ
+		expected_issue_ready = 1'b0;
+	    // writeback data to PRF
+		expected_WB_valid = 1'b1;
+		expected_WB_data = 32'h30;
+		expected_WB_PR = 6'h4;
+		expected_WB_ROB_index = 6'h1;
+	    // writeback backpressure from PRF
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = {"\n\t\t", 
+            "issue: v 4: XOR pC, pA:f, pB:f", "\n\t\t",
+            "OC: v 3: SLTIU p9, p8:1r, 0x7", "\n\t\t",
+            "EX: i 3: SLTIU p9, p8:1r, 0x7", "\n\t\t",
+            "WB: v 2: SLT p7, p5:f, p6:1r", "\n\t\t",
+			"activity: reg read p8, WB not ready", "\n\t\t"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // ALU op issue from ALU IQ
+		tb_issue_valid = 1'b1;
+		tb_issue_op = 4'b0100;
+		tb_issue_is_imm = 1'b0;
+		tb_issue_imm = 32'h0;
+		tb_issue_A_unneeded = 1'b0;
+		tb_issue_A_forward = 1'b1;
+		tb_issue_A_bank = 2'h2;
+		tb_issue_B_forward = 1'b1;
+		tb_issue_B_bank = 2'h3;
+		tb_issue_dest_PR = 6'hC;
+		tb_issue_ROB_index = 6'h4;
+	    // reg read info and data from PRF
+		tb_A_reg_read_valid = 1'b1;
+		tb_A_reg_read_port = 1'b1;
+		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_port = 1'b0;
+		tb_reg_read_data_by_bank_by_port = {
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h8, 32'h0}
+		};
+	    // forward data from PRF
+		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
+	    // ready feedback to ALU IQ
+	    // writeback data to PRF
+	    // writeback backpressure from PRF
+		tb_WB_ready = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // ALU op issue from ALU IQ
+	    // reg read info and data from PRF
+	    // forward data from PRF
+	    // ready feedback to ALU IQ
+		expected_issue_ready = 1'b1;
+	    // writeback data to PRF
+		expected_WB_valid = 1'b1;
+		expected_WB_data = 32'h1;
+		expected_WB_PR = 6'h7;
+		expected_WB_ROB_index = 6'h2;
+	    // writeback backpressure from PRF
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = {"\n\t\t", 
+            "issue: vi 5: SRLI pE, pD:0r, 0x1", "\n\t\t",
+            "OC: v 4: XOR pC, pA:f, pB:f", "\n\t\t",
+            "EX: v 3: SLTIU p9, p8:1r, 0x7", "\n\t\t",
+            "WB: v 2: SLT p7, p5:f, p6:1r", "\n\t\t",
+			"activity: forward pA, pB, WB not ready", "\n\t\t"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // ALU op issue from ALU IQ
+		tb_issue_valid = 1'b1;
+		tb_issue_op = 4'b0101;
+		tb_issue_is_imm = 1'b1;
+		tb_issue_imm = 32'h1;
+		tb_issue_A_unneeded = 1'b0;
+		tb_issue_A_forward = 1'b0;
+		tb_issue_A_bank = 2'h1;
+		tb_issue_B_forward = 1'b0;
+		tb_issue_B_bank = 2'h0;
+		tb_issue_dest_PR = 6'hE;
+		tb_issue_ROB_index = 6'h5;
+	    // reg read info and data from PRF
+		tb_A_reg_read_valid = 1'b1;
+		tb_A_reg_read_port = 1'b1;
+		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_port = 1'b0;
+		tb_reg_read_data_by_bank_by_port = {
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h8, 32'h0}
+		};
+	    // forward data from PRF
+		tb_forward_data_by_bank = {32'hB, 32'hA, 32'h0, 32'h0};
+	    // ready feedback to ALU IQ
+	    // writeback data to PRF
+	    // writeback backpressure from PRF
+		tb_WB_ready = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // ALU op issue from ALU IQ
+	    // reg read info and data from PRF
+	    // forward data from PRF
+	    // ready feedback to ALU IQ
+		expected_issue_ready = 1'b0;
+	    // writeback data to PRF
+		expected_WB_valid = 1'b1;
+		expected_WB_data = 32'h1;
+		expected_WB_PR = 6'h7;
+		expected_WB_ROB_index = 6'h2;
+	    // writeback backpressure from PRF
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = {"\n\t\t", 
+            "issue: v 5: SRLI pE, pD:0r, 0x1", "\n\t\t",
+            "OC: v 4: XOR pC, pA:f, pB:f", "\n\t\t",
+            "EX: v 3: SLTIU p9, p8:1r, 0x7", "\n\t\t",
+            "WB: v 2: SLT p7, p5:f, p6:1r", "\n\t\t",
+			"activity: ", "\n\t\t"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // ALU op issue from ALU IQ
+		tb_issue_valid = 1'b1;
+		tb_issue_op = 4'b0101;
+		tb_issue_is_imm = 1'b1;
+		tb_issue_imm = 32'h1;
+		tb_issue_A_unneeded = 1'b0;
+		tb_issue_A_forward = 1'b0;
+		tb_issue_A_bank = 2'h1;
+		tb_issue_B_forward = 1'b0;
+		tb_issue_B_bank = 2'h0;
+		tb_issue_dest_PR = 6'hE;
+		tb_issue_ROB_index = 6'h5;
+	    // reg read info and data from PRF
+		tb_A_reg_read_valid = 1'b1;
+		tb_A_reg_read_port = 1'b1;
+		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_port = 1'b0;
+		tb_reg_read_data_by_bank_by_port = {
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h8, 32'h0}
+		};
+	    // forward data from PRF
+		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
+	    // ready feedback to ALU IQ
+	    // writeback data to PRF
+	    // writeback backpressure from PRF
+		tb_WB_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // ALU op issue from ALU IQ
+	    // reg read info and data from PRF
+	    // forward data from PRF
+	    // ready feedback to ALU IQ
+		expected_issue_ready = 1'b1;
+	    // writeback data to PRF
+		expected_WB_valid = 1'b1;
+		expected_WB_data = 32'h1;
+		expected_WB_PR = 6'h7;
+		expected_WB_ROB_index = 6'h2;
+	    // writeback backpressure from PRF
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = {"\n\t\t", 
+            "issue: vi 6: LUI pF, 0xABCDE000", "\n\t\t",
+            "OC: v 5: SRLI pE, pD:0r, 0x1", "\n\t\t",
+            "EX: v 4: XOR pC, pA:f, pB:f", "\n\t\t",
+            "WB: v 3: SLTIU p9, p8:1r, 0x7", "\n\t\t",
+			"activity: NO reg read pD", "\n\t\t"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // ALU op issue from ALU IQ
+		tb_issue_valid = 1'b1;
+		tb_issue_op = 4'b1111;
+		tb_issue_is_imm = 1'b1;
+		tb_issue_imm = 32'hABCDE000;
+		tb_issue_A_unneeded = 1'b1;
+		tb_issue_A_forward = 1'b0;
+		tb_issue_A_bank = 2'h0;
+		tb_issue_B_forward = 1'b0;
+		tb_issue_B_bank = 2'h0;
+		tb_issue_dest_PR = 6'hF;
+		tb_issue_ROB_index = 6'h6;
+	    // reg read info and data from PRF
+		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_port = 1'b0;
+		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_port = 1'b0;
+		tb_reg_read_data_by_bank_by_port = {
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0}
+		};
+	    // forward data from PRF
+		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
+	    // ready feedback to ALU IQ
+	    // writeback data to PRF
+	    // writeback backpressure from PRF
+		tb_WB_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // ALU op issue from ALU IQ
+	    // reg read info and data from PRF
+	    // forward data from PRF
+	    // ready feedback to ALU IQ
+		expected_issue_ready = 1'b0;
+	    // writeback data to PRF
+		expected_WB_valid = 1'b1;
+		expected_WB_data = 32'h0;
+		expected_WB_PR = 6'h9;
+		expected_WB_ROB_index = 6'h3;
+	    // writeback backpressure from PRF
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = {"\n\t\t", 
+            "issue: vi 6: LUI pF, 0xABCDE000", "\n\t\t",
+            "OC: v 5: SRLI pE, pD:0r, 0x1", "\n\t\t",
+            "EX: i 5: SRLI pE, pD:0r, 0x1", "\n\t\t",
+            "WB: v 4: XOR pC, pA:f, pB:f", "\n\t\t",
+			"activity: NO reg read pD", "\n\t\t"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // ALU op issue from ALU IQ
+		tb_issue_valid = 1'b1;
+		tb_issue_op = 4'b1111;
+		tb_issue_is_imm = 1'b1;
+		tb_issue_imm = 32'hABCDE000;
+		tb_issue_A_unneeded = 1'b1;
+		tb_issue_A_forward = 1'b0;
+		tb_issue_A_bank = 2'h0;
+		tb_issue_B_forward = 1'b0;
+		tb_issue_B_bank = 2'h0;
+		tb_issue_dest_PR = 6'hF;
+		tb_issue_ROB_index = 6'h6;
+	    // reg read info and data from PRF
+		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_port = 1'b0;
+		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_port = 1'b0;
+		tb_reg_read_data_by_bank_by_port = {
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0}
+		};
+	    // forward data from PRF
+		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
+	    // ready feedback to ALU IQ
+	    // writeback data to PRF
+	    // writeback backpressure from PRF
+		tb_WB_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // ALU op issue from ALU IQ
+	    // reg read info and data from PRF
+	    // forward data from PRF
+	    // ready feedback to ALU IQ
+		expected_issue_ready = 1'b0;
+	    // writeback data to PRF
+		expected_WB_valid = 1'b1;
+		expected_WB_data = 32'h1;
+		expected_WB_PR = 6'hC;
+		expected_WB_ROB_index = 6'h4;
+	    // writeback backpressure from PRF
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = {"\n\t\t", 
+            "issue: vi 6: LUI pF, 0xABCDE000", "\n\t\t",
+            "OC: v 5: SRLI pE, pD:0r, 0x1", "\n\t\t",
+            "EX: i 5: SRLI pE, pD:0r, 0x1", "\n\t\t",
+            "WB: i 5: SRLI pE, pD:0r, 0x1", "\n\t\t",
+			"activity: NO reg read pD", "\n\t\t"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // ALU op issue from ALU IQ
+		tb_issue_valid = 1'b1;
+		tb_issue_op = 4'b1111;
+		tb_issue_is_imm = 1'b1;
+		tb_issue_imm = 32'hABCDE000;
+		tb_issue_A_unneeded = 1'b1;
+		tb_issue_A_forward = 1'b0;
+		tb_issue_A_bank = 2'h0;
+		tb_issue_B_forward = 1'b0;
+		tb_issue_B_bank = 2'h0;
+		tb_issue_dest_PR = 6'hF;
+		tb_issue_ROB_index = 6'h6;
+	    // reg read info and data from PRF
+		tb_A_reg_read_valid = 1'b0;
+		tb_A_reg_read_port = 1'b0;
+		tb_B_reg_read_valid = 1'b0;
+		tb_B_reg_read_port = 1'b0;
+		tb_reg_read_data_by_bank_by_port = {
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0},
+			{32'h0, 32'h0}
+		};
+	    // forward data from PRF
+		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
+	    // ready feedback to ALU IQ
+	    // writeback data to PRF
+	    // writeback backpressure from PRF
+		tb_WB_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // ALU op issue from ALU IQ
+	    // reg read info and data from PRF
+	    // forward data from PRF
+	    // ready feedback to ALU IQ
+		expected_issue_ready = 1'b0;
+	    // writeback data to PRF
+		expected_WB_valid = 1'b0;
+		expected_WB_data = 32'h0;
+		expected_WB_PR = 6'hE;
+		expected_WB_ROB_index = 6'h5;
 	    // writeback backpressure from PRF
 
 		check_outputs();

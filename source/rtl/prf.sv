@@ -22,14 +22,14 @@ module prf (
     output logic [13:0] reg_read_valid_by_rr,
 
     // reg read data by bank
-    output logic [PRF_BANK_COUNT-1:0][31:0] reg_read_data_by_bank_out,
+    output logic [PRF_BANK_COUNT-1:0][31:0] reg_read_data_by_bank,
 
-    // writeback data to PRF by writer
-    input logic [13:0] WB_valid_array,
-    input logic [13:0][31:0] WB_data_array,
+    // writeback data to PRF by write requestor
+    input logic [13:0] WB_valid_by_wr,
+    input logic [13:0][31:0] WB_data_by_wr,
     input logic [13:0][]
 
-    // writeback bus
+    // writeback bus by bank
     output logic [PRF_BANK_COUNT-1:0]                                       WB_bus_valid_by_bank,
     output logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]  WB_bus_upper_PR_by_bank
 );
