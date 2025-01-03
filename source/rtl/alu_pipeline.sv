@@ -131,8 +131,10 @@ module alu_pipeline (
             is_imm_OC <= is_imm_in;
             imm_OC <= imm_in;
             A_unneeded_OC <= A_unneeded_in;
+            A_saved_OC <= 1'b0;
             A_forward_OC <= A_forward_in;
             A_bank_OC <= A_bank_in;
+            B_saved_OC <= 1'b0;
             B_forward_OC <= B_forward_in;
             B_bank_OC <= B_bank_in;
             dest_PR_OC <= dest_PR_in;
