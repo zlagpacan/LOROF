@@ -43,14 +43,20 @@ module prf (
     // Signals:
 
     // Reg File RAM Array
-    logic [PRF_BANK_COUNT-1:0][PR_COUNT/PRF_BANK_COUNT-1:0][31:0] PRF_by_bank;
+    logic [PRF_BANK_COUNT-1:0][PR_COUNT/PRF_BANK_COUNT-1:0][31:0]       prf_array_by_bank;
+    logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     prf_port0_upper_PR_by_bank;
+    logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     next_prf_port0_upper_PR_by_bank;
+    logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     prf_port1_upper_PR_by_bank;
+    logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     next_prf_port1_upper_PR_by_bank;
 
     // Read Req Signals
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    reg_read_req_valid_by_bank_by_rr;
 
     logic [PRF_RR_COUNT-1:0]                        unacked_reg_read_req_valid_by_rr;
-    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    unacked_reg_read_req_valid_by_bank_by_rr;
+    logic [PRF_RR_COUNT-1:0]                        next_unacked_reg_read_req_valid_by_rr;
     logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]      unacked_reg_read_req_PR_by_rr;
+    logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]      next_unacked_reg_read_req_PR_by_rr;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    unacked_reg_read_req_valid_by_bank_by_rr;
 
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    compressed_reg_read_req_valid_by_bank_by_rr;
     logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]      compressed_reg_read_req_PR_by_rr;
@@ -62,9 +68,9 @@ module prf (
 
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port0_reg_read_ack_by_bank_by_rr;
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port1_reg_read_ack_by_bank_by_rr;
-    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    reg_read_ack_by_bank_by_rr;
 
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    last_reg_read_mask_by_bank;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    next_last_reg_read_mask_by_bank;
 
     // Write Req Signals
     logic [PRF_BANK_COUNT-1:0][PRF_WR_COUNT-1:0]    WB_valid_by_bank_by_wr;
@@ -181,28 +187,83 @@ module prf (
             reg_read_port_by_rr |= port1_reg_read_ack_by_bank_by_rr[bank];
         end
 
+        // unacked req's
+        next_unacked_reg_read_req_valid_by_rr = '0;
+        for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
+            next_unacked_reg_read_req_valid_by_rr |= compressed_reg_read_req_valid_by_bank_by_rr[bank];
+        end
+        next_unacked_reg_read_req_valid_by_rr = next_unacked_reg_read_req_valid_by_rr & ~reg_read_ack_by_rr;
+
+        next_unacked_reg_read_req_PR_by_rr = compressed_reg_read_req_PR_by_rr;
+
         // last reg read mask
             // base on port 1
-        last_reg_read_mask_by_bank = '0;
-        for 
+        next_last_reg_read_mask_by_bank = '0;
+        for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
+            for (int rr = PRF_BANK_COUNT-2; rr >= 0; rr++) begin
+                next_last_reg_read_mask_by_bank[bank][rr] = reg_read_ack_by_rr[rr+1] | next_last_reg_read_mask_by_bank[bank][rr+1];
+            end
+        end
     end
 
+    // determine next reg read
+    always_comb begin
+
+        // go through banks
+        for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
+
+            // port 0 one-hot mux
+                // get PR:
+                    // AND with ack
+                    // OR by rr
+            next_prf_port0_upper_PR_by_bank[bank] = '0;
+            for (int rr = 0; rr < PRF_RR_COUNT; rr++) begin
+                next_prf_port0_upper_PR_by_bank[bank] |= 
+                    compressed_reg_read_req_PR_by_rr[rr][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT]
+                    & 
+                    {(LOG_PR_COUNT-LOG_PRF_BANK_COUNT){port0_reg_read_ack_by_bank_by_rr[bank][rr]}}
+                ;
+            end
+
+            // port 1 one-hot mux
+            next_prf_port1_upper_PR_by_bank[bank] = '0;
+            for (int rr = 0; rr < PRF_RR_COUNT; rr++) begin
+                next_prf_port1_upper_PR_by_bank[bank] |= 
+                    compressed_reg_read_req_PR_by_rr[rr][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT]
+                    & 
+                    {(LOG_PR_COUNT-LOG_PRF_BANK_COUNT){port1_reg_read_ack_by_bank_by_rr[bank][rr]}}
+                ;
+            end
+        end
+    end
+
+    // actual reg read
+        // use registered index
+    always_comb begin
+
+        for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
+            reg_read_data_by_bank_by_port[bank][0] = prf_array_by_bank[bank][prf_port0_upper_PR_by_bank];
+            reg_read_data_by_bank_by_port[bank][1] = prf_array_by_bank[bank][prf_port1_upper_PR_by_bank];
+        end
+    end
 
     // FF
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
+            prf_port0_upper_PR_by_bank <= '0;
+            prf_port1_upper_PR_by_bank <= '0;
             unacked_reg_read_req_valid_by_rr <= '0;
             unacked_reg_read_req_PR_by_rr <= '0;
             last_reg_read_mask_by_bank <= '0;
         end
         else begin
-            unacked_reg_read_req_valid_by_rr <= '0;
-            unacked_reg_read_req_PR_by_rr <= '0;
-            last_reg_read_mask_by_bank <= '0;
+            prf_port0_upper_PR_by_bank <= next_prf_port0_upper_PR_by_bank;
+            prf_port1_upper_PR_by_bank <= next_prf_port1_upper_PR_by_bank;
+            unacked_reg_read_req_valid_by_rr <= next_unacked_reg_read_req_valid_by_rr;
+            unacked_reg_read_req_PR_by_rr <= next_unacked_reg_read_req_PR_by_rr;
+            last_reg_read_mask_by_bank <= next_last_reg_read_mask_by_bank;
         end
     end
-
-    // determine ack's for next cycle
 
     // ----------------------------------------------------------------
     // Writeback Logic:
