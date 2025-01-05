@@ -131,7 +131,7 @@ module prf #(
                 // BRAM using next's
                 bram_2rport_1wport #(
                     .INNER_WIDTH(32),
-                    .OUTER_WIDTH(16)
+                    .OUTER_WIDTH(PR_COUNT/PRF_BANK_COUNT)
                 ) BRAM (
                     .CLK(CLK),
                     .nRST(nRST),
@@ -152,7 +152,7 @@ module prf #(
                 // DistRAM using curr's
                 distram_2rport_1wport #(
                     .INNER_WIDTH(32),
-                    .OUTER_WIDTH(16)
+                    .OUTER_WIDTH(PR_COUNT/PRF_BANK_COUNT)
                 ) BRAM (
                     .CLK(CLK),
                     .port0_rindex(prf_port0_read_upper_PR_by_bank[bank]),
