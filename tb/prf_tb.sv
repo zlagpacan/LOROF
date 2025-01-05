@@ -65,7 +65,7 @@ module prf_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	prf DUT (
+	prf #(.USE_BRAM(1'b0)) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),

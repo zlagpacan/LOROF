@@ -4,6 +4,7 @@ module bram_1rport_1wport #(
     parameter INIT_FILE = ""
 )(
     input logic CLK,
+    input logic nRST,
     
     input logic ren,
     input logic [$clog2(OUTER_WIDTH)-1:0] rindex,
@@ -15,7 +16,7 @@ module bram_1rport_1wport #(
 );
 
     logic [INNER_WIDTH-1:0] bram_array [OUTER_WIDTH-1:0];
-    logic [INNER_WIDTH-1:0] rreg = '0;
+    logic [INNER_WIDTH-1:0] rreg;
     
     // bram init values
     generate
@@ -34,8 +35,13 @@ module bram_1rport_1wport #(
     endgenerate
 
     // bram read ports
-    always @ (posedge CLK) begin : bram_read
-        if (ren) rreg <= bram_array[rindex];
+    always @ (posedge CLK, negedge nRST) begin : bram_read
+        if (~nRST) begin
+            rreg <= '0;
+        end
+        else begin
+            if (ren) rreg <= bram_array[rindex];
+        end
     end
     
     // bram write port
