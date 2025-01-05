@@ -83,7 +83,7 @@ module prf_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    prf WRAPPED_MODULE (.*);
+    prf #(.USE_BRAM(1'b1)) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:

@@ -277,8 +277,8 @@ module prf #(
                 // registered read, use unregistered index
             always_ff @ (posedge CLK) begin
                 for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-                    reg_read_data_by_bank_by_port[bank][0] <= next_prf_array_by_bank_by_upper_PR[bank][next_prf_port0_read_upper_PR_by_bank];
-                    reg_read_data_by_bank_by_port[bank][1] <= next_prf_array_by_bank_by_upper_PR[bank][next_prf_port1_read_upper_PR_by_bank];
+                    reg_read_data_by_bank_by_port[bank][0] <= prf_array_by_bank_by_upper_PR[bank][next_prf_port0_read_upper_PR_by_bank];
+                    reg_read_data_by_bank_by_port[bank][1] <= prf_array_by_bank_by_upper_PR[bank][next_prf_port1_read_upper_PR_by_bank];
                 end
             end
             
