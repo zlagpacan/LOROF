@@ -145,6 +145,24 @@ module prf #(
                     .windex(prf_WB_upper_PR_by_bank[bank]),
                     .wdata(prf_WB_data_by_bank)
                 );
+
+                // // BRAM using curr's
+                // bram_2rport_1wport #(
+                //     .INNER_WIDTH(32),
+                //     .OUTER_WIDTH(PR_COUNT/PRF_BANK_COUNT)
+                // ) BRAM (
+                //     .CLK(CLK),
+                //     .nRST(nRST),
+                //     .port0_ren(1'b1),
+                //     .port0_rindex(prf_port0_read_upper_PR_by_bank[bank]),
+                //     .port0_rdata(reg_read_data_by_bank_by_port[bank][0]),
+                //     .port1_ren(1'b1),
+                //     .port1_rindex(prf_port1_read_upper_PR_by_bank[bank]),
+                //     .port1_rdata(reg_read_data_by_bank_by_port[bank][1]),
+                //     .wen_byte({4{prf_WB_valid_by_bank[bank]}}),
+                //     .windex(prf_WB_upper_PR_by_bank[bank]),
+                //     .wdata(prf_WB_data_by_bank)
+                // );
             end
 
             else begin
