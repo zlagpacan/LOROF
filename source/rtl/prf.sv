@@ -63,7 +63,7 @@ module prf (
     logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     next_prf_WB_upper_PR_by_bank;
     logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0]                     prf_WB_ROB_index_by_bank; 
     logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0]                     next_prf_WB_ROB_index_by_bank;
-        // ROB_index also here since needs to use one-hot mux logic
+        // ROB_index also here since shares one-hot mux logic
 
     // Read Req Signals
     logic [PRF_RR_COUNT-1:0]                        unacked_reg_read_req_valid_by_rr;
