@@ -48,7 +48,7 @@ module prf (
     // Signals:
 
     // Reg File RAM Array
-    logic [PRF_BANK_COUNT-1:0][PR_COUNT/PRF_BANK_COUNT-1:0][31:0]       prf_array_by_bank;
+    logic [PRF_BANK_COUNT-1:0][PR_COUNT/PRF_BANK_COUNT-1:0][31:0]       prf_array_by_bank_by_upper_PR;
 
     logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     prf_port0_read_upper_PR_by_bank;
     logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     next_prf_port0_read_upper_PR_by_bank;
@@ -109,7 +109,7 @@ module prf (
     logic [PRF_BANK_COUNT-1:0][PRF_WR_COUNT-1:0]    masked_WB_ack_by_bank_by_wr;
     logic [PRF_BANK_COUNT-1:0][PRF_WR_COUNT-1:0]    unmasked_WB_ack_by_bank_by_wr;
     logic [PRF_BANK_COUNT-1:0][PRF_WR_COUNT-1:0]    WB_ack_by_bank_by_wr;
-    logic [PRF_BANK_COUNT-1:0]                      WB_ack_by_wr;
+    logic [PRF_WR_COUNT-1:0]                        WB_ack_by_wr;
 
     logic [PRF_BANK_COUNT-1:0][PRF_WR_COUNT-1:0]    last_WB_mask_by_bank;
     logic [PRF_BANK_COUNT-1:0][PRF_WR_COUNT-1:0]    next_last_WB_mask_by_bank;
@@ -118,7 +118,7 @@ module prf (
     // Reg Read Logic:
 
     // PQ function for RR's, prioritizing msb to lsb
-    function logic [PRF_RR_COUNT-1:0] RR_PQ (input [PRF_RR_COUNT-1:0] req_vec);
+    function static logic [PRF_RR_COUNT-1:0] RR_PQ (input [PRF_RR_COUNT-1:0] req_vec);
         
         // init clear vec
         RR_PQ = '0;
@@ -271,8 +271,8 @@ module prf (
     always_comb begin
 
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-            reg_read_data_by_bank_by_port[bank][0] = prf_array_by_bank[bank][prf_port0_read_upper_PR_by_bank];
-            reg_read_data_by_bank_by_port[bank][1] = prf_array_by_bank[bank][prf_port1_read_upper_PR_by_bank];
+            reg_read_data_by_bank_by_port[bank][0] = prf_array_by_bank_by_upper_PR[bank][prf_port0_read_upper_PR_by_bank];
+            reg_read_data_by_bank_by_port[bank][1] = prf_array_by_bank_by_upper_PR[bank][prf_port1_read_upper_PR_by_bank];
         end
     end
 
@@ -298,7 +298,7 @@ module prf (
     // Writeback Logic:
 
     // PQ function for WR's, prioritizing msb to lsb
-    function logic [PRF_WR_COUNT-1:0] WR_PQ (input [PRF_WR_COUNT-1:0] req_vec);
+    function static logic [PRF_WR_COUNT-1:0] WR_PQ (input [PRF_WR_COUNT-1:0] req_vec);
 
         // init clear vec
         WR_PQ = '0;
@@ -405,7 +405,7 @@ module prf (
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
 
             // valid follows any compressed for bank
-            next_prf_WB_valid_by_bank[bank] = |compressed_reg_read_req_valid_by_bank_by_rr[bank];
+            next_prf_WB_valid_by_bank[bank] = |compressed_WB_valid_by_bank_by_wr[bank];
 
             // one-hot mux
                 // get data and PR:
@@ -487,12 +487,13 @@ module prf (
     // Distributed RAM
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            prf_array_by_bank <= '0;
+            prf_array_by_bank_by_upper_PR <= '0;
         end
         else begin
             for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-                if (prf_WB_valid_by_bank[bank]) 
-                    prf_array_by_bank[bank][prf_WB_upper_PR_by_bank] <= prf_WB_data_by_bank;
+                if (prf_WB_valid_by_bank[bank]) begin
+                    prf_array_by_bank_by_upper_PR[bank][prf_WB_upper_PR_by_bank[bank]] <= prf_WB_data_by_bank[bank];
+                end
             end
         end
     end
