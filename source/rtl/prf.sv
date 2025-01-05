@@ -41,7 +41,7 @@ module prf (
     output logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0]                  WB_bus_ROB_index_by_bank,
 
     // forward data from PRF
-    input logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank
+    output logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank
 );
 
     // ----------------------------------------------------------------
@@ -229,7 +229,7 @@ module prf (
             // base on port 1
         next_last_reg_read_mask_by_bank = '0;
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-            for (int rr = PRF_RR_COUNT-2; rr >= 0; rr++) begin
+            for (int rr = PRF_RR_COUNT-2; rr >= 0; rr--) begin
                 next_last_reg_read_mask_by_bank[bank][rr] = reg_read_ack_by_rr[rr+1] | next_last_reg_read_mask_by_bank[bank][rr+1];
             end
         end
@@ -389,7 +389,7 @@ module prf (
         // last WB mask
         next_last_WB_mask_by_bank = '0;
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-            for (int wr = PRF_WR_COUNT-2; wr >= 0; wr++) begin
+            for (int wr = PRF_WR_COUNT-2; wr >= 0; wr--) begin
                 next_last_WB_mask_by_bank[bank][wr] = WB_ack_by_wr[wr+1] | next_last_WB_mask_by_bank[bank][wr+1];
             end
         end
