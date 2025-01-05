@@ -1,17 +1,13 @@
-module bram_2rport_1wport #(
+module bram_1rport_1wport #(
     parameter INNER_WIDTH = 32,
     parameter OUTER_WIDTH = 32,
     parameter INIT_FILE = ""
 )(
     input logic CLK,
     
-    input logic port0_ren,
-    input logic [$clog2(OUTER_WIDTH)-1:0] port0_rindex,
-    output logic [INNER_WIDTH-1:0] port0_rdata,
-    
-    input logic port1_ren,
-    input logic [$clog2(OUTER_WIDTH)-1:0] port1_rindex,
-    output logic [INNER_WIDTH-1:0] port1_rdata,
+    input logic ren,
+    input logic [$clog2(OUTER_WIDTH)-1:0] rindex,
+    output logic [INNER_WIDTH-1:0] rdata,
     
     input logic [INNER_WIDTH/8-1:0] wen_byte,
     input logic [OUTER_WIDTH-1:0] windex,
@@ -19,8 +15,7 @@ module bram_2rport_1wport #(
 );
 
     logic [INNER_WIDTH-1:0] bram_array [OUTER_WIDTH-1:0];
-    logic [INNER_WIDTH-1:0] port0_rreg = '0;
-    logic [INNER_WIDTH-1:0] port1_rreg = '0;    
+    logic [INNER_WIDTH-1:0] rreg = '0;
     
     // bram init values
     generate
@@ -40,8 +35,7 @@ module bram_2rport_1wport #(
 
     // bram read ports
     always @ (posedge CLK) begin : bram_read
-        if (port0_ren) port0_rreg <= bram_array[port0_rindex];
-        if (port1_ren) port1_rreg <= bram_array[port1_rindex];
+        if (ren) rreg <= bram_array[rindex];
     end
     
     // bram write port
@@ -56,7 +50,6 @@ module bram_2rport_1wport #(
     
     // read port to output connection
         // if register these, get better freq
-    assign port0_rdata = port0_rreg;
-    assign port1_rdata = port1_rreg;
+    assign rdata = rreg;
 
 endmodule
