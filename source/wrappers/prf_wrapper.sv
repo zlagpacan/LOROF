@@ -26,11 +26,11 @@ module prf_wrapper (
 	output logic [PRF_RR_COUNT-1:0] last_reg_read_port_by_rr,
 
     // reg read data by bank
-	output logic [PRF_BANK_COUNT-1:0][1:0][7:0] last_reg_read_data_by_bank_by_port,
+	output logic [PRF_BANK_COUNT-1:0][1:0][31:0] last_reg_read_data_by_bank_by_port,
 
     // writeback data by write requestor
 	input logic [PRF_WR_COUNT-1:0] next_WB_valid_by_wr,
-	input logic [PRF_WR_COUNT-1:0][7:0] next_WB_data_by_wr,
+	input logic [PRF_WR_COUNT-1:0][31:0] next_WB_data_by_wr,
 	input logic [PRF_WR_COUNT-1:0][LOG_PR_COUNT-1:0] next_WB_PR_by_wr,
 	input logic [PRF_WR_COUNT-1:0][LOG_ROB_ENTRIES-1:0] next_WB_ROB_index_by_wr,
 
@@ -39,12 +39,12 @@ module prf_wrapper (
 
     // writeback bus by bank
 	output logic [PRF_BANK_COUNT-1:0] last_WB_bus_valid_by_bank,
-	output logic [PRF_BANK_COUNT-1:0][7:0] last_WB_bus_data_by_bank,
+	output logic [PRF_BANK_COUNT-1:0][31:0] last_WB_bus_data_by_bank,
 	output logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] last_WB_bus_upper_PR_by_bank,
 	output logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0] last_WB_bus_ROB_index_by_bank,
 
     // forward data from PRF
-	output logic [PRF_BANK_COUNT-1:0][7:0] last_forward_data_by_bank
+	output logic [PRF_BANK_COUNT-1:0][31:0] last_forward_data_by_bank
 );
 
     // ----------------------------------------------------------------
@@ -83,7 +83,7 @@ module prf_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    prf #(.USE_BRAM(1'b0)) WRAPPED_MODULE (.*);
+    prf #(.USE_BRAM(1'b1)) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -137,7 +137,7 @@ module prf_wrapper (
 
 		    // writeback data by write requestor
 			WB_valid_by_wr <= next_WB_valid_by_wr;
-			WB_data_by_wr <= {4{next_WB_data_by_wr}};
+			WB_data_by_wr <= {next_WB_data_by_wr};
 			WB_PR_by_wr <= next_WB_PR_by_wr;
 			WB_ROB_index_by_wr <= next_WB_ROB_index_by_wr;
 
