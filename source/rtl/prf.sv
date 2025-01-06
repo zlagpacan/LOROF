@@ -190,7 +190,7 @@ module prf #(
     // Reg Read Logic:
 
     // PQ function for RR's, prioritizing msb to lsb
-    function static logic [PRF_RR_COUNT-1:0] RR_PQ (input [PRF_RR_COUNT-1:0] req_vec);
+    function static logic [PRF_RR_COUNT-1:0] RR_PQ (input logic [PRF_RR_COUNT-1:0] req_vec);
         
         // init clear vec
         RR_PQ = '0;
@@ -243,10 +243,10 @@ module prf #(
                 // single PQ over raw compressed req's
 
             // port 0 masked
-            port0_masked_reg_read_ack_by_bank_by_rr = RR_PQ(compressed_reg_read_req_valid_by_bank_by_rr[bank] & last_reg_read_mask_by_bank[bank]);
+            port0_masked_reg_read_ack_by_bank_by_rr[bank] = RR_PQ(compressed_reg_read_req_valid_by_bank_by_rr[bank] & last_reg_read_mask_by_bank[bank]);
 
             // port 0 unmasked
-            port0_unmasked_reg_read_ack_by_bank_by_rr = RR_PQ(compressed_reg_read_req_valid_by_bank_by_rr[bank]);
+            port0_unmasked_reg_read_ack_by_bank_by_rr[bank] = RR_PQ(compressed_reg_read_req_valid_by_bank_by_rr[bank]);
 
             // select port 0:
                 // if any masked req, use masked
@@ -262,10 +262,10 @@ module prf #(
                 // single PQ over raw compressed req's with port 0 ack masked out
 
             // port 1 masked
-            port1_masked_reg_read_ack_by_bank_by_rr = RR_PQ(compressed_reg_read_req_valid_by_bank_by_rr[bank] & ~port0_reg_read_ack_by_bank_by_rr[bank] & last_reg_read_mask_by_bank[bank]);
+            port1_masked_reg_read_ack_by_bank_by_rr[bank] = RR_PQ(compressed_reg_read_req_valid_by_bank_by_rr[bank] & ~port0_reg_read_ack_by_bank_by_rr[bank] & last_reg_read_mask_by_bank[bank]);
 
             // port 1 unmasked
-            port1_unmasked_reg_read_ack_by_bank_by_rr = RR_PQ(compressed_reg_read_req_valid_by_bank_by_rr[bank] & ~port0_reg_read_ack_by_bank_by_rr[bank]);
+            port1_unmasked_reg_read_ack_by_bank_by_rr[bank] = RR_PQ(compressed_reg_read_req_valid_by_bank_by_rr[bank] & ~port0_reg_read_ack_by_bank_by_rr[bank]);
 
             // select port 1:
                 // if any masked req, use masked
@@ -398,7 +398,7 @@ module prf #(
     // Writeback Logic:
 
     // PQ function for WR's, prioritizing msb to lsb
-    function static logic [PRF_WR_COUNT-1:0] WR_PQ (input [PRF_WR_COUNT-1:0] req_vec);
+    function static logic [PRF_WR_COUNT-1:0] WR_PQ (input logic [PRF_WR_COUNT-1:0] req_vec);
 
         // init clear vec
         WR_PQ = '0;
@@ -452,10 +452,10 @@ module prf #(
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
 
             // masked
-            masked_WB_ack_by_bank_by_wr = WR_PQ(compressed_WB_valid_by_bank_by_wr[bank] & last_WB_mask_by_bank[bank]);
+            masked_WB_ack_by_bank_by_wr[bank] = WR_PQ(compressed_WB_valid_by_bank_by_wr[bank] & last_WB_mask_by_bank[bank]);
 
             // unmasked
-            unmasked_WB_ack_by_bank_by_wr = WR_PQ(compressed_WB_valid_by_bank_by_wr[bank]);
+            unmasked_WB_ack_by_bank_by_wr[bank] = WR_PQ(compressed_WB_valid_by_bank_by_wr[bank]);
         
             // select masked vs. unmasked
                 // if any masked req, use masked

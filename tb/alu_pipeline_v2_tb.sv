@@ -185,8 +185,8 @@ module alu_pipeline_v2_tb ();
 		tb_issue_A_bank = 2'h0;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 6'h0;
-		tb_issue_ROB_index = 6'h0;
+		tb_issue_dest_PR = 7'h0;
+		tb_issue_ROB_index = 7'h0;
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
@@ -217,8 +217,8 @@ module alu_pipeline_v2_tb ();
 	    // writeback data to PRF
 		expected_WB_valid = 1'b0;
 		expected_WB_data = 32'h0;
-		expected_WB_PR = 6'h0;
-		expected_WB_ROB_index = 6'h0;
+		expected_WB_PR = 7'h0;
+		expected_WB_ROB_index = 7'h0;
 	    // writeback backpressure from PRF
 
 		check_outputs();
@@ -239,8 +239,8 @@ module alu_pipeline_v2_tb ();
 		tb_issue_A_bank = 2'h0;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 6'h0;
-		tb_issue_ROB_index = 6'h0;
+		tb_issue_dest_PR = 7'h0;
+		tb_issue_ROB_index = 7'h0;
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
@@ -271,8 +271,8 @@ module alu_pipeline_v2_tb ();
 	    // writeback data to PRF
 		expected_WB_valid = 1'b0;
 		expected_WB_data = 32'h0;
-		expected_WB_PR = 6'h0;
-		expected_WB_ROB_index = 6'h0;
+		expected_WB_PR = 7'h0;
+		expected_WB_ROB_index = 7'h0;
 	    // writeback backpressure from PRF
 
 		check_outputs();
@@ -307,8 +307,8 @@ module alu_pipeline_v2_tb ();
 		tb_issue_A_bank = 2'h0;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 6'h0;
-		tb_issue_ROB_index = 6'h0;
+		tb_issue_dest_PR = 7'h0;
+		tb_issue_ROB_index = 7'h0;
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
@@ -339,8 +339,8 @@ module alu_pipeline_v2_tb ();
 	    // writeback data to PRF
 		expected_WB_valid = 1'b0;
 		expected_WB_data = 32'h0;
-		expected_WB_PR = 6'h0;
-		expected_WB_ROB_index = 6'h0;
+		expected_WB_PR = 7'h0;
+		expected_WB_ROB_index = 7'h0;
 	    // writeback backpressure from PRF
 
 		check_outputs();
@@ -369,8 +369,8 @@ module alu_pipeline_v2_tb ();
 		tb_issue_A_bank = 2'h0;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h1;
-		tb_issue_dest_PR = 6'h2;
-		tb_issue_ROB_index = 6'h0;
+		tb_issue_dest_PR = 7'h2;
+		tb_issue_ROB_index = 7'h0;
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
@@ -401,8 +401,8 @@ module alu_pipeline_v2_tb ();
 	    // writeback data to PRF
 		expected_WB_valid = 1'b0;
 		expected_WB_data = 32'h0;
-		expected_WB_PR = 6'h0;
-		expected_WB_ROB_index = 6'h0;
+		expected_WB_PR = 7'h0;
+		expected_WB_ROB_index = 7'h0;
 	    // writeback backpressure from PRF
 
 		check_outputs();
@@ -431,8 +431,8 @@ module alu_pipeline_v2_tb ();
 		tb_issue_A_bank = 2'h3;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 6'h4;
-		tb_issue_ROB_index = 6'h1;
+		tb_issue_dest_PR = 7'h4;
+		tb_issue_ROB_index = 7'h1;
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b1;
 		tb_A_reg_read_port = 1'b0;
@@ -463,8 +463,8 @@ module alu_pipeline_v2_tb ();
 	    // writeback data to PRF
 		expected_WB_valid = 1'b0;
 		expected_WB_data = 32'h0;
-		expected_WB_PR = 6'h0;
-		expected_WB_ROB_index = 6'h0;
+		expected_WB_PR = 7'h0;
+		expected_WB_ROB_index = 7'h0;
 	    // writeback backpressure from PRF
 
 		check_outputs();
@@ -493,8 +493,8 @@ module alu_pipeline_v2_tb ();
 		tb_issue_A_bank = 2'h1;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h2;
-		tb_issue_dest_PR = 6'h7;
-		tb_issue_ROB_index = 6'h2;
+		tb_issue_dest_PR = 7'h7;
+		tb_issue_ROB_index = 7'h2;
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b1;
 		tb_A_reg_read_port = 1'b0;
@@ -525,8 +525,8 @@ module alu_pipeline_v2_tb ();
 	    // writeback data to PRF
 		expected_WB_valid = 1'b0;
 		expected_WB_data = 32'h0;
-		expected_WB_PR = 6'h0;
-		expected_WB_ROB_index = 6'h0;
+		expected_WB_PR = 7'h0;
+		expected_WB_ROB_index = 7'h0;
 	    // writeback backpressure from PRF
 
 		check_outputs();
@@ -555,8 +555,8 @@ module alu_pipeline_v2_tb ();
 		tb_issue_A_bank = 2'h0;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 6'h9;
-		tb_issue_ROB_index = 6'h3;
+		tb_issue_dest_PR = 7'h9;
+		tb_issue_ROB_index = 7'h3;
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
@@ -587,8 +587,8 @@ module alu_pipeline_v2_tb ();
 	    // writeback data to PRF
 		expected_WB_valid = 1'b1;
 		expected_WB_data = 32'h1;
-		expected_WB_PR = 6'h2;
-		expected_WB_ROB_index = 6'h0;
+		expected_WB_PR = 7'h2;
+		expected_WB_ROB_index = 7'h0;
 	    // writeback backpressure from PRF
 
 		check_outputs();
@@ -617,8 +617,8 @@ module alu_pipeline_v2_tb ();
 		tb_issue_A_bank = 2'h2;
 		tb_issue_B_forward = 1'b1;
 		tb_issue_B_bank = 2'h3;
-		tb_issue_dest_PR = 6'hC;
-		tb_issue_ROB_index = 6'h4;
+		tb_issue_dest_PR = 7'hC;
+		tb_issue_ROB_index = 7'h4;
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
@@ -649,8 +649,8 @@ module alu_pipeline_v2_tb ();
 	    // writeback data to PRF
 		expected_WB_valid = 1'b1;
 		expected_WB_data = 32'h30;
-		expected_WB_PR = 6'h4;
-		expected_WB_ROB_index = 6'h1;
+		expected_WB_PR = 7'h4;
+		expected_WB_ROB_index = 7'h1;
 	    // writeback backpressure from PRF
 
 		check_outputs();
@@ -679,8 +679,8 @@ module alu_pipeline_v2_tb ();
 		tb_issue_A_bank = 2'h2;
 		tb_issue_B_forward = 1'b1;
 		tb_issue_B_bank = 2'h3;
-		tb_issue_dest_PR = 6'hC;
-		tb_issue_ROB_index = 6'h4;
+		tb_issue_dest_PR = 7'hC;
+		tb_issue_ROB_index = 7'h4;
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b1;
 		tb_A_reg_read_port = 1'b1;
@@ -711,8 +711,8 @@ module alu_pipeline_v2_tb ();
 	    // writeback data to PRF
 		expected_WB_valid = 1'b1;
 		expected_WB_data = 32'h1;
-		expected_WB_PR = 6'h7;
-		expected_WB_ROB_index = 6'h2;
+		expected_WB_PR = 7'h7;
+		expected_WB_ROB_index = 7'h2;
 	    // writeback backpressure from PRF
 
 		check_outputs();
@@ -741,8 +741,8 @@ module alu_pipeline_v2_tb ();
 		tb_issue_A_bank = 2'h1;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 6'hE;
-		tb_issue_ROB_index = 6'h5;
+		tb_issue_dest_PR = 7'hE;
+		tb_issue_ROB_index = 7'h5;
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b1;
 		tb_A_reg_read_port = 1'b1;
@@ -773,8 +773,8 @@ module alu_pipeline_v2_tb ();
 	    // writeback data to PRF
 		expected_WB_valid = 1'b1;
 		expected_WB_data = 32'h1;
-		expected_WB_PR = 6'h7;
-		expected_WB_ROB_index = 6'h2;
+		expected_WB_PR = 7'h7;
+		expected_WB_ROB_index = 7'h2;
 	    // writeback backpressure from PRF
 
 		check_outputs();
@@ -803,8 +803,8 @@ module alu_pipeline_v2_tb ();
 		tb_issue_A_bank = 2'h1;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 6'hE;
-		tb_issue_ROB_index = 6'h5;
+		tb_issue_dest_PR = 7'hE;
+		tb_issue_ROB_index = 7'h5;
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b1;
 		tb_A_reg_read_port = 1'b1;
@@ -835,8 +835,8 @@ module alu_pipeline_v2_tb ();
 	    // writeback data to PRF
 		expected_WB_valid = 1'b1;
 		expected_WB_data = 32'h1;
-		expected_WB_PR = 6'h7;
-		expected_WB_ROB_index = 6'h2;
+		expected_WB_PR = 7'h7;
+		expected_WB_ROB_index = 7'h2;
 	    // writeback backpressure from PRF
 
 		check_outputs();
@@ -865,8 +865,8 @@ module alu_pipeline_v2_tb ();
 		tb_issue_A_bank = 2'h0;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 6'hF;
-		tb_issue_ROB_index = 6'h6;
+		tb_issue_dest_PR = 7'hF;
+		tb_issue_ROB_index = 7'h6;
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
@@ -897,8 +897,8 @@ module alu_pipeline_v2_tb ();
 	    // writeback data to PRF
 		expected_WB_valid = 1'b1;
 		expected_WB_data = 32'h0;
-		expected_WB_PR = 6'h9;
-		expected_WB_ROB_index = 6'h3;
+		expected_WB_PR = 7'h9;
+		expected_WB_ROB_index = 7'h3;
 	    // writeback backpressure from PRF
 
 		check_outputs();
@@ -927,8 +927,8 @@ module alu_pipeline_v2_tb ();
 		tb_issue_A_bank = 2'h0;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 6'hF;
-		tb_issue_ROB_index = 6'h6;
+		tb_issue_dest_PR = 7'hF;
+		tb_issue_ROB_index = 7'h6;
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
@@ -959,8 +959,8 @@ module alu_pipeline_v2_tb ();
 	    // writeback data to PRF
 		expected_WB_valid = 1'b1;
 		expected_WB_data = 32'h1;
-		expected_WB_PR = 6'hC;
-		expected_WB_ROB_index = 6'h4;
+		expected_WB_PR = 7'hC;
+		expected_WB_ROB_index = 7'h4;
 	    // writeback backpressure from PRF
 
 		check_outputs();
@@ -989,8 +989,8 @@ module alu_pipeline_v2_tb ();
 		tb_issue_A_bank = 2'h0;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 6'hF;
-		tb_issue_ROB_index = 6'h6;
+		tb_issue_dest_PR = 7'hF;
+		tb_issue_ROB_index = 7'h6;
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
@@ -1021,8 +1021,8 @@ module alu_pipeline_v2_tb ();
 	    // writeback data to PRF
 		expected_WB_valid = 1'b0;
 		expected_WB_data = 32'h0;
-		expected_WB_PR = 6'hE;
-		expected_WB_ROB_index = 6'h5;
+		expected_WB_PR = 7'hE;
+		expected_WB_ROB_index = 7'h5;
 	    // writeback backpressure from PRF
 
 		check_outputs();
