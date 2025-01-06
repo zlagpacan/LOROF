@@ -83,7 +83,7 @@ module prf_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    prf #(.USE_BRAM(1'b1)) WRAPPED_MODULE (.*);
+    prf #(.USE_BRAM(1'b0)) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -137,7 +137,7 @@ module prf_wrapper (
 
 		    // writeback data by write requestor
 			WB_valid_by_wr <= next_WB_valid_by_wr;
-			WB_data_by_wr <= {next_WB_data_by_wr};
+			WB_data_by_wr <= next_WB_data_by_wr;
 			WB_PR_by_wr <= next_WB_PR_by_wr;
 			WB_ROB_index_by_wr <= next_WB_ROB_index_by_wr;
 
