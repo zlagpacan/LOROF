@@ -1509,6 +1509,1142 @@ module prf_tb ();
 		check_outputs();
 
         // ------------------------------------------------------------
+        // reads:
+        test_case = "reads";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = "no conflicts 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // reg read req by read requester
+		tb_reg_read_req_valid_by_rr = 14'b00000011111111;
+		tb_reg_read_req_PR_by_rr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h07,
+			7'h06,
+			7'h05,
+			7'h04,
+			7'h03,
+			7'h02,
+			7'h01,
+			7'h00
+		};
+	    // reg read info by read requestor
+	    // reg read data by bank
+	    // writeback data by write requestor
+		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_data_by_wr = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		tb_WB_PR_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+		tb_WB_ROB_index_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // writeback backpressure by write requestor
+	    // writeback bus by bank
+	    // forward data from PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // reg read req by read requester
+	    // reg read info by read requestor
+		expected_reg_read_ack_by_rr = 14'b00000000000000;
+		expected_reg_read_port_by_rr = 14'b00000000000000;
+	    // reg read data by bank
+		expected_reg_read_data_by_bank_by_port = {
+			32'hFCFC0303,
+			32'hFCFC0303,
+			32'hFDFD0202,
+			32'hFDFD0202,
+			32'hFEFE0101,
+			32'hFEFE0101,
+			32'hFFFF0000,
+			32'hFFFF0000
+		};
+	    // writeback data by write requestor
+	    // writeback backpressure by write requestor
+		expected_WB_ready_by_wr = 7'b1111111;
+	    // writeback bus by bank
+		expected_WB_bus_valid_by_bank = 4'b0000;
+		expected_WB_bus_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		expected_WB_bus_upper_PR_by_bank = {
+			5'h00,
+			5'h00,
+			5'h00,
+			5'h00
+		};
+		expected_WB_bus_ROB_index_by_bank = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // forward data from PRF
+		expected_forward_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = "no conflicts 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // reg read req by read requester
+		tb_reg_read_req_valid_by_rr = 14'b11111100000011;
+		tb_reg_read_req_PR_by_rr = {
+			7'h0F,
+			7'h0E,
+			7'h0D,
+			7'h0C,
+			7'h0B,
+			7'h0A,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h09,
+			7'h08
+		};
+	    // reg read info by read requestor
+	    // reg read data by bank
+	    // writeback data by write requestor
+		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_data_by_wr = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		tb_WB_PR_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+		tb_WB_ROB_index_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // writeback backpressure by write requestor
+	    // writeback bus by bank
+	    // forward data from PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // reg read req by read requester
+	    // reg read info by read requestor
+		expected_reg_read_ack_by_rr = 14'b00000011111111;
+		expected_reg_read_port_by_rr = 14'b00000000001111;
+	    // reg read data by bank
+		expected_reg_read_data_by_bank_by_port = {
+			32'hFCFC0303,
+			32'hF8F80707,
+			32'hFDFD0202,
+			32'hF9F90606,
+			32'hFEFE0101,
+			32'hFAFA0505,
+			32'hFFFF0000,
+			32'hFBFB0404
+		};
+	    // writeback data by write requestor
+	    // writeback backpressure by write requestor
+		expected_WB_ready_by_wr = 7'b1111111;
+	    // writeback bus by bank
+		expected_WB_bus_valid_by_bank = 4'b0000;
+		expected_WB_bus_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		expected_WB_bus_upper_PR_by_bank = {
+			5'h00,
+			5'h00,
+			5'h00,
+			5'h00
+		};
+		expected_WB_bus_ROB_index_by_bank = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // forward data from PRF
+		expected_forward_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = "no conflicts 2 (winding down)";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // reg read req by read requester
+		tb_reg_read_req_valid_by_rr = 14'b00000000000000;
+		tb_reg_read_req_PR_by_rr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // reg read info by read requestor
+	    // reg read data by bank
+	    // writeback data by write requestor
+		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_data_by_wr = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		tb_WB_PR_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+		tb_WB_ROB_index_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // writeback backpressure by write requestor
+	    // writeback bus by bank
+	    // forward data from PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // reg read req by read requester
+	    // reg read info by read requestor
+		expected_reg_read_ack_by_rr = 14'b11111100000011;
+		expected_reg_read_port_by_rr = 14'b00001100000011;
+	    // reg read data by bank
+		expected_reg_read_data_by_bank_by_port = {
+			32'hF4F40B0B,
+			32'hF0F00F0F,
+			32'hF5F50A0A,
+			32'hF1F10E0E,
+			32'hF6F60909,
+			32'hF2F20D0D,
+			32'hF7F70808,
+			32'hF3F30C0C
+		};
+	    // writeback data by write requestor
+	    // writeback backpressure by write requestor
+		expected_WB_ready_by_wr = 7'b1111111;
+	    // writeback bus by bank
+		expected_WB_bus_valid_by_bank = 4'b0000;
+		expected_WB_bus_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		expected_WB_bus_upper_PR_by_bank = {
+			5'h00,
+			5'h00,
+			5'h00,
+			5'h00
+		};
+		expected_WB_bus_ROB_index_by_bank = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // forward data from PRF
+		expected_forward_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = "no conflicts 3 (winding down)";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // reg read req by read requester
+		tb_reg_read_req_valid_by_rr = 14'b00000000000000;
+		tb_reg_read_req_PR_by_rr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // reg read info by read requestor
+	    // reg read data by bank
+	    // writeback data by write requestor
+		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_data_by_wr = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		tb_WB_PR_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+		tb_WB_ROB_index_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // writeback backpressure by write requestor
+	    // writeback bus by bank
+	    // forward data from PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // reg read req by read requester
+	    // reg read info by read requestor
+		expected_reg_read_ack_by_rr = 14'b00000000000000;
+		expected_reg_read_port_by_rr = 14'b00000000000000;
+	    // reg read data by bank
+		expected_reg_read_data_by_bank_by_port = {
+			32'hFCFC0303,
+			32'hFCFC0303,
+			32'hFDFD0202,
+			32'hFDFD0202,
+			32'hFEFE0101,
+			32'hFEFE0101,
+			32'hFFFF0000,
+			32'hFFFF0000
+		};
+	    // writeback data by write requestor
+	    // writeback backpressure by write requestor
+		expected_WB_ready_by_wr = 7'b1111111;
+	    // writeback bus by bank
+		expected_WB_bus_valid_by_bank = 4'b0000;
+		expected_WB_bus_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		expected_WB_bus_upper_PR_by_bank = {
+			5'h00,
+			5'h00,
+			5'h00,
+			5'h00
+		};
+		expected_WB_bus_ROB_index_by_bank = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // forward data from PRF
+		expected_forward_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = "conflicts 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // reg read req by read requester
+		tb_reg_read_req_valid_by_rr = 14'b11111111111111;
+		tb_reg_read_req_PR_by_rr = {
+			7'h10,
+			7'h11,
+			7'h12,
+			7'h13,
+			7'h14,
+			7'h15,
+			7'h16,
+			7'h17,
+			7'h18,
+			7'h19,
+			7'h1A,
+			7'h1B,
+			7'h1C,
+			7'h1D
+		};
+	    // reg read info by read requestor
+	    // reg read data by bank
+	    // writeback data by write requestor
+		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_data_by_wr = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		tb_WB_PR_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+		tb_WB_ROB_index_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // writeback backpressure by write requestor
+	    // writeback bus by bank
+	    // forward data from PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // reg read req by read requester
+	    // reg read info by read requestor
+		expected_reg_read_ack_by_rr = 14'b00000000000000;
+		expected_reg_read_port_by_rr = 14'b00000000000000;
+	    // reg read data by bank
+		expected_reg_read_data_by_bank_by_port = {
+			32'hFCFC0303,
+			32'hFCFC0303,
+			32'hFDFD0202,
+			32'hFDFD0202,
+			32'hFEFE0101,
+			32'hFEFE0101,
+			32'hFFFF0000,
+			32'hFFFF0000
+		};
+	    // writeback data by write requestor
+	    // writeback backpressure by write requestor
+		expected_WB_ready_by_wr = 7'b1111111;
+	    // writeback bus by bank
+		expected_WB_bus_valid_by_bank = 4'b0000;
+		expected_WB_bus_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		expected_WB_bus_upper_PR_by_bank = {
+			5'h00,
+			5'h00,
+			5'h00,
+			5'h00
+		};
+		expected_WB_bus_ROB_index_by_bank = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // forward data from PRF
+		expected_forward_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = "conflicts 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // reg read req by read requester
+		tb_reg_read_req_valid_by_rr = 14'b11111111000000;
+		tb_reg_read_req_PR_by_rr = {
+			7'h1E,
+			7'h1F,
+			7'h20,
+			7'h21,
+			7'h22,
+			7'h23,
+			7'h00,
+			7'h01,
+			7'h18,
+			7'h19,
+			7'h1A,
+			7'h1B,
+			7'h1C,
+			7'h1D
+		};
+	    // reg read info by read requestor
+	    // reg read data by bank
+	    // writeback data by write requestor
+		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_data_by_wr = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		tb_WB_PR_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+		tb_WB_ROB_index_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // writeback backpressure by write requestor
+	    // writeback bus by bank
+	    // forward data from PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // reg read req by read requester
+	    // reg read info by read requestor
+		expected_reg_read_ack_by_rr = 14'b11111111000000;
+		expected_reg_read_port_by_rr = 14'b00001111000000;
+	    // reg read data by bank
+		expected_reg_read_data_by_bank_by_port = {
+			32'hE8E81717,
+			32'hECEC1313,
+			32'hE9E91616,
+			32'hEDED1212,
+			32'hEAEA1515,
+			32'hEEEE1111,
+			32'hEBEB1414,
+			32'hEFEF1010
+		};
+	    // writeback data by write requestor
+	    // writeback backpressure by write requestor
+		expected_WB_ready_by_wr = 7'b1111111;
+	    // writeback bus by bank
+		expected_WB_bus_valid_by_bank = 4'b0000;
+		expected_WB_bus_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		expected_WB_bus_upper_PR_by_bank = {
+			5'h00,
+			5'h00,
+			5'h00,
+			5'h00
+		};
+		expected_WB_bus_ROB_index_by_bank = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // forward data from PRF
+		expected_forward_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = "conflicts 2";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // reg read req by read requester
+		tb_reg_read_req_valid_by_rr = 14'b11000011111100;
+		tb_reg_read_req_PR_by_rr = {
+			7'h02,
+			7'h03,
+			7'h20,
+			7'h21,
+			7'h22,
+			7'h23,
+			7'h04,
+			7'h05,
+			7'h06,
+			7'h07,
+			7'h08,
+			7'h09,
+			7'h1C,
+			7'h1D
+		};
+	    // reg read info by read requestor
+	    // reg read data by bank
+	    // writeback data by write requestor
+		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_data_by_wr = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		tb_WB_PR_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+		tb_WB_ROB_index_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // writeback backpressure by write requestor
+	    // writeback bus by bank
+	    // forward data from PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // reg read req by read requester
+	    // reg read info by read requestor
+		expected_reg_read_ack_by_rr = 14'b11000011111100;
+		expected_reg_read_port_by_rr = 14'b11000000110000;
+	    // reg read data by bank
+		expected_reg_read_data_by_bank_by_port = {
+			32'he0e01f1f,
+			32'he4e41b1b,
+			32'he1e11e1e,
+			32'he5e51a1a,
+			32'he6e61919,
+			32'hfefe0101,
+			32'he7e71818,
+			32'hffff0000
+		};
+	    // writeback data by write requestor
+	    // writeback backpressure by write requestor
+		expected_WB_ready_by_wr = 7'b1111111;
+	    // writeback bus by bank
+		expected_WB_bus_valid_by_bank = 4'b0000;
+		expected_WB_bus_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		expected_WB_bus_upper_PR_by_bank = {
+			5'h00,
+			5'h00,
+			5'h00,
+			5'h00
+		};
+		expected_WB_bus_ROB_index_by_bank = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // forward data from PRF
+		expected_forward_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = "conflicts 3";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // reg read req by read requester
+		tb_reg_read_req_valid_by_rr = 14'b00001100111111;
+		tb_reg_read_req_PR_by_rr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h10,
+			7'h11,
+			7'h00,
+			7'h00,
+			7'h12,
+			7'h13,
+			7'h14,
+			7'h15,
+			7'h16,
+			7'h17
+		};
+	    // reg read info by read requestor
+	    // reg read data by bank
+	    // writeback data by write requestor
+		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_data_by_wr = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		tb_WB_PR_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+		tb_WB_ROB_index_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // writeback backpressure by write requestor
+	    // writeback bus by bank
+	    // forward data from PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // reg read req by read requester
+	    // reg read info by read requestor
+		expected_reg_read_ack_by_rr = 14'b00001100111111;
+		expected_reg_read_port_by_rr = 14'b00000000110011;
+	    // reg read data by bank
+		expected_reg_read_data_by_bank_by_port = {
+			32'hf8f80707,
+			32'hdcdc2323,
+			32'hf9f90606,
+			32'hdddd2222,
+			32'he2e21d1d,
+			32'hf6f60909,
+			32'he3e31c1c,
+			32'hf7f70808
+		};
+	    // writeback data by write requestor
+	    // writeback backpressure by write requestor
+		expected_WB_ready_by_wr = 7'b1111111;
+	    // writeback bus by bank
+		expected_WB_bus_valid_by_bank = 4'b0000;
+		expected_WB_bus_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		expected_WB_bus_upper_PR_by_bank = {
+			5'h00,
+			5'h00,
+			5'h00,
+			5'h00
+		};
+		expected_WB_bus_ROB_index_by_bank = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // forward data from PRF
+		expected_forward_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = "conflicts 4 (cooling down)";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // reg read req by read requester
+		tb_reg_read_req_valid_by_rr = 14'b00000000000000;
+		tb_reg_read_req_PR_by_rr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // reg read info by read requestor
+	    // reg read data by bank
+	    // writeback data by write requestor
+		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_data_by_wr = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		tb_WB_PR_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+		tb_WB_ROB_index_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // writeback backpressure by write requestor
+	    // writeback bus by bank
+	    // forward data from PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // reg read req by read requester
+	    // reg read info by read requestor
+		expected_reg_read_ack_by_rr = 14'b11111100000011;
+		expected_reg_read_port_by_rr = 14'b11001100000000;
+	    // reg read data by bank
+		expected_reg_read_data_by_bank_by_port = {
+			32'hfcfc0303,
+			32'he8e81717,
+			32'hfdfd0202,
+			32'he9e91616,
+			32'heeee1111,
+			32'hdede2121,
+			32'hefef1010,
+			32'hdfdf2020
+		};
+	    // writeback data by write requestor
+	    // writeback backpressure by write requestor
+		expected_WB_ready_by_wr = 7'b1111111;
+	    // writeback bus by bank
+		expected_WB_bus_valid_by_bank = 4'b0000;
+		expected_WB_bus_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		expected_WB_bus_upper_PR_by_bank = {
+			5'h00,
+			5'h00,
+			5'h00,
+			5'h00
+		};
+		expected_WB_bus_ROB_index_by_bank = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // forward data from PRF
+		expected_forward_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+
+		check_outputs();
+
+		@(posedge CLK);
+
+		// inputs
+		sub_test_case = "conflicts 5 (cooling down)";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // reg read req by read requester
+		tb_reg_read_req_valid_by_rr = 14'b00000000000000;
+		tb_reg_read_req_PR_by_rr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // reg read info by read requestor
+	    // reg read data by bank
+	    // writeback data by write requestor
+		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_data_by_wr = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		tb_WB_PR_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+		tb_WB_ROB_index_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // writeback backpressure by write requestor
+	    // writeback bus by bank
+	    // forward data from PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // reg read req by read requester
+	    // reg read info by read requestor
+		expected_reg_read_ack_by_rr = 14'b00000011111100;
+		expected_reg_read_port_by_rr = 14'b00000000001100;
+	    // reg read data by bank
+		expected_reg_read_data_by_bank_by_port = {
+			32'hfcfc0303,
+			32'hecec1313,
+			32'hfdfd0202,
+			32'heded1212,
+			32'heaea1515,
+			32'hfafa0505,
+			32'hebeb1414,
+			32'hfbfb0404
+		};
+	    // writeback data by write requestor
+	    // writeback backpressure by write requestor
+		expected_WB_ready_by_wr = 7'b1111111;
+	    // writeback bus by bank
+		expected_WB_bus_valid_by_bank = 4'b0000;
+		expected_WB_bus_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		expected_WB_bus_upper_PR_by_bank = {
+			5'h00,
+			5'h00,
+			5'h00,
+			5'h00
+		};
+		expected_WB_bus_ROB_index_by_bank = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // forward data from PRF
+		expected_forward_data_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+
+		check_outputs();
+
+        // ------------------------------------------------------------
         // finish:
         @(posedge CLK);
         

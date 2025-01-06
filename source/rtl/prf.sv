@@ -88,6 +88,9 @@ module prf #(
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port0_reg_read_ack_by_bank_by_rr;
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port1_reg_read_ack_by_bank_by_rr;
 
+    logic [PRF_RR_COUNT-1:0]                        next_reg_read_ack_by_rr;
+    logic [PRF_RR_COUNT-1:0]                        next_reg_read_port_by_rr;
+
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    last_reg_read_mask_by_bank;
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    next_last_reg_read_mask_by_bank;
 
@@ -281,11 +284,11 @@ module prf #(
         // final ack
             // combine port 0 and port 1 req's over all banks for ack
             // combine port 1 over all banks for port 
-        reg_read_ack_by_rr = '0;
-        reg_read_port_by_rr = '0;
+        next_reg_read_ack_by_rr = '0;
+        next_reg_read_port_by_rr = '0;
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-            reg_read_ack_by_rr |= port0_reg_read_ack_by_bank_by_rr[bank] | port1_reg_read_ack_by_bank_by_rr[bank];
-            reg_read_port_by_rr |= port1_reg_read_ack_by_bank_by_rr[bank];
+            next_reg_read_ack_by_rr |= port0_reg_read_ack_by_bank_by_rr[bank] | port1_reg_read_ack_by_bank_by_rr[bank];
+            next_reg_read_port_by_rr |= port1_reg_read_ack_by_bank_by_rr[bank];
         end
 
         // unacked req's
@@ -293,7 +296,7 @@ module prf #(
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
             next_unacked_reg_read_req_valid_by_rr |= compressed_reg_read_req_valid_by_bank_by_rr[bank];
         end
-        next_unacked_reg_read_req_valid_by_rr &= ~reg_read_ack_by_rr;
+        next_unacked_reg_read_req_valid_by_rr &= ~next_reg_read_ack_by_rr;
 
         next_unacked_reg_read_req_PR_by_rr = compressed_reg_read_req_PR_by_rr;
 
@@ -302,7 +305,7 @@ module prf #(
         next_last_reg_read_mask_by_bank = '0;
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
             for (int rr = PRF_RR_COUNT-2; rr >= 0; rr--) begin
-                next_last_reg_read_mask_by_bank[bank][rr] = reg_read_ack_by_rr[rr+1] | next_last_reg_read_mask_by_bank[bank][rr+1];
+                next_last_reg_read_mask_by_bank[bank][rr] = port1_reg_read_ack_by_bank_by_rr[bank][rr+1] | next_last_reg_read_mask_by_bank[bank][rr+1];
             end
         end
     end
@@ -338,44 +341,6 @@ module prf #(
         end
     end
 
-    // // actual reg read
-    // generate
-
-    //     if (USE_BRAM) begin
-
-    //         // BRAM:
-    //             // registered read, use unregistered index
-    //         always_ff @ (posedge CLK) begin
-    //             for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-    //                 reg_read_data_by_bank_by_port[bank][0] <= prf_array_by_bank_by_upper_PR[bank][next_prf_port0_read_upper_PR_by_bank];
-    //                 reg_read_data_by_bank_by_port[bank][1] <= prf_array_by_bank_by_upper_PR[bank][next_prf_port1_read_upper_PR_by_bank];
-    //             end
-    //         end
-            
-    //         // // BRAM:
-    //         //     // registered read, use registered index
-    //         // always_ff @ (posedge CLK) begin
-    //         //     for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-    //         //         reg_read_data_by_bank_by_port[bank][0] <= prf_array_by_bank_by_upper_PR[bank][prf_port0_read_upper_PR_by_bank];
-    //         //         reg_read_data_by_bank_by_port[bank][1] <= prf_array_by_bank_by_upper_PR[bank][prf_port1_read_upper_PR_by_bank];
-    //         //     end
-    //         // end
-    //     end
-
-    //     else begin
-
-    //         // Distributed RAM:
-    //             // use registered index
-    //         always_comb begin
-    //             for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-    //                 reg_read_data_by_bank_by_port[bank][0] = prf_array_by_bank_by_upper_PR[bank][prf_port0_read_upper_PR_by_bank];
-    //                 reg_read_data_by_bank_by_port[bank][1] = prf_array_by_bank_by_upper_PR[bank][prf_port1_read_upper_PR_by_bank];
-    //             end
-    //         end
-    //     end
-
-    // endgenerate
-
     // FF
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
@@ -384,6 +349,8 @@ module prf #(
             unacked_reg_read_req_valid_by_rr <= '0;
             unacked_reg_read_req_PR_by_rr <= '0;
             last_reg_read_mask_by_bank <= '0;
+            reg_read_ack_by_rr <= '0;
+            reg_read_port_by_rr <= '0;
         end
         else begin
             prf_port0_read_upper_PR_by_bank <= next_prf_port0_read_upper_PR_by_bank;
@@ -391,6 +358,8 @@ module prf #(
             unacked_reg_read_req_valid_by_rr <= next_unacked_reg_read_req_valid_by_rr;
             unacked_reg_read_req_PR_by_rr <= next_unacked_reg_read_req_PR_by_rr;
             last_reg_read_mask_by_bank <= next_last_reg_read_mask_by_bank;
+            reg_read_ack_by_rr <= next_reg_read_ack_by_rr;
+            reg_read_port_by_rr <= next_reg_read_port_by_rr;
         end
     end
 
@@ -583,42 +552,5 @@ module prf #(
                 // cycle before is when WB info is advertized to IQs
         end
     end
-
-    // // actual reg write
-    // generate
-
-    //     if (USE_BRAM) begin
-
-    //         // BRAM
-    //             // no reset
-    //         always_ff @ (posedge CLK) begin
-    //             for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-    //                 if (prf_WB_valid_by_bank[bank]) begin
-    //                     prf_array_by_bank_by_upper_PR[bank][prf_WB_upper_PR_by_bank[bank]] <= prf_WB_data_by_bank[bank];
-    //                 end
-    //             end
-    //         end
-
-    //     end
-
-    //     else begin
-
-    //         // Distributed RAM
-    //             // reset
-    //         always_ff @ (posedge CLK, negedge nRST) begin
-    //             if (~nRST) begin
-    //                 prf_array_by_bank_by_upper_PR <= '0;
-    //             end
-    //             else begin
-    //                 for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-    //                     if (prf_WB_valid_by_bank[bank]) begin
-    //                         prf_array_by_bank_by_upper_PR[bank][prf_WB_upper_PR_by_bank[bank]] <= prf_WB_data_by_bank[bank];
-    //                     end
-    //                 end
-    //             end
-    //         end
-    //     end
-
-    // endgenerate
 
 endmodule
