@@ -15,7 +15,7 @@ module bram_2rport_1wport #(
     output logic [INNER_WIDTH-1:0] port1_rdata,
     
     input logic [INNER_WIDTH/8-1:0] wen_byte,
-    input logic [OUTER_WIDTH-1:0] windex,
+    input logic [$clog2(OUTER_WIDTH)-1:0] windex,
     input logic [INNER_WIDTH-1:0] wdata
 );
 

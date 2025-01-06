@@ -143,7 +143,7 @@ module prf #(
                     .port1_rdata(reg_read_data_by_bank_by_port[bank][1]),
                     .wen_byte({4{prf_WB_valid_by_bank[bank]}}),
                     .windex(prf_WB_upper_PR_by_bank[bank]),
-                    .wdata(prf_WB_data_by_bank)
+                    .wdata(prf_WB_data_by_bank[bank])
                 );
 
                 // // BRAM using curr's
@@ -179,7 +179,7 @@ module prf #(
                     .port1_rdata(reg_read_data_by_bank_by_port[bank][1]),
                     .wen(prf_WB_valid_by_bank[bank]),
                     .windex(prf_WB_upper_PR_by_bank[bank]),
-                    .wdata(prf_WB_data_by_bank)
+                    .wdata(prf_WB_data_by_bank[bank])
                 );
             end
         end
@@ -425,7 +425,8 @@ module prf #(
         WB_valid_by_bank_by_wr = '0;
         unacked_WB_valid_by_bank_by_wr = '0;
         for (int wr = 0; wr < PRF_WR_COUNT; wr++) begin
-            WB_valid_by_bank_by_wr[WB_PR_by_wr[wr][LOG_PRF_BANK_COUNT-1:0]][wr] = WB_valid_by_wr[wr];
+            WB_valid_by_bank_by_wr[WB_PR_by_wr[wr][LOG_PRF_BANK_COUNT-1:0]][wr] = WB_valid_by_wr[wr] & ~unacked_WB_valid_by_wr[wr];
+                // only handle oldest WB req per wr at a time, so ignore curr if have unacked (regardless of banks)
             unacked_WB_valid_by_bank_by_wr[unacked_WB_PR_by_wr[wr][LOG_PRF_BANK_COUNT-1:0]][wr] = unacked_WB_valid_by_wr[wr];
         end
     
@@ -490,7 +491,7 @@ module prf #(
         next_last_WB_mask_by_bank = '0;
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
             for (int wr = PRF_WR_COUNT-2; wr >= 0; wr--) begin
-                next_last_WB_mask_by_bank[bank][wr] = WB_ack_by_wr[wr+1] | next_last_WB_mask_by_bank[bank][wr+1];
+                next_last_WB_mask_by_bank[bank][wr] = WB_ack_by_bank_by_wr[bank][wr+1] | next_last_WB_mask_by_bank[bank][wr+1];
             end
         end
     end
