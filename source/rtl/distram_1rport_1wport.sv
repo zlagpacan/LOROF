@@ -1,3 +1,9 @@
+/*
+    Filename: distram_1rport_1wport.sv
+    Author: zlagpacan
+    Description: RTL for Distributed RAM with 1 read port and 1 write port
+*/
+
 module distram_1rport_1wport #(
     parameter INNER_WIDTH = 32,
     parameter OUTER_WIDTH = 32,

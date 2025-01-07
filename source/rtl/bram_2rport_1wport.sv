@@ -1,3 +1,9 @@
+/*
+    Filename: bram_2rport_1wport.sv
+    Author: zlagpacan
+    Description: RTL for BRAM with 2 read ports and 1 write port
+*/
+
 module bram_2rport_1wport #(
     parameter INNER_WIDTH = 32,
     parameter OUTER_WIDTH = 32,
