@@ -33,7 +33,6 @@ module <design_name>_wrapper (
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
 <reset wrapper signals>
-fill in ^
         end
         else begin
 <latched wrapper signals>
