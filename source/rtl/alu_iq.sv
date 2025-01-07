@@ -115,9 +115,9 @@ module alu_iq (
         issue_imm = imm_by_entry[0];
         issue_A_unneeded = A_unneeded_by_entry[0];
         issue_A_forward = A_forward_by_entry[0];
-        issue_A_bank = A_PR_by_entry[0][1:0];
+        issue_A_bank = A_PR_by_entry[0][PRF_BANK_COUNT-1:0];
         issue_B_forward = B_forward_by_entry[0];
-        issue_B_bank = B_PR_by_entry[0][1:0];
+        issue_B_bank = B_PR_by_entry[0][PRF_BANK_COUNT-1:0];
         issue_dest_PR = dest_PR_by_entry[0];
         issue_ROB_index = ROB_index_by_entry[0];
 
@@ -136,9 +136,9 @@ module alu_iq (
             issue_imm = imm_by_entry[0];
             issue_A_unneeded = A_unneeded_by_entry[0];
             issue_A_forward = A_forward_by_entry[0];
-            issue_A_bank = A_PR_by_entry[0][1:0];
+            issue_A_bank = A_PR_by_entry[0][PRF_BANK_COUNT-1:0];
             issue_B_forward = B_forward_by_entry[0];
-            issue_B_bank = B_PR_by_entry[0][1:0];
+            issue_B_bank = B_PR_by_entry[0][PRF_BANK_COUNT-1:0];
             issue_dest_PR = dest_PR_by_entry[0];
             issue_ROB_index = ROB_index_by_entry[0];
 
@@ -157,9 +157,9 @@ module alu_iq (
             issue_imm = imm_by_entry[1];
             issue_A_unneeded = A_unneeded_by_entry[1];
             issue_A_forward = A_forward_by_entry[1];
-            issue_A_bank = A_PR_by_entry[1][1:0];
+            issue_A_bank = A_PR_by_entry[1][PRF_BANK_COUNT-1:0];
             issue_B_forward = B_forward_by_entry[1];
-            issue_B_bank = B_PR_by_entry[1][1:0];
+            issue_B_bank = B_PR_by_entry[1][PRF_BANK_COUNT-1:0];
             issue_dest_PR = dest_PR_by_entry[1];
             issue_ROB_index = ROB_index_by_entry[1];
 
@@ -178,9 +178,9 @@ module alu_iq (
             issue_imm = imm_by_entry[2];
             issue_A_unneeded = A_unneeded_by_entry[2];
             issue_A_forward = A_forward_by_entry[2];
-            issue_A_bank = A_PR_by_entry[2][1:0];
+            issue_A_bank = A_PR_by_entry[2][PRF_BANK_COUNT-1:0];
             issue_B_forward = B_forward_by_entry[2];
-            issue_B_bank = B_PR_by_entry[2][1:0];
+            issue_B_bank = B_PR_by_entry[2][PRF_BANK_COUNT-1:0];
             issue_dest_PR = dest_PR_by_entry[2];
             issue_ROB_index = ROB_index_by_entry[2];
 
@@ -199,9 +199,9 @@ module alu_iq (
             issue_imm = imm_by_entry[3];
             issue_A_unneeded = A_unneeded_by_entry[3];
             issue_A_forward = A_forward_by_entry[3];
-            issue_A_bank = A_PR_by_entry[3][1:0];
+            issue_A_bank = A_PR_by_entry[3][PRF_BANK_COUNT-1:0];
             issue_B_forward = B_forward_by_entry[3];
-            issue_B_bank = B_PR_by_entry[3][1:0];
+            issue_B_bank = B_PR_by_entry[3][PRF_BANK_COUNT-1:0];
             issue_dest_PR = dest_PR_by_entry[3];
             issue_ROB_index = ROB_index_by_entry[3];
 
