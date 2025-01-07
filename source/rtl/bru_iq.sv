@@ -97,8 +97,8 @@ module bru_iq (
 
     always_comb begin
         for (int i = 0; i < 4; i++) begin
-            A_forward_by_entry[i] = (A_PR_by_entry[i][5:2] == WB_bus_upper_PR_by_bank[A_PR_by_entry[i][1:0]]) & WB_bus_valid_by_bank[A_PR_by_entry[i][1:0]];
-            B_forward_by_entry[i] = (B_PR_by_entry[i][5:2] == WB_bus_upper_PR_by_bank[B_PR_by_entry[i][1:0]]) & WB_bus_valid_by_bank[B_PR_by_entry[i][1:0]];
+            A_forward_by_entry[i] = (A_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
+            B_forward_by_entry[i] = (B_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[B_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[B_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
         end
     end
 
@@ -137,7 +137,7 @@ module bru_iq (
 
         if (op_ready_by_entry[0]) begin
 
-            issue_mask = 4'b0000;
+            issue_mask = 4'b1111;
 
             issue_valid = 1'b1;
             issue_op = op_by_entry[0];
@@ -161,7 +161,7 @@ module bru_iq (
 
         else if (op_ready_by_entry[1]) begin
 
-            issue_mask = 4'b0000;
+            issue_mask = 4'b1110;
 
             issue_valid = 1'b1;
             issue_op = op_by_entry[1];
@@ -185,7 +185,7 @@ module bru_iq (
         
         else if (op_ready_by_entry[2]) begin
 
-            issue_mask = 4'b0000;
+            issue_mask = 4'b1100;
 
             issue_valid = 1'b1;
             issue_op = op_by_entry[2];
@@ -209,7 +209,7 @@ module bru_iq (
         
         else if (op_ready_by_entry[3]) begin
 
-            issue_mask = 4'b0000;
+            issue_mask = 4'b1000;
 
             issue_valid = 1'b1;
             issue_op = op_by_entry[3];
