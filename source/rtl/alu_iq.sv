@@ -147,6 +147,7 @@ module alu_iq (
             PRF_req_B_valid = ~is_imm_by_entry[0] & ~B_forward_by_entry[0];
             PRF_req_B_PR = B_PR_by_entry[0];
         end
+
         else if (op_ready_by_entry[1]) begin
             
             issue_mask = 4'b1110;
@@ -168,6 +169,7 @@ module alu_iq (
             PRF_req_B_valid = ~is_imm_by_entry[1] & ~B_forward_by_entry[1];
             PRF_req_B_PR = B_PR_by_entry[1];
         end
+
         else if (op_ready_by_entry[2]) begin
 
             issue_mask = 4'b1100;
@@ -189,6 +191,7 @@ module alu_iq (
             PRF_req_B_valid = ~is_imm_by_entry[2] & ~B_forward_by_entry[2];
             PRF_req_B_PR = B_PR_by_entry[2];
         end
+        
         else if (op_ready_by_entry[3]) begin
 
             issue_mask = 4'b1000;
