@@ -56,7 +56,8 @@ module bru_pipeline (
     output logic                        restart_req_valid,
     output logic                        restart_req_mispredict,
     output logic [LOG_ROB_ENTRIES-1:0]  restart_req_ROB_index,
-    output logic [31:0]                 restart_req_PC
+    output logic [31:0]                 restart_req_PC,
+    output logic                        restart_req_taken
 );
 
     // ----------------------------------------------------------------
@@ -126,6 +127,7 @@ module bru_pipeline (
     logic                           next_restart_req_mispredict;
     logic [LOG_ROB_ENTRIES-1:0]     next_restart_req_ROB_index;
     logic [31:0]                    next_restart_req_PC;
+    logic                           next_restart_req_taken;
 
     // ----------------------------------------------------------------
     // WB Stage Signals:
@@ -306,6 +308,9 @@ module bru_pipeline (
     assign PC_plus_imm_EX = PC_EX + imm_EX;
     assign A_plus_imm_EX = A_EX + imm_EX;
 
+    assign spec_neq_PC_plus_4_EX = speculated_next_PC_EX != PC_plus_4_EX;
+    assign spec_neq_PC_plus_imm_EX = speculated_next_PC_EX != PC_plus_imm_EX;
+
     always_comb begin
 
         case (op_EX)
@@ -316,8 +321,9 @@ module bru_pipeline (
                 next_WB_data = PC_plus_4_EX;
 
                 next_restart_req_valid = valid_EX;
-                next_restart_req_mispredict = A_plus_imm_EX != speculated_next_PC_EX;
+                next_restart_req_mispredict = spec_neq_PC_plus_imm_EX;
                 next_restart_req_PC = A_plus_imm_EX;
+                next_restart_req_taken = 1'b1;
             end
 
             4'b0001: // JAL: R[rd] <= PC + 4, PC <= PC + imm
@@ -326,8 +332,9 @@ module bru_pipeline (
                 next_WB_data = PC_plus_4_EX;
                 
                 next_restart_req_valid = valid_EX;
-                next_restart_req_mispredict = PC_plus_imm_EX != speculated_next_PC_EX;
+                next_restart_req_mispredict = spec_neq_PC_plus_imm_EX;
                 next_restart_req_PC = PC_plus_imm_EX;
+                next_restart_req_taken = 1'b1;
             end
 
             4'b0100: // AUIPC: R[rd] <= PC + imm
@@ -336,8 +343,9 @@ module bru_pipeline (
                 next_WB_data = PC_plus_imm_EX;
 
                 next_restart_req_valid = 1'b0;
-                next_restart_req_mispredict = PC_plus_imm_EX != speculated_next_PC_EX;
+                next_restart_req_mispredict = spec_neq_PC_plus_imm_EX;
                 next_restart_req_PC = PC_plus_imm_EX;
+                next_restart_req_taken = 1'b1;
             end
 
             4'b1000: // BEQ: PC <= (R[rs1] == R[rs2]) ? PC + imm : PC + 4
@@ -347,12 +355,14 @@ module bru_pipeline (
 
                 next_restart_req_valid = valid_EX;
                 if (A_EX == B_EX) begin
-                    next_restart_req_mispredict = PC_plus_imm_EX != speculated_next_PC_EX;
+                    next_restart_req_mispredict = spec_neq_PC_plus_imm_EX;
                     next_restart_req_PC = PC_plus_imm_EX;
+                    next_restart_req_taken = 1'b1;
                 end
                 else begin
-                    next_restart_req_mispredict = PC_plus_4_EX != speculated_next_PC_EX;
+                    next_restart_req_mispredict = spec_neq_PC_plus_4_EX;
                     next_restart_req_PC = PC_plus_4_EX;
+                    next_restart_req_taken = 1'b0;
                 end
             end
 
@@ -363,12 +373,14 @@ module bru_pipeline (
 
                 next_restart_req_valid = valid_EX;
                 if (A_EX != B_EX) begin
-                    next_restart_req_mispredict = PC_plus_imm_EX != speculated_next_PC_EX;
+                    next_restart_req_mispredict = spec_neq_PC_plus_imm_EX;
                     next_restart_req_PC = PC_plus_imm_EX;
+                    next_restart_req_taken = 1'b1;
                 end
                 else begin
-                    next_restart_req_mispredict = PC_plus_4_EX != speculated_next_PC_EX;
+                    next_restart_req_mispredict = spec_neq_PC_plus_4_EX;
                     next_restart_req_PC = PC_plus_4_EX;
+                    next_restart_req_taken = 1'b0;
                 end
             end
 
@@ -379,12 +391,14 @@ module bru_pipeline (
 
                 next_restart_req_valid = valid_EX;
                 if ($signed(A_EX) < $signed(B_EX)) begin
-                    next_restart_req_mispredict = PC_plus_imm_EX != speculated_next_PC_EX;
+                    next_restart_req_mispredict = spec_neq_PC_plus_imm_EX;
                     next_restart_req_PC = PC_plus_imm_EX;
+                    next_restart_req_taken = 1'b1;
                 end
                 else begin
-                    next_restart_req_mispredict = PC_plus_4_EX != speculated_next_PC_EX;
+                    next_restart_req_mispredict = spec_neq_PC_plus_4_EX;
                     next_restart_req_PC = PC_plus_4_EX;
+                    next_restart_req_taken = 1'b0;
                 end
             end
 
@@ -395,12 +409,14 @@ module bru_pipeline (
 
                 next_restart_req_valid = valid_EX;
                 if ($signed(A_EX) >= $signed(B_EX)) begin
-                    next_restart_req_mispredict = PC_plus_imm_EX != speculated_next_PC_EX;
+                    next_restart_req_mispredict = spec_neq_PC_plus_imm_EX;
                     next_restart_req_PC = PC_plus_imm_EX;
+                    next_restart_req_taken = 1'b1;
                 end
                 else begin
-                    next_restart_req_mispredict = PC_plus_4_EX != speculated_next_PC_EX;
+                    next_restart_req_mispredict = spec_neq_PC_plus_4_EX;
                     next_restart_req_PC = PC_plus_4_EX;
+                    next_restart_req_taken = 1'b0;
                 end
             end
 
@@ -411,12 +427,14 @@ module bru_pipeline (
 
                 next_restart_req_valid = valid_EX;
                 if (A_EX < B_EX) begin
-                    next_restart_req_mispredict = PC_plus_imm_EX != speculated_next_PC_EX;
+                    next_restart_req_mispredict = spec_neq_PC_plus_imm_EX;
                     next_restart_req_PC = PC_plus_imm_EX;
+                    next_restart_req_taken = 1'b1;
                 end
                 else begin
-                    next_restart_req_mispredict = PC_plus_4_EX != speculated_next_PC_EX;
+                    next_restart_req_mispredict = spec_neq_PC_plus_4_EX;
                     next_restart_req_PC = PC_plus_4_EX;
+                    next_restart_req_taken = 1'b0;
                 end
             end
 
@@ -427,12 +445,14 @@ module bru_pipeline (
 
                 next_restart_req_valid = valid_EX;
                 if (A_EX >= B_EX) begin
-                    next_restart_req_mispredict = PC_plus_imm_EX != speculated_next_PC_EX;
+                    next_restart_req_mispredict = spec_neq_PC_plus_imm_EX;
                     next_restart_req_PC = PC_plus_imm_EX;
+                    next_restart_req_taken = 1'b1;
                 end
                 else begin
-                    next_restart_req_mispredict = PC_plus_4_EX != speculated_next_PC_EX;
+                    next_restart_req_mispredict = spec_neq_PC_plus_4_EX;
                     next_restart_req_PC = PC_plus_4_EX;
+                    next_restart_req_taken = 1'b0;
                 end
             end
 
@@ -442,8 +462,9 @@ module bru_pipeline (
                 next_WB_data = PC_plus_4_EX;
 
                 next_restart_req_valid = 1'b0;
-                next_restart_req_mispredict = PC_plus_imm_EX != speculated_next_PC_EX;
+                next_restart_req_mispredict = spec_neq_PC_plus_imm_EX;
                 next_restart_req_PC = PC_plus_imm_EX;
+                next_restart_req_taken = 1'b1;
             end
 
         endcase
@@ -463,6 +484,7 @@ module bru_pipeline (
             restart_req_mispredict <= 1'b0;
             restart_req_ROB_index <= '0;
             restart_req_PC <= 32'h0;
+            restart_req_taken <= 1'b1;
         end
         else if (stall_WB) begin
             WB_valid <= WB_valid;
@@ -473,6 +495,7 @@ module bru_pipeline (
             restart_req_mispredict <= restart_req_mispredict;
             restart_req_ROB_index <= restart_req_ROB_index;
             restart_req_PC <= restart_req_PC;
+            restart_req_taken <= restart_req_taken;
         end
         else begin
             WB_valid <= next_WB_valid;
@@ -483,6 +506,7 @@ module bru_pipeline (
             restart_req_mispredict <= next_restart_req_mispredict;
             restart_req_ROB_index <= next_restart_req_ROB_index;
             restart_req_PC <= next_restart_req_PC;
+            restart_req_taken <= next_restart_req_taken;
         end
     end
 
