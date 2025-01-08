@@ -456,7 +456,7 @@ module bru_pipeline (
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             WB_valid <= 1'b0;
-            WB_data <= 32'h0;
+            WB_data <= 32'h4;
             WB_PR <= '0;
             WB_ROB_index <= '0;
             restart_req_valid <= 1'b0;
