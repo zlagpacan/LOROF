@@ -136,6 +136,7 @@ module bru_pipeline (
     // Control Logic: 
 
     assign stall_WB = WB_valid & ~WB_ready;
+        // stall_WB only works for instructions with a WB (JAL, JALR, AUIPC)
     assign stall_EX = valid_EX & stall_WB;
         // stall_WB shouldn't happen with WB_valid anyway
     assign stall_OC = stall_EX & valid_OC;
