@@ -59,7 +59,8 @@ module bru_pipeline_wrapper (
 	output logic last_restart_req_valid,
 	output logic last_restart_req_mispredict,
 	output logic [LOG_ROB_ENTRIES-1:0] last_restart_req_ROB_index,
-	output logic [31:0] last_restart_req_PC
+	output logic [31:0] last_restart_req_PC,
+	output logic last_restart_req_taken
 );
 
     // ----------------------------------------------------------------
@@ -109,6 +110,7 @@ module bru_pipeline_wrapper (
 	logic restart_req_mispredict;
 	logic [LOG_ROB_ENTRIES-1:0] restart_req_ROB_index;
 	logic [31:0] restart_req_PC;
+	logic restart_req_taken;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -123,53 +125,49 @@ module bru_pipeline_wrapper (
 
 
 		    // BRU op issue to BRU IQ
-			issue_valid <= 1'b0;
-			issue_op <= 4'b0000;
-			issue_PC <= 32'h0;
-			issue_speculated_next_PC <= 32'h0;
-			issue_imm <= 32'h0;
-			issue_A_unneeded <= 1'b0;
-			issue_A_forward <= 1'b0;
-			issue_A_bank <= 2'h0;
-			issue_B_unneeded <= 1'b0;
-			issue_B_forward <= 1'b0;
-			issue_B_bank <= 2'h0;
-			issue_dest_PR <= 7'h0;
-			issue_ROB_index <= 7'h0;
+			issue_valid <= '0;
+			issue_op <= '0;
+			issue_PC <= '0;
+			issue_speculated_next_PC <= '0;
+			issue_imm <= '0;
+			issue_A_unneeded <= '0;
+			issue_A_forward <= '0;
+			issue_A_bank <= '0;
+			issue_B_unneeded <= '0;
+			issue_B_forward <= '0;
+			issue_B_bank <= '0;
+			issue_dest_PR <= '0;
+			issue_ROB_index <= '0;
 
 		    // output feedback to BRU IQ
-			last_issue_ready <= 1'b1;
+			last_issue_ready <= '0;
 
 		    // reg read info and data from PRF
-			A_reg_read_ack <= 1'b0;
-			A_reg_read_port <= 1'b0;
-			B_reg_read_ack <= 1'b0;
-			B_reg_read_port <= 1'b0;
-			reg_read_data_by_bank_by_port <= {
-                32'h0, 32'h0, 
-                32'h0, 32'h0,
-                32'h0, 32'h0, 
-                32'h0, 32'h0
-            };
+			A_reg_read_ack <= '0;
+			A_reg_read_port <= '0;
+			B_reg_read_ack <= '0;
+			B_reg_read_port <= '0;
+			reg_read_data_by_bank_by_port <= '0;
 
 		    // forward data from PRF
-			forward_data_by_bank <= {32'h0, 32'h0, 32'h0, 32'h0};
+			forward_data_by_bank <= '0;
 
 		    // writeback data to PRF
-			last_WB_valid <= 1'b0;
-			last_WB_data <= 32'h0;
-			last_WB_PR <= 7'h0;
-			last_WB_ROB_index <= 7'h0;
+			last_WB_valid <= '0;
+			last_WB_data <= '0;
+			last_WB_PR <= '0;
+			last_WB_ROB_index <= '0;
 
 		    // writeback backpressure from PRF
-			WB_ready <= 1'b1;
+			WB_ready <= '0;
 
 		    // restart req to ROB
 		        // no backpressure, ROB's job to deal with multiple identical req's
-			last_restart_req_valid <= 1'b0;
-			last_restart_req_mispredict <= 1'b0;
-			last_restart_req_ROB_index <= 7'h0;
-			last_restart_req_PC <= 32'h0;
+			last_restart_req_valid <= '0;
+			last_restart_req_mispredict <= '0;
+			last_restart_req_ROB_index <= '0;
+			last_restart_req_PC <= '0;
+			last_restart_req_taken <= '0;
         end
         else begin
 
@@ -217,6 +215,7 @@ module bru_pipeline_wrapper (
 			last_restart_req_mispredict <= restart_req_mispredict;
 			last_restart_req_ROB_index <= restart_req_ROB_index;
 			last_restart_req_PC <= restart_req_PC;
+			last_restart_req_taken <= restart_req_taken;
         end
     end
 
