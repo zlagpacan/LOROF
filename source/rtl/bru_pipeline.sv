@@ -57,7 +57,10 @@ module bru_pipeline (
     output logic                        restart_req_mispredict,
     output logic [LOG_ROB_ENTRIES-1:0]  restart_req_ROB_index,
     output logic [31:0]                 restart_req_PC,
-    output logic                        restart_req_taken
+    output logic                        restart_req_taken,
+
+    // restart req backpressure from ROB
+    input logic restart_req_ready
 );
 
     // ----------------------------------------------------------------
@@ -135,7 +138,7 @@ module bru_pipeline (
     // ----------------------------------------------------------------
     // Control Logic: 
 
-    assign stall_WB = WB_valid & ~WB_ready;
+    assign stall_WB = (WB_valid & ~WB_ready) | (restart_req_valid & ~restart_req_ready);
         // stall_WB only works for instructions with a WB (JAL, JALR, AUIPC)
     assign stall_EX = valid_EX & stall_WB;
         // stall_WB shouldn't happen with WB_valid anyway
@@ -488,11 +491,11 @@ module bru_pipeline (
             restart_req_taken <= 1'b1;
         end
         else if (stall_WB) begin
-            WB_valid <= WB_valid;
+            WB_valid <= ~WB_ready;
             WB_data <= WB_data;
             WB_PR <= WB_PR;
             WB_ROB_index <= WB_ROB_index;
-            restart_req_valid <= restart_req_valid;
+            restart_req_valid <= ~restart_req_ready;
             restart_req_mispredict <= restart_req_mispredict;
             restart_req_ROB_index <= restart_req_ROB_index;
             restart_req_PC <= restart_req_PC;

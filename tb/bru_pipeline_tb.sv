@@ -78,6 +78,9 @@ module bru_pipeline_tb ();
 	logic [31:0] DUT_restart_req_PC, expected_restart_req_PC;
 	logic DUT_restart_req_taken, expected_restart_req_taken;
 
+    // restart req backpressure from ROB
+	logic tb_restart_req_ready;
+
     // ----------------------------------------------------------------
     // DUT instantiation:
 
@@ -130,7 +133,10 @@ module bru_pipeline_tb ();
 		.restart_req_mispredict(DUT_restart_req_mispredict),
 		.restart_req_ROB_index(DUT_restart_req_ROB_index),
 		.restart_req_PC(DUT_restart_req_PC),
-		.restart_req_taken(DUT_restart_req_taken)
+		.restart_req_taken(DUT_restart_req_taken),
+
+	    // restart backpressure from ROB
+		.restart_req_ready(tb_restart_req_ready)
 	);
 
     // ----------------------------------------------------------------
@@ -271,6 +277,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b1;
 
 		@(posedge CLK);
 
@@ -343,6 +351,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b1;
 
 		@(posedge CLK);
 
@@ -429,6 +439,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -509,6 +521,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -589,6 +603,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -622,7 +638,7 @@ module bru_pipeline_tb ();
             "OC: v 1: JAL p3, 0x1234; 0xABC->0x1CF0", "\n\t\t",
             "EX: v 0: JALR p2, 0x1C(p1=AA0:R); 0x0->0xABC, mispred 0xAB8", "\n\t\t",
             "WB: i NOP", "\n\t\t",
-			"activity: WB stall", "\n\t\t"
+			"activity: WB stall (no effect), restart req stall (no effect)", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -669,6 +685,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b0;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b0;
 
 		@(negedge CLK);
 
@@ -749,6 +767,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b0;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -782,7 +802,7 @@ module bru_pipeline_tb ();
             "OC: v 2: BEQ p4=4:F, p5=5:F, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
             "EX: v 1: JAL p3, 0x1234; 0xABC->0x1CF0", "\n\t\t",
             "WB: v 0: JALR p2, 0x1C(p1=AA0:R); 0x0->0xABC, mispred 0xAB8", "\n\t\t",
-			"activity: ", "\n\t\t"
+			"activity: restart req stall (no effect)", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -829,6 +849,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b0;
 
 		@(negedge CLK);
 
@@ -846,7 +868,7 @@ module bru_pipeline_tb ();
 		expected_WB_ROB_index = 7'h0;
 	    // writeback backpressure from PRF
 	    // restart req to ROB
-		expected_restart_req_valid = 1'b1;
+		expected_restart_req_valid = 1'b0;
 		expected_restart_req_mispredict = 1'b1;
 		expected_restart_req_ROB_index = 7'h0;
 		expected_restart_req_PC = 32'hABC;
@@ -909,6 +931,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -942,7 +966,7 @@ module bru_pipeline_tb ();
             "OC: v 4: BNE p7=7:R, p8=8:F, 0xFFFFFF48; 0x1CF8->0x1C40, mispredict 0x1CFC", "\n\t\t",
             "EX: v 3: AUIPC p6, 0x5678; 0x1CF4->0x1CF8", "\n\t\t",
             "WB: v 2: BEQ p4=4:F, p5=5:F, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-			"activity: ack p7, forward p8", "\n\t\t"
+			"activity: ack p7, forward p8, WB stall (no effect)", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -987,8 +1011,10 @@ module bru_pipeline_tb ();
         };
 	    // writeback data to PRF
 	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b1;
+		tb_WB_ready = 1'b0;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -1022,7 +1048,7 @@ module bru_pipeline_tb ();
             "OC: v 5: BLT p9=99999999:F, pA=A:r, 0x234; 0x1C40->0x1E74", "\n\t\t",
             "EX: v 4: BNE p7=7:R, p8=8:F, 0xFFFFFF48; 0x1CF8->0x1C40, mispredict 0x1CFC", "\n\t\t",
             "WB: v 3: AUIPC p6, 0x5678; 0x1CF4->0x1CF8", "\n\t\t",
-			"activity: forward p9", "\n\t\t"
+			"activity: forward p9, restart req stall (no effect)", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -1069,6 +1095,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b0;
 
 		@(negedge CLK);
 
@@ -1149,6 +1177,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -1229,6 +1259,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -1309,6 +1341,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -1389,6 +1423,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -1469,6 +1505,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b0;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -1549,6 +1587,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -1629,6 +1669,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -1709,6 +1751,8 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 	    // restart req to ROB
+		// restart req backpressure from ROB
+		tb_restart_req_ready = 1'b1;
 
 		@(negedge CLK);
 
