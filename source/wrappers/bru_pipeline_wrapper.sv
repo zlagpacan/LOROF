@@ -60,7 +60,10 @@ module bru_pipeline_wrapper (
 	output logic last_restart_req_mispredict,
 	output logic [LOG_ROB_ENTRIES-1:0] last_restart_req_ROB_index,
 	output logic [31:0] last_restart_req_PC,
-	output logic last_restart_req_taken
+	output logic last_restart_req_taken,
+
+    // restart req backpressure from ROB
+	input logic next_restart_req_ready
 );
 
     // ----------------------------------------------------------------
@@ -111,6 +114,9 @@ module bru_pipeline_wrapper (
 	logic [LOG_ROB_ENTRIES-1:0] restart_req_ROB_index;
 	logic [31:0] restart_req_PC;
 	logic restart_req_taken;
+
+    // restart req backpressure from ROB
+	logic restart_req_ready;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -168,6 +174,9 @@ module bru_pipeline_wrapper (
 			last_restart_req_ROB_index <= '0;
 			last_restart_req_PC <= '0;
 			last_restart_req_taken <= '0;
+
+		    // restart req backpressure from ROB
+			restart_req_ready <= '0;
         end
         else begin
 
@@ -216,6 +225,9 @@ module bru_pipeline_wrapper (
 			last_restart_req_ROB_index <= restart_req_ROB_index;
 			last_restart_req_PC <= restart_req_PC;
 			last_restart_req_taken <= restart_req_taken;
+
+		    // restart req backpressure from ROB
+			restart_req_ready <= next_restart_req_ready;
         end
     end
 

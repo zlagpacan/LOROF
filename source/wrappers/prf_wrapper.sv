@@ -83,7 +83,7 @@ module prf_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    prf #(.USE_BRAM(1'b0)) WRAPPED_MODULE (.*);
+    prf WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -110,7 +110,7 @@ module prf_wrapper (
 			WB_ROB_index_by_wr <= '0;
 
 		    // writeback backpressure by write requestor
-			last_WB_ready_by_wr <= '1;
+			last_WB_ready_by_wr <= '0;
 
 		    // writeback bus by bank
 			last_WB_bus_valid_by_bank <= '0;
