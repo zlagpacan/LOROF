@@ -406,7 +406,7 @@ module prf_tb ();
 	    // writeback backpressure by write requestor
 		expected_WB_ready_by_wr = '1;
 	    // writeback bus by bank
-		expected_WB_bus_valid_by_bank = 4'b1111;
+		expected_WB_bus_valid_by_bank = 4'b1110;
 		expected_WB_bus_data_by_bank = {
 			32'hFCFC0303,
 			32'hFDFD0202,
@@ -492,8 +492,8 @@ module prf_tb ();
 			32'hFDFD0202,
 			32'hFEFE0101,
 			32'hFEFE0101,
-			32'hFFFF0000,
-			32'hFFFF0000
+			32'h00000000,
+			32'h00000000
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
@@ -590,8 +590,8 @@ module prf_tb ();
 			32'hFDFD0202,
 			32'hFEFE0101,
 			32'hFEFE0101,
-			32'hFFFF0000,
-			32'hFFFF0000
+			32'h00000000,
+			32'h00000000
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
@@ -688,8 +688,8 @@ module prf_tb ();
 			32'hFDFD0202,
 			32'hFEFE0101,
 			32'hFEFE0101,
-			32'hFFFF0000,
-			32'hFFFF0000
+			32'h00000000,
+			32'h00000000
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
@@ -786,8 +786,8 @@ module prf_tb ();
 			32'hFDFD0202,
 			32'hFEFE0101,
 			32'hFEFE0101,
-			32'hFFFF0000,
-			32'hFFFF0000
+			32'h00000000,
+			32'h00000000
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
@@ -884,8 +884,8 @@ module prf_tb ();
 			32'hFDFD0202,
 			32'hFEFE0101,
 			32'hFEFE0101,
-			32'hFFFF0000,
-			32'hFFFF0000
+			32'h00000000,
+			32'h00000000
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
@@ -982,8 +982,8 @@ module prf_tb ();
 			32'hFDFD0202,
 			32'hFEFE0101,
 			32'hFEFE0101,
-			32'hFFFF0000,
-			32'hFFFF0000
+			32'h00000000,
+			32'h00000000
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
@@ -1080,8 +1080,8 @@ module prf_tb ();
 			32'hFDFD0202,
 			32'hFEFE0101,
 			32'hFEFE0101,
-			32'hFFFF0000,
-			32'hFFFF0000
+			32'h00000000,
+			32'h00000000
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
@@ -1178,8 +1178,8 @@ module prf_tb ();
 			32'hFDFD0202,
 			32'hFEFE0101,
 			32'hFEFE0101,
-			32'hFFFF0000,
-			32'hFFFF0000
+			32'h00000000,
+			32'h00000000
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
@@ -1276,8 +1276,8 @@ module prf_tb ();
 			32'hFDFD0202,
 			32'hFEFE0101,
 			32'hFEFE0101,
-			32'hFFFF0000,
-			32'hFFFF0000
+			32'h00000000,
+			32'h00000000
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
@@ -1374,8 +1374,8 @@ module prf_tb ();
 			32'hFDFD0202,
 			32'hFEFE0101,
 			32'hFEFE0101,
-			32'hFFFF0000,
-			32'hFFFF0000
+			32'h00000000,
+			32'h00000000
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
@@ -1472,8 +1472,8 @@ module prf_tb ();
 			32'hFDFD0202,
 			32'hFEFE0101,
 			32'hFEFE0101,
-			32'hFFFF0000,
-			32'hFFFF0000
+			32'h00000000,
+			32'h00000000
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
@@ -1591,8 +1591,8 @@ module prf_tb ();
 			32'hFDFD0202,
 			32'hFEFE0101,
 			32'hFEFE0101,
-			32'hFFFF0000,
-			32'hFFFF0000
+			32'h00000000,
+			32'h00000000
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
@@ -1704,7 +1704,7 @@ module prf_tb ();
 			32'hF9F90606,
 			32'hFEFE0101,
 			32'hFAFA0505,
-			32'hFFFF0000,
+			32'h00000000,
 			32'hFBFB0404
 		};
 	    // writeback data by write requestor
@@ -1930,8 +1930,8 @@ module prf_tb ();
 			32'hFDFD0202,
 			32'hFEFE0101,
 			32'hFEFE0101,
-			32'hFFFF0000,
-			32'hFFFF0000
+			32'h00000000,
+			32'h00000000
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
@@ -2043,8 +2043,8 @@ module prf_tb ();
 			32'hFDFD0202,
 			32'hFEFE0101,
 			32'hFEFE0101,
-			32'hFFFF0000,
-			32'hFFFF0000
+			32'h00000000,
+			32'h00000000
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
@@ -2270,7 +2270,7 @@ module prf_tb ();
 			32'he6e61919,
 			32'hfefe0101,
 			32'he7e71818,
-			32'hffff0000
+			32'h00000000
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor

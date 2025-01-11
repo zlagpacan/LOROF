@@ -468,9 +468,6 @@ module prf #(
     // ddetermine next reg WB
     always_comb begin
 
-        // determine which banks hot
-
-
         // go through banks
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
 
@@ -502,6 +499,12 @@ module prf #(
                     {LOG_ROB_ENTRIES{WB_ack_by_bank_by_wr[bank][wr]}}
                 ;
             end
+        end
+
+        // ensure no WB if reg 0
+            // don't want a write or a forward
+        if (next_prf_WB_upper_PR_by_bank[0] == '0) begin
+            next_prf_WB_valid_by_bank[0] = 1'b0;
         end
     end
 
