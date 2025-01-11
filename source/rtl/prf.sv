@@ -506,15 +506,9 @@ module prf #(
     end
 
     // ready logic
-        // ready if don't currently have double req
-        // if have double req:
-            // stall this cycle, guaranteed keeping current around
-            // once ack unacked req (can be this cycle or later cycle), can keep things moving starting the next cycle
-            // cycle after unacked is acked, can collect current or make it unacked
-        // not a true buffer, more of a stall when full this cycle
-            // will stall even if won't be full next cycle
-            // do this for friendlier timing, can know if WB ready early in cycle
-    assign WB_ready_by_wr = ~(WB_valid_by_wr & unacked_WB_valid_by_wr);
+        // ready if don't currently have unacked req
+            // don't care if have current valid or not, upstream pipelines can figure out internally if need to stall based on this
+    assign WB_ready_by_wr = ~unacked_WB_valid_by_wr;
 
     // writeback bus
     assign WB_bus_valid_by_bank = prf_WB_valid_by_bank;

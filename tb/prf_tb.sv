@@ -1085,7 +1085,7 @@ module prf_tb ();
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
-		expected_WB_ready_by_wr = 7'b1011111;
+		expected_WB_ready_by_wr = 7'b0001111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b1111;
 		expected_WB_bus_data_by_bank = {
@@ -1183,7 +1183,7 @@ module prf_tb ();
 		};
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
-		expected_WB_ready_by_wr = 7'b1111111;
+		expected_WB_ready_by_wr = 7'b1110111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b1111;
 		expected_WB_bus_data_by_bank = {
