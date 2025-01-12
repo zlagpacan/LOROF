@@ -491,11 +491,11 @@ module bru_pipeline (
             restart_req_taken <= 1'b1;
         end
         else if (stall_WB) begin
-            WB_valid <= ~WB_ready;
+            WB_valid <= WB_valid & ~WB_ready;
             WB_data <= WB_data;
             WB_PR <= WB_PR;
             WB_ROB_index <= WB_ROB_index;
-            restart_req_valid <= ~restart_req_ready;
+            restart_req_valid <= restart_req_valid & ~restart_req_ready;
             restart_req_mispredict <= restart_req_mispredict;
             restart_req_ROB_index <= restart_req_ROB_index;
             restart_req_PC <= restart_req_PC;
