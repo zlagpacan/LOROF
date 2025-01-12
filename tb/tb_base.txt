@@ -85,13 +85,13 @@ fill in ^
 
         // ------------------------------------------------------------
         // finish:
-        @(posedge CLK);
+        @(posedge CLK); #(PERIOD/10);
         
         test_case = "finish";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-        @(posedge CLK);
+        @(posedge CLK); #(PERIOD/10);
 
         $display();
         if (num_errors) begin

@@ -346,7 +346,7 @@ def generate_tb(tb_base_lines, design_name, design_signals):
             # posedge, then outputs
             assert_reset_test_case_lines.extend([
                 f"\n",
-                f"\t\t@(posedge CLK);\n",
+                f"\t\t@(posedge CLK); #(PERIOD/10);\n",
                 f"\n",
                 f"\t\t// outputs:\n",
                 f"\n",
@@ -384,7 +384,7 @@ def generate_tb(tb_base_lines, design_name, design_signals):
             # posedge, then outputs
             deassert_reset_test_case_lines.extend([
                 f"\n",
-                f"\t\t@(posedge CLK);\n",
+                f"\t\t@(posedge CLK); #(PERIOD/10);\n",
                 f"\n",
                 f"\t\t// outputs:\n",
                 f"\n",
@@ -412,7 +412,7 @@ def generate_tb(tb_base_lines, design_name, design_signals):
 
             # posedge
             default_test_case_lines.extend([
-                f"\t\t@(posedge CLK);\n",
+                f"\t\t@(posedge CLK); #(PERIOD/10);\n",
                 f"\n",
             ])
 
