@@ -1,8 +1,8 @@
 /*
-    Filename: bram_1rport_1wport_wrapper.sv
+    Filename: bram_1rwport_wrapper.sv
     Author: zlagpacan
-    Description: RTL wrapper around bram_1rport_1wport module. 
-    Spec: LOROF/spec/design/bram_1rport_1wport.md
+    Description: RTL wrapper around bram_1rwport module. 
+    Spec: LOROF/spec/design/bram_1rwport.md
 */
 
 `timescale 1ns/100ps
@@ -13,7 +13,7 @@ import core_types_pkg::*;
 parameter OUTER_WIDTH = 32;
 parameter INNER_WIDTH = 32;
 
-module bram_1rport_1wport_wrapper (
+module bram_1rwport_wrapper (
 
     // seq
     input logic CLK,
@@ -38,7 +38,7 @@ module bram_1rport_1wport_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    bram_1rport_1wport WRAPPED_MODULE (.*);
+    bram_1rwport WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:

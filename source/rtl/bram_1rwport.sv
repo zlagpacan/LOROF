@@ -4,7 +4,7 @@
     Description: RTL for BRAM with 1 read/write port
 */
 
-module bram_1rport_1wport #(
+module bram_1rwport #(
     parameter INNER_WIDTH = 32,
     parameter OUTER_WIDTH = 32,
     parameter INIT_FILE = ""
