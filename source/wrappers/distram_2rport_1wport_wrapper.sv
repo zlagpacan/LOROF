@@ -46,7 +46,7 @@ module distram_2rport_1wport_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    distram_2rport_1wport WRAPPED_MODULE (
+    distram_2rport_1wport #(
 		.OUTER_WIDTH(OUTER_WIDTH), 
 		.INNER_WIDTH(INNER_WIDTH)
 	) WRAPPED_MODULE (.*);
