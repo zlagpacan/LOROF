@@ -311,7 +311,7 @@ module bru_iq_tb ();
 	    // BRU op issue to BRU pipeline
 	    // reg read req to PRF
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
@@ -371,7 +371,7 @@ module bru_iq_tb ();
 	    // BRU op issue to BRU pipeline
 	    // reg read req to PRF
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
@@ -408,7 +408,7 @@ module bru_iq_tb ();
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -481,7 +481,7 @@ module bru_iq_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -554,7 +554,7 @@ module bru_iq_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -627,7 +627,7 @@ module bru_iq_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -700,7 +700,7 @@ module bru_iq_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -773,7 +773,7 @@ module bru_iq_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -846,7 +846,7 @@ module bru_iq_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -919,7 +919,7 @@ module bru_iq_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -992,7 +992,7 @@ module bru_iq_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -1065,7 +1065,7 @@ module bru_iq_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -1140,13 +1140,13 @@ module bru_iq_tb ();
 
         // ------------------------------------------------------------
         // finish:
-        @(posedge CLK);
+        @(posedge CLK); #(PERIOD/10);
         
         test_case = "finish";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-        @(posedge CLK);
+        @(posedge CLK); #(PERIOD/10);
 
         $display();
         if (num_errors) begin

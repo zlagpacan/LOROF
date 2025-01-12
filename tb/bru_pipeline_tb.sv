@@ -280,7 +280,7 @@ module bru_pipeline_tb ();
 		// restart req backpressure from ROB
 		tb_restart_req_ready = 1'b1;
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
@@ -354,7 +354,7 @@ module bru_pipeline_tb ();
 		// restart req backpressure from ROB
 		tb_restart_req_ready = 1'b1;
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
@@ -384,7 +384,7 @@ module bru_pipeline_tb ();
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -466,7 +466,7 @@ module bru_pipeline_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -548,7 +548,7 @@ module bru_pipeline_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -630,7 +630,7 @@ module bru_pipeline_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -712,7 +712,7 @@ module bru_pipeline_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -794,7 +794,7 @@ module bru_pipeline_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -876,7 +876,7 @@ module bru_pipeline_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -958,7 +958,7 @@ module bru_pipeline_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -1040,7 +1040,7 @@ module bru_pipeline_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -1122,7 +1122,7 @@ module bru_pipeline_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -1204,7 +1204,7 @@ module bru_pipeline_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -1286,7 +1286,7 @@ module bru_pipeline_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -1368,7 +1368,7 @@ module bru_pipeline_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -1450,7 +1450,7 @@ module bru_pipeline_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -1532,7 +1532,7 @@ module bru_pipeline_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -1614,7 +1614,7 @@ module bru_pipeline_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -1696,7 +1696,7 @@ module bru_pipeline_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t",
@@ -1780,13 +1780,13 @@ module bru_pipeline_tb ();
 
         // ------------------------------------------------------------
         // finish:
-        @(posedge CLK);
+        @(posedge CLK); #(PERIOD/10);
         
         test_case = "finish";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-        @(posedge CLK);
+        @(posedge CLK); #(PERIOD/10);
 
         $display();
         if (num_errors) begin

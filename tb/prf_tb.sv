@@ -205,7 +205,7 @@ module prf_tb ();
 	    // writeback bus by bank
 	    // forward data from PRF
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
@@ -248,7 +248,7 @@ module prf_tb ();
 	    // writeback bus by bank
 	    // forward data from PRF
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
@@ -277,7 +277,7 @@ module prf_tb ();
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "no conflicts 0";
@@ -346,7 +346,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "no conflicts 1";
@@ -430,7 +430,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts 0";
@@ -528,7 +528,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts 1";
@@ -626,7 +626,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts 2";
@@ -724,7 +724,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts 3";
@@ -822,7 +822,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts 4";
@@ -920,7 +920,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts 5";
@@ -1018,7 +1018,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts 6 (winding down)";
@@ -1116,7 +1116,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts 7 (winding down)";
@@ -1214,7 +1214,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts 8 (winding down)";
@@ -1312,7 +1312,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts 9 (winding down)";
@@ -1410,7 +1410,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts A (winding down)";
@@ -1514,7 +1514,7 @@ module prf_tb ();
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "no conflicts 0";
@@ -1627,7 +1627,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "no conflicts 1";
@@ -1740,7 +1740,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "no conflicts 2 (winding down)";
@@ -1853,7 +1853,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "no conflicts 3 (winding down)";
@@ -1966,7 +1966,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts 0";
@@ -2079,7 +2079,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts 1";
@@ -2192,7 +2192,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts 2";
@@ -2305,7 +2305,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts 3";
@@ -2418,7 +2418,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts 4 (cooling down)";
@@ -2531,7 +2531,7 @@ module prf_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "conflicts 5 (cooling down)";
@@ -2646,13 +2646,13 @@ module prf_tb ();
 
         // ------------------------------------------------------------
         // finish:
-        @(posedge CLK);
+        @(posedge CLK); #(PERIOD/10);
         
         test_case = "finish";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-        @(posedge CLK);
+        @(posedge CLK); #(PERIOD/10);
 
         $display();
         if (num_errors) begin

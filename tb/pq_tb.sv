@@ -78,7 +78,7 @@ module pq_tb ();
 		nRST = 1'b0;
 		tb_req_vec = 14'h0;
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
@@ -94,7 +94,7 @@ module pq_tb ();
 		nRST = 1'b1;
 		tb_req_vec = 14'h0;
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
@@ -110,7 +110,7 @@ module pq_tb ();
 
         for (int i = 0; i < 2**14; i++) begin
 
-            @(posedge CLK);
+            @(posedge CLK); #(PERIOD/10);
 
             // inputs
             sub_test_case = $sformatf("input = %14b", i);
@@ -137,13 +137,13 @@ module pq_tb ();
 
         // ------------------------------------------------------------
         // finish:
-        @(posedge CLK);
+        @(posedge CLK); #(PERIOD/10);
         
         test_case = "finish";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-        @(posedge CLK);
+        @(posedge CLK); #(PERIOD/10);
 
         $display();
         if (num_errors) begin

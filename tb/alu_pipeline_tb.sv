@@ -186,7 +186,7 @@ module alu_pipeline_tb ();
 	    // ready feedback to ALU IQ
 	    // writeback data to PRF
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
@@ -230,7 +230,7 @@ module alu_pipeline_tb ();
 	    // ready feedback to ALU IQ
 	    // writeback data to PRF
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
@@ -253,7 +253,7 @@ module alu_pipeline_tb ();
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "default";
@@ -301,13 +301,13 @@ module alu_pipeline_tb ();
 
         // ------------------------------------------------------------
         // finish:
-        @(posedge CLK);
+        @(posedge CLK); #(PERIOD/10);
         
         test_case = "finish";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-        @(posedge CLK);
+        @(posedge CLK); #(PERIOD/10);
 
         $display();
         if (num_errors) begin

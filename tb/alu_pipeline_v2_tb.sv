@@ -205,7 +205,7 @@ module alu_pipeline_v2_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
@@ -259,7 +259,7 @@ module alu_pipeline_v2_tb ();
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
@@ -283,7 +283,7 @@ module alu_pipeline_v2_tb ();
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -345,7 +345,7 @@ module alu_pipeline_v2_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -407,7 +407,7 @@ module alu_pipeline_v2_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -469,7 +469,7 @@ module alu_pipeline_v2_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -531,7 +531,7 @@ module alu_pipeline_v2_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -593,7 +593,7 @@ module alu_pipeline_v2_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -655,7 +655,7 @@ module alu_pipeline_v2_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -717,7 +717,7 @@ module alu_pipeline_v2_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -779,7 +779,7 @@ module alu_pipeline_v2_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -841,7 +841,7 @@ module alu_pipeline_v2_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -903,7 +903,7 @@ module alu_pipeline_v2_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -965,7 +965,7 @@ module alu_pipeline_v2_tb ();
 
 		check_outputs();
 
-		@(posedge CLK);
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = {"\n\t\t", 
@@ -1029,13 +1029,13 @@ module alu_pipeline_v2_tb ();
 
         // ------------------------------------------------------------
         // finish:
-        @(posedge CLK);
+        @(posedge CLK); #(PERIOD/10);
         
         test_case = "finish";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-        @(posedge CLK);
+        @(posedge CLK); #(PERIOD/10);
 
         $display();
         if (num_errors) begin
