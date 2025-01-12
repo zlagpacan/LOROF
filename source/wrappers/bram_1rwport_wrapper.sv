@@ -38,7 +38,10 @@ module bram_1rwport_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    bram_1rwport WRAPPED_MODULE (.*);
+    bram_1rwport WRAPPED_MODULE (
+		.OUTER_WIDTH(OUTER_WIDTH), 
+		.INNER_WIDTH(INNER_WIDTH)
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
