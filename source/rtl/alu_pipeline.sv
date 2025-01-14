@@ -25,6 +25,7 @@ module alu_pipeline (
     input logic                             B_forward_in,
     input logic [LOG_PRF_BANK_COUNT-1:0]    B_bank_in,
     input logic [LOG_PR_COUNT-1:0]          dest_PR_in,
+    input logic [LOG_ROB_ENTRIES-1:0]       ROB_index_in,
 
     // reg read info and data from PRF
     input logic                             A_reg_read_valid_in,
@@ -40,7 +41,8 @@ module alu_pipeline (
     // writeback data to PRF
     output logic                        WB_valid_out,
     output logic [31:0]                 WB_data_out,
-    output logic [LOG_PR_COUNT-1:0]     WB_PR_out
+    output logic [LOG_PR_COUNT-1:0]     WB_PR_out,
+    output logic [LOG_ROB_ENTRIES-1:0]  WB_ROB_index_out
 );
 
     // ----------------------------------------------------------------
@@ -58,28 +60,32 @@ module alu_pipeline (
     logic                           B_forward_OC;
     logic [LOG_PRF_BANK_COUNT-1:0]  B_bank_OC;
     logic [LOG_PR_COUNT-1:0]        dest_PR_OC;
+    logic [LOG_ROB_ENTRIES-1:0]     ROB_index_OC;
 
     logic launch_ready_OC;
     logic stall_OC;
 
-    logic                       next_valid_EX;
-    logic [3:0]                 next_op_EX;
-    logic [31:0]                next_A_EX;
-    logic [31:0]                next_B_EX;
-    logic [LOG_PR_COUNT-1:0]    next_dest_PR_EX;
+    logic                           next_valid_EX;
+    logic [3:0]                     next_op_EX;
+    logic [31:0]                    next_A_EX;
+    logic [31:0]                    next_B_EX;
+    logic [LOG_PR_COUNT-1:0]        next_dest_PR_EX;
+    logic [LOG_ROB_ENTRIES-1:0]     next_ROB_index_EX;
 
     // ----------------------------------------------------------------
     // EX Stage Signals:
 
-    logic                       valid_EX;
-    logic [3:0]                 op_EX;
-    logic [31:0]                A_EX;
-    logic [31:0]                B_EX;
-    logic [LOG_PR_COUNT-1:0]    dest_PR_EX;
+    logic                           valid_EX;
+    logic [3:0]                     op_EX;
+    logic [31:0]                    A_EX;
+    logic [31:0]                    B_EX;
+    logic [LOG_PR_COUNT-1:0]        dest_PR_EX;
+    logic [LOG_ROB_ENTRIES-1:0]     ROB_index_EX;
 
-    logic                       next_WB_valid_out;
-    logic [31:0]                next_WB_data_out;
-    logic [LOG_PR_COUNT-1:0]    next_WB_PR_out;
+    logic                           next_WB_valid_out;
+    logic [31:0]                    next_WB_data_out;
+    logic [LOG_PR_COUNT-1:0]        next_WB_PR_out;
+    logic [LOG_ROB_ENTRIES-1:0]     next_WB_ROB_index_out;
 
     // ----------------------------------------------------------------
     // WB Stage Signals:
@@ -102,6 +108,7 @@ module alu_pipeline (
             B_forward_OC <= 1'b0;
             B_bank_OC <= '0;
             dest_PR_OC <= '0;
+            ROB_index_OC <= '0;
         end
         else if (stall_OC) begin
             valid_OC <= valid_OC;
@@ -116,6 +123,7 @@ module alu_pipeline (
             B_forward_OC <= 1'b0;
             B_bank_OC <= B_bank_OC;
             dest_PR_OC <= dest_PR_OC;
+            ROB_index_OC <= ROB_index_OC;
         end
         else begin
             valid_OC <= valid_in;
@@ -123,11 +131,14 @@ module alu_pipeline (
             is_imm_OC <= is_imm_in;
             imm_OC <= imm_in;
             A_unneeded_OC <= A_unneeded_in;
+            A_saved_OC <= 1'b0;
             A_forward_OC <= A_forward_in;
             A_bank_OC <= A_bank_in;
+            B_saved_OC <= 1'b0;
             B_forward_OC <= B_forward_in;
             B_bank_OC <= B_bank_in;
             dest_PR_OC <= dest_PR_in;
+            ROB_index_OC <= ROB_index_in;
         end
     end
 
@@ -142,6 +153,7 @@ module alu_pipeline (
     assign next_valid_EX = valid_OC & launch_ready_OC;
     assign next_op_EX = op_OC;
     assign next_dest_PR_EX = dest_PR_OC;
+    assign next_ROB_index_EX = ROB_index_OC;
 
     always_comb begin
         if (A_saved_OC)
@@ -172,6 +184,7 @@ module alu_pipeline (
             A_EX <= 32'h0;
             B_EX <= 32'h0;
             dest_PR_EX <= '0;
+            ROB_index_EX <= '0;
         end
         else begin
             valid_EX <= next_valid_EX;
@@ -179,11 +192,13 @@ module alu_pipeline (
             A_EX <= next_A_EX;
             B_EX <= next_B_EX;
             dest_PR_EX <= next_dest_PR_EX;
+            ROB_index_EX <= next_ROB_index_EX;
         end
     end
 
     assign next_WB_valid_out = valid_EX;
     assign next_WB_PR_out = dest_PR_EX;
+    assign next_WB_ROB_index_out = ROB_index_EX;
 
     // actual ALU
     always_comb begin
@@ -212,11 +227,13 @@ module alu_pipeline (
             WB_valid_out <= 1'b0;
             WB_data_out <= 32'h0;
             WB_PR_out <= '0;
+            WB_ROB_index_out <= '0;
         end
         else begin
             WB_valid_out <= next_WB_valid_out;
             WB_data_out <= next_WB_data_out;
             WB_PR_out <= next_WB_PR_out;
+            WB_ROB_index_out <= next_WB_ROB_index_out;
         end
     end
 

@@ -1,8 +1,8 @@
 /*
-    Filename: <design_name>_wrapper.sv
+    Filename: pq_wrapper.sv
     Author: zlagpacan
-    Description: RTL wrapper around <design_name> module. 
-    Spec: LOROF/spec/design/<design_name>.md
+    Description: RTL wrapper around pq module. 
+    Spec: LOROF/spec/design/pq.md
 */
 
 `timescale 1ns/100ps
@@ -10,32 +10,36 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module <design_name>_wrapper (
+module pq_wrapper (
 
     // seq
     input logic CLK,
     input logic nRST,
-<wrapper io signals>
+	input logic [14-1:0] next_req_vec,
+	output logic [14-1:0] last_pq_vec
 );
 
     // ----------------------------------------------------------------
     // Direct Module Connections:
-<raw signals>
+	logic [14-1:0] req_vec;
+	logic [14-1:0] pq_vec;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    <design_name> WRAPPED_MODULE (.*);
+    pq WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-<reset wrapper signals>
+			req_vec <= '0;
+			last_pq_vec <= '0;
         end
         else begin
-<latched wrapper signals>
+			req_vec <= next_req_vec;
+			last_pq_vec <= pq_vec;
         end
     end
 

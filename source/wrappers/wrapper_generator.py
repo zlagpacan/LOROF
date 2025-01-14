@@ -236,13 +236,13 @@ def generate_wrapper(wrapper_base_lines, design_name, design_signals):
                 # input
                 if signal.io == "input":
                     reset_wrapper_signal_lines.extend([
-                        f"\t\t\t{signal.name} <= \n",
+                        f"\t\t\t{signal.name} <= '0;\n",
                     ])
 
                 # output
                 elif signal.io == "output":
                     reset_wrapper_signal_lines.extend([
-                        f"\t\t\tlast_{signal.name} <= \n",
+                        f"\t\t\tlast_{signal.name} <= '0;\n",
                     ])
 
                 # empty
