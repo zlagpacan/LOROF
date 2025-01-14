@@ -25,7 +25,7 @@ module alu_imm_iq (
     input logic [3:0][LOG_ROB_ENTRIES-1:0]  dispatch_ROB_index_by_entry,
 
     // ALU op dispatch feedback by entry
-    output logic [3:0] dispatch_open_by_entry,
+    output logic [3:0] dispatch_ready_by_entry,
 
     // ALU pipeline feedback
     input logic pipeline_ready,
@@ -188,7 +188,7 @@ module alu_imm_iq (
         take_above_mask[3] = 1'b0;
     end
 
-    assign dispatch_open_by_entry = ~take_above_mask & ~take_self_mask;
+    assign dispatch_ready_by_entry = ~take_above_mask & ~take_self_mask;
 
     ////////////////////////////////
     // IQ entry next state logic: //
