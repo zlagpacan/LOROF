@@ -1,41 +1,49 @@
 /*
-    Filename: alu_imm_dq.sv
+    Filename: bru_dq.sv
     Author: zlagpacan
-    Description: RTL for ALU Register-Immediate Dispatch Queue
-    Spec: LOROF/spec/design/alu_imm_dq.md
+    Description: RTL for Branch Resolution Unit Dispatch Queue
+    Spec: LOROF/spec/design/bru_dq.md
 */
 
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module alu_imm_dq (
+module bru_dq (
 
     // seq
     input logic CLK,
     input logic nRST,
 
-    // ALU op 4-wide enQ array
+    // BRU op 4-wide enQ array
     input logic [3:0]                       enQ_valid_array,
     input logic [3:0][3:0]                  enQ_op_array,
+    input logic [3:0][31:0]                 enQ_PC_array,
+    input logic [3:0][31:0]                 enQ_speculated_next_PC_array,
     input logic [3:0][31:0]                 enQ_imm_array,
     input logic [3:0][LOG_PR_COUNT-1:0]     enQ_A_PR_array,
     input logic [3:0]                       enQ_A_unneeded_array,
+    input logic [3:0][LOG_PR_COUNT-1:0]     enQ_B_PR_array,
+    input logic [3:0]                       enQ_B_unneeded_array,
     input logic [3:0][LOG_PR_COUNT-1:0]     enQ_dest_PR_array,
     input logic [3:0][LOG_ROB_ENTRIES-1:0]  enQ_ROB_index_array,
 
-    // ALU op 4-wide enQ feedback array
+    // BRU op 4-wide enQ feedback array
     output logic [3:0] enQ_ready_array,
 
-    // ALU op 4-wide deQ array
+    // BRU op 4-wide deQ array
     output logic [3:0]                          deQ_valid_array,
     output logic [3:0][3:0]                     deQ_op_array,
+    output logic [3:0][31:0]                    deQ_PC_array,
+    output logic [3:0][31:0]                    deQ_speculated_next_PC_array,
     output logic [3:0][31:0]                    deQ_imm_array,
     output logic [3:0][LOG_PR_COUNT-1:0]        deQ_A_PR_array,
     output logic [3:0]                          deQ_A_unneeded_array,
+    output logic [3:0][LOG_PR_COUNT-1:0]        deQ_B_PR_array,
+    output logic [3:0]                          deQ_B_unneeded_array,
     output logic [3:0][LOG_PR_COUNT-1:0]        deQ_dest_PR_array,
     output logic [3:0][LOG_ROB_ENTRIES-1:0]     deQ_ROB_index_array,
 
-    // ALU op 4-wide deQ feedback array
+    // BRU op 4-wide deQ feedback array
     input logic [3:0] deQ_ready_array
 );
 
@@ -43,13 +51,17 @@ module alu_imm_dq (
     // Signals:
 
     // DQ entries
-    logic [DQ_ENTRIES-1:0]                          valid_by_entry;
-    logic [DQ_ENTRIES-1:0][3:0]                     op_by_entry;
-    logic [DQ_ENTRIES-1:0][31:0]                    imm_by_entry;
-    logic [DQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]        A_PR_by_entry;
-    logic [DQ_ENTRIES-1:0]                          A_unneeded_by_entry;
-    logic [DQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]        dest_PR_by_entry;
-    logic [DQ_ENTRIES-1:0][LOG_ROB_ENTRIES-1:0]     ROB_index_by_entry;
+    logic [DQ_ENTRIES:0]                         valid_by_entry;
+    logic [DQ_ENTRIES:0][3:0]                    op_by_entry;
+    logic [DQ_ENTRIES:0][31:0]                   PC_by_entry;
+    logic [DQ_ENTRIES:0][31:0]                   speculated_next_PC_by_entry;
+    logic [DQ_ENTRIES:0][31:0]                   imm_by_entry;
+    logic [DQ_ENTRIES:0][LOG_PR_COUNT-1:0]       A_PR_by_entry;
+    logic [DQ_ENTRIES:0]                         A_unneeded_by_entry;
+    logic [DQ_ENTRIES:0][LOG_PR_COUNT-1:0]       B_PR_by_entry;
+    logic [DQ_ENTRIES:0]                         B_unneeded_by_entry;
+    logic [DQ_ENTRIES:0][LOG_PR_COUNT-1:0]       dest_PR_by_entry;
+    logic [DQ_ENTRIES:0][LOG_ROB_ENTRIES-1:0]    ROB_index_by_entry;
 
     // DQ ptr's
     typedef logic [LOG_DQ_ENTRIES-1:0] DQ_idx_t;
@@ -77,9 +89,13 @@ module alu_imm_dq (
         for (int i = 0; i < 4; i++) begin
             deQ_valid_array[i] = valid_by_entry[deQ_idx_array[i]];
             deQ_op_array[i] = op_by_entry[deQ_idx_array[i]];
+            deQ_PC_array[i] = PC_by_entry[deQ_idx_array[i]];
+            deQ_speculated_next_PC_array[i] = speculated_next_PC_by_entry[deQ_idx_array[i]];
             deQ_imm_array[i] = imm_by_entry[deQ_idx_array[i]];
             deQ_A_PR_array[i] = A_PR_by_entry[deQ_idx_array[i]];
             deQ_A_unneeded_array[i] = A_unneeded_by_entry[deQ_idx_array[i]];
+            deQ_B_PR_array[i] = B_PR_by_entry[deQ_idx_array[i]];
+            deQ_B_unneeded_array[i] = B_unneeded_by_entry[deQ_idx_array[i]];
             deQ_dest_PR_array[i] = dest_PR_by_entry[deQ_idx_array[i]];
             deQ_ROB_index_array[i] = ROB_index_by_entry[deQ_idx_array[i]];
         end
@@ -136,9 +152,13 @@ module alu_imm_dq (
         if (~nRST) begin
             valid_by_entry <= '0;
             op_by_entry <= '0;
+            PC_by_entry <= '0;
+            speculated_next_PC_by_entry <= '0;
             imm_by_entry <= '0;
             A_PR_by_entry <= '0;
             A_unneeded_by_entry <= '0;
+            B_PR_by_entry <= '0;
+            B_unneeded_by_entry <= '0;
             dest_PR_by_entry <= '0;
             ROB_index_by_entry <= '0;
         end
@@ -148,9 +168,13 @@ module alu_imm_dq (
                 if (enQ_ready_array[i]) begin
                     valid_by_entry[enQ_idx_array[i]] <= enQ_valid_array[i];
                     op_by_entry[enQ_idx_array[i]] <= enQ_op_array[i];
+                    PC_by_entry[enQ_idx_array[i]] <= enQ_PC_array[i];
+                    speculated_next_PC_by_entry[enQ_idx_array[i]] <= enQ_speculated_next_PC_array[i];
                     imm_by_entry[enQ_idx_array[i]] <= enQ_imm_array[i];
                     A_PR_by_entry[enQ_idx_array[i]] <= enQ_A_PR_array[i];
                     A_unneeded_by_entry[enQ_idx_array[i]] <= enQ_A_unneeded_array[i];
+                    B_PR_by_entry[enQ_idx_array[i]] <= enQ_B_PR_array[i];
+                    B_unneeded_by_entry[enQ_idx_array[i]] <= enQ_B_unneeded_array[i];
                     dest_PR_by_entry[enQ_idx_array[i]] <= enQ_dest_PR_array[i];
                     ROB_index_by_entry[enQ_idx_array[i]] <= enQ_ROB_index_array[i];
                 end
