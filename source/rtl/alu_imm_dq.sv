@@ -30,8 +30,8 @@ module alu_imm_dq (
     output logic [3:0]                          deQ_valid_array,
     output logic [3:0][3:0]                     deQ_op_array,
     output logic [3:0][31:0]                    deQ_imm_array,
-    output logic [3:0]                          deQ_A_unneeded_array,
     output logic [3:0][LOG_PR_COUNT-1:0]        deQ_A_PR_array,
+    output logic [3:0]                          deQ_A_unneeded_array,
     output logic [3:0][LOG_PR_COUNT-1:0]        deQ_dest_PR_array,
     output logic [3:0][LOG_ROB_ENTRIES-1:0]     deQ_ROB_index_array,
 
@@ -46,8 +46,8 @@ module alu_imm_dq (
     logic [DQ_ENTRIES-1:0]                          valid_by_entry;
     logic [DQ_ENTRIES-1:0][3:0]                     op_by_entry;
     logic [DQ_ENTRIES-1:0][31:0]                    imm_by_entry;
-    logic [DQ_ENTRIES-1:0]                          A_unneeded_by_entry;
     logic [DQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]        A_PR_by_entry;
+    logic [DQ_ENTRIES-1:0]                          A_unneeded_by_entry;
     logic [DQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]        dest_PR_by_entry;
     logic [DQ_ENTRIES-1:0][LOG_ROB_ENTRIES-1:0]     ROB_index_by_entry;
 
@@ -78,8 +78,8 @@ module alu_imm_dq (
             deQ_valid_array[i] = valid_by_entry[deQ_idx_array[i]];
             deQ_op_array[i] = op_by_entry[deQ_idx_array[i]];
             deQ_imm_array[i] = imm_by_entry[deQ_idx_array[i]];
-            deQ_A_unneeded_array[i] = A_unneeded_by_entry[deQ_idx_array[i]];
             deQ_A_PR_array[i] = A_PR_by_entry[deQ_idx_array[i]];
+            deQ_A_unneeded_array[i] = A_unneeded_by_entry[deQ_idx_array[i]];
             deQ_dest_PR_array[i] = dest_PR_by_entry[deQ_idx_array[i]];
             deQ_ROB_index_array[i] = ROB_index_by_entry[deQ_idx_array[i]];
         end
@@ -137,8 +137,8 @@ module alu_imm_dq (
             valid_by_entry <= '0;
             op_by_entry <= '0;
             imm_by_entry <= '0;
-            A_unneeded_by_entry <= '0;
             A_PR_by_entry <= '0;
+            A_unneeded_by_entry <= '0;
             dest_PR_by_entry <= '0;
             ROB_index_by_entry <= '0;
         end
@@ -149,8 +149,8 @@ module alu_imm_dq (
                     valid_by_entry[enQ_idx_array[i]] <= enQ_valid_array[i];
                     op_by_entry[enQ_idx_array[i]] <= enQ_op_array[i];
                     imm_by_entry[enQ_idx_array[i]] <= enQ_imm_array[i];
-                    A_unneeded_by_entry[enQ_idx_array[i]] <= enQ_A_unneeded_array[i];
                     A_PR_by_entry[enQ_idx_array[i]] <= enQ_A_PR_array[i];
+                    A_unneeded_by_entry[enQ_idx_array[i]] <= enQ_A_unneeded_array[i];
                     dest_PR_by_entry[enQ_idx_array[i]] <= enQ_dest_PR_array[i];
                     ROB_index_by_entry[enQ_idx_array[i]] <= enQ_ROB_index_array[i];
                 end
