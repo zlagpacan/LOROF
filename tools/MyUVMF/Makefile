@@ -1,5 +1,5 @@
 EXEC := generate.py
-SPEC := demo/alu.yaml
+SPEC := config.yaml
 
 # Detect the operating system
 UNAME_S := $(shell uname -s)

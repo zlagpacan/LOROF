@@ -15,7 +15,7 @@ import core_types_pkg::*;
 interface alu_pipeline_if (input CLK);
 
     // --- Sequence --- //    
-    logic                            nRST;
+    logic                             nRST;
 
     // --- OP Issue From IQ --- //
     logic                             valid_in;
@@ -33,17 +33,20 @@ interface alu_pipeline_if (input CLK);
     logic                             A_reg_read_valid_in;
     logic                             B_reg_read_valid_in;
     logic [PRF_BANK_COUNT-1:0][31:0]  reg_read_data_by_bank_in;
+    logic [LOG_ROB_ENTRIES-1:0]       ROB_index_in;
 
     // --- Forward PRF --- //
     logic [PRF_BANK_COUNT-1:0][31:0]  forward_data_by_bank_in;
 
     // --- Ready -> IQ --- //
-    logic                            ready_out;
+    logic                             ready_out;
 
     // --- PRF Writeback --- //
-    logic                            WB_valid_out;
-    logic [31:0]                     WB_data_out;
-    logic [LOG_PR_COUNT-1:0]         WB_PR_out;
+    logic                             WB_valid_out;
+    logic [31:0]                      WB_data_out;
+    logic [LOG_PR_COUNT-1:0]          WB_PR_out;
+    logic [LOG_ROB_ENTRIES-1:0]       WB_ROB_index_out
+
 
     // --- DUT Modport --- //
     modport mp_dut (
@@ -65,12 +68,14 @@ interface alu_pipeline_if (input CLK);
         input  logic A_reg_read_valid_in,
         input  logic forward_data_by_bank_in,
         input  logic reg_read_data_by_bank_in,
+        input  logic ROB_index_in,
 
         // --- Outputs --- //
         output logic ready_out,
         output logic WB_valid_out,
         output logic WB_data_out,
-        output logic WB_PR_out
+        output logic WB_PR_out,
+        output logic WB_ROB_index_out,
     );
 
     modport mp_uvm (
@@ -78,7 +83,8 @@ interface alu_pipeline_if (input CLK);
         input  logic ready_out,
         input  logic WB_valid_out,
         input  logic WB_data_out,
-        input  logic WB_PR_out
+        input  logic WB_PR_out,
+        input  logic WB_ROB_index_out,
         
         // --- Outputs --- //
         output logic valid_in,
@@ -97,6 +103,7 @@ interface alu_pipeline_if (input CLK);
         output logic A_reg_read_valid_in,
         output logic forward_data_by_bank_in,
         output logic reg_read_data_by_bank_in,
+        output logic ROB_index_in
     );
 
 endinterface : alu_pipeline_if

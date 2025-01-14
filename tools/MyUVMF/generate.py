@@ -9,14 +9,14 @@ import sys
 templates = [
     'agent.sv.jinja2', 
     'driver.sv.jinja2', 
-    'env.sv.jinja2',
+    # 'env.sv.jinja2',
     'interface.sv.jinja2', 
     'monitor.sv.jinja2', 
     'sequence_item.sv.jinja2',
-    'sequencer.sv.jinja2',
-    'scoreboard.sv.jinja2',
-    'test.sv.jinja2',
-    'testbench.sv.jinja2'
+    'sequencer.sv.jinja2'
+    # 'scoreboard.sv.jinja2',
+    # 'test.sv.jinja2',
+    # 'testbench.sv.jinja2'
 ]
 
 def main():
