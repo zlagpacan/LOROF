@@ -21,9 +21,6 @@ module alu_imm_pipeline (
     input logic                             issue_A_unneeded,
     input logic                             issue_A_forward,
     input logic [LOG_PRF_BANK_COUNT-1:0]    issue_A_bank,
-    input logic                             issue_B_is_imm,
-    input logic                             issue_B_forward,
-    input logic [LOG_PRF_BANK_COUNT-1:0]    issue_B_bank,
     input logic [LOG_PR_COUNT-1:0]          issue_dest_PR,
     input logic [LOG_ROB_ENTRIES-1:0]       issue_ROB_index,
 
@@ -33,8 +30,6 @@ module alu_imm_pipeline (
     // reg read info and data from PRF
     input logic                                     A_reg_read_ack,
     input logic                                     A_reg_read_port,
-    input logic                                     B_reg_read_ack,
-    input logic                                     B_reg_read_port,
     input logic [PRF_BANK_COUNT-1:0][1:0][31:0]     reg_read_data_by_bank_by_port,
 
     // forward data from PRF
@@ -63,18 +58,10 @@ module alu_imm_pipeline (
     logic [3:0]                     op_OC;
     logic [31:0]                    imm_OC;
     logic                           A_unneeded_OC;
-    logic                           A_saved_OC;
     logic                           A_forward_OC;
     logic [LOG_PRF_BANK_COUNT-1:0]  A_bank_OC;
-    logic                           B_is_imm_OC;
-    logic                           B_saved_OC;
-    logic                           B_forward_OC;
-    logic [LOG_PRF_BANK_COUNT-1:0]  B_bank_OC;
     logic [LOG_PR_COUNT-1:0]        dest_PR_OC;
     logic [LOG_ROB_ENTRIES-1:0]     ROB_index_OC;
-
-    logic [31:0] A_saved_data_OC;
-    logic [31:0] B_saved_data_OC;
 
     logic launch_ready_OC;
 
@@ -123,13 +110,8 @@ module alu_imm_pipeline (
             op_OC <= 4'b0000;
             imm_OC <= 32'h0;
             A_unneeded_OC <= 1'b0;
-            A_saved_OC <= 1'b0;
             A_forward_OC <= 1'b0;
             A_bank_OC <= '0;
-            B_is_imm_OC <= 1'b0;
-            B_saved_OC <= 1'b0;
-            B_forward_OC <= 1'b0;
-            B_bank_OC <= '0;
             dest_PR_OC <= '0;
             ROB_index_OC <= '0;
         end
@@ -139,13 +121,8 @@ module alu_imm_pipeline (
             op_OC <= op_OC;
             imm_OC <= imm_OC;
             A_unneeded_OC <= A_unneeded_OC;
-            A_saved_OC <= A_saved_OC | A_forward_OC | A_reg_read_ack;
             A_forward_OC <= 1'b0;
             A_bank_OC <= A_bank_OC;
-            B_is_imm_OC <= B_is_imm_OC;
-            B_saved_OC <= B_saved_OC | B_forward_OC | B_reg_read_ack;
-            B_forward_OC <= 1'b0;
-            B_bank_OC <= B_bank_OC;
             dest_PR_OC <= dest_PR_OC;
             ROB_index_OC <= ROB_index_OC;
         end
@@ -155,27 +132,10 @@ module alu_imm_pipeline (
             op_OC <= issue_op;
             imm_OC <= issue_imm;
             A_unneeded_OC <= issue_A_unneeded;
-            A_saved_OC <= 1'b0;
             A_forward_OC <= issue_A_forward;
             A_bank_OC <= issue_A_bank;
-            B_is_imm_OC <= issue_B_is_imm;
-            B_saved_OC <= 1'b0;
-            B_forward_OC <= issue_B_forward;
-            B_bank_OC <= issue_B_bank;
             dest_PR_OC <= issue_dest_PR;
             ROB_index_OC <= issue_ROB_index;
-        end
-    end
-
-    // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
-        if (~nRST) begin
-            A_saved_data_OC <= 32'h0;
-            B_saved_data_OC <= 32'h0;
-        end
-        else begin
-            A_saved_data_OC <= next_A_EX;
-            B_saved_data_OC <= next_B_EX;
         end
     end
 
@@ -184,10 +144,7 @@ module alu_imm_pipeline (
         ~stall_OC
         &
         // A operand present
-        (A_unneeded_OC | A_saved_OC | A_forward_OC | A_reg_read_ack)
-        &
-        // B operand present
-        (B_is_imm_OC | B_saved_OC | B_forward_OC | B_reg_read_ack)
+        (A_unneeded_OC | A_forward_OC | A_reg_read_ack)
     ;
 
     assign issue_ready = ~valid_OC | launch_ready_OC;
@@ -199,11 +156,8 @@ module alu_imm_pipeline (
 
     always_comb begin
 
-        // collect A value to save OR pass to EX
-        if (A_saved_OC) begin
-            next_A_EX = A_saved_data_OC;
-        end
-        else if (A_forward_OC) begin
+        // collect A value to pass to EX
+        if (A_forward_OC) begin
             next_A_EX = forward_data_by_bank[A_bank_OC];
         end
         else begin
@@ -211,18 +165,7 @@ module alu_imm_pipeline (
         end
 
         // collect B value to save OR pass to EX
-        if (B_is_imm_OC) begin
-            next_B_EX = imm_OC;
-        end
-        else if (B_saved_OC) begin
-            next_B_EX = B_saved_data_OC;
-        end
-        else if (B_forward_OC) begin
-            next_B_EX = forward_data_by_bank[B_bank_OC];
-        end
-        else begin
-            next_B_EX = reg_read_data_by_bank_by_port[B_bank_OC][B_reg_read_port];
-        end
+        next_B_EX = imm_OC;
     end
 
     // ----------------------------------------------------------------
