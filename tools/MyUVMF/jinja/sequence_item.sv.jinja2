@@ -1,0 +1,64 @@
+/*
+  Module        : {{ DUT.Module }}
+  UMV Component : sequence_item
+  Author        : 
+*/
+
+`ifndef {{ DUT.Module | upper }}_SEQ_ITEM_SV
+`define {{ DUT.Module | upper }}_SEQ_ITEM_SV
+
+// --- UVM --- //
+`include "uvm_macros.svh"
+import uvm_pkg::*;
+
+// --- Packages --- //
+{% if DUT.Dependencies.Packages -%}
+    {% for file, package in DUT.Dependencies.Packages.items() -%}
+`include "{{ file }}"
+import {{ package }}::*;
+    {% endfor -%}
+{% endif %}
+// --- Includes --- //
+{% if DUT.Dependencies.Includes -%}
+    {% for include in DUT.Dependencies.Includes -%}
+`include "{{ include }}"
+    {% endfor -%}
+{% endif -%}
+{# Blank Line #}
+// --- Transaction --- //
+class {{ DUT.Module }}_sequence_item extends uvm_sequence_item;
+  `uvm_object_utils({{ DUT.Module }}_sequence_item)
+  {%- set ports_in = DUT.Ports.In %}
+  {%- set ports_out = DUT.Ports.Out %}
+
+  {%- set max_len_in = ports_in.values() | map('length') | max %}
+  {%- set max_len_out = ports_out.values() | map('length') | max %}
+
+  {%- macro pad(variable, length) -%}
+      {{- variable -}}{{ ' ' * (length - variable|length) }}
+  {%- endmacro %}
+
+  // --- Control Signals --- //
+  rand logic {{ DUT.Ports.Active_Low_Reset }};
+
+  // --- Randomized Inputs --- //
+  {% for signal, bit_width in ports_in.items() -%}
+  randc logic {{ pad(bit_width, max_len_in) }} {{ signal }};
+  {% endfor -%}
+
+  {# Blank Line - Formatting #}
+  // --- Outputs --- //
+  {% for signal, bit_width in ports_out.items() -%}
+  logic {{ pad(bit_width, max_len_out) }} {{ signal }};
+  {% endfor -%}
+  {# Blank Line - Formatting #}
+  // --- Constraints --- //
+
+  // --- Constructor --- //
+  function new(string name = "{{ DUT.Module }}_sequence_item");
+    super.new(name);
+  endfunction : new
+
+endclass : {{ DUT.Module }}_sequence_item
+
+`endif

@@ -1,0 +1,112 @@
+/*
+  Module        : {{ DUT.Module }}
+  UMV Component : monitor
+  Author        : 
+*/
+
+`ifndef {{ DUT.Module | upper }}_MONITOR_SV
+`define {{ DUT.Module | upper }}_MONITOR_SV
+
+// --- UVM --- //
+`include "uvm_macros.svh"
+import uvm_pkg::*;
+
+// --- Packages --- //
+{% if DUT.Dependencies.Packages -%}
+    {% for file, package in DUT.Dependencies.Packages.items() -%}
+`include "{{ file }}"
+import {{ package }}::*;
+    {% endfor -%}
+{% endif %}
+// --- Includes --- //
+`include "sequence_item.sv"
+`include "interface.sv"
+{% if DUT.Dependencies.Includes -%}
+    {% for include in DUT.Dependencies.Includes -%}
+`include "{{ include }}"
+    {% endfor -%}
+{% endif -%}
+{# Blank Line #}
+// --- Monitor --- //
+class {{ DUT.Module }}_monitor extends uvm_monitor;
+  `uvm_component_utils({{ DUT.Module }}_monitor)
+  
+  // --- Monitor Components --- //
+  virtual {{ DUT.Module }}_if vif;
+  {{ DUT.Module }}_sequence_item item;
+  
+  uvm_analysis_port #({{ DUT.Module }}_sequence_item) monitor_port;
+  
+  // --- Constructor --- //
+  function new(string name = "{{ DUT.Module }}_monitor", uvm_component parent);
+    super.new(name, parent);
+    `uvm_info("MONITOR_CLASS", "Inside Constructor", UVM_HIGH)
+  endfunction : new
+  
+  // --- Build Phase --- //
+  function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    `uvm_info("MONITOR_CLASS", "Build Phase", UVM_HIGH)
+    
+    // --- Build Monitor Port --- //
+    monitor_port = new("monitor_port", this);
+    
+    // --- Virtual Interface Failure --- //
+    if(!(uvm_config_db #(virtual {{ DUT.Module }}_if)::get(this, "*", "vif", vif))) begin
+      `uvm_error("MONITOR_CLASS", "Failed to get virtual interface")
+    end
+    
+  endfunction : build_phase
+  
+  // --- Connect Phase --- //
+  function void connect_phase(uvm_phase phase);
+    super.connect_phase(phase);
+    `uvm_info("MONITOR_CLASS", "Connect Phase", UVM_HIGH)
+    
+  endfunction : connect_phase
+  
+  // --- Run Phase --- //
+  task run_phase (uvm_phase phase);
+    super.run_phase(phase);
+    `uvm_info("MONITOR_CLASS", "Run Phase", UVM_HIGH)
+    
+    // --- Capture DUT Interface --- //
+    forever begin
+      item = {{ DUT.Module }}_sequence_item::type_id::create("item");
+      {%- set ports_in = DUT.Ports.In %}
+      {%- set ports_out = DUT.Ports.Out %}
+
+      {%- set max_len_rst = DUT.Ports.Active_Low_Reset | length %}
+      {%- set max_len_in = ports_in | map('length') | max %}
+      {%- set max_len_out = ports_out | map('length') | max %}
+      {%- set max_len = [max_len_in, max_len_out] | max %}
+
+      {%- macro pad(variable, length) -%}
+          {{- variable -}}{{ ' ' * (length - variable|length) }}
+      {%- endmacro %}
+      
+      wait(vif.{{ DUT.Ports.Active_Low_Reset }});
+
+      // --- Input Sample --- //
+      item.{{ pad(DUT.Ports.Active_Low_Reset, max_len) }} = vif.{{ DUT.Ports.Active_Low_Reset }};
+
+      @(posedge vif.{{ DUT.Ports.Clock }});
+      {% for port in ports_in -%}
+      item.{{ pad(port, max_len) }} = vif.{{ port }};
+      {% endfor %}
+      // --- Output Sample --- //
+      @(posedge vif.{{ DUT.Ports.Clock }});
+      {% for port in ports_out -%}
+      item.{{ pad(port, max_len) }} = vif.{{ port }};
+      {% endfor %}
+      // --- Send to Scoreboard --- //
+      `uvm_info(get_type_name(), $sformatf("Monitor found packet %s", item.convert2str()), UVM_LOW)
+      monitor_port.write(item);
+      
+    end
+        
+  endtask : run_phase
+  
+endclass : {{ DUT.Module }}_monitor
+
+`endif

@@ -1,0 +1,72 @@
+/*
+  Module        : {{ DUT.Module }}
+  UMV Component : agent
+  Author        : 
+*/
+
+`ifndef {{ DUT.Module | upper }}_AGENT_SV
+`define {{ DUT.Module | upper }}_AGENT_SV
+
+// --- UVM --- //
+`include "uvm_macros.svh"
+import uvm_pkg::*;
+
+// --- Packages --- //
+{% if DUT.Dependencies.Packages -%}
+    {% for file, package in DUT.Dependencies.Packages.items() -%}
+`include "{{ file }}"
+import {{ package }}::*;
+    {% endfor -%}
+{% endif %}
+// --- Includes --- //
+`include "sequence_item.sv"
+`include "sequencer.sv"
+`include "driver.sv"
+`include "monitor.sv"
+`include "interface.sv"
+{% if DUT.Dependencies.Includes -%}
+    {% for include in DUT.Dependencies.Includes -%}
+`include "{{ include }}"
+    {% endfor -%}
+{% endif -%}
+{# Blank Line #}
+// --- Agent --- //
+class {{ DUT.Module }}_agent extends uvm_agent;
+  `uvm_component_utils({{ DUT.Module }}_agent)
+
+  // --- Agent Components --- //
+  {{ DUT.Module }}_driver    drv;
+  {{ DUT.Module }}_monitor   mon;
+  {{ DUT.Module }}_sequencer seqr;
+  
+  // --- Constructor --- //
+  function new(string name = "{{ DUT.Module }}_agent", uvm_component parent);
+    super.new(name, parent);
+    `uvm_info("AGENT_CLASS", "Inside Constructor", UVM_HIGH)
+  endfunction : new
+  
+  // --- Build Phase --- //
+  function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    `uvm_info("AGENT_CLASS", "Build Phase", UVM_HIGH)
+    
+    // --- Build Components --- //
+    drv  = {{ DUT.Module }}_driver::type_id::create("drv", this);
+    mon  = {{ DUT.Module }}_monitor::type_id::create("mon", this);
+    seqr = {{ DUT.Module }}_sequencer::type_id::create("seqr", this);
+    
+  endfunction : build_phase
+  
+  // --- Connect Phase --- //
+  function void connect_phase(uvm_phase phase);
+    super.connect_phase(phase);
+    `uvm_info("AGENT_CLASS", "Connect Phase", UVM_HIGH)
+    
+    // --- Sequencer -> Driver --- //
+    drv.seq_item_port.connect(seqr.seq_item_export);
+    
+  endfunction : connect_phase
+  
+endclass : {{ DUT.Module }}_agent
+
+`endif

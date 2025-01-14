@@ -1,0 +1,4 @@
+testbench/*
+__pycache__/*
+todo
+releases.txt

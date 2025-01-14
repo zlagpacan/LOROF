@@ -1,0 +1,55 @@
+/*
+  Module        : {{ DUT.Module }}
+  UMV Component : interface
+  Author        : 
+*/
+
+`ifndef {{ DUT.Module | upper }}_INTERFACE_SV
+`define {{ DUT.Module | upper }}_INTERFACE_SV
+
+// --- Packages --- //
+{% if DUT.Dependencies.Packages -%}
+    {% for file, package in DUT.Dependencies.Packages.items() -%}
+`include "{{ file }}"
+import {{ package }}::*;
+    {% endfor -%}
+{% endif %}
+// --- Includes --- //
+{% if DUT.Dependencies.Includes -%}
+    {% for include in DUT.Dependencies.Includes -%}
+`include "{{ include }}"
+    {% endfor -%}
+{% endif -%}
+{# Blank Line #}
+// --- Interface --- //
+interface {{ DUT.Module }}_if (input logic {{ DUT.Ports.Clock }});
+  {%- set ports_rst = DUT.Ports.Active_Low_Reset%}
+  {%- set ports_in = DUT.Ports.In %}
+  {%- set ports_out = DUT.Ports.Out %}
+
+  {%- set max_len_in = ports_in.values() | map('length') | max %}
+  {%- set max_len_out = ports_out.values() | map('length') | max %}
+  {%- set max_len = [max_len_in, max_len_out] | max %}
+
+  // --- Reset --- //
+  logic {{ ports_rst }};
+
+  {%- macro pad(variable, length) -%}
+      {{- variable -}}{{ ' ' * (length - variable|length) }}
+  {%- endmacro %}
+
+  // --- Inputs --- //
+  {% for signal, bit_width in ports_in.items() -%}
+  logic {{ pad(bit_width, max_len) }} {{ signal }};
+  {% endfor -%}
+
+  {# Blank Line - Formatting #}
+  // --- Outputs --- //
+  {% for signal, bit_width in ports_out.items() -%}
+  logic {{ pad(bit_width, max_len) }} {{ signal }};
+  {% endfor -%}
+
+  {# Blank Line - Formatting #}
+endinterface : {{ DUT.Module }}_if
+
+`endif
