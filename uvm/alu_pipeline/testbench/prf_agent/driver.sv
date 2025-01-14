@@ -1,7 +1,7 @@
 /*
   Module        : alu_pipeline_prf
   UMV Component : driver
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_PIPELINE_PRF_DRIVER_SV
@@ -63,7 +63,6 @@ class alu_pipeline_prf_driver extends uvm_driver#(alu_pipeline_prf_sequence_item
   task drive(alu_pipeline_prf_sequence_item item);
 
     @(posedge vif.CLK);
-    vif.nRST                     <= item.nRST;
     vif.A_reg_read_valid_in      <= item.A_reg_read_valid_in;
     vif.B_reg_read_valid_in      <= item.B_reg_read_valid_in;
     vif.ROB_index_in             <= item.ROB_index_in;

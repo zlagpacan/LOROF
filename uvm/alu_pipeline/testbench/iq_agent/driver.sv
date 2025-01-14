@@ -1,7 +1,7 @@
 /*
   Module        : alu_pipeline_iq
   UMV Component : driver
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_PIPELINE_IQ_DRIVER_SV
@@ -63,7 +63,6 @@ class alu_pipeline_iq_driver extends uvm_driver#(alu_pipeline_iq_sequence_item);
   task drive(alu_pipeline_iq_sequence_item item);
 
     @(posedge vif.CLK);
-    vif.nRST          <= item.nRST;
     vif.valid_in      <= item.valid_in;
     vif.op_in         <= item.op_in;
     vif.is_imm_in     <= item.is_imm_in;

@@ -1,7 +1,7 @@
 /*
   Module        : alu_pipeline_prf
   UMV Component : interface
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_PIPELINE_PRF_INTERFACE_SV
@@ -15,9 +15,6 @@ import core_types_pkg::*;
 
 // --- Interface --- //
 interface alu_pipeline_prf_if (input logic CLK);
-
-  // --- Reset --- //
-  logic nRST;
 
   // --- Inputs --- //
   logic                            A_reg_read_valid_in;

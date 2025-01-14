@@ -1,7 +1,7 @@
 /*
   Module        : alu_pipeline_iq
   UMV Component : sequencer
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_PIPELINE_IQ_SEQUENCER_SV

@@ -1,7 +1,7 @@
 /*
   Module        : alu_pipeline_prf
   UMV Component : monitor
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_PIPELINE_PRF_MONITOR_SV
@@ -66,11 +66,6 @@ class alu_pipeline_prf_monitor extends uvm_monitor;
     forever begin
       item = alu_pipeline_prf_sequence_item::type_id::create("item");
       
-      wait(vif.nRST);
-
-      // --- Input Sample --- //
-      item.nRST                     = vif.nRST;
-
       @(posedge vif.CLK);
       item.A_reg_read_valid_in      = vif.A_reg_read_valid_in;
       item.B_reg_read_valid_in      = vif.B_reg_read_valid_in;

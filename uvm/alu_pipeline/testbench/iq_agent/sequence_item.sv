@@ -1,7 +1,7 @@
 /*
   Module        : alu_pipeline_iq
   UMV Component : sequence_item
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_PIPELINE_IQ_SEQ_ITEM_SV
@@ -20,9 +20,6 @@ import core_types_pkg::*;
 // --- Transaction --- //
 class alu_pipeline_iq_sequence_item extends uvm_sequence_item;
   `uvm_object_utils(alu_pipeline_iq_sequence_item)
-
-  // --- Control Signals --- //
-  rand logic nRST;
 
   // --- Randomized Inputs --- //
   randc logic                          valid_in;

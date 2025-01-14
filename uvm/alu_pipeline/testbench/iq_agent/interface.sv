@@ -1,7 +1,7 @@
 /*
   Module        : alu_pipeline_iq
   UMV Component : interface
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_PIPELINE_IQ_INTERFACE_SV

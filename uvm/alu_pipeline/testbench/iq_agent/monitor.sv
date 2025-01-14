@@ -1,7 +1,7 @@
 /*
   Module        : alu_pipeline_iq
   UMV Component : monitor
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_PIPELINE_IQ_MONITOR_SV
@@ -66,11 +66,7 @@ class alu_pipeline_iq_monitor extends uvm_monitor;
     forever begin
       item = alu_pipeline_iq_sequence_item::type_id::create("item");
       
-      wait(vif.nRST);
-
       // --- Input Sample --- //
-      item.nRST          = vif.nRST;
-
       @(posedge vif.CLK);
       item.valid_in      = vif.valid_in;
       item.op_in         = vif.op_in;
