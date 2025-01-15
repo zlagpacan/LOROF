@@ -1,7 +1,7 @@
 /*
-    Module   : alu_pipeline
-    Filename : env.sv
-    Author   : Adam Keith
+  Module        : alu_pipeline
+  UMV Component : environment
+  Author        : Adam Keith
 */
 
 `ifndef ALU_PIPELINE_ENV_SV
@@ -11,41 +11,52 @@
 `include "uvm_macros.svh"
 import uvm_pkg::*;
 
-// --- Dependencies --- //
-`include "agent.sv"
-`include "scoreboard.sv"
-`include "interface.sv"
-`include "core_types_pkg.vh"
+// --- Packages --- //
+`include "core_types_pkg.svh"
 import core_types_pkg::*;
+    
+// --- Includes --- //
+`include "sequence_item.sv"
+`include "sequencer.sv"
+`include "driver.sv"
+`include "monitor.sv"
+`include "interface.sv"
 
-// --- ALU Pipeline Environment --- //
+// --- Environment --- //
 class alu_pipeline_env extends uvm_env;
-    `uvm_component_utils(alu_pipeline_env)
+  `uvm_component_utils(alu_pipeline_env)
+  
+  // --- Env Components --- //
+  alu_pipeline_agent agnt;
+  alu_pipeline_scoreboard scb;
 
-    // --- Environment Components --- //
-    alu_pipeline_agent      alu_pipeline_agnt;
-    alu_pipeline_scoreboard alu_pipeline_scbd;
-
-    // --- Constructor --- //
-    function new (string name = "alu_pipeline_env", uvm_component parent);
-        super.new(name, parent);
-        `uvm_info("alu_pipeline_env", "build phase", UVM_HIGH)
-
-        alu_pipeline_agnt = alu_pipeline_agent::type_id::create::("alu_pipeline_agnt", this);
-        alu_pipeline_scbd = alu_pipeline_scoreboard::type_id::create::("alu_pipeline_scbd", this);
-
-    endfunction : build_phase
-
-    // --- Connect Phase --- //
-    function void connect_phase(uvm_phase phase);
-        super.connect_phase(phase);
-        `uvm_info("alu_pipeline_env", "connect phase", UVM_HIGH)
-
-        // FIXME: Make scoreboard port and connect
-        alu_pipeline_agnt.alu_pipeline_mon.alu_pipeline_ap.connect();
-
-    endfunction : connect_phase
-
+  // --- Constructor --- //
+  function new(string name = "alu_pipeline_env", uvm_component parent);
+    super.new(name, parent);
+    `uvm_info("ENV_CLASS", "Inside Constructor", UVM_HIGH)
+  endfunction : new
+  
+  // --- Build Phase --- //
+  function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    `uvm_info("ENV_CLASS", "Build Phase", UVM_HIGH)
+    
+    // --- Build Agent + Scoreboard --- //
+    agnt = alu_pipeline_agent::type_id::create("agnt", this);
+    scb  = alu_pipeline_scoreboard::type_id::create("scb", this);
+    
+  endfunction : build_phase
+  
+  // --- Connect Phase --- //
+  function void connect_phase(uvm_phase phase);
+    super.connect_phase(phase);
+    `uvm_info("ENV_CLASS", "Connect Phase", UVM_HIGH)
+    
+    // --- Monitor -> Scoreboard --- //
+    agnt.mon.monitor_port.connect(scb.scoreboard_port);
+    
+  endfunction : connect_phase
+  
 endclass : alu_pipeline_env
 
 `endif

@@ -1,0 +1,28 @@
+DUT:
+    Module: alu
+    Dependencies:
+        Packages: 
+            alu_pkg.svh: alu_pkg
+        Includes:
+    Parameters: 
+        BIT_WIDTH: 16
+    Ports:
+        Clock: clk
+        Active_Low_Reset: n_rst
+        In: 
+            opcode: '[1:0]'
+            a: '[(DATA_W-1):0]'
+            b: '[(DATA_W-1):0]'
+        Out: 
+            out: '[(DATA_W-1):0]'
+            negative: ''
+            overflow: ''
+            zero: ''
+
+Testbench:
+    Modport:
+
+Output_Path: alu/MyUVMF/
+
+
+        

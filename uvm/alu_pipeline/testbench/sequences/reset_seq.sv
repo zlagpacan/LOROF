@@ -1,70 +1,70 @@
 /*
-    Module   : alu_pipeline
-    Filename : sequence.sv
-    Author   : Adam Keith
+  Module        : alu_pipeline
+  UMV Component : reset sequence
+  Author        : Adam Keith
 */
 
-`ifndef ALU_PIPELINE_SEQUENCE_SV
-`define ALU_PIPELINE_SEQUENCE_SV
+`ifndef ALU_PIPELINE_RST_SEQ_SV
+`define ALU_PIPELINE_RST_SEQ_SV
 
 // --- UVM --- //
 `include "uvm_macros.svh"
 import uvm_pkg::*;
 
-// --- Dependencies --- //
-`include "../sequence_item.sv"
-`include "core_types_pkg.vh"
+// --- Packages --- //
+`include "core_types_pkg.svh"
 import core_types_pkg::*;
-
+    
 // --- Reset Sequence --- //
-class alu_pipeline_rst_seq extends uvm_sequence;
-    `uvm_object_utils(alu_pipeline_rst_seq)
-
-    alu_pipeline_seq_item rst_pkt;
-
-    // --- Constructor --- //
-    function new (string name = "alu_pipeline_rst_seq");
-        super.new(name);
-        `uvm_info("alu_pipeline_rst_seq", "Constructor", UVM_HIGH)
-    endfunction : new
-
-    // --- Body Task --- //
-    task body ();
-        `uvm_info("alu_pipeline_rst_seq", "Body", UVM_HIGH)
+class reset_sequence extends uvm_sequence;
+  `uvm_object_utils(reset_sequence)
+  
+  alu_pipeline_sequence_item reset_pkt;
+  
+  // --- Constructor --- //
+  function new(string name= "reset_sequence");
+    super.new(name);
+    `uvm_info("RESET_SEQ", "Inside Constructor", UVM_HIGH)
+  endfunction
+  
+  // --- Body Task --- //
+  task body();
+    `uvm_info("RESET_SEQ", "Inside body task", UVM_HIGH)
+    
+    // --- Randomize With Reset --- //
+    reset_pkt = garbage_sequence_item::type_id::create("reset_pkt");
+    start_item(reset_pkt);
+    reset_pkt.randomize() with {nRST==0;};
+    finish_item(reset_pkt);
         
-        // --- Randomize With Reset --- //
-        rst_pkt = alu_pipeline_rst_seq::type_id::create("rst_pkt");
-        start_item(rst_pkt);
-        rst_pkt.randomize() with {nRST == 1'b0;};
-        finish_item(rst_pkt);
-            
-    endtask : body
+  endtask : body
+  
+endclass : reset_sequence
 
-endclass : alu_pipeline_rst_seq
-
-class alu_pipeline_garbage_seq extends uvm_sequence;
-    `uvm_object_utils(alu_pipeline_garbage_seq)
-
-    alu_pipeline_seq_item garbage_pkt;
-
-    // --- Constructor --- //
-    function new (string name = "alu_pipeline_garbage_seq");
-        super.new(name);
-        `uvm_info("alu_pipeline_garbage_seq", "Constructor", UVM_HIGH)
-    endfunction : new
-
-    // --- Body Task --- //
-    task body ();
-        `uvm_info("alu_pipeline_garbage_seq", "Body", UVM_HIGH)
+// --- Garbage Sequence - to prime reset --- //
+class garbage_sequence extends uvm_sequence;
+  `uvm_object_utils(garbage_sequence)
+  
+  alu_pipeline_sequence_item garbage_pkt;
+  
+  // --- Constructor --- //
+  function new(string name= "garbage_sequence");
+    super.new(name);
+    `uvm_info("GARBAGE_SEQ", "Inside Constructor", UVM_HIGH)
+  endfunction
+  
+  // --- Body Task --- //
+  task body();
+    `uvm_info("GARBAGE_SEQ", "Inside body task", UVM_HIGH)
+    
+    // --- Randomize With Reset --- //
+    garbage_pkt = garbage_sequence_item::type_id::create("garbage_pkt");
+    start_item(garbage_pkt);
+    garbage_pkt.randomize() with {nRST==1;};
+    finish_item(garbage_pkt);
         
-        // --- Randomize With Reset --- //
-        garbage_pkt = alu_pipeline_garbage_seq::type_id::create("garbage_pkt");
-        start_item(garbage_pkt);
-        garbage_pkt.randomize() with {nRST == 1'b1;};
-        finish_item(garbage_pkt);
-            
-    endtask : body
-
-endclass : alu_pipeline_garbage_seq
+  endtask : body
+  
+endclass : garbage_sequence
 
 `endif

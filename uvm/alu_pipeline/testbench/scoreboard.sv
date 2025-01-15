@@ -1,7 +1,7 @@
 /*
-    Module   : alu_pipeline
-    Filename : env.sv
-    Author   : Adam Keith
+  Module        : alu_pipeline
+  UMV Component : scoreboard
+  Author        : Adam Keith
 */
 
 `ifndef ALU_PIPELINE_SCOREBOARD_SV
@@ -11,70 +11,72 @@
 `include "uvm_macros.svh"
 import uvm_pkg::*;
 
-// --- Dependencies --- //
-`include "sequence_item.sv"
-`include "core_types_pkg.vh"
+// --- Packages --- //
+`include "core_types_pkg.svh"
 import core_types_pkg::*;
+    
+// --- Includes --- //
+`include "sequence_item.sv"
+`include "interface.sv"
 
-// --- ALU Pipeline Scoreboard --- //
+// --- Scoreboard --- //
 class alu_pipeline_scoreboard extends uvm_scoreboard;
-    `uvm_component_utils(alu_pipeline_scoreboard)
+  `uvm_component_utils(alu_pipeline_scoreboard)
 
-    // --- UVM Analysis Port --- //
-    uvm_analysis_imp #(alu_pipeline_seq_item, alu_pipeline_scoreboard) alu_pipeline_scbd_ap;
-    alu_pipeline_seq_item transactions[$];
+  // --- Scoreboard Components --- //
+  uvm_analysis_imp #(alu_pipeline_sequence_item, alu_pipeline_scoreboard) scoreboard_port;
+  alu_pipeline_sequence_item transactions[$];
 
-    // --- Constructor --- //
-    function new (string name = "alu_pipeline_scoreboard", uvm_component parent);
-        super.new(name, parent);
-        `uvm_info("alu_pipeline_scoreboard", "Constructor", UVM_HIGH)
-    endfunction : new
+  // --- Constructor --- //
+  function new(string name = "alu_pipeline_scoreboard", uvm_component parent);
+    super.new(name, parent);
+    `uvm_info("SCB_CLASS", "Inside Constructor", UVM_HIGH)
+  endfunction : new
+
+  // --- Build Phase --- //
+  function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    `uvm_info("SCB_CLASS", "Build Phase", UVM_HIGH)
+   
+    // --- Scoreboard Port --- //
+    scoreboard_port = new("scoreboard_port", this);
     
-    // --- Build Phase --- //
-    function void build_phase (uvm_phase phase);
-        super.build_phase(phase);
-        `uvm_info("alu_pipeline_scoreboard", "Build Phase", UVM_HIGH)
+  endfunction : build_phase
+
+  // --- Write Transaction --- //
+  function void write(alu_pipeline_sequence_item item);
+    transactions.push_back(item);
+  endfunction : write 
+
+  // --- Run Phase --- //
+  task run_phase (uvm_phase phase);
+    super.run_phase(phase);
+    `uvm_info("SCB_CLASS", "Run Phase", UVM_HIGH)
+   
+    // --- Transaction Stack --- //
+    forever begin
+      alu_pipeline_sequence_item curr_tx;
+      wait((transactions.size() != 0));
+      curr_tx = transactions.pop_front();
+      compare(curr_tx);
+    end
     
-        // --- Scoreboard Port --- //
-        alu_pipeline_scbd_ap = new("alu_pipeline_scbd_ap", this);
-        
-    endfunction : build_phase
+  endtask : run_phase
 
-    // --- Connect Phase --- //
-    function void connect_phase (uvm_phase phase);
-        super.connect_phase(phase);
-        `uvm_info("alu_pipeline_scoreboard", "Connect Phase", UVM_HIGH)
-    
-    endfunction : connect_phase
-    
-    // --- Write Sequence Item --- //
-    function void write (alu_pipeline_seq_item alu_pipeline_tx);
-        transactions.push_back(alu_pipeline_tx);
-    endfunction : write 
+  // --- Compare --- //
+  task compare(alu_pipeline_sequence_item curr_tx);
 
-    // --- Run Phase --- //
-    task run_phase (uvm_phase phase);
-        super.run_phase(phase);
-        `uvm_info("alu_pipeline_scoreboard", "Run Phase", UVM_HIGH)
-    
-        // --- Sequence Item Stack --- //
-        forever begin
-        alu_pipeline_seq_item curr_trans;
-        wait((transactions.size() != 0));
-        curr_trans = transactions.pop_front();
-        compare(curr_trans);
-        end
-        
-    endtask : run_phase
+  // User fills in 
 
-    // --- Compare --- //
-    task compare (alu_pipeline_seq_item curr_trans);
+    if (curr_tx.nRST == 1'b0) begin
+      if (curr_tx.WB_valid_out == '0) begin
+        `uvm_info("COMPARE", $sformatf("Test Case Reset - WB_valid_out: PASSED"), UVM_LOW)
+      end else begin
+        `uvm_info("COMPARE", $sformatf("Test Case Reset - WB_valid_out: FAILED"), UVM_LOW)
+      end
+    end
 
-        // --- Actual vs Expected --- //
-
-        // --- SVA? -- //
-
-    endtask : compare
+  endtask : compare
 
 endclass : alu_pipeline_scoreboard
 
