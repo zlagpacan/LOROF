@@ -1,7 +1,7 @@
 /*
   Module        : alu_pipeline
   UMV Component : scoreboard
-  Author        : Adam Keith
+  Author        : 
 */
 
 `ifndef ALU_PIPELINE_SCOREBOARD_SV
@@ -67,14 +67,6 @@ class alu_pipeline_scoreboard extends uvm_scoreboard;
   task compare(alu_pipeline_sequence_item curr_tx);
 
   // User fills in 
-
-    if (curr_tx.nRST == 1'b0) begin
-      if (curr_tx.WB_valid_out == '0) begin
-        `uvm_info("COMPARE", $sformatf("Test Case Reset - WB_valid_out: PASSED"), UVM_LOW)
-      end else begin
-        `uvm_info("COMPARE", $sformatf("Test Case Reset - WB_valid_out: FAILED"), UVM_LOW)
-      end
-    end
 
   endtask : compare
 

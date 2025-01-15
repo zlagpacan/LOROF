@@ -1,7 +1,7 @@
 /*
   Module        : alu_pipeline
   UMV Component : environment
-  Author        : Adam Keith
+  Author        : 
 */
 
 `ifndef ALU_PIPELINE_ENV_SV

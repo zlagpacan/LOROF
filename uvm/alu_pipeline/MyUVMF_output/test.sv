@@ -1,7 +1,7 @@
 /*
   Module        : alu_pipeline
   UMV Component : test
-  Author        : Adam Keith
+  Author        : 
 */
 
 `ifndef ALU_PIPELINE_TEST_SV
@@ -25,11 +25,6 @@ class alu_pipeline_test extends uvm_test;
 
   // --- Test Components --- //
   alu_pipeline_env env;
-  reset_sequence reset_seq;
-  garbage_sequence garbage_seq;
-
-  // --- Clocking --- //
-  parameter CLK_PERIOD = 4;
 
   // --- Constructor --- //
   function new(string name = "alu_pipeline_test", uvm_component parent);
@@ -55,26 +50,8 @@ class alu_pipeline_test extends uvm_test;
     phase.raise_objection(this);
 
       // --- Test Procedure --- //
-
-      // --- Reset Test Case --- // TODO: link to testplan
-      
-      // TODO: change to posedge clk - stability
-      repeat (6 * CLK_PERIOD) begin
-        garbage_seq = garbage_sequence::type_id::create("garbage_seq");
-        garbage_seq.start(env.agnt.seqr);
-        #(CLK_PERIOD);
-      end
-
-      reset_seq = reset_sequence::type_id::create("reset_seq");
-      reset_seq.start(env.agnt.seqr);
-      #(CLK_PERIOD);
-
-      repeat (4 * CLK_PERIOD) begin
-        garbage_seq = garbage_sequence::type_id::create("garbage_seq");
-        garbage_seq.start(env.agnt.seqr);
-        #(CLK_PERIOD);
-      end
-
+      // User fills in 
+    
     phase.drop_objection(this);
 
   endtask : run_phase
