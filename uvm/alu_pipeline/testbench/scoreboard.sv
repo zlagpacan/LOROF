@@ -66,14 +66,35 @@ class alu_pipeline_scoreboard extends uvm_scoreboard;
   // --- Compare --- //
   task compare(alu_pipeline_sequence_item curr_tx);
 
-  // User fills in 
+    // TODO: SVA
 
+    // --- Reset Check --- //
     if (curr_tx.nRST == 1'b0) begin
+      // - ready_out
+      if (curr_tx.ready_out == '1) begin
+        `uvm_info("COMPARE", $sformatf("Test Case Reset - ready_out: PASSED"), UVM_LOW)
+      end else begin
+        `uvm_info("COMPARE", $sformatf("Test Case Reset - ready_out: FAILED"), UVM_LOW)
+      end
+      // - WB_valid_out
       if (curr_tx.WB_valid_out == '0) begin
         `uvm_info("COMPARE", $sformatf("Test Case Reset - WB_valid_out: PASSED"), UVM_LOW)
       end else begin
         `uvm_info("COMPARE", $sformatf("Test Case Reset - WB_valid_out: FAILED"), UVM_LOW)
       end
+      // - WB_data_out
+      if (curr_tx.WB_data_out == '0) begin
+        `uvm_info("COMPARE", $sformatf("Test Case Reset - WB_data_out: PASSED"), UVM_LOW)
+      end else begin
+        `uvm_info("COMPARE", $sformatf("Test Case Reset - WB_data_out: FAILED"), UVM_LOW)
+      end
+      // - WB_PR_out
+      if (curr_tx.WB_PR_out == '0) begin
+        `uvm_info("COMPARE", $sformatf("Test Case Reset - WB_PR_out: PASSED"), UVM_LOW)
+      end else begin
+        `uvm_info("COMPARE", $sformatf("Test Case Reset - WB_PR_out: FAILED"), UVM_LOW)
+      end
+      // TODO: index requirements
     end
 
   endtask : compare
