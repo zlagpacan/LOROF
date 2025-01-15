@@ -2,7 +2,7 @@ DUT:
     Module: alu_pipeline
     Dependencies:
         Packages: 
-            core_types_pkg.svh: core_types_pkg
+            core_types_pkg.vh: core_types_pkg
         Includes:
     Parameters: 
     Ports:
