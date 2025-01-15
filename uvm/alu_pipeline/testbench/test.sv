@@ -55,11 +55,14 @@ class alu_pipeline_test extends uvm_test;
 
     phase.raise_objection(this);
 
-      // --- Test Procedure --- //
+      // --- ALU Pipeline Test Procedure --- //
 
-      // --- Reset Test Case --- // TODO: link to testplan
+      /* 
+        Test Case Tag: ALP0
+        Test Case Name : Power-on-Reset
+      */
       
-      // TODO: change to posedge clk - stability
+      // TODO: change to posedge clk - stability - need to OOP it
       repeat (6 * CLK_PERIOD) begin
         garbage_seq = garbage_sequence::type_id::create("garbage_seq");
         garbage_seq.start(env.agnt.seqr);
