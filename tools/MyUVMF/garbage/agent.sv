@@ -1,19 +1,19 @@
 /*
-  Module        : alu_pipeline_prf
+  Module        : alu
   UMV Component : agent
-  Author        : Adam Keith
+  Author        : 
 */
 
-`ifndef ALU_PIPELINE_PRF_AGENT_SV
-`define ALU_PIPELINE_PRF_AGENT_SV
+`ifndef ALU_AGENT_SV
+`define ALU_AGENT_SV
 
 // --- UVM --- //
 `include "uvm_macros.svh"
 import uvm_pkg::*;
 
 // --- Packages --- //
-`include "core_types_pkg.svh"
-import core_types_pkg::*;
+`include "alu_pkg.svh"
+import alu_pkg::*;
     
 // --- Includes --- //
 `include "sequence_item.sv"
@@ -23,16 +23,16 @@ import core_types_pkg::*;
 `include "interface.sv"
 
 // --- Agent --- //
-class alu_pipeline_prf_agent extends uvm_agent;
-  `uvm_component_utils(alu_pipeline_prf_agent)
+class alu_agent extends uvm_agent;
+  `uvm_component_utils(alu_agent)
 
   // --- Agent Components --- //
-  alu_pipeline_prf_driver    drv;
-  alu_pipeline_prf_monitor   mon;
-  alu_pipeline_prf_sequencer seqr;
+  alu_driver    drv;
+  alu_monitor   mon;
+  alu_sequencer seqr;
   
   // --- Constructor --- //
-  function new(string name = "alu_pipeline_prf_agent", uvm_component parent);
+  function new(string name = "alu_agent", uvm_component parent);
     super.new(name, parent);
     `uvm_info("AGENT_CLASS", "Inside Constructor", UVM_HIGH)
   endfunction : new
@@ -43,9 +43,9 @@ class alu_pipeline_prf_agent extends uvm_agent;
     `uvm_info("AGENT_CLASS", "Build Phase", UVM_HIGH)
     
     // --- Build Components --- //
-    drv  = alu_pipeline_prf_driver::type_id::create("drv", this);
-    mon  = alu_pipeline_prf_monitor::type_id::create("mon", this);
-    seqr = alu_pipeline_prf_sequencer::type_id::create("seqr", this);
+    drv  = alu_driver::type_id::create("drv", this);
+    mon  = alu_monitor::type_id::create("mon", this);
+    seqr = alu_sequencer::type_id::create("seqr", this);
     
   endfunction : build_phase
   
@@ -59,6 +59,6 @@ class alu_pipeline_prf_agent extends uvm_agent;
     
   endfunction : connect_phase
   
-endclass : alu_pipeline_prf_agent
+endclass : alu_agent
 
 `endif

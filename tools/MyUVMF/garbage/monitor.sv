@@ -1,36 +1,36 @@
 /*
-  Module        : alu_pipeline_iq
+  Module        : alu
   UMV Component : monitor
-  Author        : Adam Keith
+  Author        : 
 */
 
-`ifndef ALU_PIPELINE_IQ_MONITOR_SV
-`define ALU_PIPELINE_IQ_MONITOR_SV
+`ifndef ALU_MONITOR_SV
+`define ALU_MONITOR_SV
 
 // --- UVM --- //
 `include "uvm_macros.svh"
 import uvm_pkg::*;
 
 // --- Packages --- //
-`include "core_types_pkg.svh"
-import core_types_pkg::*;
+`include "alu_pkg.svh"
+import alu_pkg::*;
     
 // --- Includes --- //
 `include "sequence_item.sv"
 `include "interface.sv"
 
 // --- Monitor --- //
-class alu_pipeline_iq_monitor extends uvm_monitor;
-  `uvm_component_utils(alu_pipeline_iq_monitor)
+class alu_monitor extends uvm_monitor;
+  `uvm_component_utils(alu_monitor)
   
   // --- Monitor Components --- //
-  virtual alu_pipeline_iq_if vif;
-  alu_pipeline_iq_sequence_item item;
+  virtual alu_if vif;
+  alu_sequence_item item;
   
-  uvm_analysis_port #(alu_pipeline_iq_sequence_item) monitor_port;
+  uvm_analysis_port #(alu_sequence_item) monitor_port;
   
   // --- Constructor --- //
-  function new(string name = "alu_pipeline_iq_monitor", uvm_component parent);
+  function new(string name = "alu_monitor", uvm_component parent);
     super.new(name, parent);
     `uvm_info("MONITOR_CLASS", "Inside Constructor", UVM_HIGH)
   endfunction : new
@@ -44,7 +44,7 @@ class alu_pipeline_iq_monitor extends uvm_monitor;
     monitor_port = new("monitor_port", this);
     
     // --- Virtual Interface Failure --- //
-    if(!(uvm_config_db #(virtual alu_pipeline_iq_if)::get(this, "*", "vif", vif))) begin
+    if(!(uvm_config_db #(virtual alu_if)::get(this, "*", "vif", vif))) begin
       `uvm_error("MONITOR_CLASS", "Failed to get virtual interface")
     end
     
@@ -64,24 +64,24 @@ class alu_pipeline_iq_monitor extends uvm_monitor;
     
     // --- Capture DUT Interface --- //
     forever begin
-      item = alu_pipeline_iq_sequence_item::type_id::create("item");
+      item = alu_sequence_item::type_id::create("item");
       
+      wait(vif.n_rst);
+
       // --- Input Sample --- //
-      @(posedge vif.CLK);
-      item.valid_in      = vif.valid_in;
-      item.op_in         = vif.op_in;
-      item.is_imm_in     = vif.is_imm_in;
-      item.imm_in        = vif.imm_in;
-      item.A_unneeded_in = vif.A_unneeded_in;
-      item.A_forward_in  = vif.A_forward_in;
-      item.A_bank_in     = vif.A_bank_in;
-      item.B_forward_in  = vif.B_forward_in;
-      item.B_bank_in     = vif.B_bank_in;
-      item.dest_PR_in    = vif.dest_PR_in;
+      item.n_rst    = vif.n_rst;
+
+      @(posedge vif.clk);
+      item.a        = vif.a;
+      item.b        = vif.b;
+      item.opcode   = vif.opcode;
       
       // --- Output Sample --- //
-      @(posedge vif.CLK);
-      item.ready_out     = vif.ready_out;
+      @(posedge vif.clk);
+      item.negative = vif.negative;
+      item.out      = vif.out;
+      item.overflow = vif.overflow;
+      item.zero     = vif.zero;
       
       // --- Send to Scoreboard --- //
       `uvm_info(get_type_name(), $sformatf("Monitor found packet %s", item.convert2str()), UVM_LOW)
@@ -91,6 +91,6 @@ class alu_pipeline_iq_monitor extends uvm_monitor;
         
   endtask : run_phase
   
-endclass : alu_pipeline_iq_monitor
+endclass : alu_monitor
 
 `endif

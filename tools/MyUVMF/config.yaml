@@ -1,0 +1,23 @@
+DUT:
+  Dependencies:
+    Includes: null
+    Packages:
+      alu_pkg.svh: alu_pkg
+  Module: alu
+  Parameters:
+    BIT_WIDTH: 16
+  Ports:
+    Active_Low_Reset: n_rst
+    Clock: clk
+    In:
+      a: '[(DATA_W-1):0]'
+      b: '[(DATA_W-1):0]'
+      opcode: '[1:0]'
+    Out:
+      negative: ''
+      out: '[(DATA_W-1):0]'
+      overflow: ''
+      zero: ''
+Output_Path: garbage
+Testbench:
+  Modport: null

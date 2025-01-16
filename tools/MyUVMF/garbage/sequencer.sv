@@ -1,28 +1,28 @@
 /*
-  Module        : alu_pipeline_prf
+  Module        : alu
   UMV Component : sequencer
-  Author        : Adam Keith
+  Author        : 
 */
 
-`ifndef ALU_PIPELINE_PRF_SEQUENCER_SV
-`define ALU_PIPELINE_PRF_SEQUENCER_SV
+`ifndef ALU_SEQUENCER_SV
+`define ALU_SEQUENCER_SV
 
 // --- UVM --- //
 `include "uvm_macros.svh"
 import uvm_pkg::*;
 
 // --- Packages --- //
-`include "core_types_pkg.svh"
-import core_types_pkg::*;
+`include "alu_pkg.svh"
+import alu_pkg::*;
     
 // --- Includes --- //
 `include "sequence_item.sv"
 
-class alu_pipeline_prf_sequencer extends uvm_sequencer #(alu_pipeline_prf_sequence_item);
-  `uvm_component_utils(alu_pipeline_prf_sequencer)
+class alu_sequencer extends uvm_sequencer #(alu_sequence_item);
+  `uvm_component_utils(alu_sequencer)
   
   // --- Constructor --- //
-  function new(string name = "alu_pipeline_prf_sequencer", uvm_component parent);
+  function new(string name = "alu_sequencer", uvm_component parent);
     super.new(name, parent);
     `uvm_info("SEQUENCER_CLASS", "Inside Constructor", UVM_HIGH)
   endfunction : new
@@ -39,6 +39,6 @@ class alu_pipeline_prf_sequencer extends uvm_sequencer #(alu_pipeline_prf_sequen
     `uvm_info("SEQUENCER_CLASS", "Connect Phase", UVM_HIGH)
   endfunction : connect_phase
   
-endclass : alu_pipeline_prf_sequencer
+endclass : alu_sequencer
 
 `endif

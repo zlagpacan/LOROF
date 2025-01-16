@@ -20,21 +20,28 @@ templates = [
 ]
 
 def main():
-    spec = sys.argv[1]
-    print(f"YAML Config File: {spec}")
-    # Load YAML spec
-    DUT_spec = myUVMF_lib.load_spec(spec)
-    # Create Jinja2 Environment
-    env = Environment(loader=FileSystemLoader('.'))
-    # Generate corresponding UVM files for Jinja2 templates
-    for template in templates:
-        uvm_file    = myUVMF_lib.get_file_stem(template)
-        j2_template = env.get_template(f'jinja/{template}')
-        sv_result   = j2_template.render(DUT_spec)
 
-        myUVMF_lib.write_testbench(sv_result, uvm_file)
-        myUVMF_lib.write_testbench_from_yaml(sv_result, uvm_file, spec)
+    if myUVMF_lib.warn_and_confirm_override():
+        # Proceed with operations that involve the Output_Path
+        print("Proceeding with the rest of the script.")
+       
+        spec = sys.argv[1]
+        print(f"YAML Config File: {spec}")
+        # Load YAML spec
+        DUT_spec = myUVMF_lib.load_spec(spec)
+        # Create Jinja2 Environment
+        env = Environment(loader=FileSystemLoader('.'))
+        # Generate corresponding UVM files for Jinja2 templates
+        for template in templates:
+            uvm_file    = myUVMF_lib.get_file_stem(template)
+            j2_template = env.get_template(f'jinja/{template}')
+            sv_result   = j2_template.render(DUT_spec)
 
+            myUVMF_lib.write_testbench(sv_result, uvm_file)
+            myUVMF_lib.write_testbench_from_yaml(sv_result, uvm_file, spec)
+    else:
+        # Exit or handle the stop condition
+        print("Exiting the script.")
 
 if __name__=="__main__":
     main()
