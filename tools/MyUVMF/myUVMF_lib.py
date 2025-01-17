@@ -61,8 +61,9 @@ def warn_and_confirm_override(yaml_file_path='config.yaml'):
     proceed = input("Do you want to proceed? (y/n): ").strip().lower()
 
     if proceed == 'y':
-        print("Proceeding with the operation.")
+        print("\n\n#----------------------------------------------------------------------------------------------#")
+        print("#  Proceeding with UVM testbench generation...\n#")
         return True
     else:
-        print("Operation aborted.")
+        print("#  Operation aborted.")
         return False

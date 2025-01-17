@@ -12,7 +12,7 @@
 import uvm_pkg::*;
 
 // --- Packages --- //
-`include "core_types_pkg.svh"
+`include "core_types_pkg.vh"
 import core_types_pkg::*;
     
 // --- Includes --- //

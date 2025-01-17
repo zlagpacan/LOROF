@@ -8,7 +8,7 @@
 `define ALU_PIPELINE_INTERFACE_SV
 
 // --- Packages --- //
-`include "core_types_pkg.svh"
+`include "core_types_pkg.vh"
 import core_types_pkg::*;
     
 // --- Includes --- //
