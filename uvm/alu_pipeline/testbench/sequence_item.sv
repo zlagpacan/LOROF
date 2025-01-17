@@ -49,6 +49,21 @@ class alu_pipeline_sequence_item extends uvm_sequence_item;
   logic [LOG_ROB_ENTRIES-1:0] WB_ROB_index_out;
   
   // --- Constraints --- //
+  constraint op_in_range {
+    op_in inside {
+      4'b0000,
+      4'b0001,
+      4'b0010, 
+      4'b0011, 
+      4'b0100,
+      4'b0101,
+      4'b0110,
+      4'b0111,
+      4'b1000,
+      4'b1101,
+      4'b1111
+    };
+  }
 
   // --- Constructor --- //
   function new(string name = "alu_pipeline_sequence_item");
