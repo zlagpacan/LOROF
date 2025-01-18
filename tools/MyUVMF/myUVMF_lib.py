@@ -47,3 +47,23 @@ def write_testbench_from_yaml(sv_result, uvm_file, yaml_path):
     except yaml.YAMLError as e:
         print(f"Error parsing YAML file: {e}")
         raise
+
+
+def warn_and_confirm_override(yaml_file_path='config.yaml'):
+    # Load the YAML file
+    with open(yaml_file_path, 'r') as file:
+        config = yaml.safe_load(file)
+    
+    output_path = config.get('Output_Path', 'Output_Path not specified')
+
+    # Warn the user about overriding the path
+    print(f"Warning: The contents of the directory '{output_path}' will be overridden.")
+    proceed = input("Do you want to proceed? (y/n): ").strip().lower()
+
+    if proceed == 'y':
+        print("\n\n#----------------------------------------------------------------------------------------------#")
+        print("#  Proceeding with UVM testbench generation...\n#")
+        return True
+    else:
+        print("#  Operation aborted.")
+        return False

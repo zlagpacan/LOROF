@@ -1,2 +1,0 @@
-  CREATE_STREAM @0 {NAME:garbage_seq T:Transactions SCOPE:uvm_test_top.env.agnt.seqr STREAM:601}
-  CREATE_STREAM @192000 {NAME:reset_seq T:Transactions SCOPE:uvm_test_top.env.agnt.seqr STREAM:1114}
