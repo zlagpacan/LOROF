@@ -19,9 +19,21 @@ package core_types_pkg;
     parameter ROB_ENTRIES = 128;
     parameter LOG_ROB_ENTRIES = $clog2(ROB_ENTRIES);
 
-    // DQ
-    parameter DQ_ENTRIES = 8;
-    parameter LOG_DQ_ENTRIES = $clog2(DQ_ENTRIES);
+    // // DQ
+    // parameter DQ_ENTRIES = 8;
+    // parameter LOG_DQ_ENTRIES = $clog2(DQ_ENTRIES);
+        // deprecated
+        // just increase IQ sizes
+
+    // IQ
+    parameter ALU_REG_IQ_ENTRIES = 8;
+    parameter ALU_IMM_IQ_ENTRIES = 8;
+    parameter BRU_IQ_ENTRIES = 8;
+    parameter LQ_IQ_ENTRIES = 8;
+    parameter SQ_IQ_ENTRIES = 8;
+    parameter AMOQ_IQ_ENTRIES = 4;
+    parameter SYS_IQ_ENTRIES = 4;
+    parameter MD_IQ_ENTRIES = 4;
 
 endpackage
 
