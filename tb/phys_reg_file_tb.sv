@@ -1,8 +1,8 @@
 /*
-    Filename: prf_tb.sv
+    Filename: phys_reg_file_tb.sv
     Author: zlagpacan
-    Description: Testbench for prf module. 
-    Spec: LOROF/spec/design/prf.md
+    Description: Testbench for phys_reg_file module. 
+    Spec: LOROF/spec/design/phys_reg_file.md
 */
 
 `timescale 1ns/100ps
@@ -10,7 +10,7 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module prf_tb ();
+module phys_reg_file_tb ();
 
     // ----------------------------------------------------------------
     // TB setup:
@@ -65,7 +65,7 @@ module prf_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	prf #(.USE_BRAM(1'b0)) DUT (
+	phys_reg_file #(.USE_BRAM(1'b0)) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),

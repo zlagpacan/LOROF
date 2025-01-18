@@ -1,14 +1,14 @@
 /*
-    Filename: prf.sv
+    Filename: phys_reg_file.sv
     Author: zlagpacan
     Description: RTL for Physical Register File
-    Spec: LOROF/spec/design/prf.md
+    Spec: LOROF/spec/design/phys_reg_file.md
 */
 
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module prf #(
+module phys_reg_file #(
     parameter USE_BRAM = 1'b0
 )(
 
