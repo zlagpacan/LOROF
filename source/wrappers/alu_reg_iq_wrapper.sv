@@ -18,6 +18,7 @@ module alu_reg_iq_wrapper (
 
 
     // ALU op dispatch by way
+	input logic [3:0] next_dispatch_attempt_by_way,
 	input logic [3:0] next_dispatch_valid_by_way,
 	input logic [3:0][3:0] next_dispatch_op_by_way,
 	input logic [3:0][LOG_PR_COUNT-1:0] next_dispatch_A_PR_by_way,
@@ -59,6 +60,7 @@ module alu_reg_iq_wrapper (
 
 
     // ALU op dispatch by way
+	logic [3:0] dispatch_attempt_by_way;
 	logic [3:0] dispatch_valid_by_way;
 	logic [3:0][3:0] dispatch_op_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] dispatch_A_PR_by_way;
@@ -107,6 +109,7 @@ module alu_reg_iq_wrapper (
 
 
 		    // ALU op dispatch by way
+			dispatch_attempt_by_way <= '0;
 			dispatch_valid_by_way <= '0;
 			dispatch_op_by_way <= '0;
 			dispatch_A_PR_by_way <= '0;
@@ -146,6 +149,7 @@ module alu_reg_iq_wrapper (
 
 
 		    // ALU op dispatch by way
+			dispatch_attempt_by_way <= next_dispatch_attempt_by_way;
 			dispatch_valid_by_way <= next_dispatch_valid_by_way;
 			dispatch_op_by_way <= next_dispatch_op_by_way;
 			dispatch_A_PR_by_way <= next_dispatch_A_PR_by_way;
