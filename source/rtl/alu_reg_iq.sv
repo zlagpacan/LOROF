@@ -15,6 +15,7 @@ module alu_reg_iq (
     input logic nRST,
 
     // ALU op dispatch by way
+    input logic [3:0]                       dispatch_attempt_by_way,
     input logic [3:0]                       dispatch_valid_by_way,
     input logic [3:0][3:0]                  dispatch_op_by_way,
     input logic [3:0][LOG_PR_COUNT-1:0]     dispatch_A_PR_by_way,
@@ -176,7 +177,12 @@ module alu_reg_iq (
     // Dispatch Logic:
 
     // immediately advertise ready following top 4 entries open
-    assign dispatch_ready_by_way = ~valid_by_entry[ALU_REG_IQ_ENTRIES-1 -: 4];
+    assign dispatch_ready_by_way = {
+        ~valid_by_entry[ALU_REG_IQ_ENTRIES-4],
+        ~valid_by_entry[ALU_REG_IQ_ENTRIES-3],
+        ~valid_by_entry[ALU_REG_IQ_ENTRIES-2],
+        ~valid_by_entry[ALU_REG_IQ_ENTRIES-1]
+    };
 
     // cascaded dispatch mask PQ's by way:
 
@@ -187,7 +193,7 @@ module alu_reg_iq (
         .ack_one_hot(pq_one_hot_by_way[0]),
         .ack_mask() // unused
     );
-    assign dispatch_one_hot_by_way[0] = pq_one_hot_by_way[0] & {ALU_REG_IQ_ENTRIES{dispatch_valid_by_way[0]}};
+    assign dispatch_one_hot_by_way[0] = pq_one_hot_by_way[0] & {ALU_REG_IQ_ENTRIES{dispatch_attempt_by_way[0]}};
 
     // way 1
     assign dispatch_open_mask_by_way[1] = dispatch_open_mask_by_way[0] & ~dispatch_one_hot_by_way[0];
@@ -196,7 +202,7 @@ module alu_reg_iq (
         .ack_one_hot(pq_one_hot_by_way[1]),
         .ack_mask() // unused
     );
-    assign dispatch_one_hot_by_way[1] = pq_one_hot_by_way[1] & {ALU_REG_IQ_ENTRIES{dispatch_valid_by_way[1]}};
+    assign dispatch_one_hot_by_way[1] = pq_one_hot_by_way[1] & {ALU_REG_IQ_ENTRIES{dispatch_attempt_by_way[1]}};
     
     assign dispatch_open_mask_by_way[2] = dispatch_open_mask_by_way[1] & ~dispatch_one_hot_by_way[1];
     pq_lsb #(.WIDTH(8)) DISPATCH_WAY2_PQ_LSB (
@@ -204,7 +210,7 @@ module alu_reg_iq (
         .ack_one_hot(pq_one_hot_by_way[2]),
         .ack_mask() // unused
     );
-    assign dispatch_one_hot_by_way[2] = pq_one_hot_by_way[2] & {ALU_REG_IQ_ENTRIES{dispatch_valid_by_way[2]}};
+    assign dispatch_one_hot_by_way[2] = pq_one_hot_by_way[2] & {ALU_REG_IQ_ENTRIES{dispatch_attempt_by_way[2]}};
     
     assign dispatch_open_mask_by_way[3] = dispatch_open_mask_by_way[2] & ~dispatch_one_hot_by_way[2];
     pq_lsb #(.WIDTH(8)) DISPATCH_WAY3_PQ_LSB (
@@ -212,7 +218,7 @@ module alu_reg_iq (
         .ack_one_hot(pq_one_hot_by_way[3]),
         .ack_mask() // unused
     );
-    assign dispatch_one_hot_by_way[3] = pq_one_hot_by_way[3] & {ALU_REG_IQ_ENTRIES{dispatch_valid_by_way[3]}};
+    assign dispatch_one_hot_by_way[3] = pq_one_hot_by_way[3] & {ALU_REG_IQ_ENTRIES{dispatch_attempt_by_way[3]}};
 
     // route PQ'd dispatch to entries
     always_comb begin
@@ -231,7 +237,8 @@ module alu_reg_iq (
 
             for (int way = 0; way < 4; way++) begin
 
-                dispatch_valid_by_entry[entry] |= dispatch_one_hot_by_way[way][entry];
+                dispatch_valid_by_entry[entry] |= dispatch_valid_by_way[way]
+                    & dispatch_one_hot_by_way[way][entry];
 
                 dispatch_op_by_entry[entry] |= dispatch_op_by_way[way]
                     & {4{dispatch_one_hot_by_way[way][entry]}};
@@ -270,30 +277,43 @@ module alu_reg_iq (
         end
         else begin
 
-            // highest entry can't take above
-                // don't want to infer unused connection (this one loops around the IQ which will be bad)
-            if (valid_by_entry[ALU_REG_IQ_ENTRIES-1]) begin
-                valid_by_entry[ALU_REG_IQ_ENTRIES-1] <= valid_by_entry[ALU_REG_IQ_ENTRIES-1];
-                op_by_entry[ALU_REG_IQ_ENTRIES-1] <= op_by_entry[ALU_REG_IQ_ENTRIES-1];
-                A_PR_by_entry[ALU_REG_IQ_ENTRIES-1] <= A_PR_by_entry[ALU_REG_IQ_ENTRIES-1];
-                A_ready_by_entry[ALU_REG_IQ_ENTRIES-1] <= A_ready_by_entry[ALU_REG_IQ_ENTRIES-1] | A_forward_by_entry[ALU_REG_IQ_ENTRIES-1];
-                B_PR_by_entry[ALU_REG_IQ_ENTRIES-1] <= B_PR_by_entry[ALU_REG_IQ_ENTRIES-1];
-                B_ready_by_entry[ALU_REG_IQ_ENTRIES-1] <= B_ready_by_entry[ALU_REG_IQ_ENTRIES-1] | B_forward_by_entry[ALU_REG_IQ_ENTRIES-1];
-                dest_PR_by_entry[ALU_REG_IQ_ENTRIES-1] <= dest_PR_by_entry[ALU_REG_IQ_ENTRIES-1];
-                ROB_index_by_entry[ALU_REG_IQ_ENTRIES-1] <= ROB_index_by_entry[ALU_REG_IQ_ENTRIES-1];
+            // highest entry's take above clears the entry
+
+            // check take above
+            if (take_above_mask[ALU_REG_IQ_ENTRIES-1]) begin
+                valid_by_entry[ALU_REG_IQ_ENTRIES-1] <= 1'b0;
+                op_by_entry[ALU_REG_IQ_ENTRIES-1] <= 4'b0000;
+                A_PR_by_entry[ALU_REG_IQ_ENTRIES-1] <= '0;
+                A_ready_by_entry[ALU_REG_IQ_ENTRIES-1] <= 1'b0;
+                B_PR_by_entry[ALU_REG_IQ_ENTRIES-1] <= '0;
+                B_ready_by_entry[ALU_REG_IQ_ENTRIES-1] <= 1'b0;
+                dest_PR_by_entry[ALU_REG_IQ_ENTRIES-1] <= '0;
+                ROB_index_by_entry[ALU_REG_IQ_ENTRIES-1] <= '0;
             end
             else begin
-                valid_by_entry[ALU_REG_IQ_ENTRIES-1] <= dispatch_valid_by_entry[ALU_REG_IQ_ENTRIES-1];
-                op_by_entry[ALU_REG_IQ_ENTRIES-1] <= dispatch_op_by_entry[ALU_REG_IQ_ENTRIES-1];
-                A_PR_by_entry[ALU_REG_IQ_ENTRIES-1] <= dispatch_A_PR_by_entry[ALU_REG_IQ_ENTRIES-1];
-                A_ready_by_entry[ALU_REG_IQ_ENTRIES-1] <= dispatch_A_ready_by_entry[ALU_REG_IQ_ENTRIES-1];
-                B_PR_by_entry[ALU_REG_IQ_ENTRIES-1] <= dispatch_B_PR_by_entry[ALU_REG_IQ_ENTRIES-1];
-                B_ready_by_entry[ALU_REG_IQ_ENTRIES-1] <= dispatch_B_ready_by_entry[ALU_REG_IQ_ENTRIES-1];
-                dest_PR_by_entry[ALU_REG_IQ_ENTRIES-1] <= dispatch_dest_PR_by_entry[ALU_REG_IQ_ENTRIES-1];
-                ROB_index_by_entry[ALU_REG_IQ_ENTRIES-1] <= dispatch_ROB_index_by_entry[ALU_REG_IQ_ENTRIES-1];
+                if (valid_by_entry[ALU_REG_IQ_ENTRIES-1]) begin
+                    valid_by_entry[ALU_REG_IQ_ENTRIES-1] <= valid_by_entry[ALU_REG_IQ_ENTRIES-1];
+                    op_by_entry[ALU_REG_IQ_ENTRIES-1] <= op_by_entry[ALU_REG_IQ_ENTRIES-1];
+                    A_PR_by_entry[ALU_REG_IQ_ENTRIES-1] <= A_PR_by_entry[ALU_REG_IQ_ENTRIES-1];
+                    A_ready_by_entry[ALU_REG_IQ_ENTRIES-1] <= A_ready_by_entry[ALU_REG_IQ_ENTRIES-1] | A_forward_by_entry[ALU_REG_IQ_ENTRIES-1];
+                    B_PR_by_entry[ALU_REG_IQ_ENTRIES-1] <= B_PR_by_entry[ALU_REG_IQ_ENTRIES-1];
+                    B_ready_by_entry[ALU_REG_IQ_ENTRIES-1] <= B_ready_by_entry[ALU_REG_IQ_ENTRIES-1] | B_forward_by_entry[ALU_REG_IQ_ENTRIES-1];
+                    dest_PR_by_entry[ALU_REG_IQ_ENTRIES-1] <= dest_PR_by_entry[ALU_REG_IQ_ENTRIES-1];
+                    ROB_index_by_entry[ALU_REG_IQ_ENTRIES-1] <= ROB_index_by_entry[ALU_REG_IQ_ENTRIES-1];
+                end
+                else begin
+                    valid_by_entry[ALU_REG_IQ_ENTRIES-1] <= dispatch_valid_by_entry[ALU_REG_IQ_ENTRIES-1];
+                    op_by_entry[ALU_REG_IQ_ENTRIES-1] <= dispatch_op_by_entry[ALU_REG_IQ_ENTRIES-1];
+                    A_PR_by_entry[ALU_REG_IQ_ENTRIES-1] <= dispatch_A_PR_by_entry[ALU_REG_IQ_ENTRIES-1];
+                    A_ready_by_entry[ALU_REG_IQ_ENTRIES-1] <= dispatch_A_ready_by_entry[ALU_REG_IQ_ENTRIES-1];
+                    B_PR_by_entry[ALU_REG_IQ_ENTRIES-1] <= dispatch_B_PR_by_entry[ALU_REG_IQ_ENTRIES-1];
+                    B_ready_by_entry[ALU_REG_IQ_ENTRIES-1] <= dispatch_B_ready_by_entry[ALU_REG_IQ_ENTRIES-1];
+                    dest_PR_by_entry[ALU_REG_IQ_ENTRIES-1] <= dispatch_dest_PR_by_entry[ALU_REG_IQ_ENTRIES-1];
+                    ROB_index_by_entry[ALU_REG_IQ_ENTRIES-1] <= dispatch_ROB_index_by_entry[ALU_REG_IQ_ENTRIES-1];
+                end
             end
 
-            // remaining lower entries can take above
+            // remaining lower entries can take above entry
             for (int i = 0; i <= ALU_REG_IQ_ENTRIES-2; i++) begin
 
                 // check take above
