@@ -17,8 +17,7 @@ module alu_imm_pipeline (
     // ALU op issue from ALU Imm IQ
     input logic                             issue_valid,
     input logic [3:0]                       issue_op,
-    input logic [31:0]                      issue_imm,
-    input logic                             issue_A_unneeded,
+    input logic [11:0]                      issue_imm12,
     input logic                             issue_A_forward,
     input logic [LOG_PRF_BANK_COUNT-1:0]    issue_A_bank,
     input logic [LOG_PR_COUNT-1:0]          issue_dest_PR,
@@ -56,8 +55,7 @@ module alu_imm_pipeline (
 
     logic                           valid_OC;
     logic [3:0]                     op_OC;
-    logic [31:0]                    imm_OC;
-    logic                           A_unneeded_OC;
+    logic [11:0]                    imm12_OC;
     logic                           A_forward_OC;
     logic [LOG_PRF_BANK_COUNT-1:0]  A_bank_OC;
     logic [LOG_PR_COUNT-1:0]        dest_PR_OC;
@@ -68,7 +66,7 @@ module alu_imm_pipeline (
     logic                           next_valid_EX;
     logic [3:0]                     next_op_EX;
     logic [31:0]                    next_A_EX;
-    logic [31:0]                    next_B_EX;
+    logic [11:0]                    next_imm12_EX;
     logic [LOG_PR_COUNT-1:0]        next_dest_PR_EX;
     logic [LOG_ROB_ENTRIES-1:0]     next_ROB_index_EX;
 
@@ -78,6 +76,7 @@ module alu_imm_pipeline (
     logic                           valid_EX;
     logic [3:0]                     op_EX;
     logic [31:0]                    A_EX;
+    logic [11:0]                    imm12_EX;
     logic [31:0]                    B_EX;
     logic [LOG_PR_COUNT-1:0]        dest_PR_EX;
     logic [LOG_ROB_ENTRIES-1:0]     ROB_index_EX;
@@ -108,8 +107,7 @@ module alu_imm_pipeline (
         if (~nRST) begin
             valid_OC <= 1'b0;
             op_OC <= 4'b0000;
-            imm_OC <= 32'h0;
-            A_unneeded_OC <= 1'b0;
+            imm12_OC <= 12'h0;
             A_forward_OC <= 1'b0;
             A_bank_OC <= '0;
             dest_PR_OC <= '0;
@@ -119,8 +117,7 @@ module alu_imm_pipeline (
         else if (~issue_ready) begin
             valid_OC <= valid_OC;
             op_OC <= op_OC;
-            imm_OC <= imm_OC;
-            A_unneeded_OC <= A_unneeded_OC;
+            imm12_OC <= imm12_OC;
             A_forward_OC <= 1'b0;
             A_bank_OC <= A_bank_OC;
             dest_PR_OC <= dest_PR_OC;
@@ -130,8 +127,7 @@ module alu_imm_pipeline (
         else begin
             valid_OC <= issue_valid;
             op_OC <= issue_op;
-            imm_OC <= issue_imm;
-            A_unneeded_OC <= issue_A_unneeded;
+            imm12_OC <= issue_imm12;
             A_forward_OC <= issue_A_forward;
             A_bank_OC <= issue_A_bank;
             dest_PR_OC <= issue_dest_PR;
@@ -144,7 +140,7 @@ module alu_imm_pipeline (
         ~stall_OC
         &
         // A operand present
-        (A_unneeded_OC | A_forward_OC | A_reg_read_ack)
+        (A_forward_OC | A_reg_read_ack)
     ;
 
     assign issue_ready = ~valid_OC | launch_ready_OC;
@@ -165,7 +161,7 @@ module alu_imm_pipeline (
         end
 
         // collect B value to save OR pass to EX
-        next_B_EX = imm_OC;
+        next_imm12_EX = imm12_OC;
     end
 
     // ----------------------------------------------------------------
@@ -177,7 +173,7 @@ module alu_imm_pipeline (
             valid_EX <= 1'b0;
             op_EX <= 4'b0000;
             A_EX <= 32'h0;
-            B_EX <= 32'h0;
+            imm12_EX <= 12'h0;
             dest_PR_EX <= '0;
             ROB_index_EX <= '0;
         end
@@ -185,7 +181,7 @@ module alu_imm_pipeline (
             valid_EX <= valid_EX;
             op_EX <= op_EX;
             A_EX <= A_EX;
-            B_EX <= B_EX;
+            imm12_EX <= imm12_EX;
             dest_PR_EX <= dest_PR_EX;
             ROB_index_EX <= ROB_index_EX;
         end
@@ -193,7 +189,7 @@ module alu_imm_pipeline (
             valid_EX <= next_valid_EX;
             op_EX <= next_op_EX;
             A_EX <= next_A_EX;
-            B_EX <= next_B_EX;
+            imm12_EX <= next_imm12_EX;
             dest_PR_EX <= next_dest_PR_EX;
             ROB_index_EX <= next_ROB_index_EX;
         end
@@ -203,23 +199,15 @@ module alu_imm_pipeline (
     assign next_WB_PR = dest_PR_EX;
     assign next_WB_ROB_index = ROB_index_EX;
 
+    assign B_EX = {{20{imm12_EX[11]}}, imm12_EX};
+
     // actual ALU
-    always_comb begin
-        case (op_EX)
-            4'b0000:    next_WB_data = A_EX + B_EX;
-            4'b0001:    next_WB_data = A_EX << B_EX[4:0];
-            4'b0010:    next_WB_data = $signed(A_EX) < $signed(B_EX);
-            4'b0011:    next_WB_data = A_EX < B_EX;
-            4'b0100:    next_WB_data = A_EX ^ B_EX;
-            4'b0101:    next_WB_data = A_EX >> B_EX[4:0];
-            4'b0110:    next_WB_data = A_EX | B_EX;
-            4'b0111:    next_WB_data = A_EX & B_EX;
-            4'b1000:    next_WB_data = A_EX - B_EX;
-            4'b1101:    next_WB_data = $signed(A_EX) >>> B_EX[4:0];
-            4'b1111:    next_WB_data = B_EX;
-            default:    next_WB_data = B_EX;
-        endcase
-    end
+    alu ALU (
+        .op(op_EX),
+        .A(A_EX),
+        .B(B_EX),
+        .out(next_WB_data)
+    );
 
     // ----------------------------------------------------------------
     // WB Stage Logic:
