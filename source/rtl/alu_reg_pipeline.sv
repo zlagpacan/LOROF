@@ -243,22 +243,12 @@ module alu_reg_pipeline (
     assign next_WB_ROB_index = ROB_index_EX;
 
     // actual ALU
-    always_comb begin
-        case (op_EX)
-            4'b0000:    next_WB_data = A_EX + B_EX;
-            4'b0001:    next_WB_data = A_EX << B_EX[4:0];
-            4'b0010:    next_WB_data = $signed(A_EX) < $signed(B_EX);
-            4'b0011:    next_WB_data = A_EX < B_EX;
-            4'b0100:    next_WB_data = A_EX ^ B_EX;
-            4'b0101:    next_WB_data = A_EX >> B_EX[4:0];
-            4'b0110:    next_WB_data = A_EX | B_EX;
-            4'b0111:    next_WB_data = A_EX & B_EX;
-            4'b1000:    next_WB_data = A_EX - B_EX;
-            4'b1101:    next_WB_data = $signed(A_EX) >>> B_EX[4:0];
-            4'b1111:    next_WB_data = B_EX;
-            default:    next_WB_data = B_EX;
-        endcase
-    end
+    alu ALU (
+        .op(op_EX),
+        .A(A_EX),
+        .B(B_EX),
+        .out(next_WB_data)
+    );
 
     // ----------------------------------------------------------------
     // WB Stage Logic:
