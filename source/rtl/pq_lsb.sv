@@ -19,41 +19,59 @@ module pq_lsb #(
         ack_one_hot = '0;
         ack_mask = '0;
 
-        // msb bit: special since no higher mask bit
+        // lsb bit: special since no lower mask bit
         begin
 
             // check this req hot
-            if (req_vec[WIDTH-1]) begin
+            if (req_vec[0]) begin
 
-                // new one-hot ack vec
-                ack_one_hot = '0;
-                ack_one_hot[WIDTH-1] = 1'b1;
+                // one-hot
+                ack_one_hot[0] = 1'b1;
 
                 // enable this mask bit
-                ack_mask[WIDTH-1] = 1'b1;
+                ack_mask[0] = 1'b1;
+            end
+
+            else begin
+
+                // not one-hot
+                ack_one_hot[0] = 1'b0;
+
+                // disable this mask bit
+                ack_mask[0] = 1'b0;
             end
         end
 
+        // go through req vec bits after lsb
+        for (int i = 1; i < WIDTH; i++) begin
 
-        // go through req vec bits after msb
-            // msb to lsb so lsb gets last say
-        for (int i = WIDTH-2; i >= 0; i--) begin
-            
-            // check this req hot
-            if (req_vec[i]) begin
+            // check previous mask
+            if (ack_mask[i-1]) begin
 
-                // new one-hot ack vec
-                    // override any higher bit one-hot
-                ack_one_hot = '0;
+                // not one-hot
+                ack_one_hot[i] = 1'b0;
+
+                // enable this mask bit
+                ack_mask[i] = 1'b1;
+            end
+
+            // otherwise, check this req hot
+            else if (req_vec[i]) begin
+
+                // one-hot
                 ack_one_hot[i] = 1'b1;
 
                 // enable this mask bit
                 ack_mask[i] = 1'b1;
             end
 
-            // turn on this mask bit if previous was on (not possible for msb)
-            if (ack_mask[i+1]) begin
-                ack_mask[i] = 1'b1;
+            else begin
+
+                // not one-hot
+                ack_one_hot[i] = 1'b0;
+
+                // disable this mask bit
+                ack_mask[i] = 1'b0;
             end
         end
     end
