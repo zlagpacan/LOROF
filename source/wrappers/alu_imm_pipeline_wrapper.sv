@@ -20,8 +20,7 @@ module alu_imm_pipeline_wrapper (
     // ALU op issue from ALU Imm IQ
 	input logic next_issue_valid,
 	input logic [3:0] next_issue_op,
-	input logic [31:0] next_issue_imm,
-	input logic next_issue_A_unneeded,
+	input logic [11:0] next_issue_imm12,
 	input logic next_issue_A_forward,
 	input logic [LOG_PRF_BANK_COUNT-1:0] next_issue_A_bank,
 	input logic [LOG_PR_COUNT-1:0] next_issue_dest_PR,
@@ -55,8 +54,7 @@ module alu_imm_pipeline_wrapper (
     // ALU op issue from ALU Imm IQ
 	logic issue_valid;
 	logic [3:0] issue_op;
-	logic [31:0] issue_imm;
-	logic issue_A_unneeded;
+	logic [11:0] issue_imm12;
 	logic issue_A_forward;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_A_bank;
 	logic [LOG_PR_COUNT-1:0] issue_dest_PR;
@@ -97,8 +95,7 @@ module alu_imm_pipeline_wrapper (
 		    // ALU op issue from ALU Imm IQ
 			issue_valid <= '0;
 			issue_op <= '0;
-			issue_imm <= '0;
-			issue_A_unneeded <= '0;
+			issue_imm12 <= '0;
 			issue_A_forward <= '0;
 			issue_A_bank <= '0;
 			issue_dest_PR <= '0;
@@ -130,8 +127,7 @@ module alu_imm_pipeline_wrapper (
 		    // ALU op issue from ALU Imm IQ
 			issue_valid <= next_issue_valid;
 			issue_op <= next_issue_op;
-			issue_imm <= next_issue_imm;
-			issue_A_unneeded <= next_issue_A_unneeded;
+			issue_imm12 <= next_issue_imm12;
 			issue_A_forward <= next_issue_A_forward;
 			issue_A_bank <= next_issue_A_bank;
 			issue_dest_PR <= next_issue_dest_PR;
