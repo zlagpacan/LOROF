@@ -21,8 +21,8 @@ package core_types_pkg;
 
     // IQ
     parameter ALU_REG_IQ_ENTRIES = 8;
-    parameter ALU_IMM_IQ_ENTRIES = 8;
-    parameter BRU_IQ_ENTRIES = 8;
+    parameter ALU_IMM_IQ_ENTRIES = 4;
+    parameter BRU_IQ_ENTRIES = 4;
     parameter LQ_IQ_ENTRIES = 8;
     parameter SQ_IQ_ENTRIES = 8;
     parameter AMOQ_IQ_ENTRIES = 4;
