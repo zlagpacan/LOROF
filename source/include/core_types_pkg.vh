@@ -19,7 +19,7 @@ package core_types_pkg;
     parameter ROB_ENTRIES = 128;
     parameter LOG_ROB_ENTRIES = $clog2(ROB_ENTRIES);
 
-    // IQ
+    // IQ's
     parameter ALU_REG_IQ_ENTRIES = 8;
     parameter ALU_IMM_IQ_ENTRIES = 4;
     parameter BRU_IQ_ENTRIES = 4;
@@ -28,6 +28,31 @@ package core_types_pkg;
     parameter AMOQ_IQ_ENTRIES = 4;
     parameter SYS_IQ_ENTRIES = 4;
     parameter MD_IQ_ENTRIES = 4;
+
+    // Branch Prediction
+    parameter BTB_ENTRIES = 512;
+    parameter LOG_BTB_ENTRIES = $clog2(BTB_ENTRIES);
+    parameter BTB_BANK_COUNT = 2;
+    parameter LOG_BTB_BANK_COUNT = $clog2(BTB_BANK_COUNT);
+    parameter BTB_PRED_INFO_WIDTH = 8;
+    parameter BTB_TAG_WIDTH = 4;
+    parameter BTB_TARGET_WIDTH = 12;
+
+    parameter UPPER_PC_TABLE_ENTRIES = 4;
+    parameter UPPER_PC_WIDTH = 30 - BTB_TARGET_WIDTH;
+
+    parameter LH_LENGTH = 8;
+    parameter LHT_ENTRIES = 16;
+    parameter LOG_LHT_ENTRIES = $clog2(LHT_ENTRIES); 
+    parameter LBPT_ENTRIES = 2**(LH_LENGTH); // using PC ^ LH
+    parameter LOG_LBPT_ENTRIES = $clog2(LBPT_ENTRIES);
+
+    parameter GH_LENGTH = 12;
+    parameter GBPT_ENTRIES = 2**(GH_LENGTH); // using PC ^ GHR
+    parameter LOG_GBPT_ENTRIES = $clog2(GBPT_ENTRIES);
+
+    parameter RAS_DEPTH = 8;
+    parameter RAS_TARGET_WIDTH = BTB_TARGET_WIDTH;
 
 endpackage
 
