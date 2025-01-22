@@ -43,17 +43,22 @@ module alu_pipeline_sva (
   endproperty
 
   // --- SVA Instances --- //
-  a_ALP0_ready_out_rst: assert property (sva_ready_out_rst);
-  c_ALP0_ready_out_rst: cover  property (sva_ready_out_rst);
+  /* 
+    Test Case Tag: ALP0
+    Test Case Name : Power-on-Reset
+  */
 
-  a_ALP0_valid_out_rst: assert property (sva_valid_out_rst);
-  c_ALP0_valid_out_rst: cover  property (sva_valid_out_rst);
+  a_ALP0_ready_out_rst:     assert property (sva_ready_out_rst);
+  c_ALP0_ready_out_rst:     cover  property (sva_ready_out_rst);
 
-  a_ALP0_WB_data_out_rst: assert property (sva_WB_data_out_rst);
-  c_ALP0_WB_data_out_rst: cover  property (sva_WB_data_out_rst);
+  a_ALP0_valid_out_rst:     assert property (sva_valid_out_rst);
+  c_ALP0_valid_out_rst:     cover  property (sva_valid_out_rst);
 
-  a_ALP0_WB_PR_out_rst: assert property (sva_WB_PR_out_rst);
-  c_ALP0_WB_PR_out_rst: cover  property (sva_WB_PR_out_rst);
+  a_ALP0_WB_data_out_rst:   assert property (sva_WB_data_out_rst);
+  c_ALP0_WB_data_out_rst:   cover  property (sva_WB_data_out_rst);
+
+  a_ALP0_WB_PR_out_rst:     assert property (sva_WB_PR_out_rst);
+  c_ALP0_WB_PR_out_rst:     cover  property (sva_WB_PR_out_rst);
 
 
 endmodule
