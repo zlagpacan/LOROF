@@ -38,8 +38,8 @@ class alu_pipeline_sequence_item extends uvm_sequence_item;
   randc logic                            A_reg_read_valid_in;
   randc logic                            B_reg_read_valid_in;
   randc logic [LOG_ROB_ENTRIES-1:0]      ROB_index_in;
-  randc logic [PRF_BANK_COUNT-1:0][31:0] reg_read_data_by_bank_in;
-  randc logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank_in;
+  rand  logic [PRF_BANK_COUNT-1:0][31:0] reg_read_data_by_bank_in;
+  rand  logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank_in;
   
   // --- Outputs --- //
   logic                       ready_out;

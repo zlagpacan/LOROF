@@ -1,3 +1,3 @@
 work/*
-compile.log
-transcript
+tr_db.log
+vsim.wlf

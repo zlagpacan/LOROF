@@ -27,8 +27,8 @@ PKG = ../../source/include
 
 
 # --- Testbench --- #
-UVM = /testbench
-QSIM = /siemens/questa/2021.4
+UVM = testbench
+QSIM = /package/eda/mg/questa10.6b/questasim
 
 define helpText
 -----------------------------------------------------------
@@ -87,6 +87,7 @@ build:
 	+cover \
 	-L $(QSIM)/uvm-1.2 \
 	-sv $(DESIGN) \
+	$(UVM)/testbench.sv \
 	-logfile compile.log
 
 
@@ -96,13 +97,15 @@ run: build
 		-L $(QSIM)/uvm-1.2 \
 		-voptargs=+acc \
 		-coverage \
+		+UVM_NO_RELNOTES \
 		-do "run -all"
 
 
 .PHONY: debug
 debug: build
-	vsim -coverage -i $(UVM)/testbench.sv \
+	vsim -coverage -i top \
 		-L $(QSIM)/uvm-1.2 \
 		-voptargs=+acc \
 		-coverage \
+		+UVM_NO_RELNOTES \
 		-do "run -all"

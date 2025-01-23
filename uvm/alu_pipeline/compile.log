@@ -1,0 +1,22 @@
+QuestaSim-64 vlog 2021.4 Compiler 2021.10 Oct 13 2021
+Start time: 10:56:21 on Jan 23,2025
+vlog -mfcu "+incdir+../../source/rtl/alu_pipeline.sv" "+incdir+testbench" "+incdir+../../source/include" "+acc" "+cover" -L /package/eda/mg/questa10.6b/questasim/uvm-1.2 -sv ../../source/rtl/alu_pipeline.sv testbench/testbench.sv -logfile compile.log 
+-- Compiling package core_types_pkg
+** Warning: ../../source/rtl/alu_pipeline.sv(33): (vlog-13314) Defaulting port 'reg_read_data_by_bank_in' kind to 'var' rather than 'wire' due to default compile option setting of -svinputport=relaxed.
+** Warning: ../../source/rtl/alu_pipeline.sv(36): (vlog-13314) Defaulting port 'forward_data_by_bank_in' kind to 'var' rather than 'wire' due to default compile option setting of -svinputport=relaxed.
+** Note: (vlog-2286) testbench/testbench.sv(11): Using implicit +incdir+/package/eda/mg/questa10.6b/questasim/uvm-1.2/../verilog_src/uvm-1.2/src from import uvm_pkg
+-- Compiling package alu_pipeline_sv_unit
+-- Importing package core_types_pkg
+-- Importing package /package/eda/mg/questa10.6b/questasim/uvm-1.2.uvm_pkg (uvm-1.2 Built-in)
+** Warning: testbench/sequences/reset_seq.sv(37): (vlog-2240) Treating stand-alone use of function 'randomize' as an implicit VOID cast.
+** Warning: testbench/sequences/reset_seq.sv(63): (vlog-2240) Treating stand-alone use of function 'randomize' as an implicit VOID cast.
+-- Compiling module alu_pipeline
+** Warning: ../../source/rtl/alu_pipeline.sv(33): (vlog-13314) Defaulting port 'reg_read_data_by_bank_in' kind to 'var' rather than 'wire' due to default compile option setting of -svinputport=relaxed.
+** Warning: ../../source/rtl/alu_pipeline.sv(36): (vlog-13314) Defaulting port 'forward_data_by_bank_in' kind to 'var' rather than 'wire' due to default compile option setting of -svinputport=relaxed.
+-- Compiling interface alu_pipeline_if
+-- Compiling module top
+
+Top level modules:
+	top
+End time: 10:56:22 on Jan 23,2025, Elapsed time: 0:00:01
+Errors: 0, Warnings: 6
