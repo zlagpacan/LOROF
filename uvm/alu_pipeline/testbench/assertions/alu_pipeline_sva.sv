@@ -21,25 +21,29 @@ module alu_pipeline_sva (
     input logic [LOG_PR_COUNT-1:0] WB_PR_out
 );
 
+  sequence nRST_sequence
+    ~nRST;
+  endsequence
+
   // --- SVA Properties --- //
   property sva_ready_out_rst;
     @(posedge CLK)
-    (~nRST) |-> (ready_out == 1'b1);
+    (nRST_sequence) |-> (ready_out == 1'b1);
   endproperty
 
   property sva_valid_out_rst;
     @(posedge CLK)
-    (~nRST) |-> (valid_out == 1'b0);
+    (nRST_sequence) |-> (valid_out == 1'b0);
   endproperty
 
   property sva_WB_data_out_rst;
     @(posedge CLK)
-    (~nRST) |-> (WB_data_out == '0);
+    (nRST_sequence) |-> (WB_data_out == '0);
   endproperty
 
   property sva_WB_PR_out_rst;
     @(posedge CLK)
-    (~nRST) |-> (WB_PR_out == '0);
+    (nRST_sequence) |-> (WB_PR_out == '0);
   endproperty
 
   // --- SVA Instances --- //

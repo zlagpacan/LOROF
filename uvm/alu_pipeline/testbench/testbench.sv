@@ -61,7 +61,7 @@ module top;
     .WB_ROB_index_out(alu_pipeline_intf.WB_ROB_index_out)
   );
 
-  /*
+  // --- SVA module --- //
   alu_pipeline_sva SVA(
     .CLK(CLK),
     .nRST(nRST),
@@ -70,7 +70,6 @@ module top;
     .WB_data_out(WB_data_out),
     .WB_PR_out(WB_PR_out)
   );
-  */
   
   // --- Interface --- //
   initial begin : VIF
