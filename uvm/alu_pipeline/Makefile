@@ -22,11 +22,8 @@ endif
 
 
 DUT = alu_pipeline
-
-
-# --- Design --- #
-DESIGN = ../../source/rtl/alu_pipeline.sv ../../source/include/core_types_pkg.vh
-RTL = ../../source/include
+DESIGN = ../../source/rtl/$(DUT).sv
+PKG = ../../source/include
 
 
 # --- Testbench --- #
@@ -69,10 +66,13 @@ export helpText
 help:
 	@echo "$${helpText}"
 
+.PHONY: startup
+startup:
+	source siemens/questa/2021.4
 
 .PHONY: clean
 clean:
-	$(CLEAN_CMD)
+	$(CLEAN_CMD) work
 
 
 .PHONY: build
@@ -80,7 +80,7 @@ build:
 	vlog -mfcu \
 	+incdir+$(DESIGN) \
 	+incdir+$(UVM) \
-	+incdir+$(RTL) \
+	+incdir+$(PKG) \
 	+acc \
 	+cover \
 	-L $(QSIM)/uvm-1.2 \
