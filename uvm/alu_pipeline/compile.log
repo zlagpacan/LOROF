@@ -1,0 +1,16 @@
+QuestaSim-64 vlog 2021.4 Compiler 2021.10 Oct 13 2021
+Start time: 21:09:25 on Jan 22,2025
+vlog -mfcu "+incdir+../../source/rtl/alu_pipeline.sv" ../../source/include/core_types_pkg.vh "+incdir+testbench" "+incdir+../../source/include" "+acc" "+cover" -L /siemens/questa/2021.4/uvm-1.2 -sv ../../source/rtl/alu_pipeline.sv ../../source/include/core_types_pkg.vh -logfile compile.log 
+-- Compiling package core_types_pkg
+** Warning: ../../source/rtl/alu_pipeline.sv(33): (vlog-13314) Defaulting port 'reg_read_data_by_bank_in' kind to 'var' rather than 'wire' due to default compile option setting of -svinputport=relaxed.
+** Warning: ../../source/rtl/alu_pipeline.sv(36): (vlog-13314) Defaulting port 'forward_data_by_bank_in' kind to 'var' rather than 'wire' due to default compile option setting of -svinputport=relaxed.
+-- Compiling package core_types_pkg_vh_unit
+-- Importing package core_types_pkg
+-- Compiling module alu_pipeline
+** Warning: ../../source/rtl/alu_pipeline.sv(33): (vlog-13314) Defaulting port 'reg_read_data_by_bank_in' kind to 'var' rather than 'wire' due to default compile option setting of -svinputport=relaxed.
+** Warning: ../../source/rtl/alu_pipeline.sv(36): (vlog-13314) Defaulting port 'forward_data_by_bank_in' kind to 'var' rather than 'wire' due to default compile option setting of -svinputport=relaxed.
+
+Top level modules:
+	alu_pipeline
+End time: 21:09:25 on Jan 22,2025, Elapsed time: 0:00:00
+Errors: 0, Warnings: 4

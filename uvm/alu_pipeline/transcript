@@ -1,0 +1,18 @@
+# vsim -c work.top -L /siemens/questa/2021.4/uvm-1.2 -voptargs="+acc" -coverage -do "run -all" 
+# Start time: 21:14:06 on Jan 22,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# ** Error (suppressible): (vopt-19) Failed to access library '/siemens/questa/2021.4/uvm-1.2' at "/siemens/questa/2021.4/uvm-1.2".
+# No such file or directory. (errno = ENOENT)
+# ** Error (suppressible): (vopt-19) Failed to access library '/siemens/questa/2021.4/uvm-1.2' at "/siemens/questa/2021.4/uvm-1.2".
+# No such file or directory. (errno = ENOENT)
+# ** Error (suppressible): (vopt-19) Failed to access library '/siemens/questa/2021.4/uvm-1.2' at "/siemens/questa/2021.4/uvm-1.2".
+# No such file or directory. (errno = ENOENT)
+# ** Warning: (vopt-2669) Unable to find library '/siemens/questa/2021.4/uvm-1.2'.
+# ** Error: (vopt-13130) Failed to find design unit top.
+#         Searched libraries:
+#             work
+# Optimization failed
+# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=4, Warnings=1.
+# Error loading design
+# End time: 21:14:07 on Jan 22,2025, Elapsed time: 0:00:01
+# Errors: 4, Warnings: 1
