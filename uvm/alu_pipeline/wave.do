@@ -107,7 +107,7 @@ add wave -noupdate /top/DUT/next_WB_data_out
 add wave -noupdate /top/DUT/next_WB_PR_out
 add wave -noupdate /top/DUT/next_WB_ROB_index_out
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {374 ns} 0}
+WaveRestoreCursors {{Cursor 1} {96 ns} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100

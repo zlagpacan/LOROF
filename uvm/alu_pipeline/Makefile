@@ -1,4 +1,20 @@
-# Detect the operating system
+# -------------------------- # 
+#  module: alu_pipeline 	 #
+#  author: Adam Keith	 	 #
+# -------------------------- # 
+
+# --- Design --- #
+DUT    = alu_pipeline
+DESIGN = ../../source/rtl/$(DUT).sv
+PKG    = ../../source/include
+
+# --- Testbench/Sim --- #
+UVM      = testbench
+TEST_MOD = top
+QSIM     = /package/eda/mg/questa10.6b/questasim
+VCD      = wave.do
+
+# --- OS Commands --- #
 UNAME_S := $(shell uname -s)
 
 ifeq ($(UNAME_S), Linux)
@@ -18,18 +34,6 @@ else
 endif
 
 
-
-
-
-DUT = alu_pipeline
-DESIGN = ../../source/rtl/$(DUT).sv
-PKG = ../../source/include
-
-
-# --- Testbench --- #
-UVM = testbench
-QSIM = /package/eda/mg/questa10.6b/questasim
-
 define helpText
 -----------------------------------------------------------
 Author: Adam Keith
@@ -38,6 +42,7 @@ Contributors:
 
 Overview
 -----------------------------------------------------------
+Runs all relevant commands for $(DUT) simulation
 
 -----------------------------------------------------------
 
@@ -69,12 +74,16 @@ help:
 
 .PHONY: startup
 startup:
-	module load ../../../../siemens/questa/2021.4
+	module load /siemens/questa/2021.4
 
 
 .PHONY: clean
 clean:
 	$(CLEAN_CMD) work
+	$(CLEAN_CMD) transcript
+	$(CLEAN_CMD) compile.log
+	$(CLEAN_CMD) tr_db.log
+	$(CLEAN_CMD) vsim.wlf
 
 
 .PHONY: build
@@ -93,7 +102,7 @@ build:
 
 .PHONY: run
 run: build
-	vsim -c top \
+	vsim -c $(TEST_MOD) \
 		-L $(QSIM)/uvm-1.2 \
 		-voptargs=+acc \
 		-coverage \
@@ -103,9 +112,10 @@ run: build
 
 .PHONY: debug
 debug: build
-	vsim -coverage -i top \
+	vsim -coverage -i $(TEST_MOD) \
 		-L $(QSIM)/uvm-1.2 \
 		-voptargs=+acc \
 		-coverage \
 		+UVM_NO_RELNOTES \
+		-do "$(VCD)" \
 		-do "run -all"
