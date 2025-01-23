@@ -17,14 +17,20 @@ else
 	$(error Unsupported operating system)
 endif
 
+
+
+
+
+DUT = alu_pipeline
+
+
 # --- Design --- #
 DESIGN = ../../source/rtl/alu_pipeline.sv ../../source/include/core_types_pkg.vh
 RTL = ../../source/include
 
 
 # --- Testbench --- #
-UVM = work
-
+UVM = /testbench
 QSIM = /siemens/questa/2021.4
 
 define helpText
@@ -47,29 +53,14 @@ clean:
     remove QuestaSim generated files/libraries
 
 build:
-	vlog -mfcu \
-	+incdir+$(DESIGN) \
-	+incdir+$(UVM) \
-	+acc \
-	+cover \
-	-L $(QSIM)/uvm-1.2 \
-	-sv $(RTL) \
-	-logfile compile.log
+	build RTL/UVM testbench files
 
 run:
-	vsim -c $(UVM)/testbench.sv \
-		-L TODO: \
-		-voptargs=+acc \
-		-coverage \
-		-do "run -all"
+	run the simulation in the command line
 
 debug:
-	vsim -coverage -i $(UVM)/testbench.sv \
-		-L TODO: \
-		-voptargs=+acc \
-		-coverage \
-		-do "run -all"
-
+	run the simulation in the GUI
+	
 -----------------------------------------------------------
 endef
 export helpText
@@ -82,6 +73,7 @@ help:
 .PHONY: clean
 clean:
 	$(CLEAN_CMD)
+
 
 .PHONY: build
 build:
@@ -97,15 +89,16 @@ build:
 
 
 .PHONY: run
-run: 
-	vsim -c work.testbench.top \
+run: build
+	vsim -c top \
 		-L $(QSIM)/uvm-1.2 \
 		-voptargs=+acc \
 		-coverage \
 		-do "run -all"
 
+
 .PHONY: debug
-debug:
+debug: build
 	vsim -coverage -i $(UVM)/testbench.sv \
 		-L $(QSIM)/uvm-1.2 \
 		-voptargs=+acc \
