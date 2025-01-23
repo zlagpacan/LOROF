@@ -106,8 +106,19 @@ add wave -noupdate /top/DUT/next_WB_valid_out
 add wave -noupdate /top/DUT/next_WB_data_out
 add wave -noupdate /top/DUT/next_WB_PR_out
 add wave -noupdate /top/DUT/next_WB_ROB_index_out
+add wave -noupdate /top/SVA/CLK
+add wave -noupdate /top/SVA/nRST
+add wave -noupdate /top/SVA/ready_out
+add wave -noupdate /top/SVA/WB_data_out
+add wave -noupdate /top/SVA/WB_PR_out
+add wave -noupdate /uvm_root/uvm_test_top/env/scb/recording_detail
+add wave -noupdate /uvm_root/uvm_test_top/env/scb/m_phasing_active
+add wave -noupdate /uvm_root/uvm_test_top/env/scb/m_build_done
+add wave -noupdate /uvm_root/uvm_test_top/env/scb/print_enabled
+add wave -noupdate /uvm_root/uvm_test_top/env/scb/enable_stop_interrupt
+add wave -noupdate /uvm_root/uvm_test_top/env/scb/m_inst_id
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {96 ns} 0}
+WaveRestoreCursors {{Cursor 1} {165 ns} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -123,4 +134,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ns} {1 us}
+WaveRestoreZoom {152 ns} {248 ns}

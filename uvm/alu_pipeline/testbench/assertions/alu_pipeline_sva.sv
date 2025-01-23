@@ -16,34 +16,34 @@ module alu_pipeline_sva (
     input logic                    CLK,
     input logic                    nRST,
     input logic                    ready_out,
-    input logic                    valid_out,
+    input logic                    WB_valid_out,
     input logic [31:0]             WB_data_out,
     input logic [LOG_PR_COUNT-1:0] WB_PR_out
 );
 
-  sequence nRST_sequence
+  sequence sva_reset_sequence;
     ~nRST;
   endsequence
 
   // --- SVA Properties --- //
   property sva_ready_out_rst;
     @(posedge CLK)
-    (nRST_sequence) |-> (ready_out == 1'b1);
+    (sva_reset_sequence) |-> (ready_out == 1'b1);
   endproperty
 
   property sva_valid_out_rst;
     @(posedge CLK)
-    (nRST_sequence) |-> (valid_out == 1'b0);
+    (sva_reset_sequence) |-> (WB_valid_out == 1'b0);
   endproperty
 
   property sva_WB_data_out_rst;
     @(posedge CLK)
-    (nRST_sequence) |-> (WB_data_out == '0);
+    (sva_reset_sequence) |-> (WB_data_out == '0);
   endproperty
 
   property sva_WB_PR_out_rst;
     @(posedge CLK)
-    (nRST_sequence) |-> (WB_PR_out == '0);
+    (sva_reset_sequence) |-> (WB_PR_out == '0);
   endproperty
 
   // --- SVA Instances --- //
@@ -52,18 +52,33 @@ module alu_pipeline_sva (
     Test Case Name : Power-on-Reset
   */
 
-  a_ALP0_ready_out_rst:     assert property (sva_ready_out_rst);
+  assert property (sva_ready_out_rst) begin
+    $display("SVA_INFO @%tns a_ALP0_ready_out_rst - PASSED", $time());
+  end else begin
+    $display("SVA_INFO @%tns a_ALP0_ready_out_rst - FAILED", $time());
+  end
   c_ALP0_ready_out_rst:     cover  property (sva_ready_out_rst);
 
-  a_ALP0_valid_out_rst:     assert property (sva_valid_out_rst);
+  assert property (sva_valid_out_rst) begin
+    $display("SVA_INFO @%tns a_ALP0_valid_out_rst - PASSED", $time());
+  end else begin
+    $display("SVA_INFO @%tns a_ALP0_valid_out_rst - FAILED", $time());
+  end
   c_ALP0_valid_out_rst:     cover  property (sva_valid_out_rst);
 
-  a_ALP0_WB_data_out_rst:   assert property (sva_WB_data_out_rst);
+  assert property (sva_WB_data_out_rst) begin
+    $display("SVA_INFO @%tns a_ALP0_WB_data_out_rst - PASSED", $time());
+  end else begin
+    $display("SVA_INFO @%tns a_ALP0_WB_data_out_rst - FAILED", $time());
+  end
   c_ALP0_WB_data_out_rst:   cover  property (sva_WB_data_out_rst);
 
-  a_ALP0_WB_PR_out_rst:     assert property (sva_WB_PR_out_rst);
+  assert property (sva_WB_PR_out_rst) begin
+    $display("SVA_INFO @%tns a_ALP0_WB_PR_out_rst - PASSED", $time());
+  end else begin
+    $display("SVA_INFO @%tns a_ALP0_WB_PR_out_rst - FAILED", $time());
+  end
   c_ALP0_WB_PR_out_rst:     cover  property (sva_WB_PR_out_rst);
-
 
 endmodule
 
