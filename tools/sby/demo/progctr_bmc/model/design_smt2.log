@@ -1,0 +1,62 @@
+
+ /----------------------------------------------------------------------------\
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |  Copyright (C) 2012 - 2025  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |  Distributed under an ISC-like license, type "license" to see terms        |
+ \----------------------------------------------------------------------------/
+ Yosys 0.49+1 (git sha1 4a27d93b0, x86_64-apple-darwin23.5-clang++ 18.1.8 -fPIC -O3)
+
+-- Executing script file `design_smt2.ys' --
+
+1. Executing RTLIL frontend.
+Input filename: design_prep.il
+
+2. Executing HIERARCHY pass (managing design hierarchy).
+Attribute `top' found on module `progctr'. Setting top module to progctr.
+
+2.1. Analyzing design hierarchy..
+Top module:  \progctr
+
+2.2. Analyzing design hierarchy..
+Top module:  \progctr
+Removed 0 unused modules.
+Module progctr directly or indirectly contains formal properties -> setting "keep" attribute.
+
+3. Executing FORMALFF pass.
+
+4. Executing DFFUNMAP pass (unmap clock enable and synchronous reset from FFs).
+
+5. Printing statistics.
+
+=== progctr ===
+
+   Number of wires:                 16
+   Number of wire bits:             44
+   Number of public wires:           8
+   Number of public wire bits:      24
+   Number of ports:                  4
+   Number of port bits:              8
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 14
+     $add                            1
+     $anyinit                        1
+     $assert                         1
+     $assume                         1
+     $eq                             1
+     $ff                             2
+     $le                             1
+     $mux                            5
+     $not                            1
+
+6. Executing SMT2 backend.
+
+6.1. Executing BMUXMAP pass.
+
+6.2. Executing DEMUXMAP pass.
+Creating SMT-LIBv2 representation of module progctr.
+
+End of script. Logfile hash: 272f9c14a4, CPU: user 0.03s system 0.03s, MEM: 10.23 MB peak
+Yosys 0.49+1 (git sha1 4a27d93b0, x86_64-apple-darwin23.5-clang++ 18.1.8 -fPIC -O3)
+Time spent: 49% 2x write_smt2 (0 sec), 21% 2x read_rtlil (0 sec), ...

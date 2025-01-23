@@ -1,0 +1,18 @@
+[tasks]
+bmc
+
+[options]
+bmc: 
+mode bmc
+depth 100
+
+[engines]
+smtbmc boolector
+
+[script]
+read -formal progctr.sv
+hierarchy -check -top progctr -chparam PC_NUM_BITS 5
+prep -top progctr
+
+[files]
+progctr.sv

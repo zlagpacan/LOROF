@@ -1,0 +1,242 @@
+
+ /----------------------------------------------------------------------------\
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |  Copyright (C) 2012 - 2025  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |  Distributed under an ISC-like license, type "license" to see terms        |
+ \----------------------------------------------------------------------------/
+ Yosys 0.49+1 (git sha1 4a27d93b0, x86_64-apple-darwin23.5-clang++ 18.1.8 -fPIC -O3)
+
+-- Executing script file `../model/design.ys' --
+
+1. Executing Verilog-2005 frontend: progctr.sv
+Parsing formal SystemVerilog input from `progctr.sv' to AST representation.
+Storing AST representation for module `$abstract\progctr'.
+Successfully finished Verilog frontend.
+
+2. Executing HIERARCHY pass (managing design hierarchy).
+Parameter \PC_NUM_BITS = 5
+
+3. Executing AST frontend in derive mode using pre-parsed AST for module `\progctr'.
+Parameter \PC_NUM_BITS = 5
+Generating RTLIL representation for module `$paramod\progctr\PC_NUM_BITS=32'00000000000000000000000000000101'.
+
+3.1. Analyzing design hierarchy..
+Top module:  \progctr
+
+3.2. Analyzing design hierarchy..
+Top module:  \progctr
+Removing unused module `$paramod\progctr\PC_NUM_BITS=32'00000000000000000000000000000101'.
+Removing unused module `$abstract\progctr'.
+Removed 2 unused modules.
+Module progctr directly or indirectly contains formal properties -> setting "keep" attribute.
+
+4. Executing PREP pass.
+
+4.1. Executing HIERARCHY pass (managing design hierarchy).
+
+4.1.1. Analyzing design hierarchy..
+Top module:  \progctr
+
+4.1.2. Analyzing design hierarchy..
+Top module:  \progctr
+Removed 0 unused modules.
+Module progctr directly or indirectly contains formal properties -> setting "keep" attribute.
+
+4.2. Executing PROC pass (convert processes to netlists).
+
+4.2.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+4.2.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Marked 1 switch rules as full_case in process $proc$progctr.sv:16$1 in module progctr.
+Marked 2 switch rules as full_case in process $proc$progctr.sv:0$3 in module progctr.
+Removed a total of 0 dead cases.
+
+4.2.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 1 redundant assignment.
+Promoted 1 assignment to connection.
+
+4.2.4. Executing PROC_INIT pass (extract init attributes).
+
+4.2.5. Executing PROC_ARST pass (detect async resets in processes).
+Found async reset \n_rst in `\progctr.$proc$progctr.sv:16$1'.
+
+4.2.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+<suppressed ~3 debug messages>
+
+4.2.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+Creating decoders for process `\progctr.$proc$progctr.sv:16$1'.
+     1/1: $0\pc_reg[4:0]
+Creating decoders for process `\progctr.$proc$progctr.sv:0$3'.
+     1/2: $2\nxt_pc_reg[4:0]
+     2/2: $1\nxt_pc_reg[4:0]
+Creating decoders for process `\progctr.$proc$progctr.sv:43$7'.
+     1/1: \a_max_count_EN
+
+4.2.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+No latch inferred for signal `\progctr.\nxt_pc_reg' from process `\progctr.$proc$progctr.sv:0$3'.
+
+4.2.9. Executing PROC_DFF pass (convert process syncs to FFs).
+Creating register for signal `\progctr.\pc_reg' using process `\progctr.$proc$progctr.sv:16$1'.
+  created $adff cell `$procdff$24' with positive edge clock and positive level reset.
+
+4.2.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+4.2.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Removing empty process `progctr.$proc$progctr.sv:16$1'.
+Found and cleaned up 2 empty switches in `\progctr.$proc$progctr.sv:0$3'.
+Removing empty process `progctr.$proc$progctr.sv:0$3'.
+Found and cleaned up 1 empty switch in `\progctr.$proc$progctr.sv:43$7'.
+Removing empty process `progctr.$proc$progctr.sv:43$7'.
+Cleaned up 3 empty switches.
+
+4.2.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module progctr.
+<suppressed ~4 debug messages>
+
+4.3. Executing FUTURE pass.
+
+4.4. Executing OPT_EXPR pass (perform const folding).
+Optimizing module progctr.
+
+4.5. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \progctr..
+Removed 3 unused cells and 14 unused wires.
+<suppressed ~4 debug messages>
+
+4.6. Executing CHECK pass (checking for obvious problems).
+Checking module progctr...
+Found and reported 0 problems.
+
+4.7. Executing OPT pass (performing simple optimizations).
+
+4.7.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module progctr.
+
+4.7.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\progctr'.
+Removed a total of 0 cells.
+
+4.7.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \progctr..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+    dead port 2/2 on $mux $procmux$13.
+Removed 1 multiplexer ports.
+<suppressed ~2 debug messages>
+
+4.7.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \progctr.
+Performed a total of 0 changes.
+
+4.7.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\progctr'.
+Removed a total of 0 cells.
+
+4.7.6. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \progctr..
+Removed 0 unused cells and 1 unused wires.
+<suppressed ~1 debug messages>
+
+4.7.7. Executing OPT_EXPR pass (perform const folding).
+Optimizing module progctr.
+
+4.7.8. Rerunning OPT passes. (Maybe there is more to do..)
+
+4.7.9. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \progctr..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~2 debug messages>
+
+4.7.10. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \progctr.
+Performed a total of 0 changes.
+
+4.7.11. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\progctr'.
+Removed a total of 0 cells.
+
+4.7.12. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \progctr..
+
+4.7.13. Executing OPT_EXPR pass (perform const folding).
+Optimizing module progctr.
+
+4.7.14. Finished OPT passes. (There is nothing left to do.)
+
+4.8. Executing WREDUCE pass (reducing word size of cells).
+Removed top 31 bits (of 32) from port B of cell progctr.$add$progctr.sv:33$6 ($add).
+Removed top 27 bits (of 32) from port Y of cell progctr.$add$progctr.sv:33$6 ($add).
+Removed top 27 bits (of 32) from port B of cell progctr.$le$progctr.sv:45$8 ($le).
+Removed top 27 bits (of 32) from wire progctr.$add$progctr.sv:33$6_Y.
+
+4.9. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \progctr..
+Removed 0 unused cells and 1 unused wires.
+<suppressed ~1 debug messages>
+
+4.10. Executing MEMORY_COLLECT pass (generating $mem cells).
+
+4.11. Executing OPT pass (performing simple optimizations).
+
+4.11.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module progctr.
+
+4.11.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\progctr'.
+Removed a total of 0 cells.
+
+4.11.3. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \progctr..
+
+4.11.4. Finished fast OPT passes.
+
+4.12. Printing statistics.
+
+=== progctr ===
+
+   Number of wires:                 11
+   Number of wire bits:             31
+   Number of public wires:           7
+   Number of public wire bits:      19
+   Number of ports:                  4
+   Number of port bits:              8
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  8
+     $add                            1
+     $adff                           1
+     $check                          1
+     $eq                             1
+     $le                             1
+     $mux                            3
+
+4.13. Executing CHECK pass (checking for obvious problems).
+Checking module progctr...
+Found and reported 0 problems.
+
+5. Executing HIERARCHY pass (managing design hierarchy).
+Attribute `top' found on module `progctr'. Setting top module to progctr.
+
+5.1. Analyzing design hierarchy..
+Top module:  \progctr
+
+5.2. Analyzing design hierarchy..
+Top module:  \progctr
+Removed 0 unused modules.
+Module progctr directly or indirectly contains formal properties -> setting "keep" attribute.
+
+6. Executing jny backend.
+
+7. Executing RTLIL backend.
+Output filename: ../model/design.il
+
+End of script. Logfile hash: 314f7e243e, CPU: user 0.04s system 0.02s, MEM: 12.53 MB peak
+Yosys 0.49+1 (git sha1 4a27d93b0, x86_64-apple-darwin23.5-clang++ 18.1.8 -fPIC -O3)
+Time spent: 25% 3x hierarchy (0 sec), 24% 6x opt_expr (0 sec), ...
