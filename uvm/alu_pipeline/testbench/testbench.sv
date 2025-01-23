@@ -60,6 +60,15 @@ module top;
     .WB_PR_out(alu_pipeline_intf.WB_PR_out),
     .WB_ROB_index_out(alu_pipeline_intf.WB_ROB_index_out)
   );
+
+  alu_pipeline_sva SVA(
+    .CLK(CLK),
+    .nRST(nRST),
+    .ready_out(ready_out),
+    .valid_out(valid_out),
+    .WB_data_out(WB_data_out),
+    .WB_PR_out(WB_PR_out)
+  );
   
   // --- Interface --- //
   initial begin : VIF

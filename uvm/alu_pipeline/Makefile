@@ -66,9 +66,11 @@ export helpText
 help:
 	@echo "$${helpText}"
 
+
 .PHONY: startup
 startup:
 	module load ../../../../siemens/questa/2021.4
+
 
 .PHONY: clean
 clean:
