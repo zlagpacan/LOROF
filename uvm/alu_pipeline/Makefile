@@ -68,7 +68,7 @@ help:
 
 .PHONY: startup
 startup:
-	source siemens/questa/2021.4
+	module load siemens/questa/2021.4
 
 .PHONY: clean
 clean:
