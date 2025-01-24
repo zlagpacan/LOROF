@@ -25,8 +25,8 @@ module alu_reg_iq (
     input logic [3:0][LOG_PR_COUNT-1:0]     dispatch_dest_PR_by_way,
     input logic [3:0][LOG_ROB_ENTRIES-1:0]  dispatch_ROB_index_by_way,
 
-    // ALU op dispatch feedback by way
-    output logic [3:0] dispatch_ready_by_way,
+    // ALU op dispatch feedback
+    output logic [3:0] dispatch_ready_advertisement,
 
     // ALU pipeline feedback
     input logic pipeline_ready,
@@ -177,7 +177,7 @@ module alu_reg_iq (
     // Dispatch Logic:
 
     // immediately advertise ready following top 4 entries open
-    assign dispatch_ready_by_way = {
+    assign dispatch_ready_advertisement = {
         ~valid_by_entry[ALU_REG_IQ_ENTRIES-4],
         ~valid_by_entry[ALU_REG_IQ_ENTRIES-3],
         ~valid_by_entry[ALU_REG_IQ_ENTRIES-2],

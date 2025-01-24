@@ -45,7 +45,7 @@ module alu_reg_iq_tb ();
 	logic [3:0][LOG_ROB_ENTRIES-1:0] tb_dispatch_ROB_index_by_way;
 
     // ALU op dispatch feedback by way
-	logic [3:0] DUT_dispatch_ready_by_way, expected_dispatch_ready_by_way;
+	logic [3:0] DUT_dispatch_ready_advertisement, expected_dispatch_ready_advertisement;
 
     // ALU pipeline feedback
 	logic tb_pipeline_ready;
@@ -91,7 +91,7 @@ module alu_reg_iq_tb ();
 		.dispatch_ROB_index_by_way(tb_dispatch_ROB_index_by_way),
 
 	    // ALU op dispatch feedback by way
-		.dispatch_ready_by_way(DUT_dispatch_ready_by_way),
+		.dispatch_ready_advertisement(DUT_dispatch_ready_advertisement),
 
 	    // ALU pipeline feedback
 		.pipeline_ready(tb_pipeline_ready),
@@ -122,9 +122,9 @@ module alu_reg_iq_tb ();
 
     task check_outputs();
     begin
-		if (expected_dispatch_ready_by_way !== DUT_dispatch_ready_by_way) begin
-			$display("TB ERROR: expected_dispatch_ready_by_way (%h) != DUT_dispatch_ready_by_way (%h)",
-				expected_dispatch_ready_by_way, DUT_dispatch_ready_by_way);
+		if (expected_dispatch_ready_advertisement !== DUT_dispatch_ready_advertisement) begin
+			$display("TB ERROR: expected_dispatch_ready_advertisement (%h) != DUT_dispatch_ready_advertisement (%h)",
+				expected_dispatch_ready_advertisement, DUT_dispatch_ready_advertisement);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -260,7 +260,7 @@ module alu_reg_iq_tb ();
 
 	    // ALU op dispatch by way
 	    // ALU op dispatch feedback by way
-		expected_dispatch_ready_by_way = 4'b1111;
+		expected_dispatch_ready_advertisement = 4'b1111;
 	    // ALU pipeline feedback
 	    // writeback bus by bank
 	    // ALU op issue to ALU pipeline
@@ -311,7 +311,7 @@ module alu_reg_iq_tb ();
 
 	    // ALU op dispatch by way
 	    // ALU op dispatch feedback by way
-		expected_dispatch_ready_by_way = 4'b1111;
+		expected_dispatch_ready_advertisement = 4'b1111;
 	    // ALU pipeline feedback
 	    // writeback bus by bank
 	    // ALU op issue to ALU pipeline
@@ -385,7 +385,7 @@ module alu_reg_iq_tb ();
 
 	    // ALU op dispatch by way
 	    // ALU op dispatch feedback by way
-		expected_dispatch_ready_by_way = 4'b1111;
+		expected_dispatch_ready_advertisement = 4'b1111;
 	    // ALU pipeline feedback
 	    // writeback bus by bank
 	    // ALU op issue to ALU pipeline
@@ -453,7 +453,7 @@ module alu_reg_iq_tb ();
 
 	    // ALU op dispatch by way
 	    // ALU op dispatch feedback by way
-		expected_dispatch_ready_by_way = 4'b1111;
+		expected_dispatch_ready_advertisement = 4'b1111;
 	    // ALU pipeline feedback
 	    // writeback bus by bank
 	    // ALU op issue to ALU pipeline
@@ -521,7 +521,7 @@ module alu_reg_iq_tb ();
 
 	    // ALU op dispatch by way
 	    // ALU op dispatch feedback by way
-		expected_dispatch_ready_by_way = 4'b1111;
+		expected_dispatch_ready_advertisement = 4'b1111;
 	    // ALU pipeline feedback
 	    // writeback bus by bank
 	    // ALU op issue to ALU pipeline
@@ -589,7 +589,7 @@ module alu_reg_iq_tb ();
 
 	    // ALU op dispatch by way
 	    // ALU op dispatch feedback by way
-		expected_dispatch_ready_by_way = 4'b0111;
+		expected_dispatch_ready_advertisement = 4'b0111;
 	    // ALU pipeline feedback
 	    // writeback bus by bank
 	    // ALU op issue to ALU pipeline
@@ -657,7 +657,7 @@ module alu_reg_iq_tb ();
 
 	    // ALU op dispatch by way
 	    // ALU op dispatch feedback by way
-		expected_dispatch_ready_by_way = 4'b0001;
+		expected_dispatch_ready_advertisement = 4'b0001;
 	    // ALU pipeline feedback
 	    // writeback bus by bank
 	    // ALU op issue to ALU pipeline
@@ -725,7 +725,7 @@ module alu_reg_iq_tb ();
 
 	    // ALU op dispatch by way
 	    // ALU op dispatch feedback by way
-		expected_dispatch_ready_by_way = 4'b0001;
+		expected_dispatch_ready_advertisement = 4'b0001;
 	    // ALU pipeline feedback
 	    // writeback bus by bank
 	    // ALU op issue to ALU pipeline
@@ -793,7 +793,7 @@ module alu_reg_iq_tb ();
 
 	    // ALU op dispatch by way
 	    // ALU op dispatch feedback by way
-		expected_dispatch_ready_by_way = 4'b0011;
+		expected_dispatch_ready_advertisement = 4'b0011;
 	    // ALU pipeline feedback
 	    // writeback bus by bank
 	    // ALU op issue to ALU pipeline
