@@ -28,8 +28,8 @@ module alu_reg_iq_wrapper (
 	input logic [3:0][LOG_PR_COUNT-1:0] next_dispatch_dest_PR_by_way,
 	input logic [3:0][LOG_ROB_ENTRIES-1:0] next_dispatch_ROB_index_by_way,
 
-    // ALU op dispatch feedback by way
-	output logic [3:0] last_dispatch_ready_by_way,
+    // ALU op dispatch feedback
+	output logic [3:0] last_dispatch_ready_advertisement,
 
     // ALU pipeline feedback
 	input logic next_pipeline_ready,
@@ -70,8 +70,8 @@ module alu_reg_iq_wrapper (
 	logic [3:0][LOG_PR_COUNT-1:0] dispatch_dest_PR_by_way;
 	logic [3:0][LOG_ROB_ENTRIES-1:0] dispatch_ROB_index_by_way;
 
-    // ALU op dispatch feedback by way
-	logic [3:0] dispatch_ready_by_way;
+    // ALU op dispatch feedback
+	logic [3:0] dispatch_ready_advertisement;
 
     // ALU pipeline feedback
 	logic pipeline_ready;
@@ -119,8 +119,8 @@ module alu_reg_iq_wrapper (
 			dispatch_dest_PR_by_way <= '0;
 			dispatch_ROB_index_by_way <= '0;
 
-		    // ALU op dispatch feedback by way
-			last_dispatch_ready_by_way <= '0;
+		    // ALU op dispatch feedback
+			last_dispatch_ready_advertisement <= '0;
 
 		    // ALU pipeline feedback
 			pipeline_ready <= '0;
@@ -159,8 +159,8 @@ module alu_reg_iq_wrapper (
 			dispatch_dest_PR_by_way <= next_dispatch_dest_PR_by_way;
 			dispatch_ROB_index_by_way <= next_dispatch_ROB_index_by_way;
 
-		    // ALU op dispatch feedback by way
-			last_dispatch_ready_by_way <= dispatch_ready_by_way;
+		    // ALU op dispatch feedback
+			last_dispatch_ready_advertisement <= dispatch_ready_advertisement;
 
 		    // ALU pipeline feedback
 			pipeline_ready <= next_pipeline_ready;
