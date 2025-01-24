@@ -66,8 +66,6 @@ class alu_pipeline_scoreboard extends uvm_scoreboard;
   // --- Compare --- //
   task compare(alu_pipeline_sequence_item curr_tx);
 
-    // TODO: SVA
-
     // --- Reset Check --- //
     if (curr_tx.nRST == 1'b0) begin
       // - ready_out
@@ -94,7 +92,10 @@ class alu_pipeline_scoreboard extends uvm_scoreboard;
       end else begin
         `uvm_info("COMPARE", $sformatf("Test Case : ALP_0 - WB_PR_out: FAILED"), UVM_LOW)
       end
-      // TODO: index requirements
+    end else begin
+      if (curr_tx.valid_in) begin
+        
+      end
     end
 
   endtask : compare
