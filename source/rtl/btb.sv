@@ -17,12 +17,13 @@ module btb (
     // REQ stage
     input logic         valid_REQ,
     input logic [29:0]  PC30_REQ,
-    input logic [29:0]  PC30_plus_8_REQ,
 
     // RESP stage
-    output logic pred_info_by_way_RESP,
-    output logic tag_by_way_RESP,
-    output logic target_by_way_RESP,
+    input logic [3:0][29:0] PC30_by_way_RESP,
+
+    output logic [3:0]                              vtm_by_way_RESP,
+    output logic [3:0][BTB_PRED_INFO_WIDTH-1:0]     pred_info_by_way_RESP,
+    output logic [3:0][BTB_TARGET_WIDTH-1:0]        target_by_way_RESP,
 
     // update
     input logic                             update_valid,
@@ -38,10 +39,13 @@ module btb (
     logic [1:0][BTB_INDEX_WIDTH-1:0] index_by_bank_REQ;
 
     // RESP Stage:
-    logic [3:0][BTB_PRED_INFO_WIDTH-1:0]                pred_info_by_bank_by_offset_RESP;
-    logic [3:0][BTB_TAG_WIDTH+BTB_TARGET_WIDTH-1:0]     tag_target_by_bank_by_offset_RESP;
-    logic [3:0]                                         bank_by_way_RESP;
-    logic [3:0][1:0]                                    offset_by_way_RESP;
+    logic [3:0]                                             bank_by_way_RESP;
+    logic [3:0][1:0]                                        offset_by_way_RESP;
+
+    logic [1:0][3:0][BTB_PRED_INFO_WIDTH-1:0]               pred_info_by_bank_by_offset_RESP;
+    logic [1:0][3:0][BTB_TAG_WIDTH+BTB_TARGET_WIDTH-1:0]    tag_target_by_bank_by_offset_RESP;
+    logic [3:0][BTB_TAG_WIDTH-1:0]                          tag_by_way_RESP;
+    logic [3:0][BTB_TAG_WIDTH-1:0]                          pipeline_tag_by_way_RESP;
 
     // Update:
     logic [1:0]                             update_valid_by_bank;
@@ -66,10 +70,10 @@ module btb (
                 // lower 3 PC30 bits for bank and offset
         end
 
-        // start bank 1: bank 1 gets PC30, bank 0 gets PC30 + 0x20
+        // start bank 1: bank 1 gets PC30, bank 0 gets PC30 + 8
         else begin
             index_by_bank_REQ[1] = PC30_REQ[LOG_BTB_ENTRIES-1:3];
-            index_by_bank_REQ[0] = PC30_plus_8_REQ[LOG_BTB_ENTRIES-1:3];
+            index_by_bank_REQ[0] = PC30_REQ[LOG_BTB_ENTRIES-1:3] + 1;
                 // lower 3 PC30 bits for bank and offset
         end
     end
@@ -120,6 +124,47 @@ module btb (
         end
     end
 
+    // RESP PC30 hash's
+    genvar hash_way;
+    generate
+        for (hash_way = 0; hash_way < 4; hash_way++) begin
+
+            btb_tag_hash PC30_RESP (
+                .PC30(PC30_by_way_RESP[hash_way]),
+                .tag(pipeline_tag_by_way_RESP[hash_way])
+            );
+        end
+    endgenerate
+
+    // gather values with bank and offset by way
+    always_comb begin
+
+        for (int i = 0; i < 4; i++) begin
+
+            pred_info_by_way_RESP[i] = pred_info_by_bank_by_offset_RESP
+                [bank_by_way_RESP[i]]
+                [offset_by_way_RESP[i]]
+            ;
+
+            // tag in upper bits
+            tag_by_way_RESP[i] = tag_target_by_bank_by_offset_RESP
+                [bank_by_way_RESP[i]]
+                [offset_by_way_RESP[i]]
+                [BTB_TAG_WIDTH+BTB_TARGET_WIDTH-1:BTB_TARGET_WIDTH]
+            ;
+
+            // target in lower bits
+            target_by_way_RESP[i] = tag_target_by_bank_by_offset_RESP
+                [bank_by_way_RESP[i]]
+                [offset_by_way_RESP[i]]
+                [BTB_TARGET_WIDTH-1:0]
+            ;
+
+            // VTM against pipeline tag
+            vtm_by_way_RESP[i] = (tag_by_way_RESP[i] == pipeline_tag_by_way_RESP[i]);
+        end
+    end
+
     // ----------------------------------------------------------------
     // Update Logic:
 
@@ -128,12 +173,12 @@ module btb (
     assign update_index = update_start_PC30[LOG_BTB_ENTRIES-1:3];
         // lower 3 PC30 bits for bank and offset
 
-    // tag: 4 lsb tag bits ^ next 4 lsb tag bits
-    assign update_tag = 
-        update_start_PC30[LOG_BTB_ENTRIES+4-1:LOG_BTB_ENTRIES]
-        ^
-        update_start_PC30[LOG_BTB_ENTRIES+8-1:LOG_BTB_ENTRIES+4] 
-    ;
+    // update PC30 hash
+    btb_tag_hash PC30_HASH (
+        .PC30(update_start_PC30),
+        .tag(update_tag)
+    );
+    
     assign update_target = update_target_PC30[BTB_TARGET_WIDTH-1:0];
         // lower target PC30 bits
 
