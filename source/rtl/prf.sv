@@ -127,7 +127,7 @@ module prf #(
     genvar bank;
     generate
 
-        for (bank = 0; bank < PRF_BANK_COUNT; bank++) begin : BRAM_banks
+        for (bank = 0; bank < PRF_BANK_COUNT; bank++) begin : ram_banks
 
             if (USE_BRAM) begin
 
@@ -174,7 +174,7 @@ module prf #(
                 distram_2rport_1wport #(
                     .INNER_WIDTH(32),
                     .OUTER_WIDTH(PR_COUNT/PRF_BANK_COUNT)
-                ) BRAM (
+                ) DISTRAM (
                     .CLK(CLK),
                     .port0_rindex(prf_port0_read_upper_PR_by_bank[bank]),
                     .port0_rdata(reg_read_data_by_bank_by_port[bank][0]),
