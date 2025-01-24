@@ -18,7 +18,7 @@ import core_types_pkg::*;
 // --- Includes --- //
 `include "interface.sv"
 `include "sequence_item.sv"
-`include "sequence.sv"
+`include "sequences/alu_seq.sv"
 `include "sequencer.sv"
 `include "driver.sv"
 `include "monitor.sv"

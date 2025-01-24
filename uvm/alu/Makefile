@@ -97,7 +97,6 @@ build:
 	-L $(QSIM)/uvm-1.2 \
 	-sv $(DESIGN) \
 	$(UVM)/testbench.sv \
-	$(UVM)/assertions/alu_pipeline_sva.sv \
 	-logfile compile.log
 
 

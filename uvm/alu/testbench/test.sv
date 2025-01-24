@@ -18,6 +18,7 @@ import core_types_pkg::*;
 // --- Includes --- //
 `include "sequence_item.sv"
 `include "interface.sv"
+`include "sequences/alu_seq.sv"
 
 // --- Test --- //
 class alu_test extends uvm_test;

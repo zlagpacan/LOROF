@@ -82,14 +82,14 @@ class alu_scoreboard extends uvm_scoreboard;
         end
       end
       4'b0010 : begin
-        if (curr_tx.out == (signed(curr_tx.A) < signed(curr_tx.B) ? '1 : '0)) begin
+        if (curr_tx.out == ($signed(curr_tx.A) < $signed(curr_tx.B) ? '1 : '0)) begin
           `uvm_info("COMPARE", $sformatf("Test Case : ALU_0 - alu add op: PASSED"), UVM_LOW)
         end else begin
           `uvm_info("COMPARE", $sformatf("Test Case : ALU_0 - alu add op: FAILED"), UVM_LOW)
         end
       end
       4'b0011 : begin
-        if (curr_tx.out == (unsigned(curr_tx.A) < unsigned(curr_tx.B) ? '1 : '0)) begin
+        if (curr_tx.out == ($unsigned(curr_tx.A) < $unsigned(curr_tx.B) ? '1 : '0)) begin
           `uvm_info("COMPARE", $sformatf("Test Case : ALU_0 - alu add op: PASSED"), UVM_LOW)
         end else begin
           `uvm_info("COMPARE", $sformatf("Test Case : ALU_0 - alu add op: FAILED"), UVM_LOW)
@@ -138,14 +138,14 @@ class alu_scoreboard extends uvm_scoreboard;
         end
       end
       4'b1010 : begin
-        if (curr_tx.out == (signed(curr_tx.A) < signed(curr_tx.B) ? '1 : '0)) begin
+        if (curr_tx.out == ($signed(curr_tx.A) < $signed(curr_tx.B) ? '1 : '0)) begin
           `uvm_info("COMPARE", $sformatf("Test Case : ALU_0 - alu add op: PASSED"), UVM_LOW)
         end else begin
           `uvm_info("COMPARE", $sformatf("Test Case : ALU_0 - alu add op: FAILED"), UVM_LOW)
         end
       end
       4'b1011 : begin
-        if (curr_tx.out == (unsigned(curr_tx.A) < unsigned(curr_tx.B) ? '1 : '0)) begin
+        if (curr_tx.out == ($unsigned(curr_tx.A) < $unsigned(curr_tx.B) ? '1 : '0)) begin
           `uvm_info("COMPARE", $sformatf("Test Case : ALU_0 - alu add op: PASSED"), UVM_LOW)
         end else begin
           `uvm_info("COMPARE", $sformatf("Test Case : ALU_0 - alu add op: FAILED"), UVM_LOW)
@@ -159,7 +159,7 @@ class alu_scoreboard extends uvm_scoreboard;
         end
       end
       4'b1101 : begin
-        if (curr_tx.out == signed(curr_tx.A) >>> signed(curr_tx.B)) begin
+        if (curr_tx.out == $signed(curr_tx.A) >>> $signed(curr_tx.B)) begin
           `uvm_info("COMPARE", $sformatf("Test Case : ALU_0 - alu add op: PASSED"), UVM_LOW)
         end else begin
           `uvm_info("COMPARE", $sformatf("Test Case : ALU_0 - alu add op: FAILED"), UVM_LOW)

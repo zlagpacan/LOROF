@@ -76,7 +76,6 @@ class alu_monitor extends uvm_monitor;
       item.out = vif.out;
       
       // --- Send to Scoreboard --- //
-      `uvm_info(get_type_name(), $sformatf("Monitor found packet %s", item.convert2str()), UVM_LOW)
       monitor_port.write(item);
       
     end
