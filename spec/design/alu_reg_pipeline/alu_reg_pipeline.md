@@ -107,6 +107,7 @@ output interface
     - output logic
     - indicate that the pipeline is not ready for a new op issue
     - must be 1'b0 when there is a valid op in OC stage which does not have both of its operands A and B either saved from a previous cycle, forwarded this cycle, or arrived through a reg read ack this cycle
+    - see [Operand Collection (OC) Stage](#operand-collection-oc-stage)
     - reset:
         - 1'b1
 
