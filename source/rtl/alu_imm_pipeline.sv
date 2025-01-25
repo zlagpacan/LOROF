@@ -14,7 +14,7 @@ module alu_imm_pipeline (
     input logic CLK,
     input logic nRST,
 
-    // ALU op issue from ALU Imm IQ
+    // ALU imm op issue from IQ
     input logic                             issue_valid,
     input logic [3:0]                       issue_op,
     input logic [11:0]                      issue_imm12,
@@ -23,7 +23,7 @@ module alu_imm_pipeline (
     input logic [LOG_PR_COUNT-1:0]          issue_dest_PR,
     input logic [LOG_ROB_ENTRIES-1:0]       issue_ROB_index,
 
-    // ready feedback to ALU Imm IQ
+    // ready feedback to IQ
     output logic issue_ready,
 
     // reg read info and data from PRF

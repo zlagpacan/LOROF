@@ -1,6 +1,7 @@
 # alu_reg_pipeline
 - backend functional unit for ALU register-register operations
-    - R[A] op R[B]
+    - R[dest] <= R[A] op R[B]
+        - see [Targeted Instructions](#targeted-instructions)
     - see [core_basics.md](../basics/core_basics.md) for the basic purpose of a functional unit in the backend of the core
 - receives issued ALU reg operations, collects the register operand data values, performs the ALU operations, and writes the data back to the PRF
 - pipelined with issue, operand collection, execute, and writeback stages
@@ -105,7 +106,7 @@ output interface
 - issue_ready
     - output logic
     - indicate that the pipeline is not ready for a new op issue
-    - must be 1'b1 when there is a valid op in OC stage which does not have both of its operands A and B either saved from a previous cycle, forwarded this cycle, or arrived through a reg read ack this cycle
+    - must be 1'b0 when there is a valid op in OC stage which does not have both of its operands A and B either saved from a previous cycle, forwarded this cycle, or arrived through a reg read ack this cycle
     - reset:
         - 1'b1
 
