@@ -14,7 +14,7 @@ module alu_reg_pipeline (
     input logic CLK,
     input logic nRST,
 
-    // ALU op issue from ALU Reg IQ
+    // ALU reg op issue from IQ
     input logic                             issue_valid,
     input logic [3:0]                       issue_op,
     input logic                             issue_A_forward,
@@ -24,7 +24,7 @@ module alu_reg_pipeline (
     input logic [LOG_PR_COUNT-1:0]          issue_dest_PR,
     input logic [LOG_ROB_ENTRIES-1:0]       issue_ROB_index,
 
-    // ready feedback to ALU Reg IQ
+    // ready feedback to IQ
     output logic issue_ready,
 
     // reg read info and data from PRF
@@ -43,7 +43,7 @@ module alu_reg_pipeline (
     output logic [LOG_PR_COUNT-1:0]     WB_PR,
     output logic [LOG_ROB_ENTRIES-1:0]  WB_ROB_index,
 
-    // writeback backpressure from PRF
+    // writeback feedback from PRF
     input logic WB_ready
 );
     // ----------------------------------------------------------------
