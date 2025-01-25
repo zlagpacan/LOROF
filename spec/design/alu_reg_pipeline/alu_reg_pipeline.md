@@ -21,9 +21,15 @@
 
 
 # Interfaces
+Inputs interfaces blue. Output interfaces green.
 These signals make more sense in combination with the information in the [Pipeline Stages](#pipeline-stages) section.
 
+<span style="color:orange">
+
 ## seq
+
+</span>
+
 This is a sequential module utilizing posedge flip flops
 
 - CLK
@@ -31,7 +37,12 @@ This is a sequential module utilizing posedge flip flops
 - nRST
     - active-low asynchronous reset
 
+<span style="color:deepskyblue">
+
 ## ALU op issue from IQ
+
+</span>
+
 input interface
 
 - issue_valid
@@ -83,7 +94,12 @@ input interface
     - constraints:
         - none
 
+<span style="color:chartreuse">
+
 ## ready feedback to IQ
+
+</span>
+
 output interface
 
 - issue_ready
@@ -93,7 +109,12 @@ output interface
     - reset:
         - 1'b1
 
+<span style="color:deepskyblue">
+
 ## reg read info and data from PRF
+
+</span>
+
 input interface
 
 - A_reg_read_ack
@@ -104,7 +125,7 @@ input interface
         - utilize as control signal to indicate operand A reg read data is available
         - this signal should never be 1'b1 unless there is an op in OC stage waiting for a reg read for operand A
             - else, undefined behavior
-            - this can be made an assertion in an integration-level testbench, where the IQ and PRF together should guarantee this
+            - this can be made an assertion in an integration-level testbench, where the IQ and PRF together should guarantee this condition
 - A_reg_read_port
     - input logic
     - indicate which port {0, 1} of reg_read_data_by_bank_by_port operand A in OC stage should grab its operand data value from when A_reg_read_ack = 1'b1
@@ -132,7 +153,12 @@ input interface
     - constraints:
         - none
 
+<span style="color:deepskyblue">
+
 ## forward data from PRF
+
+</span>
+
 input interface
 
 - forward_data_by_bank
@@ -147,7 +173,12 @@ input interface
     - constraints:
         - none
 
+<span style="color:chartreuse">
+
 ## writeback data to PRF
+
+</span>
+
 output interface
 
 - WB_valid
@@ -165,7 +196,7 @@ output interface
         - 32'h0
 - WB_PR
     - output logic [6:0]
-    - indicate which Physical Register [7'h0, 7'h7F] to writeback
+    - indicate which Physical Register [7'h0, 7'h7F] to write back to
     - final passed-through value initially given on issue_dest_PR
     - don't care when WB_valid = 1'b0
     - reset:
@@ -178,30 +209,75 @@ output interface
     - reset:
         - 7'h0
 
+<span style="color:deepskyblue">
+
 ## writeback feedback from PRF
+
+</span>
+
 input interface
 
 - WB_ready
     - input logic
     - indicate that WB stage needs to stall
+    - internal pipeline logic determines how far this stall should propagate backward
     - constraints:
         - utilize as control signal to indicate WB stage should stall
 
 
 # Pipeline Stages
-Unique "ops" flow through the pipeline stages in-order from issue to writeback. The pipeline moves forward when possible, stalling if necessary: PRF WB not being ready or OC stage not being ready. Stall conditions propagate backward where relevant. e.g. there is no need to propagate a stall backward before a pipeline bubble (stage where op is not valid).
+unique "ops" flow through the pipeline stages in-order from issue to writeback following typical pipeline rules. 
+- on reset, the pipeline starts with all stages invalid. 
+- valid ops enter the pipeline in IS stage via the "ALU reg op issue from IQ" interface as long as issue_ready = 1'b1. 
+- the pipeline moves forward when possible, stalling if necessary: PRF WB not being ready or OC stage not being ready. 
+- stall conditions propagate backward where relevant. e.g. there is no need to propagate a stall backward before a pipeline bubble (stage where op is not valid). 
+- see the stall conditions by stage below, where X stage valid means there is an op in X stage.
 
 ## Issue (IS) Stage
-Accept new instruction issue via the "ALU op issue from IQ" interface if the OC stage is signaled to be ready via the "ready feedback to IQ" interface. 
+Accept new instruction issue via the "ALU op issue from IQ" interface if the OC stage is signaled to be ready via the issue_ready signal. 
+
+#### Stall Condition
+- stall together with OC stage based on issue_ready
+- here, stall means "ALU op issue from IQ" interface is ignored
 
 ## Operand Collection (OC) Stage
-- Stall Condition:
+Collect A and B operands. If both operand A and operand B aren't collected (from this cycle or a previous cycle) then OC stage must stall and the issue_ready signal must be 1'b0. A bubble (invalid and all other signals don't cares) is naturally inserted into this stage whenever issue_ready = 1'b1 but issue_valid = 1'b0. 
+
+Potential operand states:
+- data is being forwarded
+    - (issue_ready & issue_valid & issue_A/B_forward) last cycle
+    - take data from forward_data_by_bank
+- data is being read via the reg file
+    - (~issue_A/B_forward) when this op was issued
+        - can be an arbitrary number of cycles in the past when the op was issued
+        - since this issue cycle, the op had to have either just entered OC stage or been stalled in OC stage as it had an operand which wasn't ready
+- data was saved from a previous cycle
+    - data for operand was collected via the 2 previous states on a previous cycle 
+    - data must be saved from this previous cycle in the case that OC stage stalls
+        - see stall conditions below
+- data is not available this cycle and was not saved on a previous cycle
+    - operand stall case when none of the above are true
+
+When the stage does not contain a valid op, issue_ready is guaranteed to be 1'b1:
+- there are no operands to collect
+- a stall originating in WB stage due to WB_ready = 1'b0 which propagates back to EX stage is not propagated backward through an invalid OC stage
+
+#### Stall Condition:
+- Either:
+    - operand stall case as described above
+    - EX stage stall and OC stage valid
+- a stall in this stage corresponds to issue_ready = 1'b0
 
 ## Execute (EX) Stage
-- Stall Condition:
+Perform the R[A] op R[B] ALU operation. A bubble (invalid and all other signals don't cares) is inserted into this stage whenever EX stage is not stalled but OC stage is stalled. 
+
+#### Stall Condition:
+- WB stage stall and EX stage valid
 
 ## Writeback (WB) Stage
-- Stall Condition:
+
+#### Stall Condition:
+- WB_ready = 1'b0 and WB stage valid
 
 
 # Assertions

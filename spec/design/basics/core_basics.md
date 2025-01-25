@@ -102,11 +102,11 @@ A superscalar core increases the frontend instruction width. The backend appropr
     - a multiple-issue backend means execution hardware must be available to execute multiple instructions simultaneously
         - multiple ALU's, independent pipelines, multi-ported dcache, etc.
     - notably, this means a massive increase in demand on the register file
-        - LOROF uses a 4x bank, 2x read port + 1x write port per-bank register file
-    - again, supporting bandwidth increases can range in complexity increasing at a rate O(n) to O(n^2)
-- LOROF uses a 4-way superscalar frontend and a backend with a 1 IPC bandwidth per pipeline
+        - LOROF uses a 4x bank, 2x read port + 1x write port per-bank register file. with no bank conflicts, this allows for 8x register reads and 4x register writes per cycle
+    - again, supporting backend bandwidth increases can range in complexity increasing at a rate O(n) to O(n^2)
+- LOROF uses a 4-way superscalar frontend and a backend with a 1 IPC bandwidth per pipeline with 8x pipelines = 8 IPC
     - these are both for the maximum-bandwidth case
-    - typical behavior will be closer to 3 IPC for the frontend due to branches, and much lower with icache misses
+    - typical behavior will be closer to 3 IPC for the frontend due to branches, and much lower when there are icache misses
     - typical behavior will be much lower than 1 IPC for the backend FU's due to various data and structural hazards and bursty use of the different FU's following the distribution of instructions among the FU's
         - essentially, the backend should be able to handle moderately bad case FU distributions from the frontend
             - e.g. the backend shouldn't stall much just because there are 4x loads dispatched in a row
