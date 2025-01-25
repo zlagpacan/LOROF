@@ -1,22 +1,29 @@
 # Issue Queue Basics
-- see [core_basics.md](core_basics.md) for how issue queues are used in an out-of-order core
+- see [core_basics.md](core_basics.md) for how issue queues are used in an R10K out-of-order core
 - issue queues hold the state of dispatched instructions, waiting for the instruction's operands to be ready, so that they can be subsequently issued to the associated FU pipeline
+- operands are known to be ready on dispatch either by reading a ready flag set in the physical register ready table, or they are determined to be newly ready via observing a writeback of the physcial register of interest
 - the general policy of an issue queue is to issue the oldest instruction(s) whose operands are ready
 - LOROF issue queues
-    - multiple-dispatch and single-issue
+    - multiple-dispatch into issue queue from 4-way superscalar frontend
+    - single-issue out of issue queue per backend pipeline
+    - DEPRECATED: LOROF elects to assign a unique issue queue to each pipeline except for
+        - a single issue queue may be designed to be able to issue to multiple backend pipelines
+            - these multiple backend pipelines have independent oldest-ready logic
+        - benefits:
+            - simplify issue logic (single priority logic per IQ) 
+            - simplify issue queue entry data routing
+                - a multi-pipeline issue queue requires complex shifting logic, or dealing with empty IQ entries in the middle of valid entries, which can lead to inefficiencies
+                - essentially, it is much easier to maintain 1x issue per cycle per pipeline without inefficiencies
+            - minimize the amount of instruction state required per issue queue entry
+                - e.g. don't need to hold imm if instruction type doesn't use imm
+        - drawbacks:
+            - instruction burts lengths by type are limited by their unique issue queue sizes instead of being shareable among groups of instruction types
+                - this isn't a big deal for LOROF as the range of instruction types is limited
     - most issue queues are in-order dispatch and out-of-order issue
         - ALU reg-reg, ALU reg-imm, branch, load, and mult/div pipelines
         - out of the set of ready instructions, the oldest is issued
         - if no instruction is ready, nothing is issued
-    - the store, AMO, and system/CSR pipelines are in-order dispatch, in-order issue
+    - the store, AMO, and system/CSR pipelines require in-order dispatch and in-order issue
         - for these, only the oldest instruction can be issued
         - if the oldest instruction is not ready, nothing is issued
-    - unique issue queues are used for different instruction types, as opposed to one or a few large but inclusive issue queues
-        - benefits:
-            - issue logic is greatly simplified
-                - potentially expensive priority queues are limited in size to only the associated instruction type issue queue size
-            - very wide issue is possible
-                - for LOROF, 8x pipelines means up to 8 IPC issue
-        - drawbacks:
-            - dispatch logic must be replicated over the different issue queues
-            - if there are many of a single instruction pipeline type over a short period, the pipeline issue queue can fill up quickly and stall the frontend
+    - forwarding is possible via observing a writeback of the physical register of interest and issueing the instruction on the same cycle, where the forwarded data can be collected on the next cycle in the FU pipeline's operand collection stage.
