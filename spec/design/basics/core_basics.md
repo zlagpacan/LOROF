@@ -4,12 +4,12 @@ The LOROF CPU cores are moderately sophisticated superscalar out-of-order engine
 ### Out-of-Order Execution Hides Latencies
 - out-of-order execution allows for the core to work on independent instructions while waiting for high-latency instructions (notably loads) to complete
 - a simple in-order pipeline with a load in mem stage waiting on a dcache miss would have to stall all the instructions behind it until the dcache is filled. this is awful for instruction throughput
-- an out-of-order pipeline can complete independent arithmetic, branch, store, etc. instructions while the load miss is being processed, or even get dcache hits and create more dcache misses from other loads
+- an out-of-order pipeline can complete independent arithmetic, branch, store, etc. instructions while the load miss is being processed, or even get dcache hits and create more dcache misses from other load instructions
 
 ### Superscalar Execution Increases IPC
-- a simple in-order scalar pipeline only fetches, decodes, executes, etc. one instruction per cycle. this massively limits the instruction bandwidth of a core, especially as critical paths can no longer be optimized
+- a simple in-order scalar pipeline only fetches, decodes, executes, etc. one instruction per cycle. this massively limits the instruction bandwidth of a core, especially as critical paths and pipeline depths can no longer be optimized
 - a superscalar pipeline can fetch, decode, execute, etc. more than one instruction per cycle, effectively breaching the 1 IPC limitation
-- superscalar is an orthogonal design choice to out-of-order, but the two work very well together to create high-performance CPU cores
+- superscalar is an orthogonal design choice to out-of-order, but the two work very well together to create high-performance CPU cores. a superscalar frontends can fetch many independent instructions that can be completed out-of-order while high-latency instructions are stalled
 
 # Out-of-Order Basics
 
@@ -72,9 +72,31 @@ An R10K-style out-of-order core contains these fundamental components:
             - here, the frontend would be made to look like the LW had just started
 
 # Superscalar Basics
+
+<img src="superscalar_basics.png" alt="Basic Superscalar Frontend Diagram" width="600">
+
+A superscalar core increases the frontend instruction width. The backend appropriately increases its bandwidth via multiple FU's to support this wider frontend
+
 - an n-way superscalar design has an n-wide frontend: it fetches, decodes, renames, and dispatches n instructions per cycle
     - because of this, the frontend must increase the bandwidth to the branch predictor, icache, decoders, rename structures, and take care of some dependency checking when it performs renames
+        - branch predictors need to check for n potential branches
+        - fetch can be widened via swizzling instructions from multiple wide icache blocks
+        - decoders are simply duplicated n times
+        - rename structures must be able to rename and provide operand renames for n different instructions
+        - dependence checks are needed to see if a younger instruction uses an operand produced by an older instruction in the same superscalar group
+            - register renaming must take this into account
+            - this is similar to forwarding networks, which also grow in O(n^2), which is especially relevant in superscalar designs with many backend pipelines or writeback buses
+            - dependence checking growth
+                - scalar: no dependence checking
+                - 2-way superscalar: 1x dependence check
+                - 3-way superscalar: 3x dependence checks
+                - 4-way superscalar: 6x dependence checks
+                - 5-way superscalar: 10x dependence checks
+                - 6-way superscalar: 15x dependence checks
+                - 7-way superscalar: 21x dependence checks
+                - 8-way superscalar: 28x dependence checks
     - supporting bandwidth increases can range in complexity increasing at a rate O(n) to O(n^2)
+        - following the diagram above, a 4-way superscalar frontend grows icache branch predictor, icache, and decoder bandwidth at O(n), but dependence checking grows at O(n^2)
 - the backend of the pipeline must also be wide in order to issue multiple instructions per cycle to support these n instructions per cycle by the frontend 
     - the backend can be completely decoupled and follow a completely unrelated instruction bandwidth different from the n-way superscalar frontend
     - a multiple-issue backend means execution hardware must be available to execute multiple instructions simultaneously
@@ -82,10 +104,11 @@ An R10K-style out-of-order core contains these fundamental components:
     - notably, this means a massive increase in demand on the register file
         - LOROF uses a 4x bank, 2x read port + 1x write port per-bank register file
     - again, supporting bandwidth increases can range in complexity increasing at a rate O(n) to O(n^2)
-- LOROF uses a 4-way superscalar frontend and a backend with a 1 IPC bandwidth per FU issue queue / pipeline
+- LOROF uses a 4-way superscalar frontend and a backend with a 1 IPC bandwidth per pipeline
     - these are both for the maximum-bandwidth case
     - typical behavior will be closer to 3 IPC for the frontend due to branches, and much lower with icache misses
     - typical behavior will be much lower than 1 IPC for the backend FU's due to various data and structural hazards and bursty use of the different FU's following the distribution of instructions among the FU's
         - essentially, the backend should be able to handle moderately bad case FU distributions from the frontend
-            - e.g. the backend shouldn't stall much just because there are 4x loads in a row
+            - e.g. the backend shouldn't stall much just because there are 4x loads dispatched in a row
         - also, the backend will never be permanently fully busy as its theoretical 8 IPC cannot be sustained by a 4 IPC frontend
+            - this fundamental difference is why hardware multithreading can make sense, as 2 or more frontends can more appropriately feed the full bandwidth potential of a powerful backend
