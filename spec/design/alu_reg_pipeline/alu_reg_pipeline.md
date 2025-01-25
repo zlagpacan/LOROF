@@ -39,7 +39,7 @@ This is a sequential module utilizing posedge flip flops
 
 <span style="color:deepskyblue">
 
-## ALU op issue from IQ
+## ALU reg op issue from IQ
 
 </span>
 
@@ -228,17 +228,17 @@ input interface
 # Pipeline Stages
 unique "ops" flow through the pipeline stages in-order from issue to writeback following typical pipeline rules. 
 - on reset, the pipeline starts with all stages invalid. 
-- valid ops enter the pipeline in IS stage via the "ALU reg op issue from IQ" interface as long as issue_ready = 1'b1. 
+- valid ops enter the pipeline in IS stage via the [ALU reg op issue from IQ](#alu-reg-op-issue-from-iq) interface as long as issue_ready = 1'b1. 
 - the pipeline moves forward when possible, stalling if necessary: PRF WB not being ready or OC stage not being ready. 
 - stall conditions propagate backward where relevant. e.g. there is no need to propagate a stall backward before a pipeline bubble (stage where op is not valid). 
 - see the stall conditions by stage below, where X stage valid means there is an op in X stage.
 
 ## Issue (IS) Stage
-Accept new instruction issue via the "ALU op issue from IQ" interface if the OC stage is signaled to be ready via the issue_ready signal. 
+Accept new instruction issue via the [ALU reg op issue from IQ](#alu-reg-op-issue-from-iq) interface if the OC stage is signaled to be ready via the issue_ready signal. 
 
 #### Stall Condition
 - stall together with OC stage based on issue_ready
-- here, stall means "ALU op issue from IQ" interface is ignored
+- here, stall means [ALU reg op issue from IQ](#alu-reg-op-issue-from-iq) interface is ignored
 
 ## Operand Collection (OC) Stage
 Collect A and B operands. If both operand A and operand B aren't collected (from this cycle or a previous cycle) then OC stage must stall and the issue_ready signal must be 1'b0. A bubble (invalid and all other signals don't cares) is naturally inserted into this stage whenever issue_ready = 1'b1 but issue_valid = 1'b0. 
@@ -289,3 +289,26 @@ Perform the R[A] op R[B] ALU operation. A bubble (invalid and all other signals 
 - every combo of operand {A, B} x {forward, reg read first cycle in OC, reg read second or later cycle in OC}
     - these combos should automatically cover saved forward value and saved reg read value for next cycle on OC stall case where only one operand comes in
 - there are 2^4 possible combinations of {valid, invalid} for each of the 4 pipeline stages, all of which should be reachable. ideally, cover all of them with {no stall, WB stall, OC stall, WB and OC stall}
+
+
+# Targeted Instructions
+- ADD
+    - issue_op = 4'b0000
+- SUB
+    - issue_op = 4'b1000
+- SLL
+    - issue_op = 4'b0001
+- SLT
+    - issue_op = 4'b0010
+- SLTU
+    - issue_op = 4'b0011
+- XOR
+    - issue_op = 4'b0100
+- SRL
+    - issue_op = 4'b0101
+- SRA
+    - issue_op = 4'b1101
+- OR
+    - issue_op = 4'b0110
+- AND
+    - issue_op = 4'b0111
