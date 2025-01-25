@@ -1,0 +1,45 @@
+DUT:
+    Module: alu_reg_pipeline
+    Dependencies:
+        Packages: 
+            core_types_pkg.vh: core_types_pkg
+        Includes:
+    Parameters: 
+    Ports:
+        Clock: CLK
+        Active_Low_Reset: nRST
+        In: 
+          # IQ Side
+          issue_valid: ''
+          issue_op: '[3:0]'
+          issue_A_forward: ''
+          issue_A_bank: '[LOG_PRF_BANK_COUNT-1:0]'
+          issue_B_forward: ''
+          issue_B_bank: '[LOG_PRF_BANK_COUNT-1:0]'
+          issue_dest_PR: '[LOG_PR_COUNT-1:0]'
+          issue_ROB_index: '[LOG_ROB_ENTRIES-1:0]'
+          # PRF Side
+          A_reg_read_ack: ''
+          A_reg_read_port: ''
+          A_reg_read_ack: ''
+          A_reg_read_port: ''
+          reg_read_data_by_bank: '[PRF_BANK_COUNT-1:0][1:0][31:0]'
+          forward_data_by_bank: '[PRF_BANK_COUNT-1:0][31:0]'
+          # WB
+          WB_ready: ''
+        Out:
+          # IQ Side
+          issue_ready: ''
+          # PRF Side
+          WB_valid: ''
+          WB_data: '[31:0]'
+          WB_PR: '[LOG_PR_COUNT-1:0]'
+          WB_ROB_index: '[LOG_ROB_ENTRIES-1:0]'
+
+Testbench:
+    Modport:
+
+Output_Path: ../../uvm/alu_reg_pipeline/MyUVMF_output
+
+
+        
