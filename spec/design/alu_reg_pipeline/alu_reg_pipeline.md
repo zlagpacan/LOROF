@@ -266,7 +266,7 @@ When the stage does not contain a valid op, issue_ready is guaranteed to be 1'b1
 
 #### Stall Condition:
 - Either:
-    - operand stall case as described above
+    - operand stall case as described above for either operand A or B
     - EX stage stall and OC stage valid
 - a stall in this stage corresponds to issue_ready = 1'b0
 
@@ -288,8 +288,8 @@ Perform the R[A] op R[B] ALU operation. A bubble (invalid and all other signals 
 
 # Test Ideas and Coverpoints
 - every op
-- every combo of operand {A, B} x {forward, reg read first cycle in OC, reg read second or later cycle in OC}
-    - these combos should automatically cover saved forward value and saved reg read value for next cycle on OC stall case where only one operand comes in
+- every combo of operand {A, B} x {forward, reg read first cycle in OC, reg read second or later cycle in OC, saved forward, saved reg read}
+    - these combos should automatically cover saved forward value and saved reg read value for next cycle on OC stall case where only one operand comes in. make sure to also cover case where saved forward or saved reg read is needed due to WB stall
 - there are 2^4 possible combinations of {valid, invalid} for each of the 4 pipeline stages, all of which should be reachable. ideally, cover all of them with {no stall, WB stall, OC stall, WB and OC stall}
 
 
