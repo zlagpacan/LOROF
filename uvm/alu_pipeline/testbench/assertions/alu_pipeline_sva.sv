@@ -53,30 +53,30 @@ module alu_pipeline_sva (
   */
 
   assert property (sva_ready_out_rst) begin
-    $display("SVA_INFO @%tns a_ALP0_ready_out_rst - PASSED", $time());
+    $display("SVA_INFO @%t a_ALP0_ready_out_rst - PASSED", $time());
   end else begin
-    $display("SVA_INFO @%tns a_ALP0_ready_out_rst - FAILED", $time());
+    $display("SVA_INFO @%t a_ALP0_ready_out_rst - FAILED", $time());
   end
   c_ALP0_ready_out_rst:     cover  property (sva_ready_out_rst);
 
   assert property (sva_valid_out_rst) begin
-    $display("SVA_INFO @%tns a_ALP0_valid_out_rst - PASSED", $time());
+    $display("SVA_INFO @%t a_ALP0_valid_out_rst - PASSED", $time());
   end else begin
-    $display("SVA_INFO @%tns a_ALP0_valid_out_rst - FAILED", $time());
+    $display("SVA_INFO @%t a_ALP0_valid_out_rst - FAILED", $time());
   end
   c_ALP0_valid_out_rst:     cover  property (sva_valid_out_rst);
 
   assert property (sva_WB_data_out_rst) begin
-    $display("SVA_INFO @%tns a_ALP0_WB_data_out_rst - PASSED", $time());
+    $display("SVA_INFO @%t a_ALP0_WB_data_out_rst - PASSED", $time());
   end else begin
-    $display("SVA_INFO @%tns a_ALP0_WB_data_out_rst - FAILED", $time());
+    $display("SVA_INFO @%t a_ALP0_WB_data_out_rst - FAILED", $time());
   end
   c_ALP0_WB_data_out_rst:   cover  property (sva_WB_data_out_rst);
 
   assert property (sva_WB_PR_out_rst) begin
-    $display("SVA_INFO @%tns a_ALP0_WB_PR_out_rst - PASSED", $time());
+    $display("SVA_INFO @%t a_ALP0_WB_PR_out_rst - PASSED", $time());
   end else begin
-    $display("SVA_INFO @%tns a_ALP0_WB_PR_out_rst - FAILED", $time());
+    $display("SVA_INFO @%t a_ALP0_WB_PR_out_rst - FAILED", $time());
   end
   c_ALP0_WB_PR_out_rst:     cover  property (sva_WB_PR_out_rst);
 
