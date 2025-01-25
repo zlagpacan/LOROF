@@ -49,7 +49,7 @@ module top;
     .issue_ROB_index(alu_reg_pipeline_intf.issue_ROB_index),
     .A_reg_read_ack(alu_reg_pipeline_intf.A_reg_read_ack),
     .A_reg_read_port(alu_reg_pipeline_intf.A_reg_read_port),
-    .reg_read_data_by_bank(alu_reg_pipeline_intf.reg_read_data_by_bank),
+    .reg_read_data_by_bank_by_port(alu_reg_pipeline_intf.reg_read_data_by_bank_by_port),
     .forward_data_by_bank(alu_reg_pipeline_intf.forward_data_by_bank),
     .WB_ready(alu_reg_pipeline_intf.WB_ready),
     .issue_ready(alu_reg_pipeline_intf.issue_ready),

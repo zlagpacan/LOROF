@@ -66,25 +66,23 @@ class alu_reg_pipeline_monitor extends uvm_monitor;
     forever begin
       item = alu_reg_pipeline_sequence_item::type_id::create("item");
       
-      wait(vif.nRST);
-
       // --- Input Sample --- //
       item.nRST                  = vif.nRST;
 
       @(posedge vif.CLK);
-      item.issue_valid           = vif.issue_valid;
-      item.issue_op              = vif.issue_op;
-      item.issue_A_forward       = vif.issue_A_forward;
-      item.issue_A_bank          = vif.issue_A_bank;
-      item.issue_B_forward       = vif.issue_B_forward;
-      item.issue_B_bank          = vif.issue_B_bank;
-      item.issue_dest_PR         = vif.issue_dest_PR;
-      item.issue_ROB_index       = vif.issue_ROB_index;
-      item.A_reg_read_ack        = vif.A_reg_read_ack;
-      item.A_reg_read_port       = vif.A_reg_read_port;
-      item.reg_read_data_by_bank = vif.reg_read_data_by_bank;
-      item.forward_data_by_bank  = vif.forward_data_by_bank;
-      item.WB_ready              = vif.WB_ready;
+      item.issue_valid                   = vif.issue_valid;
+      item.issue_op                      = vif.issue_op;
+      item.issue_A_forward               = vif.issue_A_forward;
+      item.issue_A_bank                  = vif.issue_A_bank;
+      item.issue_B_forward               = vif.issue_B_forward;
+      item.issue_B_bank                  = vif.issue_B_bank;
+      item.issue_dest_PR                 = vif.issue_dest_PR;
+      item.issue_ROB_index               = vif.issue_ROB_index;
+      item.A_reg_read_ack                = vif.A_reg_read_ack;
+      item.A_reg_read_port               = vif.A_reg_read_port;
+      item.reg_read_data_by_bank_by_port = vif.reg_read_data_by_bank_by_port;
+      item.forward_data_by_bank          = vif.forward_data_by_bank;
+      item.WB_ready                      = vif.WB_ready;
       
       // --- Output Sample --- //
       @(posedge vif.CLK);

@@ -5,7 +5,7 @@
 
 # --- Design --- #
 DUT    = alu_reg_pipeline
-DESIGN = ../../source/rtl/$(DUT).sv
+DESIGN = ../../source/rtl/$(DUT).sv ../../source/rtl/alu.sv
 PKG    = ../../source/include
 
 # --- Testbench/Sim --- #
