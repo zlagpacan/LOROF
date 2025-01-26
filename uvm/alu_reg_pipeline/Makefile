@@ -62,6 +62,9 @@ run:
 
 debug:
 	run the simulation in the GUI
+
+all:
+	clean compile debug
 	
 -----------------------------------------------------------
 endef

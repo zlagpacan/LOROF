@@ -63,17 +63,18 @@ class alu_reg_pipeline_test extends uvm_test;
       repeat (6 * CLK_PERIOD) begin
         garbage_seq = garbage_sequence::type_id::create("garbage_seq");
         garbage_seq.start(env.agnt.seqr);
-        #(CLK_PERIOD);
+        // `uvm_info("ALU_REG_TX", $sformatf("Sequence item content: %s", garbage_seq.sprint()), UVM_MEDIUM)
       end
 
       reset_seq = reset_sequence::type_id::create("reset_seq");
       reset_seq.start(env.agnt.seqr);
       #(CLK_PERIOD);
+      // `uvm_info("ALU_REG_TX", $sformatf("Sequence item content: %s", reset_seq.sprint()), UVM_MEDIUM)
 
       repeat (4 * CLK_PERIOD) begin
         garbage_seq = garbage_sequence::type_id::create("garbage_seq");
         garbage_seq.start(env.agnt.seqr);
-        #(CLK_PERIOD);
+        // `uvm_info("ALU_REG_TX", $sformatf("Sequence item content: %s", garbage_seq.sprint()), UVM_MEDIUM)
       end
 
     phase.drop_objection(this);
