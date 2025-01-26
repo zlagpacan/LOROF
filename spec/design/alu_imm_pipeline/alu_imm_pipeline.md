@@ -137,7 +137,7 @@ input interface
     - constraints:
         - none
 - reg_read_data_by_bank_by_port
-    - input logic [1:0][1:0][31:0]
+    - input logic [3:0][1:0][31:0]
     - collect a PRF reg read data value of interest
     - 3D array 
         - first dim: bank
@@ -158,7 +158,7 @@ input interface
 input interface
 
 - forward_data_by_bank
-    - input logic [1:0][31:0]
+    - input logic [3:0][31:0]
     - collect a PRF forward value of interest
     - 2D array
         - first dim: bank
