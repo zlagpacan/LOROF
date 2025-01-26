@@ -43,6 +43,14 @@ module top;
     .B(alu_intf.B),
     .out(alu_intf.out)
   );
+
+  alu_sva SVA(
+    .CLK(CLK),
+    .op(alu_intf.op),
+    .A(alu_intf.A),
+    .B(alu_intf.B),
+    .out(alu_intf.out)
+  );
   
   // --- Interface --- //
   initial begin : VIF
