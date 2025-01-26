@@ -9,25 +9,24 @@ package core_types_pkg;
     // PRF
     parameter PR_COUNT = 128;
     parameter LOG_PR_COUNT = $clog2(PR_COUNT);
-    parameter PRF_BANK_COUNT = 4;
+    parameter PRF_BANK_COUNT = 4;       // const
     parameter LOG_PRF_BANK_COUNT = $clog2(PRF_BANK_COUNT);
-    parameter PRF_RR_COUNT = 14;    // read requestor count
-    parameter PRF_READ_PORT_COUNT = 2;
-    parameter PRF_WR_COUNT = 7;     // write requestor count
+    parameter PRF_RR_COUNT = 11;        // read requestor count
+    parameter PRF_READ_PORT_COUNT = 2;  // const
+    parameter PRF_WR_COUNT = 7;         // write requestor count
 
     // ROB
     parameter ROB_ENTRIES = 128;
     parameter LOG_ROB_ENTRIES = $clog2(ROB_ENTRIES);
 
     // IQ's
-    parameter ALU_REG_IQ_ENTRIES = 8;
-    parameter ALU_IMM_IQ_ENTRIES = 4;
+    
+    // Shared IQ's
+    parameter ALU_REG_MD_IQ_ENTRIES = 12;
+    parameter ALU_IMM_LD_IQ_ENTRIES = 12;
+    parameter ST_AMO_IQ_ENTRIES = 8;
     parameter BRU_IQ_ENTRIES = 4;
-    parameter LQ_IQ_ENTRIES = 8;
-    parameter SQ_IQ_ENTRIES = 8;
-    parameter AMOQ_IQ_ENTRIES = 4;
     parameter SYS_IQ_ENTRIES = 4;
-    parameter MD_IQ_ENTRIES = 4;
 
     // Branch Prediction
     parameter BTB_ENTRIES = 512;

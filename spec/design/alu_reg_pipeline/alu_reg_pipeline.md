@@ -34,8 +34,10 @@ These signals make more sense in combination with the information in the [Pipeli
 This is a sequential module utilizing posedge flip flops
 
 - CLK
+    - input logic
     - clock signal
 - nRST
+    - input logic
     - active-low asynchronous reset
 
 <span style="color:deepskyblue">

@@ -124,10 +124,10 @@ module prf #(
     // Memory Array Def:
 
     // create RAM array for each bank
-    genvar bank;
+    genvar ram_bank;
     generate
 
-        for (bank = 0; bank < PRF_BANK_COUNT; bank++) begin : ram_banks
+        for (ram_bank = 0; ram_bank < PRF_BANK_COUNT; ram_bank++) begin : ram_banks
 
             if (USE_BRAM) begin
 
@@ -139,14 +139,14 @@ module prf #(
                     .CLK(CLK),
                     .nRST(nRST),
                     .port0_ren(1'b1),
-                    .port0_rindex(next_prf_port0_read_upper_PR_by_bank[bank]),
-                    .port0_rdata(reg_read_data_by_bank_by_port[bank][0]),
+                    .port0_rindex(next_prf_port0_read_upper_PR_by_bank[ram_bank]),
+                    .port0_rdata(reg_read_data_by_bank_by_port[ram_bank][0]),
                     .port1_ren(1'b1),
-                    .port1_rindex(next_prf_port1_read_upper_PR_by_bank[bank]),
-                    .port1_rdata(reg_read_data_by_bank_by_port[bank][1]),
-                    .wen_byte({4{prf_WB_valid_by_bank[bank]}}),
-                    .windex(prf_WB_upper_PR_by_bank[bank]),
-                    .wdata(prf_WB_data_by_bank[bank])
+                    .port1_rindex(next_prf_port1_read_upper_PR_by_bank[ram_bank]),
+                    .port1_rdata(reg_read_data_by_bank_by_port[ram_bank][1]),
+                    .wen_byte({4{prf_WB_valid_by_bank[ram_bank]}}),
+                    .windex(prf_WB_upper_PR_by_bank[ram_bank]),
+                    .wdata(prf_WB_data_by_bank[ram_bank])
                 );
 
                 // // BRAM using curr's
@@ -157,14 +157,14 @@ module prf #(
                 //     .CLK(CLK),
                 //     .nRST(nRST),
                 //     .port0_ren(1'b1),
-                //     .port0_rindex(prf_port0_read_upper_PR_by_bank[bank]),
-                //     .port0_rdata(reg_read_data_by_bank_by_port[bank][0]),
+                //     .port0_rindex(prf_port0_read_upper_PR_by_bank[ram_bank]),
+                //     .port0_rdata(reg_read_data_by_bank_by_port[ram_bank][0]),
                 //     .port1_ren(1'b1),
-                //     .port1_rindex(prf_port1_read_upper_PR_by_bank[bank]),
-                //     .port1_rdata(reg_read_data_by_bank_by_port[bank][1]),
-                //     .wen_byte({4{prf_WB_valid_by_bank[bank]}}),
-                //     .windex(prf_WB_upper_PR_by_bank[bank]),
-                //     .wdata(prf_WB_data_by_bank)
+                //     .port1_rindex(prf_port1_read_upper_PR_by_bank[ram_bank]),
+                //     .port1_rdata(reg_read_data_by_bank_by_port[ram_bank][1]),
+                //     .wen_byte({4{prf_WB_valid_by_bank[ram_bank]}}),
+                //     .windex(prf_WB_upper_PR_by_bank[ram_bank]),
+                //     .wdata(prf_WB_data_by_bank[ram_bank])
                 // );
             end
 
@@ -176,13 +176,13 @@ module prf #(
                     .OUTER_WIDTH(PR_COUNT/PRF_BANK_COUNT)
                 ) DISTRAM (
                     .CLK(CLK),
-                    .port0_rindex(prf_port0_read_upper_PR_by_bank[bank]),
-                    .port0_rdata(reg_read_data_by_bank_by_port[bank][0]),
-                    .port1_rindex(prf_port1_read_upper_PR_by_bank[bank]),
-                    .port1_rdata(reg_read_data_by_bank_by_port[bank][1]),
-                    .wen(prf_WB_valid_by_bank[bank]),
-                    .windex(prf_WB_upper_PR_by_bank[bank]),
-                    .wdata(prf_WB_data_by_bank[bank])
+                    .port0_rindex(prf_port0_read_upper_PR_by_bank[ram_bank]),
+                    .port0_rdata(reg_read_data_by_bank_by_port[ram_bank][0]),
+                    .port1_rindex(prf_port1_read_upper_PR_by_bank[ram_bank]),
+                    .port1_rdata(reg_read_data_by_bank_by_port[ram_bank][1]),
+                    .wen(prf_WB_valid_by_bank[ram_bank]),
+                    .windex(prf_WB_upper_PR_by_bank[ram_bank]),
+                    .wdata(prf_WB_data_by_bank[ram_bank])
                 );
             end
         end
@@ -192,27 +192,47 @@ module prf #(
     // ----------------------------------------------------------------
     // Reg Read Logic:
 
-    // PQ function for RR's, prioritizing msb to lsb
-    function static logic [PRF_RR_COUNT-1:0] RR_PQ (input logic [PRF_RR_COUNT-1:0] req_vec);
-        
-        // init clear vec
-        RR_PQ = '0;
-
-        // go through req vec
-            // lsb to msb so msb gets last say
-        for (int rr = 0; rr < PRF_RR_COUNT; rr++) begin
+    // Read Request PQ's
+    genvar rr_bank;
+    generate
+        for (rr_bank = 0; rr_bank < PRF_BANK_COUNT; rr_bank++) begin
             
-            // check this req hot
-            if (req_vec[rr]) begin
+            // port 0:
+                // single PQ over raw compressed req's
+            
+            // port 0 masked
+            pq_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT0_MASKED_PQ_LSB (
+                .req_vec(compressed_reg_read_req_valid_by_bank_by_rr[rr_bank] & last_reg_read_mask_by_bank[rr_bank]),
+                .ack_one_hot(port0_masked_reg_read_ack_by_bank_by_rr[rr_bank]),
+                .ack_mask()
+            );
+            
+            // port 0 unmasked
+            pq_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT0_UNMASKED_PQ_LSB (
+                .req_vec(compressed_reg_read_req_valid_by_bank_by_rr[rr_bank]),
+                .ack_one_hot(port0_unmasked_reg_read_ack_by_bank_by_rr[rr_bank]),
+                .ack_mask()
+            );
 
-                // new one-hot vec
-                    // override any lsb one-hot
-                RR_PQ = '0;
-                RR_PQ[rr] = 1'b1;
-            end
+            // port 1:
+                // single PQ over raw compressed req's with port 0 ack masked out
+            
+            // port 1 masked
+            pq_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_MASKED_PQ_LSB (
+                .req_vec(compressed_reg_read_req_valid_by_bank_by_rr[rr_bank] & ~port0_reg_read_ack_by_bank_by_rr[rr_bank] & last_reg_read_mask_by_bank[rr_bank]),
+                .ack_one_hot(port1_masked_reg_read_ack_by_bank_by_rr[rr_bank]),
+                .ack_mask()
+            );
+            
+            // port 1 unmasked
+            pq_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_UNMASKED_PQ_LSB (
+                .req_vec(compressed_reg_read_req_valid_by_bank_by_rr[rr_bank] & ~port0_reg_read_ack_by_bank_by_rr[rr_bank]),
+                .ack_one_hot(port1_unmasked_reg_read_ack_by_bank_by_rr[rr_bank]),
+                .ack_mask()
+            );
+
         end
-
-    endfunction
+    endgenerate
 
     always_comb begin
 
@@ -239,17 +259,9 @@ module prf #(
             end
         end
         
-        // ack PQ by bank
+        // port 0 and port 1 select by bank
+            // use RR PQ's above
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-            
-            // port 0:
-                // single PQ over raw compressed req's
-
-            // port 0 masked
-            port0_masked_reg_read_ack_by_bank_by_rr[bank] = RR_PQ(compressed_reg_read_req_valid_by_bank_by_rr[bank] & last_reg_read_mask_by_bank[bank]);
-
-            // port 0 unmasked
-            port0_unmasked_reg_read_ack_by_bank_by_rr[bank] = RR_PQ(compressed_reg_read_req_valid_by_bank_by_rr[bank]);
 
             // select port 0:
                 // if any masked req, use masked
@@ -260,15 +272,6 @@ module prf #(
             else begin
                 port0_reg_read_ack_by_bank_by_rr[bank] = port0_unmasked_reg_read_ack_by_bank_by_rr[bank];
             end
-
-            // port 1:
-                // single PQ over raw compressed req's with port 0 ack masked out
-
-            // port 1 masked
-            port1_masked_reg_read_ack_by_bank_by_rr[bank] = RR_PQ(compressed_reg_read_req_valid_by_bank_by_rr[bank] & ~port0_reg_read_ack_by_bank_by_rr[bank] & last_reg_read_mask_by_bank[bank]);
-
-            // port 1 unmasked
-            port1_unmasked_reg_read_ack_by_bank_by_rr[bank] = RR_PQ(compressed_reg_read_req_valid_by_bank_by_rr[bank] & ~port0_reg_read_ack_by_bank_by_rr[bank]);
 
             // select port 1:
                 // if any masked req, use masked
@@ -304,8 +307,8 @@ module prf #(
             // base on port 1
         next_last_reg_read_mask_by_bank = '0;
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-            for (int rr = PRF_RR_COUNT-2; rr >= 0; rr--) begin
-                next_last_reg_read_mask_by_bank[bank][rr] = port1_reg_read_ack_by_bank_by_rr[bank][rr+1] | next_last_reg_read_mask_by_bank[bank][rr+1];
+            for (int rr = 1; rr < PRF_RR_COUNT; rr++) begin
+                next_last_reg_read_mask_by_bank[bank][rr] = port1_reg_read_ack_by_bank_by_rr[bank][rr-1] | next_last_reg_read_mask_by_bank[bank][rr-1];
             end
         end
     end
@@ -388,6 +391,28 @@ module prf #(
 
     endfunction
 
+    // Write Request PQ's
+    genvar wr_bank;
+    generate
+        for (wr_bank = 0; wr_bank < PRF_BANK_COUNT; wr_bank++) begin
+
+            // masked
+            pq_lsb #(.WIDTH(PRF_WR_COUNT)) WR_MASKED_PQ_LSB (
+                .req_vec(compressed_WB_valid_by_bank_by_wr[wr_bank] & last_WB_mask_by_bank[wr_bank]),
+                .ack_one_hot(masked_WB_ack_by_bank_by_wr[wr_bank]),
+                .ack_mask()
+            );
+
+            // unmasked
+            pq_lsb #(.WIDTH(PRF_WR_COUNT)) WR_UNMASKED_PQ_LSB (
+                .req_vec(compressed_WB_valid_by_bank_by_wr[wr_bank]),
+                .ack_one_hot(unmasked_WB_ack_by_bank_by_wr[wr_bank]),
+                .ack_mask()
+            );
+
+        end
+    endgenerate
+
     always_comb begin
 
         // demux WB's to banks
@@ -418,15 +443,10 @@ module prf #(
             end
         end
 
-        // ack PQ by bank
+        // select by bank
+            // use RR PQ's above
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
 
-            // masked
-            masked_WB_ack_by_bank_by_wr[bank] = WR_PQ(compressed_WB_valid_by_bank_by_wr[bank] & last_WB_mask_by_bank[bank]);
-
-            // unmasked
-            unmasked_WB_ack_by_bank_by_wr[bank] = WR_PQ(compressed_WB_valid_by_bank_by_wr[bank]);
-        
             // select masked vs. unmasked
                 // if any masked req, use masked
                 // else use unmasked
@@ -459,8 +479,8 @@ module prf #(
         // last WB mask
         next_last_WB_mask_by_bank = '0;
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-            for (int wr = PRF_WR_COUNT-2; wr >= 0; wr--) begin
-                next_last_WB_mask_by_bank[bank][wr] = WB_ack_by_bank_by_wr[bank][wr+1] | next_last_WB_mask_by_bank[bank][wr+1];
+            for (int wr = 1; wr < PRF_WR_COUNT; wr++) begin
+                next_last_WB_mask_by_bank[bank][wr] = WB_ack_by_bank_by_wr[bank][wr-1] | next_last_WB_mask_by_bank[bank][wr-1];
             end
         end
     end
