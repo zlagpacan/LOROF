@@ -1,5 +1,5 @@
 # alu_imm_pipeline
-- backend functional unit for ALU immister-immediate operations
+- backend functional unit for ALU register-immediate operations
     - R[dest] <= R[A] op imm
         - see [Targeted Instructions](#targeted-instructions)
     - see [core_basics.md](../basics/core_basics.md) for the basic purpose of a functional unit in the backend of the core
@@ -18,7 +18,7 @@
 
 
 # RTL Diagram
-![alu_pipeline RTL Diagram](alu_reg_pipeline.png)
+![alu_pipeline RTL Diagram](alu_imm_pipeline.png)
 
 
 # Interfaces
@@ -34,8 +34,10 @@ These signals make more sense in combination with the information in the [Pipeli
 This is a sequential module utilizing posedge flip flops
 
 - CLK
+    - input logic
     - clock signal
 - nRST
+    - input logic
     - active-low asynchronous reset
 
 <span style="color:deepskyblue">

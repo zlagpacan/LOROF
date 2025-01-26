@@ -27,4 +27,4 @@
     - the store, AMO, and system/CSR pipelines require in-order dispatch and in-order issue
         - for these, only the oldest instruction can be issued
         - if the oldest instruction is not ready, nothing is issued
-    - forwarding is possible via observing a writeback of the physical register of interest and issueing the instruction on the same cycle, where the forwarded data can be collected on the next cycle in the FU pipeline's operand collection stage.
+    - forwarding is possible via observing a writeback of the physical register of interest and issuing the instruction on the same cycle, where the forwarded data can be collected on the next cycle in the FU pipeline's operand collection stage.
