@@ -5,7 +5,7 @@
 
 # --- Design --- #
 DUT    = alu
-DESIGN = ../../source/rtl/$(DUT).sv
+DESIGN = ../../source/rtl/$(DUT).sv testbench/assertions/sva_alu.sv
 PKG    = ../../source/include
 
 # --- Testbench/Sim --- #
@@ -97,6 +97,7 @@ build:
 	-L $(QSIM)/uvm-1.2 \
 	-sv $(DESIGN) \
 	$(UVM)/testbench.sv \
+	$(UVM)/assertions/sva_alu.sv \
 	-logfile compile.log
 
 

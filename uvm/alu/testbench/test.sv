@@ -54,10 +54,10 @@ class alu_test extends uvm_test;
     phase.raise_objection(this);
 
       // --- Test Procedure --- //
-      repeat (50 * CLK_PERIOD) begin
+      repeat (20 * CLK_PERIOD) begin
         alu_seq = alu_sequence::type_id::create("alu_seq");
         alu_seq.start(env.agnt.seqr);
-        #(CLK_PERIOD);
+        // `uvm_info("ALU_TX", $sformatf("Sequence item content: %s", alu_seq.sprint()), UVM_MEDIUM)
       end
     
     phase.drop_objection(this);
