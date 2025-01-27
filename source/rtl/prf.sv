@@ -38,12 +38,14 @@ module prf #(
 
     // writeback bus by bank
     output logic [PRF_BANK_COUNT-1:0]                                       WB_bus_valid_by_bank,
-    output logic [PRF_BANK_COUNT-1:0][31:0]                                 WB_bus_data_by_bank,
     output logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]  WB_bus_upper_PR_by_bank,
-    output logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0]                  WB_bus_ROB_index_by_bank,
 
     // forward data by bank
-    output logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank
+    output logic [PRF_BANK_COUNT-1:0][31:0] forward_data_bus_by_bank,
+
+    // complete bus by bank
+    output logic [PRF_BANK_COUNT-1:0]                       complete_bus_valid_by_bank,
+    output logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0]  complete_bus_ROB_index_by_bank
 );
 
     // ----------------------------------------------------------------
@@ -64,8 +66,11 @@ module prf #(
     logic [PRF_BANK_COUNT-1:0][31:0]                                    next_prf_WB_data_by_bank;
     logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     prf_WB_upper_PR_by_bank;
     logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     next_prf_WB_upper_PR_by_bank;
-    logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0]                     prf_WB_ROB_index_by_bank; 
-    logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0]                     next_prf_WB_ROB_index_by_bank;
+
+    logic [PRF_BANK_COUNT-1:0]                                          prf_complete_valid_by_bank;
+    logic [PRF_BANK_COUNT-1:0]                                          next_prf_complete_valid_by_bank;
+    logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0]                     prf_complete_ROB_index_by_bank; 
+    logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0]                     next_prf_complete_ROB_index_by_bank;
         // ROB_index also here since shares one-hot mux logic
 
     // Read Req Signals
@@ -485,14 +490,18 @@ module prf #(
         end
     end
 
-    // ddetermine next reg WB
+    // determine next reg WB
     always_comb begin
 
         // go through banks
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
 
-            // valid follows any compressed for bank
+            // valid WB initially follows compressed for bank
+                // can be cancelled if the write is determined to be to reg 0 later
             next_prf_WB_valid_by_bank[bank] = |compressed_WB_valid_by_bank_by_wr[bank];
+
+            // valid complete follows any compressed for bank
+            next_prf_complete_valid_by_bank[bank] = |compressed_WB_valid_by_bank_by_wr[bank];
 
             // one-hot mux
                 // get data and PR:
@@ -500,7 +509,8 @@ module prf #(
                     // OR by wr
             next_prf_WB_data_by_bank[bank] = '0;
             next_prf_WB_upper_PR_by_bank[bank] = '0;
-            next_prf_WB_ROB_index_by_bank[bank] = '0;
+
+            next_prf_complete_ROB_index_by_bank[bank] = '0;
 
             for (int wr = 0; wr < PRF_WR_COUNT; wr++) begin
                 next_prf_WB_data_by_bank[bank] |= 
@@ -513,7 +523,7 @@ module prf #(
                     &
                     {(LOG_PR_COUNT-LOG_PRF_BANK_COUNT){WB_ack_by_bank_by_wr[bank][wr]}}
                 ;
-                next_prf_WB_ROB_index_by_bank[bank] |= 
+                next_prf_complete_ROB_index_by_bank[bank] |= 
                     compressed_WB_ROB_index_by_wr[wr]
                     &
                     {LOG_ROB_ENTRIES{WB_ack_by_bank_by_wr[bank][wr]}}
@@ -535,9 +545,11 @@ module prf #(
 
     // writeback bus
     assign WB_bus_valid_by_bank = prf_WB_valid_by_bank;
-    assign WB_bus_data_by_bank = prf_WB_data_by_bank;
     assign WB_bus_upper_PR_by_bank = prf_WB_upper_PR_by_bank;
-    assign WB_bus_ROB_index_by_bank = prf_WB_ROB_index_by_bank;
+
+    // complete bus
+    assign complete_bus_valid_by_bank = prf_complete_valid_by_bank;
+    assign complete_bus_ROB_index_by_bank = prf_complete_ROB_index_by_bank;
 
     // FF
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -545,25 +557,27 @@ module prf #(
             prf_WB_valid_by_bank <= '0;
             prf_WB_data_by_bank <= '0;
             prf_WB_upper_PR_by_bank <= '0;
-            prf_WB_ROB_index_by_bank <= '0;
+            prf_complete_valid_by_bank <= '0;
+            prf_complete_ROB_index_by_bank <= '0;
             unacked_WB_valid_by_wr <= '0;
             unacked_WB_data_by_wr <= '0;
             unacked_WB_PR_by_wr <= '0;
             unacked_WB_ROB_index_by_wr <= '0;
             last_WB_mask_by_bank <= '0;
-            forward_data_by_bank <= '0;
+            forward_data_bus_by_bank <= '0;
         end
         else begin
             prf_WB_valid_by_bank <= next_prf_WB_valid_by_bank;
             prf_WB_data_by_bank <= next_prf_WB_data_by_bank;
             prf_WB_upper_PR_by_bank <= next_prf_WB_upper_PR_by_bank;
-            prf_WB_ROB_index_by_bank <= next_prf_WB_ROB_index_by_bank;
+            prf_complete_valid_by_bank <= next_prf_complete_valid_by_bank;
+            prf_complete_ROB_index_by_bank <= next_prf_complete_ROB_index_by_bank;
             unacked_WB_valid_by_wr <= next_unacked_WB_valid_by_wr;
             unacked_WB_data_by_wr <= next_unacked_WB_data_by_wr;
             unacked_WB_PR_by_wr <= next_unacked_WB_PR_by_wr;
             unacked_WB_ROB_index_by_wr <= next_unacked_WB_ROB_index_by_wr;
             last_WB_mask_by_bank <= next_last_WB_mask_by_bank;
-            forward_data_by_bank <= prf_WB_data_by_bank; 
+            forward_data_bus_by_bank <= prf_WB_data_by_bank; 
                 // 1-cycle delay from when actual WB happened
                     // this is cycle when pipelines can pick up value 
                 // cycle before is when WB info is advertized to IQs

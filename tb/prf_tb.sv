@@ -55,12 +55,14 @@ module prf_tb ();
 
     // writeback bus by bank
 	logic [PRF_BANK_COUNT-1:0] DUT_WB_bus_valid_by_bank, expected_WB_bus_valid_by_bank;
-	logic [PRF_BANK_COUNT-1:0][31:0] DUT_WB_bus_data_by_bank, expected_WB_bus_data_by_bank;
 	logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] DUT_WB_bus_upper_PR_by_bank, expected_WB_bus_upper_PR_by_bank;
-	logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0] DUT_WB_bus_ROB_index_by_bank, expected_WB_bus_ROB_index_by_bank;
 
     // forward data from PRF
-	logic [PRF_BANK_COUNT-1:0][31:0] DUT_forward_data_by_bank, expected_forward_data_by_bank;
+	logic [PRF_BANK_COUNT-1:0][31:0] DUT_forward_data_bus_by_bank, expected_forward_data_bus_by_bank;
+
+	// complete bus by bank
+	logic [PRF_BANK_COUNT-1:0] DUT_complete_bus_valid_by_bank, expected_complete_bus_valid_by_bank;
+	logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0] DUT_complete_bus_ROB_index_by_bank, expected_complete_bus_ROB_index_by_bank;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -93,12 +95,14 @@ module prf_tb ();
 
 	    // writeback bus by bank
 		.WB_bus_valid_by_bank(DUT_WB_bus_valid_by_bank),
-		.WB_bus_data_by_bank(DUT_WB_bus_data_by_bank),
 		.WB_bus_upper_PR_by_bank(DUT_WB_bus_upper_PR_by_bank),
-		.WB_bus_ROB_index_by_bank(DUT_WB_bus_ROB_index_by_bank),
 
 	    // forward data from PRF
-		.forward_data_by_bank(DUT_forward_data_by_bank)
+		.forward_data_bus_by_bank(DUT_forward_data_bus_by_bank),
+
+		// complete bus by bank
+		.complete_bus_valid_by_bank(DUT_complete_bus_valid_by_bank),
+		.complete_bus_ROB_index_by_bank(DUT_complete_bus_ROB_index_by_bank)
 	);
 
     // ----------------------------------------------------------------
@@ -141,13 +145,6 @@ module prf_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_WB_bus_data_by_bank !== DUT_WB_bus_data_by_bank) begin
-			$display("TB ERROR: expected_WB_bus_data_by_bank (%h) != DUT_WB_bus_data_by_bank (%h)",
-				expected_WB_bus_data_by_bank, DUT_WB_bus_data_by_bank);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
 		if (expected_WB_bus_upper_PR_by_bank !== DUT_WB_bus_upper_PR_by_bank) begin
 			$display("TB ERROR: expected_WB_bus_upper_PR_by_bank (%h) != DUT_WB_bus_upper_PR_by_bank (%h)",
 				expected_WB_bus_upper_PR_by_bank, DUT_WB_bus_upper_PR_by_bank);
@@ -155,16 +152,23 @@ module prf_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_WB_bus_ROB_index_by_bank !== DUT_WB_bus_ROB_index_by_bank) begin
-			$display("TB ERROR: expected_WB_bus_ROB_index_by_bank (%h) != DUT_WB_bus_ROB_index_by_bank (%h)",
-				expected_WB_bus_ROB_index_by_bank, DUT_WB_bus_ROB_index_by_bank);
+		if (expected_forward_data_bus_by_bank !== DUT_forward_data_bus_by_bank) begin
+			$display("TB ERROR: expected_forward_data_bus_by_bank (%h) != DUT_forward_data_bus_by_bank (%h)",
+				expected_forward_data_bus_by_bank, DUT_forward_data_bus_by_bank);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_forward_data_by_bank !== DUT_forward_data_by_bank) begin
-			$display("TB ERROR: expected_forward_data_by_bank (%h) != DUT_forward_data_by_bank (%h)",
-				expected_forward_data_by_bank, DUT_forward_data_by_bank);
+		if (expected_complete_bus_valid_by_bank !== DUT_complete_bus_valid_by_bank) begin
+			$display("TB ERROR: expected_complete_bus_valid_by_bank (%h) != DUT_complete_bus_valid_by_bank (%h)",
+				expected_complete_bus_valid_by_bank, DUT_complete_bus_valid_by_bank);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_complete_bus_ROB_index_by_bank !== DUT_complete_bus_ROB_index_by_bank) begin
+			$display("TB ERROR: expected_complete_bus_ROB_index_by_bank (%h) != DUT_complete_bus_ROB_index_by_bank (%h)",
+				expected_complete_bus_ROB_index_by_bank, DUT_complete_bus_ROB_index_by_bank);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -220,11 +224,12 @@ module prf_tb ();
 		expected_WB_ready_by_wr = '1;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = '0;
-		expected_WB_bus_data_by_bank = '0;
 		expected_WB_bus_upper_PR_by_bank = '0;
-		expected_WB_bus_ROB_index_by_bank = '0;
+		// complete bus by bank
+		expected_complete_bus_valid_by_bank = '0;
+		expected_complete_bus_ROB_index_by_bank = '0;
 	    // forward data from PRF
-		expected_forward_data_by_bank = '0;
+		expected_forward_data_bus_by_bank = '0;
 
 		check_outputs();
 
@@ -263,11 +268,12 @@ module prf_tb ();
 		expected_WB_ready_by_wr = '1;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = '0;
-		expected_WB_bus_data_by_bank = '0;
 		expected_WB_bus_upper_PR_by_bank = '0;
-		expected_WB_bus_ROB_index_by_bank = '0;
+		// complete bus by bank
+		expected_complete_bus_valid_by_bank = '0;
+		expected_complete_bus_ROB_index_by_bank = '0;
 	    // forward data from PRF
-		expected_forward_data_by_bank = '0;
+		expected_forward_data_bus_by_bank = '0;
 
 		check_outputs();
 
@@ -338,18 +344,19 @@ module prf_tb ();
 		expected_WB_ready_by_wr = '1;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = '0;
-		expected_WB_bus_data_by_bank = '0;
 		expected_WB_bus_upper_PR_by_bank = '0;
-		expected_WB_bus_ROB_index_by_bank = '0;
+		// complete bus by bank
+		expected_complete_bus_valid_by_bank = '0;
+		expected_complete_bus_ROB_index_by_bank = '0;
 	    // forward data from PRF
-		expected_forward_data_by_bank = '0;
+		expected_forward_data_bus_by_bank = '0;
 
 		check_outputs();
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "no conflicts 1";
+		sub_test_case = "no conflicts 1 (write to PR 0 from conflicts 1 is complete but no WB)";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -407,26 +414,28 @@ module prf_tb ();
 		expected_WB_ready_by_wr = '1;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b1110;
-		expected_WB_bus_data_by_bank = {
-			32'hFCFC0303,
-			32'hFDFD0202,
-			32'hFEFE0101,
-			32'hFFFF0000
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'hFCFC0303,
+		// 	32'hFDFD0202,
+		// 	32'hFEFE0101,
+		// 	32'hFFFF0000
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h00,
 			5'h00,
 			5'h00,
 			5'h00
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		// complete bus by bank
+		expected_complete_bus_valid_by_bank = 4'b1111;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'hFC,
 			7'hFD,
 			7'hFE,
 			7'hFF
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = '0;
+		expected_forward_data_bus_by_bank = '0;
 
 		check_outputs();
 
@@ -500,26 +509,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1111111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b0111;
-		expected_WB_bus_data_by_bank = {
-			32'h00000000,
-			32'hF9F90606,
-			32'hFAFA0505,
-			32'hFBFB0404
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'hF9F90606,
+		// 	32'hFAFA0505,
+		// 	32'hFBFB0404
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h00,
 			5'h01,
 			5'h01,
 			5'h01
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b0111;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'h00,
 			7'hF9,
 			7'hFA,
 			7'hFB
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'hFCFC0303,
 			32'hFDFD0202,
 			32'hFEFE0101,
@@ -598,26 +608,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1101001;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b1111;
-		expected_WB_bus_data_by_bank = {
-			32'hF8F80707,
-			32'hF5F50A0A,
-			32'hF2F20D0D,
-			32'hF3F30C0C
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'hF8F80707,
+		// 	32'hF5F50A0A,
+		// 	32'hF2F20D0D,
+		// 	32'hF3F30C0C
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h01,
 			5'h02,
 			5'h03,
 			5'h03
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b1111;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'hF8,
 			7'hF5,
 			7'hF2,
 			7'hF3
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'h00000000,
 			32'hf9f90606,
 			32'hfafa0505,
@@ -696,26 +707,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1010101;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b1111;
-		expected_WB_bus_data_by_bank = {
-			32'hf4f40b0b,
-			32'hf1f10e0e,
-			32'hf6f60909,
-			32'hebeb1414
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'hf4f40b0b,
+		// 	32'hf1f10e0e,
+		// 	32'hf6f60909,
+		// 	32'hebeb1414
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h02,
 			5'h03,
 			5'h02,
 			5'h05
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b1111;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'hf4,
 			7'hf1,
 			7'hf6,
 			7'heb
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'hF8F80707,
 			32'hF5F50A0A,
 			32'hF2F20D0D,
@@ -794,26 +806,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b0111010;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b1111;
-		expected_WB_bus_data_by_bank = {
-			32'hecec1313,
-			32'heded1212,
-			32'heeee1111,
-			32'hf7f70808
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'hecec1313,
+		// 	32'heded1212,
+		// 	32'heeee1111,
+		// 	32'hf7f70808
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h04,
 			5'h04,
 			5'h04,
 			5'h02
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b1111;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'hec,
 			7'hed,
 			7'hee,
 			7'hf7
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'hf4f40b0b,
 			32'hf1f10e0e,
 			32'hf6f60909,
@@ -892,26 +905,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b0001111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b1111;
-		expected_WB_bus_data_by_bank = {
-			32'hf0f00f0f,
-			32'he9e91616,
-			32'heaea1515,
-			32'hefef1010
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'hf0f00f0f,
+		// 	32'he9e91616,
+		// 	32'heaea1515,
+		// 	32'hefef1010
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h03,
 			5'h05,
 			5'h05,
 			5'h04
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b1111;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'hf0,
 			7'he9,
 			7'hea,
 			7'hef
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'hecec1313,
 			32'heded1212,
 			32'heeee1111,
@@ -990,26 +1004,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1010110;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b1111;
-		expected_WB_bus_data_by_bank = {
-			32'he4e41b1b,
-			32'he5e51a1a,
-			32'he2e21d1d,
-			32'he7e71818
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'he4e41b1b,
+		// 	32'he5e51a1a,
+		// 	32'he2e21d1d,
+		// 	32'he7e71818
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h06,
 			5'h06,
 			5'h07,
 			5'h06
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b1111;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'he4,
 			7'he5,
 			7'he2,
 			7'he7
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'hf0f00f0f,
 			32'he9e91616,
 			32'heaea1515,
@@ -1088,26 +1103,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1101001;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b1111;
-		expected_WB_bus_data_by_bank = {
-			32'he8e81717,
-			32'he1e11e1e,
-			32'he6e61919,
-			32'he3e31c1c
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'he8e81717,
+		// 	32'he1e11e1e,
+		// 	32'he6e61919,
+		// 	32'he3e31c1c
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h05,
 			5'h07,
 			5'h06,
 			5'h07
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b1111;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'he8,
 			7'he1,
 			7'he6,
 			7'he3
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'he4e41b1b,
 			32'he5e51a1a,
 			32'he2e21d1d,
@@ -1186,26 +1202,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1001111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b1111;
-		expected_WB_bus_data_by_bank = {
-			32'hdcdc2323,
-			32'hdddd2222,
-			32'hdede2121,
-			32'hdbdb2424
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'hdcdc2323,
+		// 	32'hdddd2222,
+		// 	32'hdede2121,
+		// 	32'hdbdb2424
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h08,
 			5'h08,
 			5'h08,
 			5'h09
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b1111;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'hdc,
 			7'hdd,
 			7'hde,
 			7'hdb
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'he8e81717,
 			32'he1e11e1e,
 			32'he6e61919,
@@ -1284,26 +1301,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1111111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b1001;
-		expected_WB_bus_data_by_bank = {
-			32'he0e01f1f,
-			32'h00000000,
-			32'h00000000,
-			32'hdfdf2020
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'he0e01f1f,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'hdfdf2020
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h07,
 			5'h00,
 			5'h00,
 			5'h08
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b1001;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'he0,
 			7'h00,
 			7'h00,
 			7'hdf
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'hdcdc2323,
 			32'hdddd2222,
 			32'hdede2121,
@@ -1382,26 +1400,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1111111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b0000;
-		expected_WB_bus_data_by_bank = {
-			32'h00000000,
-			32'h00000000,
-			32'h00000000,
-			32'h00000000
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h00,
 			5'h00,
 			5'h00,
 			5'h00
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b0000;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'h00,
 			7'h00,
 			7'h00,
 			7'h00
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'he0e01f1f,
 			32'h00000000,
 			32'h00000000,
@@ -1480,26 +1499,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1111111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b0000;
-		expected_WB_bus_data_by_bank = {
-			32'h00000000,
-			32'h00000000,
-			32'h00000000,
-			32'h00000000
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h00,
 			5'h00,
 			5'h00,
 			5'h00
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b0000;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'h00,
 			7'h00,
 			7'h00,
 			7'h00
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'h00000000,
 			32'h00000000,
 			32'h00000000,
@@ -1596,26 +1616,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1111111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b0000;
-		expected_WB_bus_data_by_bank = {
-			32'h00000000,
-			32'h00000000,
-			32'h00000000,
-			32'h00000000
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h00,
 			5'h00,
 			5'h00,
 			5'h00
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b0000;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'h00,
 			7'h00,
 			7'h00,
 			7'h00
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'h00000000,
 			32'h00000000,
 			32'h00000000,
@@ -1706,26 +1727,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1111111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b0000;
-		expected_WB_bus_data_by_bank = {
-			32'h00000000,
-			32'h00000000,
-			32'h00000000,
-			32'h00000000
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h00,
 			5'h00,
 			5'h00,
 			5'h00
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b0000;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'h00,
 			7'h00,
 			7'h00,
 			7'h00
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'h00000000,
 			32'h00000000,
 			32'h00000000,
@@ -1816,26 +1838,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1111111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b0000;
-		expected_WB_bus_data_by_bank = {
-			32'h00000000,
-			32'h00000000,
-			32'h00000000,
-			32'h00000000
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h00,
 			5'h00,
 			5'h00,
 			5'h00
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b0000;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'h00,
 			7'h00,
 			7'h00,
 			7'h00
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'h00000000,
 			32'h00000000,
 			32'h00000000,
@@ -1929,26 +1952,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1111111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b0000;
-		expected_WB_bus_data_by_bank = {
-			32'h00000000,
-			32'h00000000,
-			32'h00000000,
-			32'h00000000
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h00,
 			5'h00,
 			5'h00,
 			5'h00
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b0000;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'h00,
 			7'h00,
 			7'h00,
 			7'h00
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'h00000000,
 			32'h00000000,
 			32'h00000000,
@@ -2039,26 +2063,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1111111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b0000;
-		expected_WB_bus_data_by_bank = {
-			32'h00000000,
-			32'h00000000,
-			32'h00000000,
-			32'h00000000
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h00,
 			5'h00,
 			5'h00,
 			5'h00
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b0000;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'h00,
 			7'h00,
 			7'h00,
 			7'h00
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'h00000000,
 			32'h00000000,
 			32'h00000000,
@@ -2149,26 +2174,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1111111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b0000;
-		expected_WB_bus_data_by_bank = {
-			32'h00000000,
-			32'h00000000,
-			32'h00000000,
-			32'h00000000
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h00,
 			5'h00,
 			5'h00,
 			5'h00
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b0000;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'h00,
 			7'h00,
 			7'h00,
 			7'h00
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'h00000000,
 			32'h00000000,
 			32'h00000000,
@@ -2259,26 +2285,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1111111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b0000;
-		expected_WB_bus_data_by_bank = {
-			32'h00000000,
-			32'h00000000,
-			32'h00000000,
-			32'h00000000
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h00,
 			5'h00,
 			5'h00,
 			5'h00
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b0000;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'h00,
 			7'h00,
 			7'h00,
 			7'h00
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'h00000000,
 			32'h00000000,
 			32'h00000000,
@@ -2369,26 +2396,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1111111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b0000;
-		expected_WB_bus_data_by_bank = {
-			32'h00000000,
-			32'h00000000,
-			32'h00000000,
-			32'h00000000
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h00,
 			5'h00,
 			5'h00,
 			5'h00
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b0000;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'h00,
 			7'h00,
 			7'h00,
 			7'h00
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'h00000000,
 			32'h00000000,
 			32'h00000000,
@@ -2479,26 +2507,27 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1111111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b0000;
-		expected_WB_bus_data_by_bank = {
-			32'h00000000,
-			32'h00000000,
-			32'h00000000,
-			32'h00000000
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h00,
 			5'h00,
 			5'h00,
 			5'h00
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b0000;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'h00,
 			7'h00,
 			7'h00,
 			7'h00
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
 			32'h00000000,
 			32'h00000000,
 			32'h00000000,
@@ -2589,26 +2618,699 @@ module prf_tb ();
 		expected_WB_ready_by_wr = 7'b1111111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b0000;
-		expected_WB_bus_data_by_bank = {
-			32'h00000000,
-			32'h00000000,
-			32'h00000000,
-			32'h00000000
-		};
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
 		expected_WB_bus_upper_PR_by_bank = {
 			5'h00,
 			5'h00,
 			5'h00,
 			5'h00
 		};
-		expected_WB_bus_ROB_index_by_bank = {
+		expected_complete_bus_valid_by_bank = 4'b0000;
+		expected_complete_bus_ROB_index_by_bank = {
 			7'h00,
 			7'h00,
 			7'h00,
 			7'h00
 		};
 	    // forward data from PRF
-		expected_forward_data_by_bank = {
+		expected_forward_data_bus_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+
+		check_outputs();
+
+        // ------------------------------------------------------------
+        // PR 0 write check:
+        test_case = "PR 0 write check";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "PR 0 write req's";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // reg read req by read requester
+		tb_read_req_valid_by_rr = 11'b00000000000;
+		tb_read_req_PR_by_rr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // reg read info by read requestor
+	    // reg read data by bank
+	    // writeback data by write requestor
+		tb_WB_valid_by_wr = 7'b1001001;
+		tb_WB_data_by_wr = {
+			32'h96969696,
+			32'h00000000,
+			32'h00000000,
+			32'hC3C3C3C3,
+			32'h00000000,
+			32'h00000000,
+			32'hF0F0F0F0
+		};
+		tb_WB_PR_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+		tb_WB_ROB_index_by_wr = {
+			7'h96,
+			7'h00,
+			7'h00,
+			7'hC3,
+			7'h00,
+			7'h00,
+			7'hF0
+		};
+	    // writeback backpressure by write requestor
+	    // writeback bus by bank
+	    // forward data from PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // reg read req by read requester
+	    // reg read info by read requestor
+		expected_read_resp_ack_by_rr = 11'b00000000000;
+		expected_read_resp_port_by_rr = 11'b00000000000;
+	    // reg read data by bank
+		expected_read_data_by_bank_by_port = {
+			32'hfcfc0303,
+			32'hfcfc0303,
+			32'hfdfd0202,
+			32'hfdfd0202,
+			32'hfefe0101,
+			32'hfefe0101,
+			32'h00000000,
+			32'h00000000
+		};
+	    // writeback data by write requestor
+	    // writeback backpressure by write requestor
+		expected_WB_ready_by_wr = 7'b1111111;
+	    // writeback bus by bank
+		expected_WB_bus_valid_by_bank = 4'b0000;
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
+		expected_WB_bus_upper_PR_by_bank = {
+			5'h00,
+			5'h00,
+			5'h00,
+			5'h00
+		};
+		expected_complete_bus_valid_by_bank = 4'b0000;
+		expected_complete_bus_ROB_index_by_bank = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // forward data from PRF
+		expected_forward_data_bus_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "PR 0 write resp 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // reg read req by read requester
+		tb_read_req_valid_by_rr = 11'b00000000000;
+		tb_read_req_PR_by_rr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // reg read info by read requestor
+	    // reg read data by bank
+	    // writeback data by write requestor
+		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_data_by_wr = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		tb_WB_PR_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+		tb_WB_ROB_index_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // writeback backpressure by write requestor
+	    // writeback bus by bank
+	    // forward data from PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // reg read req by read requester
+	    // reg read info by read requestor
+		expected_read_resp_ack_by_rr = 11'b00000000000;
+		expected_read_resp_port_by_rr = 11'b00000000000;
+	    // reg read data by bank
+		expected_read_data_by_bank_by_port = {
+			32'hfcfc0303,
+			32'hfcfc0303,
+			32'hfdfd0202,
+			32'hfdfd0202,
+			32'hfefe0101,
+			32'hfefe0101,
+			32'h00000000,
+			32'h00000000
+		};
+	    // writeback data by write requestor
+	    // writeback backpressure by write requestor
+		expected_WB_ready_by_wr = 7'b0110111;
+	    // writeback bus by bank
+		expected_WB_bus_valid_by_bank = 4'b0000;
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
+		expected_WB_bus_upper_PR_by_bank = {
+			5'h00,
+			5'h00,
+			5'h00,
+			5'h00
+		};
+		expected_complete_bus_valid_by_bank = 4'b0001;
+		expected_complete_bus_ROB_index_by_bank = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'hF0
+		};
+	    // forward data from PRF
+		expected_forward_data_bus_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "PR 0 write resp 3, forward 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // reg read req by read requester
+		tb_read_req_valid_by_rr = 11'b00000000000;
+		tb_read_req_PR_by_rr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // reg read info by read requestor
+	    // reg read data by bank
+	    // writeback data by write requestor
+		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_data_by_wr = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		tb_WB_PR_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+		tb_WB_ROB_index_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // writeback backpressure by write requestor
+	    // writeback bus by bank
+	    // forward data from PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // reg read req by read requester
+	    // reg read info by read requestor
+		expected_read_resp_ack_by_rr = 11'b00000000000;
+		expected_read_resp_port_by_rr = 11'b00000000000;
+	    // reg read data by bank
+		expected_read_data_by_bank_by_port = {
+			32'hfcfc0303,
+			32'hfcfc0303,
+			32'hfdfd0202,
+			32'hfdfd0202,
+			32'hfefe0101,
+			32'hfefe0101,
+			32'h00000000,
+			32'h00000000
+		};
+	    // writeback data by write requestor
+	    // writeback backpressure by write requestor
+		expected_WB_ready_by_wr = 7'b0111111;
+	    // writeback bus by bank
+		expected_WB_bus_valid_by_bank = 4'b0000;
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
+		expected_WB_bus_upper_PR_by_bank = {
+			5'h00,
+			5'h00,
+			5'h00,
+			5'h00
+		};
+		expected_complete_bus_valid_by_bank = 4'b0001;
+		expected_complete_bus_ROB_index_by_bank = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'hC3
+		};
+	    // forward data from PRF
+		expected_forward_data_bus_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'hF0F0F0F0
+		};
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "PR 0 write resp 6, forward 3";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // reg read req by read requester
+		tb_read_req_valid_by_rr = 11'b00000000000;
+		tb_read_req_PR_by_rr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // reg read info by read requestor
+	    // reg read data by bank
+	    // writeback data by write requestor
+		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_data_by_wr = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		tb_WB_PR_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+		tb_WB_ROB_index_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // writeback backpressure by write requestor
+	    // writeback bus by bank
+	    // forward data from PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // reg read req by read requester
+	    // reg read info by read requestor
+		expected_read_resp_ack_by_rr = 11'b00000000000;
+		expected_read_resp_port_by_rr = 11'b00000000000;
+	    // reg read data by bank
+		expected_read_data_by_bank_by_port = {
+			32'hfcfc0303,
+			32'hfcfc0303,
+			32'hfdfd0202,
+			32'hfdfd0202,
+			32'hfefe0101,
+			32'hfefe0101,
+			32'h00000000,
+			32'h00000000
+		};
+	    // writeback data by write requestor
+	    // writeback backpressure by write requestor
+		expected_WB_ready_by_wr = 7'b1111111;
+	    // writeback bus by bank
+		expected_WB_bus_valid_by_bank = 4'b0000;
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
+		expected_WB_bus_upper_PR_by_bank = {
+			5'h00,
+			5'h00,
+			5'h00,
+			5'h00
+		};
+		expected_complete_bus_valid_by_bank = 4'b0001;
+		expected_complete_bus_ROB_index_by_bank = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h96
+		};
+	    // forward data from PRF
+		expected_forward_data_bus_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'hC3C3C3C3
+		};
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "PR 0 forward 6";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // reg read req by read requester
+		tb_read_req_valid_by_rr = 11'b00000000000;
+		tb_read_req_PR_by_rr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // reg read info by read requestor
+	    // reg read data by bank
+	    // writeback data by write requestor
+		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_data_by_wr = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		tb_WB_PR_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+		tb_WB_ROB_index_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // writeback backpressure by write requestor
+	    // writeback bus by bank
+	    // forward data from PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // reg read req by read requester
+	    // reg read info by read requestor
+		expected_read_resp_ack_by_rr = 11'b00000000000;
+		expected_read_resp_port_by_rr = 11'b00000000000;
+	    // reg read data by bank
+		expected_read_data_by_bank_by_port = {
+			32'hfcfc0303,
+			32'hfcfc0303,
+			32'hfdfd0202,
+			32'hfdfd0202,
+			32'hfefe0101,
+			32'hfefe0101,
+			32'h00000000,
+			32'h00000000
+		};
+	    // writeback data by write requestor
+	    // writeback backpressure by write requestor
+		expected_WB_ready_by_wr = 7'b1111111;
+	    // writeback bus by bank
+		expected_WB_bus_valid_by_bank = 4'b0000;
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
+		expected_WB_bus_upper_PR_by_bank = {
+			5'h00,
+			5'h00,
+			5'h00,
+			5'h00
+		};
+		expected_complete_bus_valid_by_bank = 4'b0000;
+		expected_complete_bus_ROB_index_by_bank = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // forward data from PRF
+		expected_forward_data_bus_by_bank = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h96969696
+		};
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "PR 0 writes winded down";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // reg read req by read requester
+		tb_read_req_valid_by_rr = 11'b00000000000;
+		tb_read_req_PR_by_rr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // reg read info by read requestor
+	    // reg read data by bank
+	    // writeback data by write requestor
+		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_data_by_wr = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
+		};
+		tb_WB_PR_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+		tb_WB_ROB_index_by_wr = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // writeback backpressure by write requestor
+	    // writeback bus by bank
+	    // forward data from PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // reg read req by read requester
+	    // reg read info by read requestor
+		expected_read_resp_ack_by_rr = 11'b00000000000;
+		expected_read_resp_port_by_rr = 11'b00000000000;
+	    // reg read data by bank
+		expected_read_data_by_bank_by_port = {
+			32'hfcfc0303,
+			32'hfcfc0303,
+			32'hfdfd0202,
+			32'hfdfd0202,
+			32'hfefe0101,
+			32'hfefe0101,
+			32'h00000000,
+			32'h00000000
+		};
+	    // writeback data by write requestor
+	    // writeback backpressure by write requestor
+		expected_WB_ready_by_wr = 7'b1111111;
+	    // writeback bus by bank
+		expected_WB_bus_valid_by_bank = 4'b0000;
+		// expected_WB_bus_data_by_bank = {
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000,
+		// 	32'h00000000
+		// };
+		expected_WB_bus_upper_PR_by_bank = {
+			5'h00,
+			5'h00,
+			5'h00,
+			5'h00
+		};
+		expected_complete_bus_valid_by_bank = 4'b0000;
+		expected_complete_bus_ROB_index_by_bank = {
+			7'h00,
+			7'h00,
+			7'h00,
+			7'h00
+		};
+	    // forward data from PRF
+		expected_forward_data_bus_by_bank = {
 			32'h00000000,
 			32'h00000000,
 			32'h00000000,
