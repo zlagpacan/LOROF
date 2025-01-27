@@ -34,15 +34,15 @@ module prf_tb ();
 
 
     // reg read req by read requester
-	logic [PRF_RR_COUNT-1:0] tb_reg_read_req_valid_by_rr;
-	logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0] tb_reg_read_req_PR_by_rr;
+	logic [PRF_RR_COUNT-1:0] tb_read_req_valid_by_rr;
+	logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0] tb_read_req_PR_by_rr;
 
     // reg read info by read requestor
-	logic [PRF_RR_COUNT-1:0] DUT_reg_read_ack_by_rr, expected_reg_read_ack_by_rr;
-	logic [PRF_RR_COUNT-1:0] DUT_reg_read_port_by_rr, expected_reg_read_port_by_rr;
+	logic [PRF_RR_COUNT-1:0] DUT_read_resp_ack_by_rr, expected_read_resp_ack_by_rr;
+	logic [PRF_RR_COUNT-1:0] DUT_read_resp_port_by_rr, expected_read_resp_port_by_rr;
 
     // reg read data by bank
-	logic [PRF_BANK_COUNT-1:0][1:0][31:0] DUT_reg_read_data_by_bank_by_port, expected_reg_read_data_by_bank_by_port;
+	logic [PRF_BANK_COUNT-1:0][1:0][31:0] DUT_read_data_by_bank_by_port, expected_read_data_by_bank_by_port;
 
     // writeback data by write requestor
 	logic [PRF_WR_COUNT-1:0] tb_WB_valid_by_wr;
@@ -72,15 +72,15 @@ module prf_tb ();
 
 
 	    // reg read req by read requester
-		.reg_read_req_valid_by_rr(tb_reg_read_req_valid_by_rr),
-		.reg_read_req_PR_by_rr(tb_reg_read_req_PR_by_rr),
+		.read_req_valid_by_rr(tb_read_req_valid_by_rr),
+		.read_req_PR_by_rr(tb_read_req_PR_by_rr),
 
 	    // reg read info by read requestor
-		.reg_read_ack_by_rr(DUT_reg_read_ack_by_rr),
-		.reg_read_port_by_rr(DUT_reg_read_port_by_rr),
+		.read_resp_ack_by_rr(DUT_read_resp_ack_by_rr),
+		.read_resp_port_by_rr(DUT_read_resp_port_by_rr),
 
 	    // reg read data by bank
-		.reg_read_data_by_bank_by_port(DUT_reg_read_data_by_bank_by_port),
+		.read_data_by_bank_by_port(DUT_read_data_by_bank_by_port),
 
 	    // writeback data by write requestor
 		.WB_valid_by_wr(tb_WB_valid_by_wr),
@@ -106,23 +106,23 @@ module prf_tb ();
 
     task check_outputs();
     begin
-		if (expected_reg_read_ack_by_rr !== DUT_reg_read_ack_by_rr) begin
-			$display("TB ERROR: expected_reg_read_ack_by_rr (%h) != DUT_reg_read_ack_by_rr (%h)",
-				expected_reg_read_ack_by_rr, DUT_reg_read_ack_by_rr);
+		if (expected_read_resp_ack_by_rr !== DUT_read_resp_ack_by_rr) begin
+			$display("TB ERROR: expected_read_resp_ack_by_rr (%h) != DUT_read_resp_ack_by_rr (%h)",
+				expected_read_resp_ack_by_rr, DUT_read_resp_ack_by_rr);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_reg_read_port_by_rr !== DUT_reg_read_port_by_rr) begin
-			$display("TB ERROR: expected_reg_read_port_by_rr (%h) != DUT_reg_read_port_by_rr (%h)",
-				expected_reg_read_port_by_rr, DUT_reg_read_port_by_rr);
+		if (expected_read_resp_port_by_rr !== DUT_read_resp_port_by_rr) begin
+			$display("TB ERROR: expected_read_resp_port_by_rr (%h) != DUT_read_resp_port_by_rr (%h)",
+				expected_read_resp_port_by_rr, DUT_read_resp_port_by_rr);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_reg_read_data_by_bank_by_port !== DUT_reg_read_data_by_bank_by_port) begin
-			$display("TB ERROR: expected_reg_read_data_by_bank_by_port (%h) != DUT_reg_read_data_by_bank_by_port (%h)",
-				expected_reg_read_data_by_bank_by_port, DUT_reg_read_data_by_bank_by_port);
+		if (expected_read_data_by_bank_by_port !== DUT_read_data_by_bank_by_port) begin
+			$display("TB ERROR: expected_read_data_by_bank_by_port (%h) != DUT_read_data_by_bank_by_port (%h)",
+				expected_read_data_by_bank_by_port, DUT_read_data_by_bank_by_port);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -192,8 +192,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b0;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = '0;
-		tb_reg_read_req_PR_by_rr = '0;
+		tb_read_req_valid_by_rr = '0;
+		tb_read_req_PR_by_rr = '0;
 	    // reg read info by read requestor
 	    // reg read data by bank
 	    // writeback data by write requestor
@@ -211,10 +211,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = '0;
-		expected_reg_read_port_by_rr = '0;
+		expected_read_resp_ack_by_rr = '0;
+		expected_read_resp_port_by_rr = '0;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = '0;
+		expected_read_data_by_bank_by_port = '0;
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
 		expected_WB_ready_by_wr = '1;
@@ -235,8 +235,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = '0;
-		tb_reg_read_req_PR_by_rr = '0;
+		tb_read_req_valid_by_rr = '0;
+		tb_read_req_PR_by_rr = '0;
 	    // reg read info by read requestor
 	    // reg read data by bank
 	    // writeback data by write requestor
@@ -254,10 +254,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = '0;
-		expected_reg_read_port_by_rr = '0;
+		expected_read_resp_ack_by_rr = '0;
+		expected_read_resp_port_by_rr = '0;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = '0;
+		expected_read_data_by_bank_by_port = '0;
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
 		expected_WB_ready_by_wr = '1;
@@ -286,8 +286,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = '0;
-		tb_reg_read_req_PR_by_rr = '0;
+		tb_read_req_valid_by_rr = '0;
+		tb_read_req_PR_by_rr = '0;
 	    // reg read info by read requestor
 	    // reg read data by bank
 	    // writeback data by write requestor
@@ -329,10 +329,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = '0;
-		expected_reg_read_port_by_rr = '0;
+		expected_read_resp_ack_by_rr = '0;
+		expected_read_resp_port_by_rr = '0;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = '0;
+		expected_read_data_by_bank_by_port = '0;
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
 		expected_WB_ready_by_wr = '1;
@@ -355,8 +355,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = '0;
-		tb_reg_read_req_PR_by_rr = '0;
+		tb_read_req_valid_by_rr = '0;
+		tb_read_req_PR_by_rr = '0;
 	    // reg read info by read requestor
 	    // reg read data by bank
 	    // writeback data by write requestor
@@ -398,10 +398,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = '0;
-		expected_reg_read_port_by_rr = '0;
+		expected_read_resp_ack_by_rr = '0;
+		expected_read_resp_port_by_rr = '0;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = '0;
+		expected_read_data_by_bank_by_port = '0;
 	    // writeback data by write requestor
 	    // writeback backpressure by write requestor
 		expected_WB_ready_by_wr = '1;
@@ -439,8 +439,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = '0;
-		tb_reg_read_req_PR_by_rr = '0;
+		tb_read_req_valid_by_rr = '0;
+		tb_read_req_PR_by_rr = '0;
 	    // reg read info by read requestor
 	    // reg read data by bank
 	    // writeback data by write requestor
@@ -482,10 +482,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = '0;
-		expected_reg_read_port_by_rr = '0;
+		expected_read_resp_ack_by_rr = '0;
+		expected_read_resp_port_by_rr = '0;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hFCFC0303,
 			32'hFCFC0303,
 			32'hFDFD0202,
@@ -537,8 +537,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = '0;
-		tb_reg_read_req_PR_by_rr = '0;
+		tb_read_req_valid_by_rr = '0;
+		tb_read_req_PR_by_rr = '0;
 	    // reg read info by read requestor
 	    // reg read data by bank
 	    // writeback data by write requestor
@@ -580,10 +580,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = '0;
-		expected_reg_read_port_by_rr = '0;
+		expected_read_resp_ack_by_rr = '0;
+		expected_read_resp_port_by_rr = '0;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hFCFC0303,
 			32'hFCFC0303,
 			32'hFDFD0202,
@@ -635,8 +635,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = '0;
-		tb_reg_read_req_PR_by_rr = '0;
+		tb_read_req_valid_by_rr = '0;
+		tb_read_req_PR_by_rr = '0;
 	    // reg read info by read requestor
 	    // reg read data by bank
 	    // writeback data by write requestor
@@ -678,10 +678,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = '0;
-		expected_reg_read_port_by_rr = '0;
+		expected_read_resp_ack_by_rr = '0;
+		expected_read_resp_port_by_rr = '0;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hFCFC0303,
 			32'hFCFC0303,
 			32'hFDFD0202,
@@ -733,8 +733,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = '0;
-		tb_reg_read_req_PR_by_rr = '0;
+		tb_read_req_valid_by_rr = '0;
+		tb_read_req_PR_by_rr = '0;
 	    // reg read info by read requestor
 	    // reg read data by bank
 	    // writeback data by write requestor
@@ -776,10 +776,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = '0;
-		expected_reg_read_port_by_rr = '0;
+		expected_read_resp_ack_by_rr = '0;
+		expected_read_resp_port_by_rr = '0;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hFCFC0303,
 			32'hFCFC0303,
 			32'hFDFD0202,
@@ -831,8 +831,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = '0;
-		tb_reg_read_req_PR_by_rr = '0;
+		tb_read_req_valid_by_rr = '0;
+		tb_read_req_PR_by_rr = '0;
 	    // reg read info by read requestor
 	    // reg read data by bank
 	    // writeback data by write requestor
@@ -874,10 +874,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = '0;
-		expected_reg_read_port_by_rr = '0;
+		expected_read_resp_ack_by_rr = '0;
+		expected_read_resp_port_by_rr = '0;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hFCFC0303,
 			32'hFCFC0303,
 			32'hFDFD0202,
@@ -929,8 +929,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = '0;
-		tb_reg_read_req_PR_by_rr = '0;
+		tb_read_req_valid_by_rr = '0;
+		tb_read_req_PR_by_rr = '0;
 	    // reg read info by read requestor
 	    // reg read data by bank
 	    // writeback data by write requestor
@@ -972,10 +972,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = '0;
-		expected_reg_read_port_by_rr = '0;
+		expected_read_resp_ack_by_rr = '0;
+		expected_read_resp_port_by_rr = '0;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hFCFC0303,
 			32'hFCFC0303,
 			32'hFDFD0202,
@@ -1027,8 +1027,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = '0;
-		tb_reg_read_req_PR_by_rr = '0;
+		tb_read_req_valid_by_rr = '0;
+		tb_read_req_PR_by_rr = '0;
 	    // reg read info by read requestor
 	    // reg read data by bank
 	    // writeback data by write requestor
@@ -1070,10 +1070,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = '0;
-		expected_reg_read_port_by_rr = '0;
+		expected_read_resp_ack_by_rr = '0;
+		expected_read_resp_port_by_rr = '0;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hFCFC0303,
 			32'hFCFC0303,
 			32'hFDFD0202,
@@ -1125,8 +1125,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = '0;
-		tb_reg_read_req_PR_by_rr = '0;
+		tb_read_req_valid_by_rr = '0;
+		tb_read_req_PR_by_rr = '0;
 	    // reg read info by read requestor
 	    // reg read data by bank
 	    // writeback data by write requestor
@@ -1168,10 +1168,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = '0;
-		expected_reg_read_port_by_rr = '0;
+		expected_read_resp_ack_by_rr = '0;
+		expected_read_resp_port_by_rr = '0;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hFCFC0303,
 			32'hFCFC0303,
 			32'hFDFD0202,
@@ -1223,8 +1223,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = '0;
-		tb_reg_read_req_PR_by_rr = '0;
+		tb_read_req_valid_by_rr = '0;
+		tb_read_req_PR_by_rr = '0;
 	    // reg read info by read requestor
 	    // reg read data by bank
 	    // writeback data by write requestor
@@ -1266,10 +1266,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = '0;
-		expected_reg_read_port_by_rr = '0;
+		expected_read_resp_ack_by_rr = '0;
+		expected_read_resp_port_by_rr = '0;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hFCFC0303,
 			32'hFCFC0303,
 			32'hFDFD0202,
@@ -1321,8 +1321,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = '0;
-		tb_reg_read_req_PR_by_rr = '0;
+		tb_read_req_valid_by_rr = '0;
+		tb_read_req_PR_by_rr = '0;
 	    // reg read info by read requestor
 	    // reg read data by bank
 	    // writeback data by write requestor
@@ -1364,10 +1364,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = '0;
-		expected_reg_read_port_by_rr = '0;
+		expected_read_resp_ack_by_rr = '0;
+		expected_read_resp_port_by_rr = '0;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hFCFC0303,
 			32'hFCFC0303,
 			32'hFDFD0202,
@@ -1419,8 +1419,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = '0;
-		tb_reg_read_req_PR_by_rr = '0;
+		tb_read_req_valid_by_rr = '0;
+		tb_read_req_PR_by_rr = '0;
 	    // reg read info by read requestor
 	    // reg read data by bank
 	    // writeback data by write requestor
@@ -1462,10 +1462,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = '0;
-		expected_reg_read_port_by_rr = '0;
+		expected_read_resp_ack_by_rr = '0;
+		expected_read_resp_port_by_rr = '0;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hFCFC0303,
 			32'hFCFC0303,
 			32'hFDFD0202,
@@ -1523,8 +1523,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = 11'b00011111111;
-		tb_reg_read_req_PR_by_rr = {
+		tb_read_req_valid_by_rr = 11'b00011111111;
+		tb_read_req_PR_by_rr = {
 			7'h00,
 			7'h00,
 			7'h00,
@@ -1578,10 +1578,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = 11'b00000000000;
-		expected_reg_read_port_by_rr = 11'b00000000000;
+		expected_read_resp_ack_by_rr = 11'b00000000000;
+		expected_read_resp_port_by_rr = 11'b00000000000;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hFCFC0303,
 			32'hFCFC0303,
 			32'hFDFD0202,
@@ -1633,8 +1633,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = 11'b11100011111;
-		tb_reg_read_req_PR_by_rr = {
+		tb_read_req_valid_by_rr = 11'b11100011111;
+		tb_read_req_PR_by_rr = {
 			7'h0A,
 			7'h09,
 			7'h08,
@@ -1688,10 +1688,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = 11'b00011111111;
-		expected_reg_read_port_by_rr = 11'b00011110000;
+		expected_read_resp_ack_by_rr = 11'b00011111111;
+		expected_read_resp_port_by_rr = 11'b00011110000;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hf8f80707,
 			32'hfcfc0303,
 			32'hF9F90606,
@@ -1743,8 +1743,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = 11'b00000000000;
-		tb_reg_read_req_PR_by_rr = {
+		tb_read_req_valid_by_rr = 11'b00000000000;
+		tb_read_req_PR_by_rr = {
 			7'h00,
 			7'h00,
 			7'h00,
@@ -1798,10 +1798,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = 11'b11100011111;
-		expected_reg_read_port_by_rr = 11'b00000011110;
+		expected_read_resp_ack_by_rr = 11'b11100011111;
+		expected_read_resp_port_by_rr = 11'b00000011110;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hF0F00F0F,
 			32'hF4F40B0B,
 			32'hF1F10E0E,
@@ -1853,8 +1853,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = 11'b00000000000;
-		tb_reg_read_req_PR_by_rr = {
+		tb_read_req_valid_by_rr = 11'b00000000000;
+		tb_read_req_PR_by_rr = {
 			7'h00,
 			7'h00,
 			7'h00,
@@ -1911,10 +1911,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = 11'b00000000000;
-		expected_reg_read_port_by_rr = 11'b00000000000;
+		expected_read_resp_ack_by_rr = 11'b00000000000;
+		expected_read_resp_port_by_rr = 11'b00000000000;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hFCFC0303,
 			32'hFCFC0303,
 			32'hFDFD0202,
@@ -1966,8 +1966,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = 11'b11111111111;
-		tb_reg_read_req_PR_by_rr = {
+		tb_read_req_valid_by_rr = 11'b11111111111;
+		tb_read_req_PR_by_rr = {
 			7'h1A,
 			7'h19,
 			7'h18,
@@ -2021,10 +2021,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = 11'b00000000000;
-		expected_reg_read_port_by_rr = 11'b00000000000;
+		expected_read_resp_ack_by_rr = 11'b00000000000;
+		expected_read_resp_port_by_rr = 11'b00000000000;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hFCFC0303,
 			32'hFCFC0303,
 			32'hFDFD0202,
@@ -2076,8 +2076,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = 11'b00011111111;
-		tb_reg_read_req_PR_by_rr = {
+		tb_read_req_valid_by_rr = 11'b00011111111;
+		tb_read_req_PR_by_rr = {
 			7'h1A,
 			7'h19,
 			7'h18,
@@ -2131,10 +2131,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = 11'b00011111111;
-		expected_reg_read_port_by_rr = 11'b00011110000;
+		expected_read_resp_ack_by_rr = 11'b00011111111;
+		expected_read_resp_port_by_rr = 11'b00011110000;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hE8E81717,
 			32'hECEC1313,
 			32'hE9E91616,
@@ -2186,8 +2186,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = 11'b11111110001;
-		tb_reg_read_req_PR_by_rr = {
+		tb_read_req_valid_by_rr = 11'b11111110001;
+		tb_read_req_PR_by_rr = {
 			7'h05,
 			7'h04,
 			7'h03,
@@ -2241,10 +2241,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = 11'b11111110001;
-		expected_reg_read_port_by_rr = 11'b11100010000;
+		expected_read_resp_ack_by_rr = 11'b11111110001;
+		expected_read_resp_port_by_rr = 11'b11100010000;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'he0e01f1f,
 			32'he4e41b1b,
 			32'he5e51a1a,
@@ -2296,8 +2296,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = 11'b11110001111;
-		tb_reg_read_req_PR_by_rr = {
+		tb_read_req_valid_by_rr = 11'b11110001111;
+		tb_read_req_PR_by_rr = {
 			7'h0D,
 			7'h0C,
 			7'h0B,
@@ -2351,10 +2351,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = 11'b11110001111;
-		expected_reg_read_port_by_rr = 11'b00010000111;
+		expected_read_resp_ack_by_rr = 11'b11110001111;
+		expected_read_resp_port_by_rr = 11'b00010000111;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hdcdc2323,
 			32'hfcfc0303,
 			32'hfdfd0202,
@@ -2406,8 +2406,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = 11'b00000000000;
-		tb_reg_read_req_PR_by_rr = {
+		tb_read_req_valid_by_rr = 11'b00000000000;
+		tb_read_req_PR_by_rr = {
 			7'h00,
 			7'h00,
 			7'h00,
@@ -2461,10 +2461,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = 11'b00111011111;
-		expected_reg_read_port_by_rr = 11'b00111010000;
+		expected_read_resp_ack_by_rr = 11'b00111011111;
+		expected_read_resp_port_by_rr = 11'b00111010000;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hf4f40b0b,
 			32'hf8f80707,
 			32'hf5f50a0a,
@@ -2516,8 +2516,8 @@ module prf_tb ();
 		// reset
 		nRST = 1'b1;
 	    // reg read req by read requester
-		tb_reg_read_req_valid_by_rr = 11'b00000000000;
-		tb_reg_read_req_PR_by_rr = {
+		tb_read_req_valid_by_rr = 11'b00000000000;
+		tb_read_req_PR_by_rr = {
 			7'h00,
 			7'h00,
 			7'h00,
@@ -2571,10 +2571,10 @@ module prf_tb ();
 
 	    // reg read req by read requester
 	    // reg read info by read requestor
-		expected_reg_read_ack_by_rr = 11'b11000100000;
-		expected_reg_read_port_by_rr = 11'b01000000000;
+		expected_read_resp_ack_by_rr = 11'b11000100000;
+		expected_read_resp_port_by_rr = 11'b01000000000;
 	    // reg read data by bank
-		expected_reg_read_data_by_bank_by_port = {
+		expected_read_data_by_bank_by_port = {
 			32'hfcfc0303,
 			32'hfcfc0303,
 			32'hfdfd0202,

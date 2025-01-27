@@ -16,24 +16,24 @@ module prf #(
     input logic CLK,
     input logic nRST,
 
-    // reg read req by read requester
-    input logic [PRF_RR_COUNT-1:0]                      reg_read_req_valid_by_rr,
-    input logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]    reg_read_req_PR_by_rr,
+    // read req info by read requester
+    input logic [PRF_RR_COUNT-1:0]                      read_req_valid_by_rr,
+    input logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]    read_req_PR_by_rr,
 
-    // reg read info by read requestor
-    output logic [PRF_RR_COUNT-1:0]     reg_read_ack_by_rr,
-    output logic [PRF_RR_COUNT-1:0]     reg_read_port_by_rr,
+    // read resp info by read requestor
+    output logic [PRF_RR_COUNT-1:0]     read_resp_ack_by_rr,
+    output logic [PRF_RR_COUNT-1:0]     read_resp_port_by_rr,
 
-    // reg read data by bank
-    output logic [PRF_BANK_COUNT-1:0][1:0][31:0] reg_read_data_by_bank_by_port,
+    // read data by bank
+    output logic [PRF_BANK_COUNT-1:0][1:0][31:0] read_data_by_bank_by_port,
 
-    // writeback data by write requestor
+    // writeback info by write requestor
     input logic [PRF_WR_COUNT-1:0]                          WB_valid_by_wr,
     input logic [PRF_WR_COUNT-1:0][31:0]                    WB_data_by_wr,
     input logic [PRF_WR_COUNT-1:0][LOG_PR_COUNT-1:0]        WB_PR_by_wr,
     input logic [PRF_WR_COUNT-1:0][LOG_ROB_ENTRIES-1:0]     WB_ROB_index_by_wr,
 
-    // writeback backpressure by write requestor
+    // writeback feedback by write requestor
     output logic [PRF_WR_COUNT-1:0] WB_ready_by_wr,
 
     // writeback bus by bank
@@ -42,7 +42,7 @@ module prf #(
     output logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]  WB_bus_upper_PR_by_bank,
     output logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0]                  WB_bus_ROB_index_by_bank,
 
-    // forward data from PRF
+    // forward data by bank
     output logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank
 );
 
@@ -69,30 +69,30 @@ module prf #(
         // ROB_index also here since shares one-hot mux logic
 
     // Read Req Signals
-    logic [PRF_RR_COUNT-1:0]                        unacked_reg_read_req_valid_by_rr;
-    logic [PRF_RR_COUNT-1:0]                        next_unacked_reg_read_req_valid_by_rr;
-    logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]      unacked_reg_read_req_PR_by_rr;
-    logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]      next_unacked_reg_read_req_PR_by_rr;
+    logic [PRF_RR_COUNT-1:0]                        unacked_read_req_valid_by_rr;
+    logic [PRF_RR_COUNT-1:0]                        next_unacked_read_req_valid_by_rr;
+    logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]      unacked_read_req_PR_by_rr;
+    logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]      next_unacked_read_req_PR_by_rr;
 
-    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    reg_read_req_valid_by_bank_by_rr;
-    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    unacked_reg_read_req_valid_by_bank_by_rr;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    read_req_valid_by_bank_by_rr;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    unacked_read_req_valid_by_bank_by_rr;
 
-    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    compressed_reg_read_req_valid_by_bank_by_rr;
-    logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]      compressed_reg_read_req_PR_by_rr;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    compressed_read_req_valid_by_bank_by_rr;
+    logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]      compressed_read_req_PR_by_rr;
 
-    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port0_masked_reg_read_ack_by_bank_by_rr;
-    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port0_unmasked_reg_read_ack_by_bank_by_rr;
-    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port1_masked_reg_read_ack_by_bank_by_rr;
-    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port1_unmasked_reg_read_ack_by_bank_by_rr;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port0_masked_read_ack_by_bank_by_rr;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port0_unmasked_read_ack_by_bank_by_rr;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port1_masked_read_ack_by_bank_by_rr;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port1_unmasked_read_ack_by_bank_by_rr;
 
-    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port0_reg_read_ack_by_bank_by_rr;
-    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port1_reg_read_ack_by_bank_by_rr;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port0_read_ack_by_bank_by_rr;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port1_read_ack_by_bank_by_rr;
 
-    logic [PRF_RR_COUNT-1:0]                        next_reg_read_ack_by_rr;
-    logic [PRF_RR_COUNT-1:0]                        next_reg_read_port_by_rr;
+    logic [PRF_RR_COUNT-1:0]                        next_read_resp_ack_by_rr;
+    logic [PRF_RR_COUNT-1:0]                        next_read_resp_port_by_rr;
 
-    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    last_reg_read_mask_by_bank;
-    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    next_last_reg_read_mask_by_bank;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    last_read_mask_by_bank;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    next_last_read_mask_by_bank;
 
     // Writeback Signals
     logic [PRF_WR_COUNT-1:0]                        unacked_WB_valid_by_wr;
@@ -140,10 +140,10 @@ module prf #(
                     .nRST(nRST),
                     .port0_ren(1'b1),
                     .port0_rindex(next_prf_port0_read_upper_PR_by_bank[ram_bank]),
-                    .port0_rdata(reg_read_data_by_bank_by_port[ram_bank][0]),
+                    .port0_rdata(read_data_by_bank_by_port[ram_bank][0]),
                     .port1_ren(1'b1),
                     .port1_rindex(next_prf_port1_read_upper_PR_by_bank[ram_bank]),
-                    .port1_rdata(reg_read_data_by_bank_by_port[ram_bank][1]),
+                    .port1_rdata(read_data_by_bank_by_port[ram_bank][1]),
                     .wen_byte({4{prf_WB_valid_by_bank[ram_bank]}}),
                     .windex(prf_WB_upper_PR_by_bank[ram_bank]),
                     .wdata(prf_WB_data_by_bank[ram_bank])
@@ -158,10 +158,10 @@ module prf #(
                 //     .nRST(nRST),
                 //     .port0_ren(1'b1),
                 //     .port0_rindex(prf_port0_read_upper_PR_by_bank[ram_bank]),
-                //     .port0_rdata(reg_read_data_by_bank_by_port[ram_bank][0]),
+                //     .port0_rdata(read_data_by_bank_by_port[ram_bank][0]),
                 //     .port1_ren(1'b1),
                 //     .port1_rindex(prf_port1_read_upper_PR_by_bank[ram_bank]),
-                //     .port1_rdata(reg_read_data_by_bank_by_port[ram_bank][1]),
+                //     .port1_rdata(read_data_by_bank_by_port[ram_bank][1]),
                 //     .wen_byte({4{prf_WB_valid_by_bank[ram_bank]}}),
                 //     .windex(prf_WB_upper_PR_by_bank[ram_bank]),
                 //     .wdata(prf_WB_data_by_bank[ram_bank])
@@ -177,9 +177,9 @@ module prf #(
                 ) DISTRAM (
                     .CLK(CLK),
                     .port0_rindex(prf_port0_read_upper_PR_by_bank[ram_bank]),
-                    .port0_rdata(reg_read_data_by_bank_by_port[ram_bank][0]),
+                    .port0_rdata(read_data_by_bank_by_port[ram_bank][0]),
                     .port1_rindex(prf_port1_read_upper_PR_by_bank[ram_bank]),
-                    .port1_rdata(reg_read_data_by_bank_by_port[ram_bank][1]),
+                    .port1_rdata(read_data_by_bank_by_port[ram_bank][1]),
                     .wen(prf_WB_valid_by_bank[ram_bank]),
                     .windex(prf_WB_upper_PR_by_bank[ram_bank]),
                     .wdata(prf_WB_data_by_bank[ram_bank])
@@ -202,15 +202,15 @@ module prf #(
             
             // port 0 masked
             pq_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT0_MASKED_PQ_LSB (
-                .req_vec(compressed_reg_read_req_valid_by_bank_by_rr[rr_bank] & last_reg_read_mask_by_bank[rr_bank]),
-                .ack_one_hot(port0_masked_reg_read_ack_by_bank_by_rr[rr_bank]),
+                .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank] & last_read_mask_by_bank[rr_bank]),
+                .ack_one_hot(port0_masked_read_ack_by_bank_by_rr[rr_bank]),
                 .ack_mask()
             );
             
             // port 0 unmasked
             pq_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT0_UNMASKED_PQ_LSB (
-                .req_vec(compressed_reg_read_req_valid_by_bank_by_rr[rr_bank]),
-                .ack_one_hot(port0_unmasked_reg_read_ack_by_bank_by_rr[rr_bank]),
+                .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank]),
+                .ack_one_hot(port0_unmasked_read_ack_by_bank_by_rr[rr_bank]),
                 .ack_mask()
             );
 
@@ -219,15 +219,15 @@ module prf #(
             
             // port 1 masked
             pq_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_MASKED_PQ_LSB (
-                .req_vec(compressed_reg_read_req_valid_by_bank_by_rr[rr_bank] & ~port0_reg_read_ack_by_bank_by_rr[rr_bank] & last_reg_read_mask_by_bank[rr_bank]),
-                .ack_one_hot(port1_masked_reg_read_ack_by_bank_by_rr[rr_bank]),
+                .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank] & ~port0_read_ack_by_bank_by_rr[rr_bank] & last_read_mask_by_bank[rr_bank]),
+                .ack_one_hot(port1_masked_read_ack_by_bank_by_rr[rr_bank]),
                 .ack_mask()
             );
             
             // port 1 unmasked
             pq_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_UNMASKED_PQ_LSB (
-                .req_vec(compressed_reg_read_req_valid_by_bank_by_rr[rr_bank] & ~port0_reg_read_ack_by_bank_by_rr[rr_bank]),
-                .ack_one_hot(port1_unmasked_reg_read_ack_by_bank_by_rr[rr_bank]),
+                .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank] & ~port0_read_ack_by_bank_by_rr[rr_bank]),
+                .ack_one_hot(port1_unmasked_read_ack_by_bank_by_rr[rr_bank]),
                 .ack_mask()
             );
 
@@ -237,25 +237,25 @@ module prf #(
     always_comb begin
 
         // demux reg read req's to banks
-        reg_read_req_valid_by_bank_by_rr = '0;
-        unacked_reg_read_req_valid_by_bank_by_rr = '0;
+        read_req_valid_by_bank_by_rr = '0;
+        unacked_read_req_valid_by_bank_by_rr = '0;
         for (int rr = 0; rr < PRF_RR_COUNT; rr++) begin
-            reg_read_req_valid_by_bank_by_rr[reg_read_req_PR_by_rr[rr][LOG_PRF_BANK_COUNT-1:0]][rr] = reg_read_req_valid_by_rr[rr];
-            unacked_reg_read_req_valid_by_bank_by_rr[unacked_reg_read_req_PR_by_rr[rr][LOG_PRF_BANK_COUNT-1:0]][rr] = unacked_reg_read_req_valid_by_rr[rr];
+            read_req_valid_by_bank_by_rr[read_req_PR_by_rr[rr][LOG_PRF_BANK_COUNT-1:0]][rr] = read_req_valid_by_rr[rr];
+            unacked_read_req_valid_by_bank_by_rr[unacked_read_req_PR_by_rr[rr][LOG_PRF_BANK_COUNT-1:0]][rr] = unacked_read_req_valid_by_rr[rr];
         end
 
         // compress current + unacked req's
-        compressed_reg_read_req_valid_by_bank_by_rr = reg_read_req_valid_by_bank_by_rr | unacked_reg_read_req_valid_by_bank_by_rr;
+        compressed_read_req_valid_by_bank_by_rr = read_req_valid_by_bank_by_rr | unacked_read_req_valid_by_bank_by_rr;
 
         // select current vs. unacked req PR for compressed
         for (int rr = 0; rr < PRF_RR_COUNT; rr++) begin
 
             // use unacked reg read PR if any bank valid for unacked reg read
-            if (unacked_reg_read_req_valid_by_rr[rr]) begin
-                compressed_reg_read_req_PR_by_rr[rr] = unacked_reg_read_req_PR_by_rr[rr];
+            if (unacked_read_req_valid_by_rr[rr]) begin
+                compressed_read_req_PR_by_rr[rr] = unacked_read_req_PR_by_rr[rr];
             end
             else begin
-                compressed_reg_read_req_PR_by_rr[rr] = reg_read_req_PR_by_rr[rr];
+                compressed_read_req_PR_by_rr[rr] = read_req_PR_by_rr[rr];
             end
         end
         
@@ -266,49 +266,49 @@ module prf #(
             // select port 0:
                 // if any masked req, use masked
                 // else use unmasked
-            if (|(compressed_reg_read_req_valid_by_bank_by_rr[bank] & last_reg_read_mask_by_bank[bank])) begin
-                port0_reg_read_ack_by_bank_by_rr[bank] = port0_masked_reg_read_ack_by_bank_by_rr[bank];
+            if (|(compressed_read_req_valid_by_bank_by_rr[bank] & last_read_mask_by_bank[bank])) begin
+                port0_read_ack_by_bank_by_rr[bank] = port0_masked_read_ack_by_bank_by_rr[bank];
             end
             else begin
-                port0_reg_read_ack_by_bank_by_rr[bank] = port0_unmasked_reg_read_ack_by_bank_by_rr[bank];
+                port0_read_ack_by_bank_by_rr[bank] = port0_unmasked_read_ack_by_bank_by_rr[bank];
             end
 
             // select port 1:
                 // if any masked req, use masked
                 // else use unmasked
-            if (|(compressed_reg_read_req_valid_by_bank_by_rr[bank] & ~port0_reg_read_ack_by_bank_by_rr[bank] & last_reg_read_mask_by_bank[bank])) begin
-                port1_reg_read_ack_by_bank_by_rr[bank] = port1_masked_reg_read_ack_by_bank_by_rr[bank];
+            if (|(compressed_read_req_valid_by_bank_by_rr[bank] & ~port0_read_ack_by_bank_by_rr[bank] & last_read_mask_by_bank[bank])) begin
+                port1_read_ack_by_bank_by_rr[bank] = port1_masked_read_ack_by_bank_by_rr[bank];
             end
             else begin
-                port1_reg_read_ack_by_bank_by_rr[bank] = port1_unmasked_reg_read_ack_by_bank_by_rr[bank];
+                port1_read_ack_by_bank_by_rr[bank] = port1_unmasked_read_ack_by_bank_by_rr[bank];
             end
         end
 
         // final ack
             // combine port 0 and port 1 req's over all banks for ack
             // combine port 1 over all banks for port 
-        next_reg_read_ack_by_rr = '0;
-        next_reg_read_port_by_rr = '0;
+        next_read_resp_ack_by_rr = '0;
+        next_read_resp_port_by_rr = '0;
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-            next_reg_read_ack_by_rr |= port0_reg_read_ack_by_bank_by_rr[bank] | port1_reg_read_ack_by_bank_by_rr[bank];
-            next_reg_read_port_by_rr |= port1_reg_read_ack_by_bank_by_rr[bank];
+            next_read_resp_ack_by_rr |= port0_read_ack_by_bank_by_rr[bank] | port1_read_ack_by_bank_by_rr[bank];
+            next_read_resp_port_by_rr |= port1_read_ack_by_bank_by_rr[bank];
         end
 
         // unacked req's
-        next_unacked_reg_read_req_valid_by_rr = '0;
+        next_unacked_read_req_valid_by_rr = '0;
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-            next_unacked_reg_read_req_valid_by_rr |= compressed_reg_read_req_valid_by_bank_by_rr[bank];
+            next_unacked_read_req_valid_by_rr |= compressed_read_req_valid_by_bank_by_rr[bank];
         end
-        next_unacked_reg_read_req_valid_by_rr &= ~next_reg_read_ack_by_rr;
+        next_unacked_read_req_valid_by_rr &= ~next_read_resp_ack_by_rr;
 
-        next_unacked_reg_read_req_PR_by_rr = compressed_reg_read_req_PR_by_rr;
+        next_unacked_read_req_PR_by_rr = compressed_read_req_PR_by_rr;
 
         // last reg read mask
             // base on port 1
-        next_last_reg_read_mask_by_bank = '0;
+        next_last_read_mask_by_bank = '0;
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
             for (int rr = 1; rr < PRF_RR_COUNT; rr++) begin
-                next_last_reg_read_mask_by_bank[bank][rr] = port1_reg_read_ack_by_bank_by_rr[bank][rr-1] | next_last_reg_read_mask_by_bank[bank][rr-1];
+                next_last_read_mask_by_bank[bank][rr] = port1_read_ack_by_bank_by_rr[bank][rr-1] | next_last_read_mask_by_bank[bank][rr-1];
             end
         end
     end
@@ -326,9 +326,9 @@ module prf #(
             next_prf_port0_read_upper_PR_by_bank[bank] = '0;
             for (int rr = 0; rr < PRF_RR_COUNT; rr++) begin
                 next_prf_port0_read_upper_PR_by_bank[bank] |= 
-                    compressed_reg_read_req_PR_by_rr[rr][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT]
+                    compressed_read_req_PR_by_rr[rr][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT]
                     & 
-                    {(LOG_PR_COUNT-LOG_PRF_BANK_COUNT){port0_reg_read_ack_by_bank_by_rr[bank][rr]}}
+                    {(LOG_PR_COUNT-LOG_PRF_BANK_COUNT){port0_read_ack_by_bank_by_rr[bank][rr]}}
                 ;
             end
 
@@ -336,9 +336,9 @@ module prf #(
             next_prf_port1_read_upper_PR_by_bank[bank] = '0;
             for (int rr = 0; rr < PRF_RR_COUNT; rr++) begin
                 next_prf_port1_read_upper_PR_by_bank[bank] |= 
-                    compressed_reg_read_req_PR_by_rr[rr][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT]
+                    compressed_read_req_PR_by_rr[rr][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT]
                     & 
-                    {(LOG_PR_COUNT-LOG_PRF_BANK_COUNT){port1_reg_read_ack_by_bank_by_rr[bank][rr]}}
+                    {(LOG_PR_COUNT-LOG_PRF_BANK_COUNT){port1_read_ack_by_bank_by_rr[bank][rr]}}
                 ;
             end
         end
@@ -349,20 +349,20 @@ module prf #(
         if (~nRST) begin
             prf_port0_read_upper_PR_by_bank <= '0;
             prf_port1_read_upper_PR_by_bank <= '0;
-            unacked_reg_read_req_valid_by_rr <= '0;
-            unacked_reg_read_req_PR_by_rr <= '0;
-            last_reg_read_mask_by_bank <= '0;
-            reg_read_ack_by_rr <= '0;
-            reg_read_port_by_rr <= '0;
+            unacked_read_req_valid_by_rr <= '0;
+            unacked_read_req_PR_by_rr <= '0;
+            last_read_mask_by_bank <= '0;
+            read_resp_ack_by_rr <= '0;
+            read_resp_port_by_rr <= '0;
         end
         else begin
             prf_port0_read_upper_PR_by_bank <= next_prf_port0_read_upper_PR_by_bank;
             prf_port1_read_upper_PR_by_bank <= next_prf_port1_read_upper_PR_by_bank;
-            unacked_reg_read_req_valid_by_rr <= next_unacked_reg_read_req_valid_by_rr;
-            unacked_reg_read_req_PR_by_rr <= next_unacked_reg_read_req_PR_by_rr;
-            last_reg_read_mask_by_bank <= next_last_reg_read_mask_by_bank;
-            reg_read_ack_by_rr <= next_reg_read_ack_by_rr;
-            reg_read_port_by_rr <= next_reg_read_port_by_rr;
+            unacked_read_req_valid_by_rr <= next_unacked_read_req_valid_by_rr;
+            unacked_read_req_PR_by_rr <= next_unacked_read_req_PR_by_rr;
+            last_read_mask_by_bank <= next_last_read_mask_by_bank;
+            read_resp_ack_by_rr <= next_read_resp_ack_by_rr;
+            read_resp_port_by_rr <= next_read_resp_port_by_rr;
         end
     end
 
