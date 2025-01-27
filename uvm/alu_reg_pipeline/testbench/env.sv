@@ -21,6 +21,8 @@ import core_types_pkg::*;
 `include "driver.sv"
 `include "monitor.sv"
 `include "interface.sv"
+`include "agent.sv"
+`include "scoreboard.sv"
 
 // --- Environment --- //
 class alu_reg_pipeline_env extends uvm_env;
