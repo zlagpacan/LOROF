@@ -56,17 +56,23 @@ input interface
         - i.e. the OC stage will stall with its current op instead of accepting the new issue op
     - constraints:
         - utilize as control signal to indicate an issue attempt
+    - idle value:
+        - 1'b0
 - issue_op
     - input logic [3:0]
     - 4-bit op to apply on operands A and imm to create the WB data value
     - this directly translates to the ops used by the alu module. see [alu.md](../alu/alu.md)
     - constraints:
         - none
+    - idle value:
+        - 4'hx
 - issue_imm12
     - input logic [11:0]
     - 12-bit immediate which will be sign extended to 32-bits and used as the second operand in the ALU operation
     - constraints:
         - none
+    - idle value:
+        - 12'hx
 - issue_A_forward
     - input logic
     - == 1'b1:
@@ -78,23 +84,31 @@ input interface
         - when the op enters OC stage, it utilizes the A_reg_read_ack to know that its reg read data is available, and utilizes A_reg_read_port and previous issue_A_bank to select the data of interest from reg_read_data_by_bank_by_port
     - constraints:
         none
+    - idle value:
+        - 1'bx
 - issue_A_bank
     - input logic [1:0]
     - indicate which bank {0, 1, 2, 3} to be used for operand A when collecting data in the OC stage
     - constraints:
         - none
+    - idle value:
+        - 1'bx
 - issue_dest_PR
     - input logic [6:0]
     - indicate which Physical Register [7'h0, 7'h7F] to writeback to in WB stage
     - essentially acts as a pass-through to be assigned to WB_PR when the op arrives in WB stage
     - constraints:
         - none
+    - idle value:
+        - 7'hx
 - issue_ROB_index
     - input logic [6:0]
     - indicate which ROB index [7'h0, 7'h7F] to mark as complete in WB stage
     - essentially acts as a pass-through to be assigned to WB_ROB_index when the op arrives in WB stage
     - constraints:
         - none
+    - idle value:
+        - 7'hx
 
 <span style="color:chartreuse">
 
@@ -129,6 +143,8 @@ input interface
         - this signal should never be 1'b1 unless there is an op in OC stage waiting for a reg read for operand A
             - else, undefined behavior
             - this can be made an assertion in an integration-level testbench, where the IQ and PRF together should guarantee this condition
+    - idle value:
+        - 1'b0
 - A_reg_read_port
     - input logic
     - indicate which port {0, 1} of reg_read_data_by_bank_by_port operand A in OC stage should grab its operand data value from when A_reg_read_ack = 1'b1
@@ -136,8 +152,10 @@ input interface
     - unused when A_reg_read_ack = 1'b0
     - constraints:
         - none
+    - idle value:
+        - 1'bx
 - reg_read_data_by_bank_by_port
-    - input logic [1:0][1:0][31:0]
+    - input logic [3:0][1:0][31:0]
     - collect a PRF reg read data value of interest
     - 3D array 
         - first dim: bank
@@ -148,6 +166,8 @@ input interface
     - values in this array are ignored by the module if they don't correspond to the OC stage A bank and A_reg_read_port and A_reg_read_ack = 1'b1
     - constraints:
         - none
+    - idle value:
+        {4{2{32'hx}}}
 
 <span style="color:deepskyblue">
 
@@ -158,7 +178,7 @@ input interface
 input interface
 
 - forward_data_by_bank
-    - input logic [1:0][31:0]
+    - input logic [3:0][31:0]
     - collect a PRF forward value of interest
     - 2D array
         - first dim: bank
@@ -167,6 +187,8 @@ input interface
     - values in this array are ignored by the module if they don't correspond to the OC stage A bank and A is looking for a forward value this cycle (issue_A_forward was 1'b1 the previous cycle, when this op was issued)
     - constraints:
         - none
+    - idle value:
+        - {4{32'hx}}
 
 <span style="color:chartreuse">
 
@@ -218,6 +240,8 @@ input interface
     - internal pipeline logic determines how far this stall should propagate backward
     - constraints:
         - utilize as control signal to indicate WB stage should stall
+    - idle value:
+        - 1'b1
 
 
 # Pipeline Stages
