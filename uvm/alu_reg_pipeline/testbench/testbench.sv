@@ -17,15 +17,7 @@ import core_types_pkg::*;
     
 // --- Includes --- //
 `include "interface.sv"
-`include "sequence_item.sv"
-`include "sequences/reset_seq.sv"
-`include "sequencer.sv"
-`include "driver.sv"
-`include "monitor.sv"
-`include "agent.sv"
-`include "scoreboard.sv"
-`include "env.sv"
-`include "test.sv"
+`include "tests/reset_test.sv"
 
 `timescale 1ns/1ns
 
@@ -66,7 +58,7 @@ module top;
   
   // --- Start Test --- //
   initial begin : TEST
-    run_test("alu_reg_pipeline_test");
+    run_test("alu_reg_pipeline_reset_test");
   end
   
   // --- Clock Generation --- //
