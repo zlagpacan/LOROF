@@ -64,9 +64,9 @@ class alu_reg_pipeline_monitor extends uvm_monitor;
     
     // --- Capture DUT Interface --- //
     forever begin
-      item = alu_reg_pipeline_sequence_item::type_id::create("item");
-      
       // --- Input Sample --- //
+      item = alu_reg_pipeline_sequence_item::type_id::create("item");
+
       item.nRST                          = vif.nRST;
 
       @(posedge vif.CLK);
