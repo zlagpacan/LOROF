@@ -29,7 +29,6 @@ module top;
   parameter CLK_PERIOD = 4;
 
   // --- DUT Instance --- //
-  // FIXME:
   alu_reg_pipeline DUT(
     .CLK(CLK),
     .nRST(alu_reg_pipeline_intf.nRST),
