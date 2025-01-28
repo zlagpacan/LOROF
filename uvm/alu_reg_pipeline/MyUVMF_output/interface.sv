@@ -32,7 +32,7 @@ interface alu_reg_pipeline_if (input logic CLK);
   logic                                 A_reg_read_port;
   logic                                 B_reg_read_ack;
   logic                                 B_reg_read_port;
-  logic [PRF_BANK_COUNT-1:0][1:0][31:0] reg_read_data_by_bank;
+  logic [PRF_BANK_COUNT-1:0][1:0][31:0] reg_read_data_by_bank_by_port;
   logic [PRF_BANK_COUNT-1:0][31:0]      forward_data_by_bank;
   logic                                 WB_ready;
   
