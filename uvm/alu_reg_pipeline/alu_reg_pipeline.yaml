@@ -23,7 +23,7 @@ DUT:
           A_reg_read_port: ''
           B_reg_read_ack: ''
           B_reg_read_port: ''
-          reg_read_data_by_bank: '[PRF_BANK_COUNT-1:0][1:0][31:0]'
+          reg_read_data_by_bank_by_port: '[PRF_BANK_COUNT-1:0][1:0][31:0]'
           forward_data_by_bank: '[PRF_BANK_COUNT-1:0][31:0]'
           # WB
           WB_ready: ''

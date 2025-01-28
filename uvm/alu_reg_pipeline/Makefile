@@ -64,7 +64,7 @@ debug:
 	run the simulation in the GUI
 
 all:
-	clean compile debug
+	clean compile run
 	
 -----------------------------------------------------------
 endef
@@ -122,3 +122,6 @@ debug: build
 		+UVM_NO_RELNOTES \
 		-do "$(VCD)" \
 		-do "run -all"
+	
+.PHONY: all
+all: clean build run
