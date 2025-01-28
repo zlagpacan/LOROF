@@ -111,6 +111,7 @@ run: build
 		-coverage \
 		+UVM_NO_RELNOTES \
 		-do "run -all"
+	make report
 
 
 .PHONY: debug
