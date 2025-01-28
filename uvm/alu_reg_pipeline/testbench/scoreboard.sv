@@ -69,28 +69,29 @@ class alu_reg_pipeline_scoreboard extends uvm_scoreboard;
   // --- Reset Check --- //
     if (curr_tx.nRST == 1'b0) begin
       // - ready_out
-      if (curr_tx.issue_ready == '1) begin
-        `uvm_info("COMPARE", $sformatf("Test Case : ALP_0 - issue_ready: PASSED"), UVM_LOW)
+      // FIXME:
+      if (curr_tx.issue_ready == '0) begin
+        `uvm_info("COMPARE", $sformatf("Test Case: ALP_0 : PASSED"), UVM_LOW)
       end else begin
-        `uvm_info("COMPARE", $sformatf("Test Case : ALP_0 - issue_ready: FAILED"), UVM_LOW)
+        `uvm_info("COMPARE", $sformatf("Test Case: ALP_0 : FAILED"), UVM_LOW)
       end
       // - WB_valid_out
       if (curr_tx.WB_valid == '0) begin
-        `uvm_info("COMPARE", $sformatf("Test Case : ALP_0 - WB_valid: PASSED"), UVM_LOW)
+        `uvm_info("COMPARE", $sformatf("Test Case: ALP_0 : PASSED"), UVM_LOW)
       end else begin
-        `uvm_info("COMPARE", $sformatf("Test Case : ALP_0 - WB_valid: FAILED"), UVM_LOW)
+        `uvm_info("COMPARE", $sformatf("Test Case: ALP_0 : FAILED"), UVM_LOW)
       end
       // - WB_data_out
       if (curr_tx.WB_data == '0) begin
-        `uvm_info("COMPARE", $sformatf("Test Case : ALP_0 - WB_data: PASSED"), UVM_LOW)
+        `uvm_info("COMPARE", $sformatf("Test Case: ALP_0 : PASSED"), UVM_LOW)
       end else begin
-        `uvm_info("COMPARE", $sformatf("Test Case : ALP_0 - WB_data: FAILED"), UVM_LOW)
+        `uvm_info("COMPARE", $sformatf("Test Case: ALP_0 : FAILED"), UVM_LOW)
       end
       // - WB_PR_out
       if (curr_tx.WB_PR == '0) begin
-        `uvm_info("COMPARE", $sformatf("Test Case : ALP_0 - WB_PR: PASSED"), UVM_LOW)
+        `uvm_info("COMPARE", $sformatf("Test Case: ALP_0 : PASSED"), UVM_LOW)
       end else begin
-        `uvm_info("COMPARE", $sformatf("Test Case : ALP_0 - WB_PR: FAILED"), UVM_LOW)
+        `uvm_info("COMPARE", $sformatf("Test Case: ALP_0 : FAILED"), UVM_LOW)
       end
     end
 

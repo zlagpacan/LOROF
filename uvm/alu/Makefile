@@ -14,6 +14,10 @@ TEST_MOD = top
 QSIM     = /package/eda/mg/questa10.6b/questasim
 VCD      = wave.do
 
+# --- Tools --- #
+RESULTS_SCRIPT_DIR = ../../tools/uvm_results
+PARSE_RESULTS = $(RESULTS_SCRIPT_DIR)/parse_results.py
+
 # --- OS Commands --- #
 UNAME_S := $(shell uname -s)
 
@@ -120,3 +124,7 @@ debug: build
 		+UVM_NO_RELNOTES \
 		-do "$(VCD)" \
 		-do "run -all"
+
+.PHONY: report
+report:
+	$(PYTHON) "$(PARSE_RESULTS)"
