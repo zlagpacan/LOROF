@@ -1,7 +1,7 @@
 /*
   Module        : alu_reg_pipeline
   UMV Component : sequence_item
-  Author        : Adam Keith
+  Author        : 
 */
 
 `ifndef ALU_REG_PIPELINE_SEQ_ITEM_SV
@@ -37,7 +37,7 @@ class alu_reg_pipeline_sequence_item extends uvm_sequence_item;
   randc logic                                 A_reg_read_port;
   randc logic                                 B_reg_read_ack;
   randc logic                                 B_reg_read_port;
-  rand  logic [PRF_BANK_COUNT-1:0][1:0][31:0] reg_read_data_by_bank;
+  rand  logic [PRF_BANK_COUNT-1:0][1:0][31:0] reg_read_data_by_bank_by_port;
   rand  logic [PRF_BANK_COUNT-1:0][31:0]      forward_data_by_bank;
   randc logic                                 WB_ready;
   
