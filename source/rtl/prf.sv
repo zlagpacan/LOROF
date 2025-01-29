@@ -374,28 +374,6 @@ module prf #(
     // ----------------------------------------------------------------
     // Writeback Logic:
 
-    // PQ function for WR's, prioritizing msb to lsb
-    function static logic [PRF_WR_COUNT-1:0] WR_PQ (input logic [PRF_WR_COUNT-1:0] req_vec);
-
-        // init clear vec
-        WR_PQ = '0;
-
-        // go through req vec
-            // lsb to msb so msb gets last say
-        for (int wr = 0; wr < PRF_WR_COUNT; wr++) begin
-            
-            // check this req hot
-            if (req_vec[wr]) begin
-
-                // new one-hot vec
-                    // override any lsb one-hot
-                WR_PQ = '0;
-                WR_PQ[wr] = 1'b1;
-            end
-        end
-
-    endfunction
-
     // Write Request PQ's
     genvar wr_bank;
     generate
