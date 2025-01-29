@@ -1,0 +1,10 @@
+Name,Test Case ID,Description,Requirements - Function,Requirements - Coverage,Test Case Type,Weight,SCORE,Satisfied - Coverage
+Power-on-Reset,ALURP_0,Tests that all DUT outputs return to specified reset value after non-zero functional stimulus.,issue_ready is set high and rest of the functional outputs return to zero,nRST is toggled inactive->active->inactive,Generic UVM Sequence,1,PASS,NO
+Writeback-stall,ALURP_1,Tests that writeback stall is observed on PRF output,TODO: Op doesn't change during stall or holds default value,TBD,Generic UVM Sequence,1,NA,NO
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
