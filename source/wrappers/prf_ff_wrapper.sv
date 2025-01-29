@@ -21,7 +21,7 @@ module prf_ff_wrapper (
 	input logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0] next_read_req_PR_by_rr,
 
     // read resp info by read requestor
-	output logic [PRF_RR_COUNT-1:0] last_read_resp_data_by_rr,
+	output logic [PRF_RR_COUNT-1:0][31:0] last_read_resp_data_by_rr,
 
     // writeback info by write requestor
 	input logic [PRF_WR_COUNT-1:0] next_WB_valid_by_wr,
@@ -37,7 +37,7 @@ module prf_ff_wrapper (
 	logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0] read_req_PR_by_rr;
 
     // read resp info by read requestor
-	logic [PRF_RR_COUNT-1:0] read_resp_data_by_rr;
+	logic [PRF_RR_COUNT-1:0][31:0] read_resp_data_by_rr;
 
     // writeback info by write requestor
 	logic [PRF_WR_COUNT-1:0] WB_valid_by_wr;
