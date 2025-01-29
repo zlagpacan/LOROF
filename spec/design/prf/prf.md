@@ -293,20 +293,22 @@ The write arbitration mechanism solves the problem of only 1 write port per bank
 
 # Write to Read Forwarding
 
-<ins>There is no form of write to read forwarding in the design.</ins> The properties of the LOROF core imply that a read request will only be interested in the last value in the PR since the last cycle when WB_bus_valid_by_bank was high for the PR of interest, so no hardware forwarding mechanism is needed. There will never be a case where there is e.g. a WB_valid_by_wr and read_req_valid_by_rr for the same PR on the same cycle or within close succession. 
+<ins>There is no form of write to read forwarding internal to the PRF design.</ins> The properties of the LOROF core imply that a PRF read request will only be interested in the last value in the PR since the last cycle when WB_bus_valid_by_bank was high for the PR of interest, so no hardware PRF forwarding mechanism is needed. There will never be a case where there is e.g. a WB_valid_by_wr and read_req_valid_by_rr for the same PR on the same cycle or within close succession. See [reg_rename_basics.md](reg_rename_basics.md) for why.
 
-On the cycle that WB_bus_valid_by_bank is eventually high for the PR of interest, the internal PRF memory bank of interest will have been updated with the value written by the next posedge. There is technically a 1-cycle delay in receiving a reg read request and performing the memory array read, so the earliest a read attempt can try to read this register is on the same cycle WB_bus_valid_by_bank is high. 
+This internal forwarding I'm referring to which the PRF does not have is separate from the forwarding that occurs externally in the core. This forwarding is when WB_bus_valid_by_bank broadcasts a write to the issue queues, and the issue queue launches an instruction to a functional unit pipeline which can read the data on forward_data_bus_by_bank on the following cycle. This forwarding is externally managed by the issue queues and functional unit pipelines, and is enabled by the PRF offering the [writeback bus by bank](#writeback-bus-by-bank) and [forward data by bank](#forward-data-by-bank) interfaces.
+
+On the cycle that WB_bus_valid_by_bank is eventually high for the PR of interest, the internal PRF memory bank of interest will have been updated with the value written by the next posedge. There is technically at least a 1-cycle delay in receiving a reg read request and performing the memory array read, so the earliest a read attempt can try to read this register is on the same cycle WB_bus_valid_by_bank is high. 
 
 As far as verification is concerned, read requests and write requests should follow these rules:
-- active read request definition:
+- active <ins>read</ins> request definition:
     - first cycle: cycle when read_req_valid_by_rr is high for the PR of interest
     - last cycle: cycle when read_resp_ack_by_rr is high for the read requestor for the PR of interest
-- active write request definition:
+- active <ins>write</ins> request definition:
     - first cycle: cycle when WB_valid_by_wr & WB_ready_by_wr is high for the PR of interest
     - last cycle: cycle when WB_bus_valid_by_bank is high w/ WB_bus_upper_PR_by_bank matching the PR of interest for the bank of interest
-- active write requests to the same PR <ins>**CANNOT**</ins> overlap
-- active read requests to a given PR <ins>**CANNOT**</ins> overlap with an active write request to the same PR
-- active read requests to the same PR <ins>**CAN**</ins> overlap
+- active <ins>write</ins> requests to the same PR <ins>**CANNOT**</ins> overlap
+- active <ins>read</ins> requests to a given PR <ins>**CANNOT**</ins> overlap with an active <ins>write</ins> request to the same PR
+- active <ins>read</ins> requests to the same PR <ins>**CAN**</ins> overlap
 
 
 # Assertions
