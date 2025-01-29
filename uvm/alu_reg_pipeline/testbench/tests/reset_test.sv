@@ -20,6 +20,7 @@ import core_types_pkg::*;
 `include "../interface.sv"
 `include "../env.sv"
 `include "sequences/reset_seq.sv"
+`include "sequences/wb_stall_seq.sv"
 
 // --- Test --- //
 class alu_reg_pipeline_reset_test extends uvm_test;
@@ -29,9 +30,9 @@ class alu_reg_pipeline_reset_test extends uvm_test;
   alu_reg_pipeline_env env;
   reset_sequence reset_seq;
   garbage_sequence garbage_seq;
+  wb_stall_sequence wb_stall_seq;
 
   parameter CLK_PERIOD = 4;
-  string uvm_testcase_name = "";
 
   // --- Constructor --- //
   function new(string name = "alu_reg_pipeline_reset_test", uvm_component parent);
@@ -56,12 +57,11 @@ class alu_reg_pipeline_reset_test extends uvm_test;
 
     phase.raise_objection(this);
 
-      // --- ALU Pipeline Test Procedure --- //
+      // --- ALU Reg Pipeline Test Procedure --- //
       /* 
-        Test Case Tag: ALURP0
+        Test Case Tag: ALURP_0
         Test Case Name : Power-on-Reset
       */
-      uvm_testcase_name = "ALURP0: power-on-reset";
       
       repeat (6) begin
         garbage_seq = garbage_sequence::type_id::create("garbage_seq");
@@ -86,6 +86,14 @@ class alu_reg_pipeline_reset_test extends uvm_test;
       #(CLK_PERIOD);
       // `uvm_info("ALU_REG_TX", $sformatf("Sequence item content: %s", reset_seq.sprint()), UVM_MEDIUM)
 
+      /* 
+        Test Case Tag: ALURP_1
+        Test Case Name : Writeback Stall
+      */
+      repeat (40) begin
+          wb_stall_seq = wb_stall_sequence::type_id::create("wb_stall_seq");
+          wb_stall_seq.start(env.agnt.seqr);
+      end
 
     phase.drop_objection(this);
 

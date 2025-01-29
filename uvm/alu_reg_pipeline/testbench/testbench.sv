@@ -18,6 +18,7 @@ import core_types_pkg::*;
 // --- Includes --- //
 `include "interface.sv"
 `include "tests/reset_test.sv"
+`include "tests/wb_stall_test.sv"
 `include "assertions/alu_reg_pipeline_sva.sv"
 
 `timescale 1ns/1ns
@@ -89,6 +90,8 @@ module top;
   // --- Start Test --- //
   initial begin : TEST
     run_test("alu_reg_pipeline_reset_test");
+    // $display("Reset test completed");
+    // run_test("alu_reg_pipeline_wb_stall_test");
   end
   
   // --- Clock Generation --- //

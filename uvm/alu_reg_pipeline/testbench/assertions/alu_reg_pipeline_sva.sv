@@ -44,7 +44,7 @@ module alu_reg_pipeline_sva (
   // --- SVA Properties --- //
   property sva_WB_valid_stall;
     @(posedge CLK) disable iff (~nRST)
-    (WB_stall) |=> (WB_valid == $past(WB_valid));
+    (WB_stall) |=> (WB_valid === $past(WB_valid));
   endproperty
 
   // --- SVA Instances --- //
