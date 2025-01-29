@@ -1,11 +1,11 @@
 /*
   Module        : alu_reg_pipeline
-  UMV Component : test - reset
+  UMV Component : test
   Author        : Adam Keith
 */
 
-`ifndef ALU_REG_PIPELINE_RESET_TEST_SV
-`define ALU_REG_PIPELINE_RESET_TEST_SV
+`ifndef ALU_REG_PIPELINE_TEST_SV
+`define ALU_REG_PIPELINE_TEST_SV
 
 // --- UVM --- //
 `include "uvm_macros.svh"
@@ -16,15 +16,15 @@ import uvm_pkg::*;
 import core_types_pkg::*;
     
 // --- Includes --- //
-`include "../sequence_item.sv"
-`include "../interface.sv"
-`include "../env.sv"
+`include "sequence_item.sv"
+`include "interface.sv"
+`include "env.sv"
 `include "sequences/reset_seq.sv"
 `include "sequences/wb_stall_seq.sv"
 
 // --- Test --- //
-class alu_reg_pipeline_reset_test extends uvm_test;
-  `uvm_component_utils(alu_reg_pipeline_reset_test)
+class alu_reg_pipeline_test extends uvm_test;
+  `uvm_component_utils(alu_reg_pipeline_test)
 
   // --- Test Components --- //
   alu_reg_pipeline_env env;
@@ -35,7 +35,7 @@ class alu_reg_pipeline_reset_test extends uvm_test;
   parameter CLK_PERIOD = 4;
 
   // --- Constructor --- //
-  function new(string name = "alu_reg_pipeline_reset_test", uvm_component parent);
+  function new(string name = "alu_reg_pipeline_test", uvm_component parent);
     super.new(name, parent);
     `uvm_info("TEST_CLASS", "Inside Constructor", UVM_HIGH)
   endfunction : new
@@ -62,7 +62,6 @@ class alu_reg_pipeline_reset_test extends uvm_test;
         Test Case Tag: ALURP_0
         Test Case Name : Power-on-Reset
       */
-      
       repeat (6) begin
         garbage_seq = garbage_sequence::type_id::create("garbage_seq");
         garbage_seq.start(env.agnt.seqr);
@@ -90,7 +89,7 @@ class alu_reg_pipeline_reset_test extends uvm_test;
         Test Case Tag: ALURP_1
         Test Case Name : Writeback Stall
       */
-      repeat (40) begin
+      repeat (60) begin
           wb_stall_seq = wb_stall_sequence::type_id::create("wb_stall_seq");
           wb_stall_seq.start(env.agnt.seqr);
       end
@@ -99,6 +98,6 @@ class alu_reg_pipeline_reset_test extends uvm_test;
 
   endtask : run_phase
 
-endclass : alu_reg_pipeline_reset_test
+endclass : alu_reg_pipeline_test
 
 `endif

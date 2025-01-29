@@ -42,7 +42,7 @@ interface alu_reg_pipeline_if (input logic CLK);
   logic [31:0]                          WB_data;
   logic [LOG_PR_COUNT-1:0]              WB_PR;
   logic [LOG_ROB_ENTRIES-1:0]           WB_ROB_index;
-  
+
 endinterface : alu_reg_pipeline_if
 
 `endif
