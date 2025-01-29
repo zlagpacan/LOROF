@@ -11,7 +11,7 @@ module prf_ff (
     input logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]    read_req_PR_by_rr,
 
     // read resp info by read requestor
-    output logic [PRF_RR_COUNT-1:0]     read_resp_data_by_rr,
+    output logic [PRF_RR_COUNT-1:0][31:0]     read_resp_data_by_rr,
 
     // writeback info by write requestor
     input logic [PRF_WR_COUNT-1:0]                          WB_valid_by_wr,
@@ -20,7 +20,7 @@ module prf_ff (
 );
 
     // prf array
-    logic [127:0][31:0] prf_array;
+    logic [PR_COUNT-1:0][31:0] prf_array;
 
     always_comb begin
 
