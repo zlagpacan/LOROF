@@ -53,6 +53,7 @@ input interface
             - external modules guarantee this as the read requestors correspond to pipelines, and the pipelines will stall if their requests are still unacked, thus preventing issuing into the pipeline, thus preventing a new read request for this read requestor
             - else, behavior is undefined
                 - in the design, the younger request will be lost. this behavior does not have to be verified
+        - also see [Write to Read Forwarding](#write-to-read-forwarding)
 - read_req_PR_by_rr
     - input logic [10:0][6:0]
     - "Read Request Physical Register by Read Requestor"
@@ -120,6 +121,7 @@ input interface
     - a valid writeback is ignored if WB_ready_by_wr = 1'b0 for the given write requestor
     - constraints:
         - utilize as control signal to indicate a WB attempt for each write requestor
+        - also see [Write to Read Forwarding](#write-to-read-forwarding)
 - WB_data_by_wr
     - input logic [6:0][31:0]
     - "Writeback data by Write Requestor"
@@ -287,6 +289,24 @@ The write arbitration mechanism solves the problem of only 1 write port per bank
 
 #### Arbitration Example
 - I'm too lazy to do this rn as it is pretty involved. lmk if you need this.
+
+
+# Write to Read Forwarding
+
+<ins>There is no form of write to read forwarding in the design.</ins> The properties of the LOROF core imply that a read request will only be interested in the last value in the PR since the last cycle when WB_bus_valid_by_bank was high for the PR of interest, so no hardware forwarding mechanism is needed. There will never be a case where there is e.g. a WB_valid_by_wr and read_req_valid_by_rr for the same PR on the same cycle or within close succession. 
+
+On the cycle that WB_bus_valid_by_bank is eventually high for the PR of interest, the internal PRF memory bank of interest will have been updated with the value written by the next posedge. There is technically a 1-cycle delay in receiving a reg read request and performing the memory array read, so the earliest a read attempt can try to read this register is on the same cycle WB_bus_valid_by_bank is high. 
+
+As far as verification is concerned, read requests and write requests should follow these rules:
+- active read request definition:
+    - first cycle: cycle when read_req_valid_by_rr is high for the PR of interest
+    - last cycle: cycle when read_resp_ack_by_rr is high for the read requestor for the PR of interest
+- active write request definition:
+    - first cycle: cycle when WB_valid_by_wr & WB_ready_by_wr is high for the PR of interest
+    - last cycle: cycle when WB_bus_valid_by_bank is high w/ WB_bus_upper_PR_by_bank matching the PR of interest for the bank of interest
+- active write requests to the same PR <ins>**CANNOT**</ins> overlap
+- active read requests to a given PR <ins>**CANNOT**</ins> overlap with an active write request to the same PR
+- active read requests to the same PR <ins>**CAN**</ins> overlap
 
 
 # Assertions
