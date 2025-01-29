@@ -1,6 +1,7 @@
 import re
 from collections import defaultdict
 import datetime
+import argparse
 
 def parse_log_file(log_file_path):
     result_lines = []
@@ -65,6 +66,8 @@ def print_group_ratings(grouped_by_tag, failed_timestamps, output_file):
 
     # Iterate over the grouped results and assign PASS or FAIL rating to each group
     first_group = True  # Flag to manage the separator printing
+    print(console_separator)  # Print separator to console
+    output_file.write(file_separator + '\n')  # Write separator to log file
 
     for tag, lines in grouped_by_tag.items():
         # Print separator line before each group (only for subsequent groups)
@@ -81,28 +84,23 @@ def print_group_ratings(grouped_by_tag, failed_timestamps, output_file):
         
         # Print the group header with color codes (PASS/FAIL)
         if rating == 'FAIL':
-            console_output = f"\033[41m-\033[0m {tag.ljust(console_separator_length - 20)} ({info_type}) : {rating.ljust(5)} \033[41m-\033[0m"
+            console_output = f"\033[41m-\033[0m {tag.ljust(console_separator_length - 20)} ({info_type}) : \033[41m{rating.ljust(5)}\033[0m \033[41m-\033[0m"
             print(console_output)
             output_file.write(f"[FAIL] {tag.ljust(file_separator_length - 30)} ({info_type}) : {rating.ljust(5)} [FAIL]\n")
 
-            # Indent and print the timestamps for failed and passed test cases in console
+            # Indent and print the timestamps for failed and passed test cases
             print("    Instances:")
             output_file.write("    Instances:\n")
             for line, result, _ in lines:
                 timestamp = re.search(r'@\s*(\d+)', line).group(1)  # Extract timestamp
                 status = result.upper()
 
-                # Console output with color highlight (PASS/FAIL)
-                if status == 'FAILED':
-                    instance_output = f"        \033[41m-\033[0m Timestamp: {timestamp.ljust(timestamp_width)} : {status.ljust(status_width)} \033[41m-\033[0m"
-                    print(instance_output)
-                    output_file.write(f"        [FAILED] Timestamp: {timestamp.ljust(timestamp_width)} : {status.ljust(status_width)} [FAILED]\n")
-                else:
-                    instance_output = f"        \033[42m-\033[0m Timestamp: {timestamp.ljust(timestamp_width)} : {status.ljust(status_width)} \033[42m-\033[0m"
-                    print(instance_output)
-                    output_file.write(f"        [PASSED] Timestamp: {timestamp.ljust(timestamp_width)} : {status.ljust(status_width)} [PASSED]\n")
+                # Print instances with '-' and '*' (no color highlighting)
+                instance_output = f"        - Timestamp: {timestamp.ljust(timestamp_width)} : {status.ljust(status_width)} *"
+                print(instance_output)
+                output_file.write(f"        - Timestamp: {timestamp.ljust(timestamp_width)} : {status.ljust(status_width)} *\n")
         else:
-            console_output = f"\033[42m-\033[0m {tag.ljust(console_separator_length - 20)} ({info_type}) : {rating.ljust(5)} \033[42m-\033[0m"
+            console_output = f"\033[42m-\033[0m {tag.ljust(console_separator_length - 20)} ({info_type}) : \033[42m{rating.ljust(5)}\033[0m \033[42m-\033[0m"
             print(console_output)
             output_file.write(f"[PASS] {tag.ljust(file_separator_length - 30)} ({info_type}) : {rating.ljust(5)} [PASS]\n")
 
@@ -111,15 +109,24 @@ def print_group_ratings(grouped_by_tag, failed_timestamps, output_file):
     output_file.write(file_separator + '\n')  # Write final separator to log file
 
 def main():
-    # Example usage:
-    log_file_path = 'uvm_results.log'  # Set log file path here
+    # Set up argument parser
+    parser = argparse.ArgumentParser(description="Process UVM log file and generate pass/fail ratings.")
+    parser.add_argument("input_file", help="Path to the input log file")
+    parser.add_argument("output_file", help="Path to the output file where results will be written")
+    
+    # Parse arguments
+    args = parser.parse_args()
+    
+    input_file = args.input_file
+    output_file_path = args.output_file
 
-    all_lines, grouped_by_tag, failed_timestamps = parse_log_file('../../uvm/alu/transcript')
+    # Parse the log file
+    all_lines, grouped_by_tag, failed_timestamps = parse_log_file(input_file)
 
-    # Open the log file for writing
-    with open(log_file_path, 'w') as output_file:
+    # Open the output file for writing
+    with open(output_file_path, 'w') as output_file:
         print("Group Pass/Fail Ratings:")
         print_group_ratings(grouped_by_tag, failed_timestamps, output_file)
-    
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

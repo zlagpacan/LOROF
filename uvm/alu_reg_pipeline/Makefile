@@ -14,6 +14,12 @@ TEST_MOD = top
 QSIM     = /package/eda/mg/questa10.6b/questasim
 VCD      = wave.do
 
+# --- Tools --- #
+RESULTS_SCRIPT_DIR = ../../tools/uvm_results
+PARSE_RESULTS = $(RESULTS_SCRIPT_DIR)/parse_results.py
+TRANSCRIPT = transcript
+UVM_REPORT = results.rpt
+
 # --- OS Commands --- #
 UNAME_S := $(shell uname -s)
 
@@ -64,7 +70,10 @@ debug:
 	run the simulation in the GUI
 
 all:
-	clean compile run
+	clean compile run report
+
+report:
+	testcase report
 	
 -----------------------------------------------------------
 endef
@@ -124,5 +133,11 @@ debug: build
 		-do "$(VCD)" \
 		-do "run -all"
 	
+
 .PHONY: all
 all: clean build run
+
+
+.PHONY: report
+report:
+	$(PYTHON) "$(PARSE_RESULTS)" $(TRANSCRIPT) $(UVM_REPORT)

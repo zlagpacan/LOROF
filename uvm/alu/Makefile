@@ -17,6 +17,8 @@ VCD      = wave.do
 # --- Tools --- #
 RESULTS_SCRIPT_DIR = ../../tools/uvm_results
 PARSE_RESULTS = $(RESULTS_SCRIPT_DIR)/parse_results.py
+TRANSCRIPT = transcript
+UVM_REPORT = results.rpt
 
 # --- OS Commands --- #
 UNAME_S := $(shell uname -s)
@@ -113,6 +115,7 @@ run: build
 		-coverage \
 		+UVM_NO_RELNOTES \
 		-do "run -all"
+	make report
 
 
 .PHONY: debug
@@ -125,6 +128,9 @@ debug: build
 		-do "$(VCD)" \
 		-do "run -all"
 
+.PHONY: all
+all: clean build run
+
 .PHONY: report
 report:
-	$(PYTHON) "$(PARSE_RESULTS)"
+	$(PYTHON) "$(PARSE_RESULTS)" $(TRANSCRIPT) $(UVM_REPORT)

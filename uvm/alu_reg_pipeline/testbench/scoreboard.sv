@@ -69,8 +69,7 @@ class alu_reg_pipeline_scoreboard extends uvm_scoreboard;
   // --- Reset Check --- //
     if (curr_tx.nRST == 1'b0) begin
       // - ready_out
-      // FIXME:
-      if (curr_tx.issue_ready == '0) begin
+      if (curr_tx.issue_ready == '1) begin
         `uvm_info("COMPARE", $sformatf("Test Case: ALP_0 : PASSED"), UVM_LOW)
       end else begin
         `uvm_info("COMPARE", $sformatf("Test Case: ALP_0 : FAILED"), UVM_LOW)
