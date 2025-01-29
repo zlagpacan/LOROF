@@ -54,7 +54,7 @@ module prf_ff (
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            prf_array <= '0;
+            prf_array_by_rr <= '0;
         end
         else begin
             for (int wr = 0; wr < PRF_WR_COUNT; wr++) begin
