@@ -1,12 +1,8 @@
-Script run on: 2025-01-29 09:35:36
+Script run on: 2025-01-29 09:48:09
 -----------------------------------------------------------------
 [PASS] ALU_AND                             (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
-[FAIL] ALU_UNSIGNED_LT                     (SVA) : FAIL  [FAIL]
-    Instances (Failed only):
-        - Timestamp: 12     : FAILED  -
-        - Timestamp: 100    : FAILED  -
-        - Timestamp: 228    : FAILED  -
+[PASS] ALU_UNSIGNED_LT                     (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
 [PASS] ALU_SHIFT_LEFT_REPEAT               (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
@@ -20,16 +16,9 @@ Script run on: 2025-01-29 09:35:36
 -----------------------------------------------------------------
 [PASS] ALU_XOR_REPEAT                      (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
-[FAIL] ALU_UNSIGNED_LT_REPEAT              (SVA) : FAIL  [FAIL]
-    Instances (Failed only):
-        - Timestamp: 44     : FAILED  -
-        - Timestamp: 144    : FAILED  -
+[PASS] ALU_UNSIGNED_LT_REPEAT              (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
-[FAIL] ALU_SIGNED_LT_REPEAT                (SVA) : FAIL  [FAIL]
-    Instances (Failed only):
-        - Timestamp: 52     : FAILED  -
-        - Timestamp: 116    : FAILED  -
-        - Timestamp: 288    : FAILED  -
+[PASS] ALU_SIGNED_LT_REPEAT                (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
 [PASS] ALU_ADD                             (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
@@ -41,9 +30,7 @@ Script run on: 2025-01-29 09:35:36
 -----------------------------------------------------------------
 [PASS] ALU_OR                              (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
-[FAIL] ALU_SIGNED_LT                       (SVA) : FAIL  [FAIL]
-    Instances (Failed only):
-        - Timestamp: 292    : FAILED  -
+[PASS] ALU_SIGNED_LT                       (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
 [PASS] ALU_SUB                             (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
