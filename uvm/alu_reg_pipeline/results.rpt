@@ -1,4 +1,17 @@
-Script run on: 2025-01-28 20:40:12
+Script run on: 2025-01-28 22:37:31
+-----------------------------------------------------------------
+[FAIL] ALURP_1                             (SVA) : FAIL  [FAIL]
+    Instances:
+        - Timestamp: 12     : PASSED  -
+        - Timestamp: 104    : PASSED  -
+        - Timestamp: 112    : PASSED  -
+        - Timestamp: 120    : PASSED  -
+        - Timestamp: 128    : PASSED  -
+        - Timestamp: 144    : PASSED  -
+        - Timestamp: 180    : PASSED  -
+        - Timestamp: 188    : PASSED  -
+        - Timestamp: 196    : FAILED  -
+        - Timestamp: 200    : PASSED  -
 -----------------------------------------------------------------
 [PASS] ALURP_0                             (UVM) : PASS  [PASS]
 -----------------------------------------------------------------

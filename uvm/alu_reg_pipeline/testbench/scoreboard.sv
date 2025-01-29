@@ -93,7 +93,7 @@ class alu_reg_pipeline_scoreboard extends uvm_scoreboard;
         `uvm_info("COMPARE", $sformatf("Test Case: ALURP_0 : FAILED"), UVM_LOW)
       end
     end
-
+    
   endtask : compare
 
 endclass : alu_reg_pipeline_scoreboard

@@ -39,7 +39,7 @@ class alu_reg_pipeline_sequence_item extends uvm_sequence_item;
   randc logic                                 B_reg_read_port;
   rand  logic [PRF_BANK_COUNT-1:0][1:0][31:0] reg_read_data_by_bank_by_port;
   rand  logic [PRF_BANK_COUNT-1:0][31:0]      forward_data_by_bank;
-  randc logic                                 WB_ready;
+  rand  logic                                 WB_ready;
   
   // --- Outputs --- //
   logic                       issue_ready;
