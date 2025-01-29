@@ -1,17 +1,17 @@
 Name,Test Case ID,Description,Requirements - Function,Requirements - Coverage,Test Case Type,Weight,Satisfied - Function,Satisfied - Coverage
-Op0,ALU_ADD,Addition operation,(op == 0) -> (out = A + B),Operation coverage + reasonable operand coverage,Random Constrained,1,NO,NO
-Op1,ALU_SHIFT_LEFT,Shift Left operation,(op == 1) -> (out = A << B[4:0]),Operation coverage + reasonable operand coverage,Random Constrained,1,NO,NO
-Op2,ALU_SIGNED_LT,Signed Less Than operation,(op == 2) -> (out = A < B -- signed),Operation coverage + reasonable operand coverage,Random Constrained,1,NO,NO
-Op3,ALU_UNSIGNED_LT,Unsigned Less Than operation,(op == 3) -> (out = A < B -- unsigned),Operation coverage + reasonable operand coverage,Random Constrained,1,NO,NO
-Op4,ALU_XOR,XOR operation,(op == 4) -> (out = A ^ B),Operation coverage + reasonable operand coverage,Random Constrained,1,NO,NO
-Op5,ALU_SHIFT_RIGHT,Shift Right operation,(op == 5) -> (out = A >> B[4:0]),Operation coverage + reasonable operand coverage,Random Constrained,1,NO,NO
-Op6,ALU_OR,OR operation,(op == 6) -> (out = A | B),Operation coverage + reasonable operand coverage,Random Constrained,1,NO,NO
-Op7,ALU_AND,AND operation,(op == 7) -> (out = A & B),Operation coverage + reasonable operand coverage,Random Constrained,1,NO,NO
-Op8,ALU_SUB,Subtraction operation,(op == 8) -> (out = A - B),Operation coverage + reasonable operand coverage,Random Constrained,1,NO,NO
-Op9,ALU_SHIFT_LEFT_REPEAT,Shift Left operation - Repeat case,(op == 9) -> (out = A << B[4:0]),Operation coverage + reasonable operand coverage,Random Constrained,1,NO,NO
-Op10,ALU_SIGNED_LT_REPEAT,Signed Less Than operation,(op == 10) -> (out = A < B -- signed),Operation coverage + reasonable operand coverage,Random Constrained,1,NO,NO
-Op11,ALU_UNSIGNED_LT_REPEAT,Unsigned Less Than operation - Repeat case,(op == 11) -> (out = A < B -- unsigned),Operation coverage + reasonable operand coverage,Random Constrained,1,NO,NO
-Op12,ALU_XOR_REPEAT,XOR operation - Repeat case,(op == 12) -> (out = A ^ B),Operation coverage + reasonable operand coverage,Random Constrained,1,NO,NO
+Op0,ALU_ADD,Addition operation,(op == 0) -> (out = A + B),Operation coverage + reasonable operand coverage,Random Constrained,1,YES,NO
+Op1,ALU_SHIFT_LEFT,Shift Left operation,(op == 1) -> (out = A << B[4:0]),Operation coverage + reasonable operand coverage,Random Constrained,1,YES,NO
+Op2,ALU_SIGNED_LT,Signed Less Than operation,(op == 2) -> (out = A < B -- signed),Operation coverage + reasonable operand coverage,Random Constrained,1,YES,NO
+Op3,ALU_UNSIGNED_LT,Unsigned Less Than operation,(op == 3) -> (out = A < B -- unsigned),Operation coverage + reasonable operand coverage,Random Constrained,1,YES,NO
+Op4,ALU_XOR,XOR operation,(op == 4) -> (out = A ^ B),Operation coverage + reasonable operand coverage,Random Constrained,1,YES,NO
+Op5,ALU_SHIFT_RIGHT,Shift Right operation,(op == 5) -> (out = A >> B[4:0]),Operation coverage + reasonable operand coverage,Random Constrained,1,YES,NO
+Op6,ALU_OR,OR operation,(op == 6) -> (out = A | B),Operation coverage + reasonable operand coverage,Random Constrained,1,YES,NO
+Op7,ALU_AND,AND operation,(op == 7) -> (out = A & B),Operation coverage + reasonable operand coverage,Random Constrained,1,YES,NO
+Op8,ALU_SUB,Subtraction operation,(op == 8) -> (out = A - B),Operation coverage + reasonable operand coverage,Random Constrained,1,YES,NO
+Op9,ALU_SHIFT_LEFT_REPEAT,Shift Left operation - Repeat case,(op == 9) -> (out = A << B[4:0]),Operation coverage + reasonable operand coverage,Random Constrained,1,YES,NO
+Op10,ALU_SIGNED_LT_REPEAT,Signed Less Than operation,(op == 10) -> (out = A < B -- signed),Operation coverage + reasonable operand coverage,Random Constrained,1,YES,NO
+Op11,ALU_UNSIGNED_LT_REPEAT,Unsigned Less Than operation - Repeat case,(op == 11) -> (out = A < B -- unsigned),Operation coverage + reasonable operand coverage,Random Constrained,1,YES,NO
+Op12,ALU_XOR_REPEAT,XOR operation - Repeat case,(op == 12) -> (out = A ^ B),Operation coverage + reasonable operand coverage,Random Constrained,1,YES,NO
 Op13,ALU_ARITH_SHIFT_RIGHT,Shift Right operation - Repeat case,(op == 13) -> (out = A >> B[4:0]),Operation coverage + reasonable operand coverage,Random Constrained,1,NO,NO
-Op14,ALU_OR_REPEAT,Addition operation - Repeat case,(op == 14) -> (out = A | B),Operation coverage + reasonable operand coverage,Random Constrained,1,NO,NO
-Op15,ALU_AND_REPEAT,And operation - Repeat case,(op == 15) -> (out = A & B),Operation coverage + reasonable operand coverage,Random Constrained,1,NO,NO
+Op14,ALU_OR_REPEAT,Addition operation - Repeat case,(op == 14) -> (out = A | B),Operation coverage + reasonable operand coverage,Random Constrained,1,YES,NO
+Op15,ALU_AND_REPEAT,And operation - Repeat case,(op == 15) -> (out = A & B),Operation coverage + reasonable operand coverage,Random Constrained,1,YES,NO
