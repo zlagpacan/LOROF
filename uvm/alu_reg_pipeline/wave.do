@@ -22,42 +22,10 @@ add wave -noupdate /top/DUT/WB_data
 add wave -noupdate /top/DUT/WB_PR
 add wave -noupdate /top/DUT/WB_ROB_index
 add wave -noupdate /top/DUT/WB_ready
-add wave -noupdate /top/DUT/stall_WB
-add wave -noupdate /top/DUT/stall_EX
-add wave -noupdate /top/DUT/stall_OC
-add wave -noupdate /top/DUT/valid_OC
-add wave -noupdate /top/DUT/op_OC
-add wave -noupdate /top/DUT/A_saved_OC
-add wave -noupdate /top/DUT/A_forward_OC
-add wave -noupdate /top/DUT/A_bank_OC
-add wave -noupdate /top/DUT/B_saved_OC
-add wave -noupdate /top/DUT/B_forward_OC
-add wave -noupdate /top/DUT/B_bank_OC
-add wave -noupdate /top/DUT/dest_PR_OC
-add wave -noupdate /top/DUT/ROB_index_OC
-add wave -noupdate /top/DUT/A_saved_data_OC
-add wave -noupdate /top/DUT/B_saved_data_OC
-add wave -noupdate /top/DUT/launch_ready_OC
-add wave -noupdate /top/DUT/next_valid_EX
-add wave -noupdate /top/DUT/next_op_EX
-add wave -noupdate /top/DUT/next_A_EX
-add wave -noupdate /top/DUT/next_B_EX
-add wave -noupdate /top/DUT/next_dest_PR_EX
-add wave -noupdate /top/DUT/next_ROB_index_EX
-add wave -noupdate /top/DUT/valid_EX
-add wave -noupdate /top/DUT/op_EX
-add wave -noupdate /top/DUT/A_EX
-add wave -noupdate /top/DUT/B_EX
-add wave -noupdate /top/DUT/dest_PR_EX
-add wave -noupdate /top/DUT/ROB_index_EX
-add wave -noupdate /top/DUT/next_WB_valid
-add wave -noupdate /top/DUT/next_WB_data
-add wave -noupdate /top/DUT/next_WB_PR
-add wave -noupdate /top/DUT/next_WB_ROB_index
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {3296 ns} 0}
+WaveRestoreCursors {{Cursor 1} {72 ns} 0}
 quietly wave cursor active 1
-configure wave -namecolwidth 150
+configure wave -namecolwidth 266
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
 configure wave -signalnamewidth 0
@@ -71,4 +39,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ns} {22690 ns}
+WaveRestoreZoom {48 ns} {124 ns}
