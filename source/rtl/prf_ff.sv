@@ -25,7 +25,7 @@ module prf_ff (
     always_comb begin
 
         for (int rr = 0; rr < PRF_RR_COUNT; rr++) begin
-            read_resp_data_by_rr = prf_array[read_req_PR_by_rr[rr]];
+            read_resp_data_by_rr[rr] = prf_array[read_req_PR_by_rr[rr]];
         end
     end
 
