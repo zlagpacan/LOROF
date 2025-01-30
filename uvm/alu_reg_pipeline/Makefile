@@ -1,144 +1,26 @@
-# -------------------------- # 
-#  module: alu_pipeline 	 #
-#  author: Adam Keith	 	 #
-# -------------------------- # 
+# ********************************************************** #
+#  Author      : Adam Keith                                  #
+#  Description : alu_reg_pipeline Makefile                   #
+# ********************************************************** #
+include ../Makefile.inc
 
 # --- Design --- #
-DUT    = alu_reg_pipeline
-DESIGN = ../../source/rtl/$(DUT).sv ../../source/rtl/alu.sv
-PKG    = ../../source/include
+DUT      = alu_reg_pipeline
+DESIGN   = ../../source/rtl/$(DUT).sv
+PKG      = ../../source/include
+RTL_DEPS = ../../source/rtl/alu.sv
 
 # --- Testbench/Sim --- #
-UVM      = testbench
+UVM_DIR  = testbench
+TB_FILE  = $(UVM)/testbench.sv
 TEST_MOD = top
-QSIM     = /package/eda/mg/questa10.6b/questasim
+QSIM_ENV = /package/eda/mg/questa10.6b/questasim
 VCD      = wave.do
+SVA      = $(UVM_DIR)/assertions/$(DUT)_sva.sv
 
 # --- Tools --- #
 RESULTS_SCRIPT_DIR = ../../tools/uvm_results
-PARSE_RESULTS = $(RESULTS_SCRIPT_DIR)/parse_results.py
-TRANSCRIPT = transcript
-UVM_REPORT = results.rpt
-
-# --- OS Commands --- #
-UNAME_S := $(shell uname -s)
-
-ifeq ($(UNAME_S), Linux)
-	PIP    = pip3
-	PYTHON = python3
-	CLEAN_CMD = rm -rf
-else ifeq ($(UNAME_S), Darwin)
-	PIP    = pip3
-	PYTHON = python3
-	CLEAN_CMD = rm -rf
-else ifeq ($(OS), Windows_NT)
-	PIP    = pip
-	PYTHON = python
-	CLEAN_CMD = rmdir /S /Q
-else
-	$(error Unsupported operating system)
-endif
-
-
-define helpText
------------------------------------------------------------
-Author: Adam Keith
-Contributors: 
------------------------------------------------------------
-
-Overview
------------------------------------------------------------
-Runs all relevant commands for $(DUT) simulation
-
------------------------------------------------------------
-
-Targets - run 'make' on any of the below
------------------------------------------------------------
-help:
-    display this help text
-
-clean:
-    remove QuestaSim generated files/libraries
-
-build:
-	build RTL/UVM testbench files
-
-run:
-	run the simulation in the command line
-
-debug:
-	run the simulation in the GUI
-
-all:
-	clean compile run report
-
-report:
-	testcase report
-	
------------------------------------------------------------
-endef
-export helpText
-
-.PHONY: help
-help:
-	@echo "$${helpText}"
-
-
-.PHONY: startup
-startup:
-	module load /siemens/questa/2021.4
-
-
-.PHONY: clean
-clean:
-	$(CLEAN_CMD) work
-	$(CLEAN_CMD) transcript
-	$(CLEAN_CMD) compile.log
-	$(CLEAN_CMD) tr_db.log
-	$(CLEAN_CMD) vsim.wlf
-
-
-.PHONY: build
-build:
-	vlog -mfcu \
-	+incdir+$(DESIGN) \
-	+incdir+$(UVM) \
-	+incdir+$(PKG) \
-	+acc \
-	+cover \
-	-L $(QSIM)/uvm-1.2 \
-	-sv $(DESIGN) \
-	$(UVM)/testbench.sv \
-	$(UVM)/assertions/alu_reg_pipeline_sva.sv \
-	-logfile compile.log
-
-
-.PHONY: run
-run: build
-	vsim -c $(TEST_MOD) \
-		-L $(QSIM)/uvm-1.2 \
-		-voptargs=+acc \
-		-coverage \
-		+UVM_NO_RELNOTES \
-		-do "run -all"
-	make report
-
-
-.PHONY: debug
-debug: build
-	vsim -coverage -i $(TEST_MOD) \
-		-L $(QSIM)/uvm-1.2 \
-		-voptargs=+acc \
-		-coverage \
-		+UVM_NO_RELNOTES \
-		-do "$(VCD)" \
-		-do "run -all"
-	
-
-.PHONY: all
-all: clean build run
-
-
-.PHONY: report
-report:
-	$(PYTHON) "$(PARSE_RESULTS)" $(TRANSCRIPT) $(UVM_REPORT)
+PARSE_RESULTS      = $(RESULTS_SCRIPT_DIR)/parse_results.py
+TRANSCRIPT         = transcript
+UVM_REPORT         = results.rpt
+RPT                = 1
