@@ -11,7 +11,7 @@ RTL_DEPS ?=
 
 # --- Testbench/Sim --- #
 UVM_DIR  ?= testbench
-TB_FILE  ?= $(UVM)/testbench.sv
+TB_FILE  ?= testbench.sv
 TEST_MOD ?= top
 QSIM_ENV ?= /package/eda/mg/questa10.6b/questasim
 VCD      ?= wave.do
@@ -74,10 +74,10 @@ export helpText
 help:
 	@echo "$${helpText}"
 
-# FIXME: load simens module
+# FIXME: Doesn't work
 .PHONY: startup
 startup:
-	module load /siemens/questa/2021.4
+	module load siemens/questa/2021.4
 
 # Remove QuestaSim generated libraries/reports
 .PHONY: clean
@@ -98,18 +98,18 @@ build:
         +incdir+$(PKG) \
         +acc \
         +cover \
-        -L $(QSIM)/uvm-1.2 \
+        -L $(QSIM_ENV)/uvm-1.2 \
         -sv $(DESIGN) \
 		-sv $(RTL_DEPS) \
-        $(TB_FILE) \
-        $(SVA) \
+        -sv $(TB_FILE) \
+        -sv $(SVA) \
         -logfile compile.log
 
 # Run simulation in the command line
 .PHONY: run
 run: build
 	vsim -c $(TEST_MOD) \
-		-L $(QSIM)/uvm-1.2 \
+		-L $(QSIM_ENV)/uvm-1.2 \
 		-voptargs=+acc \
 		-coverage \
 		+UVM_NO_RELNOTES \
@@ -123,7 +123,7 @@ endif
 .PHONY: debug
 debug: build
 	vsim -coverage -i $(TEST_MOD) \
-		-L $(QSIM)/uvm-1.2 \
+		-L $(QSIM_ENV)/uvm-1.2 \
 		-voptargs=+acc \
 		-coverage \
 		+UVM_NO_RELNOTES \
