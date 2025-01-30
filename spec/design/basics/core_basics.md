@@ -1,15 +1,27 @@
 # Core Basics
 The LOROF CPU cores are moderately sophisticated superscalar out-of-order engines which are in the ideal case capable of 4 IPC. 
 
+### Terminology:
+- program order
+    - the order in which instructions are sequentially written in the program assembly
+- in-order
+    - instructions are completed in the same order as specified in the program order
+- out-of-order
+    - instructions are allowed to complete in a different order than specified in the program order
+- frontend
+    - the front half of the core, responsible for fetching, decoding, and otherwise managing new instructions
+- backend
+    - the back half of the core, responsible for executing instructions -> reading registers, performing operations, writing back registers, reading memory, writing memory, etc.
+
 ### Out-of-Order Execution Hides Latencies
 - out-of-order execution allows for the core to work on independent instructions while waiting for high-latency instructions (notably loads) to complete
 - a simple in-order pipeline with a load in mem stage waiting on a dcache miss would have to stall all the instructions behind it until the dcache is filled. this is awful for instruction throughput
-- an out-of-order pipeline can complete independent arithmetic, branch, store, etc. instructions while the load miss is being processed, or even get dcache hits and create more dcache misses from other load instructions
+- an out-of-order pipeline can complete independent arithmetic, branch, store, etc. instructions while the load miss is being processed. depending on the design, it could even get dcache hits and create more dcache misses from other independent load instructions
 
 ### Superscalar Execution Increases IPC
 - a simple in-order scalar pipeline only fetches, decodes, executes, etc. one instruction per cycle. this massively limits the instruction bandwidth of a core, especially as critical paths and pipeline depths can no longer be optimized
 - a superscalar pipeline can fetch, decode, execute, etc. more than one instruction per cycle, effectively breaching the 1 IPC limitation
-- superscalar is an orthogonal design choice to out-of-order, but the two work very well together to create high-performance CPU cores. a superscalar frontends can fetch many independent instructions that can be completed out-of-order while high-latency instructions are stalled
+- superscalar is an orthogonal design choice to out-of-order, but the two work very well together to create high-performance CPU cores. a superscalar frontend can fetch many independent instructions that can be completed out-of-order while high-latency instructions are stalled
 
 # Out-of-Order Basics
 
@@ -75,7 +87,7 @@ An R10K-style out-of-order core contains these fundamental components:
 
 <img src="superscalar_basics.png" alt="Basic Superscalar Frontend Diagram" width="600">
 
-A superscalar core increases the frontend instruction width. The backend appropriately increases its bandwidth via multiple FU's to support this wider frontend
+A superscalar core has a multi-instruction-wide frontend. The backend appropriately increases its bandwidth via multiple FU's to support this wider frontend
 
 - an n-way superscalar design has an n-wide frontend: it fetches, decodes, renames, and dispatches n instructions per cycle
     - because of this, the frontend must increase the bandwidth to the branch predictor, icache, decoders, rename structures, and take care of some dependency checking when it performs renames

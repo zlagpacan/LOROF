@@ -62,7 +62,7 @@ input interface
         - none
             - any requestor can target any physical register at a given time, regardless of bank or index within a bank
 
-<span style="color:deepskyblue">
+<span style="color:chartreuse">
 
 ## read resp info by read requestor
 
@@ -88,7 +88,7 @@ output interface
     - reset value:
         - {11{1'h0}}
 
-<span style="color:deepskyblue">
+<span style="color:chartreuse">
 
 ## read data by bank
 
@@ -142,7 +142,7 @@ input interface
     - constraints:
         - none
 
-<span style="color:deepskyblue">
+<span style="color:chartreuse">
 
 ## writeback feedback by write requestor
 
@@ -158,7 +158,7 @@ output interface
     - reset value:
         - {7{1'b1}}
 
-<span style="color:deepskyblue">
+<span style="color:chartreuse">
 
 ## writeback bus by bank
 
@@ -184,7 +184,7 @@ output interface
     - reset value:
         - {4{5'h0}}
 
-<span style="color:deepskyblue">
+<span style="color:chartreuse">
 
 ## forward data by bank
 
@@ -200,7 +200,7 @@ output interface
     - reset value:
         {4{32'h0}}
 
-<span style="color:deepskyblue">
+<span style="color:chartreuse">
 
 ## complete bus by bank
 
