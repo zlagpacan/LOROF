@@ -1,12 +1,8 @@
-Script run on: 2025-01-28 20:40:24
+Script run on: 2025-01-29 09:48:09
 -----------------------------------------------------------------
 [PASS] ALU_AND                             (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
-[FAIL] ALU_UNSIGNED_LT                     (SVA) : FAIL  [FAIL]
-    Instances:
-        - Timestamp: 12     : FAILED  -
-        - Timestamp: 100    : FAILED  -
-        - Timestamp: 228    : FAILED  -
+[PASS] ALU_UNSIGNED_LT                     (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
 [PASS] ALU_SHIFT_LEFT_REPEAT               (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
@@ -20,42 +16,21 @@ Script run on: 2025-01-28 20:40:24
 -----------------------------------------------------------------
 [PASS] ALU_XOR_REPEAT                      (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
-[FAIL] ALU_UNSIGNED_LT_REPEAT              (SVA) : FAIL  [FAIL]
-    Instances:
-        - Timestamp: 44     : FAILED  -
-        - Timestamp: 124    : PASSED  -
-        - Timestamp: 144    : FAILED  -
-        - Timestamp: 200    : PASSED  -
+[PASS] ALU_UNSIGNED_LT_REPEAT              (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
-[FAIL] ALU_SIGNED_LT_REPEAT                (SVA) : FAIL  [FAIL]
-    Instances:
-        - Timestamp: 52     : FAILED  -
-        - Timestamp: 92     : PASSED  -
-        - Timestamp: 116    : FAILED  -
-        - Timestamp: 148    : PASSED  -
-        - Timestamp: 264    : PASSED  -
-        - Timestamp: 288    : FAILED  -
+[PASS] ALU_SIGNED_LT_REPEAT                (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
 [PASS] ALU_ADD                             (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
 [FAIL] ALU_ARITH_SHIFT_RIGHT               (SVA) : FAIL  [FAIL]
-    Instances:
-        - Timestamp: 60     : PASSED  -
-        - Timestamp: 152    : PASSED  -
-        - Timestamp: 212    : PASSED  -
-        - Timestamp: 216    : PASSED  -
-        - Timestamp: 232    : PASSED  -
+    Instances (Failed only):
         - Timestamp: 256    : FAILED  -
 -----------------------------------------------------------------
 [PASS] ALU_AND_REPEAT                      (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
 [PASS] ALU_OR                              (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
-[FAIL] ALU_SIGNED_LT                       (SVA) : FAIL  [FAIL]
-    Instances:
-        - Timestamp: 76     : PASSED  -
-        - Timestamp: 184    : PASSED  -
-        - Timestamp: 292    : FAILED  -
+[PASS] ALU_SIGNED_LT                       (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
 [PASS] ALU_SUB                             (SVA) : PASS  [PASS]
 -----------------------------------------------------------------

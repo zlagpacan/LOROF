@@ -44,7 +44,7 @@ module alu_sva (
 
     // ALU Operation 2: Signed Less Than
     property sva_alu_signed_lt;
-        @(posedge CLK) (op == 4'b0010) |-> (out == ($signed(A) < $signed(B) ? '1 : '0));
+        @(posedge CLK) (op == 4'b0010) |-> (out == ($signed(A) < $signed(B) ? 32'h1 : '0));
     endproperty
     assert property (sva_alu_signed_lt) begin
         $display("SVA_INFO @%tTest Case: ALU_SIGNED_LT : PASSED", $time());
@@ -55,7 +55,7 @@ module alu_sva (
 
     // ALU Operation 3: Unsigned Less Than
     property sva_alu_unsigned_lt;
-        @(posedge CLK) (op == 4'b0011) |-> (out == ($unsigned(A) < $unsigned(B) ? '1 : '0));
+        @(posedge CLK) (op == 4'b0011) |-> (out == ((A < B) ? 32'h1 : '0));
     endproperty
     assert property (sva_alu_unsigned_lt) begin
         $display("SVA_INFO @%tTest Case: ALU_UNSIGNED_LT : PASSED", $time());
@@ -132,7 +132,7 @@ module alu_sva (
 
     // ALU Operation 10: Signed Less Than (Repeat)
     property sva_alu_signed_lt_repeat;
-        @(posedge CLK) (op == 4'b1010) |-> (out == ($signed(A) < $signed(B) ? '1 : '0));
+        @(posedge CLK) (op == 4'b1010) |-> (out == ($signed(A) < $signed(B) ? 32'h1 : '0));
     endproperty
     assert property (sva_alu_signed_lt_repeat) begin
         $display("SVA_INFO @%tTest Case: ALU_SIGNED_LT_REPEAT : PASSED", $time());
@@ -143,7 +143,7 @@ module alu_sva (
 
     // ALU Operation 11: Unsigned Less Than (Repeat)
     property sva_alu_unsigned_lt_repeat;
-        @(posedge CLK) (op == 4'b1011) |-> (out == ($unsigned(A) < $unsigned(B) ? '1 : '0));
+        @(posedge CLK) (op == 4'b1011) |-> (out == ((A < B) ? 32'h1 : '0));
     endproperty
     assert property (sva_alu_unsigned_lt_repeat) begin
         $display("SVA_INFO @%tTest Case: ALU_UNSIGNED_LT_REPEAT : PASSED", $time());

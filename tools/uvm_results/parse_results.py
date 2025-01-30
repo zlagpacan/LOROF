@@ -82,15 +82,16 @@ def print_group_ratings(grouped_by_tag, failed_timestamps, output_file):
             print(console_output)
             output_file.write(f"[FAIL] {tag.ljust(file_separator_length - 30)} ({info_type}) : {rating.ljust(5)} [FAIL]\n")
 
-            print("    Instances:")
-            output_file.write("    Instances:\n")
+            print("    Instances (Failed only):")
+            output_file.write("    Instances (Failed only):\n")
             for line, result, _ in lines:
-                timestamp = re.search(r'@\s*(\d+)', line).group(1)
-                status = result.upper()
+                if result == 'FAILED':  # Only print failed instances
+                    timestamp = re.search(r'@\s*(\d+)', line).group(1)
+                    status = result.upper()
 
-                instance_output = f"        - Timestamp: {timestamp.ljust(timestamp_width)} : {status.ljust(status_width)} -"
-                print(instance_output)
-                output_file.write(f"        - Timestamp: {timestamp.ljust(timestamp_width)} : {status.ljust(status_width)} -\n")
+                    instance_output = f"        - Timestamp: {timestamp.ljust(timestamp_width)} : {status.ljust(status_width)} -"
+                    print(instance_output)
+                    output_file.write(f"        - Timestamp: {timestamp.ljust(timestamp_width)} : {status.ljust(status_width)} -\n")
         else:
             console_output = f"\033[42m-\033[0m {tag.ljust(console_separator_length - 20)} ({info_type}) : \033[42m{rating.ljust(5)}\033[0m \033[42m-\033[0m"
             print(console_output)
@@ -98,6 +99,7 @@ def print_group_ratings(grouped_by_tag, failed_timestamps, output_file):
 
     print(console_separator)
     output_file.write(file_separator + '\n')
+
 
 def main():
     # Arg parse for Makefile capabilities 

@@ -47,13 +47,49 @@ module alu_reg_pipeline_sva (
     (WB_stall) |=> (WB_valid === $past(WB_valid));
   endproperty
 
+  property sva_WB_data_stall;
+    @(posedge CLK) disable iff (~nRST)
+    (WB_stall) |=> (WB_data === $past(WB_data));
+  endproperty
+
+  property sva_WB_PR_stall;
+    @(posedge CLK) disable iff (~nRST)
+    (WB_stall) |=> (WB_PR === $past(WB_PR));
+  endproperty
+
+  property sva_WB_ROB_index_stall;
+    @(posedge CLK) disable iff (~nRST)
+    (WB_stall) |=> (WB_ROB_index === $past(WB_ROB_index));
+  endproperty
+  
   // --- SVA Instances --- //
-  a_ALURP_1A: assert property (sva_WB_valid_stall) begin
-    $display("SVA_INFO @%t Test Case: ALURP_1 : PASSED", $time());
+  a_ALURP_1_WB_VALID: assert property (sva_WB_valid_stall) begin
+    $display("SVA_INFO @%t Test Case: ALURP_1_WB_VALID : PASSED", $time());
   end else begin
-    $display("SVA_INFO @%t Test Case: ALURP_1 : FAILED", $time());
+    $display("SVA_INFO @%t Test Case: ALURP_1_WB_VALID : FAILED", $time());
   end
-  c_ALURP_1A: cover property (sva_WB_valid_stall);
+  c_ALURP_1_WB_VALID: cover property (sva_WB_valid_stall);
+
+  a_ALURP_1_WB_DATA: assert property (sva_WB_data_stall) begin
+    $display("SVA_INFO @%t Test Case: ALURP_1_WB_DATA : PASSED", $time());
+  end else begin
+    $display("SVA_INFO @%t Test Case: ALURP_1_WB_DATA : FAILED", $time());
+  end
+  c_ALURP_1_WB_DATA: cover property (sva_WB_data_stall);
+
+  a_ALURP_1_WB_PR: assert property (sva_WB_PR_stall) begin
+    $display("SVA_INFO @%t Test Case: ALURP_1_WB_PR : PASSED", $time());
+  end else begin
+    $display("SVA_INFO @%t Test Case: ALURP_1_WB_PR : FAILED", $time());
+  end
+  c_ALURP_1_WB_PR: cover property (sva_WB_PR_stall);
+
+  a_ALURP_1_WB_ROB: assert property (sva_WB_ROB_index_stall) begin
+    $display("SVA_INFO @%t Test Case: ALURP_1_WB_ROB : PASSED", $time());
+  end else begin
+    $display("SVA_INFO @%t Test Case: ALURP_1_WB_ROB : FAILED", $time());
+  end
+  c_ALURP_1_WB_ROB: cover property (sva_WB_ROB_index_stall);
 
 endmodule
 
