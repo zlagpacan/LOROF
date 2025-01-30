@@ -8,6 +8,7 @@ include ../Makefile.inc
 DUT      = alu_reg_pipeline
 DESIGN   = ../../source/rtl/$(DUT).sv
 PKG      = ../../source/include
+RTL_DEPS = ../../source/rtl/alu.sv
 
 # --- Testbench/Sim --- #
 UVM_DIR  = testbench

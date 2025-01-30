@@ -93,12 +93,14 @@ clean:
 build:
 	vlog -mfcu \
         +incdir+$(DESIGN) \
+        +incdir+$(RTL_DEPS) \
         +incdir+$(UVM) \
         +incdir+$(PKG) \
         +acc \
         +cover \
         -L $(QSIM)/uvm-1.2 \
         -sv $(DESIGN) \
+		-sv $(RTL_DEPS) \
         $(TB_FILE) \
         $(SVA) \
         -logfile compile.log
