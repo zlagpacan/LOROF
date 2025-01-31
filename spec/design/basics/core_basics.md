@@ -1,5 +1,5 @@
 # Core Basics
-The LOROF CPU cores are moderately sophisticated superscalar out-of-order engines which are in the ideal case capable of 4 IPC. 
+The LOROF CPU cores are moderately sophisticated superscalar out-of-order engines which are in the ideal case capable of 4 IPC. This page gives a basic introduction to how this is achieved.
 
 ### Terminology:
 - program order
@@ -13,15 +13,24 @@ The LOROF CPU cores are moderately sophisticated superscalar out-of-order engine
 - backend
     - the back half of the core, responsible for executing instructions -> reading registers, performing operations, writing back registers, reading memory, writing memory, etc.
 
+### Instruction-Level Parallelism (ILP)
+- the performance of a single thread of execution can be enhanced by both minimizing the latency of individual instructions, as well as maximizing the instruction completion bandwidth
+- individual instruction latency is very sharply limited by technology capabilities
+    - a LW instruction which must gets its value from off-chip DRAM is limited by the speed of the DRAM access and all fabrics between
+    - an ADD instruction is limited by the fastest 32-bit adder that can be designed in a technology node
+- instruction completion bandwidth can take advantage of ILP by completing multiple instructions in parallel when possible
+- a simple form of ILP can be seen in a classic 5-stage scalar in-order pipelined design, where up to 5 different instructions can be operated on at the same time
+- superscalar and out-of-order designs exploit much more ILP, vastly increasing the instruction completion bandwidth
+
 ### Out-of-Order Execution Hides Latencies
 - out-of-order execution allows for the core to work on independent instructions while waiting for high-latency instructions (notably loads) to complete
 - a simple in-order pipeline with a load in mem stage waiting on a dcache miss would have to stall all the instructions behind it until the dcache is filled. this is awful for instruction throughput
 - an out-of-order pipeline can complete independent arithmetic, branch, store, etc. instructions while the load miss is being processed. depending on the design, it could even get dcache hits and create more dcache misses from other independent load instructions
 
 ### Superscalar Execution Increases IPC
-- a simple in-order scalar pipeline only fetches, decodes, executes, etc. one instruction per cycle. this massively limits the instruction bandwidth of a core, especially as critical paths and pipeline depths can no longer be optimized
+- a simple scalar in-order pipeline only fetches, decodes, executes, etc. one instruction per cycle. this massively limits the instruction bandwidth of a core, especially as critical paths and pipeline depths can no longer be optimized
 - a superscalar pipeline can fetch, decode, execute, etc. more than one instruction per cycle, effectively breaching the 1 IPC limitation
-- superscalar is an orthogonal design choice to out-of-order, but the two work very well together to create high-performance CPU cores. a superscalar frontend can fetch many independent instructions that can be completed out-of-order while high-latency instructions are stalled
+- superscalar is an orthogonal design choice to out-of-order, but the two work very well together to create high-performance CPU cores. a superscalar frontend can fetch, decode, and execute many independent instructions that can be completed out-of-order while high-latency instructions are stalled
 
 # Out-of-Order Basics
 
@@ -82,6 +91,7 @@ An R10K-style out-of-order core contains these fundamental components:
             - here, the frontend would be made to look like the BEQ had just finished
         - if a LW got a page fault, the ROB would restart the frontend in supervisor mode (OS control) at the page fault exception handler
             - here, the frontend would be made to look like the LW had just started
+- see [precise_state_basics.md](precise_state_basics.md) for more info
 
 # Superscalar Basics
 
