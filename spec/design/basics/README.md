@@ -1,4 +1,4 @@
-# Basic Docs
+# Architecture Basics
 
 Suggested reading order:
 - [core_basics.md](core_basics.md)
