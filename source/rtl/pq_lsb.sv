@@ -5,7 +5,9 @@
 */
 
 module pq_lsb #(
-    parameter WIDTH = 8
+    parameter WIDTH = 8,
+    parameter USE_COLD = 0,
+    parameter USE_INDEX = 0
 )(
     input logic [WIDTH-1:0]             req_vec,
 
@@ -20,8 +22,8 @@ module pq_lsb #(
         // init clear vec
         ack_one_hot = '0;
         ack_mask = '0;
-        cold_ack_mask = '0;
-        ack_index = 0;
+        if (USE_COLD) cold_ack_mask = '0;
+        if (USE_INDEX) ack_index = 0;
 
         // lsb bit: special since no lower mask bit
         begin
@@ -32,7 +34,7 @@ module pq_lsb #(
                 // enable this mask bit
                 ack_mask[0] = 1'b1;
                 // set index
-                ack_index = 0;
+                if (USE_INDEX) ack_index = 0;
             end
             // otherwise, nothing hot yet
             else begin
@@ -42,7 +44,7 @@ module pq_lsb #(
                 ack_mask[0] = 1'b0;
             end
             // lsb guaranteed cold
-            cold_ack_mask[0] = 1'b0;
+            if (USE_COLD) cold_ack_mask[0] = 1'b0;
         end
 
         // go through req vec bits after lsb
@@ -55,7 +57,7 @@ module pq_lsb #(
                 // enable this mask bit
                 ack_mask[i] = 1'b1;
                 // enable this cold mask bit
-                cold_ack_mask[i] = 1'b1;
+                if (USE_COLD) cold_ack_mask[i] = 1'b1;
             end
             // otherwise, check this req hot
             else if (req_vec[i]) begin
@@ -64,9 +66,9 @@ module pq_lsb #(
                 // enable this mask bit
                 ack_mask[i] = 1'b1;
                 // mask still cold
-                cold_ack_mask[i] = 1'b0;
+                if (USE_COLD) cold_ack_mask[i] = 1'b0;
                 // set index
-                ack_index = i;
+                if (USE_INDEX) ack_index = i;
             end
             // otherwise, nothing hot yet
             else begin
@@ -75,7 +77,7 @@ module pq_lsb #(
                 // disable this mask bit
                 ack_mask[i] = 1'b0;
                 // mask still cold
-                cold_ack_mask[i] = 1'b0;
+                if (USE_COLD) cold_ack_mask[i] = 1'b0;
             end
         end
     end

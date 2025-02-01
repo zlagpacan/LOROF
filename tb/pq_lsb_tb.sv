@@ -43,7 +43,7 @@ module pq_lsb_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	pq_lsb #(.WIDTH(WIDTH)) DUT (
+	pq_lsb #(.WIDTH(WIDTH), .USE_COLD(1), .USE_INDEX(1)) DUT (
 		.req_vec(tb_req_vec),
 		.ack_one_hot(DUT_ack_one_hot),
 		.ack_mask(DUT_ack_mask),
