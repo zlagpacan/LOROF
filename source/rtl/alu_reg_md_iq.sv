@@ -89,14 +89,12 @@ module alu_reg_md_iq (
     logic [ALU_REG_MD_IQ_ENTRIES-1:0]  B_forward_by_entry;
 
     logic [ALU_REG_MD_IQ_ENTRIES-1:0]  issue_alu_reg_ready_by_entry;
-    // logic [ALU_REG_MD_IQ_ENTRIES-1:0]  issue_alu_reg_one_hot_by_entry;
+    logic [ALU_REG_MD_IQ_ENTRIES-1:0]  issue_alu_reg_one_hot_by_entry;
     logic [ALU_REG_MD_IQ_ENTRIES-1:0]  issue_alu_reg_mask;
-    logic [$clog2(ALU_REG_MD_IQ_ENTRIES)-1:0]  issue_alu_reg_index;
 
     logic [ALU_REG_MD_IQ_ENTRIES-1:0]  issue_mul_div_ready_by_entry;
-    // logic [ALU_REG_MD_IQ_ENTRIES-1:0]  issue_mul_div_one_hot_by_entry;
+    logic [ALU_REG_MD_IQ_ENTRIES-1:0]  issue_mul_div_one_hot_by_entry;
     logic [ALU_REG_MD_IQ_ENTRIES-1:0]  issue_mul_div_mask;
-    logic [$clog2(ALU_REG_MD_IQ_ENTRIES)-1:0]  issue_mul_div_index;
 
     // incoming dispatch crossbar by entry
     logic [ALU_REG_MD_IQ_ENTRIES-1:0]                          dispatch_valid_alu_reg_by_entry;
@@ -141,9 +139,8 @@ module alu_reg_md_iq (
     // pq
     pq_lsb #(.WIDTH(ALU_REG_MD_IQ_ENTRIES)) ISSUE_ALU_REG_PQ_LSB (
         .req_vec(issue_alu_reg_ready_by_entry),
-        // .ack_one_hot(issue_alu_reg_one_hot_by_entry),
-        .ack_mask(issue_alu_reg_mask),
-        .ack_index(issue_alu_reg_index)
+        .ack_one_hot(issue_alu_reg_one_hot_by_entry),
+        .ack_mask(issue_alu_reg_mask)
     );
 
     // mux
@@ -152,95 +149,55 @@ module alu_reg_md_iq (
         // issue automatically valid if any entry ready
         issue_alu_reg_valid = |issue_alu_reg_ready_by_entry;
 
-        // mux out with pq'd issue index
-        issue_alu_reg_op = op_by_entry[issue_alu_reg_index];
-        issue_alu_reg_A_forward = A_forward_by_entry[issue_alu_reg_index];
-        issue_alu_reg_A_bank = A_PR_by_entry[issue_alu_reg_index][LOG_PRF_BANK_COUNT-1:0];
-        issue_alu_reg_B_forward = B_forward_by_entry[issue_alu_reg_index];
-        issue_alu_reg_B_bank = B_PR_by_entry[issue_alu_reg_index][LOG_PRF_BANK_COUNT-1:0];
-        issue_alu_reg_dest_PR = dest_PR_by_entry[issue_alu_reg_index];
-        issue_alu_reg_ROB_index = ROB_index_by_entry[issue_alu_reg_index];
-        PRF_alu_reg_req_A_valid = ~A_forward_by_entry[issue_alu_reg_index];
-        PRF_alu_reg_req_A_PR = A_PR_by_entry[issue_alu_reg_index];
-        PRF_alu_reg_req_B_valid = ~B_forward_by_entry[issue_alu_reg_index];
-        PRF_alu_reg_req_B_PR = B_PR_by_entry[issue_alu_reg_index];
+        // one-hot mux over entries for final issue:
+        issue_alu_reg_op = '0;
+        issue_alu_reg_A_forward = '0;
+        issue_alu_reg_A_bank = '0;
+        issue_alu_reg_B_forward = '0;
+        issue_alu_reg_B_bank = '0;
+        issue_alu_reg_dest_PR = '0;
+        issue_alu_reg_ROB_index = '0;
 
-        // if (issue_alu_reg_valid) begin
-        //     issue_alu_reg_op = op_by_entry[issue_alu_reg_index];
-        //     issue_alu_reg_A_forward = A_forward_by_entry[issue_alu_reg_index];
-        //     issue_alu_reg_A_bank = A_PR_by_entry[issue_alu_reg_index][LOG_PRF_BANK_COUNT-1:0];
-        //     issue_alu_reg_B_forward = B_forward_by_entry[issue_alu_reg_index];
-        //     issue_alu_reg_B_bank = B_PR_by_entry[issue_alu_reg_index][LOG_PRF_BANK_COUNT-1:0];
-        //     issue_alu_reg_dest_PR = dest_PR_by_entry[issue_alu_reg_index];
-        //     issue_alu_reg_ROB_index = ROB_index_by_entry[issue_alu_reg_index];
-        //     PRF_alu_reg_req_A_valid = ~A_forward_by_entry[issue_alu_reg_index];
-        //     PRF_alu_reg_req_A_PR = A_PR_by_entry[issue_alu_reg_index];
-        //     PRF_alu_reg_req_B_valid = ~B_forward_by_entry[issue_alu_reg_index];
-        //     PRF_alu_reg_req_B_PR = B_PR_by_entry[issue_alu_reg_index];
-        // end
-        // else begin
-        //     issue_alu_reg_op = '0;
-        //     issue_alu_reg_A_forward = '0;
-        //     issue_alu_reg_A_bank = '0;
-        //     issue_alu_reg_B_forward = '0;
-        //     issue_alu_reg_B_bank = '0;
-        //     issue_alu_reg_dest_PR = '0;
-        //     issue_alu_reg_ROB_index = '0;
-        //     PRF_alu_reg_req_A_valid = '0;
-        //     PRF_alu_reg_req_A_PR = '0;
-        //     PRF_alu_reg_req_B_valid = '0;
-        //     PRF_alu_reg_req_B_PR = '0;
-        // end
+        PRF_alu_reg_req_A_valid = '0;
+        PRF_alu_reg_req_A_PR = '0;
+        PRF_alu_reg_req_B_valid = '0;
+        PRF_alu_reg_req_B_PR = '0;
 
-        // // one-hot mux over entries for final issue:
-        // issue_alu_reg_op = '0;
-        // issue_alu_reg_A_forward = '0;
-        // issue_alu_reg_A_bank = '0;
-        // issue_alu_reg_B_forward = '0;
-        // issue_alu_reg_B_bank = '0;
-        // issue_alu_reg_dest_PR = '0;
-        // issue_alu_reg_ROB_index = '0;
+        for (int entry = 0; entry < ALU_REG_MD_IQ_ENTRIES; entry++) begin
 
-        // PRF_alu_reg_req_A_valid = '0;
-        // PRF_alu_reg_req_A_PR = '0;
-        // PRF_alu_reg_req_B_valid = '0;
-        // PRF_alu_reg_req_B_PR = '0;
+            issue_alu_reg_op |= op_by_entry[entry] 
+                & {4{issue_alu_reg_one_hot_by_entry[entry]}};
 
-        // for (int entry = 0; entry < ALU_REG_MD_IQ_ENTRIES; entry++) begin
+            issue_alu_reg_A_forward |= A_forward_by_entry[entry] 
+                & issue_alu_reg_one_hot_by_entry[entry];
 
-        //     issue_alu_reg_op |= op_by_entry[entry] 
-        //         & {4{issue_alu_reg_one_hot_by_entry[entry]}};
+            issue_alu_reg_A_bank |= A_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0] 
+                & {LOG_PRF_BANK_COUNT{issue_alu_reg_one_hot_by_entry[entry]}};
 
-        //     issue_alu_reg_A_forward |= A_forward_by_entry[entry] 
-        //         & issue_alu_reg_one_hot_by_entry[entry];
+            issue_alu_reg_B_forward |= B_forward_by_entry[entry] 
+                & issue_alu_reg_one_hot_by_entry[entry];
 
-        //     issue_alu_reg_A_bank |= A_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0] 
-        //         & {LOG_PRF_BANK_COUNT{issue_alu_reg_one_hot_by_entry[entry]}};
+            issue_alu_reg_B_bank |= B_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0] 
+                & {LOG_PRF_BANK_COUNT{issue_alu_reg_one_hot_by_entry[entry]}};
 
-        //     issue_alu_reg_B_forward |= B_forward_by_entry[entry] 
-        //         & issue_alu_reg_one_hot_by_entry[entry];
+            issue_alu_reg_dest_PR |= dest_PR_by_entry[entry] 
+                & {LOG_PR_COUNT{issue_alu_reg_one_hot_by_entry[entry]}};
 
-        //     issue_alu_reg_B_bank |= B_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0] 
-        //         & {LOG_PRF_BANK_COUNT{issue_alu_reg_one_hot_by_entry[entry]}};
+            issue_alu_reg_ROB_index |= ROB_index_by_entry[entry] 
+                & {LOG_ROB_ENTRIES{issue_alu_reg_one_hot_by_entry[entry]}};
 
-        //     issue_alu_reg_dest_PR |= dest_PR_by_entry[entry] 
-        //         & {LOG_PR_COUNT{issue_alu_reg_one_hot_by_entry[entry]}};
-
-        //     issue_alu_reg_ROB_index |= ROB_index_by_entry[entry] 
-        //         & {LOG_ROB_ENTRIES{issue_alu_reg_one_hot_by_entry[entry]}};
-
-        //     PRF_alu_reg_req_A_valid |= ~A_forward_by_entry[entry] 
-        //         & issue_alu_reg_one_hot_by_entry[entry];
+            PRF_alu_reg_req_A_valid |= ~A_forward_by_entry[entry] 
+                & issue_alu_reg_one_hot_by_entry[entry];
                 
-        //     PRF_alu_reg_req_A_PR |= A_PR_by_entry[entry] 
-        //         & {LOG_PR_COUNT{issue_alu_reg_one_hot_by_entry[entry]}};
+            PRF_alu_reg_req_A_PR |= A_PR_by_entry[entry] 
+                & {LOG_PR_COUNT{issue_alu_reg_one_hot_by_entry[entry]}};
 
-        //     PRF_alu_reg_req_B_valid |= ~B_forward_by_entry[entry] 
-        //         & issue_alu_reg_one_hot_by_entry[entry];
+            PRF_alu_reg_req_B_valid |= ~B_forward_by_entry[entry] 
+                & issue_alu_reg_one_hot_by_entry[entry];
 
-        //     PRF_alu_reg_req_B_PR |= B_PR_by_entry[entry] 
-        //         & {LOG_PR_COUNT{issue_alu_reg_one_hot_by_entry[entry]}};
-        // end
+            PRF_alu_reg_req_B_PR |= B_PR_by_entry[entry] 
+                & {LOG_PR_COUNT{issue_alu_reg_one_hot_by_entry[entry]}};
+        end
     end
 
     // Mul-Div issue:
@@ -259,9 +216,8 @@ module alu_reg_md_iq (
     // pq
     pq_lsb #(.WIDTH(ALU_REG_MD_IQ_ENTRIES)) ISSUE_MUL_DIV_PQ_LSB (
         .req_vec(issue_mul_div_ready_by_entry),
-        // .ack_one_hot(issue_mul_div_one_hot_by_entry),
-        .ack_mask(issue_mul_div_mask),
-        .ack_index(issue_mul_div_index)
+        .ack_one_hot(issue_mul_div_one_hot_by_entry),
+        .ack_mask(issue_mul_div_mask)
     );
 
     // mux
@@ -270,95 +226,55 @@ module alu_reg_md_iq (
         // issue automatically valid if any entry ready
         issue_mul_div_valid = |issue_mul_div_ready_by_entry;
 
-        // mux out with pq'd issue index
-        issue_mul_div_op = op_by_entry[issue_mul_div_index];
-        issue_mul_div_A_forward = A_forward_by_entry[issue_mul_div_index];
-        issue_mul_div_A_bank = A_PR_by_entry[issue_mul_div_index][LOG_PRF_BANK_COUNT-1:0];
-        issue_mul_div_B_forward = B_forward_by_entry[issue_mul_div_index];
-        issue_mul_div_B_bank = B_PR_by_entry[issue_mul_div_index][LOG_PRF_BANK_COUNT-1:0];
-        issue_mul_div_dest_PR = dest_PR_by_entry[issue_mul_div_index];
-        issue_mul_div_ROB_index = ROB_index_by_entry[issue_mul_div_index];
-        PRF_mul_div_req_A_valid = ~A_forward_by_entry[issue_mul_div_index];
-        PRF_mul_div_req_A_PR = A_PR_by_entry[issue_mul_div_index];
-        PRF_mul_div_req_B_valid = ~B_forward_by_entry[issue_mul_div_index];
-        PRF_mul_div_req_B_PR = B_PR_by_entry[issue_mul_div_index];
+        // one-hot mux over entries for final issue:
+        issue_mul_div_op = '0;
+        issue_mul_div_A_forward = '0;
+        issue_mul_div_A_bank = '0;
+        issue_mul_div_B_forward = '0;
+        issue_mul_div_B_bank = '0;
+        issue_mul_div_dest_PR = '0;
+        issue_mul_div_ROB_index = '0;
 
-        // if (issue_mul_div_valid) begin
-        //     issue_mul_div_op = op_by_entry[issue_mul_div_index];
-        //     issue_mul_div_A_forward = A_forward_by_entry[issue_mul_div_index];
-        //     issue_mul_div_A_bank = A_PR_by_entry[issue_mul_div_index][LOG_PRF_BANK_COUNT-1:0];
-        //     issue_mul_div_B_forward = B_forward_by_entry[issue_mul_div_index];
-        //     issue_mul_div_B_bank = B_PR_by_entry[issue_mul_div_index][LOG_PRF_BANK_COUNT-1:0];
-        //     issue_mul_div_dest_PR = dest_PR_by_entry[issue_mul_div_index];
-        //     issue_mul_div_ROB_index = ROB_index_by_entry[issue_mul_div_index];
-        //     PRF_mul_div_req_A_valid = ~A_forward_by_entry[issue_mul_div_index];
-        //     PRF_mul_div_req_A_PR = A_PR_by_entry[issue_mul_div_index];
-        //     PRF_mul_div_req_B_valid = ~B_forward_by_entry[issue_mul_div_index];
-        //     PRF_mul_div_req_B_PR = B_PR_by_entry[issue_mul_div_index];
-        // end
-        // else begin
-        //     issue_mul_div_op = '0;
-        //     issue_mul_div_A_forward = '0;
-        //     issue_mul_div_A_bank = '0;
-        //     issue_mul_div_B_forward = '0;
-        //     issue_mul_div_B_bank = '0;
-        //     issue_mul_div_dest_PR = '0;
-        //     issue_mul_div_ROB_index = '0;
-        //     PRF_mul_div_req_A_valid = '0;
-        //     PRF_mul_div_req_A_PR = '0;
-        //     PRF_mul_div_req_B_valid = '0;
-        //     PRF_mul_div_req_B_PR = '0;
-        // end
+        PRF_mul_div_req_A_valid = '0;
+        PRF_mul_div_req_A_PR = '0;
+        PRF_mul_div_req_B_valid = '0;
+        PRF_mul_div_req_B_PR = '0;
 
-        // // one-hot mux over entries for final issue:
-        // issue_mul_div_op = '0;
-        // issue_mul_div_A_forward = '0;
-        // issue_mul_div_A_bank = '0;
-        // issue_mul_div_B_forward = '0;
-        // issue_mul_div_B_bank = '0;
-        // issue_mul_div_dest_PR = '0;
-        // issue_mul_div_ROB_index = '0;
+        for (int entry = 0; entry < ALU_REG_MD_IQ_ENTRIES; entry++) begin
 
-        // PRF_mul_div_req_A_valid = '0;
-        // PRF_mul_div_req_A_PR = '0;
-        // PRF_mul_div_req_B_valid = '0;
-        // PRF_mul_div_req_B_PR = '0;
+            issue_mul_div_op |= op_by_entry[entry] 
+                & {4{issue_mul_div_one_hot_by_entry[entry]}};
 
-        // for (int entry = 0; entry < ALU_REG_MD_IQ_ENTRIES; entry++) begin
+            issue_mul_div_A_forward |= A_forward_by_entry[entry] 
+                & issue_mul_div_one_hot_by_entry[entry];
 
-        //     issue_mul_div_op |= op_by_entry[entry] 
-        //         & {4{issue_mul_div_one_hot_by_entry[entry]}};
+            issue_mul_div_A_bank |= A_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0] 
+                & {LOG_PRF_BANK_COUNT{issue_mul_div_one_hot_by_entry[entry]}};
 
-        //     issue_mul_div_A_forward |= A_forward_by_entry[entry] 
-        //         & issue_mul_div_one_hot_by_entry[entry];
+            issue_mul_div_B_forward |= B_forward_by_entry[entry] 
+                & issue_mul_div_one_hot_by_entry[entry];
 
-        //     issue_mul_div_A_bank |= A_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0] 
-        //         & {LOG_PRF_BANK_COUNT{issue_mul_div_one_hot_by_entry[entry]}};
+            issue_mul_div_B_bank |= B_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0] 
+                & {LOG_PRF_BANK_COUNT{issue_mul_div_one_hot_by_entry[entry]}};
 
-        //     issue_mul_div_B_forward |= B_forward_by_entry[entry] 
-        //         & issue_mul_div_one_hot_by_entry[entry];
+            issue_mul_div_dest_PR |= dest_PR_by_entry[entry] 
+                & {LOG_PR_COUNT{issue_mul_div_one_hot_by_entry[entry]}};
 
-        //     issue_mul_div_B_bank |= B_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0] 
-        //         & {LOG_PRF_BANK_COUNT{issue_mul_div_one_hot_by_entry[entry]}};
+            issue_mul_div_ROB_index |= ROB_index_by_entry[entry] 
+                & {LOG_ROB_ENTRIES{issue_mul_div_one_hot_by_entry[entry]}};
 
-        //     issue_mul_div_dest_PR |= dest_PR_by_entry[entry] 
-        //         & {LOG_PR_COUNT{issue_mul_div_one_hot_by_entry[entry]}};
-
-        //     issue_mul_div_ROB_index |= ROB_index_by_entry[entry] 
-        //         & {LOG_ROB_ENTRIES{issue_mul_div_one_hot_by_entry[entry]}};
-
-        //     PRF_mul_div_req_A_valid |= ~A_forward_by_entry[entry] 
-        //         & issue_mul_div_one_hot_by_entry[entry];
+            PRF_mul_div_req_A_valid |= ~A_forward_by_entry[entry] 
+                & issue_mul_div_one_hot_by_entry[entry];
                 
-        //     PRF_mul_div_req_A_PR |= A_PR_by_entry[entry] 
-        //         & {LOG_PR_COUNT{issue_mul_div_one_hot_by_entry[entry]}};
+            PRF_mul_div_req_A_PR |= A_PR_by_entry[entry] 
+                & {LOG_PR_COUNT{issue_mul_div_one_hot_by_entry[entry]}};
 
-        //     PRF_mul_div_req_B_valid |= ~B_forward_by_entry[entry] 
-        //         & issue_mul_div_one_hot_by_entry[entry];
+            PRF_mul_div_req_B_valid |= ~B_forward_by_entry[entry] 
+                & issue_mul_div_one_hot_by_entry[entry];
 
-        //     PRF_mul_div_req_B_PR |= B_PR_by_entry[entry] 
-        //         & {LOG_PR_COUNT{issue_mul_div_one_hot_by_entry[entry]}};
-        // end
+            PRF_mul_div_req_B_PR |= B_PR_by_entry[entry] 
+                & {LOG_PR_COUNT{issue_mul_div_one_hot_by_entry[entry]}};
+        end
     end
 
     // ----------------------------------------------------------------
@@ -392,7 +308,6 @@ module alu_reg_md_iq (
     );
     assign dispatch_one_hot_by_way[1] = dispatch_pq_one_hot_by_way[1] & {ALU_REG_MD_IQ_ENTRIES{dispatch_attempt_by_way[1]}};
     
-    // way 2
     assign dispatch_open_mask_by_way[2] = dispatch_open_mask_by_way[1] & ~dispatch_one_hot_by_way[1];
     pq_lsb #(.WIDTH(ALU_REG_MD_IQ_ENTRIES)) DISPATCH_WAY2_PQ_LSB (
         .req_vec(dispatch_open_mask_by_way[2]),
@@ -401,7 +316,6 @@ module alu_reg_md_iq (
     );
     assign dispatch_one_hot_by_way[2] = dispatch_pq_one_hot_by_way[2] & {ALU_REG_MD_IQ_ENTRIES{dispatch_attempt_by_way[2]}};
     
-    // way 3
     assign dispatch_open_mask_by_way[3] = dispatch_open_mask_by_way[2] & ~dispatch_one_hot_by_way[2];
     pq_lsb #(.WIDTH(ALU_REG_MD_IQ_ENTRIES)) DISPATCH_WAY3_PQ_LSB (
         .req_vec(dispatch_open_mask_by_way[3]),
