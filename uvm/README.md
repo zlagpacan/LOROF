@@ -18,8 +18,8 @@ The UVM directory is where the official verification team testbenches reside. Ea
         - generated testbench from MyUVMF
         - stored in a seperate directory to prevent malicous writes to the testbench directory
 
-    - <module>testplan.csv
-        - csv testplan for the module that adheres to the documentation
+    - results.rpt
+        - test case results generated from QuestaSim transcript
 
     - <module>_uvm.drawio.pdf
         - UVM architecture diagram for the proposed testbench

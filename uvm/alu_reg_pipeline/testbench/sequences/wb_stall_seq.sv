@@ -37,6 +37,7 @@ class wb_stall_sequence extends uvm_sequence;
     wb_stall_tx.randomize() with {
         nRST        dist {0:/5, 1:/95};
         WB_ready    dist {0:/30, 1:/70};
+        issue_valid == 1'b1;
     };
     finish_item(wb_stall_tx);
         

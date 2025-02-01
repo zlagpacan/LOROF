@@ -129,6 +129,7 @@ debug: build
 		+UVM_NO_RELNOTES \
 		-do "$(VCD)" \
 		-do "run -all"
+	vsim -do "coverage report -detail -cvg -directive -comments -output coverage.rpt /."
 	
 # Clean compile and build testbench
 .PHONY: all
@@ -138,3 +139,7 @@ all: clean build run
 .PHONY: report
 report:
 	$(PYTHON) "$(PARSE_RESULTS)" $(TRANSCRIPT) $(UVM_REPORT)
+
+.PHONY: coverage_rpt
+coverage_rpt:
+	cp coverage.rpt cov_results.rpt

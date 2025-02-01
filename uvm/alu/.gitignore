@@ -3,3 +3,4 @@ transcript
 compile.log
 tr_db.log
 vsim.wlf
+coverage.rpt
