@@ -27,7 +27,7 @@ the general policy of an issue queue is to issue the oldest instruction(s) whose
 
 ### alu_reg_md_iq
 - accepts ALU register-register, multiplication, and division ops
-- 12-entry
+- 8-entry
 - out-of-order issue
 
 ### alu_imm_ld_iq
@@ -42,7 +42,7 @@ the general policy of an issue queue is to issue the oldest instruction(s) whose
 
 ### bru_iq
 - accepts branch, jump, LUI, AUIPC ops
-- 8-entry
+- 4-entry
 - out-of-order issue
 
 ### sys_iq
