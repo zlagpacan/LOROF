@@ -46,7 +46,8 @@ module alu_reg_md_iq_tb ();
 	logic [3:0][LOG_ROB_ENTRIES-1:0] tb_dispatch_ROB_index_by_way;
 
     // ALU op dispatch feedback
-	logic [3:0] DUT_dispatch_ready_advertisement, expected_dispatch_ready_advertisement;
+	// logic [3:0] DUT_dispatch_ready_advertisement_by_way, expected_dispatch_ready_advertisement_by_way;
+	logic [3:0] DUT_dispatch_ack_by_way, expected_dispatch_ack_by_way;
 
     // pipeline feedback
 	logic tb_alu_reg_pipeline_ready;
@@ -112,7 +113,8 @@ module alu_reg_md_iq_tb ();
 		.dispatch_ROB_index_by_way(tb_dispatch_ROB_index_by_way),
 
 	    // ALU op dispatch feedback
-		.dispatch_ready_advertisement(DUT_dispatch_ready_advertisement),
+		// .dispatch_ready_advertisement_by_way(DUT_dispatch_ready_advertisement_by_way),
+        .dispatch_ack_by_way(DUT_dispatch_ack_by_way),
 
 	    // pipeline feedback
 		.alu_reg_pipeline_ready(tb_alu_reg_pipeline_ready),
@@ -160,9 +162,16 @@ module alu_reg_md_iq_tb ();
 
     task check_outputs();
     begin
-		if (expected_dispatch_ready_advertisement !== DUT_dispatch_ready_advertisement) begin
-			$display("TB ERROR: expected_dispatch_ready_advertisement (%h) != DUT_dispatch_ready_advertisement (%h)",
-				expected_dispatch_ready_advertisement, DUT_dispatch_ready_advertisement);
+		// if (expected_dispatch_ready_advertisement_by_way !== DUT_dispatch_ready_advertisement_by_way) begin
+		// 	$display("TB ERROR: expected_dispatch_ready_advertisement_by_way (%h) != DUT_dispatch_ready_advertisement_by_way (%h)",
+		// 		expected_dispatch_ready_advertisement_by_way, DUT_dispatch_ready_advertisement_by_way);
+		// 	num_errors++;
+		// 	tb_error = 1'b1;
+		// end
+
+		if (expected_dispatch_ack_by_way !== DUT_dispatch_ack_by_way) begin
+			$display("TB ERROR: expected_dispatch_ack_by_way (%h) != DUT_dispatch_ack_by_way (%h)",
+				expected_dispatch_ack_by_way, DUT_dispatch_ack_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -386,7 +395,8 @@ module alu_reg_md_iq_tb ();
 
 	    // op dispatch by way
 	    // ALU op dispatch feedback
-		expected_dispatch_ready_advertisement = 4'b1111;
+		// expected_dispatch_ready_advertisement_by_way = 4'b1111;
+		expected_dispatch_ack_by_way = 4'b0000;
 	    // pipeline feedback
 	    // writeback bus by bank
 	    // op issue to ALU Reg-Reg pipeline
@@ -455,7 +465,8 @@ module alu_reg_md_iq_tb ();
 
 	    // op dispatch by way
 	    // ALU op dispatch feedback
-		expected_dispatch_ready_advertisement = 4'b1111;
+		// expected_dispatch_ready_advertisement_by_way = 4'b1111;
+		expected_dispatch_ack_by_way = 4'b0000;
 	    // pipeline feedback
 	    // writeback bus by bank
 	    // op issue to ALU Reg-Reg pipeline
@@ -552,7 +563,8 @@ module alu_reg_md_iq_tb ();
 
 	    // op dispatch by way
 	    // ALU op dispatch feedback
-		expected_dispatch_ready_advertisement = 4'b1111;
+		// expected_dispatch_ready_advertisement_by_way = 4'b1111;
+		expected_dispatch_ack_by_way = 4'b0000;
 	    // pipeline feedback
 	    // writeback bus by bank
 	    // op issue to ALU Reg-Reg pipeline
@@ -643,7 +655,8 @@ module alu_reg_md_iq_tb ();
 
 	    // op dispatch by way
 	    // ALU op dispatch feedback
-		expected_dispatch_ready_advertisement = 4'b1111;
+		// expected_dispatch_ready_advertisement_by_way = 4'b1111;
+		expected_dispatch_ack_by_way = 4'b1111;
 	    // pipeline feedback
 	    // writeback bus by bank
 	    // op issue to ALU Reg-Reg pipeline
@@ -734,7 +747,8 @@ module alu_reg_md_iq_tb ();
 
 	    // op dispatch by way
 	    // ALU op dispatch feedback
-		expected_dispatch_ready_advertisement = 4'b1111;
+		// expected_dispatch_ready_advertisement_by_way = 4'b1111;
+		expected_dispatch_ack_by_way = 4'b1011;
 	    // pipeline feedback
 	    // writeback bus by bank
 	    // op issue to ALU Reg-Reg pipeline
@@ -825,7 +839,8 @@ module alu_reg_md_iq_tb ();
 
 	    // op dispatch by way
 	    // ALU op dispatch feedback
-		expected_dispatch_ready_advertisement = 4'b1111;
+		// expected_dispatch_ready_advertisement_by_way = 4'b1111;
+		expected_dispatch_ack_by_way = 4'b0111;
 	    // pipeline feedback
 	    // writeback bus by bank
 	    // op issue to ALU Reg-Reg pipeline
@@ -916,7 +931,8 @@ module alu_reg_md_iq_tb ();
 
 	    // op dispatch by way
 	    // ALU op dispatch feedback
-		expected_dispatch_ready_advertisement = 4'b1111;
+		// expected_dispatch_ready_advertisement_by_way = 4'b1111;
+		expected_dispatch_ack_by_way = 4'b1111;
 	    // pipeline feedback
 	    // writeback bus by bank
 	    // op issue to ALU Reg-Reg pipeline
@@ -1007,7 +1023,8 @@ module alu_reg_md_iq_tb ();
 
 	    // op dispatch by way
 	    // ALU op dispatch feedback
-		expected_dispatch_ready_advertisement = 4'b0111;
+		// expected_dispatch_ready_advertisement_by_way = 4'b1111;
+		expected_dispatch_ack_by_way = 4'b0111;
 	    // pipeline feedback
 	    // writeback bus by bank
 	    // op issue to ALU Reg-Reg pipeline
@@ -1098,7 +1115,8 @@ module alu_reg_md_iq_tb ();
 
 	    // op dispatch by way
 	    // ALU op dispatch feedback
-		expected_dispatch_ready_advertisement = 4'b0011;
+		// expected_dispatch_ready_advertisement_by_way = 4'b0011;
+		expected_dispatch_ack_by_way = 4'b1000;
 	    // pipeline feedback
 	    // writeback bus by bank
 	    // op issue to ALU Reg-Reg pipeline
@@ -1189,7 +1207,8 @@ module alu_reg_md_iq_tb ();
 
 	    // op dispatch by way
 	    // ALU op dispatch feedback
-		expected_dispatch_ready_advertisement = 4'b0011;
+		// expected_dispatch_ready_advertisement_by_way = 4'b0011;
+		expected_dispatch_ack_by_way = 4'b0011;
 	    // pipeline feedback
 	    // writeback bus by bank
 	    // op issue to ALU Reg-Reg pipeline
@@ -1280,7 +1299,8 @@ module alu_reg_md_iq_tb ();
 
 	    // op dispatch by way
 	    // ALU op dispatch feedback
-		expected_dispatch_ready_advertisement = 4'b0001;
+		// expected_dispatch_ready_advertisement_by_way = 4'b0001;
+		expected_dispatch_ack_by_way = 4'b0100;
 	    // pipeline feedback
 	    // writeback bus by bank
 	    // op issue to ALU Reg-Reg pipeline
@@ -1371,7 +1391,8 @@ module alu_reg_md_iq_tb ();
 
 	    // op dispatch by way
 	    // ALU op dispatch feedback
-		expected_dispatch_ready_advertisement = 4'b0000;
+		// expected_dispatch_ready_advertisement_by_way = 4'b0000;
+		expected_dispatch_ack_by_way = 4'b0000;
 	    // pipeline feedback
 	    // writeback bus by bank
 	    // op issue to ALU Reg-Reg pipeline
