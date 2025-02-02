@@ -1,4 +1,4 @@
-Script run on: 2025-01-31 15:26:58
+Script run on: 2025-02-01 21:17:46
 -----------------------------------------------------------------
 [PASS] ALU_AND                             (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
@@ -25,6 +25,10 @@ Script run on: 2025-01-31 15:26:58
 [FAIL] ALU_ARITH_SHIFT_RIGHT               (SVA) : FAIL  [FAIL]
     Instances (Failed only):
         - Timestamp: 256    : FAILED  -
+        - Timestamp: 324    : FAILED  -
+        - Timestamp: 360    : FAILED  -
+        - Timestamp: 528    : FAILED  -
+        - Timestamp: 552    : FAILED  -
 -----------------------------------------------------------------
 [PASS] ALU_AND_REPEAT                      (SVA) : PASS  [PASS]
 -----------------------------------------------------------------

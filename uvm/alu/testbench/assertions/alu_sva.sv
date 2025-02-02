@@ -165,7 +165,7 @@ module alu_sva (
 
     // ALU Operation 13: Signed Arithmetic Shift Right
     property sva_alu_arith_shift_right;
-        @(posedge CLK) (op == 4'b1101) |-> (out == ($signed(A) >>> B[4:0]));
+        @(posedge CLK) ((op == 4'b1101) |-> (out == $signed(A) >>> B[4:0]));
     endproperty
     assert property (sva_alu_arith_shift_right) begin
         $display("SVA_INFO @%tTest Case: ALU_ARITH_SHIFT_RIGHT : PASSED", $time());
