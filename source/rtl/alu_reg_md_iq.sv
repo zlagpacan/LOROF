@@ -27,8 +27,8 @@ module alu_reg_md_iq #(
     input logic [3:0][LOG_PR_COUNT-1:0]     dispatch_dest_PR_by_way,
     input logic [3:0][LOG_ROB_ENTRIES-1:0]  dispatch_ROB_index_by_way,
 
-    // ALU op dispatch feedback
-    output logic [3:0] dispatch_ready_advertisement,
+    // op dispatch feedback
+    output logic [3:0] dispatch_ack_by_way,
 
     // pipeline feedback
     input logic alu_reg_pipeline_ready,
@@ -38,7 +38,7 @@ module alu_reg_md_iq #(
     input logic [PRF_BANK_COUNT-1:0]                                        WB_bus_valid_by_bank,
     input logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]   WB_bus_upper_PR_by_bank,
 
-    // op issue to ALU Reg-Reg pipeline
+    // op issue to ALU Reg-Reg Pipeline
     output logic                            issue_alu_reg_valid,
     output logic [3:0]                      issue_alu_reg_op,
     output logic                            issue_alu_reg_A_forward,
@@ -48,13 +48,13 @@ module alu_reg_md_iq #(
     output logic [LOG_PR_COUNT-1:0]         issue_alu_reg_dest_PR,
     output logic [LOG_ROB_ENTRIES-1:0]      issue_alu_reg_ROB_index,
 
-    // ALU Reg-Reg pipeline reg read req to PRF
+    // ALU Reg-Reg Pipeline reg read req to PRF
     output logic                        PRF_alu_reg_req_A_valid,
     output logic [LOG_PR_COUNT-1:0]     PRF_alu_reg_req_A_PR,
     output logic                        PRF_alu_reg_req_B_valid,
     output logic [LOG_PR_COUNT-1:0]     PRF_alu_reg_req_B_PR,
 
-    // op issue to Mul-Div pipeline
+    // op issue to Mul-Div Pipeline
     output logic                            issue_mul_div_valid,
     output logic [3:0]                      issue_mul_div_op,
     output logic                            issue_mul_div_A_forward,
@@ -64,7 +64,7 @@ module alu_reg_md_iq #(
     output logic [LOG_PR_COUNT-1:0]         issue_mul_div_dest_PR,
     output logic [LOG_ROB_ENTRIES-1:0]      issue_mul_div_ROB_index,
 
-    // Mul-Div pipeline reg read req to PRF
+    // Mul-Div Pipeline reg read req to PRF
     output logic                        PRF_mul_div_req_A_valid,
     output logic [LOG_PR_COUNT-1:0]     PRF_mul_div_req_A_PR,
     output logic                        PRF_mul_div_req_B_valid,
@@ -281,14 +281,6 @@ module alu_reg_md_iq #(
     // ----------------------------------------------------------------
     // Dispatch Logic:
 
-    // immediately advertise ready following top 4 entries open
-    assign dispatch_ready_advertisement = {
-        ~(valid_alu_reg_by_entry[ALU_REG_MD_IQ_ENTRIES-4] | valid_mul_div_by_entry[ALU_REG_MD_IQ_ENTRIES-4]),
-        ~(valid_alu_reg_by_entry[ALU_REG_MD_IQ_ENTRIES-3] | valid_mul_div_by_entry[ALU_REG_MD_IQ_ENTRIES-3]),
-        ~(valid_alu_reg_by_entry[ALU_REG_MD_IQ_ENTRIES-2] | valid_mul_div_by_entry[ALU_REG_MD_IQ_ENTRIES-2]),
-        ~(valid_alu_reg_by_entry[ALU_REG_MD_IQ_ENTRIES-1] | valid_mul_div_by_entry[ALU_REG_MD_IQ_ENTRIES-1])
-    };
-
     // cascaded dispatch mask PQ's by way:
 
     // way 0
@@ -324,6 +316,13 @@ module alu_reg_md_iq #(
         .ack_mask() // unused
     );
     assign dispatch_one_hot_by_way[3] = dispatch_pq_one_hot_by_way[3] & {ALU_REG_MD_IQ_ENTRIES{dispatch_attempt_by_way[3]}};
+
+    // give dispatch feedback
+    always_comb begin
+        for (int way = 0; way < 4; way++) begin
+            dispatch_ack_by_way[way] = |dispatch_one_hot_by_way[way];
+        end
+    end
 
     // route PQ'd dispatch to entries
     always_comb begin

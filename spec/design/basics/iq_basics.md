@@ -5,7 +5,7 @@
 
 issue queues hold the state of dispatched instructions, waiting for the instruction's operands to be ready, so that they can be subsequently issued to the associated FU pipeline
 
-operands are known to be ready on dispatch either by reading a ready flag set in the physical register Ready Table, or they are determined to be newly ready via observing a writeback of the physcial register of interest on a Writeback Bus
+operands are known to be ready on dispatch either by reading a ready flag set in the physical register Ready Table, or they are determined to be newly ready via observing a writeback of the physcial register of interest on the Writeback Bus
 
 the general policy of an issue queue is to issue the oldest instruction(s) whose operands are ready
 
