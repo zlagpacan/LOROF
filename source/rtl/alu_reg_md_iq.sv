@@ -8,8 +8,9 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module alu_reg_md_iq (
-
+module alu_reg_md_iq #(
+    parameter ALU_REG_MD_IQ_ENTRIES = 8
+) (
     // seq
     input logic CLK,
     input logic nRST,

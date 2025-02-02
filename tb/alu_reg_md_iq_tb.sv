@@ -91,7 +91,9 @@ module alu_reg_md_iq_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	alu_reg_md_iq DUT (
+	alu_reg_md_iq #(
+        .ALU_REG_MD_IQ_ENTRIES(12)
+    ) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
