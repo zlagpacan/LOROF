@@ -274,7 +274,7 @@ Potential operand states:
     - data is being forwarded on this cycle
     - (issue_ready & issue_valid & issue_A/B_forward) last cycle when this op was issued
     - take data from forward_data_by_bank
-- "reading reg"
+- "reg reading"
     - data is being read via the PRF on this cycle
     - (~issue_A/B_forward) when this op was issued, A/B_reg_read_ack on this cycle, sample value from reg_read_data_by_bank_by_port
         - can be an arbitrary number of cycles in the past when the op was issued
@@ -335,7 +335,7 @@ Perform the R[A] op R[B] ALU operation. A bubble (invalid and all other signals 
 
 # Example Operation
 
-
+see [alu_reg_pipeline_example.md](alu_reg_pipeline_example.md)
 
 
 # Assertions
@@ -344,8 +344,8 @@ Perform the R[A] op R[B] ALU operation. A bubble (invalid and all other signals 
 
 # Test Ideas and Coverpoints
 - every op
-- every combo of operand {A, B} x {forward, reg read first cycle in OC, reg read second or later cycle in OC, saved forward, saved reg read}
-    - these combos should automatically cover saved forward value and saved reg read value for next cycle on OC stall case where only one operand comes in. make sure to also cover case where saved forward or saved reg read is needed due to WB stall
+- every truth table case
+    - see [OC Truth Table](#oc-truth-table)
 - there are 2^4 possible combinations of {valid, invalid} for each of the 4 pipeline stages, all of which should be reachable. ideally, cover all of them with {no stall, WB stall, OC stall, WB and OC stall}
 
 

@@ -239,6 +239,7 @@ output interface
         - an ALU Reg-Reg op is identifiable by dispatch_valid_alu_reg_by_way being high upon dispatch
         - op ready -> both operands in a ready or forwardable state
     - if this signal is high, the remaining signals in this interface follow the oldest ALU Reg-Reg op in the IQ
+    - if this signal is low, the remaining signals in this interface are don't cares
     - reset value:
         - 1'b0
 - issue_alu_reg_op
@@ -425,11 +426,11 @@ output interface
     - in the cycle diagram, these are the arrows along the right side of the IQ entries
 
 ## Operand States
-- ready
-    - an operand is ready if upon dispatch, it was marked as ready via dispatch_A/B_ready_by_way OR since entering the IQ, it saw a matching WB bus to the associated physical register in a previous cycle on the [writeback bus by bank](#writeback-bus-by-bank) interface, but the op was not issued
-        - an op can fail to issue on a given cycle even if an operand is ready or forwardable if its associated pipeline is not ready, it is not the oldest ready op for its associated pipeline, or the other operand for the op is not ready nor forwardable
 - forwardable
     - an operand is forwardable if upon dispatch, it was marked as not ready via dispatch_A/B_ready_by_way AND during this cycle, it sees a matching WB bus to the associated physical register on the [writeback bus by bank](#writeback-bus-by-bank) interface
+- ready
+    - an operand is ready if upon dispatch, it was marked as ready via dispatch_A/B_ready_by_way OR since entering the IQ, the operand was forwardable, but the op was not issued
+        - an op can fail to issue on a given cycle even if an operand is ready or forwardable if its associated pipeline is not ready, it is not the oldest ready op for its associated pipeline, or the other operand for the op is not ready nor forwardable
 - not ready
     - an operand is not ready if upon dispatch, it was marked as not ready via dispatch_A/B_ready_by_way AND since entering the IQ, has not seen and does not currently see a matching WB bus to the associated physical register on the [writeback bus by bank](#writeback-bus-by-bank) interface
 
