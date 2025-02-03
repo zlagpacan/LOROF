@@ -270,19 +270,23 @@ Accept new instruction issue via the [ALU reg op issue from IQ](#alu-reg-op-issu
 Collect A and B operands. If both operand A and operand B aren't collected (from this cycle or a previous cycle) then OC stage must stall and the issue_ready signal must be 1'b0. A bubble (invalid and all other signals don't cares) is naturally inserted into this stage whenever issue_ready = 1'b1 but issue_valid = 1'b0. 
 
 Potential operand states:
-- data is being forwarded
-    - (issue_ready & issue_valid & issue_A/B_forward) last cycle
+- "forwarding"
+    - data is being forwarded on this cycle
+    - (issue_ready & issue_valid & issue_A/B_forward) last cycle when this op was issued
     - take data from forward_data_by_bank
-- data is being read via the reg file
-    - (~issue_A/B_forward) when this op was issued
+- "reading reg"
+    - data is being read via the PRF on this cycle
+    - (~issue_A/B_forward) when this op was issued, A/B_reg_read_ack on this cycle, sample value from reg_read_data_by_bank_by_port
         - can be an arbitrary number of cycles in the past when the op was issued
         - since this issue cycle, the op had to have either just entered OC stage or been stalled in OC stage as it had an operand which wasn't ready
-- data was saved from a previous cycle
-    - data for operand was collected via the 2 previous states on a previous cycle 
+- "saved"
+    - data was saved from a previous cycle
+    - data for operand was collected via the operand being "forwarding" or "reading reg" on a previous cycle 
     - data must be saved from this previous cycle in the case that OC stage stalls
         - see stall conditions below
-- data is not available this cycle and was not saved on a previous cycle
-    - operand stall case when none of the above are true
+- "waiting"
+    - data is not available this cycle and was not saved on a previous cycle
+    - this is creates an operand stall
 
 When the stage does not contain a valid op, issue_ready is guaranteed to be 1'b1:
 - there are no operands to collect
@@ -290,9 +294,21 @@ When the stage does not contain a valid op, issue_ready is guaranteed to be 1'b1
 
 #### Stall Condition:
 - Either:
-    - operand stall case as described above for either operand A or B
+    - operand A or B in "waiting" state on this cycle
     - EX stage stall and OC stage valid
 - a stall in this stage corresponds to issue_ready = 1'b0
+
+### OC Truth Table:
+| Description | issue_A_forward on Issue Cycle | issue_B_forward on Issue Cycle | Operand A State | Operand B State | A_reg_read_ack on This Cycle | B_reg_read_ack on This Cycle | issue_ready This Cycle | Actions |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| issued last cycle, forward A and B this cycle | 1 | 1 | forwarding | forwarding | 0 | 0 | 1 | no stall |
+| issued last cycle, forward A and B this cycle, <ins>WB stall propagated to OC stage</ins> | 1 | 1 | forwarding | forwarding | 0 | 0 | 0 | stall due to WB, save A and B values from forward_data_by_bank in OC stage |
+| issued last cycle, forward A and B reg read ack this cycle | 1 | 0 | forwarding | reg reading | 0 | 1 | 1 | no stall |
+| issued last cycle, forward A and B reg read ack this cycle, <ins>WB stall propagated to OC stage</ins> | 1 | 0 | forwarding | reg reading | 0 | 1 | 0 | stall due to WB, save A value from forward_data_by_bank, save B value from reg_read_data_by_bank_by_port |
+| issued last cycle, A reg read ack and forward B this cycle | 0 | 1 | reg reading | forwarding | 1 | 0 | 1 | no stall |
+| issued last cycle, forward A and B reg read ack this cycle, <ins>WB stall propagated to OC stage</ins> | 0 | 1 | reg reading | forwarding | 1 | 0 | 0 | stall due to WB, save A value from reg_read_data_by_bank_by_port, save B value from forward_data_by_bank |
+| issued last cycle, A reg read ack and B reg read ack this cycle | 0 | 0 | reg reading | reg reading | 1 | 1 | 1 | no stall |
+| issued last cycle, A reg read ack and B reg read ack this cycle, <ins>WB stall propagated to OC stage</ins> | 0 | 0 | reg reading | reg reading | 1 | 1 | 0 | stall due to WB, save A and B values from reg_read_data_by_bank_by_port |
 
 ## Execute (EX) Stage
 Perform the R[A] op R[B] ALU operation. A bubble (invalid and all other signals don't cares) is inserted into this stage whenever EX stage is not stalled but OC stage is stalled. 
@@ -304,6 +320,11 @@ Perform the R[A] op R[B] ALU operation. A bubble (invalid and all other signals 
 
 #### Stall Condition:
 - WB_ready = 1'b0 and WB stage valid
+
+
+# Example Operation
+
+
 
 
 # Assertions
