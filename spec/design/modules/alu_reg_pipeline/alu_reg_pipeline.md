@@ -281,34 +281,45 @@ Potential operand states:
         - since this issue cycle, the op had to have either just entered OC stage or been stalled in OC stage as it had an operand which wasn't ready
 - "saved"
     - data was saved from a previous cycle
-    - data for operand was collected via the operand being "forwarding" or "reading reg" on a previous cycle 
-    - data must be saved from this previous cycle in the case that OC stage stalls
-        - see stall conditions below
+    - data for operand was collected via the operand being in "forwarding" or "reading reg" on a previous cycle with a stall condition
 - "waiting"
     - data is not available this cycle and was not saved on a previous cycle
     - this is creates an operand stall
 
-When the stage does not contain a valid op, issue_ready is guaranteed to be 1'b1:
-- there are no operands to collect
-- a stall originating in WB stage due to WB_ready = 1'b0 which propagates back to EX stage is not propagated backward through an invalid OC stage
-
 #### Stall Condition:
-- Either:
+- valid op in EX stage and either:
     - operand A or B in "waiting" state on this cycle
     - EX stage stall and OC stage valid
 - a stall in this stage corresponds to issue_ready = 1'b0
 
 ### OC Truth Table:
-| Description | issue_A_forward on Issue Cycle | issue_B_forward on Issue Cycle | Operand A State | Operand B State | A_reg_read_ack on This Cycle | B_reg_read_ack on This Cycle | issue_ready This Cycle | Actions |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| issued last cycle, forward A and B this cycle | 1 | 1 | forwarding | forwarding | 0 | 0 | 1 | no stall |
-| issued last cycle, forward A and B this cycle, <ins>WB stall propagated to OC stage</ins> | 1 | 1 | forwarding | forwarding | 0 | 0 | 0 | stall due to WB, save A and B values from forward_data_by_bank in OC stage |
-| issued last cycle, forward A and B reg read ack this cycle | 1 | 0 | forwarding | reg reading | 0 | 1 | 1 | no stall |
-| issued last cycle, forward A and B reg read ack this cycle, <ins>WB stall propagated to OC stage</ins> | 1 | 0 | forwarding | reg reading | 0 | 1 | 0 | stall due to WB, save A value from forward_data_by_bank, save B value from reg_read_data_by_bank_by_port |
-| issued last cycle, A reg read ack and forward B this cycle | 0 | 1 | reg reading | forwarding | 1 | 0 | 1 | no stall |
-| issued last cycle, forward A and B reg read ack this cycle, <ins>WB stall propagated to OC stage</ins> | 0 | 1 | reg reading | forwarding | 1 | 0 | 0 | stall due to WB, save A value from reg_read_data_by_bank_by_port, save B value from forward_data_by_bank |
-| issued last cycle, A reg read ack and B reg read ack this cycle | 0 | 0 | reg reading | reg reading | 1 | 1 | 1 | no stall |
-| issued last cycle, A reg read ack and B reg read ack this cycle, <ins>WB stall propagated to OC stage</ins> | 0 | 0 | reg reading | reg reading | 1 | 1 | 0 | stall due to WB, save A and B values from reg_read_data_by_bank_by_port |
+| Description | issue_A_forward on Issue Cycle | issue_B_forward on Issue Cycle | A_reg_read_ack on This Cycle | B_reg_read_ack on This Cycle | WB Stall Propagated to OC | Operand A State | Operand B State | issue_ready This Cycle | Module Actions |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| issued last cycle, forward A and B this cycle | 1 | 1 | 0 | 0 | 0 | forwarding | forwarding | 1 | continue to EX with A and B values from forward_data_by_bank |
+| issued last cycle, forward A and B this cycle, WB stall | 1 | 1 | 0 | 0 | 1 | forwarding | forwarding | 0 | stall due to WB, save A and B values from forward_data_by_bank |
+| issued last cycle, forward A and B reg read ack this cycle | 1 | 0 | 0 | 1 | 0 | forwarding | reg reading | 1 | continue to EX with A value from forward_data_by_bank and B value from reg_read_data_by_bank_by_port |
+| issued last cycle, forward A and B reg read ack this cycle, WB stall | 1 | 0 | 0 | 1 | 1 | forwarding | reg reading | 0 | stall due to WB, save A value from forward_data_by_bank, save B value from reg_read_data_by_bank_by_port |
+| issued last cycle, forward A this cycle, B waiting | 1 | 0 | 0 | 0 | x | forwarding | waiting | 0 | operand stall, save A value from forward_data_by_bank |
+| issued last cycle, A reg read ack and forward B this cycle | 0 | 1 | 1 | 0 | 0 | reg reading | forwarding | 1 | continue to EX with A value from reg_read_data_by_bank_by_port and B value from forward_data_by_bank |
+| issued last cycle, forward A and B reg read ack this cycle, WB stall | 0 | 1 | 1 | 0 | 1 | reg reading | forwarding | 0 | stall due to WB, save A value from reg_read_data_by_bank_by_port, save B value from forward_data_by_bank |
+| issued last cycle, forward B this cycle, A waiting | 0 | 1 | 0 | 0 | x | waiting | forwarding | 0 | operand stall, save B value from forward_data_by_bank |
+| issued in any previous cycle, A reg read ack and B reg read ack this cycle | 0 | 0 | 1 | 1 | 0 | reg reading | reg reading | 1 | continue to EX with A and B values from reg_read_data_by_bank_by_port |
+| issued in any previous cycle, A reg read ack and B reg read ack this cycle, WB stall | 0 | 0 | 1 | 1 | 1 | reg reading | reg reading | 0 | stall due to WB, save A and B values from reg_read_data_by_bank_by_port |
+| issued in any previous cycle, A reg read ack this cycle, B saved | 0 | x | 1 | 0 | 0 | reg reading | saved | 1 | continue to EX with A value from reg_read_data_by_bank_by_port and B saved value |
+| issued in any previous cycle, A reg read ack this cycle, B saved, WB stall | 0 | x | 1 | 0 | 1 | reg reading | saved | 0 | stall due to WB, save A value from reg_read_data_by_bank_by_port |
+| issued in any previous cycle, B reg read ack this cycle, A saved | x | 0 | 0 | 1 | 0 | saved | reg reading | 1 | continue to EX with B value from reg_read_data_by_bank_by_port and A saved value |
+| issued in any previous cycle, B reg read ack this cycle, A saved, WB stall | x | 0 | 0 | 1 | 1 | saved | reg reading | 0 | stall due to WB, save B value from reg_read_data_by_bank_by_port |
+| issued in any previous cycle, B reg read ack this cycle, A saved | x | x | 0 | 0 | 0 | saved | saved | 1 | continue to EX with A and B saved values |
+| issued in any previous cycle, B reg read ack this cycle, A saved, WB stall | x | x | 0 | 0 | 1 | saved | saved | 0 | stall due to WB |
+| issued in any previous cycle, A reg read ack this cycle, B waiting | 0 | 0 | 1 | 0 | x | reg reading | waiting | 0 | operand stall, save A value from reg_read_data_by_bank_by_port |
+| issued in any previous cycle, B reg read ack this cycle, A waiting | 0 | 0 | 0 | 1 | x | waiting | reg reading | 0 | operand stall, save B value from reg_read_data_by_bank_by_port |
+| issued in any previous cycle, A saved, B waiting | x | 0 | 0 | 0 | x | saved | waiting | 0 | operand stall |
+| issued in any previous cycle, B saved, A waiting | 0 | x | 0 | 0 | x | waiting | saved | 0 | operand stall |
+| issued in any previous cycle, A and B waiting | 0 | 0 | 0 | 0 | x | waiting | waiting | 0 | operand stall |
+
+When OC stage does not contain a valid op, issue_ready is guaranteed to be 1'b1:
+- there are no operands to collect
+- a stall originating in WB stage due to WB_ready = 1'b0 which propagates back to EX stage is not propagated backward through an invalid OC stage
 
 ## Execute (EX) Stage
 Perform the R[A] op R[B] ALU operation. A bubble (invalid and all other signals don't cares) is inserted into this stage whenever EX stage is not stalled but OC stage is stalled. 
