@@ -14,37 +14,37 @@ Name                                     Design Design   Lang File(Line)      Hi
                                          Unit   UnitType                                     
 --------------------------------------------------------------------------------------------
 /top/SVA/c_ALU_ADD                       alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(32)
-                                                                                 6 Covered   
+                                                                                15 Covered   
 /top/SVA/c_ALU_SHIFT_LEFT                alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(43)
-                                                                                13 Covered   
+                                                                                31 Covered   
 /top/SVA/c_ALU_SIGNED_LT                 alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(54)
-                                                                                 8 Covered   
+                                                                                22 Covered   
 /top/SVA/c_ALU_UNSIGNED_LT               alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(65)
-                                                                                 6 Covered   
+                                                                                19 Covered   
 /top/SVA/c_ALU_XOR                       alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(76)
-                                                                                13 Covered   
+                                                                                26 Covered   
 /top/SVA/c_ALU_SHIFT_RIGHT               alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(87)
-                                                                                 5 Covered   
+                                                                                18 Covered   
 /top/SVA/c_ALU_OR                        alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(98)
-                                                                                 7 Covered   
+                                                                                26 Covered   
 /top/SVA/c_ALU_AND                       alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(109)
-                                                                                10 Covered   
+                                                                                27 Covered   
 /top/SVA/c_ALU_SUB                       alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(120)
-                                                                                 9 Covered   
+                                                                                28 Covered   
 /top/SVA/c_ALU_SHIFT_LEFT_REPEAT         alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(131)
-                                                                                 5 Covered   
+                                                                                26 Covered   
 /top/SVA/c_ALU_SIGNED_LT_REPEAT          alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(142)
-                                                                                 8 Covered   
+                                                                                32 Covered   
 /top/SVA/c_ALU_UNSIGNED_LT_REPEAT        alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(153)
-                                                                                 9 Covered   
+                                                                                26 Covered   
 /top/SVA/c_ALU_XOR_REPEAT                alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(164)
-                                                                                 8 Covered   
+                                                                                22 Covered   
 /top/SVA/c_ALU_ARITH_SHIFT_RIGHT         alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(175)
-                                                                                 7 Covered   
+                                                                                31 Covered   
 /top/SVA/c_ALU_OR_REPEAT                 alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(186)
-                                                                                 8 Covered   
+                                                                                21 Covered   
 /top/SVA/c_ALU_AND_REPEAT                alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(197)
-                                                                                11 Covered   
+                                                                                28 Covered   
 
 
 DIRECTIVE COVERAGE:
@@ -53,37 +53,37 @@ Name                                     Design Design   Lang File(Line)      Hi
                                          Unit   UnitType                                     
 --------------------------------------------------------------------------------------------
 /top/SVA/c_ALU_ADD                       alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(32)
-                                                                                 6 Covered   
+                                                                                15 Covered   
 /top/SVA/c_ALU_SHIFT_LEFT                alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(43)
-                                                                                13 Covered   
+                                                                                31 Covered   
 /top/SVA/c_ALU_SIGNED_LT                 alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(54)
-                                                                                 8 Covered   
+                                                                                22 Covered   
 /top/SVA/c_ALU_UNSIGNED_LT               alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(65)
-                                                                                 6 Covered   
+                                                                                19 Covered   
 /top/SVA/c_ALU_XOR                       alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(76)
-                                                                                13 Covered   
+                                                                                26 Covered   
 /top/SVA/c_ALU_SHIFT_RIGHT               alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(87)
-                                                                                 5 Covered   
+                                                                                18 Covered   
 /top/SVA/c_ALU_OR                        alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(98)
-                                                                                 7 Covered   
+                                                                                26 Covered   
 /top/SVA/c_ALU_AND                       alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(109)
-                                                                                10 Covered   
+                                                                                27 Covered   
 /top/SVA/c_ALU_SUB                       alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(120)
-                                                                                 9 Covered   
+                                                                                28 Covered   
 /top/SVA/c_ALU_SHIFT_LEFT_REPEAT         alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(131)
-                                                                                 5 Covered   
+                                                                                26 Covered   
 /top/SVA/c_ALU_SIGNED_LT_REPEAT          alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(142)
-                                                                                 8 Covered   
+                                                                                32 Covered   
 /top/SVA/c_ALU_UNSIGNED_LT_REPEAT        alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(153)
-                                                                                 9 Covered   
+                                                                                26 Covered   
 /top/SVA/c_ALU_XOR_REPEAT                alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(164)
-                                                                                 8 Covered   
+                                                                                22 Covered   
 /top/SVA/c_ALU_ARITH_SHIFT_RIGHT         alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(175)
-                                                                                 7 Covered   
+                                                                                31 Covered   
 /top/SVA/c_ALU_OR_REPEAT                 alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(186)
-                                                                                 8 Covered   
+                                                                                21 Covered   
 /top/SVA/c_ALU_AND_REPEAT                alu_sva Verilog  SVA  testbench/assertions/alu_sva.sv(197)
-                                                                                11 Covered   
+                                                                                28 Covered   
 
 TOTAL DIRECTIVE COVERAGE: 100.00%  COVERS: 16
 
