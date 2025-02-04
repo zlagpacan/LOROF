@@ -1,6 +1,6 @@
 # Register Rename Basics
 - see [core_basics.md](core_basics.md) for out-of-order core basics first
-- see [precise_state_basics.md](precise_state_basics.md) for more on how register rename execution but in-order program semantics
+- see [precise_state_basics.md](precise_state_basics.md) for more on how execution can be out-of-order but still follow in-order program semantics
 
 Register renaming is a strategy used by out-of-order processors to remove register WAR and WAW hazards so that independent instructions can complete out-of-order. The true dependence, RAW, cannot be avoided and must be maintained. 
 
