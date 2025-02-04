@@ -38,6 +38,7 @@ class wb_stall_sequence extends uvm_sequence;
         nRST        dist {0:/5, 1:/95}; // TODO: may make no interference
         WB_ready    dist {0:/30, 1:/70};
         
+        // nRST            == 1'b1;
         issue_A_forward == 1'b1;
         issue_B_forward == 1'b1;
         issue_valid     == 1'b1;

@@ -49,6 +49,13 @@ module alu_reg_pipeline_sva (
     ~WB_ready;
   endsequence
 
+  // --- Reset Event Tracker --- //
+  property RESET_EVENT_TRACKER;
+    @(posedge CLK)
+    (DUT_reset) |=> (WB_data === '0);
+  endproperty
+  c_ALURP0: cover property (RESET_EVENT_TRACKER);
+
   // --- SVA Properties --- //
   property sva_WB_valid_stall;
     @(posedge CLK) disable iff (~nRST)

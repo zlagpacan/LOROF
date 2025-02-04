@@ -1,6 +1,7 @@
 # prf
 - Physical Register File
 - 128x 32-bit physical registers
+    - physical registers themselves are implemented as Distributed RAM
 - 4x banks
     - 32x physical registers each
     - 2x fully-independent read ports each
@@ -30,9 +31,14 @@ These signals are interdependent on functionality described in [Read Arbitration
 This is a sequential module utilizing posedge flip flops
 
 - CLK
+    - input logic
     - clock signal
 - nRST
+    - input logic
     - active-low asynchronous reset
+    - FF state for the module can be reset after a single asynchronous assertion
+        - this includes all saved read and write requests and the buffered forward_data_by_bank signal
+    - the Distributed RAM making up the physical registers cannot be reset. it is initialized as all 0's in simulation, and after this point, it will be unaffected by assertion of nRST
 
 <span style="color:deepskyblue">
 
