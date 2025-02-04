@@ -79,7 +79,7 @@ SUB     r1, r2, r3  ->  p8, p2, p3  < r1 renamed to p8
 ANDI    r5, r1, 1   ->  p9, p8, 1   < r5 renamed to p9
 ```
 
-The Map Table state updates for each step (1)-(5):
+The Map Table state updates for each instruction:
 ```
 r1: p1 -> p6 (ADD) -> p8 (SUB)
 r2: p2
