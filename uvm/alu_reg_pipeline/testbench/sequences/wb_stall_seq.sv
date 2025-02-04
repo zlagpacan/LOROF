@@ -35,9 +35,12 @@ class wb_stall_sequence extends uvm_sequence;
     wb_stall_tx = alu_reg_pipeline_sequence_item::type_id::create("wb_stall_tx");
     start_item(wb_stall_tx);
     wb_stall_tx.randomize() with {
-        nRST        dist {0:/5, 1:/95};
+        nRST        dist {0:/5, 1:/95}; // TODO: may make no interference
         WB_ready    dist {0:/30, 1:/70};
-        issue_valid == 1'b1;
+        
+        issue_A_forward == 1'b1;
+        issue_B_forward == 1'b1;
+        issue_valid     == 1'b1;
     };
     finish_item(wb_stall_tx);
         
