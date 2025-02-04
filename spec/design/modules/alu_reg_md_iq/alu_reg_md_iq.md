@@ -239,6 +239,7 @@ output interface
         - an ALU Reg-Reg op is identifiable by dispatch_valid_alu_reg_by_way being high upon dispatch
         - op ready -> both operands in a ready or forwardable state
     - if this signal is high, the remaining signals in this interface follow the oldest ALU Reg-Reg op in the IQ
+    - if this signal is low, the remaining signals in this interface are don't cares
     - reset value:
         - 1'b0
 - issue_alu_reg_op
@@ -408,8 +409,6 @@ output interface
 
 # Issue Queue Entry Arbitration Logic
 
-![alu_reg_md_iq Example Operation Cycle Diagram](alu_reg_md_iq_cycle_diagram.png)
-
 - IQ entries are guaranteed by the internal logic and the external dispatch constraints as described in dispatch_attempt_by_way to always be a run of valid entries starting from lowest entry 0, followed by a run of invalid entries ending at the highest entry 7
     - either run can be empty i.e. all entries valid or all entries invalid
 - IQ entries are filled via dispatches from the 4-way superscalar dispatch
@@ -425,12 +424,12 @@ output interface
     - in the cycle diagram, these are the arrows along the right side of the IQ entries
 
 ## Operand States
-- ready
-    - an operand is ready if upon dispatch, it was marked as ready via dispatch_A/B_ready_by_way OR since entering the IQ, it saw a matching WB bus to the associated physical register in a previous cycle on the [writeback bus by bank](#writeback-bus-by-bank) interface, but the op was not issued
-        - an op can fail to issue on a given cycle even if an operand is ready or forwardable if its associated pipeline is not ready, it is not the oldest ready op for its associated pipeline, or the other operand for the op is not ready nor forwardable
-- forwardable
+- "forwardable"
     - an operand is forwardable if upon dispatch, it was marked as not ready via dispatch_A/B_ready_by_way AND during this cycle, it sees a matching WB bus to the associated physical register on the [writeback bus by bank](#writeback-bus-by-bank) interface
-- not ready
+- "ready"
+    - an operand is ready if upon dispatch, it was marked as ready via dispatch_A/B_ready_by_way OR since entering the IQ, the operand was forwardable, but the op was not issued
+        - an op can fail to issue on a given cycle even if an operand is ready or forwardable if its associated pipeline is not ready, it is not the oldest ready op for its associated pipeline, or the other operand for the op is not ready nor forwardable
+- "not ready"
     - an operand is not ready if upon dispatch, it was marked as not ready via dispatch_A/B_ready_by_way AND since entering the IQ, has not seen and does not currently see a matching WB bus to the associated physical register on the [writeback bus by bank](#writeback-bus-by-bank) interface
 
 ## Op States
@@ -444,6 +443,11 @@ output interface
 - for the ALU Reg-Reg Pipeline, if the ALU Reg-Reg Pipeline is ready via alu_reg_pipeline_ready, the oldest ready ALU Reg-Reg op is issued from the IQ via the [op issue to ALU Reg-Reg Pipeline](#op-issue-to-alu-reg-reg-pipeline) interface and the op's register reads are sent to the PRF via the [ALU Reg-Reg Pipeline reg read req to PRF](#alu-reg-reg-pipeline-reg-read-req-to-prf) interface
 - for the Mul-Div Pipeline, if the Mul-Div Pipeline is ready via mul_div_pipeline_ready, the oldest ready Mul-Div op is issued from the IQ via the [op issue to Mul-Div Pipeline](#op-issue-to-mul-div-pipeline) interface and the op's register reads are sent to the PRF via the [Mul-Div Pipeline reg read req to PRF](#mul-div-pipeline-reg-read-req-to-prf) interface
 - in the cycle diagram, these are the arrows coming out to the right of the cycle diagram
+
+
+# Example Operation
+
+see [alu_reg_md_iq_example.md](alu_reg_md_iq_example.md)
 
 
 # Assertions
