@@ -69,6 +69,11 @@ each signal is a vector, with each 1D entry out of 4 associated with a dispatch 
             - entry 1 accepts way 1 dispatch
             - entry 2 accepts way 3 dispatch
                 - way 2 is skipped as its attempt bit is low
+        - invalid ways are skipped and valid ways are condensed as much as possible so the IQ's purpose as a buffer doesn't lead to stalls because the buffer is full when the stall could have been avoided
+        - additionally, this methodology easily ensures that entry ordering follows the program order of instructions (i.e. older instructions are always in lower entries)
+            - if way 2 was not skipped, and entry 2 was given way 2's invalid op, and entry 3 got way 3's valid op, then there would be an invalid entry in a string of valid entries: {0: valid, 1: valid, 2: invalid, 3:valid, 4:invalid, ...}
+                - a tricky design could try to fill entry 2 with a valid op on the next cycle's dispatch, but this would violate the entry ordering following program order
+                - a tricky design could have the issue queue internally condense on the cycle after they have been dispatched, but this logic would be incredibly tricky and area intensive, and even with best case functionality, it would still have a 1-cycle delay of overestimated IQ occupancy, which inherently allows for dispatch stalls, which hurts performance
     - this is used so that the superscalar ways of the frontend are known to either have or not have an ALU Reg-Reg or Mul-Div op, this way the IQ can swizzle the incoming ops to the lowest open consecutive issue queue entries oldest-op-first. whether or not the front end decides to follow through with dispatching this given mask of ops will be given through dispatch_valid_alu_reg_by_way or dispatch_valid_mul_div_by_way
         - e.g. dispatch_attempt_by_way = 4'b1011, but the frontend might only want to dispatch e.g. way 0 and way 1, so (dispatch_valid_alu_reg_by_way | dispatch_valid_mul_div_by_way) == 4'b0011
         - see dispatch_valid_alu_reg_by_way for more info
