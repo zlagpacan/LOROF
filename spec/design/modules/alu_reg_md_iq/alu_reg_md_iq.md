@@ -46,6 +46,7 @@ This is a sequential module utilizing posedge flip flops
 - nRST
     - input logic
     - active-low asynchronous reset
+    - the entire module state can be reset after a single asynchronous assertion
 
 <span style="color:deepskyblue">
 
@@ -89,7 +90,7 @@ each signal is a vector, with each 1D entry out of 4 associated with a dispatch 
     - see dispatch_attempt_by_way for more details
     - constraints:
         - dispatch_valid_alu_reg_by_way and dispatch_valid_mul_div_by_way are mutually exclusive. one, or neither is allowed.
-            - guaranteed ~(dispatch_valid_mul_div_by_way & dispatch_valid_mul_div_by_way) for each way
+            - guaranteed ~(dispatch_valid_alu_reg_by_way[way] & dispatch_valid_mul_div_by_way[way]) for each way
         - (dispatch_valid_alu_reg_by_way | dispatch_valid_mul_div_by_way) must be a subset of dispatch_attempt_by_way's high bit vector entries which can only exclude a run of the upper significant high bits
         - e.g. dispatch_attempt_by_way = 4'b1111, (dispatch_valid_alu_reg_by_way | dispatch_valid_mul_div_by_way) can be:
             - {4'b1111, 4'b0111, 4'b0011, 4'b0001, 4'b0000}
@@ -211,6 +212,7 @@ input interface
     - 1 flag for each of 4 banks
     - constraints:
         - use as control signal to indicate WB bus event
+        - WB bus events can happen to any PR at any time. even to PR's that aren't active in the IQ. the module should appropriately ignore these and only focus on relevant PR WB events for the current entries' operands.
     - idle value:
         - {4{1'b0}}
 - WB_bus_upper_PR_by_bank
@@ -423,10 +425,9 @@ output interface
 - following the [op dispatch by way](#op-dispatch-by-way) interface, greedily dispatch the lowest valid way dispatch based on the beginning-of-cycle state of the IQ entries 
     - essentially, only count the number of available IQ entries. even if there is 1 or more issues during this cycle, the entries that will open up due to this are not treated as available for dispatch on this cycle
         - effectively, entries that are opened up via issue are only made available next cycle
-        - this is done so that there is not a long delay path from pipeline ready all the way back to frontend dispatch
-    - in the cycle diagram, these are the arrows on the left side of the IQ entries
+        - this is done so that there is not a long delay combinational path from pipeline ready all the way back to frontend dispatch
 - when issue is eventually resolved, the existing entries and newly dispatched entries are shifted down as needed to maintain the run of valid entries, oldest to youngest from lowest entry to highest entry
-    - in the cycle diagram, these are the arrows along the right side of the IQ entries
+- these properties are kind of hard to verbalize but are obvious when visualized. see [alu_reg_md_iq_example.md](alu_reg_md_iq_example.md) for a working example
 
 ## Operand States
 - "forwardable"
@@ -443,6 +444,19 @@ output interface
     - a ready op is a candidate for issue to its associated pipeline
 - not ready
     - an op is not ready if either of its operands, A OR B, are not ready nor forwardable 
+
+### Op State Truth Table:
+| Description | dispatch_A_ready_by_way on dispatch cycle OR operand A was forwardable on previous cycle | dispatch_B_ready_by_way on dispatch cycle OR operand B was forwardable on previous cycle | dispatch_A_PR_by_way on dispatch cycle matching WB_bus_valid_by_bank + WB_bus_upper_PR_by_bank on this cycle | dispatch_B_PR_by_way on dispatch cycle matching WB_bus_valid_by_bank + WB_bus_upper_PR_by_bank on this cycle | Operand A State | Operand B State | op is ready and candidate to be issued this cycle? | Module Actions |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| A and B ready | 1 | 1 | 0 | 0 | ready | ready | YES | none |
+| A ready, B forwardable | 1 | 0 | 0 | 1 | ready | forwardable | YES | if this op is not issued, mark B as ready |
+| A forwardable, A ready | 0 | 1 | 1 | 0 | forwardable | ready | YES | if this op is not issued, mark A as ready |
+| A and B forwardable | 0 | 0 | 1 | 1 | forwardable | forwardable | YES | if this op is not issued, mark A and B as ready |
+| A ready, B not ready | 1 | 0 | 0 | 0 | ready | not ready | NO | none |
+| A not ready, B ready | 0 | 1 | 0 | 0 | not ready | ready | NO | none |
+| A forwardable, B not ready | 0 | 0 | 1 | 0 | forwardable | not ready | NO | mark operand A as ready |
+| A not ready, B forwardable | 0 | 0 | 0 | 1 | not ready | forwardable | NO | mark operand B as ready |
+| A not ready, B not ready | 0 | 0 | 0 | 0 | not ready | not ready | NO | none |
 
 ## Issue Logic
 - for the ALU Reg-Reg Pipeline, if the ALU Reg-Reg Pipeline is ready via alu_reg_pipeline_ready, the oldest ready ALU Reg-Reg op is issued from the IQ via the [op issue to ALU Reg-Reg Pipeline](#op-issue-to-alu-reg-reg-pipeline) interface and the op's register reads are sent to the PRF via the [ALU Reg-Reg Pipeline reg read req to PRF](#alu-reg-reg-pipeline-reg-read-req-to-prf) interface
@@ -463,6 +477,8 @@ see [alu_reg_md_iq_example.md](alu_reg_md_iq_example.md)
 
 # Test Ideas and Coverpoints
 - every op for ALU Reg-Reg, every op for Mul-Div
+- every truth table case
+    - see [Op State Truth Table](#op-state-truth-table)
 - there are 2^4 possible combinations of dispatch's
     - {valid, invalid} for each of 4 dispatch ways. no constraints
     - there are 3^4 combinations if differentiate {ALU Reg-Reg, Mul-Div, invalid} dispatch
