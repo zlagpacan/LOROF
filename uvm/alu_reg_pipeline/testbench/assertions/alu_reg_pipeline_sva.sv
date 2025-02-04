@@ -11,6 +11,10 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
+// --- UVM --- //
+`include "uvm_macros.svh"
+import uvm_pkg::*;
+
 // --- SVA Checks --- //
 module alu_reg_pipeline_sva (
     input logic                                 CLK,
@@ -37,9 +41,16 @@ module alu_reg_pipeline_sva (
     input logic [LOG_ROB_ENTRIES-1:0]           WB_ROB_index
 );
 
+  sequence DUT_reset;
+    ~nRST;
+  endsequence
+  
   sequence WB_stall;
     ~WB_ready;
   endsequence
+
+  c_DUT_reset : cover sequence (DUT_reset);
+  c_WB_stall  : cover sequence (WB_stall);
 
   // --- SVA Properties --- //
   property sva_WB_valid_stall;
@@ -64,30 +75,30 @@ module alu_reg_pipeline_sva (
   
   // --- SVA Instances --- //
   a_ALURP_1_WB_VALID: assert property (sva_WB_valid_stall) begin
-    $display("SVA_INFO @%t Test Case: ALURP_1_WB_VALID : PASSED", $time());
+    `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_VALID : PASSED"), UVM_LOW)
   end else begin
-    $display("SVA_INFO @%t Test Case: ALURP_1_WB_VALID : FAILED", $time());
+    `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_VALID : FAILED"), UVM_LOW)
   end
   c_ALURP_1_WB_VALID: cover property (sva_WB_valid_stall);
 
   a_ALURP_1_WB_DATA: assert property (sva_WB_data_stall) begin
-    $display("SVA_INFO @%t Test Case: ALURP_1_WB_DATA : PASSED", $time());
+    `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_DATA : PASSED"), UVM_LOW)
   end else begin
-    $display("SVA_INFO @%t Test Case: ALURP_1_WB_DATA : FAILED", $time());
+    `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_DATA : FAILED"), UVM_LOW)
   end
   c_ALURP_1_WB_DATA: cover property (sva_WB_data_stall);
 
   a_ALURP_1_WB_PR: assert property (sva_WB_PR_stall) begin
-    $display("SVA_INFO @%t Test Case: ALURP_1_WB_PR : PASSED", $time());
+    `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_PR : PASSED"), UVM_LOW)
   end else begin
-    $display("SVA_INFO @%t Test Case: ALURP_1_WB_PR : FAILED", $time());
+    `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_PR : FAILED"), UVM_LOW)
   end
   c_ALURP_1_WB_PR: cover property (sva_WB_PR_stall);
 
   a_ALURP_1_WB_ROB: assert property (sva_WB_ROB_index_stall) begin
-    $display("SVA_INFO @%t Test Case: ALURP_1_WB_ROB : PASSED", $time());
+    `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_ROB : PASSED"), UVM_LOW)
   end else begin
-    $display("SVA_INFO @%t Test Case: ALURP_1_WB_ROB : FAILED", $time());
+    `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_ROB : FAILED"), UVM_LOW)
   end
   c_ALURP_1_WB_ROB: cover property (sva_WB_ROB_index_stall);
 
