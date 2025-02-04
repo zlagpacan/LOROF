@@ -39,6 +39,7 @@ This is a sequential module utilizing posedge flip flops
 - nRST
     - input logic
     - active-low asynchronous reset
+    - the entire module state can be reset after a single asynchronous assertion
 
 <span style="color:deepskyblue">
 
