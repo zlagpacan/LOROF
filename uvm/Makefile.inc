@@ -129,7 +129,8 @@ debug: build
 		+UVM_NO_RELNOTES \
 		-do "$(VCD)" \
 		-do "run -all"
-	vsim -do "coverage report -detail -cvg -directive -comments -output coverage.rpt /."
+	
+#vsim -do "coverage report -detail -cvg -directive -comments -output coverage.rpt /."
 	
 # Clean compile and build testbench
 .PHONY: all

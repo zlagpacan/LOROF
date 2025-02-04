@@ -1,4 +1,4 @@
-Script run on: 2025-02-03 20:06:22
+Script run on: 2025-02-03 22:56:26
 -----------------------------------------------------------------
 [PASS] ALURP_1_WB_ROB                      (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
@@ -7,16 +7,9 @@ Script run on: 2025-02-03 20:06:22
 [FAIL] ALURP_1_WB_DATA                     (SVA) : FAIL  [FAIL]
     Instances (Failed only):
         - Timestamp: 112    : FAILED  -
-        - Timestamp: 128    : FAILED  -
         - Timestamp: 188    : FAILED  -
-        - Timestamp: 220    : FAILED  -
-        - Timestamp: 272    : FAILED  -
 -----------------------------------------------------------------
-[FAIL] ALURP_1_WB_VALID                    (SVA) : FAIL  [FAIL]
-    Instances (Failed only):
-        - Timestamp: 128    : FAILED  -
-        - Timestamp: 220    : FAILED  -
-        - Timestamp: 272    : FAILED  -
+[PASS] ALURP_1_WB_VALID                    (SVA) : PASS  [PASS]
 -----------------------------------------------------------------
 [PASS] ALURP_0                             (UVM) : PASS  [PASS]
 -----------------------------------------------------------------
