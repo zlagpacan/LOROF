@@ -21,16 +21,21 @@ add wave -noupdate -expand -group {Reg Read Inputs} -color Orange /top/DUT/A_reg
 add wave -noupdate -expand -group {Reg Read Inputs} -color Orange /top/DUT/A_reg_read_port
 add wave -noupdate -expand -group {Reg Read Inputs} -color {Cornflower Blue} /top/DUT/B_reg_read_ack
 add wave -noupdate -expand -group {Reg Read Inputs} -color {Cornflower Blue} /top/DUT/B_reg_read_port
-add wave -noupdate -expand -group {Reg Read Inputs} -color Tan -subitemconfig {{/top/DUT/reg_read_data_by_bank_by_port[3]} {-color Tan} {/top/DUT/reg_read_data_by_bank_by_port[3][1]} {-color Tan} {/top/DUT/reg_read_data_by_bank_by_port[3][0]} {-color Tan} {/top/DUT/reg_read_data_by_bank_by_port[2]} {-color Tan} {/top/DUT/reg_read_data_by_bank_by_port[1]} {-color Tan} {/top/DUT/reg_read_data_by_bank_by_port[0]} {-color Tan}} /top/DUT/reg_read_data_by_bank_by_port
-add wave -noupdate -expand -group {Forward Inputs} -color Tan -subitemconfig {{/top/DUT/forward_data_by_bank[3]} {-color Tan} {/top/DUT/forward_data_by_bank[3][31]} {-color Tan} {/top/DUT/forward_data_by_bank[3][30]} {-color Tan} {/top/DUT/forward_data_by_bank[3][29]} {-color Tan} {/top/DUT/forward_data_by_bank[3][28]} {-color Tan} {/top/DUT/forward_data_by_bank[3][27]} {-color Tan} {/top/DUT/forward_data_by_bank[3][26]} {-color Tan} {/top/DUT/forward_data_by_bank[3][25]} {-color Tan} {/top/DUT/forward_data_by_bank[3][24]} {-color Tan} {/top/DUT/forward_data_by_bank[3][23]} {-color Tan} {/top/DUT/forward_data_by_bank[3][22]} {-color Tan} {/top/DUT/forward_data_by_bank[3][21]} {-color Tan} {/top/DUT/forward_data_by_bank[3][20]} {-color Tan} {/top/DUT/forward_data_by_bank[3][19]} {-color Tan} {/top/DUT/forward_data_by_bank[3][18]} {-color Tan} {/top/DUT/forward_data_by_bank[3][17]} {-color Tan} {/top/DUT/forward_data_by_bank[3][16]} {-color Tan} {/top/DUT/forward_data_by_bank[3][15]} {-color Tan} {/top/DUT/forward_data_by_bank[3][14]} {-color Tan} {/top/DUT/forward_data_by_bank[3][13]} {-color Tan} {/top/DUT/forward_data_by_bank[3][12]} {-color Tan} {/top/DUT/forward_data_by_bank[3][11]} {-color Tan} {/top/DUT/forward_data_by_bank[3][10]} {-color Tan} {/top/DUT/forward_data_by_bank[3][9]} {-color Tan} {/top/DUT/forward_data_by_bank[3][8]} {-color Tan} {/top/DUT/forward_data_by_bank[3][7]} {-color Tan} {/top/DUT/forward_data_by_bank[3][6]} {-color Tan} {/top/DUT/forward_data_by_bank[3][5]} {-color Tan} {/top/DUT/forward_data_by_bank[3][4]} {-color Tan} {/top/DUT/forward_data_by_bank[3][3]} {-color Tan} {/top/DUT/forward_data_by_bank[3][2]} {-color Tan} {/top/DUT/forward_data_by_bank[3][1]} {-color Tan} {/top/DUT/forward_data_by_bank[3][0]} {-color Tan} {/top/DUT/forward_data_by_bank[2]} {-color Tan} {/top/DUT/forward_data_by_bank[1]} {-color Tan} {/top/DUT/forward_data_by_bank[0]} {-color Tan}} /top/DUT/forward_data_by_bank
+add wave -noupdate -expand -group {Reg Read Inputs} -color Tan /top/DUT/reg_read_data_by_bank_by_port
+add wave -noupdate -expand -group {Forward Inputs} -color Tan /top/DUT/forward_data_by_bank
 add wave -noupdate -expand -group {Writeback Inputs} -color Tan /top/DUT/WB_ready
 add wave -noupdate -divider Outputs
 add wave -noupdate -expand -group {Writeback Outputs} -color Orchid /top/DUT/WB_valid
 add wave -noupdate -expand -group {Writeback Outputs} -color Orchid /top/DUT/WB_data
 add wave -noupdate -expand -group {Writeback Outputs} -color Orchid /top/DUT/WB_PR
 add wave -noupdate -expand -group {Writeback Outputs} -color Orchid /top/DUT/WB_ROB_index
+add wave -noupdate -divider Debug
+add wave -noupdate -expand -group SVA /top/SVA/a_ALURP_1_WB_VALID
+add wave -noupdate -expand -group SVA /top/SVA/a_ALURP_1_WB_DATA
+add wave -noupdate -expand -group SVA /top/SVA/a_ALURP_1_WB_PR
+add wave -noupdate -expand -group SVA /top/SVA/a_ALURP_1_WB_ROB
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {40 ns} 0}
+WaveRestoreCursors {{Cursor 1} {215 ns} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 266
 configure wave -valuecolwidth 100
@@ -46,4 +51,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ns} {227 ns}
+WaveRestoreZoom {81 ns} {308 ns}

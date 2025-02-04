@@ -1,6 +1,6 @@
 # Register Rename Basics
 - see [core_basics.md](core_basics.md) for out-of-order core basics first
-- see [precise_state_basics.md](precise_state_basics.md) for more on how register rename execution but in-order program semantics
+- see [precise_state_basics.md](precise_state_basics.md) for more on how execution can be out-of-order but still follow in-order program semantics
 
 Register renaming is a strategy used by out-of-order processors to remove register WAR and WAW hazards so that independent instructions can complete out-of-order. The true dependence, RAW, cannot be avoided and must be maintained. 
 
@@ -79,7 +79,7 @@ SUB     r1, r2, r3  ->  p8, p2, p3  < r1 renamed to p8
 ANDI    r5, r1, 1   ->  p9, p8, 1   < r5 renamed to p9
 ```
 
-The Map Table state updates for each step (1)-(5):
+The Map Table state updates for each instruction:
 ```
 r1: p1 -> p6 (ADD) -> p8 (SUB)
 r2: p2
