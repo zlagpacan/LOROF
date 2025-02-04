@@ -24,10 +24,11 @@ def parse_log_file(log_file_path):
                     result = match.group(3)
 
                     info_type = ''
-                    if 'UVM_INFO' in line:
-                        info_type = 'UVM'
-                    elif 'SVA_INFO' in line:
+                    # Order is important!
+                    if 'sva' in line:
                         info_type = 'SVA'
+                    elif 'UVM_INFO' in line:
+                        info_type = 'UVM'
 
                     grouped_results[tag].append((line.strip(), result, info_type))
                     

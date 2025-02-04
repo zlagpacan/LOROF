@@ -49,9 +49,6 @@ module alu_reg_pipeline_sva (
     ~WB_ready;
   endsequence
 
-  c_DUT_reset : cover sequence (DUT_reset);
-  c_WB_stall  : cover sequence (WB_stall);
-
   // --- SVA Properties --- //
   property sva_WB_valid_stall;
     @(posedge CLK) disable iff (~nRST)
