@@ -1,7 +1,7 @@
 /*
   Module        : alu_reg_pipeline
   UMV Component : sequence_item
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_REG_PIPELINE_SEQ_ITEM_SV
@@ -22,10 +22,10 @@ class alu_reg_pipeline_sequence_item extends uvm_sequence_item;
   `uvm_object_utils(alu_reg_pipeline_sequence_item)
 
   // --- Control Signals --- //
-  rand logic nRST;
+  rand logic                                  nRST;
 
   // --- Randomized Inputs --- //
-  randc logic                                 issue_valid;
+  rand  logic                                 issue_valid;
   randc logic [3:0]                           issue_op;
   randc logic                                 issue_A_forward;
   randc logic [LOG_PRF_BANK_COUNT-1:0]        issue_A_bank;
@@ -42,13 +42,24 @@ class alu_reg_pipeline_sequence_item extends uvm_sequence_item;
   rand  logic                                 WB_ready;
   
   // --- Outputs --- //
-  logic                       issue_ready;
-  logic                       WB_valid;
-  logic [31:0]                WB_data;
-  logic [LOG_PR_COUNT-1:0]    WB_PR;
-  logic [LOG_ROB_ENTRIES-1:0] WB_ROB_index;
+  logic                                       issue_ready;
+  logic                                       WB_valid;
+  logic [31:0]                                WB_data;
+  logic [LOG_PR_COUNT-1:0]                    WB_PR;
+  logic [LOG_ROB_ENTRIES-1:0]                 WB_ROB_index;
   
   // --- Constraints --- //
+  /*
+    The idea is to have the base seq item be the 'ideal' sequence
+      - 1 op per cycle
+  */
+  constraint nRST_ideal            { soft nRST            == 1'b1; }
+  constraint issue_valid_ideal     { soft issue_valid     == 1'b1; }
+  constraint issue_A_forward_ideal { soft issue_A_forward == 1'b1; }
+  constraint issue_B_forward_ideal { soft issue_B_forward == 1'b1; }
+
+  // Temp Void - Dist constraints won't override
+  // constraint WB_ready_ideal        { soft WB_ready        == 1'b1; }
 
   // --- Constructor --- //
   function new(string name = "alu_reg_pipeline_sequence_item");

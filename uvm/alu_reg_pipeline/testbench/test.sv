@@ -20,7 +20,8 @@ import core_types_pkg::*;
 `include "interface.sv"
 `include "env.sv"
 `include "sequences/reset_seq.sv"
-`include "sequences/wb_stall_seq.sv"
+`include "sequences/stall_seq.sv"
+`include "sequences/ideal_seq.sv"
 
 // --- Test --- //
 class alu_reg_pipeline_test extends uvm_test;
@@ -28,9 +29,14 @@ class alu_reg_pipeline_test extends uvm_test;
 
   // --- Test Components --- //
   alu_reg_pipeline_env env;
-  reset_sequence reset_seq;
-  garbage_sequence garbage_seq;
-  wb_stall_sequence wb_stall_seq;
+
+  // --- Test Sequences --- //
+  reset_sequence         reset_seq;
+  garbage_sequence       garbage_seq;
+  ideal_sequence         ideal_seq;
+  ideal_WB_flag_sequence ideal_WB_flag_seq;
+  wb_stall_sequence      wb_stall_seq;
+  iss_stall_sequence     iss_stall_seq;
 
   parameter CLK_PERIOD = 4;
 
@@ -92,6 +98,26 @@ class alu_reg_pipeline_test extends uvm_test;
       repeat (60) begin
           wb_stall_seq = wb_stall_sequence::type_id::create("wb_stall_seq");
           wb_stall_seq.start(env.agnt.seqr);
+      end
+
+      /* 
+        Test Case Tag: ALURP_2A
+        Test Case Name : Issue Stall Timing
+      */
+      repeat (10) begin
+        
+        ideal_WB_flag_seq = ideal_WB_flag_sequence::type_id::create("ideal_WB_flag_seq");
+        ideal_WB_flag_seq.start(env.agnt.seqr);
+        #(CLK_PERIOD);
+
+        iss_stall_seq = iss_stall_sequence::type_id::create("iss_stall_seq");
+        iss_stall_seq.start(env.agnt.seqr);
+        #(CLK_PERIOD);
+
+        repeat (4) begin
+          ideal_WB_flag_seq = ideal_WB_flag_sequence::type_id::create("ideal_WB_flag_seq");
+          ideal_WB_flag_seq.start(env.agnt.seqr);
+        end
       end
 
     phase.drop_objection(this);
