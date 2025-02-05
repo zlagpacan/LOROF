@@ -102,6 +102,7 @@ input interface
         - 1'bx
 - issue_A_bank
     - input logic [1:0]
+        - design uses: input logic [LOG_PRF_BANK_COUNT-1:0]
     - indicate which bank {0, 1, 2, 3} to be used for operand A when collecting data in the OC stage
     - constraints:
         - none
@@ -109,6 +110,7 @@ input interface
         - 1'bx
 - issue_dest_PR
     - input logic [6:0]
+        - design uses: input logic [LOG_PR_COUNT-1:0]
     - indicate which Physical Register [7'h0, 7'h7F] to writeback to in WB stage
     - essentially acts as a pass-through to be assigned to WB_PR when the op arrives in WB stage
     - constraints:
@@ -117,6 +119,7 @@ input interface
         - 7'hx
 - issue_ROB_index
     - input logic [6:0]
+        - design uses: input logic [LOG_ROB_ENTRIES-1:0]
     - indicate which ROB index [7'h0, 7'h7F] to mark as complete in WB stage
     - essentially acts as a pass-through to be assigned to WB_ROB_index when the op arrives in WB stage
     - constraints:
@@ -170,6 +173,7 @@ input interface
         - 1'bx
 - reg_read_data_by_bank_by_port
     - input logic [3:0][1:0][31:0]
+        - design uses: input logic [PRF_BANK_COUNT-1:0][1:0][31:0]
     - collect a PRF reg read data value of interest
     - 3D array 
         - first dim: bank
@@ -193,6 +197,7 @@ input interface
 
 - forward_data_by_bank
     - input logic [3:0][31:0]
+        - design uses: input logic [PRF_BANK_COUNT-1:0][31:0]
     - collect a PRF forward value of interest
     - 2D array
         - first dim: bank
@@ -227,6 +232,7 @@ output interface
         - 32'h0
 - WB_PR
     - output logic [6:0]
+        - design uses: output logic [LOG_PR_COUNT-1:0]
     - indicate which Physical Register [7'h0, 7'h7F] to write back to
     - final passed-through value initially given on issue_dest_PR
     - don't care when WB_valid = 1'b0
@@ -234,6 +240,7 @@ output interface
         - 7'h0
 - WB_ROB_index
     - output logic [6:0]
+        - design uses: output logic [LOG_ROB_ENTRIES-1:0]
     - indicate which ROB index [7'h0, 7'h7F] to mark as complete
     - final passed-through value initially given on issue_ROB_index
     - don't care when WB_valid = 1'b0
