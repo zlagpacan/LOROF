@@ -3,6 +3,7 @@
     - R[dest] <= R[A] op imm
         - see [Targeted Instructions](#targeted-instructions)
     - see [core_basics.md](../basics/core_basics.md) for the basic purpose of a functional unit in the backend of the core
+- example operation: [alu_imm_pipeline_example.md](alu_imm_pipeline_example.md)
 - receives issued ALU imm operations, collects the register operand data value, performs the ALU operation, and writes the data back to the PRF
 - pipelined with issue, operand collection, execute, and writeback stages
 - bandwidth of up to 1 ALU op executed per cycle
@@ -298,15 +299,26 @@ Potential operand states:
 - data is not available this cycle and was not saved on a previous cycle
     - operand stall case when none of the above are true
 
-When the stage does not contain a valid op, issue_ready is guaranteed to be 1'b1:
-- there are no operands to collect
-- a stall originating in WB stage due to WB_ready = 1'b0 which propagates back to EX stage is not propagated backward through an invalid OC stage
-
 #### Stall Condition:
-- Either:
-    - operand stall case as described above for operand A
+- valid op in EX stage and either:
+    - operand A or B in "waiting" state on this cycle
     - EX stage stall and OC stage valid
 - a stall in this stage corresponds to issue_ready = 1'b0
+
+### OC Truth Table:
+| Description | issue_A_forward on Issue Cycle | A_reg_read_ack on This Cycle | WB Stall Propagated to OC | Operand A State | issue_ready This Cycle | Module Actions |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| issued last cycle, forward A this cycle | 1 | 0 | 0 | forwarding | 1 | continue to EX with A value from forward_data_by_bank |
+| issued last cycle, forward A this cycle, WB stall | 1 | 0 | 1 | forwarding | 0 | stall due to WB, save A value from forward_data_by_bank |
+| issued in any previous cycle, A reg read ack this cycle | 0 | 1 | 0 | reg reading | 1 | continue to EX with A value from reg_read_data_by_bank_by_port |
+| issued in any previous cycle, A reg read ack this cycle, WB stall | 0 | 1 | 1 | reg reading | 0 | stall due to WB, save A value from reg_read_data_by_bank_by_port |
+| issued in any previous cycle, A saved | 0 | 0 | 0 | saved | 1 | continue to EX with A saved value |
+| issued in any previous cycle, A saved, WB stall | 0 | 0 | 1 | saved | 0 | stall due to WB |
+| issued in any previous cycle, A waiting | 0 | 0 | x | waiting | 0 | operand stall |
+
+When OC stage does not contain a valid op, issue_ready is guaranteed to be 1'b1:
+- there are no operands to collect
+- a stall originating in WB stage due to WB_ready = 1'b0 which propagates back to EX stage is not propagated backward through an invalid OC stage
 
 ## Execute (EX) Stage
 Perform the R[A] op imm ALU operation. A bubble (invalid and all other signals don't cares) is inserted into this stage whenever EX stage is not stalled but OC stage is stalled. 
@@ -320,13 +332,19 @@ Perform the R[A] op imm ALU operation. A bubble (invalid and all other signals d
 - WB_ready = 1'b0 and WB stage valid
 
 
+# Example Operation
+
+see [alu_imm_pipeline_example.md](alu_imm_pipeline_example.md)
+
+
 # Assertions
 - no output nor internal signal x's after reset
 
 
 # Test Ideas and Coverpoints
 - every op
-- every possible operand A {forward, reg read first cycle in OC, reg read second or later cycle in OC, saved forward, saved reg read}
+- every truth table case
+    - see [OC Truth Table](#oc-truth-table)
 - there are 2^4 possible combinations of {valid, invalid} for each of the 4 pipeline stages, all of which should be reachable. ideally, cover all of them with {no stall, WB stall, OC stall, WB and OC stall}
 
 
