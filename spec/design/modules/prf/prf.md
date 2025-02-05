@@ -16,7 +16,7 @@
 - memory arrays are instantiated as 4x dual-read-port, single-write-port Distributed RAM arrays
 
 # RTL Diagram
-![prf RTL Diagram](prf.png)
+![prf RTL Diagram](prf_rtl.png)
 
 
 # Parameters

@@ -18,7 +18,7 @@
 
 
 # RTL Diagram
-![alu_pipeline RTL Diagram](alu_reg_pipeline.png)
+![alu_pipeline RTL Diagram](alu_reg_pipeline_rtl.png)
 
 
 # Parameters

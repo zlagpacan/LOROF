@@ -25,7 +25,7 @@
 
 # RTL Diagram
 
-![alu_reg_md_iq RTL Diagram](alu_reg_md_iq.png)
+![alu_reg_md_iq RTL Diagram](alu_reg_md_iq_rtl.png)
 
 
 # Parameters
