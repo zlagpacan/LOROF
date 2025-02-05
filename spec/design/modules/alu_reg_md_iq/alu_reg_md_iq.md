@@ -28,6 +28,25 @@
 ![alu_reg_md_iq RTL Diagram](alu_reg_md_iq.png)
 
 
+# Parameters
+
+## Variable Parameters
+The module can be customized with different values for these
+
+Verification should be performed for the default values as given here
+
+- ALU_REG_MD_IQ_ENTRIES = 8
+    - designate the number of IQ entries
+    - design should be functional for >= 2
+
+## Constant Parameters
+All of these are constants from core_types_pkg.vh
+- LOG_PR_COUNT = 7
+- LOG_ROB_ENTRIES = 7
+- PRF_BANK_COUNT = 4
+- LOG_PRF_BANK_COUNT = 2
+
+
 # Interfaces
 Input interfaces blue. Output interfaces green.
 These signals make more sense in combination with the information in the [Issue Queue Entry Arbitration Logic](#issue-queue-entry-arbitration-logic) section.
@@ -115,6 +134,7 @@ each signal is a vector, with each 1D entry out of 4 associated with a dispatch 
         - {4{4'hx}}
 - dispatch_A_PR_by_way
     - input logic [3:0][6:0]
+        - design uses: input logic [3:0][LOG_PR_COUNT-1:0]
     - indicate which physical register operand A is associated with
     - 7-bit physical register for each of 4 ways
         - 128 PR's, log2(128) = 7
@@ -134,12 +154,14 @@ each signal is a vector, with each 1D entry out of 4 associated with a dispatch 
         - {4{1'bx}}
 - dispatch_B_PR_by_way
     - input logic [3:0][6:0]
+        - design uses: input logic [3:0][LOG_PR_COUNT-1:0]
     - same semantics as dispatch_A_PR_by_way but for operand B
 - dispatch_B_ready_by_way
     - input logic [3:0]
     - same semantics as dispatch_A_ready_by_way but for operand B
 - dispatch_dest_PR_by_way
     - input logic [3:0][6:0]
+        - design uses: input logic [3:0][LOG_PR_COUNT-1:0]
     - indicate which physical register this op should write to at the end of after finishing execution in its associated pipeline
     - 7-bit physical register for each of 4 ways
         - 128 PR's, log2(128) = 7
@@ -150,6 +172,7 @@ each signal is a vector, with each 1D entry out of 4 associated with a dispatch 
         - {4{7'hx}}
 - dispatch_ROB_index_by_way
     - input logic [3:0][6:0]
+        - design uses: input logic [3:0][LOG_ROB_ENTRIES-1:0]
     - indicate which ROB index this op should mark as complete after finishing execution in its associated pipeline
     - 7-bit ROB index for each of 4 ways
         - 128 ROB entries, log2(128) = 7
@@ -208,6 +231,7 @@ input interface
 
 - WB_bus_valid_by_bank
     - input logic [3:0]
+        - design uses: input logic [PRF_BANK_COUNT-1:0]
     - indicate a WB bus event for a given PRF bank
     - 1 flag for each of 4 banks
     - constraints:
@@ -217,6 +241,7 @@ input interface
         - {4{1'b0}}
 - WB_bus_upper_PR_by_bank
     - input logic [3:0][4:0]
+        - design uses: input logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]
     - indicate which upper 5 physical register bits the WB bus event corresponds to by PRF bank
     - 5 bits for each of 4 banks
         - the full physical register a writeback corresponds to can be inferred by concatenating these upper 5 bits with the 2 lower bits which can index into the 4 banks
@@ -265,6 +290,7 @@ output interface
         - 1'b0
 - issue_alu_reg_A_bank
     - output logic [1:0]
+        - design uses: output logic [LOG_PRF_BANK_COUNT-1:0]
     - indicate to the pipeline which bank operand A should get its data from
         - this will be used for forwarding as well as PRF register reads
     - 2-bit bank index
@@ -276,9 +302,11 @@ output interface
     - same semantics as issue_alu_reg_A_forward but for operand B
 - issue_alu_reg_B_bank
     - output logic [1:0]
+        - design uses: output logic [LOG_PRF_BANK_COUNT-1:0]
     - same semantics as issue_alu_reg_A_bank but for operand B
 - issue_alu_reg_dest_PR
     - output logic [6:0]
+        - design uses: output logic [LOG_PR_COUNT-1:0]
     - indicate which physical register this op should write to at the end of after finishing execution in its associated pipeline
     - 7-bit physical register
         - 128 PR's, log2(128) = 7
@@ -287,6 +315,7 @@ output interface
         - 7'h0
 - issue_alu_reg_ROB_index
     - output logic [6:0]
+        - design uses: output logic [LOG_ROB_ENTRIES-1:0]
     - indicate which ROB index this op should mark as complete after finishing execution in its associated pipeline
     - 7-bit ROB index
         - 128 ROB entries, log2(128) = 7
@@ -311,6 +340,7 @@ output interface
         - 1'b0
 - PRF_alu_reg_req_A_PR
     - output logic [6:0]
+        - design uses: output logic [LOG_PR_COUNT-1:0]
     - indicate which physical register the PR should read for operand A
     - 7-bit physical register
         - 128 PR's, log2(128) = 7
@@ -320,6 +350,7 @@ output interface
     - same semantics as PRF_alu_reg_req_A_valid but for operand B
 - PRF_alu_reg_req_B_PR
     - output logic [6:0]
+        - design uses: output logic [LOG_PR_COUNT-1:0]
     - same semantics as PRF_alu_reg_req_A_PR but for operand B
 
 <span style="color:deepskyblue">
@@ -356,6 +387,7 @@ output interface
         - 1'b0
 - issue_mul_div_A_bank
     - output logic [1:0]
+        - design uses: output logic [LOG_PRF_BANK_COUNT-1:0]
     - indicate to the pipeline which bank operand A should get its data from
         - this will be used for forwarding as well as PRF register reads
     - 2-bit bank index
@@ -367,9 +399,11 @@ output interface
     - same semantics as issue_mul_div_A_forward but for operand B
 - issue_mul_div_B_bank
     - output logic [1:0]
+        - design uses: output logic [LOG_PRF_BANK_COUNT-1:0]
     - same semantics as issue_mul_div_A_bank but for operand B
 - issue_mul_div_dest_PR
     - output logic [6:0]
+        - design uses: output logic [LOG_PR_COUNT-1:0]
     - indicate which physical register this op should write to at the end of after finishing execution in its associated pipeline
     - 7-bit physical register
         - 128 PR's, log2(128) = 7
@@ -378,6 +412,7 @@ output interface
         - 7'h0
 - issue_mul_div_ROB_index
     - output logic [6:0]
+        - design uses: output logic [LOG_ROB_ENTRIES-1:0]
     - indicate which ROB index this op should mark as complete after finishing execution in its associated pipeline
     - 7-bit ROB index
         - 128 ROB entries, log2(128) = 7
@@ -402,6 +437,7 @@ output interface
         - 1'b0
 - PRF_mul_div_req_A_PR
     - output logic [6:0]
+        - design uses: output logic [LOG_PR_COUNT-1:0]
     - indicate which physical register the PR should read for operand A
     - 7-bit physical register
         - 128 PR's, log2(128) = 7
@@ -411,6 +447,7 @@ output interface
     - same semantics as PRF_alu_reg_req_A_valid but for operand B
 - PRF_mul_div_req_B_PR
     - output logic [6:0]
+        - design uses: output logic [LOG_PR_COUNT-1:0]
     - same semantics as PRF_alu_reg_req_A_PR but for operand B
 
 

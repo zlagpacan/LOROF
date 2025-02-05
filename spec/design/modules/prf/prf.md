@@ -18,6 +18,41 @@
 # RTL Diagram
 ![prf RTL Diagram](prf.png)
 
+
+# Parameters
+
+## Variable Parameters
+The module can be customized with different values for these
+
+Verification should be performed for the default values as given here
+
+- PR_COUNT = 128
+    - physical register count
+    - design should be functional for >= 2*PRF_BANK_COUNT and power of 2
+- LOG_PR_COUNT = 7
+    - number of bits needed to represent a physical register
+    - log2(PR_COUNT)
+- PRF_BANK_COUNT = 4
+    - number of banks in the physical register file
+    - design should be functional for >= 1 and power of 2
+- LOG_PRF_BANK_COUNT = 2
+    - number of bits needed to represent a bank
+    - log2(PRF_BANK_COUNT)
+- PRF_RR_COUNT = 11
+    - number of read requestors
+    - design should be functional for >= 2
+- PRF_WR_COUNT = 7
+    - number of write requestors
+    - design should be functional for >= 2
+- USE_BRAM = 0
+    - select to use BRAM instead of Distributed RAM for the memory arrays
+    - design should be functional for 0 or 1
+
+## Constant Parameters
+All of these are constants from core_types_pkg.vh
+- LOG_ROB_ENTRIES = 7
+
+
 # Interfaces
 Input interfaces blue. Output interfaces green.
 These signals are interdependent on functionality described in [Read Arbitration](#read-arbitration) and [Write Arbitration](#write-arbitration)

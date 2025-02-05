@@ -21,6 +21,19 @@
 ![alu_pipeline RTL Diagram](alu_imm_pipeline.png)
 
 
+# Parameters
+
+## Variable Parameters
+- none
+
+## Constant Parameters
+All of these are constants from core_types_pkg.vh
+- LOG_PR_COUNT = 7
+- LOG_ROB_ENTRIES = 7
+- PRF_BANK_COUNT = 4
+- LOG_PRF_BANK_COUNT = 2
+
+
 # Interfaces
 Inputs interfaces blue. Output interfaces green.
 These signals make more sense in combination with the information in the [Pipeline Stages](#pipeline-stages) section.

@@ -9,11 +9,10 @@ package core_types_pkg;
     // PRF
     parameter PR_COUNT = 128;
     parameter LOG_PR_COUNT = $clog2(PR_COUNT);
-    parameter PRF_BANK_COUNT = 4;       // const
+    parameter PRF_BANK_COUNT = 4;
     parameter LOG_PRF_BANK_COUNT = $clog2(PRF_BANK_COUNT);
-    parameter PRF_RR_COUNT = 11;        // read requestor count
-    parameter PRF_READ_PORT_COUNT = 2;  // const
-    parameter PRF_WR_COUNT = 7;         // write requestor count
+    parameter PRF_RR_COUNT = 11;
+    parameter PRF_WR_COUNT = 7;
 
     // ROB
     parameter ROB_ENTRIES = 128;
@@ -31,10 +30,10 @@ package core_types_pkg;
     // Branch Prediction
     parameter BTB_ENTRIES = 512;
     parameter LOG_BTB_ENTRIES = $clog2(BTB_ENTRIES);
-    parameter BTB_ENTRIES_PER_BLOCK = 4;        // const == 4-way superscalar
-    parameter LOG_BTB_ENTRIES_PER_BLOCK = 2;    // const
-    parameter BTB_BANK_COUNT = 2;               // const
-    parameter LOG_BTB_BANK_COUNT = 1;           // const
+    parameter BTB_ENTRIES_PER_BLOCK = 4;
+    parameter LOG_BTB_ENTRIES_PER_BLOCK = 2;
+    parameter BTB_BANK_COUNT = 2;
+    parameter LOG_BTB_BANK_COUNT = 1;
     parameter BTB_BLOCKS_PER_BANK = BTB_ENTRIES / BTB_ENTRIES_PER_BLOCK / BTB_BANK_COUNT;
     parameter BTB_INDEX_WIDTH = $clog2(BTB_BLOCKS_PER_BANK);
 
