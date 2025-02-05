@@ -345,6 +345,9 @@ output interface
     - 7-bit physical register
         - 128 PR's, log2(128) = 7
     - this should be a pass-through of the PR given for this instruction op on dispatch in dispatch_A_PR_by_way
+    - don't care if PRF_alu_reg_req_A_valid = 0
+    - reset value:
+        - 7'h0
 - PRF_alu_reg_req_B_valid
     - output logic
     - same semantics as PRF_alu_reg_req_A_valid but for operand B
@@ -442,6 +445,9 @@ output interface
     - 7-bit physical register
         - 128 PR's, log2(128) = 7
     - this should be a pass-through of the PR given for this instruction op on dispatch in dispatch_A_PR_by_way
+    - don't care if PRF_mul_div_req_A_valid = 0
+    - reset value:
+        - 7'h0
 - PRF_mul_div_req_B_valid
     - output logic
     - same semantics as PRF_alu_reg_req_A_valid but for operand B
