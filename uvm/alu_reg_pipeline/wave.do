@@ -9,33 +9,33 @@ add wave -noupdate -expand -group {IQ Inputs} -color {Spring Green} /top/DUT/iss
 add wave -noupdate -expand -group {IQ Inputs} -color {Spring Green} /top/DUT/issue_op
 add wave -noupdate -expand -group {IQ Inputs} -color Orange /top/DUT/issue_A_forward
 add wave -noupdate -expand -group {IQ Inputs} -color Orange /top/DUT/issue_A_bank
-add wave -noupdate -expand -group {IQ Inputs} -color {Cornflower Blue} /top/DUT/issue_B_forward
-add wave -noupdate -expand -group {IQ Inputs} -color {Cornflower Blue} /top/DUT/issue_B_bank
+add wave -noupdate -expand -group {IQ Inputs} -color Magenta /top/DUT/issue_B_forward
+add wave -noupdate -expand -group {IQ Inputs} -color Magenta /top/DUT/issue_B_bank
 add wave -noupdate -expand -group {IQ Inputs} -color {Spring Green} /top/DUT/issue_dest_PR
 add wave -noupdate -expand -group {IQ Inputs} -color {Spring Green} /top/DUT/issue_ROB_index
 add wave -noupdate -divider Outputs
-add wave -noupdate -expand -group {IQ Outputs} -color Orchid /top/DUT/issue_ready
+add wave -noupdate -expand -group {IQ Outputs} -color Gray90 /top/DUT/issue_ready
 add wave -noupdate -divider {PRF Interface}
 add wave -noupdate -divider Inputs
 add wave -noupdate -expand -group {Reg Read Inputs} -color Orange /top/DUT/A_reg_read_ack
 add wave -noupdate -expand -group {Reg Read Inputs} -color Orange /top/DUT/A_reg_read_port
-add wave -noupdate -expand -group {Reg Read Inputs} -color {Cornflower Blue} /top/DUT/B_reg_read_ack
-add wave -noupdate -expand -group {Reg Read Inputs} -color {Cornflower Blue} /top/DUT/B_reg_read_port
-add wave -noupdate -expand -group {Reg Read Inputs} -color Tan /top/DUT/reg_read_data_by_bank_by_port
-add wave -noupdate -expand -group {Forward Inputs} -color Tan /top/DUT/forward_data_by_bank
-add wave -noupdate -expand -group {Writeback Inputs} -color Tan /top/DUT/WB_ready
+add wave -noupdate -expand -group {Reg Read Inputs} -color Magenta /top/DUT/B_reg_read_ack
+add wave -noupdate -expand -group {Reg Read Inputs} -color Magenta /top/DUT/B_reg_read_port
+add wave -noupdate -expand -group {Reg Read Inputs} -color {Spring Green} /top/DUT/reg_read_data_by_bank_by_port
+add wave -noupdate -expand -group {Forward Inputs} -color {Spring Green} /top/DUT/forward_data_by_bank
+add wave -noupdate -expand -group {Writeback Inputs} -color {Spring Green} /top/DUT/WB_ready
 add wave -noupdate -divider Outputs
-add wave -noupdate -expand -group {Writeback Outputs} -color Orchid /top/DUT/WB_valid
-add wave -noupdate -expand -group {Writeback Outputs} -color Orchid /top/DUT/WB_data
-add wave -noupdate -expand -group {Writeback Outputs} -color Orchid /top/DUT/WB_PR
-add wave -noupdate -expand -group {Writeback Outputs} -color Orchid /top/DUT/WB_ROB_index
+add wave -noupdate -expand -group {Writeback Outputs} -color Gray90 /top/DUT/WB_valid
+add wave -noupdate -expand -group {Writeback Outputs} -color Gray90 /top/DUT/WB_data
+add wave -noupdate -expand -group {Writeback Outputs} -color Gray90 /top/DUT/WB_PR
+add wave -noupdate -expand -group {Writeback Outputs} -color Gray90 /top/DUT/WB_ROB_index
 add wave -noupdate -divider Debug
 add wave -noupdate -expand -group SVA /top/SVA/a_ALURP_1_WB_VALID
 add wave -noupdate -expand -group SVA /top/SVA/a_ALURP_1_WB_DATA
 add wave -noupdate -expand -group SVA /top/SVA/a_ALURP_1_WB_PR
 add wave -noupdate -expand -group SVA /top/SVA/a_ALURP_1_WB_ROB
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {215 ns} 0}
+WaveRestoreCursors {{Cursor 1} {84 ns} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 266
 configure wave -valuecolwidth 100
@@ -51,4 +51,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {81 ns} {308 ns}
+WaveRestoreZoom {64 ns} {320 ns}
