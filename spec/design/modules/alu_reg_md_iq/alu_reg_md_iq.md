@@ -2,6 +2,7 @@
 - backend issue queue for ALU Register-Register Pipeline and Mul-Div Pipeline
     - see [core_basics.md](../../basics/core_basics.md) for the basic purpose of an issue queue in the backend of the core
     - see [iq_basics.md](../../basics/iq_basics.md) for the basic function of an issue queue
+- example operation: [alu_reg_md_iq_example.md](alu_reg_md_iq_example.md)
 - the issue queue buffers dispatched ALU Reg-Reg and Mul-Div ops in oldest-first order, waiting for each op's 2 physical register operands to be ready, independently issuing the oldest ready ALU Reg-Reg op, and the oldest ready Mul-Div op
 - up to 4 ops dispatched into the issue queue per cycle from the 4-way superscalar frontend
     - see the [op dispatch by way](#op-dispatch-by-way) interface

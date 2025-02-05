@@ -1,11 +1,9 @@
 # alu_reg_md_iq Example Operation
 
-![alu_reg_md_iq Example Operation](alu_reg_md_iq_example.png)
-
 # Key:
 
 ### op format
-\<ROB index>: \<op> p\<dest PR #>, b\<operand A bank>:{r (ready), f (forwardable), n (not ready)}, b\<operand B bank>:{f,r}
+\<ROB index>: \<op> p\<dest PR #>, b\<operand A bank>:{r (ready), f (forwardable), n (not ready)}, b\<operand B bank>:{f,r,n}
 
 Examples:
 - 5: ADD p7, p2:n, p3:r
@@ -32,3 +30,7 @@ Examples:
             - {5'h5, 2'h0} = 7'h14 = 7'd20 -> p20 WB is happening
     - dispatch_dest_PR_by_way[way] = 23
     - dispatch_ROB_index_by_way[way] = 11
+
+# Example Operation
+
+![alu_reg_md_iq Example Operation](alu_reg_md_iq_example.png)
