@@ -17,7 +17,9 @@ import core_types_pkg::*;
     
 // --- Includes --- //
 `include "interface.sv"
-`include "test.sv"
+// `include "test.sv"
+`include "tests/reset_test.sv"
+`include "tests/wb_stall_test.sv"
 `include "assertions/alu_reg_pipeline_sva.sv"
 
 `timescale 1ns/1ns
@@ -81,14 +83,13 @@ module top;
     .WB_ROB_index(alu_reg_pipeline_intf.WB_ROB_index)
   );
   
-  // --- Interface --- //
-  initial begin : VIF
-    uvm_config_db #(virtual alu_reg_pipeline_if)::set(null, "*", "vif", alu_reg_pipeline_intf);
-  end
-  
   // --- Start Test --- //
   initial begin : TEST
-    run_test("alu_reg_pipeline_test");
+    uvm_config_db #(virtual alu_reg_pipeline_if)::set(null, "*", "vif", alu_reg_pipeline_intf);
+    // run_test("alu_reg_pipeline_test");
+    run_test("reset_test");
+    run_test("wb_stall_test");
+    $finish();
   end
   
   // --- Clock Generation --- //
@@ -101,7 +102,7 @@ module top;
 
   // --- Maximum Sim Duration --- //
   initial begin : TIMEOUT
-    #(1000 * CLK_PERIOD);
+    #(10000 * CLK_PERIOD);
     $display("Sorry! Ran out of clock cycles");
     $finish();
   end
