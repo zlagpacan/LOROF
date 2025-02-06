@@ -41,15 +41,21 @@ module alu_reg_pipeline_sva (
     input logic [LOG_ROB_ENTRIES-1:0]           WB_ROB_index
 );
 
+  // --- Test Case ALURP_0 Coverage --- //
   sequence DUT_reset;
     ~nRST;
   endsequence
+  event DUT_reset_event;
+  DUT_reset -> DUT_reset_event;
   
+  // --- Test Case ALURP_1 Coverage --- //
   sequence WB_stall;
     ~WB_ready;
   endsequence
+  event WB_stall_event;
+  WB_stall -> WB_stall_event;
 
-  // --- Reset Event Tracker --- //
+  // --- Reset Event Tracker --- // FIXME: will be antiquainted soon
   property RESET_EVENT_TRACKER;
     @(posedge CLK)
     (DUT_reset) |=> (WB_data === '0);
