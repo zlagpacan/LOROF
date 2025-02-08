@@ -5,3 +5,4 @@ Suggested reading order:
 - [reg_rename_basice.md](reg_rename_basics.md)
 - [precise_state_basics.md](precise_state_basics.md)
 - [iq_basics.md](iq_basics.md)
+- [memory_array_basics.md](memory_array_basics.md)
