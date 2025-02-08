@@ -380,7 +380,7 @@ see [prf_example.md](prf_example.md)
 - no output nor internal signal x's after reset
 - read response ack before upper bound response time after read request for all read requests
 - write request ready only low for the upper bound response time x cycles
-- read value for given PR follows reset value of 32'h0 OR 
+- read value for given PR follows reset value of 32'h0 OR the value written to the register the last time it appeared on the [writeback bus by bank](#writeback-bus-by-bank) interface
 
 
 # Test Ideas and Coverpoints
