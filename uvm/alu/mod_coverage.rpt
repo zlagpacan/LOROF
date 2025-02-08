@@ -1,0 +1,16 @@
+Coverage Report Summary Data by DU
+
+=================================================================================
+=== Design Unit: work.alu
+=================================================================================
+    Enabled Coverage              Bins      Hits    Misses  Coverage
+    ----------------              ----      ----    ------  --------
+    Branches                        15        15         0   100.00%
+    Conditions                       2         2         0   100.00%
+    Statements                      11        11         0   100.00%
+    Toggles                        200       200         0   100.00%
+
+
+Total Coverage By Design Unit (filtered view): 100.00%
+
+
