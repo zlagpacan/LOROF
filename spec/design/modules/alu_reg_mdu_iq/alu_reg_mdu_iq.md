@@ -1,9 +1,9 @@
 # alu_reg_mdu_iq
-- backend issue queue for ALU Register-Register Pipeline and Mul-Div Pipeline
+- backend issue queue for ALU Register-Register Pipeline and MDU Pipeline
     - see [core_basics.md](../../basics/core_basics.md) for the basic purpose of an issue queue in the backend of the core
     - see [iq_basics.md](../../basics/iq_basics.md) for the basic function of an issue queue
 - example operation: [alu_reg_mdu_iq_example.md](alu_reg_mdu_iq_example.md)
-- the issue queue buffers dispatched ALU Reg-Reg and Mul-Div ops in oldest-first order, waiting for each op's 2 physical register operands to be ready, independently issuing the oldest ready ALU Reg-Reg op, and the oldest ready Mul-Div op
+- the issue queue buffers dispatched ALU Reg-Reg and MDU ops in oldest-first order, waiting for each op's 2 physical register operands to be ready, independently issuing the oldest ready ALU Reg-Reg op, and the oldest ready MDU op
 - up to 4 ops dispatched into the issue queue per cycle from the 4-way superscalar frontend
     - see the [op dispatch by way](#op-dispatch-by-way) interface
 - up to 8 ops inhabiting 8 issue queue entries can be stored in the issue queue at a time
@@ -13,11 +13,11 @@
         - an op is issued into its associated pipeline from its own valid issue queue entry
     - up to 1 ALU Reg-Reg op per cycle
         - see the [op issue to ALU Reg-Reg pipeline](#op-issue-to-alu-reg-reg-pipeline) interface
-    - up to 1 Mul-Div op per cycle
-        - see the [op issue to Mul-Div pipeline](#op-issue-to-mul-div-pipeline) interface
+    - up to 1 MDU op per cycle
+        - see the [op issue to MDU pipeline](#op-issue-to-mul-div-pipeline) interface
     - issue involves providing the op information to the pipeline, and providing the physical register read info to the PRF
         - see [ALU Reg-Reg Pipeline reg read req to PRF](#alu-reg-reg-pipeline-reg-read-req-to-prf) for PRF reads for the ALU Reg-Reg Pipeline
-        - see [Mul-Div Pipeline reg read req to PRF](#mul-div-pipeline-reg-read-req-to-prf) for PRF reads for the Mul-Div Pipeline
+        - see [MDU Pipeline reg read req to PRF](#mul-div-pipeline-reg-read-req-to-prf) for PRF reads for the MDU Pipeline
 - the issue queue watches the writeback bus and uses dispatch info to determine when operands a not ready operand becomes ready or forwardable
     - see the [writeback bus by bank](#writeback-bus-by-bank) interface
 - if the 2 operands belonging to an op are both ready or forwardable, the op is officially "ready", and is a candidate to be issued
@@ -80,12 +80,12 @@ each signal is a vector, with each 1D entry out of 4 associated with a dispatch 
 
 - dispatch_attempt_by_way
     - input logic [3:0]
-    - indicate intent to dispatch an ALU Reg-Reg or Mul-Div op into the IQ for each dispatch way
+    - indicate intent to dispatch an ALU Reg-Reg or MDU op into the IQ for each dispatch way
     - 1 flag for each of 4 ways
     - ways are expected to be ordered into the IQ from oldest/lowest way to youngest/highest way, skipping ways without a dispatch attempt as needed
         - e.g. for an empty IQ:
             - dispatch_attempt_by_way = 4'b1011
-                - way 0, way 1, way 3 have a valid ALU Reg-Reg or Mul-Div op
+                - way 0, way 1, way 3 have a valid ALU Reg-Reg or MDU op
             - entry 0 accepts way 0 dispatch
             - entry 1 accepts way 1 dispatch
             - entry 2 accepts way 3 dispatch
@@ -95,7 +95,7 @@ each signal is a vector, with each 1D entry out of 4 associated with a dispatch 
             - if way 2 was not skipped, and entry 2 was given way 2's invalid op, and entry 3 got way 3's valid op, then there would be an invalid entry in a string of valid entries: {0: valid, 1: valid, 2: invalid, 3:valid, 4:invalid, ...}
                 - a tricky design could try to fill entry 2 with a valid op on the next cycle's dispatch, but this would violate the entry ordering following program order
                 - a tricky design could have the issue queue internally condense on the cycle after they have been dispatched, but this logic would be incredibly tricky and area intensive, and even with best case functionality, it would still have a 1-cycle delay of overestimated IQ occupancy, which inherently allows for dispatch stalls, which hurts performance
-    - this is used so that the superscalar ways of the frontend are known to either have or not have an ALU Reg-Reg or Mul-Div op, this way the IQ can swizzle the incoming ops to the lowest open consecutive issue queue entries oldest-op-first. whether or not the front end decides to follow through with dispatching this given mask of ops will be given through dispatch_valid_alu_reg_by_way or dispatch_valid_mdu_by_way
+    - this is used so that the superscalar ways of the frontend are known to either have or not have an ALU Reg-Reg or MDU op, this way the IQ can swizzle the incoming ops to the lowest open consecutive issue queue entries oldest-op-first. whether or not the front end decides to follow through with dispatching this given mask of ops will be given through dispatch_valid_alu_reg_by_way or dispatch_valid_mdu_by_way
         - e.g. dispatch_attempt_by_way = 4'b1011, but the frontend might only want to dispatch e.g. way 0 and way 1, so (dispatch_valid_alu_reg_by_way | dispatch_valid_mdu_by_way) == 4'b0011
         - see dispatch_valid_alu_reg_by_way for more info
     - constraints
@@ -122,12 +122,12 @@ each signal is a vector, with each 1D entry out of 4 associated with a dispatch 
         - {4{1'b0}}
 - dispatch_valid_mdu_by_way
     - input logic [3:0]
-    - same semantics as dispatch_valid_alu_reg_by_way but indicate that this dispatched op should target the Mul-Div Pipeline instead
+    - same semantics as dispatch_valid_alu_reg_by_way but indicate that this dispatched op should target the MDU Pipeline instead
 - dispatch_op_by_way
     - input logic [3:0][3:0]
-    - indicate the ALU Reg-Reg / Mul-Div op
+    - indicate the ALU Reg-Reg / MDU op
     - 4-bit op for each of 4 ways
-    - the op field is shared for ALU Reg-Reg and Mul-Div, but the ops will be interpreted separately as needed when this op is issued to its associated pipeline as designated by dispatch_valid_alu_reg_by_way or dispatch_valid_mdu_by_way
+    - the op field is shared for ALU Reg-Reg and MDU, but the ops will be interpreted separately as needed when this op is issued to its associated pipeline as designated by dispatch_valid_alu_reg_by_way or dispatch_valid_mdu_by_way
     - as far as this module is concerned, this is a pass-through to the associated pipeline
     - constraints:
         - none
@@ -220,7 +220,7 @@ input interface
         - 1'b1
 - mdu_pipeline_ready
     - input logic
-    - same semantics as alu_reg_pipeline_ready but for the Mul-Div Pipeline
+    - same semantics as alu_reg_pipeline_ready but for the MDU Pipeline
 
 <span style="color:deepskyblue">
 
@@ -359,7 +359,7 @@ output interface
 
 <span style="color:deepskyblue">
 
-## op issue to Mul-Div Pipeline
+## op issue to MDU Pipeline
 
 </span>
 
@@ -367,17 +367,17 @@ output interface
 
 - issue_mdu_valid
     - output logic
-    - indicate that an op is being issued to the Mul-Div Pipeline
+    - indicate that an op is being issued to the MDU Pipeline
     - single flag
-    - this signal is high whenever mdu_pipeline_ready is high and there is a Mul-Div op currently in the IQ that is ready
-        - a Mul-Div op is identifiable by dispatch_valid_mdu_by_way being high upon dispatch
+    - this signal is high whenever mdu_pipeline_ready is high and there is a MDU op currently in the IQ that is ready
+        - a MDU op is identifiable by dispatch_valid_mdu_by_way being high upon dispatch
         - op ready -> both operands in a ready or forwardable state
-    - if this signal is high, the remaining signals in this interface follow the oldest Mul-Div op in the IQ
+    - if this signal is high, the remaining signals in this interface follow the oldest MDU op in the IQ
     - reset value:
         - 1'b0
 - issue_mdu_op
     - output logic [3:0]
-    - indicate the Mul-Div op
+    - indicate the MDU op
     - 4-bit op
     - this should be a pass-through of the value given for this instruction op on dispatch in dispatch_op_by_way for the way
     - reset value:
@@ -426,7 +426,7 @@ output interface
 
 <span style="color:deepskyblue">
 
-## Mul-Div Pipeline reg read req to PRF
+## MDU Pipeline reg read req to PRF
 
 </span>
 
@@ -463,7 +463,7 @@ output interface
 - IQ entries are guaranteed by the internal logic and the external dispatch constraints as described in dispatch_attempt_by_way to always be a run of valid entries starting from lowest entry 0, followed by a run of invalid entries ending at the highest entry 7
     - either run can be empty i.e. all entries valid or all entries invalid
 - IQ entries are filled via dispatches from the 4-way superscalar dispatch
-- IQ entries are drained via independent single-op issues into both the ALU Reg-Reg Pipeline and the Mul-Div Pipeline, greedily issuing the oldest ready op
+- IQ entries are drained via independent single-op issues into both the ALU Reg-Reg Pipeline and the MDU Pipeline, greedily issuing the oldest ready op
 
 ## Dispatch Logic
 - following the [op dispatch by way](#op-dispatch-by-way) interface, greedily dispatch the lowest valid way dispatch based on the beginning-of-cycle state of the IQ entries 
@@ -504,7 +504,7 @@ output interface
 
 ## Issue Logic
 - for the ALU Reg-Reg Pipeline, if the ALU Reg-Reg Pipeline is ready via alu_reg_pipeline_ready, the oldest ready ALU Reg-Reg op is issued from the IQ via the [op issue to ALU Reg-Reg Pipeline](#op-issue-to-alu-reg-reg-pipeline) interface and the op's register reads are sent to the PRF via the [ALU Reg-Reg Pipeline reg read req to PRF](#alu-reg-reg-pipeline-reg-read-req-to-prf) interface
-- for the Mul-Div Pipeline, if the Mul-Div Pipeline is ready via mdu_pipeline_ready, the oldest ready Mul-Div op is issued from the IQ via the [op issue to Mul-Div Pipeline](#op-issue-to-mul-div-pipeline) interface and the op's register reads are sent to the PRF via the [Mul-Div Pipeline reg read req to PRF](#mul-div-pipeline-reg-read-req-to-prf) interface
+- for the MDU Pipeline, if the MDU Pipeline is ready via mdu_pipeline_ready, the oldest ready MDU op is issued from the IQ via the [op issue to MDU Pipeline](#op-issue-to-mul-div-pipeline) interface and the op's register reads are sent to the PRF via the [MDU Pipeline reg read req to PRF](#mul-div-pipeline-reg-read-req-to-prf) interface
 - in the cycle diagram, these are the arrows coming out to the right of the cycle diagram
 
 
@@ -520,16 +520,16 @@ see [alu_reg_mdu_iq_example.md](alu_reg_mdu_iq_example.md)
 
 
 # Test Ideas and Coverpoints
-- every op for ALU Reg-Reg, every op for Mul-Div
+- every op for ALU Reg-Reg, every op for MDU
 - every truth table case
     - see [Op State Truth Table](#op-state-truth-table)
 - there are 2^4 possible combinations of dispatch's
     - {valid, invalid} for each of 4 dispatch ways. no constraints
-    - there are 3^4 combinations if differentiate {ALU Reg-Reg, Mul-Div, invalid} dispatch
+    - there are 3^4 combinations if differentiate {ALU Reg-Reg, MDU, invalid} dispatch
     - there are many more combinations for attempted dispatches which don't end up being valid
     - there are many more combinations of possible dispatch's for each possible issue queue occupancy state. these could be targetted as well if reasonable. otherwise a good coverage of high-occupancy (e.g. 4 or fewer open entries) combinations would be desired
 - there are 9^2 possible combinations of issue's
-    - {no issue, entry 0, entry 1, ...} for ALU Reg-Reg and Mul-Div
-- there are sum(i=0,8)2^i = 511 possible combinations of {invalid op, ALU Reg-Reg op, Mul-Div op} per issue queue entry for 8 total issue queue entries. ideally all of these are reached
+    - {no issue, entry 0, entry 1, ...} for ALU Reg-Reg and MDU
+- there are sum(i=0,8)2^i = 511 possible combinations of {invalid op, ALU Reg-Reg op, MDU op} per issue queue entry for 8 total issue queue entries. ideally all of these are reached
     - there can be 0-8 valid entries, which must be a run of valid's starting at IQ entry 0
-    - each valid entry can be ALU Reg-Reg or Mul-Div
+    - each valid entry can be ALU Reg-Reg or MDU

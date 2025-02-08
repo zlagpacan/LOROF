@@ -73,7 +73,7 @@ module alu_reg_mdu_iq_tb ();
 	logic DUT_PRF_alu_reg_req_B_valid, expected_PRF_alu_reg_req_B_valid;
 	logic [LOG_PR_COUNT-1:0] DUT_PRF_alu_reg_req_B_PR, expected_PRF_alu_reg_req_B_PR;
 
-    // op issue to Mul-Div pipeline
+    // op issue to MDU pipeline
 	logic DUT_issue_mdu_valid, expected_issue_mdu_valid;
 	logic [3:0] DUT_issue_mdu_op, expected_issue_mdu_op;
 	logic DUT_issue_mdu_A_forward, expected_issue_mdu_A_forward;
@@ -83,7 +83,7 @@ module alu_reg_mdu_iq_tb ();
 	logic [LOG_PR_COUNT-1:0] DUT_issue_mdu_dest_PR, expected_issue_mdu_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_issue_mdu_ROB_index, expected_issue_mdu_ROB_index;
 
-    // Mul-Div pipeline reg read req to PRF
+    // MDU pipeline reg read req to PRF
 	logic DUT_PRF_mdu_req_A_valid, expected_PRF_mdu_req_A_valid;
 	logic [LOG_PR_COUNT-1:0] DUT_PRF_mdu_req_A_PR, expected_PRF_mdu_req_A_PR;
 	logic DUT_PRF_mdu_req_B_valid, expected_PRF_mdu_req_B_valid;
@@ -140,7 +140,7 @@ module alu_reg_mdu_iq_tb ();
 		.PRF_alu_reg_req_B_valid(DUT_PRF_alu_reg_req_B_valid),
 		.PRF_alu_reg_req_B_PR(DUT_PRF_alu_reg_req_B_PR),
 
-	    // op issue to Mul-Div pipeline
+	    // op issue to MDU pipeline
 		.issue_mdu_valid(DUT_issue_mdu_valid),
 		.issue_mdu_op(DUT_issue_mdu_op),
 		.issue_mdu_A_forward(DUT_issue_mdu_A_forward),
@@ -150,7 +150,7 @@ module alu_reg_mdu_iq_tb ();
 		.issue_mdu_dest_PR(DUT_issue_mdu_dest_PR),
 		.issue_mdu_ROB_index(DUT_issue_mdu_ROB_index),
 
-	    // Mul-Div pipeline reg read req to PRF
+	    // MDU pipeline reg read req to PRF
 		.PRF_mdu_req_A_valid(DUT_PRF_mdu_req_A_valid),
 		.PRF_mdu_req_A_PR(DUT_PRF_mdu_req_A_PR),
 		.PRF_mdu_req_B_valid(DUT_PRF_mdu_req_B_valid),
@@ -386,8 +386,8 @@ module alu_reg_mdu_iq_tb ();
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
 	    // op issue to ALU Reg-Reg pipeline
 	    // ALU Reg-Reg pipeline reg read req to PRF
-	    // op issue to Mul-Div pipeline
-	    // Mul-Div pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -413,7 +413,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_A_PR = 7'h0;
 		expected_PRF_alu_reg_req_B_valid = 1'b0;
 		expected_PRF_alu_reg_req_B_PR = 7'h0;
-	    // op issue to Mul-Div pipeline
+	    // op issue to MDU pipeline
 		expected_issue_mdu_valid = 1'b0;
 		expected_issue_mdu_op = 4'h0;
 		expected_issue_mdu_A_forward = 1'b0;
@@ -422,7 +422,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_issue_mdu_B_bank = 2'h0;
 		expected_issue_mdu_dest_PR = 7'h0;
 		expected_issue_mdu_ROB_index = 7'h0;
-	    // Mul-Div pipeline reg read req to PRF
+	    // MDU pipeline reg read req to PRF
 		expected_PRF_mdu_req_A_valid = 1'b0;
 		expected_PRF_mdu_req_A_PR = 7'h0;
 		expected_PRF_mdu_req_B_valid = 1'b0;
@@ -456,8 +456,8 @@ module alu_reg_mdu_iq_tb ();
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
 	    // op issue to ALU Reg-Reg pipeline
 	    // ALU Reg-Reg pipeline reg read req to PRF
-	    // op issue to Mul-Div pipeline
-	    // Mul-Div pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -483,7 +483,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_A_PR = 7'h0;
 		expected_PRF_alu_reg_req_B_valid = 1'b0;
 		expected_PRF_alu_reg_req_B_PR = 7'h0;
-	    // op issue to Mul-Div pipeline
+	    // op issue to MDU pipeline
 		expected_issue_mdu_valid = 1'b0;
 		expected_issue_mdu_op = 4'h0;
 		expected_issue_mdu_A_forward = 1'b0;
@@ -492,7 +492,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_issue_mdu_B_bank = 2'h0;
 		expected_issue_mdu_dest_PR = 7'h0;
 		expected_issue_mdu_ROB_index = 7'h0;
-	    // Mul-Div pipeline reg read req to PRF
+	    // MDU pipeline reg read req to PRF
 		expected_PRF_mdu_req_A_valid = 1'b0;
 		expected_PRF_mdu_req_A_PR = 7'h0;
 		expected_PRF_mdu_req_B_valid = 1'b0;
@@ -527,7 +527,7 @@ module alu_reg_mdu_iq_tb ();
             "IQ1: i NOP", "\n\t\t",
             "IQ0: i NOP", "\n\t\t",
             "issue ALU Reg-Reg: i NOP", "\n\t\t",
-            "issue Mul-Div: i NOP", "\n\t\t",
+            "issue MDU: i NOP", "\n\t\t",
 			"activity: ", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -554,8 +554,8 @@ module alu_reg_mdu_iq_tb ();
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
 	    // op issue to ALU Reg-Reg pipeline
 	    // ALU Reg-Reg pipeline reg read req to PRF
-	    // op issue to Mul-Div pipeline
-	    // Mul-Div pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
 
 		@(negedge CLK);
 
@@ -581,7 +581,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_A_PR = 7'h0;
 		expected_PRF_alu_reg_req_B_valid = 1'b0;
 		expected_PRF_alu_reg_req_B_PR = 7'h0;
-	    // op issue to Mul-Div pipeline
+	    // op issue to MDU pipeline
 		expected_issue_mdu_valid = 1'b0;
 		expected_issue_mdu_op = 4'h0;
 		expected_issue_mdu_A_forward = 1'b0;
@@ -590,7 +590,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_issue_mdu_B_bank = 2'h0;
 		expected_issue_mdu_dest_PR = 7'h0;
 		expected_issue_mdu_ROB_index = 7'h0;
-	    // Mul-Div pipeline reg read req to PRF
+	    // MDU pipeline reg read req to PRF
 		expected_PRF_mdu_req_A_valid = 1'b0;
 		expected_PRF_mdu_req_A_PR = 7'h0;
 		expected_PRF_mdu_req_B_valid = 1'b0;
@@ -619,7 +619,7 @@ module alu_reg_mdu_iq_tb ();
             "IQ1: i NOP", "\n\t\t",
             "IQ0: i NOP", "\n\t\t",
             "issue ALU Reg-Reg: i NOP", "\n\t\t",
-            "issue Mul-Div: i NOP", "\n\t\t",
+            "issue MDU: i NOP", "\n\t\t",
 			"activity: ", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -646,8 +646,8 @@ module alu_reg_mdu_iq_tb ();
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
 	    // op issue to ALU Reg-Reg pipeline
 	    // ALU Reg-Reg pipeline reg read req to PRF
-	    // op issue to Mul-Div pipeline
-	    // Mul-Div pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
 
 		@(negedge CLK);
 
@@ -673,7 +673,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_A_PR = 7'h0;
 		expected_PRF_alu_reg_req_B_valid = 1'b0;
 		expected_PRF_alu_reg_req_B_PR = 7'h0;
-	    // op issue to Mul-Div pipeline
+	    // op issue to MDU pipeline
 		expected_issue_mdu_valid = 1'b0;
 		expected_issue_mdu_op = 4'h0;
 		expected_issue_mdu_A_forward = 1'b0;
@@ -682,7 +682,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_issue_mdu_B_bank = 2'h0;
 		expected_issue_mdu_dest_PR = 7'h0;
 		expected_issue_mdu_ROB_index = 7'h0;
-	    // Mul-Div pipeline reg read req to PRF
+	    // MDU pipeline reg read req to PRF
 		expected_PRF_mdu_req_A_valid = 1'b0;
 		expected_PRF_mdu_req_A_PR = 7'h0;
 		expected_PRF_mdu_req_B_valid = 1'b0;
@@ -711,7 +711,7 @@ module alu_reg_mdu_iq_tb ();
             "IQ1: v 1: MUL0 p3, p4:r, p5:r", "\n\t\t",
             "IQ0: v 0: ALU0 p0, p1:r, p2:f", "\n\t\t",
             "issue ALU Reg-Reg: v 3: ALU1 p9, pA:r, pB:r", "\n\t\t",
-            "issue Mul-Div: v 1: MUL0 p3, p4:r, p5:r", "\n\t\t",
+            "issue MDU: v 1: MUL0 p3, p4:r, p5:r", "\n\t\t",
 			"activity: ", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -738,8 +738,8 @@ module alu_reg_mdu_iq_tb ();
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
 	    // op issue to ALU Reg-Reg pipeline
 	    // ALU Reg-Reg pipeline reg read req to PRF
-	    // op issue to Mul-Div pipeline
-	    // Mul-Div pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
 
 		@(negedge CLK);
 
@@ -765,7 +765,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_A_PR = 7'hA;
 		expected_PRF_alu_reg_req_B_valid = 1'b1;
 		expected_PRF_alu_reg_req_B_PR = 7'hB;
-	    // op issue to Mul-Div pipeline
+	    // op issue to MDU pipeline
 		expected_issue_mdu_valid = 1'b1;
 		expected_issue_mdu_op = 4'h0;
 		expected_issue_mdu_A_forward = 1'b0;
@@ -774,7 +774,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_issue_mdu_B_bank = 2'h1;
 		expected_issue_mdu_dest_PR = 7'h3;
 		expected_issue_mdu_ROB_index = 7'h1;
-	    // Mul-Div pipeline reg read req to PRF
+	    // MDU pipeline reg read req to PRF
 		expected_PRF_mdu_req_A_valid = 1'b1;
 		expected_PRF_mdu_req_A_PR = 7'h4;
 		expected_PRF_mdu_req_B_valid = 1'b1;
@@ -803,8 +803,8 @@ module alu_reg_mdu_iq_tb ();
             "IQ1: v 2: MUL1 p6, p7:Fr, p8:r", "\n\t\t",
             "IQ0: v 0: ALU0 p0, p1:r, p2:f", "\n\t\t",
             "issue ALU Reg-Reg: v 6: ALU3 p12, p13:r, p14:r", "\n\t\t",
-            "issue Mul-Div: i NOP", "\n\t\t",
-			"activity: p7 WB, Mul-Div stall", "\n\t\t"
+            "issue MDU: i NOP", "\n\t\t",
+			"activity: p7 WB, MDU stall", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -830,8 +830,8 @@ module alu_reg_mdu_iq_tb ();
 		tb_WB_bus_upper_PR_by_bank = {5'h1, 5'h0, 5'h0, 5'h0};
 	    // op issue to ALU Reg-Reg pipeline
 	    // ALU Reg-Reg pipeline reg read req to PRF
-	    // op issue to Mul-Div pipeline
-	    // Mul-Div pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
 
 		@(negedge CLK);
 
@@ -857,7 +857,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_A_PR = 7'h13;
 		expected_PRF_alu_reg_req_B_valid = 1'b1;
 		expected_PRF_alu_reg_req_B_PR = 7'h14;
-	    // op issue to Mul-Div pipeline
+	    // op issue to MDU pipeline
 		expected_issue_mdu_valid = 1'b0;
 		expected_issue_mdu_op = 4'h0;
 		expected_issue_mdu_A_forward = 1'b0;
@@ -866,7 +866,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_issue_mdu_B_bank = 2'h0;
 		expected_issue_mdu_dest_PR = 7'h0;
 		expected_issue_mdu_ROB_index = 7'h0;
-	    // Mul-Div pipeline reg read req to PRF
+	    // MDU pipeline reg read req to PRF
 		expected_PRF_mdu_req_A_valid = 1'b0;
 		expected_PRF_mdu_req_A_PR = 7'h0;
 		expected_PRF_mdu_req_B_valid = 1'b0;
@@ -895,7 +895,7 @@ module alu_reg_mdu_iq_tb ();
             "IQ1: v 2: MUL1 p6, p7:r, p8:r", "\n\t\t",
             "IQ0: v 0: ALU0 p0, p1:r, p2:F", "\n\t\t",
             "issue ALU Reg-Reg: v 0: ALU0 p0, p1:r, p2:F", "\n\t\t",
-            "issue Mul-Div: v 2: MUL1 p6, p7:r, p8:r", "\n\t\t",
+            "issue MDU: v 2: MUL1 p6, p7:r, p8:r", "\n\t\t",
 			"activity: p2 WB", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -922,8 +922,8 @@ module alu_reg_mdu_iq_tb ();
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
 	    // op issue to ALU Reg-Reg pipeline
 	    // ALU Reg-Reg pipeline reg read req to PRF
-	    // op issue to Mul-Div pipeline
-	    // Mul-Div pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
 
 		@(negedge CLK);
 
@@ -949,7 +949,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_A_PR = 7'h1;
 		expected_PRF_alu_reg_req_B_valid = 1'b0;
 		expected_PRF_alu_reg_req_B_PR = 7'h2;
-	    // op issue to Mul-Div pipeline
+	    // op issue to MDU pipeline
 		expected_issue_mdu_valid = 1'b1;
 		expected_issue_mdu_op = 4'h1;
 		expected_issue_mdu_A_forward = 1'b0;
@@ -958,7 +958,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_issue_mdu_B_bank = 2'h0;
 		expected_issue_mdu_dest_PR = 7'h6;
 		expected_issue_mdu_ROB_index = 7'h2;
-	    // Mul-Div pipeline reg read req to PRF
+	    // MDU pipeline reg read req to PRF
 		expected_PRF_mdu_req_A_valid = 1'b1;
 		expected_PRF_mdu_req_A_PR = 7'h7;
 		expected_PRF_mdu_req_B_valid = 1'b1;
@@ -987,7 +987,7 @@ module alu_reg_mdu_iq_tb ();
             "IQ1: v 5: ALU2 pF, p10:f, p11:f", "\n\t\t",
             "IQ0: v 4: MUL2 pC, pD:r, pE:r", "\n\t\t",
             "issue ALU Reg-Reg: v A: ALU5 p1E, p1F:F, p20:r", "\n\t\t",
-            "issue Mul-Div: v 4: MUL2 pC, pD:r, pE:r", "\n\t\t",
+            "issue MDU: v 4: MUL2 pC, pD:r, pE:r", "\n\t\t",
 			"activity: p1F WB", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1014,8 +1014,8 @@ module alu_reg_mdu_iq_tb ();
 		tb_WB_bus_upper_PR_by_bank = {5'h7, 5'h0, 5'h0, 5'h0};
 	    // op issue to ALU Reg-Reg pipeline
 	    // ALU Reg-Reg pipeline reg read req to PRF
-	    // op issue to Mul-Div pipeline
-	    // Mul-Div pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
 
 		@(negedge CLK);
 
@@ -1041,7 +1041,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_A_PR = 7'h1F;
 		expected_PRF_alu_reg_req_B_valid = 1'b1;
 		expected_PRF_alu_reg_req_B_PR = 7'h20;
-	    // op issue to Mul-Div pipeline
+	    // op issue to MDU pipeline
 		expected_issue_mdu_valid = 1'b1;
 		expected_issue_mdu_op = 4'h2;
 		expected_issue_mdu_A_forward = 1'b0;
@@ -1050,7 +1050,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_issue_mdu_B_bank = 2'h2;
 		expected_issue_mdu_dest_PR = 7'hC;
 		expected_issue_mdu_ROB_index = 7'h4;
-	    // Mul-Div pipeline reg read req to PRF
+	    // MDU pipeline reg read req to PRF
 		expected_PRF_mdu_req_A_valid = 1'b1;
 		expected_PRF_mdu_req_A_PR = 7'hD;
 		expected_PRF_mdu_req_B_valid = 1'b1;
@@ -1079,7 +1079,7 @@ module alu_reg_mdu_iq_tb ();
             "IQ1: v 7: ALU4 p15, p16:r, p17:f", "\n\t\t",
             "IQ0: v 5: ALU2 pF, p10:f, p11:f", "\n\t\t",
             "issue ALU Reg-Reg: ", "\n\t\t",
-            "issue Mul-Div: v C: MUL5 p24, p25:r, p26:F", "\n\t\t",
+            "issue MDU: v C: MUL5 p24, p25:r, p26:F", "\n\t\t",
 			"activity: p1D, p26 WB", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1106,8 +1106,8 @@ module alu_reg_mdu_iq_tb ();
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h9, 5'h7, 5'h0};
 	    // op issue to ALU Reg-Reg pipeline
 	    // ALU Reg-Reg pipeline reg read req to PRF
-	    // op issue to Mul-Div pipeline
-	    // Mul-Div pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
 
 		@(negedge CLK);
 
@@ -1133,7 +1133,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_A_PR = 7'h0;
 		expected_PRF_alu_reg_req_B_valid = 1'b0;
 		expected_PRF_alu_reg_req_B_PR = 7'h0;
-	    // op issue to Mul-Div pipeline
+	    // op issue to MDU pipeline
 		expected_issue_mdu_valid = 1'b1;
 		expected_issue_mdu_op = 4'h5;
 		expected_issue_mdu_A_forward = 1'b0;
@@ -1142,7 +1142,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_issue_mdu_B_bank = 2'h2;
 		expected_issue_mdu_dest_PR = 7'h24;
 		expected_issue_mdu_ROB_index = 7'hC;
-	    // Mul-Div pipeline reg read req to PRF
+	    // MDU pipeline reg read req to PRF
 		expected_PRF_mdu_req_A_valid = 1'b1;
 		expected_PRF_mdu_req_A_PR = 7'h25;
 		expected_PRF_mdu_req_B_valid = 1'b0;
@@ -1171,7 +1171,7 @@ module alu_reg_mdu_iq_tb ();
             "IQ1: v 7: ALU4 p15, p16:r, p17:f", "\n\t\t",
             "IQ0: v 5: ALU2 pF, p10:f, p11:f", "\n\t\t",
             "issue ALU Reg-Reg: i NOP", "\n\t\t",
-            "issue Mul-Div: v 8: MUL3 p18, p19:F, p1A:r", "\n\t\t",
+            "issue MDU: v 8: MUL3 p18, p19:F, p1A:r", "\n\t\t",
 			"activity: p19, p1C WB, ALU pipeline stall", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1198,8 +1198,8 @@ module alu_reg_mdu_iq_tb ();
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h6, 5'h7};
 	    // op issue to ALU Reg-Reg pipeline
 	    // ALU Reg-Reg pipeline reg read req to PRF
-	    // op issue to Mul-Div pipeline
-	    // Mul-Div pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
 
 		@(negedge CLK);
 
@@ -1225,7 +1225,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_A_PR = 7'h0;
 		expected_PRF_alu_reg_req_B_valid = 1'b0;
 		expected_PRF_alu_reg_req_B_PR = 7'h0;
-	    // op issue to Mul-Div pipeline
+	    // op issue to MDU pipeline
 		expected_issue_mdu_valid = 1'b1;
 		expected_issue_mdu_op = 4'h3;
 		expected_issue_mdu_A_forward = 1'b1;
@@ -1234,7 +1234,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_issue_mdu_B_bank = 2'h2;
 		expected_issue_mdu_dest_PR = 7'h18;
 		expected_issue_mdu_ROB_index = 7'h8;
-	    // Mul-Div pipeline reg read req to PRF
+	    // MDU pipeline reg read req to PRF
 		expected_PRF_mdu_req_A_valid = 1'b0;
 		expected_PRF_mdu_req_A_PR = 7'h19;
 		expected_PRF_mdu_req_B_valid = 1'b1;
@@ -1263,8 +1263,8 @@ module alu_reg_mdu_iq_tb ();
             "IQ1: v 7: ALU4 p15, p16:r, p17:f", "\n\t\t",
             "IQ0: v 5: ALU2 pF, p10:f, p11:f", "\n\t\t",
             "issue ALU Reg-Reg: i NOP", "\n\t\t",
-            "issue Mul-Div: i NOP", "\n\t\t",
-			"activity: ALU pipeline stall, Mul-Div pipeline stall", "\n\t\t"
+            "issue MDU: i NOP", "\n\t\t",
+			"activity: ALU pipeline stall, MDU pipeline stall", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -1290,8 +1290,8 @@ module alu_reg_mdu_iq_tb ();
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
 	    // op issue to ALU Reg-Reg pipeline
 	    // ALU Reg-Reg pipeline reg read req to PRF
-	    // op issue to Mul-Div pipeline
-	    // Mul-Div pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
 
 		@(negedge CLK);
 
@@ -1317,7 +1317,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_A_PR = 7'h0;
 		expected_PRF_alu_reg_req_B_valid = 1'b0;
 		expected_PRF_alu_reg_req_B_PR = 7'h0;
-	    // op issue to Mul-Div pipeline
+	    // op issue to MDU pipeline
 		expected_issue_mdu_valid = 1'b0;
 		expected_issue_mdu_op = 4'h0;
 		expected_issue_mdu_A_forward = 1'b0;
@@ -1326,7 +1326,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_issue_mdu_B_bank = 2'h0;
 		expected_issue_mdu_dest_PR = 7'h0;
 		expected_issue_mdu_ROB_index = 7'h0;
-	    // Mul-Div pipeline reg read req to PRF
+	    // MDU pipeline reg read req to PRF
 		expected_PRF_mdu_req_A_valid = 1'b0;
 		expected_PRF_mdu_req_A_PR = 7'h0;
 		expected_PRF_mdu_req_B_valid = 1'b0;
@@ -1355,7 +1355,7 @@ module alu_reg_mdu_iq_tb ();
             "IQ1: v 7: ALU4 p15, p16:r, p17:f", "\n\t\t",
             "IQ0: v 5: ALU2 pF, p10:f, p11:f", "\n\t\t",
             "issue ALU Reg-Reg: v 11: ALU9 p33, p34:r, p35:r", "\n\t\t",
-            "issue Mul-Div: v 9: MUL4 p1B, p1C:r, p1D:r", "\n\t\t",
+            "issue MDU: v 9: MUL4 p1B, p1C:r, p1D:r", "\n\t\t",
 			"activity: ", "\n\t\t"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1382,8 +1382,8 @@ module alu_reg_mdu_iq_tb ();
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
 	    // op issue to ALU Reg-Reg pipeline
 	    // ALU Reg-Reg pipeline reg read req to PRF
-	    // op issue to Mul-Div pipeline
-	    // Mul-Div pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
 
 		@(negedge CLK);
 
@@ -1409,7 +1409,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_A_PR = 7'h34;
 		expected_PRF_alu_reg_req_B_valid = 1'b1;
 		expected_PRF_alu_reg_req_B_PR = 7'h35;
-	    // op issue to Mul-Div pipeline
+	    // op issue to MDU pipeline
 		expected_issue_mdu_valid = 1'b1;
 		expected_issue_mdu_op = 4'h4;
 		expected_issue_mdu_A_forward = 1'b0;
@@ -1418,7 +1418,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_issue_mdu_B_bank = 2'h1;
 		expected_issue_mdu_dest_PR = 7'h1B;
 		expected_issue_mdu_ROB_index = 7'h9;
-	    // Mul-Div pipeline reg read req to PRF
+	    // MDU pipeline reg read req to PRF
 		expected_PRF_mdu_req_A_valid = 1'b1;
 		expected_PRF_mdu_req_A_PR = 7'h1C;
 		expected_PRF_mdu_req_B_valid = 1'b1;

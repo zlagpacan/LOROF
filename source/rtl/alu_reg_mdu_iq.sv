@@ -54,7 +54,7 @@ module alu_reg_mdu_iq #(
     output logic                        PRF_alu_reg_req_B_valid,
     output logic [LOG_PR_COUNT-1:0]     PRF_alu_reg_req_B_PR,
 
-    // op issue to Mul-Div Pipeline
+    // op issue to MDU Pipeline
     output logic                            issue_mdu_valid,
     output logic [3:0]                      issue_mdu_op,
     output logic                            issue_mdu_A_forward,
@@ -64,7 +64,7 @@ module alu_reg_mdu_iq #(
     output logic [LOG_PR_COUNT-1:0]         issue_mdu_dest_PR,
     output logic [LOG_ROB_ENTRIES-1:0]      issue_mdu_ROB_index,
 
-    // Mul-Div Pipeline reg read req to PRF
+    // MDU Pipeline reg read req to PRF
     output logic                        PRF_mdu_req_A_valid,
     output logic [LOG_PR_COUNT-1:0]     PRF_mdu_req_A_PR,
     output logic                        PRF_mdu_req_B_valid,

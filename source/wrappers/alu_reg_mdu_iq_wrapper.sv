@@ -55,7 +55,7 @@ module alu_reg_mdu_iq_wrapper (
 	output logic last_PRF_alu_reg_req_B_valid,
 	output logic [LOG_PR_COUNT-1:0] last_PRF_alu_reg_req_B_PR,
 
-    // op issue to Mul-Div Pipeline
+    // op issue to MDU Pipeline
 	output logic last_issue_mdu_valid,
 	output logic [3:0] last_issue_mdu_op,
 	output logic last_issue_mdu_A_forward,
@@ -65,7 +65,7 @@ module alu_reg_mdu_iq_wrapper (
 	output logic [LOG_PR_COUNT-1:0] last_issue_mdu_dest_PR,
 	output logic [LOG_ROB_ENTRIES-1:0] last_issue_mdu_ROB_index,
 
-    // Mul-Div Pipeline reg read req to PRF
+    // MDU Pipeline reg read req to PRF
 	output logic last_PRF_mdu_req_A_valid,
 	output logic [LOG_PR_COUNT-1:0] last_PRF_mdu_req_A_PR,
 	output logic last_PRF_mdu_req_B_valid,
@@ -114,7 +114,7 @@ module alu_reg_mdu_iq_wrapper (
 	logic PRF_alu_reg_req_B_valid;
 	logic [LOG_PR_COUNT-1:0] PRF_alu_reg_req_B_PR;
 
-    // op issue to Mul-Div Pipeline
+    // op issue to MDU Pipeline
 	logic issue_mdu_valid;
 	logic [3:0] issue_mdu_op;
 	logic issue_mdu_A_forward;
@@ -124,7 +124,7 @@ module alu_reg_mdu_iq_wrapper (
 	logic [LOG_PR_COUNT-1:0] issue_mdu_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] issue_mdu_ROB_index;
 
-    // Mul-Div Pipeline reg read req to PRF
+    // MDU Pipeline reg read req to PRF
 	logic PRF_mdu_req_A_valid;
 	logic [LOG_PR_COUNT-1:0] PRF_mdu_req_A_PR;
 	logic PRF_mdu_req_B_valid;
@@ -180,7 +180,7 @@ module alu_reg_mdu_iq_wrapper (
 			last_PRF_alu_reg_req_B_valid <= '0;
 			last_PRF_alu_reg_req_B_PR <= '0;
 
-		    // op issue to Mul-Div Pipeline
+		    // op issue to MDU Pipeline
 			last_issue_mdu_valid <= '0;
 			last_issue_mdu_op <= '0;
 			last_issue_mdu_A_forward <= '0;
@@ -190,7 +190,7 @@ module alu_reg_mdu_iq_wrapper (
 			last_issue_mdu_dest_PR <= '0;
 			last_issue_mdu_ROB_index <= '0;
 
-		    // Mul-Div Pipeline reg read req to PRF
+		    // MDU Pipeline reg read req to PRF
 			last_PRF_mdu_req_A_valid <= '0;
 			last_PRF_mdu_req_A_PR <= '0;
 			last_PRF_mdu_req_B_valid <= '0;
@@ -237,7 +237,7 @@ module alu_reg_mdu_iq_wrapper (
 			last_PRF_alu_reg_req_B_valid <= PRF_alu_reg_req_B_valid;
 			last_PRF_alu_reg_req_B_PR <= PRF_alu_reg_req_B_PR;
 
-		    // op issue to Mul-Div Pipeline
+		    // op issue to MDU Pipeline
 			last_issue_mdu_valid <= issue_mdu_valid;
 			last_issue_mdu_op <= issue_mdu_op;
 			last_issue_mdu_A_forward <= issue_mdu_A_forward;
@@ -247,7 +247,7 @@ module alu_reg_mdu_iq_wrapper (
 			last_issue_mdu_dest_PR <= issue_mdu_dest_PR;
 			last_issue_mdu_ROB_index <= issue_mdu_ROB_index;
 
-		    // Mul-Div Pipeline reg read req to PRF
+		    // MDU Pipeline reg read req to PRF
 			last_PRF_mdu_req_A_valid <= PRF_mdu_req_A_valid;
 			last_PRF_mdu_req_A_PR <= PRF_mdu_req_A_PR;
 			last_PRF_mdu_req_B_valid <= PRF_mdu_req_B_valid;
