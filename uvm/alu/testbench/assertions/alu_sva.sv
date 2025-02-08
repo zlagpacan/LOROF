@@ -22,6 +22,22 @@ module alu_sva (
     input logic [31:0] B,
     input logic [31:0] out
 );
+    // --- Coverage --- //
+    covergroup operand_cg (ref logic [31:0] operand);
+      option.per_instance = 1;
+      type_option.merge_instances = 0;
+      option.get_inst_coverage = 1;
+      coverpoint operand;
+    endgroup
+
+    operand_cg cg_A = new(A);
+    operand_cg cg_B = new(B);
+
+    always begin
+        @(posedge CLK);
+        cg_A.sample();
+        cg_B.sample();
+    end
 
     // --- ALU Operation 0: Add --- //
     property sva_alu_add;
