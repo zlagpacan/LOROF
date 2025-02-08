@@ -6,7 +6,7 @@ Coverage Report by instance with details
 =================================================================================
 
 Directive Coverage:
-    Directives                       2         2         0   100.00%
+    Directives                       3         3         0   100.00%
 
 DIRECTIVE COVERAGE:
 --------------------------------------------------------------------------------------------
@@ -17,6 +17,8 @@ Name                                     Design Design   Lang File(Line)      Hi
                                                                                  4 Covered   
 /top/SVA/c_ALURP_1                       alu_reg_pipeline_sva Verilog  SVA  testbench/assertions/alu_reg_pipeline_sva.sv(63)
                                                                                 24 Covered   
+/top/SVA/c_ALURP_2A                      alu_reg_pipeline_sva Verilog  SVA  testbench/assertions/alu_reg_pipeline_sva.sv(74)
+                                                                                20 Covered   
 
 
 DIRECTIVE COVERAGE:
@@ -28,8 +30,10 @@ Name                                     Design Design   Lang File(Line)      Hi
                                                                                  4 Covered   
 /top/SVA/c_ALURP_1                       alu_reg_pipeline_sva Verilog  SVA  testbench/assertions/alu_reg_pipeline_sva.sv(63)
                                                                                 24 Covered   
+/top/SVA/c_ALURP_2A                      alu_reg_pipeline_sva Verilog  SVA  testbench/assertions/alu_reg_pipeline_sva.sv(74)
+                                                                                20 Covered   
 
-TOTAL DIRECTIVE COVERAGE: 100.00%  COVERS: 2
+TOTAL DIRECTIVE COVERAGE: 100.00%  COVERS: 3
 
 Total Coverage By Instance (filtered view): 100.00%
 

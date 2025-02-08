@@ -62,7 +62,20 @@ module alu_reg_pipeline_sva (
   endproperty
   c_ALURP_1: cover property (WB_STALL_EVENT);
 
+  // --- Test Case ALURP_2A Coverage --- //
+  sequence ISS_stall;
+    @(posedge CLK) ~issue_valid;
+  endsequence
+
+  property ISS_STALL_EVENT;
+    @(posedge CLK) disable iff (~nRST)
+    (ISS_stall);
+  endproperty
+  c_ALURP_2A: cover property (ISS_STALL_EVENT);
+
   // --- SVA Properties --- //
+
+  // --- Test Case ALURP_1 Properties --- //
   property sva_WB_valid_stall;
     @(posedge CLK) disable iff (~nRST)
     (WB_stall) |=> (WB_valid === $past(WB_valid));
@@ -82,8 +95,21 @@ module alu_reg_pipeline_sva (
     @(posedge CLK) disable iff (~nRST)
     (WB_stall) |=> (WB_ROB_index === $past(WB_ROB_index));
   endproperty
+
+  // --- Test Case ALURP_2A Properties --- //
+  property ISS_WB_PR_stall;
+    @(posedge CLK) disable iff (~nRST)
+    (ISS_stall) |-> ##[2:4] (WB_PR != 7'h1);
+  endproperty
+
+  property ISS_WB_ROB_stall;
+    @(posedge CLK) disable iff (~nRST)
+    (ISS_stall) |-> ##[2:4] (WB_ROB_index != 7'h1);
+  endproperty
   
   // --- SVA Instances --- //
+
+  // --- Test Case ALURP_1 Instances --- //
   a_ALURP_1_WB_VALID: assert property (sva_WB_valid_stall) begin
     `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_VALID : PASSED"), UVM_LOW)
   end else begin
@@ -106,6 +132,19 @@ module alu_reg_pipeline_sva (
     `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_ROB : PASSED"), UVM_LOW)
   end else begin
     `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_ROB : FAILED"), UVM_LOW)
+  end
+
+  // --- Test Case ALURP_2A Instances --- //
+  a_ALURP_2A_WB_PR: assert property (ISS_WB_PR_stall) begin
+    `uvm_info("sva", $sformatf("Test Case: ALURP_2A_ISS_WB_PR_stall : PASSED"), UVM_LOW)
+  end else begin
+    `uvm_info("sva", $sformatf("Test Case: ALURP_2A_ISS_WB_PR_stall : FAILED"), UVM_LOW)
+  end
+
+  a_ALURP_2A_WB_ROB_index: assert property (ISS_WB_ROB_stall) begin
+    `uvm_info("sva", $sformatf("Test Case: ALURP_2A_ISS_WB_ROB_index_stall : PASSED"), UVM_LOW)
+  end else begin
+    `uvm_info("sva", $sformatf("Test Case: ALURP_2A_ISS_WB_ROB_index_stall : FAILED"), UVM_LOW)
   end
 
 endmodule
