@@ -41,26 +41,26 @@ module alu_reg_pipeline_sva (
     input logic [LOG_ROB_ENTRIES-1:0]           WB_ROB_index
 );
 
-  // --- Test Case ALURP_0 Coverage --- //
+   // --- Test Case ALURP_0 Coverage --- //
   sequence DUT_reset;
-    ~nRST;
+    @(posedge CLK) ~nRST;
   endsequence
-  event DUT_reset_event;
-  DUT_reset -> DUT_reset_event;
   
+  property DUT_RESET_EVENT;
+    @(posedge CLK) (DUT_reset);
+  endproperty
+  c_ALURP_0: cover property (DUT_RESET_EVENT);
+
   // --- Test Case ALURP_1 Coverage --- //
   sequence WB_stall;
-    ~WB_ready;
+    @(posedge CLK) ~WB_ready;
   endsequence
-  event WB_stall_event;
-  WB_stall -> WB_stall_event;
 
-  // --- Reset Event Tracker --- // FIXME: will be antiquainted soon
-  property RESET_EVENT_TRACKER;
-    @(posedge CLK)
-    (DUT_reset) |=> (WB_data === '0);
+  property WB_STALL_EVENT;
+    @(posedge CLK) disable iff (~nRST)
+    (WB_stall);
   endproperty
-  c_ALURP0: cover property (RESET_EVENT_TRACKER);
+  c_ALURP_1: cover property (WB_STALL_EVENT);
 
   // --- SVA Properties --- //
   property sva_WB_valid_stall;
@@ -89,28 +89,24 @@ module alu_reg_pipeline_sva (
   end else begin
     `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_VALID : FAILED"), UVM_LOW)
   end
-  c_ALURP_1_WB_VALID: cover property (sva_WB_valid_stall);
 
   a_ALURP_1_WB_DATA: assert property (sva_WB_data_stall) begin
     `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_DATA : PASSED"), UVM_LOW)
   end else begin
     `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_DATA : FAILED"), UVM_LOW)
   end
-  c_ALURP_1_WB_DATA: cover property (sva_WB_data_stall);
 
   a_ALURP_1_WB_PR: assert property (sva_WB_PR_stall) begin
     `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_PR : PASSED"), UVM_LOW)
   end else begin
     `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_PR : FAILED"), UVM_LOW)
   end
-  c_ALURP_1_WB_PR: cover property (sva_WB_PR_stall);
 
   a_ALURP_1_WB_ROB: assert property (sva_WB_ROB_index_stall) begin
     `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_ROB : PASSED"), UVM_LOW)
   end else begin
     `uvm_info("sva", $sformatf("Test Case: ALURP_1_WB_ROB : FAILED"), UVM_LOW)
   end
-  c_ALURP_1_WB_ROB: cover property (sva_WB_ROB_index_stall);
 
 endmodule
 

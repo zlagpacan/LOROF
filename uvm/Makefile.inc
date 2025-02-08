@@ -87,6 +87,7 @@ clean:
 	$(CLEAN_CMD) compile.log
 	$(CLEAN_CMD) tr_db.log
 	$(CLEAN_CMD) vsim.wlf
+	$(CLEAN_CMD) coverage.rpt
 
 # Compile testbench/rtl
 .PHONY: build
