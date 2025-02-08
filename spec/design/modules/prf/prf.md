@@ -1,5 +1,6 @@
 # prf
 - Physical Register File
+- example operation: [prf_example.md](prf_example.md)
 - 128x 32-bit physical registers
     - physical registers themselves are implemented as Distributed RAM
 - 4x banks
@@ -221,6 +222,8 @@ output interface
     - output logic [3:0]
         - design uses: output logic [PRF_BANK_COUNT-1:0]
     - bit vector indicating whether there is a writeback this cycle for each bank
+    - this is the exact cycle when the register array write occurs
+        - the value will be readable from the register array on the next cycle
     - a writeback this cycle for a given bank also implies that on the next cycle, the data on forward_data_bus_by_bank will correspond to this cycle's writeback
     - issue queues can use this signal to check if an operand is ready and that forward data will be available next cycle
     - see [Write Arbitration](#write-arbitration) for more info
@@ -311,8 +314,10 @@ The read arbitration mechanism solves the problem of only 2 independent read por
 - 2x read requests completed per cycle
 - 5 cycles + 1 latched cycle
 
-#### Arbitration Example
-- I'm too lazy to do this rn as it is pretty involved. lmk if you need this.
+
+# Example Read Operation
+
+see [prf_example.md](prf_example.md)
 
 
 # Write Arbitration
@@ -343,9 +348,6 @@ The write arbitration mechanism solves the problem of only 1 write port per bank
 - 1x write request completed per cycle
 - 6 cycles + 1 latched cycle
 
-#### Arbitration Example
-- I'm too lazy to do this rn as it is pretty involved. lmk if you need this.
-
 
 # Write to Read Forwarding
 
@@ -354,6 +356,8 @@ The write arbitration mechanism solves the problem of only 1 write port per bank
 This internal forwarding I'm referring to which the PRF does not have is separate from the forwarding that occurs externally in the core. This forwarding is when WB_bus_valid_by_bank broadcasts a write to the issue queues, and the issue queue launches an instruction to a functional unit pipeline which can read the data on forward_data_bus_by_bank on the following cycle. This forwarding is externally managed by the issue queues and functional unit pipelines, and is enabled by the PRF offering the [writeback bus by bank](#writeback-bus-by-bank) and [forward data by bank](#forward-data-by-bank) interfaces.
 
 On the cycle that WB_bus_valid_by_bank is eventually high for the PR of interest, the internal PRF memory bank of interest will have been updated with the value written by the next posedge. There is technically at least a 1-cycle delay in receiving a reg read request and performing the memory array read, so the earliest a read attempt can try to read this register is on the same cycle WB_bus_valid_by_bank is high. 
+
+The PR values for every PR are reset to 32'h0. This is the expected value to read until the first time the [writeback bus by bank](#writeback-bus-by-bank) interface. After this point, the expected value to read from a PR follows the last value written to the PR as indicated by the [writeback bus by bank](#writeback-bus-by-bank) interface.
 
 As far as verification is concerned, read requests and write requests should follow these rules:
 - active <ins>read</ins> request definition:
@@ -367,10 +371,16 @@ As far as verification is concerned, read requests and write requests should fol
 - active <ins>read</ins> requests to the same PR <ins>**CAN**</ins> overlap
 
 
+# Example Write Operation
+
+see [prf_example.md](prf_example.md)
+
+
 # Assertions
 - no output nor internal signal x's after reset
-- read request ack before upper bound response time
-- write request ready before upper bound response time
+- read response ack before upper bound response time after read request for all read requests
+- write request ready only low for the upper bound response time x cycles
+- read value for given PR follows reset value of 32'h0 OR 
 
 
 # Test Ideas and Coverpoints
