@@ -36,7 +36,7 @@ module alu_reg_mdu_iq_tb ();
     // op dispatch by way
 	logic [3:0] tb_dispatch_attempt_by_way;
 	logic [3:0] tb_dispatch_valid_alu_reg_by_way;
-	logic [3:0] tb_dispatch_valid_mul_div_by_way;
+	logic [3:0] tb_dispatch_valid_mdu_by_way;
 	logic [3:0][3:0] tb_dispatch_op_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_A_PR_by_way;
 	logic [3:0] tb_dispatch_A_ready_by_way;
@@ -51,7 +51,7 @@ module alu_reg_mdu_iq_tb ();
 
     // pipeline feedback
 	logic tb_alu_reg_pipeline_ready;
-	logic tb_mul_div_pipeline_ready;
+	logic tb_mdu_pipeline_ready;
 
     // writeback bus by bank
 	logic [PRF_BANK_COUNT-1:0] tb_WB_bus_valid_by_bank;
@@ -74,20 +74,20 @@ module alu_reg_mdu_iq_tb ();
 	logic [LOG_PR_COUNT-1:0] DUT_PRF_alu_reg_req_B_PR, expected_PRF_alu_reg_req_B_PR;
 
     // op issue to Mul-Div pipeline
-	logic DUT_issue_mul_div_valid, expected_issue_mul_div_valid;
-	logic [3:0] DUT_issue_mul_div_op, expected_issue_mul_div_op;
-	logic DUT_issue_mul_div_A_forward, expected_issue_mul_div_A_forward;
-	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_mul_div_A_bank, expected_issue_mul_div_A_bank;
-	logic DUT_issue_mul_div_B_forward, expected_issue_mul_div_B_forward;
-	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_mul_div_B_bank, expected_issue_mul_div_B_bank;
-	logic [LOG_PR_COUNT-1:0] DUT_issue_mul_div_dest_PR, expected_issue_mul_div_dest_PR;
-	logic [LOG_ROB_ENTRIES-1:0] DUT_issue_mul_div_ROB_index, expected_issue_mul_div_ROB_index;
+	logic DUT_issue_mdu_valid, expected_issue_mdu_valid;
+	logic [3:0] DUT_issue_mdu_op, expected_issue_mdu_op;
+	logic DUT_issue_mdu_A_forward, expected_issue_mdu_A_forward;
+	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_mdu_A_bank, expected_issue_mdu_A_bank;
+	logic DUT_issue_mdu_B_forward, expected_issue_mdu_B_forward;
+	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_mdu_B_bank, expected_issue_mdu_B_bank;
+	logic [LOG_PR_COUNT-1:0] DUT_issue_mdu_dest_PR, expected_issue_mdu_dest_PR;
+	logic [LOG_ROB_ENTRIES-1:0] DUT_issue_mdu_ROB_index, expected_issue_mdu_ROB_index;
 
     // Mul-Div pipeline reg read req to PRF
-	logic DUT_PRF_mul_div_req_A_valid, expected_PRF_mul_div_req_A_valid;
-	logic [LOG_PR_COUNT-1:0] DUT_PRF_mul_div_req_A_PR, expected_PRF_mul_div_req_A_PR;
-	logic DUT_PRF_mul_div_req_B_valid, expected_PRF_mul_div_req_B_valid;
-	logic [LOG_PR_COUNT-1:0] DUT_PRF_mul_div_req_B_PR, expected_PRF_mul_div_req_B_PR;
+	logic DUT_PRF_mdu_req_A_valid, expected_PRF_mdu_req_A_valid;
+	logic [LOG_PR_COUNT-1:0] DUT_PRF_mdu_req_A_PR, expected_PRF_mdu_req_A_PR;
+	logic DUT_PRF_mdu_req_B_valid, expected_PRF_mdu_req_B_valid;
+	logic [LOG_PR_COUNT-1:0] DUT_PRF_mdu_req_B_PR, expected_PRF_mdu_req_B_PR;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -103,7 +103,7 @@ module alu_reg_mdu_iq_tb ();
 	    // op dispatch by way
 		.dispatch_attempt_by_way(tb_dispatch_attempt_by_way),
 		.dispatch_valid_alu_reg_by_way(tb_dispatch_valid_alu_reg_by_way),
-		.dispatch_valid_mul_div_by_way(tb_dispatch_valid_mul_div_by_way),
+		.dispatch_valid_mdu_by_way(tb_dispatch_valid_mdu_by_way),
 		.dispatch_op_by_way(tb_dispatch_op_by_way),
 		.dispatch_A_PR_by_way(tb_dispatch_A_PR_by_way),
 		.dispatch_A_ready_by_way(tb_dispatch_A_ready_by_way),
@@ -118,7 +118,7 @@ module alu_reg_mdu_iq_tb ();
 
 	    // pipeline feedback
 		.alu_reg_pipeline_ready(tb_alu_reg_pipeline_ready),
-		.mul_div_pipeline_ready(tb_mul_div_pipeline_ready),
+		.mdu_pipeline_ready(tb_mdu_pipeline_ready),
 
 	    // writeback bus by bank
 		.WB_bus_valid_by_bank(tb_WB_bus_valid_by_bank),
@@ -141,20 +141,20 @@ module alu_reg_mdu_iq_tb ();
 		.PRF_alu_reg_req_B_PR(DUT_PRF_alu_reg_req_B_PR),
 
 	    // op issue to Mul-Div pipeline
-		.issue_mul_div_valid(DUT_issue_mul_div_valid),
-		.issue_mul_div_op(DUT_issue_mul_div_op),
-		.issue_mul_div_A_forward(DUT_issue_mul_div_A_forward),
-		.issue_mul_div_A_bank(DUT_issue_mul_div_A_bank),
-		.issue_mul_div_B_forward(DUT_issue_mul_div_B_forward),
-		.issue_mul_div_B_bank(DUT_issue_mul_div_B_bank),
-		.issue_mul_div_dest_PR(DUT_issue_mul_div_dest_PR),
-		.issue_mul_div_ROB_index(DUT_issue_mul_div_ROB_index),
+		.issue_mdu_valid(DUT_issue_mdu_valid),
+		.issue_mdu_op(DUT_issue_mdu_op),
+		.issue_mdu_A_forward(DUT_issue_mdu_A_forward),
+		.issue_mdu_A_bank(DUT_issue_mdu_A_bank),
+		.issue_mdu_B_forward(DUT_issue_mdu_B_forward),
+		.issue_mdu_B_bank(DUT_issue_mdu_B_bank),
+		.issue_mdu_dest_PR(DUT_issue_mdu_dest_PR),
+		.issue_mdu_ROB_index(DUT_issue_mdu_ROB_index),
 
 	    // Mul-Div pipeline reg read req to PRF
-		.PRF_mul_div_req_A_valid(DUT_PRF_mul_div_req_A_valid),
-		.PRF_mul_div_req_A_PR(DUT_PRF_mul_div_req_A_PR),
-		.PRF_mul_div_req_B_valid(DUT_PRF_mul_div_req_B_valid),
-		.PRF_mul_div_req_B_PR(DUT_PRF_mul_div_req_B_PR)
+		.PRF_mdu_req_A_valid(DUT_PRF_mdu_req_A_valid),
+		.PRF_mdu_req_A_PR(DUT_PRF_mdu_req_A_PR),
+		.PRF_mdu_req_B_valid(DUT_PRF_mdu_req_B_valid),
+		.PRF_mdu_req_B_PR(DUT_PRF_mdu_req_B_PR)
 	);
 
     // ----------------------------------------------------------------
@@ -260,86 +260,86 @@ module alu_reg_mdu_iq_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_mul_div_valid !== DUT_issue_mul_div_valid) begin
-			$display("TB ERROR: expected_issue_mul_div_valid (%h) != DUT_issue_mul_div_valid (%h)",
-				expected_issue_mul_div_valid, DUT_issue_mul_div_valid);
+		if (expected_issue_mdu_valid !== DUT_issue_mdu_valid) begin
+			$display("TB ERROR: expected_issue_mdu_valid (%h) != DUT_issue_mdu_valid (%h)",
+				expected_issue_mdu_valid, DUT_issue_mdu_valid);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_mul_div_op !== DUT_issue_mul_div_op) begin
-			$display("TB ERROR: expected_issue_mul_div_op (%h) != DUT_issue_mul_div_op (%h)",
-				expected_issue_mul_div_op, DUT_issue_mul_div_op);
+		if (expected_issue_mdu_op !== DUT_issue_mdu_op) begin
+			$display("TB ERROR: expected_issue_mdu_op (%h) != DUT_issue_mdu_op (%h)",
+				expected_issue_mdu_op, DUT_issue_mdu_op);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_mul_div_A_forward !== DUT_issue_mul_div_A_forward) begin
-			$display("TB ERROR: expected_issue_mul_div_A_forward (%h) != DUT_issue_mul_div_A_forward (%h)",
-				expected_issue_mul_div_A_forward, DUT_issue_mul_div_A_forward);
+		if (expected_issue_mdu_A_forward !== DUT_issue_mdu_A_forward) begin
+			$display("TB ERROR: expected_issue_mdu_A_forward (%h) != DUT_issue_mdu_A_forward (%h)",
+				expected_issue_mdu_A_forward, DUT_issue_mdu_A_forward);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_mul_div_A_bank !== DUT_issue_mul_div_A_bank) begin
-			$display("TB ERROR: expected_issue_mul_div_A_bank (%h) != DUT_issue_mul_div_A_bank (%h)",
-				expected_issue_mul_div_A_bank, DUT_issue_mul_div_A_bank);
+		if (expected_issue_mdu_A_bank !== DUT_issue_mdu_A_bank) begin
+			$display("TB ERROR: expected_issue_mdu_A_bank (%h) != DUT_issue_mdu_A_bank (%h)",
+				expected_issue_mdu_A_bank, DUT_issue_mdu_A_bank);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_mul_div_B_forward !== DUT_issue_mul_div_B_forward) begin
-			$display("TB ERROR: expected_issue_mul_div_B_forward (%h) != DUT_issue_mul_div_B_forward (%h)",
-				expected_issue_mul_div_B_forward, DUT_issue_mul_div_B_forward);
+		if (expected_issue_mdu_B_forward !== DUT_issue_mdu_B_forward) begin
+			$display("TB ERROR: expected_issue_mdu_B_forward (%h) != DUT_issue_mdu_B_forward (%h)",
+				expected_issue_mdu_B_forward, DUT_issue_mdu_B_forward);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_mul_div_B_bank !== DUT_issue_mul_div_B_bank) begin
-			$display("TB ERROR: expected_issue_mul_div_B_bank (%h) != DUT_issue_mul_div_B_bank (%h)",
-				expected_issue_mul_div_B_bank, DUT_issue_mul_div_B_bank);
+		if (expected_issue_mdu_B_bank !== DUT_issue_mdu_B_bank) begin
+			$display("TB ERROR: expected_issue_mdu_B_bank (%h) != DUT_issue_mdu_B_bank (%h)",
+				expected_issue_mdu_B_bank, DUT_issue_mdu_B_bank);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_mul_div_dest_PR !== DUT_issue_mul_div_dest_PR) begin
-			$display("TB ERROR: expected_issue_mul_div_dest_PR (%h) != DUT_issue_mul_div_dest_PR (%h)",
-				expected_issue_mul_div_dest_PR, DUT_issue_mul_div_dest_PR);
+		if (expected_issue_mdu_dest_PR !== DUT_issue_mdu_dest_PR) begin
+			$display("TB ERROR: expected_issue_mdu_dest_PR (%h) != DUT_issue_mdu_dest_PR (%h)",
+				expected_issue_mdu_dest_PR, DUT_issue_mdu_dest_PR);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_mul_div_ROB_index !== DUT_issue_mul_div_ROB_index) begin
-			$display("TB ERROR: expected_issue_mul_div_ROB_index (%h) != DUT_issue_mul_div_ROB_index (%h)",
-				expected_issue_mul_div_ROB_index, DUT_issue_mul_div_ROB_index);
+		if (expected_issue_mdu_ROB_index !== DUT_issue_mdu_ROB_index) begin
+			$display("TB ERROR: expected_issue_mdu_ROB_index (%h) != DUT_issue_mdu_ROB_index (%h)",
+				expected_issue_mdu_ROB_index, DUT_issue_mdu_ROB_index);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_PRF_mul_div_req_A_valid !== DUT_PRF_mul_div_req_A_valid) begin
-			$display("TB ERROR: expected_PRF_mul_div_req_A_valid (%h) != DUT_PRF_mul_div_req_A_valid (%h)",
-				expected_PRF_mul_div_req_A_valid, DUT_PRF_mul_div_req_A_valid);
+		if (expected_PRF_mdu_req_A_valid !== DUT_PRF_mdu_req_A_valid) begin
+			$display("TB ERROR: expected_PRF_mdu_req_A_valid (%h) != DUT_PRF_mdu_req_A_valid (%h)",
+				expected_PRF_mdu_req_A_valid, DUT_PRF_mdu_req_A_valid);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_PRF_mul_div_req_A_PR !== DUT_PRF_mul_div_req_A_PR) begin
-			$display("TB ERROR: expected_PRF_mul_div_req_A_PR (%h) != DUT_PRF_mul_div_req_A_PR (%h)",
-				expected_PRF_mul_div_req_A_PR, DUT_PRF_mul_div_req_A_PR);
+		if (expected_PRF_mdu_req_A_PR !== DUT_PRF_mdu_req_A_PR) begin
+			$display("TB ERROR: expected_PRF_mdu_req_A_PR (%h) != DUT_PRF_mdu_req_A_PR (%h)",
+				expected_PRF_mdu_req_A_PR, DUT_PRF_mdu_req_A_PR);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_PRF_mul_div_req_B_valid !== DUT_PRF_mul_div_req_B_valid) begin
-			$display("TB ERROR: expected_PRF_mul_div_req_B_valid (%h) != DUT_PRF_mul_div_req_B_valid (%h)",
-				expected_PRF_mul_div_req_B_valid, DUT_PRF_mul_div_req_B_valid);
+		if (expected_PRF_mdu_req_B_valid !== DUT_PRF_mdu_req_B_valid) begin
+			$display("TB ERROR: expected_PRF_mdu_req_B_valid (%h) != DUT_PRF_mdu_req_B_valid (%h)",
+				expected_PRF_mdu_req_B_valid, DUT_PRF_mdu_req_B_valid);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_PRF_mul_div_req_B_PR !== DUT_PRF_mul_div_req_B_PR) begin
-			$display("TB ERROR: expected_PRF_mul_div_req_B_PR (%h) != DUT_PRF_mul_div_req_B_PR (%h)",
-				expected_PRF_mul_div_req_B_PR, DUT_PRF_mul_div_req_B_PR);
+		if (expected_PRF_mdu_req_B_PR !== DUT_PRF_mdu_req_B_PR) begin
+			$display("TB ERROR: expected_PRF_mdu_req_B_PR (%h) != DUT_PRF_mdu_req_B_PR (%h)",
+				expected_PRF_mdu_req_B_PR, DUT_PRF_mdu_req_B_PR);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -369,7 +369,7 @@ module alu_reg_mdu_iq_tb ();
 	    // op dispatch by way
 		tb_dispatch_attempt_by_way = 4'b0000;
 		tb_dispatch_valid_alu_reg_by_way = 4'b0000;
-		tb_dispatch_valid_mul_div_by_way = 4'b0000;
+		tb_dispatch_valid_mdu_by_way = 4'b0000;
 		tb_dispatch_op_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
 		tb_dispatch_A_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
 		tb_dispatch_A_ready_by_way = 4'b0000;
@@ -380,7 +380,7 @@ module alu_reg_mdu_iq_tb ();
 	    // ALU op dispatch feedback
 	    // pipeline feedback
 		tb_alu_reg_pipeline_ready = 1'b1;
-		tb_mul_div_pipeline_ready = 1'b1;
+		tb_mdu_pipeline_ready = 1'b1;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -414,19 +414,19 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_B_valid = 1'b0;
 		expected_PRF_alu_reg_req_B_PR = 7'h0;
 	    // op issue to Mul-Div pipeline
-		expected_issue_mul_div_valid = 1'b0;
-		expected_issue_mul_div_op = 4'h0;
-		expected_issue_mul_div_A_forward = 1'b0;
-		expected_issue_mul_div_A_bank = 2'h0;
-		expected_issue_mul_div_B_forward = 1'b0;
-		expected_issue_mul_div_B_bank = 2'h0;
-		expected_issue_mul_div_dest_PR = 7'h0;
-		expected_issue_mul_div_ROB_index = 7'h0;
+		expected_issue_mdu_valid = 1'b0;
+		expected_issue_mdu_op = 4'h0;
+		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_bank = 2'h0;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_bank = 2'h0;
+		expected_issue_mdu_dest_PR = 7'h0;
+		expected_issue_mdu_ROB_index = 7'h0;
 	    // Mul-Div pipeline reg read req to PRF
-		expected_PRF_mul_div_req_A_valid = 1'b0;
-		expected_PRF_mul_div_req_A_PR = 7'h0;
-		expected_PRF_mul_div_req_B_valid = 1'b0;
-		expected_PRF_mul_div_req_B_PR = 7'h0;
+		expected_PRF_mdu_req_A_valid = 1'b0;
+		expected_PRF_mdu_req_A_PR = 7'h0;
+		expected_PRF_mdu_req_B_valid = 1'b0;
+		expected_PRF_mdu_req_B_PR = 7'h0;
 
 		check_outputs();
 
@@ -439,7 +439,7 @@ module alu_reg_mdu_iq_tb ();
 	    // op dispatch by way
 		tb_dispatch_attempt_by_way = 4'b0000;
 		tb_dispatch_valid_alu_reg_by_way = 4'b0000;
-		tb_dispatch_valid_mul_div_by_way = 4'b0000;
+		tb_dispatch_valid_mdu_by_way = 4'b0000;
 		tb_dispatch_op_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
 		tb_dispatch_A_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
 		tb_dispatch_A_ready_by_way = 4'b0000;
@@ -450,7 +450,7 @@ module alu_reg_mdu_iq_tb ();
 	    // ALU op dispatch feedback
 	    // pipeline feedback
 		tb_alu_reg_pipeline_ready = 1'b1;
-		tb_mul_div_pipeline_ready = 1'b1;
+		tb_mdu_pipeline_ready = 1'b1;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -484,19 +484,19 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_B_valid = 1'b0;
 		expected_PRF_alu_reg_req_B_PR = 7'h0;
 	    // op issue to Mul-Div pipeline
-		expected_issue_mul_div_valid = 1'b0;
-		expected_issue_mul_div_op = 4'h0;
-		expected_issue_mul_div_A_forward = 1'b0;
-		expected_issue_mul_div_A_bank = 2'h0;
-		expected_issue_mul_div_B_forward = 1'b0;
-		expected_issue_mul_div_B_bank = 2'h0;
-		expected_issue_mul_div_dest_PR = 7'h0;
-		expected_issue_mul_div_ROB_index = 7'h0;
+		expected_issue_mdu_valid = 1'b0;
+		expected_issue_mdu_op = 4'h0;
+		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_bank = 2'h0;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_bank = 2'h0;
+		expected_issue_mdu_dest_PR = 7'h0;
+		expected_issue_mdu_ROB_index = 7'h0;
 	    // Mul-Div pipeline reg read req to PRF
-		expected_PRF_mul_div_req_A_valid = 1'b0;
-		expected_PRF_mul_div_req_A_PR = 7'h0;
-		expected_PRF_mul_div_req_B_valid = 1'b0;
-		expected_PRF_mul_div_req_B_PR = 7'h0;
+		expected_PRF_mdu_req_A_valid = 1'b0;
+		expected_PRF_mdu_req_A_PR = 7'h0;
+		expected_PRF_mdu_req_B_valid = 1'b0;
+		expected_PRF_mdu_req_B_PR = 7'h0;
 
 		check_outputs();
 
@@ -537,7 +537,7 @@ module alu_reg_mdu_iq_tb ();
 	    // op dispatch by way
 		tb_dispatch_attempt_by_way = 4'b0000;
 		tb_dispatch_valid_alu_reg_by_way = 4'b0000;
-		tb_dispatch_valid_mul_div_by_way = 4'b0000;
+		tb_dispatch_valid_mdu_by_way = 4'b0000;
 		tb_dispatch_op_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
 		tb_dispatch_A_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
 		tb_dispatch_A_ready_by_way = 4'b0000;
@@ -548,7 +548,7 @@ module alu_reg_mdu_iq_tb ();
 	    // ALU op dispatch feedback
 	    // pipeline feedback
 		tb_alu_reg_pipeline_ready = 1'b1;
-		tb_mul_div_pipeline_ready = 1'b1;
+		tb_mdu_pipeline_ready = 1'b1;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -582,19 +582,19 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_B_valid = 1'b0;
 		expected_PRF_alu_reg_req_B_PR = 7'h0;
 	    // op issue to Mul-Div pipeline
-		expected_issue_mul_div_valid = 1'b0;
-		expected_issue_mul_div_op = 4'h0;
-		expected_issue_mul_div_A_forward = 1'b0;
-		expected_issue_mul_div_A_bank = 2'h0;
-		expected_issue_mul_div_B_forward = 1'b0;
-		expected_issue_mul_div_B_bank = 2'h0;
-		expected_issue_mul_div_dest_PR = 7'h0;
-		expected_issue_mul_div_ROB_index = 7'h0;
+		expected_issue_mdu_valid = 1'b0;
+		expected_issue_mdu_op = 4'h0;
+		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_bank = 2'h0;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_bank = 2'h0;
+		expected_issue_mdu_dest_PR = 7'h0;
+		expected_issue_mdu_ROB_index = 7'h0;
 	    // Mul-Div pipeline reg read req to PRF
-		expected_PRF_mul_div_req_A_valid = 1'b0;
-		expected_PRF_mul_div_req_A_PR = 7'h0;
-		expected_PRF_mul_div_req_B_valid = 1'b0;
-		expected_PRF_mul_div_req_B_PR = 7'h0;
+		expected_PRF_mdu_req_A_valid = 1'b0;
+		expected_PRF_mdu_req_A_PR = 7'h0;
+		expected_PRF_mdu_req_B_valid = 1'b0;
+		expected_PRF_mdu_req_B_PR = 7'h0;
 
 		check_outputs();
 
@@ -629,7 +629,7 @@ module alu_reg_mdu_iq_tb ();
 	    // op dispatch by way
 		tb_dispatch_attempt_by_way = 4'b1111;
 		tb_dispatch_valid_alu_reg_by_way = 4'b1001;
-		tb_dispatch_valid_mul_div_by_way = 4'b0110;
+		tb_dispatch_valid_mdu_by_way = 4'b0110;
 		tb_dispatch_op_by_way = {4'h1, 4'h1, 4'h0, 4'h0};
 		tb_dispatch_A_PR_by_way = {7'hA, 7'h7, 7'h4, 7'h1};
 		tb_dispatch_A_ready_by_way = 4'b1011;
@@ -640,7 +640,7 @@ module alu_reg_mdu_iq_tb ();
 	    // ALU op dispatch feedback
 	    // pipeline feedback
 		tb_alu_reg_pipeline_ready = 1'b1;
-		tb_mul_div_pipeline_ready = 1'b1;
+		tb_mdu_pipeline_ready = 1'b1;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -674,19 +674,19 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_B_valid = 1'b0;
 		expected_PRF_alu_reg_req_B_PR = 7'h0;
 	    // op issue to Mul-Div pipeline
-		expected_issue_mul_div_valid = 1'b0;
-		expected_issue_mul_div_op = 4'h0;
-		expected_issue_mul_div_A_forward = 1'b0;
-		expected_issue_mul_div_A_bank = 2'h0;
-		expected_issue_mul_div_B_forward = 1'b0;
-		expected_issue_mul_div_B_bank = 2'h0;
-		expected_issue_mul_div_dest_PR = 7'h0;
-		expected_issue_mul_div_ROB_index = 7'h0;
+		expected_issue_mdu_valid = 1'b0;
+		expected_issue_mdu_op = 4'h0;
+		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_bank = 2'h0;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_bank = 2'h0;
+		expected_issue_mdu_dest_PR = 7'h0;
+		expected_issue_mdu_ROB_index = 7'h0;
 	    // Mul-Div pipeline reg read req to PRF
-		expected_PRF_mul_div_req_A_valid = 1'b0;
-		expected_PRF_mul_div_req_A_PR = 7'h0;
-		expected_PRF_mul_div_req_B_valid = 1'b0;
-		expected_PRF_mul_div_req_B_PR = 7'h0;
+		expected_PRF_mdu_req_A_valid = 1'b0;
+		expected_PRF_mdu_req_A_PR = 7'h0;
+		expected_PRF_mdu_req_B_valid = 1'b0;
+		expected_PRF_mdu_req_B_PR = 7'h0;
 
 		check_outputs();
 
@@ -721,7 +721,7 @@ module alu_reg_mdu_iq_tb ();
 	    // op dispatch by way
 		tb_dispatch_attempt_by_way = 4'b1011;
 		tb_dispatch_valid_alu_reg_by_way = 4'b1010;
-		tb_dispatch_valid_mul_div_by_way = 4'b0001;
+		tb_dispatch_valid_mdu_by_way = 4'b0001;
 		tb_dispatch_op_by_way = {4'h3, 4'h0, 4'h2, 4'h2};
 		tb_dispatch_A_PR_by_way = {7'h13, 7'h0, 7'h10, 7'hD};
 		tb_dispatch_A_ready_by_way = 4'b1001;
@@ -732,7 +732,7 @@ module alu_reg_mdu_iq_tb ();
 	    // ALU op dispatch feedback
 	    // pipeline feedback
 		tb_alu_reg_pipeline_ready = 1'b1;
-		tb_mul_div_pipeline_ready = 1'b1;
+		tb_mdu_pipeline_ready = 1'b1;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -766,19 +766,19 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_B_valid = 1'b1;
 		expected_PRF_alu_reg_req_B_PR = 7'hB;
 	    // op issue to Mul-Div pipeline
-		expected_issue_mul_div_valid = 1'b1;
-		expected_issue_mul_div_op = 4'h0;
-		expected_issue_mul_div_A_forward = 1'b0;
-		expected_issue_mul_div_A_bank = 2'h0;
-		expected_issue_mul_div_B_forward = 1'b0;
-		expected_issue_mul_div_B_bank = 2'h1;
-		expected_issue_mul_div_dest_PR = 7'h3;
-		expected_issue_mul_div_ROB_index = 7'h1;
+		expected_issue_mdu_valid = 1'b1;
+		expected_issue_mdu_op = 4'h0;
+		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_bank = 2'h0;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_bank = 2'h1;
+		expected_issue_mdu_dest_PR = 7'h3;
+		expected_issue_mdu_ROB_index = 7'h1;
 	    // Mul-Div pipeline reg read req to PRF
-		expected_PRF_mul_div_req_A_valid = 1'b1;
-		expected_PRF_mul_div_req_A_PR = 7'h4;
-		expected_PRF_mul_div_req_B_valid = 1'b1;
-		expected_PRF_mul_div_req_B_PR = 7'h5;
+		expected_PRF_mdu_req_A_valid = 1'b1;
+		expected_PRF_mdu_req_A_PR = 7'h4;
+		expected_PRF_mdu_req_B_valid = 1'b1;
+		expected_PRF_mdu_req_B_PR = 7'h5;
 
 		check_outputs();
 
@@ -813,7 +813,7 @@ module alu_reg_mdu_iq_tb ();
 	    // op dispatch by way
 		tb_dispatch_attempt_by_way = 4'b0111;
 		tb_dispatch_valid_alu_reg_by_way = 4'b0001;
-		tb_dispatch_valid_mul_div_by_way = 4'b0110;
+		tb_dispatch_valid_mdu_by_way = 4'b0110;
 		tb_dispatch_op_by_way = {4'h0, 4'h4, 4'h3, 4'h4};
 		tb_dispatch_A_PR_by_way = {7'h0, 7'h1C, 7'h19, 7'h16};
 		tb_dispatch_A_ready_by_way = 4'b0001;
@@ -824,7 +824,7 @@ module alu_reg_mdu_iq_tb ();
 	    // ALU op dispatch feedback
 	    // pipeline feedback
 		tb_alu_reg_pipeline_ready = 1'b1;
-		tb_mul_div_pipeline_ready = 1'b0;
+		tb_mdu_pipeline_ready = 1'b0;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b1000;
 		tb_WB_bus_upper_PR_by_bank = {5'h1, 5'h0, 5'h0, 5'h0};
@@ -858,19 +858,19 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_B_valid = 1'b1;
 		expected_PRF_alu_reg_req_B_PR = 7'h14;
 	    // op issue to Mul-Div pipeline
-		expected_issue_mul_div_valid = 1'b0;
-		expected_issue_mul_div_op = 4'h0;
-		expected_issue_mul_div_A_forward = 1'b0;
-		expected_issue_mul_div_A_bank = 2'h0;
-		expected_issue_mul_div_B_forward = 1'b0;
-		expected_issue_mul_div_B_bank = 2'h0;
-		expected_issue_mul_div_dest_PR = 7'h0;
-		expected_issue_mul_div_ROB_index = 7'h0;
+		expected_issue_mdu_valid = 1'b0;
+		expected_issue_mdu_op = 4'h0;
+		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_bank = 2'h0;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_bank = 2'h0;
+		expected_issue_mdu_dest_PR = 7'h0;
+		expected_issue_mdu_ROB_index = 7'h0;
 	    // Mul-Div pipeline reg read req to PRF
-		expected_PRF_mul_div_req_A_valid = 1'b0;
-		expected_PRF_mul_div_req_A_PR = 7'h0;
-		expected_PRF_mul_div_req_B_valid = 1'b0;
-		expected_PRF_mul_div_req_B_PR = 7'h0;
+		expected_PRF_mdu_req_A_valid = 1'b0;
+		expected_PRF_mdu_req_A_PR = 7'h0;
+		expected_PRF_mdu_req_B_valid = 1'b0;
+		expected_PRF_mdu_req_B_PR = 7'h0;
 
 		check_outputs();
 
@@ -905,7 +905,7 @@ module alu_reg_mdu_iq_tb ();
 	    // op dispatch by way
 		tb_dispatch_attempt_by_way = 4'b1111;
 		tb_dispatch_valid_alu_reg_by_way = 4'b1011;
-		tb_dispatch_valid_mul_div_by_way = 4'b0100;
+		tb_dispatch_valid_mdu_by_way = 4'b0100;
 		tb_dispatch_op_by_way = {4'h7, 4'h5, 4'h6, 4'h5};
 		tb_dispatch_A_PR_by_way = {7'h28, 7'h25, 7'h22, 7'h1F};
 		tb_dispatch_A_ready_by_way = 4'b0100;
@@ -916,7 +916,7 @@ module alu_reg_mdu_iq_tb ();
 	    // ALU op dispatch feedback
 	    // pipeline feedback
 		tb_alu_reg_pipeline_ready = 1'b1;
-		tb_mul_div_pipeline_ready = 1'b1;
+		tb_mdu_pipeline_ready = 1'b1;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0100;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -950,19 +950,19 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_B_valid = 1'b0;
 		expected_PRF_alu_reg_req_B_PR = 7'h2;
 	    // op issue to Mul-Div pipeline
-		expected_issue_mul_div_valid = 1'b1;
-		expected_issue_mul_div_op = 4'h1;
-		expected_issue_mul_div_A_forward = 1'b0;
-		expected_issue_mul_div_A_bank = 2'h3;
-		expected_issue_mul_div_B_forward = 1'b0;
-		expected_issue_mul_div_B_bank = 2'h0;
-		expected_issue_mul_div_dest_PR = 7'h6;
-		expected_issue_mul_div_ROB_index = 7'h2;
+		expected_issue_mdu_valid = 1'b1;
+		expected_issue_mdu_op = 4'h1;
+		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_bank = 2'h3;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_bank = 2'h0;
+		expected_issue_mdu_dest_PR = 7'h6;
+		expected_issue_mdu_ROB_index = 7'h2;
 	    // Mul-Div pipeline reg read req to PRF
-		expected_PRF_mul_div_req_A_valid = 1'b1;
-		expected_PRF_mul_div_req_A_PR = 7'h7;
-		expected_PRF_mul_div_req_B_valid = 1'b1;
-		expected_PRF_mul_div_req_B_PR = 7'h8;
+		expected_PRF_mdu_req_A_valid = 1'b1;
+		expected_PRF_mdu_req_A_PR = 7'h7;
+		expected_PRF_mdu_req_B_valid = 1'b1;
+		expected_PRF_mdu_req_B_PR = 7'h8;
 
 		check_outputs();
 
@@ -997,7 +997,7 @@ module alu_reg_mdu_iq_tb ();
 	    // op dispatch by way
 		tb_dispatch_attempt_by_way = 4'b1111;
 		tb_dispatch_valid_alu_reg_by_way = 4'b0010;
-		tb_dispatch_valid_mul_div_by_way = 4'b0101;
+		tb_dispatch_valid_mdu_by_way = 4'b0101;
 		tb_dispatch_op_by_way = {4'h9, 4'h7, 4'h8, 4'h6};
 		tb_dispatch_A_PR_by_way = {7'h34, 7'h31, 7'h2E, 7'h2B};
 		tb_dispatch_A_ready_by_way = 4'b1101;
@@ -1008,7 +1008,7 @@ module alu_reg_mdu_iq_tb ();
 	    // ALU op dispatch feedback
 	    // pipeline feedback
 		tb_alu_reg_pipeline_ready = 1'b1;
-		tb_mul_div_pipeline_ready = 1'b1;
+		tb_mdu_pipeline_ready = 1'b1;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b1000;
 		tb_WB_bus_upper_PR_by_bank = {5'h7, 5'h0, 5'h0, 5'h0};
@@ -1042,19 +1042,19 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_B_valid = 1'b1;
 		expected_PRF_alu_reg_req_B_PR = 7'h20;
 	    // op issue to Mul-Div pipeline
-		expected_issue_mul_div_valid = 1'b1;
-		expected_issue_mul_div_op = 4'h2;
-		expected_issue_mul_div_A_forward = 1'b0;
-		expected_issue_mul_div_A_bank = 2'h1;
-		expected_issue_mul_div_B_forward = 1'b0;
-		expected_issue_mul_div_B_bank = 2'h2;
-		expected_issue_mul_div_dest_PR = 7'hC;
-		expected_issue_mul_div_ROB_index = 7'h4;
+		expected_issue_mdu_valid = 1'b1;
+		expected_issue_mdu_op = 4'h2;
+		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_bank = 2'h1;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_bank = 2'h2;
+		expected_issue_mdu_dest_PR = 7'hC;
+		expected_issue_mdu_ROB_index = 7'h4;
 	    // Mul-Div pipeline reg read req to PRF
-		expected_PRF_mul_div_req_A_valid = 1'b1;
-		expected_PRF_mul_div_req_A_PR = 7'hD;
-		expected_PRF_mul_div_req_B_valid = 1'b1;
-		expected_PRF_mul_div_req_B_PR = 7'hE;
+		expected_PRF_mdu_req_A_valid = 1'b1;
+		expected_PRF_mdu_req_A_PR = 7'hD;
+		expected_PRF_mdu_req_B_valid = 1'b1;
+		expected_PRF_mdu_req_B_PR = 7'hE;
 
 		check_outputs();
 
@@ -1089,7 +1089,7 @@ module alu_reg_mdu_iq_tb ();
 	    // op dispatch by way
 		tb_dispatch_attempt_by_way = 4'b1000;
 		tb_dispatch_valid_alu_reg_by_way = 4'b1000;
-		tb_dispatch_valid_mul_div_by_way = 4'b0000;
+		tb_dispatch_valid_mdu_by_way = 4'b0000;
 		tb_dispatch_op_by_way = {4'h9, 4'h0, 4'h0, 4'h0};
 		tb_dispatch_A_PR_by_way = {7'h34, 7'h0, 7'h0, 7'h0};
 		tb_dispatch_A_ready_by_way = 4'b1000;
@@ -1100,7 +1100,7 @@ module alu_reg_mdu_iq_tb ();
 	    // ALU op dispatch feedback
 	    // pipeline feedback
 		tb_alu_reg_pipeline_ready = 1'b1;
-		tb_mul_div_pipeline_ready = 1'b1;
+		tb_mdu_pipeline_ready = 1'b1;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0110;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h9, 5'h7, 5'h0};
@@ -1134,19 +1134,19 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_B_valid = 1'b0;
 		expected_PRF_alu_reg_req_B_PR = 7'h0;
 	    // op issue to Mul-Div pipeline
-		expected_issue_mul_div_valid = 1'b1;
-		expected_issue_mul_div_op = 4'h5;
-		expected_issue_mul_div_A_forward = 1'b0;
-		expected_issue_mul_div_A_bank = 2'h1;
-		expected_issue_mul_div_B_forward = 1'b1;
-		expected_issue_mul_div_B_bank = 2'h2;
-		expected_issue_mul_div_dest_PR = 7'h24;
-		expected_issue_mul_div_ROB_index = 7'hC;
+		expected_issue_mdu_valid = 1'b1;
+		expected_issue_mdu_op = 4'h5;
+		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_bank = 2'h1;
+		expected_issue_mdu_B_forward = 1'b1;
+		expected_issue_mdu_B_bank = 2'h2;
+		expected_issue_mdu_dest_PR = 7'h24;
+		expected_issue_mdu_ROB_index = 7'hC;
 	    // Mul-Div pipeline reg read req to PRF
-		expected_PRF_mul_div_req_A_valid = 1'b1;
-		expected_PRF_mul_div_req_A_PR = 7'h25;
-		expected_PRF_mul_div_req_B_valid = 1'b0;
-		expected_PRF_mul_div_req_B_PR = 7'h26;
+		expected_PRF_mdu_req_A_valid = 1'b1;
+		expected_PRF_mdu_req_A_PR = 7'h25;
+		expected_PRF_mdu_req_B_valid = 1'b0;
+		expected_PRF_mdu_req_B_PR = 7'h26;
 
 		check_outputs();
 
@@ -1181,7 +1181,7 @@ module alu_reg_mdu_iq_tb ();
 	    // op dispatch by way
 		tb_dispatch_attempt_by_way = 4'b1111;
 		tb_dispatch_valid_alu_reg_by_way = 4'b0001;
-		tb_dispatch_valid_mul_div_by_way = 4'b0110;
+		tb_dispatch_valid_mdu_by_way = 4'b0110;
 		tb_dispatch_op_by_way = {4'hA, 4'h9, 4'h8, 4'hA};
 		tb_dispatch_A_PR_by_way = {7'h40, 7'h3D, 7'h3A, 7'h37};
 		tb_dispatch_A_ready_by_way = 4'b1110;
@@ -1192,7 +1192,7 @@ module alu_reg_mdu_iq_tb ();
 	    // ALU op dispatch feedback
 	    // pipeline feedback
 		tb_alu_reg_pipeline_ready = 1'b0;
-		tb_mul_div_pipeline_ready = 1'b1;
+		tb_mdu_pipeline_ready = 1'b1;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0011;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h6, 5'h7};
@@ -1226,19 +1226,19 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_B_valid = 1'b0;
 		expected_PRF_alu_reg_req_B_PR = 7'h0;
 	    // op issue to Mul-Div pipeline
-		expected_issue_mul_div_valid = 1'b1;
-		expected_issue_mul_div_op = 4'h3;
-		expected_issue_mul_div_A_forward = 1'b1;
-		expected_issue_mul_div_A_bank = 2'h1;
-		expected_issue_mul_div_B_forward = 1'b0;
-		expected_issue_mul_div_B_bank = 2'h2;
-		expected_issue_mul_div_dest_PR = 7'h18;
-		expected_issue_mul_div_ROB_index = 7'h8;
+		expected_issue_mdu_valid = 1'b1;
+		expected_issue_mdu_op = 4'h3;
+		expected_issue_mdu_A_forward = 1'b1;
+		expected_issue_mdu_A_bank = 2'h1;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_bank = 2'h2;
+		expected_issue_mdu_dest_PR = 7'h18;
+		expected_issue_mdu_ROB_index = 7'h8;
 	    // Mul-Div pipeline reg read req to PRF
-		expected_PRF_mul_div_req_A_valid = 1'b0;
-		expected_PRF_mul_div_req_A_PR = 7'h19;
-		expected_PRF_mul_div_req_B_valid = 1'b1;
-		expected_PRF_mul_div_req_B_PR = 7'h1A;
+		expected_PRF_mdu_req_A_valid = 1'b0;
+		expected_PRF_mdu_req_A_PR = 7'h19;
+		expected_PRF_mdu_req_B_valid = 1'b1;
+		expected_PRF_mdu_req_B_PR = 7'h1A;
 
 		check_outputs();
 
@@ -1273,7 +1273,7 @@ module alu_reg_mdu_iq_tb ();
 	    // op dispatch by way
 		tb_dispatch_attempt_by_way = 4'b1100;
 		tb_dispatch_valid_alu_reg_by_way = 4'b0000;
-		tb_dispatch_valid_mul_div_by_way = 4'b0100;
+		tb_dispatch_valid_mdu_by_way = 4'b0100;
 		tb_dispatch_op_by_way = {4'hA, 4'h9, 4'h0, 4'h0};
 		tb_dispatch_A_PR_by_way = {7'h40, 7'h3D, 7'h0, 7'h0};
 		tb_dispatch_A_ready_by_way = 4'b1100;
@@ -1284,7 +1284,7 @@ module alu_reg_mdu_iq_tb ();
 	    // ALU op dispatch feedback
 	    // pipeline feedback
 		tb_alu_reg_pipeline_ready = 1'b0;
-		tb_mul_div_pipeline_ready = 1'b0;
+		tb_mdu_pipeline_ready = 1'b0;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -1318,19 +1318,19 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_B_valid = 1'b0;
 		expected_PRF_alu_reg_req_B_PR = 7'h0;
 	    // op issue to Mul-Div pipeline
-		expected_issue_mul_div_valid = 1'b0;
-		expected_issue_mul_div_op = 4'h0;
-		expected_issue_mul_div_A_forward = 1'b0;
-		expected_issue_mul_div_A_bank = 2'h0;
-		expected_issue_mul_div_B_forward = 1'b0;
-		expected_issue_mul_div_B_bank = 2'h0;
-		expected_issue_mul_div_dest_PR = 7'h0;
-		expected_issue_mul_div_ROB_index = 7'h0;
+		expected_issue_mdu_valid = 1'b0;
+		expected_issue_mdu_op = 4'h0;
+		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_bank = 2'h0;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_bank = 2'h0;
+		expected_issue_mdu_dest_PR = 7'h0;
+		expected_issue_mdu_ROB_index = 7'h0;
 	    // Mul-Div pipeline reg read req to PRF
-		expected_PRF_mul_div_req_A_valid = 1'b0;
-		expected_PRF_mul_div_req_A_PR = 7'h0;
-		expected_PRF_mul_div_req_B_valid = 1'b0;
-		expected_PRF_mul_div_req_B_PR = 7'h0;
+		expected_PRF_mdu_req_A_valid = 1'b0;
+		expected_PRF_mdu_req_A_PR = 7'h0;
+		expected_PRF_mdu_req_B_valid = 1'b0;
+		expected_PRF_mdu_req_B_PR = 7'h0;
 
 		check_outputs();
 
@@ -1365,7 +1365,7 @@ module alu_reg_mdu_iq_tb ();
 	    // op dispatch by way
 		tb_dispatch_attempt_by_way = 4'b1000;
 		tb_dispatch_valid_alu_reg_by_way = 4'b0000;
-		tb_dispatch_valid_mul_div_by_way = 4'b0000;
+		tb_dispatch_valid_mdu_by_way = 4'b0000;
 		tb_dispatch_op_by_way = {4'hA, 4'h0, 4'h0, 4'h0};
 		tb_dispatch_A_PR_by_way = {7'h40, 7'h0, 7'h0, 7'h0};
 		tb_dispatch_A_ready_by_way = 4'b1000;
@@ -1376,7 +1376,7 @@ module alu_reg_mdu_iq_tb ();
 	    // ALU op dispatch feedback
 	    // pipeline feedback
 		tb_alu_reg_pipeline_ready = 1'b1;
-		tb_mul_div_pipeline_ready = 1'b1;
+		tb_mdu_pipeline_ready = 1'b1;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -1410,19 +1410,19 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_alu_reg_req_B_valid = 1'b1;
 		expected_PRF_alu_reg_req_B_PR = 7'h35;
 	    // op issue to Mul-Div pipeline
-		expected_issue_mul_div_valid = 1'b1;
-		expected_issue_mul_div_op = 4'h4;
-		expected_issue_mul_div_A_forward = 1'b0;
-		expected_issue_mul_div_A_bank = 2'h0;
-		expected_issue_mul_div_B_forward = 1'b0;
-		expected_issue_mul_div_B_bank = 2'h1;
-		expected_issue_mul_div_dest_PR = 7'h1B;
-		expected_issue_mul_div_ROB_index = 7'h9;
+		expected_issue_mdu_valid = 1'b1;
+		expected_issue_mdu_op = 4'h4;
+		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_bank = 2'h0;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_bank = 2'h1;
+		expected_issue_mdu_dest_PR = 7'h1B;
+		expected_issue_mdu_ROB_index = 7'h9;
 	    // Mul-Div pipeline reg read req to PRF
-		expected_PRF_mul_div_req_A_valid = 1'b1;
-		expected_PRF_mul_div_req_A_PR = 7'h1C;
-		expected_PRF_mul_div_req_B_valid = 1'b1;
-		expected_PRF_mul_div_req_B_PR = 7'h1D;
+		expected_PRF_mdu_req_A_valid = 1'b1;
+		expected_PRF_mdu_req_A_PR = 7'h1C;
+		expected_PRF_mdu_req_B_valid = 1'b1;
+		expected_PRF_mdu_req_B_PR = 7'h1D;
 
 		check_outputs();
 

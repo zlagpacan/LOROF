@@ -18,7 +18,7 @@ module alu_reg_mdu_iq #(
     // op dispatch by way
     input logic [3:0]                       dispatch_attempt_by_way,
     input logic [3:0]                       dispatch_valid_alu_reg_by_way,
-    input logic [3:0]                       dispatch_valid_mul_div_by_way,
+    input logic [3:0]                       dispatch_valid_mdu_by_way,
     input logic [3:0][3:0]                  dispatch_op_by_way,
     input logic [3:0][LOG_PR_COUNT-1:0]     dispatch_A_PR_by_way,
     input logic [3:0]                       dispatch_A_ready_by_way,
@@ -32,7 +32,7 @@ module alu_reg_mdu_iq #(
 
     // pipeline feedback
     input logic alu_reg_pipeline_ready,
-    input logic mul_div_pipeline_ready,
+    input logic mdu_pipeline_ready,
 
     // writeback bus by bank
     input logic [PRF_BANK_COUNT-1:0]                                        WB_bus_valid_by_bank,
@@ -55,20 +55,20 @@ module alu_reg_mdu_iq #(
     output logic [LOG_PR_COUNT-1:0]     PRF_alu_reg_req_B_PR,
 
     // op issue to Mul-Div Pipeline
-    output logic                            issue_mul_div_valid,
-    output logic [3:0]                      issue_mul_div_op,
-    output logic                            issue_mul_div_A_forward,
-    output logic [LOG_PRF_BANK_COUNT-1:0]   issue_mul_div_A_bank,
-    output logic                            issue_mul_div_B_forward,
-    output logic [LOG_PRF_BANK_COUNT-1:0]   issue_mul_div_B_bank,
-    output logic [LOG_PR_COUNT-1:0]         issue_mul_div_dest_PR,
-    output logic [LOG_ROB_ENTRIES-1:0]      issue_mul_div_ROB_index,
+    output logic                            issue_mdu_valid,
+    output logic [3:0]                      issue_mdu_op,
+    output logic                            issue_mdu_A_forward,
+    output logic [LOG_PRF_BANK_COUNT-1:0]   issue_mdu_A_bank,
+    output logic                            issue_mdu_B_forward,
+    output logic [LOG_PRF_BANK_COUNT-1:0]   issue_mdu_B_bank,
+    output logic [LOG_PR_COUNT-1:0]         issue_mdu_dest_PR,
+    output logic [LOG_ROB_ENTRIES-1:0]      issue_mdu_ROB_index,
 
     // Mul-Div Pipeline reg read req to PRF
-    output logic                        PRF_mul_div_req_A_valid,
-    output logic [LOG_PR_COUNT-1:0]     PRF_mul_div_req_A_PR,
-    output logic                        PRF_mul_div_req_B_valid,
-    output logic [LOG_PR_COUNT-1:0]     PRF_mul_div_req_B_PR
+    output logic                        PRF_mdu_req_A_valid,
+    output logic [LOG_PR_COUNT-1:0]     PRF_mdu_req_A_PR,
+    output logic                        PRF_mdu_req_B_valid,
+    output logic [LOG_PR_COUNT-1:0]     PRF_mdu_req_B_PR
 );
 
     // ----------------------------------------------------------------
@@ -76,7 +76,7 @@ module alu_reg_mdu_iq #(
 
     // IQ entries
     logic [ALU_REG_MDU_IQ_ENTRIES-1:0]                      valid_alu_reg_by_entry;
-    logic [ALU_REG_MDU_IQ_ENTRIES-1:0]                      valid_mul_div_by_entry;
+    logic [ALU_REG_MDU_IQ_ENTRIES-1:0]                      valid_mdu_by_entry;
     logic [ALU_REG_MDU_IQ_ENTRIES-1:0][3:0]                 op_by_entry;
     logic [ALU_REG_MDU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]    A_PR_by_entry;
     logic [ALU_REG_MDU_IQ_ENTRIES-1:0]                      A_ready_by_entry;
@@ -93,13 +93,13 @@ module alu_reg_mdu_iq #(
     logic [ALU_REG_MDU_IQ_ENTRIES-1:0]  issue_alu_reg_one_hot_by_entry;
     logic [ALU_REG_MDU_IQ_ENTRIES-1:0]  issue_alu_reg_mask;
 
-    logic [ALU_REG_MDU_IQ_ENTRIES-1:0]  issue_mul_div_ready_by_entry;
-    logic [ALU_REG_MDU_IQ_ENTRIES-1:0]  issue_mul_div_one_hot_by_entry;
-    logic [ALU_REG_MDU_IQ_ENTRIES-1:0]  issue_mul_div_mask;
+    logic [ALU_REG_MDU_IQ_ENTRIES-1:0]  issue_mdu_ready_by_entry;
+    logic [ALU_REG_MDU_IQ_ENTRIES-1:0]  issue_mdu_one_hot_by_entry;
+    logic [ALU_REG_MDU_IQ_ENTRIES-1:0]  issue_mdu_mask;
 
     // incoming dispatch crossbar by entry
     logic [ALU_REG_MDU_IQ_ENTRIES-1:0]                          dispatch_valid_alu_reg_by_entry;
-    logic [ALU_REG_MDU_IQ_ENTRIES-1:0]                          dispatch_valid_mul_div_by_entry;
+    logic [ALU_REG_MDU_IQ_ENTRIES-1:0]                          dispatch_valid_mdu_by_entry;
     logic [ALU_REG_MDU_IQ_ENTRIES-1:0][3:0]                     dispatch_op_by_entry;
     logic [ALU_REG_MDU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]        dispatch_A_PR_by_entry;
     logic [ALU_REG_MDU_IQ_ENTRIES-1:0]                          dispatch_A_ready_by_entry;
@@ -204,10 +204,10 @@ module alu_reg_mdu_iq #(
     // Mul-Div issue:
 
     // ready check
-    assign issue_mul_div_ready_by_entry = 
-        {ALU_REG_MDU_IQ_ENTRIES{mul_div_pipeline_ready}}
+    assign issue_mdu_ready_by_entry = 
+        {ALU_REG_MDU_IQ_ENTRIES{mdu_pipeline_ready}}
         &
-        valid_mul_div_by_entry
+        valid_mdu_by_entry
         &
         (A_ready_by_entry | A_forward_by_entry)
         &
@@ -216,65 +216,65 @@ module alu_reg_mdu_iq #(
 
     // pq
     pq_lsb #(.WIDTH(ALU_REG_MDU_IQ_ENTRIES)) ISSUE_MUL_DIV_PQ_LSB (
-        .req_vec(issue_mul_div_ready_by_entry),
-        .ack_one_hot(issue_mul_div_one_hot_by_entry),
-        .ack_mask(issue_mul_div_mask)
+        .req_vec(issue_mdu_ready_by_entry),
+        .ack_one_hot(issue_mdu_one_hot_by_entry),
+        .ack_mask(issue_mdu_mask)
     );
 
     // mux
     always_comb begin
 
         // issue automatically valid if any entry ready
-        issue_mul_div_valid = |issue_mul_div_ready_by_entry;
+        issue_mdu_valid = |issue_mdu_ready_by_entry;
 
         // one-hot mux over entries for final issue:
-        issue_mul_div_op = '0;
-        issue_mul_div_A_forward = '0;
-        issue_mul_div_A_bank = '0;
-        issue_mul_div_B_forward = '0;
-        issue_mul_div_B_bank = '0;
-        issue_mul_div_dest_PR = '0;
-        issue_mul_div_ROB_index = '0;
+        issue_mdu_op = '0;
+        issue_mdu_A_forward = '0;
+        issue_mdu_A_bank = '0;
+        issue_mdu_B_forward = '0;
+        issue_mdu_B_bank = '0;
+        issue_mdu_dest_PR = '0;
+        issue_mdu_ROB_index = '0;
 
-        PRF_mul_div_req_A_valid = '0;
-        PRF_mul_div_req_A_PR = '0;
-        PRF_mul_div_req_B_valid = '0;
-        PRF_mul_div_req_B_PR = '0;
+        PRF_mdu_req_A_valid = '0;
+        PRF_mdu_req_A_PR = '0;
+        PRF_mdu_req_B_valid = '0;
+        PRF_mdu_req_B_PR = '0;
 
         for (int entry = 0; entry < ALU_REG_MDU_IQ_ENTRIES; entry++) begin
 
-            issue_mul_div_op |= op_by_entry[entry] 
-                & {4{issue_mul_div_one_hot_by_entry[entry]}};
+            issue_mdu_op |= op_by_entry[entry] 
+                & {4{issue_mdu_one_hot_by_entry[entry]}};
 
-            issue_mul_div_A_forward |= A_forward_by_entry[entry] 
-                & issue_mul_div_one_hot_by_entry[entry];
+            issue_mdu_A_forward |= A_forward_by_entry[entry] 
+                & issue_mdu_one_hot_by_entry[entry];
 
-            issue_mul_div_A_bank |= A_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0] 
-                & {LOG_PRF_BANK_COUNT{issue_mul_div_one_hot_by_entry[entry]}};
+            issue_mdu_A_bank |= A_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0] 
+                & {LOG_PRF_BANK_COUNT{issue_mdu_one_hot_by_entry[entry]}};
 
-            issue_mul_div_B_forward |= B_forward_by_entry[entry] 
-                & issue_mul_div_one_hot_by_entry[entry];
+            issue_mdu_B_forward |= B_forward_by_entry[entry] 
+                & issue_mdu_one_hot_by_entry[entry];
 
-            issue_mul_div_B_bank |= B_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0] 
-                & {LOG_PRF_BANK_COUNT{issue_mul_div_one_hot_by_entry[entry]}};
+            issue_mdu_B_bank |= B_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0] 
+                & {LOG_PRF_BANK_COUNT{issue_mdu_one_hot_by_entry[entry]}};
 
-            issue_mul_div_dest_PR |= dest_PR_by_entry[entry] 
-                & {LOG_PR_COUNT{issue_mul_div_one_hot_by_entry[entry]}};
+            issue_mdu_dest_PR |= dest_PR_by_entry[entry] 
+                & {LOG_PR_COUNT{issue_mdu_one_hot_by_entry[entry]}};
 
-            issue_mul_div_ROB_index |= ROB_index_by_entry[entry] 
-                & {LOG_ROB_ENTRIES{issue_mul_div_one_hot_by_entry[entry]}};
+            issue_mdu_ROB_index |= ROB_index_by_entry[entry] 
+                & {LOG_ROB_ENTRIES{issue_mdu_one_hot_by_entry[entry]}};
 
-            PRF_mul_div_req_A_valid |= ~A_forward_by_entry[entry] 
-                & issue_mul_div_one_hot_by_entry[entry];
+            PRF_mdu_req_A_valid |= ~A_forward_by_entry[entry] 
+                & issue_mdu_one_hot_by_entry[entry];
                 
-            PRF_mul_div_req_A_PR |= A_PR_by_entry[entry] 
-                & {LOG_PR_COUNT{issue_mul_div_one_hot_by_entry[entry]}};
+            PRF_mdu_req_A_PR |= A_PR_by_entry[entry] 
+                & {LOG_PR_COUNT{issue_mdu_one_hot_by_entry[entry]}};
 
-            PRF_mul_div_req_B_valid |= ~B_forward_by_entry[entry] 
-                & issue_mul_div_one_hot_by_entry[entry];
+            PRF_mdu_req_B_valid |= ~B_forward_by_entry[entry] 
+                & issue_mdu_one_hot_by_entry[entry];
 
-            PRF_mul_div_req_B_PR |= B_PR_by_entry[entry] 
-                & {LOG_PR_COUNT{issue_mul_div_one_hot_by_entry[entry]}};
+            PRF_mdu_req_B_PR |= B_PR_by_entry[entry] 
+                & {LOG_PR_COUNT{issue_mdu_one_hot_by_entry[entry]}};
         end
     end
 
@@ -284,7 +284,7 @@ module alu_reg_mdu_iq #(
     // cascaded dispatch mask PQ's by way:
 
     // way 0
-    assign dispatch_open_mask_by_way[0] = ~(valid_alu_reg_by_entry | valid_mul_div_by_entry);
+    assign dispatch_open_mask_by_way[0] = ~(valid_alu_reg_by_entry | valid_mdu_by_entry);
     pq_lsb #(.WIDTH(ALU_REG_MDU_IQ_ENTRIES)) DISPATCH_WAY0_PQ_LSB (
         .req_vec(dispatch_open_mask_by_way[0]),
         .ack_one_hot(dispatch_pq_one_hot_by_way[0]),
@@ -328,7 +328,7 @@ module alu_reg_mdu_iq #(
     always_comb begin
     
         dispatch_valid_alu_reg_by_entry = '0;
-        dispatch_valid_mul_div_by_entry = '0;
+        dispatch_valid_mdu_by_entry = '0;
         dispatch_op_by_entry = '0;
         dispatch_A_PR_by_entry = '0;
         dispatch_A_ready_by_entry = '0;
@@ -345,7 +345,7 @@ module alu_reg_mdu_iq #(
                 dispatch_valid_alu_reg_by_entry[entry] |= dispatch_valid_alu_reg_by_way[way]
                     & dispatch_one_hot_by_way[way][entry];
 
-                dispatch_valid_mul_div_by_entry[entry] |= dispatch_valid_mul_div_by_way[way]
+                dispatch_valid_mdu_by_entry[entry] |= dispatch_valid_mdu_by_way[way]
                     & dispatch_one_hot_by_way[way][entry];
 
                 dispatch_op_by_entry[entry] |= dispatch_op_by_way[way]
@@ -375,7 +375,7 @@ module alu_reg_mdu_iq #(
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             valid_alu_reg_by_entry <= '0;
-            valid_mul_div_by_entry <= '0;
+            valid_mdu_by_entry <= '0;
             op_by_entry <= '0;
             A_PR_by_entry <= '0;
             A_ready_by_entry <= '0;
@@ -391,18 +391,18 @@ module alu_reg_mdu_iq #(
                 // self: [ALU_REG_MDU_IQ_ENTRIES-1]
 
             // check take above or 2 above -> clear entry
-            if (issue_alu_reg_mask[ALU_REG_MDU_IQ_ENTRIES-1] | issue_mul_div_mask[ALU_REG_MDU_IQ_ENTRIES-1]) begin
+            if (issue_alu_reg_mask[ALU_REG_MDU_IQ_ENTRIES-1] | issue_mdu_mask[ALU_REG_MDU_IQ_ENTRIES-1]) begin
                 valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] <= 1'b0;
-                valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] <= 1'b0;
+                valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] <= 1'b0;
             end
 
             // otherwise take self
             else begin
 
                 // take self valid entry
-                if (valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] | valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-1]) begin
+                if (valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] | valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-1]) begin
                     valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] <= valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
-                    valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] <= valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
+                    valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] <= valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
                     op_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] <= op_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
                     A_PR_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] <= A_PR_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
                     A_ready_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] <= A_ready_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] | A_forward_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
@@ -415,7 +415,7 @@ module alu_reg_mdu_iq #(
                 // take self dispatch
                 else begin
                     valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] <= dispatch_valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
-                    valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] <= dispatch_valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
+                    valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] <= dispatch_valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
                     op_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] <= dispatch_op_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
                     A_PR_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] <= dispatch_A_PR_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
                     A_ready_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] <= dispatch_A_ready_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
@@ -433,21 +433,21 @@ module alu_reg_mdu_iq #(
 
             // check take 2 above -> clear entry
             if (
-                issue_alu_reg_mask[ALU_REG_MDU_IQ_ENTRIES-2] & issue_mul_div_mask[ALU_REG_MDU_IQ_ENTRIES-1]
+                issue_alu_reg_mask[ALU_REG_MDU_IQ_ENTRIES-2] & issue_mdu_mask[ALU_REG_MDU_IQ_ENTRIES-1]
                 |
-                issue_alu_reg_mask[ALU_REG_MDU_IQ_ENTRIES-1] & issue_mul_div_mask[ALU_REG_MDU_IQ_ENTRIES-2]
+                issue_alu_reg_mask[ALU_REG_MDU_IQ_ENTRIES-1] & issue_mdu_mask[ALU_REG_MDU_IQ_ENTRIES-2]
             ) begin
                 valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= 1'b0;
-                valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= 1'b0;
+                valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= 1'b0;
             end
 
             // check take above
-            else if (issue_alu_reg_mask[ALU_REG_MDU_IQ_ENTRIES-2] | issue_mul_div_mask[ALU_REG_MDU_IQ_ENTRIES-2]) begin
+            else if (issue_alu_reg_mask[ALU_REG_MDU_IQ_ENTRIES-2] | issue_mdu_mask[ALU_REG_MDU_IQ_ENTRIES-2]) begin
 
                 // take valid entry above
-                if (valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] | valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-1]) begin
+                if (valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] | valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-1]) begin
                     valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
-                    valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
+                    valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
                     op_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= op_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
                     A_PR_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= A_PR_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
                     A_ready_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= A_ready_by_entry[ALU_REG_MDU_IQ_ENTRIES-1] | A_forward_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
@@ -460,7 +460,7 @@ module alu_reg_mdu_iq #(
                 // take dispatch above
                 else begin
                     valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= dispatch_valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
-                    valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= dispatch_valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
+                    valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= dispatch_valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
                     op_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= dispatch_op_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
                     A_PR_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= dispatch_A_PR_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
                     A_ready_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= dispatch_A_ready_by_entry[ALU_REG_MDU_IQ_ENTRIES-1];
@@ -475,9 +475,9 @@ module alu_reg_mdu_iq #(
             else begin
 
                 // take self valid entry
-                if (valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] | valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-2]) begin
+                if (valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] | valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-2]) begin
                     valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-2];
-                    valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-2];
+                    valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-2];
                     op_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= op_by_entry[ALU_REG_MDU_IQ_ENTRIES-2];
                     A_PR_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= A_PR_by_entry[ALU_REG_MDU_IQ_ENTRIES-2];
                     A_ready_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= A_ready_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] | A_forward_by_entry[ALU_REG_MDU_IQ_ENTRIES-2];
@@ -490,7 +490,7 @@ module alu_reg_mdu_iq #(
                 // take self dispatch
                 else begin
                     valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= dispatch_valid_alu_reg_by_entry[ALU_REG_MDU_IQ_ENTRIES-2];
-                    valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= dispatch_valid_mul_div_by_entry[ALU_REG_MDU_IQ_ENTRIES-2];
+                    valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= dispatch_valid_mdu_by_entry[ALU_REG_MDU_IQ_ENTRIES-2];
                     op_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= dispatch_op_by_entry[ALU_REG_MDU_IQ_ENTRIES-2];
                     A_PR_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= dispatch_A_PR_by_entry[ALU_REG_MDU_IQ_ENTRIES-2];
                     A_ready_by_entry[ALU_REG_MDU_IQ_ENTRIES-2] <= dispatch_A_ready_by_entry[ALU_REG_MDU_IQ_ENTRIES-2];
@@ -509,15 +509,15 @@ module alu_reg_mdu_iq #(
 
                 // check take 2 above
                 if (
-                    issue_alu_reg_mask[i] & issue_mul_div_mask[i+1]
+                    issue_alu_reg_mask[i] & issue_mdu_mask[i+1]
                     |
-                    issue_alu_reg_mask[i+1] & issue_mul_div_mask[i]
+                    issue_alu_reg_mask[i+1] & issue_mdu_mask[i]
                 ) begin
 
                     // take valid entry 2 above
-                    if (valid_alu_reg_by_entry[i+2] | valid_mul_div_by_entry[i+2]) begin
+                    if (valid_alu_reg_by_entry[i+2] | valid_mdu_by_entry[i+2]) begin
                         valid_alu_reg_by_entry[i] <= valid_alu_reg_by_entry[i+2];
-                        valid_mul_div_by_entry[i] <= valid_mul_div_by_entry[i+2];
+                        valid_mdu_by_entry[i] <= valid_mdu_by_entry[i+2];
                         op_by_entry[i] <= op_by_entry[i+2];
                         A_PR_by_entry[i] <= A_PR_by_entry[i+2];
                         A_ready_by_entry[i] <= A_ready_by_entry[i+2] | A_forward_by_entry[i+2];
@@ -530,7 +530,7 @@ module alu_reg_mdu_iq #(
                     // take dispatch 2 above
                     else begin
                         valid_alu_reg_by_entry[i] <= dispatch_valid_alu_reg_by_entry[i+2];
-                        valid_mul_div_by_entry[i] <= dispatch_valid_mul_div_by_entry[i+2];
+                        valid_mdu_by_entry[i] <= dispatch_valid_mdu_by_entry[i+2];
                         op_by_entry[i] <= dispatch_op_by_entry[i+2];
                         A_PR_by_entry[i] <= dispatch_A_PR_by_entry[i+2];
                         A_ready_by_entry[i] <= dispatch_A_ready_by_entry[i+2];
@@ -542,12 +542,12 @@ module alu_reg_mdu_iq #(
                 end
 
                 // check take above
-                else if (issue_alu_reg_mask[i] | issue_mul_div_mask[i]) begin
+                else if (issue_alu_reg_mask[i] | issue_mdu_mask[i]) begin
 
                     // take valid entry above
-                    if (valid_alu_reg_by_entry[i+1] | valid_mul_div_by_entry[i+1]) begin
+                    if (valid_alu_reg_by_entry[i+1] | valid_mdu_by_entry[i+1]) begin
                         valid_alu_reg_by_entry[i] <= valid_alu_reg_by_entry[i+1];
-                        valid_mul_div_by_entry[i] <= valid_mul_div_by_entry[i+1];
+                        valid_mdu_by_entry[i] <= valid_mdu_by_entry[i+1];
                         op_by_entry[i] <= op_by_entry[i+1];
                         A_PR_by_entry[i] <= A_PR_by_entry[i+1];
                         A_ready_by_entry[i] <= A_ready_by_entry[i+1] | A_forward_by_entry[i+1];
@@ -560,7 +560,7 @@ module alu_reg_mdu_iq #(
                     // take dispatch above
                     else begin
                         valid_alu_reg_by_entry[i] <= dispatch_valid_alu_reg_by_entry[i+1];
-                        valid_mul_div_by_entry[i] <= dispatch_valid_mul_div_by_entry[i+1];
+                        valid_mdu_by_entry[i] <= dispatch_valid_mdu_by_entry[i+1];
                         op_by_entry[i] <= dispatch_op_by_entry[i+1];
                         A_PR_by_entry[i] <= dispatch_A_PR_by_entry[i+1];
                         A_ready_by_entry[i] <= dispatch_A_ready_by_entry[i+1];
@@ -575,9 +575,9 @@ module alu_reg_mdu_iq #(
                 else begin
 
                     // take self valid entry
-                    if (valid_alu_reg_by_entry[i] | valid_mul_div_by_entry[i]) begin
+                    if (valid_alu_reg_by_entry[i] | valid_mdu_by_entry[i]) begin
                         valid_alu_reg_by_entry[i] <= valid_alu_reg_by_entry[i];
-                        valid_mul_div_by_entry[i] <= valid_mul_div_by_entry[i];
+                        valid_mdu_by_entry[i] <= valid_mdu_by_entry[i];
                         op_by_entry[i] <= op_by_entry[i];
                         A_PR_by_entry[i] <= A_PR_by_entry[i];
                         A_ready_by_entry[i] <= A_ready_by_entry[i] | A_forward_by_entry[i];
@@ -590,7 +590,7 @@ module alu_reg_mdu_iq #(
                     // take self dispatch
                     else begin
                         valid_alu_reg_by_entry[i] <= dispatch_valid_alu_reg_by_entry[i];
-                        valid_mul_div_by_entry[i] <= dispatch_valid_mul_div_by_entry[i];
+                        valid_mdu_by_entry[i] <= dispatch_valid_mdu_by_entry[i];
                         op_by_entry[i] <= dispatch_op_by_entry[i];
                         A_PR_by_entry[i] <= dispatch_A_PR_by_entry[i];
                         A_ready_by_entry[i] <= dispatch_A_ready_by_entry[i];

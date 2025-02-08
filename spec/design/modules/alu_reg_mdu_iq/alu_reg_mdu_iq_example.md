@@ -8,7 +8,7 @@
 Examples:
 - 5: ADD p7, p2:n, p3:r
     - dispatch_valid_alu_reg_by_way[way] = 1
-    - dispatch_valid_mul_div_by_way[way] = 0
+    - dispatch_valid_mdu_by_way[way] = 0
     - dispatch_op_by_way[way] = 4'b0000
     - dispatch_A_PR_by_way[way] = 2
     - dispatch_A_ready_by_way[way] = 0
@@ -18,7 +18,7 @@ Examples:
     - dispatch_ROB_index_by_way[way] = 5
 - 11: REM p23, p16:r, p20:f
     - dispatch_valid_alu_reg_by_way[way] = 0
-    - dispatch_valid_mul_div_by_way[way] = 1
+    - dispatch_valid_mdu_by_way[way] = 1
     - dispatch_op_by_way[way] = 4'b0110
     - dispatch_A_PR_by_way[way] = 16
     - dispatch_A_ready_by_way[way] = 1

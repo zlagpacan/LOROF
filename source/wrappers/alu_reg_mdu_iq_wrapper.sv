@@ -19,7 +19,7 @@ module alu_reg_mdu_iq_wrapper (
     // op dispatch by way
 	input logic [3:0] next_dispatch_attempt_by_way,
 	input logic [3:0] next_dispatch_valid_alu_reg_by_way,
-	input logic [3:0] next_dispatch_valid_mul_div_by_way,
+	input logic [3:0] next_dispatch_valid_mdu_by_way,
 	input logic [3:0][3:0] next_dispatch_op_by_way,
 	input logic [3:0][LOG_PR_COUNT-1:0] next_dispatch_A_PR_by_way,
 	input logic [3:0] next_dispatch_A_ready_by_way,
@@ -33,7 +33,7 @@ module alu_reg_mdu_iq_wrapper (
 
     // pipeline feedback
 	input logic next_alu_reg_pipeline_ready,
-	input logic next_mul_div_pipeline_ready,
+	input logic next_mdu_pipeline_ready,
 
     // writeback bus by bank
 	input logic [PRF_BANK_COUNT-1:0] next_WB_bus_valid_by_bank,
@@ -56,20 +56,20 @@ module alu_reg_mdu_iq_wrapper (
 	output logic [LOG_PR_COUNT-1:0] last_PRF_alu_reg_req_B_PR,
 
     // op issue to Mul-Div Pipeline
-	output logic last_issue_mul_div_valid,
-	output logic [3:0] last_issue_mul_div_op,
-	output logic last_issue_mul_div_A_forward,
-	output logic [LOG_PRF_BANK_COUNT-1:0] last_issue_mul_div_A_bank,
-	output logic last_issue_mul_div_B_forward,
-	output logic [LOG_PRF_BANK_COUNT-1:0] last_issue_mul_div_B_bank,
-	output logic [LOG_PR_COUNT-1:0] last_issue_mul_div_dest_PR,
-	output logic [LOG_ROB_ENTRIES-1:0] last_issue_mul_div_ROB_index,
+	output logic last_issue_mdu_valid,
+	output logic [3:0] last_issue_mdu_op,
+	output logic last_issue_mdu_A_forward,
+	output logic [LOG_PRF_BANK_COUNT-1:0] last_issue_mdu_A_bank,
+	output logic last_issue_mdu_B_forward,
+	output logic [LOG_PRF_BANK_COUNT-1:0] last_issue_mdu_B_bank,
+	output logic [LOG_PR_COUNT-1:0] last_issue_mdu_dest_PR,
+	output logic [LOG_ROB_ENTRIES-1:0] last_issue_mdu_ROB_index,
 
     // Mul-Div Pipeline reg read req to PRF
-	output logic last_PRF_mul_div_req_A_valid,
-	output logic [LOG_PR_COUNT-1:0] last_PRF_mul_div_req_A_PR,
-	output logic last_PRF_mul_div_req_B_valid,
-	output logic [LOG_PR_COUNT-1:0] last_PRF_mul_div_req_B_PR
+	output logic last_PRF_mdu_req_A_valid,
+	output logic [LOG_PR_COUNT-1:0] last_PRF_mdu_req_A_PR,
+	output logic last_PRF_mdu_req_B_valid,
+	output logic [LOG_PR_COUNT-1:0] last_PRF_mdu_req_B_PR
 );
 
     // ----------------------------------------------------------------
@@ -78,7 +78,7 @@ module alu_reg_mdu_iq_wrapper (
     // op dispatch by way
 	logic [3:0] dispatch_attempt_by_way;
 	logic [3:0] dispatch_valid_alu_reg_by_way;
-	logic [3:0] dispatch_valid_mul_div_by_way;
+	logic [3:0] dispatch_valid_mdu_by_way;
 	logic [3:0][3:0] dispatch_op_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] dispatch_A_PR_by_way;
 	logic [3:0] dispatch_A_ready_by_way;
@@ -92,7 +92,7 @@ module alu_reg_mdu_iq_wrapper (
 
     // pipeline feedback
 	logic alu_reg_pipeline_ready;
-	logic mul_div_pipeline_ready;
+	logic mdu_pipeline_ready;
 
     // writeback bus by bank
 	logic [PRF_BANK_COUNT-1:0] WB_bus_valid_by_bank;
@@ -115,20 +115,20 @@ module alu_reg_mdu_iq_wrapper (
 	logic [LOG_PR_COUNT-1:0] PRF_alu_reg_req_B_PR;
 
     // op issue to Mul-Div Pipeline
-	logic issue_mul_div_valid;
-	logic [3:0] issue_mul_div_op;
-	logic issue_mul_div_A_forward;
-	logic [LOG_PRF_BANK_COUNT-1:0] issue_mul_div_A_bank;
-	logic issue_mul_div_B_forward;
-	logic [LOG_PRF_BANK_COUNT-1:0] issue_mul_div_B_bank;
-	logic [LOG_PR_COUNT-1:0] issue_mul_div_dest_PR;
-	logic [LOG_ROB_ENTRIES-1:0] issue_mul_div_ROB_index;
+	logic issue_mdu_valid;
+	logic [3:0] issue_mdu_op;
+	logic issue_mdu_A_forward;
+	logic [LOG_PRF_BANK_COUNT-1:0] issue_mdu_A_bank;
+	logic issue_mdu_B_forward;
+	logic [LOG_PRF_BANK_COUNT-1:0] issue_mdu_B_bank;
+	logic [LOG_PR_COUNT-1:0] issue_mdu_dest_PR;
+	logic [LOG_ROB_ENTRIES-1:0] issue_mdu_ROB_index;
 
     // Mul-Div Pipeline reg read req to PRF
-	logic PRF_mul_div_req_A_valid;
-	logic [LOG_PR_COUNT-1:0] PRF_mul_div_req_A_PR;
-	logic PRF_mul_div_req_B_valid;
-	logic [LOG_PR_COUNT-1:0] PRF_mul_div_req_B_PR;
+	logic PRF_mdu_req_A_valid;
+	logic [LOG_PR_COUNT-1:0] PRF_mdu_req_A_PR;
+	logic PRF_mdu_req_B_valid;
+	logic [LOG_PR_COUNT-1:0] PRF_mdu_req_B_PR;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -144,7 +144,7 @@ module alu_reg_mdu_iq_wrapper (
 		    // op dispatch by way
 			dispatch_attempt_by_way <= '0;
 			dispatch_valid_alu_reg_by_way <= '0;
-			dispatch_valid_mul_div_by_way <= '0;
+			dispatch_valid_mdu_by_way <= '0;
 			dispatch_op_by_way <= '0;
 			dispatch_A_PR_by_way <= '0;
 			dispatch_A_ready_by_way <= '0;
@@ -158,7 +158,7 @@ module alu_reg_mdu_iq_wrapper (
 
 		    // pipeline feedback
 			alu_reg_pipeline_ready <= '0;
-			mul_div_pipeline_ready <= '0;
+			mdu_pipeline_ready <= '0;
 
 		    // writeback bus by bank
 			WB_bus_valid_by_bank <= '0;
@@ -181,27 +181,27 @@ module alu_reg_mdu_iq_wrapper (
 			last_PRF_alu_reg_req_B_PR <= '0;
 
 		    // op issue to Mul-Div Pipeline
-			last_issue_mul_div_valid <= '0;
-			last_issue_mul_div_op <= '0;
-			last_issue_mul_div_A_forward <= '0;
-			last_issue_mul_div_A_bank <= '0;
-			last_issue_mul_div_B_forward <= '0;
-			last_issue_mul_div_B_bank <= '0;
-			last_issue_mul_div_dest_PR <= '0;
-			last_issue_mul_div_ROB_index <= '0;
+			last_issue_mdu_valid <= '0;
+			last_issue_mdu_op <= '0;
+			last_issue_mdu_A_forward <= '0;
+			last_issue_mdu_A_bank <= '0;
+			last_issue_mdu_B_forward <= '0;
+			last_issue_mdu_B_bank <= '0;
+			last_issue_mdu_dest_PR <= '0;
+			last_issue_mdu_ROB_index <= '0;
 
 		    // Mul-Div Pipeline reg read req to PRF
-			last_PRF_mul_div_req_A_valid <= '0;
-			last_PRF_mul_div_req_A_PR <= '0;
-			last_PRF_mul_div_req_B_valid <= '0;
-			last_PRF_mul_div_req_B_PR <= '0;
+			last_PRF_mdu_req_A_valid <= '0;
+			last_PRF_mdu_req_A_PR <= '0;
+			last_PRF_mdu_req_B_valid <= '0;
+			last_PRF_mdu_req_B_PR <= '0;
         end
         else begin
 
 		    // op dispatch by way
 			dispatch_attempt_by_way <= next_dispatch_attempt_by_way;
 			dispatch_valid_alu_reg_by_way <= next_dispatch_valid_alu_reg_by_way;
-			dispatch_valid_mul_div_by_way <= next_dispatch_valid_mul_div_by_way;
+			dispatch_valid_mdu_by_way <= next_dispatch_valid_mdu_by_way;
 			dispatch_op_by_way <= next_dispatch_op_by_way;
 			dispatch_A_PR_by_way <= next_dispatch_A_PR_by_way;
 			dispatch_A_ready_by_way <= next_dispatch_A_ready_by_way;
@@ -215,7 +215,7 @@ module alu_reg_mdu_iq_wrapper (
 
 		    // pipeline feedback
 			alu_reg_pipeline_ready <= next_alu_reg_pipeline_ready;
-			mul_div_pipeline_ready <= next_mul_div_pipeline_ready;
+			mdu_pipeline_ready <= next_mdu_pipeline_ready;
 
 		    // writeback bus by bank
 			WB_bus_valid_by_bank <= next_WB_bus_valid_by_bank;
@@ -238,20 +238,20 @@ module alu_reg_mdu_iq_wrapper (
 			last_PRF_alu_reg_req_B_PR <= PRF_alu_reg_req_B_PR;
 
 		    // op issue to Mul-Div Pipeline
-			last_issue_mul_div_valid <= issue_mul_div_valid;
-			last_issue_mul_div_op <= issue_mul_div_op;
-			last_issue_mul_div_A_forward <= issue_mul_div_A_forward;
-			last_issue_mul_div_A_bank <= issue_mul_div_A_bank;
-			last_issue_mul_div_B_forward <= issue_mul_div_B_forward;
-			last_issue_mul_div_B_bank <= issue_mul_div_B_bank;
-			last_issue_mul_div_dest_PR <= issue_mul_div_dest_PR;
-			last_issue_mul_div_ROB_index <= issue_mul_div_ROB_index;
+			last_issue_mdu_valid <= issue_mdu_valid;
+			last_issue_mdu_op <= issue_mdu_op;
+			last_issue_mdu_A_forward <= issue_mdu_A_forward;
+			last_issue_mdu_A_bank <= issue_mdu_A_bank;
+			last_issue_mdu_B_forward <= issue_mdu_B_forward;
+			last_issue_mdu_B_bank <= issue_mdu_B_bank;
+			last_issue_mdu_dest_PR <= issue_mdu_dest_PR;
+			last_issue_mdu_ROB_index <= issue_mdu_ROB_index;
 
 		    // Mul-Div Pipeline reg read req to PRF
-			last_PRF_mul_div_req_A_valid <= PRF_mul_div_req_A_valid;
-			last_PRF_mul_div_req_A_PR <= PRF_mul_div_req_A_PR;
-			last_PRF_mul_div_req_B_valid <= PRF_mul_div_req_B_valid;
-			last_PRF_mul_div_req_B_PR <= PRF_mul_div_req_B_PR;
+			last_PRF_mdu_req_A_valid <= PRF_mdu_req_A_valid;
+			last_PRF_mdu_req_A_PR <= PRF_mdu_req_A_PR;
+			last_PRF_mdu_req_B_valid <= PRF_mdu_req_B_valid;
+			last_PRF_mdu_req_B_PR <= PRF_mdu_req_B_PR;
         end
     end
 
