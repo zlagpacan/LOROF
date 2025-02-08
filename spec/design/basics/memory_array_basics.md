@@ -6,6 +6,9 @@ Memory arrays are used to minimize the area taken up by regularly organized and 
 Below are some classes of memories that are useful for processor design:
 
 ### RAM
+
+<img src="ram_simple.png" alt="RAM Diagram" width="250">
+
 - Random Access Memory
 - RAMs essentially implement indexed tables of memory
 - RAMs are read via one or more read ports which read the value at a given read index
@@ -13,6 +16,9 @@ Below are some classes of memories that are useful for processor design:
     - a single read/write port is also possible as in e.g. 6T SRAM
 
 ### CAM
+
+<img src="cam_simple.png" alt="CAM Diagram" width="300">
+
 - Content Addressable Memory
 - given a search key, a CAM returns any entries in the memory which match the search key
 - CAMs are useful for associative data arrays which need tag checks, or dependence checking of e.g. loads on stores to a matching address
@@ -20,6 +26,9 @@ Below are some classes of memories that are useful for processor design:
 - CAMs are usually written to using a single write index at a time
 
 ### FIFO
+
+<img src="fifo_simple.png" alt="FIFO Diagram" width="200">
+
 - First-In, First-Out
 - in-order queue/buffer/FIFO
 - FIFOs can be modeled as a RAM with a simple incrementing read index and a simple incrementing write index
@@ -33,6 +42,9 @@ Below are some classes of memories that are useful for processor design:
         - essentially, 
 
 ### LIFO
+
+<img src="lifo_simple.png" alt="LIFO Diagram" width="150">
+
 - Last-In, First-Out
 - reverse-order stack/LIFO
 - LIFOs can be modeled as a RAM with a single simple incrementing or decrementing read/write index/TOS (Top-Of-Stack)
