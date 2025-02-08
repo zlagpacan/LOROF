@@ -384,6 +384,7 @@ see [prf_example.md](prf_example.md)
 
 
 # Test Ideas and Coverpoints
+- read arbitration and write arbitration are independent operations (except for the fact that write values propagate to be seen by reads), but they should be rigorously tested simultaneously
 - this module is pretty tough due to the specific bank conflict arbitration rules. if it is a significant pain, specific round-robin rules don't have to be precisely tested, but instead that all bank conflicts are handled (i.e. no requests to a bank are lost) and the upper bound on response time is not surpassed
     - this could be like initiating a set of requests per bank, and expecting for one request per bank to finish per cycle, but the order in which the requests in the set are completed doesn't matter, as long as all requests are complete before the upper bound
     - read request upper bound: 6 cycles
