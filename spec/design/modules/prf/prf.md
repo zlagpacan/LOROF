@@ -1,6 +1,7 @@
 # prf
 - Physical Register File
-- example operation: [prf_example.md](prf_example.md)
+- see [memory_array_basics.md](../../basics/memory_array_basics.md) for information on memory arrays
+- see [reg_rename_basics.md](../../basics/reg_rename_basics.md) for the reasoning behind having a physical register file
 - 128x 32-bit physical registers
     - physical registers themselves are implemented as Distributed RAM
 - 4x banks
@@ -397,3 +398,9 @@ see [prf_example.md](prf_example.md)
         - 6x write requests in round robin before the last request
         - 1x write request completed per cycle
         - 6 cycles + 1 latched cycle
+- essentially, I see 2 approaches to verifying the prf. I think both ought to be used:
+    - low-level approach
+        - meticulously test cycle-accurate arbitration functionalities for a small, tractable number of cases
+    - high-level approach
+        - hammer the heck out of the prf with all kinds of scenarios. only test that upper bound response times are never violated
+            - and of course test expected values are retrieved when the responses come

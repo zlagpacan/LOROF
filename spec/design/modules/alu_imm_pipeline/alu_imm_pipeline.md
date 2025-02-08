@@ -2,7 +2,7 @@
 - backend functional unit for ALU register-immediate operations
     - R[dest] <= R[A] op imm
         - see [Targeted Instructions](#targeted-instructions)
-    - see [core_basics.md](../basics/core_basics.md) for the basic purpose of a functional unit in the backend of the core
+    - see [core_basics.md](../../basics/core_basics.md) for the basic purpose of a functional unit in the backend of the core
 - example operation: [alu_imm_pipeline_example.md](alu_imm_pipeline_example.md)
 - receives issued ALU imm operations, collects the register operand data value, performs the ALU operation, and writes the data back to the PRF
 - pipelined with issue, operand collection, execute, and writeback stages
