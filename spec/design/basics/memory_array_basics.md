@@ -59,18 +59,31 @@ Below are some classes of memories that are useful for processor design:
 
 
 # RAM Tricks
-Due to the greatly limited functionality constraints of RAM technologies, most notably access bandwidth constraints, tricks must be played to increase RAM bandwidth.
+Due to the greatly limited functionality constraints of RAM technologies, most notably access bandwidth constraints, tricks must be played to increase RAM bandwidth. Some of these tricks are composable with other tricks.
+- the LOROF prf uses replication and banking
 
 ### Ports
+
+<img src="ports_simple.png" alt="Ports Diagram" width="200">
+
 A port is a fully-independent (or independent enough--there can be disallowing of ports having the same index at a given time) read and/or write index into a RAM array. RAM technologies typically only natively support a single read/write port, or 1 read port and 1 write port. This is a massive limiter to access bandwidth.
 
 ### Multi-Porting
+
+<img src="multi_porting_simple.png" alt="Multi-Porting Diagram" width="250">
+
 Custom RAMs can implement additional independent ports. SRAM technology can implement multi-porting, albeit with O(n^2) growing area and power cost in adding ports. 
 
 ### Replication
+
+<img src="replication_simple.png" alt="Replication Diagram" width="200">
+
 RAM arrays can be replicated to increase read ports at O(n) growing area and power cost. Each replicate of the array has an independent read port, and the write ports of each array is used to perform a single write at a time to all replicates. 
 
 ### Banking
+
+<img src="banking_simple.png" alt="Banking Diagram" width="200">
+
 A large memory array can be split up into banks, which are mutually-exclusive subsets of the entries in the larger merged, logical array. Each bank can then be implemented as its own RAM, therefore increasing the read AND write ports, as long as there are no bank conflicts. 
 
 Just as there would be conflicts if a regular RAM had more read and/or write requests than read and/or write ports, bank conflicts occur when there are more read and/or write requests than read and/or write ports for the bank. In the case of a conflict, the requests must be stalled and serviced serially, limiting the potential bandwidth. A banked implementation of a RAM array can approach a bankwise multiplication in access bandwidth if bank conflicts are minimized. Bank conflict minimization simply relies on a good distribution of accesses among banks. With a good, naturally-uniformly-accessed RAM array, this can be as simple as assigning banks following bits in the access index. 
