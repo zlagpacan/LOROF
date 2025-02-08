@@ -1,8 +1,8 @@
 /*
-    Filename: alu_reg_md_iq_tb.sv
+    Filename: alu_reg_mdu_iq_tb.sv
     Author: zlagpacan
-    Description: Testbench for alu_reg_md_iq module. 
-    Spec: LOROF/spec/design/alu_reg_md_iq.md
+    Description: Testbench for alu_reg_mdu_iq module. 
+    Spec: LOROF/spec/design/alu_reg_mdu_iq.md
 */
 
 `timescale 1ns/100ps
@@ -10,7 +10,7 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module alu_reg_md_iq_tb ();
+module alu_reg_mdu_iq_tb ();
 
     // ----------------------------------------------------------------
     // TB setup:
@@ -92,8 +92,8 @@ module alu_reg_md_iq_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	alu_reg_md_iq #(
-        .ALU_REG_MD_IQ_ENTRIES(12)
+	alu_reg_mdu_iq #(
+        .ALU_REG_MDU_IQ_ENTRIES(12)
     ) DUT (
 		// seq
 		.CLK(CLK),

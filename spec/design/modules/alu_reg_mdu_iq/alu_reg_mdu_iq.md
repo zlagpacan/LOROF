@@ -1,8 +1,8 @@
-# alu_reg_md_iq
+# alu_reg_mdu_iq
 - backend issue queue for ALU Register-Register Pipeline and Mul-Div Pipeline
     - see [core_basics.md](../../basics/core_basics.md) for the basic purpose of an issue queue in the backend of the core
     - see [iq_basics.md](../../basics/iq_basics.md) for the basic function of an issue queue
-- example operation: [alu_reg_md_iq_example.md](alu_reg_md_iq_example.md)
+- example operation: [alu_reg_mdu_iq_example.md](alu_reg_mdu_iq_example.md)
 - the issue queue buffers dispatched ALU Reg-Reg and Mul-Div ops in oldest-first order, waiting for each op's 2 physical register operands to be ready, independently issuing the oldest ready ALU Reg-Reg op, and the oldest ready Mul-Div op
 - up to 4 ops dispatched into the issue queue per cycle from the 4-way superscalar frontend
     - see the [op dispatch by way](#op-dispatch-by-way) interface
@@ -26,7 +26,7 @@
 
 # RTL Diagram
 
-![alu_reg_md_iq RTL Diagram](alu_reg_md_iq_rtl.png)
+![alu_reg_mdu_iq RTL Diagram](alu_reg_mdu_iq_rtl.png)
 
 
 # Parameters
@@ -36,7 +36,7 @@ The module can be customized with different values for these
 
 Verification should be performed for the default values as given here
 
-- ALU_REG_MD_IQ_ENTRIES = 8
+- ALU_REG_MDU_IQ_ENTRIES = 8
     - designate the number of IQ entries
     - design should be functional for >= 2
 
@@ -471,7 +471,7 @@ output interface
         - effectively, entries that are opened up via issue are only made available next cycle
         - this is done so that there is not a long delay combinational path from pipeline ready all the way back to frontend dispatch
 - when issue is eventually resolved, the existing entries and newly dispatched entries are shifted down as needed to maintain the run of valid entries, oldest to youngest from lowest entry to highest entry
-- these properties are kind of hard to verbalize but are obvious when visualized. see [alu_reg_md_iq_example.md](alu_reg_md_iq_example.md) for a working example
+- these properties are kind of hard to verbalize but are obvious when visualized. see [alu_reg_mdu_iq_example.md](alu_reg_mdu_iq_example.md) for a working example
 
 ## Operand States
 - "forwardable"
@@ -510,7 +510,7 @@ output interface
 
 # Example Operation
 
-see [alu_reg_md_iq_example.md](alu_reg_md_iq_example.md)
+see [alu_reg_mdu_iq_example.md](alu_reg_mdu_iq_example.md)
 
 
 # Assertions

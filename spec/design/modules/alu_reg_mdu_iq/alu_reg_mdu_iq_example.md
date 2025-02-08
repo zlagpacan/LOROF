@@ -1,4 +1,4 @@
-# alu_reg_md_iq Example Operation
+# alu_reg_mdu_iq Example Operation
 
 # Key:
 
@@ -33,4 +33,4 @@ Examples:
 
 # Example Operation
 
-![alu_reg_md_iq Example Operation](alu_reg_md_iq_example.png)
+![alu_reg_mdu_iq Example Operation](alu_reg_mdu_iq_example.png)

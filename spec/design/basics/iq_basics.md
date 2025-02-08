@@ -25,7 +25,7 @@ the general policy of an issue queue is to issue the oldest instruction(s) whose
 
 ## Issue Queues Used
 
-### alu_reg_md_iq
+### alu_reg_mdu_iq
 - accepts ALU register-register, multiplication, and division ops
 - 8-entry
 - out-of-order issue
