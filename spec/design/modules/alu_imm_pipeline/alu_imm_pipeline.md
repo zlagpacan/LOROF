@@ -349,6 +349,8 @@ see [alu_imm_pipeline_example.md](alu_imm_pipeline_example.md)
 
 
 # Targeted Instructions
+
+### ALU Reg-Imm
 - ADDI
     - issue_op = 4'b0000
 - SLLI
@@ -366,4 +368,26 @@ see [alu_imm_pipeline_example.md](alu_imm_pipeline_example.md)
 - ORI
     - issue_op = 4'b0110
 - ANDI
+    - issue_op = 4'b0111
+
+### Compressed ALU Reg-Imm
+- C.ADDI
+    - issue_op = 4'b0000
+- C.LI
+    - issue_op = 4'b0000
+- C.MV
+    - issue_op = 4'b0000
+- C.NOP
+    - issue_op = 4'b0000
+- C.ADDI16SP
+    - issue_op = 4'b0000
+- C.ADDI4SPN
+    - issue_op = 4'b0000
+- C.SLLI
+    - issue_op = 4'b0001
+- C.SRLI
+    - issue_op = 4'b0101
+- C.SRAI
+    - issue_op = 4'b1101
+- C.ANDI
     - issue_op = 4'b0111

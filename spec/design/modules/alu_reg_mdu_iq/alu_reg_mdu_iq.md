@@ -533,3 +533,104 @@ see [alu_reg_mdu_iq_example.md](alu_reg_mdu_iq_example.md)
 - there are sum(i=0,8)2^i = 511 possible combinations of {invalid op, ALU Reg-Reg op, MDU op} per issue queue entry for 8 total issue queue entries. ideally all of these are reached
     - there can be 0-8 valid entries, which must be a run of valid's starting at IQ entry 0
     - each valid entry can be ALU Reg-Reg or MDU
+
+
+# Targeted Instructions
+
+### ALU Reg-Reg
+- ADD
+    - dispatch_valid_alu_reg_by_way[way] = 1'b1
+    - dispatch_valid_mdu_by_way[way] = 1'b0
+    - dispatch_op_by_way[way] = 4'b0000
+- SUB
+    - dispatch_valid_alu_reg_by_way[way] = 1'b1
+    - dispatch_valid_mdu_by_way[way] = 1'b0
+    - dispatch_op_by_way[way] = 4'b1000
+- SLL
+    - dispatch_valid_alu_reg_by_way[way] = 1'b1
+    - dispatch_valid_mdu_by_way[way] = 1'b0
+    - dispatch_op_by_way[way] = 4'b0001
+- SLT
+    - dispatch_valid_alu_reg_by_way[way] = 1'b1
+    - dispatch_valid_mdu_by_way[way] = 1'b0
+    - dispatch_op_by_way[way] = 4'b0010
+- SLTU
+    - dispatch_valid_alu_reg_by_way[way] = 1'b1
+    - dispatch_valid_mdu_by_way[way] = 1'b0
+    - dispatch_op_by_way[way] = 4'b0011
+- XOR
+    - dispatch_valid_alu_reg_by_way[way] = 1'b1
+    - dispatch_valid_mdu_by_way[way] = 1'b0
+    - dispatch_op_by_way[way] = 4'b0100
+- SRL
+    - dispatch_valid_alu_reg_by_way[way] = 1'b1
+    - dispatch_valid_mdu_by_way[way] = 1'b0
+    - dispatch_op_by_way[way] = 4'b0101
+- SRA
+    - dispatch_valid_alu_reg_by_way[way] = 1'b1
+    - dispatch_valid_mdu_by_way[way] = 1'b0
+    - dispatch_op_by_way[way] = 4'b1101
+- OR
+    - dispatch_valid_alu_reg_by_way[way] = 1'b1
+    - dispatch_valid_mdu_by_way[way] = 1'b0
+    - dispatch_op_by_way[way] = 4'b0110
+- AND
+    - dispatch_valid_alu_reg_by_way[way] = 1'b1
+    - dispatch_valid_mdu_by_way[way] = 1'b0
+    - dispatch_op_by_way[way] = 4'b0111
+
+### Compressed ALU Reg-Reg
+- C.ADD
+    - dispatch_valid_alu_reg_by_way[way] = 1'b1
+    - dispatch_valid_mdu_by_way[way] = 1'b0
+    - dispatch_op_by_way[way] = 4'b0000
+- C.SUB
+    - dispatch_valid_alu_reg_by_way[way] = 1'b1
+    - dispatch_valid_mdu_by_way[way] = 1'b0
+    - dispatch_op_by_way[way] = 4'b1000
+- C.XOR
+    - dispatch_valid_alu_reg_by_way[way] = 1'b1
+    - dispatch_valid_mdu_by_way[way] = 1'b0
+    - dispatch_op_by_way[way] = 4'b0100
+- C.OR
+    - dispatch_valid_alu_reg_by_way[way] = 1'b1
+    - dispatch_valid_mdu_by_way[way] = 1'b0
+    - dispatch_op_by_way[way] = 4'b0110
+- C.AND
+    - dispatch_valid_alu_reg_by_way[way] = 1'b1
+    - dispatch_valid_mdu_by_way[way] = 1'b0
+    - dispatch_op_by_way[way] = 4'b0111
+
+### MDU
+- MUL
+    - dispatch_valid_alu_reg_by_way[way] = 1'b0
+    - dispatch_valid_mdu_by_way[way] = 1'b1
+    - dispatch_op_by_way[way] = 4'b0000
+- MULH
+    - dispatch_valid_alu_reg_by_way[way] = 1'b0
+    - dispatch_valid_mdu_by_way[way] = 1'b1
+    - dispatch_op_by_way[way] = 4'b0001
+- MULHSU
+    - dispatch_valid_alu_reg_by_way[way] = 1'b0
+    - dispatch_valid_mdu_by_way[way] = 1'b1
+    - dispatch_op_by_way[way] = 4'b0010
+- MULHU
+    - dispatch_valid_alu_reg_by_way[way] = 1'b0
+    - dispatch_valid_mdu_by_way[way] = 1'b1
+    - dispatch_op_by_way[way] = 4'b0011
+- DIV
+    - dispatch_valid_alu_reg_by_way[way] = 1'b0
+    - dispatch_valid_mdu_by_way[way] = 1'b1
+    - dispatch_op_by_way[way] = 4'b0100
+- DIVU
+    - dispatch_valid_alu_reg_by_way[way] = 1'b0
+    - dispatch_valid_mdu_by_way[way] = 1'b1
+    - dispatch_op_by_way[way] = 4'b0101
+- REM
+    - dispatch_valid_alu_reg_by_way[way] = 1'b0
+    - dispatch_valid_mdu_by_way[way] = 1'b1
+    - dispatch_op_by_way[way] = 4'b0110
+- REMU
+    - dispatch_valid_alu_reg_by_way[way] = 1'b0
+    - dispatch_valid_mdu_by_way[way] = 1'b1
+    - dispatch_op_by_way[way] = 4'b0111
