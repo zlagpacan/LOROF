@@ -1,0 +1,242 @@
+# Instruction List
+
+## RV32I
+- LUI
+    - FU: bru_pipeline
+- AUIPC
+    - FU: bru_pipeline
+- JAL
+    - FU: bru_pipeline
+- JALR
+    - FU: bru_pipeline
+- BEQ
+    - FU: bru_pipeline
+- BNE
+    - FU: bru_pipeline
+- BLT
+    - FU: bru_pipeline
+- BGE
+    - FU: bru_pipeline
+- BLTU
+    - FU: bru_pipeline
+- BGEU
+    - FU: bru_pipeline
+- LB
+    - FU: ld_pipeline
+- LH
+    - FU: ld_pipeline
+- LW
+    - FU: ld_pipeline
+- LBU
+    - FU: ld_pipeline
+- LHU
+    - FU: ld_pipeline
+- SB
+    - FU: st_pipeline
+- SH
+    - FU: st_pipeline
+- SW
+    - FU: st_pipeline
+- ADDI
+    - FU: alu_imm_pipeline
+- SLTI
+    - FU: alu_imm_pipeline
+- SLTIU
+    - FU: alu_imm_pipeline
+- XORI
+    - FU: alu_imm_pipeline
+- ORI
+    - FU: alu_imm_pipeline
+- ANDI
+    - FU: alu_imm_pipeline
+- SLLI
+    - FU: alu_imm_pipeline
+- SRLI
+    - FU: alu_imm_pipeline
+- SRAI
+    - FU: alu_imm_pipeline
+- ADD
+    - FU: alu_reg_pipeline
+- SUB
+    - FU: alu_reg_pipeline
+- SLL
+    - FU: alu_reg_pipeline
+- SLT
+    - FU: alu_reg_pipeline
+- SLTU
+    - FU: alu_reg_pipeline
+- XOR
+    - FU: alu_reg_pipeline
+- SRL
+    - FU: alu_reg_pipeline
+- SRA
+    - FU: alu_reg_pipeline
+- OR
+    - FU: alu_reg_pipeline
+- AND
+    - FU: alu_reg_pipeline
+- FENCE
+    - FU: amo_pipeline
+- FENCE.TSO
+    - FU: amo_pipeline
+- PAUSE
+    - FU: amo_pipeline
+
+## Zifencei Extension
+- FENCE.I
+    - FU: sys_pipeline
+
+## Zicsr Extension
+- CSRRW
+    - FU: sys_pipeline
+- CSRRS
+    - FU: sys_pipeline
+- CSRRC
+    - FU: sys_pipeline
+- CSRRWI
+    - FU: sys_pipeline
+- CSRRSI
+    - FU: sys_pipeline
+- CSRRCI
+    - FU: sys_pipeline
+
+## M Extension
+- MUL
+    - FU: mdu_pipeline
+- MULH
+    - FU: mdu_pipeline
+- MULHSU
+    - FU: mdu_pipeline
+- MULHU
+    - FU: mdu_pipeline
+- DIV
+    - FU: mdu_pipeline
+- DIVU
+    - FU: mdu_pipeline
+- REM
+    - FU: mdu_pipeline
+- REMU
+    - FU: mdu_pipeline
+
+## A Extencion
+- LR.W
+    - FU: amo_pipeline
+- SC.W
+    - FU: amo_pipeline
+- AMOSWAP.W
+    - FU: amo_pipeline
+- AMOADD.W
+    - FU: amo_pipeline
+- AMOXOR.W
+    - FU: amo_pipeline
+- AMOAND.W
+    - FU: amo_pipeline
+- AMOOR.W
+    - FU: amo_pipeline
+- AMOMIN.W
+    - FU: amo_pipeline
+- AMOMAX.W
+    - FU: amo_pipeline
+- AMOMINU.W
+    - FU: amo_pipeline
+- AMOMAXU.W
+    - FU: amo_pipeline
+
+## C Extension
+- C.ADDI4SPN
+    - ADDI rd', sp/x2, uimm
+    - FU: alu_imm_pipeline
+- C.LW
+    - LW rd', uimm(rs1')
+    - FU: ld_pipeline
+- C.SW
+    - SW rs2', uimm(rs1')
+    - FU: st_pipeline
+- C.NOP
+    - ADDI x0, x0, imm
+    - FU: alu_imm_pipeline
+- C.ADDI
+    - ADDI rd, rd, imm
+    - FU: alu_imm_pipeline
+- C.JAL
+    - JAL ra/x1, imm
+    - FU: bru_pipeline
+- C.LI
+    - ADDI rd, x0, imm
+    - FU: alu_imm_pipeline
+- C.ADDI16SP
+    - ADDI sp/x2, sp/x2, imm
+    - FU: alu_imm_pipeline
+- C.LUI
+    - LUI rd, imm
+    - FU: bru_pipeline
+- C.SRLI
+    - SLRI rd', rd', uimm
+    - FU: alu_imm_pipeline
+- C.SRAI
+    - SRAI rd', rd', imm
+    - FU: alu_imm_pipeline
+- C.ANDI
+    - ANDI rd', rd', imm
+    - FU: alu_imm_pipeline
+- C.SUB
+    - SUB rd', rd', rs2'
+    - FU: alu_reg_pipeline
+- C.XOR
+    - XOR rd', rd', rs2'
+    - FU: alu_reg_pipeline
+- C.OR
+    - OR rd', rd', rs2'
+    - FU: alu_reg_pipeline
+- C.AND
+    - AND rd', rd', rs2'
+    - FU: alu_reg_pipeline
+- C.J
+    - JAL x0, imm
+    - FU: bru_pipeline
+- C.BEQZ
+    - BEQ rs1', x0, imm
+    - FU: bru_pipeline
+- C.BNEZ
+    - BNE rs1', x0, imm
+    - FU: bru_pipeline
+- C.SLLI
+    - SLLI rd, rd, uimm
+    - FU: alu_imm_pipeline
+- C.LWSP
+    - LW rd, uimm(sp/x2)
+    - FU: ld_pipeline
+- C.JR
+    - JALR x0, 0(rs1)
+    - FU: bru_pipeline
+- C.MV
+    - ADDI rd, x0, rs2
+    - FU: alu_reg_pipeline
+- C.EBREAK
+    - EBREAK
+    - FU: sys_pipeline
+- C.JALR
+    - JALR ra/x1, 0(rs1)
+    - FU: bru_pipeline
+- C.ADD
+    - ADD rd, rd, rs2
+    - FU: alu_reg_pipeline
+- C.SWSP
+    - SW rs2, uimm(sp/x2)
+    - FU: st_pipeline
+
+## Machine-Mode Privileged Instructions
+- ECALL
+    - FU: sys_pipeline
+- EBREAK
+    - FU: sys_pipeline
+- MRET
+    - FU: sys_pipeline
+- WFI
+    - FU: sys_pipeline
+
+## Supervisor Privileged Instructions
+- SFENCE.VMA
+    - FU: sys_pipeline
+- SRET
+    - FU: sys_pipeline
