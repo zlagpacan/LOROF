@@ -375,13 +375,11 @@ see [alu_imm_pipeline_example.md](alu_imm_pipeline_example.md)
     - issue_op = 4'b0000
 - C.LI
     - issue_op = 4'b0000
-- C.MV
-    - issue_op = 4'b0000
-- C.NOP
-    - issue_op = 4'b0000
 - C.ADDI16SP
     - issue_op = 4'b0000
 - C.ADDI4SPN
+    - issue_op = 4'b0000
+- C.NOP
     - issue_op = 4'b0000
 - C.SLLI
     - issue_op = 4'b0001

@@ -399,6 +399,8 @@ see [alu_reg_pipeline_example.md](alu_reg_pipeline_example.md)
 ### Compressed ALU Reg-Reg
 - C.ADD
     - issue_op = 4'b0000
+- C.MV
+    - issue_op = 4'b0000
 - C.SUB
     - issue_op = 4'b1000
 - C.XOR

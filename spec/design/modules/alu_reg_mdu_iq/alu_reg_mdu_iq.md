@@ -584,6 +584,10 @@ see [alu_reg_mdu_iq_example.md](alu_reg_mdu_iq_example.md)
     - dispatch_valid_alu_reg_by_way[way] = 1'b1
     - dispatch_valid_mdu_by_way[way] = 1'b0
     - dispatch_op_by_way[way] = 4'b0000
+- C.MV
+    - dispatch_valid_alu_reg_by_way[way] = 1'b1
+    - dispatch_valid_mdu_by_way[way] = 1'b0
+    - dispatch_op_by_way[way] = 4'b0000
 - C.SUB
     - dispatch_valid_alu_reg_by_way[way] = 1'b1
     - dispatch_valid_mdu_by_way[way] = 1'b0
