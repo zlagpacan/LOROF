@@ -81,6 +81,10 @@
     - FU: amo_pipeline
 - PAUSE
     - FU: amo_pipeline
+- ECALL
+    - FU: sys_pipeline
+- EBREAK
+    - FU: sys_pipeline
 
 ## Zifencei Extension
 - FENCE.I
@@ -226,17 +230,13 @@
     - FU: st_pipeline
 
 ## Machine-Mode Privileged Instructions
-- ECALL
-    - FU: sys_pipeline
-- EBREAK
-    - FU: sys_pipeline
 - MRET
     - FU: sys_pipeline
 - WFI
     - FU: sys_pipeline
 
 ## Supervisor Privileged Instructions
-- SFENCE.VMA
-    - FU: sys_pipeline
 - SRET
+    - FU: sys_pipeline
+- SFENCE.VMA
     - FU: sys_pipeline
