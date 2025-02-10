@@ -108,11 +108,11 @@ class alu_reg_pipeline_test extends uvm_test;
         
         ideal_WB_flag_seq = ideal_WB_flag_sequence::type_id::create("ideal_WB_flag_seq");
         ideal_WB_flag_seq.start(env.agnt.seqr);
-        #(CLK_PERIOD);
+        // #(CLK_PERIOD);
 
         iss_stall_seq = iss_stall_sequence::type_id::create("iss_stall_seq");
         iss_stall_seq.start(env.agnt.seqr);
-        #(CLK_PERIOD);
+        // #(CLK_PERIOD);
 
         repeat (4) begin
           ideal_WB_flag_seq = ideal_WB_flag_sequence::type_id::create("ideal_WB_flag_seq");

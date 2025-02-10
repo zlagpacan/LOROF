@@ -99,12 +99,12 @@ module alu_reg_pipeline_sva (
   // --- Test Case ALURP_2A Properties --- //
   property ISS_WB_PR_stall;
     @(posedge CLK) disable iff (~nRST)
-    (ISS_stall) |-> ##[2:4] (WB_PR != 7'h1);
+    (ISS_stall) |-> ##3 (~WB_valid);
   endproperty
 
   property ISS_WB_ROB_stall;
     @(posedge CLK) disable iff (~nRST)
-    (ISS_stall) |-> ##[2:4] (WB_ROB_index != 7'h1);
+    (ISS_stall) |-> ##[2:4] ((WB_ROB_index == 7'h1) && (~WB_valid));
   endproperty
   
   // --- SVA Instances --- //
