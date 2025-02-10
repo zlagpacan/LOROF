@@ -46,13 +46,13 @@ package core_types_pkg;
     parameter UPPER_PC_WIDTH = 30 - BTB_TARGET_WIDTH;
 
     parameter LH_LENGTH = 8;
-    parameter LHT_ENTRIES = 16;
+    parameter LHT_ENTRIES = 16; // using PC ^ ASID
     parameter LOG_LHT_ENTRIES = $clog2(LHT_ENTRIES); 
-    parameter LBPT_ENTRIES = 2**(LH_LENGTH); // using PC ^ LH
+    parameter LBPT_ENTRIES = 2**(LH_LENGTH); // using PC ^ LH ^ ASID
     parameter LOG_LBPT_ENTRIES = $clog2(LBPT_ENTRIES);
 
     parameter GH_LENGTH = 12;
-    parameter GBPT_ENTRIES = 2**(GH_LENGTH); // using PC ^ GHR
+    parameter GBPT_ENTRIES = 2**(GH_LENGTH); // using PC ^ GHR ^ ASID
     parameter LOG_GBPT_ENTRIES = $clog2(GBPT_ENTRIES);
 
     parameter RAS_DEPTH = 8;

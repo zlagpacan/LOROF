@@ -17,14 +17,12 @@ module bru_pipeline (
     // BRU op issue to BRU IQ
     input logic                             issue_valid,
     input logic [3:0]                       issue_op,
+    input logic                             issue_has_pred,
+    input logic [BTB_PRED_INFO_WIDTH-1:0]   issue_pred_info,
+    input logic                             issue_is_link_ra,
+    input logic                             issue_is_ret_ra,
     input logic [31:0]                      issue_PC,
     input logic [31:0]                      issue_pred_PC,
-    input logic [LH_LENGTH-1:0]             issue_LH,
-    input logic                             issue_LH_pred_dir,
-    input logic [GH_LENGTH-1:0]             issue_GH,
-    input logic                             issue_GH_pred_dir,
-    input logic                             issue_is_link,
-    input logic                             issue_is_ret,
     input logic [19:0]                      issue_imm20,
     input logic                             issue_A_unneeded,
     input logic                             issue_A_forward,
@@ -57,16 +55,18 @@ module bru_pipeline (
     // writeback backpressure from PRF
     input logic WB_ready,
 
-    // restart req to ROB
-        // no backpressure, ROB's job to deal with multiple identical req's
-    output logic                        restart_req_valid,
-    output logic                        restart_req_mispredict,
-    output logic [LOG_ROB_ENTRIES-1:0]  restart_req_ROB_index,
-    output logic [31:0]                 restart_req_PC,
-    output logic                        restart_req_taken,
+    // branch notification to ROB
+    output logic                            branch_notif_valid,
+    output logic [LOG_ROB_ENTRIES-1:0]      branch_notif_ROB_index,
+    output logic                            branch_notif_mispredict,
+    output logic                            branch_notif_taken,
+    output logic [BTB_PRED_INFO_WIDTH-1:0]  branch_notif_updated_pred_info,
+    output logic                            branch_notif_upper_PC_table_update,
+    output logic [31:0]                     branch_notif_start_PC,
+    output logic [31:0]                     branch_notif_target_PC,
 
-    // restart req backpressure from ROB
-    input logic restart_req_ready
+    // branch notification backpressure from ROB
+    input logic branch_notif_ready
 );
 
     // ----------------------------------------------------------------
