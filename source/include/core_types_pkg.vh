@@ -42,8 +42,10 @@ package core_types_pkg;
     parameter BTB_TARGET_WIDTH = 12;
         // likely want sum of these or sum of desired subsets to be power of 2
 
-    parameter UPPER_PC_TABLE_ENTRIES = 4;
-    parameter UPPER_PC_WIDTH = 30 - BTB_TARGET_WIDTH;
+    parameter SIMPLE_BRANCH_ACCURACY_THRESHOLD = 4'b1000;
+
+    parameter UPPER_PC_TABLE_ENTRIES = 8;
+    parameter UPPER_PC_WIDTH = 31 - BTB_TARGET_WIDTH;
 
     parameter LH_LENGTH = 8;
     parameter LHT_ENTRIES = 16; // using PC ^ ASID
