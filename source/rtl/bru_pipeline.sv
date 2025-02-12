@@ -60,6 +60,7 @@ module bru_pipeline (
     output logic                            branch_notif_mispredict,
     output logic                            branch_notif_taken,
     output logic [BTB_PRED_INFO_WIDTH-1:0]  branch_notif_updated_pred_info,
+    output logic                            branch_notif_upper_PC_out_of_range,
     output logic [31:0]                     branch_notif_start_PC,
     output logic [31:0]                     branch_notif_target_PC,
 
@@ -133,6 +134,7 @@ module bru_pipeline (
     logic [31:0]    seq_2_4_EX1;
     logic [31:0]    PC_plus_2_4_EX1;
     logic [31:0]    A_plus_imm32_EX1;
+    logic           inner_A_lt_B_EX1;
     logic           A_eq_B_EX1;
     logic           A_lts_B_EX1;
     logic           A_ltu_B_EX1;
@@ -174,6 +176,7 @@ module bru_pipeline (
     logic                               next_branch_notif_mispredict;
     logic                               next_branch_notif_taken;
     logic [BTB_PRED_INFO_WIDTH-1:0]     next_branch_notif_updated_pred_info;
+    logic                               next_branch_notif_upper_PC_out_of_range;
     logic [31:0]                        next_branch_notif_start_PC;
     logic [31:0]                        next_branch_notif_target_PC;
 
@@ -184,7 +187,7 @@ module bru_pipeline (
     // Control Logic: 
 
     // propagate stalls backwards
-    assign stall_WB = (WB_valid & ~WB_ready) | (branch_notif_ready & ~branch_notif_ready);
+    assign stall_WB = (WB_valid & ~WB_ready) | (branch_notif_valid & ~branch_notif_ready);
     assign stall_EX2 = valid_EX2 & stall_WB;
     assign stall_EX1 = valid_EX1 & stall_EX2;
     assign stall_OC = valid_OC & stall_EX1;
@@ -438,13 +441,14 @@ module bru_pipeline (
     end
     assign PC_plus_2_4_EX1 = PC_EX1 + seq_2_4_EX1;
     assign A_plus_imm32_EX1 = A_EX1 + imm32_EX1;
+    assign inner_A_lt_B_EX1 = A_EX1[30:0] < B_EX1[30:0];
     assign A_eq_B_EX1 = A_EX1 == B_EX1;
-    assign A_lts_B_EX1 = $signed(A_EX1) < $signed(B_EX1);
-    assign A_ltu_B_EX1 = A_EX1 < B_EX1;
+    assign A_lts_B_EX1 = A_EX1[31] & ~B_EX1[31] | inner_A_lt_B_EX1 & ~(~A_EX1[31] & B_EX1[31]);
+    assign A_ltu_B_EX1 = ~A_EX1[31] & B_EX1[31] | inner_A_lt_B_EX1 & ~(A_EX1[31] & ~B_EX1[31]);
 
     // op-wise behavior
     always_comb begin
-
+        
     end
 
     // ----------------------------------------------------------------
