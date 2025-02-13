@@ -136,6 +136,7 @@ module bru_pipeline (
     logic [31:0]    A_plus_imm32_EX1;
     logic           inner_A_lt_B_EX1;
     logic           A_eq_B_EX1;
+    logic           A_eq_zero_EX1;
     logic           A_lts_B_EX1;
     logic           A_ltu_B_EX1;
 
@@ -144,6 +145,7 @@ module bru_pipeline (
     logic [BTB_PRED_INFO_WIDTH-1:0]     next_pred_info_EX2;
     logic                               next_is_link_ra_EX2;
     logic                               next_is_ret_ra_EX2;
+    logic                               next_taken_EX2;
     logic [31:0]                        next_PC_EX2;
     logic [31:0]                        next_pred_PC_EX2;
     logic [31:0]                        next_target_PC_EX2;
@@ -159,12 +161,15 @@ module bru_pipeline (
     logic [BTB_PRED_INFO_WIDTH-1:0]     pred_info_EX2;
     logic                               is_link_ra_EX2;
     logic                               is_ret_ra_EX2;
+    logic                               taken_EX2;
     logic [31:0]                        PC_EX2;
     logic [31:0]                        pred_PC_EX2;
     logic [31:0]                        target_PC_EX2;
     logic [31:0]                        write_data_EX2;
     logic [LOG_PR_COUNT-1:0]            dest_PR_EX2;
     logic [LOG_ROB_ENTRIES-1:0]         ROB_index_EX2;
+
+    logic target_PC_eq_pred_PC_EX2;
 
     logic                           next_WB_valid;
     logic [31:0]                    next_WB_data;
@@ -422,7 +427,7 @@ module bru_pipeline (
     assign next_pred_info_EX2 = pred_info_EX1;
     assign next_is_link_ra_EX2 = is_link_ra_EX1;
     assign next_is_ret_ra_EX2 = is_ret_ra_EX1;
-    assign next_next_PC_EX2 = PC_EX1;
+    assign next_PC_EX2 = PC_EX1;
     assign next_pred_PC_EX2 = pred_PC_EX1;
     assign next_dest_PR_EX2 = dest_PR_EX1;
     assign next_ROB_index_EX2 = ROB_index_EX1;
@@ -443,16 +448,186 @@ module bru_pipeline (
     assign A_plus_imm32_EX1 = A_EX1 + imm32_EX1;
     assign inner_A_lt_B_EX1 = A_EX1[30:0] < B_EX1[30:0];
     assign A_eq_B_EX1 = A_EX1 == B_EX1;
+    assign A_eq_zero_EX1 = A_EX1 == 32'h0;
     assign A_lts_B_EX1 = A_EX1[31] & ~B_EX1[31] | inner_A_lt_B_EX1 & ~(~A_EX1[31] & B_EX1[31]);
     assign A_ltu_B_EX1 = ~A_EX1[31] & B_EX1[31] | inner_A_lt_B_EX1 & ~(A_EX1[31] & ~B_EX1[31]);
 
     // op-wise behavior
     always_comb begin
         
+        case (op_EX1) 
+
+            4'b0000: // JALR
+            begin
+                next_target_PC_EX2 = A_plus_imm32_EX1;
+                next_write_data_EX2 = PC_plus_2_4_EX1;
+                next_taken_EX2 = 1'b1;
+            end
+
+            4'b0001: // C.JALR
+            begin
+                next_target_PC_EX2 = A_EX1;
+                next_write_data_EX2 = PC_plus_2_4_EX1;
+                next_taken_EX2 = 1'b1;
+            end
+
+            4'b0010: // JAL
+            begin
+                next_target_PC_EX2 = PC_plus_imm32_EX1;
+                next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
+                next_taken_EX2 = 1'b1;
+            end
+
+            4'b0011: // C.JAL
+            begin
+                next_target_PC_EX2 = PC_plus_imm32_EX1;
+                next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
+                next_taken_EX2 = 1'b1;
+            end
+
+            4'b0100: // C.J
+            begin
+                next_target_PC_EX2 = PC_plus_imm32_EX1;
+                next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
+                next_taken_EX2 = 1'b1;
+            end
+
+            4'b0101: // C.JR
+            begin
+                next_target_PC_EX2 = A_EX1;
+                next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
+                next_taken_EX2 = 1'b1;
+            end
+
+            4'b0110: // LUI
+            begin
+                next_target_PC_EX2 = PC_plus_imm32_EX1; // don't care
+                next_write_data_EX2 = imm32_EX1;
+                next_taken_EX2 = 1'b0;
+            end
+
+            4'b0111: // AUIPC
+            begin
+                next_target_PC_EX2 = PC_plus_imm32_EX1; // don't care
+                next_write_data_EX2 = PC_plus_imm32_EX1;
+                next_taken_EX2 = 1'b0;
+            end
+
+            4'b1000: // BEQ
+            begin
+                if (A_eq_B_EX1) begin
+                    next_target_PC_EX2 = PC_plus_imm32_EX1;
+                    next_taken_EX2 = 1'b1;
+                end else begin
+                    next_target_PC_EX2 = PC_plus_2_4_EX1;
+                    next_taken_EX2 = 1'b0;
+                end
+                next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
+                taken_EX2 = 1'b1;
+            end
+
+            4'b1001: // BNE
+            begin
+                if (~A_eq_B_EX1) begin
+                    next_target_PC_EX2 = PC_plus_imm32_EX1;
+                    next_taken_EX2 = 1'b1;
+                end else begin
+                    next_target_PC_EX2 = PC_plus_2_4_EX1;
+                    next_taken_EX2 = 1'b0;
+                end
+                next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
+                taken_EX2 = 1'b1;
+            end
+
+            4'b1010: // C.BEQZ
+            begin
+                if (A_eq_zero_EX1) begin
+                    next_target_PC_EX2 = PC_plus_imm32_EX1;
+                    next_taken_EX2 = 1'b1;
+                end else begin
+                    next_target_PC_EX2 = PC_plus_2_4_EX1;
+                    next_taken_EX2 = 1'b0;
+                end
+                next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
+            end
+
+            4'b1011: // C.BNEZ
+            begin
+                if (~A_eq_zero_EX1) begin
+                    next_target_PC_EX2 = PC_plus_imm32_EX1;
+                    next_taken_EX2 = 1'b1;
+                end else begin
+                    next_target_PC_EX2 = PC_plus_2_4_EX1;
+                    next_taken_EX2 = 1'b0;
+                end
+                next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
+            end
+
+            4'b1100: // BLT
+            begin
+                if (A_lts_B_EX1) begin
+                    next_target_PC_EX2 = PC_plus_imm32_EX1;
+                    next_taken_EX2 = 1'b1;
+                end else begin
+                    next_target_PC_EX2 = PC_plus_2_4_EX1;
+                    next_taken_EX2 = 1'b0;
+                end
+                next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
+            end
+
+            4'b1101: // BGE
+            begin
+                if (~A_lts_B_EX1) begin
+                    next_target_PC_EX2 = PC_plus_imm32_EX1;
+                    next_taken_EX2 = 1'b1;
+                end else begin
+                    next_target_PC_EX2 = PC_plus_2_4_EX1;
+                    next_taken_EX2 = 1'b0;
+                end
+                next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
+            end
+
+            4'b1110: // BLTU
+            begin
+                if (A_ltu_B_EX1) begin
+                    next_target_PC_EX2 = PC_plus_imm32_EX1;
+                    next_taken_EX2 = 1'b1;
+                end else begin
+                    next_target_PC_EX2 = PC_plus_2_4_EX1;
+                    next_taken_EX2 = 1'b0;
+                end
+                next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
+            end
+
+            4'b1111: // BGEU
+            begin
+                if (~A_ltu_B_EX1) begin
+                    next_target_PC_EX2 = PC_plus_imm32_EX1;
+                    next_taken_EX2 = 1'b1;
+                end else begin
+                    next_target_PC_EX2 = PC_plus_2_4_EX1;
+                    next_taken_EX2 = 1'b0;
+                end
+                next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
+            end
+        endcase
     end
 
     // ----------------------------------------------------------------
     // EX2 Stage Logic:
+
+    // FF
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+
+        end
+        else begin
+            
+        end
+    end
+
+    assign next_branch_notif_mispredict = target_PC_EX2 != pred_PC_EX2;
+    assign next_branch_notif_upper_PC_out_of_range = target_PC_EX2[31:32-UPPER_PC_WIDTH] != PC_EX2[31:32-UPPER_PC_WIDTH];
 
     assign next_WB_PR = dest_PR_EX2;
     assign next_WB_ROB_index = ROB_index_EX2;

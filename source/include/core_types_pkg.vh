@@ -45,11 +45,11 @@ package core_types_pkg;
     parameter SIMPLE_BRANCH_ACCURACY_THRESHOLD = 4'b1000;
 
     parameter UPPER_PC_TABLE_ENTRIES = 8;
-    parameter UPPER_PC_WIDTH = 31 - BTB_TARGET_WIDTH;
+    parameter UPPER_PC_WIDTH = 32 - BTB_TARGET_WIDTH - 1;
 
     parameter LH_LENGTH = 8;
     parameter LHT_ENTRIES = 16; // using PC ^ ASID
-    parameter LOG_LHT_ENTRIES = $clog2(LHT_ENTRIES); 
+    parameter LOG_LHT_ENTRIES = $clog2(LHT_ENTRIES);
     parameter LBPT_ENTRIES = 2**(LH_LENGTH); // using PC ^ LH ^ ASID
     parameter LOG_LBPT_ENTRIES = $clog2(LBPT_ENTRIES);
 
