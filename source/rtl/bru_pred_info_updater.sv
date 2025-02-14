@@ -143,7 +143,7 @@ module bru_pred_info_updater (
                 if (start_pred_info[7:6] != 2'b11 & is_out_of_range) begin
                     updated_pred_info[7:6] = 2'b11; // complex branch
                     updated_pred_info[5:4] = 2'b01; // start slightly favoring local
-                    updated_pred_info[3:0] = 4'b000; // don't care
+                    updated_pred_info[3:0] = 4'b0000; // don't care
                 end
 
                 // check for invalid or jump -> init simple branch

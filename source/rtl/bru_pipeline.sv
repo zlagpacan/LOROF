@@ -55,14 +55,14 @@ module bru_pipeline (
     input logic WB_ready,
 
     // branch notification to ROB
-    output logic                            branch_notif_valid;
-    output logic [LOG_ROB_ENTRIES-1:0]      branch_notif_ROB_index;
-    output logic                            branch_notif_is_mispredict;
-    output logic                            branch_notif_is_taken;
-    output logic                            branch_notif_is_out_of_range;
-    output logic [BTB_PRED_INFO_WIDTH-1:0]  branch_notif_updated_pred_info;
-    output logic [31:0]                     branch_notif_start_PC;
-    output logic [31:0]                     branch_notif_target_PC;
+    output logic                            branch_notif_valid,
+    output logic [LOG_ROB_ENTRIES-1:0]      branch_notif_ROB_index,
+    output logic                            branch_notif_is_mispredict,
+    output logic                            branch_notif_is_taken,
+    output logic                            branch_notif_is_out_of_range,
+    output logic [BTB_PRED_INFO_WIDTH-1:0]  branch_notif_updated_pred_info,
+    output logic [31:0]                     branch_notif_start_PC,
+    output logic [31:0]                     branch_notif_target_PC,
 
     // branch notification backpressure from ROB
     input logic branch_notif_ready
@@ -87,9 +87,11 @@ module bru_pipeline (
     logic [31:0]                        PC_OC;
     logic [31:0]                        pred_PC_OC;
     logic [19:0]                        imm20_OC;
+    logic                               A_saved_OC;
     logic                               A_unneeded_OC;
     logic                               A_forward_OC;
     logic [LOG_PRF_BANK_COUNT-1:0]      A_bank_OC;
+    logic                               B_saved_OC;
     logic                               B_unneeded_OC;
     logic                               B_forward_OC;
     logic [LOG_PRF_BANK_COUNT-1:0]      B_bank_OC;
@@ -209,15 +211,15 @@ module bru_pipeline (
             PC_OC <= 32'h0;
             pred_PC_OC <= 32'h0;
             imm20_OC <= 20'h0;
+            A_saved_OC <= 1'b0;
             A_unneeded_OC <= 1'b0;
             A_forward_OC <= 1'b0;
-            A_saved_OC <= 1'b0;
-            A_saved_data_OC <= 32'h0;
             A_bank_OC <= 2'h0;
+            A_saved_data_OC <= 32'h0;
+            B_saved_OC <= 1'b0;
             B_unneeded_OC <= 1'b0;
             B_forward_OC <= 1'b0;
             B_bank_OC <= 2'h0;
-            B_saved_OC <= 1'b0;
             B_saved_data_OC <= 32'h0;
             dest_PR_OC <= 7'h0;
             ROB_index_OC <= 7'h0;
@@ -232,16 +234,16 @@ module bru_pipeline (
             PC_OC <= PC_OC;
             pred_PC_OC <= pred_PC_OC;
             imm20_OC <= imm20_OC;
+            A_saved_OC <= A_saved_OC | A_forward_OC | A_reg_read_ack;
             A_unneeded_OC <= A_unneeded_OC;
             A_forward_OC <= 1'b0;
-            A_saved_OC <= A_saved_OC | A_forward_OC | A_reg_read_ack;
-            A_saved_data_OC <= next_A_EX1;
             A_bank_OC <= A_bank_OC;
+            A_saved_data_OC <= next_A_EX1;
+            B_saved_OC <= B_saved_OC | B_forward_OC | B_reg_read_ack;
             B_unneeded_OC <= B_unneeded_OC;
             B_forward_OC <= 1'b0;
-            B_saved_OC <= B_saved_OC | B_forward_OC | B_reg_read_ack;
-            B_saved_data_OC <= next_B_EX1;
             B_bank_OC <= B_bank_OC;
+            B_saved_data_OC <= next_B_EX1;
             dest_PR_OC <= dest_PR_OC;
             ROB_index_OC <= ROB_index_OC;
         end
@@ -255,16 +257,16 @@ module bru_pipeline (
             PC_OC <= issue_PC;
             pred_PC_OC <= issue_pred_PC;
             imm20_OC <= issue_imm20;
+            A_saved_OC <= 1'b0;
             A_unneeded_OC <= issue_A_unneeded;
             A_forward_OC <= issue_A_forward;
-            A_saved_OC <= 1'b0;
-            A_saved_data_OC <= next_A_EX1;
             A_bank_OC <= issue_A_bank;
+            A_saved_data_OC <= next_A_EX1;
+            B_saved_OC <= 1'b0;
             B_unneeded_OC <= issue_B_unneeded;
             B_forward_OC <= issue_B_forward;
-            B_saved_OC <= 1'b0;
-            B_saved_data_OC <= next_B_EX1;
             B_bank_OC <= issue_B_bank;
+            B_saved_data_OC <= next_B_EX1;
             dest_PR_OC <= issue_dest_PR;
             ROB_index_OC <= issue_ROB_index;
         end
@@ -436,7 +438,7 @@ module bru_pipeline (
         // PC+2 vs. PC+4
             // PC+2 definitely C.BEQZ, C.BNEZ, C.JAL, C.JALR
                 // LUI, AUIPC, C.J, C.JR don't cares
-        if (op_EX1[3:1] == 3'b101 | (~op_EX[3] & op_EX[0])) begin
+        if (op_EX1[3:1] == 3'b101 | (~op_EX1[3] & op_EX1[0])) begin
             seq_2_4_EX1 = 32'h2;
         end else begin
             seq_2_4_EX1 = 32'h4;
@@ -623,11 +625,11 @@ module bru_pipeline (
             pred_info_EX2 <= 8'h0;
             is_link_ra_EX2 <= 1'b0;
             is_ret_ra_EX2 <= 1'b0;
-            is_taken_EX2 <= 1'b0;
+            is_taken_EX2 <= 1'b1;
             PC_EX2 <= 32'h0;
             pred_PC_EX2 <= 32'h0;
             target_PC_EX2 <= 32'h0;
-            write_data_EX2 <= 32'h0;
+            write_data_EX2 <= 32'h4;
             dest_PR_EX2 <= 7'h0;
             ROB_index_EX2 <= 7'h0;
         end
@@ -699,62 +701,60 @@ module bru_pipeline (
 
             4'b0000: // JALR
             begin
-                next_WB_valid = 1'b1;
-                next_branch_notif_valid = 1'b1;
+                next_WB_valid = valid_EX2;
+                next_branch_notif_valid = valid_EX2;
             end
 
             4'b0001: // C.JALR
             begin
-                next_WB_valid = 1'b1;
-                next_branch_notif_valid = 1'b1;
+                next_WB_valid = valid_EX2;
+                next_branch_notif_valid = valid_EX2;
             end
 
             4'b0010: // JAL
             begin
-                next_WB_valid = 1'b1;
-                next_branch_notif_valid = 1'b1;
+                next_WB_valid = valid_EX2;
+                next_branch_notif_valid = valid_EX2;
             end
 
             4'b0011: // C.JAL
             begin
-                next_WB_valid = 1'b1;
-                next_branch_notif_valid = 1'b1;
+                next_WB_valid = valid_EX2;
+                next_branch_notif_valid = valid_EX2;
             end
 
             4'b0100: // C.J
             begin
                 next_WB_valid = 1'b0;
-                next_branch_notif_valid = 1'b1;
+                next_branch_notif_valid = valid_EX2;
             end
 
             4'b0101: // C.JR
             begin
                 next_WB_valid = 1'b0;
-                next_branch_notif_valid = 1'b1;
+                next_branch_notif_valid = valid_EX2;
             end
 
             4'b0110: // LUI
             begin
-                next_WB_valid = 1'b1;
+                next_WB_valid = valid_EX2;
                 next_branch_notif_valid = 1'b0;
             end
 
             4'b0111: // AUIPC
             begin
-                next_WB_valid = 1'b1;
+                next_WB_valid = valid_EX2;
                 next_branch_notif_valid = 1'b0;
             end
 
             4'b1???: // BEQ, BNE, C.BEQZ, C.BNEZ, BLT, BGE, BLTU, BGEU
             begin
                 next_WB_valid = 1'b0;
-                next_branch_notif_valid = 1'b1;
+                next_branch_notif_valid = valid_EX2;
             end
 
         endcase
     end
-
-
 
     // ----------------------------------------------------------------
     // WB Stage Logic:
@@ -765,34 +765,46 @@ module bru_pipeline (
             WB_valid <= 1'b0;
             WB_data <= 32'h4;
             WB_PR <= '0;
-            WB_ROB_index <= '0;
-            restart_req_valid <= 1'b0;
-            restart_req_mispredict <= 1'b0;
-            restart_req_ROB_index <= '0;
-            restart_req_PC <= 32'h0;
-            restart_req_taken <= 1'b1;
+            WB_ROB_index <= 7'h0;
+
+            branch_notif_valid <= 1'b0;
+            branch_notif_ROB_index <= 7'h0;
+            branch_notif_is_mispredict <= 1'b0;
+            branch_notif_is_taken <= 1'b1;
+            branch_notif_is_out_of_range <= 1'b0;
+            branch_notif_updated_pred_info <= 8'b01000000;
+            branch_notif_start_PC <= 32'h0;
+            branch_notif_target_PC <= 32'h0;
         end
         else if (stall_WB) begin
             WB_valid <= WB_valid & ~WB_ready;
             WB_data <= WB_data;
             WB_PR <= WB_PR;
             WB_ROB_index <= WB_ROB_index;
-            restart_req_valid <= restart_req_valid & ~restart_req_ready;
-            restart_req_mispredict <= restart_req_mispredict;
-            restart_req_ROB_index <= restart_req_ROB_index;
-            restart_req_PC <= restart_req_PC;
-            restart_req_taken <= restart_req_taken;
+
+            branch_notif_valid <= branch_notif_valid & ~branch_notif_ready;
+            branch_notif_ROB_index <= branch_notif_ROB_index;
+            branch_notif_is_mispredict <= branch_notif_is_mispredict;
+            branch_notif_is_taken <= branch_notif_is_taken;
+            branch_notif_is_out_of_range <= branch_notif_is_out_of_range;
+            branch_notif_updated_pred_info <= branch_notif_updated_pred_info;
+            branch_notif_start_PC <= branch_notif_start_PC;
+            branch_notif_target_PC <= branch_notif_target_PC;
         end
         else begin
             WB_valid <= next_WB_valid;
             WB_data <= next_WB_data;
             WB_PR <= next_WB_PR;
             WB_ROB_index <= next_WB_ROB_index;
-            restart_req_valid <= next_restart_req_valid;
-            restart_req_mispredict <= next_restart_req_mispredict;
-            restart_req_ROB_index <= next_restart_req_ROB_index;
-            restart_req_PC <= next_restart_req_PC;
-            restart_req_taken <= next_restart_req_taken;
+
+            branch_notif_valid <= next_branch_notif_valid;
+            branch_notif_ROB_index <= next_branch_notif_ROB_index;
+            branch_notif_is_mispredict <= next_branch_notif_is_mispredict;
+            branch_notif_is_taken <= next_branch_notif_is_taken;
+            branch_notif_is_out_of_range <= next_branch_notif_is_out_of_range;
+            branch_notif_updated_pred_info <= next_branch_notif_updated_pred_info;
+            branch_notif_start_PC <= next_branch_notif_start_PC;
+            branch_notif_target_PC <= next_branch_notif_target_PC;
         end
     end
 
