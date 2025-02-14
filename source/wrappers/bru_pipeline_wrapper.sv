@@ -20,9 +20,12 @@ module bru_pipeline_wrapper (
     // BRU op issue to BRU IQ
 	input logic next_issue_valid,
 	input logic [3:0] next_issue_op,
+	input logic [BTB_PRED_INFO_WIDTH-1:0] next_issue_pred_info,
+	input logic next_issue_is_link_ra,
+	input logic next_issue_is_ret_ra,
 	input logic [31:0] next_issue_PC,
-	input logic [31:0] next_issue_speculated_next_PC,
-	input logic [31:0] next_issue_imm,
+	input logic [31:0] next_issue_pred_PC,
+	input logic [19:0] next_issue_imm20,
 	input logic next_issue_A_unneeded,
 	input logic next_issue_A_forward,
 	input logic [LOG_PRF_BANK_COUNT-1:0] next_issue_A_bank,
@@ -54,16 +57,18 @@ module bru_pipeline_wrapper (
     // writeback backpressure from PRF
 	input logic next_WB_ready,
 
-    // restart req to ROB
-        // no backpressure, ROB's job to deal with multiple identical req's
-	output logic last_restart_req_valid,
-	output logic last_restart_req_mispredict,
-	output logic [LOG_ROB_ENTRIES-1:0] last_restart_req_ROB_index,
-	output logic [31:0] last_restart_req_PC,
-	output logic last_restart_req_taken,
+    // branch notification to ROB
+	output logic last_branch_notif_valid,
+	output logic [LOG_ROB_ENTRIES-1:0] last_branch_notif_ROB_index,
+	output logic last_branch_notif_is_mispredict,
+	output logic last_branch_notif_is_taken,
+	output logic last_branch_notif_is_out_of_range,
+	output logic [BTB_PRED_INFO_WIDTH-1:0] last_branch_notif_updated_pred_info,
+	output logic [31:0] last_branch_notif_start_PC,
+	output logic [31:0] last_branch_notif_target_PC,
 
-    // restart req backpressure from ROB
-	input logic next_restart_req_ready
+    // branch notification backpressure from ROB
+	input logic next_branch_notif_ready
 );
 
     // ----------------------------------------------------------------
@@ -73,9 +78,12 @@ module bru_pipeline_wrapper (
     // BRU op issue to BRU IQ
 	logic issue_valid;
 	logic [3:0] issue_op;
+	logic [BTB_PRED_INFO_WIDTH-1:0] issue_pred_info;
+	logic issue_is_link_ra;
+	logic issue_is_ret_ra;
 	logic [31:0] issue_PC;
-	logic [31:0] issue_speculated_next_PC;
-	logic [31:0] issue_imm;
+	logic [31:0] issue_pred_PC;
+	logic [19:0] issue_imm20;
 	logic issue_A_unneeded;
 	logic issue_A_forward;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_A_bank;
@@ -107,16 +115,18 @@ module bru_pipeline_wrapper (
     // writeback backpressure from PRF
 	logic WB_ready;
 
-    // restart req to ROB
-        // no backpressure, ROB's job to deal with multiple identical req's
-	logic restart_req_valid;
-	logic restart_req_mispredict;
-	logic [LOG_ROB_ENTRIES-1:0] restart_req_ROB_index;
-	logic [31:0] restart_req_PC;
-	logic restart_req_taken;
+    // branch notification to ROB
+	logic branch_notif_valid;
+	logic [LOG_ROB_ENTRIES-1:0] branch_notif_ROB_index;
+	logic branch_notif_is_mispredict;
+	logic branch_notif_is_taken;
+	logic branch_notif_is_out_of_range;
+	logic [BTB_PRED_INFO_WIDTH-1:0] branch_notif_updated_pred_info;
+	logic [31:0] branch_notif_start_PC;
+	logic [31:0] branch_notif_target_PC;
 
-    // restart req backpressure from ROB
-	logic restart_req_ready;
+    // branch notification backpressure from ROB
+	logic branch_notif_ready;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -133,9 +143,12 @@ module bru_pipeline_wrapper (
 		    // BRU op issue to BRU IQ
 			issue_valid <= '0;
 			issue_op <= '0;
+			issue_pred_info <= '0;
+			issue_is_link_ra <= '0;
+			issue_is_ret_ra <= '0;
 			issue_PC <= '0;
-			issue_speculated_next_PC <= '0;
-			issue_imm <= '0;
+			issue_pred_PC <= '0;
+			issue_imm20 <= '0;
 			issue_A_unneeded <= '0;
 			issue_A_forward <= '0;
 			issue_A_bank <= '0;
@@ -167,16 +180,18 @@ module bru_pipeline_wrapper (
 		    // writeback backpressure from PRF
 			WB_ready <= '0;
 
-		    // restart req to ROB
-		        // no backpressure, ROB's job to deal with multiple identical req's
-			last_restart_req_valid <= '0;
-			last_restart_req_mispredict <= '0;
-			last_restart_req_ROB_index <= '0;
-			last_restart_req_PC <= '0;
-			last_restart_req_taken <= '0;
+		    // branch notification to ROB
+			last_branch_notif_valid <= '0;
+			last_branch_notif_ROB_index <= '0;
+			last_branch_notif_is_mispredict <= '0;
+			last_branch_notif_is_taken <= '0;
+			last_branch_notif_is_out_of_range <= '0;
+			last_branch_notif_updated_pred_info <= '0;
+			last_branch_notif_start_PC <= '0;
+			last_branch_notif_target_PC <= '0;
 
-		    // restart req backpressure from ROB
-			restart_req_ready <= '0;
+		    // branch notification backpressure from ROB
+			branch_notif_ready <= '0;
         end
         else begin
 
@@ -184,9 +199,12 @@ module bru_pipeline_wrapper (
 		    // BRU op issue to BRU IQ
 			issue_valid <= next_issue_valid;
 			issue_op <= next_issue_op;
+			issue_pred_info <= next_issue_pred_info;
+			issue_is_link_ra <= next_issue_is_link_ra;
+			issue_is_ret_ra <= next_issue_is_ret_ra;
 			issue_PC <= next_issue_PC;
-			issue_speculated_next_PC <= next_issue_speculated_next_PC;
-			issue_imm <= next_issue_imm;
+			issue_pred_PC <= next_issue_pred_PC;
+			issue_imm20 <= next_issue_imm20;
 			issue_A_unneeded <= next_issue_A_unneeded;
 			issue_A_forward <= next_issue_A_forward;
 			issue_A_bank <= next_issue_A_bank;
@@ -218,16 +236,18 @@ module bru_pipeline_wrapper (
 		    // writeback backpressure from PRF
 			WB_ready <= next_WB_ready;
 
-		    // restart req to ROB
-		        // no backpressure, ROB's job to deal with multiple identical req's
-			last_restart_req_valid <= restart_req_valid;
-			last_restart_req_mispredict <= restart_req_mispredict;
-			last_restart_req_ROB_index <= restart_req_ROB_index;
-			last_restart_req_PC <= restart_req_PC;
-			last_restart_req_taken <= restart_req_taken;
+		    // branch notification to ROB
+			last_branch_notif_valid <= branch_notif_valid;
+			last_branch_notif_ROB_index <= branch_notif_ROB_index;
+			last_branch_notif_is_mispredict <= branch_notif_is_mispredict;
+			last_branch_notif_is_taken <= branch_notif_is_taken;
+			last_branch_notif_is_out_of_range <= branch_notif_is_out_of_range;
+			last_branch_notif_updated_pred_info <= branch_notif_updated_pred_info;
+			last_branch_notif_start_PC <= branch_notif_start_PC;
+			last_branch_notif_target_PC <= branch_notif_target_PC;
 
-		    // restart req backpressure from ROB
-			restart_req_ready <= next_restart_req_ready;
+		    // branch notification backpressure from ROB
+			branch_notif_ready <= next_branch_notif_ready;
         end
     end
 
