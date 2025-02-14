@@ -68,7 +68,7 @@ module bru_pred_info_updater_tb ();
     task check_outputs();
     begin
 		if (expected_updated_pred_info !== DUT_updated_pred_info) begin
-			$display("TB ERROR: expected_updated_pred_info (%h) != DUT_updated_pred_info (%h)",
+			$display("TB ERROR: expected_updated_pred_info (%8b) != DUT_updated_pred_info (%8b)",
 				expected_updated_pred_info, DUT_updated_pred_info);
 			num_errors++;
 			tb_error = 1'b1;
@@ -929,6 +929,454 @@ module bru_pred_info_updater_tb ();
 	    // inputs
 	    // outputs
 		expected_updated_pred_info = 8'b10111001;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "inv to BLT out of range -> complex branch";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1100;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b1;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b1;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b11010000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "JAL PC+2 to C.BEQZ out of range -> complex branch";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1010;
+		tb_start_pred_info = 8'b01010000;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b1;
+		tb_is_mispredict = 1'b1;
+		tb_is_out_of_range = 1'b1;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b11010000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple B to BGEU out of range -> complex branch";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1111;
+		tb_start_pred_info = 8'b10010101;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b1;
+		tb_is_out_of_range = 1'b1;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b11010000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "complex BGE -> complex branch";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1101;
+		tb_start_pred_info = 8'b11100000;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b1;
+		tb_is_out_of_range = 1'b1;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b11100000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple ST+N BNE accuracy 8 -> simple WT B accuracy 7";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1001;
+		tb_start_pred_info = 8'b10111000;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b1;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b10100111;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple WT+T BLTU accuracy 9 -> simple ST B accuracy 8";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1110;
+		tb_start_pred_info = 8'b10101001;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b1;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b10111000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple ST+N BGE accuracy 7 -> simple WT B accuracy 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1101;
+		tb_start_pred_info = 8'b10110111;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b1;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b10100000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple ST+T BLTU accuracy 6 -> simple ST B accuracy 7";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1110;
+		tb_start_pred_info = 8'b10110110;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b1;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b10110111;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple WT+N BEQ accuracy 7 -> simple SN B accuracy 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1000;
+		tb_start_pred_info = 8'b10100111;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b1;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b10000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple SN+N BNE accuracy 2 -> simple SN B accuracy 3";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1001;
+		tb_start_pred_info = 8'b10000010;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b10000011;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple SN+T C.BEQZ accuracy 11 -> simple WN B accuracy 10";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1010;
+		tb_start_pred_info = 8'b10001011;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b1;
+		tb_is_mispredict = 1'b1;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b10011010;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple WN+T C.BNEZ accuracy 10 -> simple ST B accuracy 9";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1011;
+		tb_start_pred_info = 8'b10011010;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b1;
+		tb_is_mispredict = 1'b1;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b10111001;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple WN+N BLT accuracy 7 -> simple SN B accuracy 7";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1100;
+		tb_start_pred_info = 8'b10010111;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b10000111;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple WT+N BGE accuracy 5 -> complex B";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1101;
+		tb_start_pred_info = 8'b10100101;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b1;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b11010000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple SN+T BLTU accuracy 6 -> complex B";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1110;
+		tb_start_pred_info = 8'b10000110;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b1;
+		tb_is_mispredict = 1'b1;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b11010000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple WT+N BGEU accuracy 0 -> complex B";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1111;
+		tb_start_pred_info = 8'b10100000;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b1;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b11010000;
 
 		check_outputs();
 		
