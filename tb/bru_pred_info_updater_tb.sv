@@ -214,6 +214,118 @@ module bru_pred_info_updater_tb ();
 		nRST = 1'b1;
 	    // inputs
 		tb_op = 4'b0000;
+		tb_start_pred_info = 8'h66; // don't care
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b1;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01100000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "JALR ra, 0(ra) -> RETL PC+4";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0000;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b1;
+		tb_is_ret_ra = 1'b1;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01111000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "C.JALR !, 0(!) -> Jump";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0001;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "C.JALR ra, 0(!) -> JAL PC+2";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0001;
+		tb_start_pred_info = 8'h5; // don't care
+		tb_is_link_ra = 1'b1;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01010000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "C.JALR !, 0(ra) -> RET";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0001;
 		tb_start_pred_info = 8'h0;
 		tb_is_link_ra = 1'b0;
 		tb_is_ret_ra = 1'b1;
@@ -232,6 +344,594 @@ module bru_pred_info_updater_tb ();
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "C.JALR ra, 0(ra) -> RETL PC+2";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0001;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b1;
+		tb_is_ret_ra = 1'b1;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01110000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "JAL ! -> Jump";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0010;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "JAL ra -> JAL PC+4";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0010;
+		tb_start_pred_info = 8'h12; // don't care
+		tb_is_link_ra = 1'b1;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01011000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "JAL ! bogus 0(ra) -> Jump";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0010;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b1;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "JAL ra, bogus 0(ra) -> JAL PC+4";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0010;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b1;
+		tb_is_ret_ra = 1'b1;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01011000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "C.JAL ! -> Jump";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0011;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "C.JAL ra -> JAL PC+2";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0011;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b1;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01010000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "C.JAL !, bogus 0(ra) -> Jump";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0011;
+		tb_start_pred_info = 8'h3F; // don't care
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b1;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "C.JAL ra, bogus 0(ra) -> JAL PC+2";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0011;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b1;
+		tb_is_ret_ra = 1'b1;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01010000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "C.J -> Jump";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0100;
+		tb_start_pred_info = 8'hAB; // don't care
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "C.J bogus ra, 0(!) -> Jump";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0100;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b1;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "C.J bogus !, 0(ra) -> Jump";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0100;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b1;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "C.J bogus ra, 0(ra) -> Jump";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0100;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b1;
+		tb_is_ret_ra = 1'b1;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "C.JR 0(!) -> Jump";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0101;
+		tb_start_pred_info = 8'hAB; // don't care
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "C.JR 0(!), bogus ra -> Jump";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0101;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b1;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "C.JR 0(ra) -> RET";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0101;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b1;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01100000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "C.JR 0(ra) bogus ra -> RET";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0101;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b1;
+		tb_is_ret_ra = 1'b1;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b01100000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "LUI -> 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0110;
+		tb_start_pred_info = 8'h76;
+		tb_is_link_ra = 1'b1;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b1;
+		tb_is_mispredict = 1'b1;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b00000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "AUIPC -> 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b0111;
+		tb_start_pred_info = 8'h76;
+		tb_is_link_ra = 1'b1;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b1;
+		tb_is_mispredict = 1'b1;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b00000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "inv to N BEQ -> simple branch SN";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1000;
+		tb_start_pred_info = 8'h0;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b0;
+		tb_is_mispredict = 1'b0;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b10001001;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "RET to T BLTU -> simple branch ST";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs
+		tb_op = 4'b1110;
+		tb_start_pred_info = 8'b01100000;
+		tb_is_link_ra = 1'b0;
+		tb_is_ret_ra = 1'b0;
+		tb_is_taken = 1'b1;
+		tb_is_mispredict = 1'b1;
+		tb_is_out_of_range = 1'b0;
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs
+	    // outputs
+		expected_updated_pred_info = 8'b10111001;
+
+		check_outputs();
+		
         // ------------------------------------------------------------
         // finish:
         @(posedge CLK); #(PERIOD/10);

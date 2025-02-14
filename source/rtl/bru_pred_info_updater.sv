@@ -150,7 +150,7 @@ module bru_pred_info_updater (
                 else if (~start_pred_info[7]) begin
                     updated_pred_info[7:6] = 2'b10; // simple branch
                     // start strongly favoring based on this taken
-                    if (is_taken)   updated_pred_info[5:4] = 2'b10; // ST
+                    if (is_taken)   updated_pred_info[5:4] = 2'b11; // ST
                     else            updated_pred_info[5:4] = 2'b00; // SN
                     updated_pred_info[3:0] = SIMPLE_BRANCH_INIT_ACCURACY;
                 end
