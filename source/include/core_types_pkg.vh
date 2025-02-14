@@ -42,7 +42,9 @@ package core_types_pkg;
     parameter BTB_TARGET_WIDTH = 12;
         // likely want sum of these or sum of desired subsets to be power of 2
 
-    parameter SIMPLE_BRANCH_ACCURACY_THRESHOLD = 4'b1000;
+    parameter SIMPLE_BRANCH_INIT_ACCURACY = 9;
+    parameter SIMPLE_BRANCH_ACCURACY_THRESHOLD = 7;
+    parameter SIMPLE_BRANCH_INACCURACY_PENALTY = 7;
 
     parameter UPPER_PC_TABLE_ENTRIES = 8;
     parameter UPPER_PC_WIDTH = 32 - BTB_TARGET_WIDTH - 1;

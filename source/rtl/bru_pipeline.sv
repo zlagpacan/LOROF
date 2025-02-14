@@ -55,14 +55,14 @@ module bru_pipeline (
     input logic WB_ready,
 
     // branch notification to ROB
-    output logic                            branch_notif_valid,
-    output logic [LOG_ROB_ENTRIES-1:0]      branch_notif_ROB_index,
-    output logic                            branch_notif_mispredict,
-    output logic                            branch_notif_taken,
-    output logic [BTB_PRED_INFO_WIDTH-1:0]  branch_notif_updated_pred_info,
-    output logic                            branch_notif_upper_PC_out_of_range,
-    output logic [31:0]                     branch_notif_start_PC,
-    output logic [31:0]                     branch_notif_target_PC,
+    output logic                            branch_notif_valid;
+    output logic [LOG_ROB_ENTRIES-1:0]      branch_notif_ROB_index;
+    output logic                            branch_notif_is_mispredict;
+    output logic                            branch_notif_is_taken;
+    output logic                            branch_notif_is_out_of_range;
+    output logic [BTB_PRED_INFO_WIDTH-1:0]  branch_notif_updated_pred_info;
+    output logic [31:0]                     branch_notif_start_PC;
+    output logic [31:0]                     branch_notif_target_PC;
 
     // branch notification backpressure from ROB
     input logic branch_notif_ready
@@ -145,7 +145,7 @@ module bru_pipeline (
     logic [BTB_PRED_INFO_WIDTH-1:0]     next_pred_info_EX2;
     logic                               next_is_link_ra_EX2;
     logic                               next_is_ret_ra_EX2;
-    logic                               next_taken_EX2;
+    logic                               next_is_taken_EX2;
     logic [31:0]                        next_PC_EX2;
     logic [31:0]                        next_pred_PC_EX2;
     logic [31:0]                        next_target_PC_EX2;
@@ -161,15 +161,13 @@ module bru_pipeline (
     logic [BTB_PRED_INFO_WIDTH-1:0]     pred_info_EX2;
     logic                               is_link_ra_EX2;
     logic                               is_ret_ra_EX2;
-    logic                               taken_EX2;
+    logic                               is_taken_EX2;
     logic [31:0]                        PC_EX2;
     logic [31:0]                        pred_PC_EX2;
     logic [31:0]                        target_PC_EX2;
     logic [31:0]                        write_data_EX2;
     logic [LOG_PR_COUNT-1:0]            dest_PR_EX2;
     logic [LOG_ROB_ENTRIES-1:0]         ROB_index_EX2;
-
-    logic target_PC_eq_pred_PC_EX2;
 
     logic                           next_WB_valid;
     logic [31:0]                    next_WB_data;
@@ -178,10 +176,10 @@ module bru_pipeline (
 
     logic                               next_branch_notif_valid;
     logic [LOG_ROB_ENTRIES-1:0]         next_branch_notif_ROB_index;
-    logic                               next_branch_notif_mispredict;
-    logic                               next_branch_notif_taken;
+    logic                               next_branch_notif_is_mispredict;
+    logic                               next_branch_notif_is_taken;
+    logic                               next_branch_notif_is_out_of_range;
     logic [BTB_PRED_INFO_WIDTH-1:0]     next_branch_notif_updated_pred_info;
-    logic                               next_branch_notif_upper_PC_out_of_range;
     logic [31:0]                        next_branch_notif_start_PC;
     logic [31:0]                        next_branch_notif_target_PC;
 
@@ -453,100 +451,101 @@ module bru_pipeline (
     assign A_ltu_B_EX1 = ~A_EX1[31] & B_EX1[31] | inner_A_lt_B_EX1 & ~(A_EX1[31] & ~B_EX1[31]);
 
     // op-wise behavior
+        // next_target_PC_EX2
+        // next_is_taken_EX2
+        // next_write_data_EX2
     always_comb begin
         
-        case (op_EX1) 
+        case (op_EX1)
 
             4'b0000: // JALR
             begin
                 next_target_PC_EX2 = A_plus_imm32_EX1;
+                next_is_taken_EX2 = 1'b1;
                 next_write_data_EX2 = PC_plus_2_4_EX1;
-                next_taken_EX2 = 1'b1;
             end
 
             4'b0001: // C.JALR
             begin
                 next_target_PC_EX2 = A_EX1;
+                next_is_taken_EX2 = 1'b1;
                 next_write_data_EX2 = PC_plus_2_4_EX1;
-                next_taken_EX2 = 1'b1;
             end
 
             4'b0010: // JAL
             begin
                 next_target_PC_EX2 = PC_plus_imm32_EX1;
+                next_is_taken_EX2 = 1'b1;
                 next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
-                next_taken_EX2 = 1'b1;
             end
 
             4'b0011: // C.JAL
             begin
                 next_target_PC_EX2 = PC_plus_imm32_EX1;
+                next_is_taken_EX2 = 1'b1;
                 next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
-                next_taken_EX2 = 1'b1;
             end
 
             4'b0100: // C.J
             begin
                 next_target_PC_EX2 = PC_plus_imm32_EX1;
+                next_is_taken_EX2 = 1'b1;
                 next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
-                next_taken_EX2 = 1'b1;
             end
 
             4'b0101: // C.JR
             begin
                 next_target_PC_EX2 = A_EX1;
+                next_is_taken_EX2 = 1'b1;
                 next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
-                next_taken_EX2 = 1'b1;
             end
 
             4'b0110: // LUI
             begin
                 next_target_PC_EX2 = PC_plus_imm32_EX1; // don't care
+                next_is_taken_EX2 = 1'b0; // don't care
                 next_write_data_EX2 = imm32_EX1;
-                next_taken_EX2 = 1'b0;
             end
 
             4'b0111: // AUIPC
             begin
                 next_target_PC_EX2 = PC_plus_imm32_EX1; // don't care
+                next_is_taken_EX2 = 1'b0; // don't care
                 next_write_data_EX2 = PC_plus_imm32_EX1;
-                next_taken_EX2 = 1'b0;
             end
 
             4'b1000: // BEQ
             begin
                 if (A_eq_B_EX1) begin
                     next_target_PC_EX2 = PC_plus_imm32_EX1;
-                    next_taken_EX2 = 1'b1;
+                    next_is_taken_EX2 = 1'b1;
                 end else begin
                     next_target_PC_EX2 = PC_plus_2_4_EX1;
-                    next_taken_EX2 = 1'b0;
+                    next_is_taken_EX2 = 1'b0;
                 end
                 next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
-                taken_EX2 = 1'b1;
             end
 
             4'b1001: // BNE
             begin
                 if (~A_eq_B_EX1) begin
                     next_target_PC_EX2 = PC_plus_imm32_EX1;
-                    next_taken_EX2 = 1'b1;
+                    next_is_taken_EX2 = 1'b1;
                 end else begin
                     next_target_PC_EX2 = PC_plus_2_4_EX1;
-                    next_taken_EX2 = 1'b0;
+                    next_is_taken_EX2 = 1'b0;
                 end
                 next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
-                taken_EX2 = 1'b1;
             end
 
             4'b1010: // C.BEQZ
             begin
                 if (A_eq_zero_EX1) begin
                     next_target_PC_EX2 = PC_plus_imm32_EX1;
-                    next_taken_EX2 = 1'b1;
+                    next_is_taken_EX2 = 1'b1;
                 end else begin
                     next_target_PC_EX2 = PC_plus_2_4_EX1;
-                    next_taken_EX2 = 1'b0;
+                    next_is_taken_EX2 = 1'b0;
                 end
                 next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
             end
@@ -555,10 +554,10 @@ module bru_pipeline (
             begin
                 if (~A_eq_zero_EX1) begin
                     next_target_PC_EX2 = PC_plus_imm32_EX1;
-                    next_taken_EX2 = 1'b1;
+                    next_is_taken_EX2 = 1'b1;
                 end else begin
                     next_target_PC_EX2 = PC_plus_2_4_EX1;
-                    next_taken_EX2 = 1'b0;
+                    next_is_taken_EX2 = 1'b0;
                 end
                 next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
             end
@@ -567,10 +566,10 @@ module bru_pipeline (
             begin
                 if (A_lts_B_EX1) begin
                     next_target_PC_EX2 = PC_plus_imm32_EX1;
-                    next_taken_EX2 = 1'b1;
+                    next_is_taken_EX2 = 1'b1;
                 end else begin
                     next_target_PC_EX2 = PC_plus_2_4_EX1;
-                    next_taken_EX2 = 1'b0;
+                    next_is_taken_EX2 = 1'b0;
                 end
                 next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
             end
@@ -579,10 +578,10 @@ module bru_pipeline (
             begin
                 if (~A_lts_B_EX1) begin
                     next_target_PC_EX2 = PC_plus_imm32_EX1;
-                    next_taken_EX2 = 1'b1;
+                    next_is_taken_EX2 = 1'b1;
                 end else begin
                     next_target_PC_EX2 = PC_plus_2_4_EX1;
-                    next_taken_EX2 = 1'b0;
+                    next_is_taken_EX2 = 1'b0;
                 end
                 next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
             end
@@ -591,10 +590,10 @@ module bru_pipeline (
             begin
                 if (A_ltu_B_EX1) begin
                     next_target_PC_EX2 = PC_plus_imm32_EX1;
-                    next_taken_EX2 = 1'b1;
+                    next_is_taken_EX2 = 1'b1;
                 end else begin
                     next_target_PC_EX2 = PC_plus_2_4_EX1;
-                    next_taken_EX2 = 1'b0;
+                    next_is_taken_EX2 = 1'b0;
                 end
                 next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
             end
@@ -603,10 +602,10 @@ module bru_pipeline (
             begin
                 if (~A_ltu_B_EX1) begin
                     next_target_PC_EX2 = PC_plus_imm32_EX1;
-                    next_taken_EX2 = 1'b1;
+                    next_is_taken_EX2 = 1'b1;
                 end else begin
                     next_target_PC_EX2 = PC_plus_2_4_EX1;
-                    next_taken_EX2 = 1'b0;
+                    next_is_taken_EX2 = 1'b0;
                 end
                 next_write_data_EX2 = PC_plus_2_4_EX1; // don't care
             end
@@ -619,20 +618,143 @@ module bru_pipeline (
     // FF
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-
+            valid_EX2 <= 1'b0;
+            op_EX2 <= 4'b0000;
+            pred_info_EX2 <= 8'h0;
+            is_link_ra_EX2 <= 1'b0;
+            is_ret_ra_EX2 <= 1'b0;
+            is_taken_EX2 <= 1'b0;
+            PC_EX2 <= 32'h0;
+            pred_PC_EX2 <= 32'h0;
+            target_PC_EX2 <= 32'h0;
+            write_data_EX2 <= 32'h0;
+            dest_PR_EX2 <= 7'h0;
+            ROB_index_EX2 <= 7'h0;
+        end
+        else if (stall_EX2) begin
+            valid_EX2 <= valid_EX2;
+            op_EX2 <= op_EX2;
+            pred_info_EX2 <= pred_info_EX2;
+            is_link_ra_EX2 <= is_link_ra_EX2;
+            is_ret_ra_EX2 <= is_ret_ra_EX2;
+            is_taken_EX2 <= is_taken_EX2;
+            PC_EX2 <= PC_EX2;
+            pred_PC_EX2 <= pred_PC_EX2;
+            target_PC_EX2 <= target_PC_EX2;
+            write_data_EX2 <= write_data_EX2;
+            dest_PR_EX2 <= dest_PR_EX2;
+            ROB_index_EX2 <= ROB_index_EX2;
         end
         else begin
-            
+            valid_EX2 <= next_valid_EX2;
+            op_EX2 <= next_op_EX2;
+            pred_info_EX2 <= next_pred_info_EX2;
+            is_link_ra_EX2 <= next_is_link_ra_EX2;
+            is_ret_ra_EX2 <= next_is_ret_ra_EX2;
+            is_taken_EX2 <= next_is_taken_EX2;
+            PC_EX2 <= next_PC_EX2;
+            pred_PC_EX2 <= next_pred_PC_EX2;
+            target_PC_EX2 <= next_target_PC_EX2;
+            write_data_EX2 <= next_write_data_EX2;
+            dest_PR_EX2 <= next_dest_PR_EX2;
+            ROB_index_EX2 <= next_ROB_index_EX2;
         end
     end
 
-    assign next_branch_notif_mispredict = target_PC_EX2 != pred_PC_EX2;
-    assign next_branch_notif_upper_PC_out_of_range = target_PC_EX2[31:32-UPPER_PC_WIDTH] != PC_EX2[31:32-UPPER_PC_WIDTH];
-
+    assign next_WB_data = write_data_EX2;
     assign next_WB_PR = dest_PR_EX2;
     assign next_WB_ROB_index = ROB_index_EX2;
     
     assign next_branch_notif_ROB_index = ROB_index_EX2;
+    assign next_branch_notif_is_mispredict = target_PC_EX2 != pred_PC_EX2;
+    assign next_branch_notif_is_taken = is_taken_EX2;
+    assign next_branch_notif_is_out_of_range = target_PC_EX2[31:32-UPPER_PC_WIDTH] != PC_EX2[31:32-UPPER_PC_WIDTH];
+    assign next_branch_notif_start_PC = PC_EX2;
+    assign next_branch_notif_target_PC = target_PC_EX2;
+
+    // leave next_branch_notif_updated_pred_info to bru_pred_info_updater module
+        // this way can easily change this logic and independently verify it
+        // logic is independent from figuring out what the WB and branch notif interface values should be
+            // besides of course branch_notif_updated_pred_info
+        // the upper PC table index bits and the complex branch 2bc bits are handled by the frontend when the branch notif arrives
+    bru_pred_info_updater BRU_PIU (
+        // inputs
+        .op(op_EX2),
+        .start_pred_info(pred_info_EX2),
+        .is_link_ra(is_link_ra_EX2),
+        .is_ret_ra(is_ret_ra_EX2),
+        .is_taken(is_taken_EX2),
+        .is_mispredict(next_branch_notif_is_mispredict),
+        .is_out_of_range(next_branch_notif_is_out_of_range),
+        // outputs
+        .updated_pred_info(next_branch_notif_updated_pred_info)
+    );
+
+    // op-wise behavior
+        // next_WB_valid
+        // next_branch_notif_valid
+    always_comb begin
+        
+        casez (op_EX2)
+
+            4'b0000: // JALR
+            begin
+                next_WB_valid = 1'b1;
+                next_branch_notif_valid = 1'b1;
+            end
+
+            4'b0001: // C.JALR
+            begin
+                next_WB_valid = 1'b1;
+                next_branch_notif_valid = 1'b1;
+            end
+
+            4'b0010: // JAL
+            begin
+                next_WB_valid = 1'b1;
+                next_branch_notif_valid = 1'b1;
+            end
+
+            4'b0011: // C.JAL
+            begin
+                next_WB_valid = 1'b1;
+                next_branch_notif_valid = 1'b1;
+            end
+
+            4'b0100: // C.J
+            begin
+                next_WB_valid = 1'b0;
+                next_branch_notif_valid = 1'b1;
+            end
+
+            4'b0101: // C.JR
+            begin
+                next_WB_valid = 1'b0;
+                next_branch_notif_valid = 1'b1;
+            end
+
+            4'b0110: // LUI
+            begin
+                next_WB_valid = 1'b1;
+                next_branch_notif_valid = 1'b0;
+            end
+
+            4'b0111: // AUIPC
+            begin
+                next_WB_valid = 1'b1;
+                next_branch_notif_valid = 1'b0;
+            end
+
+            4'b1???: // BEQ, BNE, C.BEQZ, C.BNEZ, BLT, BGE, BLTU, BGEU
+            begin
+                next_WB_valid = 1'b0;
+                next_branch_notif_valid = 1'b1;
+            end
+
+        endcase
+    end
+
+
 
     // ----------------------------------------------------------------
     // WB Stage Logic:
