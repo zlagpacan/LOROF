@@ -114,6 +114,7 @@ module alu_imm_pipeline (
             A_saved_OC <= 1'b0;
             A_forward_OC <= 1'b0;
             A_bank_OC <= '0;
+            A_saved_data_OC <= 32'h0;
             dest_PR_OC <= '0;
             ROB_index_OC <= '0;
         end
@@ -125,6 +126,7 @@ module alu_imm_pipeline (
             A_saved_OC <= A_saved_OC | A_forward_OC | A_reg_read_ack;
             A_forward_OC <= 1'b0;
             A_bank_OC <= A_bank_OC;
+            A_saved_data_OC <= next_A_EX;
             dest_PR_OC <= dest_PR_OC;
             ROB_index_OC <= ROB_index_OC;
         end
@@ -136,18 +138,9 @@ module alu_imm_pipeline (
             A_saved_OC <= 1'b0;
             A_forward_OC <= issue_A_forward;
             A_bank_OC <= issue_A_bank;
+            A_saved_data_OC <= next_A_EX;
             dest_PR_OC <= issue_dest_PR;
             ROB_index_OC <= issue_ROB_index;
-        end
-    end
-
-    // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
-        if (~nRST) begin
-            A_saved_data_OC <= 32'h0;
-        end
-        else begin
-            A_saved_data_OC <= next_A_EX;
         end
     end
 
