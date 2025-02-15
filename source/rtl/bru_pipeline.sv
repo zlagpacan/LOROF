@@ -14,7 +14,7 @@ module bru_pipeline (
     input logic CLK,
     input logic nRST,
 
-    // BRU op issue to BRU IQ
+    // BRU op issue from BRU IQ
     input logic                             issue_valid,
     input logic [3:0]                       issue_op,
     input logic [BTB_PRED_INFO_WIDTH-1:0]   issue_pred_info,

@@ -14,23 +14,27 @@ module bru_iq (
     input logic CLK,
     input logic nRST,
 
-    // BRU op dispatch by entry
-    input logic [3:0]                       dispatch_valid_by_entry,
-    input logic [3:0][3:0]                  dispatch_op_by_entry,
-    input logic [3:0][31:0]                 dispatch_PC_by_entry,
-    input logic [3:0][31:0]                 dispatch_speculated_next_PC_by_entry,
-    input logic [3:0][31:0]                 dispatch_imm_by_entry,
-    input logic [3:0][LOG_PR_COUNT-1:0]     dispatch_A_PR_by_entry,
-    input logic [3:0]                       dispatch_A_unneeded_by_entry,
-    input logic [3:0]                       dispatch_A_ready_by_entry,
-    input logic [3:0][LOG_PR_COUNT-1:0]     dispatch_B_PR_by_entry,
-    input logic [3:0]                       dispatch_B_unneeded_by_entry,
-    input logic [3:0]                       dispatch_B_ready_by_entry,
-    input logic [3:0][LOG_PR_COUNT-1:0]     dispatch_dest_PR_by_entry,
-    input logic [3:0][LOG_ROB_ENTRIES-1:0]  dispatch_ROB_index_by_entry,
+    // op dispatch by way
+    input logic [3:0]                           dispatch_attempt_by_way,
+    input logic [3:0]                           dispatch_valid_by_way,
+    input logic [3:0][3:0]                      dispatch_op_by_way,
+    input logic [3:0][BTB_PRED_INFO_WIDTH-1:0]  dispatch_pred_info_by_way,
+    input logic [3:0]                           dispatch_is_link_ra_by_way,
+    input logic [3:0]                           dispatch_is_ret_ra_by_way,
+    input logic [3:0][31:0]                     dispatch_PC_by_way,
+    input logic [3:0][31:0]                     dispatch_pred_PC_by_way,
+    input logic [3:0][19:0]                     dispatch_imm20_by_way,
+    input logic [3:0][LOG_PR_COUNT-1:0]         dispatch_A_PR_by_way,
+    input logic [3:0]                           dispatch_A_unneeded_by_way,
+    input logic [3:0]                           dispatch_A_ready_by_way,
+    input logic [3:0][LOG_PR_COUNT-1:0]         dispatch_B_PR_by_way,
+    input logic [3:0]                           dispatch_B_unneeded_by_way,
+    input logic [3:0]                           dispatch_B_ready_by_way,
+    input logic [3:0][LOG_PR_COUNT-1:0]         dispatch_dest_PR_by_way,
+    input logic [3:0][LOG_ROB_ENTRIES-1:0]      dispatch_ROB_index_by_way,
 
-    // BRU op dispatch feedback by entry
-    output logic [3:0] dispatch_open_by_entry,
+    // op dispatch feedback
+    output logic [3:0] dispatch_ack_by_way,
 
     // BRU pipeline feedback
     input logic pipeline_ready,
@@ -42,9 +46,12 @@ module bru_iq (
     // BRU op issue to BRU pipeline
     output logic                            issue_valid,
     output logic [3:0]                      issue_op,
+    output logic [BTB_PRED_INFO_WIDTH-1:0]  issue_pred_info,
+    output logic                            issue_is_link_ra,
+    output logic                            issue_is_ret_ra,
     output logic [31:0]                     issue_PC,
-    output logic [31:0]                     issue_speculated_next_PC,
-    output logic [31:0]                     issue_imm,
+    output logic [31:0]                     issue_pred_PC,
+    output logic [19:0]                     issue_imm20,
     output logic                            issue_A_unneeded,
     output logic                            issue_A_forward,
     output logic [LOG_PRF_BANK_COUNT-1:0]   issue_A_bank,
@@ -66,44 +73,68 @@ module bru_iq (
 
     // IQ entries
     
-    logic [3:0]                         valid_by_entry;
-    logic [3:0][3:0]                    op_by_entry;
-    logic [3:0][31:0]                   PC_by_entry;
-    logic [3:0][31:0]                   speculated_next_PC_by_entry;
-    logic [3:0][31:0]                   imm_by_entry;
-    logic [3:0][LOG_PR_COUNT-1:0]       A_PR_by_entry;
-    logic [3:0]                         A_unneeded_by_entry;
-    logic [3:0]                         A_ready_by_entry;
-    logic [3:0][LOG_PR_COUNT-1:0]       B_PR_by_entry;
-    logic [3:0]                         B_unneeded_by_entry;
-    logic [3:0]                         B_ready_by_entry;
-    logic [3:0][LOG_PR_COUNT-1:0]       dest_PR_by_entry;
-    logic [3:0][LOG_ROB_ENTRIES-1:0]    ROB_index_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]                              valid_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0][3:0]                         op_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0][BTB_PRED_INFO_WIDTH-1:0]     pred_info_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]                              is_link_ra_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]                              is_ret_ra_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0][31:0]                        PC_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0][31:0]                        pred_PC_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0][19:0]                        imm20_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            A_PR_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]                              A_unneeded_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]                              A_ready_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            B_PR_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]                              B_unneeded_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]                              B_ready_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            dest_PR_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0][LOG_ROB_ENTRIES-1:0]         ROB_index_by_entry;
 
     // issue logic helper signals
-    logic [3:0] A_forward_by_entry;
-    logic [3:0] B_forward_by_entry;
-    logic [3:0] op_ready_by_entry;
-    logic [3:0] issue_mask;
-    logic [3:0] take_self_mask;
-    logic [3:0] take_above_mask;
+    logic [BRU_IQ_ENTRIES-1:0]  A_forward_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]  B_forward_by_entry;
+
+    logic [BRU_IQ_ENTRIES-1:0] issue_ready_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0] issue_one_hot_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0] issue_mask;
+
+    // incoming dispatch crossbar by entry
+    logic [BRU_IQ_ENTRIES-1:0]                              dispatch_valid_by_way;
+    logic [BRU_IQ_ENTRIES-1:0][3:0]                         dispatch_op_by_way;
+    logic [BRU_IQ_ENTRIES-1:0][BTB_PRED_INFO_WIDTH-1:0]     dispatch_pred_info_by_way;
+    logic [BRU_IQ_ENTRIES-1:0]                              dispatch_is_link_ra_by_way;
+    logic [BRU_IQ_ENTRIES-1:0]                              dispatch_is_ret_ra_by_way;
+    logic [BRU_IQ_ENTRIES-1:0][31:0]                        dispatch_PC_by_way;
+    logic [BRU_IQ_ENTRIES-1:0][31:0]                        dispatch_pred_PC_by_way;
+    logic [BRU_IQ_ENTRIES-1:0][19:0]                        dispatch_imm20_by_way;
+    logic [BRU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            dispatch_A_PR_by_way;
+    logic [BRU_IQ_ENTRIES-1:0]                              dispatch_A_unneeded_by_way;
+    logic [BRU_IQ_ENTRIES-1:0]                              dispatch_A_ready_by_way;
+    logic [BRU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            dispatch_B_PR_by_way;
+    logic [BRU_IQ_ENTRIES-1:0]                              dispatch_B_unneeded_by_way;
+    logic [BRU_IQ_ENTRIES-1:0]                              dispatch_B_ready_by_way;
+    logic [BRU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            dispatch_dest_PR_by_way;
+    logic [BRU_IQ_ENTRIES-1:0][LOG_ROB_ENTRIES-1:0]         dispatch_ROB_index_by_way;
+
+    // incoming dispatch req masks for each of 4 possible dispatch ways
+    logic [3:0][BRU_IQ_ENTRIES-1:0]     dispatch_open_mask_by_way;
+    logic [3:0][BRU_IQ_ENTRIES-1:0]     dispatch_pq_one_hot_by_way;
+    logic [3:0][BRU_IQ_ENTRIES-1:0]     dispatch_one_hot_by_way;
 
     // ----------------------------------------------------------------
-    // Logic: 
+    // Issue Logic:
 
-    //////////////////
-    // issue logic: //
-    //////////////////
-
+    // forwarding check
     always_comb begin
-        for (int i = 0; i < 4; i++) begin
+        for (int i = 0; i < BRU_IQ_ENTRIES; i++) begin
             A_forward_by_entry[i] = (A_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
             B_forward_by_entry[i] = (B_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[B_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[B_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
         end
     end
 
-    assign op_ready_by_entry = 
-        {4{pipeline_ready}}
+    // ready check
+    assign issue_ready_by_entry = 
+        {BRU_IQ_ENTRIES{pipeline_ready}}
         &
         valid_by_entry
         &
@@ -112,7 +143,67 @@ module bru_iq (
         (B_unneeded_by_entry | B_ready_by_entry | B_forward_by_entry)
     ;
 
+    // pq
+    pq_lsb #(.WIDTH(BRU_IQ_ENTRIES)) ISSUE_PQ_LSB (
+        .req_vec(issue_ready_by_entry),
+        .ack_one_hot(issue_one_hot_by_entry),
+        .ack_mask(issue_mask)
+    );
+
+    // mux
     always_comb begin
+
+        // issue automatically valid if any entry ready
+        issue_valid = |issue_ready_by_entry;
+
+        // one-hot mux over entries for final issue:
+        issue_op = '0
+        issue_pred_info = '0
+        issue_is_link_ra = '0
+        issue_is_ret_ra = '0
+        issue_PC = '0
+        issue_pred_PC = '0
+        issue_imm20 = '0
+        issue_A_unneeded = '0
+        issue_A_forward = '0
+        issue_A_bank = '0
+        issue_B_unneeded = '0
+        issue_B_forward = '0
+        issue_B_bank = '0
+        issue_dest_PR = '0
+        issue_ROB_index = '0
+
+        PRF_req_A_valid = '0;
+        PRF_req_A_PR = '0;
+        PRF_req_B_valid = '0;
+        PRF_req_B_PR = '0;
+
+        for (int entry = 0; entry < BRU_IQ_ENTRIES; entry++) begin
+
+            if (issue_one_hot_by_entry[entry]) begin
+                
+                issue_op |= op_by_entry[entry];
+                issue_pred_info |= issue_pred_info[entry];
+                issue_is_link_ra |= issue_is_link_ra[entry];
+                issue_is_ret_ra |= issue_is_ret_ra[entry];
+                issue_PC |= issue_PC[entry];
+                issue_pred_PC |= issue_pred_PC[entry];
+                issue_imm20 |= issue_imm20[entry];
+                issue_A_unneeded |= issue_A_unneeded[entry];
+                issue_A_forward |= issue_A_forward[entry];
+                issue_A_bank |= issue_A_bank[entry][LOG_PRF_BANK_COUNT-1:0];
+                issue_B_unneeded |= issue_B_unneeded[entry];
+                issue_B_forward |= issue_B_forward[entry];
+                issue_B_bank |= issue_B_bank[entry][LOG_PRF_BANK_COUNT-1:0];
+                issue_dest_PR |= issue_dest_PR[entry];
+                issue_ROB_index |= issue_ROB_index[entry];
+
+                PRF_req_A_valid |= ;
+                PRF_req_A_PR = '0;
+                PRF_req_B_valid = '0;
+                PRF_req_B_PR = '0;
+            end
+        end
 
         issue_mask = 4'b0000;
 
