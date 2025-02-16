@@ -22,8 +22,8 @@ package core_types_pkg;
     
     // Shared IQ's
     parameter ALU_REG_MDU_IQ_ENTRIES = 8;
-    parameter ALU_IMM_LD_IQ_ENTRIES = 16;
-    parameter ST_AMO_IQ_ENTRIES = 16;
+    parameter ALU_IMM_LDU_IQ_ENTRIES = 16;
+    parameter STAMOU_IQ_ENTRIES = 16;
     parameter BRU_IQ_ENTRIES = 6;
     parameter SYS_IQ_ENTRIES = 4;
 
