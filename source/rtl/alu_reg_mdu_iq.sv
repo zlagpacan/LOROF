@@ -1,7 +1,7 @@
 /*
     Filename: alu_reg_mdu_iq.sv
     Author: zlagpacan
-    Description: RTL for Issue Queue for ALU Register-Register and Mul-Div Pipeline
+    Description: RTL for Issue Queue for ALU Register-Register Pipeline and Multiplication-Division Unit Pipeline
     Spec: LOROF/spec/design/alu_reg_mdu_iq.md
 */
 
