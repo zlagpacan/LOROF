@@ -22,8 +22,8 @@ package core_types_pkg;
     
     // Shared IQ's
     parameter ALU_REG_MDU_IQ_ENTRIES = 8;
-    parameter ALU_IMM_LD_IQ_ENTRIES = 16;
-    parameter ST_AMO_IQ_ENTRIES = 16;
+    parameter ALU_IMM_LDU_IQ_ENTRIES = 16;
+    parameter STAMOU_IQ_ENTRIES = 16;
     parameter BRU_IQ_ENTRIES = 6;
     parameter SYS_IQ_ENTRIES = 4;
 
@@ -42,17 +42,21 @@ package core_types_pkg;
     parameter BTB_TARGET_WIDTH = 12;
         // likely want sum of these or sum of desired subsets to be power of 2
 
-    parameter UPPER_PC_TABLE_ENTRIES = 4;
-    parameter UPPER_PC_WIDTH = 30 - BTB_TARGET_WIDTH;
+    parameter SIMPLE_BRANCH_INIT_ACCURACY = 9;
+    parameter SIMPLE_BRANCH_ACCURACY_THRESHOLD = 7;
+    parameter SIMPLE_BRANCH_INACCURACY_PENALTY = 7;
+
+    parameter UPPER_PC_TABLE_ENTRIES = 8;
+    parameter UPPER_PC_WIDTH = 32 - BTB_TARGET_WIDTH - 1;
 
     parameter LH_LENGTH = 8;
-    parameter LHT_ENTRIES = 16;
-    parameter LOG_LHT_ENTRIES = $clog2(LHT_ENTRIES); 
-    parameter LBPT_ENTRIES = 2**(LH_LENGTH); // using PC ^ LH
+    parameter LHT_ENTRIES = 16; // using PC ^ ASID
+    parameter LOG_LHT_ENTRIES = $clog2(LHT_ENTRIES);
+    parameter LBPT_ENTRIES = 2**(LH_LENGTH); // using PC ^ LH ^ ASID
     parameter LOG_LBPT_ENTRIES = $clog2(LBPT_ENTRIES);
 
     parameter GH_LENGTH = 12;
-    parameter GBPT_ENTRIES = 2**(GH_LENGTH); // using PC ^ GHR
+    parameter GBPT_ENTRIES = 2**(GH_LENGTH); // using PC ^ GHR ^ ASID
     parameter LOG_GBPT_ENTRIES = $clog2(GBPT_ENTRIES);
 
     parameter RAS_DEPTH = 8;

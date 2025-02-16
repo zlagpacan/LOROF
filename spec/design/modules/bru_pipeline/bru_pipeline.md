@@ -18,7 +18,7 @@
 # Pipeline Stages
 
 
-# #xample Operation
+# Example Operation
 
 see [bru_pipeline_example.md](bru_pipeline_example.md)
 
@@ -53,35 +53,26 @@ see [bru_pipeline_example.md](bru_pipeline_example.md)
 
 ### Jumps
 - JAL
-    - issue_is_compressed = 1'b0
-    - issue_op = 4'b0001
+    - issue_op = 4'b0010
 - JALR
-    - issue_is_compressed = 1'b0
     - issue_op = 4'b0000
 
 ### Compressed Jumps
 - C.JAL
-    - issue_is_compressed = 1'b1
     - issue_op = 4'b0011
 - C.J
-    - issue_is_compressed = 1'b1
     - issue_op = 4'b0100
 - C.JR
-    - issue_is_compressed = 1'b1
-    - issue_op = 4'b0000
-- C.JALR
-    - issue_is_compressed = 1'b1
     - issue_op = 4'b0101
+- C.JALR
+    - issue_op = 4'b0001
 
 ### U-Type
 - LUI
-    - issue_is_compressed = 1'b0
     - issue_op = 4'b0110
 - AUIPC
-    - issue_is_compressed = 1'b0
     - issue_op = 4'b0111
 
 ### Compressed U-Type
 - C.LUI
-    - issue_is_compressed = 1'b1
     - issue_op = 4'b0110
