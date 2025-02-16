@@ -21,7 +21,7 @@ SVA      ?= $(UVM_DIR)/assertions/$(DUT)_sva.sv
 RESULTS_SCRIPT_DIR ?= ../../tools/uvm_results
 PARSE_RESULTS      ?= $(RESULTS_SCRIPT_DIR)/parse_results.py
 TRANSCRIPT         ?= transcript
-UVM_REPORT         ?= results.rpt
+UVM_REPORT         ?= results.log
 RPT                ?= 1
 
 # --- OS Commands --- #
@@ -73,11 +73,6 @@ export helpText
 .PHONY: help
 help:
 	@echo "$${helpText}"
-
-# FIXME: Doesn't work
-.PHONY: startup
-startup:
-	module load siemens/questa/2021.4
 
 # Remove QuestaSim generated libraries/reports
 .PHONY: clean
@@ -142,6 +137,12 @@ all: clean build run
 report:
 	$(PYTHON) "$(PARSE_RESULTS)" $(TRANSCRIPT) $(UVM_REPORT)
 
-.PHONY: coverage_rpt
+# Update static coverage report with generated artifacts
+.PHONY: tc_coverage
 coverage_rpt:
-	cp coverage.rpt cov_results.rpt
+	cp coverage.rpt tc_results.rpt
+
+# Update static test case results report with generated artifacts
+.PHONY: tc_results
+results:
+	cp results.log tc_results.rpt
