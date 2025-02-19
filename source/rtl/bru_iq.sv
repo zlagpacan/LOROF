@@ -21,6 +21,7 @@ module bru_iq #(
     input logic [3:0]                           dispatch_valid_by_way,
     input logic [3:0][3:0]                      dispatch_op_by_way,
     input logic [3:0][BTB_PRED_INFO_WIDTH-1:0]  dispatch_pred_info_by_way,
+    input logic [3:0]                           dispatch_pred_lru_by_way,
     input logic [3:0]                           dispatch_is_link_ra_by_way,
     input logic [3:0]                           dispatch_is_ret_ra_by_way,
     input logic [3:0][31:0]                     dispatch_PC_by_way,
@@ -49,6 +50,7 @@ module bru_iq #(
     output logic                            issue_valid,
     output logic [3:0]                      issue_op,
     output logic [BTB_PRED_INFO_WIDTH-1:0]  issue_pred_info,
+    output logic                            issue_pred_lru,
     output logic                            issue_is_link_ra,
     output logic                            issue_is_ret_ra,
     output logic [31:0]                     issue_PC,
@@ -78,6 +80,7 @@ module bru_iq #(
     logic [BRU_IQ_ENTRIES-1:0]                              valid_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][3:0]                         op_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][BTB_PRED_INFO_WIDTH-1:0]     pred_info_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]                              pred_lru_by_entry;
     logic [BRU_IQ_ENTRIES-1:0]                              is_link_ra_by_entry;
     logic [BRU_IQ_ENTRIES-1:0]                              is_ret_ra_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][31:0]                        PC_by_entry;
@@ -104,6 +107,7 @@ module bru_iq #(
     logic [BRU_IQ_ENTRIES-1:0]                              dispatch_valid_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][3:0]                         dispatch_op_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][BTB_PRED_INFO_WIDTH-1:0]     dispatch_pred_info_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]                              dispatch_pred_lru_by_entry;
     logic [BRU_IQ_ENTRIES-1:0]                              dispatch_is_link_ra_by_entry;
     logic [BRU_IQ_ENTRIES-1:0]                              dispatch_is_ret_ra_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][31:0]                        dispatch_PC_by_entry;
@@ -161,6 +165,7 @@ module bru_iq #(
         // one-hot mux over entries for final issue:
         issue_op = '0;
         issue_pred_info = '0;
+        issue_pred_lru = '0;
         issue_is_link_ra = '0;
         issue_is_ret_ra = '0;
         issue_PC = '0;
@@ -186,6 +191,7 @@ module bru_iq #(
 
                 issue_op |= op_by_entry[entry];
                 issue_pred_info |= pred_info_by_entry[entry];
+                issue_pred_lru |= pred_lru_by_entry[entry];
                 issue_is_link_ra |= is_link_ra_by_entry[entry];
                 issue_is_ret_ra |= is_ret_ra_by_entry[entry];
                 issue_PC |= PC_by_entry[entry];
@@ -260,6 +266,7 @@ module bru_iq #(
         dispatch_valid_by_entry = '0;
         dispatch_op_by_entry = '0;
         dispatch_pred_info_by_entry = '0;
+        dispatch_pred_lru_by_entry = '0;
         dispatch_is_link_ra_by_entry = '0;
         dispatch_is_ret_ra_by_entry = '0;
         dispatch_PC_by_entry = '0;
@@ -284,6 +291,7 @@ module bru_iq #(
                     dispatch_valid_by_entry[entry] |= dispatch_valid_by_way[way];
                     dispatch_op_by_entry[entry] |= dispatch_op_by_way[way];
                     dispatch_pred_info_by_entry[entry] |= dispatch_pred_info_by_way[way];
+                    dispatch_pred_lru_by_entry[entry] |= dispatch_pred_lru_by_way[way];
                     dispatch_is_link_ra_by_entry[entry] |= dispatch_is_link_ra_by_way[way];
                     dispatch_is_ret_ra_by_entry[entry] |= dispatch_is_ret_ra_by_way[way];
                     dispatch_PC_by_entry[entry] |= dispatch_PC_by_way[way];
@@ -307,6 +315,7 @@ module bru_iq #(
             valid_by_entry <= '0;
             op_by_entry <= '0;
             pred_info_by_entry <= '0;
+            pred_lru_by_entry <= '0;
             is_link_ra_by_entry <= '0;
             is_ret_ra_by_entry <= '0;
             PC_by_entry <= '0;
@@ -340,6 +349,7 @@ module bru_iq #(
                     valid_by_entry[BRU_IQ_ENTRIES-1] <= valid_by_entry[BRU_IQ_ENTRIES-1];
                     op_by_entry[BRU_IQ_ENTRIES-1] <= op_by_entry[BRU_IQ_ENTRIES-1];
                     pred_info_by_entry[BRU_IQ_ENTRIES-1] <= pred_info_by_entry[BRU_IQ_ENTRIES-1];
+                    pred_lru_by_entry[BRU_IQ_ENTRIES-1] <= pred_lru_by_entry[BRU_IQ_ENTRIES-1];
                     is_link_ra_by_entry[BRU_IQ_ENTRIES-1] <= is_link_ra_by_entry[BRU_IQ_ENTRIES-1];
                     is_ret_ra_by_entry[BRU_IQ_ENTRIES-1] <= is_ret_ra_by_entry[BRU_IQ_ENTRIES-1];
                     PC_by_entry[BRU_IQ_ENTRIES-1] <= PC_by_entry[BRU_IQ_ENTRIES-1];
@@ -360,6 +370,7 @@ module bru_iq #(
                     valid_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_valid_by_entry[BRU_IQ_ENTRIES-1];
                     op_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_op_by_entry[BRU_IQ_ENTRIES-1];
                     pred_info_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_pred_info_by_entry[BRU_IQ_ENTRIES-1];
+                    pred_lru_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_pred_lru_by_entry[BRU_IQ_ENTRIES-1];
                     is_link_ra_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_is_link_ra_by_entry[BRU_IQ_ENTRIES-1];
                     is_ret_ra_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_is_ret_ra_by_entry[BRU_IQ_ENTRIES-1];
                     PC_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_PC_by_entry[BRU_IQ_ENTRIES-1];
@@ -389,6 +400,7 @@ module bru_iq #(
                         valid_by_entry[i] <= valid_by_entry[i+1];
                         op_by_entry[i] <= op_by_entry[i+1];
                         pred_info_by_entry[i] <= pred_info_by_entry[i+1];
+                        pred_lru_by_entry[i] <= pred_lru_by_entry[i+1];
                         is_link_ra_by_entry[i] <= is_link_ra_by_entry[i+1];
                         is_ret_ra_by_entry[i] <= is_ret_ra_by_entry[i+1];
                         PC_by_entry[i] <= PC_by_entry[i+1];
@@ -409,6 +421,7 @@ module bru_iq #(
                         valid_by_entry[i] <= dispatch_valid_by_entry[i+1];
                         op_by_entry[i] <= dispatch_op_by_entry[i+1];
                         pred_info_by_entry[i] <= dispatch_pred_info_by_entry[i+1];
+                        pred_lru_by_entry[i] <= dispatch_pred_lru_by_entry[i+1];
                         is_link_ra_by_entry[i] <= dispatch_is_link_ra_by_entry[i+1];
                         is_ret_ra_by_entry[i] <= dispatch_is_ret_ra_by_entry[i+1];
                         PC_by_entry[i] <= dispatch_PC_by_entry[i+1];
@@ -433,6 +446,7 @@ module bru_iq #(
                         valid_by_entry[i] <= valid_by_entry[i];
                         op_by_entry[i] <= op_by_entry[i];
                         pred_info_by_entry[i] <= pred_info_by_entry[i];
+                        pred_lru_by_entry[i] <= pred_lru_by_entry[i];
                         is_link_ra_by_entry[i] <= is_link_ra_by_entry[i];
                         is_ret_ra_by_entry[i] <= is_ret_ra_by_entry[i];
                         PC_by_entry[i] <= PC_by_entry[i];
@@ -453,6 +467,7 @@ module bru_iq #(
                         valid_by_entry[i] <= dispatch_valid_by_entry[i];
                         op_by_entry[i] <= dispatch_op_by_entry[i];
                         pred_info_by_entry[i] <= dispatch_pred_info_by_entry[i];
+                        pred_lru_by_entry[i] <= dispatch_pred_lru_by_entry[i];
                         is_link_ra_by_entry[i] <= dispatch_is_link_ra_by_entry[i];
                         is_ret_ra_by_entry[i] <= dispatch_is_ret_ra_by_entry[i];
                         PC_by_entry[i] <= dispatch_PC_by_entry[i];

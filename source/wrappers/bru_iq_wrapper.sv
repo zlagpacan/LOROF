@@ -22,6 +22,7 @@ module bru_iq_wrapper (
 	input logic [3:0] next_dispatch_valid_by_way,
 	input logic [3:0][3:0] next_dispatch_op_by_way,
 	input logic [3:0][BTB_PRED_INFO_WIDTH-1:0] next_dispatch_pred_info_by_way,
+	input logic [3:0] next_dispatch_pred_lru_by_way,
 	input logic [3:0] next_dispatch_is_link_ra_by_way,
 	input logic [3:0] next_dispatch_is_ret_ra_by_way,
 	input logic [3:0][31:0] next_dispatch_PC_by_way,
@@ -50,6 +51,7 @@ module bru_iq_wrapper (
 	output logic last_issue_valid,
 	output logic [3:0] last_issue_op,
 	output logic [BTB_PRED_INFO_WIDTH-1:0] last_issue_pred_info,
+	output logic last_issue_pred_lru,
 	output logic last_issue_is_link_ra,
 	output logic last_issue_is_ret_ra,
 	output logic [31:0] last_issue_PC,
@@ -80,6 +82,7 @@ module bru_iq_wrapper (
 	logic [3:0] dispatch_valid_by_way;
 	logic [3:0][3:0] dispatch_op_by_way;
 	logic [3:0][BTB_PRED_INFO_WIDTH-1:0] dispatch_pred_info_by_way;
+	logic [3:0] dispatch_pred_lru_by_way;
 	logic [3:0] dispatch_is_link_ra_by_way;
 	logic [3:0] dispatch_is_ret_ra_by_way;
 	logic [3:0][31:0] dispatch_PC_by_way;
@@ -108,6 +111,7 @@ module bru_iq_wrapper (
 	logic issue_valid;
 	logic [3:0] issue_op;
 	logic [BTB_PRED_INFO_WIDTH-1:0] issue_pred_info;
+	logic issue_pred_lru;
 	logic issue_is_link_ra;
 	logic issue_is_ret_ra;
 	logic [31:0] issue_PC;
@@ -145,6 +149,7 @@ module bru_iq_wrapper (
 			dispatch_valid_by_way <= '0;
 			dispatch_op_by_way <= '0;
 			dispatch_pred_info_by_way <= '0;
+			dispatch_pred_lru_by_way <= '0;
 			dispatch_is_link_ra_by_way <= '0;
 			dispatch_is_ret_ra_by_way <= '0;
 			dispatch_PC_by_way <= '0;
@@ -173,6 +178,7 @@ module bru_iq_wrapper (
 			last_issue_valid <= '0;
 			last_issue_op <= '0;
 			last_issue_pred_info <= '0;
+			last_issue_pred_lru <= '0;
 			last_issue_is_link_ra <= '0;
 			last_issue_is_ret_ra <= '0;
 			last_issue_PC <= '0;
@@ -201,6 +207,7 @@ module bru_iq_wrapper (
 			dispatch_valid_by_way <= next_dispatch_valid_by_way;
 			dispatch_op_by_way <= next_dispatch_op_by_way;
 			dispatch_pred_info_by_way <= next_dispatch_pred_info_by_way;
+			dispatch_pred_lru_by_way <= next_dispatch_pred_lru_by_way;
 			dispatch_is_link_ra_by_way <= next_dispatch_is_link_ra_by_way;
 			dispatch_is_ret_ra_by_way <= next_dispatch_is_ret_ra_by_way;
 			dispatch_PC_by_way <= next_dispatch_PC_by_way;
@@ -229,6 +236,7 @@ module bru_iq_wrapper (
 			last_issue_valid <= issue_valid;
 			last_issue_op <= issue_op;
 			last_issue_pred_info <= issue_pred_info;
+			last_issue_pred_lru <= issue_pred_lru;
 			last_issue_is_link_ra <= issue_is_link_ra;
 			last_issue_is_ret_ra <= issue_is_ret_ra;
 			last_issue_PC <= issue_PC;

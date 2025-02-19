@@ -28,19 +28,22 @@ package core_types_pkg;
     parameter SYS_IQ_ENTRIES = 4;
 
     // Branch Prediction
-    parameter BTB_ENTRIES = 512;
-    parameter LOG_BTB_ENTRIES = $clog2(BTB_ENTRIES);
-    parameter BTB_ENTRIES_PER_BLOCK = 4;
-    parameter LOG_BTB_ENTRIES_PER_BLOCK = 2;
-    parameter BTB_BANK_COUNT = 2;
-    parameter LOG_BTB_BANK_COUNT = 1;
-    parameter BTB_BLOCKS_PER_BANK = BTB_ENTRIES / BTB_ENTRIES_PER_BLOCK / BTB_BANK_COUNT;
-    parameter BTB_INDEX_WIDTH = $clog2(BTB_BLOCKS_PER_BANK);
+    parameter BTB_NWAY_ENTRIES = 1024;
+    parameter LOG_BTB_NWAY_ENTRIES = $clog2(BTB_NWAY_ENTRIES);
+    parameter BTB_ENTRIES_PER_BLOCK = 16;
+    parameter LOG_BTB_ENTRIES_PER_BLOCK = $clog2(BTB_ENTRIES_PER_BLOCK);
+    parameter BTB_WAYS = 2;
+    parameter LOG_BTB_WAYS = $clog2(BTB_WAYS);
+    parameter BTB_SETS = BTB_NWAY_ENTRIES / BTB_ENTRIES_PER_BLOCK / BTB_WAYS;
+    parameter BTB_INDEX_WIDTH = $clog2(BTB_SETS);
 
+    // per way
     parameter BTB_PRED_INFO_WIDTH = 8;
-    parameter BTB_TAG_WIDTH = 4;
-    parameter BTB_TARGET_WIDTH = 12;
-        // likely want sum of these or sum of desired subsets to be power of 2
+    parameter BTB_TAG_WIDTH = 10;
+    parameter BTB_TARGET_WIDTH = 14;
+
+    // shared over ways
+    parameter BTB_LRU_INFO_WIDTH = 1;
 
     parameter SIMPLE_BRANCH_INIT_ACCURACY = 9;
     parameter SIMPLE_BRANCH_ACCURACY_THRESHOLD = 7;

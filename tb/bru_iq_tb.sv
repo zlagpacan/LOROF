@@ -38,6 +38,7 @@ module bru_iq_tb ();
 	logic [3:0] tb_dispatch_valid_by_way;
 	logic [3:0][3:0] tb_dispatch_op_by_way;
 	logic [3:0][BTB_PRED_INFO_WIDTH-1:0] tb_dispatch_pred_info_by_way;
+	logic [3:0] tb_dispatch_pred_lru_by_way;
 	logic [3:0] tb_dispatch_is_link_ra_by_way;
 	logic [3:0] tb_dispatch_is_ret_ra_by_way;
 	logic [3:0][31:0] tb_dispatch_PC_by_way;
@@ -66,6 +67,7 @@ module bru_iq_tb ();
 	logic DUT_issue_valid, expected_issue_valid;
 	logic [3:0] DUT_issue_op, expected_issue_op;
 	logic [BTB_PRED_INFO_WIDTH-1:0] DUT_issue_pred_info, expected_issue_pred_info;
+	logic DUT_issue_pred_lru, expected_issue_pred_lru;
 	logic DUT_issue_is_link_ra, expected_issue_is_link_ra;
 	logic DUT_issue_is_ret_ra, expected_issue_is_ret_ra;
 	logic [31:0] DUT_issue_PC, expected_issue_PC;
@@ -100,6 +102,7 @@ module bru_iq_tb ();
 		.dispatch_valid_by_way(tb_dispatch_valid_by_way),
 		.dispatch_op_by_way(tb_dispatch_op_by_way),
 		.dispatch_pred_info_by_way(tb_dispatch_pred_info_by_way),
+		.dispatch_pred_lru_by_way(tb_dispatch_pred_lru_by_way),
 		.dispatch_is_link_ra_by_way(tb_dispatch_is_link_ra_by_way),
 		.dispatch_is_ret_ra_by_way(tb_dispatch_is_ret_ra_by_way),
 		.dispatch_PC_by_way(tb_dispatch_PC_by_way),
@@ -128,6 +131,7 @@ module bru_iq_tb ();
 		.issue_valid(DUT_issue_valid),
 		.issue_op(DUT_issue_op),
 		.issue_pred_info(DUT_issue_pred_info),
+		.issue_pred_lru(DUT_issue_pred_lru),
 		.issue_is_link_ra(DUT_issue_is_link_ra),
 		.issue_is_ret_ra(DUT_issue_is_ret_ra),
 		.issue_PC(DUT_issue_PC),
@@ -178,6 +182,13 @@ module bru_iq_tb ();
 		if (expected_issue_pred_info !== DUT_issue_pred_info) begin
 			$display("TB ERROR: expected_issue_pred_info (%h) != DUT_issue_pred_info (%h)",
 				expected_issue_pred_info, DUT_issue_pred_info);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_pred_lru !== DUT_issue_pred_lru) begin
+			$display("TB ERROR: expected_issue_pred_lru (%h) != DUT_issue_pred_lru (%h)",
+				expected_issue_pred_lru, DUT_issue_pred_lru);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -328,6 +339,7 @@ module bru_iq_tb ();
 		tb_dispatch_valid_by_way = '0;
 		tb_dispatch_op_by_way = '0;
 		tb_dispatch_pred_info_by_way = '0;
+		tb_dispatch_pred_lru_by_way = '0;
 		tb_dispatch_is_link_ra_by_way = '0;
 		tb_dispatch_is_ret_ra_by_way = '0;
 		tb_dispatch_PC_by_way = '0;
@@ -363,6 +375,7 @@ module bru_iq_tb ();
 		expected_issue_valid = '0;
 		expected_issue_op = '0;
 		expected_issue_pred_info = '0;
+		expected_issue_pred_lru = '0;
 		expected_issue_is_link_ra = '0;
 		expected_issue_is_ret_ra = '0;
 		expected_issue_PC = '0;
@@ -395,6 +408,7 @@ module bru_iq_tb ();
 		tb_dispatch_valid_by_way = '0;
 		tb_dispatch_op_by_way = '0;
 		tb_dispatch_pred_info_by_way = '0;
+		tb_dispatch_pred_lru_by_way = '0;
 		tb_dispatch_is_link_ra_by_way = '0;
 		tb_dispatch_is_ret_ra_by_way = '0;
 		tb_dispatch_PC_by_way = '0;
@@ -430,6 +444,7 @@ module bru_iq_tb ();
 		expected_issue_valid = '0;
 		expected_issue_op = '0;
 		expected_issue_pred_info = '0;
+		expected_issue_pred_lru = '0;
 		expected_issue_is_link_ra = '0;
 		expected_issue_is_ret_ra = '0;
 		expected_issue_PC = '0;
@@ -470,6 +485,7 @@ module bru_iq_tb ();
 		tb_dispatch_valid_by_way = '0;
 		tb_dispatch_op_by_way = '0;
 		tb_dispatch_pred_info_by_way = '0;
+		tb_dispatch_pred_lru_by_way = '0;
 		tb_dispatch_is_link_ra_by_way = '0;
 		tb_dispatch_is_ret_ra_by_way = '0;
 		tb_dispatch_PC_by_way = '0;
@@ -505,6 +521,7 @@ module bru_iq_tb ();
 		expected_issue_valid = '0;
 		expected_issue_op = '0;
 		expected_issue_pred_info = '0;
+		expected_issue_pred_lru = '0;
 		expected_issue_is_link_ra = '0;
 		expected_issue_is_ret_ra = '0;
 		expected_issue_PC = '0;

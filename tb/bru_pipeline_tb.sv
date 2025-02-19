@@ -37,6 +37,7 @@ module bru_pipeline_tb ();
 	logic tb_issue_valid;
 	logic [3:0] tb_issue_op;
 	logic [BTB_PRED_INFO_WIDTH-1:0] tb_issue_pred_info;
+	logic tb_issue_pred_lru;
 	logic tb_issue_is_link_ra;
 	logic tb_issue_is_ret_ra;
 	logic [31:0] tb_issue_PC;
@@ -80,6 +81,7 @@ module bru_pipeline_tb ();
 	logic DUT_branch_notif_is_taken, expected_branch_notif_is_taken;
 	logic DUT_branch_notif_is_out_of_range, expected_branch_notif_is_out_of_range;
 	logic [BTB_PRED_INFO_WIDTH-1:0] DUT_branch_notif_updated_pred_info, expected_branch_notif_updated_pred_info;
+	logic DUT_branch_notif_pred_lru, expected_branch_notif_pred_lru;
 	logic [31:0] DUT_branch_notif_start_PC, expected_branch_notif_start_PC;
 	logic [31:0] DUT_branch_notif_target_PC, expected_branch_notif_target_PC;
 
@@ -99,6 +101,7 @@ module bru_pipeline_tb ();
 		.issue_valid(tb_issue_valid),
 		.issue_op(tb_issue_op),
 		.issue_pred_info(tb_issue_pred_info),
+		.issue_pred_lru(tb_issue_pred_lru),
 		.issue_is_link_ra(tb_issue_is_link_ra),
 		.issue_is_ret_ra(tb_issue_is_ret_ra),
 		.issue_PC(tb_issue_PC),
@@ -142,6 +145,7 @@ module bru_pipeline_tb ();
 		.branch_notif_is_taken(DUT_branch_notif_is_taken),
 		.branch_notif_is_out_of_range(DUT_branch_notif_is_out_of_range),
 		.branch_notif_updated_pred_info(DUT_branch_notif_updated_pred_info),
+		.branch_notif_pred_lru(DUT_branch_notif_pred_lru),
 		.branch_notif_start_PC(DUT_branch_notif_start_PC),
 		.branch_notif_target_PC(DUT_branch_notif_target_PC),
 
@@ -231,6 +235,13 @@ module bru_pipeline_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_branch_notif_pred_lru !== DUT_branch_notif_pred_lru) begin
+			$display("TB ERROR: expected_branch_notif_pred_lru (%h) != DUT_branch_notif_pred_lru (%h)",
+				expected_branch_notif_pred_lru, DUT_branch_notif_pred_lru);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_branch_notif_start_PC !== DUT_branch_notif_start_PC) begin
 			$display("TB ERROR: expected_branch_notif_start_PC (%h) != DUT_branch_notif_start_PC (%h)",
 				expected_branch_notif_start_PC, DUT_branch_notif_start_PC);
@@ -271,6 +282,7 @@ module bru_pipeline_tb ();
 		tb_issue_valid = 1'b0;
 		tb_issue_op = 4'b0000;
 		tb_issue_pred_info = 8'h0;
+		tb_issue_pred_lru = 1'b0;
 		tb_issue_is_link_ra = 1'b0;
 		tb_issue_is_ret_ra = 1'b0;
 		tb_issue_PC = 32'h0;
@@ -336,6 +348,7 @@ module bru_pipeline_tb ();
 		expected_branch_notif_is_taken = 1'b1;
 		expected_branch_notif_is_out_of_range = 1'b0;
 		expected_branch_notif_updated_pred_info = 8'b01000000;
+		expected_branch_notif_pred_lru = 1'b0;
 		expected_branch_notif_start_PC = 32'h0;
 		expected_branch_notif_target_PC = 32'h0;
 	    // branch notification backpressure from ROB
@@ -352,6 +365,7 @@ module bru_pipeline_tb ();
 		tb_issue_valid = 1'b0;
 		tb_issue_op = 4'b0000;
 		tb_issue_pred_info = 8'h0;
+		tb_issue_pred_lru = 1'b0;
 		tb_issue_is_link_ra = 1'b0;
 		tb_issue_is_ret_ra = 1'b0;
 		tb_issue_PC = 32'h0;
@@ -417,6 +431,7 @@ module bru_pipeline_tb ();
 		expected_branch_notif_is_taken = 1'b1;
 		expected_branch_notif_is_out_of_range = 1'b0;
 		expected_branch_notif_updated_pred_info = 8'b01000000;
+		expected_branch_notif_pred_lru = 1'b0;
 		expected_branch_notif_start_PC = 32'h0;
 		expected_branch_notif_target_PC = 32'h0;
 	    // branch notification backpressure from ROB
@@ -441,6 +456,7 @@ module bru_pipeline_tb ();
 		tb_issue_valid = 1'b0;
 		tb_issue_op = 4'b0000;
 		tb_issue_pred_info = 8'h0;
+		tb_issue_pred_lru = 1'b0;
 		tb_issue_is_link_ra = 1'b0;
 		tb_issue_is_ret_ra = 1'b0;
 		tb_issue_PC = 32'h0;
@@ -506,6 +522,7 @@ module bru_pipeline_tb ();
 		expected_branch_notif_is_taken = 1'b1;
 		expected_branch_notif_is_out_of_range = 1'b0;
 		expected_branch_notif_updated_pred_info = 8'b01000000;
+		expected_branch_notif_pred_lru = 1'b0;
 		expected_branch_notif_start_PC = 32'h0;
 		expected_branch_notif_target_PC = 32'h0;
 	    // branch notification backpressure from ROB

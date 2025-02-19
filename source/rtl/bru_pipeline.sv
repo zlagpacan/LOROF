@@ -18,6 +18,7 @@ module bru_pipeline (
     input logic                             issue_valid,
     input logic [3:0]                       issue_op,
     input logic [BTB_PRED_INFO_WIDTH-1:0]   issue_pred_info,
+    input logic                             issue_pred_lru,
     input logic                             issue_is_link_ra,
     input logic                             issue_is_ret_ra,
     input logic [31:0]                      issue_PC,
@@ -61,6 +62,7 @@ module bru_pipeline (
     output logic                            branch_notif_is_taken,
     output logic                            branch_notif_is_out_of_range,
     output logic [BTB_PRED_INFO_WIDTH-1:0]  branch_notif_updated_pred_info,
+    output logic                            branch_notif_pred_lru,
     output logic [31:0]                     branch_notif_start_PC,
     output logic [31:0]                     branch_notif_target_PC,
 
@@ -82,6 +84,7 @@ module bru_pipeline (
     logic                               valid_OC;
     logic [3:0]                         op_OC;
     logic [BTB_PRED_INFO_WIDTH-1:0]     pred_info_OC;
+    logic                               pred_lru_OC;
     logic                               is_link_ra_OC;
     logic                               is_ret_ra_OC;
     logic [31:0]                        PC_OC;
@@ -106,6 +109,7 @@ module bru_pipeline (
     logic                               next_valid_EX1;
     logic [3:0]                         next_op_EX1;
     logic [BTB_PRED_INFO_WIDTH-1:0]     next_pred_info_EX1;
+    logic                               next_pred_lru_EX1;
     logic                               next_is_link_ra_EX1;
     logic                               next_is_ret_ra_EX1;
     logic [31:0]                        next_PC_EX1;
@@ -122,6 +126,7 @@ module bru_pipeline (
     logic                               valid_EX1;
     logic [3:0]                         op_EX1;
     logic [BTB_PRED_INFO_WIDTH-1:0]     pred_info_EX1;
+    logic                               pred_lru_EX1;
     logic                               is_link_ra_EX1;
     logic                               is_ret_ra_EX1;
     logic [31:0]                        PC_EX1;
@@ -145,6 +150,7 @@ module bru_pipeline (
     logic                               next_valid_EX2;
     logic [3:0]                         next_op_EX2;
     logic [BTB_PRED_INFO_WIDTH-1:0]     next_pred_info_EX2;
+    logic                               next_pred_lru_EX2;
     logic                               next_is_link_ra_EX2;
     logic                               next_is_ret_ra_EX2;
     logic                               next_is_taken_EX2;
@@ -161,6 +167,7 @@ module bru_pipeline (
     logic                               valid_EX2;
     logic [3:0]                         op_EX2;
     logic [BTB_PRED_INFO_WIDTH-1:0]     pred_info_EX2;
+    logic                               pred_lru_EX2;
     logic                               is_link_ra_EX2;
     logic                               is_ret_ra_EX2;
     logic                               is_taken_EX2;
@@ -182,6 +189,7 @@ module bru_pipeline (
     logic                               next_branch_notif_is_taken;
     logic                               next_branch_notif_is_out_of_range;
     logic [BTB_PRED_INFO_WIDTH-1:0]     next_branch_notif_updated_pred_info;
+    logic                               next_branch_notif_pred_lru;
     logic [31:0]                        next_branch_notif_start_PC;
     logic [31:0]                        next_branch_notif_target_PC;
 
@@ -206,6 +214,7 @@ module bru_pipeline (
             valid_OC <= 1'b0;
             op_OC <= 4'b0000;
             pred_info_OC <= 8'h0;
+            pred_lru_OC <= 1'b0;
             is_link_ra_OC <= 1'b0;
             is_ret_ra_OC <= 1'b0;
             PC_OC <= 32'h0;
@@ -229,6 +238,7 @@ module bru_pipeline (
             valid_OC <= valid_OC;
             op_OC <= op_OC;
             pred_info_OC <= pred_info_OC;
+            pred_lru_OC <= pred_lru_OC;
             is_link_ra_OC <= is_link_ra_OC;
             is_ret_ra_OC <= is_ret_ra_OC;
             PC_OC <= PC_OC;
@@ -252,6 +262,7 @@ module bru_pipeline (
             valid_OC <= issue_valid;
             op_OC <= issue_op;
             pred_info_OC <= issue_pred_info;
+            pred_lru_OC <= issue_pred_lru;
             is_link_ra_OC <= issue_is_link_ra;
             is_ret_ra_OC <= issue_is_ret_ra;
             PC_OC <= issue_PC;
@@ -287,6 +298,7 @@ module bru_pipeline (
     assign next_valid_EX1 = valid_OC & launch_ready_OC;
     assign next_op_EX1 = op_OC;
     assign next_pred_info_EX1 = pred_info_OC;
+    assign next_pred_lru_EX1 = pred_lru_OC;
     assign next_is_link_ra_EX1 = is_link_ra_OC;
     assign next_is_ret_ra_EX1 = is_ret_ra_OC;
     assign next_PC_EX1 = PC_OC;
@@ -381,6 +393,7 @@ module bru_pipeline (
             valid_EX1 <= 1'b0;
             op_EX1 <= 4'b0000;
             pred_info_EX1 <= 8'h0;
+            pred_lru_EX1 <= 1'b0;
             is_link_ra_EX1 <= 1'b0;
             is_ret_ra_EX1 <= 1'b0;
             PC_EX1 <= 32'h0;
@@ -395,6 +408,7 @@ module bru_pipeline (
             valid_EX1 <= valid_EX1;
             op_EX1 <= op_EX1;
             pred_info_EX1 <= pred_info_EX1;
+            pred_lru_EX1 <= pred_lru_EX1;
             is_link_ra_EX1 <= is_link_ra_EX1;
             is_ret_ra_EX1 <= is_ret_ra_EX1;
             PC_EX1 <= PC_EX1;
@@ -409,6 +423,7 @@ module bru_pipeline (
             valid_EX1 <= next_valid_EX1;
             op_EX1 <= next_op_EX1;
             pred_info_EX1 <= next_pred_info_EX1;
+            pred_lru_EX1 <= next_pred_lru_EX1;
             is_link_ra_EX1 <= next_is_link_ra_EX1;
             is_ret_ra_EX1 <= next_is_ret_ra_EX1;
             PC_EX1 <= next_PC_EX1;
@@ -425,6 +440,7 @@ module bru_pipeline (
     assign next_valid_EX2 = valid_EX1;
     assign next_op_EX2 = op_EX1;
     assign next_pred_info_EX2 = pred_info_EX1;
+    assign next_pred_lru_EX2 = pred_lru_EX1;
     assign next_is_link_ra_EX2 = is_link_ra_EX1;
     assign next_is_ret_ra_EX2 = is_ret_ra_EX1;
     assign next_PC_EX2 = PC_EX1;
@@ -623,6 +639,7 @@ module bru_pipeline (
             valid_EX2 <= 1'b0;
             op_EX2 <= 4'b0000;
             pred_info_EX2 <= 8'h0;
+            pred_lru_EX2 <= 1'b0;
             is_link_ra_EX2 <= 1'b0;
             is_ret_ra_EX2 <= 1'b0;
             is_taken_EX2 <= 1'b1;
@@ -637,6 +654,7 @@ module bru_pipeline (
             valid_EX2 <= valid_EX2;
             op_EX2 <= op_EX2;
             pred_info_EX2 <= pred_info_EX2;
+            pred_lru_EX2 <= pred_lru_EX2;
             is_link_ra_EX2 <= is_link_ra_EX2;
             is_ret_ra_EX2 <= is_ret_ra_EX2;
             is_taken_EX2 <= is_taken_EX2;
@@ -651,6 +669,7 @@ module bru_pipeline (
             valid_EX2 <= next_valid_EX2;
             op_EX2 <= next_op_EX2;
             pred_info_EX2 <= next_pred_info_EX2;
+            pred_lru_EX2 <= next_pred_lru_EX2;
             is_link_ra_EX2 <= next_is_link_ra_EX2;
             is_ret_ra_EX2 <= next_is_ret_ra_EX2;
             is_taken_EX2 <= next_is_taken_EX2;
@@ -671,6 +690,7 @@ module bru_pipeline (
     assign next_branch_notif_is_mispredict = target_PC_EX2 != pred_PC_EX2;
     assign next_branch_notif_is_taken = is_taken_EX2;
     assign next_branch_notif_is_out_of_range = target_PC_EX2[31:32-UPPER_PC_WIDTH] != PC_EX2[31:32-UPPER_PC_WIDTH];
+    assign next_branch_notif_pred_lru = pred_lru_EX2;
     assign next_branch_notif_start_PC = PC_EX2;
     assign next_branch_notif_target_PC = target_PC_EX2;
 
@@ -773,6 +793,7 @@ module bru_pipeline (
             branch_notif_is_taken <= 1'b1;
             branch_notif_is_out_of_range <= 1'b0;
             branch_notif_updated_pred_info <= 8'b01000000;
+            branch_notif_pred_lru <= 1'b0;
             branch_notif_start_PC <= 32'h0;
             branch_notif_target_PC <= 32'h0;
         end
@@ -788,6 +809,7 @@ module bru_pipeline (
             branch_notif_is_taken <= branch_notif_is_taken;
             branch_notif_is_out_of_range <= branch_notif_is_out_of_range;
             branch_notif_updated_pred_info <= branch_notif_updated_pred_info;
+            branch_notif_pred_lru <= branch_notif_pred_lru;
             branch_notif_start_PC <= branch_notif_start_PC;
             branch_notif_target_PC <= branch_notif_target_PC;
         end
@@ -803,6 +825,7 @@ module bru_pipeline (
             branch_notif_is_taken <= next_branch_notif_is_taken;
             branch_notif_is_out_of_range <= next_branch_notif_is_out_of_range;
             branch_notif_updated_pred_info <= next_branch_notif_updated_pred_info;
+            branch_notif_pred_lru <= next_branch_notif_pred_lru;
             branch_notif_start_PC <= next_branch_notif_start_PC;
             branch_notif_target_PC <= next_branch_notif_target_PC;
         end

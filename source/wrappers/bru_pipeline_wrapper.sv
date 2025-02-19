@@ -17,10 +17,11 @@ module bru_pipeline_wrapper (
     input logic nRST,
 
 
-    // BRU op issue to BRU IQ
+    // BRU op issue from BRU IQ
 	input logic next_issue_valid,
 	input logic [3:0] next_issue_op,
 	input logic [BTB_PRED_INFO_WIDTH-1:0] next_issue_pred_info,
+	input logic next_issue_pred_lru,
 	input logic next_issue_is_link_ra,
 	input logic next_issue_is_ret_ra,
 	input logic [31:0] next_issue_PC,
@@ -64,6 +65,7 @@ module bru_pipeline_wrapper (
 	output logic last_branch_notif_is_taken,
 	output logic last_branch_notif_is_out_of_range,
 	output logic [BTB_PRED_INFO_WIDTH-1:0] last_branch_notif_updated_pred_info,
+	output logic last_branch_notif_pred_lru,
 	output logic [31:0] last_branch_notif_start_PC,
 	output logic [31:0] last_branch_notif_target_PC,
 
@@ -75,10 +77,11 @@ module bru_pipeline_wrapper (
     // Direct Module Connections:
 
 
-    // BRU op issue to BRU IQ
+    // BRU op issue from BRU IQ
 	logic issue_valid;
 	logic [3:0] issue_op;
 	logic [BTB_PRED_INFO_WIDTH-1:0] issue_pred_info;
+	logic issue_pred_lru;
 	logic issue_is_link_ra;
 	logic issue_is_ret_ra;
 	logic [31:0] issue_PC;
@@ -122,6 +125,7 @@ module bru_pipeline_wrapper (
 	logic branch_notif_is_taken;
 	logic branch_notif_is_out_of_range;
 	logic [BTB_PRED_INFO_WIDTH-1:0] branch_notif_updated_pred_info;
+	logic branch_notif_pred_lru;
 	logic [31:0] branch_notif_start_PC;
 	logic [31:0] branch_notif_target_PC;
 
@@ -140,10 +144,11 @@ module bru_pipeline_wrapper (
         if (~nRST) begin
 
 
-		    // BRU op issue to BRU IQ
+		    // BRU op issue from BRU IQ
 			issue_valid <= '0;
 			issue_op <= '0;
 			issue_pred_info <= '0;
+			issue_pred_lru <= '0;
 			issue_is_link_ra <= '0;
 			issue_is_ret_ra <= '0;
 			issue_PC <= '0;
@@ -187,6 +192,7 @@ module bru_pipeline_wrapper (
 			last_branch_notif_is_taken <= '0;
 			last_branch_notif_is_out_of_range <= '0;
 			last_branch_notif_updated_pred_info <= '0;
+			last_branch_notif_pred_lru <= '0;
 			last_branch_notif_start_PC <= '0;
 			last_branch_notif_target_PC <= '0;
 
@@ -196,10 +202,11 @@ module bru_pipeline_wrapper (
         else begin
 
 
-		    // BRU op issue to BRU IQ
+		    // BRU op issue from BRU IQ
 			issue_valid <= next_issue_valid;
 			issue_op <= next_issue_op;
 			issue_pred_info <= next_issue_pred_info;
+			issue_pred_lru <= next_issue_pred_lru;
 			issue_is_link_ra <= next_issue_is_link_ra;
 			issue_is_ret_ra <= next_issue_is_ret_ra;
 			issue_PC <= next_issue_PC;
@@ -243,6 +250,7 @@ module bru_pipeline_wrapper (
 			last_branch_notif_is_taken <= branch_notif_is_taken;
 			last_branch_notif_is_out_of_range <= branch_notif_is_out_of_range;
 			last_branch_notif_updated_pred_info <= branch_notif_updated_pred_info;
+			last_branch_notif_pred_lru <= branch_notif_pred_lru;
 			last_branch_notif_start_PC <= branch_notif_start_PC;
 			last_branch_notif_target_PC <= branch_notif_target_PC;
 
