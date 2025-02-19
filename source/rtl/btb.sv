@@ -1,7 +1,7 @@
 /*
     Filename: btb.sv
     Author: zlagpacan
-    Description: RTL for Branch Target Buffer
+    Description: RTL for Branch Target (and Branch Prediction Info) Buffer
     Spec: LOROF/spec/design/btb.md
 */
 
@@ -16,234 +16,181 @@ module btb (
 
     // REQ stage
     input logic         valid_REQ,
-    input logic [29:0]  PC30_REQ,
+    input logic [31:0]  PC_REQ,
+    input logic [8:0]   ASID_REQ,
 
     // RESP stage
-    input logic [3:0][29:0] PC30_by_way_RESP,
-
-    output logic [3:0]                              vtm_by_way_RESP,
-    output logic [3:0][BTB_PRED_INFO_WIDTH-1:0]     pred_info_by_way_RESP,
-    output logic [3:0][BTB_TARGET_WIDTH-1:0]        target_by_way_RESP,
+    output logic                                    hit_by_instr_RESP,
+    output logic [15:0][BTB_PRED_INFO_WIDTH-1:0]    pred_info_by_instr_RESP,
+    output logic [15:0]                             pred_lru_by_instr_RESP,
+    output logic [15:0][BTB_TARGET_WIDTH-1:0]       target_by_instr_RESP,
 
     // update
     input logic                             update_valid,
-    input logic [29:0]                      update_start_PC30,
+    input logic [31:0]                      update_start_PC,
     input logic [BTB_PRED_INFO_WIDTH-1:0]   update_pred_info,
-    input logic [29:0]                      update_target_PC30
+    input logic                             update_pred_lru,
+    input logic [31:0]                      update_target_PC
 );
 
     // ----------------------------------------------------------------
     // Signals:
 
     // REQ Stage:
-    logic [1:0][BTB_INDEX_WIDTH-1:0] index_by_bank_REQ;
+    logic [BTB_INDEX_WIDTH-1:0]     index_REQ;
+    logic [BTB_TAG_WIDTH-1:0]       hashed_tag_REQ;
 
     // RESP Stage:
-    logic [3:0]                                             bank_by_way_RESP;
-    logic [3:0][1:0]                                        offset_by_way_RESP;
-
-    logic [1:0][3:0][BTB_PRED_INFO_WIDTH-1:0]               pred_info_by_bank_by_offset_RESP;
-    logic [1:0][3:0][BTB_TAG_WIDTH+BTB_TARGET_WIDTH-1:0]    tag_target_by_bank_by_offset_RESP;
-    logic [3:0][BTB_TAG_WIDTH-1:0]                          tag_by_way_RESP;
-    logic [3:0][BTB_TAG_WIDTH-1:0]                          pipeline_tag_by_way_RESP;
-
-    // Update:
-    logic [1:0]                             update_valid_by_bank;
-    logic [BTB_INDEX_WIDTH-1:0]             update_index;
-
-    logic [1:0][BTB_PRED_INFO_WIDTH/8-1:0]  update_pred_info_byte_mask_by_bank;
-    // already have update_pred_info // make 4 copies at each bank
     
-    logic [1:0][(BTB_TAG_WIDTH+BTB_TARGET_WIDTH)/8-1:0]     update_tag_target_byte_mask_by_bank;
-    logic [1:0][BTB_TAG_WIDTH-1:0]                          update_tag; // make 4 copies at each bank
-    logic [1:0][BTB_TARGET_WIDTH-1:0]                       update_target; // make 4 copies at each bank
+    // array outputs
+    typedef struct packed {
+        logic [BTB_PRED_INFO_WIDTH-1:0]     pred_info;
+        logic [BTB_TAG_WIDTH-1:0]           tag;
+        logic [BTB_TARGET_WIDTH-1:0]        target;
+    } pred_info_tag_target_one_way_t;
 
+    pred_info_tag_target_one_way_t [15:0][1:0] array_pred_info_tag_target_by_instr_by_way_RESP;
+    logic [15:0] array_pred_lru_by_instr_RESP;
+
+    // replicated tags
+    logic [15:0][BTB_TAG_WIDTH-1:0] replicated_tags_by_instr_RESP;
+
+    // VTM's
+    logic [15:0][1:0] vtm_by_instr_by_way_RESP;
+
+    // Update 0:
+
+
+    // Update 1:
+
+    
     // ----------------------------------------------------------------
     // REQ Stage Logic:
 
-    always_comb begin
+    assign index_REQ = PC_REQ[BTB_INDEX_WIDTH+1-1:1];
 
-        // start bank 0: bank 0 gets PC30, bank 1 gets PC30
-        if (~PC30_REQ[2]) begin
-            index_by_bank_REQ[0] = PC30_REQ[LOG_BTB_ENTRIES-1:3];
-            index_by_bank_REQ[1] = PC30_REQ[LOG_BTB_ENTRIES-1:3];
-                // lower 3 PC30 bits for bank and offset
-        end
-
-        // start bank 1: bank 1 gets PC30, bank 0 gets PC30 + 8
-        else begin
-            index_by_bank_REQ[1] = PC30_REQ[LOG_BTB_ENTRIES-1:3];
-            index_by_bank_REQ[0] = PC30_REQ[LOG_BTB_ENTRIES-1:3] + 1;
-                // lower 3 PC30 bits for bank and offset
-        end
-    end
+    btb_tag_hash BTB_TAG_HASH (
+        .PC(PC_REQ),
+        .ASID(ASID_REQ),
+        .tag(hashed_tag_REQ)
+    );
 
     // ----------------------------------------------------------------
     // RESP Stage Logic:
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            bank_by_way_RESP <= 4'b0000;
-            offset_by_way_RESP <= {2'h0, 2'h0, 2'h0, 2'h0};
+            replicated_tags_by_instr_RESP <= '0;
         end
         else begin
-            case (PC30_REQ[2:0])
-                3'b000: begin
-                    bank_by_way_RESP <= 4'b0000;
-                    offset_by_way_RESP <= {2'h0, 2'h1, 2'h2, 2'h3};
-                end
-                3'b001: begin
-                    bank_by_way_RESP <= 4'b0001;
-                    offset_by_way_RESP <= {2'h1, 2'h2, 2'h3, 2'h0};
-                end
-                3'b010: begin
-                    bank_by_way_RESP <= 4'b0011;
-                    offset_by_way_RESP <= {2'h2, 2'h3, 2'h0, 2'h1};
-                end
-                3'b011: begin
-                    bank_by_way_RESP <= 4'b0111;
-                    offset_by_way_RESP <= {2'h3, 2'h0, 2'h1, 2'h2};
-                end
-                3'b100: begin
-                    bank_by_way_RESP <= 4'b1111;
-                    offset_by_way_RESP <= {2'h0, 2'h1, 2'h2, 2'h3};
-                end
-                3'b101: begin
-                    bank_by_way_RESP <= 4'b1110;
-                    offset_by_way_RESP <= {2'h1, 2'h2, 2'h3, 2'h0};
-                end
-                3'b110: begin
-                    bank_by_way_RESP <= 4'b1100;
-                    offset_by_way_RESP <= {2'h2, 2'h3, 2'h0, 2'h1};
-                end
-                3'b111: begin
-                    bank_by_way_RESP <= 4'b1000;
-                    offset_by_way_RESP <= {2'h3, 2'h0, 2'h1, 2'h2};
-                end
-            endcase
+            replicated_tags_by_instr_RESP <= {16{hashed_tag_REQ}};
         end
     end
 
-    // RESP PC30 hash's
-    genvar hash_way;
-    generate
-        for (hash_way = 0; hash_way < 4; hash_way++) begin
-
-            btb_tag_hash PC30_RESP (
-                .PC30(PC30_by_way_RESP[hash_way]),
-                .tag(pipeline_tag_by_way_RESP[hash_way])
-            );
-        end
-    endgenerate
-
-    // gather values with bank and offset by way
     always_comb begin
 
-        for (int i = 0; i < 4; i++) begin
+        // iter over instr's
+        for (int i = 0; i < 16; i++) begin
 
-            pred_info_by_way_RESP[i] = pred_info_by_bank_by_offset_RESP
-                [bank_by_way_RESP[i]]
-                [offset_by_way_RESP[i]]
-            ;
+            // check way 0 and way 1 for vtm
+            vtm_by_instr_by_way_RESP[i][0] = replicated_tags_by_instr_RESP[i] == array_pred_info_tag_target_by_instr_by_way_RESP[i][0].tag;
+            vtm_by_instr_by_way_RESP[i][1] = replicated_tags_by_instr_RESP[i] == array_pred_info_tag_target_by_instr_by_way_RESP[i][1].tag;
+        
+            // hit if either way vtm
+            hit_by_instr_RESP[i] = vtm_by_instr_by_way_RESP[i][0] | vtm_by_instr_by_way_RESP[i][1];
 
-            // tag in upper bits
-            tag_by_way_RESP[i] = tag_target_by_bank_by_offset_RESP
-                [bank_by_way_RESP[i]]
-                [offset_by_way_RESP[i]]
-                [BTB_TAG_WIDTH+BTB_TARGET_WIDTH-1:BTB_TARGET_WIDTH]
-            ;
+            // prioritize way 0
+            if (vtm_by_instr_by_way_RESP[i][0]) begin
 
-            // target in lower bits
-            target_by_way_RESP[i] = tag_target_by_bank_by_offset_RESP
-                [bank_by_way_RESP[i]]
-                [offset_by_way_RESP[i]]
-                [BTB_TARGET_WIDTH-1:0]
-            ;
+                // pred info
+                pred_info_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][0].pred_info;
 
-            // VTM against pipeline tag
-            vtm_by_way_RESP[i] = (tag_by_way_RESP[i] == pipeline_tag_by_way_RESP[i]);
-        end
-    end
+                // target
+                target_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][0].target;
 
-    // ----------------------------------------------------------------
-    // Update Logic:
+                // lru -> this way: 0
+                pred_lru_by_instr_RESP[i] = 1'b0;
+            end
 
-    assign update_valid_by_bank[0] = update_valid & ~update_start_PC30[2];
-    assign update_valid_by_bank[1] = update_valid & update_start_PC30[2];
-    assign update_index = update_start_PC30[LOG_BTB_ENTRIES-1:3];
-        // lower 3 PC30 bits for bank and offset
+            // way 1 and not way 0
+            else if (vtm_by_instr_by_way_RESP[i][1]) begin
 
-    // update PC30 hash
-    btb_tag_hash PC30_HASH (
-        .PC30(update_start_PC30),
-        .tag(update_tag)
-    );
-    
-    assign update_target = update_target_PC30[BTB_TARGET_WIDTH-1:0];
-        // lower target PC30 bits
+                // pred info
+                pred_info_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][1].pred_info;
 
-    always_comb begin
-        for (int bank = 0; bank < 2; bank++) begin
-            update_pred_info_byte_mask_by_bank[bank] = '0;
-            update_tag_target_byte_mask_by_bank[bank] = '0;
+                // target
+                target_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][1].target;
 
-            // wide one-hot for bytes corresponding to this offset
-            if (update_valid_by_bank[bank]) begin
-                update_pred_info_byte_mask_by_bank[bank][update_start_PC30[1:0]] = '1;
-                update_tag_target_byte_mask_by_bank[bank][update_start_PC30[1:0]] = '1;
+                // lru -> this way: 1
+                pred_lru_by_instr_RESP[i] = 1'b1;
+            end
+
+            // otherwise, inv pred info
+            else begin
+
+                // pred info
+                    // default to way 0
+                pred_info_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][0].pred_info;
+
+                // target
+                    // default to way 0
+                target_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][0].target;
+
+                // lru -> given lru
+                pred_lru_by_instr_RESP[i] = array_pred_lru_by_instr_RESP[i];
             end
         end
     end
+    
+    // ----------------------------------------------------------------
+    // Update 0 Logic:
 
+
+    
+    // ----------------------------------------------------------------
+    // Update 1 Logic:
+
+
+    
     // ----------------------------------------------------------------
     // BRAMs:
 
-    // 2-bank BRAM
+    // pred info + tag + target BRAM bank
+    bram_1rport_1wport #(
+        .INNER_WIDTH(
+            BTB_NWAY_ENTRIES_PER_BLOCK * 
+            BTB_ENTRY_ASSOC * 
+            (BTB_PRED_INFO_WIDTH + BTB_TAG_WIDTH + BTB_TARGET_WIDTH)
+        ),
+        .OUTER_WIDTH(BTB_SETS)
+    ) PRED_INFO_BRAM_BANK (
+        .CLK(CLK),
+        .nRST(nRST),
 
-    genvar bank;
-    generate
-        for (bank = 0; bank < 2; bank++) begin
-            
-            ///////////////////////////////////////////////////////////
-            // Unified BRAM:
+        .ren(valid_REQ),
+        .rindex(index_REQ),
+        .rdata(pred_info_tag_target_by_instr_by_way_RESP),
 
+        .wen_byte(),
+        .windex(),
+        .wdata()
+    );
 
+    // LRU BRAM bank
+    bram_1rport_1wport #(
+        .INNER_WIDTH(BTB_NWAY_ENTRIES_PER_BLOCK),
+        .OUTER_WIDTH(BTB_SETS)
+    ) TAG_TARGET_BRAM_BANK (
+        .CLK(CLK),
+        .nRST(nRST),
 
-            ///////////////////////////////////////////////////////////
-            // Separate BRAMs:
+        .ren(valid_REQ),
+        .rindex(index_REQ),
+        .rdata(array_pred_lru_by_instr_RESP),
 
-            // pred info BRAM bank
-            bram_1rport_1wport #(
-                .INNER_WIDTH(BTB_PRED_INFO_WIDTH * 4),
-                .OUTER_WIDTH(BTB_BLOCKS_PER_BANK)
-            ) PRED_INFO_BRAM_BANK (
-                .CLK(CLK),
-                .nRST(nRST),
-                .ren(valid_REQ),
-                .rindex(index_by_bank_REQ[bank]),
-                .rdata(pred_info_by_bank_by_offset_RESP[bank]),
-                .wen_byte(update_pred_info_byte_mask_by_bank[bank]),
-                .windex(update_index),
-                .wdata({4{update_pred_info}})
-            );
-
-            // tag + target BRAM bank
-            bram_1rport_1wport #(
-                .INNER_WIDTH((BTB_TAG_WIDTH + BTB_TARGET_WIDTH) * 4),
-                .OUTER_WIDTH(BTB_BLOCKS_PER_BANK)
-            ) TAG_TARGET_BRAM_BANK (
-                .CLK(CLK),
-                .nRST(nRST),
-                .ren(valid_REQ),
-                .rindex(index_by_bank_REQ[bank]),
-                .rdata(tag_target_by_bank_by_offset_RESP[bank]),
-                .wen_byte(update_tag_target_byte_mask_by_bank[bank]),
-                .windex(update_index),
-                .wdata({4{update_tag, update_target}})
-            );
-
-            ///////////////////////////////////////////////////////////
-        end
-    endgenerate
+        .wen_byte(),
+        .windex(),
+        .wdata()
+    );
 
 endmodule

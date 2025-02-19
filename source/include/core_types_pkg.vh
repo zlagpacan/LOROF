@@ -18,31 +18,33 @@ package core_types_pkg;
     parameter ROB_ENTRIES = 128;
     parameter LOG_ROB_ENTRIES = $clog2(ROB_ENTRIES);
 
-    // IQ's
+    // IQ's:
     
     // Shared IQ's
     parameter ALU_REG_MDU_IQ_ENTRIES = 8;
-    parameter ALU_IMM_LDU_IQ_ENTRIES = 16;
+    parameter ALU_IMM_LDU_IQ_ENTRIES = 8;
     parameter STAMOU_IQ_ENTRIES = 16;
     parameter BRU_IQ_ENTRIES = 6;
     parameter SYS_IQ_ENTRIES = 4;
 
-    // Branch Prediction
+    // Branch Prediction:
+
+    // BTB
     parameter BTB_NWAY_ENTRIES = 1024;
     parameter LOG_BTB_NWAY_ENTRIES = $clog2(BTB_NWAY_ENTRIES);
-    parameter BTB_ENTRIES_PER_BLOCK = 16;
-    parameter LOG_BTB_ENTRIES_PER_BLOCK = $clog2(BTB_ENTRIES_PER_BLOCK);
-    parameter BTB_WAYS = 2;
-    parameter LOG_BTB_WAYS = $clog2(BTB_WAYS);
-    parameter BTB_SETS = BTB_NWAY_ENTRIES / BTB_ENTRIES_PER_BLOCK / BTB_WAYS;
+    parameter BTB_ENTRY_ASSOC = 2;
+    parameter LOG_BTB_ENTRY_ASSOC = $clog2(BTB_ENTRY_ASSOC);
+    parameter BTB_NWAY_ENTRIES_PER_BLOCK = 16;
+    parameter LOG_BTB_NWAY_ENTRIES_PER_BLOCK = $clog2(BTB_NWAY_ENTRIES_PER_BLOCK);
+    parameter BTB_SETS = BTB_NWAY_ENTRIES / BTB_NWAY_ENTRIES_PER_BLOCK;
     parameter BTB_INDEX_WIDTH = $clog2(BTB_SETS);
 
-    // per way
+    // BTB per way
     parameter BTB_PRED_INFO_WIDTH = 8;
     parameter BTB_TAG_WIDTH = 10;
     parameter BTB_TARGET_WIDTH = 14;
 
-    // shared over ways
+    // BTB shared over ways
     parameter BTB_LRU_INFO_WIDTH = 1;
 
     parameter SIMPLE_BRANCH_INIT_ACCURACY = 9;

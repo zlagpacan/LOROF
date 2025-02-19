@@ -84,7 +84,7 @@ module alu_imm_ldu_iq_tb ();
     // DUT instantiation:
 
 	alu_imm_ldu_iq #(
-		.ALU_IMM_LDU_IQ_ENTRIES(16)
+		.ALU_IMM_LDU_IQ_ENTRIES(8)
 	) DUT (
 		// seq
 		.CLK(CLK),

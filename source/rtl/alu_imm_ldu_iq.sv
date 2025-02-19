@@ -9,7 +9,7 @@
 import core_types_pkg::*;
 
 module alu_imm_ldu_iq #(
-    parameter ALU_IMM_LDU_IQ_ENTRIES = 16
+    parameter ALU_IMM_LDU_IQ_ENTRIES = 8
 ) (
     // seq
     input logic CLK,
