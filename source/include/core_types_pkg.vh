@@ -42,8 +42,8 @@ package core_types_pkg;
 
     // BTB per way
     parameter BTB_PRED_INFO_WIDTH = 8;
-    parameter BTB_TAG_WIDTH = 10;
-    parameter BTB_TARGET_WIDTH = 14;
+    parameter BTB_TAG_WIDTH = 6;
+    parameter BTB_TARGET_WIDTH = 10;
 
     // BTB shared over ways
     parameter BTB_LRU_INFO_WIDTH = 1;
