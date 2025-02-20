@@ -8,29 +8,33 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module btb (
+module btb #(
+    parameter BTB_NWAY_ENTRIES = 1024    
+) (
 
     // seq
     input logic CLK,
     input logic nRST,
 
     // REQ stage
-    input logic         valid_REQ,
-    input logic [31:0]  PC_REQ,
-    input logic [8:0]   ASID_REQ,
+    input logic                     valid_REQ,
+    input logic [31:0]              full_PC_REQ,
+    input logic [ASID_WIDTH-1:0]    ASID_REQ,
 
     // RESP stage
-    output logic                                    hit_by_instr_RESP,
+    output logic [15:0]                             hit_by_instr_RESP,
     output logic [15:0][BTB_PRED_INFO_WIDTH-1:0]    pred_info_by_instr_RESP,
     output logic [15:0]                             pred_lru_by_instr_RESP,
     output logic [15:0][BTB_TARGET_WIDTH-1:0]       target_by_instr_RESP,
 
-    // update
-    input logic                             update_valid,
-    input logic [31:0]                      update_start_PC,
-    input logic [BTB_PRED_INFO_WIDTH-1:0]   update_pred_info,
-    input logic                             update_pred_lru,
-    input logic [31:0]                      update_target_PC
+    // Update 0
+    input logic                             update0_valid,
+    input logic [31:0]                      update0_start_full_PC,
+
+    // Update 1
+    input logic [BTB_PRED_INFO_WIDTH-1:0]   update1_pred_info,
+    input logic                             update1_pred_lru,
+    input logic [31:0]                      update1_target_full_PC
 );
 
     // ----------------------------------------------------------------
@@ -49,8 +53,8 @@ module btb (
         logic [BTB_TARGET_WIDTH-1:0]        target;
     } pred_info_tag_target_one_way_t;
 
-    pred_info_tag_target_one_way_t [15:0][1:0] array_pred_info_tag_target_by_instr_by_way_RESP;
-    logic [15:0] array_pred_lru_by_instr_RESP;
+    pred_info_tag_target_one_way_t [15:0][1:0]  array_pred_info_tag_target_by_instr_by_way_RESP;
+    logic [15:0]                                array_pred_lru_by_instr_RESP;
 
     // replicated tags
     logic [15:0][BTB_TAG_WIDTH-1:0] replicated_tags_by_instr_RESP;
@@ -59,18 +63,28 @@ module btb (
     logic [15:0][1:0] vtm_by_instr_by_way_RESP;
 
     // Update 0:
-
+    logic [BTB_INDEX_WIDTH-1:0]     update0_index;
+    logic [BTB_TAG_WIDTH-1:0]       update0_hashed_tag;
+    logic [15:0]                    update0_instr;
 
     // Update 1:
+    logic                               update1_valid;
+    logic [BTB_INDEX_WIDTH-1:0]         update1_index;
+    logic [BTB_TAG_WIDTH-1:0]           update1_hashed_tag;
+    logic [3:0]                         update1_instr;
+    logic [15:0]                        update1_old_pred_lru_by_instr;
+    logic [15:0]                        update1_new_pred_lru_by_instr;
+    logic [BTB_TARGET_WIDTH-1:0]        update1_target_PC;
 
-    
+    logic [15:0][2*(BTB_PRED_INFO_WIDTH+BTB_TAG_WIDTH+BTB_TARGET_WIDTH)/8-1:0] update1_byte_mask_pred_info_tag_target_by_instr;
+
     // ----------------------------------------------------------------
     // REQ Stage Logic:
 
-    assign index_REQ = PC_REQ[BTB_INDEX_WIDTH+1-1:1];
+    assign index_REQ = full_PC_REQ[BTB_INDEX_WIDTH+4+1-1 : 4+1];
 
-    btb_tag_hash BTB_TAG_HASH (
-        .PC(PC_REQ),
+    btb_tag_hash BTB_REQ_TAG_HASH (
+        .PC(full_PC_REQ),
         .ASID(ASID_REQ),
         .tag(hashed_tag_REQ)
     );
@@ -145,17 +159,49 @@ module btb (
     // ----------------------------------------------------------------
     // Update 0 Logic:
 
+    assign update0_index = update0_start_full_PC[BTB_INDEX_WIDTH+4+1-1 : 4+1];
+    assign update0_instr = update0_start_full_PC[4+1-1 : 1];
 
+    btb_tag_hash BTB_UPDATE_TAG_HASH (
+        .PC(update0_start_full_PC),
+        .ASID(ASID_REQ),
+        .tag(update0_hashed_tag)
+    );
     
     // ----------------------------------------------------------------
     // Update 1 Logic:
 
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            update1_valid <= 1'b0;
+            update1_index <= '0;
+            update1_hashed_tag <= '0;
+            update1_instr <= '0;
+        end
+        else begin
+            update1_valid <= update0_valid;
+            update1_index <= update0_index;
+            update1_hashed_tag <= update0_hashed_tag;
+            update1_instr <= update0_instr;
+        end
+    end
 
+    always_comb begin
+        update1_target_PC = update1_target_full_PC[BTB_TARGET_WIDTH+1-1:1];
+
+        // RMW pred lru for this set
+        update1_new_pred_lru_by_instr = update1_old_pred_lru_by_instr;
+        update1_new_pred_lru_by_instr[update1_instr] = update1_pred_lru;
+
+        // byte mask follows 4B associated with this instr
+        update1_byte_mask_pred_info_tag_target_by_instr = '0;
+        update1_byte_mask_pred_info_tag_target_by_instr[update1_instr] = '1;
+    end
     
     // ----------------------------------------------------------------
     // BRAMs:
 
-    // pred info + tag + target BRAM bank
+    // pred info + tag + target BRAM array
     bram_1rport_1wport #(
         .INNER_WIDTH(
             BTB_NWAY_ENTRIES_PER_BLOCK * 
@@ -163,34 +209,38 @@ module btb (
             (BTB_PRED_INFO_WIDTH + BTB_TAG_WIDTH + BTB_TARGET_WIDTH)
         ),
         .OUTER_WIDTH(BTB_SETS)
-    ) PRED_INFO_BRAM_BANK (
+    ) PRED_INFO_TAG_TARGET_BRAM_BANK (
         .CLK(CLK),
         .nRST(nRST),
 
         .ren(valid_REQ),
         .rindex(index_REQ),
-        .rdata(pred_info_tag_target_by_instr_by_way_RESP),
+        .rdata(array_pred_info_tag_target_by_instr_by_way_RESP),
 
-        .wen_byte(),
-        .windex(),
-        .wdata()
+        .wen_byte(update1_byte_mask_pred_info_tag_target_by_instr),
+        .windex(update1_index),
+        .wdata({16{update1_pred_info, update1_hashed_tag, update1_target_PC}})
     );
 
-    // LRU BRAM bank
-    bram_1rport_1wport #(
+    // LRU BRAM array
+    bram_2rport_1wport #(
         .INNER_WIDTH(BTB_NWAY_ENTRIES_PER_BLOCK),
         .OUTER_WIDTH(BTB_SETS)
-    ) TAG_TARGET_BRAM_BANK (
+    ) LRU_BRAM_BANK (
         .CLK(CLK),
         .nRST(nRST),
 
-        .ren(valid_REQ),
-        .rindex(index_REQ),
-        .rdata(array_pred_lru_by_instr_RESP),
+        .port0_ren(valid_REQ),
+        .port0_rindex(index_REQ),
+        .port0_rdata(array_pred_lru_by_instr_RESP),
 
-        .wen_byte(),
-        .windex(),
-        .wdata()
+        .port1_ren(update0_valid),
+        .port1_rindex(update0_index),
+        .port1_rdata(update1_old_pred_lru_by_instr),
+
+        .wen_byte({16{update1_valid}}),
+        .windex(update1_index),
+        .wdata(update1_new_pred_lru_by_instr)
     );
 
 endmodule

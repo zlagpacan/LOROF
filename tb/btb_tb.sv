@@ -35,25 +35,30 @@ module btb_tb ();
 
     // REQ stage
 	logic tb_valid_REQ;
-	logic [29:0] tb_PC30_REQ;
+	logic [31:0] tb_full_PC_REQ;
+	logic [ASID_WIDTH-1:0] tb_ASID_REQ;
 
     // RESP stage
-	logic [3:0][29:0] tb_PC30_by_way_RESP;
+	logic [15:0] DUT_hit_by_instr_RESP, expected_hit_by_instr_RESP;
+	logic [15:0][BTB_PRED_INFO_WIDTH-1:0] DUT_pred_info_by_instr_RESP, expected_pred_info_by_instr_RESP;
+	logic [15:0] DUT_pred_lru_by_instr_RESP, expected_pred_lru_by_instr_RESP;
+	logic [15:0][BTB_TARGET_WIDTH-1:0] DUT_target_by_instr_RESP, expected_target_by_instr_RESP;
 
-	logic [3:0] DUT_vtm_by_way_RESP, expected_vtm_by_way_RESP;
-	logic [3:0][BTB_PRED_INFO_WIDTH-1:0] DUT_pred_info_by_way_RESP, expected_pred_info_by_way_RESP;
-	logic [3:0][BTB_TARGET_WIDTH-1:0] DUT_target_by_way_RESP, expected_target_by_way_RESP;
+    // Update 0
+	logic tb_update0_valid;
+	logic [31:0] tb_update0_start_full_PC;
 
-    // update
-	logic tb_update_valid;
-	logic [29:0] tb_update_start_PC30;
-	logic [BTB_PRED_INFO_WIDTH-1:0] tb_update_pred_info;
-	logic [29:0] tb_update_target_PC30;
+    // Update 1
+	logic [BTB_PRED_INFO_WIDTH-1:0] tb_update1_pred_info;
+	logic tb_update1_pred_lru;
+	logic [31:0] tb_update1_target_full_PC;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	btb DUT (
+	btb #(
+		.BTB_NWAY_ENTRIES(1024)
+	) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
@@ -61,20 +66,23 @@ module btb_tb ();
 
 	    // REQ stage
 		.valid_REQ(tb_valid_REQ),
-		.PC30_REQ(tb_PC30_REQ),
+		.full_PC_REQ(tb_full_PC_REQ),
+		.ASID_REQ(tb_ASID_REQ),
 
 	    // RESP stage
-		.PC30_by_way_RESP(tb_PC30_by_way_RESP),
+		.hit_by_instr_RESP(DUT_hit_by_instr_RESP),
+		.pred_info_by_instr_RESP(DUT_pred_info_by_instr_RESP),
+		.pred_lru_by_instr_RESP(DUT_pred_lru_by_instr_RESP),
+		.target_by_instr_RESP(DUT_target_by_instr_RESP),
 
-		.vtm_by_way_RESP(DUT_vtm_by_way_RESP),
-		.pred_info_by_way_RESP(DUT_pred_info_by_way_RESP),
-		.target_by_way_RESP(DUT_target_by_way_RESP),
+	    // Update 0
+		.update0_valid(tb_update0_valid),
+		.update0_start_full_PC(tb_update0_start_full_PC),
 
-	    // update
-		.update_valid(tb_update_valid),
-		.update_start_PC30(tb_update_start_PC30),
-		.update_pred_info(tb_update_pred_info),
-		.update_target_PC30(tb_update_target_PC30)
+	    // Update 1
+		.update1_pred_info(tb_update1_pred_info),
+		.update1_pred_lru(tb_update1_pred_lru),
+		.update1_target_full_PC(tb_update1_target_full_PC)
 	);
 
     // ----------------------------------------------------------------
@@ -82,23 +90,30 @@ module btb_tb ();
 
     task check_outputs();
     begin
-		if (expected_vtm_by_way_RESP !== DUT_vtm_by_way_RESP) begin
-			$display("TB ERROR: expected_vtm_by_way_RESP (%h) != DUT_vtm_by_way_RESP (%h)",
-				expected_vtm_by_way_RESP, DUT_vtm_by_way_RESP);
+		if (expected_hit_by_instr_RESP !== DUT_hit_by_instr_RESP) begin
+			$display("TB ERROR: expected_hit_by_instr_RESP (%h) != DUT_hit_by_instr_RESP (%h)",
+				expected_hit_by_instr_RESP, DUT_hit_by_instr_RESP);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_pred_info_by_way_RESP !== DUT_pred_info_by_way_RESP) begin
-			$display("TB ERROR: expected_pred_info_by_way_RESP (%h) != DUT_pred_info_by_way_RESP (%h)",
-				expected_pred_info_by_way_RESP, DUT_pred_info_by_way_RESP);
+		if (expected_pred_info_by_instr_RESP !== DUT_pred_info_by_instr_RESP) begin
+			$display("TB ERROR: expected_pred_info_by_instr_RESP (%h) != DUT_pred_info_by_instr_RESP (%h)",
+				expected_pred_info_by_instr_RESP, DUT_pred_info_by_instr_RESP);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_target_by_way_RESP !== DUT_target_by_way_RESP) begin
-			$display("TB ERROR: expected_target_by_way_RESP (%h) != DUT_target_by_way_RESP (%h)",
-				expected_target_by_way_RESP, DUT_target_by_way_RESP);
+		if (expected_pred_lru_by_instr_RESP !== DUT_pred_lru_by_instr_RESP) begin
+			$display("TB ERROR: expected_pred_lru_by_instr_RESP (%h) != DUT_pred_lru_by_instr_RESP (%h)",
+				expected_pred_lru_by_instr_RESP, DUT_pred_lru_by_instr_RESP);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_target_by_instr_RESP !== DUT_target_by_instr_RESP) begin
+			$display("TB ERROR: expected_target_by_instr_RESP (%h) != DUT_target_by_instr_RESP (%h)",
+				expected_target_by_instr_RESP, DUT_target_by_instr_RESP);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -127,14 +142,16 @@ module btb_tb ();
 		nRST = 1'b0;
 	    // REQ stage
 		tb_valid_REQ = 1'b0;
-		tb_PC30_REQ = 30'h0;
+		tb_full_PC_REQ = 32'h0;
+		tb_ASID_REQ = 9'h0;
 	    // RESP stage
-		tb_PC30_by_way_RESP = {30'h0, 30'h0, 30'h0, 30'h0};
-	    // update
-		tb_update_valid = 1'b0;
-		tb_update_start_PC30 = 30'h0;
-		tb_update_pred_info = 8'h0;
-		tb_update_target_PC30 = 30'h0;
+	    // Update 0
+		tb_update0_valid = 1'b0;
+		tb_update0_start_full_PC = 32'h0;
+	    // Update 1
+		tb_update1_pred_info = 8'h0;
+		tb_update1_pred_lru = 1'b0;
+		tb_update1_target_full_PC = 32'h0;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -142,16 +159,12 @@ module btb_tb ();
 
 	    // REQ stage
 	    // RESP stage
-		expected_vtm_by_way_RESP = 4'b1111;
-		expected_pred_info_by_way_RESP[0] = '0;
-		expected_pred_info_by_way_RESP[1] = '0;
-		expected_pred_info_by_way_RESP[2] = '0;
-		expected_pred_info_by_way_RESP[3] = '0;
-		expected_target_by_way_RESP[0] = '0;
-		expected_target_by_way_RESP[1] = '0;
-		expected_target_by_way_RESP[2] = '0;
-		expected_target_by_way_RESP[3] = '0;
-	    // update
+		expected_hit_by_instr_RESP = {16{1'b1}};
+		expected_pred_info_by_instr_RESP = {16{8'h0}};
+		expected_pred_lru_by_instr_RESP = {16{1'b0}};
+		expected_target_by_instr_RESP = {16{14'h0}};
+	    // Update 0
+	    // Update 1
 
 		check_outputs();
 
@@ -163,14 +176,16 @@ module btb_tb ();
 		nRST = 1'b1;
 	    // REQ stage
 		tb_valid_REQ = 1'b0;
-		tb_PC30_REQ = 30'h0;
+		tb_full_PC_REQ = 32'h0;
+		tb_ASID_REQ = 9'h0;
 	    // RESP stage
-		tb_PC30_by_way_RESP = {30'h0, 30'h0, 30'h0, 30'h0};
-	    // update
-		tb_update_valid = 1'b0;
-		tb_update_start_PC30 = 30'h0;
-		tb_update_pred_info = 8'h0;
-		tb_update_target_PC30 = 30'h0;
+	    // Update 0
+		tb_update0_valid = 1'b0;
+		tb_update0_start_full_PC = 32'h0;
+	    // Update 1
+		tb_update1_pred_info = 8'h0;
+		tb_update1_pred_lru = 1'b0;
+		tb_update1_target_full_PC = 32'h0;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -178,16 +193,12 @@ module btb_tb ();
 
 	    // REQ stage
 	    // RESP stage
-		expected_vtm_by_way_RESP = 4'b1111;
-		expected_pred_info_by_way_RESP[0] = '0;
-		expected_pred_info_by_way_RESP[1] = '0;
-		expected_pred_info_by_way_RESP[2] = '0;
-		expected_pred_info_by_way_RESP[3] = '0;
-		expected_target_by_way_RESP[0] = '0;
-		expected_target_by_way_RESP[1] = '0;
-		expected_target_by_way_RESP[2] = '0;
-		expected_target_by_way_RESP[3] = '0;
-	    // update
+		expected_hit_by_instr_RESP = {16{1'b1}};
+		expected_pred_info_by_instr_RESP = {16{8'h0}};
+		expected_pred_lru_by_instr_RESP = {16{1'b0}};
+		expected_target_by_instr_RESP = {16{14'h0}};
+	    // Update 0
+	    // Update 1
 
 		check_outputs();
 
@@ -207,14 +218,16 @@ module btb_tb ();
 		nRST = 1'b1;
 	    // REQ stage
 		tb_valid_REQ = 1'b0;
-		tb_PC30_REQ = 30'h0;
+		tb_full_PC_REQ = 32'h0;
+		tb_ASID_REQ = 9'h0;
 	    // RESP stage
-		tb_PC30_by_way_RESP = {30'h0, 30'h0, 30'h0, 30'h0};
-	    // update
-		tb_update_valid = 1'b0;
-		tb_update_start_PC30 = 30'h0;
-		tb_update_pred_info = 8'h0;
-		tb_update_target_PC30 = 30'h0;
+	    // Update 0
+		tb_update0_valid = 1'b0;
+		tb_update0_start_full_PC = 32'h0;
+	    // Update 1
+		tb_update1_pred_info = 8'h0;
+		tb_update1_pred_lru = 1'b0;
+		tb_update1_target_full_PC = 32'h0;
 
 		@(negedge CLK);
 
@@ -222,16 +235,12 @@ module btb_tb ();
 
 	    // REQ stage
 	    // RESP stage
-		expected_vtm_by_way_RESP = 4'b1111;
-		expected_pred_info_by_way_RESP[0] = '0;
-		expected_pred_info_by_way_RESP[1] = '0;
-		expected_pred_info_by_way_RESP[2] = '0;
-		expected_pred_info_by_way_RESP[3] = '0;
-		expected_target_by_way_RESP[0] = '0;
-		expected_target_by_way_RESP[1] = '0;
-		expected_target_by_way_RESP[2] = '0;
-		expected_target_by_way_RESP[3] = '0;
-	    // update
+		expected_hit_by_instr_RESP = {16{1'b1}};
+		expected_pred_info_by_instr_RESP = {16{8'h0}};
+		expected_pred_lru_by_instr_RESP = {16{1'b0}};
+		expected_target_by_instr_RESP = {16{14'h0}};
+	    // Update 0
+	    // Update 1
 
 		check_outputs();
 

@@ -5,6 +5,7 @@ package core_types_pkg;
 
     // general
     parameter XLEN = 32;
+    parameter ASID_WIDTH = 9;
 
     // PRF
     parameter PR_COUNT = 128;
