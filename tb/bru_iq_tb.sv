@@ -91,7 +91,9 @@ module bru_iq_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	bru_iq DUT (
+	bru_iq #(
+		.BRU_IQ_ENTRIES(6)	
+	) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
