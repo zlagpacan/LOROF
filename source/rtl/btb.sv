@@ -207,30 +207,9 @@ module btb (
     // ----------------------------------------------------------------
     // RAM Arrays:
 
-    // // LRU BRAM array
-    // bram_2rport_1wport #(
-    //     .INNER_WIDTH(BTB_NWAY_ENTRIES_PER_BLOCK),
-    //     .OUTER_WIDTH(BTB_SETS)
-    // ) LRU_BRAM_ARRAY (
-    //     .CLK(CLK),
-    //     .nRST(nRST),
-
-    //     .port0_ren(valid_REQ),
-    //     .port0_rindex(index_REQ),
-    //     .port0_rdata(array_pred_lru_by_instr_RESP),
-
-    //     .port1_ren(update0_valid),
-    //     .port1_rindex(update0_index),
-    //     .port1_rdata(update1_old_pred_lru_by_instr),
-
-    //     .wen_byte({BTB_NWAY_ENTRIES_PER_BLOCK{update1_valid}}),
-    //     .windex(update1_index),
-    //     .wdata(update1_new_pred_lru_by_instr)
-    // );
-
-    ////////////////////////////////////////
-    // BRAM Array per Instr, LRU DistRAM: //
-    ////////////////////////////////////////
+    /////////////////////////////////////
+    // BRAM Array shared over Instr's: //
+    /////////////////////////////////////
 
     // pred info + tag + target BRAM array
     bram_1rport_1wport #(
@@ -252,6 +231,10 @@ module btb (
         .windex(update1_index),
         .wdata({BTB_NWAY_ENTRIES_PER_BLOCK{update1_pred_info, update1_hashed_tag, update1_target_PC}})
     );
+
+    // //////////////////////////
+    // // BRAM Array per Instr //
+    // //////////////////////////
 
     // // pred info + tag + target BRAM array
     // genvar bram_instr;
@@ -278,6 +261,10 @@ module btb (
     //     );
 
     // endgenerate
+
+    //////////////////
+    // LRU DistRAM: //
+    //////////////////
 
     // LRU DistRAM array
     distram_2rport_1wport #(
