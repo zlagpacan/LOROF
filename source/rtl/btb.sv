@@ -22,10 +22,10 @@ module btb #(
     input logic [ASID_WIDTH-1:0]    ASID_REQ,
 
     // RESP stage
-    output logic [15:0]                             hit_by_instr_RESP,
-    output logic [15:0][BTB_PRED_INFO_WIDTH-1:0]    pred_info_by_instr_RESP,
-    output logic [15:0]                             pred_lru_by_instr_RESP,
-    output logic [15:0][BTB_TARGET_WIDTH-1:0]       target_by_instr_RESP,
+    output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0]                           hit_by_instr_RESP,
+    output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_PRED_INFO_WIDTH-1:0]  pred_info_by_instr_RESP,
+    output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0]                           pred_lru_by_instr_RESP,
+    output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TARGET_WIDTH-1:0]     target_by_instr_RESP,
 
     // Update 0
     input logic                             update0_valid,
@@ -53,35 +53,37 @@ module btb #(
         logic [BTB_TARGET_WIDTH-1:0]        target;
     } pred_info_tag_target_one_way_t;
 
-    pred_info_tag_target_one_way_t [15:0][1:0]  array_pred_info_tag_target_by_instr_by_way_RESP;
-    logic [15:0]                                array_pred_lru_by_instr_RESP;
+    pred_info_tag_target_one_way_t [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][1:0]
+        array_pred_info_tag_target_by_instr_by_way_RESP;
+    logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0] array_pred_lru_by_instr_RESP;
 
     // replicated tags
-    logic [15:0][BTB_TAG_WIDTH-1:0] replicated_tags_by_instr_RESP;
+    logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TAG_WIDTH-1:0] replicated_tags_by_instr_RESP;
 
     // VTM's
-    logic [15:0][1:0] vtm_by_instr_by_way_RESP;
+    logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][1:0] vtm_by_instr_by_way_RESP;
 
     // Update 0:
-    logic [BTB_INDEX_WIDTH-1:0]     update0_index;
-    logic [BTB_TAG_WIDTH-1:0]       update0_hashed_tag;
-    logic [3:0]                     update0_instr;
+    logic [BTB_INDEX_WIDTH-1:0]                 update0_index;
+    logic [BTB_TAG_WIDTH-1:0]                   update0_hashed_tag;
+    logic [LOG_BTB_NWAY_ENTRIES_PER_BLOCK-1:0]  update0_instr;
 
     // Update 1:
-    logic                               update1_valid;
-    logic [BTB_INDEX_WIDTH-1:0]         update1_index;
-    logic [BTB_TAG_WIDTH-1:0]           update1_hashed_tag;
-    logic [3:0]                         update1_instr;
-    logic [15:0]                        update1_old_pred_lru_by_instr;
-    logic [15:0]                        update1_new_pred_lru_by_instr;
-    logic [BTB_TARGET_WIDTH-1:0]        update1_target_PC;
+    logic                                       update1_valid;
+    logic [BTB_INDEX_WIDTH-1:0]                 update1_index;
+    logic [BTB_TAG_WIDTH-1:0]                   update1_hashed_tag;
+    logic [LOG_BTB_NWAY_ENTRIES_PER_BLOCK-1:0]  update1_instr;
+    logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0]      update1_old_pred_lru_by_instr;
+    logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0]      update1_new_pred_lru_by_instr;
+    logic [BTB_TARGET_WIDTH-1:0]                update1_target_PC;
 
-    logic [15:0][2*(BTB_PRED_INFO_WIDTH+BTB_TAG_WIDTH+BTB_TARGET_WIDTH)/8-1:0] update1_byte_mask_pred_info_tag_target_by_instr;
+    logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][2*(BTB_PRED_INFO_WIDTH+BTB_TAG_WIDTH+BTB_TARGET_WIDTH)/8-1:0] 
+        update1_byte_mask_pred_info_tag_target_by_instr;
 
     // ----------------------------------------------------------------
     // REQ Stage Logic:
 
-    assign index_REQ = full_PC_REQ[BTB_INDEX_WIDTH+4+1-1 : 4+1];
+    assign index_REQ = full_PC_REQ[BTB_INDEX_WIDTH+LOG_BTB_NWAY_ENTRIES_PER_BLOCK+1-1 : LOG_BTB_NWAY_ENTRIES_PER_BLOCK+1];
 
     btb_tag_hash BTB_REQ_TAG_HASH (
         .PC(full_PC_REQ),
@@ -97,14 +99,14 @@ module btb #(
             replicated_tags_by_instr_RESP <= '0;
         end
         else begin
-            replicated_tags_by_instr_RESP <= {16{hashed_tag_REQ}};
+            replicated_tags_by_instr_RESP <= {BTB_NWAY_ENTRIES_PER_BLOCK{hashed_tag_REQ}};
         end
     end
 
     always_comb begin
 
         // iter over instr's
-        for (int i = 0; i < 16; i++) begin
+        for (int i = 0; i < BTB_NWAY_ENTRIES_PER_BLOCK; i++) begin
 
             // check way 0 and way 1 for vtm
             vtm_by_instr_by_way_RESP[i][0] = replicated_tags_by_instr_RESP[i] == array_pred_info_tag_target_by_instr_by_way_RESP[i][0].tag;
@@ -159,8 +161,8 @@ module btb #(
     // ----------------------------------------------------------------
     // Update 0 Logic:
 
-    assign update0_index = update0_start_full_PC[BTB_INDEX_WIDTH+4+1-1 : 4+1];
-    assign update0_instr = update0_start_full_PC[4+1-1 : 1];
+    assign update0_index = update0_start_full_PC[BTB_INDEX_WIDTH+LOG_BTB_NWAY_ENTRIES_PER_BLOCK+1-1 : LOG_BTB_NWAY_ENTRIES_PER_BLOCK+1];
+    assign update0_instr = update0_start_full_PC[LOG_BTB_NWAY_ENTRIES_PER_BLOCK+1-1 : 1];
 
     btb_tag_hash BTB_UPDATE_TAG_HASH (
         .PC(update0_start_full_PC),
@@ -219,7 +221,7 @@ module btb #(
 
         .wen_byte(update1_byte_mask_pred_info_tag_target_by_instr),
         .windex(update1_index),
-        .wdata({16{update1_pred_info, update1_hashed_tag, update1_target_PC}})
+        .wdata({BTB_NWAY_ENTRIES_PER_BLOCK{update1_pred_info, update1_hashed_tag, update1_target_PC}})
     );
 
     // LRU BRAM array
@@ -238,7 +240,7 @@ module btb #(
         .port1_rindex(update0_index),
         .port1_rdata(update1_old_pred_lru_by_instr),
 
-        .wen_byte({16{update1_valid}}),
+        .wen_byte({BTB_NWAY_ENTRIES_PER_BLOCK{update1_valid}}),
         .windex(update1_index),
         .wdata(update1_new_pred_lru_by_instr)
     );

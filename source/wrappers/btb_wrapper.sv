@@ -23,10 +23,10 @@ module btb_wrapper (
 	input logic [ASID_WIDTH-1:0] next_ASID_REQ,
 
     // RESP stage
-	output logic [15:0] last_hit_by_instr_RESP,
-	output logic [15:0][BTB_PRED_INFO_WIDTH-1:0] last_pred_info_by_instr_RESP,
-	output logic [15:0] last_pred_lru_by_instr_RESP,
-	output logic [15:0][BTB_TARGET_WIDTH-1:0] last_target_by_instr_RESP,
+	output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0] last_hit_by_instr_RESP,
+	output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_PRED_INFO_WIDTH-1:0] last_pred_info_by_instr_RESP,
+	output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0] last_pred_lru_by_instr_RESP,
+	output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TARGET_WIDTH-1:0] last_target_by_instr_RESP,
 
     // Update 0
 	input logic next_update0_valid,
@@ -48,10 +48,10 @@ module btb_wrapper (
 	logic [ASID_WIDTH-1:0] ASID_REQ;
 
     // RESP stage
-	logic [15:0] hit_by_instr_RESP;
-	logic [15:0][BTB_PRED_INFO_WIDTH-1:0] pred_info_by_instr_RESP;
-	logic [15:0] pred_lru_by_instr_RESP;
-	logic [15:0][BTB_TARGET_WIDTH-1:0] target_by_instr_RESP;
+	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0] hit_by_instr_RESP;
+	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_PRED_INFO_WIDTH-1:0] pred_info_by_instr_RESP;
+	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0] pred_lru_by_instr_RESP;
+	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TARGET_WIDTH-1:0] target_by_instr_RESP;
 
     // Update 0
 	logic update0_valid;

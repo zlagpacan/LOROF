@@ -35,7 +35,7 @@ package core_types_pkg;
     parameter LOG_BTB_NWAY_ENTRIES = $clog2(BTB_NWAY_ENTRIES);
     parameter BTB_ENTRY_ASSOC = 2;
     parameter LOG_BTB_ENTRY_ASSOC = $clog2(BTB_ENTRY_ASSOC);
-    parameter BTB_NWAY_ENTRIES_PER_BLOCK = 16;
+    parameter BTB_NWAY_ENTRIES_PER_BLOCK = 8;
     parameter LOG_BTB_NWAY_ENTRIES_PER_BLOCK = $clog2(BTB_NWAY_ENTRIES_PER_BLOCK);
     parameter BTB_SETS = BTB_NWAY_ENTRIES / BTB_NWAY_ENTRIES_PER_BLOCK;
     parameter BTB_INDEX_WIDTH = $clog2(BTB_SETS);

@@ -39,10 +39,10 @@ module btb_tb ();
 	logic [ASID_WIDTH-1:0] tb_ASID_REQ;
 
     // RESP stage
-	logic [15:0] DUT_hit_by_instr_RESP, expected_hit_by_instr_RESP;
-	logic [15:0][BTB_PRED_INFO_WIDTH-1:0] DUT_pred_info_by_instr_RESP, expected_pred_info_by_instr_RESP;
-	logic [15:0] DUT_pred_lru_by_instr_RESP, expected_pred_lru_by_instr_RESP;
-	logic [15:0][BTB_TARGET_WIDTH-1:0] DUT_target_by_instr_RESP, expected_target_by_instr_RESP;
+	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0] DUT_hit_by_instr_RESP, expected_hit_by_instr_RESP;
+	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_PRED_INFO_WIDTH-1:0] DUT_pred_info_by_instr_RESP, expected_pred_info_by_instr_RESP;
+	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0] DUT_pred_lru_by_instr_RESP, expected_pred_lru_by_instr_RESP;
+	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TARGET_WIDTH-1:0] DUT_target_by_instr_RESP, expected_target_by_instr_RESP;
 
     // Update 0
 	logic tb_update0_valid;
