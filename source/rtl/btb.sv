@@ -8,9 +8,7 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module btb #(
-    parameter BTB_NWAY_ENTRIES = 1024    
-) (
+module btb (
 
     // seq
     input logic CLK,
