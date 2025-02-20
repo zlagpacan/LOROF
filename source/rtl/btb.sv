@@ -65,7 +65,7 @@ module btb #(
     // Update 0:
     logic [BTB_INDEX_WIDTH-1:0]     update0_index;
     logic [BTB_TAG_WIDTH-1:0]       update0_hashed_tag;
-    logic [15:0]                    update0_instr;
+    logic [3:0]                     update0_instr;
 
     // Update 1:
     logic                               update1_valid;
