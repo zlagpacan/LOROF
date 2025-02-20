@@ -207,31 +207,6 @@ module btb (
     // ----------------------------------------------------------------
     // RAM Arrays:
 
-    // //////////////////
-    // // Dumb BRAM's: //
-    // //////////////////
-
-    // // pred info + tag + target BRAM array
-    // bram_1rport_1wport #(
-    //     .INNER_WIDTH(
-    //         BTB_NWAY_ENTRIES_PER_BLOCK * 
-    //         BTB_ENTRY_ASSOC * 
-    //         (BTB_PRED_INFO_WIDTH + BTB_TAG_WIDTH + BTB_TARGET_WIDTH)
-    //     ),
-    //     .OUTER_WIDTH(BTB_SETS)
-    // ) PRED_INFO_TAG_TARGET_BRAM_ARRAY (
-    //     .CLK(CLK),
-    //     .nRST(nRST),
-
-    //     .ren(valid_REQ),
-    //     .rindex(index_REQ),
-    //     .rdata(array_pred_info_tag_target_by_instr_by_way_RESP),
-
-    //     .wen_byte(update1_byte_mask_pred_info_tag_target_by_instr),
-    //     .windex(update1_index),
-    //     .wdata({BTB_NWAY_ENTRIES_PER_BLOCK{update1_pred_info, update1_hashed_tag, update1_target_PC}})
-    // );
-
     // // LRU BRAM array
     // bram_2rport_1wport #(
     //     .INNER_WIDTH(BTB_NWAY_ENTRIES_PER_BLOCK),
@@ -258,30 +233,51 @@ module btb (
     ////////////////////////////////////////
 
     // pred info + tag + target BRAM array
-    genvar bram_instr;
-    generate
-    for (bram_instr = 0; bram_instr < BTB_NWAY_ENTRIES_PER_BLOCK; bram_instr++)
+    bram_1rport_1wport #(
+        .INNER_WIDTH(
+            BTB_NWAY_ENTRIES_PER_BLOCK * 
+            BTB_ENTRY_ASSOC * 
+            (BTB_PRED_INFO_WIDTH + BTB_TAG_WIDTH + BTB_TARGET_WIDTH)
+        ),
+        .OUTER_WIDTH(BTB_SETS)
+    ) PRED_INFO_TAG_TARGET_BRAM_ARRAY (
+        .CLK(CLK),
+        .nRST(nRST),
+
+        .ren(valid_REQ),
+        .rindex(index_REQ),
+        .rdata(array_pred_info_tag_target_by_instr_by_way_RESP),
+
+        .wen_byte(update1_byte_mask_pred_info_tag_target_by_instr),
+        .windex(update1_index),
+        .wdata({BTB_NWAY_ENTRIES_PER_BLOCK{update1_pred_info, update1_hashed_tag, update1_target_PC}})
+    );
+
+    // // pred info + tag + target BRAM array
+    // genvar bram_instr;
+    // generate
+    // for (bram_instr = 0; bram_instr < BTB_NWAY_ENTRIES_PER_BLOCK; bram_instr++)
     
-        bram_1rport_1wport #(
-            .INNER_WIDTH( // 2 * 32
-                BTB_ENTRY_ASSOC * 
-                (BTB_PRED_INFO_WIDTH + BTB_TAG_WIDTH + BTB_TARGET_WIDTH)
-            ),
-            .OUTER_WIDTH(BTB_SETS)
-        ) PRED_INFO_TAG_TARGET_BRAM_ARRAY (
-            .CLK(CLK),
-            .nRST(nRST),
+    //     bram_1rport_1wport #(
+    //         .INNER_WIDTH( // 2 * 32
+    //             BTB_ENTRY_ASSOC * 
+    //             (BTB_PRED_INFO_WIDTH + BTB_TAG_WIDTH + BTB_TARGET_WIDTH)
+    //         ),
+    //         .OUTER_WIDTH(BTB_SETS)
+    //     ) PRED_INFO_TAG_TARGET_BRAM_ARRAY (
+    //         .CLK(CLK),
+    //         .nRST(nRST),
 
-            .ren(valid_REQ),
-            .rindex(index_REQ),
-            .rdata(array_pred_info_tag_target_by_instr_by_way_RESP[bram_instr]),
+    //         .ren(valid_REQ),
+    //         .rindex(index_REQ),
+    //         .rdata(array_pred_info_tag_target_by_instr_by_way_RESP[bram_instr]),
 
-            .wen_byte(update1_byte_mask_pred_info_tag_target_by_instr_by_way[bram_instr]),
-            .windex(update1_index),
-            .wdata({2{update1_pred_info, update1_hashed_tag, update1_target_PC}})
-        );
+    //         .wen_byte(update1_byte_mask_pred_info_tag_target_by_instr_by_way[bram_instr]),
+    //         .windex(update1_index),
+    //         .wdata({2{update1_pred_info, update1_hashed_tag, update1_target_PC}})
+    //     );
 
-    endgenerate
+    // endgenerate
 
     // LRU DistRAM array
     distram_2rport_1wport #(
