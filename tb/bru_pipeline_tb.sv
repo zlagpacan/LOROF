@@ -36,9 +36,13 @@ module bru_pipeline_tb ();
     // BRU op issue to BRU IQ
 	logic tb_issue_valid;
 	logic [3:0] tb_issue_op;
+	logic [BTB_PRED_INFO_WIDTH-1:0] tb_issue_pred_info;
+	logic tb_issue_pred_lru;
+	logic tb_issue_is_link_ra;
+	logic tb_issue_is_ret_ra;
 	logic [31:0] tb_issue_PC;
-	logic [31:0] tb_issue_speculated_next_PC;
-	logic [31:0] tb_issue_imm;
+	logic [31:0] tb_issue_pred_PC;
+	logic [19:0] tb_issue_imm20;
 	logic tb_issue_A_unneeded;
 	logic tb_issue_A_forward;
 	logic [LOG_PRF_BANK_COUNT-1:0] tb_issue_A_bank;
@@ -70,16 +74,19 @@ module bru_pipeline_tb ();
     // writeback backpressure from PRF
 	logic tb_WB_ready;
 
-    // restart req to ROB
-        // no backpressure, ROB's job to deal with multiple identical req's
-	logic DUT_restart_req_valid, expected_restart_req_valid;
-	logic DUT_restart_req_mispredict, expected_restart_req_mispredict;
-	logic [LOG_ROB_ENTRIES-1:0] DUT_restart_req_ROB_index, expected_restart_req_ROB_index;
-	logic [31:0] DUT_restart_req_PC, expected_restart_req_PC;
-	logic DUT_restart_req_taken, expected_restart_req_taken;
+    // branch notification to ROB
+	logic DUT_branch_notif_valid, expected_branch_notif_valid;
+	logic [LOG_ROB_ENTRIES-1:0] DUT_branch_notif_ROB_index, expected_branch_notif_ROB_index;
+	logic DUT_branch_notif_is_mispredict, expected_branch_notif_is_mispredict;
+	logic DUT_branch_notif_is_taken, expected_branch_notif_is_taken;
+	logic DUT_branch_notif_is_out_of_range, expected_branch_notif_is_out_of_range;
+	logic [BTB_PRED_INFO_WIDTH-1:0] DUT_branch_notif_updated_pred_info, expected_branch_notif_updated_pred_info;
+	logic DUT_branch_notif_pred_lru, expected_branch_notif_pred_lru;
+	logic [31:0] DUT_branch_notif_start_PC, expected_branch_notif_start_PC;
+	logic [31:0] DUT_branch_notif_target_PC, expected_branch_notif_target_PC;
 
-    // restart req backpressure from ROB
-	logic tb_restart_req_ready;
+    // branch notification backpressure from ROB
+	logic tb_branch_notif_ready;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -93,9 +100,13 @@ module bru_pipeline_tb ();
 	    // BRU op issue to BRU IQ
 		.issue_valid(tb_issue_valid),
 		.issue_op(tb_issue_op),
+		.issue_pred_info(tb_issue_pred_info),
+		.issue_pred_lru(tb_issue_pred_lru),
+		.issue_is_link_ra(tb_issue_is_link_ra),
+		.issue_is_ret_ra(tb_issue_is_ret_ra),
 		.issue_PC(tb_issue_PC),
-		.issue_speculated_next_PC(tb_issue_speculated_next_PC),
-		.issue_imm(tb_issue_imm),
+		.issue_pred_PC(tb_issue_pred_PC),
+		.issue_imm20(tb_issue_imm20),
 		.issue_A_unneeded(tb_issue_A_unneeded),
 		.issue_A_forward(tb_issue_A_forward),
 		.issue_A_bank(tb_issue_A_bank),
@@ -127,16 +138,19 @@ module bru_pipeline_tb ();
 	    // writeback backpressure from PRF
 		.WB_ready(tb_WB_ready),
 
-	    // restart req to ROB
-	        // no backpressure, ROB's job to deal with multiple identical req's
-		.restart_req_valid(DUT_restart_req_valid),
-		.restart_req_mispredict(DUT_restart_req_mispredict),
-		.restart_req_ROB_index(DUT_restart_req_ROB_index),
-		.restart_req_PC(DUT_restart_req_PC),
-		.restart_req_taken(DUT_restart_req_taken),
+	    // branch notification to ROB
+		.branch_notif_valid(DUT_branch_notif_valid),
+		.branch_notif_ROB_index(DUT_branch_notif_ROB_index),
+		.branch_notif_is_mispredict(DUT_branch_notif_is_mispredict),
+		.branch_notif_is_taken(DUT_branch_notif_is_taken),
+		.branch_notif_is_out_of_range(DUT_branch_notif_is_out_of_range),
+		.branch_notif_updated_pred_info(DUT_branch_notif_updated_pred_info),
+		.branch_notif_pred_lru(DUT_branch_notif_pred_lru),
+		.branch_notif_start_PC(DUT_branch_notif_start_PC),
+		.branch_notif_target_PC(DUT_branch_notif_target_PC),
 
-	    // restart backpressure from ROB
-		.restart_req_ready(tb_restart_req_ready)
+	    // branch notification backpressure from ROB
+		.branch_notif_ready(tb_branch_notif_ready)
 	);
 
     // ----------------------------------------------------------------
@@ -179,37 +193,65 @@ module bru_pipeline_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_restart_req_valid !== DUT_restart_req_valid) begin
-			$display("TB ERROR: expected_restart_req_valid (%h) != DUT_restart_req_valid (%h)",
-				expected_restart_req_valid, DUT_restart_req_valid);
+		if (expected_branch_notif_valid !== DUT_branch_notif_valid) begin
+			$display("TB ERROR: expected_branch_notif_valid (%h) != DUT_branch_notif_valid (%h)",
+				expected_branch_notif_valid, DUT_branch_notif_valid);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_restart_req_mispredict !== DUT_restart_req_mispredict) begin
-			$display("TB ERROR: expected_restart_req_mispredict (%h) != DUT_restart_req_mispredict (%h)",
-				expected_restart_req_mispredict, DUT_restart_req_mispredict);
+		if (expected_branch_notif_ROB_index !== DUT_branch_notif_ROB_index) begin
+			$display("TB ERROR: expected_branch_notif_ROB_index (%h) != DUT_branch_notif_ROB_index (%h)",
+				expected_branch_notif_ROB_index, DUT_branch_notif_ROB_index);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_restart_req_ROB_index !== DUT_restart_req_ROB_index) begin
-			$display("TB ERROR: expected_restart_req_ROB_index (%h) != DUT_restart_req_ROB_index (%h)",
-				expected_restart_req_ROB_index, DUT_restart_req_ROB_index);
+		if (expected_branch_notif_is_mispredict !== DUT_branch_notif_is_mispredict) begin
+			$display("TB ERROR: expected_branch_notif_is_mispredict (%h) != DUT_branch_notif_is_mispredict (%h)",
+				expected_branch_notif_is_mispredict, DUT_branch_notif_is_mispredict);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_restart_req_PC !== DUT_restart_req_PC) begin
-			$display("TB ERROR: expected_restart_req_PC (%h) != DUT_restart_req_PC (%h)",
-				expected_restart_req_PC, DUT_restart_req_PC);
+		if (expected_branch_notif_is_taken !== DUT_branch_notif_is_taken) begin
+			$display("TB ERROR: expected_branch_notif_is_taken (%h) != DUT_branch_notif_is_taken (%h)",
+				expected_branch_notif_is_taken, DUT_branch_notif_is_taken);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_restart_req_taken !== DUT_restart_req_taken) begin
-			$display("TB ERROR: expected_restart_req_taken (%h) != DUT_restart_req_taken (%h)",
-				expected_restart_req_taken, DUT_restart_req_taken);
+		if (expected_branch_notif_is_out_of_range !== DUT_branch_notif_is_out_of_range) begin
+			$display("TB ERROR: expected_branch_notif_is_out_of_range (%h) != DUT_branch_notif_is_out_of_range (%h)",
+				expected_branch_notif_is_out_of_range, DUT_branch_notif_is_out_of_range);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_branch_notif_updated_pred_info !== DUT_branch_notif_updated_pred_info) begin
+			$display("TB ERROR: expected_branch_notif_updated_pred_info (%h) != DUT_branch_notif_updated_pred_info (%h)",
+				expected_branch_notif_updated_pred_info, DUT_branch_notif_updated_pred_info);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_branch_notif_pred_lru !== DUT_branch_notif_pred_lru) begin
+			$display("TB ERROR: expected_branch_notif_pred_lru (%h) != DUT_branch_notif_pred_lru (%h)",
+				expected_branch_notif_pred_lru, DUT_branch_notif_pred_lru);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_branch_notif_start_PC !== DUT_branch_notif_start_PC) begin
+			$display("TB ERROR: expected_branch_notif_start_PC (%h) != DUT_branch_notif_start_PC (%h)",
+				expected_branch_notif_start_PC, DUT_branch_notif_start_PC);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_branch_notif_target_PC !== DUT_branch_notif_target_PC) begin
+			$display("TB ERROR: expected_branch_notif_target_PC (%h) != DUT_branch_notif_target_PC (%h)",
+				expected_branch_notif_target_PC, DUT_branch_notif_target_PC);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -239,9 +281,13 @@ module bru_pipeline_tb ();
 	    // BRU op issue to BRU IQ
 		tb_issue_valid = 1'b0;
 		tb_issue_op = 4'b0000;
+		tb_issue_pred_info = 8'h0;
+		tb_issue_pred_lru = 1'b0;
+		tb_issue_is_link_ra = 1'b0;
+		tb_issue_is_ret_ra = 1'b0;
 		tb_issue_PC = 32'h0;
-		tb_issue_speculated_next_PC = 32'h0; 
-		tb_issue_imm = 32'h0;
+		tb_issue_pred_PC = 32'h0;
+		tb_issue_imm20 = 20'h0;
 		tb_issue_A_unneeded = 1'b0;
 		tb_issue_A_forward = 1'b0;
 		tb_issue_A_bank = 2'h0;
@@ -257,28 +303,28 @@ module bru_pipeline_tb ();
 		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
 		tb_reg_read_data_by_bank_by_port = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0
+		};
 	    // forward data from PRF
 		tb_forward_data_by_bank = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0
+		};
 	    // writeback data to PRF
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b1;
+	    // branch notification to ROB
+	    // branch notification backpressure from ROB
+		tb_branch_notif_ready = 1'b1;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -295,12 +341,17 @@ module bru_pipeline_tb ();
 		expected_WB_PR = 7'h0;
 		expected_WB_ROB_index = 7'h0;
 	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b0;
-		expected_restart_req_mispredict = 1'b0;
-		expected_restart_req_ROB_index = 7'h0;
-		expected_restart_req_PC = 32'h0;
-		expected_restart_req_taken = 1'b1;
+	    // branch notification to ROB
+		expected_branch_notif_valid = 1'b0;
+		expected_branch_notif_ROB_index = 7'h0;
+		expected_branch_notif_is_mispredict = 1'b0;
+		expected_branch_notif_is_taken = 1'b1;
+		expected_branch_notif_is_out_of_range = 1'b0;
+		expected_branch_notif_updated_pred_info = 8'b01000000;
+		expected_branch_notif_pred_lru = 1'b0;
+		expected_branch_notif_start_PC = 32'h0;
+		expected_branch_notif_target_PC = 32'h0;
+	    // branch notification backpressure from ROB
 
 		check_outputs();
 
@@ -313,9 +364,13 @@ module bru_pipeline_tb ();
 	    // BRU op issue to BRU IQ
 		tb_issue_valid = 1'b0;
 		tb_issue_op = 4'b0000;
+		tb_issue_pred_info = 8'h0;
+		tb_issue_pred_lru = 1'b0;
+		tb_issue_is_link_ra = 1'b0;
+		tb_issue_is_ret_ra = 1'b0;
 		tb_issue_PC = 32'h0;
-		tb_issue_speculated_next_PC = 32'h0; 
-		tb_issue_imm = 32'h0;
+		tb_issue_pred_PC = 32'h0;
+		tb_issue_imm20 = 20'h0;
 		tb_issue_A_unneeded = 1'b0;
 		tb_issue_A_forward = 1'b0;
 		tb_issue_A_bank = 2'h0;
@@ -331,28 +386,28 @@ module bru_pipeline_tb ();
 		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
 		tb_reg_read_data_by_bank_by_port = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0
+		};
 	    // forward data from PRF
 		tb_forward_data_by_bank = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0
+		};
 	    // writeback data to PRF
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b1;
+	    // branch notification to ROB
+	    // branch notification backpressure from ROB
+		tb_branch_notif_ready = 1'b1;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -369,1015 +424,30 @@ module bru_pipeline_tb ();
 		expected_WB_PR = 7'h0;
 		expected_WB_ROB_index = 7'h0;
 	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b0;
-		expected_restart_req_mispredict = 1'b0;
-		expected_restart_req_ROB_index = 7'h0;
-		expected_restart_req_PC = 32'h0;
-		expected_restart_req_taken = 1'b1;
+	    // branch notification to ROB
+		expected_branch_notif_valid = 1'b0;
+		expected_branch_notif_ROB_index = 7'h0;
+		expected_branch_notif_is_mispredict = 1'b0;
+		expected_branch_notif_is_taken = 1'b1;
+		expected_branch_notif_is_out_of_range = 1'b0;
+		expected_branch_notif_updated_pred_info = 8'b01000000;
+		expected_branch_notif_pred_lru = 1'b0;
+		expected_branch_notif_start_PC = 32'h0;
+		expected_branch_notif_target_PC = 32'h0;
+	    // branch notification backpressure from ROB
 
 		check_outputs();
 
         // ------------------------------------------------------------
-        // simple chain:
-        test_case = "simple chain";
+        // default:
+        test_case = "default";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: v 0: JALR p2, 0x1C(p1=AA0:r); 0x0->0xABC, mispred 0xAB8", "\n\t\t",
-            "OC: i NOP", "\n\t\t",
-            "EX: i NOP", "\n\t\t",
-            "WB: i NOP", "\n\t\t",
-			"activity: ", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
-		tb_issue_valid = 1'b1;
-		tb_issue_op = 4'b0000;
-		tb_issue_PC = 32'h0;
-		tb_issue_speculated_next_PC = 32'hAB8;
-		tb_issue_imm = 32'h1C;
-		tb_issue_A_unneeded = 1'b0;
-		tb_issue_A_forward = 1'b0;
-		tb_issue_A_bank = 2'h1;
-		tb_issue_B_unneeded = 1'b1;
-		tb_issue_B_forward = 1'b0;
-		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 7'h2;
-		tb_issue_ROB_index = 7'h0;
-	    // output feedback to BRU IQ
-	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b0;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b0;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // writeback data to PRF
-	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b1;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b1;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op issue to BRU IQ
-	    // output feedback to BRU IQ
-		expected_issue_ready = 1'b1;
-	    // reg read info and data from PRF
-	    // forward data from PRF
-	    // writeback data to PRF
-		expected_WB_valid = 1'b0;
-		expected_WB_data = 32'h4;
-		expected_WB_PR = 7'h0;
-		expected_WB_ROB_index = 7'h0;
-	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b0;
-		expected_restart_req_mispredict = 1'b0;
-		expected_restart_req_ROB_index = 7'h0;
-		expected_restart_req_PC = 32'h0;
-		expected_restart_req_taken = 1'b1;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: i 1: JAL p3, 0x1234; 0xABC->0x1CF0", "\n\t\t",
-            "OC: v 0: JALR p2, 0x1C(p1=AA0:r); 0x0->0xABC, mispred 0xAB8", "\n\t\t",
-            "EX: i NOP", "\n\t\t",
-            "WB: i NOP", "\n\t\t",
-			"activity: ", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
-		tb_issue_valid = 1'b0;
-		tb_issue_op = 4'b0001;
-		tb_issue_PC = 32'hABC;
-		tb_issue_speculated_next_PC = 32'h1CF0;
-		tb_issue_imm = 32'h1234;
-		tb_issue_A_unneeded = 1'b1;
-		tb_issue_A_forward = 1'b0;
-		tb_issue_A_bank = 2'h0;
-		tb_issue_B_unneeded = 1'b1;
-		tb_issue_B_forward = 1'b0;
-		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 7'h3;
-		tb_issue_ROB_index = 7'h1;
-	    // output feedback to BRU IQ
-	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b0;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b0;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // writeback data to PRF
-	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b1;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b1;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op issue to BRU IQ
-	    // output feedback to BRU IQ
-		expected_issue_ready = 1'b0;
-	    // reg read info and data from PRF
-	    // forward data from PRF
-	    // writeback data to PRF
-		expected_WB_valid = 1'b0;
-		expected_WB_data = 32'h4;
-		expected_WB_PR = 7'h0;
-		expected_WB_ROB_index = 7'h0;
-	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b0;
-		expected_restart_req_mispredict = 1'b0;
-		expected_restart_req_ROB_index = 7'h0;
-		expected_restart_req_PC = 32'h0;
-		expected_restart_req_taken = 1'b1;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: v 1: JAL p3, 0x1234; 0xABC->0x1CF0", "\n\t\t",
-            "OC: v 0: JALR p2, 0x1C(p1=AA0:R); 0x0->0xABC, mispred 0xAB8", "\n\t\t",
-            "EX: i NOP", "\n\t\t",
-            "WB: i NOP", "\n\t\t",
-			"activity: p1 read ack", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
-		tb_issue_valid = 1'b1;
-		tb_issue_op = 4'b0001;
-		tb_issue_PC = 32'hABC;
-		tb_issue_speculated_next_PC = 32'h1CF0;
-		tb_issue_imm = 32'h1234;
-		tb_issue_A_unneeded = 1'b1;
-		tb_issue_A_forward = 1'b0;
-		tb_issue_A_bank = 2'h0;
-		tb_issue_B_unneeded = 1'b1;
-		tb_issue_B_forward = 1'b0;
-		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 7'h3;
-		tb_issue_ROB_index = 7'h1;
-	    // output feedback to BRU IQ
-	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b1;
-		tb_A_reg_read_port = 1'b1;
-		tb_B_reg_read_ack = 1'b0;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'hAA0,
-            32'hdeadbeef,
-            32'h0,
-            32'h0
-        };
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // writeback data to PRF
-	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b1;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b1;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op issue to BRU IQ
-	    // output feedback to BRU IQ
-		expected_issue_ready = 1'b1;
-	    // reg read info and data from PRF
-	    // forward data from PRF
-	    // writeback data to PRF
-		expected_WB_valid = 1'b0;
-		expected_WB_data = 32'h4;
-		expected_WB_PR = 7'h0;
-		expected_WB_ROB_index = 7'h0;
-	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b0;
-		expected_restart_req_mispredict = 1'b0;
-		expected_restart_req_ROB_index = 7'h0;
-		expected_restart_req_PC = 32'h0;
-		expected_restart_req_taken = 1'b1;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: v 2: BEQ p4=4:f, p5=5:f, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-            "OC: v 1: JAL p3, 0x1234; 0xABC->0x1CF0", "\n\t\t",
-            "EX: v 0: JALR p2, 0x1C(p1=AA0:R); 0x0->0xABC, mispred 0xAB8", "\n\t\t",
-            "WB: i NOP", "\n\t\t",
-			"activity: WB stall (no effect), restart req stall (no effect)", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
-		tb_issue_valid = 1'b1;
-		tb_issue_op = 4'b1000;
-		tb_issue_PC = 32'h1CF0;
-		tb_issue_speculated_next_PC = 32'h1CF4;
-		tb_issue_imm = 32'h210;
-		tb_issue_A_unneeded = 1'b0;
-		tb_issue_A_forward = 1'b1;
-		tb_issue_A_bank = 2'h0;
-		tb_issue_B_unneeded = 1'b0;
-		tb_issue_B_forward = 1'b1;
-		tb_issue_B_bank = 2'h1;
-		tb_issue_dest_PR = 7'h0;
-		tb_issue_ROB_index = 7'h2;
-	    // output feedback to BRU IQ
-	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b0;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b0;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // writeback data to PRF
-	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b0;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b0;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op issue to BRU IQ
-	    // output feedback to BRU IQ
-		expected_issue_ready = 1'b1;
-	    // reg read info and data from PRF
-	    // forward data from PRF
-	    // writeback data to PRF
-		expected_WB_valid = 1'b0;
-		expected_WB_data = 32'h4;
-		expected_WB_PR = 7'h2;
-		expected_WB_ROB_index = 7'h0;
-	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b0;
-		expected_restart_req_mispredict = 1'b1;
-		expected_restart_req_ROB_index = 7'h0;
-		expected_restart_req_PC = 32'h1C;
-		expected_restart_req_taken = 1'b1;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: i 3: AUIPC p6, 0x5678; 0x1CF4->0x1CF8", "\n\t\t",
-            "OC: v 2: BEQ p4=4:F, p5=5:F, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-            "EX: v 1: JAL p3, 0x1234; 0xABC->0x1CF0", "\n\t\t",
-            "WB: v 0: JALR p2, 0x1C(p1=AA0:R); 0x0->0xABC, mispred 0xAB8", "\n\t\t",
-			"activity: WB stall, forward p4, p5", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
-		tb_issue_valid = 1'b0;
-		tb_issue_op = 4'b0100;
-		tb_issue_PC = 32'h1CF4;
-		tb_issue_speculated_next_PC = 32'h1CF8;
-		tb_issue_imm = 32'h5678;
-		tb_issue_A_unneeded = 1'b1;
-		tb_issue_A_forward = 1'b0;
-		tb_issue_A_bank = 2'h0;
-		tb_issue_B_unneeded = 1'b1;
-		tb_issue_B_forward = 1'b0;
-		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 7'h6;
-		tb_issue_ROB_index = 7'h3;
-	    // output feedback to BRU IQ
-	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b0;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b0;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'h7,
-            32'h6,
-            32'h5,
-            32'h4
-        };
-	    // writeback data to PRF
-	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b0;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b1;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op issue to BRU IQ
-	    // output feedback to BRU IQ
-		expected_issue_ready = 1'b0;
-	    // reg read info and data from PRF
-	    // forward data from PRF
-	    // writeback data to PRF
-		expected_WB_valid = 1'b1;
-		expected_WB_data = 32'h4;
-		expected_WB_PR = 7'h2;
-		expected_WB_ROB_index = 7'h0;
-	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b1;
-		expected_restart_req_mispredict = 1'b1;
-		expected_restart_req_ROB_index = 7'h0;
-		expected_restart_req_PC = 32'hABC;
-		expected_restart_req_taken = 1'b1;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: v 3: AUIPC p6, 0x5678; 0x1CF4->0x1CF8", "\n\t\t",
-            "OC: v 2: BEQ p4=4:F, p5=5:F, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-            "EX: v 1: JAL p3, 0x1234; 0xABC->0x1CF0", "\n\t\t",
-            "WB: v 0: JALR p2, 0x1C(p1=AA0:R); 0x0->0xABC, mispred 0xAB8", "\n\t\t",
-			"activity: restart req stall (no effect)", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
-		tb_issue_valid = 1'b1;
-		tb_issue_op = 4'b0100;
-		tb_issue_PC = 32'h1CF4;
-		tb_issue_speculated_next_PC = 32'h1CF8;
-		tb_issue_imm = 32'h5678;
-		tb_issue_A_unneeded = 1'b1;
-		tb_issue_A_forward = 1'b0;
-		tb_issue_A_bank = 2'h0;
-		tb_issue_B_unneeded = 1'b1;
-		tb_issue_B_forward = 1'b0;
-		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 7'h6;
-		tb_issue_ROB_index = 7'h3;
-	    // output feedback to BRU IQ
-	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b0;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b0;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // writeback data to PRF
-	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b1;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b0;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op issue to BRU IQ
-	    // output feedback to BRU IQ
-		expected_issue_ready = 1'b1;
-	    // reg read info and data from PRF
-	    // forward data from PRF
-	    // writeback data to PRF
-		expected_WB_valid = 1'b1;
-		expected_WB_data = 32'h4;
-		expected_WB_PR = 7'h2;
-		expected_WB_ROB_index = 7'h0;
-	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b0;
-		expected_restart_req_mispredict = 1'b1;
-		expected_restart_req_ROB_index = 7'h0;
-		expected_restart_req_PC = 32'hABC;
-		expected_restart_req_taken = 1'b1;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: v 4: BNE p7=7:r, p8=8:f, 0xFFFFFF48; 0x1CF8->0x1C40, mispredict 0x1CFC", "\n\t\t",
-            "OC: v 3: AUIPC p6, 0x5678; 0x1CF4->0x1CF8", "\n\t\t",
-            "EX: v 2: BEQ p4=4:F, p5=5:F, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-            "WB: v 1: JAL p3, 0x1234; 0xABC->0x1CF0", "\n\t\t",
-			"activity: ", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
-		tb_issue_valid = 1'b1;
-		tb_issue_op = 4'b1001;
-		tb_issue_PC = 32'h1CF8;
-		tb_issue_speculated_next_PC = 32'h1CFC;
-		tb_issue_imm = 32'hFFFFFF48;
-		tb_issue_A_unneeded = 1'b0;
-		tb_issue_A_forward = 1'b0;
-		tb_issue_A_bank = 2'h3;
-		tb_issue_B_unneeded = 1'b0;
-		tb_issue_B_forward = 1'b1;
-		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 7'h0;
-		tb_issue_ROB_index = 7'h4;
-	    // output feedback to BRU IQ
-	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b0;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b0;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // writeback data to PRF
-	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b1;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b1;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op issue to BRU IQ
-	    // output feedback to BRU IQ
-		expected_issue_ready = 1'b1;
-	    // reg read info and data from PRF
-	    // forward data from PRF
-	    // writeback data to PRF
-		expected_WB_valid = 1'b1;
-		expected_WB_data = 32'hAC0;
-		expected_WB_PR = 7'h3;
-		expected_WB_ROB_index = 7'h1;
-	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b1;
-		expected_restart_req_mispredict = 1'b0;
-		expected_restart_req_ROB_index = 7'h1;
-		expected_restart_req_PC = 32'h1CF0;
-		expected_restart_req_taken = 1'b1;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: v 5: BLT p9=99999999:f, pA=A:r, 0x234; 0x1C40->0x1E74", "\n\t\t",
-            "OC: v 4: BNE p7=7:R, p8=8:F, 0xFFFFFF48; 0x1CF8->0x1C40, mispredict 0x1CFC", "\n\t\t",
-            "EX: v 3: AUIPC p6, 0x5678; 0x1CF4->0x1CF8", "\n\t\t",
-            "WB: v 2: BEQ p4=4:F, p5=5:F, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-			"activity: ack p7, forward p8, WB stall (no effect)", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
-		tb_issue_valid = 1'b1;
-		tb_issue_op = 4'b1100;
-		tb_issue_PC = 32'h1C40;
-		tb_issue_speculated_next_PC = 32'h1E74;
-		tb_issue_imm = 32'h234;
-		tb_issue_A_unneeded = 1'b0;
-		tb_issue_A_forward = 1'b1;
-		tb_issue_A_bank = 2'h1;
-		tb_issue_B_unneeded = 1'b0;
-		tb_issue_B_forward = 1'b0;
-		tb_issue_B_bank = 2'h2;
-		tb_issue_dest_PR = 7'h0;
-		tb_issue_ROB_index = 7'h5;
-	    // output feedback to BRU IQ
-	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b1;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b0;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-            32'h8,
-            32'h7,
-            32'h8,
-            32'h8,
-            32'h8,
-            32'h8,
-            32'h8,
-            32'h8
-        };
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h8
-        };
-	    // writeback data to PRF
-	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b0;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b1;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op issue to BRU IQ
-	    // output feedback to BRU IQ
-		expected_issue_ready = 1'b1;
-	    // reg read info and data from PRF
-	    // forward data from PRF
-	    // writeback data to PRF
-		expected_WB_valid = 1'b0;
-		expected_WB_data = 32'h1CF4;
-		expected_WB_PR = 7'h0;
-		expected_WB_ROB_index = 7'h2;
-	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b1;
-		expected_restart_req_mispredict = 1'b0;
-		expected_restart_req_ROB_index = 7'h2;
-		expected_restart_req_PC = 32'h1CF4;
-		expected_restart_req_taken = 1'b0;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: i 6: BGE pB=B:r, pC=C:r, 0xFFFFFFFC; 0x1E74->0x1E78, mispredict 0x1E70", "\n\t\t",
-            "OC: v 5: BLT p9=99999999:F, pA=A:r, 0x234; 0x1C40->0x1E74", "\n\t\t",
-            "EX: v 4: BNE p7=7:R, p8=8:F, 0xFFFFFF48; 0x1CF8->0x1C40, mispredict 0x1CFC", "\n\t\t",
-            "WB: v 3: AUIPC p6, 0x5678; 0x1CF4->0x1CF8", "\n\t\t",
-			"activity: forward p9, restart req stall (no effect)", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
-		tb_issue_valid = 1'b0;
-		tb_issue_op = 4'b1101;
-		tb_issue_PC = 32'h1E74;
-		tb_issue_speculated_next_PC = 32'h1E70;
-		tb_issue_imm = 32'hFFFFFFFC;
-		tb_issue_A_unneeded = 1'b0;
-		tb_issue_A_forward = 1'b0;
-		tb_issue_A_bank = 2'h3;
-		tb_issue_B_unneeded = 1'b0;
-		tb_issue_B_forward = 1'b0;
-		tb_issue_B_bank = 2'h1;
-		tb_issue_dest_PR = 7'h0;
-		tb_issue_ROB_index = 7'h6;
-	    // output feedback to BRU IQ
-	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b0;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b0;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'hB,
-            32'hB,
-            32'h99999999,
-            32'hB
-        };
-	    // writeback data to PRF
-	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b1;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b0;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op issue to BRU IQ
-	    // output feedback to BRU IQ
-		expected_issue_ready = 1'b0;
-	    // reg read info and data from PRF
-	    // forward data from PRF
-	    // writeback data to PRF
-		expected_WB_valid = 1'b1;
-		expected_WB_data = 32'h736C;
-		expected_WB_PR = 7'h6;
-		expected_WB_ROB_index = 7'h3;
-	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b0;
-		expected_restart_req_mispredict = 1'b1;
-		expected_restart_req_ROB_index = 7'h3;
-		expected_restart_req_PC = 32'h736C;
-		expected_restart_req_taken = 1'b1;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: v 6: BGE pB=B:r, pC=C:r, 0xFFFFFFFC; 0x1E74->0x1E78, mispredict 0x1E70", "\n\t\t",
-            "OC: v 5: BLT p9=99999999:F, pA=A:R, 0x234; 0x1C40->0x1E74", "\n\t\t",
-            "EX: i NOP", "\n\t\t",
-            "WB: v 4: BNE p7=7:R, p8=8:F, 0xFFFFFF48; 0x1CF8->0x1C40, mispredict 0x1CFC", "\n\t\t",
-			"activity: ack pA", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
-		tb_issue_valid = 1'b1;
-		tb_issue_op = 4'b1101;
-		tb_issue_PC = 32'h1E74;
-		tb_issue_speculated_next_PC = 32'h1E70;
-		tb_issue_imm = 32'hFFFFFFFC;
-		tb_issue_A_unneeded = 1'b0;
-		tb_issue_A_forward = 1'b0;
-		tb_issue_A_bank = 2'h3;
-		tb_issue_B_unneeded = 1'b0;
-		tb_issue_B_forward = 1'b0;
-		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 7'h0;
-		tb_issue_ROB_index = 7'h6;
-	    // output feedback to BRU IQ
-	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b0;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b1;
-		tb_B_reg_read_port = 1'b1;
-		tb_reg_read_data_by_bank_by_port = {
-            32'h8,
-            32'h8,
-            32'hA,
-            32'h8,
-            32'h8,
-            32'h8,
-            32'h8,
-            32'h8
-        };
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'hB,
-            32'hB,
-            32'hB,
-            32'hB
-        };
-	    // writeback data to PRF
-	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b1;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b1;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op issue to BRU IQ
-	    // output feedback to BRU IQ
-		expected_issue_ready = 1'b1;
-	    // reg read info and data from PRF
-	    // forward data from PRF
-	    // writeback data to PRF
-		expected_WB_valid = 1'b0;
-		expected_WB_data = 32'h1CFC;
-		expected_WB_PR = 7'h0;
-		expected_WB_ROB_index = 7'h4;
-	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b1;
-		expected_restart_req_mispredict = 1'b1;
-		expected_restart_req_ROB_index = 7'h4;
-		expected_restart_req_PC = 32'h1C40;
-		expected_restart_req_taken = 1'b1;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: v 7: BLTU pD=D:r, pE=8000000E:f, 0x8; 0x1E78->0x1E80", "\n\t\t",
-            "OC: v 6: BGE pB=B:R, pC=C:R, 0xFFFFFFFC; 0x1E74->0x1E78, mispredict 0x1E70", "\n\t\t",
-            "EX: v 5: BLT p9=99999999:F, pA=A:R, 0x234; 0x1C40->0x1E74", "\n\t\t",
-            "WB: i NOP", "\n\t\t",
-			"activity: ack pB, pC", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
-		tb_issue_valid = 1'b1;
-		tb_issue_op = 4'b1110;
-		tb_issue_PC = 32'h1E78;
-		tb_issue_speculated_next_PC = 32'h1E80;
-		tb_issue_imm = 32'h8;
-		tb_issue_A_unneeded = 1'b0;
-		tb_issue_A_forward = 1'b0;
-		tb_issue_A_bank = 2'h1;
-		tb_issue_B_unneeded = 1'b0;
-		tb_issue_B_forward = 1'b1;
-		tb_issue_B_bank = 2'h2;
-		tb_issue_dest_PR = 7'h0;
-		tb_issue_ROB_index = 7'h7;
-	    // output feedback to BRU IQ
-	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b1;
-		tb_A_reg_read_port = 1'b1;
-		tb_B_reg_read_ack = 1'b1;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-            32'hB,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'hC
-        };
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // writeback data to PRF
-	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b1;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b1;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op issue to BRU IQ
-	    // output feedback to BRU IQ
-		expected_issue_ready = 1'b1;
-	    // reg read info and data from PRF
-	    // forward data from PRF
-	    // writeback data to PRF
-		expected_WB_valid = 1'b0;
-		expected_WB_data = 32'h1C44;
-		expected_WB_PR = 7'h0;
-		expected_WB_ROB_index = 7'h5;
-	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b0;
-		expected_restart_req_mispredict = 1'b0;
-		expected_restart_req_ROB_index = 7'h5;
-		expected_restart_req_PC = 32'h1E74;
-		expected_restart_req_taken = 1'b1;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: v: 8: BGEU pF:f, p0:r, 0x128CC; 0x1E80->0x1474C, mispredict 0x0474C", "\n\t\t",
-            "OC: v 7: BLTU pD=D:R, pE=8000000E:F, 0x8; 0x1E78->0x1E80", "\n\t\t",
-            "EX: v 6: BGE pB=B:R, pC=C:R, 0xFFFFFFFC; 0x1E74->0x1E78, mispredict 0x1E70", "\n\t\t",
-            "WB: v 5: BLT p9=99999999:F, pA=A:R, 0x234; 0x1C40->0x1E74", "\n\t\t",
-			"activity: ack pD, forward pE", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
-		tb_issue_valid = 1'b1;
-		tb_issue_op = 4'b1111;
-		tb_issue_PC = 32'h1E80;
-		tb_issue_speculated_next_PC = 32'h0474C;
-		tb_issue_imm = 32'h128CC;
-		tb_issue_A_unneeded = 1'b0;
-		tb_issue_A_forward = 1'b1;
-		tb_issue_A_bank = 2'h3;
-		tb_issue_B_unneeded = 1'b0;
-		tb_issue_B_forward = 1'b0;
-		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 7'h0;
-		tb_issue_ROB_index = 7'h8;
-	    // output feedback to BRU IQ
-	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b1;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b0;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-            32'hFFFFFFFF,
-            32'hFFFFFFFF,
-            32'hFFFFFFFF,
-            32'hFFFFFFFF,
-            32'hFFFFFFFF,
-            32'hD,
-            32'hFFFFFFFF,
-            32'hFFFFFFFF
-        };
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'hC,
-            32'h8000000E,
-            32'hC,
-            32'hC
-        };
-	    // writeback data to PRF
-	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b1;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b1;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op issue to BRU IQ
-	    // output feedback to BRU IQ
-		expected_issue_ready = 1'b1;
-	    // reg read info and data from PRF
-	    // forward data from PRF
-	    // writeback data to PRF
-		expected_WB_valid = 1'b0;
-		expected_WB_data = 32'h1C44;
-		expected_WB_PR = 7'h0;
-		expected_WB_ROB_index = 7'h5;
-	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b1;
-		expected_restart_req_mispredict = 1'b0;
-		expected_restart_req_ROB_index = 7'h5;
-		expected_restart_req_PC = 32'h1E74;
-		expected_restart_req_taken = 1'b1;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: i NOP", "\n\t\t",
-            "OC: v: 8: BGEU pF=FFFFFFFF:F, p0=0:r, 0x128CC; 0x1E80->0x1474C, mispredict 0x0474C", "\n\t\t",
-            "EX: v 7: BLTU pD=D:R, pE=8000000E:F, 0x8; 0x1E78->0x1E80", "\n\t\t",
-            "WB: v 6: BGE pB=B:R, pC=C:R, 0xFFFFFFFC; 0x1E74->0x1E78, mispredict 0x1E70", "\n\t\t",
-			"activity: forward pF", "\n\t\t"
-        };
+		sub_test_case = "default";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -1385,9 +455,13 @@ module bru_pipeline_tb ();
 	    // BRU op issue to BRU IQ
 		tb_issue_valid = 1'b0;
 		tb_issue_op = 4'b0000;
+		tb_issue_pred_info = 8'h0;
+		tb_issue_pred_lru = 1'b0;
+		tb_issue_is_link_ra = 1'b0;
+		tb_issue_is_ret_ra = 1'b0;
 		tb_issue_PC = 32'h0;
-		tb_issue_speculated_next_PC = 32'h0; 
-		tb_issue_imm = 32'h0;
+		tb_issue_pred_PC = 32'h0;
+		tb_issue_imm20 = 20'h0;
 		tb_issue_A_unneeded = 1'b0;
 		tb_issue_A_forward = 1'b0;
 		tb_issue_A_bank = 2'h0;
@@ -1403,356 +477,28 @@ module bru_pipeline_tb ();
 		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
 		tb_reg_read_data_by_bank_by_port = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0
+		};
 	    // forward data from PRF
 		tb_forward_data_by_bank = {
-            32'hFFFFFFFF,
-            32'h0,
-            32'h0,
-            32'h0
-        };
+			32'h0,
+			32'h0,
+			32'h0,
+			32'h0
+		};
 	    // writeback data to PRF
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b1;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op issue to BRU IQ
-	    // output feedback to BRU IQ
-		expected_issue_ready = 1'b0;
-	    // reg read info and data from PRF
-	    // forward data from PRF
-	    // writeback data to PRF
-		expected_WB_valid = 1'b0;
-		expected_WB_data = 32'h1E78;
-		expected_WB_PR = 7'h0;
-		expected_WB_ROB_index = 7'h6;
-	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b1;
-		expected_restart_req_mispredict = 1'b1;
-		expected_restart_req_ROB_index = 7'h6;
-		expected_restart_req_PC = 32'h1E78;
-		expected_restart_req_taken = 1'b0;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: i NOP", "\n\t\t",
-            "OC: v: 8: BGEU pF=FFFFFFFF:F, p0=0:R, 0x128CC; 0x1E80->0x1474C, mispredict 0x0474C", "\n\t\t",
-            "EX: i NOP", "\n\t\t",
-            "WB: v 7: BLTU pD=D:R, pE=8000000E:F, 0x8; 0x1E78->0x1E80", "\n\t\t",
-			"activity: WB stall (no effect), ack p0", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
-		tb_issue_valid = 1'b0;
-		tb_issue_op = 4'b0000;
-		tb_issue_PC = 32'h0;
-		tb_issue_speculated_next_PC = 32'h0; 
-		tb_issue_imm = 32'h0;
-		tb_issue_A_unneeded = 1'b0;
-		tb_issue_A_forward = 1'b0;
-		tb_issue_A_bank = 2'h0;
-		tb_issue_B_unneeded = 1'b0;
-		tb_issue_B_forward = 1'b0;
-		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 7'h0;
-		tb_issue_ROB_index = 7'h0;
-	    // output feedback to BRU IQ
-	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b0;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b1;
-		tb_B_reg_read_port = 1'b1;
-		tb_reg_read_data_by_bank_by_port = {
-            32'hFFFFFFFF,
-            32'hFFFFFFFF,
-            32'hFFFFFFFF,
-            32'hFFFFFFFF,
-            32'hFFFFFFFF,
-            32'hFFFFFFFF,
-            32'h0,
-            32'hFFFFFFFF
-        };
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // writeback data to PRF
-	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b0;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b1;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op issue to BRU IQ
-	    // output feedback to BRU IQ
-		expected_issue_ready = 1'b1;
-	    // reg read info and data from PRF
-	    // forward data from PRF
-	    // writeback data to PRF
-		expected_WB_valid = 1'b0;
-		expected_WB_data = 32'h1E7C;
-		expected_WB_PR = 7'h0;
-		expected_WB_ROB_index = 7'h7;
-	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b1;
-		expected_restart_req_mispredict = 1'b0;
-		expected_restart_req_ROB_index = 7'h7;
-		expected_restart_req_PC = 32'h1E80;
-		expected_restart_req_taken = 1'b1;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: i NOP", "\n\t\t",
-            "OC: i NOP", "\n\t\t",
-            "EX: v: 8: BGEU pF=FFFFFFFF:F, p0=0:R, 0x128CC; 0x1E80->0x1474C, mispredict 0x0474C", "\n\t\t",
-            "WB: i NOP", "\n\t\t",
-			"activity: ", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
-		tb_issue_valid = 1'b0;
-		tb_issue_op = 4'b0000;
-		tb_issue_PC = 32'h0;
-		tb_issue_speculated_next_PC = 32'h0; 
-		tb_issue_imm = 32'h0;
-		tb_issue_A_unneeded = 1'b0;
-		tb_issue_A_forward = 1'b0;
-		tb_issue_A_bank = 2'h0;
-		tb_issue_B_unneeded = 1'b0;
-		tb_issue_B_forward = 1'b0;
-		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 7'h0;
-		tb_issue_ROB_index = 7'h0;
-	    // output feedback to BRU IQ
-	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b0;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b0;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // writeback data to PRF
-	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b1;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b1;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op issue to BRU IQ
-	    // output feedback to BRU IQ
-		expected_issue_ready = 1'b1;
-	    // reg read info and data from PRF
-	    // forward data from PRF
-	    // writeback data to PRF
-		expected_WB_valid = 1'b0;
-		expected_WB_data = 32'h1E84;
-		expected_WB_PR = 7'h0;
-		expected_WB_ROB_index = 7'h8;
-	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b0;
-		expected_restart_req_mispredict = 1'b1;
-		expected_restart_req_ROB_index = 7'h8;
-		expected_restart_req_PC = 32'h1474C;
-		expected_restart_req_taken = 1'b1;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: i NOP", "\n\t\t",
-            "OC: i NOP", "\n\t\t",
-            "EX: i NOP", "\n\t\t",
-            "WB: v: 8: BGEU pF=FFFFFFFF:F, p0=0:R, 0x128CC; 0x1E80->0x1474C, mispredict 0x0474C", "\n\t\t",
-			"activity: ", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
-		tb_issue_valid = 1'b0;
-		tb_issue_op = 4'b0000;
-		tb_issue_PC = 32'h0;
-		tb_issue_speculated_next_PC = 32'h0; 
-		tb_issue_imm = 32'h0;
-		tb_issue_A_unneeded = 1'b0;
-		tb_issue_A_forward = 1'b0;
-		tb_issue_A_bank = 2'h0;
-		tb_issue_B_unneeded = 1'b0;
-		tb_issue_B_forward = 1'b0;
-		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 7'h0;
-		tb_issue_ROB_index = 7'h0;
-	    // output feedback to BRU IQ
-	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b0;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b0;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // writeback data to PRF
-	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b1;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b1;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op issue to BRU IQ
-	    // output feedback to BRU IQ
-		expected_issue_ready = 1'b1;
-	    // reg read info and data from PRF
-	    // forward data from PRF
-	    // writeback data to PRF
-		expected_WB_valid = 1'b0;
-		expected_WB_data = 32'h1E84;
-		expected_WB_PR = 7'h0;
-		expected_WB_ROB_index = 7'h8;
-	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b1;
-		expected_restart_req_mispredict = 1'b1;
-		expected_restart_req_ROB_index = 7'h8;
-		expected_restart_req_PC = 32'h1474C;
-		expected_restart_req_taken = 1'b1;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t",
-            "issue: i NOP", "\n\t\t",
-            "OC: i NOP", "\n\t\t",
-            "EX: i NOP", "\n\t\t",
-            "WB: i NOP", "\n\t\t",
-			"activity: ", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
-		tb_issue_valid = 1'b0;
-		tb_issue_op = 4'b0000;
-		tb_issue_PC = 32'h0;
-		tb_issue_speculated_next_PC = 32'h0; 
-		tb_issue_imm = 32'h0;
-		tb_issue_A_unneeded = 1'b0;
-		tb_issue_A_forward = 1'b0;
-		tb_issue_A_bank = 2'h0;
-		tb_issue_B_unneeded = 1'b0;
-		tb_issue_B_forward = 1'b0;
-		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 7'h0;
-		tb_issue_ROB_index = 7'h0;
-	    // output feedback to BRU IQ
-	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b0;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b0;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'h0,
-            32'h0,
-            32'h0,
-            32'h0
-        };
-	    // writeback data to PRF
-	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b1;
-	    // restart req to ROB
-		// restart req backpressure from ROB
-		tb_restart_req_ready = 1'b1;
+	    // branch notification to ROB
+	    // branch notification backpressure from ROB
+		tb_branch_notif_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -1769,12 +515,17 @@ module bru_pipeline_tb ();
 		expected_WB_PR = 7'h0;
 		expected_WB_ROB_index = 7'h0;
 	    // writeback backpressure from PRF
-	    // restart req to ROB
-		expected_restart_req_valid = 1'b0;
-		expected_restart_req_mispredict = 1'b0;
-		expected_restart_req_ROB_index = 7'h0;
-		expected_restart_req_PC = 32'h0;
-		expected_restart_req_taken = 1'b1;
+	    // branch notification to ROB
+		expected_branch_notif_valid = 1'b0;
+		expected_branch_notif_ROB_index = 7'h0;
+		expected_branch_notif_is_mispredict = 1'b0;
+		expected_branch_notif_is_taken = 1'b1;
+		expected_branch_notif_is_out_of_range = 1'b0;
+		expected_branch_notif_updated_pred_info = 8'b01000000;
+		expected_branch_notif_pred_lru = 1'b0;
+		expected_branch_notif_start_PC = 32'h0;
+		expected_branch_notif_target_PC = 32'h0;
+	    // branch notification backpressure from ROB
 
 		check_outputs();
 

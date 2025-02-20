@@ -10,9 +10,6 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-parameter OUTER_WIDTH = 32;
-parameter INNER_WIDTH = 32;
-
 module distram_1rport_1wport_wrapper (
 
     // seq
@@ -26,6 +23,9 @@ module distram_1rport_1wport_wrapper (
 	input logic [$clog2(OUTER_WIDTH)-1:0] next_windex,
 	input logic [INNER_WIDTH-1:0] next_wdata
 );
+
+    parameter OUTER_WIDTH = 32;
+    parameter INNER_WIDTH = 32;
 
     // ----------------------------------------------------------------
     // Direct Module Connections:

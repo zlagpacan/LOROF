@@ -33,23 +33,28 @@ module bru_iq_tb ();
     // DUT signals:
 
 
-    // BRU op dispatch by entry
-	logic [3:0] tb_dispatch_valid_by_entry;
-	logic [3:0][3:0] tb_dispatch_op_by_entry;
-	logic [3:0][31:0] tb_dispatch_PC_by_entry;
-	logic [3:0][31:0] tb_dispatch_speculated_next_PC_by_entry;
-	logic [3:0][31:0] tb_dispatch_imm_by_entry;
-	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_A_PR_by_entry;
-	logic [3:0] tb_dispatch_A_unneeded_by_entry;
-	logic [3:0] tb_dispatch_A_ready_by_entry;
-	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_B_PR_by_entry;
-	logic [3:0] tb_dispatch_B_unneeded_by_entry;
-	logic [3:0] tb_dispatch_B_ready_by_entry;
-	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_dest_PR_by_entry;
-	logic [3:0][LOG_ROB_ENTRIES-1:0] tb_dispatch_ROB_index_by_entry;
+    // op dispatch by way
+	logic [3:0] tb_dispatch_attempt_by_way;
+	logic [3:0] tb_dispatch_valid_by_way;
+	logic [3:0][3:0] tb_dispatch_op_by_way;
+	logic [3:0][BTB_PRED_INFO_WIDTH-1:0] tb_dispatch_pred_info_by_way;
+	logic [3:0] tb_dispatch_pred_lru_by_way;
+	logic [3:0] tb_dispatch_is_link_ra_by_way;
+	logic [3:0] tb_dispatch_is_ret_ra_by_way;
+	logic [3:0][31:0] tb_dispatch_PC_by_way;
+	logic [3:0][31:0] tb_dispatch_pred_PC_by_way;
+	logic [3:0][19:0] tb_dispatch_imm20_by_way;
+	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_A_PR_by_way;
+	logic [3:0] tb_dispatch_A_unneeded_by_way;
+	logic [3:0] tb_dispatch_A_ready_by_way;
+	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_B_PR_by_way;
+	logic [3:0] tb_dispatch_B_unneeded_by_way;
+	logic [3:0] tb_dispatch_B_ready_by_way;
+	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_dest_PR_by_way;
+	logic [3:0][LOG_ROB_ENTRIES-1:0] tb_dispatch_ROB_index_by_way;
 
-    // BRU op dispatch feedback by entry
-	logic [3:0] DUT_dispatch_open_by_entry, expected_dispatch_open_by_entry;
+    // op dispatch feedback
+	logic [3:0] DUT_dispatch_ack_by_way, expected_dispatch_ack_by_way;
 
     // BRU pipeline feedback
 	logic tb_pipeline_ready;
@@ -61,9 +66,13 @@ module bru_iq_tb ();
     // BRU op issue to BRU pipeline
 	logic DUT_issue_valid, expected_issue_valid;
 	logic [3:0] DUT_issue_op, expected_issue_op;
+	logic [BTB_PRED_INFO_WIDTH-1:0] DUT_issue_pred_info, expected_issue_pred_info;
+	logic DUT_issue_pred_lru, expected_issue_pred_lru;
+	logic DUT_issue_is_link_ra, expected_issue_is_link_ra;
+	logic DUT_issue_is_ret_ra, expected_issue_is_ret_ra;
 	logic [31:0] DUT_issue_PC, expected_issue_PC;
-	logic [31:0] DUT_issue_speculated_next_PC, expected_issue_speculated_next_PC;
-	logic [31:0] DUT_issue_imm, expected_issue_imm;
+	logic [31:0] DUT_issue_pred_PC, expected_issue_pred_PC;
+	logic [19:0] DUT_issue_imm20, expected_issue_imm20;
 	logic DUT_issue_A_unneeded, expected_issue_A_unneeded;
 	logic DUT_issue_A_forward, expected_issue_A_forward;
 	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_A_bank, expected_issue_A_bank;
@@ -82,29 +91,36 @@ module bru_iq_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	bru_iq DUT (
+	bru_iq #(
+		.BRU_IQ_ENTRIES(6)	
+	) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
 
 
-	    // BRU op dispatch by entry
-		.dispatch_valid_by_entry(tb_dispatch_valid_by_entry),
-		.dispatch_op_by_entry(tb_dispatch_op_by_entry),
-		.dispatch_PC_by_entry(tb_dispatch_PC_by_entry),
-		.dispatch_speculated_next_PC_by_entry(tb_dispatch_speculated_next_PC_by_entry),
-		.dispatch_imm_by_entry(tb_dispatch_imm_by_entry),
-		.dispatch_A_PR_by_entry(tb_dispatch_A_PR_by_entry),
-		.dispatch_A_unneeded_by_entry(tb_dispatch_A_unneeded_by_entry),
-		.dispatch_A_ready_by_entry(tb_dispatch_A_ready_by_entry),
-		.dispatch_B_PR_by_entry(tb_dispatch_B_PR_by_entry),
-		.dispatch_B_unneeded_by_entry(tb_dispatch_B_unneeded_by_entry),
-		.dispatch_B_ready_by_entry(tb_dispatch_B_ready_by_entry),
-		.dispatch_dest_PR_by_entry(tb_dispatch_dest_PR_by_entry),
-		.dispatch_ROB_index_by_entry(tb_dispatch_ROB_index_by_entry),
+	    // op dispatch by way
+		.dispatch_attempt_by_way(tb_dispatch_attempt_by_way),
+		.dispatch_valid_by_way(tb_dispatch_valid_by_way),
+		.dispatch_op_by_way(tb_dispatch_op_by_way),
+		.dispatch_pred_info_by_way(tb_dispatch_pred_info_by_way),
+		.dispatch_pred_lru_by_way(tb_dispatch_pred_lru_by_way),
+		.dispatch_is_link_ra_by_way(tb_dispatch_is_link_ra_by_way),
+		.dispatch_is_ret_ra_by_way(tb_dispatch_is_ret_ra_by_way),
+		.dispatch_PC_by_way(tb_dispatch_PC_by_way),
+		.dispatch_pred_PC_by_way(tb_dispatch_pred_PC_by_way),
+		.dispatch_imm20_by_way(tb_dispatch_imm20_by_way),
+		.dispatch_A_PR_by_way(tb_dispatch_A_PR_by_way),
+		.dispatch_A_unneeded_by_way(tb_dispatch_A_unneeded_by_way),
+		.dispatch_A_ready_by_way(tb_dispatch_A_ready_by_way),
+		.dispatch_B_PR_by_way(tb_dispatch_B_PR_by_way),
+		.dispatch_B_unneeded_by_way(tb_dispatch_B_unneeded_by_way),
+		.dispatch_B_ready_by_way(tb_dispatch_B_ready_by_way),
+		.dispatch_dest_PR_by_way(tb_dispatch_dest_PR_by_way),
+		.dispatch_ROB_index_by_way(tb_dispatch_ROB_index_by_way),
 
-	    // BRU op dispatch feedback by entry
-		.dispatch_open_by_entry(DUT_dispatch_open_by_entry),
+	    // op dispatch feedback
+		.dispatch_ack_by_way(DUT_dispatch_ack_by_way),
 
 	    // BRU pipeline feedback
 		.pipeline_ready(tb_pipeline_ready),
@@ -116,9 +132,13 @@ module bru_iq_tb ();
 	    // BRU op issue to BRU pipeline
 		.issue_valid(DUT_issue_valid),
 		.issue_op(DUT_issue_op),
+		.issue_pred_info(DUT_issue_pred_info),
+		.issue_pred_lru(DUT_issue_pred_lru),
+		.issue_is_link_ra(DUT_issue_is_link_ra),
+		.issue_is_ret_ra(DUT_issue_is_ret_ra),
 		.issue_PC(DUT_issue_PC),
-		.issue_speculated_next_PC(DUT_issue_speculated_next_PC),
-		.issue_imm(DUT_issue_imm),
+		.issue_pred_PC(DUT_issue_pred_PC),
+		.issue_imm20(DUT_issue_imm20),
 		.issue_A_unneeded(DUT_issue_A_unneeded),
 		.issue_A_forward(DUT_issue_A_forward),
 		.issue_A_bank(DUT_issue_A_bank),
@@ -140,9 +160,9 @@ module bru_iq_tb ();
 
     task check_outputs();
     begin
-		if (expected_dispatch_open_by_entry !== DUT_dispatch_open_by_entry) begin
-			$display("TB ERROR: expected_dispatch_open_by_entry (%h) != DUT_dispatch_open_by_entry (%h)",
-				expected_dispatch_open_by_entry, DUT_dispatch_open_by_entry);
+		if (expected_dispatch_ack_by_way !== DUT_dispatch_ack_by_way) begin
+			$display("TB ERROR: expected_dispatch_ack_by_way (%h) != DUT_dispatch_ack_by_way (%h)",
+				expected_dispatch_ack_by_way, DUT_dispatch_ack_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -161,6 +181,34 @@ module bru_iq_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_issue_pred_info !== DUT_issue_pred_info) begin
+			$display("TB ERROR: expected_issue_pred_info (%h) != DUT_issue_pred_info (%h)",
+				expected_issue_pred_info, DUT_issue_pred_info);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_pred_lru !== DUT_issue_pred_lru) begin
+			$display("TB ERROR: expected_issue_pred_lru (%h) != DUT_issue_pred_lru (%h)",
+				expected_issue_pred_lru, DUT_issue_pred_lru);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_is_link_ra !== DUT_issue_is_link_ra) begin
+			$display("TB ERROR: expected_issue_is_link_ra (%h) != DUT_issue_is_link_ra (%h)",
+				expected_issue_is_link_ra, DUT_issue_is_link_ra);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_is_ret_ra !== DUT_issue_is_ret_ra) begin
+			$display("TB ERROR: expected_issue_is_ret_ra (%h) != DUT_issue_is_ret_ra (%h)",
+				expected_issue_is_ret_ra, DUT_issue_is_ret_ra);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_issue_PC !== DUT_issue_PC) begin
 			$display("TB ERROR: expected_issue_PC (%h) != DUT_issue_PC (%h)",
 				expected_issue_PC, DUT_issue_PC);
@@ -168,16 +216,16 @@ module bru_iq_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_speculated_next_PC !== DUT_issue_speculated_next_PC) begin
-			$display("TB ERROR: expected_issue_speculated_next_PC (%h) != DUT_issue_speculated_next_PC (%h)",
-				expected_issue_speculated_next_PC, DUT_issue_speculated_next_PC);
+		if (expected_issue_pred_PC !== DUT_issue_pred_PC) begin
+			$display("TB ERROR: expected_issue_pred_PC (%h) != DUT_issue_pred_PC (%h)",
+				expected_issue_pred_PC, DUT_issue_pred_PC);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_imm !== DUT_issue_imm) begin
-			$display("TB ERROR: expected_issue_imm (%h) != DUT_issue_imm (%h)",
-				expected_issue_imm, DUT_issue_imm);
+		if (expected_issue_imm20 !== DUT_issue_imm20) begin
+			$display("TB ERROR: expected_issue_imm20 (%h) != DUT_issue_imm20 (%h)",
+				expected_issue_imm20, DUT_issue_imm20);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -288,26 +336,31 @@ module bru_iq_tb ();
 
 		// reset
 		nRST = 1'b0;
-	    // BRU op dispatch by entry
-		tb_dispatch_valid_by_entry = 4'b0000;
-		tb_dispatch_op_by_entry = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
-		tb_dispatch_PC_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_speculated_next_PC_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_imm_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_A_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_A_unneeded_by_entry = 4'b0000;
-		tb_dispatch_A_ready_by_entry = 4'b0000;
-		tb_dispatch_B_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_B_unneeded_by_entry = 4'b0000;
-		tb_dispatch_B_ready_by_entry = 4'b0000;
-		tb_dispatch_dest_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_ROB_index_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-	    // BRU op dispatch feedback by entry
+	    // op dispatch by way
+		tb_dispatch_attempt_by_way = '0;
+		tb_dispatch_valid_by_way = '0;
+		tb_dispatch_op_by_way = '0;
+		tb_dispatch_pred_info_by_way = '0;
+		tb_dispatch_pred_lru_by_way = '0;
+		tb_dispatch_is_link_ra_by_way = '0;
+		tb_dispatch_is_ret_ra_by_way = '0;
+		tb_dispatch_PC_by_way = '0;
+		tb_dispatch_pred_PC_by_way = '0;
+		tb_dispatch_imm20_by_way = '0;
+		tb_dispatch_A_PR_by_way = '0;
+		tb_dispatch_A_unneeded_by_way = '0;
+		tb_dispatch_A_ready_by_way = '0;
+		tb_dispatch_B_PR_by_way = '0;
+		tb_dispatch_B_unneeded_by_way = '0;
+		tb_dispatch_B_ready_by_way = '0;
+		tb_dispatch_dest_PR_by_way = '0;
+		tb_dispatch_ROB_index_by_way = '0;
+	    // op dispatch feedback
 	    // BRU pipeline feedback
 		tb_pipeline_ready = 1'b1;
 	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 4'b0000;
-		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+		tb_WB_bus_valid_by_bank = '0;
+		tb_WB_bus_upper_PR_by_bank = '0;
 	    // BRU op issue to BRU pipeline
 	    // reg read req to PRF
 
@@ -315,30 +368,34 @@ module bru_iq_tb ();
 
 		// outputs:
 
-	    // BRU op dispatch by entry
-	    // BRU op dispatch feedback by entry
-		expected_dispatch_open_by_entry = 4'b1111;
+	    // op dispatch by way
+	    // op dispatch feedback
+		expected_dispatch_ack_by_way = 4'b0000;
 	    // BRU pipeline feedback
 	    // writeback bus by bank
 	    // BRU op issue to BRU pipeline
-		expected_issue_valid = 1'b0;
-		expected_issue_op = 4'b0000;
-		expected_issue_PC = 32'h0;
-		expected_issue_speculated_next_PC = 32'h0;
-		expected_issue_imm = 32'h0;
-		expected_issue_A_unneeded = 1'b0;
-		expected_issue_A_forward = 1'b0;
-		expected_issue_A_bank = 2'h0;
-		expected_issue_B_unneeded = 1'b0;
-		expected_issue_B_forward = 1'b0;
-		expected_issue_B_bank = 2'h0;
-		expected_issue_dest_PR = 7'h0;
-		expected_issue_ROB_index = 7'h0;
+		expected_issue_valid = '0;
+		expected_issue_op = '0;
+		expected_issue_pred_info = '0;
+		expected_issue_pred_lru = '0;
+		expected_issue_is_link_ra = '0;
+		expected_issue_is_ret_ra = '0;
+		expected_issue_PC = '0;
+		expected_issue_pred_PC = '0;
+		expected_issue_imm20 = '0;
+		expected_issue_A_unneeded = '0;
+		expected_issue_A_forward = '0;
+		expected_issue_A_bank = '0;
+		expected_issue_B_unneeded = '0;
+		expected_issue_B_forward = '0;
+		expected_issue_B_bank = '0;
+		expected_issue_dest_PR = '0;
+		expected_issue_ROB_index = '0;
 	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b0;
-		expected_PRF_req_A_PR = 7'h0;
-		expected_PRF_req_B_valid = 1'b0;
-		expected_PRF_req_B_PR = 7'h0;
+		expected_PRF_req_A_valid = '0;
+		expected_PRF_req_A_PR = '0;
+		expected_PRF_req_B_valid = '0;
+		expected_PRF_req_B_PR = '0;
 
 		check_outputs();
 
@@ -348,26 +405,31 @@ module bru_iq_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // BRU op dispatch by entry
-		tb_dispatch_valid_by_entry = 4'b0000;
-		tb_dispatch_op_by_entry = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
-		tb_dispatch_PC_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_speculated_next_PC_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_imm_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_A_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_A_unneeded_by_entry = 4'b0000;
-		tb_dispatch_A_ready_by_entry = 4'b0000;
-		tb_dispatch_B_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_B_unneeded_by_entry = 4'b0000;
-		tb_dispatch_B_ready_by_entry = 4'b0000;
-		tb_dispatch_dest_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_ROB_index_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-	    // BRU op dispatch feedback by entry
+	    // op dispatch by way
+		tb_dispatch_attempt_by_way = '0;
+		tb_dispatch_valid_by_way = '0;
+		tb_dispatch_op_by_way = '0;
+		tb_dispatch_pred_info_by_way = '0;
+		tb_dispatch_pred_lru_by_way = '0;
+		tb_dispatch_is_link_ra_by_way = '0;
+		tb_dispatch_is_ret_ra_by_way = '0;
+		tb_dispatch_PC_by_way = '0;
+		tb_dispatch_pred_PC_by_way = '0;
+		tb_dispatch_imm20_by_way = '0;
+		tb_dispatch_A_PR_by_way = '0;
+		tb_dispatch_A_unneeded_by_way = '0;
+		tb_dispatch_A_ready_by_way = '0;
+		tb_dispatch_B_PR_by_way = '0;
+		tb_dispatch_B_unneeded_by_way = '0;
+		tb_dispatch_B_ready_by_way = '0;
+		tb_dispatch_dest_PR_by_way = '0;
+		tb_dispatch_ROB_index_by_way = '0;
+	    // op dispatch feedback
 	    // BRU pipeline feedback
 		tb_pipeline_ready = 1'b1;
 	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 4'b0000;
-		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+		tb_WB_bus_valid_by_bank = '0;
+		tb_WB_bus_upper_PR_by_bank = '0;
 	    // BRU op issue to BRU pipeline
 	    // reg read req to PRF
 
@@ -375,78 +437,76 @@ module bru_iq_tb ();
 
 		// outputs:
 
-	    // BRU op dispatch by entry
-	    // BRU op dispatch feedback by entry
-		expected_dispatch_open_by_entry = 4'b1111;
+	    // op dispatch by way
+	    // op dispatch feedback
+		expected_dispatch_ack_by_way = 4'b0000;
 	    // BRU pipeline feedback
 	    // writeback bus by bank
 	    // BRU op issue to BRU pipeline
-		expected_issue_valid = 1'b0;
-		expected_issue_op = 4'b0000;
-		expected_issue_PC = 32'h0;
-		expected_issue_speculated_next_PC = 32'h0;
-		expected_issue_imm = 32'h0;
-		expected_issue_A_unneeded = 1'b0;
-		expected_issue_A_forward = 1'b0;
-		expected_issue_A_bank = 2'h0;
-		expected_issue_B_unneeded = 1'b0;
-		expected_issue_B_forward = 1'b0;
-		expected_issue_B_bank = 2'h0;
-		expected_issue_dest_PR = 7'h0;
-		expected_issue_ROB_index = 7'h0;
+		expected_issue_valid = '0;
+		expected_issue_op = '0;
+		expected_issue_pred_info = '0;
+		expected_issue_pred_lru = '0;
+		expected_issue_is_link_ra = '0;
+		expected_issue_is_ret_ra = '0;
+		expected_issue_PC = '0;
+		expected_issue_pred_PC = '0;
+		expected_issue_imm20 = '0;
+		expected_issue_A_unneeded = '0;
+		expected_issue_A_forward = '0;
+		expected_issue_A_bank = '0;
+		expected_issue_B_unneeded = '0;
+		expected_issue_B_forward = '0;
+		expected_issue_B_bank = '0;
+		expected_issue_dest_PR = '0;
+		expected_issue_ROB_index = '0;
 	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b0;
-		expected_PRF_req_A_PR = 7'h0;
-		expected_PRF_req_B_valid = 1'b0;
-		expected_PRF_req_B_PR = 7'h0;
+		expected_PRF_req_A_valid = '0;
+		expected_PRF_req_A_PR = '0;
+		expected_PRF_req_B_valid = '0;
+		expected_PRF_req_B_PR = '0;
 
 		check_outputs();
 
         // ------------------------------------------------------------
-        // simple chain:
-        test_case = "simple chain";
+        // default:
+        test_case = "default";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"\n\t\t", 
-            "dispatch3: i NOP", "\n\t\t",
-            "dispatch2: i NOP", "\n\t\t",
-            "dispatch1: i NOP", "\n\t\t",
-            "dispatch0: v 0: JALR p2, 0x1C(p1:r); 0x0->0xABC", "\n\t\t",
-            "IQ3: i NOP", "\n\t\t",
-            "IQ2: i NOP", "\n\t\t",
-            "IQ1: i NOP", "\n\t\t",
-            "IQ0: i NOP", "\n\t\t",
-            "issue: i NOP", "\n\t\t",
-			"activity: ", "\n\t\t"
-        };
+		sub_test_case = "default";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-	    // BRU op dispatch by entry
-		tb_dispatch_valid_by_entry = 4'b0001;
-		tb_dispatch_op_by_entry = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
-		tb_dispatch_PC_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_speculated_next_PC_by_entry = {32'h0, 32'h0, 32'h0, 32'hABC};
-		tb_dispatch_imm_by_entry = {32'h0, 32'h0, 32'h0, 32'h1C};
-		tb_dispatch_A_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h1};
-		tb_dispatch_A_unneeded_by_entry = 4'b0000;
-		tb_dispatch_A_ready_by_entry = 4'b0001;
-		tb_dispatch_B_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_B_unneeded_by_entry = 4'b0001;
-		tb_dispatch_B_ready_by_entry = 4'b0000;
-		tb_dispatch_dest_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h2};
-		tb_dispatch_ROB_index_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-	    // BRU op dispatch feedback by entry
+	    // op dispatch by way
+		tb_dispatch_attempt_by_way = '0;
+		tb_dispatch_valid_by_way = '0;
+		tb_dispatch_op_by_way = '0;
+		tb_dispatch_pred_info_by_way = '0;
+		tb_dispatch_pred_lru_by_way = '0;
+		tb_dispatch_is_link_ra_by_way = '0;
+		tb_dispatch_is_ret_ra_by_way = '0;
+		tb_dispatch_PC_by_way = '0;
+		tb_dispatch_pred_PC_by_way = '0;
+		tb_dispatch_imm20_by_way = '0;
+		tb_dispatch_A_PR_by_way = '0;
+		tb_dispatch_A_unneeded_by_way = '0;
+		tb_dispatch_A_ready_by_way = '0;
+		tb_dispatch_B_PR_by_way = '0;
+		tb_dispatch_B_unneeded_by_way = '0;
+		tb_dispatch_B_ready_by_way = '0;
+		tb_dispatch_dest_PR_by_way = '0;
+		tb_dispatch_ROB_index_by_way = '0;
+	    // op dispatch feedback
 	    // BRU pipeline feedback
 		tb_pipeline_ready = 1'b1;
 	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 4'b0000;
-		tb_WB_bus_upper_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+		tb_WB_bus_valid_by_bank = '0;
+		tb_WB_bus_upper_PR_by_bank = '0;
 	    // BRU op issue to BRU pipeline
 	    // reg read req to PRF
 
@@ -454,687 +514,34 @@ module bru_iq_tb ();
 
 		// outputs:
 
-	    // BRU op dispatch by entry
-	    // BRU op dispatch feedback by entry
-		expected_dispatch_open_by_entry = 4'b1111;
+	    // op dispatch by way
+	    // op dispatch feedback
+		expected_dispatch_ack_by_way = 4'b0000;
 	    // BRU pipeline feedback
 	    // writeback bus by bank
 	    // BRU op issue to BRU pipeline
-		expected_issue_valid = 1'b0;
-		expected_issue_op = 4'b0000;
-		expected_issue_PC = 32'h0;
-		expected_issue_speculated_next_PC = 32'h0;
-		expected_issue_imm = 32'h0;
-		expected_issue_A_unneeded = 1'b0;
-		expected_issue_A_forward = 1'b0;
-		expected_issue_A_bank = 2'h0;
-		expected_issue_B_unneeded = 1'b0;
-		expected_issue_B_forward = 1'b0;
-		expected_issue_B_bank = 2'h0;
-		expected_issue_dest_PR = 7'h0;
-		expected_issue_ROB_index = 7'h0;
+		expected_issue_valid = '0;
+		expected_issue_op = '0;
+		expected_issue_pred_info = '0;
+		expected_issue_pred_lru = '0;
+		expected_issue_is_link_ra = '0;
+		expected_issue_is_ret_ra = '0;
+		expected_issue_PC = '0;
+		expected_issue_pred_PC = '0;
+		expected_issue_imm20 = '0;
+		expected_issue_A_unneeded = '0;
+		expected_issue_A_forward = '0;
+		expected_issue_A_bank = '0;
+		expected_issue_B_unneeded = '0;
+		expected_issue_B_forward = '0;
+		expected_issue_B_bank = '0;
+		expected_issue_dest_PR = '0;
+		expected_issue_ROB_index = '0;
 	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b0;
-		expected_PRF_req_A_PR = 7'h0;
-		expected_PRF_req_B_valid = 1'b0;
-		expected_PRF_req_B_PR = 7'h0;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t", 
-            "dispatch3: i NOP", "\n\t\t",
-            "dispatch2: i NOP", "\n\t\t",
-            "dispatch1: i NOP", "\n\t\t",
-            "dispatch0: v 1: JAL p3, 0x1234; 0xABC->0x1CF0", "\n\t\t",
-            "IQ3: i NOP", "\n\t\t",
-            "IQ2: i NOP", "\n\t\t",
-            "IQ1: i NOP", "\n\t\t",
-            "IQ0: v 0: JALR p2, 0x1C(p1:r); 0x0->0xABC", "\n\t\t",
-            "issue: v 0: JALR p2, 0x1C(p1:r); 0x0->0xABC", "\n\t\t",
-			"activity: ", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op dispatch by entry
-		tb_dispatch_valid_by_entry = 4'b0001;
-		tb_dispatch_op_by_entry = {4'b0000, 4'b0000, 4'b0000, 4'b0001};
-		tb_dispatch_PC_by_entry = {32'h0, 32'h0, 32'h0, 32'hABC};
-		tb_dispatch_speculated_next_PC_by_entry = {32'h0, 32'h0, 32'h0, 32'h1CF0};
-		tb_dispatch_imm_by_entry = {32'h0, 32'h0, 32'h0, 32'h1234};
-		tb_dispatch_A_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_A_unneeded_by_entry = 4'b0001;
-		tb_dispatch_A_ready_by_entry = 4'b0001;
-		tb_dispatch_B_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_B_unneeded_by_entry = 4'b0001;
-		tb_dispatch_B_ready_by_entry = 4'b0000;
-		tb_dispatch_dest_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h3};
-		tb_dispatch_ROB_index_by_entry = {7'h0, 7'h0, 7'h0, 7'h1};
-	    // BRU op dispatch feedback by entry
-	    // BRU pipeline feedback
-		tb_pipeline_ready = 1'b1;
-	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 4'b0000;
-		tb_WB_bus_upper_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
-	    // BRU op issue to BRU pipeline
-	    // reg read req to PRF
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op dispatch by entry
-	    // BRU op dispatch feedback by entry
-		expected_dispatch_open_by_entry = 4'b1111;
-	    // BRU pipeline feedback
-	    // writeback bus by bank
-	    // BRU op issue to BRU pipeline
-		expected_issue_valid = 1'b1;
-		expected_issue_op = 4'b0000;
-		expected_issue_PC = 32'h0;
-		expected_issue_speculated_next_PC = 32'hABC;
-		expected_issue_imm = 32'h1C;
-		expected_issue_A_unneeded = 1'b0;
-		expected_issue_A_forward = 1'b0;
-		expected_issue_A_bank = 2'h1;
-		expected_issue_B_unneeded = 1'b1;
-		expected_issue_B_forward = 1'b0;
-		expected_issue_B_bank = 2'h0;
-		expected_issue_dest_PR = 7'h2;
-		expected_issue_ROB_index = 7'h0;
-	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b1;
-		expected_PRF_req_A_PR = 7'h1;
-		expected_PRF_req_B_valid = 1'b0;
-		expected_PRF_req_B_PR = 7'h0;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t", 
-            "dispatch3: i NOP", "\n\t\t",
-            "dispatch2: i NOP", "\n\t\t",
-            "dispatch1: v 3: AUIPC p6, 0x5678; 0x1CF4->0x1CF8", "\n\t\t",
-            "dispatch0: v 2: BEQ p4:f, p5:f, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-            "IQ3: i NOP", "\n\t\t",
-            "IQ2: i NOP", "\n\t\t",
-            "IQ1: i NOP", "\n\t\t",
-            "IQ0: v 1: JAL p3, 0x1234; 0xABC->0x1CF0", "\n\t\t",
-            "issue: v 1: JAL p3, 0x1234; 0xABC->0x1CF0", "\n\t\t",
-			"activity: ", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op dispatch by entry
-		tb_dispatch_valid_by_entry = 4'b0011;
-		tb_dispatch_op_by_entry = {4'b0000, 4'b0000, 4'b0100, 4'b1000};
-		tb_dispatch_PC_by_entry = {32'h0, 32'h0, 32'h1CF4, 32'h1CF0};
-		tb_dispatch_speculated_next_PC_by_entry = {32'h0, 32'h0, 32'h1CF8, 32'h1CF4};
-		tb_dispatch_imm_by_entry = {32'h0, 32'h0, 32'h5678, 32'h210};
-		tb_dispatch_A_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h4};
-		tb_dispatch_A_unneeded_by_entry = 4'b0010;
-		tb_dispatch_A_ready_by_entry = 4'b0000;
-		tb_dispatch_B_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h5};
-		tb_dispatch_B_unneeded_by_entry = 4'b0010;
-		tb_dispatch_B_ready_by_entry = 4'b0000;
-		tb_dispatch_dest_PR_by_entry = {7'h0, 7'h0, 7'h6, 7'h0};
-		tb_dispatch_ROB_index_by_entry = {7'h0, 7'h0, 7'h3, 7'h2};
-	    // BRU op dispatch feedback by entry
-	    // BRU pipeline feedback
-		tb_pipeline_ready = 1'b1;
-	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 4'b0000;
-		tb_WB_bus_upper_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
-	    // BRU op issue to BRU pipeline
-	    // reg read req to PRF
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op dispatch by entry
-	    // BRU op dispatch feedback by entry
-		expected_dispatch_open_by_entry = 4'b1111;
-	    // BRU pipeline feedback
-	    // writeback bus by bank
-	    // BRU op issue to BRU pipeline
-		expected_issue_valid = 1'b1;
-		expected_issue_op = 4'b0001;
-		expected_issue_PC = 32'hABC;
-		expected_issue_speculated_next_PC = 32'h1CF0;
-		expected_issue_imm = 32'h1234;
-		expected_issue_A_unneeded = 1'b1;
-		expected_issue_A_forward = 1'b0;
-		expected_issue_A_bank = 2'h0;
-		expected_issue_B_unneeded = 1'b1;
-		expected_issue_B_forward = 1'b0;
-		expected_issue_B_bank = 2'h0;
-		expected_issue_dest_PR = 7'h3;
-		expected_issue_ROB_index = 7'h1;
-	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b0;
-		expected_PRF_req_A_PR = 7'h0;
-		expected_PRF_req_B_valid = 1'b0;
-		expected_PRF_req_B_PR = 7'h0;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t", 
-            "dispatch3: i NOP", "\n\t\t",
-            "dispatch2: v 5: BLT p9:f, pA:r, 0x234; 0x1C40->0x1E74", "\n\t\t",
-            "dispatch1: v 4: BNE p7:r, p8:f, 0xFFFFFF48; 0x1CF8->0x1C40", "\n\t\t",
-            "dispatch0: i NOP", "\n\t\t",
-            "IQ3: i NOP", "\n\t\t",
-            "IQ2: i NOP", "\n\t\t",
-            "IQ1: v 3: AUIPC p6, 0x5678; 0x1CF4->0x1CF8", "\n\t\t",
-            "IQ0: v 2: BEQ p4:f, p5:Fr, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-            "issue: v 3: AUIPC p6, 0x5678; 0x1CF4->0x1CF8", "\n\t\t",
-			"activity: WB p5", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op dispatch by entry
-		tb_dispatch_valid_by_entry = 4'b0110;
-		tb_dispatch_op_by_entry = {4'b0000, 4'b1100, 4'b1001, 4'b0000};
-		tb_dispatch_PC_by_entry = {32'h0, 32'h1C40, 32'h1CF8, 32'h0};
-		tb_dispatch_speculated_next_PC_by_entry = {32'h0, 32'h1E74, 32'h1C40, 32'h0};
-		tb_dispatch_imm_by_entry = {32'h0, 32'h234, 32'hFFFFFF48, 32'h0};
-		tb_dispatch_A_PR_by_entry = {7'h0, 7'h9, 7'h7, 7'h0};
-		tb_dispatch_A_unneeded_by_entry = 4'b0000;
-		tb_dispatch_A_ready_by_entry = 4'b0010;
-		tb_dispatch_B_PR_by_entry = {7'h0, 7'hA, 7'h8, 7'h0};
-		tb_dispatch_B_unneeded_by_entry = 4'b0000;
-		tb_dispatch_B_ready_by_entry = 4'b0100;
-		tb_dispatch_dest_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_ROB_index_by_entry = {7'h0, 7'h5, 7'h4, 7'h0};
-	    // BRU op dispatch feedback by entry
-	    // BRU pipeline feedback
-		tb_pipeline_ready = 1'b1;
-	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 4'b0010;
-		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h1, 5'h0};
-	    // BRU op issue to BRU pipeline
-	    // reg read req to PRF
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op dispatch by entry
-	    // BRU op dispatch feedback by entry
-		expected_dispatch_open_by_entry = 4'b1110;
-	    // BRU pipeline feedback
-	    // writeback bus by bank
-	    // BRU op issue to BRU pipeline
-		expected_issue_valid = 1'b1;
-		expected_issue_op = 4'b0100;
-		expected_issue_PC = 32'h1CF4;
-		expected_issue_speculated_next_PC = 32'h1CF8;
-		expected_issue_imm = 32'h5678;
-		expected_issue_A_unneeded = 1'b1;
-		expected_issue_A_forward = 1'b0;
-		expected_issue_A_bank = 2'h0;
-		expected_issue_B_unneeded = 1'b1;
-		expected_issue_B_forward = 1'b0;
-		expected_issue_B_bank = 2'h0;
-		expected_issue_dest_PR = 7'h6;
-		expected_issue_ROB_index = 7'h3;
-	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b0;
-		expected_PRF_req_A_PR = 7'h0;
-		expected_PRF_req_B_valid = 1'b0;
-		expected_PRF_req_B_PR = 7'h0;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t", 
-            "dispatch3: i NOP", "\n\t\t",
-            "dispatch2: i NOP", "\n\t\t",
-            "dispatch1: i NOP", "\n\t\t",
-            "dispatch0: i NOP", "\n\t\t",
-            "IQ3: i NOP", "\n\t\t",
-            "IQ2: v 5: BLT p9:f, pA:r, 0x234; 0x1C40->0x1E74", "\n\t\t",
-            "IQ1: v 4: BNE p7:r, p8:Fr, 0xFFFFFF48; 0x1CF8->0x1C40", "\n\t\t",
-            "IQ0: v 2: BEQ p4:f, p5:r, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-            "issue: i 2: BEQ p4:f, p5:r, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-			"activity: pipeline not ready, WB p8", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op dispatch by entry
-		tb_dispatch_valid_by_entry = 4'b0000;
-		tb_dispatch_op_by_entry = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
-		tb_dispatch_PC_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_speculated_next_PC_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_imm_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_A_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_A_unneeded_by_entry = 4'b0000;
-		tb_dispatch_A_ready_by_entry = 4'b0000;
-		tb_dispatch_B_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_B_unneeded_by_entry = 4'b0000;
-		tb_dispatch_B_ready_by_entry = 4'b0000;
-		tb_dispatch_dest_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_ROB_index_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-	    // BRU op dispatch feedback by entry
-	    // BRU pipeline feedback
-		tb_pipeline_ready = 1'b0;
-	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 4'b0001;
-		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h2};
-	    // BRU op issue to BRU pipeline
-	    // reg read req to PRF
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op dispatch by entry
-	    // BRU op dispatch feedback by entry
-		expected_dispatch_open_by_entry = 4'b1000;
-	    // BRU pipeline feedback
-	    // writeback bus by bank
-	    // BRU op issue to BRU pipeline
-		expected_issue_valid = 1'b0;
-		expected_issue_op = 4'b1000;
-		expected_issue_PC = 32'h1CF0;
-		expected_issue_speculated_next_PC = 32'h1CF4;
-		expected_issue_imm = 32'h210;
-		expected_issue_A_unneeded = 1'b0;
-		expected_issue_A_forward = 1'b0;
-		expected_issue_A_bank = 2'h0;
-		expected_issue_B_unneeded = 1'b0;
-		expected_issue_B_forward = 1'b0;
-		expected_issue_B_bank = 2'h1;
-		expected_issue_dest_PR = 7'h0;
-		expected_issue_ROB_index = 7'h2;
-	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b0;
-		expected_PRF_req_A_PR = 7'h4;
-		expected_PRF_req_B_valid = 1'b0;
-		expected_PRF_req_B_PR = 7'h5;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t", 
-            "dispatch3: v 7: BLTU pD:r, pE:f, 0x8; 0x1E78->0x1E80", "\n\t\t",
-            "dispatch2: v 6: BGE pB:r, pC:r, 0xFFFFFFFC; 0x1E74->0x1E78", "\n\t\t",
-            "dispatch1: i NOP", "\n\t\t",
-            "dispatch0: i NOP", "\n\t\t",
-            "IQ3: i NOP", "\n\t\t",
-            "IQ2: v 5: BLT p9:f, pA:r, 0x234; 0x1C40->0x1E74", "\n\t\t",
-            "IQ1: v 4: BNE p7:r, p8:r, 0xFFFFFF48; 0x1CF8->0x1C40", "\n\t\t",
-            "IQ0: v 2: BEQ p4:f, p5:r, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-            "issue: v 4: BNE p7:r, p8:r, 0xFFFFFF48; 0x1CF8->0x1C40", "\n\t\t",
-			"activity: ", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op dispatch by entry
-		tb_dispatch_valid_by_entry = 4'b1100;
-		tb_dispatch_op_by_entry = {4'b1110, 4'b1101, 4'b0000, 4'b0000};
-		tb_dispatch_PC_by_entry = {32'h1E78, 32'h1E74, 32'h0, 32'h0};
-		tb_dispatch_speculated_next_PC_by_entry = {32'h1E80, 32'h1E78, 32'h0, 32'h0};
-		tb_dispatch_imm_by_entry = {32'h8, 32'hFFFFFFFC, 32'h0, 32'h0};
-		tb_dispatch_A_PR_by_entry = {7'hD, 7'hB, 7'h0, 7'h0};
-		tb_dispatch_A_unneeded_by_entry = 4'b0000;
-		tb_dispatch_A_ready_by_entry = 4'b1100;
-		tb_dispatch_B_PR_by_entry = {7'hE, 7'hC, 7'h0, 7'h0};
-		tb_dispatch_B_unneeded_by_entry = 4'b0000;
-		tb_dispatch_B_ready_by_entry = 4'b0100;
-		tb_dispatch_dest_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_ROB_index_by_entry = {7'h7, 7'h6, 7'h0, 7'h0};
-	    // BRU op dispatch feedback by entry
-	    // BRU pipeline feedback
-		tb_pipeline_ready = 1'b1;
-	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 4'b0000;
-		tb_WB_bus_upper_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
-	    // BRU op issue to BRU pipeline
-	    // reg read req to PRF
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op dispatch by entry
-	    // BRU op dispatch feedback by entry
-		expected_dispatch_open_by_entry = 4'b1100;
-	    // BRU pipeline feedback
-	    // writeback bus by bank
-	    // BRU op issue to BRU pipeline
-		expected_issue_valid = 1'b1;
-		expected_issue_op = 4'b1001;
-		expected_issue_PC = 32'h1CF8;
-		expected_issue_speculated_next_PC = 32'h1C40;
-		expected_issue_imm = 32'hFFFFFF48;
-		expected_issue_A_unneeded = 1'b0;
-		expected_issue_A_forward = 1'b0;
-		expected_issue_A_bank = 2'h3;
-		expected_issue_B_unneeded = 1'b0;
-		expected_issue_B_forward = 1'b0;
-		expected_issue_B_bank = 2'h0;
-		expected_issue_dest_PR = 7'h0;
-		expected_issue_ROB_index = 7'h4;
-	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b1;
-		expected_PRF_req_A_PR = 7'h7;
-		expected_PRF_req_B_valid = 1'b1;
-		expected_PRF_req_B_PR = 7'h8;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t", 
-            "dispatch3: v 8: BGEU pF:f, p0:r, 0x128CC; 0x1E80->0x1474C", "\n\t\t",
-            "dispatch2: i NOP", "\n\t\t",
-            "dispatch1: i NOP", "\n\t\t",
-            "dispatch0: i NOP", "\n\t\t",
-            "IQ3: v 7: BLTU pD:r, pE:f, 0x8; 0x1E78->0x1E80", "\n\t\t",
-            "IQ2: v 6: BGE pB:r, pC:r, 0xFFFFFFFC; 0x1E74->0x1E78", "\n\t\t",
-            "IQ1: v 5: BLT p9:F, pA:r, 0x234; 0x1C40->0x1E74", "\n\t\t",
-            "IQ0: v 2: BEQ p4:f, p5:r, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-            "issue: v 5: BLT p9:F, pA:r, 0x234; 0x1C40->0x1E74", "\n\t\t",
-			"activity: WB p9", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op dispatch by entry
-		tb_dispatch_valid_by_entry = 4'b1000;
-		tb_dispatch_op_by_entry = {4'b1111, 4'b0000, 4'b0000, 4'b0000};
-		tb_dispatch_PC_by_entry = {32'h1E80, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_speculated_next_PC_by_entry = {32'h1474C, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_imm_by_entry = {32'h128CC, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_A_PR_by_entry = {7'hF, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_A_unneeded_by_entry = 4'b0000;
-		tb_dispatch_A_ready_by_entry = 4'b0000;
-		tb_dispatch_B_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_B_unneeded_by_entry = 4'b0000;
-		tb_dispatch_B_ready_by_entry = 4'b1000;
-		tb_dispatch_dest_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_ROB_index_by_entry = {7'h8, 7'h0, 7'h0, 7'h0};
-	    // BRU op dispatch feedback by entry
-	    // BRU pipeline feedback
-		tb_pipeline_ready = 1'b1;
-	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 4'b0010;
-		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h2, 5'h0};
-	    // BRU op issue to BRU pipeline
-	    // reg read req to PRF
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op dispatch by entry
-	    // BRU op dispatch feedback by entry
-		expected_dispatch_open_by_entry = 4'b1000;
-	    // BRU pipeline feedback
-	    // writeback bus by bank
-	    // BRU op issue to BRU pipeline
-		expected_issue_valid = 1'b1;
-		expected_issue_op = 4'b1100;
-		expected_issue_PC = 32'h1C40;
-		expected_issue_speculated_next_PC = 32'h1E74;
-		expected_issue_imm = 32'h234;
-		expected_issue_A_unneeded = 1'b0;
-		expected_issue_A_forward = 1'b1;
-		expected_issue_A_bank = 2'h1;
-		expected_issue_B_unneeded = 1'b0;
-		expected_issue_B_forward = 1'b0;
-		expected_issue_B_bank = 2'h2;
-		expected_issue_dest_PR = 7'h0;
-		expected_issue_ROB_index = 7'h5;
-	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b0;
-		expected_PRF_req_A_PR = 7'h9;
-		expected_PRF_req_B_valid = 1'b1;
-		expected_PRF_req_B_PR = 7'hA;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t", 
-            "dispatch3: i NOP", "\n\t\t",
-            "dispatch2: i NOP", "\n\t\t",
-            "dispatch1: i NOP", "\n\t\t",
-            "dispatch0: i NOP", "\n\t\t",
-            "IQ3: v 8: BGEU pF:f, p0:r, 0x128CC; 0x1E80->0x1474C", "\n\t\t",
-            "IQ2: v 7: BLTU pD:r, pE:f, 0x8; 0x1E78->0x1E80", "\n\t\t",
-            "IQ1: v 6: BGE pB:r, pC:r, 0xFFFFFFFC; 0x1E74->0x1E78", "\n\t\t",
-            "IQ0: v 2: BEQ p4:f, p5:r, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-            "issue: v 6: BGE pB:r, pC:r, 0xFFFFFFFC; 0x1E74->0x1E78", "\n\t\t",
-			"activity: ", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op dispatch by entry
-		tb_dispatch_valid_by_entry = 4'b0000;
-		tb_dispatch_op_by_entry = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
-		tb_dispatch_PC_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_speculated_next_PC_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_imm_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_A_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_A_unneeded_by_entry = 4'b0000;
-		tb_dispatch_A_ready_by_entry = 4'b0000;
-		tb_dispatch_B_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_B_unneeded_by_entry = 4'b0000;
-		tb_dispatch_B_ready_by_entry = 4'b0000;
-		tb_dispatch_dest_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_ROB_index_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-	    // BRU op dispatch feedback by entry
-	    // BRU pipeline feedback
-		tb_pipeline_ready = 1'b1;
-	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 4'b0000;
-		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
-	    // BRU op issue to BRU pipeline
-	    // reg read req to PRF
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op dispatch by entry
-	    // BRU op dispatch feedback by entry
-		expected_dispatch_open_by_entry = 4'b1000;
-	    // BRU pipeline feedback
-	    // writeback bus by bank
-	    // BRU op issue to BRU pipeline
-		expected_issue_valid = 1'b1;
-		expected_issue_op = 4'b1101;
-		expected_issue_PC = 32'h1E74;
-		expected_issue_speculated_next_PC = 32'h1E78;
-		expected_issue_imm = 32'hFFFFFFFC;
-		expected_issue_A_unneeded = 1'b0;
-		expected_issue_A_forward = 1'b0;
-		expected_issue_A_bank = 2'h3;
-		expected_issue_B_unneeded = 1'b0;
-		expected_issue_B_forward = 1'b0;
-		expected_issue_B_bank = 2'h0;
-		expected_issue_dest_PR = 7'h0;
-		expected_issue_ROB_index = 7'h6;
-	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b1;
-		expected_PRF_req_A_PR = 7'hB;
-		expected_PRF_req_B_valid = 1'b1;
-		expected_PRF_req_B_PR = 7'hC;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t", 
-            "dispatch3: i NOP", "\n\t\t",
-            "dispatch2: i NOP", "\n\t\t",
-            "dispatch1: i NOP", "\n\t\t",
-            "dispatch0: i NOP", "\n\t\t",
-            "IQ3: i NOP", "\n\t\t",
-            "IQ2: v 8: BGEU pF:f, p0:r, 0x128CC; 0x1E80->0x1474C", "\n\t\t",
-            "IQ1: v 7: BLTU pD:r, pE:f, 0x8; 0x1E78->0x1E80", "\n\t\t",
-            "IQ0: v 2: BEQ p4:F, p5:r, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-            "issue: i 2: BEQ p4:F, p5:r, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-			"activity: ", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op dispatch by entry
-		tb_dispatch_valid_by_entry = 4'b0000;
-		tb_dispatch_op_by_entry = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
-		tb_dispatch_PC_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_speculated_next_PC_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_imm_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_A_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_A_unneeded_by_entry = 4'b0000;
-		tb_dispatch_A_ready_by_entry = 4'b0000;
-		tb_dispatch_B_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_B_unneeded_by_entry = 4'b0000;
-		tb_dispatch_B_ready_by_entry = 4'b0000;
-		tb_dispatch_dest_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_ROB_index_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-	    // BRU op dispatch feedback by entry
-	    // BRU pipeline feedback
-		tb_pipeline_ready = 1'b1;
-	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 4'b0000;
-		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
-	    // BRU op issue to BRU pipeline
-	    // reg read req to PRF
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op dispatch by entry
-	    // BRU op dispatch feedback by entry
-		expected_dispatch_open_by_entry = 4'b1000;
-	    // BRU pipeline feedback
-	    // writeback bus by bank
-	    // BRU op issue to BRU pipeline
-		expected_issue_valid = 1'b0;
-		expected_issue_op = 4'b1000;
-		expected_issue_PC = 32'h1CF0;
-		expected_issue_speculated_next_PC = 32'h1CF4;
-		expected_issue_imm = 32'h210;
-		expected_issue_A_unneeded = 1'b0;
-		expected_issue_A_forward = 1'b0;
-		expected_issue_A_bank = 2'h0;
-		expected_issue_B_unneeded = 1'b0;
-		expected_issue_B_forward = 1'b0;
-		expected_issue_B_bank = 2'h1;
-		expected_issue_dest_PR = 7'h0;
-		expected_issue_ROB_index = 7'h2;
-	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b0;
-		expected_PRF_req_A_PR = 7'h4;
-		expected_PRF_req_B_valid = 1'b0;
-		expected_PRF_req_B_PR = 7'h5;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {"\n\t\t", 
-            "dispatch3: i NOP", "\n\t\t",
-            "dispatch2: i NOP", "\n\t\t",
-            "dispatch1: i NOP", "\n\t\t",
-            "dispatch0: i NOP", "\n\t\t",
-            "IQ3: i NOP", "\n\t\t",
-            "IQ2: v 8: BGEU pF:Fr, p0:r, 0x128CC; 0x1E80->0x1474C", "\n\t\t",
-            "IQ1: v 7: BLTU pD:r, pE:f, 0x8; 0x1E78->0x1E80", "\n\t\t",
-            "IQ0: v 2: BEQ p4:F, p5:r, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-            "issue: v 2: BEQ p4:F, p5:r, 0x210; 0x1CF0->0x1CF4", "\n\t\t",
-			"activity: WB p4, pF", "\n\t\t"
-        };
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // BRU op dispatch by entry
-		tb_dispatch_valid_by_entry = 4'b0000;
-		tb_dispatch_op_by_entry = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
-		tb_dispatch_PC_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_speculated_next_PC_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_imm_by_entry = {32'h0, 32'h0, 32'h0, 32'h0};
-		tb_dispatch_A_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_A_unneeded_by_entry = 4'b0000;
-		tb_dispatch_A_ready_by_entry = 4'b0000;
-		tb_dispatch_B_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_B_unneeded_by_entry = 4'b0000;
-		tb_dispatch_B_ready_by_entry = 4'b0000;
-		tb_dispatch_dest_PR_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-		tb_dispatch_ROB_index_by_entry = {7'h0, 7'h0, 7'h0, 7'h0};
-	    // BRU op dispatch feedback by entry
-	    // BRU pipeline feedback
-		tb_pipeline_ready = 1'b1;
-	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 4'b1001;
-		tb_WB_bus_upper_PR_by_bank = {5'h3, 5'h0, 5'h0, 5'h1};
-	    // BRU op issue to BRU pipeline
-	    // reg read req to PRF
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // BRU op dispatch by entry
-	    // BRU op dispatch feedback by entry
-		expected_dispatch_open_by_entry = 4'b1100;
-	    // BRU pipeline feedback
-	    // writeback bus by bank
-	    // BRU op issue to BRU pipeline
-		expected_issue_valid = 1'b1;
-		expected_issue_op = 4'b1000;
-		expected_issue_PC = 32'h1CF0;
-		expected_issue_speculated_next_PC = 32'h1CF4;
-		expected_issue_imm = 32'h210;
-		expected_issue_A_unneeded = 1'b0;
-		expected_issue_A_forward = 1'b1;
-		expected_issue_A_bank = 2'h0;
-		expected_issue_B_unneeded = 1'b0;
-		expected_issue_B_forward = 1'b0;
-		expected_issue_B_bank = 2'h1;
-		expected_issue_dest_PR = 7'h0;
-		expected_issue_ROB_index = 7'h2;
-	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b0;
-		expected_PRF_req_A_PR = 7'h4;
-		expected_PRF_req_B_valid = 1'b1;
-		expected_PRF_req_B_PR = 7'h5;
+		expected_PRF_req_A_valid = '0;
+		expected_PRF_req_A_PR = '0;
+		expected_PRF_req_B_valid = '0;
+		expected_PRF_req_B_PR = '0;
 
 		check_outputs();
 

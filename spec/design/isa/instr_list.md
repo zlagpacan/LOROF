@@ -122,7 +122,7 @@
 - REMU
     - FU: mdu_pipeline
 
-## A Extencion
+## A Extension
 - LR.W
     - FU: amo_pipeline
 - SC.W

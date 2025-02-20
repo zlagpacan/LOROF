@@ -1,7 +1,7 @@
 /*
     Filename: alu_reg_mdu_iq.sv
     Author: zlagpacan
-    Description: RTL for Issue Queue for ALU Register-Register and Mul-Div Pipeline
+    Description: RTL for Issue Queue for ALU Register-Register Pipeline and Multiplication-Division Unit Pipeline
     Spec: LOROF/spec/design/alu_reg_mdu_iq.md
 */
 
@@ -166,38 +166,21 @@ module alu_reg_mdu_iq #(
 
         for (int entry = 0; entry < ALU_REG_MDU_IQ_ENTRIES; entry++) begin
 
-            issue_alu_reg_op |= op_by_entry[entry] 
-                & {4{issue_alu_reg_one_hot_by_entry[entry]}};
+            if (issue_alu_reg_one_hot_by_entry[entry]) begin
 
-            issue_alu_reg_A_forward |= A_forward_by_entry[entry] 
-                & issue_alu_reg_one_hot_by_entry[entry];
+                issue_alu_reg_op |= op_by_entry[entry];
+                issue_alu_reg_A_forward |= A_forward_by_entry[entry];
+                issue_alu_reg_A_bank |= A_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0];
+                issue_alu_reg_B_forward |= B_forward_by_entry[entry];
+                issue_alu_reg_B_bank |= B_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0];
+                issue_alu_reg_dest_PR |= dest_PR_by_entry[entry];
+                issue_alu_reg_ROB_index |= ROB_index_by_entry[entry];
 
-            issue_alu_reg_A_bank |= A_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0] 
-                & {LOG_PRF_BANK_COUNT{issue_alu_reg_one_hot_by_entry[entry]}};
-
-            issue_alu_reg_B_forward |= B_forward_by_entry[entry] 
-                & issue_alu_reg_one_hot_by_entry[entry];
-
-            issue_alu_reg_B_bank |= B_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0] 
-                & {LOG_PRF_BANK_COUNT{issue_alu_reg_one_hot_by_entry[entry]}};
-
-            issue_alu_reg_dest_PR |= dest_PR_by_entry[entry] 
-                & {LOG_PR_COUNT{issue_alu_reg_one_hot_by_entry[entry]}};
-
-            issue_alu_reg_ROB_index |= ROB_index_by_entry[entry] 
-                & {LOG_ROB_ENTRIES{issue_alu_reg_one_hot_by_entry[entry]}};
-
-            PRF_alu_reg_req_A_valid |= ~A_forward_by_entry[entry] 
-                & issue_alu_reg_one_hot_by_entry[entry];
-                
-            PRF_alu_reg_req_A_PR |= A_PR_by_entry[entry] 
-                & {LOG_PR_COUNT{issue_alu_reg_one_hot_by_entry[entry]}};
-
-            PRF_alu_reg_req_B_valid |= ~B_forward_by_entry[entry] 
-                & issue_alu_reg_one_hot_by_entry[entry];
-
-            PRF_alu_reg_req_B_PR |= B_PR_by_entry[entry] 
-                & {LOG_PR_COUNT{issue_alu_reg_one_hot_by_entry[entry]}};
+                PRF_alu_reg_req_A_valid |= ~A_forward_by_entry[entry];
+                PRF_alu_reg_req_A_PR |= A_PR_by_entry[entry];
+                PRF_alu_reg_req_B_valid |= ~B_forward_by_entry[entry];
+                PRF_alu_reg_req_B_PR |= B_PR_by_entry[entry];
+            end
         end
     end
 
@@ -243,38 +226,21 @@ module alu_reg_mdu_iq #(
 
         for (int entry = 0; entry < ALU_REG_MDU_IQ_ENTRIES; entry++) begin
 
-            issue_mdu_op |= op_by_entry[entry] 
-                & {4{issue_mdu_one_hot_by_entry[entry]}};
+            if (issue_mdu_one_hot_by_entry[entry]) begin
 
-            issue_mdu_A_forward |= A_forward_by_entry[entry] 
-                & issue_mdu_one_hot_by_entry[entry];
+                issue_mdu_op |= op_by_entry[entry];
+                issue_mdu_A_forward |= A_forward_by_entry[entry];
+                issue_mdu_A_bank |= A_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0];
+                issue_mdu_B_forward |= B_forward_by_entry[entry];
+                issue_mdu_B_bank |= B_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0];
+                issue_mdu_dest_PR |= dest_PR_by_entry[entry];
+                issue_mdu_ROB_index |= ROB_index_by_entry[entry];
 
-            issue_mdu_A_bank |= A_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0] 
-                & {LOG_PRF_BANK_COUNT{issue_mdu_one_hot_by_entry[entry]}};
-
-            issue_mdu_B_forward |= B_forward_by_entry[entry] 
-                & issue_mdu_one_hot_by_entry[entry];
-
-            issue_mdu_B_bank |= B_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0] 
-                & {LOG_PRF_BANK_COUNT{issue_mdu_one_hot_by_entry[entry]}};
-
-            issue_mdu_dest_PR |= dest_PR_by_entry[entry] 
-                & {LOG_PR_COUNT{issue_mdu_one_hot_by_entry[entry]}};
-
-            issue_mdu_ROB_index |= ROB_index_by_entry[entry] 
-                & {LOG_ROB_ENTRIES{issue_mdu_one_hot_by_entry[entry]}};
-
-            PRF_mdu_req_A_valid |= ~A_forward_by_entry[entry] 
-                & issue_mdu_one_hot_by_entry[entry];
-                
-            PRF_mdu_req_A_PR |= A_PR_by_entry[entry] 
-                & {LOG_PR_COUNT{issue_mdu_one_hot_by_entry[entry]}};
-
-            PRF_mdu_req_B_valid |= ~B_forward_by_entry[entry] 
-                & issue_mdu_one_hot_by_entry[entry];
-
-            PRF_mdu_req_B_PR |= B_PR_by_entry[entry] 
-                & {LOG_PR_COUNT{issue_mdu_one_hot_by_entry[entry]}};
+                PRF_mdu_req_A_valid |= ~A_forward_by_entry[entry];
+                PRF_mdu_req_A_PR |= A_PR_by_entry[entry];
+                PRF_mdu_req_B_valid |= ~B_forward_by_entry[entry];
+                PRF_mdu_req_B_PR |= B_PR_by_entry[entry];
+            end
         end
     end
 
@@ -342,32 +308,18 @@ module alu_reg_mdu_iq #(
 
             for (int way = 0; way < 4; way++) begin
 
-                dispatch_valid_alu_reg_by_entry[entry] |= dispatch_valid_alu_reg_by_way[way]
-                    & dispatch_one_hot_by_way[way][entry];
+                if (dispatch_one_hot_by_way[way][entry]) begin
 
-                dispatch_valid_mdu_by_entry[entry] |= dispatch_valid_mdu_by_way[way]
-                    & dispatch_one_hot_by_way[way][entry];
-
-                dispatch_op_by_entry[entry] |= dispatch_op_by_way[way]
-                    & {4{dispatch_one_hot_by_way[way][entry]}};
-
-                dispatch_A_PR_by_entry[entry] |= dispatch_A_PR_by_way[way]
-                    & {LOG_PR_COUNT{dispatch_one_hot_by_way[way][entry]}};
-
-                dispatch_A_ready_by_entry[entry] |= dispatch_A_ready_by_way[way]
-                    & dispatch_one_hot_by_way[way][entry];
-
-                dispatch_B_PR_by_entry[entry] |= dispatch_B_PR_by_way[way]
-                    & {LOG_PR_COUNT{dispatch_one_hot_by_way[way][entry]}};
-
-                dispatch_B_ready_by_entry[entry] |= dispatch_B_ready_by_way[way]
-                    & dispatch_one_hot_by_way[way][entry];
-
-                dispatch_dest_PR_by_entry[entry] |= dispatch_dest_PR_by_way[way]
-                    & {LOG_PR_COUNT{dispatch_one_hot_by_way[way][entry]}};
-
-                dispatch_ROB_index_by_entry[entry] |= dispatch_ROB_index_by_way[way]
-                    & {LOG_ROB_ENTRIES{dispatch_one_hot_by_way[way][entry]}};
+                    dispatch_valid_alu_reg_by_entry[entry] |= dispatch_valid_alu_reg_by_way[way];
+                    dispatch_valid_mdu_by_entry[entry] |= dispatch_valid_mdu_by_way[way];
+                    dispatch_op_by_entry[entry] |= dispatch_op_by_way[way];
+                    dispatch_A_PR_by_entry[entry] |= dispatch_A_PR_by_way[way];
+                    dispatch_A_ready_by_entry[entry] |= dispatch_A_ready_by_way[way];
+                    dispatch_B_PR_by_entry[entry] |= dispatch_B_PR_by_way[way];
+                    dispatch_B_ready_by_entry[entry] |= dispatch_B_ready_by_way[way];
+                    dispatch_dest_PR_by_entry[entry] |= dispatch_dest_PR_by_way[way];
+                    dispatch_ROB_index_by_entry[entry] |= dispatch_ROB_index_by_way[way];
+                end
             end
         end
     end

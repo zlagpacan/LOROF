@@ -10,9 +10,6 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-parameter OUTER_WIDTH = 32;
-parameter INNER_WIDTH = 32;
-
 module bram_1rwport_wrapper (
 
     // seq
@@ -25,6 +22,9 @@ module bram_1rwport_wrapper (
 	output logic [INNER_WIDTH-1:0] last_rdata,
 	input logic [INNER_WIDTH-1:0] next_wdata
 );
+
+    parameter OUTER_WIDTH = 32;
+    parameter INNER_WIDTH = 32;
 
     // ----------------------------------------------------------------
     // Direct Module Connections:

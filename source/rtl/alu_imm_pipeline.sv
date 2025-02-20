@@ -56,10 +56,13 @@ module alu_imm_pipeline (
     logic                           valid_OC;
     logic [3:0]                     op_OC;
     logic [11:0]                    imm12_OC;
+    logic                           A_saved_OC;
     logic                           A_forward_OC;
     logic [LOG_PRF_BANK_COUNT-1:0]  A_bank_OC;
     logic [LOG_PR_COUNT-1:0]        dest_PR_OC;
     logic [LOG_ROB_ENTRIES-1:0]     ROB_index_OC;
+
+    logic [31:0] A_saved_data_OC;
 
     logic launch_ready_OC;
 
@@ -108,8 +111,10 @@ module alu_imm_pipeline (
             valid_OC <= 1'b0;
             op_OC <= 4'b0000;
             imm12_OC <= 12'h0;
+            A_saved_OC <= 1'b0;
             A_forward_OC <= 1'b0;
             A_bank_OC <= '0;
+            A_saved_data_OC <= 32'h0;
             dest_PR_OC <= '0;
             ROB_index_OC <= '0;
         end
@@ -118,8 +123,10 @@ module alu_imm_pipeline (
             valid_OC <= valid_OC;
             op_OC <= op_OC;
             imm12_OC <= imm12_OC;
+            A_saved_OC <= A_saved_OC | A_forward_OC | A_reg_read_ack;
             A_forward_OC <= 1'b0;
             A_bank_OC <= A_bank_OC;
+            A_saved_data_OC <= next_A_EX;
             dest_PR_OC <= dest_PR_OC;
             ROB_index_OC <= ROB_index_OC;
         end
@@ -128,8 +135,10 @@ module alu_imm_pipeline (
             valid_OC <= issue_valid;
             op_OC <= issue_op;
             imm12_OC <= issue_imm12;
+            A_saved_OC <= 1'b0;
             A_forward_OC <= issue_A_forward;
             A_bank_OC <= issue_A_bank;
+            A_saved_data_OC <= next_A_EX;
             dest_PR_OC <= issue_dest_PR;
             ROB_index_OC <= issue_ROB_index;
         end
@@ -140,28 +149,29 @@ module alu_imm_pipeline (
         ~stall_OC
         &
         // A operand present
-        (A_forward_OC | A_reg_read_ack)
+        (A_saved_OC | A_forward_OC | A_reg_read_ack)
     ;
 
     assign issue_ready = ~valid_OC | launch_ready_OC;
     
     assign next_valid_EX = valid_OC & launch_ready_OC;
     assign next_op_EX = op_OC;
+    assign next_imm12_EX = imm12_OC;
     assign next_dest_PR_EX = dest_PR_OC;
     assign next_ROB_index_EX = ROB_index_OC;
 
     always_comb begin
 
-        // collect A value to pass to EX
-        if (A_forward_OC) begin
+        // collect A value to save OR pass to EX
+        if (A_saved_OC) begin
+            next_A_EX = A_saved_data_OC;
+        end
+        else if (A_forward_OC) begin
             next_A_EX = forward_data_by_bank[A_bank_OC];
         end
         else begin
             next_A_EX = reg_read_data_by_bank_by_port[A_bank_OC][A_reg_read_port];
         end
-
-        // collect B value to save OR pass to EX
-        next_imm12_EX = imm12_OC;
     end
 
     // ----------------------------------------------------------------
