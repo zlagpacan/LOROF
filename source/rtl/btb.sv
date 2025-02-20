@@ -248,7 +248,7 @@ module btb (
         .rindex(index_REQ),
         .rdata(array_pred_info_tag_target_by_instr_by_way_RESP),
 
-        .wen_byte(update1_byte_mask_pred_info_tag_target_by_instr),
+        .wen_byte(update1_byte_mask_pred_info_tag_target_by_instr_by_way),
         .windex(update1_index),
         .wdata({BTB_NWAY_ENTRIES_PER_BLOCK{update1_pred_info, update1_hashed_tag, update1_target_PC}})
     );
