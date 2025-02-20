@@ -31,7 +31,7 @@ package core_types_pkg;
     // Branch Prediction:
 
     // BTB
-    parameter BTB_NWAY_ENTRIES = 1024;
+    parameter BTB_NWAY_ENTRIES = 2048;
     parameter LOG_BTB_NWAY_ENTRIES = $clog2(BTB_NWAY_ENTRIES);
     parameter BTB_ENTRY_ASSOC = 2;
     parameter LOG_BTB_ENTRY_ASSOC = $clog2(BTB_ENTRY_ASSOC);
@@ -42,8 +42,8 @@ package core_types_pkg;
 
     // BTB per way
     parameter BTB_PRED_INFO_WIDTH = 8;
-    parameter BTB_TAG_WIDTH = 6;
-    parameter BTB_TARGET_WIDTH = 10;
+    parameter BTB_TAG_WIDTH = 4;
+    parameter BTB_TARGET_WIDTH = 8;
 
     // BTB shared over ways
     parameter BTB_LRU_INFO_WIDTH = 1;
