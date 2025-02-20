@@ -13,11 +13,16 @@ module btb_tag_hash (
     input logic [ASID_WIDTH-1:0] ASID,
     output logic [BTB_TAG_WIDTH-1:0] tag
 );
+
+    logic [63:0] wide_PC;
+    
+    assign wide_PC = PC;
+    
     // xor lowest BTB_TAG_WIDTH tag bits with next lowest BTB_TAG_WIDTH tag bits
     // xor with ASID
     always_comb begin
-        tag = PC[BTB_TAG_WIDTH + BTB_INDEX_WIDTH + 4 + 1 - 1 : BTB_INDEX_WIDTH + 4 + 1];
-        tag ^= PC[2*BTB_TAG_WIDTH + BTB_INDEX_WIDTH + 4 + 1 - 1 : BTB_TAG_WIDTH + BTB_INDEX_WIDTH + 4 + 1];
+        tag = wide_PC[BTB_TAG_WIDTH + BTB_INDEX_WIDTH + 4 + 1 - 1 : BTB_INDEX_WIDTH + 4 + 1];
+        tag ^= wide_PC[2*BTB_TAG_WIDTH + BTB_INDEX_WIDTH + 4 + 1 - 1 : BTB_TAG_WIDTH + BTB_INDEX_WIDTH + 4 + 1];
         tag ^= ASID;
     end
 

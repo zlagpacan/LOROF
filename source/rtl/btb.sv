@@ -278,7 +278,7 @@ module btb (
 
             .wen_byte(update1_byte_mask_pred_info_tag_target_by_instr_by_way[bram_instr]),
             .windex(update1_index),
-            .wdata({update1_pred_info, update1_hashed_tag, update1_target_PC})
+            .wdata({2{update1_pred_info, update1_hashed_tag, update1_target_PC}})
         );
 
     endgenerate
