@@ -56,9 +56,7 @@ module btb_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	btb #(
-		.BTB_NWAY_ENTRIES(1024)
-	) DUT (
+	btb DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
