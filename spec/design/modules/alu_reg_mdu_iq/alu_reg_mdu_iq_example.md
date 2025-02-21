@@ -31,6 +31,10 @@ Examples:
     - dispatch_dest_PR_by_way[way] = 23
     - dispatch_ROB_index_by_way[way] = 11
 
-# Example Operation
+# Simple Example Operation
+
+![alu_reg_mdu_iq Simple Example Operation](alu_reg_mdu_iq_simple_examples.png)
+
+# Tricky Example Operation
 
 ![alu_reg_mdu_iq Example Operation](alu_reg_mdu_iq_example.png)
