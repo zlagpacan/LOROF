@@ -26,8 +26,8 @@ module btb (
     output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TARGET_WIDTH-1:0]     target_by_instr_RESP,
 
     // Update 0
-    input logic                             update0_valid,
-    input logic [31:0]                      update0_start_full_PC,
+    input logic         update0_valid,
+    input logic [31:0]  update0_start_full_PC,
 
     // Update 1
     input logic [BTB_PRED_INFO_WIDTH-1:0]   update1_pred_info,
@@ -196,12 +196,14 @@ module btb (
         update1_target_PC = update1_target_full_PC[BTB_TARGET_WIDTH+1-1:1];
 
         // RMW pred lru for this set
+            // flip LRU to opposite of this update
         update1_new_pred_lru_by_instr = update1_old_pred_lru_by_instr;
-        update1_new_pred_lru_by_instr[update1_instr] = update1_pred_lru;
+        update1_new_pred_lru_by_instr[update1_instr] = ~update1_pred_lru;
 
         // pred info tag target byte mask follows 4B associated with this instr and way
         update1_byte_mask_pred_info_tag_target_by_instr_by_way = '0;
-        update1_byte_mask_pred_info_tag_target_by_instr_by_way[update1_instr][update1_pred_lru] = '1;
+        update1_byte_mask_pred_info_tag_target_by_instr_by_way[update1_instr][update1_pred_lru] 
+            = update1_valid ? '1 : '0;
     end
     
     // ----------------------------------------------------------------
