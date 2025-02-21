@@ -25,10 +25,11 @@ module lht_wrapper (
     // RESP stage
 	output logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH-1:0] last_lh_by_instr_RESP,
 
-    // Update
-	input logic next_update_valid,
-	input logic [31:0] next_update_start_full_PC,
-	input logic [LH_LENGTH-1:0] next_update_lh
+    // Update 0 stage
+	input logic next_update0_valid,
+	input logic [31:0] next_update0_start_full_PC,
+	input logic [ASID_WIDTH-1:0] next_update0_ASID,
+	input logic [LH_LENGTH-1:0] next_update0_lh
 );
 
     // ----------------------------------------------------------------
@@ -43,10 +44,11 @@ module lht_wrapper (
     // RESP stage
 	logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH-1:0] lh_by_instr_RESP;
 
-    // Update
-	logic update_valid;
-	logic [31:0] update_start_full_PC;
-	logic [LH_LENGTH-1:0] update_lh;
+    // Update 0 stage
+	logic update0_valid;
+	logic [31:0] update0_start_full_PC;
+	logic [ASID_WIDTH-1:0] update0_ASID;
+	logic [LH_LENGTH-1:0] update0_lh;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -68,10 +70,11 @@ module lht_wrapper (
 		    // RESP stage
 			last_lh_by_instr_RESP <= '0;
 
-		    // Update
-			update_valid <= '0;
-			update_start_full_PC <= '0;
-			update_lh <= '0;
+		    // Update 0 stage
+			update0_valid <= '0;
+			update0_start_full_PC <= '0;
+			update0_ASID <= '0;
+			update0_lh <= '0;
         end
         else begin
 
@@ -84,10 +87,11 @@ module lht_wrapper (
 		    // RESP stage
 			last_lh_by_instr_RESP <= lh_by_instr_RESP;
 
-		    // Update
-			update_valid <= next_update_valid;
-			update_start_full_PC <= next_update_start_full_PC;
-			update_lh <= next_update_lh;
+		    // Update 0 stage
+			update0_valid <= next_update0_valid;
+			update0_start_full_PC <= next_update0_start_full_PC;
+			update0_ASID <= next_update0_ASID;
+			update0_lh <= next_update0_lh;
         end
     end
 

@@ -68,8 +68,11 @@ package core_types_pkg;
 
     // LBPT:
         // using PC ^ LH ^ ASID
-    parameter LBPT_ENTRIES = 2**(LH_LENGTH);
-    parameter LBPT_INDEX_WIDTH = $clog2(LBPT_ENTRIES);
+    parameter LBPT_ENTRIES = 2**(LH_LENGTH + 2);
+    parameter LBPT_ENTRIES_PER_BLOCK = 4; // 4 * 2b = 1B
+    parameter LOG_LBPT_ENTRIES_PER_BLOCK = $clog2(LBPT_ENTRIES_PER_BLOCK);
+    parameter LBPT_SETS = LBPT_ENTRIES / LBPT_ENTRIES_PER_BLOCK;
+    parameter LBPT_INDEX_WIDTH = $clog2(LBPT_SETS);
 
     // GBPT:
         // using PC ^ GHR ^ ASID

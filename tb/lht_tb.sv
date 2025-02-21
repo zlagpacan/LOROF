@@ -41,10 +41,11 @@ module lht_tb ();
     // RESP stage
 	logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH-1:0] DUT_lh_by_instr_RESP, expected_lh_by_instr_RESP;
 
-    // Update
-	logic tb_update_valid;
-	logic [31:0] tb_update_start_full_PC;
-	logic [LH_LENGTH-1:0] tb_update_lh;
+    // Update 0
+	logic tb_update0_valid;
+	logic [31:0] tb_update0_start_full_PC;
+	logic [31:0] tb_update0_ASID;
+	logic [LH_LENGTH-1:0] tb_update0_lh;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -64,9 +65,10 @@ module lht_tb ();
 		.lh_by_instr_RESP(DUT_lh_by_instr_RESP),
 
 	    // Update
-		.update_valid(tb_update_valid),
-		.update_start_full_PC(tb_update_start_full_PC),
-		.update_lh(tb_update_lh)
+		.update0_valid(tb_update0_valid),
+		.update0_start_full_PC(tb_update0_start_full_PC),
+		.update0_ASID(tb_update0_ASID),
+		.update0_lh(tb_update0_lh)
 	);
 
     // ----------------------------------------------------------------
@@ -109,9 +111,10 @@ module lht_tb ();
 		tb_ASID_REQ = 9'h0;
 	    // RESP stage
 	    // Update
-		tb_update_valid = 1'b0;
-		tb_update_start_full_PC = 32'h0;
-		tb_update_lh = 8'h0;
+		tb_update0_valid = 1'b0;
+		tb_update0_start_full_PC = 32'h0;
+		tb_update0_ASID = 9'h0;
+		tb_update0_lh = 8'h0;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -136,9 +139,10 @@ module lht_tb ();
 		tb_ASID_REQ = 9'h0;
 	    // RESP stage
 	    // Update
-		tb_update_valid = 1'b0;
-		tb_update_start_full_PC = 32'h0;
-		tb_update_lh = 8'h0;
+		tb_update0_valid = 1'b0;
+		tb_update0_start_full_PC = 32'h0;
+		tb_update0_ASID = 9'h0;
+		tb_update0_lh = 8'h0;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -171,9 +175,10 @@ module lht_tb ();
 		tb_ASID_REQ = 9'h0;
 	    // RESP stage
 	    // Update
-		tb_update_valid = 1'b0;
-		tb_update_start_full_PC = 32'h0;
-		tb_update_lh = 8'h0;
+		tb_update0_valid = 1'b0;
+		tb_update0_start_full_PC = 32'h0;
+		tb_update0_ASID = 9'h0;
+		tb_update0_lh = 8'h0;
 
 		@(negedge CLK);
 

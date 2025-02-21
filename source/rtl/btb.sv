@@ -26,8 +26,9 @@ module btb (
     output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TARGET_WIDTH-1:0]     target_by_instr_RESP,
 
     // Update 0
-    input logic         update0_valid,
-    input logic [31:0]  update0_start_full_PC,
+    input logic                     update0_valid,
+    input logic [31:0]              update0_start_full_PC,
+    input logic [ASID_WIDTH-1:0]    update0_ASID,
 
     // Update 1
     input logic [BTB_PRED_INFO_WIDTH-1:0]   update1_pred_info,
@@ -168,7 +169,7 @@ module btb (
 
     btb_tag_hash BTB_UPDATE_TAG_HASH (
         .PC(update0_start_full_PC),
-        .ASID(ASID_REQ),
+        .ASID(update0_ASID),
         .tag(update0_hashed_tag)
     );
     

@@ -22,10 +22,11 @@ module lht (
     // RESP stage
     output logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH-1:0] lh_by_instr_RESP,
 
-    // Update
-    input logic                     update_valid,
-    input logic [31:0]              update_start_full_PC,
-    input logic [LH_LENGTH-1:0]     update_lh
+    // Update 0 stage
+    input logic                     update0_valid,
+    input logic [31:0]              update0_start_full_PC,
+    input logic [ASID_WIDTH-1:0]    update0_ASID,
+    input logic [LH_LENGTH-1:0]     update0_lh
 );
 
     // ----------------------------------------------------------------
@@ -36,10 +37,10 @@ module lht (
 
     // RESP Stage:
 
-    // Update:
-    logic                                               update_hashed_index;
-    logic [LOG_LHT_ENTRIES_PER_BLOCK-1:0]               update_instr;
-    logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH/8-1:0]  update_byte_mask_by_instr;
+    // Update 0:
+    logic [LHT_INDEX_WIDTH-1:0]                         update0_hashed_index;
+    logic [LOG_LHT_ENTRIES_PER_BLOCK-1:0]               update0_instr;
+    logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH/8-1:0]  update0_byte_mask_by_instr;
 
     // ----------------------------------------------------------------
     // REQ Stage Logic:
@@ -51,19 +52,19 @@ module lht (
     );
 
     // ----------------------------------------------------------------
-    // Update Logic:
+    // Update 0 Logic:
 
-    assign update_instr = update_start_full_PC[LOG_LHT_ENTRIES_PER_BLOCK+1-1 : 1];
+    assign update0_instr = update0_start_full_PC[LOG_LHT_ENTRIES_PER_BLOCK+1-1 : 1];
 
     lht_index_hash LHT_UPDATE_INDEX_HASH (
-        .PC(update_start_full_PC),
-        .ASID(ASID_REQ),
-        .index(update_hashed_index)
+        .PC(update0_start_full_PC),
+        .ASID(update0_ASID),
+        .index(update0_hashed_index)
     );
 
     always_comb begin
-        update_byte_mask_by_instr = '0;
-        update_byte_mask_by_instr[update_instr] = update_valid ? '1 : '0;
+        update0_byte_mask_by_instr = '0;
+        update0_byte_mask_by_instr[update0_instr] = update0_valid ? '1 : '0;
     end
     
     // ----------------------------------------------------------------
@@ -87,9 +88,9 @@ module lht (
         .rindex(hashed_index_REQ),
         .rdata(lh_by_instr_RESP),
 
-        .wen_byte(update_byte_mask_by_instr),
-        .windex(update_hashed_index),
-        .wdata({LHT_ENTRIES_PER_BLOCK{update_lh}})
+        .wen_byte(update0_byte_mask_by_instr),
+        .windex(update0_hashed_index),
+        .wdata({LHT_ENTRIES_PER_BLOCK{update0_lh}})
     );
 
 endmodule
