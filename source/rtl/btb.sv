@@ -167,7 +167,7 @@ module btb (
     assign update0_index = update0_start_full_PC[BTB_INDEX_WIDTH+LOG_BTB_NWAY_ENTRIES_PER_BLOCK+1-1 : LOG_BTB_NWAY_ENTRIES_PER_BLOCK+1];
     assign update0_instr = update0_start_full_PC[LOG_BTB_NWAY_ENTRIES_PER_BLOCK+1-1 : 1];
 
-    btb_tag_hash BTB_UPDATE_TAG_HASH (
+    btb_tag_hash BTB_UPDATE0_TAG_HASH (
         .PC(update0_start_full_PC),
         .ASID(update0_ASID),
         .tag(update0_hashed_tag)

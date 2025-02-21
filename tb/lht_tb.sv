@@ -39,13 +39,13 @@ module lht_tb ();
 	logic [ASID_WIDTH-1:0] tb_ASID_REQ;
 
     // RESP stage
-	logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH-1:0] DUT_lh_by_instr_RESP, expected_lh_by_instr_RESP;
+	logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH-1:0] DUT_LH_by_instr_RESP, expected_LH_by_instr_RESP;
 
     // Update 0
 	logic tb_update0_valid;
 	logic [31:0] tb_update0_start_full_PC;
 	logic [31:0] tb_update0_ASID;
-	logic [LH_LENGTH-1:0] tb_update0_lh;
+	logic [LH_LENGTH-1:0] tb_update0_LH;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -62,13 +62,13 @@ module lht_tb ();
 		.ASID_REQ(tb_ASID_REQ),
 
 	    // RESP stage
-		.lh_by_instr_RESP(DUT_lh_by_instr_RESP),
+		.LH_by_instr_RESP(DUT_LH_by_instr_RESP),
 
 	    // Update
 		.update0_valid(tb_update0_valid),
 		.update0_start_full_PC(tb_update0_start_full_PC),
 		.update0_ASID(tb_update0_ASID),
-		.update0_lh(tb_update0_lh)
+		.update0_LH(tb_update0_LH)
 	);
 
     // ----------------------------------------------------------------
@@ -76,9 +76,9 @@ module lht_tb ();
 
     task check_outputs();
     begin
-		if (expected_lh_by_instr_RESP !== DUT_lh_by_instr_RESP) begin
-			$display("TB ERROR: expected_lh_by_instr_RESP (%h) != DUT_lh_by_instr_RESP (%h)",
-				expected_lh_by_instr_RESP, DUT_lh_by_instr_RESP);
+		if (expected_LH_by_instr_RESP !== DUT_LH_by_instr_RESP) begin
+			$display("TB ERROR: expected_LH_by_instr_RESP (%h) != DUT_LH_by_instr_RESP (%h)",
+				expected_LH_by_instr_RESP, DUT_LH_by_instr_RESP);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -114,7 +114,7 @@ module lht_tb ();
 		tb_update0_valid = 1'b0;
 		tb_update0_start_full_PC = 32'h0;
 		tb_update0_ASID = 9'h0;
-		tb_update0_lh = 8'h0;
+		tb_update0_LH = 8'h0;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -122,7 +122,7 @@ module lht_tb ();
 
 	    // REQ stage
 	    // RESP stage
-		expected_lh_by_instr_RESP = '0;
+		expected_LH_by_instr_RESP = '0;
 	    // Update
 
 		check_outputs();
@@ -142,7 +142,7 @@ module lht_tb ();
 		tb_update0_valid = 1'b0;
 		tb_update0_start_full_PC = 32'h0;
 		tb_update0_ASID = 9'h0;
-		tb_update0_lh = 8'h0;
+		tb_update0_LH = 8'h0;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -150,7 +150,7 @@ module lht_tb ();
 
 	    // REQ stage
 	    // RESP stage
-		expected_lh_by_instr_RESP = '0;
+		expected_LH_by_instr_RESP = '0;
 	    // Update
 
 		check_outputs();
@@ -178,7 +178,7 @@ module lht_tb ();
 		tb_update0_valid = 1'b0;
 		tb_update0_start_full_PC = 32'h0;
 		tb_update0_ASID = 9'h0;
-		tb_update0_lh = 8'h0;
+		tb_update0_LH = 8'h0;
 
 		@(negedge CLK);
 
@@ -186,7 +186,7 @@ module lht_tb ();
 
 	    // REQ stage
 	    // RESP stage
-		expected_lh_by_instr_RESP = '0;
+		expected_LH_by_instr_RESP = '0;
 	    // Update
 
 		check_outputs();

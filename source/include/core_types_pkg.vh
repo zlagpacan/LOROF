@@ -68,7 +68,8 @@ package core_types_pkg;
 
     // LBPT:
         // using PC ^ LH ^ ASID
-    parameter LBPT_ENTRIES = 2**(LH_LENGTH + 2);
+        // implied width of 2 for 2bc per entry
+    parameter LBPT_ENTRIES = 2**(LH_LENGTH + 2); // want LH_LENGTH + lsb PC entries worth of entries
     parameter LBPT_ENTRIES_PER_BLOCK = 4; // 4 * 2b = 1B
     parameter LOG_LBPT_ENTRIES_PER_BLOCK = $clog2(LBPT_ENTRIES_PER_BLOCK);
     parameter LBPT_SETS = LBPT_ENTRIES / LBPT_ENTRIES_PER_BLOCK;
@@ -76,9 +77,13 @@ package core_types_pkg;
 
     // GBPT:
         // using PC ^ GHR ^ ASID
+        // implied width of 2 for 2bc per entry
     parameter GH_LENGTH = 12;
-    parameter GBPT_ENTRIES = 2**(GH_LENGTH);
-    parameter GBPT_INDEX_WIDTH = $clog2(GBPT_ENTRIES);
+    parameter GBPT_ENTRIES = 2**(GH_LENGTH + 2); // want GH_LENGTH + lsb PC entries worth of entries
+    parameter GBPT_ENTRIES_PER_BLOCK = 4; // 4 * 2b = 1B
+    parameter LOG_GBPT_ENTRIES_PER_BLOCK = $clog2(GBPT_ENTRIES_PER_BLOCK);
+    parameter GBPT_SETS = GBPT_ENTRIES / GBPT_ENTRIES_PER_BLOCK;
+    parameter GBPT_INDEX_WIDTH = $clog2(GBPT_SETS);
 
     // RAS:
     parameter RAS_ENTRIES = 8;

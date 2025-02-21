@@ -20,13 +20,13 @@ module lht (
     input logic [ASID_WIDTH-1:0]    ASID_REQ,
 
     // RESP stage
-    output logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH-1:0] lh_by_instr_RESP,
+    output logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH-1:0] LH_by_instr_RESP,
 
     // Update 0 stage
     input logic                     update0_valid,
     input logic [31:0]              update0_start_full_PC,
     input logic [ASID_WIDTH-1:0]    update0_ASID,
-    input logic [LH_LENGTH-1:0]     update0_lh
+    input logic [LH_LENGTH-1:0]     update0_LH
 );
 
     // ----------------------------------------------------------------
@@ -56,7 +56,7 @@ module lht (
 
     assign update0_instr = update0_start_full_PC[LOG_LHT_ENTRIES_PER_BLOCK+1-1 : 1];
 
-    lht_index_hash LHT_UPDATE_INDEX_HASH (
+    lht_index_hash LHT_UPDATE0_INDEX_HASH (
         .PC(update0_start_full_PC),
         .ASID(update0_ASID),
         .index(update0_hashed_index)
@@ -86,11 +86,11 @@ module lht (
         
         .ren(valid_REQ),
         .rindex(hashed_index_REQ),
-        .rdata(lh_by_instr_RESP),
+        .rdata(LH_by_instr_RESP),
 
         .wen_byte(update0_byte_mask_by_instr),
         .windex(update0_hashed_index),
-        .wdata({LHT_ENTRIES_PER_BLOCK{update0_lh}})
+        .wdata({LHT_ENTRIES_PER_BLOCK{update0_LH}})
     );
 
 endmodule
