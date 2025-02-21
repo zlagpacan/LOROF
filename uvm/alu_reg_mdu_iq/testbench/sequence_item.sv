@@ -21,6 +21,7 @@ import core_types_pkg::*;
 class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
   `uvm_object_utils(alu_reg_mdu_iq_sequence_item)
 
+  rand logic [1:0] way; // for functions below 
   // --- Control Signals --- //
   rand logic nRST;
 
@@ -68,11 +69,125 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
   logic [LOG_PR_COUNT-1:0]       PRF_mdu_req_B_PR;
   
   // --- Constraints --- //
+  constraint vaid_dispatch {
+    (dispatch_valid_alu_reg_by_way | dispatch_valid_mdu_by_way) & ~{dispatch_attempt_by_way} == '0;
+  } // 
+
 
   // --- Constructor --- //
   function new(string name = "alu_reg_mdu_iq_sequence_item");
     super.new(name);
   endfunction : new
+
+// // May use may not will see
+//   virtual function void add();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
+//     dispatch_valid_mdu_by_way[way] = 1'b0;
+//     dispatch_op_by_way[way] = 4'b0000;
+//   endfunction
+
+//   virtual function void sub ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
+//     dispatch_valid_mdu_by_way[way] = 1'b0;
+//     dispatch_op_by_way[way] = 4'b1000;
+//   endfunction
+
+//  virtual function sll void ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
+//     dispatch_valid_mdu_by_way[way] = 1'b0;
+//     dispatch_op_by_way[way] = 4'b0001;
+//   endfunction
+
+//  virtual function slt void ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
+//     dispatch_valid_mdu_by_way[way] = 1'b0;
+//     dispatch_op_by_way[way] = 4'b0010;
+//   endfunction
+
+//  virtual function sltu void ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
+//     dispatch_valid_mdu_by_way[way] = 1'b0;
+//     dispatch_op_by_way[way] = 4'b0011;
+//   endfunction
+
+//  virtual function xor void ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
+//     dispatch_valid_mdu_by_way[way] = 1'b0;
+//     dispatch_op_by_way[way] = 4'b0100;
+//   endfunction
+
+//  virtual function srl void ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
+//     dispatch_valid_mdu_by_way[way] = 1'b0;
+//     dispatch_op_by_way[way] = 4'b0101;
+//   endfunction
+
+//  virtual function sra void ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
+//     dispatch_valid_mdu_by_way[way] = 1'b0;
+//     dispatch_op_by_way[way] = 4'b1101;
+//   endfunction
+
+//  virtual function or void ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
+//     dispatch_valid_mdu_by_way[way] = 1'b0;
+//     dispatch_op_by_way[way] = 4'b0110;
+//   endfunction
+
+//  virtual function and void ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
+//     dispatch_valid_mdu_by_way[way] = 1'b0;
+//     dispatch_op_by_way[way] = 4'b0111;
+//   endfunction
+
+//   // MUL DIV FUNCTIONS
+//  virtual function MUL void ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b0;
+//     dispatch_valid_mdu_by_way[way] = 1'b1;
+//     dispatch_op_by_way[way] = 4'b0000;
+//   endfunction
+
+//  virtual function MULH void ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b0;
+//     dispatch_valid_mdu_by_way[way] = 1'b1;
+//     dispatch_op_by_way[way] = 4'b0001;
+//   endfunction
+
+//  virtual function MULHSU void ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b0;
+//     dispatch_valid_mdu_by_way[way] = 1'b1;
+//     dispatch_op_by_way[way] = 4'b0010;
+//   endfunction
+
+//  virtual function MULHU void ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b0;
+//     dispatch_valid_mdu_by_way[way] = 1'b1;
+//     dispatch_op_by_way[way] = 4'b0011;
+//   endfunction
+  
+//  virtual function DIV void ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b0;
+//     dispatch_valid_mdu_by_way[way] = 1'b1;
+//     dispatch_op_by_way[way] = 4'b0100;
+//   endfunction
+
+//  virtual function DIVU void ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b0;
+//     dispatch_valid_mdu_by_way[way] = 1'b1;
+//     dispatch_op_by_way[way] = 4'b0101;
+//   endfunction
+
+//  virtual function REM void ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b0;
+//     dispatch_valid_mdu_by_way[way] = 1'b1;
+//     dispatch_op_by_way[way] = 4'b0110;
+//   endfunction
+
+//  virtual function REMU void ();
+//     dispatch_valid_alu_reg_by_way[way] = 1'b0;
+//     dispatch_valid_mdu_by_way[way] = 1'b1;
+//     dispatch_op_by_way[way] = 4'b0111;
+//   endfunction
 
 endclass : alu_reg_mdu_iq_sequence_item
 

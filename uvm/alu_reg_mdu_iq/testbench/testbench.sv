@@ -18,7 +18,7 @@ import core_types_pkg::*;
 // --- Includes --- //
 `include "interface.sv"
 `include "sequence_item.sv"
-`include "sequence.sv"
+// `include "sequence.sv"
 `include "sequencer.sv"
 `include "driver.sv"
 `include "monitor.sv"
@@ -34,13 +34,10 @@ module top;
   // --- Sim Clock --- // 
   logic CLK;
   alu_reg_mdu_iq_if alu_reg_mdu_iq_intf(.CLK(CLK));
-  parameter CLK_PERIOD = ;
+  parameter CLK_PERIOD = 10;
 
   // --- DUT Instance --- //
-  alu_reg_mdu_iq DUT(
-    // User fills in 
-    // Will be added feature in later release
-  );
+  alu_reg_mdu_iq DUT(alu_reg_mdu_iq_intf);
   
   // --- Interface --- //
   initial begin : VIF
