@@ -31,6 +31,7 @@ module btb_wrapper (
     // Update 0
 	input logic next_update0_valid,
 	input logic [31:0] next_update0_start_full_PC,
+	input logic [ASID_WIDTH-1:0] next_update0_ASID,
 
     // Update 1
 	input logic [BTB_PRED_INFO_WIDTH-1:0] next_update1_pred_info,
@@ -56,6 +57,7 @@ module btb_wrapper (
     // Update 0
 	logic update0_valid;
 	logic [31:0] update0_start_full_PC;
+	logic [ASID_WIDTH-1:0] update0_ASID;
 
     // Update 1
 	logic [BTB_PRED_INFO_WIDTH-1:0] update1_pred_info;
@@ -88,6 +90,7 @@ module btb_wrapper (
 		    // Update 0
 			update0_valid <= '0;
 			update0_start_full_PC <= '0;
+			update0_ASID <= '0;
 
 		    // Update 1
 			update1_pred_info <= '0;
@@ -111,6 +114,7 @@ module btb_wrapper (
 		    // Update 0
 			update0_valid <= next_update0_valid;
 			update0_start_full_PC <= next_update0_start_full_PC;
+			update0_ASID <= next_update0_ASID;
 
 		    // Update 1
 			update1_pred_info <= next_update1_pred_info;

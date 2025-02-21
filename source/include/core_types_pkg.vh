@@ -30,21 +30,21 @@ package core_types_pkg;
 
     // Branch Prediction:
 
-    // BTB
-    parameter BTB_NWAY_ENTRIES = 1024;
+    parameter FETCH_WIDTH = 8;
+
+    // BTB:
+    parameter BTB_NWAY_ENTRIES = 2048;
     parameter LOG_BTB_NWAY_ENTRIES = $clog2(BTB_NWAY_ENTRIES);
     parameter BTB_ENTRY_ASSOC = 2;
     parameter LOG_BTB_ENTRY_ASSOC = $clog2(BTB_ENTRY_ASSOC);
-    parameter BTB_NWAY_ENTRIES_PER_BLOCK = 8;
+    parameter BTB_NWAY_ENTRIES_PER_BLOCK = FETCH_WIDTH;
     parameter LOG_BTB_NWAY_ENTRIES_PER_BLOCK = $clog2(BTB_NWAY_ENTRIES_PER_BLOCK);
     parameter BTB_SETS = BTB_NWAY_ENTRIES / BTB_NWAY_ENTRIES_PER_BLOCK;
     parameter BTB_INDEX_WIDTH = $clog2(BTB_SETS);
-
     // BTB per way
     parameter BTB_PRED_INFO_WIDTH = 8;
     parameter BTB_TAG_WIDTH = 6;
     parameter BTB_TARGET_WIDTH = 10;
-
     // BTB shared over ways
     parameter BTB_LRU_INFO_WIDTH = 1;
 
@@ -52,21 +52,42 @@ package core_types_pkg;
     parameter SIMPLE_BRANCH_ACCURACY_THRESHOLD = 7;
     parameter SIMPLE_BRANCH_INACCURACY_PENALTY = 7;
 
+    // UPCT:
     parameter UPPER_PC_TABLE_ENTRIES = 8;
     parameter UPPER_PC_WIDTH = 32 - BTB_TARGET_WIDTH - 1;
 
+    // LHT:
+        // using PC ^ ASID
     parameter LH_LENGTH = 8;
-    parameter LHT_ENTRIES = 16; // using PC ^ ASID
+    parameter LHT_ENTRIES = 256;
     parameter LOG_LHT_ENTRIES = $clog2(LHT_ENTRIES);
-    parameter LBPT_ENTRIES = 2**(LH_LENGTH); // using PC ^ LH ^ ASID
-    parameter LOG_LBPT_ENTRIES = $clog2(LBPT_ENTRIES);
+    parameter LHT_ENTRIES_PER_BLOCK = FETCH_WIDTH;
+    parameter LOG_LHT_ENTRIES_PER_BLOCK = $clog2(LHT_ENTRIES_PER_BLOCK);
+    parameter LHT_SETS = LHT_ENTRIES / LHT_ENTRIES_PER_BLOCK;
+    parameter LHT_INDEX_WIDTH = $clog2(LHT_SETS);
 
+    // LBPT:
+        // using PC ^ LH ^ ASID
+        // implied width of 2 for 2bc per entry
+    parameter LBPT_ENTRIES = 2**(LH_LENGTH + 2); // want LH_LENGTH + lsb PC entries worth of entries
+    parameter LBPT_ENTRIES_PER_BLOCK = 4; // 4 * 2b = 1B
+    parameter LOG_LBPT_ENTRIES_PER_BLOCK = $clog2(LBPT_ENTRIES_PER_BLOCK);
+    parameter LBPT_SETS = LBPT_ENTRIES / LBPT_ENTRIES_PER_BLOCK;
+    parameter LBPT_INDEX_WIDTH = $clog2(LBPT_SETS);
+
+    // GBPT:
+        // using PC ^ GHR ^ ASID
+        // implied width of 2 for 2bc per entry
     parameter GH_LENGTH = 12;
-    parameter GBPT_ENTRIES = 2**(GH_LENGTH); // using PC ^ GHR ^ ASID
-    parameter LOG_GBPT_ENTRIES = $clog2(GBPT_ENTRIES);
+    parameter GBPT_ENTRIES = 2**(GH_LENGTH + 2); // want GH_LENGTH + lsb PC entries worth of entries
+    parameter GBPT_ENTRIES_PER_BLOCK = 4; // 4 * 2b = 1B
+    parameter LOG_GBPT_ENTRIES_PER_BLOCK = $clog2(GBPT_ENTRIES_PER_BLOCK);
+    parameter GBPT_SETS = GBPT_ENTRIES / GBPT_ENTRIES_PER_BLOCK;
+    parameter GBPT_INDEX_WIDTH = $clog2(GBPT_SETS);
 
-    parameter RAS_DEPTH = 8;
-    parameter RAS_TARGET_WIDTH = BTB_TARGET_WIDTH;
+    // RAS:
+    parameter RAS_ENTRIES = 8;
+    parameter RAS_TARGET_WIDTH = 32 - 1;
 
 endpackage
 

@@ -47,6 +47,7 @@ module btb_tb ();
     // Update 0
 	logic tb_update0_valid;
 	logic [31:0] tb_update0_start_full_PC;
+	logic [ASID_WIDTH-1:0] tb_update0_ASID;
 
     // Update 1
 	logic [BTB_PRED_INFO_WIDTH-1:0] tb_update1_pred_info;
@@ -76,6 +77,7 @@ module btb_tb ();
 	    // Update 0
 		.update0_valid(tb_update0_valid),
 		.update0_start_full_PC(tb_update0_start_full_PC),
+		.update0_ASID(tb_update0_ASID),
 
 	    // Update 1
 		.update1_pred_info(tb_update1_pred_info),
@@ -146,6 +148,7 @@ module btb_tb ();
 	    // Update 0
 		tb_update0_valid = 1'b0;
 		tb_update0_start_full_PC = 32'h0;
+		tb_update0_ASID = 9'h0;
 	    // Update 1
 		tb_update1_pred_info = 8'h0;
 		tb_update1_pred_lru = 1'b0;
@@ -180,6 +183,7 @@ module btb_tb ();
 	    // Update 0
 		tb_update0_valid = 1'b0;
 		tb_update0_start_full_PC = 32'h0;
+		tb_update0_ASID = 9'h0;
 	    // Update 1
 		tb_update1_pred_info = 8'h0;
 		tb_update1_pred_lru = 1'b0;
@@ -222,6 +226,7 @@ module btb_tb ();
 	    // Update 0
 		tb_update0_valid = 1'b0;
 		tb_update0_start_full_PC = 32'h0;
+		tb_update0_ASID = 9'h0;
 	    // Update 1
 		tb_update1_pred_info = 8'h0;
 		tb_update1_pred_lru = 1'b0;

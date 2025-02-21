@@ -26,8 +26,9 @@ module btb (
     output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TARGET_WIDTH-1:0]     target_by_instr_RESP,
 
     // Update 0
-    input logic                             update0_valid,
-    input logic [31:0]                      update0_start_full_PC,
+    input logic                     update0_valid,
+    input logic [31:0]              update0_start_full_PC,
+    input logic [ASID_WIDTH-1:0]    update0_ASID,
 
     // Update 1
     input logic [BTB_PRED_INFO_WIDTH-1:0]   update1_pred_info,
@@ -166,9 +167,9 @@ module btb (
     assign update0_index = update0_start_full_PC[BTB_INDEX_WIDTH+LOG_BTB_NWAY_ENTRIES_PER_BLOCK+1-1 : LOG_BTB_NWAY_ENTRIES_PER_BLOCK+1];
     assign update0_instr = update0_start_full_PC[LOG_BTB_NWAY_ENTRIES_PER_BLOCK+1-1 : 1];
 
-    btb_tag_hash BTB_UPDATE_TAG_HASH (
+    btb_tag_hash BTB_UPDATE0_TAG_HASH (
         .PC(update0_start_full_PC),
-        .ASID(ASID_REQ),
+        .ASID(update0_ASID),
         .tag(update0_hashed_tag)
     );
     
@@ -196,92 +197,77 @@ module btb (
         update1_target_PC = update1_target_full_PC[BTB_TARGET_WIDTH+1-1:1];
 
         // RMW pred lru for this set
+            // flip LRU to opposite of this update
         update1_new_pred_lru_by_instr = update1_old_pred_lru_by_instr;
-        update1_new_pred_lru_by_instr[update1_instr] = update1_pred_lru;
+        update1_new_pred_lru_by_instr[update1_instr] = ~update1_pred_lru;
 
         // pred info tag target byte mask follows 4B associated with this instr and way
         update1_byte_mask_pred_info_tag_target_by_instr_by_way = '0;
-        update1_byte_mask_pred_info_tag_target_by_instr_by_way[update1_instr][update1_pred_lru] = '1;
+        update1_byte_mask_pred_info_tag_target_by_instr_by_way[update1_instr][update1_pred_lru] 
+            = update1_valid ? '1 : '0;
     end
     
     // ----------------------------------------------------------------
     // RAM Arrays:
 
-    // //////////////////
-    // // Dumb BRAM's: //
-    // //////////////////
-
-    // // pred info + tag + target BRAM array
-    // bram_1rport_1wport #(
-    //     .INNER_WIDTH(
-    //         BTB_NWAY_ENTRIES_PER_BLOCK * 
-    //         BTB_ENTRY_ASSOC * 
-    //         (BTB_PRED_INFO_WIDTH + BTB_TAG_WIDTH + BTB_TARGET_WIDTH)
-    //     ),
-    //     .OUTER_WIDTH(BTB_SETS)
-    // ) PRED_INFO_TAG_TARGET_BRAM_ARRAY (
-    //     .CLK(CLK),
-    //     .nRST(nRST),
-
-    //     .ren(valid_REQ),
-    //     .rindex(index_REQ),
-    //     .rdata(array_pred_info_tag_target_by_instr_by_way_RESP),
-
-    //     .wen_byte(update1_byte_mask_pred_info_tag_target_by_instr),
-    //     .windex(update1_index),
-    //     .wdata({BTB_NWAY_ENTRIES_PER_BLOCK{update1_pred_info, update1_hashed_tag, update1_target_PC}})
-    // );
-
-    // // LRU BRAM array
-    // bram_2rport_1wport #(
-    //     .INNER_WIDTH(BTB_NWAY_ENTRIES_PER_BLOCK),
-    //     .OUTER_WIDTH(BTB_SETS)
-    // ) LRU_BRAM_ARRAY (
-    //     .CLK(CLK),
-    //     .nRST(nRST),
-
-    //     .port0_ren(valid_REQ),
-    //     .port0_rindex(index_REQ),
-    //     .port0_rdata(array_pred_lru_by_instr_RESP),
-
-    //     .port1_ren(update0_valid),
-    //     .port1_rindex(update0_index),
-    //     .port1_rdata(update1_old_pred_lru_by_instr),
-
-    //     .wen_byte({BTB_NWAY_ENTRIES_PER_BLOCK{update1_valid}}),
-    //     .windex(update1_index),
-    //     .wdata(update1_new_pred_lru_by_instr)
-    // );
-
-    ////////////////////////////////////////
-    // BRAM Array per Instr, LRU DistRAM: //
-    ////////////////////////////////////////
+    /////////////////////////////////////
+    // BRAM Array shared over Instr's: //
+    /////////////////////////////////////
 
     // pred info + tag + target BRAM array
-    genvar bram_instr;
-    generate
-    for (bram_instr = 0; bram_instr < BTB_NWAY_ENTRIES_PER_BLOCK; bram_instr++)
+    bram_1rport_1wport #(
+        .INNER_WIDTH(
+            BTB_NWAY_ENTRIES_PER_BLOCK * 
+            BTB_ENTRY_ASSOC * 
+            (BTB_PRED_INFO_WIDTH + BTB_TAG_WIDTH + BTB_TARGET_WIDTH)
+        ),
+        .OUTER_WIDTH(BTB_SETS)
+    ) PRED_INFO_TAG_TARGET_BRAM_ARRAY (
+        .CLK(CLK),
+        .nRST(nRST),
+
+        .ren(valid_REQ),
+        .rindex(index_REQ),
+        .rdata(array_pred_info_tag_target_by_instr_by_way_RESP),
+
+        .wen_byte(update1_byte_mask_pred_info_tag_target_by_instr_by_way),
+        .windex(update1_index),
+        .wdata({BTB_NWAY_ENTRIES_PER_BLOCK{update1_pred_info, update1_hashed_tag, update1_target_PC}})
+    );
+
+    // //////////////////////////
+    // // BRAM Array per Instr //
+    // //////////////////////////
+
+    // // pred info + tag + target BRAM array
+    // genvar bram_instr;
+    // generate
+    // for (bram_instr = 0; bram_instr < BTB_NWAY_ENTRIES_PER_BLOCK; bram_instr++)
     
-        bram_1rport_1wport #(
-            .INNER_WIDTH( // 2 * 32
-                BTB_ENTRY_ASSOC * 
-                (BTB_PRED_INFO_WIDTH + BTB_TAG_WIDTH + BTB_TARGET_WIDTH)
-            ),
-            .OUTER_WIDTH(BTB_SETS)
-        ) PRED_INFO_TAG_TARGET_BRAM_ARRAY (
-            .CLK(CLK),
-            .nRST(nRST),
+    //     bram_1rport_1wport #(
+    //         .INNER_WIDTH( // 2 * 32
+    //             BTB_ENTRY_ASSOC * 
+    //             (BTB_PRED_INFO_WIDTH + BTB_TAG_WIDTH + BTB_TARGET_WIDTH)
+    //         ),
+    //         .OUTER_WIDTH(BTB_SETS)
+    //     ) PRED_INFO_TAG_TARGET_BRAM_ARRAY (
+    //         .CLK(CLK),
+    //         .nRST(nRST),
 
-            .ren(valid_REQ),
-            .rindex(index_REQ),
-            .rdata(array_pred_info_tag_target_by_instr_by_way_RESP[bram_instr]),
+    //         .ren(valid_REQ),
+    //         .rindex(index_REQ),
+    //         .rdata(array_pred_info_tag_target_by_instr_by_way_RESP[bram_instr]),
 
-            .wen_byte(update1_byte_mask_pred_info_tag_target_by_instr_by_way[bram_instr]),
-            .windex(update1_index),
-            .wdata({2{update1_pred_info, update1_hashed_tag, update1_target_PC}})
-        );
+    //         .wen_byte(update1_byte_mask_pred_info_tag_target_by_instr_by_way[bram_instr]),
+    //         .windex(update1_index),
+    //         .wdata({2{update1_pred_info, update1_hashed_tag, update1_target_PC}})
+    //     );
 
-    endgenerate
+    // endgenerate
+
+    //////////////////
+    // LRU DistRAM: //
+    //////////////////
 
     // LRU DistRAM array
     distram_2rport_1wport #(
