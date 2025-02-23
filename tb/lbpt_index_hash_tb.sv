@@ -34,7 +34,7 @@ module lbpt_index_hash_tb ();
 	logic [31:0] tb_PC;
 	logic [LH_LENGTH-1:0] tb_LH;
 	logic [ASID_WIDTH-1:0] tb_ASID;
-	logic [LBPT_INDEX_WIDTH-1:0] DUT_index, expected_index;
+	logic [LH_LENGTH-1:0] DUT_index, expected_index;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -88,7 +88,7 @@ module lbpt_index_hash_tb ();
 
 		// outputs:
 
-		expected_index = '0;
+		expected_index = 8'h0;
 
 		check_outputs();
 
@@ -106,7 +106,7 @@ module lbpt_index_hash_tb ();
 
 		// outputs:
 
-		expected_index = '0;
+		expected_index = 8'h0;
 
 		check_outputs();
 
@@ -132,7 +132,7 @@ module lbpt_index_hash_tb ();
 
 		// outputs:
 
-		expected_index = '0;
+		expected_index = 8'h0;
 
 		check_outputs();
 

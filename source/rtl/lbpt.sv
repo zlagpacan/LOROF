@@ -61,13 +61,11 @@ module lbpt (
     // ----------------------------------------------------------------
     // RESP Stage Logic:
 
-    assign entry_RESP = full_PC_RESP[LOG_LBPT_ENTRIES_PER_BLOCK+1-1 : 1];
-
     lbpt_index_hash LBPT_RESP_INDEX_HASH (
         .PC(full_PC_RESP),
         .LH(LH_RESP),
         .ASID(ASID_RESP),
-        .index(hashed_index_RESP)
+        .index({hashed_index_RESP, entry_RESP})
     );
 
     // ----------------------------------------------------------------
@@ -88,13 +86,11 @@ module lbpt (
     // ----------------------------------------------------------------
     // Update 0 Logic:
 
-    assign update0_entry = update0_start_full_PC[LOG_LBPT_ENTRIES_PER_BLOCK+1-1 : 1];
-
     lbpt_index_hash LBPT_UPDATE0_INDEX_HASH (
         .PC(update0_start_full_PC),
         .LH(update0_LH),
         .ASID(update0_ASID),
-        .index(update0_hashed_index)
+        .index({update0_hashed_index, update0_entry})
     );
 
     // ----------------------------------------------------------------
