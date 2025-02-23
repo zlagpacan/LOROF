@@ -66,7 +66,7 @@ class alu_reg_mdu_iq_monitor extends uvm_monitor;
     forever begin
       item = alu_reg_mdu_iq_sequence_item::type_id::create("item");
       
-      wait(vif.nRST);
+      // wait(vif.nRST); // SENDING RST TO SB
 
       // --- Input Sample --- //
       item.nRST                          = vif.nRST;
@@ -122,6 +122,13 @@ class alu_reg_mdu_iq_monitor extends uvm_monitor;
     end
         
   endtask : run_phase
+
+
+   function void report_phase(uvm_phase phase);
+        uvm_report_info("Comparator", $sformatf("Matches:    %0d", m_matches));
+        uvm_report_info("Comparator", $sformatf("Mismatches: %0d", m_mismatches));
+        uvm_report_info("Num trans", $sformatf("Number of transactions: %0d", num_transactions));
+  endfunction
   
 endclass : alu_reg_mdu_iq_monitor
 

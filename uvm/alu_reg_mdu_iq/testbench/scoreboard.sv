@@ -26,11 +26,15 @@ class alu_reg_mdu_iq_scoreboard extends uvm_scoreboard;
   // --- Scoreboard Components --- //
   uvm_analysis_imp #(alu_reg_mdu_iq_sequence_item, alu_reg_mdu_iq_scoreboard) scoreboard_port;
   alu_reg_mdu_iq_sequence_item transactions[$];
+  int m_matches, m_mismatches, num_transactions;
 
   // --- Constructor --- //
   function new(string name = "alu_reg_mdu_iq_scoreboard", uvm_component parent);
     super.new(name, parent);
     `uvm_info("SCB_CLASS", "Inside Constructor", UVM_HIGH)
+    m_matches = 0;
+    m_mismatches = 0;
+    num_transactions = 0;
   endfunction : new
 
   // --- Build Phase --- //
@@ -56,19 +60,75 @@ class alu_reg_mdu_iq_scoreboard extends uvm_scoreboard;
     // --- Transaction Stack --- //
     forever begin
       alu_reg_mdu_iq_sequence_item curr_tx;
+      alu_reg_mdu_iq_sequence_item pred_tx;
       wait((transactions.size() != 0));
+      num_transactions++;
       curr_tx = transactions.pop_front();
-      compare(curr_tx);
+      pred_tx = alu_reg_mdu_iq_sequence_item::type_id::create("pred_tx");
+      pred_tx.copy(curr_tx);
+      compare(pred_tx);
+
+      if (per_trans.compare(curr_trans)) begin
+            m_matches++;
+            uvm_report_info("SB", "Data match");
+      end 
+      else begin
+            m_mismatches++;
+            uvm_report_info("SB", "Error: Data mismatch");
+            `uvm_info(get_type_name(), $sformatf("Monitor found packet %s", curr_trans.convert2str()), UVM_LOW)
+            `uvm_info(get_type_name(), $sformatf("Monitor found packet %s", per_trans.convert2str()), UVM_LOW)
+
+      end
+
     end
     
   endtask : run_phase
 
   // --- Compare --- //
-  task compare(alu_reg_mdu_iq_sequence_item curr_tx);
+  task predict(alu_reg_mdu_iq_sequence_item pred_tx);
 
+  if(pred_tx.nRST == 0) begin
+    pred_tx.dispatch_ack_by_way = '0;  
+    pred_tx.issue_alu_reg_valid = '0;
+    pred_tx.issue_alu_reg_op = '0;
+    pred_tx.issue_alu_reg_A_forward = '0;
+    pred_tx.issue_alu_reg_A_bank = '0;
+    pred_tx.issue_alu_reg_B_forward = '0;
+    pred_tx.issue_alu_reg_B_bank = '0;
+    pred_tx.issue_alu_reg_dest_PR = '0;
+    pred_tx.issue_alu_reg_ROB_index = '0;
+    pred_tx.PRF_alu_reg_req_A_valid = '0;
+    pred_tx.PRF_alu_reg_req_A_PR = '0;
+    pred_tx.PRF_alu_reg_req_B_valid = '0;
+    pred_tx.PRF_alu_reg_req_B_PR = '0;
+    pred_tx.issue_mdu_valid = '0;
+    pred_tx.issue_mdu_op = '0;
+    pred_tx.issue_mdu_A_forward = '0;
+    pred_tx.issue_mdu_A_bank = '0;
+    pred_tx.issue_mdu_B_forward = '0;
+    pred_tx.issue_mdu_B_bank = '0;
+    pred_tx.issue_mdu_dest_PR = '0;
+    pred_tx.issue_mdu_ROB_index = '0;
+    pred_tx.PRF_mdu_req_A_valid = '0;
+    pred_tx.PRF_mdu_req_A_PR = '0;
+    pred_tx.PRF_mdu_req_B_valid = '0;
+    pred_tx.PRF_mdu_req_B_PR = '0;
+ end
   // User fills in 
 
-  endtask : compare
+  // if(curr_tx.nRST == 0) begin
+  //   uvm_report_info("CHECK RESET");
+  //   if(curr_tx.dispatch_ack_by_way != '0) begin
+  //     uvm_report_info("COMPARE", $sformatf("Test Case: RESET0 : FAILED, curr_tx.dispatch_ack_by_way == %0d",curr_tx.dispatch_ack_by_way), UVM_NONE);
+  //     m_mismatches++
+  //   end
+  //   else begin
+  //     uvm_report_info("COMPARE", $sformatf("Test Case: RESET0 : PASSED, curr_tx.dispatch_ack_by_way == %0d",curr_tx.dispatch_ack_by_way), UVM_NONE);
+  //     m_mismatches++
+  //   end
+  // end
+
+  endtask : predict
 
 endclass : alu_reg_mdu_iq_scoreboard
 
