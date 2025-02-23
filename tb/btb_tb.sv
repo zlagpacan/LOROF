@@ -238,7 +238,7 @@ module btb_tb ();
 		};
 		// RESP stage
 		// Update 0
-		tb_update0_valid = 1'b0;
+		tb_update0_valid = 1'b1;
 		tb_update0_start_full_PC = {
 			8'h0, // untouched bits
 			6'b000000, // upper tag bits
@@ -407,6 +407,275 @@ module btb_tb ();
 		expected_pred_info_by_instr_RESP = {8{8'h0}};
 		expected_pred_lru_by_instr_RESP = {8{1'b0}};
 		expected_target_by_instr_RESP = {8{10'h0}};
+		// Update 0
+		// Update 1
+
+		check_outputs();
+
+        // ------------------------------------------------------------
+        // read chain:
+        test_case = "read chain way 0";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+		// fill pipe:
+			// REQ: 0
+			// RESP: NOP
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = $sformatf("REQ: 0x0, RESP: NOP");
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		// REQ stage
+		tb_valid_REQ = 1'b1;
+		tb_full_PC_REQ = {
+			8'h0, // untouched bits
+			6'b000000, // upper tag bits
+			6'b000000, // lower tag bits
+			8'h0, // set index
+			3'h0, // within-block index
+			1'b0 // 2B offset
+		};
+		tb_ASID_REQ = {
+			3'h0, // untouched bits
+			6'b000000 // tag bits
+		};
+		// RESP stage
+		// Update 0
+		tb_update0_valid = 1'b0;
+		tb_update0_start_full_PC = {
+			8'h0, // untouched bits
+			6'b000000, // upper tag bits
+			6'b000000, // lower tag bits
+			8'h0, // set index
+			3'h0, // within-block index
+			1'b0 // 2B offset
+		};
+		tb_update0_ASID = {
+			3'h0, // untouched bits
+			6'b000000 // tag bits
+		};
+		// Update 1
+		tb_update1_pred_info = 8'h0;
+		tb_update1_pred_lru = 1'b0;
+		tb_update1_target_full_PC = {
+			21'h0, // untouched bits
+			10'h0, // target bits
+			1'b0 // 2B offset
+		};
+
+		@(negedge CLK);
+
+		// outputs:
+
+		// REQ stage
+		// RESP stage
+		expected_hit_by_instr_RESP = {8{1'b1}};
+		expected_pred_info_by_instr_RESP = {8{8'h0}};
+		expected_pred_lru_by_instr_RESP = {8{1'b0}};
+		expected_target_by_instr_RESP = {8{10'h0}};
+		// Update 0
+		// Update 1
+
+		check_outputs();
+
+		// main loop:
+			// REQ: i
+			// RESP: i-1
+
+		for (int i = 8; i <= 2047; i += 8) begin
+			automatic int last_i = i-8;
+
+			@(posedge CLK); #(PERIOD/10);
+
+			// inputs
+			sub_test_case = $sformatf(
+				"REQ: 0x%3h, RESP: 0x%3h",
+				i, last_i
+			);
+			$display("\t- sub_test: %s", sub_test_case);
+
+			// reset
+			nRST = 1'b1;
+			// REQ stage
+			tb_valid_REQ = 1'b1;
+			tb_full_PC_REQ = {
+				i[7:0], // untouched bits
+				i[11:6], // upper tag bits
+				i[5:0], // lower tag bits
+				i[10:3], // set index
+				i[2:0], // within-block index
+				i[0] // 2B offset
+			};
+			tb_ASID_REQ = {
+				i[2:0], // untouched bits
+				i[5:0] // tag bits
+			};
+			// RESP stage
+			// Update 0
+			tb_update0_valid = 1'b0;
+			tb_update0_start_full_PC = {
+				8'h0, // untouched bits
+				6'b000000, // upper tag bits
+				6'b000000, // lower tag bits
+				8'h0, // set index
+				3'h0, // within-block index
+				1'b0 // 2B offset
+			};
+			tb_update0_ASID = {
+				3'h0, // untouched bits
+				6'b000000 // tag bits
+			};
+			// Update 1
+			tb_update1_pred_info = 8'h0;
+			tb_update1_pred_lru = 1'b0;
+			tb_update1_target_full_PC = {
+				21'h0, // untouched bits
+				10'h0, // target bits
+				1'b0 // 2B offset
+			};
+
+			@(negedge CLK);
+
+			// outputs:
+
+			// REQ stage
+			// RESP stage
+			expected_hit_by_instr_RESP = {8{1'b1}};
+			expected_pred_info_by_instr_RESP = {
+				{last_i + 7}[7:0],
+				{last_i + 6}[7:0],
+				{last_i + 5}[7:0],
+				{last_i + 4}[7:0],
+				{last_i + 3}[7:0],
+				{last_i + 2}[7:0],
+				{last_i + 1}[7:0],
+				{last_i + 0}[7:0]
+			};
+			expected_pred_lru_by_instr_RESP = {8{1'b0}};
+			expected_target_by_instr_RESP = {
+				{last_i + 7}[9:0],
+				{last_i + 6}[9:0],
+				{last_i + 5}[9:0],
+				{last_i + 4}[9:0],
+				{last_i + 3}[9:0],
+				{last_i + 2}[9:0],
+				{last_i + 1}[9:0],
+				{last_i + 0}[9:0]
+			};
+
+			if (i == 8) begin
+				expected_hit_by_instr_RESP = {8{1'b1}};
+				expected_pred_info_by_instr_RESP = {
+					8'h7,
+					8'h6,
+					8'h5,
+					8'h4,
+					8'h3,
+					8'h2,
+					8'h1,
+					8'h0
+				};
+				expected_pred_lru_by_instr_RESP = {8{1'b0}};
+				expected_target_by_instr_RESP = {
+					10'h7,
+					10'h6,
+					10'h5,
+					10'h4,
+					10'h3,
+					10'h2,
+					10'h1,
+					10'h0
+				};
+			end
+			// Update 0
+			// Update 1
+
+			check_outputs();
+		end
+
+		// drain pipe:
+			// REQ: NOP
+			// RESP: 2047
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = $sformatf("REQ: NOP, RESP: 0x7ff");
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		// REQ stage
+		tb_valid_REQ = 1'b0;
+		tb_full_PC_REQ = {
+			8'h0, // untouched bits
+			6'b000000, // upper tag bits
+			6'b000000, // lower tag bits
+			8'h0, // set index
+			3'h0, // within-block index
+			1'b0 // 2B offset
+		};
+		tb_ASID_REQ = {
+			3'h0, // untouched bits
+			6'b000000 // tag bits
+		};
+		// RESP stage
+		// Update 0
+		tb_update0_valid = 1'b0;
+		tb_update0_start_full_PC = {
+			8'h0, // untouched bits
+			6'b000000, // upper tag bits
+			6'b000000, // lower tag bits
+			8'h0, // set index
+			3'h0, // within-block index
+			1'b0 // 2B offset
+		};
+		tb_update0_ASID = {
+			3'h0, // untouched bits
+			6'b000000 // tag bits
+		};
+		// Update 1
+		tb_update1_pred_info = 8'h0;
+		tb_update1_pred_lru = 1'b0;
+		tb_update1_target_full_PC = {
+			21'h0, // untouched bits
+			10'h0, // target bits
+			1'b0 // 2B offset
+		};
+
+		@(negedge CLK);
+
+		// outputs:
+
+		// REQ stage
+		// RESP stage
+		expected_hit_by_instr_RESP = {8{1'b1}};
+		expected_pred_info_by_instr_RESP = {
+			8'hff,
+			8'hfe,
+			8'hfd,
+			8'hfc,
+			8'hfb,
+			8'hfa,
+			8'hf9,
+			8'hf8
+		};
+		expected_pred_lru_by_instr_RESP = {8{1'b0}};
+		expected_target_by_instr_RESP = {
+			10'h3ff,
+			10'h3fe,
+			10'h3fd,
+			10'h3fc,
+			10'h3fb,
+			10'h3fa,
+			10'h3f9,
+			10'h3f8
+		};
 		// Update 0
 		// Update 1
 
