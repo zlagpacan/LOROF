@@ -30,14 +30,15 @@ package core_types_pkg;
 
     // Branch Prediction:
 
-    parameter FETCH_WIDTH = 8;
+    parameter FETCH_WIDTH_B = 16;
+    parameter FETCH_WIDTH_2B = 8;
 
     // BTB:
     parameter BTB_NWAY_ENTRIES = 2048;
     parameter LOG_BTB_NWAY_ENTRIES = $clog2(BTB_NWAY_ENTRIES);
     parameter BTB_ENTRY_ASSOC = 2;
     parameter LOG_BTB_ENTRY_ASSOC = $clog2(BTB_ENTRY_ASSOC);
-    parameter BTB_NWAY_ENTRIES_PER_BLOCK = FETCH_WIDTH;
+    parameter BTB_NWAY_ENTRIES_PER_BLOCK = FETCH_WIDTH_2B;
     parameter LOG_BTB_NWAY_ENTRIES_PER_BLOCK = $clog2(BTB_NWAY_ENTRIES_PER_BLOCK);
     parameter BTB_SETS = BTB_NWAY_ENTRIES / BTB_NWAY_ENTRIES_PER_BLOCK;
     parameter BTB_INDEX_WIDTH = $clog2(BTB_SETS);
@@ -61,7 +62,7 @@ package core_types_pkg;
     parameter LH_LENGTH = 8;
     parameter LHT_ENTRIES = 256;
     parameter LOG_LHT_ENTRIES = $clog2(LHT_ENTRIES);
-    parameter LHT_ENTRIES_PER_BLOCK = FETCH_WIDTH;
+    parameter LHT_ENTRIES_PER_BLOCK = FETCH_WIDTH_2B;
     parameter LOG_LHT_ENTRIES_PER_BLOCK = $clog2(LHT_ENTRIES_PER_BLOCK);
     parameter LHT_SETS = LHT_ENTRIES / LHT_ENTRIES_PER_BLOCK;
     parameter LHT_INDEX_WIDTH = $clog2(LHT_SETS);

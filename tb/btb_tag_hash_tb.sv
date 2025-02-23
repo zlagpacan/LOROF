@@ -108,26 +108,239 @@ module btb_tag_hash_tb ();
 
         // ------------------------------------------------------------
         // default:
-        test_case = "default";
+        test_case = "simple chain";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "default";
+		sub_test_case = "0 ^ 0 ^ 0";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-		tb_PC = '0;
-		tb_ASID = '0;
+		tb_PC = {
+            8'h0, // untouched bits
+            6'b000000, // upper tag bits
+            6'b000000, // lower tag bits
+            8'h0, // set index
+            3'h0, // within-block index
+            1'b0 // 2B offset
+        };
+		tb_ASID = {
+            3'h0, // untouched bits
+            6'b000000 // tag bits
+        };
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_tag = '0;
+		expected_tag = 6'b000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "0 ^ 0 ^ 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            8'h0, // untouched bits
+            6'b000000, // upper tag bits
+            6'b111111, // lower tag bits
+            8'h0, // set index
+            3'h0, // within-block index
+            1'b0 // 2B offset
+        };
+		tb_ASID = {
+            3'h0, // untouched bits
+            6'b000000 // tag bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_tag = 6'b111111;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "0 ^ 1 ^ 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            8'h0, // untouched bits
+            6'b111111, // upper tag bits
+            6'b000000, // lower tag bits
+            8'h0, // set index
+            3'h0, // within-block index
+            1'b0 // 2B offset
+        };
+		tb_ASID = {
+            3'h0, // untouched bits
+            6'b000000 // tag bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_tag = 6'b111111;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "0 ^ 1 ^ 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            8'h0, // untouched bits
+            6'b111111, // upper tag bits
+            6'b111111, // lower tag bits
+            8'h0, // set index
+            3'h0, // within-block index
+            1'b0 // 2B offset
+        };
+		tb_ASID = {
+            3'h0, // untouched bits
+            6'b000000 // tag bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_tag = 6'b000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1 ^ 0 ^ 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            8'h0, // untouched bits
+            6'b000000, // upper tag bits
+            6'b000000, // lower tag bits
+            8'h0, // set index
+            3'h0, // within-block index
+            1'b0 // 2B offset
+        };
+		tb_ASID = {
+            3'h0, // untouched bits
+            6'b111111 // tag bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_tag = 6'b111111;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1 ^ 0 ^ 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            8'h0, // untouched bits
+            6'b111111, // upper tag bits
+            6'b000000, // lower tag bits
+            8'h0, // set index
+            3'h0, // within-block index
+            1'b0 // 2B offset
+        };
+		tb_ASID = {
+            3'h0, // untouched bits
+            6'b111111 // tag bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_tag = 6'b000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1 ^ 1 ^ 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            8'h0, // untouched bits
+            6'b000000, // upper tag bits
+            6'b111111, // lower tag bits
+            8'h0, // set index
+            3'h0, // within-block index
+            1'b0 // 2B offset
+        };
+		tb_ASID = {
+            3'h0, // untouched bits
+            6'b111111 // tag bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_tag = 6'b000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1 ^ 1 ^ 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            8'h0, // untouched bits
+            6'b111111, // upper tag bits
+            6'b111111, // lower tag bits
+            8'h0, // set index
+            3'h0, // within-block index
+            1'b0 // 2B offset
+        };
+		tb_ASID = {
+            3'h0, // untouched bits
+            6'b111111 // tag bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_tag = 6'b111111;
 
 		check_outputs();
 
