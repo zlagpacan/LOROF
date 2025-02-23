@@ -119,7 +119,7 @@ module alu_imm_ldu_iq_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    alu_imm_ldu_iq WRAPPED_MODULE (.*);
+    alu_imm_ldu_iq #(.ALU_IMM_LDU_IQ_ENTRIES(ALU_IMM_LDU_IQ_ENTRIES)) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:

@@ -25,7 +25,7 @@ package core_types_pkg;
     parameter ALU_REG_MDU_IQ_ENTRIES = 8;
     parameter ALU_IMM_LDU_IQ_ENTRIES = 8;
     parameter STAMOU_IQ_ENTRIES = 16;
-    parameter BRU_IQ_ENTRIES = 6;
+    parameter BRU_IQ_ENTRIES = 4;
     parameter SYS_IQ_ENTRIES = 4;
 
     // Branch Prediction:

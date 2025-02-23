@@ -133,7 +133,7 @@ module alu_reg_mdu_iq_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    alu_reg_mdu_iq WRAPPED_MODULE (.*);
+    alu_reg_mdu_iq #(.ALU_REG_MDU_IQ_ENTRIES(ALU_REG_MDU_IQ_ENTRIES) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
