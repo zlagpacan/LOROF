@@ -20,6 +20,7 @@ module lbpt_index_hash (
     assign wide_PC = PC;
     
     // xor lowest LBPT_INDEX_WIDTH PC bits with LH
+        // beyond the bits associated with selecting the LBPT entry purely by PC
     // xor with ASID
     always_comb begin
         index = wide_PC[LBPT_INDEX_WIDTH + LBPT_ENTRIES_PER_BLOCK + 1 - 1 : LBPT_ENTRIES_PER_BLOCK + 1];

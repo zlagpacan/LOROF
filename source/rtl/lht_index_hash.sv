@@ -19,6 +19,7 @@ module lht_index_hash (
     assign wide_PC = PC;
     
     // xor lowest LHT_INDEX_WIDTH PC bits with ASID
+        // beyond the bits associated with selecting the LHT entry purely by PC
     always_comb begin
         index = wide_PC[LHT_INDEX_WIDTH + LHT_ENTRIES_PER_BLOCK + 1 - 1 : LHT_ENTRIES_PER_BLOCK + 1];
         index ^= ASID;
