@@ -28,7 +28,7 @@ package core_types_pkg;
     parameter BRU_IQ_ENTRIES = 4;
     parameter SYS_IQ_ENTRIES = 4;
 
-    // Branch Prediction:
+    // Fetch Predictors:
 
     parameter FETCH_WIDTH_B = 16;
     parameter FETCH_WIDTH_2B = 8;
@@ -52,10 +52,6 @@ package core_types_pkg;
     parameter SIMPLE_BRANCH_INIT_ACCURACY = 9;
     parameter SIMPLE_BRANCH_ACCURACY_THRESHOLD = 7;
     parameter SIMPLE_BRANCH_INACCURACY_PENALTY = 7;
-
-    // UPCT:
-    parameter UPPER_PC_TABLE_ENTRIES = 8;
-    parameter UPPER_PC_WIDTH = 32 - BTB_TARGET_WIDTH - 1;
 
     // LHT:
         // using PC ^ ASID
@@ -89,6 +85,17 @@ package core_types_pkg;
     // RAS:
     parameter RAS_ENTRIES = 8;
     parameter RAS_TARGET_WIDTH = 32 - 1;
+
+    // UPCT:
+    parameter UPPER_PC_TABLE_ENTRIES = 8;
+    parameter UPPER_PC_WIDTH = 32 - BTB_TARGET_WIDTH - 1;
+
+    // MDPT:
+    parameter MDPT_ENTRIES = 256;
+    parameter MDPT_ENTRIES_PER_BLOCK = 4;
+    parameter LOG_MDPT_ENTRIES_PER_BLOCK = $clog2(MDPT_ENTRIES_PER_BLOCK);
+    parameter MDPT_SETS = MDPT_ENTRIES / MDPT_ENTRIES_PER_BLOCK;
+    parameter MDPT_INDEX_WIDTH = $clog2(MDPT_SETS);
 
 endpackage
 

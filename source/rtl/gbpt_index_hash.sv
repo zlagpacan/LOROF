@@ -12,7 +12,7 @@ module gbpt_index_hash (
     input logic [31:0] PC,
     input logic [GH_LENGTH-1:0] GH,
     input logic [ASID_WIDTH-1:0] ASID,
-    output logic [GBPT_INDEX_WIDTH-1:0] index
+    output logic [GBPT_INDEX_WIDTH+LOG_GBPT_ENTRIES_PER_BLOCK-1:0] index
 );
 
     logic [63:0] wide_PC;
@@ -23,7 +23,7 @@ module gbpt_index_hash (
         // include within-block indexing in hash
     // xor with ASID
     always_comb begin
-        index = wide_PC[GBPT_INDEX_WIDTH + 1 - 1 : 1];
+        index = wide_PC[GBPT_INDEX_WIDTH+LOG_GBPT_ENTRIES_PER_BLOCK + 1 - 1 : 1];
         index ^= GH;
         index ^= ASID;
     end

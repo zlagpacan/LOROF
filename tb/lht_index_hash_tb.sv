@@ -121,7 +121,7 @@ module lht_index_hash_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_PC = {
-            24'h0, // lower tag bits
+            23'h0, // untouched bits
             5'b00000, // set index
             3'h0, // within-block index
             1'b0 // 2B offset
@@ -148,7 +148,7 @@ module lht_index_hash_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_PC = {
-            24'h0, // lower tag bits
+            23'h0, // untouched bits
             5'b11111, // set index
             3'h0, // within-block index
             1'b0 // 2B offset
@@ -175,7 +175,7 @@ module lht_index_hash_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_PC = {
-            24'h0, // lower tag bits
+            23'h0, // untouched bits
             5'b00000, // set index
             3'h0, // within-block index
             1'b0 // 2B offset
@@ -202,7 +202,7 @@ module lht_index_hash_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_PC = {
-            24'h0, // lower tag bits
+            23'h0, // untouched bits
             5'b11111, // set index
             3'h0, // within-block index
             1'b0 // 2B offset

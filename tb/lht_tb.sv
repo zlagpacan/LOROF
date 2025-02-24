@@ -179,14 +179,14 @@ module lht_tb ();
 			// Update
 			tb_update0_valid = 1'b1;
 			tb_update0_start_full_PC = {
-				24'h0, // lower tag bits
+				23'h0, // untouched bits
 				i[7:3], // set index
 				i[2:0], // within-block index
 				1'b0 // 2B offset
 			};
 			tb_update0_ASID = {
 				4'h0, // untouched bit
-				i % 2 ? 5'b11111 : 5'b00000 // tag bits
+				i % 2 ? 5'b11111 : 5'b00000 // index bits
 			};
 			tb_update0_LH = i[7:0];
 
@@ -223,27 +223,27 @@ module lht_tb ();
 		// REQ stage
 		tb_valid_REQ = 1'b1;
 		tb_full_PC_REQ = {
-			24'h0, // lower tag bits
+			23'h0, // untouched bits
 			5'b00000, // set index
 			3'h0, // within-block index
 			1'b0 // 2B offset
 		};
 		tb_ASID_REQ = {
 			4'h0, // untouched bit
-			5'b00000 // tag bits
+			5'b00000 // index bits
 		};
 		// RESP stage
 		// Update
 		tb_update0_valid = 1'b0;
 		tb_update0_start_full_PC = {
-			24'h0, // lower tag bits
+			23'h0, // untouched bits
 			5'b00000, // set index
 			3'h0, // within-block index
 			1'b0 // 2B offset
 		};
 		tb_update0_ASID = {
 			4'h0, // untouched bit
-			5'b00000 // tag bits
+			5'b00000 // index bits
 		};
 		tb_update0_LH = 8'h0;
 
@@ -276,27 +276,27 @@ module lht_tb ();
 			// REQ stage
 			tb_valid_REQ = 1'b1;
 			tb_full_PC_REQ = {
-				24'h0, // lower tag bits
+				23'h0, // untouched bits
 				i[7:3], // set index
 				i[2:0], // within-block index
 				1'b0 // 2B offset
 			};
 			tb_ASID_REQ = {
 				4'h0, // untouched bit
-				5'b00000 // tag bits
+				5'b00000 // index bits
 			};
 			// RESP stage
 			// Update
 			tb_update0_valid = 1'b0;
 			tb_update0_start_full_PC = {
-				24'h0, // lower tag bits
+				23'h0, // untouched bits
 				5'b00000, // set index
 				3'h0, // within-block index
 				1'b0 // 2B offset
 			};
 			tb_update0_ASID = {
 				4'h0, // untouched bit
-				5'b00000 // tag bits
+				5'b00000 // index bits
 			};
 			tb_update0_LH = 8'h0;
 
@@ -336,27 +336,27 @@ module lht_tb ();
 		// REQ stage
 		tb_valid_REQ = 1'b0;
 		tb_full_PC_REQ = {
-			24'h0, // lower tag bits
+			23'h0, // untouched bits
 			5'b00000, // set index
 			3'h0, // within-block index
 			1'b0 // 2B offset
 		};
 		tb_ASID_REQ = {
 			4'h0, // untouched bit
-			5'b11111 // tag bits
+			5'b11111 // index bits
 		};
 		// RESP stage
 		// Update
 		tb_update0_valid = 1'b0;
 		tb_update0_start_full_PC = {
-			24'h0, // lower tag bits
+			23'h0, // untouched bits
 			5'b00000, // set index
 			3'h0, // within-block index
 			1'b0 // 2B offset
 		};
 		tb_update0_ASID = {
 			4'h0, // untouched bit
-			5'b00000 // tag bits
+			5'b00000 // index bits
 		};
 		tb_update0_LH = 8'h0;
 
@@ -401,27 +401,27 @@ module lht_tb ();
 		// REQ stage
 		tb_valid_REQ = 1'b1;
 		tb_full_PC_REQ = {
-			24'h0, // lower tag bits
+			23'h0, // untouched bits
 			5'b00000, // set index
 			3'h0, // within-block index
 			1'b0 // 2B offset
 		};
 		tb_ASID_REQ = {
 			4'h0, // untouched bit
-			5'b11111 // tag bits
+			5'b11111 // index bits
 		};
 		// RESP stage
 		// Update
 		tb_update0_valid = 1'b0;
 		tb_update0_start_full_PC = {
-			24'h0, // lower tag bits
+			23'h0, // untouched bits
 			5'b00000, // set index
 			3'h0, // within-block index
 			1'b0 // 2B offset
 		};
 		tb_update0_ASID = {
 			4'h0, // untouched bit
-			5'b00000 // tag bits
+			5'b00000 // index bits
 		};
 		tb_update0_LH = 8'h0;
 
@@ -463,27 +463,27 @@ module lht_tb ();
 			// REQ stage
 			tb_valid_REQ = 1'b1;
 			tb_full_PC_REQ = {
-				24'h0, // lower tag bits
+				23'h0, // untouched bits
 				i[7:3], // set index
 				i[2:0], // within-block index
 				1'b0 // 2B offset
 			};
 			tb_ASID_REQ = {
 				4'h0, // untouched bit
-				5'b11111 // tag bits
+				5'b11111 // index bits
 			};
 			// RESP stage
 			// Update
 			tb_update0_valid = 1'b0;
 			tb_update0_start_full_PC = {
-				24'h0, // lower tag bits
+				23'h0, // untouched bits
 				5'b00000, // set index
 				3'h0, // within-block index
 				1'b0 // 2B offset
 			};
 			tb_update0_ASID = {
 				4'h0, // untouched bit
-				5'b00000 // tag bits
+				5'b00000 // index bits
 			};
 			tb_update0_LH = 8'h0;
 
@@ -523,27 +523,27 @@ module lht_tb ();
 		// REQ stage
 		tb_valid_REQ = 1'b1;
 		tb_full_PC_REQ = {
-			24'h0, // lower tag bits
+			23'h0, // untouched bits
 			5'b00000, // set index
 			3'h0, // within-block index
 			1'b0 // 2B offset
 		};
 		tb_ASID_REQ = {
 			4'h0, // untouched bit
-			5'b11111 // tag bits
+			5'b11111 // index bits
 		};
 		// RESP stage
 		// Update
 		tb_update0_valid = 1'b0;
 		tb_update0_start_full_PC = {
-			24'h0, // lower tag bits
+			23'h0, // untouched bits
 			5'b00000, // set index
 			3'h0, // within-block index
 			1'b0 // 2B offset
 		};
 		tb_update0_ASID = {
 			4'h0, // untouched bit
-			5'b00000 // tag bits
+			5'b00000 // index bits
 		};
 		tb_update0_LH = 8'h0;
 

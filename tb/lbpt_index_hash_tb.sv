@@ -124,15 +124,211 @@ module lbpt_index_hash_tb ();
 
 		// reset
 		nRST = 1'b1;
-		tb_PC = 32'h0;
-		tb_LH = 8'h0;
-		tb_ASID = 9'h0;
+		tb_PC = {
+            23'h0, // untouched bits
+            8'b00000000, // index bits
+            1'b0 // 2B offset
+        };
+		tb_LH = 8'b00000000;
+		tb_ASID = {
+            1'b0, // untouched bit
+            8'b00000000 // index bits
+        };
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_index = 8'h0;
+		expected_index = 8'b00000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "0 ^ 0 ^ 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            23'h0, // untouched bits
+            8'b11111111, // index bits
+            1'b0 // 2B offset
+        };
+		tb_LH = 8'b00000000;
+		tb_ASID = {
+            1'b0, // untouched bit
+            8'b00000000 // index bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 8'b11111111;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "0 ^ 1 ^ 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            23'h0, // untouched bits
+            8'b00000000, // index bits
+            1'b0 // 2B offset
+        };
+		tb_LH = 8'b11111111;
+		tb_ASID = {
+            1'b0, // untouched bit
+            8'b00000000 // index bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 8'b11111111;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "0 ^ 1 ^ 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            23'h0, // untouched bits
+            8'b11111111, // index bits
+            1'b0 // 2B offset
+        };
+		tb_LH = 8'b11111111;
+		tb_ASID = {
+            1'b0, // untouched bit
+            8'b00000000 // index bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 8'b00000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1 ^ 0 ^ 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            23'h0, // untouched bits
+            8'b00000000, // index bits
+            1'b0 // 2B offset
+        };
+		tb_LH = 8'b00000000;
+		tb_ASID = {
+            1'b0, // untouched bit
+            8'b11111111 // index bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 8'b11111111;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1 ^ 0 ^ 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            23'h0, // untouched bits
+            8'b11111111, // index bits
+            1'b0 // 2B offset
+        };
+		tb_LH = 8'b00000000;
+		tb_ASID = {
+            1'b0, // untouched bit
+            8'b11111111 // index bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 8'b00000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1 ^ 1 ^ 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            23'h0, // untouched bits
+            8'b00000000, // index bits
+            1'b0 // 2B offset
+        };
+		tb_LH = 8'b11111111;
+		tb_ASID = {
+            1'b0, // untouched bit
+            8'b11111111 // index bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 8'b00000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1 ^ 1 ^ 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            23'h0, // untouched bits
+            8'b11111111, // index bits
+            1'b0 // 2B offset
+        };
+		tb_LH = 8'b11111111;
+		tb_ASID = {
+            1'b0, // untouched bit
+            8'b11111111 // index bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 8'b11111111;
 
 		check_outputs();
 
