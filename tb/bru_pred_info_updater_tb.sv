@@ -200,7 +200,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b01011000;
+		expected_updated_pred_info = 8'b01010000;
 
 		check_outputs();
 
@@ -256,7 +256,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b01111000;
+		expected_updated_pred_info = 8'b01110000;
 
 		check_outputs();
 
@@ -424,7 +424,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b01011000;
+		expected_updated_pred_info = 8'b01010000;
 
 		check_outputs();
 
@@ -480,7 +480,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b01011000;
+		expected_updated_pred_info = 8'b01010000;
 
 		check_outputs();
 

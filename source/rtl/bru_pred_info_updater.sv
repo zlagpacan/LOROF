@@ -55,73 +55,35 @@ module bru_pred_info_updater (
             // --------------------------------------------------------
             // jumps have unique static behavior regardless of start pred info
 
-            4'b0000: // JALR
+            4'b0000, 4'b0001: // JALR, C.JALR
             begin
                 updated_pred_info[7:6] = 2'b01;
-                if (is_ret_ra) begin
-                    updated_pred_info[5] = 1'b1;
-                    if (is_link_ra) updated_pred_info[4:3] = 2'b11;
-                    else            updated_pred_info[4:3] = 2'b00; // bit 3 is don't care
-                end else begin
-                    updated_pred_info[5] = 1'b0;
-                    if (is_link_ra) updated_pred_info[4:3] = 2'b11;
-                    else            updated_pred_info[4:3] = 2'b00; // bit 3 is don't care
-                end
-                updated_pred_info[2:0] = 3'b000; // don't care
+                updated_pred_info[5] = is_ret_ra; // can be ret
+                updated_pred_info[4] = is_link_ra; // can be link
+                updated_pred_info[3:0] = 4'b0000; // don't care
             end
 
-            4'b0001: // C.JALR
+            4'b0010, 4'b0011: // JAL, C.JAL
             begin
                 updated_pred_info[7:6] = 2'b01;
-                if (is_ret_ra) begin
-                    updated_pred_info[5] = 1'b1;
-                    if (is_link_ra) updated_pred_info[4:3] = 2'b10;
-                    else            updated_pred_info[4:3] = 2'b00; // bit 3 is don't care
-                end else begin
-                    updated_pred_info[5] = 1'b0;
-                    if (is_link_ra) updated_pred_info[4:3] = 2'b10;
-                    else            updated_pred_info[4:3] = 2'b00; // bit 3 is don't care
-                end
-                updated_pred_info[2:0] = 3'b000; // don't care
-            end
-
-            4'b0010: // JAL
-            begin
-                updated_pred_info[7:6] = 2'b01;
-                updated_pred_info[5] = 1'b0;
-                if (is_link_ra) updated_pred_info[4:3] = 2'b11;
-                else            updated_pred_info[4:3] = 2'b00; // bit 3 is don't care
-                updated_pred_info[2:0] = 3'b000; // don't care
-            end
-
-            4'b0011: // C.JAL
-            begin
-                updated_pred_info[7:6] = 2'b01;
-                updated_pred_info[5] = 1'b0;
-                if (is_link_ra) updated_pred_info[4:3] = 2'b10;
-                else            updated_pred_info[4:3] = 2'b00; // bit 3 is don't care
-                updated_pred_info[2:0] = 3'b000; // don't care
+                updated_pred_info[5] = 1'b0; // not ret
+                updated_pred_info[4] = is_link_ra; // can be link
+                updated_pred_info[3:0] = 4'b0000; // don't care
             end
 
             4'b0100: // C.J
             begin
                 updated_pred_info[7:6] = 2'b01;
-                updated_pred_info[5] = 1'b0;
-                updated_pred_info[4:0] = 2'b00; // bit 3 is don't care
-                updated_pred_info[2:0] = 3'b000; // don't care
+                updated_pred_info[5:4] = 2'b00; // not ret nor link
+                updated_pred_info[3:0] = 4'b0000; // don't care
             end
 
             4'b0101: // C.JR
             begin
                 updated_pred_info[7:6] = 2'b01;
-                if (is_ret_ra) begin
-                    updated_pred_info[5] = 1'b1;
-                    updated_pred_info[4:3] = 2'b00; // bit 3 is don't care
-                end else begin
-                    updated_pred_info[5] = 1'b0;
-                    updated_pred_info[4:3] = 2'b00; // bit 3 is don't care
-                end
-                updated_pred_info[2:0] = 3'b000; // don't care
+                updated_pred_info[5] = is_ret_ra; // can be ret
+                updated_pred_info[4] = 1'b0; // not link
+                updated_pred_info[3:0] = 4'b000; // don't care
             end
 
             4'b0110: // LUI
