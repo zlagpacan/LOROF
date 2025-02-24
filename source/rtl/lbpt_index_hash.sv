@@ -12,18 +12,18 @@ module lbpt_index_hash (
     input logic [31:0] PC,
     input logic [LH_LENGTH-1:0] LH,
     input logic [ASID_WIDTH-1:0] ASID,
-    output logic [LH_LENGTH-1:0] index
+    output logic [LBPT_INDEX_WIDTH-1:0] index
 );
 
     logic [63:0] wide_PC;
     
     assign wide_PC = PC;
     
-    // xor lowest LH_LENGTH PC bits with LH
+    // xor lowest LBPT_INDEX_WIDTH PC bits with LH
         // include within-block indexing in hash
     // xor with ASID
     always_comb begin
-        index = wide_PC[LH_LENGTH + 1 - 1 : 1];
+        index = wide_PC[LBPT_INDEX_WIDTH + 1 - 1 : 1];
         index ^= LH;
         index ^= ASID;
     end

@@ -107,7 +107,7 @@ module btb_tag_hash_tb ();
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
+        // simple chain:
         test_case = "simple chain";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;

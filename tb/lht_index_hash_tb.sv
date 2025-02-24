@@ -107,27 +107,116 @@ module lht_index_hash_tb ();
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // simple chain:
+        test_case = "simple chain";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "default";
+		sub_test_case = "0 ^ 0";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-		tb_PC = '0;
-		tb_ASID = '0;
+		tb_PC = {
+            24'h0, // lower tag bits
+            5'b00000, // set index
+            3'h0, // within-block index
+            1'b0 // 2B offset
+        };
+		tb_ASID = {
+            4'h0, // untouched bit
+            5'b00000 // tag bits
+        };
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_index = '0;
+		expected_index = 5'b00000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "0 ^ 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            24'h0, // lower tag bits
+            5'b11111, // set index
+            3'h0, // within-block index
+            1'b0 // 2B offset
+        };
+		tb_ASID = {
+            4'h0, // untouched bit
+            5'b00000 // tag bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 5'b11111;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1 ^ 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            24'h0, // lower tag bits
+            5'b00000, // set index
+            3'h0, // within-block index
+            1'b0 // 2B offset
+        };
+		tb_ASID = {
+            4'h0, // untouched bit
+            5'b11111 // tag bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 5'b11111;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1 ^ 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            24'h0, // lower tag bits
+            5'b11111, // set index
+            3'h0, // within-block index
+            1'b0 // 2B offset
+        };
+		tb_ASID = {
+            4'h0, // untouched bit
+            5'b11111 // tag bits
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 5'b00000;
 
 		check_outputs();
 
