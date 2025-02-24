@@ -111,15 +111,15 @@ module lbpt_index_hash_tb ();
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // simple chain:
+        test_case = "simple chain";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "default";
+		sub_test_case = "0 ^ 0 ^ 0";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
