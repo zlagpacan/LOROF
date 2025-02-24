@@ -111,28 +111,200 @@ module gbpt_index_hash_tb ();
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // simple chain:
+        test_case = "simple chain";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "default";
+		sub_test_case = "0 ^ 0 ^ 0";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-		tb_PC = 32'h0;
-		tb_GH = 12'h0;
-		tb_ASID = 9'h0;
+		tb_PC = {
+            19'h0, // untouched bits
+            12'b000000000000, // index bits
+            1'b0 // 2B offset
+        };
+		tb_GH = 12'b000000000000;
+		tb_ASID = 9'b000000000;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_index = 12'h0;
+		expected_index = 12'b000000000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "0 ^ 0 ^ 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            19'h0, // untouched bits
+            12'b111111111111, // index bits
+            1'b0 // 2B offset
+        };
+		tb_GH = 12'b000000000000;
+		tb_ASID = 9'b000000000;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 12'b111111111111;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "0 ^ 1 ^ 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            19'h0, // untouched bits
+            12'b000000000000, // index bits
+            1'b0 // 2B offset
+        };
+		tb_GH = 12'b111111111111;
+		tb_ASID = 9'b000000000;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 12'b111111111111;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "0 ^ 1 ^ 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            19'h0, // untouched bits
+            12'b111111111111, // index bits
+            1'b0 // 2B offset
+        };
+		tb_GH = 12'b111111111111;
+		tb_ASID = 9'b000000000;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 12'b000000000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1 ^ 0 ^ 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            19'h0, // untouched bits
+            12'b000000000000, // index bits
+            1'b0 // 2B offset
+        };
+		tb_GH = 12'b000000000000;
+		tb_ASID = 9'b111111111;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 12'b000111111111;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1 ^ 0 ^ 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            19'h0, // untouched bits
+            12'b111111111111, // index bits
+            1'b0 // 2B offset
+        };
+		tb_GH = 12'b000000000000;
+		tb_ASID = 9'b111111111;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 12'b111000000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1 ^ 1 ^ 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            19'h0, // untouched bits
+            12'b000000000000, // index bits
+            1'b0 // 2B offset
+        };
+		tb_GH = 12'b111111111111;
+		tb_ASID = 9'b111111111;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 12'b111000000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1 ^ 1 ^ 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_PC = {
+            19'h0, // untouched bits
+            12'b111111111111, // index bits
+            1'b0 // 2B offset
+        };
+		tb_GH = 12'b111111111111;
+		tb_ASID = 9'b111111111;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_index = 12'b000111111111;
 
 		check_outputs();
 
