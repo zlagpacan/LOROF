@@ -349,7 +349,7 @@ module bru_pipeline_tb ();
 		expected_branch_notif_is_out_of_range = 1'b0;
 		expected_branch_notif_updated_pred_info = 8'b01000000;
 		expected_branch_notif_pred_lru = 1'b0;
-		expected_branch_notif_start_PC = 32'h0;
+		expected_branch_notif_start_PC = 32'h2;
 		expected_branch_notif_target_PC = 32'h0;
 	    // branch notification backpressure from ROB
 
@@ -432,7 +432,7 @@ module bru_pipeline_tb ();
 		expected_branch_notif_is_out_of_range = 1'b0;
 		expected_branch_notif_updated_pred_info = 8'b01000000;
 		expected_branch_notif_pred_lru = 1'b0;
-		expected_branch_notif_start_PC = 32'h0;
+		expected_branch_notif_start_PC = 32'h2;
 		expected_branch_notif_target_PC = 32'h0;
 	    // branch notification backpressure from ROB
 
@@ -523,7 +523,7 @@ module bru_pipeline_tb ();
 		expected_branch_notif_is_out_of_range = 1'b0;
 		expected_branch_notif_updated_pred_info = 8'b01000000;
 		expected_branch_notif_pred_lru = 1'b0;
-		expected_branch_notif_start_PC = 32'h0;
+		expected_branch_notif_start_PC = 32'h2;
 		expected_branch_notif_target_PC = 32'h0;
 	    // branch notification backpressure from ROB
 
