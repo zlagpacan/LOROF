@@ -488,7 +488,7 @@ module bru_pipeline (
                 next_target_PC_EX2 = PC_plus_imm32_EX1;
                 next_is_taken_EX2 = 1'b1;
                 next_start_PC_EX2 = PC_plus_2_EX1;
-                next_write_data_EX2 = PC_plus_4_EX1; // don't care
+                next_write_data_EX2 = PC_plus_4_EX1;
             end
 
             4'b0011: // C.JAL
