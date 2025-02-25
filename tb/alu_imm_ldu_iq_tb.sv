@@ -40,6 +40,7 @@ module alu_imm_ldu_iq_tb ();
 	logic [3:0][11:0] tb_dispatch_imm12_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_A_PR_by_way;
 	logic [3:0] tb_dispatch_A_ready_by_way;
+	logic [3:0] tb_dispatch_A_is_zero_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_dest_PR_by_way;
 	logic [3:0][LOG_ROB_ENTRIES-1:0] tb_dispatch_ROB_index_by_way;
 
@@ -59,6 +60,7 @@ module alu_imm_ldu_iq_tb ();
 	logic [3:0] DUT_issue_alu_imm_op, expected_issue_alu_imm_op;
 	logic [11:0] DUT_issue_alu_imm_imm12, expected_issue_alu_imm_imm12;
 	logic DUT_issue_alu_imm_A_forward, expected_issue_alu_imm_A_forward;
+	logic DUT_issue_alu_imm_A_is_zero, expected_issue_alu_imm_A_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_alu_imm_A_bank, expected_issue_alu_imm_A_bank;
 	logic [LOG_PR_COUNT-1:0] DUT_issue_alu_imm_dest_PR, expected_issue_alu_imm_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_issue_alu_imm_ROB_index, expected_issue_alu_imm_ROB_index;
@@ -72,6 +74,7 @@ module alu_imm_ldu_iq_tb ();
 	logic [3:0] DUT_issue_ldu_op, expected_issue_ldu_op;
 	logic [11:0] DUT_issue_ldu_imm12, expected_issue_ldu_imm12;
 	logic DUT_issue_ldu_A_forward, expected_issue_ldu_A_forward;
+	logic DUT_issue_ldu_A_is_zero, expected_issue_ldu_A_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_ldu_A_bank, expected_issue_ldu_A_bank;
 	logic [LOG_PR_COUNT-1:0] DUT_issue_ldu_dest_PR, expected_issue_ldu_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_issue_ldu_ROB_index, expected_issue_ldu_ROB_index;
@@ -98,6 +101,7 @@ module alu_imm_ldu_iq_tb ();
 		.dispatch_imm12_by_way(tb_dispatch_imm12_by_way),
 		.dispatch_A_PR_by_way(tb_dispatch_A_PR_by_way),
 		.dispatch_A_ready_by_way(tb_dispatch_A_ready_by_way),
+		.dispatch_A_is_zero_by_way(tb_dispatch_A_is_zero_by_way),
 		.dispatch_dest_PR_by_way(tb_dispatch_dest_PR_by_way),
 		.dispatch_ROB_index_by_way(tb_dispatch_ROB_index_by_way),
 
@@ -117,6 +121,7 @@ module alu_imm_ldu_iq_tb ();
 		.issue_alu_imm_op(DUT_issue_alu_imm_op),
 		.issue_alu_imm_imm12(DUT_issue_alu_imm_imm12),
 		.issue_alu_imm_A_forward(DUT_issue_alu_imm_A_forward),
+		.issue_alu_imm_A_is_zero(DUT_issue_alu_imm_A_is_zero),
 		.issue_alu_imm_A_bank(DUT_issue_alu_imm_A_bank),
 		.issue_alu_imm_dest_PR(DUT_issue_alu_imm_dest_PR),
 		.issue_alu_imm_ROB_index(DUT_issue_alu_imm_ROB_index),
@@ -130,6 +135,7 @@ module alu_imm_ldu_iq_tb ();
 		.issue_ldu_op(DUT_issue_ldu_op),
 		.issue_ldu_imm12(DUT_issue_ldu_imm12),
 		.issue_ldu_A_forward(DUT_issue_ldu_A_forward),
+		.issue_ldu_A_is_zero(DUT_issue_ldu_A_is_zero),
 		.issue_ldu_A_bank(DUT_issue_ldu_A_bank),
 		.issue_ldu_dest_PR(DUT_issue_ldu_dest_PR),
 		.issue_ldu_ROB_index(DUT_issue_ldu_ROB_index),
@@ -175,6 +181,13 @@ module alu_imm_ldu_iq_tb ();
 		if (expected_issue_alu_imm_A_forward !== DUT_issue_alu_imm_A_forward) begin
 			$display("TB ERROR: expected_issue_alu_imm_A_forward (%h) != DUT_issue_alu_imm_A_forward (%h)",
 				expected_issue_alu_imm_A_forward, DUT_issue_alu_imm_A_forward);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_alu_imm_A_is_zero !== DUT_issue_alu_imm_A_is_zero) begin
+			$display("TB ERROR: expected_issue_alu_imm_A_is_zero (%h) != DUT_issue_alu_imm_A_is_zero (%h)",
+				expected_issue_alu_imm_A_is_zero, DUT_issue_alu_imm_A_is_zero);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -238,6 +251,13 @@ module alu_imm_ldu_iq_tb ();
 		if (expected_issue_ldu_A_forward !== DUT_issue_ldu_A_forward) begin
 			$display("TB ERROR: expected_issue_ldu_A_forward (%h) != DUT_issue_ldu_A_forward (%h)",
 				expected_issue_ldu_A_forward, DUT_issue_ldu_A_forward);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_ldu_A_is_zero !== DUT_issue_ldu_A_is_zero) begin
+			$display("TB ERROR: expected_issue_ldu_A_is_zero (%h) != DUT_issue_ldu_A_is_zero (%h)",
+				expected_issue_ldu_A_is_zero, DUT_issue_ldu_A_is_zero);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -307,6 +327,7 @@ module alu_imm_ldu_iq_tb ();
 		tb_dispatch_imm12_by_way = '0;
 		tb_dispatch_A_PR_by_way = '0;
 		tb_dispatch_A_ready_by_way = '0;
+		tb_dispatch_A_is_zero_by_way = '0;
 		tb_dispatch_dest_PR_by_way = '0;
 		tb_dispatch_ROB_index_by_way = '0;
 	    // op dispatch feedback
@@ -335,6 +356,7 @@ module alu_imm_ldu_iq_tb ();
 		expected_issue_alu_imm_op = '0;
 		expected_issue_alu_imm_imm12 = '0;
 		expected_issue_alu_imm_A_forward = '0;
+		expected_issue_alu_imm_A_is_zero = '0;
 		expected_issue_alu_imm_A_bank = '0;
 		expected_issue_alu_imm_dest_PR = '0;
 		expected_issue_alu_imm_ROB_index = '0;
@@ -346,6 +368,7 @@ module alu_imm_ldu_iq_tb ();
 		expected_issue_ldu_op = '0;
 		expected_issue_ldu_imm12 = '0;
 		expected_issue_ldu_A_forward = '0;
+		expected_issue_ldu_A_is_zero = '0;
 		expected_issue_ldu_A_bank = '0;
 		expected_issue_ldu_dest_PR = '0;
 		expected_issue_ldu_ROB_index = '0;
@@ -369,6 +392,7 @@ module alu_imm_ldu_iq_tb ();
 		tb_dispatch_imm12_by_way = '0;
 		tb_dispatch_A_PR_by_way = '0;
 		tb_dispatch_A_ready_by_way = '0;
+		tb_dispatch_A_is_zero_by_way = '0;
 		tb_dispatch_dest_PR_by_way = '0;
 		tb_dispatch_ROB_index_by_way = '0;
 	    // op dispatch feedback
@@ -397,6 +421,7 @@ module alu_imm_ldu_iq_tb ();
 		expected_issue_alu_imm_op = '0;
 		expected_issue_alu_imm_imm12 = '0;
 		expected_issue_alu_imm_A_forward = '0;
+		expected_issue_alu_imm_A_is_zero = '0;
 		expected_issue_alu_imm_A_bank = '0;
 		expected_issue_alu_imm_dest_PR = '0;
 		expected_issue_alu_imm_ROB_index = '0;
@@ -408,6 +433,7 @@ module alu_imm_ldu_iq_tb ();
 		expected_issue_ldu_op = '0;
 		expected_issue_ldu_imm12 = '0;
 		expected_issue_ldu_A_forward = '0;
+		expected_issue_ldu_A_is_zero = '0;
 		expected_issue_ldu_A_bank = '0;
 		expected_issue_ldu_dest_PR = '0;
 		expected_issue_ldu_ROB_index = '0;
@@ -439,13 +465,14 @@ module alu_imm_ldu_iq_tb ();
 		tb_dispatch_imm12_by_way = '0;
 		tb_dispatch_A_PR_by_way = '0;
 		tb_dispatch_A_ready_by_way = '0;
+		tb_dispatch_A_is_zero_by_way = '0;
 		tb_dispatch_dest_PR_by_way = '0;
 		tb_dispatch_ROB_index_by_way = '0;
 	    // op dispatch feedback
 	    // pipeline feedback
 		tb_alu_imm_pipeline_ready = 1'b1;
 		tb_ldu_pipeline_ready = 1'b1;
-		// writeback bus by bank
+	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = '0;
 		tb_WB_bus_upper_PR_by_bank = '0;
 	    // op issue to ALU Reg-Imm Pipeline
@@ -467,6 +494,7 @@ module alu_imm_ldu_iq_tb ();
 		expected_issue_alu_imm_op = '0;
 		expected_issue_alu_imm_imm12 = '0;
 		expected_issue_alu_imm_A_forward = '0;
+		expected_issue_alu_imm_A_is_zero = '0;
 		expected_issue_alu_imm_A_bank = '0;
 		expected_issue_alu_imm_dest_PR = '0;
 		expected_issue_alu_imm_ROB_index = '0;
@@ -478,6 +506,7 @@ module alu_imm_ldu_iq_tb ();
 		expected_issue_ldu_op = '0;
 		expected_issue_ldu_imm12 = '0;
 		expected_issue_ldu_A_forward = '0;
+		expected_issue_ldu_A_is_zero = '0;
 		expected_issue_ldu_A_bank = '0;
 		expected_issue_ldu_dest_PR = '0;
 		expected_issue_ldu_ROB_index = '0;
