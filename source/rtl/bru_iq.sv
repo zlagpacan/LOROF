@@ -9,7 +9,7 @@
 import core_types_pkg::*;
 
 module bru_iq #(
-    parameter BRU_IQ_ENTRIES = 6
+    parameter BRU_IQ_ENTRIES = 4
 ) (
 
     // seq
