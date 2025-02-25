@@ -43,10 +43,10 @@ module bru_pipeline_tb ();
 	logic [31:0] tb_issue_PC;
 	logic [31:0] tb_issue_pred_PC;
 	logic [19:0] tb_issue_imm20;
-	logic tb_issue_A_unneeded;
+	logic tb_issue_A_unneeded_or_is_zero;
 	logic tb_issue_A_forward;
 	logic [LOG_PRF_BANK_COUNT-1:0] tb_issue_A_bank;
-	logic tb_issue_B_unneeded;
+	logic tb_issue_B_unneeded_or_is_zero;
 	logic tb_issue_B_forward;
 	logic [LOG_PRF_BANK_COUNT-1:0] tb_issue_B_bank;
 	logic [LOG_PR_COUNT-1:0] tb_issue_dest_PR;
@@ -107,10 +107,10 @@ module bru_pipeline_tb ();
 		.issue_PC(tb_issue_PC),
 		.issue_pred_PC(tb_issue_pred_PC),
 		.issue_imm20(tb_issue_imm20),
-		.issue_A_unneeded(tb_issue_A_unneeded),
+		.issue_A_unneeded_or_is_zero(tb_issue_A_unneeded_or_is_zero),
 		.issue_A_forward(tb_issue_A_forward),
 		.issue_A_bank(tb_issue_A_bank),
-		.issue_B_unneeded(tb_issue_B_unneeded),
+		.issue_B_unneeded_or_is_zero(tb_issue_B_unneeded_or_is_zero),
 		.issue_B_forward(tb_issue_B_forward),
 		.issue_B_bank(tb_issue_B_bank),
 		.issue_dest_PR(tb_issue_dest_PR),
@@ -288,10 +288,10 @@ module bru_pipeline_tb ();
 		tb_issue_PC = 32'h0;
 		tb_issue_pred_PC = 32'h0;
 		tb_issue_imm20 = 20'h0;
-		tb_issue_A_unneeded = 1'b0;
+		tb_issue_A_unneeded_or_is_zero = 1'b0;
 		tb_issue_A_forward = 1'b0;
 		tb_issue_A_bank = 2'h0;
-		tb_issue_B_unneeded = 1'b0;
+		tb_issue_B_unneeded_or_is_zero = 1'b0;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h0;
 		tb_issue_dest_PR = 7'h0;
@@ -371,10 +371,10 @@ module bru_pipeline_tb ();
 		tb_issue_PC = 32'h0;
 		tb_issue_pred_PC = 32'h0;
 		tb_issue_imm20 = 20'h0;
-		tb_issue_A_unneeded = 1'b0;
+		tb_issue_A_unneeded_or_is_zero = 1'b0;
 		tb_issue_A_forward = 1'b0;
 		tb_issue_A_bank = 2'h0;
-		tb_issue_B_unneeded = 1'b0;
+		tb_issue_B_unneeded_or_is_zero = 1'b0;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h0;
 		tb_issue_dest_PR = 7'h0;
@@ -462,10 +462,10 @@ module bru_pipeline_tb ();
 		tb_issue_PC = 32'h0;
 		tb_issue_pred_PC = 32'h0;
 		tb_issue_imm20 = 20'h0;
-		tb_issue_A_unneeded = 1'b0;
+		tb_issue_A_unneeded_or_is_zero = 1'b0;
 		tb_issue_A_forward = 1'b0;
 		tb_issue_A_bank = 2'h0;
-		tb_issue_B_unneeded = 1'b0;
+		tb_issue_B_unneeded_or_is_zero = 1'b0;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h0;
 		tb_issue_dest_PR = 7'h0;

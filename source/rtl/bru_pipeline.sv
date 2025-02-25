@@ -24,10 +24,10 @@ module bru_pipeline (
     input logic [31:0]                      issue_PC,
     input logic [31:0]                      issue_pred_PC,
     input logic [19:0]                      issue_imm20,
-    input logic                             issue_A_unneeded,
+    input logic                             issue_A_unneeded_or_is_zero,
     input logic                             issue_A_forward,
     input logic [LOG_PRF_BANK_COUNT-1:0]    issue_A_bank,
-    input logic                             issue_B_unneeded,
+    input logic                             issue_B_unneeded_or_is_zero,
     input logic                             issue_B_forward,
     input logic [LOG_PRF_BANK_COUNT-1:0]    issue_B_bank,
     input logic [LOG_PR_COUNT-1:0]          issue_dest_PR,
@@ -91,11 +91,11 @@ module bru_pipeline (
     logic [31:0]                        pred_PC_OC;
     logic [19:0]                        imm20_OC;
     logic                               A_saved_OC;
-    logic                               A_unneeded_OC;
+    logic                               A_unneeded_or_is_zero_OC;
     logic                               A_forward_OC;
     logic [LOG_PRF_BANK_COUNT-1:0]      A_bank_OC;
     logic                               B_saved_OC;
-    logic                               B_unneeded_OC;
+    logic                               B_unneeded_or_is_zero_OC;
     logic                               B_forward_OC;
     logic [LOG_PRF_BANK_COUNT-1:0]      B_bank_OC;
     logic [LOG_PR_COUNT-1:0]            dest_PR_OC;
@@ -221,12 +221,12 @@ module bru_pipeline (
             pred_PC_OC <= 32'h0;
             imm20_OC <= 20'h0;
             A_saved_OC <= 1'b0;
-            A_unneeded_OC <= 1'b0;
+            A_unneeded_or_is_zero_OC <= 1'b0;
             A_forward_OC <= 1'b0;
             A_bank_OC <= 2'h0;
             A_saved_data_OC <= 32'h0;
             B_saved_OC <= 1'b0;
-            B_unneeded_OC <= 1'b0;
+            B_unneeded_or_is_zero_OC <= 1'b0;
             B_forward_OC <= 1'b0;
             B_bank_OC <= 2'h0;
             B_saved_data_OC <= 32'h0;
@@ -245,12 +245,12 @@ module bru_pipeline (
             pred_PC_OC <= pred_PC_OC;
             imm20_OC <= imm20_OC;
             A_saved_OC <= A_saved_OC | A_forward_OC | A_reg_read_ack;
-            A_unneeded_OC <= A_unneeded_OC;
+            A_unneeded_or_is_zero_OC <= A_unneeded_or_is_zero_OC;
             A_forward_OC <= 1'b0;
             A_bank_OC <= A_bank_OC;
             A_saved_data_OC <= next_A_EX1;
             B_saved_OC <= B_saved_OC | B_forward_OC | B_reg_read_ack;
-            B_unneeded_OC <= B_unneeded_OC;
+            B_unneeded_or_is_zero_OC <= B_unneeded_or_is_zero_OC;
             B_forward_OC <= 1'b0;
             B_bank_OC <= B_bank_OC;
             B_saved_data_OC <= next_B_EX1;
@@ -269,12 +269,12 @@ module bru_pipeline (
             pred_PC_OC <= issue_pred_PC;
             imm20_OC <= issue_imm20;
             A_saved_OC <= 1'b0;
-            A_unneeded_OC <= issue_A_unneeded;
+            A_unneeded_or_is_zero_OC <= issue_A_unneeded_or_is_zero;
             A_forward_OC <= issue_A_forward;
             A_bank_OC <= issue_A_bank;
             A_saved_data_OC <= next_A_EX1;
             B_saved_OC <= 1'b0;
-            B_unneeded_OC <= issue_B_unneeded;
+            B_unneeded_or_is_zero_OC <= issue_B_unneeded_or_is_zero;
             B_forward_OC <= issue_B_forward;
             B_bank_OC <= issue_B_bank;
             B_saved_data_OC <= next_B_EX1;
@@ -288,10 +288,10 @@ module bru_pipeline (
         ~stall_OC
         &
         // A operand present
-        (A_unneeded_OC | A_saved_OC | A_forward_OC | A_reg_read_ack)
+        (A_unneeded_or_is_zero_OC | A_saved_OC | A_forward_OC | A_reg_read_ack)
         &
         // B operand present
-        (B_unneeded_OC | B_saved_OC | B_forward_OC | B_reg_read_ack)
+        (B_unneeded_or_is_zero_OC | B_saved_OC | B_forward_OC | B_reg_read_ack)
     ;
     assign issue_ready = ~valid_OC | launch_ready_OC;
 
@@ -310,7 +310,10 @@ module bru_pipeline (
     always_comb begin
 
         // collect A value to save OR pass to EX1
-        if (A_saved_OC) begin
+        if (A_unneeded_or_is_zero_OC) begin
+            next_A_EX1 = 32'h0;
+        end
+        else if (A_saved_OC) begin
             next_A_EX1 = A_saved_data_OC;
         end
         else if (A_forward_OC) begin
@@ -321,7 +324,10 @@ module bru_pipeline (
         end
 
         // collect B value to save OR pass to EX1
-        if (B_saved_OC) begin
+        if (B_unneeded_or_is_zero_OC) begin
+            next_B_EX1 = 32'h0;
+        end
+        else if (B_saved_OC) begin
             next_B_EX1 = B_saved_data_OC;
         end
         else if (B_forward_OC) begin

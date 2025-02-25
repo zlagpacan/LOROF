@@ -45,10 +45,10 @@ module bru_iq_tb ();
 	logic [3:0][31:0] tb_dispatch_pred_PC_by_way;
 	logic [3:0][19:0] tb_dispatch_imm20_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_A_PR_by_way;
-	logic [3:0] tb_dispatch_A_unneeded_by_way;
+	logic [3:0] tb_dispatch_A_unneeded_or_is_zero_by_way;
 	logic [3:0] tb_dispatch_A_ready_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_B_PR_by_way;
-	logic [3:0] tb_dispatch_B_unneeded_by_way;
+	logic [3:0] tb_dispatch_B_unneeded_or_is_zero_by_way;
 	logic [3:0] tb_dispatch_B_ready_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_dest_PR_by_way;
 	logic [3:0][LOG_ROB_ENTRIES-1:0] tb_dispatch_ROB_index_by_way;
@@ -73,10 +73,10 @@ module bru_iq_tb ();
 	logic [31:0] DUT_issue_PC, expected_issue_PC;
 	logic [31:0] DUT_issue_pred_PC, expected_issue_pred_PC;
 	logic [19:0] DUT_issue_imm20, expected_issue_imm20;
-	logic DUT_issue_A_unneeded, expected_issue_A_unneeded;
+	logic DUT_issue_A_unneeded_or_is_zero, expected_issue_A_unneeded_or_is_zero;
 	logic DUT_issue_A_forward, expected_issue_A_forward;
 	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_A_bank, expected_issue_A_bank;
-	logic DUT_issue_B_unneeded, expected_issue_B_unneeded;
+	logic DUT_issue_B_unneeded_or_is_zero, expected_issue_B_unneeded_or_is_zero;
 	logic DUT_issue_B_forward, expected_issue_B_forward;
 	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_B_bank, expected_issue_B_bank;
 	logic [LOG_PR_COUNT-1:0] DUT_issue_dest_PR, expected_issue_dest_PR;
@@ -92,7 +92,7 @@ module bru_iq_tb ();
     // DUT instantiation:
 
 	bru_iq #(
-		.BRU_IQ_ENTRIES(6)	
+		.BRU_IQ_ENTRIES(4)	
 	) DUT (
 		// seq
 		.CLK(CLK),
@@ -111,10 +111,10 @@ module bru_iq_tb ();
 		.dispatch_pred_PC_by_way(tb_dispatch_pred_PC_by_way),
 		.dispatch_imm20_by_way(tb_dispatch_imm20_by_way),
 		.dispatch_A_PR_by_way(tb_dispatch_A_PR_by_way),
-		.dispatch_A_unneeded_by_way(tb_dispatch_A_unneeded_by_way),
+		.dispatch_A_unneeded_or_is_zero_by_way(tb_dispatch_A_unneeded_or_is_zero_by_way),
 		.dispatch_A_ready_by_way(tb_dispatch_A_ready_by_way),
 		.dispatch_B_PR_by_way(tb_dispatch_B_PR_by_way),
-		.dispatch_B_unneeded_by_way(tb_dispatch_B_unneeded_by_way),
+		.dispatch_B_unneeded_or_is_zero_by_way(tb_dispatch_B_unneeded_or_is_zero_by_way),
 		.dispatch_B_ready_by_way(tb_dispatch_B_ready_by_way),
 		.dispatch_dest_PR_by_way(tb_dispatch_dest_PR_by_way),
 		.dispatch_ROB_index_by_way(tb_dispatch_ROB_index_by_way),
@@ -139,10 +139,10 @@ module bru_iq_tb ();
 		.issue_PC(DUT_issue_PC),
 		.issue_pred_PC(DUT_issue_pred_PC),
 		.issue_imm20(DUT_issue_imm20),
-		.issue_A_unneeded(DUT_issue_A_unneeded),
+		.issue_A_unneeded_or_is_zero(DUT_issue_A_unneeded_or_is_zero),
 		.issue_A_forward(DUT_issue_A_forward),
 		.issue_A_bank(DUT_issue_A_bank),
-		.issue_B_unneeded(DUT_issue_B_unneeded),
+		.issue_B_unneeded_or_is_zero(DUT_issue_B_unneeded_or_is_zero),
 		.issue_B_forward(DUT_issue_B_forward),
 		.issue_B_bank(DUT_issue_B_bank),
 		.issue_dest_PR(DUT_issue_dest_PR),
@@ -230,9 +230,9 @@ module bru_iq_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_A_unneeded !== DUT_issue_A_unneeded) begin
-			$display("TB ERROR: expected_issue_A_unneeded (%h) != DUT_issue_A_unneeded (%h)",
-				expected_issue_A_unneeded, DUT_issue_A_unneeded);
+		if (expected_issue_A_unneeded_or_is_zero !== DUT_issue_A_unneeded_or_is_zero) begin
+			$display("TB ERROR: expected_issue_A_unneeded_or_is_zero (%h) != DUT_issue_A_unneeded_or_is_zero (%h)",
+				expected_issue_A_unneeded_or_is_zero, DUT_issue_A_unneeded_or_is_zero);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -251,9 +251,9 @@ module bru_iq_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_B_unneeded !== DUT_issue_B_unneeded) begin
-			$display("TB ERROR: expected_issue_B_unneeded (%h) != DUT_issue_B_unneeded (%h)",
-				expected_issue_B_unneeded, DUT_issue_B_unneeded);
+		if (expected_issue_B_unneeded_or_is_zero !== DUT_issue_B_unneeded_or_is_zero) begin
+			$display("TB ERROR: expected_issue_B_unneeded_or_is_zero (%h) != DUT_issue_B_unneeded_or_is_zero (%h)",
+				expected_issue_B_unneeded_or_is_zero, DUT_issue_B_unneeded_or_is_zero);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -348,10 +348,10 @@ module bru_iq_tb ();
 		tb_dispatch_pred_PC_by_way = '0;
 		tb_dispatch_imm20_by_way = '0;
 		tb_dispatch_A_PR_by_way = '0;
-		tb_dispatch_A_unneeded_by_way = '0;
+		tb_dispatch_A_unneeded_or_is_zero_by_way = '0;
 		tb_dispatch_A_ready_by_way = '0;
 		tb_dispatch_B_PR_by_way = '0;
-		tb_dispatch_B_unneeded_by_way = '0;
+		tb_dispatch_B_unneeded_or_is_zero_by_way = '0;
 		tb_dispatch_B_ready_by_way = '0;
 		tb_dispatch_dest_PR_by_way = '0;
 		tb_dispatch_ROB_index_by_way = '0;
@@ -383,10 +383,10 @@ module bru_iq_tb ();
 		expected_issue_PC = '0;
 		expected_issue_pred_PC = '0;
 		expected_issue_imm20 = '0;
-		expected_issue_A_unneeded = '0;
+		expected_issue_A_unneeded_or_is_zero = '0;
 		expected_issue_A_forward = '0;
 		expected_issue_A_bank = '0;
-		expected_issue_B_unneeded = '0;
+		expected_issue_B_unneeded_or_is_zero = '0;
 		expected_issue_B_forward = '0;
 		expected_issue_B_bank = '0;
 		expected_issue_dest_PR = '0;
@@ -417,10 +417,10 @@ module bru_iq_tb ();
 		tb_dispatch_pred_PC_by_way = '0;
 		tb_dispatch_imm20_by_way = '0;
 		tb_dispatch_A_PR_by_way = '0;
-		tb_dispatch_A_unneeded_by_way = '0;
+		tb_dispatch_A_unneeded_or_is_zero_by_way = '0;
 		tb_dispatch_A_ready_by_way = '0;
 		tb_dispatch_B_PR_by_way = '0;
-		tb_dispatch_B_unneeded_by_way = '0;
+		tb_dispatch_B_unneeded_or_is_zero_by_way = '0;
 		tb_dispatch_B_ready_by_way = '0;
 		tb_dispatch_dest_PR_by_way = '0;
 		tb_dispatch_ROB_index_by_way = '0;
@@ -452,10 +452,10 @@ module bru_iq_tb ();
 		expected_issue_PC = '0;
 		expected_issue_pred_PC = '0;
 		expected_issue_imm20 = '0;
-		expected_issue_A_unneeded = '0;
+		expected_issue_A_unneeded_or_is_zero = '0;
 		expected_issue_A_forward = '0;
 		expected_issue_A_bank = '0;
-		expected_issue_B_unneeded = '0;
+		expected_issue_B_unneeded_or_is_zero = '0;
 		expected_issue_B_forward = '0;
 		expected_issue_B_bank = '0;
 		expected_issue_dest_PR = '0;
@@ -494,10 +494,10 @@ module bru_iq_tb ();
 		tb_dispatch_pred_PC_by_way = '0;
 		tb_dispatch_imm20_by_way = '0;
 		tb_dispatch_A_PR_by_way = '0;
-		tb_dispatch_A_unneeded_by_way = '0;
+		tb_dispatch_A_unneeded_or_is_zero_by_way = '0;
 		tb_dispatch_A_ready_by_way = '0;
 		tb_dispatch_B_PR_by_way = '0;
-		tb_dispatch_B_unneeded_by_way = '0;
+		tb_dispatch_B_unneeded_or_is_zero_by_way = '0;
 		tb_dispatch_B_ready_by_way = '0;
 		tb_dispatch_dest_PR_by_way = '0;
 		tb_dispatch_ROB_index_by_way = '0;
@@ -529,10 +529,10 @@ module bru_iq_tb ();
 		expected_issue_PC = '0;
 		expected_issue_pred_PC = '0;
 		expected_issue_imm20 = '0;
-		expected_issue_A_unneeded = '0;
+		expected_issue_A_unneeded_or_is_zero = '0;
 		expected_issue_A_forward = '0;
 		expected_issue_A_bank = '0;
-		expected_issue_B_unneeded = '0;
+		expected_issue_B_unneeded_or_is_zero = '0;
 		expected_issue_B_forward = '0;
 		expected_issue_B_bank = '0;
 		expected_issue_dest_PR = '0;

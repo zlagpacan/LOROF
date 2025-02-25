@@ -28,10 +28,10 @@ module bru_iq #(
     input logic [3:0][31:0]                     dispatch_pred_PC_by_way,
     input logic [3:0][19:0]                     dispatch_imm20_by_way,
     input logic [3:0][LOG_PR_COUNT-1:0]         dispatch_A_PR_by_way,
-    input logic [3:0]                           dispatch_A_unneeded_by_way,
+    input logic [3:0]                           dispatch_A_unneeded_or_is_zero_by_way,
     input logic [3:0]                           dispatch_A_ready_by_way,
     input logic [3:0][LOG_PR_COUNT-1:0]         dispatch_B_PR_by_way,
-    input logic [3:0]                           dispatch_B_unneeded_by_way,
+    input logic [3:0]                           dispatch_B_unneeded_or_is_zero_by_way,
     input logic [3:0]                           dispatch_B_ready_by_way,
     input logic [3:0][LOG_PR_COUNT-1:0]         dispatch_dest_PR_by_way,
     input logic [3:0][LOG_ROB_ENTRIES-1:0]      dispatch_ROB_index_by_way,
@@ -56,10 +56,10 @@ module bru_iq #(
     output logic [31:0]                     issue_PC,
     output logic [31:0]                     issue_pred_PC,
     output logic [19:0]                     issue_imm20,
-    output logic                            issue_A_unneeded,
+    output logic                            issue_A_unneeded_or_is_zero,
     output logic                            issue_A_forward,
     output logic [LOG_PRF_BANK_COUNT-1:0]   issue_A_bank,
-    output logic                            issue_B_unneeded,
+    output logic                            issue_B_unneeded_or_is_zero,
     output logic                            issue_B_forward,
     output logic [LOG_PRF_BANK_COUNT-1:0]   issue_B_bank,
     output logic [LOG_PR_COUNT-1:0]         issue_dest_PR,
@@ -87,10 +87,10 @@ module bru_iq #(
     logic [BRU_IQ_ENTRIES-1:0][31:0]                        pred_PC_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][19:0]                        imm20_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            A_PR_by_entry;
-    logic [BRU_IQ_ENTRIES-1:0]                              A_unneeded_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]                              A_unneeded_or_is_zero_by_entry;
     logic [BRU_IQ_ENTRIES-1:0]                              A_ready_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            B_PR_by_entry;
-    logic [BRU_IQ_ENTRIES-1:0]                              B_unneeded_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]                              B_unneeded_or_is_zero_by_entry;
     logic [BRU_IQ_ENTRIES-1:0]                              B_ready_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            dest_PR_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][LOG_ROB_ENTRIES-1:0]         ROB_index_by_entry;
@@ -114,10 +114,10 @@ module bru_iq #(
     logic [BRU_IQ_ENTRIES-1:0][31:0]                        dispatch_pred_PC_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][19:0]                        dispatch_imm20_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            dispatch_A_PR_by_entry;
-    logic [BRU_IQ_ENTRIES-1:0]                              dispatch_A_unneeded_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]                              dispatch_A_unneeded_or_is_zero_by_entry;
     logic [BRU_IQ_ENTRIES-1:0]                              dispatch_A_ready_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            dispatch_B_PR_by_entry;
-    logic [BRU_IQ_ENTRIES-1:0]                              dispatch_B_unneeded_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]                              dispatch_B_unneeded_or_is_zero_by_entry;
     logic [BRU_IQ_ENTRIES-1:0]                              dispatch_B_ready_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            dispatch_dest_PR_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][LOG_ROB_ENTRIES-1:0]         dispatch_ROB_index_by_entry;
@@ -144,9 +144,9 @@ module bru_iq #(
         &
         valid_by_entry
         &
-        (A_unneeded_by_entry | A_ready_by_entry | A_forward_by_entry)
+        (A_unneeded_or_is_zero_by_entry | A_ready_by_entry | A_forward_by_entry)
         &
-        (B_unneeded_by_entry | B_ready_by_entry | B_forward_by_entry)
+        (B_unneeded_or_is_zero_by_entry | B_ready_by_entry | B_forward_by_entry)
     ;
 
     // pq
@@ -171,10 +171,10 @@ module bru_iq #(
         issue_PC = '0;
         issue_pred_PC = '0;
         issue_imm20 = '0;
-        issue_A_unneeded = '0;
+        issue_A_unneeded_or_is_zero = '0;
         issue_A_forward = '0;
         issue_A_bank = '0;
-        issue_B_unneeded = '0;
+        issue_B_unneeded_or_is_zero = '0;
         issue_B_forward = '0;
         issue_B_bank = '0;
         issue_dest_PR = '0;
@@ -197,18 +197,18 @@ module bru_iq #(
                 issue_PC |= PC_by_entry[entry];
                 issue_pred_PC |= pred_PC_by_entry[entry];
                 issue_imm20 |= imm20_by_entry[entry];
-                issue_A_unneeded |= A_unneeded_by_entry[entry];
+                issue_A_unneeded_or_is_zero |= A_unneeded_or_is_zero_by_entry[entry];
                 issue_A_forward |= A_forward_by_entry[entry];
                 issue_A_bank |= A_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0];
-                issue_B_unneeded |= B_unneeded_by_entry[entry];
+                issue_B_unneeded_or_is_zero |= B_unneeded_or_is_zero_by_entry[entry];
                 issue_B_forward |= B_forward_by_entry[entry];
                 issue_B_bank |= B_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0];
                 issue_dest_PR |= dest_PR_by_entry[entry];
                 issue_ROB_index |= ROB_index_by_entry[entry];
 
-                PRF_req_A_valid |= ~A_forward_by_entry[entry] & ~A_unneeded_by_entry[entry];
+                PRF_req_A_valid |= ~A_forward_by_entry[entry] & ~A_unneeded_or_is_zero_by_entry[entry];
                 PRF_req_A_PR |= A_PR_by_entry[entry];
-                PRF_req_B_valid |= ~B_forward_by_entry[entry] & ~B_unneeded_by_entry[entry];
+                PRF_req_B_valid |= ~B_forward_by_entry[entry] & ~B_unneeded_or_is_zero_by_entry[entry];
                 PRF_req_B_PR |= B_PR_by_entry[entry];
             end
         end
@@ -273,10 +273,10 @@ module bru_iq #(
         dispatch_pred_PC_by_entry = '0;
         dispatch_imm20_by_entry = '0;
         dispatch_A_PR_by_entry = '0;
-        dispatch_A_unneeded_by_entry = '0;
+        dispatch_A_unneeded_or_is_zero_by_entry = '0;
         dispatch_A_ready_by_entry = '0;
         dispatch_B_PR_by_entry = '0;
-        dispatch_B_unneeded_by_entry = '0;
+        dispatch_B_unneeded_or_is_zero_by_entry = '0;
         dispatch_B_ready_by_entry = '0;
         dispatch_dest_PR_by_entry = '0;
         dispatch_ROB_index_by_entry = '0;
@@ -298,10 +298,10 @@ module bru_iq #(
                     dispatch_pred_PC_by_entry[entry] |= dispatch_pred_PC_by_way[way];
                     dispatch_imm20_by_entry[entry] |= dispatch_imm20_by_way[way];
                     dispatch_A_PR_by_entry[entry] |= dispatch_A_PR_by_way[way];
-                    dispatch_A_unneeded_by_entry[entry] |= dispatch_A_unneeded_by_way[way];
+                    dispatch_A_unneeded_or_is_zero_by_entry[entry] |= dispatch_A_unneeded_or_is_zero_by_way[way];
                     dispatch_A_ready_by_entry[entry] |= dispatch_A_ready_by_way[way];
                     dispatch_B_PR_by_entry[entry] |= dispatch_B_PR_by_way[way];
-                    dispatch_B_unneeded_by_entry[entry] |= dispatch_B_unneeded_by_way[way];
+                    dispatch_B_unneeded_or_is_zero_by_entry[entry] |= dispatch_B_unneeded_or_is_zero_by_way[way];
                     dispatch_B_ready_by_entry[entry] |= dispatch_B_ready_by_way[way];
                     dispatch_dest_PR_by_entry[entry] |= dispatch_dest_PR_by_way[way];
                     dispatch_ROB_index_by_entry[entry] |= dispatch_ROB_index_by_way[way];
@@ -322,10 +322,10 @@ module bru_iq #(
             pred_PC_by_entry <= '0;
             imm20_by_entry <= '0;
             A_PR_by_entry <= '0;
-            A_unneeded_by_entry <= '0;
+            A_unneeded_or_is_zero_by_entry <= '0;
             A_ready_by_entry <= '0;
             B_PR_by_entry <= '0;
-            B_unneeded_by_entry <= '0;
+            B_unneeded_or_is_zero_by_entry <= '0;
             B_ready_by_entry <= '0;
             dest_PR_by_entry <= '0;
             ROB_index_by_entry <= '0;
@@ -356,10 +356,10 @@ module bru_iq #(
                     pred_PC_by_entry[BRU_IQ_ENTRIES-1] <= pred_PC_by_entry[BRU_IQ_ENTRIES-1];
                     imm20_by_entry[BRU_IQ_ENTRIES-1] <= imm20_by_entry[BRU_IQ_ENTRIES-1];
                     A_PR_by_entry[BRU_IQ_ENTRIES-1] <= A_PR_by_entry[BRU_IQ_ENTRIES-1];
-                    A_unneeded_by_entry[BRU_IQ_ENTRIES-1] <= A_unneeded_by_entry[BRU_IQ_ENTRIES-1];
+                    A_unneeded_or_is_zero_by_entry[BRU_IQ_ENTRIES-1] <= A_unneeded_or_is_zero_by_entry[BRU_IQ_ENTRIES-1];
                     A_ready_by_entry[BRU_IQ_ENTRIES-1] <= A_ready_by_entry[BRU_IQ_ENTRIES-1] | A_forward_by_entry[BRU_IQ_ENTRIES-1];
                     B_PR_by_entry[BRU_IQ_ENTRIES-1] <= B_PR_by_entry[BRU_IQ_ENTRIES-1];
-                    B_unneeded_by_entry[BRU_IQ_ENTRIES-1] <= B_unneeded_by_entry[BRU_IQ_ENTRIES-1];
+                    B_unneeded_or_is_zero_by_entry[BRU_IQ_ENTRIES-1] <= B_unneeded_or_is_zero_by_entry[BRU_IQ_ENTRIES-1];
                     B_ready_by_entry[BRU_IQ_ENTRIES-1] <= B_ready_by_entry[BRU_IQ_ENTRIES-1] | B_forward_by_entry[BRU_IQ_ENTRIES-1];
                     dest_PR_by_entry[BRU_IQ_ENTRIES-1] <= dest_PR_by_entry[BRU_IQ_ENTRIES-1];
                     ROB_index_by_entry[BRU_IQ_ENTRIES-1] <= ROB_index_by_entry[BRU_IQ_ENTRIES-1];
@@ -377,10 +377,10 @@ module bru_iq #(
                     pred_PC_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_pred_PC_by_entry[BRU_IQ_ENTRIES-1];
                     imm20_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_imm20_by_entry[BRU_IQ_ENTRIES-1];
                     A_PR_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_A_PR_by_entry[BRU_IQ_ENTRIES-1];
-                    A_unneeded_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_A_unneeded_by_entry[BRU_IQ_ENTRIES-1];
+                    A_unneeded_or_is_zero_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_A_unneeded_or_is_zero_by_entry[BRU_IQ_ENTRIES-1];
                     A_ready_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_A_ready_by_entry[BRU_IQ_ENTRIES-1];
                     B_PR_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_B_PR_by_entry[BRU_IQ_ENTRIES-1];
-                    B_unneeded_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_B_unneeded_by_entry[BRU_IQ_ENTRIES-1];
+                    B_unneeded_or_is_zero_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_B_unneeded_or_is_zero_by_entry[BRU_IQ_ENTRIES-1];
                     B_ready_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_B_ready_by_entry[BRU_IQ_ENTRIES-1];
                     dest_PR_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_dest_PR_by_entry[BRU_IQ_ENTRIES-1];
                     ROB_index_by_entry[BRU_IQ_ENTRIES-1] <= dispatch_ROB_index_by_entry[BRU_IQ_ENTRIES-1];
@@ -407,10 +407,10 @@ module bru_iq #(
                         pred_PC_by_entry[i] <= pred_PC_by_entry[i+1];
                         imm20_by_entry[i] <= imm20_by_entry[i+1];
                         A_PR_by_entry[i] <= A_PR_by_entry[i+1];
-                        A_unneeded_by_entry[i] <= A_unneeded_by_entry[i+1];
+                        A_unneeded_or_is_zero_by_entry[i] <= A_unneeded_or_is_zero_by_entry[i+1];
                         A_ready_by_entry[i] <= A_ready_by_entry[i+1] | A_forward_by_entry[i+1];
                         B_PR_by_entry[i] <= B_PR_by_entry[i+1];
-                        B_unneeded_by_entry[i] <= B_unneeded_by_entry[i+1];
+                        B_unneeded_or_is_zero_by_entry[i] <= B_unneeded_or_is_zero_by_entry[i+1];
                         B_ready_by_entry[i] <= B_ready_by_entry[i+1] | B_forward_by_entry[i+1];
                         dest_PR_by_entry[i] <= dest_PR_by_entry[i+1];
                         ROB_index_by_entry[i] <= ROB_index_by_entry[i+1];
@@ -428,10 +428,10 @@ module bru_iq #(
                         pred_PC_by_entry[i] <= dispatch_pred_PC_by_entry[i+1];
                         imm20_by_entry[i] <= dispatch_imm20_by_entry[i+1];
                         A_PR_by_entry[i] <= dispatch_A_PR_by_entry[i+1];
-                        A_unneeded_by_entry[i] <= dispatch_A_unneeded_by_entry[i+1];
+                        A_unneeded_or_is_zero_by_entry[i] <= dispatch_A_unneeded_or_is_zero_by_entry[i+1];
                         A_ready_by_entry[i] <= dispatch_A_ready_by_entry[i+1];
                         B_PR_by_entry[i] <= dispatch_B_PR_by_entry[i+1];
-                        B_unneeded_by_entry[i] <= dispatch_B_unneeded_by_entry[i+1];
+                        B_unneeded_or_is_zero_by_entry[i] <= dispatch_B_unneeded_or_is_zero_by_entry[i+1];
                         B_ready_by_entry[i] <= dispatch_B_ready_by_entry[i+1];
                         dest_PR_by_entry[i] <= dispatch_dest_PR_by_entry[i+1];
                         ROB_index_by_entry[i] <= dispatch_ROB_index_by_entry[i+1];
@@ -453,10 +453,10 @@ module bru_iq #(
                         pred_PC_by_entry[i] <= pred_PC_by_entry[i];
                         imm20_by_entry[i] <= imm20_by_entry[i];
                         A_PR_by_entry[i] <= A_PR_by_entry[i];
-                        A_unneeded_by_entry[i] <= A_unneeded_by_entry[i];
+                        A_unneeded_or_is_zero_by_entry[i] <= A_unneeded_or_is_zero_by_entry[i];
                         A_ready_by_entry[i] <= A_ready_by_entry[i] | A_forward_by_entry[i];
                         B_PR_by_entry[i] <= B_PR_by_entry[i];
-                        B_unneeded_by_entry[i] <= B_unneeded_by_entry[i];
+                        B_unneeded_or_is_zero_by_entry[i] <= B_unneeded_or_is_zero_by_entry[i];
                         B_ready_by_entry[i] <= B_ready_by_entry[i] | B_forward_by_entry[i];
                         dest_PR_by_entry[i] <= dest_PR_by_entry[i];
                         ROB_index_by_entry[i] <= ROB_index_by_entry[i];
@@ -474,10 +474,10 @@ module bru_iq #(
                         pred_PC_by_entry[i] <= dispatch_pred_PC_by_entry[i];
                         imm20_by_entry[i] <= dispatch_imm20_by_entry[i];
                         A_PR_by_entry[i] <= dispatch_A_PR_by_entry[i];
-                        A_unneeded_by_entry[i] <= dispatch_A_unneeded_by_entry[i];
+                        A_unneeded_or_is_zero_by_entry[i] <= dispatch_A_unneeded_or_is_zero_by_entry[i];
                         A_ready_by_entry[i] <= dispatch_A_ready_by_entry[i];
                         B_PR_by_entry[i] <= dispatch_B_PR_by_entry[i];
-                        B_unneeded_by_entry[i] <= dispatch_B_unneeded_by_entry[i];
+                        B_unneeded_or_is_zero_by_entry[i] <= dispatch_B_unneeded_or_is_zero_by_entry[i];
                         B_ready_by_entry[i] <= dispatch_B_ready_by_entry[i];
                         dest_PR_by_entry[i] <= dispatch_dest_PR_by_entry[i];
                         ROB_index_by_entry[i] <= dispatch_ROB_index_by_entry[i];
