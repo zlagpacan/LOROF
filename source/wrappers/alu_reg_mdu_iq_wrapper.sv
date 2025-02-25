@@ -23,8 +23,10 @@ module alu_reg_mdu_iq_wrapper (
 	input logic [3:0][3:0] next_dispatch_op_by_way,
 	input logic [3:0][LOG_PR_COUNT-1:0] next_dispatch_A_PR_by_way,
 	input logic [3:0] next_dispatch_A_ready_by_way,
+	input logic [3:0] next_dispatch_A_is_zero_by_way,
 	input logic [3:0][LOG_PR_COUNT-1:0] next_dispatch_B_PR_by_way,
 	input logic [3:0] next_dispatch_B_ready_by_way,
+	input logic [3:0] next_dispatch_B_is_zero_by_way,
 	input logic [3:0][LOG_PR_COUNT-1:0] next_dispatch_dest_PR_by_way,
 	input logic [3:0][LOG_ROB_ENTRIES-1:0] next_dispatch_ROB_index_by_way,
 
@@ -43,8 +45,10 @@ module alu_reg_mdu_iq_wrapper (
 	output logic last_issue_alu_reg_valid,
 	output logic [3:0] last_issue_alu_reg_op,
 	output logic last_issue_alu_reg_A_forward,
+	output logic last_issue_alu_reg_A_is_zero,
 	output logic [LOG_PRF_BANK_COUNT-1:0] last_issue_alu_reg_A_bank,
 	output logic last_issue_alu_reg_B_forward,
+	output logic last_issue_alu_reg_B_is_zero,
 	output logic [LOG_PRF_BANK_COUNT-1:0] last_issue_alu_reg_B_bank,
 	output logic [LOG_PR_COUNT-1:0] last_issue_alu_reg_dest_PR,
 	output logic [LOG_ROB_ENTRIES-1:0] last_issue_alu_reg_ROB_index,
@@ -59,8 +63,10 @@ module alu_reg_mdu_iq_wrapper (
 	output logic last_issue_mdu_valid,
 	output logic [3:0] last_issue_mdu_op,
 	output logic last_issue_mdu_A_forward,
+	output logic last_issue_mdu_A_is_zero,
 	output logic [LOG_PRF_BANK_COUNT-1:0] last_issue_mdu_A_bank,
 	output logic last_issue_mdu_B_forward,
+	output logic last_issue_mdu_B_is_zero,
 	output logic [LOG_PRF_BANK_COUNT-1:0] last_issue_mdu_B_bank,
 	output logic [LOG_PR_COUNT-1:0] last_issue_mdu_dest_PR,
 	output logic [LOG_ROB_ENTRIES-1:0] last_issue_mdu_ROB_index,
@@ -82,8 +88,10 @@ module alu_reg_mdu_iq_wrapper (
 	logic [3:0][3:0] dispatch_op_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] dispatch_A_PR_by_way;
 	logic [3:0] dispatch_A_ready_by_way;
+	logic [3:0] dispatch_A_is_zero_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] dispatch_B_PR_by_way;
 	logic [3:0] dispatch_B_ready_by_way;
+	logic [3:0] dispatch_B_is_zero_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] dispatch_dest_PR_by_way;
 	logic [3:0][LOG_ROB_ENTRIES-1:0] dispatch_ROB_index_by_way;
 
@@ -102,8 +110,10 @@ module alu_reg_mdu_iq_wrapper (
 	logic issue_alu_reg_valid;
 	logic [3:0] issue_alu_reg_op;
 	logic issue_alu_reg_A_forward;
+	logic issue_alu_reg_A_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_alu_reg_A_bank;
 	logic issue_alu_reg_B_forward;
+	logic issue_alu_reg_B_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_alu_reg_B_bank;
 	logic [LOG_PR_COUNT-1:0] issue_alu_reg_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] issue_alu_reg_ROB_index;
@@ -118,8 +128,10 @@ module alu_reg_mdu_iq_wrapper (
 	logic issue_mdu_valid;
 	logic [3:0] issue_mdu_op;
 	logic issue_mdu_A_forward;
+	logic issue_mdu_A_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_mdu_A_bank;
 	logic issue_mdu_B_forward;
+	logic issue_mdu_B_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_mdu_B_bank;
 	logic [LOG_PR_COUNT-1:0] issue_mdu_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] issue_mdu_ROB_index;
@@ -133,7 +145,7 @@ module alu_reg_mdu_iq_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    alu_reg_mdu_iq #(.ALU_REG_MDU_IQ_ENTRIES(ALU_REG_MDU_IQ_ENTRIES)) WRAPPED_MODULE (.*);
+    alu_reg_mdu_iq WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -148,8 +160,10 @@ module alu_reg_mdu_iq_wrapper (
 			dispatch_op_by_way <= '0;
 			dispatch_A_PR_by_way <= '0;
 			dispatch_A_ready_by_way <= '0;
+			dispatch_A_is_zero_by_way <= '0;
 			dispatch_B_PR_by_way <= '0;
 			dispatch_B_ready_by_way <= '0;
+			dispatch_B_is_zero_by_way <= '0;
 			dispatch_dest_PR_by_way <= '0;
 			dispatch_ROB_index_by_way <= '0;
 
@@ -168,8 +182,10 @@ module alu_reg_mdu_iq_wrapper (
 			last_issue_alu_reg_valid <= '0;
 			last_issue_alu_reg_op <= '0;
 			last_issue_alu_reg_A_forward <= '0;
+			last_issue_alu_reg_A_is_zero <= '0;
 			last_issue_alu_reg_A_bank <= '0;
 			last_issue_alu_reg_B_forward <= '0;
+			last_issue_alu_reg_B_is_zero <= '0;
 			last_issue_alu_reg_B_bank <= '0;
 			last_issue_alu_reg_dest_PR <= '0;
 			last_issue_alu_reg_ROB_index <= '0;
@@ -184,8 +200,10 @@ module alu_reg_mdu_iq_wrapper (
 			last_issue_mdu_valid <= '0;
 			last_issue_mdu_op <= '0;
 			last_issue_mdu_A_forward <= '0;
+			last_issue_mdu_A_is_zero <= '0;
 			last_issue_mdu_A_bank <= '0;
 			last_issue_mdu_B_forward <= '0;
+			last_issue_mdu_B_is_zero <= '0;
 			last_issue_mdu_B_bank <= '0;
 			last_issue_mdu_dest_PR <= '0;
 			last_issue_mdu_ROB_index <= '0;
@@ -205,8 +223,10 @@ module alu_reg_mdu_iq_wrapper (
 			dispatch_op_by_way <= next_dispatch_op_by_way;
 			dispatch_A_PR_by_way <= next_dispatch_A_PR_by_way;
 			dispatch_A_ready_by_way <= next_dispatch_A_ready_by_way;
+			dispatch_A_is_zero_by_way <= next_dispatch_A_is_zero_by_way;
 			dispatch_B_PR_by_way <= next_dispatch_B_PR_by_way;
 			dispatch_B_ready_by_way <= next_dispatch_B_ready_by_way;
+			dispatch_B_is_zero_by_way <= next_dispatch_B_is_zero_by_way;
 			dispatch_dest_PR_by_way <= next_dispatch_dest_PR_by_way;
 			dispatch_ROB_index_by_way <= next_dispatch_ROB_index_by_way;
 
@@ -225,8 +245,10 @@ module alu_reg_mdu_iq_wrapper (
 			last_issue_alu_reg_valid <= issue_alu_reg_valid;
 			last_issue_alu_reg_op <= issue_alu_reg_op;
 			last_issue_alu_reg_A_forward <= issue_alu_reg_A_forward;
+			last_issue_alu_reg_A_is_zero <= issue_alu_reg_A_is_zero;
 			last_issue_alu_reg_A_bank <= issue_alu_reg_A_bank;
 			last_issue_alu_reg_B_forward <= issue_alu_reg_B_forward;
+			last_issue_alu_reg_B_is_zero <= issue_alu_reg_B_is_zero;
 			last_issue_alu_reg_B_bank <= issue_alu_reg_B_bank;
 			last_issue_alu_reg_dest_PR <= issue_alu_reg_dest_PR;
 			last_issue_alu_reg_ROB_index <= issue_alu_reg_ROB_index;
@@ -241,8 +263,10 @@ module alu_reg_mdu_iq_wrapper (
 			last_issue_mdu_valid <= issue_mdu_valid;
 			last_issue_mdu_op <= issue_mdu_op;
 			last_issue_mdu_A_forward <= issue_mdu_A_forward;
+			last_issue_mdu_A_is_zero <= issue_mdu_A_is_zero;
 			last_issue_mdu_A_bank <= issue_mdu_A_bank;
 			last_issue_mdu_B_forward <= issue_mdu_B_forward;
+			last_issue_mdu_B_is_zero <= issue_mdu_B_is_zero;
 			last_issue_mdu_B_bank <= issue_mdu_B_bank;
 			last_issue_mdu_dest_PR <= issue_mdu_dest_PR;
 			last_issue_mdu_ROB_index <= issue_mdu_ROB_index;
