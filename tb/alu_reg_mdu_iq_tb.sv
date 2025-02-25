@@ -40,8 +40,10 @@ module alu_reg_mdu_iq_tb ();
 	logic [3:0][3:0] tb_dispatch_op_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_A_PR_by_way;
 	logic [3:0] tb_dispatch_A_ready_by_way;
+	logic [3:0] tb_dispatch_A_is_zero_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_B_PR_by_way;
 	logic [3:0] tb_dispatch_B_ready_by_way;
+	logic [3:0] tb_dispatch_B_is_zero_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_dest_PR_by_way;
 	logic [3:0][LOG_ROB_ENTRIES-1:0] tb_dispatch_ROB_index_by_way;
 
@@ -61,8 +63,10 @@ module alu_reg_mdu_iq_tb ();
 	logic DUT_issue_alu_reg_valid, expected_issue_alu_reg_valid;
 	logic [3:0] DUT_issue_alu_reg_op, expected_issue_alu_reg_op;
 	logic DUT_issue_alu_reg_A_forward, expected_issue_alu_reg_A_forward;
+	logic DUT_issue_alu_reg_A_is_zero, expected_issue_alu_reg_A_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_alu_reg_A_bank, expected_issue_alu_reg_A_bank;
 	logic DUT_issue_alu_reg_B_forward, expected_issue_alu_reg_B_forward;
+	logic DUT_issue_alu_reg_B_is_zero, expected_issue_alu_reg_B_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_alu_reg_B_bank, expected_issue_alu_reg_B_bank;
 	logic [LOG_PR_COUNT-1:0] DUT_issue_alu_reg_dest_PR, expected_issue_alu_reg_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_issue_alu_reg_ROB_index, expected_issue_alu_reg_ROB_index;
@@ -77,8 +81,10 @@ module alu_reg_mdu_iq_tb ();
 	logic DUT_issue_mdu_valid, expected_issue_mdu_valid;
 	logic [3:0] DUT_issue_mdu_op, expected_issue_mdu_op;
 	logic DUT_issue_mdu_A_forward, expected_issue_mdu_A_forward;
+	logic DUT_issue_mdu_A_is_zero, expected_issue_mdu_A_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_mdu_A_bank, expected_issue_mdu_A_bank;
 	logic DUT_issue_mdu_B_forward, expected_issue_mdu_B_forward;
+	logic DUT_issue_mdu_B_is_zero, expected_issue_mdu_B_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_mdu_B_bank, expected_issue_mdu_B_bank;
 	logic [LOG_PR_COUNT-1:0] DUT_issue_mdu_dest_PR, expected_issue_mdu_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_issue_mdu_ROB_index, expected_issue_mdu_ROB_index;
@@ -107,8 +113,10 @@ module alu_reg_mdu_iq_tb ();
 		.dispatch_op_by_way(tb_dispatch_op_by_way),
 		.dispatch_A_PR_by_way(tb_dispatch_A_PR_by_way),
 		.dispatch_A_ready_by_way(tb_dispatch_A_ready_by_way),
+		.dispatch_A_is_zero_by_way(tb_dispatch_A_is_zero_by_way),
 		.dispatch_B_PR_by_way(tb_dispatch_B_PR_by_way),
 		.dispatch_B_ready_by_way(tb_dispatch_B_ready_by_way),
+		.dispatch_B_is_zero_by_way(tb_dispatch_B_is_zero_by_way),
 		.dispatch_dest_PR_by_way(tb_dispatch_dest_PR_by_way),
 		.dispatch_ROB_index_by_way(tb_dispatch_ROB_index_by_way),
 
@@ -128,8 +136,10 @@ module alu_reg_mdu_iq_tb ();
 		.issue_alu_reg_valid(DUT_issue_alu_reg_valid),
 		.issue_alu_reg_op(DUT_issue_alu_reg_op),
 		.issue_alu_reg_A_forward(DUT_issue_alu_reg_A_forward),
+		.issue_alu_reg_A_is_zero(DUT_issue_alu_reg_A_is_zero),
 		.issue_alu_reg_A_bank(DUT_issue_alu_reg_A_bank),
 		.issue_alu_reg_B_forward(DUT_issue_alu_reg_B_forward),
+		.issue_alu_reg_B_is_zero(DUT_issue_alu_reg_B_is_zero),
 		.issue_alu_reg_B_bank(DUT_issue_alu_reg_B_bank),
 		.issue_alu_reg_dest_PR(DUT_issue_alu_reg_dest_PR),
 		.issue_alu_reg_ROB_index(DUT_issue_alu_reg_ROB_index),
@@ -144,8 +154,10 @@ module alu_reg_mdu_iq_tb ();
 		.issue_mdu_valid(DUT_issue_mdu_valid),
 		.issue_mdu_op(DUT_issue_mdu_op),
 		.issue_mdu_A_forward(DUT_issue_mdu_A_forward),
+		.issue_mdu_A_is_zero(DUT_issue_mdu_A_is_zero),
 		.issue_mdu_A_bank(DUT_issue_mdu_A_bank),
 		.issue_mdu_B_forward(DUT_issue_mdu_B_forward),
+		.issue_mdu_B_is_zero(DUT_issue_mdu_B_is_zero),
 		.issue_mdu_B_bank(DUT_issue_mdu_B_bank),
 		.issue_mdu_dest_PR(DUT_issue_mdu_dest_PR),
 		.issue_mdu_ROB_index(DUT_issue_mdu_ROB_index),
@@ -197,6 +209,13 @@ module alu_reg_mdu_iq_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_issue_alu_reg_A_is_zero !== DUT_issue_alu_reg_A_is_zero) begin
+			$display("TB ERROR: expected_issue_alu_reg_A_is_zero (%h) != DUT_issue_alu_reg_A_is_zero (%h)",
+				expected_issue_alu_reg_A_is_zero, DUT_issue_alu_reg_A_is_zero);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_issue_alu_reg_A_bank !== DUT_issue_alu_reg_A_bank) begin
 			$display("TB ERROR: expected_issue_alu_reg_A_bank (%h) != DUT_issue_alu_reg_A_bank (%h)",
 				expected_issue_alu_reg_A_bank, DUT_issue_alu_reg_A_bank);
@@ -207,6 +226,13 @@ module alu_reg_mdu_iq_tb ();
 		if (expected_issue_alu_reg_B_forward !== DUT_issue_alu_reg_B_forward) begin
 			$display("TB ERROR: expected_issue_alu_reg_B_forward (%h) != DUT_issue_alu_reg_B_forward (%h)",
 				expected_issue_alu_reg_B_forward, DUT_issue_alu_reg_B_forward);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_alu_reg_B_is_zero !== DUT_issue_alu_reg_B_is_zero) begin
+			$display("TB ERROR: expected_issue_alu_reg_B_is_zero (%h) != DUT_issue_alu_reg_B_is_zero (%h)",
+				expected_issue_alu_reg_B_is_zero, DUT_issue_alu_reg_B_is_zero);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -281,6 +307,13 @@ module alu_reg_mdu_iq_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_issue_mdu_A_is_zero !== DUT_issue_mdu_A_is_zero) begin
+			$display("TB ERROR: expected_issue_mdu_A_is_zero (%h) != DUT_issue_mdu_A_is_zero (%h)",
+				expected_issue_mdu_A_is_zero, DUT_issue_mdu_A_is_zero);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_issue_mdu_A_bank !== DUT_issue_mdu_A_bank) begin
 			$display("TB ERROR: expected_issue_mdu_A_bank (%h) != DUT_issue_mdu_A_bank (%h)",
 				expected_issue_mdu_A_bank, DUT_issue_mdu_A_bank);
@@ -291,6 +324,13 @@ module alu_reg_mdu_iq_tb ();
 		if (expected_issue_mdu_B_forward !== DUT_issue_mdu_B_forward) begin
 			$display("TB ERROR: expected_issue_mdu_B_forward (%h) != DUT_issue_mdu_B_forward (%h)",
 				expected_issue_mdu_B_forward, DUT_issue_mdu_B_forward);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_mdu_B_is_zero !== DUT_issue_mdu_B_is_zero) begin
+			$display("TB ERROR: expected_issue_mdu_B_is_zero (%h) != DUT_issue_mdu_B_is_zero (%h)",
+				expected_issue_mdu_B_is_zero, DUT_issue_mdu_B_is_zero);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -373,8 +413,10 @@ module alu_reg_mdu_iq_tb ();
 		tb_dispatch_op_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
 		tb_dispatch_A_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
 		tb_dispatch_A_ready_by_way = 4'b0000;
+		tb_dispatch_A_is_zero_by_way = 4'b0000;
 		tb_dispatch_B_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
 		tb_dispatch_B_ready_by_way = 4'b0000;
+		tb_dispatch_B_is_zero_by_way = 4'b0000;
 		tb_dispatch_dest_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
 		tb_dispatch_ROB_index_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
 	    // ALU op dispatch feedback
@@ -403,8 +445,10 @@ module alu_reg_mdu_iq_tb ();
 		expected_issue_alu_reg_valid = 1'b0;
 		expected_issue_alu_reg_op = 4'h0;
 		expected_issue_alu_reg_A_forward = 1'b0;
+		expected_issue_alu_reg_A_is_zero = 1'b0;
 		expected_issue_alu_reg_A_bank = 2'h0;
 		expected_issue_alu_reg_B_forward = 1'b0;
+		expected_issue_alu_reg_B_is_zero = 1'b0;
 		expected_issue_alu_reg_B_bank = 2'h0;
 		expected_issue_alu_reg_dest_PR = 7'h0;
 		expected_issue_alu_reg_ROB_index = 7'h0;
@@ -417,8 +461,10 @@ module alu_reg_mdu_iq_tb ();
 		expected_issue_mdu_valid = 1'b0;
 		expected_issue_mdu_op = 4'h0;
 		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_is_zero = 1'b0;
 		expected_issue_mdu_A_bank = 2'h0;
 		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_is_zero = 1'b0;
 		expected_issue_mdu_B_bank = 2'h0;
 		expected_issue_mdu_dest_PR = 7'h0;
 		expected_issue_mdu_ROB_index = 7'h0;
@@ -1423,6 +1469,546 @@ module alu_reg_mdu_iq_tb ();
 		expected_PRF_mdu_req_A_PR = 7'h1C;
 		expected_PRF_mdu_req_B_valid = 1'b1;
 		expected_PRF_mdu_req_B_PR = 7'h1D;
+
+		check_outputs();
+
+        // ------------------------------------------------------------
+        // reset 2:
+        test_case = "reset 2";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+        // inputs:
+        sub_test_case = "assert reset 2";
+        $display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b0;
+	    // op dispatch by way
+		tb_dispatch_attempt_by_way = 4'b0000;
+		tb_dispatch_valid_alu_reg_by_way = 4'b0000;
+		tb_dispatch_valid_mdu_by_way = 4'b0000;
+		tb_dispatch_op_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_dispatch_A_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+		tb_dispatch_A_ready_by_way = 4'b0000;
+		tb_dispatch_A_is_zero_by_way = 4'b0000;
+		tb_dispatch_B_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+		tb_dispatch_B_ready_by_way = 4'b0000;
+		tb_dispatch_B_is_zero_by_way = 4'b0000;
+		tb_dispatch_dest_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+		tb_dispatch_ROB_index_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // ALU op dispatch feedback
+	    // pipeline feedback
+		tb_alu_reg_pipeline_ready = 1'b1;
+		tb_mdu_pipeline_ready = 1'b1;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // op issue to ALU Reg-Reg pipeline
+	    // ALU Reg-Reg pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// outputs:
+
+	    // op dispatch by way
+	    // ALU op dispatch feedback
+		// expected_dispatch_ready_advertisement_by_way = 4'b1111;
+		expected_dispatch_ack_by_way = 4'b0000;
+	    // pipeline feedback
+	    // writeback bus by bank
+	    // op issue to ALU Reg-Reg pipeline
+		expected_issue_alu_reg_valid = 1'b0;
+		expected_issue_alu_reg_op = 4'h0;
+		expected_issue_alu_reg_A_forward = 1'b0;
+		expected_issue_alu_reg_A_is_zero = 1'b0;
+		expected_issue_alu_reg_A_bank = 2'h0;
+		expected_issue_alu_reg_B_forward = 1'b0;
+		expected_issue_alu_reg_B_is_zero = 1'b0;
+		expected_issue_alu_reg_B_bank = 2'h0;
+		expected_issue_alu_reg_dest_PR = 7'h0;
+		expected_issue_alu_reg_ROB_index = 7'h0;
+	    // ALU Reg-Reg pipeline reg read req to PRF
+		expected_PRF_alu_reg_req_A_valid = 1'b0;
+		expected_PRF_alu_reg_req_A_PR = 7'h0;
+		expected_PRF_alu_reg_req_B_valid = 1'b0;
+		expected_PRF_alu_reg_req_B_PR = 7'h0;
+	    // op issue to MDU pipeline
+		expected_issue_mdu_valid = 1'b0;
+		expected_issue_mdu_op = 4'h0;
+		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_is_zero = 1'b0;
+		expected_issue_mdu_A_bank = 2'h0;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_is_zero = 1'b0;
+		expected_issue_mdu_B_bank = 2'h0;
+		expected_issue_mdu_dest_PR = 7'h0;
+		expected_issue_mdu_ROB_index = 7'h0;
+	    // MDU pipeline reg read req to PRF
+		expected_PRF_mdu_req_A_valid = 1'b0;
+		expected_PRF_mdu_req_A_PR = 7'h0;
+		expected_PRF_mdu_req_B_valid = 1'b0;
+		expected_PRF_mdu_req_B_PR = 7'h0;
+
+		check_outputs();
+
+        // inputs:
+        sub_test_case = "deassert reset 2";
+        $display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op dispatch by way
+		tb_dispatch_attempt_by_way = 4'b0000;
+		tb_dispatch_valid_alu_reg_by_way = 4'b0000;
+		tb_dispatch_valid_mdu_by_way = 4'b0000;
+		tb_dispatch_op_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_dispatch_A_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+		tb_dispatch_A_ready_by_way = 4'b0000;
+		tb_dispatch_B_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+		tb_dispatch_B_ready_by_way = 4'b0000;
+		tb_dispatch_dest_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+		tb_dispatch_ROB_index_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // ALU op dispatch feedback
+	    // pipeline feedback
+		tb_alu_reg_pipeline_ready = 1'b1;
+		tb_mdu_pipeline_ready = 1'b1;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // op issue to ALU Reg-Reg pipeline
+	    // ALU Reg-Reg pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// outputs:
+
+	    // op dispatch by way
+	    // ALU op dispatch feedback
+		// expected_dispatch_ready_advertisement_by_way = 4'b1111;
+		expected_dispatch_ack_by_way = 4'b0000;
+	    // pipeline feedback
+	    // writeback bus by bank
+	    // op issue to ALU Reg-Reg pipeline
+		expected_issue_alu_reg_valid = 1'b0;
+		expected_issue_alu_reg_op = 4'h0;
+		expected_issue_alu_reg_A_forward = 1'b0;
+		expected_issue_alu_reg_A_bank = 2'h0;
+		expected_issue_alu_reg_B_forward = 1'b0;
+		expected_issue_alu_reg_B_bank = 2'h0;
+		expected_issue_alu_reg_dest_PR = 7'h0;
+		expected_issue_alu_reg_ROB_index = 7'h0;
+	    // ALU Reg-Reg pipeline reg read req to PRF
+		expected_PRF_alu_reg_req_A_valid = 1'b0;
+		expected_PRF_alu_reg_req_A_PR = 7'h0;
+		expected_PRF_alu_reg_req_B_valid = 1'b0;
+		expected_PRF_alu_reg_req_B_PR = 7'h0;
+	    // op issue to MDU pipeline
+		expected_issue_mdu_valid = 1'b0;
+		expected_issue_mdu_op = 4'h0;
+		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_bank = 2'h0;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_bank = 2'h0;
+		expected_issue_mdu_dest_PR = 7'h0;
+		expected_issue_mdu_ROB_index = 7'h0;
+	    // MDU pipeline reg read req to PRF
+		expected_PRF_mdu_req_A_valid = 1'b0;
+		expected_PRF_mdu_req_A_PR = 7'h0;
+		expected_PRF_mdu_req_B_valid = 1'b0;
+		expected_PRF_mdu_req_B_PR = 7'h0;
+
+		check_outputs();
+
+        // ------------------------------------------------------------
+        // simple chain zero's:
+        test_case = "simple chain zero's";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"\n\t\t", 
+            "dispatch3: v 3: ALU1 p9, zeroA:f, zeroB:f", "\n\t\t",
+            "dispatch2: v 2: MUL1 p6, p7:f, zero8:r", "\n\t\t",
+            "dispatch1: v 1: MUL0 p3, zero4:r, p5:r", "\n\t\t",
+            "dispatch0: v 0: ALU0 p0, p1:r, zero2:f", "\n\t\t",
+            "IQB: i NOP", "\n\t\t",
+            "IQA: i NOP", "\n\t\t",
+            "IQ9: i NOP", "\n\t\t",
+            "IQ8: i NOP", "\n\t\t",
+            "IQ7: i NOP", "\n\t\t",
+            "IQ6: i NOP", "\n\t\t",
+            "IQ5: i NOP", "\n\t\t",
+            "IQ4: i NOP", "\n\t\t",
+            "IQ3: i NOP", "\n\t\t",
+            "IQ2: i NOP", "\n\t\t",
+            "IQ1: i NOP", "\n\t\t",
+            "IQ0: i NOP", "\n\t\t",
+            "issue ALU Reg-Reg: i NOP", "\n\t\t",
+            "issue MDU: i NOP", "\n\t\t",
+			"activity: ", "\n\t\t"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op dispatch by way
+		tb_dispatch_attempt_by_way = 4'b1111;
+		tb_dispatch_valid_alu_reg_by_way = 4'b1001;
+		tb_dispatch_valid_mdu_by_way = 4'b0110;
+		tb_dispatch_op_by_way = {4'h1, 4'h1, 4'h0, 4'h0};
+		tb_dispatch_A_PR_by_way = {7'hA, 7'h7, 7'h4, 7'h1};
+		tb_dispatch_A_ready_by_way = 4'b0011;
+		tb_dispatch_A_is_zero_by_way = 4'b1010;
+		tb_dispatch_B_PR_by_way = {7'hB, 7'h8, 7'h5, 7'h2};
+		tb_dispatch_B_ready_by_way = 4'b0110;
+		tb_dispatch_B_is_zero_by_way = 4'b1101;
+		tb_dispatch_dest_PR_by_way = {7'h9, 7'h6, 7'h3, 7'h0};
+		tb_dispatch_ROB_index_by_way = {7'h3, 7'h2, 7'h1, 7'h0};
+	    // ALU op dispatch feedback
+	    // pipeline feedback
+		tb_alu_reg_pipeline_ready = 1'b1;
+		tb_mdu_pipeline_ready = 1'b1;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // op issue to ALU Reg-Reg pipeline
+	    // ALU Reg-Reg pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op dispatch by way
+	    // ALU op dispatch feedback
+		expected_dispatch_ack_by_way = 4'b1111;
+	    // pipeline feedback
+	    // writeback bus by bank
+	    // op issue to ALU Reg-Reg pipeline
+		expected_issue_alu_reg_valid = 1'b0;
+		expected_issue_alu_reg_op = 4'h0;
+		expected_issue_alu_reg_A_forward = 1'b0;
+		expected_issue_alu_reg_A_is_zero = 1'b0;
+		expected_issue_alu_reg_A_bank = 2'h0;
+		expected_issue_alu_reg_B_forward = 1'b0;
+		expected_issue_alu_reg_B_is_zero = 1'b0;
+		expected_issue_alu_reg_B_bank = 2'h0;
+		expected_issue_alu_reg_dest_PR = 7'h0;
+		expected_issue_alu_reg_ROB_index = 7'h0;
+	    // ALU Reg-Reg pipeline reg read req to PRF
+		expected_PRF_alu_reg_req_A_valid = 1'b0;
+		expected_PRF_alu_reg_req_A_PR = 7'h0;
+		expected_PRF_alu_reg_req_B_valid = 1'b0;
+		expected_PRF_alu_reg_req_B_PR = 7'h0;
+	    // op issue to MDU pipeline
+		expected_issue_mdu_valid = 1'b0;
+		expected_issue_mdu_op = 4'h0;
+		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_is_zero = 1'b0;
+		expected_issue_mdu_A_bank = 2'h0;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_is_zero = 1'b0;
+		expected_issue_mdu_B_bank = 2'h0;
+		expected_issue_mdu_dest_PR = 7'h0;
+		expected_issue_mdu_ROB_index = 7'h0;
+	    // MDU pipeline reg read req to PRF
+		expected_PRF_mdu_req_A_valid = 1'b0;
+		expected_PRF_mdu_req_A_PR = 7'h0;
+		expected_PRF_mdu_req_B_valid = 1'b0;
+		expected_PRF_mdu_req_B_PR = 7'h0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"\n\t\t", 
+            "dispatch3: i NOP", "\n\t\t",
+            "dispatch2: i NOP", "\n\t\t",
+            "dispatch1: i NOP", "\n\t\t",
+            "dispatch0: i NOP", "\n\t\t",
+            "IQB: i NOP", "\n\t\t",
+            "IQA: i NOP", "\n\t\t",
+            "IQ9: i NOP", "\n\t\t",
+            "IQ8: i NOP", "\n\t\t",
+            "IQ7: i NOP", "\n\t\t",
+            "IQ6: i NOP", "\n\t\t",
+            "IQ5: i NOP", "\n\t\t",
+            "IQ4: i NOP", "\n\t\t",
+            "IQ3: v 3: ALU1 p9, zeroA:f, zeroB:f", "\n\t\t",
+            "IQ2: v 2: MUL1 p6, p7:f, zero8:r", "\n\t\t",
+            "IQ1: v 1: MUL0 p3, zero4:r, p5:r", "\n\t\t",
+            "IQ0: v 0: ALU0 p0, p1:r, zero2:f", "\n\t\t",
+            "issue ALU Reg-Reg: v 0: ALU0 p0, p1:r, zero2:f", "\n\t\t",
+            "issue MDU: v 1: MUL0 p3, zero4:r, p5:r", "\n\t\t",
+			"activity: ", "\n\t\t"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op dispatch by way
+		tb_dispatch_attempt_by_way = 4'b0000;
+		tb_dispatch_valid_alu_reg_by_way = 4'b0000;
+		tb_dispatch_valid_mdu_by_way = 4'b0000;
+		tb_dispatch_op_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_dispatch_A_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+		tb_dispatch_A_ready_by_way = 4'b0000;
+		tb_dispatch_B_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+		tb_dispatch_B_ready_by_way = 4'b0000;
+		tb_dispatch_dest_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+		tb_dispatch_ROB_index_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // ALU op dispatch feedback
+	    // pipeline feedback
+		tb_alu_reg_pipeline_ready = 1'b1;
+		tb_mdu_pipeline_ready = 1'b1;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // op issue to ALU Reg-Reg pipeline
+	    // ALU Reg-Reg pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op dispatch by way
+	    // ALU op dispatch feedback
+		expected_dispatch_ack_by_way = 4'b0000;
+	    // pipeline feedback
+	    // writeback bus by bank
+	    // op issue to ALU Reg-Reg pipeline
+		expected_issue_alu_reg_valid = 1'b1;
+		expected_issue_alu_reg_op = 4'h0;
+		expected_issue_alu_reg_A_forward = 1'b0;
+		expected_issue_alu_reg_A_is_zero = 1'b0;
+		expected_issue_alu_reg_A_bank = 2'h1;
+		expected_issue_alu_reg_B_forward = 1'b0;
+		expected_issue_alu_reg_B_is_zero = 1'b1;
+		expected_issue_alu_reg_B_bank = 2'h2;
+		expected_issue_alu_reg_dest_PR = 7'h0;
+		expected_issue_alu_reg_ROB_index = 7'h0;
+	    // ALU Reg-Reg pipeline reg read req to PRF
+		expected_PRF_alu_reg_req_A_valid = 1'b1;
+		expected_PRF_alu_reg_req_A_PR = 7'h1;
+		expected_PRF_alu_reg_req_B_valid = 1'b0;
+		expected_PRF_alu_reg_req_B_PR = 7'h2;
+	    // op issue to MDU pipeline
+		expected_issue_mdu_valid = 1'b1;
+		expected_issue_mdu_op = 4'h0;
+		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_is_zero = 1'b1;
+		expected_issue_mdu_A_bank = 2'h0;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_is_zero = 1'b0;
+		expected_issue_mdu_B_bank = 2'h1;
+		expected_issue_mdu_dest_PR = 7'h3;
+		expected_issue_mdu_ROB_index = 7'h1;
+	    // MDU pipeline reg read req to PRF
+		expected_PRF_mdu_req_A_valid = 1'b0;
+		expected_PRF_mdu_req_A_PR = 7'h4;
+		expected_PRF_mdu_req_B_valid = 1'b1;
+		expected_PRF_mdu_req_B_PR = 7'h5;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"\n\t\t", 
+            "dispatch3: i NOP", "\n\t\t",
+            "dispatch2: i NOP", "\n\t\t",
+            "dispatch1: i NOP", "\n\t\t",
+            "dispatch0: i NOP", "\n\t\t",
+            "IQB: i NOP", "\n\t\t",
+            "IQA: i NOP", "\n\t\t",
+            "IQ9: i NOP", "\n\t\t",
+            "IQ8: i NOP", "\n\t\t",
+            "IQ7: i NOP", "\n\t\t",
+            "IQ6: i NOP", "\n\t\t",
+            "IQ5: i NOP", "\n\t\t",
+            "IQ4: i NOP", "\n\t\t",
+            "IQ3: i NOP", "\n\t\t",
+            "IQ2: i NOP", "\n\t\t",
+            "IQ1: v 3: ALU1 p9, zeroA:r, zeroB:F", "\n\t\t",
+            "IQ0: v 2: MUL1 p6, p7:f, zero8:r", "\n\t\t",
+            "issue ALU Reg-Reg: v 3: ALU1 p9, zeroA:r, zeroB:F", "\n\t\t",
+            "issue MDU: i NOP", "\n\t\t",
+			"activity: pB WB", "\n\t\t"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op dispatch by way
+		tb_dispatch_attempt_by_way = 4'b0000;
+		tb_dispatch_valid_alu_reg_by_way = 4'b0000;
+		tb_dispatch_valid_mdu_by_way = 4'b0000;
+		tb_dispatch_op_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_dispatch_A_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+		tb_dispatch_A_ready_by_way = 4'b0000;
+		tb_dispatch_B_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+		tb_dispatch_B_ready_by_way = 4'b0000;
+		tb_dispatch_dest_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+		tb_dispatch_ROB_index_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // ALU op dispatch feedback
+	    // pipeline feedback
+		tb_alu_reg_pipeline_ready = 1'b1;
+		tb_mdu_pipeline_ready = 1'b1;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b1000;
+		tb_WB_bus_upper_PR_by_bank = {5'h2, 5'h0, 5'h0, 5'h0};
+	    // op issue to ALU Reg-Reg pipeline
+	    // ALU Reg-Reg pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op dispatch by way
+	    // ALU op dispatch feedback
+		expected_dispatch_ack_by_way = 4'b0000;
+	    // pipeline feedback
+	    // writeback bus by bank
+	    // op issue to ALU Reg-Reg pipeline
+		expected_issue_alu_reg_valid = 1'b1;
+		expected_issue_alu_reg_op = 4'h1;
+		expected_issue_alu_reg_A_forward = 1'b0;
+		expected_issue_alu_reg_A_is_zero = 1'b1;
+		expected_issue_alu_reg_A_bank = 2'h2;
+		expected_issue_alu_reg_B_forward = 1'b1;
+		expected_issue_alu_reg_B_is_zero = 1'b1;
+		expected_issue_alu_reg_B_bank = 2'h3;
+		expected_issue_alu_reg_dest_PR = 7'h9;
+		expected_issue_alu_reg_ROB_index = 7'h3;
+	    // ALU Reg-Reg pipeline reg read req to PRF
+		expected_PRF_alu_reg_req_A_valid = 1'b0;
+		expected_PRF_alu_reg_req_A_PR = 7'hA;
+		expected_PRF_alu_reg_req_B_valid = 1'b0;
+		expected_PRF_alu_reg_req_B_PR = 7'hB;
+	    // op issue to MDU pipeline
+		expected_issue_mdu_valid = 1'b0;
+		expected_issue_mdu_op = 4'h0;
+		expected_issue_mdu_A_forward = 1'b0;
+		expected_issue_mdu_A_is_zero = 1'b0;
+		expected_issue_mdu_A_bank = 2'h0;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_is_zero = 1'b0;
+		expected_issue_mdu_B_bank = 2'h0;
+		expected_issue_mdu_dest_PR = 7'h0;
+		expected_issue_mdu_ROB_index = 7'h0;
+	    // MDU pipeline reg read req to PRF
+		expected_PRF_mdu_req_A_valid = 1'b0;
+		expected_PRF_mdu_req_A_PR = 7'h0;
+		expected_PRF_mdu_req_B_valid = 1'b0;
+		expected_PRF_mdu_req_B_PR = 7'h0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"\n\t\t", 
+            "dispatch3: i NOP", "\n\t\t",
+            "dispatch2: i NOP", "\n\t\t",
+            "dispatch1: i NOP", "\n\t\t",
+            "dispatch0: i NOP", "\n\t\t",
+            "IQB: i NOP", "\n\t\t",
+            "IQA: i NOP", "\n\t\t",
+            "IQ9: i NOP", "\n\t\t",
+            "IQ8: i NOP", "\n\t\t",
+            "IQ7: i NOP", "\n\t\t",
+            "IQ6: i NOP", "\n\t\t",
+            "IQ5: i NOP", "\n\t\t",
+            "IQ4: i NOP", "\n\t\t",
+            "IQ3: i NOP", "\n\t\t",
+            "IQ2: i NOP", "\n\t\t",
+            "IQ1: i NOP", "\n\t\t",
+            "IQ0: v 2: MUL1 p6, p7:F, zero8:r", "\n\t\t",
+            "issue ALU Reg-Reg: i NOP", "\n\t\t",
+            "issue MDU: v 2: MUL1 p6, p7:F, zero8:r", "\n\t\t",
+			"activity: p7 WB", "\n\t\t"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op dispatch by way
+		tb_dispatch_attempt_by_way = 4'b0000;
+		tb_dispatch_valid_alu_reg_by_way = 4'b0000;
+		tb_dispatch_valid_mdu_by_way = 4'b0000;
+		tb_dispatch_op_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
+		tb_dispatch_A_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+		tb_dispatch_A_ready_by_way = 4'b0000;
+		tb_dispatch_B_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+		tb_dispatch_B_ready_by_way = 4'b0000;
+		tb_dispatch_dest_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+		tb_dispatch_ROB_index_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // ALU op dispatch feedback
+	    // pipeline feedback
+		tb_alu_reg_pipeline_ready = 1'b1;
+		tb_mdu_pipeline_ready = 1'b1;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b1000;
+		tb_WB_bus_upper_PR_by_bank = {5'h1, 5'h0, 5'h0, 5'h0};
+	    // op issue to ALU Reg-Reg pipeline
+	    // ALU Reg-Reg pipeline reg read req to PRF
+	    // op issue to MDU pipeline
+	    // MDU pipeline reg read req to PRF
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op dispatch by way
+	    // ALU op dispatch feedback
+		expected_dispatch_ack_by_way = 4'b0000;
+	    // pipeline feedback
+	    // writeback bus by bank
+	    // op issue to ALU Reg-Reg pipeline
+		expected_issue_alu_reg_valid = 1'b0;
+		expected_issue_alu_reg_op = 4'h0;
+		expected_issue_alu_reg_A_forward = 1'b0;
+		expected_issue_alu_reg_A_is_zero = 1'b0;
+		expected_issue_alu_reg_A_bank = 2'h0;
+		expected_issue_alu_reg_B_forward = 1'b0;
+		expected_issue_alu_reg_B_is_zero = 1'b0;
+		expected_issue_alu_reg_B_bank = 2'h0;
+		expected_issue_alu_reg_dest_PR = 7'h0;
+		expected_issue_alu_reg_ROB_index = 7'h0;
+	    // ALU Reg-Reg pipeline reg read req to PRF
+		expected_PRF_alu_reg_req_A_valid = 1'b0;
+		expected_PRF_alu_reg_req_A_PR = 7'h0;
+		expected_PRF_alu_reg_req_B_valid = 1'b0;
+		expected_PRF_alu_reg_req_B_PR = 7'h0;
+	    // op issue to MDU pipeline
+		expected_issue_mdu_valid = 1'b1;
+		expected_issue_mdu_op = 4'h1;
+		expected_issue_mdu_A_forward = 1'b1;
+		expected_issue_mdu_A_is_zero = 1'b0;
+		expected_issue_mdu_A_bank = 2'h3;
+		expected_issue_mdu_B_forward = 1'b0;
+		expected_issue_mdu_B_is_zero = 1'b1;
+		expected_issue_mdu_B_bank = 2'h0;
+		expected_issue_mdu_dest_PR = 7'h6;
+		expected_issue_mdu_ROB_index = 7'h2;
+	    // MDU pipeline reg read req to PRF
+		expected_PRF_mdu_req_A_valid = 1'b0;
+		expected_PRF_mdu_req_A_PR = 7'h7;
+		expected_PRF_mdu_req_B_valid = 1'b0;
+		expected_PRF_mdu_req_B_PR = 7'h8;
 
 		check_outputs();
 

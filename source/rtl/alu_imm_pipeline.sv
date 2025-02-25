@@ -19,6 +19,7 @@ module alu_imm_pipeline (
     input logic [3:0]                       issue_op,
     input logic [11:0]                      issue_imm12,
     input logic                             issue_A_forward,
+    input logic                             issue_A_is_zero,
     input logic [LOG_PRF_BANK_COUNT-1:0]    issue_A_bank,
     input logic [LOG_PR_COUNT-1:0]          issue_dest_PR,
     input logic [LOG_ROB_ENTRIES-1:0]       issue_ROB_index,
@@ -58,6 +59,7 @@ module alu_imm_pipeline (
     logic [11:0]                    imm12_OC;
     logic                           A_saved_OC;
     logic                           A_forward_OC;
+    logic                           A_is_zero_OC;
     logic [LOG_PRF_BANK_COUNT-1:0]  A_bank_OC;
     logic [LOG_PR_COUNT-1:0]        dest_PR_OC;
     logic [LOG_ROB_ENTRIES-1:0]     ROB_index_OC;
@@ -113,6 +115,7 @@ module alu_imm_pipeline (
             imm12_OC <= 12'h0;
             A_saved_OC <= 1'b0;
             A_forward_OC <= 1'b0;
+            A_is_zero_OC <= 1'b0;
             A_bank_OC <= '0;
             A_saved_data_OC <= 32'h0;
             dest_PR_OC <= '0;
@@ -125,6 +128,7 @@ module alu_imm_pipeline (
             imm12_OC <= imm12_OC;
             A_saved_OC <= A_saved_OC | A_forward_OC | A_reg_read_ack;
             A_forward_OC <= 1'b0;
+            A_is_zero_OC <= A_is_zero_OC;
             A_bank_OC <= A_bank_OC;
             A_saved_data_OC <= next_A_EX;
             dest_PR_OC <= dest_PR_OC;
@@ -137,6 +141,7 @@ module alu_imm_pipeline (
             imm12_OC <= issue_imm12;
             A_saved_OC <= 1'b0;
             A_forward_OC <= issue_A_forward;
+            A_is_zero_OC <= issue_A_is_zero;
             A_bank_OC <= issue_A_bank;
             A_saved_data_OC <= next_A_EX;
             dest_PR_OC <= issue_dest_PR;
@@ -149,7 +154,7 @@ module alu_imm_pipeline (
         ~stall_OC
         &
         // A operand present
-        (A_saved_OC | A_forward_OC | A_reg_read_ack)
+        (A_saved_OC | A_forward_OC | A_reg_read_ack | A_is_zero_OC)
     ;
 
     assign issue_ready = ~valid_OC | launch_ready_OC;
@@ -163,7 +168,10 @@ module alu_imm_pipeline (
     always_comb begin
 
         // collect A value to save OR pass to EX
-        if (A_saved_OC) begin
+        if (A_is_zero_OC) begin
+            next_A_EX = 32'h0;
+        end 
+        else if (A_saved_OC) begin
             next_A_EX = A_saved_data_OC;
         end
         else if (A_forward_OC) begin

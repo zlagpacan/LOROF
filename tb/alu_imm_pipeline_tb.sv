@@ -38,6 +38,7 @@ module alu_imm_pipeline_tb ();
 	logic [3:0] tb_issue_op;
 	logic [11:0] tb_issue_imm12;
 	logic tb_issue_A_forward;
+	logic tb_issue_A_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] tb_issue_A_bank;
 	logic [LOG_PR_COUNT-1:0] tb_issue_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] tb_issue_ROB_index;
@@ -76,6 +77,7 @@ module alu_imm_pipeline_tb ();
 		.issue_op(tb_issue_op),
 		.issue_imm12(tb_issue_imm12),
 		.issue_A_forward(tb_issue_A_forward),
+		.issue_A_is_zero(tb_issue_A_is_zero),
 		.issue_A_bank(tb_issue_A_bank),
 		.issue_dest_PR(tb_issue_dest_PR),
 		.issue_ROB_index(tb_issue_ROB_index),
@@ -168,6 +170,7 @@ module alu_imm_pipeline_tb ();
 		tb_issue_op = 4'b0000;
 		tb_issue_imm12 = 12'h0;
 		tb_issue_A_forward = 1'b0;
+		tb_issue_A_is_zero = 1'b0;
 		tb_issue_A_bank = 2'h0;
 		tb_issue_dest_PR = 7'h0;
 		tb_issue_ROB_index = 7'h0;
@@ -211,6 +214,7 @@ module alu_imm_pipeline_tb ();
 		tb_issue_op = 4'b0000;
 		tb_issue_imm12 = 12'h0;
 		tb_issue_A_forward = 1'b0;
+		tb_issue_A_is_zero = 1'b0;
 		tb_issue_A_bank = 2'h0;
 		tb_issue_dest_PR = 7'h0;
 		tb_issue_ROB_index = 7'h0;
@@ -262,6 +266,7 @@ module alu_imm_pipeline_tb ();
 		tb_issue_op = 4'b0000;
 		tb_issue_imm12 = 12'h0;
 		tb_issue_A_forward = 1'b0;
+		tb_issue_A_is_zero = 1'b0;
 		tb_issue_A_bank = 2'h0;
 		tb_issue_dest_PR = 7'h0;
 		tb_issue_ROB_index = 7'h0;
