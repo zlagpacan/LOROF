@@ -210,11 +210,10 @@ module btb (
             // if conflicted last cycle, use update value from last cycle
         if (last_update1_conflict) begin
             update1_new_pred_lru_by_instr = last_update1_new_pred_lru_by_instr;
-            update1_new_pred_lru_by_instr[update1_instr] = ~update1_pred_lru;
         end else begin
             update1_new_pred_lru_by_instr = update1_old_pred_lru_by_instr;
-            update1_new_pred_lru_by_instr[update1_instr] = ~update1_pred_lru;
         end
+        update1_new_pred_lru_by_instr[update1_instr] = ~update1_pred_lru;
 
         // pred info tag target byte mask follows 4B associated with this instr and way
         update1_byte_mask_pred_info_tag_target_by_instr_by_way = '0;
