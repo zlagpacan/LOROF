@@ -29,6 +29,7 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
   randc logic [3:0]                           issue_op;
   randc logic [11:0]                          issue_imm12;
   randc logic                                 issue_A_forward;
+  randc logic                                 issue_A_is_zero;
   randc logic [LOG_PRF_BANK_COUNT-1:0]        issue_A_bank;
   randc logic [LOG_PR_COUNT-1:0]              issue_dest_PR;
   randc logic [LOG_ROB_ENTRIES-1:0]           issue_ROB_index;
