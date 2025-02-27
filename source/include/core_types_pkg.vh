@@ -84,6 +84,7 @@ package core_types_pkg;
 
     // RAS:
     parameter RAS_ENTRIES = 8;
+    parameter LOG_RAS_ENTRIES = $clog2(RAS_ENTRIES);
     parameter RAS_TARGET_WIDTH = 32 - 1;
 
     // UPCT:
