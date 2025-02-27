@@ -736,7 +736,7 @@ module bru_pipeline (
         .is_taken(is_taken_EX2),
         .is_mispredict(next_branch_notif_is_mispredict),
         .start_neq_target_upper_PC(start_neq_target_upper_PC_EX2),
-        .delta_start_target_upper_PC(delta_start_target_upper_PC_EX2),
+        .delta_start_target_upper_PC(delta_start_target_upper_PC_EX2[2:0]),
         .large_delta_upper_PC(next_branch_notif_use_upct),
         // outputs
         .updated_pred_info(next_branch_notif_updated_pred_info)
