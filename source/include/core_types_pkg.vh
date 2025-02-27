@@ -88,7 +88,8 @@ package core_types_pkg;
     parameter RAS_TARGET_WIDTH = 32 - 1;
 
     // UPCT:
-    parameter UPPER_PC_TABLE_ENTRIES = 8;
+    parameter UPCT_ENTRIES = 16;
+    parameter LOG_UPCT_ENTRIES = $clog2(UPCT_ENTRIES);
     parameter UPPER_PC_WIDTH = 32 - BTB_TARGET_WIDTH - 1;
 
     // MDPT:
