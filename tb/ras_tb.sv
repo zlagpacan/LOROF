@@ -210,6 +210,222 @@ module ras_tb ();
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "ret 2";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // RESP stage
+		tb_link_RESP = 1'b0;
+		tb_link_full_PC_RESP = 32'h33333333;
+		tb_ret_RESP = 1'b1;
+	    // Update 0
+		tb_update0_valid = 1'b0;
+		tb_update0_ras_index = 3'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // RESP stage
+		expected_ret_full_PC_RESP = 32'h22222222;
+		expected_ras_index_RESP = 3'h2;
+	    // Update 0
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "link + ret 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // RESP stage
+		tb_link_RESP = 1'b1;
+		tb_link_full_PC_RESP = 32'h55555555;
+		tb_ret_RESP = 1'b1;
+	    // Update 0
+		tb_update0_valid = 1'b0;
+		tb_update0_ras_index = 3'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // RESP stage
+		expected_ret_full_PC_RESP = 32'h11111110;
+		expected_ras_index_RESP = 3'h1;
+	    // Update 0
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "update to 7";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // RESP stage
+		tb_link_RESP = 1'b0;
+		tb_link_full_PC_RESP = 32'h0;
+		tb_ret_RESP = 1'b0;
+	    // Update 0
+		tb_update0_valid = 1'b1;
+		tb_update0_ras_index = 3'h7;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // RESP stage
+		expected_ret_full_PC_RESP = 32'h55555554;
+		expected_ras_index_RESP = 3'h1;
+	    // Update 0
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "update to 3";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // RESP stage
+		tb_link_RESP = 1'b0;
+		tb_link_full_PC_RESP = 32'h0;
+		tb_ret_RESP = 1'b0;
+	    // Update 0
+		tb_update0_valid = 1'b1;
+		tb_update0_ras_index = 3'h3;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // RESP stage
+		expected_ret_full_PC_RESP = 32'h0;
+		expected_ras_index_RESP = 3'h7;
+	    // Update 0
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "ret to 2";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // RESP stage
+		tb_link_RESP = 1'b0;
+		tb_link_full_PC_RESP = 32'h0;
+		tb_ret_RESP = 1'b1;
+	    // Update 0
+		tb_update0_valid = 1'b0;
+		tb_update0_ras_index = 3'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // RESP stage
+		expected_ret_full_PC_RESP = 32'h0;
+		expected_ras_index_RESP = 3'h3;
+	    // Update 0
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "ret to 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // RESP stage
+		tb_link_RESP = 1'b0;
+		tb_link_full_PC_RESP = 32'h0;
+		tb_ret_RESP = 1'b1;
+	    // Update 0
+		tb_update0_valid = 1'b0;
+		tb_update0_ras_index = 3'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // RESP stage
+		expected_ret_full_PC_RESP = 32'h22222222;
+		expected_ras_index_RESP = 3'h2;
+	    // Update 0
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "ret to 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // RESP stage
+		tb_link_RESP = 1'b0;
+		tb_link_full_PC_RESP = 32'h0;
+		tb_ret_RESP = 1'b1;
+	    // Update 0
+		tb_update0_valid = 1'b0;
+		tb_update0_ras_index = 3'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // RESP stage
+		expected_ret_full_PC_RESP = 32'h55555554;
+		expected_ras_index_RESP = 3'h1;
+	    // Update 0
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "done";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // RESP stage
+		tb_link_RESP = 1'b0;
+		tb_link_full_PC_RESP = 32'h0;
+		tb_ret_RESP = 1'b0;
+	    // Update 0
+		tb_update0_valid = 1'b0;
+		tb_update0_ras_index = 3'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // RESP stage
+		expected_ret_full_PC_RESP = 32'h0;
+		expected_ras_index_RESP = 3'h0;
+	    // Update 0
+
+		check_outputs();
+
         // ------------------------------------------------------------
         // finish:
         @(posedge CLK); #(PERIOD/10);
