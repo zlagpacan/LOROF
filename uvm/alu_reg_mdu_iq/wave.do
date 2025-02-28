@@ -16,7 +16,7 @@ add wave -noupdate -expand -group Inputs /top/alu_reg_mdu_iq_intf/alu_reg_pipeli
 add wave -noupdate -expand -group Inputs /top/alu_reg_mdu_iq_intf/mdu_pipeline_ready
 add wave -noupdate -expand -group Inputs /top/alu_reg_mdu_iq_intf/WB_bus_valid_by_bank
 add wave -noupdate -expand -group Inputs /top/alu_reg_mdu_iq_intf/WB_bus_upper_PR_by_bank
-add wave -noupdate -expand -group Inputs /top/alu_reg_mdu_iq_intf/dispatch_ack_by_way
+add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/dispatch_ack_by_way
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_alu_reg_valid
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_alu_reg_op
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_alu_reg_A_forward
@@ -42,7 +42,7 @@ add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/PRF_mdu_req_A
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/PRF_mdu_req_B_valid
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/PRF_mdu_req_B_PR
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {20 ns} 0}
+WaveRestoreCursors {{Cursor 1} {1057 ns} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 187
 configure wave -valuecolwidth 100
@@ -58,4 +58,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ns} {42 ns}
+WaveRestoreZoom {945 ns} {1239 ns}

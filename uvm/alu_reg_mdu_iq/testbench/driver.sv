@@ -53,7 +53,8 @@ class alu_reg_mdu_iq_driver extends uvm_driver#(alu_reg_mdu_iq_sequence_item);
     forever begin
       item = alu_reg_mdu_iq_sequence_item::type_id::create("item"); 
       seq_item_port.get_next_item(item);
-      $display("DRIVER dispatch_op_by_way[0] == %d, at time %t",item.dispatch_op_by_way[0],$time);
+      // $display("DRIVER nRST == %d, at time %t",item.nRST,$time);
+      // $display("DRIVER dispatch_op_by_way[0] == %d, at time %t",item.dispatch_op_by_way[0],$time);
       drive(item);
       seq_item_port.item_done();
     end

@@ -88,6 +88,8 @@ class alu_reg_mdu_iq_scoreboard extends uvm_scoreboard;
       else begin
             m_mismatches++;
             uvm_report_info("SB", "Error: Data mismatch");
+            predicted_tx.print_transaction("predicted_tx");
+            actual_tx.print_transaction("actual_tx");
             // `uvm_info(get_type_name(), $sformatf("Monitor found packet %s", curr_trans.convert2str()), UVM_LOW)
             // `uvm_info(get_type_name(), $sformatf("Monitor found packet %s", per_trans.convert2str()), UVM_LOW)
       end

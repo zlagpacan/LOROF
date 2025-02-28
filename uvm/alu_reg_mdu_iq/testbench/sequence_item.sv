@@ -68,6 +68,181 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
   logic                          PRF_mdu_req_B_valid;
   logic [LOG_PR_COUNT-1:0]       PRF_mdu_req_B_PR;
   
+  
+  virtual function bit do_compare(uvm_object rhs, uvm_comparer comparer);
+    alu_reg_mdu_iq_sequence_item rhs_tx;
+    if (!$cast(rhs_tx, rhs)) return 0; // Type check
+
+    return (
+        (dispatch_ack_by_way === rhs_tx.dispatch_ack_by_way) &&
+        (issue_alu_reg_valid === rhs_tx.issue_alu_reg_valid) &&
+        (issue_alu_reg_op === rhs_tx.issue_alu_reg_op) &&
+        (issue_alu_reg_A_forward === rhs_tx.issue_alu_reg_A_forward) &&
+        (issue_alu_reg_A_bank === rhs_tx.issue_alu_reg_A_bank) &&
+        (issue_alu_reg_B_forward === rhs_tx.issue_alu_reg_B_forward) &&
+        (issue_alu_reg_B_bank === rhs_tx.issue_alu_reg_B_bank) &&
+        (issue_alu_reg_dest_PR === rhs_tx.issue_alu_reg_dest_PR) &&
+        (issue_alu_reg_ROB_index === rhs_tx.issue_alu_reg_ROB_index) &&
+        (PRF_alu_reg_req_A_valid === rhs_tx.PRF_alu_reg_req_A_valid) &&
+        (PRF_alu_reg_req_A_PR === rhs_tx.PRF_alu_reg_req_A_PR) &&
+        (PRF_alu_reg_req_B_valid === rhs_tx.PRF_alu_reg_req_B_valid) &&
+        (PRF_alu_reg_req_B_PR === rhs_tx.PRF_alu_reg_req_B_PR) &&
+        (issue_mdu_valid === rhs_tx.issue_mdu_valid) &&
+        (issue_mdu_op === rhs_tx.issue_mdu_op) &&
+        (issue_mdu_A_forward === rhs_tx.issue_mdu_A_forward) &&
+        (issue_mdu_A_bank === rhs_tx.issue_mdu_A_bank) &&
+        (issue_mdu_B_forward === rhs_tx.issue_mdu_B_forward) &&
+        (issue_mdu_B_bank === rhs_tx.issue_mdu_B_bank) &&
+        (issue_mdu_dest_PR === rhs_tx.issue_mdu_dest_PR) &&
+        (issue_mdu_ROB_index === rhs_tx.issue_mdu_ROB_index) &&
+        (PRF_mdu_req_A_valid === rhs_tx.PRF_mdu_req_A_valid) &&
+        (PRF_mdu_req_A_PR === rhs_tx.PRF_mdu_req_A_PR) &&
+        (PRF_mdu_req_B_valid === rhs_tx.PRF_mdu_req_B_valid) &&
+        (PRF_mdu_req_B_PR === rhs_tx.PRF_mdu_req_B_PR)
+    );
+  endfunction
+
+
+  virtual function void copy(uvm_object rhs);
+    alu_reg_mdu_iq_sequence_item tr;
+    if (!$cast(tr, rhs)) begin
+      `uvm_error("COPY", "Cast failed in copy() method")
+      return;
+    end
+    
+    super.copy(rhs); // Copy base class fields
+    
+    // Manually copy each field
+    this.way = tr.way;
+    this.nRST = tr.nRST;
+    this.dispatch_attempt_by_way = tr.dispatch_attempt_by_way;
+    this.dispatch_valid_alu_reg_by_way = tr.dispatch_valid_alu_reg_by_way;
+    this.dispatch_valid_mdu_by_way = tr.dispatch_valid_mdu_by_way;
+    this.dispatch_op_by_way = tr.dispatch_op_by_way;
+    this.dispatch_A_PR_by_way = tr.dispatch_A_PR_by_way;
+    this.dispatch_A_ready_by_way = tr.dispatch_A_ready_by_way;
+    this.dispatch_B_PR_by_way = tr.dispatch_B_PR_by_way;
+    this.dispatch_B_ready_by_way = tr.dispatch_B_ready_by_way;
+    this.dispatch_dest_PR_by_way = tr.dispatch_dest_PR_by_way;
+    this.dispatch_ROB_index_by_way = tr.dispatch_ROB_index_by_way;
+    this.alu_reg_pipeline_ready = tr.alu_reg_pipeline_ready;
+    this.mdu_pipeline_ready = tr.mdu_pipeline_ready;
+    this.WB_bus_valid_by_bank = tr.WB_bus_valid_by_bank;
+    this.WB_bus_upper_PR_by_bank = tr.WB_bus_upper_PR_by_bank;
+    this.dispatch_ack_by_way = tr.dispatch_ack_by_way;
+    this.issue_alu_reg_valid = tr.issue_alu_reg_valid;
+    this.issue_alu_reg_op = tr.issue_alu_reg_op;
+    this.issue_alu_reg_A_forward = tr.issue_alu_reg_A_forward;
+    this.issue_alu_reg_A_bank = tr.issue_alu_reg_A_bank;
+    this.issue_alu_reg_B_forward = tr.issue_alu_reg_B_forward;
+    this.issue_alu_reg_B_bank = tr.issue_alu_reg_B_bank;
+    this.issue_alu_reg_dest_PR = tr.issue_alu_reg_dest_PR;
+    this.issue_alu_reg_ROB_index = tr.issue_alu_reg_ROB_index;
+    this.PRF_alu_reg_req_A_valid = tr.PRF_alu_reg_req_A_valid;
+    this.PRF_alu_reg_req_A_PR = tr.PRF_alu_reg_req_A_PR;
+    this.PRF_alu_reg_req_B_valid = tr.PRF_alu_reg_req_B_valid;
+    this.PRF_alu_reg_req_B_PR = tr.PRF_alu_reg_req_B_PR;
+    this.issue_mdu_valid = tr.issue_mdu_valid;
+    this.issue_mdu_op = tr.issue_mdu_op;
+    this.issue_mdu_A_forward = tr.issue_mdu_A_forward;
+    this.issue_mdu_A_bank = tr.issue_mdu_A_bank;
+    this.issue_mdu_B_forward = tr.issue_mdu_B_forward;
+    this.issue_mdu_B_bank = tr.issue_mdu_B_bank;
+    this.issue_mdu_dest_PR = tr.issue_mdu_dest_PR;
+    this.issue_mdu_ROB_index = tr.issue_mdu_ROB_index;
+    this.PRF_mdu_req_A_valid = tr.PRF_mdu_req_A_valid;
+    this.PRF_mdu_req_A_PR = tr.PRF_mdu_req_A_PR;
+    this.PRF_mdu_req_B_valid = tr.PRF_mdu_req_B_valid;
+    this.PRF_mdu_req_B_PR = tr.PRF_mdu_req_B_PR;
+  endfunction
+  // hiiiii
+  
+  function void print_transaction(string x);
+    $display("---- %s Details ---- at time %t",x, $time);
+  
+    // --- Control Signals ---
+    $display("nRST: %b", nRST);
+  
+    // --- Randomized Inputs ---
+    foreach (dispatch_attempt_by_way[i])
+      $display("dispatch_attempt_by_way[%0d]: %b", i, dispatch_attempt_by_way[i]);
+  
+    foreach (dispatch_valid_alu_reg_by_way[i])
+      $display("dispatch_valid_alu_reg_by_way[%0d]: %b", i, dispatch_valid_alu_reg_by_way[i]);
+  
+    foreach (dispatch_valid_mdu_by_way[i])
+      $display("dispatch_valid_mdu_by_way[%0d]: %b", i, dispatch_valid_mdu_by_way[i]);
+  
+    foreach (dispatch_op_by_way[i])
+      $display("dispatch_op_by_way[%0d]: %h", i, dispatch_op_by_way[i]);
+  
+    foreach (dispatch_A_PR_by_way[i])
+      $display("dispatch_A_PR_by_way[%0d]: %h", i, dispatch_A_PR_by_way[i]);
+  
+    foreach (dispatch_A_ready_by_way[i])
+      $display("dispatch_A_ready_by_way[%0d]: %b", i, dispatch_A_ready_by_way[i]);
+  
+    foreach (dispatch_B_PR_by_way[i])
+      $display("dispatch_B_PR_by_way[%0d]: %h", i, dispatch_B_PR_by_way[i]);
+  
+    foreach (dispatch_B_ready_by_way[i])
+      $display("dispatch_B_ready_by_way[%0d]: %b", i, dispatch_B_ready_by_way[i]);
+  
+    foreach (dispatch_dest_PR_by_way[i])
+      $display("dispatch_dest_PR_by_way[%0d]: %h", i, dispatch_dest_PR_by_way[i]);
+  
+    foreach (dispatch_ROB_index_by_way[i])
+      $display("dispatch_ROB_index_by_way[%0d]: %h", i, dispatch_ROB_index_by_way[i]);
+  
+    $display("alu_reg_pipeline_ready: %b", alu_reg_pipeline_ready);
+    $display("mdu_pipeline_ready: %b", mdu_pipeline_ready);
+  
+    foreach (WB_bus_valid_by_bank[i])
+      $display("WB_bus_valid_by_bank[%0d]: %b", i, WB_bus_valid_by_bank[i]);
+  
+    foreach (WB_bus_upper_PR_by_bank[i])
+      $display("WB_bus_upper_PR_by_bank[%0d]: %h", i, WB_bus_upper_PR_by_bank[i]);
+  
+    // --- Outputs ---
+
+    $display("Outputs");
+  
+    foreach (dispatch_ack_by_way[i])
+      $display("dispatch_ack_by_way[%0d]: %b", i, dispatch_ack_by_way[i]);
+  
+    $display("issue_alu_reg_valid: %b", issue_alu_reg_valid);
+    $display("issue_alu_reg_op: %h", issue_alu_reg_op);
+    $display("issue_alu_reg_A_forward: %b", issue_alu_reg_A_forward);
+    $display("issue_alu_reg_A_bank: %h", issue_alu_reg_A_bank);
+    $display("issue_alu_reg_B_forward: %b", issue_alu_reg_B_forward);
+    $display("issue_alu_reg_B_bank: %h", issue_alu_reg_B_bank);
+    $display("issue_alu_reg_dest_PR: %h", issue_alu_reg_dest_PR);
+    $display("issue_alu_reg_ROB_index: %h", issue_alu_reg_ROB_index);
+  
+    $display("PRF_alu_reg_req_A_valid: %b", PRF_alu_reg_req_A_valid);
+    $display("PRF_alu_reg_req_A_PR: %h", PRF_alu_reg_req_A_PR);
+    $display("PRF_alu_reg_req_B_valid: %b", PRF_alu_reg_req_B_valid);
+    $display("PRF_alu_reg_req_B_PR: %h", PRF_alu_reg_req_B_PR);
+  
+    $display("issue_mdu_valid: %b", issue_mdu_valid);
+    $display("issue_mdu_op: %h", issue_mdu_op);
+    $display("issue_mdu_A_forward: %b", issue_mdu_A_forward);
+    $display("issue_mdu_A_bank: %h", issue_mdu_A_bank);
+    $display("issue_mdu_B_forward: %b", issue_mdu_B_forward);
+    $display("issue_mdu_B_bank: %h", issue_mdu_B_bank);
+    $display("issue_mdu_dest_PR: %h", issue_mdu_dest_PR);
+    $display("issue_mdu_ROB_index: %h", issue_mdu_ROB_index);
+  
+    $display("PRF_mdu_req_A_valid: %b", PRF_mdu_req_A_valid);
+    $display("PRF_mdu_req_A_PR: %h", PRF_mdu_req_A_PR);
+    $display("PRF_mdu_req_B_valid: %b", PRF_mdu_req_B_valid);
+    $display("PRF_mdu_req_B_PR: %h", PRF_mdu_req_B_PR);
+  
+    $display("---- End of Transaction ----\n");
+  endfunction
+
+  
+  
   // --- Constraints --- //
   constraint valid_dispatch {
     // dispatch_attempt_by_way solve before {dispatch_valid_alu_reg_by_way, dispatch_valid_mdu_by_way};

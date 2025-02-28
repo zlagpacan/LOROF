@@ -25,6 +25,10 @@ class reset_sequence extends uvm_sequence;
         start_item(reset_tx);
         reset_tx.randomize() with {
             nRST == 1'b0;
+            dispatch_attempt_by_way == {4{1'b0}};
+            dispatch_valid_alu_reg_by_way == {4{1'b0}};
+            alu_reg_pipeline_ready == 1;
+            WB_bus_valid_by_bank ==  {4{1'b0}};
         };
         finish_item(reset_tx);
     endtask
@@ -47,6 +51,10 @@ class garbage_sequence extends uvm_sequence;
         start_item(garb_tx);
         garb_tx.randomize() with {
             nRST == 1'b1;
+            // dispatch_attempt_by_way == {4{1'b0}};
+            // dispatch_valid_alu_reg_by_way == {4{1'b0}};
+            // alu_reg_pipeline_ready == 1;
+            // WB_bus_valid_by_bank ==  {4{1'b0}};
         };
         finish_item(garb_tx);
     endtask
