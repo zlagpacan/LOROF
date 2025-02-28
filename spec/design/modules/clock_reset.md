@@ -12,6 +12,7 @@
     - at this point, a simple non-flopped reset network distributed to all clock domains should be feasible
 
 ### Reset Rules
+- output signals will behave with their reset functionality for any cycle where nRST = 1'b0 since the last CLK positive edge. once nRST = 1'b1 for the remainder of a CLK period until the next CLK positive edge, the non-reset, regular spec functionality will be followed
 - in general, reset functionality is only explicitly defined for the "idle value" inputs
     - as such, reset functionality only must be verified for "idle value" inputs
 - all input signals in module specs are annotated with "idle value"s. some signals, e.g. data signals, have undefined or "x" idle values, meaning that they are don't-cares when maintaining idle behavior
