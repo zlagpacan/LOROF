@@ -88,7 +88,7 @@ package core_types_pkg;
     parameter RAS_TARGET_WIDTH = 32 - 1;
 
     // UPCT:
-    parameter UPCT_ENTRIES = 16;
+    parameter UPCT_ENTRIES = 8; // table not designed to be parameterizable due to PLRU. constant 8
     parameter LOG_UPCT_ENTRIES = $clog2(UPCT_ENTRIES);
     parameter UPPER_PC_WIDTH = 32 - BTB_TARGET_WIDTH - 1;
 
