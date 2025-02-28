@@ -117,7 +117,7 @@ FPGAs notably do not have access to technologies that efficiently implement CAMs
 Flip flops can implement any memory class, albeit highly inefficiently as there is no optimization for the memory organization or access pattern. Unfortunately, CAMs must be implemented as flip flop arrays when targetting FPGA technology.
 
 ### Distributed RAM Arrays
-Xilinx FPGAs (as used by LOROF) have Distributed RAM, which is essentially a repurposing of the FPGA LUTs as 1 read port, 1 write port RAM. Distributed RAM is lower LUT cost and power than a simple 1 read index, 1 write index flip flop array. 
+Xilinx FPGAs (as used by LOROF) have Distributed RAM, which is essentially a repurposing of the FPGA LUTs as 1 read port, 1 write port RAM. Distributed RAM is lower LUT cost and power than a simple, unoptimized, 1 or 2 read port, 1 write port, 2D flip flop array. 
 
 ### BRAM Arrays
 Xilinx and Intel FPGAs have dedicated Block RAMs separate from the LUT array structure. These generally have 1- or 2-cycle-delayed clocked reads from a single read index and clocked writes from a single write index (or a single clocked read/write indexed). For LOROF, BRAMs are most obviously 
