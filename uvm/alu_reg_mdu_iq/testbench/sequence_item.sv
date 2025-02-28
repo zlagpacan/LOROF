@@ -26,20 +26,20 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
   rand logic nRST;
 
   // --- Randomized Inputs --- //
-  randc logic [3:0]                                                     dispatch_attempt_by_way;
-  randc logic [3:0]                                                     dispatch_valid_alu_reg_by_way;
-  randc logic [3:0]                                                     dispatch_valid_mdu_by_way;
-  randc logic [3:0][3:0]                                                dispatch_op_by_way;
-  randc logic [3:0][LOG_PR_COUNT-1:0]                                   dispatch_A_PR_by_way;
-  randc logic [3:0]                                                     dispatch_A_ready_by_way;
-  randc logic [3:0][LOG_PR_COUNT-1:0]                                   dispatch_B_PR_by_way;
-  randc logic [3:0]                                                     dispatch_B_ready_by_way;
-  randc logic [3:0][LOG_PR_COUNT-1:0]                                   dispatch_dest_PR_by_way;
-  randc logic [3:0][LOG_ROB_ENTRIES-1:0]                                dispatch_ROB_index_by_way;
-  randc logic                                                           alu_reg_pipeline_ready;
-  randc logic                                                           mdu_pipeline_ready;
-  randc logic [PRF_BANK_COUNT-1:0]                                      WB_bus_valid_by_bank;
-  randc logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] WB_bus_upper_PR_by_bank;
+  rand logic [3:0]                                                     dispatch_attempt_by_way;
+  rand logic [3:0]                                                     dispatch_valid_alu_reg_by_way;
+  rand logic [3:0]                                                     dispatch_valid_mdu_by_way;
+  rand logic [3:0][3:0]                                                dispatch_op_by_way;
+  rand logic [3:0][LOG_PR_COUNT-1:0]                                   dispatch_A_PR_by_way;
+  rand logic [3:0]                                                     dispatch_A_ready_by_way;
+  rand logic [3:0][LOG_PR_COUNT-1:0]                                   dispatch_B_PR_by_way;
+  rand logic [3:0]                                                     dispatch_B_ready_by_way;
+  rand logic [3:0][LOG_PR_COUNT-1:0]                                   dispatch_dest_PR_by_way;
+  rand logic [3:0][LOG_ROB_ENTRIES-1:0]                                dispatch_ROB_index_by_way;
+  rand logic                                                           alu_reg_pipeline_ready;
+  rand logic                                                           mdu_pipeline_ready;
+  rand logic [PRF_BANK_COUNT-1:0]                                      WB_bus_valid_by_bank;
+  rand logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] WB_bus_upper_PR_by_bank;
   
   // --- Outputs --- //
   logic [3:0]                    dispatch_ack_by_way;
@@ -69,15 +69,22 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
   logic [LOG_PR_COUNT-1:0]       PRF_mdu_req_B_PR;
   
   // --- Constraints --- //
-  constraint vaid_dispatch {
-    (dispatch_valid_alu_reg_by_way | dispatch_valid_mdu_by_way) & ~{dispatch_attempt_by_way} == '0;
-  } // 
+  constraint valid_dispatch {
+    // dispatch_attempt_by_way solve before {dispatch_valid_alu_reg_by_way, dispatch_valid_mdu_by_way};
+    (dispatch_valid_alu_reg_by_way | dispatch_valid_mdu_by_way) <= dispatch_attempt_by_way;
+  }
+
+
+  //TODO MAY NEED TO ADD OPCODE CONSTRAINTS
 
 
   // --- Constructor --- //
   function new(string name = "alu_reg_mdu_iq_sequence_item");
     super.new(name);
   endfunction : new
+
+
+endclass : alu_reg_mdu_iq_sequence_item
 
 // // May use may not will see
 //   virtual function void add();
@@ -188,7 +195,5 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
 //     dispatch_valid_mdu_by_way[way] = 1'b1;
 //     dispatch_op_by_way[way] = 4'b0111;
 //   endfunction
-
-endclass : alu_reg_mdu_iq_sequence_item
 
 `endif
