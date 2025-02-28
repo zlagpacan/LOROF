@@ -91,6 +91,8 @@ module upct_tb ();
     end
     endtask
 
+	logic [0:7][2:0] first_pass_plru_mapping = {3'h0, 3'h4, 3'h2, 3'h6, 3'h1, 3'h5, 3'h3, 3'h7};
+
     // ----------------------------------------------------------------
     // initial block:
 
@@ -161,39 +163,246 @@ module upct_tb ();
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // update miss chain:
+        test_case = "update miss chain";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "default";
+		sub_test_case = $sformatf("update0: 0x0, update1: NOP");
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-	    // RESP stage
+		// RESP stage
 		tb_valid_RESP = 1'b0;
 		tb_upct_index_RESP = 3'h0;
-	    // Update 0
-		tb_update0_valid = 1'b0;
+		// Update 0
+		tb_update0_valid = 1'b1;
 		tb_update0_start_full_PC = {
-			21'h0,
+			3'h0, {3{3'h7, 3'h0}},
 			11'h0
 		};
-	    // Update 1
+		// Update 1
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // RESP stage
+		// RESP stage
 		expected_upper_PC_RESP = 21'h0;
-	    // Update 0
-	    // Update 1
+		// Update 0
+		// Update 1
 		expected_update1_upct_index = 3'h0;
+
+		check_outputs();
+
+		for (int i = 1; i < 8; i++) begin
+
+			@(posedge CLK); #(PERIOD/10);
+
+			// inputs
+			sub_test_case = $sformatf("update0: 0x%1h, update1: 0x%1h", i, i - 1);
+			$display("\t- sub_test: %s", sub_test_case);
+
+			// reset
+			nRST = 1'b1;
+			// RESP stage
+			tb_valid_RESP = 1'b0;
+			tb_upct_index_RESP = 3'h0;
+			// Update 0
+			tb_update0_valid = 1'b1;
+			tb_update0_start_full_PC = {
+				i[2:0], {3{~i[2:0], i[2:0]}},
+				11'h0
+			};
+			// Update 1
+
+			@(negedge CLK);
+
+			// outputs:
+
+			// RESP stage
+			expected_upper_PC_RESP = i == 1 ? 21'h0 : {3'h0, {3{3'h7, 3'h0}}};
+			// Update 0
+			// Update 1
+			expected_update1_upct_index = first_pass_plru_mapping[i-1];
+
+			check_outputs();
+		end
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = $sformatf("update0: NOP, update1: 0x7");
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		// RESP stage
+		tb_valid_RESP = 1'b0;
+		tb_upct_index_RESP = 3'h0;
+		// Update 0
+		tb_update0_valid = 1'b0;
+		tb_update0_start_full_PC = {
+			21'h0,
+			11'h0
+		};
+		// Update 1
+
+		@(negedge CLK);
+
+		// outputs:
+
+		// RESP stage
+		expected_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
+		// Update 0
+		// Update 1
+		expected_update1_upct_index = first_pass_plru_mapping[7];
+
+		check_outputs();
+
+        // ------------------------------------------------------------
+        // read chain:
+        test_case = "read chain";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+		for (int i = 7; i >= 0; i--) begin
+
+			@(posedge CLK); #(PERIOD/10);
+
+			// inputs
+			sub_test_case = $sformatf("RESP: 0x%1h", i[2:0]);
+			$display("\t- sub_test: %s", sub_test_case);
+
+			// reset
+			nRST = 1'b1;
+			// RESP stage
+			tb_valid_RESP = 1'b1;
+			tb_upct_index_RESP = i[2:0];
+			// Update 0
+			tb_update0_valid = 1'b0;
+			tb_update0_start_full_PC = {
+				21'h0,
+				11'h0
+			};
+			// Update 1
+
+			@(negedge CLK);
+
+			// outputs:
+
+			// RESP stage
+			expected_upper_PC_RESP = {first_pass_plru_mapping[i][2:0], {3{~first_pass_plru_mapping[i][2:0], first_pass_plru_mapping[i][2:0]}}};
+			// Update 0
+			// Update 1
+			expected_update1_upct_index = i > 2 ? 3'h0 : 3'h7;
+
+			check_outputs();
+		end
+
+        // ------------------------------------------------------------
+        // update hit chain:
+        test_case = "update hit chain";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = $sformatf("update0: 0x0, update1: NOP");
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		// RESP stage
+		tb_valid_RESP = 1'b0;
+		tb_upct_index_RESP = 3'h0;
+		// Update 0
+		tb_update0_valid = 1'b1;
+		tb_update0_start_full_PC = {
+			3'h0, {3{3'h7, 3'h0}},
+			11'h0
+		};
+		// Update 1
+
+		@(negedge CLK);
+
+		// outputs:
+
+		// RESP stage
+		expected_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
+		// Update 0
+		// Update 1
+		expected_update1_upct_index = 3'h7;
+
+		check_outputs();
+
+		for (int i = 1; i < 8; i++) begin
+
+			@(posedge CLK); #(PERIOD/10);
+
+			// inputs
+			sub_test_case = $sformatf("update0: 0x%1h, update1: 0x%1h", i, i - 1);
+			$display("\t- sub_test: %s", sub_test_case);
+
+			// reset
+			nRST = 1'b1;
+			// RESP stage
+			tb_valid_RESP = 1'b0;
+			tb_upct_index_RESP = 3'h0;
+			// Update 0
+			tb_update0_valid = 1'b1;
+			tb_update0_start_full_PC = {
+				i[2:0], {3{~i[2:0], i[2:0]}},
+				11'h0
+			};
+			// Update 1
+
+			@(negedge CLK);
+
+			// outputs:
+
+			// RESP stage
+			expected_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
+			// Update 0
+			// Update 1
+			expected_update1_upct_index = first_pass_plru_mapping[i-1];
+
+			check_outputs();
+		end
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = $sformatf("update0: NOP, update1: 0x7");
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		// RESP stage
+		tb_valid_RESP = 1'b0;
+		tb_upct_index_RESP = 3'h0;
+		// Update 0
+		tb_update0_valid = 1'b0;
+		tb_update0_start_full_PC = {
+			21'h0,
+			11'h0
+		};
+		// Update 1
+
+		@(negedge CLK);
+
+		// outputs:
+
+		// RESP stage
+		expected_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
+		// Update 0
+		// Update 1
+		expected_update1_upct_index = first_pass_plru_mapping[7];
 
 		check_outputs();
 
