@@ -93,8 +93,8 @@ package core_types_pkg;
     parameter UPPER_PC_WIDTH = 32 - BTB_TARGET_WIDTH - 1;
 
     // MDPT:
-    parameter MDPT_ENTRIES = 256;
-    parameter MDPT_ENTRIES_PER_BLOCK = 4;
+    parameter MDPT_ENTRIES = 2**12;
+    parameter MDPT_ENTRIES_PER_BLOCK = FETCH_WIDTH_2B; // 8 * 2b = 2B
     parameter LOG_MDPT_ENTRIES_PER_BLOCK = $clog2(MDPT_ENTRIES_PER_BLOCK);
     parameter MDPT_SETS = MDPT_ENTRIES / MDPT_ENTRIES_PER_BLOCK;
     parameter MDPT_INDEX_WIDTH = $clog2(MDPT_SETS);
