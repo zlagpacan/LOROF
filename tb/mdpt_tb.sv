@@ -710,8 +710,8 @@ module mdpt_tb ();
         check_outputs();
 
         // ------------------------------------------------------------
-        // update chain (mod 4 == 3: dep pt 3):
-        test_case = "update chain (mod 4 == 3: dep pt 3)";
+        // update chain (mod 4 == 0: dep):
+        test_case = "update chain (mod 4 == 0: dep)";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
@@ -744,7 +744,7 @@ module mdpt_tb ();
                 1'b0
             };
             tb_dep_update0_ASID = {i[11:8], 5'b00000};
-            tb_dep_update0_dep_truth = i % 4 == 3 ? 1'b1 : 1'b0;
+            tb_dep_update0_dep_truth = i % 4 == 0 ? 1'b1 : 1'b0;
 
             @(negedge CLK);
 
@@ -759,8 +759,8 @@ module mdpt_tb ();
         end
 
         // ------------------------------------------------------------
-        // read chain (mod 4 == 3: dep pt 3):
-        test_case = "read chain (mod 4 == 3: dep pt 3)";
+        // read chain (mod 4 == 0: dep):
+        test_case = "read chain (mod 4 == 0: dep)";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
@@ -841,7 +841,7 @@ module mdpt_tb ();
 
             // REQ stage
             // RESP stage
-            expected_dep_pred_by_instr_RESP = 8'b10001000;
+            expected_dep_pred_by_instr_RESP = 8'b10011001;
             // Dep Update 0 stage
 
             check_outputs();
@@ -882,7 +882,7 @@ module mdpt_tb ();
 
         // REQ stage
         // RESP stage
-        expected_dep_pred_by_instr_RESP = 8'b10001000;
+        expected_dep_pred_by_instr_RESP = 8'b10011001;
         // Dep Update 0 stage
 
         check_outputs();
