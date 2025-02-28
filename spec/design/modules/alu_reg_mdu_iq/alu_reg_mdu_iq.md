@@ -147,7 +147,16 @@ each signal is a vector, with each 1D entry out of 4 associated with a dispatch 
         - {4{7'hx}}
 - dispatch_A_ready_by_way
     - input logic [3:0]
-    - indicate that operand A should enter the IQ in ready state (= 1'b1 by way) vs not ready state (= 1'b0 by way)
+    - indicate that operand A should enter the IQ in "ready" state (= 1'b1 by way) vs "not ready" state (= 1'b0 by way)
+    - 1 flag for each of 4 ways
+    - constraints:
+        - none
+    - idle value:
+        - {4{1'bx}}
+- dispatch_A_is_zero_by_way
+    - input logic [3:0]
+    - indicate that operand A should enter the IQ in "is zero" state (= 1'b1 by way) vs the state designated by dispatch_A_ready_by_way (= 1'b0 by way)
+        - essentially, this signal by way takes precedence over dispatch_A_ready_by_way by way
     - 1 flag for each of 4 ways
     - constraints:
         - none
@@ -160,6 +169,9 @@ each signal is a vector, with each 1D entry out of 4 associated with a dispatch 
 - dispatch_B_ready_by_way
     - input logic [3:0]
     - same semantics as dispatch_A_ready_by_way but for operand B
+- dispatch_B_is_zero_by_way
+    - input logic [3:0]
+    - same semantics as dispatch_A_is_zero_by_way but for operand B
 - dispatch_dest_PR_by_way
     - input logic [3:0][6:0]
         - design uses: input logic [3:0][LOG_PR_COUNT-1:0]
@@ -270,7 +282,7 @@ output interface
     - single flag
     - this signal is high whenever alu_reg_pipeline_ready is high and there is an ALU Reg-Reg op currently in the IQ that is ready
         - an ALU Reg-Reg op is identifiable by dispatch_valid_alu_reg_by_way being high upon dispatch
-        - op ready -> both operands in a ready or forwardable state
+        - op ready -> both operands in a ready or "forwardable" state
     - if this signal is high, the remaining signals in this interface follow the oldest ALU Reg-Reg op in the IQ
     - if this signal is low, the remaining signals in this interface are don't cares
     - reset value:
@@ -286,7 +298,14 @@ output interface
     - output logic
     - indicate to the pipeline that operand A should get its value from forwarding (and therefore does not need to perform a register read)
     - single flag
-    - this signal is high if the op being issued currently has operand A in forwardable state
+    - this signal is high if the op being issued currently has operand A in "forwardable" state
+    - reset value:
+        - 1'b0
+- issue_alu_reg_A_is_zero
+    - output logic
+    - indicate to the pipeline that operand A should be an internally-produced 32-bit zero (and therefore does not need to perform a register read)
+    - single flag
+    - this signal is high if the op being issued currently has operand A in "is zero" state
     - reset value:
         - 1'b0
 - issue_alu_reg_A_bank
@@ -301,6 +320,9 @@ output interface
 - issue_alu_reg_B_forward
     - output logic
     - same semantics as issue_alu_reg_A_forward but for operand B
+- issue_alu_reg_B_is_zero
+    - output logic
+    - same semantics as issue_alu_reg_A_is_zero but for operand B
 - issue_alu_reg_B_bank
     - output logic [1:0]
         - design uses: output logic [LOG_PRF_BANK_COUNT-1:0]
@@ -336,7 +358,7 @@ output interface
     - output logic
     - indicate a register read request for the PR of operand A
     - single flag
-    - this should be 1 if this issued op's operand A is in the ready state
+    - this should be 1 if this issued op's operand A is in the "ready" state
     - reset value:
         - 1'b0
 - PRF_alu_reg_req_A_PR
@@ -371,7 +393,7 @@ output interface
     - single flag
     - this signal is high whenever mdu_pipeline_ready is high and there is a MDU op currently in the IQ that is ready
         - a MDU op is identifiable by dispatch_valid_mdu_by_way being high upon dispatch
-        - op ready -> both operands in a ready or forwardable state
+        - op ready -> both operands in a "ready", "forwardable", or "is zero" state
     - if this signal is high, the remaining signals in this interface follow the oldest MDU op in the IQ
     - reset value:
         - 1'b0
@@ -386,7 +408,14 @@ output interface
     - output logic
     - indicate to the pipeline that operand A should get its value from forwarding (and therefore does not need to perform a register read)
     - single flag
-    - this signal is high if the op being issued currently has operand A in forwardable state
+    - this signal is high if the op being issued currently has operand A in "forwardable" state
+    - reset value:
+        - 1'b0
+- issue_mdu_A_is_zero
+    - output logic
+    - indicate to the pipeline that operand A should be an internally-produced 32-bit zero (and therefore does not need to perform a register read)
+    - single flag
+    - this signal is high if the op being issued currently has operand A in "is zero" state
     - reset value:
         - 1'b0
 - issue_mdu_A_bank
@@ -401,6 +430,9 @@ output interface
 - issue_mdu_B_forward
     - output logic
     - same semantics as issue_mdu_A_forward but for operand B
+- issue_mdu_B_is_zero
+    - output logic
+    - same semantics as issue_mdu_A_is_zero but for operand B
 - issue_mdu_B_bank
     - output logic [1:0]
         - design uses: output logic [LOG_PRF_BANK_COUNT-1:0]
@@ -436,7 +468,7 @@ output interface
     - output logic
     - indicate a register read request for the PR of operand A
     - single flag
-    - this should be 1 if this issued op's operand A is in the ready state
+    - this should be 1 if this issued op's operand A is in the "ready" state
     - reset value:
         - 1'b0
 - PRF_mdu_req_A_PR
@@ -474,33 +506,44 @@ output interface
 - these properties are kind of hard to verbalize but are obvious when visualized. see [alu_reg_mdu_iq_example.md](alu_reg_mdu_iq_example.md) for a working example
 
 ## Operand States
+- "is zero"
+    - an operand is "is zero" if upon dispatch, it was marked as "is zero" (dispatch_A/B_is_zero_by_way[way] = 1'b1)
+    - this takes priority over all other states
+        - an operand enters with "is zero" state and remains "is zero" during its lifetime in the IQ
 - "forwardable"
-    - an operand is forwardable if upon dispatch, it was marked as not ready via dispatch_A/B_ready_by_way AND during this cycle, it sees a matching WB bus to the associated physical register on the [writeback bus by bank](#writeback-bus-by-bank) interface
+    - an operand is forwardable if upon dispatch, it was NOT marked as "is zero" (dispatch_A/B_is_zero_by_way[way] = 1'b0), AND it was marked as "not ready" (dispatch_A/B_ready_by_way[way] = 1'b0) AND during this cycle, it sees a matching WB bus to the associated physical register on the [writeback bus by bank](#writeback-bus-by-bank) interface
 - "ready"
-    - an operand is ready if upon dispatch, it was marked as ready via dispatch_A/B_ready_by_way OR since entering the IQ, the operand was forwardable, but the op was not issued
+    - an operand is ready if upon dispatch, it was NOT marked as "is zero" (dispatch_A/B_is_zero_by_way[way] = 1'b0), AND it was marked as "ready" (dispatch_A/B_ready_by_way[way] = 1'b1) OR on a previous cycle since entering the IQ, the operand was marked as "forwardable", but the op was not issued
         - an op can fail to issue on a given cycle even if an operand is ready or forwardable if its associated pipeline is not ready, it is not the oldest ready op for its associated pipeline, or the other operand for the op is not ready nor forwardable
 - "not ready"
-    - an operand is not ready if upon dispatch, it was marked as not ready via dispatch_A/B_ready_by_way AND since entering the IQ, has not seen and does not currently see a matching WB bus to the associated physical register on the [writeback bus by bank](#writeback-bus-by-bank) interface
+    - an operand is not ready if upon dispatch, it was NOT marked as "is zero" (dispatch_A/B_is_zero_by_way[way] = 1'b0), AND it was marked as "not ready" (dispatch_A/B_ready_by_way[way] = 1'b0) AND since entering the IQ, has not seen and does not currently see a matching WB bus to the associated physical register on the [writeback bus by bank](#writeback-bus-by-bank) interface
 
 ## Op States
 - ready
-    - an op is ready if both of its operands, A AND B, are either ready or forwardable
+    - an op is ready if both of its operands, A AND B, are either "ready", "forwardable", or "is zero"
     - a ready op is a candidate for issue to its associated pipeline
 - not ready
-    - an op is not ready if either of its operands, A OR B, are not ready nor forwardable 
+    - an op is not ready if either of its operands, A OR B, are "not ready" 
 
 ### Op State Truth Table:
-| Description | dispatch_A_ready_by_way on dispatch cycle OR operand A was forwardable on previous cycle | dispatch_B_ready_by_way on dispatch cycle OR operand B was forwardable on previous cycle | dispatch_A_PR_by_way on dispatch cycle matching WB_bus_valid_by_bank + WB_bus_upper_PR_by_bank on this cycle | dispatch_B_PR_by_way on dispatch cycle matching WB_bus_valid_by_bank + WB_bus_upper_PR_by_bank on this cycle | Operand A State | Operand B State | op is ready and candidate to be issued this cycle? | Module Actions |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| A and B ready | 1 | 1 | 0 | 0 | ready | ready | YES | none |
-| A ready, B forwardable | 1 | 0 | 0 | 1 | ready | forwardable | YES | if this op is not issued, mark B as ready |
-| A forwardable, A ready | 0 | 1 | 1 | 0 | forwardable | ready | YES | if this op is not issued, mark A as ready |
-| A and B forwardable | 0 | 0 | 1 | 1 | forwardable | forwardable | YES | if this op is not issued, mark A and B as ready |
-| A ready, B not ready | 1 | 0 | 0 | 0 | ready | not ready | NO | none |
-| A not ready, B ready | 0 | 1 | 0 | 0 | not ready | ready | NO | none |
-| A forwardable, B not ready | 0 | 0 | 1 | 0 | forwardable | not ready | NO | mark operand A as ready |
-| A not ready, B forwardable | 0 | 0 | 0 | 1 | not ready | forwardable | NO | mark operand B as ready |
-| A not ready, B not ready | 0 | 0 | 0 | 0 | not ready | not ready | NO | none |
+| Description | dispatch_A_ready_by_way on dispatch cycle OR operand A was forwardable on previous cycle | dispatch_B_ready_by_way on dispatch cycle OR operand B was forwardable on previous cycle | dispatch_A_PR_by_way on dispatch cycle matching WB_bus_valid_by_bank + WB_bus_upper_PR_by_bank on this cycle | dispatch_B_PR_by_way on dispatch cycle matching WB_bus_valid_by_bank + WB_bus_upper_PR_by_bank on this cycle | dispatch_A_is_zero_by_way on dispatch cycle | dispatch_B_is_zero_by_way on dispatch cycle | Operand A State | Operand B State | op is ready and candidate to be issued this cycle? | Module Actions |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| A and B ready | 1 | 1 | 0 | 0 | 0 | 0 | ready | ready | YES | none |
+| A ready, B forwardable | 1 | 0 | 0 | 1 | 0 | 0 | ready | forwardable | YES | if this op is not issued, mark B as ready |
+| A forwardable, A ready | 0 | 1 | 1 | 0 | 0 | 0 | forwardable | ready | YES | if this op is not issued, mark A as ready |
+| A and B forwardable | 0 | 0 | 1 | 1 | 0 | 0 | forwardable | forwardable | YES | if this op is not issued, mark A and B as ready |
+| A ready, B not ready | 1 | 0 | 0 | 0 | 0 | 0 | ready | not ready | NO | none |
+| A not ready, B ready | 0 | 1 | 0 | 0 | 0 | 0 | not ready | ready | NO | none |
+| A forwardable, B not ready | 0 | 0 | 1 | 0 | 0 | 0 | forwardable | not ready | NO | mark operand A as ready |
+| A not ready, B forwardable | 0 | 0 | 0 | 1 | 0 | 0 | not ready | forwardable | NO | mark operand B as ready |
+| A not ready, B not ready | 0 | 0 | 0 | 0 | 0 | 0 | not ready | not ready | NO | none |
+| A and B is zero | x | x | x | x | 1 | 1 | is zero | is zero | YES | none |
+| A is zero, B ready | x | 1 | x | 0 | 1 | 0 | is zero | ready | YES | none |
+| A ready, B is zero | 1 | x | 0 | x | 0 | 1 | ready | is zero | YES | none |
+| A is zero, B forwardable | x | 0 | x | 1 | 1 | 0 | is zero | forwardable | YES | if this op is not issued, mark B as ready |
+| A forwardable, A is zero | 0 | x | 1 | x | 0 | 1 | forwardable | is zero | YES | if this op is not issued, mark A as ready |
+| A is zero, B not ready | x | 0 | x | 0 | 1 | 0 | is zero | not ready | NO | none |
+| A not ready, B is zero | 0 | x | 0 | x | 0 | 1 | not ready | is zero | NO | none |
 
 ## Issue Logic
 - for the ALU Reg-Reg Pipeline, if the ALU Reg-Reg Pipeline is ready via alu_reg_pipeline_ready, the oldest ready ALU Reg-Reg op is issued from the IQ via the [op issue to ALU Reg-Reg Pipeline](#op-issue-to-alu-reg-reg-pipeline) interface and the op's register reads are sent to the PRF via the [ALU Reg-Reg Pipeline reg read req to PRF](#alu-reg-reg-pipeline-reg-read-req-to-prf) interface

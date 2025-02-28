@@ -27,10 +27,10 @@ module bru_pipeline_wrapper (
 	input logic [31:0] next_issue_PC,
 	input logic [31:0] next_issue_pred_PC,
 	input logic [19:0] next_issue_imm20,
-	input logic next_issue_A_unneeded,
+	input logic next_issue_A_unneeded_or_is_zero,
 	input logic next_issue_A_forward,
 	input logic [LOG_PRF_BANK_COUNT-1:0] next_issue_A_bank,
-	input logic next_issue_B_unneeded,
+	input logic next_issue_B_unneeded_or_is_zero,
 	input logic next_issue_B_forward,
 	input logic [LOG_PRF_BANK_COUNT-1:0] next_issue_B_bank,
 	input logic [LOG_PR_COUNT-1:0] next_issue_dest_PR,
@@ -87,10 +87,10 @@ module bru_pipeline_wrapper (
 	logic [31:0] issue_PC;
 	logic [31:0] issue_pred_PC;
 	logic [19:0] issue_imm20;
-	logic issue_A_unneeded;
+	logic issue_A_unneeded_or_is_zero;
 	logic issue_A_forward;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_A_bank;
-	logic issue_B_unneeded;
+	logic issue_B_unneeded_or_is_zero;
 	logic issue_B_forward;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_B_bank;
 	logic [LOG_PR_COUNT-1:0] issue_dest_PR;
@@ -154,10 +154,10 @@ module bru_pipeline_wrapper (
 			issue_PC <= '0;
 			issue_pred_PC <= '0;
 			issue_imm20 <= '0;
-			issue_A_unneeded <= '0;
+			issue_A_unneeded_or_is_zero <= '0;
 			issue_A_forward <= '0;
 			issue_A_bank <= '0;
-			issue_B_unneeded <= '0;
+			issue_B_unneeded_or_is_zero <= '0;
 			issue_B_forward <= '0;
 			issue_B_bank <= '0;
 			issue_dest_PR <= '0;
@@ -212,10 +212,10 @@ module bru_pipeline_wrapper (
 			issue_PC <= next_issue_PC;
 			issue_pred_PC <= next_issue_pred_PC;
 			issue_imm20 <= next_issue_imm20;
-			issue_A_unneeded <= next_issue_A_unneeded;
+			issue_A_unneeded_or_is_zero <= next_issue_A_unneeded_or_is_zero;
 			issue_A_forward <= next_issue_A_forward;
 			issue_A_bank <= next_issue_A_bank;
-			issue_B_unneeded <= next_issue_B_unneeded;
+			issue_B_unneeded_or_is_zero <= next_issue_B_unneeded_or_is_zero;
 			issue_B_forward <= next_issue_B_forward;
 			issue_B_bank <= next_issue_B_bank;
 			issue_dest_PR <= next_issue_dest_PR;

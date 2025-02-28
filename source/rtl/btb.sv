@@ -81,6 +81,9 @@ module btb (
     logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][1:0][(BTB_PRED_INFO_WIDTH+BTB_TAG_WIDTH+BTB_TARGET_WIDTH)/8-1:0] 
         update1_byte_mask_pred_info_tag_target_by_instr_by_way;
 
+    logic                                   last_update1_conflict;
+    logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0]  last_update1_new_pred_lru_by_instr;
+
     // ----------------------------------------------------------------
     // REQ Stage Logic:
 
@@ -183,6 +186,9 @@ module btb (
             update1_hashed_tag <= '0;
             update1_instr <= '0;
             update1_old_pred_lru_by_instr <= '0;
+
+            last_update1_conflict <= 1'b0;
+            last_update1_new_pred_lru_by_instr <= '0;
         end
         else begin
             update1_valid <= update0_valid;
@@ -190,6 +196,9 @@ module btb (
             update1_hashed_tag <= update0_hashed_tag;
             update1_instr <= update0_instr;
             update1_old_pred_lru_by_instr <= update0_old_pred_lru_by_instr;
+
+            last_update1_conflict <= update0_valid & update1_valid & update0_index == update1_index;
+            last_update1_new_pred_lru_by_instr <= update1_new_pred_lru_by_instr;
         end
     end
 
@@ -198,7 +207,12 @@ module btb (
 
         // RMW pred lru for this set
             // flip LRU to opposite of this update
-        update1_new_pred_lru_by_instr = update1_old_pred_lru_by_instr;
+            // if conflicted last cycle, use update value from last cycle
+        if (last_update1_conflict) begin
+            update1_new_pred_lru_by_instr = last_update1_new_pred_lru_by_instr;
+        end else begin
+            update1_new_pred_lru_by_instr = update1_old_pred_lru_by_instr;
+        end
         update1_new_pred_lru_by_instr[update1_instr] = ~update1_pred_lru;
 
         // pred info tag target byte mask follows 4B associated with this instr and way
@@ -232,7 +246,7 @@ module btb (
 
         .wen_byte(update1_byte_mask_pred_info_tag_target_by_instr_by_way),
         .windex(update1_index),
-        .wdata({BTB_NWAY_ENTRIES_PER_BLOCK{update1_pred_info, update1_hashed_tag, update1_target_PC}})
+        .wdata({(BTB_NWAY_ENTRIES_PER_BLOCK*BTB_ENTRY_ASSOC){update1_pred_info, update1_hashed_tag, update1_target_PC}})
     );
 
     // //////////////////////////

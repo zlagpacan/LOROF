@@ -24,6 +24,7 @@ module alu_imm_ldu_iq_wrapper (
 	input logic [3:0][11:0] next_dispatch_imm12_by_way,
 	input logic [3:0][LOG_PR_COUNT-1:0] next_dispatch_A_PR_by_way,
 	input logic [3:0] next_dispatch_A_ready_by_way,
+	input logic [3:0] next_dispatch_A_is_zero_by_way,
 	input logic [3:0][LOG_PR_COUNT-1:0] next_dispatch_dest_PR_by_way,
 	input logic [3:0][LOG_ROB_ENTRIES-1:0] next_dispatch_ROB_index_by_way,
 
@@ -43,6 +44,7 @@ module alu_imm_ldu_iq_wrapper (
 	output logic [3:0] last_issue_alu_imm_op,
 	output logic [11:0] last_issue_alu_imm_imm12,
 	output logic last_issue_alu_imm_A_forward,
+	output logic last_issue_alu_imm_A_is_zero,
 	output logic [LOG_PRF_BANK_COUNT-1:0] last_issue_alu_imm_A_bank,
 	output logic [LOG_PR_COUNT-1:0] last_issue_alu_imm_dest_PR,
 	output logic [LOG_ROB_ENTRIES-1:0] last_issue_alu_imm_ROB_index,
@@ -56,6 +58,7 @@ module alu_imm_ldu_iq_wrapper (
 	output logic [3:0] last_issue_ldu_op,
 	output logic [11:0] last_issue_ldu_imm12,
 	output logic last_issue_ldu_A_forward,
+	output logic last_issue_ldu_A_is_zero,
 	output logic [LOG_PRF_BANK_COUNT-1:0] last_issue_ldu_A_bank,
 	output logic [LOG_PR_COUNT-1:0] last_issue_ldu_dest_PR,
 	output logic [LOG_ROB_ENTRIES-1:0] last_issue_ldu_ROB_index,
@@ -76,6 +79,7 @@ module alu_imm_ldu_iq_wrapper (
 	logic [3:0][11:0] dispatch_imm12_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] dispatch_A_PR_by_way;
 	logic [3:0] dispatch_A_ready_by_way;
+	logic [3:0] dispatch_A_is_zero_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] dispatch_dest_PR_by_way;
 	logic [3:0][LOG_ROB_ENTRIES-1:0] dispatch_ROB_index_by_way;
 
@@ -95,6 +99,7 @@ module alu_imm_ldu_iq_wrapper (
 	logic [3:0] issue_alu_imm_op;
 	logic [11:0] issue_alu_imm_imm12;
 	logic issue_alu_imm_A_forward;
+	logic issue_alu_imm_A_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_alu_imm_A_bank;
 	logic [LOG_PR_COUNT-1:0] issue_alu_imm_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] issue_alu_imm_ROB_index;
@@ -108,6 +113,7 @@ module alu_imm_ldu_iq_wrapper (
 	logic [3:0] issue_ldu_op;
 	logic [11:0] issue_ldu_imm12;
 	logic issue_ldu_A_forward;
+	logic issue_ldu_A_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_ldu_A_bank;
 	logic [LOG_PR_COUNT-1:0] issue_ldu_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] issue_ldu_ROB_index;
@@ -135,6 +141,7 @@ module alu_imm_ldu_iq_wrapper (
 			dispatch_imm12_by_way <= '0;
 			dispatch_A_PR_by_way <= '0;
 			dispatch_A_ready_by_way <= '0;
+			dispatch_A_is_zero_by_way <= '0;
 			dispatch_dest_PR_by_way <= '0;
 			dispatch_ROB_index_by_way <= '0;
 
@@ -154,6 +161,7 @@ module alu_imm_ldu_iq_wrapper (
 			last_issue_alu_imm_op <= '0;
 			last_issue_alu_imm_imm12 <= '0;
 			last_issue_alu_imm_A_forward <= '0;
+			last_issue_alu_imm_A_is_zero <= '0;
 			last_issue_alu_imm_A_bank <= '0;
 			last_issue_alu_imm_dest_PR <= '0;
 			last_issue_alu_imm_ROB_index <= '0;
@@ -167,6 +175,7 @@ module alu_imm_ldu_iq_wrapper (
 			last_issue_ldu_op <= '0;
 			last_issue_ldu_imm12 <= '0;
 			last_issue_ldu_A_forward <= '0;
+			last_issue_ldu_A_is_zero <= '0;
 			last_issue_ldu_A_bank <= '0;
 			last_issue_ldu_dest_PR <= '0;
 			last_issue_ldu_ROB_index <= '0;
@@ -185,6 +194,7 @@ module alu_imm_ldu_iq_wrapper (
 			dispatch_imm12_by_way <= next_dispatch_imm12_by_way;
 			dispatch_A_PR_by_way <= next_dispatch_A_PR_by_way;
 			dispatch_A_ready_by_way <= next_dispatch_A_ready_by_way;
+			dispatch_A_is_zero_by_way <= next_dispatch_A_is_zero_by_way;
 			dispatch_dest_PR_by_way <= next_dispatch_dest_PR_by_way;
 			dispatch_ROB_index_by_way <= next_dispatch_ROB_index_by_way;
 
@@ -204,6 +214,7 @@ module alu_imm_ldu_iq_wrapper (
 			last_issue_alu_imm_op <= issue_alu_imm_op;
 			last_issue_alu_imm_imm12 <= issue_alu_imm_imm12;
 			last_issue_alu_imm_A_forward <= issue_alu_imm_A_forward;
+			last_issue_alu_imm_A_is_zero <= issue_alu_imm_A_is_zero;
 			last_issue_alu_imm_A_bank <= issue_alu_imm_A_bank;
 			last_issue_alu_imm_dest_PR <= issue_alu_imm_dest_PR;
 			last_issue_alu_imm_ROB_index <= issue_alu_imm_ROB_index;
@@ -217,6 +228,7 @@ module alu_imm_ldu_iq_wrapper (
 			last_issue_ldu_op <= issue_ldu_op;
 			last_issue_ldu_imm12 <= issue_ldu_imm12;
 			last_issue_ldu_A_forward <= issue_ldu_A_forward;
+			last_issue_ldu_A_is_zero <= issue_ldu_A_is_zero;
 			last_issue_ldu_A_bank <= issue_ldu_A_bank;
 			last_issue_ldu_dest_PR <= issue_ldu_dest_PR;
 			last_issue_ldu_ROB_index <= issue_ldu_ROB_index;

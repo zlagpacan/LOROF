@@ -29,10 +29,10 @@ module bru_iq_wrapper (
 	input logic [3:0][31:0] next_dispatch_pred_PC_by_way,
 	input logic [3:0][19:0] next_dispatch_imm20_by_way,
 	input logic [3:0][LOG_PR_COUNT-1:0] next_dispatch_A_PR_by_way,
-	input logic [3:0] next_dispatch_A_unneeded_by_way,
+	input logic [3:0] next_dispatch_A_unneeded_or_is_zero_by_way,
 	input logic [3:0] next_dispatch_A_ready_by_way,
 	input logic [3:0][LOG_PR_COUNT-1:0] next_dispatch_B_PR_by_way,
-	input logic [3:0] next_dispatch_B_unneeded_by_way,
+	input logic [3:0] next_dispatch_B_unneeded_or_is_zero_by_way,
 	input logic [3:0] next_dispatch_B_ready_by_way,
 	input logic [3:0][LOG_PR_COUNT-1:0] next_dispatch_dest_PR_by_way,
 	input logic [3:0][LOG_ROB_ENTRIES-1:0] next_dispatch_ROB_index_by_way,
@@ -57,10 +57,10 @@ module bru_iq_wrapper (
 	output logic [31:0] last_issue_PC,
 	output logic [31:0] last_issue_pred_PC,
 	output logic [19:0] last_issue_imm20,
-	output logic last_issue_A_unneeded,
+	output logic last_issue_A_unneeded_or_is_zero,
 	output logic last_issue_A_forward,
 	output logic [LOG_PRF_BANK_COUNT-1:0] last_issue_A_bank,
-	output logic last_issue_B_unneeded,
+	output logic last_issue_B_unneeded_or_is_zero,
 	output logic last_issue_B_forward,
 	output logic [LOG_PRF_BANK_COUNT-1:0] last_issue_B_bank,
 	output logic [LOG_PR_COUNT-1:0] last_issue_dest_PR,
@@ -89,10 +89,10 @@ module bru_iq_wrapper (
 	logic [3:0][31:0] dispatch_pred_PC_by_way;
 	logic [3:0][19:0] dispatch_imm20_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] dispatch_A_PR_by_way;
-	logic [3:0] dispatch_A_unneeded_by_way;
+	logic [3:0] dispatch_A_unneeded_or_is_zero_by_way;
 	logic [3:0] dispatch_A_ready_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] dispatch_B_PR_by_way;
-	logic [3:0] dispatch_B_unneeded_by_way;
+	logic [3:0] dispatch_B_unneeded_or_is_zero_by_way;
 	logic [3:0] dispatch_B_ready_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] dispatch_dest_PR_by_way;
 	logic [3:0][LOG_ROB_ENTRIES-1:0] dispatch_ROB_index_by_way;
@@ -117,10 +117,10 @@ module bru_iq_wrapper (
 	logic [31:0] issue_PC;
 	logic [31:0] issue_pred_PC;
 	logic [19:0] issue_imm20;
-	logic issue_A_unneeded;
+	logic issue_A_unneeded_or_is_zero;
 	logic issue_A_forward;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_A_bank;
-	logic issue_B_unneeded;
+	logic issue_B_unneeded_or_is_zero;
 	logic issue_B_forward;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_B_bank;
 	logic [LOG_PR_COUNT-1:0] issue_dest_PR;
@@ -156,10 +156,10 @@ module bru_iq_wrapper (
 			dispatch_pred_PC_by_way <= '0;
 			dispatch_imm20_by_way <= '0;
 			dispatch_A_PR_by_way <= '0;
-			dispatch_A_unneeded_by_way <= '0;
+			dispatch_A_unneeded_or_is_zero_by_way <= '0;
 			dispatch_A_ready_by_way <= '0;
 			dispatch_B_PR_by_way <= '0;
-			dispatch_B_unneeded_by_way <= '0;
+			dispatch_B_unneeded_or_is_zero_by_way <= '0;
 			dispatch_B_ready_by_way <= '0;
 			dispatch_dest_PR_by_way <= '0;
 			dispatch_ROB_index_by_way <= '0;
@@ -184,10 +184,10 @@ module bru_iq_wrapper (
 			last_issue_PC <= '0;
 			last_issue_pred_PC <= '0;
 			last_issue_imm20 <= '0;
-			last_issue_A_unneeded <= '0;
+			last_issue_A_unneeded_or_is_zero <= '0;
 			last_issue_A_forward <= '0;
 			last_issue_A_bank <= '0;
-			last_issue_B_unneeded <= '0;
+			last_issue_B_unneeded_or_is_zero <= '0;
 			last_issue_B_forward <= '0;
 			last_issue_B_bank <= '0;
 			last_issue_dest_PR <= '0;
@@ -214,10 +214,10 @@ module bru_iq_wrapper (
 			dispatch_pred_PC_by_way <= next_dispatch_pred_PC_by_way;
 			dispatch_imm20_by_way <= next_dispatch_imm20_by_way;
 			dispatch_A_PR_by_way <= next_dispatch_A_PR_by_way;
-			dispatch_A_unneeded_by_way <= next_dispatch_A_unneeded_by_way;
+			dispatch_A_unneeded_or_is_zero_by_way <= next_dispatch_A_unneeded_or_is_zero_by_way;
 			dispatch_A_ready_by_way <= next_dispatch_A_ready_by_way;
 			dispatch_B_PR_by_way <= next_dispatch_B_PR_by_way;
-			dispatch_B_unneeded_by_way <= next_dispatch_B_unneeded_by_way;
+			dispatch_B_unneeded_or_is_zero_by_way <= next_dispatch_B_unneeded_or_is_zero_by_way;
 			dispatch_B_ready_by_way <= next_dispatch_B_ready_by_way;
 			dispatch_dest_PR_by_way <= next_dispatch_dest_PR_by_way;
 			dispatch_ROB_index_by_way <= next_dispatch_ROB_index_by_way;
@@ -242,10 +242,10 @@ module bru_iq_wrapper (
 			last_issue_PC <= issue_PC;
 			last_issue_pred_PC <= issue_pred_PC;
 			last_issue_imm20 <= issue_imm20;
-			last_issue_A_unneeded <= issue_A_unneeded;
+			last_issue_A_unneeded_or_is_zero <= issue_A_unneeded_or_is_zero;
 			last_issue_A_forward <= issue_A_forward;
 			last_issue_A_bank <= issue_A_bank;
-			last_issue_B_unneeded <= issue_B_unneeded;
+			last_issue_B_unneeded_or_is_zero <= issue_B_unneeded_or_is_zero;
 			last_issue_B_forward <= issue_B_forward;
 			last_issue_B_bank <= issue_B_bank;
 			last_issue_dest_PR <= issue_dest_PR;

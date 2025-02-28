@@ -39,7 +39,9 @@ module bru_pred_info_updater_tb ();
 	logic tb_is_ret_ra;
 	logic tb_is_taken;
 	logic tb_is_mispredict;
-	logic tb_is_out_of_range;
+	logic tb_start_neq_target_upper_PC;
+	logic [2:0] tb_delta_start_target_upper_PC;
+	logic tb_large_delta_upper_PC;
 
     // outputs
 	logic [BTB_PRED_INFO_WIDTH-1:0] DUT_updated_pred_info, expected_updated_pred_info;
@@ -56,7 +58,9 @@ module bru_pred_info_updater_tb ();
 		.is_ret_ra(tb_is_ret_ra),
 		.is_taken(tb_is_taken),
 		.is_mispredict(tb_is_mispredict),
-		.is_out_of_range(tb_is_out_of_range),
+		.start_neq_target_upper_PC(tb_start_neq_target_upper_PC),
+		.delta_start_target_upper_PC(tb_delta_start_target_upper_PC),
+		.large_delta_upper_PC(tb_large_delta_upper_PC),
 
 	    // outputs
 		.updated_pred_info(DUT_updated_pred_info)
@@ -103,7 +107,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(posedge CLK); #(PERIOD/10);
@@ -129,7 +135,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(posedge CLK); #(PERIOD/10);
@@ -163,7 +171,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h1;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -172,7 +182,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b01000000;
+		expected_updated_pred_info = 8'b01000001;
 
 		check_outputs();
 
@@ -191,7 +201,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b1;
+		tb_delta_start_target_upper_PC = 3'h2;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -200,7 +212,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b01011000;
+		expected_updated_pred_info = 8'b01010010;
 
 		check_outputs();
 
@@ -219,7 +231,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b1;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b1;
+		tb_delta_start_target_upper_PC = 3'h3;
+		tb_large_delta_upper_PC = 1'b1;
 	    // outputs
 
 		@(negedge CLK);
@@ -228,7 +242,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b01100000;
+		expected_updated_pred_info = 8'b01101011;
 
 		check_outputs();
 
@@ -247,7 +261,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b1;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h4;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -256,7 +272,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b01111000;
+		expected_updated_pred_info = 8'b01110100;
 
 		check_outputs();
 
@@ -275,7 +291,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b1;
+		tb_delta_start_target_upper_PC = 3'h5;
+		tb_large_delta_upper_PC = 1'b1;
 	    // outputs
 
 		@(negedge CLK);
@@ -284,7 +302,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b01000000;
+		expected_updated_pred_info = 8'b01001101;
 
 		check_outputs();
 
@@ -303,7 +321,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b1;
+		tb_delta_start_target_upper_PC = 3'h6;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -312,7 +332,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b01010000;
+		expected_updated_pred_info = 8'b01010110;
 
 		check_outputs();
 
@@ -331,7 +351,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b1;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b1;
+		tb_delta_start_target_upper_PC = 3'h7;
+		tb_large_delta_upper_PC = 1'b1;
 	    // outputs
 
 		@(negedge CLK);
@@ -340,7 +362,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b01100000;
+		expected_updated_pred_info = 8'b01101111;
 
 		check_outputs();
 
@@ -359,7 +381,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b1;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b1;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b1;
 	    // outputs
 
 		@(negedge CLK);
@@ -368,7 +392,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b01110000;
+		expected_updated_pred_info = 8'b01111000;
 
 		check_outputs();
 
@@ -387,7 +411,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b1;
+		tb_delta_start_target_upper_PC = 3'h4;
+		tb_large_delta_upper_PC = 1'b1;
 	    // outputs
 
 		@(negedge CLK);
@@ -396,7 +422,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b01000000;
+		expected_updated_pred_info = 8'b01001100;
 
 		check_outputs();
 
@@ -415,7 +441,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b1;
+		tb_delta_start_target_upper_PC = 3'h7;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -424,7 +452,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b01011000;
+		expected_updated_pred_info = 8'b01010111;
 
 		check_outputs();
 
@@ -443,7 +471,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b1;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b1;
+		tb_delta_start_target_upper_PC = 3'h1;
+		tb_large_delta_upper_PC = 1'b1;
 	    // outputs
 
 		@(negedge CLK);
@@ -452,7 +482,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b01000000;
+		expected_updated_pred_info = 8'b01001001;
 
 		check_outputs();
 
@@ -471,7 +501,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b1;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -480,7 +512,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b01011000;
+		expected_updated_pred_info = 8'b01010000;
 
 		check_outputs();
 
@@ -499,7 +531,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -527,7 +561,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -555,7 +591,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b1;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -583,7 +621,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b1;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -611,7 +651,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -639,7 +681,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -667,7 +711,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b1;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -695,7 +741,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b1;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -723,7 +771,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -751,7 +801,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -779,7 +831,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b1;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -807,7 +861,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b1;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -835,7 +891,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b1;
 		tb_is_mispredict = 1'b1;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -863,7 +921,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b1;
 		tb_is_mispredict = 1'b1;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -891,7 +951,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h3;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -919,7 +981,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b1;
 		tb_is_mispredict = 1'b1;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h6;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -947,7 +1011,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b1;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b1;
+		tb_start_neq_target_upper_PC = 1'b1;
+		tb_delta_start_target_upper_PC = 3'h5;
+		tb_large_delta_upper_PC = 1'b1;
 	    // outputs
 
 		@(negedge CLK);
@@ -956,7 +1022,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b11010000;
+		expected_updated_pred_info = 8'b11011101;
 
 		check_outputs();
 
@@ -975,7 +1041,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b1;
 		tb_is_mispredict = 1'b1;
-		tb_is_out_of_range = 1'b1;
+		tb_start_neq_target_upper_PC = 1'b1;
+		tb_delta_start_target_upper_PC = 3'h4;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -984,7 +1052,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b11010000;
+		expected_updated_pred_info = 8'b11010100;
 
 		check_outputs();
 
@@ -1003,7 +1071,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b1;
-		tb_is_out_of_range = 1'b1;
+		tb_start_neq_target_upper_PC = 1'b1;
+		tb_delta_start_target_upper_PC = 3'h6;
+		tb_large_delta_upper_PC = 1'b1;
 	    // outputs
 
 		@(negedge CLK);
@@ -1012,7 +1082,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b11010000;
+		expected_updated_pred_info = 8'b11011110;
 
 		check_outputs();
 
@@ -1031,7 +1101,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b1;
-		tb_is_out_of_range = 1'b1;
+		tb_start_neq_target_upper_PC = 1'b1;
+		tb_delta_start_target_upper_PC = 3'h3;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -1040,7 +1112,7 @@ module bru_pred_info_updater_tb ();
 
 	    // inputs
 	    // outputs
-		expected_updated_pred_info = 8'b11100000;
+		expected_updated_pred_info = 8'b11100011;
 
 		check_outputs();
 
@@ -1059,7 +1131,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b1;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -1087,7 +1161,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b1;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h7;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -1115,7 +1191,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b1;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h7;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -1143,7 +1221,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b1;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h2;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -1171,7 +1251,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b1;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h4;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -1199,7 +1281,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h4;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -1227,7 +1311,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b1;
 		tb_is_mispredict = 1'b1;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h1;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -1255,7 +1341,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b1;
 		tb_is_mispredict = 1'b1;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h6;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -1283,7 +1371,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b0;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -1311,7 +1401,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b1;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -1339,7 +1431,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b1;
 		tb_is_mispredict = 1'b1;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);
@@ -1367,7 +1461,9 @@ module bru_pred_info_updater_tb ();
 		tb_is_ret_ra = 1'b0;
 		tb_is_taken = 1'b0;
 		tb_is_mispredict = 1'b1;
-		tb_is_out_of_range = 1'b0;
+		tb_start_neq_target_upper_PC = 1'b0;
+		tb_delta_start_target_upper_PC = 3'h0;
+		tb_large_delta_upper_PC = 1'b0;
 	    // outputs
 
 		@(negedge CLK);

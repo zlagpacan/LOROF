@@ -1,8 +1,8 @@
 /*
-    Filename: lbpt_tb.sv
+    Filename: gbpt_tb.sv
     Author: zlagpacan
-    Description: Testbench for lbpt module. 
-    Spec: LOROF/spec/design/lbpt.md
+    Description: Testbench for gbpt module. 
+    Spec: LOROF/spec/design/gbpt.md
 */
 
 `timescale 1ns/100ps
@@ -10,7 +10,7 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module lbpt_tb ();
+module gbpt_tb ();
 
     // ----------------------------------------------------------------
     // TB setup:
@@ -36,7 +36,7 @@ module lbpt_tb ();
     // RESP stage
 	logic tb_valid_RESP;
 	logic [31:0] tb_full_PC_RESP;
-	logic [LH_LENGTH-1:0] tb_LH_RESP;
+	logic [GH_LENGTH-1:0] tb_GH_RESP;
 	logic [ASID_WIDTH-1:0] tb_ASID_RESP;
 
     // RESTART stage
@@ -45,7 +45,7 @@ module lbpt_tb ();
     // Update 0
 	logic tb_update0_valid;
 	logic [31:0] tb_update0_start_full_PC;
-	logic [LH_LENGTH-1:0] tb_update0_LH;
+	logic [GH_LENGTH-1:0] tb_update0_GH;
 	logic [ASID_WIDTH-1:0] tb_update0_ASID;
 	logic tb_update0_taken;
 
@@ -55,7 +55,7 @@ module lbpt_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	lbpt DUT (
+	gbpt DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
@@ -64,7 +64,7 @@ module lbpt_tb ();
 	    // RESP stage
 		.valid_RESP(tb_valid_RESP),
 		.full_PC_RESP(tb_full_PC_RESP),
-		.LH_RESP(tb_LH_RESP),
+		.GH_RESP(tb_GH_RESP),
 		.ASID_RESP(tb_ASID_RESP),
 
 	    // RESTART stage
@@ -73,7 +73,7 @@ module lbpt_tb ();
 	    // Update 0
 		.update0_valid(tb_update0_valid),
 		.update0_start_full_PC(tb_update0_start_full_PC),
-		.update0_LH(tb_update0_LH),
+		.update0_GH(tb_update0_GH),
 		.update0_ASID(tb_update0_ASID),
 		.update0_taken(tb_update0_taken),
 
@@ -125,13 +125,13 @@ module lbpt_tb ();
 	    // RESP stage
 		tb_valid_RESP = 1'b0;
 		tb_full_PC_RESP = 32'h0;
-		tb_LH_RESP = 8'h0;
+		tb_GH_RESP = 12'h0;
 		tb_ASID_RESP = 9'h0;
 	    // RESTART stage
 	    // Update 0
 		tb_update0_valid = 1'b0;
 		tb_update0_start_full_PC = 32'h0;
-		tb_update0_LH = 8'h0;
+		tb_update0_GH = 12'h0;
 		tb_update0_ASID = 9'h0;
 		tb_update0_taken = 1'b0;
 	    // Update 1
@@ -158,13 +158,13 @@ module lbpt_tb ();
 	    // RESP stage
 		tb_valid_RESP = 1'b0;
 		tb_full_PC_RESP = 32'h0;
-		tb_LH_RESP = 8'h0;
+		tb_GH_RESP = 12'h0;
 		tb_ASID_RESP = 9'h0;
 	    // RESTART stage
 	    // Update 0
 		tb_update0_valid = 1'b0;
 		tb_update0_start_full_PC = 32'h0;
-		tb_update0_LH = 8'h0;
+		tb_update0_GH = 12'h0;
 		tb_update0_ASID = 9'h0;
 		tb_update0_taken = 1'b0;
 	    // Update 1
@@ -202,23 +202,25 @@ module lbpt_tb ();
 		nRST = 1'b1;
 		// RESP stage
 		tb_valid_RESP = 1'b0;
-		tb_full_PC_RESP = 32'h0;
-		tb_LH_RESP = 8'h0;
+		tb_full_PC_RESP = {
+			19'h0, // untouched bits
+			10'h0, // set index
+			2'h0, // within-block index
+			1'b0 // 2B offset
+		};
+		tb_GH_RESP = 12'h0;
 		tb_ASID_RESP = 9'h0;
 		// RESTART stage
 		// Update 0
 		tb_update0_valid = 1'b1;
 		tb_update0_start_full_PC = {
-			23'h0, // untouched bits
-			6'h0, // set index
+			19'h0, // untouched bits
+			10'h0, // set index
 			2'h0, // within-block index
 			1'b0 // 2B offset
 		};
-		tb_update0_LH = 8'b10101010;
-		tb_update0_ASID = {
-			1'b0,
-			8'b01010101
-		};
+		tb_update0_GH = 12'b111000111000;
+		tb_update0_ASID = 9'b111000111;
 		tb_update0_taken = 1'b1;
 		// Update 1
 
@@ -239,7 +241,7 @@ module lbpt_tb ();
 			// update0: i
 			// update1: i - 1
 
-		for (int i = 1; i < 256; i++) begin
+		for (int i = 1; i < 2**12; i++) begin
 			automatic int last_i = i - 1;
 
 			@(posedge CLK); #(PERIOD/10);
@@ -252,23 +254,25 @@ module lbpt_tb ();
 			nRST = 1'b1;
 			// RESP stage
 			tb_valid_RESP = 1'b0;
-			tb_full_PC_RESP = 32'h0;
-			tb_LH_RESP = 8'h0;
+			tb_full_PC_RESP = {
+				19'h0, // untouched bits
+				10'h0, // set index
+				2'h0, // within-block index
+				1'b0 // 2B offset
+			};
+			tb_GH_RESP = 12'h0;
 			tb_ASID_RESP = 9'h0;
 			// RESTART stage
 			// Update 0
 			tb_update0_valid = 1'b1;
 			tb_update0_start_full_PC = {
-				23'h0, // untouched bits
-				i[7:2], // set index
+				19'h0, // untouched bits
+				i[11:2], // set index
 				i[1:0], // within-block index
 				1'b0 // 2B offset
 			};
-			tb_update0_LH = 8'b10101010;
-			tb_update0_ASID = {
-				1'b0,
-				8'b01010101
-			};
+			tb_update0_GH = 12'b111000111000;
+			tb_update0_ASID = 9'b111000111;
 			tb_update0_taken = 1'b1;
 			// Update 1
 
@@ -300,23 +304,25 @@ module lbpt_tb ();
 		nRST = 1'b1;
 		// RESP stage
 		tb_valid_RESP = 1'b0;
-		tb_full_PC_RESP = 32'h0;
-		tb_LH_RESP = 8'h0;
+		tb_full_PC_RESP = {
+			19'h0, // untouched bits
+			10'h0, // set index
+			2'h0, // within-block index
+			1'b0 // 2B offset
+		};
+		tb_GH_RESP = 12'h0;
 		tb_ASID_RESP = 9'h0;
 		// RESTART stage
 		// Update 0
 		tb_update0_valid = 1'b0;
 		tb_update0_start_full_PC = {
-			23'h0, // untouched bits
-			6'h0, // set index
+			19'h0, // untouched bits
+			10'h0, // set index
 			2'h0, // within-block index
 			1'b0 // 2B offset
 		};
-		tb_update0_LH = 8'b10101010;
-		tb_update0_ASID = {
-			1'b0,
-			8'b01010101
-		};
+		tb_update0_GH = 12'h0;
+		tb_update0_ASID = 9'h0;
 		tb_update0_taken = 1'b1;
 		// Update 1
 
@@ -354,26 +360,23 @@ module lbpt_tb ();
 		// RESP stage
 		tb_valid_RESP = 1'b1;
 		tb_full_PC_RESP = {
-			23'h0, // untouched bits
-			6'h0, // set index
+			19'h0, // untouched bits
+			10'b1110000000, // set index
 			2'h0, // within-block index
 			1'b0 // 2B offset
 		};
-		tb_LH_RESP = 8'b10101010;
-		tb_ASID_RESP = {
-			1'b0,
-			8'b10101010
-		};
+		tb_GH_RESP = 12'h0;
+		tb_ASID_RESP = 9'b111111111;
 		// RESTART stage
 		// Update 0
 		tb_update0_valid = 1'b0;
 		tb_update0_start_full_PC = {
-			23'h0, // untouched bits
-			6'h0, // set index
+			19'h0, // untouched bits
+			10'h0, // set index
 			2'h0, // within-block index
 			1'b0 // 2B offset
 		};
-		tb_update0_LH = 8'h0;
+		tb_update0_GH = 12'h0;
 		tb_update0_ASID = {
 			1'b0,
 			8'h0
@@ -398,7 +401,7 @@ module lbpt_tb ();
 			// RESP: i
 			// RESTART: i - 1
 
-		for (int i = 1; i < 256; i++) begin
+		for (int i = 1; i < 2**12; i++) begin
 			automatic int last_i = i - 1;
 
 			@(posedge CLK); #(PERIOD/10);
@@ -412,16 +415,13 @@ module lbpt_tb ();
 			// RESP stage
 			tb_valid_RESP = 1'b1;
 			tb_full_PC_RESP = {
-				23'h0, // untouched bits
-				i[7:2], // set index
-				i[1:0], // within-block index
+				19'h0, // untouched bits
+				10'b1110000000, // set index
+				2'h0, // within-block index
 				1'b0 // 2B offset
 			};
-			tb_LH_RESP = 8'b10101010;
-			tb_ASID_RESP = {
-				1'b0,
-				8'b10101010
-			};
+			tb_GH_RESP = i[11:0];
+			tb_ASID_RESP = 9'b111111111;
 			// RESTART stage
 			// Update 0
 			tb_update0_valid = 1'b0;
@@ -431,7 +431,7 @@ module lbpt_tb ();
 				2'h0, // within-block index
 				1'b0 // 2B offset
 			};
-			tb_update0_LH = 8'h0;
+			tb_update0_GH = 12'h0;
 			tb_update0_ASID = {
 				1'b0,
 				8'h0
@@ -468,16 +468,13 @@ module lbpt_tb ();
 		// RESP stage
 		tb_valid_RESP = 1'b0;
 		tb_full_PC_RESP = {
-			23'h0, // untouched bits
-			6'h0, // set index
+			19'h0, // untouched bits
+			10'h0, // set index
 			2'h0, // within-block index
 			1'b0 // 2B offset
 		};
-		tb_LH_RESP = 8'h0;
-		tb_ASID_RESP = {
-			1'b0,
-			8'h0
-		};
+		tb_GH_RESP = 12'h0;
+		tb_ASID_RESP = 9'h0;
 		// RESTART stage
 		// Update 0
 		tb_update0_valid = 1'b0;
@@ -487,7 +484,7 @@ module lbpt_tb ();
 			2'h0, // within-block index
 			1'b0 // 2B offset
 		};
-		tb_update0_LH = 8'h0;
+		tb_update0_GH = 12'h0;
 		tb_update0_ASID = {
 			1'b0,
 			8'h0
@@ -529,22 +526,19 @@ module lbpt_tb ();
 		// RESP stage
 		tb_valid_RESP = 1'b0;
 		tb_full_PC_RESP = 32'h0;
-		tb_LH_RESP = 8'h0;
+		tb_GH_RESP = 12'h0;
 		tb_ASID_RESP = 9'h0;
 		// RESTART stage
 		// Update 0
 		tb_update0_valid = 1'b1;
 		tb_update0_start_full_PC = {
-			23'h0, // untouched bits
-			6'b110011, // set index
-			2'b00, // within-block index
+			19'h0, // untouched bits
+			10'b1111111111, // set index
+			2'b11, // within-block index
 			1'b0 // 2B offset
 		};
-		tb_update0_LH = 8'h0;
-		tb_update0_ASID = {
-			1'b0,
-			8'b00110011
-		};
+		tb_update0_GH = 12'h0;
+		tb_update0_ASID = 9'h0;
 		tb_update0_taken = 1'b0;
 		// Update 1
 
@@ -565,7 +559,7 @@ module lbpt_tb ();
 			// update0: i
 			// update1: i - 1
 
-		for (int i = 1; i < 256; i++) begin
+		for (int i = 1; i < 2**12; i++) begin
 			automatic int last_i = i - 1;
 
 			@(posedge CLK); #(PERIOD/10);
@@ -579,22 +573,19 @@ module lbpt_tb ();
 			// RESP stage
 			tb_valid_RESP = 1'b0;
 			tb_full_PC_RESP = 32'h0;
-			tb_LH_RESP = 8'h0;
+			tb_GH_RESP = 12'h0;
 			tb_ASID_RESP = 9'h0;
 			// RESTART stage
 			// Update 0
 			tb_update0_valid = 1'b1;
 			tb_update0_start_full_PC = {
-				23'h0, // untouched bits
-				6'b110011, // set index
-				2'b00, // within-block index
+				19'h0, // untouched bits
+				~i[11:2], // set index
+				~i[1:0], // within-block index
 				1'b0 // 2B offset
 			};
-			tb_update0_LH = i[7:0];
-			tb_update0_ASID = {
-				1'b0,
-				8'b00110011
-			};
+			tb_update0_GH = 12'h0;
+			tb_update0_ASID = 9'h0;
 			tb_update0_taken = i % 2 ? 1'b1 : 1'b0;
 			// Update 1
 
@@ -627,22 +618,20 @@ module lbpt_tb ();
 		// RESP stage
 		tb_valid_RESP = 1'b0;
 		tb_full_PC_RESP = 32'h0;
-		tb_LH_RESP = 8'h0;
+		tb_GH_RESP = 12'h0;
 		tb_ASID_RESP = 9'h0;
 		// RESTART stage
 		// Update 0
 		tb_update0_valid = 1'b0;
 		tb_update0_start_full_PC = {
-			23'h0, // untouched bits
-			6'h0, // set index
+			19'h0, // untouched bits
+			10'h0, // set index
 			2'h0, // within-block index
 			1'b0 // 2B offset
 		};
-		tb_update0_LH = 8'h0;
-		tb_update0_ASID = {
-			1'b0,
-			8'h0
-		};
+		tb_update0_GH = 12'h0;
+		tb_update0_ASID = 9'h0;
+		tb_update0_taken = 1'b0;
 		tb_update0_taken = 1'b1;
 		// Update 1
 
@@ -680,16 +669,13 @@ module lbpt_tb ();
 		// RESP stage
 		tb_valid_RESP = 1'b1;
 		tb_full_PC_RESP = {
-			23'h0, // untouched bits
-			6'b001100, // set index
-			2'b11, // within-block index
+			19'h0, // untouched bits
+			10'b1110000000, // set index
+			2'h0, // within-block index
 			1'b0 // 2B offset
 		};
-		tb_LH_RESP = 8'b11001100;
-		tb_ASID_RESP = {
-			1'b0,
-			8'h0
-		};
+		tb_GH_RESP = {3'b000, 9'b111111111};
+		tb_ASID_RESP = 9'b000000000;
 		// RESTART stage
 		// Update 0
 		tb_update0_valid = 1'b0;
@@ -699,7 +685,7 @@ module lbpt_tb ();
 			2'h0, // within-block index
 			1'b0 // 2B offset
 		};
-		tb_update0_LH = 8'h0;
+		tb_update0_GH = 12'h0;
 		tb_update0_ASID = {
 			1'b0,
 			8'h0
@@ -724,7 +710,7 @@ module lbpt_tb ();
 			// RESP: i
 			// RESTART: i - 1
 
-		for (int i = 1; i < 256; i++) begin
+		for (int i = 1; i < 2**12; i++) begin
 			automatic int last_i = i - 1;
 
 			@(posedge CLK); #(PERIOD/10);
@@ -738,16 +724,13 @@ module lbpt_tb ();
 			// RESP stage
 			tb_valid_RESP = 1'b1;
 			tb_full_PC_RESP = {
-				23'h0, // untouched bits
-				6'b001100, // set index
-				2'b11, // within-block index
+				19'h0, // untouched bits
+				10'b1110000000, // set index
+				2'h0, // within-block index
 				1'b0 // 2B offset
 			};
-			tb_LH_RESP = 8'b11001100;
-			tb_ASID_RESP = {
-				1'b0,
-				i[7:0]
-			};
+			tb_GH_RESP = {i[11:9], 9'b111111111};
+			tb_ASID_RESP = i[8:0];
 			// RESTART stage
 			// Update 0
 			tb_update0_valid = 1'b0;
@@ -757,7 +740,7 @@ module lbpt_tb ();
 				2'h0, // within-block index
 				1'b0 // 2B offset
 			};
-			tb_update0_LH = 8'h0;
+			tb_update0_GH = 12'h0;
 			tb_update0_ASID = {
 				1'b0,
 				8'h0
@@ -799,7 +782,7 @@ module lbpt_tb ();
 			2'h0, // within-block index
 			1'b0 // 2B offset
 		};
-		tb_LH_RESP = 8'h0;
+		tb_GH_RESP = 12'h0;
 		tb_ASID_RESP = {
 			1'b0,
 			8'h0
@@ -813,7 +796,7 @@ module lbpt_tb ();
 			2'h0, // within-block index
 			1'b0 // 2B offset
 		};
-		tb_update0_LH = 8'h0;
+		tb_update0_GH = 12'h0;
 		tb_update0_ASID = {
 			1'b0,
 			8'h0

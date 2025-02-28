@@ -1,8 +1,8 @@
 /*
-    Filename: lht_index_hash_tb.sv
+    Filename: upct_tb.sv
     Author: zlagpacan
-    Description: Testbench for lht_index_hash module. 
-    Spec: LOROF/spec/design/lht_index_hash.md
+    Description: Testbench for upct module. 
+    Spec: LOROF/spec/design/upct.md
 */
 
 `timescale 1ns/100ps
@@ -10,7 +10,7 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module lht_index_hash_tb ();
+module upct_tb ();
 
     // ----------------------------------------------------------------
     // TB setup:
@@ -31,17 +31,40 @@ module lht_index_hash_tb ();
 
     // ----------------------------------------------------------------
     // DUT signals:
-	logic [31:0] tb_PC;
-	logic [ASID_WIDTH-1:0] tb_ASID;
-	logic [LHT_INDEX_WIDTH-1:0] DUT_index, expected_index;
+
+
+    // RESP stage
+	logic tb_valid_RESP;
+	logic [LOG_UPCT_ENTRIES-1:0] tb_upct_index_RESP;
+	logic [UPPER_PC_WIDTH-1:0] DUT_upper_PC_RESP, expected_upper_PC_RESP;
+
+    // Update 0
+	logic tb_update0_valid;
+	logic [31:0] tb_update0_start_full_PC;
+
+    // Update 1
+	logic [LOG_UPCT_ENTRIES-1:0] DUT_update1_upct_index, expected_update1_upct_index;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	lht_index_hash DUT (
-		.PC(tb_PC),
-		.ASID(tb_ASID),
-		.index(DUT_index)
+	upct DUT (
+		// seq
+		.CLK(CLK),
+		.nRST(nRST),
+
+
+	    // RESP stage
+		.valid_RESP(tb_valid_RESP),
+		.upct_index_RESP(tb_upct_index_RESP),
+		.upper_PC_RESP(DUT_upper_PC_RESP),
+
+	    // Update 0
+		.update0_valid(tb_update0_valid),
+		.update0_start_full_PC(tb_update0_start_full_PC),
+
+	    // Update 1
+		.update1_upct_index(DUT_update1_upct_index)
 	);
 
     // ----------------------------------------------------------------
@@ -49,9 +72,16 @@ module lht_index_hash_tb ();
 
     task check_outputs();
     begin
-		if (expected_index !== DUT_index) begin
-			$display("TB ERROR: expected_index (%h) != DUT_index (%h)",
-				expected_index, DUT_index);
+		if (expected_upper_PC_RESP !== DUT_upper_PC_RESP) begin
+			$display("TB ERROR: expected_upper_PC_RESP (%h) != DUT_upper_PC_RESP (%h)",
+				expected_upper_PC_RESP, DUT_upper_PC_RESP);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_update1_upct_index !== DUT_update1_upct_index) begin
+			$display("TB ERROR: expected_update1_upct_index (%h) != DUT_update1_upct_index (%h)",
+				expected_update1_upct_index, DUT_update1_upct_index);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -78,14 +108,26 @@ module lht_index_hash_tb ();
 
 		// reset
 		nRST = 1'b0;
-		tb_PC = '0;
-		tb_ASID = '0;
+	    // RESP stage
+		tb_valid_RESP = 1'b0;
+		tb_upct_index_RESP = 3'h0;
+	    // Update 0
+		tb_update0_valid = 1'b0;
+		tb_update0_start_full_PC = {
+			21'h0,
+			11'h0
+		};
+	    // Update 1
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-		expected_index = '0;
+	    // RESP stage
+		expected_upper_PC_RESP = 21'h0;
+	    // Update 0
+	    // Update 1
+		expected_update1_upct_index = 3'h0;
 
 		check_outputs();
 
@@ -95,128 +137,63 @@ module lht_index_hash_tb ();
 
 		// reset
 		nRST = 1'b1;
-		tb_PC = '0;
-		tb_ASID = '0;
+	    // RESP stage
+		tb_valid_RESP = 1'b0;
+		tb_upct_index_RESP = 3'h0;
+	    // Update 0
+		tb_update0_valid = 1'b0;
+		tb_update0_start_full_PC = {
+			21'h0,
+			11'h0
+		};
+	    // Update 1
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-		expected_index = '0;
+	    // RESP stage
+		expected_upper_PC_RESP = 21'h0;
+	    // Update 0
+	    // Update 1
+		expected_update1_upct_index = 3'h0;
 
 		check_outputs();
 
         // ------------------------------------------------------------
-        // simple chain:
-        test_case = "simple chain";
+        // default:
+        test_case = "default";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "0 ^ 0";
+		sub_test_case = "default";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-		tb_PC = {
-            23'h0, // untouched bits
-            5'b00000, // set index
-            3'h0, // within-block index
-            1'b0 // 2B offset
-        };
-		tb_ASID = {
-            4'h0, // untouched bit
-            5'b00000 // tag bits
-        };
+	    // RESP stage
+		tb_valid_RESP = 1'b0;
+		tb_upct_index_RESP = 3'h0;
+	    // Update 0
+		tb_update0_valid = 1'b0;
+		tb_update0_start_full_PC = {
+			21'h0,
+			11'h0
+		};
+	    // Update 1
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_index = 5'b00000;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = "0 ^ 1";
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-		tb_PC = {
-            23'h0, // untouched bits
-            5'b11111, // set index
-            3'h0, // within-block index
-            1'b0 // 2B offset
-        };
-		tb_ASID = {
-            4'h0, // untouched bit
-            5'b00000 // tag bits
-        };
-
-		@(negedge CLK);
-
-		// outputs:
-
-		expected_index = 5'b11111;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = "1 ^ 0";
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-		tb_PC = {
-            23'h0, // untouched bits
-            5'b00000, // set index
-            3'h0, // within-block index
-            1'b0 // 2B offset
-        };
-		tb_ASID = {
-            4'h0, // untouched bit
-            5'b11111 // tag bits
-        };
-
-		@(negedge CLK);
-
-		// outputs:
-
-		expected_index = 5'b11111;
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = "1 ^ 1";
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-		tb_PC = {
-            23'h0, // untouched bits
-            5'b11111, // set index
-            3'h0, // within-block index
-            1'b0 // 2B offset
-        };
-		tb_ASID = {
-            4'h0, // untouched bit
-            5'b11111 // tag bits
-        };
-
-		@(negedge CLK);
-
-		// outputs:
-
-		expected_index = 5'b00000;
+	    // RESP stage
+		expected_upper_PC_RESP = 21'h0;
+	    // Update 0
+	    // Update 1
+		expected_update1_upct_index = 3'h0;
 
 		check_outputs();
 

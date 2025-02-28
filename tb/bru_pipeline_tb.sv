@@ -43,10 +43,10 @@ module bru_pipeline_tb ();
 	logic [31:0] tb_issue_PC;
 	logic [31:0] tb_issue_pred_PC;
 	logic [19:0] tb_issue_imm20;
-	logic tb_issue_A_unneeded;
+	logic tb_issue_A_unneeded_or_is_zero;
 	logic tb_issue_A_forward;
 	logic [LOG_PRF_BANK_COUNT-1:0] tb_issue_A_bank;
-	logic tb_issue_B_unneeded;
+	logic tb_issue_B_unneeded_or_is_zero;
 	logic tb_issue_B_forward;
 	logic [LOG_PRF_BANK_COUNT-1:0] tb_issue_B_bank;
 	logic [LOG_PR_COUNT-1:0] tb_issue_dest_PR;
@@ -79,7 +79,7 @@ module bru_pipeline_tb ();
 	logic [LOG_ROB_ENTRIES-1:0] DUT_branch_notif_ROB_index, expected_branch_notif_ROB_index;
 	logic DUT_branch_notif_is_mispredict, expected_branch_notif_is_mispredict;
 	logic DUT_branch_notif_is_taken, expected_branch_notif_is_taken;
-	logic DUT_branch_notif_is_out_of_range, expected_branch_notif_is_out_of_range;
+	logic DUT_branch_notif_use_upct, expected_branch_notif_use_upct;
 	logic [BTB_PRED_INFO_WIDTH-1:0] DUT_branch_notif_updated_pred_info, expected_branch_notif_updated_pred_info;
 	logic DUT_branch_notif_pred_lru, expected_branch_notif_pred_lru;
 	logic [31:0] DUT_branch_notif_start_PC, expected_branch_notif_start_PC;
@@ -107,10 +107,10 @@ module bru_pipeline_tb ();
 		.issue_PC(tb_issue_PC),
 		.issue_pred_PC(tb_issue_pred_PC),
 		.issue_imm20(tb_issue_imm20),
-		.issue_A_unneeded(tb_issue_A_unneeded),
+		.issue_A_unneeded_or_is_zero(tb_issue_A_unneeded_or_is_zero),
 		.issue_A_forward(tb_issue_A_forward),
 		.issue_A_bank(tb_issue_A_bank),
-		.issue_B_unneeded(tb_issue_B_unneeded),
+		.issue_B_unneeded_or_is_zero(tb_issue_B_unneeded_or_is_zero),
 		.issue_B_forward(tb_issue_B_forward),
 		.issue_B_bank(tb_issue_B_bank),
 		.issue_dest_PR(tb_issue_dest_PR),
@@ -143,7 +143,7 @@ module bru_pipeline_tb ();
 		.branch_notif_ROB_index(DUT_branch_notif_ROB_index),
 		.branch_notif_is_mispredict(DUT_branch_notif_is_mispredict),
 		.branch_notif_is_taken(DUT_branch_notif_is_taken),
-		.branch_notif_is_out_of_range(DUT_branch_notif_is_out_of_range),
+		.branch_notif_use_upct(DUT_branch_notif_use_upct),
 		.branch_notif_updated_pred_info(DUT_branch_notif_updated_pred_info),
 		.branch_notif_pred_lru(DUT_branch_notif_pred_lru),
 		.branch_notif_start_PC(DUT_branch_notif_start_PC),
@@ -221,9 +221,9 @@ module bru_pipeline_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_branch_notif_is_out_of_range !== DUT_branch_notif_is_out_of_range) begin
-			$display("TB ERROR: expected_branch_notif_is_out_of_range (%h) != DUT_branch_notif_is_out_of_range (%h)",
-				expected_branch_notif_is_out_of_range, DUT_branch_notif_is_out_of_range);
+		if (expected_branch_notif_use_upct !== DUT_branch_notif_use_upct) begin
+			$display("TB ERROR: expected_branch_notif_use_upct (%h) != DUT_branch_notif_use_upct (%h)",
+				expected_branch_notif_use_upct, DUT_branch_notif_use_upct);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -288,10 +288,10 @@ module bru_pipeline_tb ();
 		tb_issue_PC = 32'h0;
 		tb_issue_pred_PC = 32'h0;
 		tb_issue_imm20 = 20'h0;
-		tb_issue_A_unneeded = 1'b0;
+		tb_issue_A_unneeded_or_is_zero = 1'b0;
 		tb_issue_A_forward = 1'b0;
 		tb_issue_A_bank = 2'h0;
-		tb_issue_B_unneeded = 1'b0;
+		tb_issue_B_unneeded_or_is_zero = 1'b0;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h0;
 		tb_issue_dest_PR = 7'h0;
@@ -346,10 +346,10 @@ module bru_pipeline_tb ();
 		expected_branch_notif_ROB_index = 7'h0;
 		expected_branch_notif_is_mispredict = 1'b0;
 		expected_branch_notif_is_taken = 1'b1;
-		expected_branch_notif_is_out_of_range = 1'b0;
+		expected_branch_notif_use_upct = 1'b0;
 		expected_branch_notif_updated_pred_info = 8'b01000000;
 		expected_branch_notif_pred_lru = 1'b0;
-		expected_branch_notif_start_PC = 32'h0;
+		expected_branch_notif_start_PC = 32'h2;
 		expected_branch_notif_target_PC = 32'h0;
 	    // branch notification backpressure from ROB
 
@@ -371,10 +371,10 @@ module bru_pipeline_tb ();
 		tb_issue_PC = 32'h0;
 		tb_issue_pred_PC = 32'h0;
 		tb_issue_imm20 = 20'h0;
-		tb_issue_A_unneeded = 1'b0;
+		tb_issue_A_unneeded_or_is_zero = 1'b0;
 		tb_issue_A_forward = 1'b0;
 		tb_issue_A_bank = 2'h0;
-		tb_issue_B_unneeded = 1'b0;
+		tb_issue_B_unneeded_or_is_zero = 1'b0;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h0;
 		tb_issue_dest_PR = 7'h0;
@@ -429,10 +429,10 @@ module bru_pipeline_tb ();
 		expected_branch_notif_ROB_index = 7'h0;
 		expected_branch_notif_is_mispredict = 1'b0;
 		expected_branch_notif_is_taken = 1'b1;
-		expected_branch_notif_is_out_of_range = 1'b0;
+		expected_branch_notif_use_upct = 1'b0;
 		expected_branch_notif_updated_pred_info = 8'b01000000;
 		expected_branch_notif_pred_lru = 1'b0;
-		expected_branch_notif_start_PC = 32'h0;
+		expected_branch_notif_start_PC = 32'h2;
 		expected_branch_notif_target_PC = 32'h0;
 	    // branch notification backpressure from ROB
 
@@ -462,10 +462,10 @@ module bru_pipeline_tb ();
 		tb_issue_PC = 32'h0;
 		tb_issue_pred_PC = 32'h0;
 		tb_issue_imm20 = 20'h0;
-		tb_issue_A_unneeded = 1'b0;
+		tb_issue_A_unneeded_or_is_zero = 1'b0;
 		tb_issue_A_forward = 1'b0;
 		tb_issue_A_bank = 2'h0;
-		tb_issue_B_unneeded = 1'b0;
+		tb_issue_B_unneeded_or_is_zero = 1'b0;
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_bank = 2'h0;
 		tb_issue_dest_PR = 7'h0;
@@ -520,10 +520,10 @@ module bru_pipeline_tb ();
 		expected_branch_notif_ROB_index = 7'h0;
 		expected_branch_notif_is_mispredict = 1'b0;
 		expected_branch_notif_is_taken = 1'b1;
-		expected_branch_notif_is_out_of_range = 1'b0;
+		expected_branch_notif_use_upct = 1'b0;
 		expected_branch_notif_updated_pred_info = 8'b01000000;
 		expected_branch_notif_pred_lru = 1'b0;
-		expected_branch_notif_start_PC = 32'h0;
+		expected_branch_notif_start_PC = 32'h2;
 		expected_branch_notif_target_PC = 32'h0;
 	    // branch notification backpressure from ROB
 

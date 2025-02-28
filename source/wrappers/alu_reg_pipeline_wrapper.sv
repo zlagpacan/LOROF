@@ -17,17 +17,19 @@ module alu_reg_pipeline_wrapper (
     input logic nRST,
 
 
-    // ALU op issue from ALU Reg IQ
+    // ALU reg op issue from IQ
 	input logic next_issue_valid,
 	input logic [3:0] next_issue_op,
 	input logic next_issue_A_forward,
+	input logic next_issue_A_is_zero,
 	input logic [LOG_PRF_BANK_COUNT-1:0] next_issue_A_bank,
 	input logic next_issue_B_forward,
+	input logic next_issue_B_is_zero,
 	input logic [LOG_PRF_BANK_COUNT-1:0] next_issue_B_bank,
 	input logic [LOG_PR_COUNT-1:0] next_issue_dest_PR,
 	input logic [LOG_ROB_ENTRIES-1:0] next_issue_ROB_index,
 
-    // ready feedback to ALU Reg IQ
+    // ready feedback to IQ
 	output logic last_issue_ready,
 
     // reg read info and data from PRF
@@ -46,7 +48,7 @@ module alu_reg_pipeline_wrapper (
 	output logic [LOG_PR_COUNT-1:0] last_WB_PR,
 	output logic [LOG_ROB_ENTRIES-1:0] last_WB_ROB_index,
 
-    // writeback backpressure from PRF
+    // writeback feedback from PRF
 	input logic next_WB_ready
 );
 
@@ -54,17 +56,19 @@ module alu_reg_pipeline_wrapper (
     // Direct Module Connections:
 
 
-    // ALU op issue from ALU Reg IQ
+    // ALU reg op issue from IQ
 	logic issue_valid;
 	logic [3:0] issue_op;
 	logic issue_A_forward;
+	logic issue_A_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_A_bank;
 	logic issue_B_forward;
+	logic issue_B_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_B_bank;
 	logic [LOG_PR_COUNT-1:0] issue_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] issue_ROB_index;
 
-    // ready feedback to ALU Reg IQ
+    // ready feedback to IQ
 	logic issue_ready;
 
     // reg read info and data from PRF
@@ -83,7 +87,7 @@ module alu_reg_pipeline_wrapper (
 	logic [LOG_PR_COUNT-1:0] WB_PR;
 	logic [LOG_ROB_ENTRIES-1:0] WB_ROB_index;
 
-    // writeback backpressure from PRF
+    // writeback feedback from PRF
 	logic WB_ready;
 
     // ----------------------------------------------------------------
@@ -98,17 +102,19 @@ module alu_reg_pipeline_wrapper (
         if (~nRST) begin
 
 
-		    // ALU op issue from ALU Reg IQ
+		    // ALU reg op issue from IQ
 			issue_valid <= '0;
 			issue_op <= '0;
 			issue_A_forward <= '0;
+			issue_A_is_zero <= '0;
 			issue_A_bank <= '0;
 			issue_B_forward <= '0;
+			issue_B_is_zero <= '0;
 			issue_B_bank <= '0;
 			issue_dest_PR <= '0;
 			issue_ROB_index <= '0;
 
-		    // ready feedback to ALU Reg IQ
+		    // ready feedback to IQ
 			last_issue_ready <= '0;
 
 		    // reg read info and data from PRF
@@ -127,23 +133,25 @@ module alu_reg_pipeline_wrapper (
 			last_WB_PR <= '0;
 			last_WB_ROB_index <= '0;
 
-		    // writeback backpressure from PRF
+		    // writeback feedback from PRF
 			WB_ready <= '0;
         end
         else begin
 
 
-		    // ALU op issue from ALU Reg IQ
+		    // ALU reg op issue from IQ
 			issue_valid <= next_issue_valid;
 			issue_op <= next_issue_op;
 			issue_A_forward <= next_issue_A_forward;
+			issue_A_is_zero <= next_issue_A_is_zero;
 			issue_A_bank <= next_issue_A_bank;
 			issue_B_forward <= next_issue_B_forward;
+			issue_B_is_zero <= next_issue_B_is_zero;
 			issue_B_bank <= next_issue_B_bank;
 			issue_dest_PR <= next_issue_dest_PR;
 			issue_ROB_index <= next_issue_ROB_index;
 
-		    // ready feedback to ALU Reg IQ
+		    // ready feedback to IQ
 			last_issue_ready <= issue_ready;
 
 		    // reg read info and data from PRF
@@ -162,7 +170,7 @@ module alu_reg_pipeline_wrapper (
 			last_WB_PR <= WB_PR;
 			last_WB_ROB_index <= WB_ROB_index;
 
-		    // writeback backpressure from PRF
+		    // writeback feedback from PRF
 			WB_ready <= next_WB_ready;
         end
     end

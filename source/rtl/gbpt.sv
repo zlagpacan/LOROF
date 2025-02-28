@@ -1,14 +1,14 @@
 /*
-    Filename: lbpt.sv
+    Filename: gbpt.sv
     Author: zlagpacan
-    Description: RTL for Local Branch Prediction Table
-    Spec: LOROF/spec/design/lbpt.md
+    Description: RTL for Global Branch Prediction Table
+    Spec: LOROF/spec/design/gbpt.md
 */
 
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module lbpt (
+module gbpt (
 
     // seq
     input logic CLK,
@@ -17,7 +17,7 @@ module lbpt (
     // RESP stage
     input logic                     valid_RESP,
     input logic [31:0]              full_PC_RESP,
-    input logic [LH_LENGTH-1:0]     LH_RESP,
+    input logic [GH_LENGTH-1:0]     GH_RESP,
     input logic [ASID_WIDTH-1:0]    ASID_RESP,
 
     // RESTART stage
@@ -26,7 +26,7 @@ module lbpt (
     // Update 0
     input logic                     update0_valid,
     input logic [31:0]              update0_start_full_PC,
-    input logic [LH_LENGTH-1:0]     update0_LH,
+    input logic [GH_LENGTH-1:0]     update0_GH,
     input logic [ASID_WIDTH-1:0]    update0_ASID,
     input logic                     update0_taken,
 
@@ -38,35 +38,35 @@ module lbpt (
     // Signals:
 
     // RESP Stage:
-    logic [LBPT_INDEX_WIDTH-1:0]            hashed_index_RESP;
-    logic [LOG_LBPT_ENTRIES_PER_BLOCK-1:0]  entry_RESP;
+    logic [GBPT_INDEX_WIDTH-1:0]            hashed_index_RESP;
+    logic [LOG_GBPT_ENTRIES_PER_BLOCK-1:0]  entry_RESP;
 
     // RESTART Stage:
-    logic [LOG_LBPT_ENTRIES_PER_BLOCK-1:0]      entry_RESTART;
-    logic [LBPT_ENTRIES_PER_BLOCK-1:0][1:0]     array_pred_2bc_by_entry_RESTART;
+    logic [LOG_GBPT_ENTRIES_PER_BLOCK-1:0]      entry_RESTART;
+    logic [GBPT_ENTRIES_PER_BLOCK-1:0][1:0]     array_pred_2bc_by_entry_RESTART;
 
     // Update 0:
-    logic [LBPT_INDEX_WIDTH-1:0]            update0_hashed_index;
-    logic [LOG_LBPT_ENTRIES_PER_BLOCK-1:0]  update0_hashed_entry;
+    logic [GBPT_INDEX_WIDTH-1:0]            update0_hashed_index;
+    logic [LOG_GBPT_ENTRIES_PER_BLOCK-1:0]  update0_hashed_entry;
 
     // Update 1:
     logic                                       update1_valid; // use instead of byte mask
-    logic [LBPT_INDEX_WIDTH-1:0]                update1_hashed_index;
-    logic [LOG_LBPT_ENTRIES_PER_BLOCK-1:0]      update1_hashed_entry;
+    logic [GBPT_INDEX_WIDTH-1:0]                update1_hashed_index;
+    logic [LOG_GBPT_ENTRIES_PER_BLOCK-1:0]      update1_hashed_entry;
     logic                                       update1_taken;
 
-    logic [LBPT_ENTRIES_PER_BLOCK-1:0][1:0]     update1_array_old_pred_2bc_by_entry;
-    logic [LBPT_ENTRIES_PER_BLOCK-1:0][1:0]     update1_array_new_pred_2bc_by_entry;
+    logic [GBPT_ENTRIES_PER_BLOCK-1:0][1:0]     update1_array_old_pred_2bc_by_entry;
+    logic [GBPT_ENTRIES_PER_BLOCK-1:0][1:0]     update1_array_new_pred_2bc_by_entry;
 
     logic                                       last_update1_conflict;
-    logic [LBPT_ENTRIES_PER_BLOCK-1:0][1:0]     last_update1_array_new_pred_2bc_by_entry;
+    logic [GBPT_ENTRIES_PER_BLOCK-1:0][1:0]     last_update1_array_new_pred_2bc_by_entry;
 
     // ----------------------------------------------------------------
     // RESP Stage Logic:
 
-    lbpt_index_hash LBPT_RESP_INDEX_HASH (
+    gbpt_index_hash GBPT_RESP_INDEX_HASH (
         .PC(full_PC_RESP),
-        .LH(LH_RESP),
+        .GH(GH_RESP),
         .ASID(ASID_RESP),
         .index({hashed_index_RESP, entry_RESP})
     );
@@ -89,9 +89,9 @@ module lbpt (
     // ----------------------------------------------------------------
     // Update 0 Logic:
 
-    lbpt_index_hash LBPT_UPDATE0_INDEX_HASH (
+    gbpt_index_hash GBPT_UPDATE0_INDEX_HASH (
         .PC(update0_start_full_PC),
-        .LH(update0_LH),
+        .GH(update0_GH),
         .ASID(update0_ASID),
         .index({update0_hashed_index, update0_hashed_entry})
     );
@@ -133,7 +133,7 @@ module lbpt (
         end else begin
             update1_array_new_pred_2bc_by_entry = update1_array_old_pred_2bc_by_entry;
         end
-
+        
         // update 2bc entry of interest
         case ({update1_array_new_pred_2bc_by_entry[update1_hashed_entry], update1_taken})
             3'b000: update1_array_new_pred_2bc_by_entry[update1_hashed_entry] = 2'b00; // SN -> N -> SN
@@ -156,11 +156,11 @@ module lbpt (
 
     bram_2rport_1wport #(
         .INNER_WIDTH(
-            LBPT_ENTRIES_PER_BLOCK *
+            GBPT_ENTRIES_PER_BLOCK *
             2
         ),
-        .OUTER_WIDTH(LBPT_SETS)
-    ) LBPT_BRAM_ARRAY (
+        .OUTER_WIDTH(GBPT_SETS)
+    ) GBPT_BRAM_ARRAY (
         .CLK(CLK),
         .nRST(nRST),
         

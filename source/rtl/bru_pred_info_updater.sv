@@ -17,7 +17,9 @@ module bru_pred_info_updater (
     input logic                             is_ret_ra,
     input logic                             is_taken,
     input logic                             is_mispredict,
-    input logic                             is_out_of_range,
+    input logic                             start_neq_target_upper_PC,
+    input logic [2:0]                       delta_start_target_upper_PC,
+    input logic                             large_delta_upper_PC,
 
     // outputs
     output logic [BTB_PRED_INFO_WIDTH-1:0]  updated_pred_info
@@ -55,83 +57,53 @@ module bru_pred_info_updater (
             // --------------------------------------------------------
             // jumps have unique static behavior regardless of start pred info
 
-            4'b0000: // JALR
+            4'b0000, 4'b0001: // JALR, C.JALR
             begin
                 updated_pred_info[7:6] = 2'b01;
-                if (is_ret_ra) begin
-                    updated_pred_info[5] = 1'b1;
-                    if (is_link_ra) updated_pred_info[4:3] = 2'b11;
-                    else            updated_pred_info[4:3] = 2'b00; // bit 3 is don't care
-                end else begin
-                    updated_pred_info[5] = 1'b0;
-                    if (is_link_ra) updated_pred_info[4:3] = 2'b11;
-                    else            updated_pred_info[4:3] = 2'b00; // bit 3 is don't care
-                end
-                updated_pred_info[2:0] = 3'b000; // don't care
+                updated_pred_info[5] = is_ret_ra; // can be ret
+                updated_pred_info[4] = is_link_ra; // can be link
+                updated_pred_info[3] = large_delta_upper_PC; // don't care
+                updated_pred_info[2:0] = delta_start_target_upper_PC; // don't care
             end
 
-            4'b0001: // C.JALR
+            4'b0010, 4'b0011: // JAL, C.JAL
             begin
                 updated_pred_info[7:6] = 2'b01;
-                if (is_ret_ra) begin
-                    updated_pred_info[5] = 1'b1;
-                    if (is_link_ra) updated_pred_info[4:3] = 2'b10;
-                    else            updated_pred_info[4:3] = 2'b00; // bit 3 is don't care
-                end else begin
-                    updated_pred_info[5] = 1'b0;
-                    if (is_link_ra) updated_pred_info[4:3] = 2'b10;
-                    else            updated_pred_info[4:3] = 2'b00; // bit 3 is don't care
-                end
-                updated_pred_info[2:0] = 3'b000; // don't care
-            end
-
-            4'b0010: // JAL
-            begin
-                updated_pred_info[7:6] = 2'b01;
-                updated_pred_info[5] = 1'b0;
-                if (is_link_ra) updated_pred_info[4:3] = 2'b11;
-                else            updated_pred_info[4:3] = 2'b00; // bit 3 is don't care
-                updated_pred_info[2:0] = 3'b000; // don't care
-            end
-
-            4'b0011: // C.JAL
-            begin
-                updated_pred_info[7:6] = 2'b01;
-                updated_pred_info[5] = 1'b0;
-                if (is_link_ra) updated_pred_info[4:3] = 2'b10;
-                else            updated_pred_info[4:3] = 2'b00; // bit 3 is don't care
-                updated_pred_info[2:0] = 3'b000; // don't care
+                updated_pred_info[5] = 1'b0; // not ret
+                updated_pred_info[4] = is_link_ra; // can be link
+                updated_pred_info[3] = large_delta_upper_PC;
+                updated_pred_info[2:0] = delta_start_target_upper_PC;
             end
 
             4'b0100: // C.J
             begin
                 updated_pred_info[7:6] = 2'b01;
-                updated_pred_info[5] = 1'b0;
-                updated_pred_info[4:0] = 2'b00; // bit 3 is don't care
-                updated_pred_info[2:0] = 3'b000; // don't care
+                updated_pred_info[5:4] = 2'b00; // not ret nor link
+                updated_pred_info[3] = large_delta_upper_PC;
+                updated_pred_info[2:0] = delta_start_target_upper_PC;
             end
 
             4'b0101: // C.JR
             begin
                 updated_pred_info[7:6] = 2'b01;
-                if (is_ret_ra) begin
-                    updated_pred_info[5] = 1'b1;
-                    updated_pred_info[4:3] = 2'b00; // bit 3 is don't care
-                end else begin
-                    updated_pred_info[5] = 1'b0;
-                    updated_pred_info[4:3] = 2'b00; // bit 3 is don't care
-                end
-                updated_pred_info[2:0] = 3'b000; // don't care
+                updated_pred_info[5] = is_ret_ra; // can be ret
+                updated_pred_info[4] = 1'b0; // not link
+                updated_pred_info[3] = large_delta_upper_PC; // don't care
+                updated_pred_info[2:0] = delta_start_target_upper_PC; // don't care
             end
 
             4'b0110: // LUI
             begin
-                updated_pred_info = 8'h0; // don't care
+                updated_pred_info[7:4] = 4'h0; // don't care
+                updated_pred_info[3] = large_delta_upper_PC; // don't care
+                updated_pred_info[2:0] = delta_start_target_upper_PC; // don't care
             end
 
             4'b0111: // AUIPC
             begin
-                updated_pred_info = 8'h0; // don't care
+                updated_pred_info[7:4] = 4'h0; // don't care
+                updated_pred_info[3] = large_delta_upper_PC; // don't care
+                updated_pred_info[2:0] = delta_start_target_upper_PC; // don't care
             end
 
             // --------------------------------------------------------
@@ -140,10 +112,11 @@ module bru_pred_info_updater (
             4'b1???: // BEQ
             begin
                 // check for non-complex branch and out-of-range -> init complex branch
-                if (start_pred_info[7:6] != 2'b11 & is_out_of_range) begin
+                if (start_pred_info[7:6] != 2'b11 & start_neq_target_upper_PC) begin
                     updated_pred_info[7:6] = 2'b11; // complex branch
                     updated_pred_info[5:4] = 2'b01; // start slightly favoring local
-                    updated_pred_info[3:0] = 4'b0000; // don't care
+                    updated_pred_info[3] = large_delta_upper_PC; // don't care
+                    updated_pred_info[2:0] = delta_start_target_upper_PC; // don't care
                 end
 
                 // check for invalid or jump -> init simple branch
@@ -172,7 +145,8 @@ module bru_pred_info_updater (
                         if (is_mispredict & accuracy_minus_penalty_5b[4]) begin
                             updated_pred_info[7:6] = 2'b11; // complex branch
                             updated_pred_info[5:4] = 2'b01; // start slightly favoring local
-                            updated_pred_info[3:0] = 4'b0000; // don't care
+                            updated_pred_info[3] = large_delta_upper_PC; // don't care
+                            updated_pred_info[2:0] = delta_start_target_upper_PC; // don't care
                         end
 
                         // check for mispredict -> subtract threshold
@@ -201,7 +175,8 @@ module bru_pred_info_updater (
                 else begin
                     updated_pred_info[7:6] = 2'b11; // complex branch
                     updated_pred_info[5:4] = start_pred_info[5:4]; // propagate 2bc to frontend for update there
-                    updated_pred_info[3:0] = 4'b0000; // don't care
+                    updated_pred_info[3] = large_delta_upper_PC;
+                    updated_pred_info[2:0] = delta_start_target_upper_PC;
                 end
             end
 

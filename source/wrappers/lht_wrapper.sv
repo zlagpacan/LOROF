@@ -23,13 +23,13 @@ module lht_wrapper (
 	input logic [ASID_WIDTH-1:0] next_ASID_REQ,
 
     // RESP stage
-	output logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH-1:0] last_lh_by_instr_RESP,
+	output logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH-1:0] last_LH_by_instr_RESP,
 
     // Update 0 stage
 	input logic next_update0_valid,
 	input logic [31:0] next_update0_start_full_PC,
 	input logic [ASID_WIDTH-1:0] next_update0_ASID,
-	input logic [LH_LENGTH-1:0] next_update0_lh
+	input logic [LH_LENGTH-1:0] next_update0_LH
 );
 
     // ----------------------------------------------------------------
@@ -42,13 +42,13 @@ module lht_wrapper (
 	logic [ASID_WIDTH-1:0] ASID_REQ;
 
     // RESP stage
-	logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH-1:0] lh_by_instr_RESP;
+	logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH-1:0] LH_by_instr_RESP;
 
     // Update 0 stage
 	logic update0_valid;
 	logic [31:0] update0_start_full_PC;
 	logic [ASID_WIDTH-1:0] update0_ASID;
-	logic [LH_LENGTH-1:0] update0_lh;
+	logic [LH_LENGTH-1:0] update0_LH;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -68,13 +68,13 @@ module lht_wrapper (
 			ASID_REQ <= '0;
 
 		    // RESP stage
-			last_lh_by_instr_RESP <= '0;
+			last_LH_by_instr_RESP <= '0;
 
 		    // Update 0 stage
 			update0_valid <= '0;
 			update0_start_full_PC <= '0;
 			update0_ASID <= '0;
-			update0_lh <= '0;
+			update0_LH <= '0;
         end
         else begin
 
@@ -85,13 +85,13 @@ module lht_wrapper (
 			ASID_REQ <= next_ASID_REQ;
 
 		    // RESP stage
-			last_lh_by_instr_RESP <= lh_by_instr_RESP;
+			last_LH_by_instr_RESP <= LH_by_instr_RESP;
 
 		    // Update 0 stage
 			update0_valid <= next_update0_valid;
 			update0_start_full_PC <= next_update0_start_full_PC;
 			update0_ASID <= next_update0_ASID;
-			update0_lh <= next_update0_lh;
+			update0_LH <= next_update0_LH;
         end
     end
 
