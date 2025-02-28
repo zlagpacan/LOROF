@@ -36,7 +36,7 @@ All of these are constants from core_types_pkg.vh
 
 
 # Interfaces
-Inputs interfaces blue. Output interfaces green.
+Input interfaces blue. Output interfaces green.
 These signals make more sense in combination with the information in the [Pipeline Stages](#pipeline-stages) section.
 
 <span style="color:orange">
