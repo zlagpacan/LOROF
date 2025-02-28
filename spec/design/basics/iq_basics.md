@@ -1,6 +1,6 @@
 # Issue Queue Basics
 - see [core_basics.md](core_basics.md) for how issue queues are used in an R10K out-of-order core
-- see [alu_iq.md](../alu_iq/alu_iq.md) for an example issue queue in action
+- see [alu_reg_mdu_iq_example.md](../modules/alu_reg_mdu_iq/alu_reg_mdu_iq_example.md) for an example issue queue in action
 - see [reg_rename_basics.md](reg_rename_basics.md) for information on physical registers
 
 issue queues hold the state of dispatched instructions, waiting for the instruction's operands to be ready, so that they can be subsequently issued to the associated FU pipeline
