@@ -91,10 +91,13 @@ class alu_reg_mdu_iq_monitor extends uvm_monitor;
       item.WB_bus_valid_by_bank          = vif.WB_bus_valid_by_bank;
       item.WB_bus_upper_PR_by_bank       = vif.WB_bus_upper_PR_by_bank;
 
-      $display("MONITOR TO PREDICTO dispatch_op_by_way[0] == %d, at time %t",item.dispatch_op_by_way[0],$time);
+      // $display("MONITOR TO PREDICTO dispatch_op_by_way[0] == %d, at time %t",item.dispatch_op_by_way[0],$time);
 
       // Write Item to Predictor // 
-      predictor_port.write(item);
+      if(item.nRST == 0) begin 
+        predictor_port.write(item);
+        // $display("MONITOR TO PREDICTO nRST == %d, at time %t",item.nRST,$time);
+      end
       
       // --- Output Sample --- //
       @(posedge vif.CLK);
@@ -126,7 +129,10 @@ class alu_reg_mdu_iq_monitor extends uvm_monitor;
       
       // --- Send to Scoreboard --- //
       // $display("MONITOR TO SCORE dispatch_op_by_way[0] == %d, at time %t",item.dispatch_op_by_way[0],$time);
-      monitor_port.write(item);
+      if(item.nRST == 0) begin
+        // $display("MONITOR TO SCORE nRST == %d, at time %t",item.nRST,$time);
+        monitor_port.write(item);
+      end
       
     end
         
