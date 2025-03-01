@@ -38,11 +38,11 @@ module ras_tb ();
 	logic [31:0] tb_link_full_PC_RESP;
 	logic tb_ret_RESP;
 	logic [31:0] DUT_ret_full_PC_RESP, expected_ret_full_PC_RESP;
-	logic [LOG_RAS_ENTRIES-1:0] DUT_ras_index_RESP, expected_ras_index_RESP;
+	logic [RAS_INDEX_WIDTH-1:0] DUT_ras_index_RESP, expected_ras_index_RESP;
 
     // Update 0
 	logic tb_update0_valid;
-	logic [LOG_RAS_ENTRIES-1:0] tb_update0_ras_index;
+	logic [RAS_INDEX_WIDTH-1:0] tb_update0_ras_index;
 
     // ----------------------------------------------------------------
     // DUT instantiation:

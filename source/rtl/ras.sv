@@ -22,11 +22,11 @@ module ras #(
     input logic                         ret_RESP,
 
     output logic [31:0]                 ret_full_PC_RESP,
-    output logic [LOG_RAS_ENTRIES-1:0]  ras_index_RESP,
+    output logic [RAS_INDEX_WIDTH-1:0]  ras_index_RESP,
 
     // Update 0
     input logic                         update0_valid,
-    input logic [LOG_RAS_ENTRIES-1:0]   update0_ras_index
+    input logic [RAS_INDEX_WIDTH-1:0]   update0_ras_index
 );
 
     // ----------------------------------------------------------------
@@ -36,7 +36,7 @@ module ras #(
     logic [RAS_ENTRIES-1:0][RAS_TARGET_WIDTH-1:0] ras_array, next_ras_array;
 
     // RESP Stage:
-    logic [LOG_RAS_ENTRIES-1:0] sp, next_sp;
+    logic [RAS_INDEX_WIDTH-1:0] sp, next_sp;
 
     // ----------------------------------------------------------------
     // Logic:

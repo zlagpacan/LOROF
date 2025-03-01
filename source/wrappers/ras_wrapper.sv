@@ -23,11 +23,11 @@ module ras_wrapper (
 	input logic next_ret_RESP,
 
 	output logic [31:0] last_ret_full_PC_RESP,
-	output logic [LOG_RAS_ENTRIES-1:0] last_ras_index_RESP,
+	output logic [RAS_INDEX_WIDTH-1:0] last_ras_index_RESP,
 
     // Update 0
 	input logic next_update0_valid,
-	input logic [LOG_RAS_ENTRIES-1:0] next_update0_ras_index
+	input logic [RAS_INDEX_WIDTH-1:0] next_update0_ras_index
 );
 
     // ----------------------------------------------------------------
@@ -40,11 +40,11 @@ module ras_wrapper (
 	logic ret_RESP;
 
 	logic [31:0] ret_full_PC_RESP;
-	logic [LOG_RAS_ENTRIES-1:0] ras_index_RESP;
+	logic [RAS_INDEX_WIDTH-1:0] ras_index_RESP;
 
     // Update 0
 	logic update0_valid;
-	logic [LOG_RAS_ENTRIES-1:0] update0_ras_index;
+	logic [RAS_INDEX_WIDTH-1:0] update0_ras_index;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
