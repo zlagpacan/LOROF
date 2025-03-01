@@ -91,7 +91,10 @@ module istream_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    istream WRAPPED_MODULE (.*);
+    istream #(
+		.ISTREAM_SETS(ISTREAM_SETS),
+		.INIT_PC(32'h80000000)
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:

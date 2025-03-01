@@ -9,6 +9,7 @@
 import core_types_pkg::*;
 
 module istream #(
+    parameter ISTREAM_SETS = 8,
     parameter INIT_PC = 32'h80000000
 ) (
 
@@ -117,7 +118,7 @@ module istream #(
     always_comb begin
 
         // align deq ptr0 into vec
-        for (int i = 0; i < FETCH_WIDTH_2B; i++) begin
+        for (int i = 0; i < 8; i++) begin
             valid_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].valid;
             uncompressed_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].instr_2B.lsb2 == 2'b11;
             instr_2B_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].instr_2B;
@@ -126,7 +127,7 @@ module istream #(
         end
 
         // align deq ptr1 into vec
-        for (int j = 0; j < FETCH_WIDTH_2B; j++) begin
+        for (int j = 0; j < 8; j++) begin
             valid_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].valid;
             uncompressed_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].instr_2B.lsb2 == 2'b11;
             instr_2B_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].instr_2B;

@@ -69,7 +69,10 @@ module istream_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	istream #(.INIT_PC(32'h80000000)) DUT (
+	istream #(
+		.ISTREAM_SETS(8),
+		.INIT_PC(32'h80000000)
+	) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
