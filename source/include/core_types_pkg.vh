@@ -8,6 +8,7 @@ package core_types_pkg;
 
     parameter XLEN = 32;
     parameter ASID_WIDTH = 9;
+    parameter INIT_PC = 32'h80000000;
 
     // ----------------------------------------------------------------
     // Central: 
@@ -111,7 +112,7 @@ package core_types_pkg;
     // ISTREAM:
     parameter ISTREAM_SETS = 8;
     parameter ISTREAM_ENTRIES_PER_BLOCK = FETCH_WIDTH_2B;
-    parameter ISTREAM_INDEX_WIDTH = $clog2(ISTREAM_BLOCKS);
+    parameter ISTREAM_INDEX_WIDTH = $clog2(ISTREAM_SETS);
 
 endpackage
 
