@@ -39,7 +39,6 @@ module btb_tb ();
 	logic [ASID_WIDTH-1:0] tb_ASID_REQ;
 
     // RESP stage
-	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0] DUT_hit_by_instr_RESP, expected_hit_by_instr_RESP;
 	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_PRED_INFO_WIDTH-1:0] DUT_pred_info_by_instr_RESP, expected_pred_info_by_instr_RESP;
 	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0] DUT_pred_lru_by_instr_RESP, expected_pred_lru_by_instr_RESP;
 	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TARGET_WIDTH-1:0] DUT_target_by_instr_RESP, expected_target_by_instr_RESP;
@@ -69,7 +68,6 @@ module btb_tb ();
 		.ASID_REQ(tb_ASID_REQ),
 
 	    // RESP stage
-		.hit_by_instr_RESP(DUT_hit_by_instr_RESP),
 		.pred_info_by_instr_RESP(DUT_pred_info_by_instr_RESP),
 		.pred_lru_by_instr_RESP(DUT_pred_lru_by_instr_RESP),
 		.target_by_instr_RESP(DUT_target_by_instr_RESP),
@@ -90,12 +88,6 @@ module btb_tb ();
 
     task check_outputs();
     begin
-		if (expected_hit_by_instr_RESP !== DUT_hit_by_instr_RESP) begin
-			$display("TB ERROR: expected_hit_by_instr_RESP (%h) != DUT_hit_by_instr_RESP (%h)",
-				expected_hit_by_instr_RESP, DUT_hit_by_instr_RESP);
-			num_errors++;
-			tb_error = 1'b1;
-		end
 
 		if (expected_pred_info_by_instr_RESP !== DUT_pred_info_by_instr_RESP) begin
 			$display("TB ERROR: expected_pred_info_by_instr_RESP (%h) != DUT_pred_info_by_instr_RESP (%h)",
@@ -160,7 +152,6 @@ module btb_tb ();
 
 	    // REQ stage
 	    // RESP stage
-		expected_hit_by_instr_RESP = {8{1'b1}};
 		expected_pred_info_by_instr_RESP = {8{8'h0}};
 		expected_pred_lru_by_instr_RESP = {8{1'b0}};
 		expected_target_by_instr_RESP = {8{10'h0}};
@@ -195,7 +186,6 @@ module btb_tb ();
 
 	    // REQ stage
 	    // RESP stage
-		expected_hit_by_instr_RESP = {8{1'b1}};
 		expected_pred_info_by_instr_RESP = {8{8'h0}};
 		expected_pred_lru_by_instr_RESP = {8{1'b0}};
 		expected_target_by_instr_RESP = {8{10'h0}};
@@ -266,7 +256,6 @@ module btb_tb ();
 
 		// REQ stage
 		// RESP stage
-		expected_hit_by_instr_RESP = {8{1'b1}};
 		expected_pred_info_by_instr_RESP = {8{8'h0}};
 		expected_pred_lru_by_instr_RESP = {8{1'b0}};
 		expected_target_by_instr_RESP = {8{10'h0}};
@@ -337,7 +326,6 @@ module btb_tb ();
 
 			// REQ stage
 			// RESP stage
-			expected_hit_by_instr_RESP = {8{1'b1}};
 			expected_pred_info_by_instr_RESP = {8{8'h0}};
 			expected_pred_lru_by_instr_RESP = {8{1'b0}};
 			expected_target_by_instr_RESP = {8{10'h0}};
@@ -403,7 +391,6 @@ module btb_tb ();
 
 		// REQ stage
 		// RESP stage
-		expected_hit_by_instr_RESP = {8{1'b1}};
 		expected_pred_info_by_instr_RESP = {8{8'h0}};
 		expected_pred_lru_by_instr_RESP = {8{1'b0}};
 		expected_target_by_instr_RESP = {8{10'h0}};
@@ -474,7 +461,6 @@ module btb_tb ();
 
 		// REQ stage
 		// RESP stage
-		expected_hit_by_instr_RESP = {8{1'b1}};
 		expected_pred_info_by_instr_RESP = {8{8'h0}};
 		expected_pred_lru_by_instr_RESP = {8{1'b0}};
 		expected_target_by_instr_RESP = {8{10'h0}};
@@ -545,7 +531,6 @@ module btb_tb ();
 
 			// REQ stage
 			// RESP stage
-			expected_hit_by_instr_RESP = {8{1'b1}};
 			expected_pred_info_by_instr_RESP = {
 				{last_i + 7}[7:0],
 				{last_i + 6}[7:0],
@@ -569,7 +554,6 @@ module btb_tb ();
 			};
 
 			if (i == 8) begin
-				expected_hit_by_instr_RESP = {8{1'b1}};
 				expected_pred_info_by_instr_RESP = {
 					8'h7,
 					8'h6,
@@ -654,7 +638,6 @@ module btb_tb ();
 
 		// REQ stage
 		// RESP stage
-		expected_hit_by_instr_RESP = {8{1'b1}};
 		expected_pred_info_by_instr_RESP = {
 			8'hff,
 			8'hfe,
@@ -743,7 +726,6 @@ module btb_tb ();
 
 		// REQ stage
 		// RESP stage
-		expected_hit_by_instr_RESP = {8{1'b1}};
 		expected_pred_info_by_instr_RESP = {8{8'h0}};
 		expected_pred_lru_by_instr_RESP = {8{1'b1}};
 		expected_target_by_instr_RESP = {8{10'h0}};
@@ -814,7 +796,6 @@ module btb_tb ();
 
 			// REQ stage
 			// RESP stage
-			expected_hit_by_instr_RESP = {8{1'b1}};
 			expected_pred_info_by_instr_RESP = {8{8'h0}};
 			expected_pred_lru_by_instr_RESP = {8{1'b1}};
 			expected_target_by_instr_RESP = {8{10'h0}};
@@ -880,7 +861,6 @@ module btb_tb ();
 
 		// REQ stage
 		// RESP stage
-		expected_hit_by_instr_RESP = {8{1'b1}};
 		expected_pred_info_by_instr_RESP = {8{8'h0}};
 		expected_pred_lru_by_instr_RESP = {8{1'b1}};
 		expected_target_by_instr_RESP = {8{10'h0}};
@@ -951,7 +931,6 @@ module btb_tb ();
 
 		// REQ stage
 		// RESP stage
-		expected_hit_by_instr_RESP = {8{1'b1}};
 		expected_pred_info_by_instr_RESP = {8{8'h0}};
 		expected_pred_lru_by_instr_RESP = {8{1'b1}};
 		expected_target_by_instr_RESP = {8{10'h0}};
@@ -1022,7 +1001,6 @@ module btb_tb ();
 
 			// REQ stage
 			// RESP stage
-			expected_hit_by_instr_RESP = {8{1'b1}};
 			expected_pred_info_by_instr_RESP = {
 				~{last_i + 0}[7:0],
 				~{last_i + 1}[7:0],
@@ -1107,7 +1085,6 @@ module btb_tb ();
 
 		// REQ stage
 		// RESP stage
-		expected_hit_by_instr_RESP = {8{1'b1}};
 		expected_pred_info_by_instr_RESP = {
 			~8'hf8,
 			~8'hf9,
@@ -1196,16 +1173,15 @@ module btb_tb ();
 
 		// REQ stage
 		// RESP stage
-		expected_hit_by_instr_RESP = {8{1'b0}};
 		expected_pred_info_by_instr_RESP = {
-			8'hff,
-			8'hfe,
-			8'hfd,
-			8'hfc,
-			8'hfb,
-			8'hfa,
-			8'hf9,
-			8'hf8
+			8'h3f,
+			8'h3e,
+			8'h3d,
+			8'h3c,
+			8'h3b,
+			8'h3a,
+			8'h39,
+			8'h38
 		};
 		expected_pred_lru_by_instr_RESP = {8{1'b0}};
 		expected_target_by_instr_RESP = {
@@ -1285,16 +1261,15 @@ module btb_tb ();
 
 			// REQ stage
 			// RESP stage
-			expected_hit_by_instr_RESP = {8{1'b0}};
 			expected_pred_info_by_instr_RESP = {
-				{last_i + 7}[7:0],
-				{last_i + 6}[7:0],
-				{last_i + 5}[7:0],
-				{last_i + 4}[7:0],
-				{last_i + 3}[7:0],
-				{last_i + 2}[7:0],
-				{last_i + 1}[7:0],
-				{last_i + 0}[7:0]
+				2'b00, {last_i + 7}[5:0],
+				2'b00, {last_i + 6}[5:0],
+				2'b00, {last_i + 5}[5:0],
+				2'b00, {last_i + 4}[5:0],
+				2'b00, {last_i + 3}[5:0],
+				2'b00, {last_i + 2}[5:0],
+				2'b00, {last_i + 1}[5:0],
+				2'b00, {last_i + 0}[5:0]
 			};
 			expected_pred_lru_by_instr_RESP = {8{1'b0}};
 			expected_target_by_instr_RESP = {
@@ -1370,16 +1345,15 @@ module btb_tb ();
 
 		// REQ stage
 		// RESP stage
-		expected_hit_by_instr_RESP = {8{1'b0}};
 		expected_pred_info_by_instr_RESP = {
-			8'hff,
-			8'hfe,
-			8'hfd,
-			8'hfc,
-			8'hfb,
-			8'hfa,
-			8'hf9,
-			8'hf8
+			8'h3f,
+			8'h3e,
+			8'h3d,
+			8'h3c,
+			8'h3b,
+			8'h3a,
+			8'h39,
+			8'h38
 		};
 		expected_pred_lru_by_instr_RESP = {8{1'b0}};
 		expected_target_by_instr_RESP = {

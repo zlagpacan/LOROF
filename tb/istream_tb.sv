@@ -401,47 +401,47 @@ module istream_tb ();
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // simple chain:
+        test_case = "simple chain";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "default";
+		sub_test_case = "enQ unC 0x80000000";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
 	    // SENQ stage
-		tb_valid_SENQ = 1'b0;
-		tb_valid_by_fetch_2B_SENQ = 8'b00000000;
+		tb_valid_SENQ = 1'b1;
+		tb_valid_by_fetch_2B_SENQ = 8'b11111111;
 		tb_instr_2B_by_fetch_2B_SENQ = {
-			14'h0, 2'b00,
-			14'h0, 2'b00,
-			14'h0, 2'b00,
-			14'h0, 2'b00,
-			14'h0, 2'b00,
-			14'h0, 2'b00,
-			14'h0, 2'b00,
-			14'h0, 2'b00
+			14'h087, 2'b11,
+			14'h096, 2'b11,
+			14'h0a5, 2'b11,
+			14'h0b4, 2'b11,
+			14'h0c3, 2'b11,
+			14'h0d2, 2'b11,
+			14'h0e1, 2'b11,
+			14'h0f0, 2'b11
 		};
 		tb_pred_info_by_fetch_2B_SENQ = {
-			8'h0,
-			8'h0,
-			8'h0,
-			8'h0,
-			8'h0,
-			8'h0,
-			8'h0,
-			8'h0
+			8'h87,
+			8'h96,
+			8'ha5,
+			8'hb4,
+			8'hc3,
+			8'hd2,
+			8'he1,
+			8'hf0
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'b00000000;
-		tb_after_PC_SENQ = 32'h0;
-		tb_LH_SENQ = 8'h0;
-		tb_GH_SENQ = 12'h0;
-		tb_ras_index_SENQ = 3'h0;
+		tb_dep_pred_by_fetch_2B_SENQ = 8'b10101010;
+		tb_after_PC_SENQ = 32'h80000010;
+		tb_LH_SENQ = 8'b10101010;
+		tb_GH_SENQ = 12'b101010101010;
+		tb_ras_index_SENQ = 3'b010;
 	    // SENQ feedback
 	    // SDEQ stage
 	    // SDEQ feedback
