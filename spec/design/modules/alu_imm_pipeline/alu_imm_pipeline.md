@@ -153,7 +153,7 @@ output interface
     - indicate that the pipeline is not ready for a new op issue
     - must be 1'b0 when there is a valid op in OC stage which does not have operand A either saved from a previous cycle, forwarded this cycle, or arrived through a reg read ack this cycle OR the OC stage is stalled
     - see [Operand Collection (OC) Stage](#operand-collection-oc-stage)
-    - reset:
+    - reset value:
         - 1'b1
 
 <span style="color:deepskyblue">
@@ -234,14 +234,14 @@ output interface
     - output logic
     - indicate ALU op result should be written back to PRF
     - this coincides with there being a valid op in WB stage as all valid ALU ops write back
-    - reset:
+    - reset value:
         - 1'b0
 - WB_data
     - output logic [31:0]
     - 32-bit ALU op result data to be written back to PRF
     - = R[A] op imm
     - don't care when WB_valid = 1'b0
-    - reset:
+    - reset value:
         - 32'h0
 - WB_PR
     - output logic [6:0]
@@ -249,7 +249,7 @@ output interface
     - indicate which Physical Register [7'h0, 7'h7F] to write back to
     - final passed-through value initially given on issue_dest_PR
     - don't care when WB_valid = 1'b0
-    - reset:
+    - reset value:
         - 7'h0
 - WB_ROB_index
     - output logic [6:0]
@@ -257,7 +257,7 @@ output interface
     - indicate which ROB index [7'h0, 7'h7F] to mark as complete
     - final passed-through value initially given on issue_ROB_index
     - don't care when WB_valid = 1'b0
-    - reset:
+    - reset value:
         - 7'h0
 
 <span style="color:deepskyblue">
