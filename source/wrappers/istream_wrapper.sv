@@ -19,10 +19,10 @@ module istream_wrapper (
 
     // SENQ stage
 	input logic next_valid_SENQ,
-	input logic [FETCH_WIDTH_2B-1:0] next_valid_by_fetch_2B_SENQ,
-	input logic [FETCH_WIDTH_2B-1:0][15:0] next_instr_2B_by_fetch_2B_SENQ,
-	input logic [FETCH_WIDTH_2B-1:0][BTB_PRED_INFO_WIDTH-1:0] next_pred_info_by_fetch_2B_SENQ,
-	input logic [FETCH_WIDTH_2B-1:0] next_dep_pred_by_fetch_2B_SENQ,
+	input logic [7:0] next_valid_by_fetch_2B_SENQ,
+	input logic [7:0][15:0] next_instr_2B_by_fetch_2B_SENQ,
+	input logic [7:0][BTB_PRED_INFO_WIDTH-1:0] next_pred_info_by_fetch_2B_SENQ,
+	input logic [7:0] next_dep_pred_by_fetch_2B_SENQ,
 	input logic [31:0] next_after_PC_SENQ,
 	input logic [LH_LENGTH-1:0] next_LH_SENQ,
 	input logic [GH_LENGTH-1:0] next_GH_SENQ,
@@ -35,7 +35,7 @@ module istream_wrapper (
 	output logic last_valid_SDEQ,
 	output logic [3:0] last_valid_by_way_SDEQ,
 	output logic [3:0] last_uncompressed_by_way_SDEQ,
-	output logic [3:0][1:0][31:0] last_instr_2B_by_way_by_chunk_SDEQ,
+	output logic [3:0][1:0][15:0] last_instr_2B_by_way_by_chunk_SDEQ,
 	output logic [3:0][1:0][BTB_PRED_INFO_WIDTH-1:0] last_pred_info_by_way_by_chunk_SDEQ,
 	output logic [3:0] last_dep_pred_by_way_SDEQ,
 	output logic [3:0][31:0] last_PC_by_way_SDEQ,
@@ -57,10 +57,10 @@ module istream_wrapper (
 
     // SENQ stage
 	logic valid_SENQ;
-	logic [FETCH_WIDTH_2B-1:0] valid_by_fetch_2B_SENQ;
-	logic [FETCH_WIDTH_2B-1:0][15:0] instr_2B_by_fetch_2B_SENQ;
-	logic [FETCH_WIDTH_2B-1:0][BTB_PRED_INFO_WIDTH-1:0] pred_info_by_fetch_2B_SENQ;
-	logic [FETCH_WIDTH_2B-1:0] dep_pred_by_fetch_2B_SENQ;
+	logic [7:0] valid_by_fetch_2B_SENQ;
+	logic [7:0][15:0] instr_2B_by_fetch_2B_SENQ;
+	logic [7:0][BTB_PRED_INFO_WIDTH-1:0] pred_info_by_fetch_2B_SENQ;
+	logic [7:0] dep_pred_by_fetch_2B_SENQ;
 	logic [31:0] after_PC_SENQ;
 	logic [LH_LENGTH-1:0] LH_SENQ;
 	logic [GH_LENGTH-1:0] GH_SENQ;
@@ -73,7 +73,7 @@ module istream_wrapper (
 	logic valid_SDEQ;
 	logic [3:0] valid_by_way_SDEQ;
 	logic [3:0] uncompressed_by_way_SDEQ;
-	logic [3:0][1:0][31:0] instr_2B_by_way_by_chunk_SDEQ;
+	logic [3:0][1:0][15:0] instr_2B_by_way_by_chunk_SDEQ;
 	logic [3:0][1:0][BTB_PRED_INFO_WIDTH-1:0] pred_info_by_way_by_chunk_SDEQ;
 	logic [3:0] dep_pred_by_way_SDEQ;
 	logic [3:0][31:0] PC_by_way_SDEQ;
