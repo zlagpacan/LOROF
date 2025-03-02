@@ -242,13 +242,16 @@ module istream #(
         lower_req_vec_by_way[0] = marker_vec; // starting point
         upper_req_vec_by_way[0] = valid_vec & lower_cold_ack_mask_by_way[0];
 
-        lower_req_vec_by_way[1] = marker_vec & lower_cold_ack_mask_by_way[0];
+        // lower_req_vec_by_way[1] = marker_vec & lower_cold_ack_mask_by_way[0];
+        lower_req_vec_by_way[1] = lower_req_vec_by_way[0] & ~lower_ack_one_hot_by_way[0];
         upper_req_vec_by_way[1] = valid_vec & lower_cold_ack_mask_by_way[1];
 
-        lower_req_vec_by_way[2] = marker_vec & lower_cold_ack_mask_by_way[1];
+        // lower_req_vec_by_way[2] = marker_vec & lower_cold_ack_mask_by_way[1];
+        lower_req_vec_by_way[2] = lower_req_vec_by_way[1] & ~lower_ack_one_hot_by_way[1];
         upper_req_vec_by_way[2] = valid_vec & lower_cold_ack_mask_by_way[2];
 
-        lower_req_vec_by_way[3] = marker_vec & lower_cold_ack_mask_by_way[2];
+        // lower_req_vec_by_way[3] = marker_vec & lower_cold_ack_mask_by_way[2];
+        lower_req_vec_by_way[3] = lower_req_vec_by_way[2] & ~lower_ack_one_hot_by_way[2];
         upper_req_vec_by_way[3] = valid_vec & lower_cold_ack_mask_by_way[3];
 
         for (int way = 0; way < 4; way++) begin
@@ -378,8 +381,8 @@ module istream #(
     assign stream_empty0 = ~set_valid_array[0];
     assign stream_empty1 = ~set_valid_array[1];
 
-    assign deq0_done = ~stream_empty0 & valid_vec[7:0] == ack_vec[7:0];
-    assign deq1_done = ~stream_empty1 & valid_vec[15:8] == ack_vec[15:8];
+    assign deq0_done = ~stream_empty0 & &(~valid_vec[7:0] | ack_vec[7:0]);
+    assign deq1_done = ~stream_empty1 & &(~valid_vec[15:8] | ack_vec[15:8]);
 
     // ----------------------------------------------------------------
     // enQ Helper Logic: 
