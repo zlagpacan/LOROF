@@ -1,7 +1,7 @@
 /*
   Module        : alu_imm_pipeline
   UMV Component : scoreboard
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_IMM_PIPELINE_SCOREBOARD_SV

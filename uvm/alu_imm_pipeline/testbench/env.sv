@@ -1,7 +1,7 @@
 /*
   Module        : alu_imm_pipeline
   UMV Component : environment
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_IMM_PIPELINE_ENV_SV
@@ -21,6 +21,8 @@ import core_types_pkg::*;
 `include "driver.sv"
 `include "monitor.sv"
 `include "interface.sv"
+`include "agent.sv"
+`include "scoreboard.sv"
 
 // --- Environment --- //
 class alu_imm_pipeline_env extends uvm_env;

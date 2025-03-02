@@ -1,7 +1,7 @@
 /*
   Module        : alu_imm_pipeline
   UMV Component : test
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_IMM_PIPELINE_TEST_SV
@@ -18,6 +18,8 @@ import core_types_pkg::*;
 // --- Includes --- //
 `include "sequence_item.sv"
 `include "interface.sv"
+`include "env.sv"
+`include "sequences/reset_seq.sv"
 
 // --- Test --- //
 class alu_imm_pipeline_test extends uvm_test;
@@ -25,6 +27,12 @@ class alu_imm_pipeline_test extends uvm_test;
 
   // --- Test Components --- //
   alu_imm_pipeline_env env;
+
+  // --- Test Sequences --- //
+  reset_sequence         reset_seq;
+  garbage_sequence       garbage_seq;
+
+  parameter CLK_PERIOD = 4;
 
   // --- Constructor --- //
   function new(string name = "alu_imm_pipeline_test", uvm_component parent);
@@ -49,8 +57,32 @@ class alu_imm_pipeline_test extends uvm_test;
 
     phase.raise_objection(this);
 
-      // --- Test Procedure --- //
-      // User fills in 
+      // --- ALU Imm Pipeline Test Procedure --- //
+      /* 
+        Test Case Tag: TODO:
+        Test Case Name : TODO:
+      */
+      repeat (6) begin
+        garbage_seq = garbage_sequence::type_id::create("garbage_seq");
+        garbage_seq.start(env.agnt.seqr);
+        // `uvm_info("ALU_REG_TX", $sformatf("Sequence item content: %s", garbage_seq.sprint()), UVM_MEDIUM)
+      end
+
+      reset_seq = reset_sequence::type_id::create("reset_seq");
+      reset_seq.start(env.agnt.seqr);
+      #(CLK_PERIOD);
+      // `uvm_info("ALU_REG_TX", $sformatf("Sequence item content: %s", reset_seq.sprint()), UVM_MEDIUM)
+
+      repeat (4) begin
+        garbage_seq = garbage_sequence::type_id::create("garbage_seq");
+        garbage_seq.start(env.agnt.seqr);
+        // `uvm_info("ALU_REG_TX", $sformatf("Sequence item content: %s", garbage_seq.sprint()), UVM_MEDIUM)
+      end
+
+      // Prime for next test case
+      reset_seq = reset_sequence::type_id::create("reset_seq");
+      reset_seq.start(env.agnt.seqr);
+      #(CLK_PERIOD);
     
     phase.drop_objection(this);
 
