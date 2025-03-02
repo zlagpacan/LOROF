@@ -18,7 +18,7 @@ import uvm_pkg::*;
 // --- SVA Checks --- //
 module alu_imm_pipeline_sva (
     input logic                                 CLK,
-    input logic                                 nRST,
+    input logic                                 nRST
 );
 
    // --- Test Case Coverage --- //
