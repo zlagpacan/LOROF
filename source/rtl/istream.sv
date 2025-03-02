@@ -99,15 +99,18 @@ module istream #(
 
     logic [3:0]         lower_present_by_way;
     logic [3:0][15:0]   lower_req_vec_by_way;
+    logic [3:0][15:0]   lower_ack_one_hot_by_way;
     logic [3:0][15:0]   lower_cold_ack_mask_by_way;
     logic [3:0][3:0]    lower_ack_index_by_way;
     
     logic [3:0]         upper_present_by_way;
     logic [3:0][15:0]   upper_req_vec_by_way;
+    logic [3:0][15:0]   upper_ack_one_hot_by_way;
     logic [3:0][15:0]   upper_cold_ack_mask_by_way;
     logic [3:0][3:0]    upper_ack_index_by_way;
 
-    logic [15:0] ack_vec;
+    logic [15:0]    marker_vec;
+    logic [15:0]    ack_vec;
 
     logic deq0_done;
     logic deq1_done;
@@ -136,9 +139,19 @@ module istream #(
         end
     end
 
+    always_comb begin
+
+        // marker vec
+        marker_vec[0] = valid_vec[0];
+        for (int i = 1; i <= 14; i++) begin
+            marker_vec[i] = valid_vec[i] & ~(marker_vec[i-1] & uncompressed_vec[i-1]);
+        end
+        marker_vec[15] = valid_vec[15] & ~uncompressed_vec[15] & ~(marker_vec[14] & uncompressed_vec[14]);
+    end
+
     genvar way;
     generate
-        for (way = 0 ; way < 4; way++) begin
+        for (way = 0 ; way < 4; way++) begin : lower_pq_upper_pq_by_way
 
             // lower by way
             pq_lsb #(
@@ -146,9 +159,9 @@ module istream #(
                 .USE_ONE_HOT(1),
                 .USE_COLD(1),
                 .USE_INDEX(1)
-            ) WAY0_LOWER (
+            ) WAY_LOWER (
                 .req_vec(lower_req_vec_by_way[way]),
-                .ack_one_hot(),
+                .ack_one_hot(lower_ack_one_hot_by_way[way]),
                 .ack_mask(),
                 .cold_ack_mask(lower_cold_ack_mask_by_way[way]),
                 .ack_index(lower_ack_index_by_way[way])
@@ -160,9 +173,9 @@ module istream #(
                 .USE_ONE_HOT(1),
                 .USE_COLD(1),
                 .USE_INDEX(1)
-            ) WAY0_UPPER (
+            ) WAY_UPPER (
                 .req_vec(upper_req_vec_by_way[way]),
-                .ack_one_hot(),
+                .ack_one_hot(upper_ack_one_hot_by_way[way]),
                 .ack_mask(),
                 .cold_ack_mask(upper_cold_ack_mask_by_way[way]),
                 .ack_index(upper_ack_index_by_way[way])
@@ -177,12 +190,21 @@ module istream #(
         ack_vec = 16'h0;
 
         // way 0:
-        lower_req_vec_by_way[0] = valid_vec; // starting point
+        lower_req_vec_by_way[0] = marker_vec; // starting point
+        upper_req_vec_by_way[0] = valid_vec & lower_cold_ack_mask_by_way[0];
 
-        for (int way = 0; way < 4; way++) begin 
+        lower_req_vec_by_way[1] = marker_vec & lower_cold_ack_mask_by_way[0];
+        upper_req_vec_by_way[1] = valid_vec & lower_cold_ack_mask_by_way[1];
+
+        lower_req_vec_by_way[2] = marker_vec & lower_cold_ack_mask_by_way[1];
+        upper_req_vec_by_way[2] = valid_vec & lower_cold_ack_mask_by_way[2];
+
+        lower_req_vec_by_way[3] = marker_vec & lower_cold_ack_mask_by_way[2];
+        upper_req_vec_by_way[3] = valid_vec & lower_cold_ack_mask_by_way[3];
+
+        for (int way = 0; way < 4; way++) begin
 
             lower_present_by_way[way] = |lower_req_vec_by_way[way];
-            upper_req_vec_by_way[way] = lower_cold_ack_mask_by_way[way] & valid_vec;
             upper_present_by_way[way] = |upper_req_vec_by_way[way];
 
             // check for lower uncompressed
@@ -201,13 +223,10 @@ module istream #(
                     valid_by_way_SDEQ[way] = 1'b1;
 
                     // ack lower and upper
-                    ack_vec[lower_ack_index_by_way[way]] = 1'b1;
-                    ack_vec[upper_ack_index_by_way[way]] = 1'b1;
-
-                    // next way follows unacked upper way
-                    if (way < 3) begin
-                        lower_req_vec_by_way[way + 1] = upper_cold_ack_mask_by_way[way] & valid_vec;
-                    end
+                    // ack_vec[lower_ack_index_by_way[way]] = 1'b1;
+                    // ack_vec[upper_ack_index_by_way[way]] = 1'b1;
+                    ack_vec |= lower_ack_one_hot_by_way[way];
+                    ack_vec |= upper_ack_one_hot_by_way[way];
                 end
 
                 // otherwise, no upper, this way failed
@@ -215,12 +234,6 @@ module istream #(
 
                     // mark way invalid
                     valid_by_way_SDEQ[way] = 1'b0;
-                    
-                    // way 1 zero'd
-                        // unacked upper way is guaranteed to be 0
-                    if (way < 3) begin
-                        lower_req_vec_by_way[way + 1] = upper_cold_ack_mask_by_way[way] & valid_vec;
-                    end
                 end
             end
 
@@ -237,12 +250,8 @@ module istream #(
                 valid_by_way_SDEQ[way] = 1'b1;
 
                 // ack lower
-                ack_vec[lower_ack_index_by_way[way]] = 1'b1;
-
-                // next way follows unacked lower way
-                if (way < 3) begin
-                    lower_req_vec_by_way[way + 1] = lower_cold_ack_mask_by_way[way] & valid_vec;
-                end
+                // ack_vec[lower_ack_index_by_way[way]] = 1'b1;
+                ack_vec |= lower_ack_one_hot_by_way[way];
             end
 
             // otherwise, no lower, way fail
@@ -250,12 +259,6 @@ module istream #(
 
                 // mark way invalid
                 valid_by_way_SDEQ[way] = 1'b0;
-
-                // way 1 zero'd
-                    // unacked upper way is guaranteed to be 0
-                if (way < 3) begin
-                    lower_req_vec_by_way[way + 1] = lower_cold_ack_mask_by_way[way] & valid_vec;
-                end
             end
         end
     end
