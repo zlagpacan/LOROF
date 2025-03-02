@@ -1,7 +1,7 @@
 /*
   Module        : alu_reg_pipeline
   UMV Component : monitor
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_REG_PIPELINE_MONITOR_SV

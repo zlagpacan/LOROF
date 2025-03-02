@@ -1,7 +1,7 @@
 /*
   Module        : alu_imm_pipeline
   UMV Component : driver
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_IMM_PIPELINE_DRIVER_SV
@@ -68,6 +68,7 @@ class alu_imm_pipeline_driver extends uvm_driver#(alu_imm_pipeline_sequence_item
     vif.issue_op                      <= item.issue_op;
     vif.issue_imm12                   <= item.issue_imm12;
     vif.issue_A_forward               <= item.issue_A_forward;
+    vif.issue_A_is_zero               <= item.issue_A_is_zero;
     vif.issue_A_bank                  <= item.issue_A_bank;
     vif.issue_dest_PR                 <= item.issue_dest_PR;
     vif.issue_ROB_index               <= item.issue_ROB_index;

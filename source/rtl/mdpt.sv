@@ -157,7 +157,7 @@ module mdpt (
         .port1_rindex(dep_update0_hashed_index),
         .port1_rdata(dep_update1_array_old_dep_pred_2bc_by_instr),
 
-        .wen_byte(dep_update1_valid),
+        .wen_byte({2{dep_update1_valid}}),
         .windex(dep_update1_hashed_index),
         .wdata(dep_update1_array_new_dep_pred_2bc_by_instr)
     );

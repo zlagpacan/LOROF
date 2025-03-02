@@ -1,7 +1,7 @@
 /*
   Module        : alu_imm_pipeline
   UMV Component : interface
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_IMM_PIPELINE_INTERFACE_SV
@@ -11,8 +11,6 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
     
-// --- Includes --- //
-
 // --- Interface --- //
 interface alu_imm_pipeline_if (input logic CLK);
 
@@ -24,6 +22,7 @@ interface alu_imm_pipeline_if (input logic CLK);
   logic [3:0]                           issue_op;
   logic [11:0]                          issue_imm12;
   logic                                 issue_A_forward;
+  logic                                 issue_A_is_zero;
   logic [LOG_PRF_BANK_COUNT-1:0]        issue_A_bank;
   logic [LOG_PR_COUNT-1:0]              issue_dest_PR;
   logic [LOG_ROB_ENTRIES-1:0]           issue_ROB_index;

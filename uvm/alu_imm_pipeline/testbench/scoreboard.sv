@@ -1,7 +1,7 @@
 /*
   Module        : alu_imm_pipeline
   UMV Component : scoreboard
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_IMM_PIPELINE_SCOREBOARD_SV
@@ -24,51 +24,71 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
   `uvm_component_utils(alu_imm_pipeline_scoreboard)
 
   // --- Scoreboard Components --- //
-  uvm_analysis_imp #(alu_imm_pipeline_sequence_item, alu_imm_pipeline_scoreboard) scoreboard_port;
-  alu_imm_pipeline_sequence_item transactions[$];
+  uvm_analysis_export#(alu_imm_pipeline_sequence_item) predicted_export;
+  uvm_analysis_export#(alu_imm_pipeline_sequence_item) actual_export;
+  uvm_tlm_analysis_fifo#(alu_imm_pipeline_sequence_item) predicted_fifo;
+  uvm_tlm_analysis_fifo#(alu_imm_pipeline_sequence_item) actual_fifo;
+  int m_matches, m_mismatches, num_transactions;
 
   // --- Constructor --- //
   function new(string name = "alu_imm_pipeline_scoreboard", uvm_component parent);
     super.new(name, parent);
     `uvm_info("SCB_CLASS", "Inside Constructor", UVM_HIGH)
+
+    m_matches = 0;
+    m_mismatches = 0;
+    num_transactions = 0;
   endfunction : new
 
   // --- Build Phase --- //
   function void build_phase(uvm_phase phase);
-    super.build_phase(phase);
-    `uvm_info("SCB_CLASS", "Build Phase", UVM_HIGH)
-   
-    // --- Scoreboard Port --- //
-    scoreboard_port = new("scoreboard_port", this);
-    
+    // --- TLM FIFO Ports --- //
+    predicted_fifo = new("predicted_fifo", this);
+    actual_fifo = new("actual_fifo", this);
+
+    // --- Scoreboard Exports --- //
+    predicted_export = new("predicted_export", this);
+    actual_export = new("actual_export", this);
   endfunction : build_phase
 
-  // --- Write Transaction --- //
-  function void write(alu_imm_pipeline_sequence_item item);
-    transactions.push_back(item);
-  endfunction : write 
+  // --- Connect Phase --- //
+  function void connect_phase(uvm_phase phase);
+    // --- Connecting Fifos to Exports --- //
+    predicted_export.connect(predicted_fifo.analysis_export);
+    actual_export.connect(actual_fifo.analysis_export);
+  endfunction
 
   // --- Run Phase --- //
   task run_phase (uvm_phase phase);
     super.run_phase(phase);
     `uvm_info("SCB_CLASS", "Run Phase", UVM_HIGH)
    
-    // --- Transaction Stack --- //
     forever begin
-      alu_imm_pipeline_sequence_item curr_tx;
-      wait((transactions.size() != 0));
-      curr_tx = transactions.pop_front();
-      compare(curr_tx);
+      alu_imm_pipeline_sequence_item predicted_tx;
+      alu_imm_pipeline_sequence_item actual_tx;
+      predicted_fifo.get(predicted_tx);
+      actual_fifo.get(actual_tx);
+      num_transactions++;
+      if (predicted_tx.compare(actual_tx)) begin
+            m_matches++;
+            uvm_report_info("SB", "Data match");
+      end 
+      else begin
+            m_mismatches++;
+            `uvm_info("SCBD", $sformatf("Test Case: : FAILED"), UVM_LOW)
+            // `uvm_report_info("SB", "Error: Data mismatch");
+            // predicted_tx.print_transaction("predicted_tx");
+            // actual_tx.print_transaction("actual_tx");
+      end
     end
     
   endtask : run_phase
 
-  // --- Compare --- //
-  task compare(alu_imm_pipeline_sequence_item curr_tx);
-
-  // User fills in 
-
-  endtask : compare
+  // function void report_phase(uvm_phase phase);
+  //   `uvm_report_info("Comparator", $sformatf("Matches:    %0d", m_matches));
+  //   `uvm_report_info("Comparator", $sformatf("Mismatches: %0d", m_mismatches));
+  //   `uvm_report_info("Num trans", $sformatf("Number of transactions: %0d", num_transactions));
+  // endfunction
 
 endclass : alu_imm_pipeline_scoreboard
 

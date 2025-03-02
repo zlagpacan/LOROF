@@ -1,7 +1,7 @@
 /*
   Module        : alu_imm_pipeline
   UMV Component : monitor
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_IMM_PIPELINE_MONITOR_SV
@@ -28,6 +28,7 @@ class alu_imm_pipeline_monitor extends uvm_monitor;
   alu_imm_pipeline_sequence_item item;
   
   uvm_analysis_port #(alu_imm_pipeline_sequence_item) monitor_port;
+  uvm_analysis_port #(alu_imm_pipeline_sequence_item) predictor_port;
   
   // --- Constructor --- //
   function new(string name = "alu_imm_pipeline_monitor", uvm_component parent);
@@ -42,6 +43,7 @@ class alu_imm_pipeline_monitor extends uvm_monitor;
     
     // --- Build Monitor Port --- //
     monitor_port = new("monitor_port", this);
+    predictor_port = new("predictor_port",this);
     
     // --- Virtual Interface Failure --- //
     if(!(uvm_config_db #(virtual alu_imm_pipeline_if)::get(this, "*", "vif", vif))) begin
@@ -66,8 +68,6 @@ class alu_imm_pipeline_monitor extends uvm_monitor;
     forever begin
       item = alu_imm_pipeline_sequence_item::type_id::create("item");
       
-      wait(vif.nRST);
-
       // --- Input Sample --- //
       item.nRST                          = vif.nRST;
 
@@ -76,6 +76,7 @@ class alu_imm_pipeline_monitor extends uvm_monitor;
       item.issue_op                      = vif.issue_op;
       item.issue_imm12                   = vif.issue_imm12;
       item.issue_A_forward               = vif.issue_A_forward;
+      item.issue_A_is_zero               = vif.issue_A_is_zero;
       item.issue_A_bank                  = vif.issue_A_bank;
       item.issue_dest_PR                 = vif.issue_dest_PR;
       item.issue_ROB_index               = vif.issue_ROB_index;
@@ -94,7 +95,6 @@ class alu_imm_pipeline_monitor extends uvm_monitor;
       item.WB_ROB_index                  = vif.WB_ROB_index;
       
       // --- Send to Scoreboard --- //
-      `uvm_info(get_type_name(), $sformatf("Monitor found packet %s", item.convert2str()), UVM_LOW)
       monitor_port.write(item);
       
     end

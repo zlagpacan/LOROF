@@ -20,7 +20,6 @@ module btb (
     input logic [ASID_WIDTH-1:0]    ASID_REQ,
 
     // RESP stage
-    output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0]                           hit_by_instr_RESP,
     output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_PRED_INFO_WIDTH-1:0]  pred_info_by_instr_RESP,
     output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0]                           pred_lru_by_instr_RESP,
     output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TARGET_WIDTH-1:0]     target_by_instr_RESP,
@@ -117,9 +116,6 @@ module btb (
             // check way 0 and way 1 for vtm
             vtm_by_instr_by_way_RESP[i][0] = replicated_tags_by_instr_RESP[i] == array_pred_info_tag_target_by_instr_by_way_RESP[i][0].tag;
             vtm_by_instr_by_way_RESP[i][1] = replicated_tags_by_instr_RESP[i] == array_pred_info_tag_target_by_instr_by_way_RESP[i][1].tag;
-        
-            // hit if either way vtm
-            hit_by_instr_RESP[i] = vtm_by_instr_by_way_RESP[i][0] | vtm_by_instr_by_way_RESP[i][1];
 
             // prioritize way 0
             if (vtm_by_instr_by_way_RESP[i][0]) begin
@@ -151,8 +147,10 @@ module btb (
             else begin
 
                 // pred info
-                    // default to way 0
-                pred_info_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][0].pred_info;
+                    // 2 msb's cleared since inv
+                    // lower bits default to way 0
+                pred_info_by_instr_RESP[i][7:6] = 2'b00;
+                pred_info_by_instr_RESP[i][5:0] = array_pred_info_tag_target_by_instr_by_way_RESP[i][0].pred_info[5:0];
 
                 // target
                     // default to way 0

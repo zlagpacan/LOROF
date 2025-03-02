@@ -3,9 +3,15 @@
 
 package core_types_pkg;
 
-    // general
+    // ----------------------------------------------------------------
+    // General:
+
     parameter XLEN = 32;
     parameter ASID_WIDTH = 9;
+    parameter INIT_PC = 32'h80000000;
+
+    // ----------------------------------------------------------------
+    // Central: 
 
     // PRF
     parameter PR_COUNT = 128;
@@ -19,15 +25,16 @@ package core_types_pkg;
     parameter ROB_ENTRIES = 128;
     parameter LOG_ROB_ENTRIES = $clog2(ROB_ENTRIES);
 
+    // ----------------------------------------------------------------
     // IQ's:
     
-    // Shared IQ's
     parameter ALU_REG_MDU_IQ_ENTRIES = 8;
     parameter ALU_IMM_LDU_IQ_ENTRIES = 8;
     parameter STAMOU_IQ_ENTRIES = 16;
     parameter BRU_IQ_ENTRIES = 4;
     parameter SYS_IQ_ENTRIES = 4;
 
+    // ----------------------------------------------------------------
     // Fetch Predictors:
 
     parameter FETCH_WIDTH_B = 16;
@@ -84,7 +91,7 @@ package core_types_pkg;
 
     // RAS:
     parameter RAS_ENTRIES = 8;
-    parameter LOG_RAS_ENTRIES = $clog2(RAS_ENTRIES);
+    parameter RAS_INDEX_WIDTH = $clog2(RAS_ENTRIES);
     parameter RAS_TARGET_WIDTH = 32 - 1;
 
     // UPCT:
@@ -98,6 +105,14 @@ package core_types_pkg;
     parameter LOG_MDPT_ENTRIES_PER_BLOCK = $clog2(MDPT_ENTRIES_PER_BLOCK);
     parameter MDPT_SETS = MDPT_ENTRIES / MDPT_ENTRIES_PER_BLOCK;
     parameter MDPT_INDEX_WIDTH = $clog2(MDPT_SETS);
+
+    // ----------------------------------------------------------------
+    // Frontend:
+
+    // ISTREAM:
+    parameter ISTREAM_SETS = 8;
+    parameter ISTREAM_ENTRIES_PER_BLOCK = FETCH_WIDTH_2B;
+    parameter ISTREAM_INDEX_WIDTH = $clog2(ISTREAM_SETS);
 
 endpackage
 
