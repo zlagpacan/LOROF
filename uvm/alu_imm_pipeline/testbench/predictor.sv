@@ -29,11 +29,11 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
         pred_ap = new("pred_ap", this);
     endfunction
 
-    function void write(alu_imm_pipeline_sequence_item tx);
+    function void write(alu_imm_pipeline_sequence_item t);
         expected_tx = alu_imm_pipeline_sequence_item::type_id::create("expected_tx");
-        expected_tx.copy(tx);
+        expected_tx.copy(t);
         
-        if(tx.nRST == 1'b0) begin
+        if(t.nRST == 1'b0) begin
             // FIXME: deliberate predictor bug
             expected_tx.issue_ready  = '0;
             expected_tx.WB_valid     = '0;
