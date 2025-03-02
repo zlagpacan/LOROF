@@ -75,7 +75,7 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
       end 
       else begin
             m_mismatches++;
-            `uvm_report_info("SB", "Error: Data mismatch");
+            // `uvm_report_info("SB", "Error: Data mismatch");
             predicted_tx.print_transaction("predicted_tx");
             actual_tx.print_transaction("actual_tx");
       end
@@ -83,11 +83,11 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
     
   endtask : run_phase
 
-  function void report_phase(uvm_phase phase);
-    `uvm_report_info("Comparator", $sformatf("Matches:    %0d", m_matches));
-    `uvm_report_info("Comparator", $sformatf("Mismatches: %0d", m_mismatches));
-    `uvm_report_info("Num trans", $sformatf("Number of transactions: %0d", num_transactions));
-  endfunction
+  // function void report_phase(uvm_phase phase);
+  //   `uvm_report_info("Comparator", $sformatf("Matches:    %0d", m_matches));
+  //   `uvm_report_info("Comparator", $sformatf("Mismatches: %0d", m_mismatches));
+  //   `uvm_report_info("Num trans", $sformatf("Number of transactions: %0d", num_transactions));
+  // endfunction
 
 endclass : alu_imm_pipeline_scoreboard
 

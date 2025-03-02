@@ -23,6 +23,7 @@ import core_types_pkg::*;
 `include "interface.sv"
 `include "agent.sv"
 `include "scoreboard.sv"
+`include "predictor.sv"
 
 // --- Environment --- //
 class alu_imm_pipeline_env extends uvm_env;
