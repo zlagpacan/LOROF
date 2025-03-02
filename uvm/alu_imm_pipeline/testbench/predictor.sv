@@ -34,8 +34,7 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
         expected_tx.copy(t);
         
         if(t.nRST == 1'b0) begin
-            // FIXME: deliberate predictor bug
-            expected_tx.issue_ready  = '0;
+            expected_tx.issue_ready  = '1;
             expected_tx.WB_valid     = '0;
             expected_tx.WB_data      = '0;
             expected_tx.WB_PR        = '0;
