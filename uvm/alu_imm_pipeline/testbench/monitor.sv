@@ -85,6 +85,8 @@ class alu_imm_pipeline_monitor extends uvm_monitor;
       item.reg_read_data_by_bank_by_port = vif.reg_read_data_by_bank_by_port;
       item.forward_data_by_bank          = vif.forward_data_by_bank;
       item.WB_ready                      = vif.WB_ready;
+
+      predictor_port.write(item);
       
       // --- Output Sample --- //
       @(posedge vif.CLK);
