@@ -60,7 +60,7 @@ module bru_pipeline (
     output logic [LOG_ROB_ENTRIES-1:0]      branch_notif_ROB_index,
     output logic                            branch_notif_is_mispredict,
     output logic                            branch_notif_is_taken,
-    output logic                            branch_notif_is_out_of_range,
+    output logic                            branch_notif_use_upct,
     output logic [BTB_PRED_INFO_WIDTH-1:0]  branch_notif_updated_pred_info,
     output logic                            branch_notif_pred_lru,
     output logic [31:0]                     branch_notif_start_PC,
@@ -178,6 +178,10 @@ module bru_pipeline (
     logic [LOG_PR_COUNT-1:0]            dest_PR_EX2;
     logic [LOG_ROB_ENTRIES-1:0]         ROB_index_EX2;
 
+    logic                       start_neq_target_upper_PC_EX2;
+    logic [UPPER_PC_WIDTH-1:0]  delta_start_target_upper_PC_EX2;
+    logic                       small_delta_upper_PC_EX2;
+
     logic                           next_WB_valid;
     logic [31:0]                    next_WB_data;
     logic [LOG_PR_COUNT-1:0]        next_WB_PR;
@@ -187,7 +191,7 @@ module bru_pipeline (
     logic [LOG_ROB_ENTRIES-1:0]         next_branch_notif_ROB_index;
     logic                               next_branch_notif_is_mispredict;
     logic                               next_branch_notif_is_taken;
-    logic                               next_branch_notif_is_out_of_range;
+    logic                               next_branch_notif_use_upct;
     logic [BTB_PRED_INFO_WIDTH-1:0]     next_branch_notif_updated_pred_info;
     logic                               next_branch_notif_pred_lru;
     logic [31:0]                        next_branch_notif_start_PC;
@@ -702,10 +706,21 @@ module bru_pipeline (
     assign next_branch_notif_ROB_index = ROB_index_EX2;
     assign next_branch_notif_is_mispredict = target_PC_EX2 != pred_PC_EX2;
     assign next_branch_notif_is_taken = is_taken_EX2;
-    assign next_branch_notif_is_out_of_range = target_PC_EX2[31:32-UPPER_PC_WIDTH] != start_PC_EX2[31:32-UPPER_PC_WIDTH];
     assign next_branch_notif_pred_lru = pred_lru_EX2;
     assign next_branch_notif_start_PC = start_PC_EX2;
     assign next_branch_notif_target_PC = target_PC_EX2;
+
+    // PC start to target range
+    assign start_neq_target_upper_PC_EX2 = target_PC_EX2[31:32-UPPER_PC_WIDTH] != start_PC_EX2[31:32-UPPER_PC_WIDTH];
+    assign delta_start_target_upper_PC_EX2 = target_PC_EX2[31:32-UPPER_PC_WIDTH] - start_PC_EX2[31:32-UPPER_PC_WIDTH];
+
+    assign small_delta_upper_PC_EX2 = 
+        delta_start_target_upper_PC_EX2[UPPER_PC_WIDTH-1:2] == '0 
+        | 
+        delta_start_target_upper_PC_EX2[UPPER_PC_WIDTH-1:2] == '1;
+        // essentially, check can get delta with sign extension of 3-bit number
+    
+    assign next_branch_notif_use_upct = ~small_delta_upper_PC_EX2;
 
     // leave next_branch_notif_updated_pred_info to bru_pred_info_updater module
         // this way can easily change this logic and independently verify it
@@ -720,7 +735,9 @@ module bru_pipeline (
         .is_ret_ra(is_ret_ra_EX2),
         .is_taken(is_taken_EX2),
         .is_mispredict(next_branch_notif_is_mispredict),
-        .is_out_of_range(next_branch_notif_is_out_of_range),
+        .start_neq_target_upper_PC(start_neq_target_upper_PC_EX2),
+        .delta_start_target_upper_PC(delta_start_target_upper_PC_EX2[2:0]),
+        .large_delta_upper_PC(next_branch_notif_use_upct),
         // outputs
         .updated_pred_info(next_branch_notif_updated_pred_info)
     );
@@ -804,7 +821,7 @@ module bru_pipeline (
             branch_notif_ROB_index <= 7'h0;
             branch_notif_is_mispredict <= 1'b0;
             branch_notif_is_taken <= 1'b1;
-            branch_notif_is_out_of_range <= 1'b0;
+            branch_notif_use_upct <= 1'b0;
             branch_notif_updated_pred_info <= 8'b01000000;
             branch_notif_pred_lru <= 1'b0;
             branch_notif_start_PC <= 32'h2;
@@ -820,7 +837,7 @@ module bru_pipeline (
             branch_notif_ROB_index <= branch_notif_ROB_index;
             branch_notif_is_mispredict <= branch_notif_is_mispredict;
             branch_notif_is_taken <= branch_notif_is_taken;
-            branch_notif_is_out_of_range <= branch_notif_is_out_of_range;
+            branch_notif_use_upct <= branch_notif_use_upct;
             branch_notif_updated_pred_info <= branch_notif_updated_pred_info;
             branch_notif_pred_lru <= branch_notif_pred_lru;
             branch_notif_start_PC <= branch_notif_start_PC;
@@ -836,7 +853,7 @@ module bru_pipeline (
             branch_notif_ROB_index <= next_branch_notif_ROB_index;
             branch_notif_is_mispredict <= next_branch_notif_is_mispredict;
             branch_notif_is_taken <= next_branch_notif_is_taken;
-            branch_notif_is_out_of_range <= next_branch_notif_is_out_of_range;
+            branch_notif_use_upct <= next_branch_notif_use_upct;
             branch_notif_updated_pred_info <= next_branch_notif_updated_pred_info;
             branch_notif_pred_lru <= next_branch_notif_pred_lru;
             branch_notif_start_PC <= next_branch_notif_start_PC;

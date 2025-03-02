@@ -59,11 +59,17 @@ class alu_reg_mdu_iq_test extends uvm_test;
       // --- Test Procedure --- //
 
       // TEST 1 RESET
-      repeat(1) begin
+    // TODO some X's in waves is that normal
+    `uvm_info("ALU_md_IQ reset", "", UVM_MEDIUM)
+    repeat(20) begin
+      repeat(5) begin
         garb_seq.start(env.agnt.seqr);
       end
-      
       reset_seq.start(env.agnt.seqr);
+    end
+      
+
+      #10ns;
       // User fills in 
     
     phase.drop_objection(this);

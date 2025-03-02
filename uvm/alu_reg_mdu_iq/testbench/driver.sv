@@ -49,11 +49,12 @@ class alu_reg_mdu_iq_driver extends uvm_driver#(alu_reg_mdu_iq_sequence_item);
   task run_phase (uvm_phase phase);
     super.run_phase(phase);
     `uvm_info("DRIVER_CLASS", "Inside Run Phase", UVM_HIGH)
-    
     // --- Sequence Item Queue --- //
     forever begin
       item = alu_reg_mdu_iq_sequence_item::type_id::create("item"); 
       seq_item_port.get_next_item(item);
+      // $display("DRIVER nRST == %d, at time %t",item.nRST,$time);
+      // $display("DRIVER dispatch_op_by_way[0] == %d, at time %t",item.dispatch_op_by_way[0],$time);
       drive(item);
       seq_item_port.item_done();
     end
@@ -61,23 +62,22 @@ class alu_reg_mdu_iq_driver extends uvm_driver#(alu_reg_mdu_iq_sequence_item);
   
   // --- Drive Virtual Interface --- //
   task drive(alu_reg_mdu_iq_sequence_item item);
-
     @(posedge vif.CLK);
-    vif.nRST                          <= item.nRST;
-    vif.dispatch_attempt_by_way       <= item.dispatch_attempt_by_way;
-    vif.dispatch_valid_alu_reg_by_way <= item.dispatch_valid_alu_reg_by_way;
-    vif.dispatch_valid_mdu_by_way     <= item.dispatch_valid_mdu_by_way;
-    vif.dispatch_op_by_way            <= item.dispatch_op_by_way;
-    vif.dispatch_A_PR_by_way          <= item.dispatch_A_PR_by_way;
-    vif.dispatch_A_ready_by_way       <= item.dispatch_A_ready_by_way;
-    vif.dispatch_B_PR_by_way          <= item.dispatch_B_PR_by_way;
-    vif.dispatch_B_ready_by_way       <= item.dispatch_B_ready_by_way;
-    vif.dispatch_dest_PR_by_way       <= item.dispatch_dest_PR_by_way;
-    vif.dispatch_ROB_index_by_way     <= item.dispatch_ROB_index_by_way;
-    vif.alu_reg_pipeline_ready        <= item.alu_reg_pipeline_ready;
-    vif.mdu_pipeline_ready            <= item.mdu_pipeline_ready;
-    vif.WB_bus_valid_by_bank          <= item.WB_bus_valid_by_bank;
-    vif.WB_bus_upper_PR_by_bank       <= item.WB_bus_upper_PR_by_bank;
+    vif.nRST                          = item.nRST;
+    vif.dispatch_attempt_by_way       = item.dispatch_attempt_by_way;
+    vif.dispatch_valid_alu_reg_by_way = item.dispatch_valid_alu_reg_by_way;
+    vif.dispatch_valid_mdu_by_way     = item.dispatch_valid_mdu_by_way;
+    vif.dispatch_op_by_way            = item.dispatch_op_by_way;
+    vif.dispatch_A_PR_by_way          = item.dispatch_A_PR_by_way;
+    vif.dispatch_A_ready_by_way       = item.dispatch_A_ready_by_way;
+    vif.dispatch_B_PR_by_way          = item.dispatch_B_PR_by_way;
+    vif.dispatch_B_ready_by_way       = item.dispatch_B_ready_by_way;
+    vif.dispatch_dest_PR_by_way       = item.dispatch_dest_PR_by_way;
+    vif.dispatch_ROB_index_by_way     = item.dispatch_ROB_index_by_way;
+    vif.alu_reg_pipeline_ready        = item.alu_reg_pipeline_ready;
+    vif.mdu_pipeline_ready            = item.mdu_pipeline_ready;
+    vif.WB_bus_valid_by_bank          = item.WB_bus_valid_by_bank;
+    vif.WB_bus_upper_PR_by_bank       = item.WB_bus_upper_PR_by_bank;
     
   endtask : drive
   

@@ -20,6 +20,7 @@ import core_types_pkg::*;
 `include "sequencer.sv"
 `include "driver.sv"
 `include "monitor.sv"
+`include "predictor.sv"
 `include "interface.sv"
 
 // --- Environment --- //
@@ -29,6 +30,7 @@ class alu_reg_mdu_iq_env extends uvm_env;
   // --- Env Components --- //
   alu_reg_mdu_iq_agent agnt;
   alu_reg_mdu_iq_scoreboard scb;
+  alu_reg_mdu_iq_predictor pred;
 
   // --- Constructor --- //
   function new(string name = "alu_reg_mdu_iq_env", uvm_component parent);
@@ -44,6 +46,7 @@ class alu_reg_mdu_iq_env extends uvm_env;
     // --- Build Agent + Scoreboard --- //
     agnt = alu_reg_mdu_iq_agent::type_id::create("agnt", this);
     scb  = alu_reg_mdu_iq_scoreboard::type_id::create("scb", this);
+    pred = alu_reg_mdu_iq_predictor::type_id::create("pred",this);
     
   endfunction : build_phase
   
@@ -53,7 +56,13 @@ class alu_reg_mdu_iq_env extends uvm_env;
     `uvm_info("ENV_CLASS", "Connect Phase", UVM_HIGH)
     
     // --- Monitor -> Scoreboard --- //
-    agnt.mon.monitor_port.connect(scb.scoreboard_port);
+    agnt.mon.monitor_port.connect(scb.actual_export);
+
+    // --- Monitor -> Predictor --- //
+    agnt.mon.predictor_port.connect(pred.analysis_export);
+
+    // --- Predictor -> Scoreboard --- //
+    pred.pred_ap.connect(scb.predicted_export);
     
   endfunction : connect_phase
   

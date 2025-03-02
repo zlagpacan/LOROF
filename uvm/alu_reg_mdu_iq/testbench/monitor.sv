@@ -28,6 +28,7 @@ class alu_reg_mdu_iq_monitor extends uvm_monitor;
   alu_reg_mdu_iq_sequence_item item;
   
   uvm_analysis_port #(alu_reg_mdu_iq_sequence_item) monitor_port;
+  uvm_analysis_port #(alu_reg_mdu_iq_sequence_item) predictor_port;
   
   // --- Constructor --- //
   function new(string name = "alu_reg_mdu_iq_monitor", uvm_component parent);
@@ -42,6 +43,8 @@ class alu_reg_mdu_iq_monitor extends uvm_monitor;
     
     // --- Build Monitor Port --- //
     monitor_port = new("monitor_port", this);
+    // --- Build Monitor Port --- //
+    predictor_port = new("predictor_port",this);
     
     // --- Virtual Interface Failure --- //
     if(!(uvm_config_db #(virtual alu_reg_mdu_iq_if)::get(this, "*", "vif", vif))) begin
@@ -62,6 +65,7 @@ class alu_reg_mdu_iq_monitor extends uvm_monitor;
     super.run_phase(phase);
     `uvm_info("MONITOR_CLASS", "Run Phase", UVM_HIGH)
     
+    wait(vif.nRST != 0 || vif.nRST != 1)
     // --- Capture DUT Interface --- //
     forever begin
       item = alu_reg_mdu_iq_sequence_item::type_id::create("item");
@@ -71,7 +75,7 @@ class alu_reg_mdu_iq_monitor extends uvm_monitor;
       // --- Input Sample --- //
       item.nRST                          = vif.nRST;
 
-      @(posedge vif.CLK);
+      // @(posedge vif.CLK);
       item.dispatch_attempt_by_way       = vif.dispatch_attempt_by_way;
       item.dispatch_valid_alu_reg_by_way = vif.dispatch_valid_alu_reg_by_way;
       item.dispatch_valid_mdu_by_way     = vif.dispatch_valid_mdu_by_way;
@@ -86,6 +90,14 @@ class alu_reg_mdu_iq_monitor extends uvm_monitor;
       item.mdu_pipeline_ready            = vif.mdu_pipeline_ready;
       item.WB_bus_valid_by_bank          = vif.WB_bus_valid_by_bank;
       item.WB_bus_upper_PR_by_bank       = vif.WB_bus_upper_PR_by_bank;
+
+      // $display("MONITOR TO PREDICTO dispatch_op_by_way[0] == %d, at time %t",item.dispatch_op_by_way[0],$time);
+
+      // Write Item to Predictor // 
+      if(item.nRST == 0) begin 
+        predictor_port.write(item);
+        // $display("MONITOR TO PREDICTO nRST == %d, at time %t",item.nRST,$time);
+      end
       
       // --- Output Sample --- //
       @(posedge vif.CLK);
@@ -116,19 +128,15 @@ class alu_reg_mdu_iq_monitor extends uvm_monitor;
       item.PRF_mdu_req_B_PR              = vif.PRF_mdu_req_B_PR;
       
       // --- Send to Scoreboard --- //
-      `uvm_info(get_type_name(), $sformatf("Monitor found packet %s", item.convert2str()), UVM_LOW)
-      monitor_port.write(item);
+      // $display("MONITOR TO SCORE dispatch_op_by_way[0] == %d, at time %t",item.dispatch_op_by_way[0],$time);
+      if(item.nRST == 0) begin
+        // $display("MONITOR TO SCORE nRST == %d, at time %t",item.nRST,$time);
+        monitor_port.write(item);
+      end
       
     end
         
   endtask : run_phase
-
-
-   function void report_phase(uvm_phase phase);
-        uvm_report_info("Comparator", $sformatf("Matches:    %0d", m_matches));
-        uvm_report_info("Comparator", $sformatf("Mismatches: %0d", m_mismatches));
-        uvm_report_info("Num trans", $sformatf("Number of transactions: %0d", num_transactions));
-  endfunction
   
 endclass : alu_reg_mdu_iq_monitor
 

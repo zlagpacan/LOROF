@@ -47,16 +47,19 @@ module lbpt (
 
     // Update 0:
     logic [LBPT_INDEX_WIDTH-1:0]            update0_hashed_index;
-    logic [LOG_LBPT_ENTRIES_PER_BLOCK-1:0]  update0_entry;
+    logic [LOG_LBPT_ENTRIES_PER_BLOCK-1:0]  update0_hashed_entry;
 
     // Update 1:
     logic                                       update1_valid; // use instead of byte mask
     logic [LBPT_INDEX_WIDTH-1:0]                update1_hashed_index;
-    logic [LOG_LBPT_ENTRIES_PER_BLOCK-1:0]      update1_entry;
+    logic [LOG_LBPT_ENTRIES_PER_BLOCK-1:0]      update1_hashed_entry;
     logic                                       update1_taken;
 
     logic [LBPT_ENTRIES_PER_BLOCK-1:0][1:0]     update1_array_old_pred_2bc_by_entry;
     logic [LBPT_ENTRIES_PER_BLOCK-1:0][1:0]     update1_array_new_pred_2bc_by_entry;
+
+    logic                                       last_update1_conflict;
+    logic [LBPT_ENTRIES_PER_BLOCK-1:0][1:0]     last_update1_array_new_pred_2bc_by_entry;
 
     // ----------------------------------------------------------------
     // RESP Stage Logic:
@@ -90,7 +93,7 @@ module lbpt (
         .PC(update0_start_full_PC),
         .LH(update0_LH),
         .ASID(update0_ASID),
-        .index({update0_hashed_index, update0_entry})
+        .index({update0_hashed_index, update0_hashed_entry})
     );
 
     // ----------------------------------------------------------------
@@ -100,35 +103,47 @@ module lbpt (
         if (~nRST) begin
             update1_valid <= 1'b0;
             update1_hashed_index <= '0;
-            update1_entry <= '0;
+            update1_hashed_entry <= '0;
             update1_taken <= 1'b0;
+
+            last_update1_conflict <= 1'b0;
+            last_update1_array_new_pred_2bc_by_entry <= '0;
         end
         else begin
             update1_valid <= update0_valid;
             update1_hashed_index <= update0_hashed_index;
-            update1_entry <= update0_entry;
+            update1_hashed_entry <= update0_hashed_entry;
             update1_taken <= update0_taken;
+
+            last_update1_conflict <= update0_valid & update1_valid & update0_hashed_index == update1_hashed_index;
+            last_update1_array_new_pred_2bc_by_entry <= update1_array_new_pred_2bc_by_entry;
         end
     end
 
     // bit 1 of 2bc is taken vs. not taken prediction
-    assign update1_correct = update1_array_old_pred_2bc_by_entry[update1_entry][1] == update1_taken;
+    assign update1_correct = update1_array_old_pred_2bc_by_entry[update1_hashed_entry][1] == update1_taken;
 
     always_comb begin
 
-        // copy old 2bc entries
-        update1_array_new_pred_2bc_by_entry = update1_array_old_pred_2bc_by_entry;
-        
+        // RMW pred 2bc for this set
+            // make 2bc state update
+            // if conflicted last cycle, use update value from last cycle
+        if (last_update1_conflict) begin
+            update1_array_new_pred_2bc_by_entry = last_update1_array_new_pred_2bc_by_entry;
+        end else begin
+            update1_array_new_pred_2bc_by_entry = update1_array_old_pred_2bc_by_entry;
+        end
+
         // update 2bc entry of interest
-        case ({update1_array_old_pred_2bc_by_entry[update1_entry], update1_taken})
-            3'b000: update1_array_new_pred_2bc_by_entry[update1_entry] = 2'b00; // SN -> N -> SN
-            3'b001: update1_array_new_pred_2bc_by_entry[update1_entry] = 2'b01; // SN -> T -> WN
-            3'b010: update1_array_new_pred_2bc_by_entry[update1_entry] = 2'b00; // WN -> N -> SN
-            3'b011: update1_array_new_pred_2bc_by_entry[update1_entry] = 2'b11; // WN -> T -> ST
-            3'b100: update1_array_new_pred_2bc_by_entry[update1_entry] = 2'b00; // WT -> N -> SN
-            3'b101: update1_array_new_pred_2bc_by_entry[update1_entry] = 2'b11; // WT -> T -> ST
-            3'b110: update1_array_new_pred_2bc_by_entry[update1_entry] = 2'b10; // ST -> N -> WT
-            3'b111: update1_array_new_pred_2bc_by_entry[update1_entry] = 2'b11; // ST -> T -> ST
+        case ({update1_array_new_pred_2bc_by_entry[update1_hashed_entry], update1_taken})
+            3'b000: update1_array_new_pred_2bc_by_entry[update1_hashed_entry] = 2'b00; // SN -> N -> SN
+            3'b001: update1_array_new_pred_2bc_by_entry[update1_hashed_entry] = 2'b01; // SN -> T -> WN
+            3'b010: update1_array_new_pred_2bc_by_entry[update1_hashed_entry] = 2'b00; // WN -> N -> SN
+            3'b011: update1_array_new_pred_2bc_by_entry[update1_hashed_entry] = 2'b11; // WN -> T -> ST
+            3'b100: update1_array_new_pred_2bc_by_entry[update1_hashed_entry] = 2'b00; // WT -> N -> SN
+            3'b101: update1_array_new_pred_2bc_by_entry[update1_hashed_entry] = 2'b11; // WT -> T -> ST
+            3'b110: update1_array_new_pred_2bc_by_entry[update1_hashed_entry] = 2'b10; // ST -> N -> WT
+            3'b111: update1_array_new_pred_2bc_by_entry[update1_hashed_entry] = 2'b11; // ST -> T -> ST
         endcase
     end
 

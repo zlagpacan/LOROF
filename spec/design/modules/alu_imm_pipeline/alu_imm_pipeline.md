@@ -36,7 +36,7 @@ All of these are constants from core_types_pkg.vh
 
 
 # Interfaces
-Inputs interfaces blue. Output interfaces green.
+Input interfaces blue. Output interfaces green.
 These signals make more sense in combination with the information in the [Pipeline Stages](#pipeline-stages) section.
 
 <span style="color:orange">
@@ -101,6 +101,18 @@ input interface
         none
     - idle value:
         - 1'bx
+- issue_A_is_zero
+    - input logic
+    - == 1'b1:
+        - indicate that operand A's data should be a 32-bit zero
+        - the 32-bit zero operand is always ready in OC stage and does not need to wait on nor be collected via any external signals
+    - == 1'b0:
+        - follow behavior denoted by issue_A_forward
+    - essentially issue_A_is_zero overrides and has priority over issue_A_forward
+    - constraints:
+        - none
+    - idle value:
+        - 1'bx
 - issue_A_bank
     - input logic [1:0]
         - design uses: input logic [LOG_PRF_BANK_COUNT-1:0]
@@ -141,7 +153,7 @@ output interface
     - indicate that the pipeline is not ready for a new op issue
     - must be 1'b0 when there is a valid op in OC stage which does not have operand A either saved from a previous cycle, forwarded this cycle, or arrived through a reg read ack this cycle OR the OC stage is stalled
     - see [Operand Collection (OC) Stage](#operand-collection-oc-stage)
-    - reset:
+    - reset value:
         - 1'b1
 
 <span style="color:deepskyblue">
@@ -222,14 +234,14 @@ output interface
     - output logic
     - indicate ALU op result should be written back to PRF
     - this coincides with there being a valid op in WB stage as all valid ALU ops write back
-    - reset:
+    - reset value:
         - 1'b0
 - WB_data
     - output logic [31:0]
     - 32-bit ALU op result data to be written back to PRF
     - = R[A] op imm
     - don't care when WB_valid = 1'b0
-    - reset:
+    - reset value:
         - 32'h0
 - WB_PR
     - output logic [6:0]
@@ -237,7 +249,7 @@ output interface
     - indicate which Physical Register [7'h0, 7'h7F] to write back to
     - final passed-through value initially given on issue_dest_PR
     - don't care when WB_valid = 1'b0
-    - reset:
+    - reset value:
         - 7'h0
 - WB_ROB_index
     - output logic [6:0]
@@ -245,7 +257,7 @@ output interface
     - indicate which ROB index [7'h0, 7'h7F] to mark as complete
     - final passed-through value initially given on issue_ROB_index
     - don't care when WB_valid = 1'b0
-    - reset:
+    - reset value:
         - 7'h0
 
 <span style="color:deepskyblue">
@@ -285,19 +297,23 @@ Accept new instruction issue via the [ALU imm op issue from IQ](#alu-reg-op-issu
 Collect A operand. If operand A isn't collected (from this cycle or a previous cycle) then OC stage must stall and the issue_ready signal must be 1'b0. A bubble (invalid and all other signals don't cares) is naturally inserted into this stage whenever issue_ready = 1'b1 but issue_valid = 1'b0. 
 
 Potential operand states:
-- data is being forwarded
-    - (issue_ready & issue_valid & issue_A_forward) last cycle
+- "forwarding"
+    - data is being forwarded on this cycle
+    - (issue_ready & issue_valid & issue_A/B_forward) last cycle when this op was issued
     - take data from forward_data_by_bank
-- data is being read via the reg file
-    - (~issue_A_forward) when this op was issued
+- "reg reading"
+    - data is being read via the PRF on this cycle
+    - (~issue_A/B_forward) when this op was issued, A/B_reg_read_ack on this cycle, sample value from reg_read_data_by_bank_by_port
         - can be an arbitrary number of cycles in the past when the op was issued
         - since this issue cycle, the op had to have either just entered OC stage or been stalled in OC stage as it had an operand which wasn't ready
-- data was saved from a previous cycle
-    - data for operand was collected via the 2 previous states on a previous cycle 
-    - data must be saved from this previous cycle in the case that OC stage stalls
-        - see stall conditions below
-- data is not available this cycle and was not saved on a previous cycle
-    - operand stall case when none of the above are true
+- "saved"
+    - data was saved from a previous cycle
+    - data for operand was collected via the operand being in "forwarding" or "reading reg" on a previous cycle with a stall condition
+- "waiting"
+    - data is not available this cycle and was not saved on a previous cycle
+    - this creates an operand stall
+- "is zero"
+    - data is 32-bit zero to be generated in pipeline on this cycle
 
 #### Stall Condition:
 - valid op in EX stage and either:
@@ -306,15 +322,17 @@ Potential operand states:
 - a stall in this stage corresponds to issue_ready = 1'b0
 
 ### OC Truth Table:
-| Description | issue_A_forward on Issue Cycle | A_reg_read_ack on This Cycle | WB Stall Propagated to OC | Operand A State | issue_ready This Cycle | Module Actions |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| issued last cycle, forward A this cycle | 1 | 0 | 0 | forwarding | 1 | continue to EX with A value from forward_data_by_bank |
-| issued last cycle, forward A this cycle, WB stall | 1 | 0 | 1 | forwarding | 0 | stall due to WB, save A value from forward_data_by_bank |
-| issued in any previous cycle, A reg read ack this cycle | 0 | 1 | 0 | reg reading | 1 | continue to EX with A value from reg_read_data_by_bank_by_port |
-| issued in any previous cycle, A reg read ack this cycle, WB stall | 0 | 1 | 1 | reg reading | 0 | stall due to WB, save A value from reg_read_data_by_bank_by_port |
-| issued in any previous cycle, A saved | 0 | 0 | 0 | saved | 1 | continue to EX with A saved value |
-| issued in any previous cycle, A saved, WB stall | 0 | 0 | 1 | saved | 0 | stall due to WB |
-| issued in any previous cycle, A waiting | 0 | 0 | x | waiting | 0 | operand stall |
+| Description | issue_A_forward on Issue Cycle | A_reg_read_ack on This Cycle | issue_A_is_zero on Issue Cycle | WB Stall Propagated to OC | Operand A State | issue_ready This Cycle | Module Actions |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| issued last cycle, forward A this cycle | 1 | 0 | 0 | 0 | forwarding | 1 | continue to EX with A value from forward_data_by_bank |
+| issued last cycle, forward A this cycle, WB stall | 1 | 0 | 0 | 1 | forwarding | 0 | stall due to WB, save A value from forward_data_by_bank |
+| issued in any previous cycle, A reg read ack this cycle | 0 | 1 | 0 | 0 | reg reading | 1 | continue to EX with A value from reg_read_data_by_bank_by_port |
+| issued in any previous cycle, A reg read ack this cycle, WB stall | 0 | 1 | 0 | 1 | reg reading | 0 | stall due to WB, save A value from reg_read_data_by_bank_by_port |
+| issued in any previous cycle, A saved | 0 | 0 | 0 | 0 | saved | 1 | continue to EX with A saved value |
+| issued in any previous cycle, A saved, WB stall | 0 | 0 | 0 | 1 | saved | 0 | stall due to WB |
+| issued in any previous cycle, A is zero | x | 0 | 1 | 0 | is zero | 1 | continue to EX with A = 32'h0 |
+| issued in any previous cycle, A is zero, WB stall | x | 0 | 1 | 1 | is zero | 0 | stall due to WB |
+| issued in any previous cycle, A waiting | 0 | 0 | 0 | x | waiting | 0 | operand stall |
 
 When OC stage does not contain a valid op, issue_ready is guaranteed to be 1'b1:
 - there are no operands to collect
