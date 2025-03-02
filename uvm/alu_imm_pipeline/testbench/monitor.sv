@@ -28,6 +28,7 @@ class alu_imm_pipeline_monitor extends uvm_monitor;
   alu_imm_pipeline_sequence_item item;
   
   uvm_analysis_port #(alu_imm_pipeline_sequence_item) monitor_port;
+  uvm_analysis_port #(alu_imm_pipeline_sequence_item) predictor_port;
   
   // --- Constructor --- //
   function new(string name = "alu_imm_pipeline_monitor", uvm_component parent);
@@ -42,6 +43,7 @@ class alu_imm_pipeline_monitor extends uvm_monitor;
     
     // --- Build Monitor Port --- //
     monitor_port = new("monitor_port", this);
+    predictor_port = new("predictor_port",this);
     
     // --- Virtual Interface Failure --- //
     if(!(uvm_config_db #(virtual alu_imm_pipeline_if)::get(this, "*", "vif", vif))) begin

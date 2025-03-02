@@ -23,6 +23,7 @@ import core_types_pkg::*;
 `include "interface.sv"
 `include "agent.sv"
 `include "scoreboard.sv"
+`include "predictor.sv"
 
 // --- Environment --- //
 class alu_imm_pipeline_env extends uvm_env;
@@ -31,6 +32,7 @@ class alu_imm_pipeline_env extends uvm_env;
   // --- Env Components --- //
   alu_imm_pipeline_agent agnt;
   alu_imm_pipeline_scoreboard scb;
+  alu_imm_pipeline_predictor pred;
 
   // --- Constructor --- //
   function new(string name = "alu_imm_pipeline_env", uvm_component parent);
@@ -46,6 +48,7 @@ class alu_imm_pipeline_env extends uvm_env;
     // --- Build Agent + Scoreboard --- //
     agnt = alu_imm_pipeline_agent::type_id::create("agnt", this);
     scb  = alu_imm_pipeline_scoreboard::type_id::create("scb", this);
+    pred = alu_imm_pipeline_predictor::type_id::create("pred",this);
     
   endfunction : build_phase
   
@@ -55,7 +58,13 @@ class alu_imm_pipeline_env extends uvm_env;
     `uvm_info("ENV_CLASS", "Connect Phase", UVM_HIGH)
     
     // --- Monitor -> Scoreboard --- //
-    agnt.mon.monitor_port.connect(scb.scoreboard_port);
+    agnt.mon.monitor_port.connect(scb.actual_export);
+
+    // --- Monitor -> Predictor --- //
+    agnt.mon.predictor_port.connect(pred.analysis_export);
+
+    // --- Predictor -> Scoreboard --- //
+    pred.pred_ap.connect(scb.predicted_export);
     
   endfunction : connect_phase
   
