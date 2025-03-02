@@ -14,7 +14,7 @@ RTL_DEPS = ../../source/rtl/alu.sv
 UVM_DIR  = testbench
 TB_FILE  = testbench/testbench.sv
 TEST_MOD = top
-QSIM_ENV = /package/eda/mg/questa10.6b/questasim
+QSIM_ENV = /package/eda/mg/questa2021.4/questasim
 VCD      = wave.do
 SVA      = $(UVM_DIR)/assertions/$(DUT)_sva.sv
 
