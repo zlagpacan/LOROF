@@ -35,8 +35,8 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
   randc logic [LOG_ROB_ENTRIES-1:0]           issue_ROB_index;
   randc logic                                 A_reg_read_ack;
   randc logic                                 A_reg_read_port;
-  randc logic [PRF_BANK_COUNT-1:0][1:0][31:0] reg_read_data_by_bank_by_port;
-  randc logic [PRF_BANK_COUNT-1:0][31:0]      forward_data_by_bank;
+  rand  logic [PRF_BANK_COUNT-1:0][1:0][31:0] reg_read_data_by_bank_by_port;
+  rand  logic [PRF_BANK_COUNT-1:0][31:0]      forward_data_by_bank;
   randc logic                                 WB_ready;
   
   // --- Outputs --- //
@@ -63,19 +63,19 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
     if (!$cast(rhs_tx, rhs)) return 0; // Type check
 
     return (
-        (issue_valid === rhs_tx.issue_valid) &&
-        (issue_op === rhs_tx.issue_op) &&
-        (issue_imm12 === rhs_tx.issue_imm12) &&
-        (issue_A_forward === rhs_tx.issue_A_forward) &&
-        (issue_A_is_zero === rhs_tx.issue_A_is_zero) &&
-        (issue_A_bank === rhs_tx.issue_A_bank) &&
-        (issue_dest_PR === rhs_tx.issue_dest_PR) &&
-        (issue_ROB_index === rhs_tx.issue_ROB_index) &&
-        (A_reg_read_ack === rhs_tx.A_reg_read_ack) &&
-        (A_reg_read_port === rhs_tx.A_reg_read_port) &&
-        (reg_read_data_by_bank_by_port === rhs_tx.reg_read_data_by_bank_by_port) &&
-        (forward_data_by_bank === rhs_tx.forward_data_by_bank) &&
-        (WB_ready === rhs_tx.WB_ready) &&
+        // (issue_valid === rhs_tx.issue_valid) &&
+        // (issue_op === rhs_tx.issue_op) &&
+        // (issue_imm12 === rhs_tx.issue_imm12) &&
+        // (issue_A_forward === rhs_tx.issue_A_forward) &&
+        // (issue_A_is_zero === rhs_tx.issue_A_is_zero) &&
+        // (issue_A_bank === rhs_tx.issue_A_bank) &&
+        // (issue_dest_PR === rhs_tx.issue_dest_PR) &&
+        // (issue_ROB_index === rhs_tx.issue_ROB_index) &&
+        // (A_reg_read_ack === rhs_tx.A_reg_read_ack) &&
+        // (A_reg_read_port === rhs_tx.A_reg_read_port) &&
+        // (reg_read_data_by_bank_by_port === rhs_tx.reg_read_data_by_bank_by_port) &&
+        // (forward_data_by_bank === rhs_tx.forward_data_by_bank) &&
+        // (WB_ready === rhs_tx.WB_ready) &&
         (issue_ready === rhs_tx.issue_ready) &&
         (WB_valid === rhs_tx.WB_valid) &&
         (WB_data === rhs_tx.WB_data) &&

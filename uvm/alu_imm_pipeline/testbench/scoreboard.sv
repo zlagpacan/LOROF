@@ -75,6 +75,7 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
       end 
       else begin
             m_mismatches++;
+            `uvm_info("SCBD", $sformatf("Test Case: : FAILED"), UVM_LOW)
             // `uvm_report_info("SB", "Error: Data mismatch");
             // predicted_tx.print_transaction("predicted_tx");
             // actual_tx.print_transaction("actual_tx");
