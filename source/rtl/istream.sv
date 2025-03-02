@@ -166,9 +166,41 @@ module istream #(
         marker_vec[15] = valid_vec[15] & ~uncompressed_vec[15] & ~(marker_vec[14] & uncompressed_vec[14]);
     end
 
+    // lower way 0: can guarantee in lower 8
+    pq_lsb #(
+        .WIDTH(8),
+        .USE_ONE_HOT(1),
+        .USE_COLD(1),
+        .USE_INDEX(1)
+    ) WAY_LOWER (
+        .req_vec(lower_req_vec_by_way[0][7:0]),
+        .ack_one_hot(lower_ack_one_hot_by_way[0][7:0]),
+        .ack_mask(),
+        .cold_ack_mask(lower_cold_ack_mask_by_way[0][7:0]),
+        .ack_index(lower_ack_index_by_way[0][2:0])
+    );
+
+    assign lower_ack_one_hot_by_way[0][15:8] = 8'h0;
+    assign lower_cold_ack_mask_by_way[0][15:8] = {8{|lower_req_vec_by_way[0][7:0]}};
+    assign lower_ack_index_by_way[0][3] = 1'b0;
+
+    // upper by way
+    pq_lsb #(
+        .WIDTH(16),
+        .USE_ONE_HOT(1),
+        .USE_COLD(1),
+        .USE_INDEX(1)
+    ) WAY_UPPER (
+        .req_vec(upper_req_vec_by_way[0]),
+        .ack_one_hot(upper_ack_one_hot_by_way[0]),
+        .ack_mask(),
+        .cold_ack_mask(upper_cold_ack_mask_by_way[0]),
+        .ack_index(upper_ack_index_by_way[0])
+    );
+
     genvar way;
     generate
-        for (way = 0; way < 4; way++) begin : lower_pq_upper_pq_by_way
+        for (way = 1; way < 4; way++) begin : lower_pq_upper_pq_by_way
 
             // lower by way
             pq_lsb #(
