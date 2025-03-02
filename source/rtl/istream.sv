@@ -138,7 +138,7 @@ module istream #(
 
     genvar way;
     generate
-        for (way = 0 ; way < 4; way++) begin
+        for (way = 0 ; way < 4; way++) begin : lower_pq_upper_pq_by_way
 
             // lower by way
             pq_lsb #(
