@@ -76,8 +76,8 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
       else begin
             m_mismatches++;
             // `uvm_report_info("SB", "Error: Data mismatch");
-            predicted_tx.print_transaction("predicted_tx");
-            actual_tx.print_transaction("actual_tx");
+            // predicted_tx.print_transaction("predicted_tx");
+            // actual_tx.print_transaction("actual_tx");
       end
     end
     
