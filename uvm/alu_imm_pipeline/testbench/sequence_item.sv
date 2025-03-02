@@ -1,7 +1,7 @@
 /*
   Module        : alu_imm_pipeline
   UMV Component : sequence_item
-  Author        : 
+  Author        : Adam Keith
 */
 
 `ifndef ALU_IMM_PIPELINE_SEQ_ITEM_SV
@@ -29,6 +29,7 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
   randc logic [3:0]                           issue_op;
   randc logic [11:0]                          issue_imm12;
   randc logic                                 issue_A_forward;
+  randc logic                                 issue_A_is_zero;
   randc logic [LOG_PRF_BANK_COUNT-1:0]        issue_A_bank;
   randc logic [LOG_PR_COUNT-1:0]              issue_dest_PR;
   randc logic [LOG_ROB_ENTRIES-1:0]           issue_ROB_index;
@@ -46,6 +47,17 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
   logic [LOG_ROB_ENTRIES-1:0] WB_ROB_index;
   
   // --- Constraints --- //
+  /*
+    The idea is to have the base seq item be the 'ideal' sequence
+      - 1 op per cycle
+  */
+  constraint nRST_ideal            { soft nRST            == 1'b1; }
+  constraint issue_valid_ideal     { soft issue_valid     == 1'b1; }
+  constraint issue_A_forward_ideal { soft issue_A_forward == 1'b1; }
+  constraint issue_B_forward_ideal { soft issue_B_forward == 1'b1; }
+
+  // Temp Void - Dist constraints won't override
+  // constraint WB_ready_ideal        { soft WB_ready        == 1'b1; }
 
   // --- Constructor --- //
   function new(string name = "alu_imm_pipeline_sequence_item");

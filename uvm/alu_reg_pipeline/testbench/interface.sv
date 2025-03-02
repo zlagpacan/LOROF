@@ -11,8 +11,6 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
     
-// --- Includes --- //
-
 // --- Interface --- //
 interface alu_reg_pipeline_if (input logic CLK);
 
