@@ -60,7 +60,7 @@ module istream #(
     } instr_2B_t;
 
     typedef struct packed {
-        logic                               valid;
+        // logic                               valid;
         instr_2B_t                          instr_2B;
         logic [BTB_PRED_INFO_WIDTH-1:0]     pred_info;
         logic                               dep_pred;
@@ -91,6 +91,22 @@ module istream #(
 
     logic [27:0] deq0_PC28, next_deq0_PC28;
 
+    logic [7:0] enq_set_valid_vec;
+    logic [7:0] enq_set_uncompressed_vec;
+
+    logic [ISTREAM_SETS-1:0][7:0] valid_set_vec_array, next_valid_set_vec_array;
+    logic [ISTREAM_SETS-1:0][7:0] uncompressed_set_vec_array, next_uncompressed_set_vec_array;
+
+    logic [ISTREAM_SETS-1:0] set_valid_array, next_set_valid_array;
+    logic [ISTREAM_SETS-1:0] set_enq_one_hot;
+
+    logic [LH_LENGTH-1:0] LH_deq0;
+    logic [LH_LENGTH-1:0] LH_deq1;
+    logic [GH_LENGTH-1:0] GH_deq0;
+    logic [GH_LENGTH-1:0] GH_deq1;
+    logic [RAS_INDEX_WIDTH-1:0] ras_index_deq0;
+    logic [RAS_INDEX_WIDTH-1:0] ras_index_deq1;
+
     logic [15:0]                            valid_vec;
     logic [15:0]                            uncompressed_vec;
     instr_2B_t [15:0]                       instr_2B_vec;
@@ -120,19 +136,25 @@ module istream #(
 
     always_comb begin
 
+        valid_vec[7:0] = valid_set_vec_array[0];
+        uncompressed_vec[7:0] = uncompressed_set_vec_array[0];
+
         // align deq ptr0 into vec
         for (int i = 0; i < 8; i++) begin
-            valid_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].valid;
-            uncompressed_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].instr_2B.lsb2 == 2'b11;
+            // valid_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].valid;
+            // uncompressed_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].instr_2B.lsb2 == 2'b11;
             instr_2B_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].instr_2B;
             pred_info_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].pred_info;
             dep_pred_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].dep_pred;
         end
 
+        valid_vec[15:8] = valid_set_vec_array[1];
+        uncompressed_vec[15:8] = uncompressed_set_vec_array[1];
+
         // align deq ptr1 into vec
         for (int j = 0; j < 8; j++) begin
-            valid_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].valid;
-            uncompressed_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].instr_2B.lsb2 == 2'b11;
+            // valid_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].valid;
+            // uncompressed_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].instr_2B.lsb2 == 2'b11;
             instr_2B_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].instr_2B;
             pred_info_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].pred_info;
             dep_pred_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].dep_pred;
@@ -209,7 +231,8 @@ module istream #(
 
             // check for lower uncompressed
                 // need lower and upper present
-            if (lower_present_by_way[way] & uncompressed_vec[lower_ack_index_by_way[way]]) begin
+            // if (lower_present_by_way[way] & uncompressed_vec[lower_ack_index_by_way[way]]) begin
+            if (lower_present_by_way[way] & |(uncompressed_vec & lower_ack_one_hot_by_way[way])) begin
 
                 // need upper present
                 if (upper_present_by_way[way]) begin
@@ -239,6 +262,7 @@ module istream #(
 
             // otherwise, lower compressed
                 // only need lower present
+            // else if (lower_present_by_way[way]) begin
             else if (lower_present_by_way[way]) begin
 
                 // guaranteed valid for way 0 valid
@@ -263,6 +287,13 @@ module istream #(
         end
     end
 
+    assign LH_deq0 = stream_set_array[stream_deq0_ptr.index].LH;
+    assign LH_deq1 = stream_set_array[stream_deq1_ptr.index].LH;
+    assign GH_deq0 = stream_set_array[stream_deq0_ptr.index].GH;
+    assign GH_deq1 = stream_set_array[stream_deq1_ptr.index].GH;
+    assign ras_index_deq0 = stream_set_array[stream_deq0_ptr.index].ras_index;
+    assign ras_index_deq1 = stream_set_array[stream_deq1_ptr.index].ras_index;
+
     always_comb begin
         for (int way = 0; way < 4; way++) begin
 
@@ -278,7 +309,8 @@ module istream #(
         
             // PC follows lower index set
             // msb = 1 means in deq ptr1 set
-            if (lower_ack_index_by_way[way][3]) begin
+            // if (lower_ack_index_by_way[way][3]) begin
+            if (|lower_ack_one_hot_by_way[way][15:8]) begin
                 PC_by_way_SDEQ[way] = {
                     stream_set_array[stream_deq0_ptr.index].after_PC28,
                     lower_ack_index_by_way[way][2:0],
@@ -296,43 +328,47 @@ module istream #(
             // LH, GH, ras index follow upper index set if uncompressed, lower index set if compressed
             if (uncompressed_by_way_SDEQ[way]) begin
                 // msb = 1 means in deq ptr1 set
-                if (upper_ack_index_by_way[way][3]) begin
-                    LH_by_way_SDEQ[way] = stream_set_array[stream_deq1_ptr.index].LH;
-                    GH_by_way_SDEQ[way] = stream_set_array[stream_deq1_ptr.index].GH;
-                    ras_index_by_way_SDEQ[way] = stream_set_array[stream_deq1_ptr.index].ras_index;
+                // if (upper_ack_index_by_way[way][3]) begin
+                if (|upper_ack_one_hot_by_way[way][15:8]) begin
+                    LH_by_way_SDEQ[way] = LH_deq1;
+                    GH_by_way_SDEQ[way] = GH_deq1;
+                    ras_index_by_way_SDEQ[way] = ras_index_deq1;
                 // msb = 0 means in deq ptr0 set
                 end else begin
-                    LH_by_way_SDEQ[way] = stream_set_array[stream_deq0_ptr.index].LH;
-                    GH_by_way_SDEQ[way] = stream_set_array[stream_deq0_ptr.index].GH;
-                    ras_index_by_way_SDEQ[way] = stream_set_array[stream_deq0_ptr.index].ras_index;
+                    LH_by_way_SDEQ[way] = LH_deq0;
+                    GH_by_way_SDEQ[way] = GH_deq0;
+                    ras_index_by_way_SDEQ[way] = ras_index_deq0;
                 end
             end else begin
                 // msb = 1 means in deq ptr1 set
-                if (lower_ack_index_by_way[way][3]) begin
-                    LH_by_way_SDEQ[way] = stream_set_array[stream_deq1_ptr.index].LH;
-                    GH_by_way_SDEQ[way] = stream_set_array[stream_deq1_ptr.index].GH;
-                    ras_index_by_way_SDEQ[way] = stream_set_array[stream_deq1_ptr.index].ras_index;
+                // if (lower_ack_index_by_way[way][3]) begin
+                if (|lower_ack_one_hot_by_way[way][15:8]) begin
+                    LH_by_way_SDEQ[way] = LH_deq1;
+                    GH_by_way_SDEQ[way] = GH_deq1;
+                    ras_index_by_way_SDEQ[way] = ras_index_deq1;
                 // msb = 0 means in deq ptr0 set
                 end else begin
-                    LH_by_way_SDEQ[way] = stream_set_array[stream_deq0_ptr.index].LH;
-                    GH_by_way_SDEQ[way] = stream_set_array[stream_deq0_ptr.index].GH;
-                    ras_index_by_way_SDEQ[way] = stream_set_array[stream_deq0_ptr.index].ras_index;
+                    LH_by_way_SDEQ[way] = LH_deq0;
+                    GH_by_way_SDEQ[way] = GH_deq0;
+                    ras_index_by_way_SDEQ[way] = ras_index_deq0;
                 end
             end
         end
     end
 
     // stall follows current ptr FIFO empty check
-    assign stream_empty0 = 
-        stream_enq_ptr.index == stream_deq0_ptr.index 
-        & 
-        stream_enq_ptr.msb == stream_deq0_ptr.msb
-    ;
-    assign stream_empty1 = 
-        stream_enq_ptr.index == stream_deq1_ptr.index 
-        & 
-        stream_enq_ptr.msb == stream_deq1_ptr.msb
-    ;
+    // assign stream_empty0 = 
+    //     stream_enq_ptr.index == stream_deq0_ptr.index 
+    //     & 
+    //     stream_enq_ptr.msb == stream_deq0_ptr.msb
+    // ;
+    assign stream_empty0 = ~set_valid_array[0];
+    // assign stream_empty1 = 
+    //     stream_enq_ptr.index == stream_deq1_ptr.index 
+    //     & 
+    //     stream_enq_ptr.msb == stream_deq1_ptr.msb
+    // ;
+    assign stream_empty1 = ~set_valid_array[1];
 
     assign deq0_done = ~stream_empty0 & valid_vec[7:0] == ack_vec[7:0];
     assign deq1_done = ~stream_empty1 & valid_vec[15:8] == ack_vec[15:8];
@@ -349,6 +385,23 @@ module istream #(
 
     assign stall_SENQ = stream_full;
 
+    always_comb begin
+        enq_set_valid_vec = valid_by_fetch_2B_SENQ;
+        for (int i = 0; i < 8; i++) begin
+            enq_set_uncompressed_vec[i] = instr_2B_by_fetch_2B_SENQ[i][1:0] == 2'b11;
+        end
+    end
+
+    pq_lsb #(
+        .WIDTH(ISTREAM_SETS),
+        .USE_ONE_HOT(1),
+        .USE_COLD(0),
+        .USE_INDEX(0)
+    ) ENQ_VALID_PQ (
+        .req_vec(~set_valid_array),
+        .ack_one_hot(set_enq_one_hot)
+    );
+
     // ----------------------------------------------------------------
     // FF Logic: 
 
@@ -361,6 +414,10 @@ module istream #(
             stream_deq1_ptr <= 1;
 
             deq0_PC28 <= INIT_PC[31:4];
+
+            set_valid_array <= '0;
+            valid_set_vec_array <= '0;
+            uncompressed_set_vec_array <= '0;
         end
         else if (restart) begin
             stream_set_array <= '0;
@@ -370,6 +427,10 @@ module istream #(
             stream_deq1_ptr <= 1;
 
             deq0_PC28 <= restart_PC[31:4];
+
+            set_valid_array <= '0;
+            valid_set_vec_array <= '0;
+            uncompressed_set_vec_array <= '0;
         end
         else begin
             stream_set_array <= next_stream_set_array;
@@ -379,9 +440,49 @@ module istream #(
             stream_deq1_ptr <= next_stream_deq1_ptr;
 
             deq0_PC28 <= next_deq0_PC28;
+
+            // check double deQ
+            if (~stall_SDEQ & deq0_done & deq1_done) begin
+
+                for (int i = 0; i < ISTREAM_SETS-2; i++) begin
+                    valid_set_vec_array[i] <= next_valid_set_vec_array[i+2];
+                    uncompressed_set_vec_array[i] <= next_uncompressed_set_vec_array[i+2];
+                    set_valid_array[i] <= next_set_valid_array[i+2];
+                end
+
+                valid_set_vec_array[ISTREAM_SETS-2] <= 8'h0;
+                uncompressed_set_vec_array[ISTREAM_SETS-2] <= 8'h0;
+                set_valid_array[ISTREAM_SETS-2] <= 1'b0;
+
+                valid_set_vec_array[ISTREAM_SETS-1] <= 8'h0;
+                uncompressed_set_vec_array[ISTREAM_SETS-1] <= 8'h0;
+                set_valid_array[ISTREAM_SETS-1] <= 1'b0;
+            end
+
+            // check single deQ
+            else if (~stall_SDEQ & deq0_done) begin
+
+                for (int i = 0; i < ISTREAM_SETS-1; i++) begin
+                    valid_set_vec_array[i] <= next_valid_set_vec_array[i+1];
+                    uncompressed_set_vec_array[i] <= next_uncompressed_set_vec_array[i+1];
+                    set_valid_array[i] <= next_set_valid_array[i+1];
+                end
+
+                valid_set_vec_array[ISTREAM_SETS-1] <= 8'h0;
+                uncompressed_set_vec_array[ISTREAM_SETS-1] <= 8'h0;
+                set_valid_array[ISTREAM_SETS-1] <= 1'b0;
+            end
+
+            // otherwise, just take self
+            else begin
+                valid_set_vec_array <= next_valid_set_vec_array;
+                uncompressed_set_vec_array <= next_uncompressed_set_vec_array;
+                set_valid_array <= next_set_valid_array;
+            end
         end
     end
 
+    // Next State Logic:
     always_comb begin
         
         next_stream_set_array = stream_set_array;
@@ -396,11 +497,11 @@ module istream #(
             // act as if no restart/flush with next_* signals
 
         // enQ logic
-        if (valid_SENQ & ~stream_full) begin
+        if (valid_SENQ & ~stall_SENQ) begin
 
             // enQ on stream
             for (int i = 0; i < 8; i++) begin
-                next_stream_set_array[stream_enq_ptr.index].chunks[i].valid = valid_by_fetch_2B_SENQ[i];
+                // next_stream_set_array[stream_enq_ptr.index].chunks[i].valid = valid_by_fetch_2B_SENQ[i];
                 next_stream_set_array[stream_enq_ptr.index].chunks[i].instr_2B = instr_2B_by_fetch_2B_SENQ[i];
                 next_stream_set_array[stream_enq_ptr.index].chunks[i].pred_info = pred_info_by_fetch_2B_SENQ[i];
                 next_stream_set_array[stream_enq_ptr.index].chunks[i].dep_pred = dep_pred_by_fetch_2B_SENQ[i];
@@ -419,19 +520,19 @@ module istream #(
 
             // disable valid's which are ack'd:
 
-            // deq0 set:
-            for (int i = 0; i < 8; i++) begin
-                if (ack_vec[i]) begin
-                    next_stream_set_array[stream_deq0_ptr.index].chunks[i].valid = 1'b0;
-                end
-            end
+            // // deq0 set:
+            // for (int i = 0; i < 8; i++) begin
+            //     if (ack_vec[i]) begin
+            //         next_stream_set_array[stream_deq0_ptr.index].chunks[i].valid = 1'b0;
+            //     end
+            // end
 
-            // deq1 set:
-            for (int j = 0; j < 8; j++) begin
-                if (ack_vec[j + 8]) begin
-                    next_stream_set_array[stream_deq1_ptr.index].chunks[j].valid = 1'b0;
-                end
-            end
+            // // deq1 set:
+            // for (int j = 0; j < 8; j++) begin
+            //     if (ack_vec[j + 8]) begin
+            //         next_stream_set_array[stream_deq1_ptr.index].chunks[j].valid = 1'b0;
+            //     end
+            // end
 
             // set deq's:
 
@@ -452,6 +553,33 @@ module istream #(
                 next_stream_deq0_ptr = stream_deq0_ptr;
                 next_stream_deq1_ptr = stream_deq1_ptr;
                 next_deq0_PC28 = deq0_PC28;
+            end
+        end
+    end
+
+    always_comb begin
+        next_valid_set_vec_array = valid_set_vec_array;
+        next_uncompressed_set_vec_array = uncompressed_set_vec_array;
+        next_set_valid_array = set_valid_array;
+
+        if (~stall_SDEQ) begin
+            for (int i = 0; i < 8; i++) begin
+                if (ack_vec[i]) begin
+                    next_valid_set_vec_array[0][i] = 1'b0;
+                end
+            end
+            for (int j = 0; j < 8; j++) begin
+                if (ack_vec[j + 8]) begin
+                    next_valid_set_vec_array[1][j] = 1'b0;
+                end
+            end
+        end
+
+        for (int i = 0; i < ISTREAM_SETS; i++) begin
+            if (set_enq_one_hot[i]) begin
+                next_set_valid_array[i] = valid_SENQ & ~stall_SENQ;
+                next_valid_set_vec_array[i] = enq_set_valid_vec;
+                next_uncompressed_set_vec_array[i] = enq_set_uncompressed_vec;
             end
         end
     end
