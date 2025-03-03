@@ -384,48 +384,76 @@ module istream #(
                 end
             end
 
-            // PC follows lower index set
-            // msb = 1 means in deq ptr1 set
-            if (|lower_ack_one_hot_by_way[way][15:8]) begin
-                PC_by_way_SDEQ[way] = {
-                    stream_set_array[stream_deq0_ptr.index].after_PC28,
-                    lower_ack_index_by_way[way][2:0],
-                    1'b0
-                };
-            // msb = 0 means in deq ptr0 set
-            end else begin
+            // // PC follows lower index set
+            // // msb = 1 means in deq ptr1 set
+            // if (|lower_ack_one_hot_by_way[way][15:8]) begin
+            //     PC_by_way_SDEQ[way] = {
+            //         stream_set_array[stream_deq0_ptr.index].after_PC28,
+            //         lower_ack_index_by_way[way][2:0],
+            //         1'b0
+            //     };
+            // // msb = 0 means in deq ptr0 set
+            // end else begin
+            //     PC_by_way_SDEQ[way] = {
+            //         deq0_PC28,
+            //         lower_ack_index_by_way[way][2:0],
+            //         1'b0
+            //     };
+            // end
+
+            if (|lower_req_vec_by_way[way][7:0]) begin
                 PC_by_way_SDEQ[way] = {
                     deq0_PC28,
                     lower_ack_index_by_way[way][2:0],
                     1'b0
                 };
+            end else begin
+                PC_by_way_SDEQ[way] = {
+                    stream_set_array[stream_deq0_ptr.index].after_PC28,
+                    lower_ack_index_by_way[way][2:0],
+                    1'b0
+                };
             end
 
-            // LH, GH, ras index follow upper index set if uncompressed, lower index set if compressed
-            if (uncompressed_by_way_SDEQ[way]) begin
-                // msb = 1 means in deq ptr1 set
-                if (|upper_ack_one_hot_by_way[way][15:8]) begin
-                    LH_by_way_SDEQ[way] = LH_deq1;
-                    GH_by_way_SDEQ[way] = GH_deq1;
-                    ras_index_by_way_SDEQ[way] = ras_index_deq1;
-                // msb = 0 means in deq ptr0 set
-                end else begin
-                    LH_by_way_SDEQ[way] = LH_deq0;
-                    GH_by_way_SDEQ[way] = GH_deq0;
-                    ras_index_by_way_SDEQ[way] = ras_index_deq0;
-                end
+            // // LH, GH, ras index follow upper index set if uncompressed, lower index set if compressed
+            // if (uncompressed_by_way_SDEQ[way]) begin
+            //     // msb = 1 means in deq ptr1 set
+            //     if (|upper_ack_one_hot_by_way[way][15:8]) begin
+            //         LH_by_way_SDEQ[way] = LH_deq1;
+            //         GH_by_way_SDEQ[way] = GH_deq1;
+            //         ras_index_by_way_SDEQ[way] = ras_index_deq1;
+            //     // msb = 0 means in deq ptr0 set
+            //     end else begin
+            //         LH_by_way_SDEQ[way] = LH_deq0;
+            //         GH_by_way_SDEQ[way] = GH_deq0;
+            //         ras_index_by_way_SDEQ[way] = ras_index_deq0;
+            //     end
+            // end else begin
+            //     // msb = 1 means in deq ptr1 set
+            //     if (|lower_ack_one_hot_by_way[way][15:8]) begin
+            //         LH_by_way_SDEQ[way] = LH_deq1;
+            //         GH_by_way_SDEQ[way] = GH_deq1;
+            //         ras_index_by_way_SDEQ[way] = ras_index_deq1;
+            //     // msb = 0 means in deq ptr0 set
+            //     end else begin
+            //         LH_by_way_SDEQ[way] = LH_deq0;
+            //         GH_by_way_SDEQ[way] = GH_deq0;
+            //         ras_index_by_way_SDEQ[way] = ras_index_deq0;
+            //     end
+            // end
+
+            if (
+                (|lower_req_vec_by_way[way][6:0]) 
+                | 
+                (~uncompressed_vec[7] & lower_req_vec_by_way[way][7])
+            ) begin
+                LH_by_way_SDEQ[way] = LH_deq0;
+                GH_by_way_SDEQ[way] = GH_deq0;
+                ras_index_by_way_SDEQ[way] = ras_index_deq0;
             end else begin
-                // msb = 1 means in deq ptr1 set
-                if (|lower_ack_one_hot_by_way[way][15:8]) begin
-                    LH_by_way_SDEQ[way] = LH_deq1;
-                    GH_by_way_SDEQ[way] = GH_deq1;
-                    ras_index_by_way_SDEQ[way] = ras_index_deq1;
-                // msb = 0 means in deq ptr0 set
-                end else begin
-                    LH_by_way_SDEQ[way] = LH_deq0;
-                    GH_by_way_SDEQ[way] = GH_deq0;
-                    ras_index_by_way_SDEQ[way] = ras_index_deq0;
-                end
+                LH_by_way_SDEQ[way] = LH_deq1;
+                GH_by_way_SDEQ[way] = GH_deq1;
+                ras_index_by_way_SDEQ[way] = ras_index_deq1;
             end
         end
     end
