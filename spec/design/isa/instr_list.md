@@ -22,21 +22,21 @@
 - BGEU
     - FU: bru_pipeline
 - LB
-    - FU: ld_pipeline
+    - FU: ldu
 - LH
-    - FU: ld_pipeline
+    - FU: ldu
 - LW
-    - FU: ld_pipeline
+    - FU: ldu
 - LBU
-    - FU: ld_pipeline
+    - FU: ldu
 - LHU
-    - FU: ld_pipeline
+    - FU: ldu
 - SB
-    - FU: st_pipeline
+    - FU: stamou
 - SH
-    - FU: st_pipeline
+    - FU: stamou
 - SW
-    - FU: st_pipeline
+    - FU: stamou
 - ADDI
     - FU: alu_imm_pipeline
 - SLTI
@@ -76,11 +76,11 @@
 - AND
     - FU: alu_reg_pipeline
 - FENCE
-    - FU: amo_pipeline
+    - FU: stamou
 - FENCE.TSO
-    - FU: amo_pipeline
+    - FU: stamou
 - PAUSE
-    - FU: amo_pipeline
+    - FU: stamou
 - ECALL
     - FU: sys_pipeline
 - EBREAK
@@ -124,27 +124,27 @@
 
 ## A Extension
 - LR.W
-    - FU: amo_pipeline
+    - FU: stamou
 - SC.W
-    - FU: amo_pipeline
+    - FU: stamou
 - AMOSWAP.W
-    - FU: amo_pipeline
+    - FU: stamou
 - AMOADD.W
-    - FU: amo_pipeline
+    - FU: stamou
 - AMOXOR.W
-    - FU: amo_pipeline
+    - FU: stamou
 - AMOAND.W
-    - FU: amo_pipeline
+    - FU: stamou
 - AMOOR.W
-    - FU: amo_pipeline
+    - FU: stamou
 - AMOMIN.W
-    - FU: amo_pipeline
+    - FU: stamou
 - AMOMAX.W
-    - FU: amo_pipeline
+    - FU: stamou
 - AMOMINU.W
-    - FU: amo_pipeline
+    - FU: stamou
 - AMOMAXU.W
-    - FU: amo_pipeline
+    - FU: stamou
 
 ## C Extension
 - C.ADDI4SPN
@@ -152,10 +152,10 @@
     - FU: alu_imm_pipeline
 - C.LW
     - LW rd', uimm(rs1')
-    - FU: ld_pipeline
+    - FU: ldu
 - C.SW
     - SW rs2', uimm(rs1')
-    - FU: st_pipeline
+    - FU: stamou
 - C.NOP
     - ADDI x0, x0, imm
     - FU: alu_imm_pipeline
@@ -209,7 +209,7 @@
     - FU: alu_imm_pipeline
 - C.LWSP
     - LW rd, uimm(sp/x2)
-    - FU: ld_pipeline
+    - FU: ldu
 - C.JR
     - JALR x0, 0(rs1)
     - FU: bru_pipeline
@@ -227,7 +227,7 @@
     - FU: alu_reg_pipeline
 - C.SWSP
     - SW rs2, uimm(sp/x2)
-    - FU: st_pipeline
+    - FU: stamou
 
 ## Machine-Mode Privileged Instructions
 - MRET
