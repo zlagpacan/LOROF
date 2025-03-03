@@ -29,6 +29,7 @@ class alu_reg_pipeline_sequence_item extends uvm_sequence_item;
   randc logic [3:0]                           issue_op;
   randc logic                                 issue_A_forward;
   randc logic [LOG_PRF_BANK_COUNT-1:0]        issue_A_bank;
+  randc logic                                 issue_A_is_zero;
   randc logic                                 issue_B_forward;
   randc logic [LOG_PRF_BANK_COUNT-1:0]        issue_B_bank;
   randc logic [LOG_PR_COUNT-1:0]              issue_dest_PR;
@@ -57,6 +58,8 @@ class alu_reg_pipeline_sequence_item extends uvm_sequence_item;
   constraint issue_valid_ideal     { soft issue_valid     == 1'b1; }
   constraint issue_A_forward_ideal { soft issue_A_forward == 1'b1; }
   constraint issue_B_forward_ideal { soft issue_B_forward == 1'b1; }
+  // TODO: clarify with Zach
+  constraint issue_B_forward_ideal { soft issue_A_is_zero == 1'b0; }
 
   // Temp Void - Dist constraints won't override
   // constraint WB_ready_ideal        { soft WB_ready        == 1'b1; }

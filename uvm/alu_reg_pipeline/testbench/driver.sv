@@ -68,6 +68,7 @@ class alu_reg_pipeline_driver extends uvm_driver#(alu_reg_pipeline_sequence_item
     vif.issue_op                      <= item.issue_op;
     vif.issue_A_forward               <= item.issue_A_forward;
     vif.issue_A_bank                  <= item.issue_A_bank;
+    vif.issue_A_is_zero               <= item.issue_A_is_zero;
     vif.issue_B_forward               <= item.issue_B_forward;
     vif.issue_B_bank                  <= item.issue_B_bank;
     vif.issue_dest_PR                 <= item.issue_dest_PR;
