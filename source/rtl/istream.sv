@@ -92,9 +92,14 @@ module istream #(
 
     logic [7:0] enq_set_valid_vec;
     logic [7:0] enq_set_uncompressed_vec;
+    logic [7:0] enq_set_marker_vec;
+    logic [8:0] enq_set_last_marker_uncompressed_vec;
+
+    logic uncompressed_carry_in_state, next_uncompressed_carry_in_state;
 
     logic [ISTREAM_SETS-1:0][7:0] valid_set_vec_array, next_valid_set_vec_array;
     logic [ISTREAM_SETS-1:0][7:0] uncompressed_set_vec_array, next_uncompressed_set_vec_array;
+    logic [ISTREAM_SETS-1:0][7:0] marker_set_vec_array, next_marker_set_vec_array;
 
     logic [ISTREAM_SETS-1:0] set_valid_array, next_set_valid_array;
     logic [ISTREAM_SETS-1:0] set_enq_one_hot;
@@ -167,33 +172,56 @@ module istream #(
         end
     end
 
+    // always_comb begin
+
+    //     // marker vec
+    //     marker_vec[0] = valid_vec[0];
+    //     last_marker_uncompressed_vec[1] = valid_vec[0] & uncompressed_vec[0];
+
+    //     // for (int i = 1; i <= 14; i++) begin
+    //         // marker_vec[i] = valid_vec[i] & ~(marker_vec[i-1] & uncompressed_vec[i-1]);
+    //         // marker_vec[i] = valid_vec[i] & ~last_marker_uncompressed_vec[i];
+            
+    //     for (int i = 1; i <= 15; i++) begin
+    //         if (valid_vec[i]) begin
+    //             if (last_marker_uncompressed_vec[i]) begin
+    //                 if (i < 15) last_marker_uncompressed_vec[i+1] = 1'b0;
+    //                 marker_vec[i] = 1'b0;
+    //             end else begin
+    //                 if (i < 15) last_marker_uncompressed_vec[i+1] = uncompressed_vec[i];
+    //                 marker_vec[i] = 1'b1;
+    //             end
+    //         end else begin
+    //             if (i < 15) last_marker_uncompressed_vec[i+1] = last_marker_uncompressed_vec[i];
+    //             marker_vec[i] = 1'b0;
+    //         end
+    //     end
+
+    //     // marker_vec[15] = valid_vec[15] & ~uncompressed_vec[15] & ~(marker_vec[14] & uncompressed_vec[14]);
+    //     // marker_vec[15] = valid_vec[15] & ~(marker_vec[14] & uncompressed_vec[14]);
+    // end
+
     always_comb begin
 
-        // marker vec
-        marker_vec[0] = valid_vec[0];
-        last_marker_uncompressed_vec[1] = valid_vec[0] & uncompressed_vec[0];
+        marker_vec[7:0] = marker_set_vec_array[0];
+        marker_vec[15:8] = marker_set_vec_array[1];
 
-        // for (int i = 1; i <= 14; i++) begin
-            // marker_vec[i] = valid_vec[i] & ~(marker_vec[i-1] & uncompressed_vec[i-1]);
-            // marker_vec[i] = valid_vec[i] & ~last_marker_uncompressed_vec[i];
-            
-        for (int i = 1; i <= 15; i++) begin
-            if (valid_vec[i]) begin
-                if (last_marker_uncompressed_vec[i]) begin
-                    if (i < 15) last_marker_uncompressed_vec[i+1] = 1'b0;
-                    marker_vec[i] = 1'b0;
+        enq_set_last_marker_uncompressed_vec[0] = uncompressed_carry_in_state;
+
+        for (int i = 0; i < 8; i++) begin
+            if (enq_set_valid_vec[i]) begin
+                if (enq_set_last_marker_uncompressed_vec[i]) begin
+                    enq_set_last_marker_uncompressed_vec[i+1] = 1'b0;
+                    enq_set_marker_vec[i] = 1'b0;
                 end else begin
-                    if (i < 15) last_marker_uncompressed_vec[i+1] = uncompressed_vec[i];
-                    marker_vec[i] = 1'b1;
+                    enq_set_last_marker_uncompressed_vec[i+1] = enq_set_uncompressed_vec[i];
+                    enq_set_marker_vec[i] = 1'b1;
                 end
             end else begin
-                if (i < 15) last_marker_uncompressed_vec[i+1] = last_marker_uncompressed_vec[i];
-                marker_vec[i] = 1'b0;
+                enq_set_last_marker_uncompressed_vec[i+1] = enq_set_last_marker_uncompressed_vec[i];
+                enq_set_marker_vec[i] = 1'b0;
             end
         end
-
-        // marker_vec[15] = valid_vec[15] & ~uncompressed_vec[15] & ~(marker_vec[14] & uncompressed_vec[14]);
-        // marker_vec[15] = valid_vec[15] & ~(marker_vec[14] & uncompressed_vec[14]);
     end
 
     // lower way 0: can guarantee in lower 8
@@ -291,7 +319,7 @@ module istream #(
 
             // check for lower uncompressed
                 // need lower and upper present
-            if (lower_present_by_way[way] & |(uncompressed_vec & lower_ack_one_hot_by_way[way])) begin
+            if (lower_present_by_way[way] & uncompressed_by_way_SDEQ[way]) begin
 
                 // need upper present
                 if (upper_present_by_way[way]) begin
@@ -588,6 +616,8 @@ module istream #(
             set_valid_array <= '0;
             valid_set_vec_array <= '0;
             uncompressed_set_vec_array <= '0;
+            marker_set_vec_array <= '0;
+            uncompressed_carry_in_state <= 1'b0;
         end
         else if (restart) begin
             stream_set_array <= '0;
@@ -601,6 +631,8 @@ module istream #(
             set_valid_array <= '0;
             valid_set_vec_array <= '0;
             uncompressed_set_vec_array <= '0;
+            marker_set_vec_array <= '0;
+            uncompressed_carry_in_state <= 1'b0;
         end
         else begin
             stream_set_array <= next_stream_set_array;
@@ -610,6 +642,8 @@ module istream #(
             stream_deq1_ptr <= next_stream_deq1_ptr;
 
             deq0_PC28 <= next_deq0_PC28;
+            
+            uncompressed_carry_in_state <= next_uncompressed_carry_in_state;
 
             // check double deQ
             if (~stall_SDEQ & deq0_done & deq1_done) begin
@@ -617,15 +651,18 @@ module istream #(
                 for (int i = 0; i < ISTREAM_SETS-2; i++) begin
                     valid_set_vec_array[i] <= next_valid_set_vec_array[i+2];
                     uncompressed_set_vec_array[i] <= next_uncompressed_set_vec_array[i+2];
+                    marker_set_vec_array[i] <= next_marker_set_vec_array[i+2];
                     set_valid_array[i] <= next_set_valid_array[i+2];
                 end
 
                 valid_set_vec_array[ISTREAM_SETS-2] <= 8'h0;
                 uncompressed_set_vec_array[ISTREAM_SETS-2] <= 8'h0;
+                marker_set_vec_array[ISTREAM_SETS-2] <= 8'h0;
                 set_valid_array[ISTREAM_SETS-2] <= 1'b0;
 
                 valid_set_vec_array[ISTREAM_SETS-1] <= 8'h0;
                 uncompressed_set_vec_array[ISTREAM_SETS-1] <= 8'h0;
+                marker_set_vec_array[ISTREAM_SETS-1] <= 8'h0;
                 set_valid_array[ISTREAM_SETS-1] <= 1'b0;
             end
 
@@ -635,11 +672,13 @@ module istream #(
                 for (int i = 0; i < ISTREAM_SETS-1; i++) begin
                     valid_set_vec_array[i] <= next_valid_set_vec_array[i+1];
                     uncompressed_set_vec_array[i] <= next_uncompressed_set_vec_array[i+1];
+                    marker_set_vec_array[i] <= next_marker_set_vec_array[i+1];
                     set_valid_array[i] <= next_set_valid_array[i+1];
                 end
 
                 valid_set_vec_array[ISTREAM_SETS-1] <= 8'h0;
                 uncompressed_set_vec_array[ISTREAM_SETS-1] <= 8'h0;
+                marker_set_vec_array[ISTREAM_SETS-1] <= 8'h0;
                 set_valid_array[ISTREAM_SETS-1] <= 1'b0;
             end
 
@@ -647,6 +686,7 @@ module istream #(
             else begin
                 valid_set_vec_array <= next_valid_set_vec_array;
                 uncompressed_set_vec_array <= next_uncompressed_set_vec_array;
+                marker_set_vec_array <= next_marker_set_vec_array;
                 set_valid_array <= next_set_valid_array;
             end
         end
@@ -662,6 +702,8 @@ module istream #(
         next_stream_deq1_ptr = stream_deq1_ptr;
 
         next_deq0_PC28 = deq0_PC28;
+
+        next_uncompressed_carry_in_state = 1'b0;
 
         // restart/flush handled in FF logic
             // act as if no restart/flush with next_* signals
@@ -682,6 +724,9 @@ module istream #(
 
             // incr enQ ptr
             next_stream_enq_ptr = stream_enq_ptr + 1;
+
+            // update uncompressed carry in state
+            next_uncompressed_carry_in_state = enq_set_last_marker_uncompressed_vec[8];
         end
 
         // deQ logic
@@ -713,17 +758,20 @@ module istream #(
     always_comb begin
         next_valid_set_vec_array = valid_set_vec_array;
         next_uncompressed_set_vec_array = uncompressed_set_vec_array;
+        next_marker_set_vec_array = marker_set_vec_array;
         next_set_valid_array = set_valid_array;
 
         if (~stall_SDEQ) begin
             for (int i = 0; i < 8; i++) begin
                 if (ack_vec[i]) begin
                     next_valid_set_vec_array[0][i] = 1'b0;
+                    next_marker_set_vec_array[0][i] = 1'b0;
                 end
             end
             for (int j = 0; j < 8; j++) begin
                 if (ack_vec[j + 8]) begin
                     next_valid_set_vec_array[1][j] = 1'b0;
+                    next_marker_set_vec_array[1][j] = 1'b0;
                 end
             end
         end
@@ -733,6 +781,7 @@ module istream #(
                 next_set_valid_array[i] = valid_SENQ & ~stall_SENQ;
                 next_valid_set_vec_array[i] = enq_set_valid_vec;
                 next_uncompressed_set_vec_array[i] = enq_set_uncompressed_vec;
+                next_marker_set_vec_array[i] = enq_set_marker_vec;
             end
         end
     end
