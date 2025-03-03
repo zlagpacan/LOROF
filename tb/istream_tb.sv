@@ -2342,7 +2342,7 @@ module istream_tb ();
 	    // SDEQ stage
 		expected_valid_SDEQ = 1'b1;
 		expected_valid_by_way_SDEQ = 4'b0111;
-		expected_uncompressed_by_way_SDEQ = 4'b1101;
+		expected_uncompressed_by_way_SDEQ = 4'b0101;
 		expected_instr_2B_by_way_by_chunk_SDEQ = {
 			14'h3ff, 2'b11,
 			14'h3ff, 2'b11,
@@ -2657,7 +2657,7 @@ module istream_tb ();
 	    // SDEQ stage
 		expected_valid_SDEQ = 1'b1;
 		expected_valid_by_way_SDEQ = 4'b0011;
-		expected_uncompressed_by_way_SDEQ = 4'b1100;
+		expected_uncompressed_by_way_SDEQ = 4'b0000;
 		expected_instr_2B_by_way_by_chunk_SDEQ = {
 			14'h243, 2'b11,
 			14'h243, 2'b11,

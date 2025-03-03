@@ -60,7 +60,6 @@ module istream #(
     } instr_2B_t;
 
     typedef struct packed {
-        // logic                               valid;
         instr_2B_t                          instr_2B;
         logic [BTB_PRED_INFO_WIDTH-1:0]     pred_info;
         logic                               dep_pred;
@@ -141,8 +140,6 @@ module istream #(
 
         // align deq ptr0 into vec
         for (int i = 0; i < 8; i++) begin
-            // valid_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].valid;
-            // uncompressed_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].instr_2B.lsb2 == 2'b11;
             instr_2B_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].instr_2B;
             pred_info_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].pred_info;
             dep_pred_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].dep_pred;
@@ -153,8 +150,6 @@ module istream #(
 
         // align deq ptr1 into vec
         for (int j = 0; j < 8; j++) begin
-            // valid_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].valid;
-            // uncompressed_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].instr_2B.lsb2 == 2'b11;
             instr_2B_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].instr_2B;
             pred_info_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].pred_info;
             dep_pred_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].dep_pred;
@@ -171,9 +166,41 @@ module istream #(
         marker_vec[15] = valid_vec[15] & ~uncompressed_vec[15] & ~(marker_vec[14] & uncompressed_vec[14]);
     end
 
+    // lower way 0: can guarantee in lower 8
+    pq_lsb #(
+        .WIDTH(8),
+        .USE_ONE_HOT(1),
+        .USE_COLD(1),
+        .USE_INDEX(1)
+    ) WAY_LOWER (
+        .req_vec(lower_req_vec_by_way[0][7:0]),
+        .ack_one_hot(lower_ack_one_hot_by_way[0][7:0]),
+        .ack_mask(),
+        .cold_ack_mask(lower_cold_ack_mask_by_way[0][7:0]),
+        .ack_index(lower_ack_index_by_way[0][2:0])
+    );
+
+    assign lower_ack_one_hot_by_way[0][15:8] = 8'h0;
+    assign lower_cold_ack_mask_by_way[0][15:8] = {8{|lower_req_vec_by_way[0][7:0]}};
+    assign lower_ack_index_by_way[0][3] = 1'b0;
+
+    // upper by way
+    pq_lsb #(
+        .WIDTH(16),
+        .USE_ONE_HOT(1),
+        .USE_COLD(1),
+        .USE_INDEX(1)
+    ) WAY_UPPER (
+        .req_vec(upper_req_vec_by_way[0]),
+        .ack_one_hot(upper_ack_one_hot_by_way[0]),
+        .ack_mask(),
+        .cold_ack_mask(upper_cold_ack_mask_by_way[0]),
+        .ack_index(upper_ack_index_by_way[0])
+    );
+
     genvar way;
     generate
-        for (way = 0 ; way < 4; way++) begin : lower_pq_upper_pq_by_way
+        for (way = 1; way < 4; way++) begin : lower_pq_upper_pq_by_way
 
             // lower by way
             pq_lsb #(
@@ -215,13 +242,16 @@ module istream #(
         lower_req_vec_by_way[0] = marker_vec; // starting point
         upper_req_vec_by_way[0] = valid_vec & lower_cold_ack_mask_by_way[0];
 
-        lower_req_vec_by_way[1] = marker_vec & lower_cold_ack_mask_by_way[0];
+        // lower_req_vec_by_way[1] = marker_vec & lower_cold_ack_mask_by_way[0];
+        lower_req_vec_by_way[1] = lower_req_vec_by_way[0] & ~lower_ack_one_hot_by_way[0];
         upper_req_vec_by_way[1] = valid_vec & lower_cold_ack_mask_by_way[1];
 
-        lower_req_vec_by_way[2] = marker_vec & lower_cold_ack_mask_by_way[1];
+        // lower_req_vec_by_way[2] = marker_vec & lower_cold_ack_mask_by_way[1];
+        lower_req_vec_by_way[2] = lower_req_vec_by_way[1] & ~lower_ack_one_hot_by_way[1];
         upper_req_vec_by_way[2] = valid_vec & lower_cold_ack_mask_by_way[2];
 
-        lower_req_vec_by_way[3] = marker_vec & lower_cold_ack_mask_by_way[2];
+        // lower_req_vec_by_way[3] = marker_vec & lower_cold_ack_mask_by_way[2];
+        lower_req_vec_by_way[3] = lower_req_vec_by_way[2] & ~lower_ack_one_hot_by_way[2];
         upper_req_vec_by_way[3] = valid_vec & lower_cold_ack_mask_by_way[3];
 
         for (int way = 0; way < 4; way++) begin
@@ -231,7 +261,6 @@ module istream #(
 
             // check for lower uncompressed
                 // need lower and upper present
-            // if (lower_present_by_way[way] & uncompressed_vec[lower_ack_index_by_way[way]]) begin
             if (lower_present_by_way[way] & |(uncompressed_vec & lower_ack_one_hot_by_way[way])) begin
 
                 // need upper present
@@ -246,8 +275,6 @@ module istream #(
                     valid_by_way_SDEQ[way] = 1'b1;
 
                     // ack lower and upper
-                    // ack_vec[lower_ack_index_by_way[way]] = 1'b1;
-                    // ack_vec[upper_ack_index_by_way[way]] = 1'b1;
                     ack_vec |= lower_ack_one_hot_by_way[way];
                     ack_vec |= upper_ack_one_hot_by_way[way];
                 end
@@ -262,7 +289,6 @@ module istream #(
 
             // otherwise, lower compressed
                 // only need lower present
-            // else if (lower_present_by_way[way]) begin
             else if (lower_present_by_way[way]) begin
 
                 // guaranteed valid for way 0 valid
@@ -274,7 +300,6 @@ module istream #(
                 valid_by_way_SDEQ[way] = 1'b1;
 
                 // ack lower
-                // ack_vec[lower_ack_index_by_way[way]] = 1'b1;
                 ack_vec |= lower_ack_one_hot_by_way[way];
             end
 
@@ -298,7 +323,7 @@ module istream #(
         for (int way = 0; way < 4; way++) begin
 
             // uncompressed and dep pred follow lower
-            uncompressed_by_way_SDEQ[way] = uncompressed_vec[lower_ack_index_by_way[way]];
+            uncompressed_by_way_SDEQ[way] = |(uncompressed_vec & lower_ack_one_hot_by_way[way]);
             dep_pred_by_way_SDEQ[way] = dep_pred_vec[lower_ack_index_by_way[way]];
 
             // instr and pred info follow lower to chunk 0, upper to chunk 1
@@ -309,7 +334,6 @@ module istream #(
         
             // PC follows lower index set
             // msb = 1 means in deq ptr1 set
-            // if (lower_ack_index_by_way[way][3]) begin
             if (|lower_ack_one_hot_by_way[way][15:8]) begin
                 PC_by_way_SDEQ[way] = {
                     stream_set_array[stream_deq0_ptr.index].after_PC28,
@@ -328,7 +352,6 @@ module istream #(
             // LH, GH, ras index follow upper index set if uncompressed, lower index set if compressed
             if (uncompressed_by_way_SDEQ[way]) begin
                 // msb = 1 means in deq ptr1 set
-                // if (upper_ack_index_by_way[way][3]) begin
                 if (|upper_ack_one_hot_by_way[way][15:8]) begin
                     LH_by_way_SDEQ[way] = LH_deq1;
                     GH_by_way_SDEQ[way] = GH_deq1;
@@ -341,7 +364,6 @@ module istream #(
                 end
             end else begin
                 // msb = 1 means in deq ptr1 set
-                // if (lower_ack_index_by_way[way][3]) begin
                 if (|lower_ack_one_hot_by_way[way][15:8]) begin
                     LH_by_way_SDEQ[way] = LH_deq1;
                     GH_by_way_SDEQ[way] = GH_deq1;
@@ -356,22 +378,11 @@ module istream #(
         end
     end
 
-    // stall follows current ptr FIFO empty check
-    // assign stream_empty0 = 
-    //     stream_enq_ptr.index == stream_deq0_ptr.index 
-    //     & 
-    //     stream_enq_ptr.msb == stream_deq0_ptr.msb
-    // ;
     assign stream_empty0 = ~set_valid_array[0];
-    // assign stream_empty1 = 
-    //     stream_enq_ptr.index == stream_deq1_ptr.index 
-    //     & 
-    //     stream_enq_ptr.msb == stream_deq1_ptr.msb
-    // ;
     assign stream_empty1 = ~set_valid_array[1];
 
-    assign deq0_done = ~stream_empty0 & valid_vec[7:0] == ack_vec[7:0];
-    assign deq1_done = ~stream_empty1 & valid_vec[15:8] == ack_vec[15:8];
+    assign deq0_done = ~stream_empty0 & &(~valid_vec[7:0] | ack_vec[7:0]);
+    assign deq1_done = ~stream_empty1 & &(~valid_vec[15:8] | ack_vec[15:8]);
 
     // ----------------------------------------------------------------
     // enQ Helper Logic: 
@@ -501,7 +512,6 @@ module istream #(
 
             // enQ on stream
             for (int i = 0; i < 8; i++) begin
-                // next_stream_set_array[stream_enq_ptr.index].chunks[i].valid = valid_by_fetch_2B_SENQ[i];
                 next_stream_set_array[stream_enq_ptr.index].chunks[i].instr_2B = instr_2B_by_fetch_2B_SENQ[i];
                 next_stream_set_array[stream_enq_ptr.index].chunks[i].pred_info = pred_info_by_fetch_2B_SENQ[i];
                 next_stream_set_array[stream_enq_ptr.index].chunks[i].dep_pred = dep_pred_by_fetch_2B_SENQ[i];
@@ -517,22 +527,6 @@ module istream #(
 
         // deQ logic
         if (~stall_SDEQ) begin
-
-            // disable valid's which are ack'd:
-
-            // // deq0 set:
-            // for (int i = 0; i < 8; i++) begin
-            //     if (ack_vec[i]) begin
-            //         next_stream_set_array[stream_deq0_ptr.index].chunks[i].valid = 1'b0;
-            //     end
-            // end
-
-            // // deq1 set:
-            // for (int j = 0; j < 8; j++) begin
-            //     if (ack_vec[j + 8]) begin
-            //         next_stream_set_array[stream_deq1_ptr.index].chunks[j].valid = 1'b0;
-            //     end
-            // end
 
             // set deq's:
 
