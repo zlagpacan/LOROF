@@ -172,35 +172,6 @@ module istream #(
         end
     end
 
-    // always_comb begin
-
-    //     // marker vec
-    //     marker_vec[0] = valid_vec[0];
-    //     last_marker_uncompressed_vec[1] = valid_vec[0] & uncompressed_vec[0];
-
-    //     // for (int i = 1; i <= 14; i++) begin
-    //         // marker_vec[i] = valid_vec[i] & ~(marker_vec[i-1] & uncompressed_vec[i-1]);
-    //         // marker_vec[i] = valid_vec[i] & ~last_marker_uncompressed_vec[i];
-            
-    //     for (int i = 1; i <= 15; i++) begin
-    //         if (valid_vec[i]) begin
-    //             if (last_marker_uncompressed_vec[i]) begin
-    //                 if (i < 15) last_marker_uncompressed_vec[i+1] = 1'b0;
-    //                 marker_vec[i] = 1'b0;
-    //             end else begin
-    //                 if (i < 15) last_marker_uncompressed_vec[i+1] = uncompressed_vec[i];
-    //                 marker_vec[i] = 1'b1;
-    //             end
-    //         end else begin
-    //             if (i < 15) last_marker_uncompressed_vec[i+1] = last_marker_uncompressed_vec[i];
-    //             marker_vec[i] = 1'b0;
-    //         end
-    //     end
-
-    //     // marker_vec[15] = valid_vec[15] & ~uncompressed_vec[15] & ~(marker_vec[14] & uncompressed_vec[14]);
-    //     // marker_vec[15] = valid_vec[15] & ~(marker_vec[14] & uncompressed_vec[14]);
-    // end
-
     always_comb begin
 
         marker_vec[7:0] = marker_set_vec_array[0];
@@ -393,12 +364,6 @@ module istream #(
             end
 
             // instr and pred info follow lower to chunk 0, upper to chunk 1:
-            
-            // instr_2B_by_way_by_chunk_SDEQ[way][0] = instr_2B_vec[lower_ack_index_by_way[way]];
-            // instr_2B_by_way_by_chunk_SDEQ[way][1] = instr_2B_vec[upper_ack_index_by_way[way]];
-            // pred_info_by_way_by_chunk_SDEQ[way][0] = pred_info_vec[lower_ack_index_by_way[way]];
-            // pred_info_by_way_by_chunk_SDEQ[way][1] = pred_info_vec[upper_ack_index_by_way[way]];
-        
             instr_2B_by_way_by_chunk_SDEQ[way] = '0;
             pred_info_by_way_by_chunk_SDEQ[way] = '0;
             for (int i = 0; i < 16; i++) begin
@@ -411,23 +376,6 @@ module istream #(
                     pred_info_by_way_by_chunk_SDEQ[way][1] |= pred_info_vec[i];
                 end
             end
-
-            // // PC follows lower index set
-            // // msb = 1 means in deq ptr1 set
-            // if (|lower_ack_one_hot_by_way[way][15:8]) begin
-            //     PC_by_way_SDEQ[way] = {
-            //         stream_set_array[stream_deq0_ptr.index].after_PC28,
-            //         lower_ack_index_by_way[way][2:0],
-            //         1'b0
-            //     };
-            // // msb = 0 means in deq ptr0 set
-            // end else begin
-            //     PC_by_way_SDEQ[way] = {
-            //         deq0_PC28,
-            //         lower_ack_index_by_way[way][2:0],
-            //         1'b0
-            //     };
-            // end
 
             if (|lower_req_vec_by_way[way][7:0]) begin
                 PC_by_way_SDEQ[way] = {
@@ -442,33 +390,6 @@ module istream #(
                     1'b0
                 };
             end
-
-            // // LH, GH, ras index follow upper index set if uncompressed, lower index set if compressed
-            // if (uncompressed_by_way_SDEQ[way]) begin
-            //     // msb = 1 means in deq ptr1 set
-            //     if (|upper_ack_one_hot_by_way[way][15:8]) begin
-            //         LH_by_way_SDEQ[way] = LH_deq1;
-            //         GH_by_way_SDEQ[way] = GH_deq1;
-            //         ras_index_by_way_SDEQ[way] = ras_index_deq1;
-            //     // msb = 0 means in deq ptr0 set
-            //     end else begin
-            //         LH_by_way_SDEQ[way] = LH_deq0;
-            //         GH_by_way_SDEQ[way] = GH_deq0;
-            //         ras_index_by_way_SDEQ[way] = ras_index_deq0;
-            //     end
-            // end else begin
-            //     // msb = 1 means in deq ptr1 set
-            //     if (|lower_ack_one_hot_by_way[way][15:8]) begin
-            //         LH_by_way_SDEQ[way] = LH_deq1;
-            //         GH_by_way_SDEQ[way] = GH_deq1;
-            //         ras_index_by_way_SDEQ[way] = ras_index_deq1;
-            //     // msb = 0 means in deq ptr0 set
-            //     end else begin
-            //         LH_by_way_SDEQ[way] = LH_deq0;
-            //         GH_by_way_SDEQ[way] = GH_deq0;
-            //         ras_index_by_way_SDEQ[way] = ras_index_deq0;
-            //     end
-            // end
 
             if (
                 (|lower_req_vec_by_way[way][6:0]) 
@@ -488,9 +409,6 @@ module istream #(
 
     assign stream_empty0 = ~set_valid_array[0];
     assign stream_empty1 = ~set_valid_array[1];
-
-    // assign deq0_done = ~stream_empty0 & &(~valid_vec[7:0] | ack_vec[7:0]);
-    // assign deq1_done = ~stream_empty1 & &(~valid_vec[15:8] | ack_vec[15:8]);
 
     always_comb begin
 
@@ -703,7 +621,7 @@ module istream #(
 
         next_deq0_PC28 = deq0_PC28;
 
-        next_uncompressed_carry_in_state = 1'b0;
+        next_uncompressed_carry_in_state = uncompressed_carry_in_state;
 
         // restart/flush handled in FF logic
             // act as if no restart/flush with next_* signals

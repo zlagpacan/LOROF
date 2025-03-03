@@ -277,10 +277,10 @@ module istream_tb ();
 		};
 		expected_dep_pred_by_way_SDEQ = 4'b0000;
 		expected_PC_by_way_SDEQ = {
-			32'h80000000,
-			32'h80000000,
-			32'h80000000,
-			32'h80000000
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
 		};
 		expected_LH_by_way_SDEQ = {
 			8'h0,
@@ -372,10 +372,10 @@ module istream_tb ();
 		};
 		expected_dep_pred_by_way_SDEQ = 4'b0000;
 		expected_PC_by_way_SDEQ = {
-			32'h80000000,
-			32'h80000000,
-			32'h80000000,
-			32'h80000000
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
 		};
 		expected_LH_by_way_SDEQ = {
 			8'h0,
@@ -475,10 +475,10 @@ module istream_tb ();
 		};
 		expected_dep_pred_by_way_SDEQ = 4'b0000;
 		expected_PC_by_way_SDEQ = {
-			32'h80000000,
-			32'h80000000,
-			32'h80000000,
-			32'h80000000
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
 		};
 		expected_LH_by_way_SDEQ = {
 			8'h0,
@@ -2294,48 +2294,48 @@ module istream_tb ();
 		expected_valid_by_way_SDEQ = 4'b0001;
 		expected_uncompressed_by_way_SDEQ = 4'b0011;
 		expected_instr_2B_by_way_by_chunk_SDEQ = {
-			14'h2A1, 2'b00,
-			14'h2A1, 2'b00,
-			14'h2A1, 2'b00,
-			14'h2A1, 2'b00,
-			14'h2A1, 2'b00,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
 			14'h2d0, 2'b11,
 			14'h2C1, 2'b00,
 			14'h2C0, 2'b11
 		};
 		expected_pred_info_by_way_by_chunk_SDEQ = {
-			8'hA1,
-			8'hA1,
-			8'hA1,
-			8'hA1,
-			8'hA1,
+			8'h00,
+			8'h00,
+			8'h00,
+			8'h00,
+			8'h00,
 			8'hd0,
 			8'hC1,
 			8'hC0
 		};
 		expected_dep_pred_by_way_SDEQ = 4'b0010;
 		expected_PC_by_way_SDEQ = {
-			32'h76543220,
-			32'h76543220,
+			32'hfedcba90,
+			32'hfedcba90,
 			32'hfedcba9e,
 			32'h76543226
 		};
 		expected_LH_by_way_SDEQ = {
-			8'b11110000,
-			8'b11110000,
-			8'b11110000,
+			8'b00001111,
+			8'b00001111,
+			8'b00001111,
 			8'b11110000
 		};
 		expected_GH_by_way_SDEQ = {
-			12'b000011110000,
-			12'b000011110000,
-			12'b000011110000,
+			12'b111100001111,
+			12'b111100001111,
+			12'b111100001111,
 			12'b000011110000
 		};
 		expected_ras_index_by_way_SDEQ = {
-			3'b000,
-			3'b000,
-			3'b000,
+			3'b111,
+			3'b111,
+			3'b111,
 			3'b000
 		};
 	    // SDEQ feedback
@@ -2399,8 +2399,8 @@ module istream_tb ();
 		expected_valid_by_way_SDEQ = 4'b0111;
 		expected_uncompressed_by_way_SDEQ = 4'b0101;
 		expected_instr_2B_by_way_by_chunk_SDEQ = {
-			14'h3ff, 2'b11,
-			14'h3ff, 2'b11,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
 			14'h2f1, 2'b10,
 			14'h2f0, 2'b11,
 			14'h2f0, 2'b11,
@@ -2409,8 +2409,8 @@ module istream_tb ();
 			14'h2d0, 2'b11
 		};
 		expected_pred_info_by_way_by_chunk_SDEQ = {
-			8'hff,
-			8'hff,
+			8'h00,
+			8'h00,
 			8'hf1,
 			8'hf0,
 			8'hf0,
@@ -2418,27 +2418,27 @@ module istream_tb ();
 			8'hd1,
 			8'hd0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b1001;
+		expected_dep_pred_by_way_SDEQ = 4'b0001;
 		expected_PC_by_way_SDEQ = {
-			32'hfedcba90,
+			32'hfedcbaa0,
 			32'hfedcbaa4,
 			32'hfedcbaa2,
 			32'hfedcba9e
 		};
 		expected_LH_by_way_SDEQ = {
-			8'b00001111,
+			8'b11011101,
 			8'b11011101,
 			8'b11011101,
 			8'b11011101
 		};
 		expected_GH_by_way_SDEQ = {
-			12'b111100001111,
+			12'b110111011101,
 			12'b110111011101,
 			12'b110111011101,
 			12'b110111011101
 		};
 		expected_ras_index_by_way_SDEQ = {
-			3'b111,
+			3'b101,
 			3'b101,
 			3'b101,
 			3'b101
@@ -2714,47 +2714,47 @@ module istream_tb ();
 		expected_valid_by_way_SDEQ = 4'b0011;
 		expected_uncompressed_by_way_SDEQ = 4'b0000;
 		expected_instr_2B_by_way_by_chunk_SDEQ = {
-			14'h243, 2'b11,
-			14'h243, 2'b11,
-			14'h243, 2'b11,
-			14'h243, 2'b11,
-			14'h243, 2'b11,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
 			14'h292, 2'b01,
 			14'h292, 2'b01,
 			14'h282, 2'b01
 		};
 		expected_pred_info_by_way_by_chunk_SDEQ = {
-			8'h43,
-			8'h43,
-			8'h43,
-			8'h43,
-			8'h43,
+			8'h00,
+			8'h00,
+			8'h00,
+			8'h00,
+			8'h00,
 			8'h92,
 			8'h92,
 			8'h82
 		};
 		expected_dep_pred_by_way_SDEQ = 4'b0001;
 		expected_PC_by_way_SDEQ = {
-			32'h90000010,
-			32'h90000010,
+			32'h90000020,
+			32'h90000020,
 			32'h9000001e,
 			32'h9000001c
 		};
 		expected_LH_by_way_SDEQ = {
-			8'b01000100,
-			8'b01000100,
+			8'b10011001,
+			8'b10011001,
 			8'b01000100,
 			8'b01000100
 		};
 		expected_GH_by_way_SDEQ = {
-			12'b010001000100,
-			12'b010001000100,
+			12'b100110011001,
+			12'b100110011001,
 			12'b010001000100,
 			12'b010001000100
 		};
 		expected_ras_index_by_way_SDEQ = {
-			3'b100,
-			3'b100,
+			3'b001,
+			3'b001,
 			3'b100,
 			3'b100
 		};
@@ -2840,10 +2840,10 @@ module istream_tb ();
 		};
 		expected_dep_pred_by_way_SDEQ = 4'b0000;
 		expected_PC_by_way_SDEQ = {
-			32'ha0000000,
-			32'ha0000000,
-			32'ha0000000,
-			32'ha0000000
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
 		};
 		expected_LH_by_way_SDEQ = {
 			8'h0,
