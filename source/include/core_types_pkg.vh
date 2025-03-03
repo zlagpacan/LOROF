@@ -110,7 +110,7 @@ package core_types_pkg;
     // Frontend:
 
     // ISTREAM:
-    parameter ISTREAM_SETS = 4;
+    parameter ISTREAM_SETS = 8;
     parameter ISTREAM_ENTRIES_PER_BLOCK = FETCH_WIDTH_2B;
     parameter ISTREAM_INDEX_WIDTH = $clog2(ISTREAM_SETS);
 
