@@ -23,6 +23,7 @@ module alu_reg_pipeline_sva (
     input logic [3:0]                           issue_op,
     input logic                                 issue_A_forward,
     input logic [LOG_PRF_BANK_COUNT-1:0]        issue_A_bank,
+    input logic                                 issue_A_is_zero,
     input logic                                 issue_B_forward,
     input logic [LOG_PRF_BANK_COUNT-1:0]        issue_B_bank,
     input logic [LOG_PR_COUNT-1:0]              issue_dest_PR,
