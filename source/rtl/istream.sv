@@ -352,16 +352,38 @@ module istream #(
     always_comb begin
         for (int way = 0; way < 4; way++) begin
 
-            // uncompressed and dep pred follow lower
-            uncompressed_by_way_SDEQ[way] = |(uncompressed_vec & lower_ack_one_hot_by_way[way]);
-            dep_pred_by_way_SDEQ[way] = dep_pred_vec[lower_ack_index_by_way[way]];
+            // uncompressed and dep pred follow lower:
 
-            // instr and pred info follow lower to chunk 0, upper to chunk 1
-            instr_2B_by_way_by_chunk_SDEQ[way][0] = instr_2B_vec[lower_ack_index_by_way[way]];
-            instr_2B_by_way_by_chunk_SDEQ[way][1] = instr_2B_vec[upper_ack_index_by_way[way]];
-            pred_info_by_way_by_chunk_SDEQ[way][0] = pred_info_vec[lower_ack_index_by_way[way]];
-            pred_info_by_way_by_chunk_SDEQ[way][1] = pred_info_vec[upper_ack_index_by_way[way]];
+            uncompressed_by_way_SDEQ[way] = |(uncompressed_vec & lower_ack_one_hot_by_way[way]);
+            // dep_pred_by_way_SDEQ[way] = dep_pred_vec[lower_ack_index_by_way[way]];
+
+            dep_pred_by_way_SDEQ[way] = '0;
+            for (int i = 0; i < 16; i++) begin
+                if (lower_ack_one_hot_by_way[way][i]) begin
+                    dep_pred_by_way_SDEQ[way] |= dep_pred_vec[i];
+                end
+            end
+
+            // instr and pred info follow lower to chunk 0, upper to chunk 1:
+            
+            // instr_2B_by_way_by_chunk_SDEQ[way][0] = instr_2B_vec[lower_ack_index_by_way[way]];
+            // instr_2B_by_way_by_chunk_SDEQ[way][1] = instr_2B_vec[upper_ack_index_by_way[way]];
+            // pred_info_by_way_by_chunk_SDEQ[way][0] = pred_info_vec[lower_ack_index_by_way[way]];
+            // pred_info_by_way_by_chunk_SDEQ[way][1] = pred_info_vec[upper_ack_index_by_way[way]];
         
+            instr_2B_by_way_by_chunk_SDEQ[way] = '0;
+            pred_info_by_way_by_chunk_SDEQ[way] = '0;
+            for (int i = 0; i < 16; i++) begin
+                if (lower_ack_one_hot_by_way[way][i]) begin
+                    instr_2B_by_way_by_chunk_SDEQ[way][0] |= instr_2B_vec[i];
+                    pred_info_by_way_by_chunk_SDEQ[way][0] |= pred_info_vec[i];
+                end
+                if (upper_ack_one_hot_by_way[way][i]) begin
+                    instr_2B_by_way_by_chunk_SDEQ[way][1] |= instr_2B_vec[i];
+                    pred_info_by_way_by_chunk_SDEQ[way][1] |= pred_info_vec[i];
+                end
+            end
+
             // PC follows lower index set
             // msb = 1 means in deq ptr1 set
             if (|lower_ack_one_hot_by_way[way][15:8]) begin
