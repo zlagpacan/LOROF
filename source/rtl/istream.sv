@@ -135,8 +135,8 @@ module istream #(
     logic           valid_mask_neq_marker_lower_and_uncompressed_mask;
 
     logic [3:0]     marker_upper_countones;
-    logic [15:0]    marker_upper_and_uncompressed_mask_vec;
-    logic           valid_mask_neq_marker_upper_and_uncompressed_mask;
+    logic [15:0]    marker_total_and_uncompressed_mask_vec;
+    logic           valid_mask_neq_marker_total_and_uncompressed_mask;
 
     logic deq0_done;
     logic deq1_done;
@@ -172,6 +172,7 @@ module istream #(
         // marker vec
         marker_vec[0] = valid_vec[0];
         last_marker_uncompressed_vec[1] = valid_vec[0] & uncompressed_vec[0];
+
         // for (int i = 1; i <= 14; i++) begin
             // marker_vec[i] = valid_vec[i] & ~(marker_vec[i-1] & uncompressed_vec[i-1]);
             // marker_vec[i] = valid_vec[i] & ~last_marker_uncompressed_vec[i];
@@ -190,7 +191,7 @@ module istream #(
                 marker_vec[i] = 1'b0;
             end
         end
-        
+
         // marker_vec[15] = valid_vec[15] & ~uncompressed_vec[15] & ~(marker_vec[14] & uncompressed_vec[14]);
         // marker_vec[15] = valid_vec[15] & ~(marker_vec[14] & uncompressed_vec[14]);
     end
@@ -447,23 +448,23 @@ module istream #(
             end
         end
 
-        valid_mask_neq_marker_upper_and_uncompressed_mask = 1'b0;
-        marker_upper_and_uncompressed_mask_vec[15] = marker_vec[15] & uncompressed_vec[15];
+        valid_mask_neq_marker_total_and_uncompressed_mask = 1'b0;
+        marker_total_and_uncompressed_mask_vec[15] = marker_vec[15] & uncompressed_vec[15];
         for (int i = 14; i >= 0; i--) begin
 
-            marker_upper_and_uncompressed_mask_vec[i] = 
+            marker_total_and_uncompressed_mask_vec[i] = 
                 (marker_vec[i] & uncompressed_vec[i]) 
                 | 
-                marker_upper_and_uncompressed_mask_vec[i+1]
+                marker_total_and_uncompressed_mask_vec[i+1]
             ;
 
-            if (valid_mask_vec[i] & ~marker_upper_and_uncompressed_mask_vec[i]) begin
-                valid_mask_neq_marker_upper_and_uncompressed_mask = 1'b1;
+            if (valid_mask_vec[i] & ~marker_total_and_uncompressed_mask_vec[i]) begin
+                valid_mask_neq_marker_total_and_uncompressed_mask = 1'b1;
             end
         end
     end
 
-    always_comb begin
+    always_comb begin : countones_adders
         marker_lower_countones = 0;
         for (int i = 0; i < 8; i++) begin
             marker_lower_countones += marker_vec[i];
@@ -486,7 +487,7 @@ module istream #(
 
         deq1_done = 1'b0;
         if (marker_lower_countones + marker_upper_countones <= 4) begin
-            if (valid_mask_neq_marker_upper_and_uncompressed_mask) begin
+            if (valid_mask_neq_marker_total_and_uncompressed_mask) begin
                 deq1_done = ~stream_empty1;
             end
         end
