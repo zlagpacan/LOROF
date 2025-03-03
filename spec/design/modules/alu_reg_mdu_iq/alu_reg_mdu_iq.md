@@ -1,5 +1,5 @@
 # alu_reg_mdu_iq
-- backend issue queue for ALU Register-Register Pipeline and MDU Pipeline
+- backend issue queue for ALU Register-Register Pipeline and Multiplication-Division Unit Pipeline
     - see [core_basics.md](../../basics/core_basics.md) for the basic purpose of an issue queue in the backend of the core
     - see [iq_basics.md](../../basics/iq_basics.md) for the basic function of an issue queue
 - example operation: [alu_reg_mdu_iq_example.md](alu_reg_mdu_iq_example.md)
