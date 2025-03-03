@@ -13,7 +13,6 @@ PKG      = ../../source/include
 UVM_DIR  = testbench
 TB_FILE  = testbench/testbench.sv
 TEST_MOD = top
-QSIM_ENV = /package/eda/mg/questa10.6b/questasim
 VCD      = wave.do
 SVA      = $(UVM_DIR)/assertions/$(DUT)_sva.sv
 
