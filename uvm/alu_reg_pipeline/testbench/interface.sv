@@ -22,7 +22,7 @@ interface alu_reg_pipeline_if (input logic CLK);
   logic [3:0]                           issue_op;
   logic                                 issue_A_forward;
   logic [LOG_PRF_BANK_COUNT-1:0]        issue_A_bank;
-  logic                                 issue_A_is_zero,
+  logic                                 issue_A_is_zero;
   logic                                 issue_B_forward;
   logic [LOG_PRF_BANK_COUNT-1:0]        issue_B_bank;
   logic [LOG_PR_COUNT-1:0]              issue_dest_PR;
