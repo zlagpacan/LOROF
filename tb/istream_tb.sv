@@ -2231,20 +2231,75 @@ module istream_tb ();
 
 		// outputs:
 
+	    // // SENQ stage
+	    // // SENQ feedback
+		// expected_stall_SENQ = 1'b0;
+	    // // SDEQ stage
+		// expected_valid_SDEQ = 1'b1;
+		// expected_valid_by_way_SDEQ = 4'b0001;
+		// expected_uncompressed_by_way_SDEQ = 4'b0001;
+		// expected_instr_2B_by_way_by_chunk_SDEQ = {
+		// 	14'h2A1, 2'b00,
+		// 	14'h2A1, 2'b00,
+		// 	14'h2A1, 2'b00,
+		// 	14'h2A1, 2'b00,
+		// 	14'h2A1, 2'b00,
+		// 	14'h2A1, 2'b00,
+		// 	14'h2C1, 2'b00,
+		// 	14'h2C0, 2'b11
+		// };
+		// expected_pred_info_by_way_by_chunk_SDEQ = {
+		// 	8'hA1,
+		// 	8'hA1,
+		// 	8'hA1,
+		// 	8'hA1,
+		// 	8'hA1,
+		// 	8'hA1,
+		// 	8'hC1,
+		// 	8'hC0
+		// };
+		// expected_dep_pred_by_way_SDEQ = 4'b0000;
+		// expected_PC_by_way_SDEQ = {
+		// 	32'h76543220,
+		// 	32'h76543220,
+		// 	32'h76543220,
+		// 	32'h76543226
+		// };
+		// expected_LH_by_way_SDEQ = {
+		// 	8'b11110000,
+		// 	8'b11110000,
+		// 	8'b11110000,
+		// 	8'b11110000
+		// };
+		// expected_GH_by_way_SDEQ = {
+		// 	12'b000011110000,
+		// 	12'b000011110000,
+		// 	12'b000011110000,
+		// 	12'b000011110000
+		// };
+		// expected_ras_index_by_way_SDEQ = {
+		// 	3'b000,
+		// 	3'b000,
+		// 	3'b000,
+		// 	3'b000
+		// };
+	    // // SDEQ feedback
+	    // // control
+
 	    // SENQ stage
 	    // SENQ feedback
 		expected_stall_SENQ = 1'b0;
 	    // SDEQ stage
 		expected_valid_SDEQ = 1'b1;
 		expected_valid_by_way_SDEQ = 4'b0001;
-		expected_uncompressed_by_way_SDEQ = 4'b0001;
+		expected_uncompressed_by_way_SDEQ = 4'b0011;
 		expected_instr_2B_by_way_by_chunk_SDEQ = {
 			14'h2A1, 2'b00,
 			14'h2A1, 2'b00,
 			14'h2A1, 2'b00,
 			14'h2A1, 2'b00,
 			14'h2A1, 2'b00,
-			14'h2A1, 2'b00,
+			14'h2d0, 2'b11,
 			14'h2C1, 2'b00,
 			14'h2C0, 2'b11
 		};
@@ -2254,15 +2309,15 @@ module istream_tb ();
 			8'hA1,
 			8'hA1,
 			8'hA1,
-			8'hA1,
+			8'hd0,
 			8'hC1,
 			8'hC0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b0000;
+		expected_dep_pred_by_way_SDEQ = 4'b0010;
 		expected_PC_by_way_SDEQ = {
 			32'h76543220,
 			32'h76543220,
-			32'h76543220,
+			32'hfedcba9e,
 			32'h76543226
 		};
 		expected_LH_by_way_SDEQ = {
