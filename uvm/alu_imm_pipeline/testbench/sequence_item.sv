@@ -45,7 +45,7 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
   logic [LOG_ROB_ENTRIES-1:0] WB_ROB_index;
 
   // --- UVM Debug Macro --- //
-  `uvm_object_utils_begin(transaction)
+  `uvm_object_utils_begin(alu_imm_pipeline_sequence_item)
     // --- Reset --- //
     `uvm_field_int(nRST,            UVM_NOCOMPARE)
     // --- Inputs --- //
