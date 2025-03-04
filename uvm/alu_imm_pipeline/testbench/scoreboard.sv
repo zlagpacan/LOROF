@@ -24,10 +24,11 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
   `uvm_component_utils(alu_imm_pipeline_scoreboard)
 
   // --- Scoreboard Components --- //
-  uvm_analysis_export#(alu_imm_pipeline_sequence_item) predicted_export;
-  uvm_analysis_export#(alu_imm_pipeline_sequence_item) actual_export;
-  uvm_tlm_analysis_fifo#(alu_imm_pipeline_sequence_item) predicted_fifo;
+  uvm_analysis_export#(alu_imm_pipeline_sequence_item)   expected_export;
+  uvm_analysis_export#(alu_imm_pipeline_sequence_item)   actual_export;
+  uvm_tlm_analysis_fifo#(alu_imm_pipeline_sequence_item) expected_fifo;
   uvm_tlm_analysis_fifo#(alu_imm_pipeline_sequence_item) actual_fifo;
+
   int m_matches, m_mismatches, num_transactions;
 
   // --- Constructor --- //
@@ -43,18 +44,17 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
   // --- Build Phase --- //
   function void build_phase(uvm_phase phase);
     // --- TLM FIFO Ports --- //
-    predicted_fifo = new("predicted_fifo", this);
-    actual_fifo = new("actual_fifo", this);
-
+    expected_fifo = new("expected_fifo", this);
+    actual_fifo   = new("actual_fifo", this);
     // --- Scoreboard Exports --- //
-    predicted_export = new("predicted_export", this);
-    actual_export = new("actual_export", this);
+    expected_export = new("expected_export", this);
+    actual_export   = new("actual_export", this);
   endfunction : build_phase
 
   // --- Connect Phase --- //
   function void connect_phase(uvm_phase phase);
     // --- Connecting Fifos to Exports --- //
-    predicted_export.connect(predicted_fifo.analysis_export);
+    expected_export.connect(expected_fifo.analysis_export);
     actual_export.connect(actual_fifo.analysis_export);
   endfunction
 
@@ -63,22 +63,23 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
     super.run_phase(phase);
     `uvm_info("SCB_CLASS", "Run Phase", UVM_HIGH)
    
+    alu_imm_pipeline_sequence_item expected_tx;
+    alu_imm_pipeline_sequence_item actual_tx;
+
     forever begin
-      alu_imm_pipeline_sequence_item predicted_tx;
-      alu_imm_pipeline_sequence_item actual_tx;
-      predicted_fifo.get(predicted_tx);
+      expected_fifo.get(expected_tx);
       actual_fifo.get(actual_tx);
       num_transactions++;
-      if (predicted_tx.compare(actual_tx)) begin
-            m_matches++;
-            uvm_report_info("SB", "Data match");
+
+      if (expected_tx.compare(actual_tx)) begin
+        m_matches++;
+        uvm_report_info("SB", "Data match");
       end 
       else begin
-            m_mismatches++;
-            `uvm_info("SCBD", $sformatf("Test Case: : FAILED"), UVM_LOW)
-            // `uvm_report_info("SB", "Error: Data mismatch");
-            // predicted_tx.print_transaction("predicted_tx");
-            // actual_tx.print_transaction("actual_tx");
+        m_mismatches++;
+        `uvm_info("SCBD", $sformatf("Test Case: : FAILED"), UVM_LOW)
+        // expected_tx.print_transaction("expected_tx");
+        // actual_tx.print_transaction("actual_tx");
       end
     end
     

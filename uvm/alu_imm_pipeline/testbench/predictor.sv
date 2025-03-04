@@ -14,10 +14,14 @@ import uvm_pkg::*;
 // --- Packages --- //
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
+
+// --- Includes --- //
+`include "sequence_item.sv"
     
 // --- Predictor --- //
 class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequence_item); 
     `uvm_component_utils(alu_imm_pipeline_predictor)
+
     uvm_analysis_port#(alu_imm_pipeline_sequence_item) pred_ap;
     alu_imm_pipeline_sequence_item expected_tx;
 
