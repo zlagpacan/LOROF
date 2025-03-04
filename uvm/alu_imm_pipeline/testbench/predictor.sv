@@ -42,7 +42,7 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
             expected_tx.WB_ROB_index = '0;
         end 
 
-        `uvm_info(get_type_name(), $sformatf("Predicted TX: %s", expected_tx.sprint()), UVM_MEDIUM)
+        // `uvm_info(get_type_name(), $sformatf("Predicted TX: %s", expected_tx.sprint()), UVM_MEDIUM)
 
         pred_ap.write(expected_tx);
     endfunction : write

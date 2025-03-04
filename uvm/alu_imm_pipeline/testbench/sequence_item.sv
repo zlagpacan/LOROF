@@ -74,7 +74,7 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
     The idea is to have the base seq item be the 'ideal' sequence
       - 1 op per cycle
   */
-  constraint nRST_ideal            { soft nRST            == 1'b1; }
+  // constraint nRST_ideal            { soft nRST            == 1'b1; }
   constraint issue_valid_ideal     { soft issue_valid     == 1'b1; }
   constraint issue_A_forward_ideal { soft issue_A_forward == 1'b1; }
 

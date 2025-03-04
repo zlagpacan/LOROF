@@ -23,6 +23,9 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
   uvm_tlm_analysis_fifo#(alu_imm_pipeline_sequence_item) expected_fifo;
   uvm_tlm_analysis_fifo#(alu_imm_pipeline_sequence_item) actual_fifo;
 
+  alu_imm_pipeline_sequence_item expected_tx;
+  alu_imm_pipeline_sequence_item actual_tx;
+
   int m_matches, m_mismatches, num_transactions;
 
   // --- Constructor --- //
@@ -56,8 +59,7 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
   task run_phase(uvm_phase phase);
     super.run_phase(phase);
    
-    alu_imm_pipeline_sequence_item expected_tx;
-    alu_imm_pipeline_sequence_item actual_tx;
+
 
     // Allocate memory for transactions
     expected_tx = alu_imm_pipeline_sequence_item::type_id::create("expected_tx");
@@ -70,7 +72,10 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
 
       if (expected_tx.compare(actual_tx)) begin
         m_matches++;
-        `uvm_info("SCBD", "Data Match", UVM_LOW)
+        // TODO: test case name param
+        `uvm_info("SCBD", "Test Case: PASSED", UVM_LOW)
+        expected_tx.print();
+        actual_tx.print();
       end 
       else begin
         m_mismatches++;
@@ -83,9 +88,9 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
 
   // --- Report Phase --- //
   function void report_phase(uvm_phase phase);
-    `uvm_report_info("Comparator", $sformatf("Matches:    %0d", m_matches));
-    `uvm_report_info("Comparator", $sformatf("Mismatches: %0d", m_mismatches));
-    `uvm_report_info("Num trans", $sformatf("Number of transactions: %0d", num_transactions));
+
+  // TODO:
+
   endfunction
 
 endclass : alu_imm_pipeline_scoreboard
