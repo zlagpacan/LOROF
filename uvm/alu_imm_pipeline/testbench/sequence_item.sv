@@ -17,7 +17,6 @@ import core_types_pkg::*;
     
 // --- Transaction --- //
 class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
-  `uvm_object_utils(alu_imm_pipeline_sequence_item)
 
   // --- Control Signals --- //
   rand logic nRST;
