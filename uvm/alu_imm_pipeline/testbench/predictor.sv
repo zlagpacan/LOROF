@@ -1,9 +1,3 @@
-/*
-  Module        : alu_imm_pipeline
-  UMV Component : predictor
-  Author        : Adam Keith
-*/
-
 `ifndef ALU_IMM_PIPELINE_PRED_SV
 `define ALU_IMM_PIPELINE_PRED_SV
 
@@ -30,23 +24,27 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
     endfunction : new
 
     function void build_phase(uvm_phase phase);
+        super.build_phase(phase);
         pred_ap = new("pred_ap", this);
     endfunction : build_phase
 
     function void write(alu_imm_pipeline_sequence_item t);
-        expected_tx = alu_imm_pipeline_sequence_item::type_id::create("expected_tx");
+        if (expected_tx == null) begin
+            expected_tx = alu_imm_pipeline_sequence_item::type_id::create("expected_tx");
+        end
         expected_tx.copy(t);
         
-        if(t.nRST == 1'b0) begin
+        if (t.nRST == 1'b0) begin
             expected_tx.issue_ready  = '1;
             expected_tx.WB_valid     = '0;
             expected_tx.WB_data      = '0;
             expected_tx.WB_PR        = '0;
             expected_tx.WB_ROB_index = '0;
-            // TODO: print TX
-            pred_ap.write(expected_tx);
-        end
+        end 
 
+        `uvm_info(get_type_name(), $sformatf("Predicted TX: %s", expected_tx.sprint()), UVM_MEDIUM)
+
+        pred_ap.write(expected_tx);
     endfunction : write
     
 endclass
