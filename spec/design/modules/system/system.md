@@ -32,6 +32,7 @@ Quad-Core, so 4 of each:
     - coherent
         - receives snoops from L2 Cache
     - MOESI cache block states
+    - write-back
     - supports atomics
 - Data TLB
     - 32-entry
@@ -55,6 +56,7 @@ Quad-Core, so 4 of each:
         - receives snoops from Bus
         - snoops L1 Data Cache
     - MOESI cache block states
+    - write-back
 
 # System Modules
 - Bus
@@ -70,6 +72,7 @@ Quad-Core, so 4 of each:
     - unified instruction + data
     - shared among cores
     - {clean, dirty, invalid} cache block states
+    - write-back
 - Memory Controller
     - DDR3 DRAM controller
     - TBD
