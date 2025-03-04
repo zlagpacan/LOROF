@@ -56,12 +56,11 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
     // --- Connecting Fifos to Exports --- //
     expected_export.connect(expected_fifo.analysis_export);
     actual_export.connect(actual_fifo.analysis_export);
-  endfunction
+  endfunction : connect_phase
 
   // --- Run Phase --- //
-  task run_phase (uvm_phase phase);
+  task run_phase(uvm_phase phase);
     super.run_phase(phase);
-    `uvm_info("SCB_CLASS", "Run Phase", UVM_HIGH)
    
     alu_imm_pipeline_sequence_item expected_tx;
     alu_imm_pipeline_sequence_item actual_tx;
@@ -73,7 +72,7 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
 
       if (expected_tx.compare(actual_tx)) begin
         m_matches++;
-        uvm_report_info("SB", "Data match");
+        `uvm_info("SCBD", $sformatf("Data Match"), UVM_LOW)
       end 
       else begin
         m_mismatches++;
