@@ -62,21 +62,19 @@ class alu_imm_pipeline_test extends uvm_test;
         Test Case Tag: TODO:
         Test Case Name : TODO:
       */
-      repeat (6) begin
-        garbage_seq = garbage_sequence::type_id::create("garbage_seq");
-        garbage_seq.start(env.agnt.seqr);
-        // `uvm_info("ALU_REG_TX", $sformatf("Sequence item content: %s", garbage_seq.sprint()), UVM_MEDIUM)
-      end
-
-      reset_seq = reset_sequence::type_id::create("reset_seq");
-      reset_seq.start(env.agnt.seqr);
-      #(CLK_PERIOD);
-      // `uvm_info("ALU_REG_TX", $sformatf("Sequence item content: %s", reset_seq.sprint()), UVM_MEDIUM)
-
       repeat (4) begin
         garbage_seq = garbage_sequence::type_id::create("garbage_seq");
         garbage_seq.start(env.agnt.seqr);
-        // `uvm_info("ALU_REG_TX", $sformatf("Sequence item content: %s", garbage_seq.sprint()), UVM_MEDIUM)
+      end
+
+      #(0.5 * CLK_PERIOD);
+      reset_seq = reset_sequence::type_id::create("reset_seq");
+      reset_seq.start(env.agnt.seqr);
+      #(0.5 * CLK_PERIOD);
+
+      repeat (2) begin
+        garbage_seq = garbage_sequence::type_id::create("garbage_seq");
+        garbage_seq.start(env.agnt.seqr);
       end
 
       // Prime for next test case

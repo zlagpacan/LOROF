@@ -73,14 +73,14 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
       if (expected_tx.compare(actual_tx)) begin
         m_matches++;
         // TODO: test case name param
-        `uvm_info("SCBD", "Test Case: PASSED", UVM_LOW)
-        expected_tx.print();
-        actual_tx.print();
+        `uvm_info("SCBD", "Test Case: ALUIMMP : PASSED", UVM_LOW)
       end 
       else begin
         m_mismatches++;
-        `uvm_info("SCBD", "Test Case: FAILED", UVM_LOW)
+        `uvm_info("SCBD", "Test Case: ALUIMMP : FAILED", UVM_LOW)
+        `uvm_info("SCBD", "Expected Transaction", UVM_LOW)
         expected_tx.print();
+        `uvm_info("SCBD", "Actual Transaction", UVM_LOW)
         actual_tx.print();
       end
     end
