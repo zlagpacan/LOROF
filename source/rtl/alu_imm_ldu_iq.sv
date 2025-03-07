@@ -269,6 +269,7 @@ module alu_imm_ldu_iq #(
     always_comb begin
         for (int way = 0; way < 4; way++) begin
             dispatch_ack_by_way[way] = |dispatch_one_hot_by_way[way];
+            dispatch_ack_by_way[way] = |(dispatch_open_mask_by_way[way] & {ALU_IMM_LDU_IQ_ENTRIES{dispatch_attempt_by_way[way]}});
         end
     end
 
