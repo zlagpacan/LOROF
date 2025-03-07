@@ -63,13 +63,8 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
     actual_tx = alu_imm_pipeline_sequence_item::type_id::create("actual_tx");
 
     forever begin
-      `uvm_info("SCBD", $sformatf("Waiting for Expected TX at %0t", $time), UVM_LOW)
       expected_fifo.get(expected_tx);
-      `uvm_info("SCBD", $sformatf("Got Expected TX at %0t", $time), UVM_LOW)
-
-      `uvm_info("SCBD", $sformatf("Waiting for Actual TX at %0t", $time), UVM_LOW)
       actual_fifo.get(actual_tx);
-      `uvm_info("SCBD", $sformatf("Got Actual TX at %0t", $time), UVM_LOW)
 
       num_transactions++;
 

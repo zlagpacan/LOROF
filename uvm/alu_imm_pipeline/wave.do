@@ -20,8 +20,16 @@ add wave -noupdate /top/alu_imm_pipeline_intf/WB_valid
 add wave -noupdate /top/alu_imm_pipeline_intf/WB_data
 add wave -noupdate /top/alu_imm_pipeline_intf/WB_PR
 add wave -noupdate /top/alu_imm_pipeline_intf/WB_ROB_index
+add wave -noupdate /uvm_root/uvm_test_top/env/scb/expected_fifo/m_pending_blocked_gets
+add wave -noupdate /uvm_root/uvm_test_top/env/scb/expected_fifo/m_size
+add wave -noupdate /uvm_root/uvm_test_top/env/scb/expected_fifo/recording_detail
+add wave -noupdate /uvm_root/uvm_test_top/env/scb/expected_fifo/m_phasing_active
+add wave -noupdate /uvm_root/uvm_test_top/env/scb/expected_fifo/m_build_done
+add wave -noupdate /uvm_root/uvm_test_top/env/scb/expected_fifo/print_enabled
+add wave -noupdate /uvm_root/uvm_test_top/env/scb/expected_fifo/enable_stop_interrupt
+add wave -noupdate /uvm_root/uvm_test_top/env/scb/expected_fifo/m_inst_id
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {7 ns} 0}
+WaveRestoreCursors {{Cursor 1} {33 ns} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
