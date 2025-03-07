@@ -20,6 +20,9 @@ import core_types_pkg::*;
 `include "interface.sv"
 `include "env.sv"
 `include "sequences/reset_seq.sv"
+`include "sequences/stall_seq.sv"
+`include "sequences/ideal_seq.sv"
+
 
 // --- Test --- //
 class alu_imm_pipeline_test extends uvm_test;
@@ -31,6 +34,8 @@ class alu_imm_pipeline_test extends uvm_test;
   // --- Test Sequences --- //
   reset_sequence         reset_seq;
   garbage_sequence       garbage_seq;
+  wb_stall_sequence      wb_stall_seq;
+  ideal_sequence         ideal_seq;
 
   parameter CLK_PERIOD = 4;
 
@@ -53,7 +58,7 @@ class alu_imm_pipeline_test extends uvm_test;
   // --- Test Procedure --- //
   task run_phase (uvm_phase phase);
     super.run_phase(phase);
-    `uvm_info("TEST_CLASS", "Run Phase", UVM_HIGH)
+    `uvm_info("TEST_CLASS", "Run  Phase", UVM_HIGH)
 
     phase.raise_objection(this);
 
@@ -81,6 +86,15 @@ class alu_imm_pipeline_test extends uvm_test;
       reset_seq = reset_sequence::type_id::create("reset_seq");
       reset_seq.start(env.agnt.seqr);
       #(CLK_PERIOD);
+
+      /* 
+        Test Case Tag: TODO:
+        Test Case Name : Writeback Stall
+      */
+      repeat (60) begin
+          wb_stall_seq = wb_stall_sequence::type_id::create("wb_stall_seq");
+          wb_stall_seq.start(env.agnt.seqr);
+      end
     
     phase.drop_objection(this);
 

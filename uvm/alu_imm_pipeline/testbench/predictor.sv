@@ -41,14 +41,14 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
             expected_tx.WB_PR        = '0;
             expected_tx.WB_ROB_index = '0;
         end 
-        // else begin
-        //     // TODO:
-        //     expected_tx.issue_ready  = '0;
-        //     expected_tx.WB_valid     = 'x;
-        //     expected_tx.WB_data      = 'x;
-        //     expected_tx.WB_PR        = 'x;
-        //     expected_tx.WB_ROB_index = 'x;
-        // end
+        else begin
+            if (t.WB_ready == 1'b0) begin
+                expected_tx.WB_valid     = $past(t.WB_valid);
+                expected_tx.WB_data      = $past(t.WB_data);
+                expected_tx.WB_PR        = $past(t.WB_PR);
+                expected_tx.WB_ROB_index = $past(t.WB_ROB_index);
+            end
+        end
 
         // `uvm_info(get_type_name(), $sformatf("Predicted TX: %s", expected_tx.sprint()), UVM_MEDIUM)
 
