@@ -1,9 +1,0 @@
-# Executing ONERROR command at macro ./wave.do line 24
-# ** UI-Msg (Error): (vsim-4003) Invalid option '-create'.
-# Usage: when [[options] when-conditional-expression [tcl-script]]
-#   options: -id <idNum>
-#            (-disable | -enable)
-#            (-fast | -gui)
-#            -label <label>
-#            -repeat
-#            -temporary

@@ -20,10 +20,15 @@ add wave -noupdate /top/alu_imm_pipeline_intf/WB_valid
 add wave -noupdate /top/alu_imm_pipeline_intf/WB_data
 add wave -noupdate /top/alu_imm_pipeline_intf/WB_PR
 add wave -noupdate /top/alu_imm_pipeline_intf/WB_ROB_index
-when -create sim:/uvm_test_top/alu_imm_pipeline_scoreboard/expected_tx \
+
+# Adding expected_tx and actual_tx only if they exist (check their availability)
+if {[object exists sim:/uvm_test_top/alu_imm_pipeline_scoreboard/expected_tx]} {
     add wave -r sim:/uvm_test_top/alu_imm_pipeline_scoreboard/expected_tx
-when -create sim:/uvm_test_top/alu_imm_pipeline_scoreboard/actual_tx \
+}
+if {[object exists sim:/uvm_test_top/alu_imm_pipeline_scoreboard/actual_tx]} {
     add wave -r sim:/uvm_test_top/alu_imm_pipeline_scoreboard/actual_tx
+}
+
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {7 ns} 0}
 quietly wave cursor active 1
