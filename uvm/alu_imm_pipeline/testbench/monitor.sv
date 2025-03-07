@@ -86,8 +86,6 @@ class alu_imm_pipeline_monitor extends uvm_monitor;
       item.forward_data_by_bank          = vif.forward_data_by_bank;
       item.WB_ready                      = vif.WB_ready;
 
-      predictor_port.write(item);
-      
       // --- Output Sample --- //
       @(posedge vif.CLK);
       item.issue_ready                   = vif.issue_ready;
@@ -96,6 +94,8 @@ class alu_imm_pipeline_monitor extends uvm_monitor;
       item.WB_PR                         = vif.WB_PR;
       item.WB_ROB_index                  = vif.WB_ROB_index;
       
+      predictor_port.write(item);
+
       // --- Send to Scoreboard --- //
       monitor_port.write(item);
       

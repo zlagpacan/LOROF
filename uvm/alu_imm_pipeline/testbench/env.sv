@@ -64,7 +64,7 @@ class alu_imm_pipeline_env extends uvm_env;
     agnt.mon.predictor_port.connect(pred.analysis_export);
 
     // --- Predictor -> Scoreboard --- //
-    pred.pred_ap.connect(scb.predicted_export);
+    pred.pred_ap.connect(scb.expected_export);
     
   endfunction : connect_phase
   
