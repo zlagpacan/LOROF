@@ -41,20 +41,18 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
             expected_tx.WB_PR        = '0;
             expected_tx.WB_ROB_index = '0;
             pred_ap.write(expected_tx);
+        end else begin
+            // TODO:
+            expected_tx.issue_ready  = '0;
+            expected_tx.WB_valid     = 'x;
+            expected_tx.WB_data      = 'x;
+            expected_tx.WB_PR        = 'x;
+            expected_tx.WB_ROB_index = 'x;
         end
-
-        // end else begin
-        //     // TODO:
-        //     expected_tx.issue_ready  = 'x;
-        //     expected_tx.WB_valid     = 'x;
-        //     expected_tx.WB_data      = 'x;
-        //     expected_tx.WB_PR        = 'x;
-        //     expected_tx.WB_ROB_index = 'x;
-        // end
 
         // `uvm_info(get_type_name(), $sformatf("Predicted TX: %s", expected_tx.sprint()), UVM_MEDIUM)
 
-        // pred_ap.write(expected_tx);
+        pred_ap.write(expected_tx);
     endfunction : write
     
 endclass

@@ -58,26 +58,27 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
   // --- Run Phase --- //
   task run_phase(uvm_phase phase);
     super.run_phase(phase);
-   
 
-
-    // Allocate memory for transactions
     expected_tx = alu_imm_pipeline_sequence_item::type_id::create("expected_tx");
     actual_tx = alu_imm_pipeline_sequence_item::type_id::create("actual_tx");
 
     forever begin
+      `uvm_info("SCBD", $sformatf("Waiting for Expected TX at %0t", $time), UVM_LOW)
       expected_fifo.get(expected_tx);
+      `uvm_info("SCBD", $sformatf("Got Expected TX at %0t", $time), UVM_LOW)
+
+      `uvm_info("SCBD", $sformatf("Waiting for Actual TX at %0t", $time), UVM_LOW)
       actual_fifo.get(actual_tx);
+      `uvm_info("SCBD", $sformatf("Got Actual TX at %0t", $time), UVM_LOW)
+
       num_transactions++;
 
       if (expected_tx.compare(actual_tx)) begin
         m_matches++;
-        // TODO: test case name param
         `uvm_info("SCBD", "Test Case: ALUIMMP : PASSED", UVM_LOW)
-      end 
-      else begin
+      end else begin
         m_mismatches++;
-        `uvm_info("SCBD", "Test Case: ALUIMMP : FAILED", UVM_LOW)
+        `uvm_error("SCBD", "Test Case: ALUIMMP : FAILED")
         `uvm_info("SCBD", "Expected Transaction", UVM_LOW)
         expected_tx.print();
         `uvm_info("SCBD", "Actual Transaction", UVM_LOW)
@@ -85,7 +86,7 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
       end
     end
   endtask : run_phase
-
+  
   // --- Report Phase --- //
   function void report_phase(uvm_phase phase);
 
