@@ -72,8 +72,8 @@ module free_list #(
     logic [FREE_LIST_BANK_COUNT-1:0][FREE_LIST_BANK_COUNT-1:0]  enq_lower_threshold_bank_req_vec_by_bank;
     logic [FREE_LIST_BANK_COUNT-1:0][FREE_LIST_BANK_COUNT-1:0]  enq_lower_threshold_bank_ack_one_hot_by_bank;
 
-    // logic [FREE_LIST_BANK_COUNT-1:0][FREE_LIST_BANK_COUNT-1:0]  enq_not_upper_threshold_bank_req_vec_by_bank;
-    // logic [FREE_LIST_BANK_COUNT-1:0][FREE_LIST_BANK_COUNT-1:0]  enq_not_upper_threshold_bank_ack_one_hot_by_bank;
+    logic [FREE_LIST_BANK_COUNT-1:0][FREE_LIST_BANK_COUNT-1:0]  enq_not_upper_threshold_bank_req_vec_by_bank;
+    logic [FREE_LIST_BANK_COUNT-1:0][FREE_LIST_BANK_COUNT-1:0]  enq_not_upper_threshold_bank_ack_one_hot_by_bank;
 
     logic [FREE_LIST_BANK_COUNT-1:0][FREE_LIST_BANK_COUNT-1:0]  enq_not_full_bank_req_vec_by_bank;
     logic [FREE_LIST_BANK_COUNT-1:0][FREE_LIST_BANK_COUNT-1:0]  enq_not_full_bank_ack_one_hot_by_bank;
@@ -138,7 +138,7 @@ module free_list #(
     // enQ Request Bank 0: //
     /////////////////////////
     assign enq_lower_threshold_bank_req_vec_by_bank[0] = lower_threshold_bank_mask;
-    // assign enq_not_upper_threshold_bank_req_vec_by_bank[0] = not_upper_threshold_bank_mask;
+    assign enq_not_upper_threshold_bank_req_vec_by_bank[0] = not_upper_threshold_bank_mask;
     assign enq_not_full_bank_req_vec_by_bank[0] = not_full_bank_mask;
     pq_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
@@ -149,15 +149,15 @@ module free_list #(
         .req_vec(enq_lower_threshold_bank_req_vec_by_bank[0]),
         .ack_one_hot(enq_lower_threshold_bank_ack_one_hot_by_bank[0])
     );
-    // pq_lsb #(
-    //     .WIDTH(FREE_LIST_BANK_COUNT),
-    //     .USE_ONE_HOT(1),
-    //     .USE_COLD(0),
-    //     .USE_INDEX(0)
-    // ) ENQ_BANK0_UPPER_THRESHOLD_PQ (
-    //     .req_vec(enq_not_upper_threshold_bank_req_vec_by_bank[0]),
-    //     .ack_one_hot(enq_not_upper_threshold_bank_ack_one_hot_by_bank[0])
-    // );
+    pq_lsb #(
+        .WIDTH(FREE_LIST_BANK_COUNT),
+        .USE_ONE_HOT(1),
+        .USE_COLD(0),
+        .USE_INDEX(0)
+    ) ENQ_BANK0_UPPER_THRESHOLD_PQ (
+        .req_vec(enq_not_upper_threshold_bank_req_vec_by_bank[0]),
+        .ack_one_hot(enq_not_upper_threshold_bank_ack_one_hot_by_bank[0])
+    );
     pq_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
         .USE_ONE_HOT(1),
@@ -172,7 +172,7 @@ module free_list #(
     // enQ Request Bank 1: //
     /////////////////////////
     assign enq_lower_threshold_bank_req_vec_by_bank[1] = enq_lower_threshold_bank_req_vec_by_bank[0] & ~enq_bank_ack_one_hot_by_bank[0];
-    // assign enq_not_upper_threshold_bank_req_vec_by_bank[1] = enq_not_upper_threshold_bank_req_vec_by_bank[0] & ~enq_bank_ack_one_hot_by_bank[0];
+    assign enq_not_upper_threshold_bank_req_vec_by_bank[1] = enq_not_upper_threshold_bank_req_vec_by_bank[0] & ~enq_bank_ack_one_hot_by_bank[0];
     assign enq_not_full_bank_req_vec_by_bank[1] = enq_not_full_bank_req_vec_by_bank[0] & ~enq_bank_ack_one_hot_by_bank[0];
     pq_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
@@ -183,15 +183,15 @@ module free_list #(
         .req_vec(enq_lower_threshold_bank_req_vec_by_bank[1]),
         .ack_one_hot(enq_lower_threshold_bank_ack_one_hot_by_bank[1])
     );
-    // pq_lsb #(
-    //     .WIDTH(FREE_LIST_BANK_COUNT),
-    //     .USE_ONE_HOT(1),
-    //     .USE_COLD(0),
-    //     .USE_INDEX(0)
-    // ) ENQ_BANK1_UPPER_THRESHOLD_PQ (
-    //     .req_vec(enq_not_upper_threshold_bank_req_vec_by_bank[1]),
-    //     .ack_one_hot(enq_not_upper_threshold_bank_ack_one_hot_by_bank[1])
-    // );
+    pq_lsb #(
+        .WIDTH(FREE_LIST_BANK_COUNT),
+        .USE_ONE_HOT(1),
+        .USE_COLD(0),
+        .USE_INDEX(0)
+    ) ENQ_BANK1_UPPER_THRESHOLD_PQ (
+        .req_vec(enq_not_upper_threshold_bank_req_vec_by_bank[1]),
+        .ack_one_hot(enq_not_upper_threshold_bank_ack_one_hot_by_bank[1])
+    );
     pq_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
         .USE_ONE_HOT(1),
@@ -206,7 +206,7 @@ module free_list #(
     // enQ Request Bank 2: //
     /////////////////////////
     assign enq_lower_threshold_bank_req_vec_by_bank[2] = enq_lower_threshold_bank_req_vec_by_bank[1] & ~enq_bank_ack_one_hot_by_bank[1];
-    // assign enq_not_upper_threshold_bank_req_vec_by_bank[2] = enq_not_upper_threshold_bank_req_vec_by_bank[1] & ~enq_bank_ack_one_hot_by_bank[1];
+    assign enq_not_upper_threshold_bank_req_vec_by_bank[2] = enq_not_upper_threshold_bank_req_vec_by_bank[1] & ~enq_bank_ack_one_hot_by_bank[1];
     assign enq_not_full_bank_req_vec_by_bank[2] = enq_not_full_bank_req_vec_by_bank[1] & ~enq_bank_ack_one_hot_by_bank[1];
     pq_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
@@ -217,15 +217,15 @@ module free_list #(
         .req_vec(enq_lower_threshold_bank_req_vec_by_bank[2]),
         .ack_one_hot(enq_lower_threshold_bank_ack_one_hot_by_bank[2])
     );
-    // pq_lsb #(
-    //     .WIDTH(FREE_LIST_BANK_COUNT),
-    //     .USE_ONE_HOT(1),
-    //     .USE_COLD(0),
-    //     .USE_INDEX(0)
-    // ) ENQ_BANK2_UPPER_THRESHOLD_PQ (
-    //     .req_vec(enq_not_upper_threshold_bank_req_vec_by_bank[2]),
-    //     .ack_one_hot(enq_not_upper_threshold_bank_ack_one_hot_by_bank[2])
-    // );
+    pq_lsb #(
+        .WIDTH(FREE_LIST_BANK_COUNT),
+        .USE_ONE_HOT(1),
+        .USE_COLD(0),
+        .USE_INDEX(0)
+    ) ENQ_BANK2_UPPER_THRESHOLD_PQ (
+        .req_vec(enq_not_upper_threshold_bank_req_vec_by_bank[2]),
+        .ack_one_hot(enq_not_upper_threshold_bank_ack_one_hot_by_bank[2])
+    );
     pq_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
         .USE_ONE_HOT(1),
@@ -240,7 +240,7 @@ module free_list #(
     // enQ Request Bank 3: //
     /////////////////////////
     assign enq_lower_threshold_bank_req_vec_by_bank[3] = enq_lower_threshold_bank_req_vec_by_bank[2] & ~enq_bank_ack_one_hot_by_bank[2];
-    // assign enq_not_upper_threshold_bank_req_vec_by_bank[3] = enq_not_upper_threshold_bank_req_vec_by_bank[2] & ~enq_bank_ack_one_hot_by_bank[2];
+    assign enq_not_upper_threshold_bank_req_vec_by_bank[3] = enq_not_upper_threshold_bank_req_vec_by_bank[2] & ~enq_bank_ack_one_hot_by_bank[2];
     assign enq_not_full_bank_req_vec_by_bank[3] = enq_not_full_bank_req_vec_by_bank[2] & ~enq_bank_ack_one_hot_by_bank[2];
     pq_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
@@ -251,15 +251,15 @@ module free_list #(
         .req_vec(enq_lower_threshold_bank_req_vec_by_bank[3]),
         .ack_one_hot(enq_lower_threshold_bank_ack_one_hot_by_bank[3])
     );
-    // pq_lsb #(
-    //     .WIDTH(FREE_LIST_BANK_COUNT),
-    //     .USE_ONE_HOT(1),
-    //     .USE_COLD(0),
-    //     .USE_INDEX(0)
-    // ) ENQ_BANK3_UPPER_THRESHOLD_PQ (
-    //     .req_vec(enq_not_upper_threshold_bank_req_vec_by_bank[3]),
-    //     .ack_one_hot(enq_not_upper_threshold_bank_ack_one_hot_by_bank[3])
-    // );
+    pq_lsb #(
+        .WIDTH(FREE_LIST_BANK_COUNT),
+        .USE_ONE_HOT(1),
+        .USE_COLD(0),
+        .USE_INDEX(0)
+    ) ENQ_BANK3_UPPER_THRESHOLD_PQ (
+        .req_vec(enq_not_upper_threshold_bank_req_vec_by_bank[3]),
+        .ack_one_hot(enq_not_upper_threshold_bank_ack_one_hot_by_bank[3])
+    );
     pq_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
         .USE_ONE_HOT(1),
@@ -443,8 +443,11 @@ module free_list #(
     // shift reg logic
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            shift_reg_valid_by_entry <= '0;
-            shift_reg_PR_by_entry <= '0;
+            // reset with lowest 12 PR's above 32 AR's
+            for (int entry = 0; entry < FREE_LIST_SHIFT_REG_ENTRIES; entry++) begin
+                shift_reg_valid_by_entry[entry] <= 1'b1;
+                shift_reg_PR_by_entry[entry] <= 32 + entry[LOG_PR_COUNT-1:0];
+            end
         end
         else begin
 
@@ -1044,7 +1047,7 @@ module free_list #(
                 // 8 PR's per bank
             for (int bank = 0; bank < FREE_LIST_BANK_COUNT; bank++) begin
                 enq_ptr_by_bank[bank] <= '0;
-                deq_ptr_by_bank[bank] <= AR_COUNT / FREE_LIST_BANK_COUNT;
+                deq_ptr_by_bank[bank] <= (AR_COUNT+12) / FREE_LIST_BANK_COUNT;
             end
         end
         else begin
@@ -1117,8 +1120,9 @@ module free_list #(
         if (~nRST) begin
             // simple reset with all PR's in ordered slot
                 // ptr resets take care of the initially non-free PR's
+            free_list_by_bank <= '0;
             for (int pr = 0; pr < PR_COUNT; pr++) begin
-                free_list_by_bank[pr[LOG_FREE_LIST_BANK_COUNT-1:0]] <= pr[LOG_PR_COUNT-1:0];
+                free_list_by_bank[pr[LOG_FREE_LIST_BANK_COUNT-1:0]][pr[LOG_PR_COUNT-1:LOG_FREE_LIST_BANK_COUNT]] <= pr[LOG_PR_COUNT-1:0];
             end
         end
         else begin

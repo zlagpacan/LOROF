@@ -126,11 +126,16 @@ module free_list_tb ();
 		// reset
 		nRST = 1'b0;
 	    // enqueue request
-		tb_enq_req_valid_by_bank = 
-		tb_enq_req_PR_by_bank = 
+		tb_enq_req_valid_by_bank = 4'b0000;
+		tb_enq_req_PR_by_bank = {
+			7'h0,
+			7'h0,
+			7'h0,
+			7'h0
+		};
 	    // enqueue feedback
 	    // dequeue request
-		tb_deq_req_valid_by_bank = 
+		tb_deq_req_valid_by_bank = 4'b0000;
 	    // dequeue feedback
 
 		@(posedge CLK); #(PERIOD/10);
@@ -139,14 +144,18 @@ module free_list_tb ();
 
 	    // enqueue request
 	    // enqueue feedback
-		expected_enq_resp_ack_by_bank = 
+		expected_enq_resp_ack_by_bank = 4'b0000;
 	    // dequeue request
-		expected_deq_req_PR_by_bank = 
+		expected_deq_req_PR_by_bank = {
+			7'h23,
+			7'h22,
+			7'h21,
+			7'h20
+		};
 	    // dequeue feedback
-		expected_deq_resp_ready_by_bank = 
+		expected_deq_resp_ready_by_bank = 4'b1111;
 
 		check_outputs();
-fill in ^
 
         // inputs:
         sub_test_case = "deassert reset";
@@ -155,11 +164,16 @@ fill in ^
 		// reset
 		nRST = 1'b1;
 	    // enqueue request
-		tb_enq_req_valid_by_bank = 
-		tb_enq_req_PR_by_bank = 
+		tb_enq_req_valid_by_bank = 4'b0000;
+		tb_enq_req_PR_by_bank = {
+			7'h0,
+			7'h0,
+			7'h0,
+			7'h0
+		};
 	    // enqueue feedback
 	    // dequeue request
-		tb_deq_req_valid_by_bank = 
+		tb_deq_req_valid_by_bank = 4'b0000;
 	    // dequeue feedback
 
 		@(posedge CLK); #(PERIOD/10);
@@ -168,14 +182,18 @@ fill in ^
 
 	    // enqueue request
 	    // enqueue feedback
-		expected_enq_resp_ack_by_bank = 
+		expected_enq_resp_ack_by_bank = 4'b0000;
 	    // dequeue request
-		expected_deq_req_PR_by_bank = 
+		expected_deq_req_PR_by_bank = {
+			7'h23,
+			7'h22,
+			7'h21,
+			7'h20
+		};
 	    // dequeue feedback
-		expected_deq_resp_ready_by_bank = 
+		expected_deq_resp_ready_by_bank = 4'b1111;
 
 		check_outputs();
-fill in ^
 
         // ------------------------------------------------------------
         // default:
@@ -192,11 +210,16 @@ fill in ^
 		// reset
 		nRST = 1'b1;
 	    // enqueue request
-		tb_enq_req_valid_by_bank = 
-		tb_enq_req_PR_by_bank = 
+		tb_enq_req_valid_by_bank = 4'b0000;
+		tb_enq_req_PR_by_bank = {
+			7'h0,
+			7'h0,
+			7'h0,
+			7'h0
+		};
 	    // enqueue feedback
 	    // dequeue request
-		tb_deq_req_valid_by_bank = 
+		tb_deq_req_valid_by_bank = 4'b0000;
 	    // dequeue feedback
 
 		@(negedge CLK);
@@ -205,14 +228,18 @@ fill in ^
 
 	    // enqueue request
 	    // enqueue feedback
-		expected_enq_resp_ack_by_bank = 
+		expected_enq_resp_ack_by_bank = 4'b0000;
 	    // dequeue request
-		expected_deq_req_PR_by_bank = 
+		expected_deq_req_PR_by_bank = {
+			7'h23,
+			7'h22,
+			7'h21,
+			7'h20
+		};
 	    // dequeue feedback
-		expected_deq_resp_ready_by_bank = 
+		expected_deq_resp_ready_by_bank = 4'b1111;
 
 		check_outputs();
-fill in ^
 
         // ------------------------------------------------------------
         // finish:
