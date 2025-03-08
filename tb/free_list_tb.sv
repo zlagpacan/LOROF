@@ -196,50 +196,115 @@ module free_list_tb ();
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // simple deq chain:
+        test_case = "simple deq chain";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		@(posedge CLK); #(PERIOD/10);
+		for (int i = 32; i < 128; i+=4) begin
 
-		// inputs
-		sub_test_case = "default";
-		$display("\t- sub_test: %s", sub_test_case);
+			@(posedge CLK); #(PERIOD/10);
 
-		// reset
-		nRST = 1'b1;
-	    // enqueue request
-		tb_enq_req_valid_by_bank = 4'b0000;
-		tb_enq_req_PR_by_bank = {
-			7'h0,
-			7'h0,
-			7'h0,
-			7'h0
-		};
-	    // enqueue feedback
-	    // dequeue request
-		tb_deq_req_valid_by_bank = 4'b0000;
-	    // dequeue feedback
+			// inputs
+			sub_test_case = $sformatf("deq [%2h:%2h+3]", i[6:0], i[6:0]);
+			$display("\t- sub_test: %s", sub_test_case);
 
-		@(negedge CLK);
+			// reset
+			nRST = 1'b1;
+			// enqueue request
+			tb_enq_req_valid_by_bank = 4'b0000;
+			tb_enq_req_PR_by_bank = {
+				7'h0,
+				7'h0,
+				7'h0,
+				7'h0
+			};
+			// enqueue feedback
+			// dequeue request
+			tb_deq_req_valid_by_bank = 4'b1111;
+			// dequeue feedback
 
-		// outputs:
+			@(negedge CLK);
 
-	    // enqueue request
-	    // enqueue feedback
-		expected_enq_resp_ack_by_bank = 4'b0000;
-	    // dequeue request
-		expected_deq_req_PR_by_bank = {
-			7'h23,
-			7'h22,
-			7'h21,
-			7'h20
-		};
-	    // dequeue feedback
-		expected_deq_resp_ready_by_bank = 4'b1111;
+			// outputs:
 
-		check_outputs();
+			// enqueue request
+			// enqueue feedback
+			expected_enq_resp_ack_by_bank = 4'b0000;
+			// dequeue request
+			expected_deq_req_PR_by_bank = {
+				{i+3}[6:0],
+				{i+2}[6:0],
+				{i+1}[6:0],
+				{i+0}[6:0]
+			};
+			// dequeue feedback
+			expected_deq_resp_ready_by_bank = 4'b1111;
+
+			check_outputs();
+		end
+
+        // ------------------------------------------------------------
+        // simple enq chain:
+        test_case = "simple enq chain";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+		for (int i = 127; i >= 0; i-=4) begin
+
+			@(posedge CLK); #(PERIOD/10);
+
+			// inputs
+			sub_test_case = $sformatf("enq [%2h:%2h-3]", i[6:0], i[6:0]);
+			$display("\t- sub_test: %s", sub_test_case);
+
+			// reset
+			nRST = 1'b1;
+			// enqueue request
+			tb_enq_req_valid_by_bank = 4'b1111;
+			tb_enq_req_PR_by_bank = {
+				{i-3}[6:0],
+				{i-2}[6:0],
+				{i-1}[6:0],
+				{i-0}[6:0]
+			};
+			// enqueue feedback
+			// dequeue request
+			tb_deq_req_valid_by_bank = 4'b0000;
+			// dequeue feedback
+
+			@(negedge CLK);
+
+			// outputs:
+
+			// enqueue request
+			// enqueue feedback
+			expected_enq_resp_ack_by_bank = 4'b1111;
+			// dequeue request
+			if (i > 120) begin
+				expected_deq_req_PR_by_bank = {
+					7'h0,
+					7'h0,
+					7'h0,
+					7'h0
+				};
+			end else begin
+				expected_deq_req_PR_by_bank = {
+					7'h7c,
+					7'h7d,
+					7'h7e,
+					7'h7f
+				};
+			end
+			// dequeue feedback
+			if (i > 120) begin
+				expected_deq_resp_ready_by_bank = 4'b0000;
+			end else begin
+				expected_deq_resp_ready_by_bank = 4'b1111;
+			end
+
+			check_outputs();
+		end
 
         // ------------------------------------------------------------
         // finish:

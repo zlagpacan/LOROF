@@ -1046,7 +1046,8 @@ module free_list #(
             // init with 32 AR's mapped to 32 lowest PR's
                 // 8 PR's per bank
             for (int bank = 0; bank < FREE_LIST_BANK_COUNT; bank++) begin
-                enq_ptr_by_bank[bank] <= '0;
+                enq_ptr_by_bank[bank].msb <= 1'b1;
+                enq_ptr_by_bank[bank].index <= '0;
                 deq_ptr_by_bank[bank] <= (AR_COUNT+12) / FREE_LIST_BANK_COUNT;
             end
         end
