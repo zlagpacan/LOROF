@@ -276,36 +276,44 @@ module alu_reg_mdu_iq #(
     // way 0
     assign dispatch_open_mask_by_way[0] = ~(valid_alu_reg_by_entry | valid_mdu_by_entry);
     pq_lsb #(.WIDTH(ALU_REG_MDU_IQ_ENTRIES)) DISPATCH_WAY0_PQ_LSB (
-        .req_vec(dispatch_open_mask_by_way[0]),
-        .ack_one_hot(dispatch_pq_one_hot_by_way[0]),
+        // .req_vec(dispatch_open_mask_by_way[0]),
+        .req_vec(dispatch_open_mask_by_way[0] & {ALU_REG_MDU_IQ_ENTRIES{dispatch_attempt_by_way[0]}}),
+        // .ack_one_hot(dispatch_pq_one_hot_by_way[0]),
+        .ack_one_hot(dispatch_one_hot_by_way[0]),
         .ack_mask() // unused
     );
-    assign dispatch_one_hot_by_way[0] = dispatch_pq_one_hot_by_way[0] & {ALU_REG_MDU_IQ_ENTRIES{dispatch_attempt_by_way[0]}};
+    // assign dispatch_one_hot_by_way[0] = dispatch_pq_one_hot_by_way[0] & {ALU_REG_MDU_IQ_ENTRIES{dispatch_attempt_by_way[0]}};
 
     // way 1
     assign dispatch_open_mask_by_way[1] = dispatch_open_mask_by_way[0] & ~dispatch_one_hot_by_way[0];
     pq_lsb #(.WIDTH(ALU_REG_MDU_IQ_ENTRIES)) DISPATCH_WAY1_PQ_LSB (
-        .req_vec(dispatch_open_mask_by_way[1]),
-        .ack_one_hot(dispatch_pq_one_hot_by_way[1]),
+        // .req_vec(dispatch_open_mask_by_way[1]),
+        .req_vec(dispatch_open_mask_by_way[1] & {ALU_REG_MDU_IQ_ENTRIES{dispatch_attempt_by_way[1]}}),
+        // .ack_one_hot(dispatch_pq_one_hot_by_way[1]),
+        .ack_one_hot(dispatch_one_hot_by_way[1]),
         .ack_mask() // unused
     );
-    assign dispatch_one_hot_by_way[1] = dispatch_pq_one_hot_by_way[1] & {ALU_REG_MDU_IQ_ENTRIES{dispatch_attempt_by_way[1]}};
+    // assign dispatch_one_hot_by_way[1] = dispatch_pq_one_hot_by_way[1] & {ALU_REG_MDU_IQ_ENTRIES{dispatch_attempt_by_way[1]}};
     
     assign dispatch_open_mask_by_way[2] = dispatch_open_mask_by_way[1] & ~dispatch_one_hot_by_way[1];
     pq_lsb #(.WIDTH(ALU_REG_MDU_IQ_ENTRIES)) DISPATCH_WAY2_PQ_LSB (
-        .req_vec(dispatch_open_mask_by_way[2]),
-        .ack_one_hot(dispatch_pq_one_hot_by_way[2]),
+        // .req_vec(dispatch_open_mask_by_way[2]),
+        .req_vec(dispatch_open_mask_by_way[2] & {ALU_REG_MDU_IQ_ENTRIES{dispatch_attempt_by_way[2]}}),
+        // .ack_one_hot(dispatch_pq_one_hot_by_way[2]),
+        .ack_one_hot(dispatch_one_hot_by_way[2]),
         .ack_mask() // unused
     );
-    assign dispatch_one_hot_by_way[2] = dispatch_pq_one_hot_by_way[2] & {ALU_REG_MDU_IQ_ENTRIES{dispatch_attempt_by_way[2]}};
+    // assign dispatch_one_hot_by_way[2] = dispatch_pq_one_hot_by_way[2] & {ALU_REG_MDU_IQ_ENTRIES{dispatch_attempt_by_way[2]}};
     
     assign dispatch_open_mask_by_way[3] = dispatch_open_mask_by_way[2] & ~dispatch_one_hot_by_way[2];
     pq_lsb #(.WIDTH(ALU_REG_MDU_IQ_ENTRIES)) DISPATCH_WAY3_PQ_LSB (
-        .req_vec(dispatch_open_mask_by_way[3]),
-        .ack_one_hot(dispatch_pq_one_hot_by_way[3]),
+        // .req_vec(dispatch_open_mask_by_way[3]),
+        .req_vec(dispatch_open_mask_by_way[3] & {ALU_REG_MDU_IQ_ENTRIES{dispatch_attempt_by_way[3]}}),
+        // .ack_one_hot(dispatch_pq_one_hot_by_way[3]),
+        .ack_one_hot(dispatch_one_hot_by_way[3]),
         .ack_mask() // unused
     );
-    assign dispatch_one_hot_by_way[3] = dispatch_pq_one_hot_by_way[3] & {ALU_REG_MDU_IQ_ENTRIES{dispatch_attempt_by_way[3]}};
+    // assign dispatch_one_hot_by_way[3] = dispatch_pq_one_hot_by_way[3] & {ALU_REG_MDU_IQ_ENTRIES{dispatch_attempt_by_way[3]}};
 
     // give dispatch feedback
     always_comb begin
