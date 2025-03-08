@@ -12,6 +12,12 @@ The LOROF CPU cores are moderately sophisticated superscalar out-of-order engine
     - the front half of the core, responsible for fetching, decoding, and otherwise managing new instructions
 - backend
     - the back half of the core, responsible for executing instructions -> reading registers, performing operations, writing back registers, reading memory, writing memory, etc.
+- scalar execution
+    - only one instruction can be in a stage of execution at a given time
+        - up to one instruction fetched per cycle, up to one instruction decoded per cycle, etc.
+- superscalar execution
+    - multiple instructions can be in a stage of execution at a given time
+        - e.g. 3 instructions fetched per cycle, 3 isntructions decoded per cycle, etc.
 
 ### Instruction-Level Parallelism (ILP)
 - the performance of a single thread of execution can be enhanced by both minimizing the latency of individual instructions, as well as maximizing the instruction completion bandwidth
