@@ -123,11 +123,11 @@ module alu_reg_mdu_iq #(
     logic [3:0][ALU_REG_MDU_IQ_ENTRIES-1:0]     dispatch_pq_one_hot_by_way;
     logic [3:0][ALU_REG_MDU_IQ_ENTRIES-1:0]     dispatch_one_hot_by_way;
 
-    // adder approach
-    logic [$clog2(ALU_REG_MDU_IQ_ENTRIES)+1-1:0]          lowest_invalid_entry, next_lowest_invalid_entry;
-    logic [3:0][$clog2(ALU_REG_MDU_IQ_ENTRIES)-1:0]     lowest_invalid_entry_by_way; 
+    // // adder approach
+    // logic [$clog2(ALU_REG_MDU_IQ_ENTRIES)+1-1:0]          lowest_invalid_entry, next_lowest_invalid_entry;
+    // logic [3:0][$clog2(ALU_REG_MDU_IQ_ENTRIES)-1:0]     lowest_invalid_entry_by_way; 
 
-    logic [ALU_REG_MDU_IQ_ENTRIES-1:0][1:0] dispatch_way_index_by_entry;
+    // logic [ALU_REG_MDU_IQ_ENTRIES-1:0][1:0] dispatch_way_index_by_entry;
 
     // ----------------------------------------------------------------
     // Issue Logic:
