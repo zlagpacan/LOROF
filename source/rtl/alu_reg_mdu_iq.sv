@@ -123,6 +123,12 @@ module alu_reg_mdu_iq #(
     logic [3:0][ALU_REG_MDU_IQ_ENTRIES-1:0]     dispatch_pq_one_hot_by_way;
     logic [3:0][ALU_REG_MDU_IQ_ENTRIES-1:0]     dispatch_one_hot_by_way;
 
+    // adder approach
+    logic [$clog2(ALU_REG_MDU_IQ_ENTRIES)+1-1:0]          lowest_invalid_entry, next_lowest_invalid_entry;
+    logic [3:0][$clog2(ALU_REG_MDU_IQ_ENTRIES)-1:0]     lowest_invalid_entry_by_way; 
+
+    logic [ALU_REG_MDU_IQ_ENTRIES-1:0][1:0] dispatch_way_index_by_entry;
+
     // ----------------------------------------------------------------
     // Issue Logic:
 
@@ -345,6 +351,99 @@ module alu_reg_mdu_iq #(
             end
         end
     end
+
+    // pq_lsb #(
+    //     .WIDTH(ALU_REG_MDU_IQ_ENTRIES + 4),
+    //     .USE_ONE_HOT(0),
+    //     .USE_COLD(0),
+    //     .USE_INDEX(1)
+    // ) LOWEST_INVALID_PQ (
+    //     .req_vec(~{4'b0000, {valid_alu_reg_by_entry | valid_mdu_by_entry}}),
+    //     .ack_index(lowest_invalid_entry)
+    // );
+
+    // always_comb begin
+    //     next_lowest_invalid_entry = lowest_invalid_entry;
+    //     for (int way = 0; way < 4; way++) begin
+    //         next_lowest_invalid_entry = 
+    //             next_lowest_invalid_entry 
+    //             + 
+    //             ((dispatch_valid_alu_reg_by_way[way] | dispatch_valid_mdu_by_way[way]) & dispatch_ack_by_way[way])
+    //         ;
+    //     end
+    //     next_lowest_invalid_entry = next_lowest_invalid_entry - issue_alu_reg_valid;
+    //     next_lowest_invalid_entry = next_lowest_invalid_entry - issue_mdu_valid;
+    // end
+
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    //     if (~nRST) begin
+    //         lowest_invalid_entry <= '0;
+    //     end
+    //     else begin
+    //         lowest_invalid_entry <= next_lowest_invalid_entry;
+    //     end
+    // end
+
+    // always_comb begin
+
+    //     dispatch_way_index_by_entry = '0;
+
+    //     // way 0
+    //     lowest_invalid_entry_by_way[0] = lowest_invalid_entry;
+    //     if (dispatch_attempt_by_way[0]) begin
+    //         dispatch_way_index_by_entry[lowest_invalid_entry_by_way[0]] = 2'h0;
+    //         lowest_invalid_entry_by_way[1] = lowest_invalid_entry_by_way[0] + 1;
+    //     end else begin
+    //         lowest_invalid_entry_by_way[1] = lowest_invalid_entry_by_way[0];
+    //     end
+
+    //     // way 1
+    //     if (dispatch_attempt_by_way[1]) begin
+    //         dispatch_way_index_by_entry[lowest_invalid_entry_by_way[1]] = 2'h1;
+    //         lowest_invalid_entry_by_way[2] = lowest_invalid_entry_by_way[1] + 1;
+    //     end else begin
+    //         lowest_invalid_entry_by_way[2] = lowest_invalid_entry_by_way[1];
+    //     end
+
+    //     // way 2
+    //     if (dispatch_attempt_by_way[2]) begin
+    //         dispatch_way_index_by_entry[lowest_invalid_entry_by_way[2]] = 2'h2;
+    //         lowest_invalid_entry_by_way[3] = lowest_invalid_entry_by_way[2] + 1;
+    //     end else begin
+    //         lowest_invalid_entry_by_way[3] = lowest_invalid_entry_by_way[2];
+    //     end
+
+    //     // way 3
+    //     if (dispatch_attempt_by_way[3]) begin
+    //         dispatch_way_index_by_entry[lowest_invalid_entry_by_way[3]] = 2'h3;
+    //     end
+
+    //     for (int way = 0; way < 4; way++) begin
+    //         dispatch_ack_by_way[way] = 
+    //             dispatch_attempt_by_way[way] 
+    //             & 
+    //             (lowest_invalid_entry_by_way[way] < ALU_REG_MDU_IQ_ENTRIES)
+    //         ;
+    //     end
+    // end
+
+    // always_comb begin
+    //     for (int entry = 0; entry < ALU_REG_MDU_IQ_ENTRIES; entry++) begin
+    //         dispatch_valid_alu_reg_by_entry[entry] = dispatch_valid_alu_reg_by_way[dispatch_way_index_by_entry[entry]]
+    //             & entry == lowest_invalid_entry_by_way[dispatch_way_index_by_entry[entry]];
+    //         dispatch_valid_mdu_by_entry[entry] = dispatch_valid_mdu_by_way[dispatch_way_index_by_entry[entry]]
+    //             & entry == lowest_invalid_entry_by_way[dispatch_way_index_by_entry[entry]];
+    //         dispatch_op_by_entry[entry] = dispatch_op_by_way[dispatch_way_index_by_entry[entry]];
+    //         dispatch_A_PR_by_entry[entry] = dispatch_A_PR_by_way[dispatch_way_index_by_entry[entry]];
+    //         dispatch_A_ready_by_entry[entry] = dispatch_A_ready_by_way[dispatch_way_index_by_entry[entry]];
+    //         dispatch_A_is_zero_by_entry[entry] = dispatch_A_is_zero_by_way[dispatch_way_index_by_entry[entry]];
+    //         dispatch_B_PR_by_entry[entry] = dispatch_B_PR_by_way[dispatch_way_index_by_entry[entry]];
+    //         dispatch_B_ready_by_entry[entry] = dispatch_B_ready_by_way[dispatch_way_index_by_entry[entry]];
+    //         dispatch_B_is_zero_by_entry[entry] = dispatch_B_is_zero_by_way[dispatch_way_index_by_entry[entry]];
+    //         dispatch_dest_PR_by_entry[entry] = dispatch_dest_PR_by_way[dispatch_way_index_by_entry[entry]];
+    //         dispatch_ROB_index_by_entry[entry] = dispatch_ROB_index_by_way[dispatch_way_index_by_entry[entry]];
+    //     end
+    // end
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
