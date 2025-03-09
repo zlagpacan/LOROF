@@ -20,6 +20,7 @@ module alu_imm_ldu_iq #(
     input logic [3:0]                       dispatch_valid_alu_imm_by_way,
     input logic [3:0]                       dispatch_valid_ldu_by_way,
     input logic [3:0][3:0]                  dispatch_op_by_way,
+    input logic [3:0][MDPT_INFO_WIDTH-1:0]  dispatch_mdp_info_by_way,
     input logic [3:0][11:0]                 dispatch_imm12_by_way,
     input logic [3:0][LOG_PR_COUNT-1:0]     dispatch_A_PR_by_way,
     input logic [3:0]                       dispatch_A_ready_by_way,
@@ -55,6 +56,7 @@ module alu_imm_ldu_iq #(
     // op issue to LDU Pipeline
     output logic                            issue_ldu_valid,
     output logic [3:0]                      issue_ldu_op,
+    output logic [MDPT_INFO_WIDTH-1:0]      issue_ldu_mdp_info,
     output logic [11:0]                     issue_ldu_imm12,
     output logic                            issue_ldu_A_forward,
     output logic                            issue_ldu_A_is_zero,
@@ -74,6 +76,7 @@ module alu_imm_ldu_iq #(
     logic [ALU_IMM_LDU_IQ_ENTRIES-1:0]                      valid_alu_imm_by_entry;
     logic [ALU_IMM_LDU_IQ_ENTRIES-1:0]                      valid_ldu_by_entry;
     logic [ALU_IMM_LDU_IQ_ENTRIES-1:0][3:0]                 op_by_entry;
+    logic [ALU_IMM_LDU_IQ_ENTRIES-1:0][MDPT_INFO_WIDTH-1:0] mdp_info_by_entry;
     logic [ALU_IMM_LDU_IQ_ENTRIES-1:0][11:0]                imm12_by_entry;
     logic [ALU_IMM_LDU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]    A_PR_by_entry;
     logic [ALU_IMM_LDU_IQ_ENTRIES-1:0]                      A_ready_by_entry;
@@ -96,6 +99,7 @@ module alu_imm_ldu_iq #(
     logic [ALU_IMM_LDU_IQ_ENTRIES-1:0]                          dispatch_valid_alu_imm_by_entry;
     logic [ALU_IMM_LDU_IQ_ENTRIES-1:0]                          dispatch_valid_ldu_by_entry;
     logic [ALU_IMM_LDU_IQ_ENTRIES-1:0][3:0]                     dispatch_op_by_entry;
+    logic [ALU_IMM_LDU_IQ_ENTRIES-1:0][MDPT_INFO_WIDTH-1:0]     dispatch_mdp_info_by_entry;
     logic [ALU_IMM_LDU_IQ_ENTRIES-1:0][11:0]                    dispatch_imm12_by_entry;
     logic [ALU_IMM_LDU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]        dispatch_A_PR_by_entry;
     logic [ALU_IMM_LDU_IQ_ENTRIES-1:0]                          dispatch_A_ready_by_entry;
@@ -198,6 +202,7 @@ module alu_imm_ldu_iq #(
 
         // one-hot mux over entries for final issue:
         issue_ldu_op = '0;
+        issue_ldu_mdp_info = '0;
         issue_ldu_imm12 = '0;
         issue_ldu_A_forward = '0;
         issue_ldu_A_is_zero = '0;
@@ -213,6 +218,7 @@ module alu_imm_ldu_iq #(
             if (issue_ldu_one_hot_by_entry[entry]) begin
 
                 issue_ldu_op |= op_by_entry[entry];
+                issue_ldu_mdp_info |= mdp_info_by_entry[entry];
                 issue_ldu_imm12 |= imm12_by_entry[entry];
                 issue_ldu_A_forward |= A_forward_by_entry[entry];
                 issue_ldu_A_is_zero |= A_is_zero_by_entry[entry];
@@ -279,6 +285,7 @@ module alu_imm_ldu_iq #(
         dispatch_valid_alu_imm_by_entry = '0;
         dispatch_valid_ldu_by_entry = '0;
         dispatch_op_by_entry = '0;
+        dispatch_mdp_info_by_entry = '0;
         dispatch_imm12_by_entry = '0;
         dispatch_A_PR_by_entry = '0;
         dispatch_A_ready_by_entry = '0;
@@ -296,6 +303,7 @@ module alu_imm_ldu_iq #(
                     dispatch_valid_alu_imm_by_entry[entry] |= dispatch_valid_alu_imm_by_way[way];
                     dispatch_valid_ldu_by_entry[entry] |= dispatch_valid_ldu_by_way[way];
                     dispatch_op_by_entry[entry] |= dispatch_op_by_way[way];
+                    dispatch_mdp_info_by_entry[entry] |= dispatch_mdp_info_by_way[way];
                     dispatch_imm12_by_entry[entry] |= dispatch_imm12_by_way[way];
                     dispatch_A_PR_by_entry[entry] |= dispatch_A_PR_by_way[way];
                     dispatch_A_ready_by_entry[entry] |= dispatch_A_ready_by_way[way];
@@ -312,6 +320,7 @@ module alu_imm_ldu_iq #(
             valid_alu_imm_by_entry <= '0;
             valid_ldu_by_entry <= '0;
             op_by_entry <= '0;
+            mdp_info_by_entry <= '0;
             imm12_by_entry <= '0;
             A_PR_by_entry <= '0;
             A_ready_by_entry <= '0;
@@ -339,6 +348,7 @@ module alu_imm_ldu_iq #(
                     valid_alu_imm_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1] <= valid_alu_imm_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     valid_ldu_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1] <= valid_ldu_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     op_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1] <= op_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
+                    mdp_info_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1] <= mdp_info_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     imm12_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1] <= imm12_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     A_PR_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1] <= A_PR_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     A_ready_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1] <= A_ready_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1] | A_forward_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
@@ -352,6 +362,7 @@ module alu_imm_ldu_iq #(
                     valid_alu_imm_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1] <= dispatch_valid_alu_imm_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     valid_ldu_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1] <= dispatch_valid_ldu_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     op_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1] <= dispatch_op_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
+                    mdp_info_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1] <= dispatch_mdp_info_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     imm12_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1] <= dispatch_imm12_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     A_PR_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1] <= dispatch_A_PR_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     A_ready_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1] <= dispatch_A_ready_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
@@ -384,6 +395,7 @@ module alu_imm_ldu_iq #(
                     valid_alu_imm_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= valid_alu_imm_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     valid_ldu_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= valid_ldu_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     op_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= op_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
+                    mdp_info_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= mdp_info_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     imm12_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= imm12_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     A_PR_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= A_PR_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     A_ready_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= A_ready_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1] | A_forward_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
@@ -397,6 +409,7 @@ module alu_imm_ldu_iq #(
                     valid_alu_imm_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= dispatch_valid_alu_imm_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     valid_ldu_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= dispatch_valid_ldu_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     op_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= dispatch_op_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
+                    mdp_info_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= dispatch_mdp_info_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     imm12_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= dispatch_imm12_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     A_PR_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= dispatch_A_PR_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
                     A_ready_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= dispatch_A_ready_by_entry[ALU_IMM_LDU_IQ_ENTRIES-1];
@@ -414,6 +427,7 @@ module alu_imm_ldu_iq #(
                     valid_alu_imm_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= valid_alu_imm_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2];
                     valid_ldu_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= valid_ldu_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2];
                     op_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= op_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2];
+                    mdp_info_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= mdp_info_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2];
                     imm12_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= imm12_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2];
                     A_PR_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= A_PR_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2];
                     A_ready_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= A_ready_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] | A_forward_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2];
@@ -427,6 +441,7 @@ module alu_imm_ldu_iq #(
                     valid_alu_imm_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= dispatch_valid_alu_imm_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2];
                     valid_ldu_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= dispatch_valid_ldu_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2];
                     op_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= dispatch_op_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2];
+                    mdp_info_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= dispatch_mdp_info_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2];
                     imm12_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= dispatch_imm12_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2];
                     A_PR_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= dispatch_A_PR_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2];
                     A_ready_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2] <= dispatch_A_ready_by_entry[ALU_IMM_LDU_IQ_ENTRIES-2];
@@ -454,6 +469,7 @@ module alu_imm_ldu_iq #(
                         valid_alu_imm_by_entry[i] <= valid_alu_imm_by_entry[i+2];
                         valid_ldu_by_entry[i] <= valid_ldu_by_entry[i+2];
                         op_by_entry[i] <= op_by_entry[i+2];
+                        mdp_info_by_entry[i] <= mdp_info_by_entry[i+2];
                         imm12_by_entry[i] <= imm12_by_entry[i+2];
                         A_PR_by_entry[i] <= A_PR_by_entry[i+2];
                         A_ready_by_entry[i] <= A_ready_by_entry[i+2] | A_forward_by_entry[i+2];
@@ -467,6 +483,7 @@ module alu_imm_ldu_iq #(
                         valid_alu_imm_by_entry[i] <= dispatch_valid_alu_imm_by_entry[i+2];
                         valid_ldu_by_entry[i] <= dispatch_valid_ldu_by_entry[i+2];
                         op_by_entry[i] <= dispatch_op_by_entry[i+2];
+                        mdp_info_by_entry[i] <= dispatch_mdp_info_by_entry[i+2];
                         imm12_by_entry[i] <= dispatch_imm12_by_entry[i+2];
                         A_PR_by_entry[i] <= dispatch_A_PR_by_entry[i+2];
                         A_ready_by_entry[i] <= dispatch_A_ready_by_entry[i+2];
@@ -484,6 +501,7 @@ module alu_imm_ldu_iq #(
                         valid_alu_imm_by_entry[i] <= valid_alu_imm_by_entry[i+1];
                         valid_ldu_by_entry[i] <= valid_ldu_by_entry[i+1];
                         op_by_entry[i] <= op_by_entry[i+1];
+                        mdp_info_by_entry[i] <= mdp_info_by_entry[i+1];
                         imm12_by_entry[i] <= imm12_by_entry[i+1];
                         A_PR_by_entry[i] <= A_PR_by_entry[i+1];
                         A_ready_by_entry[i] <= A_ready_by_entry[i+1] | A_forward_by_entry[i+1];
@@ -497,6 +515,7 @@ module alu_imm_ldu_iq #(
                         valid_alu_imm_by_entry[i] <= dispatch_valid_alu_imm_by_entry[i+1];
                         valid_ldu_by_entry[i] <= dispatch_valid_ldu_by_entry[i+1];
                         op_by_entry[i] <= dispatch_op_by_entry[i+1];
+                        mdp_info_by_entry[i] <= dispatch_mdp_info_by_entry[i+1];
                         imm12_by_entry[i] <= dispatch_imm12_by_entry[i+1];
                         A_PR_by_entry[i] <= dispatch_A_PR_by_entry[i+1];
                         A_ready_by_entry[i] <= dispatch_A_ready_by_entry[i+1];
@@ -514,6 +533,7 @@ module alu_imm_ldu_iq #(
                         valid_alu_imm_by_entry[i] <= valid_alu_imm_by_entry[i];
                         valid_ldu_by_entry[i] <= valid_ldu_by_entry[i];
                         op_by_entry[i] <= op_by_entry[i];
+                        mdp_info_by_entry[i] <= mdp_info_by_entry[i];
                         imm12_by_entry[i] <= imm12_by_entry[i];
                         A_PR_by_entry[i] <= A_PR_by_entry[i];
                         A_ready_by_entry[i] <= A_ready_by_entry[i] | A_forward_by_entry[i];
@@ -527,6 +547,7 @@ module alu_imm_ldu_iq #(
                         valid_alu_imm_by_entry[i] <= dispatch_valid_alu_imm_by_entry[i];
                         valid_ldu_by_entry[i] <= dispatch_valid_ldu_by_entry[i];
                         op_by_entry[i] <= dispatch_op_by_entry[i];
+                        mdp_info_by_entry[i] <= dispatch_mdp_info_by_entry[i];
                         imm12_by_entry[i] <= dispatch_imm12_by_entry[i];
                         A_PR_by_entry[i] <= dispatch_A_PR_by_entry[i];
                         A_ready_by_entry[i] <= dispatch_A_ready_by_entry[i];

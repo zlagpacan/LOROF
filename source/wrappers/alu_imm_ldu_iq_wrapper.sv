@@ -21,6 +21,7 @@ module alu_imm_ldu_iq_wrapper (
 	input logic [3:0] next_dispatch_valid_alu_imm_by_way,
 	input logic [3:0] next_dispatch_valid_ldu_by_way,
 	input logic [3:0][3:0] next_dispatch_op_by_way,
+	input logic [3:0][MDPT_INFO_WIDTH-1:0] next_dispatch_mdp_info_by_way,
 	input logic [3:0][11:0] next_dispatch_imm12_by_way,
 	input logic [3:0][LOG_PR_COUNT-1:0] next_dispatch_A_PR_by_way,
 	input logic [3:0] next_dispatch_A_ready_by_way,
@@ -56,6 +57,7 @@ module alu_imm_ldu_iq_wrapper (
     // op issue to LDU Pipeline
 	output logic last_issue_ldu_valid,
 	output logic [3:0] last_issue_ldu_op,
+	output logic [MDPT_INFO_WIDTH-1:0] last_issue_ldu_mdp_info,
 	output logic [11:0] last_issue_ldu_imm12,
 	output logic last_issue_ldu_A_forward,
 	output logic last_issue_ldu_A_is_zero,
@@ -76,6 +78,7 @@ module alu_imm_ldu_iq_wrapper (
 	logic [3:0] dispatch_valid_alu_imm_by_way;
 	logic [3:0] dispatch_valid_ldu_by_way;
 	logic [3:0][3:0] dispatch_op_by_way;
+	logic [3:0][MDPT_INFO_WIDTH-1:0] dispatch_mdp_info_by_way;
 	logic [3:0][11:0] dispatch_imm12_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] dispatch_A_PR_by_way;
 	logic [3:0] dispatch_A_ready_by_way;
@@ -111,6 +114,7 @@ module alu_imm_ldu_iq_wrapper (
     // op issue to LDU Pipeline
 	logic issue_ldu_valid;
 	logic [3:0] issue_ldu_op;
+	logic [MDPT_INFO_WIDTH-1:0] issue_ldu_mdp_info;
 	logic [11:0] issue_ldu_imm12;
 	logic issue_ldu_A_forward;
 	logic issue_ldu_A_is_zero;
@@ -125,7 +129,7 @@ module alu_imm_ldu_iq_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    alu_imm_ldu_iq WRAPPED_MODULE (.*);
+    alu_imm_ldu_iq #(.ALU_IMM_LDU_IQ_ENTRIES(ALU_IMM_LDU_IQ_ENTRIES)) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -138,6 +142,7 @@ module alu_imm_ldu_iq_wrapper (
 			dispatch_valid_alu_imm_by_way <= '0;
 			dispatch_valid_ldu_by_way <= '0;
 			dispatch_op_by_way <= '0;
+			dispatch_mdp_info_by_way <= '0;
 			dispatch_imm12_by_way <= '0;
 			dispatch_A_PR_by_way <= '0;
 			dispatch_A_ready_by_way <= '0;
@@ -173,6 +178,7 @@ module alu_imm_ldu_iq_wrapper (
 		    // op issue to LDU Pipeline
 			last_issue_ldu_valid <= '0;
 			last_issue_ldu_op <= '0;
+			last_issue_ldu_mdp_info <= '0;
 			last_issue_ldu_imm12 <= '0;
 			last_issue_ldu_A_forward <= '0;
 			last_issue_ldu_A_is_zero <= '0;
@@ -191,6 +197,7 @@ module alu_imm_ldu_iq_wrapper (
 			dispatch_valid_alu_imm_by_way <= next_dispatch_valid_alu_imm_by_way;
 			dispatch_valid_ldu_by_way <= next_dispatch_valid_ldu_by_way;
 			dispatch_op_by_way <= next_dispatch_op_by_way;
+			dispatch_mdp_info_by_way <= next_dispatch_mdp_info_by_way;
 			dispatch_imm12_by_way <= next_dispatch_imm12_by_way;
 			dispatch_A_PR_by_way <= next_dispatch_A_PR_by_way;
 			dispatch_A_ready_by_way <= next_dispatch_A_ready_by_way;
@@ -226,6 +233,7 @@ module alu_imm_ldu_iq_wrapper (
 		    // op issue to LDU Pipeline
 			last_issue_ldu_valid <= issue_ldu_valid;
 			last_issue_ldu_op <= issue_ldu_op;
+			last_issue_ldu_mdp_info <= issue_ldu_mdp_info;
 			last_issue_ldu_imm12 <= issue_ldu_imm12;
 			last_issue_ldu_A_forward <= issue_ldu_A_forward;
 			last_issue_ldu_A_is_zero <= issue_ldu_A_is_zero;

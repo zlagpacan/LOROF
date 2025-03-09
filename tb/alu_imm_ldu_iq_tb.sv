@@ -37,6 +37,7 @@ module alu_imm_ldu_iq_tb ();
 	logic [3:0] tb_dispatch_valid_alu_imm_by_way;
 	logic [3:0] tb_dispatch_valid_ldu_by_way;
 	logic [3:0][3:0] tb_dispatch_op_by_way;
+	logic [3:0][MDPT_INFO_WIDTH-1:0] tb_dispatch_mdp_info_by_way;
 	logic [3:0][11:0] tb_dispatch_imm12_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_A_PR_by_way;
 	logic [3:0] tb_dispatch_A_ready_by_way;
@@ -72,6 +73,7 @@ module alu_imm_ldu_iq_tb ();
     // op issue to LDU Pipeline
 	logic DUT_issue_ldu_valid, expected_issue_ldu_valid;
 	logic [3:0] DUT_issue_ldu_op, expected_issue_ldu_op;
+	logic [MDPT_INFO_WIDTH-1:0] DUT_issue_ldu_mdp_info, expected_issue_ldu_mdp_info;
 	logic [11:0] DUT_issue_ldu_imm12, expected_issue_ldu_imm12;
 	logic DUT_issue_ldu_A_forward, expected_issue_ldu_A_forward;
 	logic DUT_issue_ldu_A_is_zero, expected_issue_ldu_A_is_zero;
@@ -98,6 +100,7 @@ module alu_imm_ldu_iq_tb ();
 		.dispatch_valid_alu_imm_by_way(tb_dispatch_valid_alu_imm_by_way),
 		.dispatch_valid_ldu_by_way(tb_dispatch_valid_ldu_by_way),
 		.dispatch_op_by_way(tb_dispatch_op_by_way),
+		.dispatch_mdp_info_by_way(tb_dispatch_mdp_info_by_way),
 		.dispatch_imm12_by_way(tb_dispatch_imm12_by_way),
 		.dispatch_A_PR_by_way(tb_dispatch_A_PR_by_way),
 		.dispatch_A_ready_by_way(tb_dispatch_A_ready_by_way),
@@ -133,6 +136,7 @@ module alu_imm_ldu_iq_tb ();
 	    // op issue to LDU Pipeline
 		.issue_ldu_valid(DUT_issue_ldu_valid),
 		.issue_ldu_op(DUT_issue_ldu_op),
+		.issue_ldu_mdp_info(DUT_issue_ldu_mdp_info),
 		.issue_ldu_imm12(DUT_issue_ldu_imm12),
 		.issue_ldu_A_forward(DUT_issue_ldu_A_forward),
 		.issue_ldu_A_is_zero(DUT_issue_ldu_A_is_zero),
@@ -241,6 +245,13 @@ module alu_imm_ldu_iq_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_issue_ldu_mdp_info !== DUT_issue_ldu_mdp_info) begin
+			$display("TB ERROR: expected_issue_ldu_mdp_info (%h) != DUT_issue_ldu_mdp_info (%h)",
+				expected_issue_ldu_mdp_info, DUT_issue_ldu_mdp_info);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_issue_ldu_imm12 !== DUT_issue_ldu_imm12) begin
 			$display("TB ERROR: expected_issue_ldu_imm12 (%h) != DUT_issue_ldu_imm12 (%h)",
 				expected_issue_ldu_imm12, DUT_issue_ldu_imm12);
@@ -324,6 +335,7 @@ module alu_imm_ldu_iq_tb ();
 		tb_dispatch_valid_alu_imm_by_way = '0;
 		tb_dispatch_valid_ldu_by_way = '0;
 		tb_dispatch_op_by_way = '0;
+		tb_dispatch_mdp_info_by_way = '0;
 		tb_dispatch_imm12_by_way = '0;
 		tb_dispatch_A_PR_by_way = '0;
 		tb_dispatch_A_ready_by_way = '0;
@@ -366,6 +378,7 @@ module alu_imm_ldu_iq_tb ();
 	    // op issue to LDU Pipeline
 		expected_issue_ldu_valid = '0;
 		expected_issue_ldu_op = '0;
+		expected_issue_ldu_mdp_info = '0;
 		expected_issue_ldu_imm12 = '0;
 		expected_issue_ldu_A_forward = '0;
 		expected_issue_ldu_A_is_zero = '0;
@@ -389,6 +402,7 @@ module alu_imm_ldu_iq_tb ();
 		tb_dispatch_valid_alu_imm_by_way = '0;
 		tb_dispatch_valid_ldu_by_way = '0;
 		tb_dispatch_op_by_way = '0;
+		tb_dispatch_mdp_info_by_way = '0;
 		tb_dispatch_imm12_by_way = '0;
 		tb_dispatch_A_PR_by_way = '0;
 		tb_dispatch_A_ready_by_way = '0;
@@ -431,6 +445,7 @@ module alu_imm_ldu_iq_tb ();
 	    // op issue to LDU Pipeline
 		expected_issue_ldu_valid = '0;
 		expected_issue_ldu_op = '0;
+		expected_issue_ldu_mdp_info = '0;
 		expected_issue_ldu_imm12 = '0;
 		expected_issue_ldu_A_forward = '0;
 		expected_issue_ldu_A_is_zero = '0;
@@ -462,6 +477,7 @@ module alu_imm_ldu_iq_tb ();
 		tb_dispatch_valid_alu_imm_by_way = '0;
 		tb_dispatch_valid_ldu_by_way = '0;
 		tb_dispatch_op_by_way = '0;
+		tb_dispatch_mdp_info_by_way = '0;
 		tb_dispatch_imm12_by_way = '0;
 		tb_dispatch_A_PR_by_way = '0;
 		tb_dispatch_A_ready_by_way = '0;
@@ -504,6 +520,7 @@ module alu_imm_ldu_iq_tb ();
 	    // op issue to LDU Pipeline
 		expected_issue_ldu_valid = '0;
 		expected_issue_ldu_op = '0;
+		expected_issue_ldu_mdp_info = '0;
 		expected_issue_ldu_imm12 = '0;
 		expected_issue_ldu_A_forward = '0;
 		expected_issue_ldu_A_is_zero = '0;

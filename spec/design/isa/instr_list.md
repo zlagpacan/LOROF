@@ -116,12 +116,12 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 - FENCE
     - FU: stamou
     - {fm[3:0], pred[3:0], succ[3:0], rs1[4:0], 3'b000, rd[4:0], 5'b00011, 2'b11}
+        - only fm[3:0] = 4'b0000 used
+        - rs1, rd ignored
 - FENCE.TSO
     - FU: stamou
     - {4'b1000, 4'b0011, 4'b0011, 5'b00000, 3'b000, 5'b00000, 5'b00011, 2'b11}
-- PAUSE
-    - FU: stamou
-    - {4'b0000, 4'b0001, 4'b0000, 5'b00000, 3'b000, 5'b00000, 5'b00011, 2'b11}
+        - rs1, rd ignored
 - ECALL
     - FU: sys_pipeline
     - {12'b00000000000<mark>0</mark>, 5'b00000, 3'b000, 5'b00000, 5'b11100, 2'b11}
@@ -133,6 +133,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 - FENCE.I
     - FU: sys_pipeline
     - {imm[11:0], rs1[4:0], 3'b001, rd[4:0], 5'b00011, 2'b11}
+        - rs1, rd ignored
 
 ## Zicsr Extension
 - CSRRW
@@ -346,5 +347,7 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
     - FU: sys_pipeline
     - {7'b0001000, 5'b00010, 5'b00000, 3'b000, 5'b00000, 5'b11100, 2'b11}
 - SFENCE.VMA
-    - FU: sys_pipeline
+    - FU: sys_pipeline or stamou?
     - {7'b0001001, rs2[4:0], rs1[4:0], 3'b000, 5'b00000, 5'b11100, 2'b11}
+        - rs1 = VA
+        - rs2 = ASID
