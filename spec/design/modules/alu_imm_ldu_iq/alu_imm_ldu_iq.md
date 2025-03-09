@@ -134,6 +134,17 @@ each signal is a vector, with each 1D entry out of 4 associated with a dispatch 
         - none
     - idle value:
         - {4{4'hx}}
+- dispatch_mdp_info_by_way
+    - input logic [3:0][7:0]
+        - design uses: input logic [3:0][MDPT_INFO_WIDTH-1:0]
+    - indicate memory dependence prediction information to the Load Unit Pipeline
+    - this signal is completely ignored if the associated op targets the ALU Reg-Imm Pipeline
+        - only relevant for dispatch_valid_ldu_by_way == 1'b1 & dispatch_valid_alu_imm_by_way == 1'b0
+    - as far as this module is concerned, this is a pass-through to the Load Unit Pipeline
+    - constraints:
+        - none
+    - idle value:
+        - {4{8'hx}}
 - dispatch_imm12_by_way
     - input logic [3:0][11:0]
     - indicate the 12-bit immediate value the pipeline should use
@@ -392,6 +403,13 @@ output interface
     - this should be a pass-through of the value given for this instruction op on dispatch in dispatch_op_by_way for the way
     - reset value:
         - 4'h0
+- issue_ldu_mdp_info
+    - output logic [7:0]
+    - design uses: output logic [MDPT_INFO_WIDTH-1:0]
+    - indicate memory dependence prediction information
+    - this should be a pass-through of the value given for this instruction op on dispatch in dispatch_mdp_info_by_way for the way
+    - reset value:
+        - 8'h0
 - issue_ldu_imm12
     - output logic [11:0]
     - indicate the 12-bit immediate value to pass to the ALU Reg-Imm Pipeline
@@ -622,35 +640,33 @@ see [alu_reg_mdu_iq_example.md](../alu_reg_mdu_iq/alu_reg_mdu_iq_example.md) for
     - dispatch_op_by_way[way] = 4'b0111
 
 ### LDU
-- dispatch_op_by_way[way][3] = 1'b1 indicates if load is dependent
 - LB
     - dispatch_valid_alu_imm_by_way[way] = 1'b0
     - dispatch_valid_ldu_by_way[way] = 1'b1
-    - dispatch_op_by_way[way][2:0] = 3'b000
+    - dispatch_op_by_way[way][2:0] = 4'b0000
 - LH
     - dispatch_valid_alu_imm_by_way[way] = 1'b0
     - dispatch_valid_ldu_by_way[way] = 1'b1
-    - dispatch_op_by_way[way][2:0] = 3'b001
+    - dispatch_op_by_way[way][2:0] = 4'b0001
 - LW
     - dispatch_valid_alu_imm_by_way[way] = 1'b0
     - dispatch_valid_ldu_by_way[way] = 1'b1
-    - dispatch_op_by_way[way][2:0] = 3'b010
+    - dispatch_op_by_way[way][2:0] = 4'b0010
 - LBU
     - dispatch_valid_alu_imm_by_way[way] = 1'b0
     - dispatch_valid_ldu_by_way[way] = 1'b1
-    - dispatch_op_by_way[way][2:0] = 3'b100
+    - dispatch_op_by_way[way][2:0] = 4'b0100
 - LHU
     - dispatch_valid_alu_imm_by_way[way] = 1'b0
     - dispatch_valid_ldu_by_way[way] = 1'b1
-    - dispatch_op_by_way[way][2:0] = 3'b101
+    - dispatch_op_by_way[way][2:0] = 4'b0101
 
 ### Compressed ALU Reg-Imm
-- dispatch_op_by_way[way][3] = 1'b1 indicates if load is dependent
 - C.LW
     - dispatch_valid_alu_imm_by_way[way] = 1'b0
     - dispatch_valid_ldu_by_way[way] = 1'b1
-    - dispatch_op_by_way[way][2:0] = 3'b010
+    - dispatch_op_by_way[way][2:0] = 4'b0010
 - C.LWSP
     - dispatch_valid_alu_imm_by_way[way] = 1'b0
     - dispatch_valid_ldu_by_way[way] = 1'b1
-    - dispatch_op_by_way[way][2:0] = 3'b010
+    - dispatch_op_by_way[way][2:0] = 4'b0010
