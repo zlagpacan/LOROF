@@ -22,7 +22,8 @@ module istream_wrapper (
 	input logic [7:0] next_valid_by_fetch_2B_SENQ,
 	input logic [7:0][15:0] next_instr_2B_by_fetch_2B_SENQ,
 	input logic [7:0][BTB_PRED_INFO_WIDTH-1:0] next_pred_info_by_fetch_2B_SENQ,
-	input logic [7:0] next_dep_pred_by_fetch_2B_SENQ,
+	input logic [7:0] next_pred_lru_by_fetch_2B_SENQ,
+	input logic [7:0][MDPT_INFO_WIDTH-1:0] next_mdp_info_by_fetch_2B_SENQ,
 	input logic [31:0] next_after_PC_SENQ,
 	input logic [LH_LENGTH-1:0] next_LH_SENQ,
 	input logic [GH_LENGTH-1:0] next_GH_SENQ,
@@ -37,7 +38,8 @@ module istream_wrapper (
 	output logic [3:0] last_uncompressed_by_way_SDEQ,
 	output logic [3:0][1:0][15:0] last_instr_2B_by_way_by_chunk_SDEQ,
 	output logic [3:0][1:0][BTB_PRED_INFO_WIDTH-1:0] last_pred_info_by_way_by_chunk_SDEQ,
-	output logic [3:0] last_dep_pred_by_way_SDEQ,
+	output logic [3:0][1:0] last_pred_lru_by_way_by_chunk_SDEQ,
+	output logic [3:0][MDPT_INFO_WIDTH-1:0] last_mdp_info_by_way_SDEQ,
 	output logic [3:0][31:0] last_PC_by_way_SDEQ,
 	output logic [3:0][LH_LENGTH-1:0] last_LH_by_way_SDEQ,
 	output logic [3:0][GH_LENGTH-1:0] last_GH_by_way_SDEQ,
@@ -60,7 +62,8 @@ module istream_wrapper (
 	logic [7:0] valid_by_fetch_2B_SENQ;
 	logic [7:0][15:0] instr_2B_by_fetch_2B_SENQ;
 	logic [7:0][BTB_PRED_INFO_WIDTH-1:0] pred_info_by_fetch_2B_SENQ;
-	logic [7:0] dep_pred_by_fetch_2B_SENQ;
+	logic [7:0] pred_lru_by_fetch_2B_SENQ;
+	logic [7:0][MDPT_INFO_WIDTH-1:0] mdp_info_by_fetch_2B_SENQ;
 	logic [31:0] after_PC_SENQ;
 	logic [LH_LENGTH-1:0] LH_SENQ;
 	logic [GH_LENGTH-1:0] GH_SENQ;
@@ -75,7 +78,8 @@ module istream_wrapper (
 	logic [3:0] uncompressed_by_way_SDEQ;
 	logic [3:0][1:0][15:0] instr_2B_by_way_by_chunk_SDEQ;
 	logic [3:0][1:0][BTB_PRED_INFO_WIDTH-1:0] pred_info_by_way_by_chunk_SDEQ;
-	logic [3:0] dep_pred_by_way_SDEQ;
+	logic [3:0][1:0] pred_lru_by_way_by_chunk_SDEQ;
+	logic [3:0][MDPT_INFO_WIDTH-1:0] mdp_info_by_way_SDEQ;
 	logic [3:0][31:0] PC_by_way_SDEQ;
 	logic [3:0][LH_LENGTH-1:0] LH_by_way_SDEQ;
 	logic [3:0][GH_LENGTH-1:0] GH_by_way_SDEQ;
@@ -108,7 +112,8 @@ module istream_wrapper (
 			valid_by_fetch_2B_SENQ <= '0;
 			instr_2B_by_fetch_2B_SENQ <= '0;
 			pred_info_by_fetch_2B_SENQ <= '0;
-			dep_pred_by_fetch_2B_SENQ <= '0;
+			pred_lru_by_fetch_2B_SENQ <= '0;
+			mdp_info_by_fetch_2B_SENQ <= '0;
 			after_PC_SENQ <= '0;
 			LH_SENQ <= '0;
 			GH_SENQ <= '0;
@@ -123,7 +128,8 @@ module istream_wrapper (
 			last_uncompressed_by_way_SDEQ <= '0;
 			last_instr_2B_by_way_by_chunk_SDEQ <= '0;
 			last_pred_info_by_way_by_chunk_SDEQ <= '0;
-			last_dep_pred_by_way_SDEQ <= '0;
+			last_pred_lru_by_way_by_chunk_SDEQ <= '0;
+			last_mdp_info_by_way_SDEQ <= '0;
 			last_PC_by_way_SDEQ <= '0;
 			last_LH_by_way_SDEQ <= '0;
 			last_GH_by_way_SDEQ <= '0;
@@ -144,7 +150,8 @@ module istream_wrapper (
 			valid_by_fetch_2B_SENQ <= next_valid_by_fetch_2B_SENQ;
 			instr_2B_by_fetch_2B_SENQ <= next_instr_2B_by_fetch_2B_SENQ;
 			pred_info_by_fetch_2B_SENQ <= next_pred_info_by_fetch_2B_SENQ;
-			dep_pred_by_fetch_2B_SENQ <= next_dep_pred_by_fetch_2B_SENQ;
+			pred_lru_by_fetch_2B_SENQ <= next_pred_lru_by_fetch_2B_SENQ;
+			mdp_info_by_fetch_2B_SENQ <= next_mdp_info_by_fetch_2B_SENQ;
 			after_PC_SENQ <= next_after_PC_SENQ;
 			LH_SENQ <= next_LH_SENQ;
 			GH_SENQ <= next_GH_SENQ;
@@ -159,7 +166,8 @@ module istream_wrapper (
 			last_uncompressed_by_way_SDEQ <= uncompressed_by_way_SDEQ;
 			last_instr_2B_by_way_by_chunk_SDEQ <= instr_2B_by_way_by_chunk_SDEQ;
 			last_pred_info_by_way_by_chunk_SDEQ <= pred_info_by_way_by_chunk_SDEQ;
-			last_dep_pred_by_way_SDEQ <= dep_pred_by_way_SDEQ;
+			last_pred_lru_by_way_by_chunk_SDEQ <= pred_lru_by_way_by_chunk_SDEQ;
+			last_mdp_info_by_way_SDEQ <= mdp_info_by_way_SDEQ;
 			last_PC_by_way_SDEQ <= PC_by_way_SDEQ;
 			last_LH_by_way_SDEQ <= LH_by_way_SDEQ;
 			last_GH_by_way_SDEQ <= GH_by_way_SDEQ;
