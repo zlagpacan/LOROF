@@ -22,7 +22,8 @@ module istream #(
     input logic [7:0]                           valid_by_fetch_2B_SENQ,
     input logic [7:0][15:0]                     instr_2B_by_fetch_2B_SENQ,
     input logic [7:0][BTB_PRED_INFO_WIDTH-1:0]  pred_info_by_fetch_2B_SENQ,
-    input logic [7:0]                           dep_pred_by_fetch_2B_SENQ,
+    input logic [7:0]                           pred_lru_by_fetch_2B_SENQ,
+    input logic [7:0][MDPT_INFO_WIDTH-1:0]      mdp_info_by_fetch_2B_SENQ,
     input logic [31:0]                          after_PC_SENQ,
     input logic [LH_LENGTH-1:0]                 LH_SENQ,
     input logic [GH_LENGTH-1:0]                 GH_SENQ,
@@ -37,7 +38,8 @@ module istream #(
     output logic [3:0]                                  uncompressed_by_way_SDEQ,
     output logic [3:0][1:0][15:0]                       instr_2B_by_way_by_chunk_SDEQ,
     output logic [3:0][1:0][BTB_PRED_INFO_WIDTH-1:0]    pred_info_by_way_by_chunk_SDEQ,
-    output logic [3:0]                                  dep_pred_by_way_SDEQ,
+    output logic [3:0][1:0]                             pred_lru_by_way_by_chunk_SDEQ,
+    output logic [3:0][MDPT_INFO_WIDTH-1:0]             mdp_info_by_way_SDEQ,
     output logic [3:0][31:0]                            PC_by_way_SDEQ,
     output logic [3:0][LH_LENGTH-1:0]                   LH_by_way_SDEQ,
     output logic [3:0][GH_LENGTH-1:0]                   GH_by_way_SDEQ,
@@ -62,7 +64,8 @@ module istream #(
     typedef struct packed {
         instr_2B_t                          instr_2B;
         logic [BTB_PRED_INFO_WIDTH-1:0]     pred_info;
-        logic                               dep_pred;
+        logic                               pred_lru;
+        logic [MDPT_INFO_WIDTH-1:0]         mdp_info;
     } instr_chunk_t;
 
     typedef struct packed {
@@ -115,7 +118,8 @@ module istream #(
     logic [15:0]                            uncompressed_vec;
     instr_2B_t [15:0]                       instr_2B_vec;
     logic [15:0][BTB_PRED_INFO_WIDTH-1:0]   pred_info_vec;
-    logic [15:0]                            dep_pred_vec;
+    logic [15:0]                            pred_lru_vec;
+    logic [15:0][MDPT_INFO_WIDTH-1:0]       mdp_info_vec;
 
     logic [3:0]         lower_present_by_way;
     logic [3:0][15:0]   lower_req_vec_by_way;
@@ -158,7 +162,8 @@ module istream #(
         for (int i = 0; i < 8; i++) begin
             instr_2B_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].instr_2B;
             pred_info_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].pred_info;
-            dep_pred_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].dep_pred;
+            pred_lru_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].pred_lru;
+            mdp_info_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].mdp_info;
         end
 
         valid_vec[15:8] = valid_set_vec_array[1];
@@ -168,7 +173,8 @@ module istream #(
         for (int j = 0; j < 8; j++) begin
             instr_2B_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].instr_2B;
             pred_info_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].pred_info;
-            dep_pred_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].dep_pred;
+            pred_lru_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].pred_lru;
+            mdp_info_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].mdp_info;
         end
     end
 
@@ -351,29 +357,30 @@ module istream #(
     always_comb begin
         for (int way = 0; way < 4; way++) begin
 
-            // uncompressed and dep pred follow lower:
+            // uncompressed and mdp info follow lower:
 
             uncompressed_by_way_SDEQ[way] = |(uncompressed_vec & lower_ack_one_hot_by_way[way]);
-            // dep_pred_by_way_SDEQ[way] = dep_pred_vec[lower_ack_index_by_way[way]];
-
-            dep_pred_by_way_SDEQ[way] = '0;
+            mdp_info_by_way_SDEQ[way] = '0;
             for (int i = 0; i < 16; i++) begin
                 if (lower_ack_one_hot_by_way[way][i]) begin
-                    dep_pred_by_way_SDEQ[way] |= dep_pred_vec[i];
+                    mdp_info_by_way_SDEQ[way] |= mdp_info_vec[i];
                 end
             end
 
-            // instr and pred info follow lower to chunk 0, upper to chunk 1:
+            // instr, pred info, and pred lru follow lower to chunk 0, upper to chunk 1:
             instr_2B_by_way_by_chunk_SDEQ[way] = '0;
             pred_info_by_way_by_chunk_SDEQ[way] = '0;
+            pred_lru_by_way_by_chunk_SDEQ[way] = '0;
             for (int i = 0; i < 16; i++) begin
                 if (lower_ack_one_hot_by_way[way][i]) begin
                     instr_2B_by_way_by_chunk_SDEQ[way][0] |= instr_2B_vec[i];
                     pred_info_by_way_by_chunk_SDEQ[way][0] |= pred_info_vec[i];
+                    pred_lru_by_way_by_chunk_SDEQ[way][0] |= pred_lru_vec[i];
                 end
                 if (upper_ack_one_hot_by_way[way][i]) begin
                     instr_2B_by_way_by_chunk_SDEQ[way][1] |= instr_2B_vec[i];
                     pred_info_by_way_by_chunk_SDEQ[way][1] |= pred_info_vec[i];
+                    pred_lru_by_way_by_chunk_SDEQ[way][1] |= pred_lru_vec[i];
                 end
             end
 
@@ -633,7 +640,8 @@ module istream #(
             for (int i = 0; i < 8; i++) begin
                 next_stream_set_array[stream_enq_ptr.index].chunks[i].instr_2B = instr_2B_by_fetch_2B_SENQ[i];
                 next_stream_set_array[stream_enq_ptr.index].chunks[i].pred_info = pred_info_by_fetch_2B_SENQ[i];
-                next_stream_set_array[stream_enq_ptr.index].chunks[i].dep_pred = dep_pred_by_fetch_2B_SENQ[i];
+                next_stream_set_array[stream_enq_ptr.index].chunks[i].pred_lru = pred_lru_by_fetch_2B_SENQ[i];
+                next_stream_set_array[stream_enq_ptr.index].chunks[i].mdp_info = mdp_info_by_fetch_2B_SENQ[i];
             end
             next_stream_set_array[stream_enq_ptr.index].after_PC28 = after_PC_SENQ[31:4];
             next_stream_set_array[stream_enq_ptr.index].LH = LH_SENQ;
