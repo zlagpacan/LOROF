@@ -347,7 +347,7 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
     - FU: sys_pipeline
     - {7'b0001000, 5'b00010, 5'b00000, 3'b000, 5'b00000, 5'b11100, 2'b11}
 - SFENCE.VMA
-    - FU: sys_pipeline or stamou?
+    - FU: sys_pipeline
     - {7'b0001001, rs2[4:0], rs1[4:0], 3'b000, 5'b00000, 5'b11100, 2'b11}
         - rs1 = VA
         - rs2 = ASID
