@@ -199,7 +199,7 @@ module mdpt_tb ();
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-        for (int i = 0; i < 2**10; i++) begin
+        for (int i = 0; i < MDPT_ENTRIES; i++) begin
 
             @(posedge CLK); #(PERIOD/10);
 
@@ -306,7 +306,7 @@ module mdpt_tb ();
 
         check_outputs();
 
-        for (int i = 8; i < 2**10; i+=8) begin
+        for (int i = 8; i < MDPT_ENTRIES; i+=8) begin
 
             @(posedge CLK); #(PERIOD/10);
 

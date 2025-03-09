@@ -102,7 +102,7 @@ package core_types_pkg;
 
     // mdpt:
     parameter MDPT_INFO_WIDTH = 8;
-    parameter MDPT_ENTRIES = 2**10;
+    parameter MDPT_ENTRIES = 2**12;
     parameter MDPT_ENTRIES_PER_BLOCK = FETCH_WIDTH_2B; // 8 * 2b = 2B
     parameter LOG_MDPT_ENTRIES_PER_BLOCK = $clog2(MDPT_ENTRIES_PER_BLOCK);
     parameter MDPT_SETS = MDPT_ENTRIES / MDPT_ENTRIES_PER_BLOCK;
