@@ -83,6 +83,7 @@ clean:
 	$(CLEAN_CMD) tr_db.log
 	$(CLEAN_CMD) vsim.wlf
 	$(CLEAN_CMD) coverage.rpt
+	$(CLEAN_CMD) results.rpt
 
 # Compile testbench/rtl
 .PHONY: build
@@ -145,4 +146,4 @@ coverage_rpt:
 # Update static test case results report with generated artifacts
 .PHONY: tc_results
 results:
-	cp results.log tc_results.rpt
+	cp results.rpt tc_results.rpt

@@ -27,9 +27,36 @@ module top;
   logic CLK;
   alu_imm_pipeline_if alu_imm_pipeline_intf(.CLK(CLK));
   parameter CLK_PERIOD = 4;
+  alu_imm_pipeline_test test;
+
+  string test_case_name = "";
 
   // --- DUT Instance --- //
   alu_imm_pipeline DUT(
+    .CLK(CLK),
+    .nRST(alu_imm_pipeline_intf.nRST),
+    .issue_valid(alu_imm_pipeline_intf.issue_valid),
+    .issue_op(alu_imm_pipeline_intf.issue_op),
+    .issue_imm12(alu_imm_pipeline_intf.issue_imm12),
+    .issue_A_forward(alu_imm_pipeline_intf.issue_A_forward),
+    .issue_A_is_zero(alu_imm_pipeline_intf.issue_A_is_zero),
+    .issue_A_bank(alu_imm_pipeline_intf.issue_A_bank),
+    .issue_dest_PR(alu_imm_pipeline_intf.issue_dest_PR),
+    .issue_ROB_index(alu_imm_pipeline_intf.issue_ROB_index),
+    .A_reg_read_ack(alu_imm_pipeline_intf.A_reg_read_ack),
+    .A_reg_read_port(alu_imm_pipeline_intf.A_reg_read_port),
+    .reg_read_data_by_bank_by_port(alu_imm_pipeline_intf.reg_read_data_by_bank_by_port),
+    .forward_data_by_bank(alu_imm_pipeline_intf.forward_data_by_bank),
+    .WB_ready(alu_imm_pipeline_intf.WB_ready),
+    .issue_ready(alu_imm_pipeline_intf.issue_ready),
+    .WB_valid(alu_imm_pipeline_intf.WB_valid),
+    .WB_data(alu_imm_pipeline_intf.WB_data),
+    .WB_PR(alu_imm_pipeline_intf.WB_PR),
+    .WB_ROB_index(alu_imm_pipeline_intf.WB_ROB_index)
+  );
+
+  // --- SVA Module --- //
+  alu_imm_pipeline_sva SVA(
     .CLK(CLK),
     .nRST(alu_imm_pipeline_intf.nRST),
     .issue_valid(alu_imm_pipeline_intf.issue_valid),
@@ -59,7 +86,9 @@ module top;
   
   // --- Start Test --- //
   initial begin : TEST
-    run_test("alu_imm_pipeline_test");
+    test = alu_imm_pipeline_test::type_id::create("test", null);
+    test.set_test_case_name(test_case_name);
+    run_test();
   end
   
   // --- Clock Generation --- //

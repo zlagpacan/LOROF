@@ -1,4 +1,20 @@
-// Add past values as class members
+/*
+  Module        : alu_imm_pipeline
+  UMV Component : scoreboard
+  Author        : Adam Keith
+*/
+
+`ifndef ALU_IMM_PIPELINE_PREDICTOR_SV
+`define ALU_IMM_PIPELINE_PREDICTOR_SV
+
+// --- UVM --- //
+`include "uvm_macros.svh"
+import uvm_pkg::*;
+
+// --- Packages --- //
+`include "core_types_pkg.vh"
+import core_types_pkg::*;
+    
 class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequence_item); 
     `uvm_component_utils(alu_imm_pipeline_predictor)
 
@@ -13,7 +29,6 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
         pred_ap = new("pred_ap", this);
-        past_tx = alu_imm_pipeline_sequence_item::type_id::create("past_tx");
     endfunction : build_phase
 
     function void write(alu_imm_pipeline_sequence_item t);
@@ -30,18 +45,12 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
             expected_tx.WB_ROB_index = '0;
         end 
         else begin
-            if (t.WB_ready == 1'b0) begin
-                expected_tx.WB_valid     = past_tx.WB_valid;
-                expected_tx.WB_data      = past_tx.WB_data;
-                expected_tx.WB_PR        = past_tx.WB_PR;
-                expected_tx.WB_ROB_index = past_tx.WB_ROB_index;
-            end
-        end
 
-        // Store the current transaction as the past transaction for the next cycle
-        past_tx.copy(t);
+        end
 
         pred_ap.write(expected_tx);
     endfunction : write
 
 endclass
+
+`endif

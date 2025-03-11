@@ -34,7 +34,7 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
   randc logic                                 A_reg_read_port;
   rand  logic [PRF_BANK_COUNT-1:0][1:0][31:0] reg_read_data_by_bank_by_port;
   rand  logic [PRF_BANK_COUNT-1:0][31:0]      forward_data_by_bank;
-  randc logic                                 WB_ready;
+  rand  logic                                 WB_ready;
   
   // --- Outputs --- //
   logic                       issue_ready;
@@ -74,9 +74,11 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
     The idea is to have the base seq item be the 'ideal' sequence
       - 1 op per cycle
   */
-  // constraint nRST_ideal            { soft nRST            == 1'b1; }
+  constraint nRST_ideal            { soft nRST            == 1'b1; }
   constraint issue_valid_ideal     { soft issue_valid     == 1'b1; }
   constraint issue_A_forward_ideal { soft issue_A_forward == 1'b1; }
+  constraint issue_A_is_zero_ideal { soft issue_A_is_zero == 1'b0; }
+
 
   // Temp Void - Dist constraints won't override
   // constraint WB_ready_ideal        { soft WB_ready        == 1'b1; }

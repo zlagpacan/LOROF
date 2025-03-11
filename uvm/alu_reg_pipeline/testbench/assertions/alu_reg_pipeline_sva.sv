@@ -42,7 +42,7 @@ module alu_reg_pipeline_sva (
     input logic [LOG_ROB_ENTRIES-1:0]           WB_ROB_index
 );
 
-   // --- Test Case ALURP_0 Coverage --- //
+  // --- Test Case ALURP_0 Coverage --- //
   sequence DUT_reset;
     @(posedge CLK) ~nRST;
   endsequence
