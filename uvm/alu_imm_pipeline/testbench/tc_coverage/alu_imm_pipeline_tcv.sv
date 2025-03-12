@@ -41,21 +41,21 @@ module alu_imm_pipeline_tcv (
 
     // --- Test Case Coverage : tc_reset --- //
     sequence DUT_reset;
-      @(posedge t.CLK) ~(t.nRST);
+      @(posedge CLK) ~(nRST);
     endsequence
         
     property DUT_RESET_EVENT;
-      @(posedge t.CLK) (DUT_reset);
+      @(posedge CLK) (DUT_reset);
     endproperty
     cov_tc_reset: cover property (DUT_RESET_EVENT);
         
     // --- Test Case Coverage : tc_wb_stall --- //
     sequence WB_stall;
-      @(posedge t.CLK) ~(t.WB_ready);
+      @(posedge CLK) ~(WB_ready);
     endsequence
         
     property WB_STALL_EVENT;
-      @(posedge t.CLK) disable iff (~t.nRST)
+      @(posedge CLK) disable iff (~nRST)
       (WB_stall);
     endproperty
     cov_tc_wb_stall: cover property (WB_STALL_EVENT);
