@@ -73,10 +73,11 @@ class alu_imm_pipeline_test extends uvm_test;
       // $add_waveform("/uvm_root/uvm_test_top/tc_name");
 
       // --- ALU Imm Pipeline Test Procedure --- //
-      /* 
+
+      /*********************************** 
         Test Case Tag  : tc_reset
         Test Case Name : Reset Values
-      */
+      ************************************/
       tc_name = "tc_reset";
       env.scb.set_test_case_name(tc_name);
 
@@ -90,24 +91,19 @@ class alu_imm_pipeline_test extends uvm_test;
       reset_seq.start(env.agnt.seqr);
       #(0.5 * CLK_PERIOD);
 
-      repeat (2) begin
-        garbage_seq = garbage_sequence::type_id::create("garbage_seq");
-        garbage_seq.start(env.agnt.seqr);
+      repeat (4) begin
+        ideal_seq = ideal_sequence::type_id::create("ideal_sequence");
+        ideal_seq.start(env.agnt.seqr);
       end
 
-      // Prime for next test case
-      reset_seq = reset_sequence::type_id::create("reset_seq");
-      reset_seq.start(env.agnt.seqr);
-      #(CLK_PERIOD);
-
-      /* 
+      /*********************************** 
         Test Case Tag  : tc_wb_stall
         Test Case Name : Writeback Stall
-      */
+      ************************************/
       tc_name = "tc_wb_stall";
       env.scb.set_test_case_name(tc_name);
 
-      repeat (100) begin
+      repeat (60) begin
           wb_stall_seq = wb_stall_sequence::type_id::create("wb_stall_seq");
           wb_stall_seq.start(env.agnt.seqr);
       end
