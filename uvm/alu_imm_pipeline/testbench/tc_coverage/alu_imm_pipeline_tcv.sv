@@ -16,7 +16,7 @@ import core_types_pkg::*;
 import uvm_pkg::*;
 
 // --- SVA Checks --- //
-module alu_imm_pipeline_sva (
+module alu_imm_pipeline_tcv (
     input logic                                 CLK,
     input logic                                 nRST,
     input logic                                 issue_valid,

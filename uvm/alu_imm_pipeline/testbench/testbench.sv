@@ -80,7 +80,7 @@ module top;
   );
 
   // --- Test Case Coverage --- //
-  alu_imm_pipeline_sva TCV(
+  alu_imm_pipeline_tcv TCV(
     .CLK(CLK),
     .nRST(alu_imm_pipeline_intf.nRST),
     .issue_valid(alu_imm_pipeline_intf.issue_valid),
