@@ -16,6 +16,7 @@ TEST_MOD ?= top
 QSIM_ENV ?= /package/eda/mg/questa2021.4/questasim
 VCD      ?= wave.do
 SVA      ?= $(UVM_DIR)/assertions/$(DUT)_sva.sv
+TCV      ?=
 
 # --- Tools --- #
 RESULTS_SCRIPT_DIR ?= ../../tools/uvm_results
@@ -100,6 +101,7 @@ build:
 		-sv $(RTL_DEPS) \
         -sv $(TB_FILE) \
         -sv $(SVA) \
+        -sv $(TCV) \
         -logfile compile.log
 
 # Run simulation in the command line

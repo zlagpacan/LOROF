@@ -31,27 +31,6 @@ class alu_imm_pipeline_coverage extends uvm_subscriber#(alu_imm_pipeline_sequenc
 
     function void write(alu_imm_pipeline_sequence_item t);
 
-        // --- Test Case Coverage : tc_reset --- //
-        sequence DUT_reset;
-          @(posedge t.CLK) ~(t.nRST);
-        endsequence
-        
-        property DUT_RESET_EVENT;
-          @(posedge t.CLK) (DUT_reset);
-        endproperty
-        cov_tc_reset: cover property (DUT_RESET_EVENT);
-        
-        // --- Test Case Coverage : tc_wb_stall --- //
-        sequence WB_stall;
-          @(posedge t.CLK) ~(t.WB_ready);
-        endsequence
-        
-        property WB_STALL_EVENT;
-          @(posedge t.CLK) disable iff (~t.nRST)
-          (WB_stall);
-        endproperty
-        cov_tc_wb_stall: cover property (WB_STALL_EVENT);
-
     endfunction : write
 
 endclass
