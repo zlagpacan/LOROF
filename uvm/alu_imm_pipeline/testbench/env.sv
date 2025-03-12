@@ -51,7 +51,7 @@ class alu_imm_pipeline_env extends uvm_env;
     agnt     = alu_imm_pipeline_agent::type_id::create("agnt", this);
     scb      = alu_imm_pipeline_scoreboard::type_id::create("scb", this);
     pred     = alu_imm_pipeline_predictor::type_id::create("pred",this);
-    coverage = alu_imm_pipeline_coverage::type_id::create("coverage_tracker",this);
+    coverage = alu_imm_pipeline_coverage::type_id::create("coverage",this);
     
   endfunction : build_phase
   
@@ -70,7 +70,7 @@ class alu_imm_pipeline_env extends uvm_env;
     pred.pred_ap.connect(scb.expected_export);
 
     // --- Monitor -> Coverage Tracker --- //
-    agnt.mon.coverage_port.connect(coverage_tracker.coverage_port);
+    agnt.mon.coverage_port.connect(coverage.coverage_port);
     
   endfunction : connect_phase
   
