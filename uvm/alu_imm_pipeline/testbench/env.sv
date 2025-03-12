@@ -34,7 +34,7 @@ class alu_imm_pipeline_env extends uvm_env;
   alu_imm_pipeline_agent      agnt;
   alu_imm_pipeline_scoreboard scb;
   alu_imm_pipeline_predictor  pred;
-  alu_imm_pipeline_coverage   coverage_tracker;
+  alu_imm_pipeline_coverage   coverage;
 
   // --- Constructor --- //
   function new(string name = "alu_imm_pipeline_env", uvm_component parent);
