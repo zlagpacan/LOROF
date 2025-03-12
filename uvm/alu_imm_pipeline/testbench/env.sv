@@ -70,7 +70,7 @@ class alu_imm_pipeline_env extends uvm_env;
     pred.pred_ap.connect(scb.expected_export);
 
     // --- Monitor -> Coverage Tracker --- //
-    agnt.mon.coverage_port.connect(coverage.coverage_port);
+    agnt.mon.coverage_port.connect(coverage.cov_ap);
     
   endfunction : connect_phase
   
