@@ -40,3 +40,5 @@ class reset_sequence extends uvm_sequence;
   endtask : body
   
 endclass : reset_sequence
+
+`endif
