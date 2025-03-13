@@ -63,14 +63,22 @@ module alu_imm_pipeline_sva (
     (~WB_ready) |=> (WB_ROB_index === $past(WB_ROB_index));
   endproperty
 
-    // --- Test Case tc_standard_wb Properties --- //
+  // --- Test Case tc_standard_wb Properties --- //
+  logic inv_nRST;
+  logic inv_WB_ready;
+  logic inv_issue_valid;
+
+  assign inv_nRST        = $past(nRST, 1) | $past(nRST, 2) | $past(nRST, 3);
+  assign inv_WB_ready    = $past(WB_ready, 1) | $past(WB_ready, 2) | $past(WB_ready, 3);
+  assign inv_issue_valid = $past(issue_valid, 1) | $past(issue_valid, 2) | $past(issue_valid, 3);
+
   property tc_standard_WB_PR;
-    @(posedge CLK) disable iff (~nRST || ~WB_ready || ~issue_valid)
+    @(posedge CLK) disable iff (~inv_nRST || ~inv_WB_ready || ~inv_issue_valid)
     (WB_PR === $past(issue_dest_PR, 3));
   endproperty
 
   property tc_standard_WB_ROB_index;
-    @(posedge CLK) disable iff (~nRST || ~WB_ready || ~issue_valid)
+    @(posedge CLK) disable iff (~inv_nRST || ~inv_WB_ready || ~inv_issue_valid)
     (WB_ROB_index === $past(issue_ROB_index, 3));
   endproperty
 
