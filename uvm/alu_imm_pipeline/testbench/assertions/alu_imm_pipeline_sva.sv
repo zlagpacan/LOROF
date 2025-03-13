@@ -78,9 +78,9 @@ module alu_imm_pipeline_sva (
       inv_WB_ready    <= 1'b0;
       inv_issue_valid <= 1'b0;
     end else begin
-      inv_nRST        <= ($past(nRST, 1) == 1) || ($past(nRST, 2) == 1) || ($past(nRST, 3) == 1);
-      inv_WB_ready    <= ($past(WB_ready, 1) == 1) || ($past(WB_ready, 2) == 1) || ($past(WB_ready, 3) == 1);
-      inv_issue_valid <= ($past(issue_valid, 1) == 1) || ($past(issue_valid, 2) == 1) || ($past(issue_valid, 3) == 1);
+      inv_nRST        <= ($past(nRST, 1) === 1) || ($past(nRST, 2) === 1) || ($past(nRST, 3) === 1);
+      inv_WB_ready    <= ($past(WB_ready, 1) === 1) || ($past(WB_ready, 2) === 1) || ($past(WB_ready, 3) === 1);
+      inv_issue_valid <= ($past(issue_valid, 1) === 1) || ($past(issue_valid, 2) === 1) || ($past(issue_valid, 3) === 1);
     end
   end
 
