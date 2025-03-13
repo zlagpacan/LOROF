@@ -1,11 +1,13 @@
-Script run on: 2025-03-11 15:30:51
+Script run on: 2025-03-12 20:45:03
+-----------------------------------------------------------------
+[FAIL] tc_standard_wb                      (SVA) : FAIL  [FAIL]
+    Instances (Failed only):
+        - Timestamp: 8      : FAILED  -
+        - Timestamp: 8      : FAILED  -
+        - Timestamp: 28     : FAILED  -
+        - Timestamp: 28     : FAILED  -
 -----------------------------------------------------------------
 [PASS] tc_reset                            (UVM) : PASS  [PASS]
 -----------------------------------------------------------------
-[FAIL] tc_wb_stall                         (SVA) : FAIL  [FAIL]
-    Instances (Failed only):
-        - Timestamp: 56     : FAILED  -
-        - Timestamp: 56     : FAILED  -
-        - Timestamp: 56     : FAILED  -
-        - Timestamp: 56     : FAILED  -
+[PASS] tc_wb_stall                         (UVM) : PASS  [PASS]
 -----------------------------------------------------------------
