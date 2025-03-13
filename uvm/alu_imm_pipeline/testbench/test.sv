@@ -104,8 +104,20 @@ class alu_imm_pipeline_test extends uvm_test;
       env.scb.set_test_case_name(tc_name);
 
       repeat (60) begin
-          wb_stall_seq = wb_stall_sequence::type_id::create("wb_stall_seq");
-          wb_stall_seq.start(env.agnt.seqr);
+        wb_stall_seq = wb_stall_sequence::type_id::create("wb_stall_seq");
+        wb_stall_seq.start(env.agnt.seqr);
+      end
+
+      /*********************************** 
+        Test Case Tag  : tc_standard_wb
+        Test Case Name : Standard Writeback
+      ************************************/
+      tc_name = "tc_standard_wb";
+      env.scb.set_test_case_name(tc_name);
+
+      repeat (30) begin
+        ideal_seq = ideal_sequence::type_id::create("ideal_seq");
+        ideal_seq.start(env.agnt.seqr);
       end
 
     

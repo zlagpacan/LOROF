@@ -42,19 +42,7 @@ module alu_imm_pipeline_sva (
   // --- Debug --- //
   string seperator = "------------------------------------------------------------------------------------------------------------------------------";
 
-  // --- Test Case Coverage --- //
-  // sequence DUT_reset;
-  //   @(posedge CLK) ~nRST;
-  // endsequence
-  
-  // property DUT_RESET_EVENT;
-  //   @(posedge CLK) (DUT_reset);
-  // endproperty
-  // c_ALURP_0: cover property (DUT_RESET_EVENT);
-
-  // --- SVA Properties --- //
-
-  // --- Test Case ALURP_1 Properties --- //
+  // --- Test Case tc_wb_stall Properties --- //
   property tc_WB_valid_stall;
     @(posedge CLK) disable iff (~nRST)
     (~WB_ready) |=> (WB_valid === $past(WB_valid));
@@ -75,7 +63,18 @@ module alu_imm_pipeline_sva (
     (~WB_ready) |=> (WB_ROB_index === $past(WB_ROB_index));
   endproperty
 
-  // --- Test Case ALURP_1 Instances --- //
+    // --- Test Case tc_standard_wb Properties --- //
+  property tc_standard_WB_PR;
+    @(posedge CLK) disable iff (~nRST || ~WB_ready || ~issue_valid)
+    (WB_PR === $past(issue_dest_PR, 3));
+  endproperty
+
+  property tc_standard_WB_ROB_index;
+    @(posedge CLK) disable iff (~nRST || ~WB_ready || ~issue_valid)
+    (WB_ROB_index === $past(issue_ROB_index, 3));
+  endproperty
+
+  // --- Test Case tc_wb_stall Instances --- //
   a_tc_WB_valid_stall: assert property (tc_WB_valid_stall) begin
     `uvm_info("sva", $sformatf("Test Case: tc_wb_stall : PASSED"), UVM_LOW)
   end else begin
@@ -109,6 +108,25 @@ module alu_imm_pipeline_sva (
     $display(seperator);
     `uvm_info("sva", $sformatf("Test Case: tc_wb_stall : FAILED"), UVM_LOW)
     `uvm_info("sva", $sformatf("Sub-test : WB_ROB_index stall"), UVM_LOW)
+    $display(seperator);
+  end
+
+  // --- Test Case tc_standard_wb Instances --- //
+  a_tc_standard_WB_PR: assert property (tc_standard_WB_PR) begin
+    `uvm_info("sva", $sformatf("Test Case: tc_standard_wb : PASSED"), UVM_LOW)
+  end else begin
+    $display(seperator);
+    `uvm_info("sva", $sformatf("Test Case: tc_standard_wb : FAILED"), UVM_LOW)
+    `uvm_info("sva", $sformatf("Sub-test : WB_PR pass through"), UVM_LOW)
+    $display(seperator);
+  end
+
+  a_tc_standard_WB_ROB_index: assert property (tc_standard_WB_ROB_index) begin
+    `uvm_info("sva", $sformatf("Test Case: tc_standard_wb : PASSED"), UVM_LOW)
+  end else begin
+    $display(seperator);
+    `uvm_info("sva", $sformatf("Test Case: tc_standard_wb : FAILED"), UVM_LOW)
+    `uvm_info("sva", $sformatf("Sub-test : WB_ROB_index pass through"), UVM_LOW)
     $display(seperator);
   end
 
