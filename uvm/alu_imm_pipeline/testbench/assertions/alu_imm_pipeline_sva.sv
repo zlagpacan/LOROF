@@ -85,12 +85,12 @@ module alu_imm_pipeline_sva (
   end
 
   property tc_standard_WB_PR;
-    @(posedge CLK) disable iff (inv_nRST || inv_WB_ready || inv_issue_valid)
+    @(posedge CLK) disable iff (inv_nRST || inv_WB_ready || inv_issue_valid || ~nRST)
     (WB_PR === $past(issue_dest_PR, 3));
   endproperty
 
   property tc_standard_WB_ROB_index;
-    @(posedge CLK) disable iff (inv_nRST || inv_WB_ready || inv_issue_valid)
+    @(posedge CLK) disable iff (inv_nRST || inv_WB_ready || inv_issue_valid || ~nRST)
     (WB_ROB_index === $past(issue_ROB_index, 3));
   endproperty
 
