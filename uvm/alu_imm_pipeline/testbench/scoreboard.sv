@@ -1,3 +1,9 @@
+/*
+  Module        : alu_imm_pipeline
+  UMV Component : scoreboard
+  Author        : Adam Keith
+*/
+
 `ifndef ALU_IMM_PIPELINE_SCOREBOARD_SV
 `define ALU_IMM_PIPELINE_SCOREBOARD_SV
 
@@ -27,6 +33,7 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
   alu_imm_pipeline_sequence_item actual_tx;
 
   int m_matches, m_mismatches, num_transactions;
+  string tc_name;
 
   // --- Constructor --- //
   function new(string name = "alu_imm_pipeline_scoreboard", uvm_component parent);
@@ -55,6 +62,12 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
     actual_export.connect(actual_fifo.analysis_export);
   endfunction : build_phase
 
+  // --- Test Case Name - Debug -- //
+  function void set_test_case_name(string name);
+    tc_name = name;
+    `uvm_info("SCBD", $sformatf("Test case name set to: %s", tc_name), UVM_LOW)
+  endfunction : set_test_case_name
+
   // --- Run Phase --- //
   task run_phase(uvm_phase phase);
     super.run_phase(phase);
@@ -70,10 +83,10 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
 
       if (expected_tx.compare(actual_tx)) begin
         m_matches++;
-        `uvm_info("SCBD", "Test Case: ALUIMMP : PASSED", UVM_LOW)
+        `uvm_info("SCBD", $sformatf("Test Case: %s : PASSED", tc_name), UVM_LOW)
       end else begin
         m_mismatches++;
-        `uvm_error("SCBD", "Test Case: ALUIMMP : FAILED")
+        `uvm_error("SCBD", $sformatf("Test Case: %s : FAILED", tc_name))
         `uvm_info("SCBD", "Expected Transaction", UVM_LOW)
         expected_tx.print();
         `uvm_info("SCBD", "Actual Transaction", UVM_LOW)

@@ -17,6 +17,7 @@ TEST_MOD = top
 QSIM_ENV = /package/eda/mg/questa2021.4/questasim
 VCD      = wave.do
 SVA      = $(UVM_DIR)/assertions/$(DUT)_sva.sv
+TCV      = $(UVM_DIR)/tc_coverage/$(DUT)_tcv.sv
 
 # --- Tools --- #
 RESULTS_SCRIPT_DIR = ../../tools/uvm_results

@@ -1,0 +1,36 @@
+Coverage Report by instance with details
+
+=================================================================================
+=== Instance: /top/TCV
+=== Design Unit: work.alu_imm_pipeline_tcv
+=================================================================================
+
+Directive Coverage:
+    Directives                       2         2         0   100.00%
+
+DIRECTIVE COVERAGE:
+--------------------------------------------------------------------------------------------
+Name                                     Design Design   Lang File(Line)      Hits Status    
+                                         Unit   UnitType                                     
+--------------------------------------------------------------------------------------------
+/top/TCV/cov_tc_reset                    alu_imm_pipeline_tcv Verilog  SVA  testbench/tc_coverage/alu_imm_pipeline_tcv.sv(50)
+                                                                                 1 Covered   
+/top/TCV/cov_tc_wb_stall                 alu_imm_pipeline_tcv Verilog  SVA  testbench/tc_coverage/alu_imm_pipeline_tcv.sv(61)
+                                                                                21 Covered   
+
+
+DIRECTIVE COVERAGE:
+--------------------------------------------------------------------------------------------
+Name                                     Design Design   Lang File(Line)      Hits Status    
+                                         Unit   UnitType                                     
+--------------------------------------------------------------------------------------------
+/top/TCV/cov_tc_reset                    alu_imm_pipeline_tcv Verilog  SVA  testbench/tc_coverage/alu_imm_pipeline_tcv.sv(50)
+                                                                                 1 Covered   
+/top/TCV/cov_tc_wb_stall                 alu_imm_pipeline_tcv Verilog  SVA  testbench/tc_coverage/alu_imm_pipeline_tcv.sv(61)
+                                                                                21 Covered   
+
+TOTAL DIRECTIVE COVERAGE: 100.00%  COVERS: 2
+
+Total Coverage By Instance (filtered view): 100.00%
+
+

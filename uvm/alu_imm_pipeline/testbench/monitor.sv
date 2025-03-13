@@ -18,6 +18,7 @@ import core_types_pkg::*;
 // --- Includes --- //
 `include "sequence_item.sv"
 `include "interface.sv"
+`include "coverage.sv"
 
 // --- Monitor --- //
 class alu_imm_pipeline_monitor extends uvm_monitor;
@@ -29,6 +30,7 @@ class alu_imm_pipeline_monitor extends uvm_monitor;
   
   uvm_analysis_port #(alu_imm_pipeline_sequence_item) monitor_port;
   uvm_analysis_port #(alu_imm_pipeline_sequence_item) predictor_port;
+  uvm_analysis_port #(alu_imm_pipeline_sequence_item) coverage_port;
   
   // --- Constructor --- //
   function new(string name = "alu_imm_pipeline_monitor", uvm_component parent);
@@ -42,8 +44,9 @@ class alu_imm_pipeline_monitor extends uvm_monitor;
     `uvm_info("MONITOR_CLASS", "Build Phase", UVM_HIGH)
     
     // --- Build Monitor Port --- //
-    monitor_port = new("monitor_port", this);
+    monitor_port   = new("monitor_port", this);
     predictor_port = new("predictor_port",this);
+    coverage_port  = new("coverage_port",this);
     
     // --- Virtual Interface Failure --- //
     if(!(uvm_config_db #(virtual alu_imm_pipeline_if)::get(this, "*", "vif", vif))) begin
@@ -98,6 +101,7 @@ class alu_imm_pipeline_monitor extends uvm_monitor;
 
       // --- Send to Scoreboard --- //
       monitor_port.write(item);
+      coverage_port.write(item);
       
     end
         
