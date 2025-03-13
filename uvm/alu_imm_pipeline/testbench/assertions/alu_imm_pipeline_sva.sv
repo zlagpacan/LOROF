@@ -68,10 +68,6 @@ module alu_imm_pipeline_sva (
   logic inv_WB_ready;
   logic inv_issue_valid;
 
-  // assign inv_nRST        = $past(nRST, 1) | $past(nRST, 2) | $past(nRST, 3);
-  // assign inv_WB_ready    = $past(WB_ready, 1) | $past(WB_ready, 2) | $past(WB_ready, 3);
-  // assign inv_issue_valid = $past(issue_valid, 1) | $past(issue_valid, 2) | $past(issue_valid, 3);
-
   always_ff @(posedge CLK or negedge nRST) begin
     inv_nRST        = (nRST === 0) || ($past(nRST, 1) === 0) || ($past(nRST, 2) === 0) || ($past(nRST, 3) === 0);
     inv_WB_ready    = (WB_ready === 0) || ($past(WB_ready, 1) === 0) || ($past(WB_ready, 2) === 0) || ($past(WB_ready, 3) === 0);
