@@ -23,7 +23,6 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
     alu_imm_pipeline_sequence_item past_tx; // Store the previous transaction
 
     // --- //
-    // FIXME: sign extend immediate
     // Internal registers to simulate the 3-cycle delay prediction
     reg [31:0] stage1_imm;
     reg [31:0] stage2_A, stage2_imm;
@@ -64,7 +63,6 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
             expected_tx.WB_ROB_index = '0;
         end 
         else begin
-            // Simulate the pipeline delay for 3 cycles (by updating stages)
             stage1_A_bank <= t.issue_A_bank;
             stage1_imm <= {{20{t.issue_imm12[11]}}, t.issue_imm12};
             stage1_op  <= t.issue_op;
@@ -81,11 +79,10 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
             stage4_imm <= stage3_imm;
             stage4_op  <= stage3_op;
 
-            // Predict the result after 3 cycles (using the operation and operands from stage 3)
             expected_tx.WB_data = predict_WB_data(stage4_op, stage4_A, stage4_imm);
             // expected_tx.WB_PR   = t.issue_dest_PR;
             // expected_tx.WB_ROB_index = t.issue_ROB_index;
-            // expected_tx.WB_valid = 1'b1; // Valid once we have the predicted result
+            // expected_tx.WB_valid = 1'b1;
         end
 
         pred_ap.write(expected_tx);
