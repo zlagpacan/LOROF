@@ -116,7 +116,7 @@ module alu_imm_pipeline_sva (
     (WB_valid) |-> (WB_data === tc_standard_WB_data_expected_out);
   endproperty
 
-  a_tc_standard_WB_data_ORI: assert property (tc_standard_WB_data_ORI) begin
+  a_tc_standard_WB_data: assert property (tc_standard_WB_data) begin
     `uvm_info("sva", $sformatf("Test Case: TEST_SVA : PASSED"), UVM_LOW)
   end else begin
     $display(seperator);
