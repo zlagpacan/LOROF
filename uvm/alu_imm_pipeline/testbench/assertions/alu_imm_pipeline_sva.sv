@@ -90,11 +90,11 @@ module alu_imm_pipeline_sva (
   endproperty
 
   // --- Ops --- //
-  // TODO: test one to see how we like
-  property tc_standard_WB_data_ORI;
-    @(posedge CLK) disable iff (inv_nRST || inv_WB_ready || inv_issue_valid || ~nRST)
-    // ( && () |-> (WB_valid === 1'b1);
-  endproperty
+  // // TODO: test one to see how we like
+  // property tc_standard_WB_data_ORI;
+  //   @(posedge CLK) disable iff (inv_nRST || inv_WB_ready || inv_issue_valid || ~nRST)
+  //   // ( && () |-> (WB_valid === 1'b1);
+  // endproperty
 
   // --- Test Case tc_wb_stall Instances --- //
   a_tc_WB_valid_stall: assert property (tc_WB_valid_stall) begin
