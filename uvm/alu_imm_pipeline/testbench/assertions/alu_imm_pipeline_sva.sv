@@ -84,6 +84,11 @@ module alu_imm_pipeline_sva (
     (WB_ROB_index === $past(issue_ROB_index, 3));
   endproperty
 
+  property tc_standard_WB_valid;
+    @(posedge CLK) disable iff (inv_nRST || inv_WB_ready || inv_issue_valid || ~nRST)
+    (WB_valid === 1'b1);
+  endproperty
+
   // --- Test Case tc_wb_stall Instances --- //
   a_tc_WB_valid_stall: assert property (tc_WB_valid_stall) begin
     `uvm_info("sva", $sformatf("Test Case: tc_wb_stall : PASSED"), UVM_LOW)
@@ -137,6 +142,15 @@ module alu_imm_pipeline_sva (
     $display(seperator);
     `uvm_info("sva", $sformatf("Test Case: tc_standard_wb : FAILED"), UVM_LOW)
     `uvm_info("sva", $sformatf("Sub-test : WB_ROB_index pass through"), UVM_LOW)
+    $display(seperator);
+  end
+
+  a_tc_standard_WB_valid: assert property (tc_standard_WB_valid) begin
+    `uvm_info("sva", $sformatf("Test Case: tc_standard_wb : PASSED"), UVM_LOW)
+  end else begin
+    $display(seperator);
+    `uvm_info("sva", $sformatf("Test Case: tc_standard_wb : FAILED"), UVM_LOW)
+    `uvm_info("sva", $sformatf("Sub-test : WB valid"), UVM_LOW)
     $display(seperator);
   end
 
