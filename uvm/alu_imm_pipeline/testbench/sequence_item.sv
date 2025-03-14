@@ -79,6 +79,9 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
   constraint issue_A_forward_ideal { soft issue_A_forward == 1'b1; }
   constraint issue_A_is_zero_ideal { soft issue_A_is_zero == 1'b0; }
 
+  constraint TEST { soft issue_op == '0; }
+
+
 
   // Temp Void - Dist constraints won't override
   // constraint WB_ready_ideal        { soft WB_ready        == 1'b1; }
