@@ -61,7 +61,6 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
             expected_tx.WB_data      = '0;
             expected_tx.WB_PR        = '0;
             expected_tx.WB_ROB_index = '0;
-            pred_ap.write(expected_tx);
         end 
         else begin
             // stage1_A_bank <= t.issue_A_bank;
@@ -76,9 +75,8 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
             // FIXME: going once cycle too early
             if (t.WB_ready) begin
                 expected_tx.WB_data = stage1_A_bank | stage1_imm;
-                pred_ap.write(expected_tx);
             end else begin
-                // expected_tx.WB_data = expected_tx.WB_data;
+
             end
 
             // stage3_A   <= stage2_A;
@@ -95,7 +93,7 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
             // expected_tx.WB_valid = 1'b1;
         end
 
-        // pred_ap.write(expected_tx);
+        pred_ap.write(expected_tx);
     endfunction : write
 
 endclass
