@@ -22,6 +22,14 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
     alu_imm_pipeline_sequence_item expected_tx;
     alu_imm_pipeline_sequence_item past_tx; // Store the previous transaction
 
+    // --- //
+    // FIXME: sign extend immediate
+    // Internal registers to simulate the 3-cycle delay prediction
+    reg [31:0] stage1_A, stage1_imm;
+    reg [31:0] stage2_A, stage2_imm;
+    reg [31:0] stage3_A, stage3_imm;
+    reg [3:0] stage1_op, stage2_op, stage3_op;
+
     function new(string name = "alu_imm_pipeline_predictor", uvm_component parent);
         super.new(name, parent);
     endfunction : new
@@ -30,6 +38,15 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
         super.build_phase(phase);
         pred_ap = new("pred_ap", this);
     endfunction : build_phase
+
+    // Function to perform the prediction calculation
+    function automatic [31:0] predict_WB_data(input [3:0] op, input [31:0] A, input [31:0] imm);
+        case (op)
+            4'b0000: predict_WB_data = A + imm;  // ADDI
+            // Add other operations here as needed
+            default: predict_WB_data = 32'b0;
+        endcase
+    endfunction
 
     function void write(alu_imm_pipeline_sequence_item t);
         if (expected_tx == null) begin
@@ -45,7 +62,24 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
             expected_tx.WB_ROB_index = '0;
         end 
         else begin
+            // Simulate the pipeline delay for 3 cycles (by updating stages)
+            stage1_A <= t.issue_A;
+            stage1_imm <= t.issue_imm12;
+            stage1_op <= t.issue_op;
 
+            stage2_A <= stage1_A;
+            stage2_imm <= stage1_imm;
+            stage2_op <= stage1_op;
+
+            stage3_A <= stage2_A;
+            stage3_imm <= stage2_imm;
+            stage3_op <= stage2_op;
+
+            // Predict the result after 3 cycles (using the operation and operands from stage 3)
+            expected_tx.WB_data = predict_WB_data(stage3_op, stage3_A, stage3_imm);
+            // expected_tx.WB_PR   = t.issue_dest_PR;
+            // expected_tx.WB_ROB_index = t.issue_ROB_index;
+            // expected_tx.WB_valid = 1'b1; // Valid once we have the predicted result
         end
 
         pred_ap.write(expected_tx);
