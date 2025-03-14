@@ -50,6 +50,7 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
     // --- Inputs --- //
     `uvm_field_int(issue_valid,     UVM_NOCOMPARE)
     `uvm_field_int(issue_op,        UVM_NOCOMPARE)
+    `uvm_field_int(issue_imm12,     UVM_NOCOMPARE)
     `uvm_field_int(issue_A_forward, UVM_NOCOMPARE)
     `uvm_field_int(issue_A_bank,    UVM_NOCOMPARE)
     `uvm_field_int(issue_A_is_zero, UVM_NOCOMPARE)
