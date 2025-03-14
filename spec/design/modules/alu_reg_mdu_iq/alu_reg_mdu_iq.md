@@ -284,7 +284,7 @@ output interface
         - an ALU Reg-Reg op is identifiable by dispatch_valid_alu_reg_by_way being high upon dispatch
         - op ready -> both operands in a ready or "forwardable" state
     - if this signal is high, the remaining signals in this interface follow the oldest ALU Reg-Reg op in the IQ
-    - if this signal is low, the remaining signals in this interface are don't cares
+    - if this signal is low, the remaining signals in this interface are all '0
     - reset value:
         - 1'b0
 - issue_alu_reg_op
@@ -306,6 +306,9 @@ output interface
     - indicate to the pipeline that operand A should be an internally-produced 32-bit zero (and therefore does not need to perform a register read)
     - single flag
     - this signal is high if the op being issued currently has operand A in "is zero" state
+    - if this siganl is high, the following signals are don't-cares:
+        - issue_alu_reg_A_forward
+        - issue_alu_reg_A_bank
     - reset value:
         - 1'b0
 - issue_alu_reg_A_bank
@@ -395,6 +398,7 @@ output interface
         - a MDU op is identifiable by dispatch_valid_mdu_by_way being high upon dispatch
         - op ready -> both operands in a "ready", "forwardable", or "is zero" state
     - if this signal is high, the remaining signals in this interface follow the oldest MDU op in the IQ
+    - if this signal is low, the remaining signals in this interface are all '0
     - reset value:
         - 1'b0
 - issue_mdu_op
@@ -416,6 +420,9 @@ output interface
     - indicate to the pipeline that operand A should be an internally-produced 32-bit zero (and therefore does not need to perform a register read)
     - single flag
     - this signal is high if the op being issued currently has operand A in "is zero" state
+    - if this siganl is high, the following signals are don't-cares:
+        - issue_mdu_A_forward
+        - issue_mdu_A_bank
     - reset value:
         - 1'b0
 - issue_mdu_A_bank
