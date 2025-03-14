@@ -15,7 +15,7 @@ import core_types_pkg::*;
 `include "uvm_macros.svh"
 import uvm_pkg::*;
 
-`include "alu.sv"
+// `include "alu.sv"
 
 // --- SVA Checks --- //
 module alu_imm_pipeline_sva (
