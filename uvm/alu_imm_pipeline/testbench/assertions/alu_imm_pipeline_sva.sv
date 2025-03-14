@@ -69,9 +69,9 @@ module alu_imm_pipeline_sva (
   logic inv_issue_valid;
 
   always_ff @(posedge CLK or negedge nRST) begin
-    inv_nRST        = (nRST === 0) || ($past(nRST, 1) === 0) || ($past(nRST, 2) === 0) // || ($past(nRST, 3) === 0);
-    inv_WB_ready    = (WB_ready === 0) || ($past(WB_ready, 1) === 0) || ($past(WB_ready, 2) === 0) // || ($past(WB_ready, 3) === 0);
-    inv_issue_valid = (issue_valid === 0) || ($past(issue_valid, 1) === 0) || ($past(issue_valid, 2) === 0) // || ($past(issue_valid, 3) === 0);
+    inv_nRST        = (nRST === 0) || ($past(nRST, 1) === 0) || ($past(nRST, 2) === 0); // || ($past(nRST, 3) === 0);
+    inv_WB_ready    = (WB_ready === 0) || ($past(WB_ready, 1) === 0) || ($past(WB_ready, 2) === 0); // || ($past(WB_ready, 3) === 0);
+    inv_issue_valid = (issue_valid === 0) || ($past(issue_valid, 1) === 0) || ($past(issue_valid, 2) === 0); // || ($past(issue_valid, 3) === 0);
   end
 
   property tc_standard_WB_PR;
