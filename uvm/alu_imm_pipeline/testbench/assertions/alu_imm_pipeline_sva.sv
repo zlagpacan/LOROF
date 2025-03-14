@@ -15,6 +15,8 @@ import core_types_pkg::*;
 `include "uvm_macros.svh"
 import uvm_pkg::*;
 
+`include "alu.sv"
+
 // --- SVA Checks --- //
 module alu_imm_pipeline_sva (
     input logic                                 CLK,
@@ -91,9 +93,17 @@ module alu_imm_pipeline_sva (
 
   // --- Ops --- //
   // TODO: test one to see how we like
-  property tc_standard_WB_data_ORI;
+  logic [31:0] tc_standard_WB_data_expected_out;
+  alu SVA_ALU(
+    .op($past(issue_op, 3)), 
+    .A($past(forward_data_by_bank[$past(issue_A_bank, 3)], 2)), 
+    .B({{20{$past(issue_imm12[11], 3)}}, $past(issue_imm12, 3)}),
+    .out(tc_standard_WB_data_expected_out)
+  );
+
+  property tc_standard_WB_data;
     @(posedge CLK) disable iff (inv_nRST || inv_WB_ready || inv_issue_valid || ~nRST)
-    (WB_valid) |-> (WB_data == ({{20{$past(issue_imm12[11], 3)}}, $past(issue_imm12, 3)}) | ($past(forward_data_by_bank[$past(issue_A_bank, 3)], 2)));
+    (WB_valid) |-> (WB_data === tc_standard_WB_data_expected_out);
   endproperty
 
   a_tc_standard_WB_data_ORI: assert property (tc_standard_WB_data_ORI) begin
