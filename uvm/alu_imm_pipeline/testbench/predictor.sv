@@ -71,15 +71,15 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
             stage2_imm <= stage1_imm;
             stage2_op  <= stage1_op;
 
-            stage3_A   <= stage2_A;
-            stage3_imm <= stage2_imm;
-            stage3_op  <= stage2_op;
+            // stage3_A   <= stage2_A;
+            // stage3_imm <= stage2_imm;
+            // stage3_op  <= stage2_op;
 
             // stage4_A   <= stage3_A;
             // stage4_imm <= stage3_imm;
             // stage4_op  <= stage3_op;
 
-            expected_tx.WB_data = predict_WB_data(stage3_op, stage3_A, stage3_imm);
+            expected_tx.WB_data = predict_WB_data(stage2_op, stage2_A, stage2_imm);
             // expected_tx.WB_PR   = t.issue_dest_PR;
             // expected_tx.WB_ROB_index = t.issue_ROB_index;
             // expected_tx.WB_valid = 1'b1;
