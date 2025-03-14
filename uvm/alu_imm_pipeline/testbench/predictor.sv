@@ -76,8 +76,9 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
             if (t.WB_ready) begin
                 expected_tx.WB_data = stage1_A_bank | stage1_imm;
             end else begin
-                expected_tx.WB_data = 'x;
+                expected_tx.WB_data = expected_tx.WB_data;
             end
+
             // stage3_A   <= stage2_A;
             // stage3_imm <= stage2_imm;
             // stage3_op  <= stage2_op;
