@@ -64,16 +64,24 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
         end 
         else begin
             // stage1_A_bank <= t.issue_A_bank;
-            stage1_A_bank   <= t.forward_data_by_bank[t.issue_A_bank];
-            stage1_imm <= {{20{t.issue_imm12[11]}}, t.issue_imm12};
-            stage1_op  <= t.issue_op;
+            // stage1_A_bank   <= t.forward_data_by_bank[t.issue_A_bank];
+            // stage1_imm <= {{20{t.issue_imm12[11]}}, t.issue_imm12};
+            // stage1_op  <= t.issue_op;
 
             // stage2_A   <= t.forward_data_by_bank[stage1_A_bank];
             // stage2_imm <= stage1_imm;
             // stage2_op  <= stage1_op;
 
-            // FIXME: going once cycle too early
-            expected_tx.WB_data = stage1_A_bank | stage1_imm;
+            // // FIXME: going once cycle too early
+            // if (t.WB_ready) begin
+            //     stage1_A_bank <= t.forward_data_by_bank[t.issue_A_bank];
+            //     stage1_imm    <= {{20{t.issue_imm12[11]}}, t.issue_imm12};
+            //     stage1_op     <= t.issue_op;
+
+            //     expected_tx.WB_data = stage1_A_bank | stage1_imm;
+            // end else begin
+
+            // end
 
             // stage3_A   <= stage2_A;
             // stage3_imm <= stage2_imm;

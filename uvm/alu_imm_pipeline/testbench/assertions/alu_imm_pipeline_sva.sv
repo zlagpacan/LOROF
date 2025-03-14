@@ -15,6 +15,8 @@ import core_types_pkg::*;
 `include "uvm_macros.svh"
 import uvm_pkg::*;
 
+// `include "alu.sv"
+
 // --- SVA Checks --- //
 module alu_imm_pipeline_sva (
     input logic                                 CLK,
@@ -90,11 +92,30 @@ module alu_imm_pipeline_sva (
   endproperty
 
   // --- Ops --- //
-  // // TODO: test one to see how we like
-  // property tc_standard_WB_data_ORI;
-  //   @(posedge CLK) disable iff (inv_nRST || inv_WB_ready || inv_issue_valid || ~nRST)
-  //   // ( && () |-> (WB_valid === 1'b1);
-  // endproperty
+  // TODO: test one to see how we like
+  logic [31:0] tc_standard_WB_data_expected_out;
+  alu SVA_ALU(
+    .op($past(issue_op, 3)), 
+    .A($past(forward_data_by_bank[$past(issue_A_bank, 3)], 2)), 
+    .B({{20{$past(issue_imm12[11], 3)}}, $past(issue_imm12, 3)}),
+    .out(tc_standard_WB_data_expected_out)
+  );
+
+  property tc_standard_WB_data;
+    @(posedge CLK) disable iff (inv_nRST || inv_WB_ready || inv_issue_valid || ~nRST)
+    (WB_valid) |-> (WB_data === tc_standard_WB_data_expected_out);
+  endproperty
+
+  a_tc_standard_WB_data_ORI: assert property (tc_standard_WB_data_ORI) begin
+    `uvm_info("sva", $sformatf("Test Case: TEST_SVA : PASSED"), UVM_LOW)
+  end else begin
+    $display(seperator);
+    `uvm_info("sva", $sformatf("Test Case: TEST_SVA : FAILED"), UVM_LOW)
+    `uvm_info("sva", $sformatf("Sub-test : TEST_SVA"), UVM_LOW)
+    $display(seperator);
+  end
+
+  // ------------------------
 
   // --- Test Case tc_wb_stall Instances --- //
   a_tc_WB_valid_stall: assert property (tc_WB_valid_stall) begin
