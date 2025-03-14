@@ -81,9 +81,9 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
 
   // --- DEBUG CONSTRAINTS : REMOVE --- //
   constraint TEST1 { soft issue_op    == '0; }
-  constraint TEST2 { soft issue_imm12 == '1; }
+  // constraint TEST2 { soft issue_imm12 == '1; }
   constraint TEST3 { soft issue_A_bank == '0; }
-  constraint TEST4 { soft forward_data_by_bank == '0; }
+  // constraint TEST4 { soft forward_data_by_bank == '0; }
 
 
   // Temp Void - Dist constraints won't override
