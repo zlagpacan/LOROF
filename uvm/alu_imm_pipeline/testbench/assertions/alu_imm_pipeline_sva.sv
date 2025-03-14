@@ -99,9 +99,15 @@ module alu_imm_pipeline_sva (
   logic [3:0]  tc_standard_WB_data_issue_op;
 
   always_ff @(posedge CLK or negedge nRST) begin
-    tc_standard_WB_data_issue_A  <= $past(forward_data_by_bank[$past(issue_A_bank, 3)], 2);
-    tc_standard_WB_data_imm_12   <= {{20{$past(issue_imm12[11], 3)}}, $past(issue_imm12, 3)};
-    tc_standard_WB_data_issue_op <= $past(issue_op, 3);
+    if (~nRST) begin
+      tc_standard_WB_data_issue_A  <= '0;
+      tc_standard_WB_data_imm_12   <= '0;
+      tc_standard_WB_data_issue_op <= '0;
+    end else begin
+      tc_standard_WB_data_issue_A  <= $past(forward_data_by_bank[$past(issue_A_bank, 3)], 2);
+      tc_standard_WB_data_imm_12   <= {{20{$past(issue_imm12[11], 3)}}, $past(issue_imm12, 3)};
+      tc_standard_WB_data_issue_op <= $past(issue_op, 3);
+    end
   end
 
   alu SVA_ALU(
