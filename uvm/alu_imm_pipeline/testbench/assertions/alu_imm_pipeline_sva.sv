@@ -86,7 +86,7 @@ module alu_imm_pipeline_sva (
 
   property tc_standard_WB_valid;
     @(posedge CLK) disable iff (inv_nRST || inv_WB_ready || inv_issue_valid || ~nRST)
-    (WB_valid === 1'b1);
+    (WB_ready === 1'b1) |-> (WB_valid === 1'b1);
   endproperty
 
   // --- Test Case tc_wb_stall Instances --- //
