@@ -93,7 +93,7 @@ module alu_imm_pipeline_sva (
   // TODO: test one to see how we like
   property tc_standard_WB_data_ORI;
     @(posedge CLK) disable iff (inv_nRST || inv_WB_ready || inv_issue_valid || ~nRST)
-    (WB_valid) |-> (WB_data == ({{20{$past(issue_imm12[11], 3)}}, $past(issue_imm12, 3)}) || ($past(forward_data_by_bank[$past(issue_A_bank, 3)], 2)));
+    (WB_valid) |-> (WB_data == ({{20{$past(issue_imm12[11], 3)}}, $past(issue_imm12, 3)}) | ($past(forward_data_by_bank[$past(issue_A_bank, 3)], 2)));
   endproperty
 
   a_tc_standard_WB_data_ORI: assert property (tc_standard_WB_data_ORI) begin

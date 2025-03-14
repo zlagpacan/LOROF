@@ -74,9 +74,9 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
 
             // FIXME: going once cycle too early
             if (t.WB_ready) begin
-                stage1_A_bank = t.forward_data_by_bank[t.issue_A_bank];
-                stage1_imm    = {{20{t.issue_imm12[11]}}, t.issue_imm12};
-                stage1_op     = t.issue_op;
+                stage1_A_bank <= t.forward_data_by_bank[t.issue_A_bank];
+                stage1_imm    <= {{20{t.issue_imm12[11]}}, t.issue_imm12};
+                stage1_op     <= t.issue_op;
 
                 expected_tx.WB_data = stage1_A_bank | stage1_imm;
             end else begin
