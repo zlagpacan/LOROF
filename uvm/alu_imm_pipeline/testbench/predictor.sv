@@ -63,15 +63,17 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
             expected_tx.WB_ROB_index = '0;
         end 
         else begin
-            stage1_A_bank <= t.issue_A_bank;
+            // stage1_A_bank <= t.issue_A_bank;
+            stage1_A   <= t.forward_data_by_bank[stage1_A_bank];
             stage1_imm <= {{20{t.issue_imm12[11]}}, t.issue_imm12};
             stage1_op  <= t.issue_op;
 
-            stage2_A   <= t.forward_data_by_bank[stage1_A_bank];
-            stage2_imm <= stage1_imm;
-            stage2_op  <= stage1_op;
+            // stage2_A   <= t.forward_data_by_bank[stage1_A_bank];
+            // stage2_imm <= stage1_imm;
+            // stage2_op  <= stage1_op;
 
-            expected_tx.WB_data = stage2_A | stage2_imm;
+            // FIXME: going once cycle too early
+            expected_tx.WB_data = stage1_A | stage1_imm;
 
             // stage3_A   <= stage2_A;
             // stage3_imm <= stage2_imm;
