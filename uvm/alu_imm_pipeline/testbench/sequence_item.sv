@@ -50,6 +50,7 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
     // --- Inputs --- //
     `uvm_field_int(issue_valid,     UVM_NOCOMPARE)
     `uvm_field_int(issue_op,        UVM_NOCOMPARE)
+    `uvm_field_int(issue_imm12,     UVM_NOCOMPARE)
     `uvm_field_int(issue_A_forward, UVM_NOCOMPARE)
     `uvm_field_int(issue_A_bank,    UVM_NOCOMPARE)
     `uvm_field_int(issue_A_is_zero, UVM_NOCOMPARE)
@@ -78,6 +79,12 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
   constraint issue_valid_ideal     { soft issue_valid     == 1'b1; }
   constraint issue_A_forward_ideal { soft issue_A_forward == 1'b1; }
   constraint issue_A_is_zero_ideal { soft issue_A_is_zero == 1'b0; }
+
+  // --- DEBUG CONSTRAINTS : REMOVE --- //
+  constraint TEST1 { soft issue_op    == '0; }
+  // constraint TEST2 { soft issue_imm12 == '1; }
+  constraint TEST3 { soft issue_A_bank == '0; }
+  constraint TEST4 { soft forward_data_by_bank == '0; }
 
 
   // Temp Void - Dist constraints won't override

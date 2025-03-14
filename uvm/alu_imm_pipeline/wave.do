@@ -28,16 +28,18 @@ add wave -noupdate -expand -group {WB Stall} -color White -label a_tc_WB_valid_s
 add wave -noupdate -expand -group {WB Stall} -color White -label a_tc_WB_data_stall /top/SVA/a_tc_WB_data_stall
 add wave -noupdate -expand -group {WB Stall} -color White -label a_tc_WB_PR_stall /top/SVA/a_tc_WB_PR_stall
 add wave -noupdate -expand -group {WB Stall} -color White -label a_tc_WB_ROB_index_stall /top/SVA/a_tc_WB_ROB_index_stall
+add wave -noupdate -expand -group {Standard WB} -color White -expand -subitemconfig {/top/SVA/CLK {-color White -height 16} /top/SVA/issue_dest_PR {-color White -height 16} /top/SVA/WB_PR {-color White -height 16} /top/SVA/inv_issue_valid {-color White -height 16} /top/SVA/inv_WB_ready {-color White -height 16} /top/SVA/inv_nRST {-color White -height 16}} /top/SVA/a_tc_standard_WB_PR
+add wave -noupdate -expand -group {Standard WB} -color White -expand -subitemconfig {/top/SVA/CLK {-color White -height 16} /top/SVA/issue_ROB_index {-color White -height 16} /top/SVA/WB_ROB_index {-color White -height 16} /top/SVA/nRST {-color White} /top/SVA/inv_issue_valid {-color White -height 16} /top/SVA/inv_WB_ready {-color White -height 16} /top/SVA/inv_nRST {-color White -height 16}} /top/SVA/a_tc_standard_WB_ROB_index
+add wave -noupdate -expand -group {Standard WB} -expand /top/SVA/a_tc_standard_WB_valid
 add wave -noupdate -divider {Test Case Tracking}
 add wave -noupdate -color White -label test_case /top/test.tc_name
 add wave -noupdate -color White -label failures -radix decimal /top/test.env.scb.m_mismatches
 add wave -noupdate -divider {Sequence Utilization}
 add wave -noupdate -expand -group Sequences -color Salmon -label reset_seq /top/test.reset_seq
-add wave -noupdate -expand -group Sequences -color Salmon -label garbage_seq /top/test.garbage_seq
 add wave -noupdate -expand -group Sequences -color Salmon -label wb_stall_seq /top/test.wb_stall_seq
 add wave -noupdate -expand -group Sequences -color Salmon -label ideal_seq /top/test.ideal_seq
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {70 ns} 0}
+WaveRestoreCursors {{Cursor 1} {13 ns} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 313
 configure wave -valuecolwidth 98
@@ -53,4 +55,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ns} {156 ns}
+WaveRestoreZoom {0 ns} {36 ns}

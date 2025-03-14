@@ -42,19 +42,7 @@ module alu_imm_pipeline_sva (
   // --- Debug --- //
   string seperator = "------------------------------------------------------------------------------------------------------------------------------";
 
-  // --- Test Case Coverage --- //
-  // sequence DUT_reset;
-  //   @(posedge CLK) ~nRST;
-  // endsequence
-  
-  // property DUT_RESET_EVENT;
-  //   @(posedge CLK) (DUT_reset);
-  // endproperty
-  // c_ALURP_0: cover property (DUT_RESET_EVENT);
-
-  // --- SVA Properties --- //
-
-  // --- Test Case ALURP_1 Properties --- //
+  // --- Test Case tc_wb_stall Properties --- //
   property tc_WB_valid_stall;
     @(posedge CLK) disable iff (~nRST)
     (~WB_ready) |=> (WB_valid === $past(WB_valid));
@@ -75,7 +63,40 @@ module alu_imm_pipeline_sva (
     (~WB_ready) |=> (WB_ROB_index === $past(WB_ROB_index));
   endproperty
 
-  // --- Test Case ALURP_1 Instances --- //
+  // --- Test Case tc_standard_wb Properties --- //
+  logic inv_nRST;
+  logic inv_WB_ready;
+  logic inv_issue_valid;
+
+  always_ff @(posedge CLK or negedge nRST) begin
+    inv_nRST        = (nRST === 0) || ($past(nRST, 1) === 0) || ($past(nRST, 2) === 0) || ($past(nRST, 3) === 0);
+    inv_WB_ready    = (WB_ready === 0) || ($past(WB_ready, 1) === 0) || ($past(WB_ready, 2) === 0) || ($past(WB_ready, 3) === 0);
+    inv_issue_valid = (issue_valid === 0) || ($past(issue_valid, 1) === 0) || ($past(issue_valid, 2) === 0) || ($past(issue_valid, 3) === 0);
+  end
+
+  property tc_standard_WB_PR;
+    @(posedge CLK) disable iff (inv_nRST || inv_WB_ready || inv_issue_valid)
+    (WB_PR === $past(issue_dest_PR, 3));
+  endproperty
+
+  property tc_standard_WB_ROB_index;
+    @(posedge CLK) disable iff (inv_nRST || inv_WB_ready || inv_issue_valid || ~nRST)
+    (WB_ROB_index === $past(issue_ROB_index, 3));
+  endproperty
+
+  property tc_standard_WB_valid;
+    @(posedge CLK) disable iff (inv_nRST || inv_WB_ready || inv_issue_valid || ~nRST)
+    (WB_ready === 1'b1) |-> (WB_valid === 1'b1);
+  endproperty
+
+  // --- Ops --- //
+  // // TODO: test one to see how we like
+  // property tc_standard_WB_data_ORI;
+  //   @(posedge CLK) disable iff (inv_nRST || inv_WB_ready || inv_issue_valid || ~nRST)
+  //   // ( && () |-> (WB_valid === 1'b1);
+  // endproperty
+
+  // --- Test Case tc_wb_stall Instances --- //
   a_tc_WB_valid_stall: assert property (tc_WB_valid_stall) begin
     `uvm_info("sva", $sformatf("Test Case: tc_wb_stall : PASSED"), UVM_LOW)
   end else begin
@@ -109,6 +130,34 @@ module alu_imm_pipeline_sva (
     $display(seperator);
     `uvm_info("sva", $sformatf("Test Case: tc_wb_stall : FAILED"), UVM_LOW)
     `uvm_info("sva", $sformatf("Sub-test : WB_ROB_index stall"), UVM_LOW)
+    $display(seperator);
+  end
+
+  // --- Test Case tc_standard_wb Instances --- //
+  a_tc_standard_WB_PR: assert property (tc_standard_WB_PR) begin
+    `uvm_info("sva", $sformatf("Test Case: tc_standard_wb : PASSED"), UVM_LOW)
+  end else begin
+    $display(seperator);
+    `uvm_info("sva", $sformatf("Test Case: tc_standard_wb : FAILED"), UVM_LOW)
+    `uvm_info("sva", $sformatf("Sub-test : WB_PR pass through"), UVM_LOW)
+    $display(seperator);
+  end
+
+  a_tc_standard_WB_ROB_index: assert property (tc_standard_WB_ROB_index) begin
+    `uvm_info("sva", $sformatf("Test Case: tc_standard_wb : PASSED"), UVM_LOW)
+  end else begin
+    $display(seperator);
+    `uvm_info("sva", $sformatf("Test Case: tc_standard_wb : FAILED"), UVM_LOW)
+    `uvm_info("sva", $sformatf("Sub-test : WB_ROB_index pass through"), UVM_LOW)
+    $display(seperator);
+  end
+
+  a_tc_standard_WB_valid: assert property (tc_standard_WB_valid) begin
+    `uvm_info("sva", $sformatf("Test Case: tc_standard_wb : PASSED"), UVM_LOW)
+  end else begin
+    $display(seperator);
+    `uvm_info("sva", $sformatf("Test Case: tc_standard_wb : FAILED"), UVM_LOW)
+    `uvm_info("sva", $sformatf("Sub-test : WB valid"), UVM_LOW)
     $display(seperator);
   end
 
