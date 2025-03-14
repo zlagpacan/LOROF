@@ -77,7 +77,13 @@ class alu_imm_pipeline_predictor extends uvm_subscriber#(alu_imm_pipeline_sequen
                 stage1_A_bank   <= t.forward_data_by_bank[t.issue_A_bank];
                 stage1_imm <= {{20{t.issue_imm12[11]}}, t.issue_imm12};
                 stage1_op  <= t.issue_op;
-                expected_tx.WB_data = stage1_A_bank | stage1_imm;
+
+                stage2_A   <= stage1_A_bank;
+                stage2_imm <= stage1_imm;
+                stage2_op  <= stage1_op;
+
+                expected_tx.WB_data = stage2_A | stage2_imm;
+                // expected_tx.WB_data = stage1_A_bank | stage1_imm;
             end else begin
 
             end
