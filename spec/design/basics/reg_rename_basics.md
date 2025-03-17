@@ -127,4 +127,4 @@ R10K-style register rename is just one way to implement register renaming in out
 
 Another notable method utilizes entries in the ROB to buffer speculated register file writes. Register writes are not officially performed on the register file until the instruction is committed from the head of the ROB. Instructions read a map table which tells the instruction whether to get an instruction value from the register file or the speculated ROB buffer of register values. 
 
-Another notable method utilizes a future file, allowing all speculated instructions to write to the register file, but keeping a history buffer of register writes which enables the register file to be rolled back to its previous values upon mis-speculation. 
+Another notable method utilizes a future file, allowing all speculated instructions to write to this future file, but still buffering updates to the architectural register file which can be referred back to when the future file is invalidated upon mis-speculation. 
