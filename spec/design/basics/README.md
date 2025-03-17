@@ -7,3 +7,8 @@ Suggested reading order:
 - [precise_state_basics.md](precise_state_basics.md)
 - [iq_basics.md](iq_basics.md)
 - [memory_array_basics.md](memory_array_basics.md)
+
+Future docs:
+- out-of-order load-store basics
+- bus-based snoopy SMP coherence basics
+- memory consistency basics
