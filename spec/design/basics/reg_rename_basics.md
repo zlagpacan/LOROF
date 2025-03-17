@@ -90,7 +90,7 @@ r5: p5 -> p9 (ANDI)
 The SW instruction does not perform a write to a register, so it does not perform any renames.
 
 Updates to the Map Table must be performed in program order, otherwise the incorrect register versions will be given to instructions, leading to incorrect program results.
-- this in-order requirement is what must be checked for by the dependence checking logic as described in the superscalar discussion in [core_basics.md](core_basics.md)
+- this in-order requirement is what must be checked for by the dependence checking logic as described in the superscalar discussion in [core_basics.md: Superscalar Basics](core_basics.md#superscalar-basics)
 
 ## Free List
 The Free List is a FIFO in the frontend which contains a list of physical registers which are not assigned to an active register version, and are therefore free to be assigned to a new register version. 
