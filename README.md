@@ -6,6 +6,9 @@ Goal is to design, verify, and implement on FPGA a RISC-V RV32IMAC_Zicsr_Zifence
 ## Architecture Basics
 - for an intro to the computer architecture concepts involved in LOROF, check out [basics](./spec/design/basics/README.md)
 
+## Preliminary Specs
+- for specs for RTL modules in the design, check out [modules](./spec/design/modules/README.md)
+
 ## System
 ![system](./spec/design/modules/system/system.png)
 
