@@ -35,10 +35,12 @@ module istream_tb ();
 
     // SENQ stage
 	logic tb_valid_SENQ;
-	logic [FETCH_WIDTH_2B-1:0] tb_valid_by_fetch_2B_SENQ;
-	logic [FETCH_WIDTH_2B-1:0][15:0] tb_instr_2B_by_fetch_2B_SENQ;
-	logic [FETCH_WIDTH_2B-1:0][BTB_PRED_INFO_WIDTH-1:0] tb_pred_info_by_fetch_2B_SENQ;
-	logic [FETCH_WIDTH_2B-1:0] tb_dep_pred_by_fetch_2B_SENQ;
+	logic [7:0] tb_valid_by_fetch_2B_SENQ;
+	logic [7:0] tb_one_hot_redirect_by_fetch_2B_SENQ;
+	logic [7:0][15:0] tb_instr_2B_by_fetch_2B_SENQ;
+	logic [7:0][BTB_PRED_INFO_WIDTH-1:0] tb_pred_info_by_fetch_2B_SENQ;
+	logic [7:0] tb_pred_lru_by_fetch_2B_SENQ;
+	logic [7:0][MDPT_INFO_WIDTH-1:0] tb_mdp_info_by_fetch_2B_SENQ;
 	logic [31:0] tb_after_PC_SENQ;
 	logic [LH_LENGTH-1:0] tb_LH_SENQ;
 	logic [GH_LENGTH-1:0] tb_GH_SENQ;
@@ -53,7 +55,10 @@ module istream_tb ();
 	logic [3:0] DUT_uncompressed_by_way_SDEQ, expected_uncompressed_by_way_SDEQ;
 	logic [3:0][1:0][15:0] DUT_instr_2B_by_way_by_chunk_SDEQ, expected_instr_2B_by_way_by_chunk_SDEQ;
 	logic [3:0][1:0][BTB_PRED_INFO_WIDTH-1:0] DUT_pred_info_by_way_by_chunk_SDEQ, expected_pred_info_by_way_by_chunk_SDEQ;
-	logic [3:0] DUT_dep_pred_by_way_SDEQ, expected_dep_pred_by_way_SDEQ;
+	logic [3:0][1:0] DUT_pred_lru_by_way_by_chunk_SDEQ, expected_pred_lru_by_way_by_chunk_SDEQ;
+	logic [3:0][1:0] DUT_redirect_by_way_by_chunk_SDEQ, expected_redirect_by_way_by_chunk_SDEQ;
+	logic [3:0][1:0][31:0] DUT_pred_PC_by_way_by_chunk_SDEQ, expected_pred_PC_by_way_by_chunk_SDEQ;
+	logic [3:0][MDPT_INFO_WIDTH-1:0] DUT_mdp_info_by_way_SDEQ, expected_mdp_info_by_way_SDEQ;
 	logic [3:0][31:0] DUT_PC_by_way_SDEQ, expected_PC_by_way_SDEQ;
 	logic [3:0][LH_LENGTH-1:0] DUT_LH_by_way_SDEQ, expected_LH_by_way_SDEQ;
 	logic [3:0][GH_LENGTH-1:0] DUT_GH_by_way_SDEQ, expected_GH_by_way_SDEQ;
@@ -81,9 +86,11 @@ module istream_tb ();
 	    // SENQ stage
 		.valid_SENQ(tb_valid_SENQ),
 		.valid_by_fetch_2B_SENQ(tb_valid_by_fetch_2B_SENQ),
+		.one_hot_redirect_by_fetch_2B_SENQ(tb_one_hot_redirect_by_fetch_2B_SENQ),
 		.instr_2B_by_fetch_2B_SENQ(tb_instr_2B_by_fetch_2B_SENQ),
 		.pred_info_by_fetch_2B_SENQ(tb_pred_info_by_fetch_2B_SENQ),
-		.dep_pred_by_fetch_2B_SENQ(tb_dep_pred_by_fetch_2B_SENQ),
+		.pred_lru_by_fetch_2B_SENQ(tb_pred_lru_by_fetch_2B_SENQ),
+		.mdp_info_by_fetch_2B_SENQ(tb_mdp_info_by_fetch_2B_SENQ),
 		.after_PC_SENQ(tb_after_PC_SENQ),
 		.LH_SENQ(tb_LH_SENQ),
 		.GH_SENQ(tb_GH_SENQ),
@@ -98,7 +105,10 @@ module istream_tb ();
 		.uncompressed_by_way_SDEQ(DUT_uncompressed_by_way_SDEQ),
 		.instr_2B_by_way_by_chunk_SDEQ(DUT_instr_2B_by_way_by_chunk_SDEQ),
 		.pred_info_by_way_by_chunk_SDEQ(DUT_pred_info_by_way_by_chunk_SDEQ),
-		.dep_pred_by_way_SDEQ(DUT_dep_pred_by_way_SDEQ),
+		.pred_lru_by_way_by_chunk_SDEQ(DUT_pred_lru_by_way_by_chunk_SDEQ),
+		.redirect_by_way_by_chunk_SDEQ(DUT_redirect_by_way_by_chunk_SDEQ),
+		.pred_PC_by_way_by_chunk_SDEQ(DUT_pred_PC_by_way_by_chunk_SDEQ),
+		.mdp_info_by_way_SDEQ(DUT_mdp_info_by_way_SDEQ),
 		.PC_by_way_SDEQ(DUT_PC_by_way_SDEQ),
 		.LH_by_way_SDEQ(DUT_LH_by_way_SDEQ),
 		.GH_by_way_SDEQ(DUT_GH_by_way_SDEQ),
@@ -159,9 +169,30 @@ module istream_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_dep_pred_by_way_SDEQ !== DUT_dep_pred_by_way_SDEQ) begin
-			$display("TB ERROR: expected_dep_pred_by_way_SDEQ (%h) != DUT_dep_pred_by_way_SDEQ (%h)",
-				expected_dep_pred_by_way_SDEQ, DUT_dep_pred_by_way_SDEQ);
+		if (expected_redirect_by_way_by_chunk_SDEQ !== DUT_redirect_by_way_by_chunk_SDEQ) begin
+			$display("TB ERROR: expected_redirect_by_way_by_chunk_SDEQ (%h) != DUT_redirect_by_way_by_chunk_SDEQ (%h)",
+				expected_redirect_by_way_by_chunk_SDEQ, DUT_redirect_by_way_by_chunk_SDEQ);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_pred_PC_by_way_by_chunk_SDEQ !== DUT_pred_PC_by_way_by_chunk_SDEQ) begin
+			$display("TB ERROR: expected_pred_PC_by_way_by_chunk_SDEQ (%h) != DUT_pred_PC_by_way_by_chunk_SDEQ (%h)",
+				expected_pred_PC_by_way_by_chunk_SDEQ, DUT_pred_PC_by_way_by_chunk_SDEQ);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_pred_lru_by_way_by_chunk_SDEQ !== DUT_pred_lru_by_way_by_chunk_SDEQ) begin
+			$display("TB ERROR: expected_pred_lru_by_way_by_chunk_SDEQ (%h) != DUT_pred_lru_by_way_by_chunk_SDEQ (%h)",
+				expected_pred_lru_by_way_by_chunk_SDEQ, DUT_pred_lru_by_way_by_chunk_SDEQ);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_mdp_info_by_way_SDEQ !== DUT_mdp_info_by_way_SDEQ) begin
+			$display("TB ERROR: expected_mdp_info_by_way_SDEQ (%h) != DUT_mdp_info_by_way_SDEQ (%h)",
+				expected_mdp_info_by_way_SDEQ, DUT_mdp_info_by_way_SDEQ);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -219,6 +250,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b0;
 		tb_valid_by_fetch_2B_SENQ = 8'b00000000;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'b00000000;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h0, 2'b00,
 			14'h0, 2'b00,
@@ -239,7 +271,17 @@ module istream_tb ();
 			8'h0,
 			8'h0
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'b00000000;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		tb_after_PC_SENQ = 32'h0;
 		tb_LH_SENQ = 8'h0;
 		tb_GH_SENQ = 12'h0;
@@ -275,12 +317,25 @@ module istream_tb ();
 			8'h0, 8'h0,
 			8'h0, 8'h0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b0000;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h0, 32'h0,
+			32'h0, 32'h0,
+			32'h0, 32'h0,
+			32'h0, 32'h0
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_PC_by_way_SDEQ = {
-			32'h80000000,
-			32'h80000000,
-			32'h80000000,
-			32'h80000000
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
 		};
 		expected_LH_by_way_SDEQ = {
 			8'h0,
@@ -314,6 +369,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b0;
 		tb_valid_by_fetch_2B_SENQ = 8'b00000000;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'b00000000;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h0, 2'b00,
 			14'h0, 2'b00,
@@ -334,7 +390,17 @@ module istream_tb ();
 			8'h0,
 			8'h0
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'b00000000;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		tb_after_PC_SENQ = 32'h0;
 		tb_LH_SENQ = 8'h0;
 		tb_GH_SENQ = 12'h0;
@@ -370,12 +436,25 @@ module istream_tb ();
 			8'h0, 8'h0,
 			8'h0, 8'h0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b0000;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h0, 32'h0,
+			32'h0, 32'h0,
+			32'h0, 32'h0,
+			32'h0, 32'h0
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_PC_by_way_SDEQ = {
-			32'h80000000,
-			32'h80000000,
-			32'h80000000,
-			32'h80000000
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
 		};
 		expected_LH_by_way_SDEQ = {
 			8'h0,
@@ -417,6 +496,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b1;
 		tb_valid_by_fetch_2B_SENQ = 8'b11111111;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h087, 2'b11,
 			14'h096, 2'b11,
@@ -437,7 +517,17 @@ module istream_tb ();
 			8'he1,
 			8'hf0
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'b10101010;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b10101010;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h87,
+			8'h96,
+			8'ha5,
+			8'hb4,
+			8'hc3,
+			8'hd2,
+			8'he1,
+			8'hf0
+		};
 		tb_after_PC_SENQ = 32'h80000010;
 		tb_LH_SENQ = 8'b10101010;
 		tb_GH_SENQ = 12'b101010101010;
@@ -473,12 +563,25 @@ module istream_tb ();
 			8'h0, 8'h0,
 			8'h0, 8'h0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b0000;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h0, 32'h0,
+			32'h0, 32'h0,
+			32'h0, 32'h0,
+			32'h0, 32'h0
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_PC_by_way_SDEQ = {
-			32'h80000000,
-			32'h80000000,
-			32'h80000000,
-			32'h80000000
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
 		};
 		expected_LH_by_way_SDEQ = {
 			8'h0,
@@ -514,6 +617,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b1;
 		tb_valid_by_fetch_2B_SENQ = 8'b11111111;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h00f, 2'b00,
 			14'h01e, 2'b10,
@@ -534,7 +638,17 @@ module istream_tb ();
 			8'h69,
 			8'h78
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'b01010101;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b01010101;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h0f,
+			8'h1e,
+			8'h2d,
+			8'h3c,
+			8'h4b,
+			8'h5a,
+			8'h69,
+			8'h78
+		};
 		tb_after_PC_SENQ = 32'h80000020;
 		tb_LH_SENQ = 8'b01010101;
 		tb_GH_SENQ = 12'b010101010101;
@@ -578,7 +692,20 @@ module istream_tb ();
 			8'he1,
 			8'hf0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b0000;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b10101010;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b10000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h80000010, 32'h8000000e,
+			32'h8000000c, 32'h8000000a,
+			32'h80000008, 32'h80000006,
+			32'h80000004, 32'h80000002
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h96,
+			8'hb4,
+			8'hd2,
+			8'hf0
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h8000000C,
 			32'h80000008,
@@ -619,6 +746,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b1;
 		tb_valid_by_fetch_2B_SENQ = 8'b11111111;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h187, 2'b11,
 			14'h196, 2'b11,
@@ -639,7 +767,17 @@ module istream_tb ();
 			8'he1,
 			8'hf0
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'b01100110;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b01100110;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h87,
+			8'h96,
+			8'ha5,
+			8'hb4,
+			8'hc3,
+			8'hd2,
+			8'he1,
+			8'hf0
+		};
 		tb_after_PC_SENQ = 32'h80000030;
 		tb_LH_SENQ = 8'b01100110;
 		tb_GH_SENQ = 12'b011001100110;
@@ -683,7 +821,20 @@ module istream_tb ();
 			8'h69,
 			8'h78
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b0101;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b10011001;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h8000001a, 32'h80000018,
+			32'h80000018, 32'h80000016,
+			32'h80000016, 32'h80000014,
+			32'h80000014, 32'h80000012
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h4b,
+			8'h5a,
+			8'h69,
+			8'h78
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h80000016,
 			32'h80000014,
@@ -724,6 +875,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b1;
 		tb_valid_by_fetch_2B_SENQ = 8'b11111111;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h10f, 2'b10,
 			14'h11e, 2'b00,
@@ -744,7 +896,17 @@ module istream_tb ();
 			8'h69,
 			8'h78
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'b10011001;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b10011001;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h0f,
+			8'h1e,
+			8'h2d,
+			8'h3c,
+			8'h4b,
+			8'h5a,
+			8'h69,
+			8'h78
+		};
 		tb_after_PC_SENQ = 32'h80000040;
 		tb_LH_SENQ = 8'b10011001;
 		tb_GH_SENQ = 12'b100110011001;
@@ -788,7 +950,20 @@ module istream_tb ();
 			8'h2d,
 			8'h3c
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b0101;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b00011001;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b01100000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h80000022, 32'h80000020,
+			32'h80000020, 32'h8000001e,
+			32'h8000001e, 32'h8000001c,
+			32'h8000001c, 32'h8000001a
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h0f,
+			8'h1e,
+			8'h2d,
+			8'h3c
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h8000001e,
 			32'h8000001c,
@@ -829,6 +1004,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b1;
 		tb_valid_by_fetch_2B_SENQ = 8'b00111111;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'b00100000;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h3ff, 2'b11,
 			14'h3ff, 2'b11,
@@ -849,7 +1025,17 @@ module istream_tb ();
 			8'h10,
 			8'h00
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'b00011111;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b11001100;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'hff,
+			8'hff,
+			8'h40,
+			8'h31,
+			8'h30,
+			8'h20,
+			8'h10,
+			8'h00
+		};
 		tb_after_PC_SENQ = 32'h76543210;
 		tb_LH_SENQ = 8'b11001100;
 		tb_GH_SENQ = 12'b110011001100;
@@ -893,7 +1079,20 @@ module istream_tb ();
 			8'he1,
 			8'hf0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b1010;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b01100110;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b10000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h80000030, 32'h8000002e,
+			32'h8000002c, 32'h8000002a,
+			32'h80000028, 32'h80000026,
+			32'h80000024, 32'h80000022
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h96,
+			8'hb4,
+			8'hd2,
+			8'hf0
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h8000002c,
 			32'h80000028,
@@ -934,6 +1133,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b1;
 		tb_valid_by_fetch_2B_SENQ = 8'b11111110;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h2A0, 2'b11,
 			14'h290, 2'b01,
@@ -954,7 +1154,17 @@ module istream_tb ();
 			8'h50,
 			8'hff
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'b11111111;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b00110011;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'hA0,
+			8'h90,
+			8'h80,
+			8'h70,
+			8'h61,
+			8'h60,
+			8'h50,
+			8'hff
+		};
 		tb_after_PC_SENQ = 32'h76543220;
 		tb_LH_SENQ = 8'b00110011;
 		tb_GH_SENQ = 12'b001100110011;
@@ -998,7 +1208,20 @@ module istream_tb ();
 			8'he1,
 			8'hf0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b1010;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b01100110;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b10000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h80000030, 32'h8000002e,
+			32'h8000002c, 32'h8000002a,
+			32'h80000028, 32'h80000026,
+			32'h80000024, 32'h80000022
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h96,
+			8'hb4,
+			8'hd2,
+			8'hf0
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h8000002c,
 			32'h80000028,
@@ -1039,6 +1262,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b1;
 		tb_valid_by_fetch_2B_SENQ = 8'b00011111;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'b00010000;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h3ff, 2'b11,
 			14'h3ff, 2'b11,
@@ -1059,8 +1283,18 @@ module istream_tb ();
 			8'hB0,
 			8'hA1
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'b11100000;
-		tb_after_PC_SENQ = 32'hfedcba90;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b11110000;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'hff,
+			8'hff,
+			8'hff,
+			8'hC1,
+			8'hC0,
+			8'hB1,
+			8'hB0,
+			8'hA1
+		};
+		tb_after_PC_SENQ = 32'hfedcba9e;
 		tb_LH_SENQ = 8'b11110000;
 		tb_GH_SENQ = 12'b000011110000;
 		tb_ras_index_SENQ = 3'b000;
@@ -1103,7 +1337,20 @@ module istream_tb ();
 			8'he1,
 			8'hf0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b1010;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b01100110;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b10000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h80000030, 32'h8000002e,
+			32'h8000002c, 32'h8000002a,
+			32'h80000028, 32'h80000026,
+			32'h80000024, 32'h80000022
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h96,
+			8'hb4,
+			8'hd2,
+			8'hf0
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h8000002c,
 			32'h80000028,
@@ -1144,6 +1391,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b1;
 		tb_valid_by_fetch_2B_SENQ = 8'b10000000;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h2d0, 2'b11,
 			14'h3ff, 2'b11,
@@ -1164,7 +1412,17 @@ module istream_tb ();
 			8'hff,
 			8'hff
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'b11111111;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b00001111;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'hd0,
+			8'hff,
+			8'hff,
+			8'hff,
+			8'hff,
+			8'hff,
+			8'hff,
+			8'hff
+		};
 		tb_after_PC_SENQ = 32'hfedcbaa0;
 		tb_LH_SENQ = 8'b00001111;
 		tb_GH_SENQ = 12'b111100001111;
@@ -1208,7 +1466,20 @@ module istream_tb ();
 			8'he1,
 			8'hf0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b1010;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b01100110;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b10000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h80000030, 32'h8000002e,
+			32'h8000002c, 32'h8000002a,
+			32'h80000028, 32'h80000026,
+			32'h80000024, 32'h80000022
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h96,
+			8'hb4,
+			8'hd2,
+			8'hf0
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h8000002c,
 			32'h80000028,
@@ -1249,6 +1520,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b1;
 		tb_valid_by_fetch_2B_SENQ = 8'b00001111;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'b00001000;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h3ff, 2'b11,
 			14'h3ff, 2'b11,
@@ -1269,7 +1541,17 @@ module istream_tb ();
 			8'he0,
 			8'hd1
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'b00000000;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b11011101;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'hff,
+			8'hff,
+			8'hff,
+			8'hff,
+			8'hf1,
+			8'hf0,
+			8'he0,
+			8'hd1
+		};
 		tb_after_PC_SENQ = 32'h90000000;
 		tb_LH_SENQ = 8'b11011101;
 		tb_GH_SENQ = 12'b110111011101;
@@ -1313,7 +1595,20 @@ module istream_tb ();
 			8'he1,
 			8'hf0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b1010;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b01100110;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b10000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h80000030, 32'h8000002e,
+			32'h8000002c, 32'h8000002a,
+			32'h80000028, 32'h80000026,
+			32'h80000024, 32'h80000022
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h96,
+			8'hb4,
+			8'hd2,
+			8'hf0
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h8000002c,
 			32'h80000028,
@@ -1354,6 +1649,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b1;
 		tb_valid_by_fetch_2B_SENQ = 8'b11111111;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h242, 2'b11,
 			14'h232, 2'b00,
@@ -1374,7 +1670,17 @@ module istream_tb ();
 			8'h03,
 			8'h02
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'b00010001;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b00010001;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h42,
+			8'h32,
+			8'h23,
+			8'h22,
+			8'h13,
+			8'h12,
+			8'h03,
+			8'h02
+		};
 		tb_after_PC_SENQ = 32'h90000010;
 		tb_LH_SENQ = 8'b00010001;
 		tb_GH_SENQ = 12'b000100010001;
@@ -1418,7 +1724,20 @@ module istream_tb ();
 			8'he1,
 			8'hf0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b1010;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b01100110;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b10000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h80000030, 32'h8000002e,
+			32'h8000002c, 32'h8000002a,
+			32'h80000028, 32'h80000026,
+			32'h80000024, 32'h80000022
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h96,
+			8'hb4,
+			8'hd2,
+			8'hf0
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h8000002c,
 			32'h80000028,
@@ -1459,6 +1778,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b1;
 		tb_valid_by_fetch_2B_SENQ = 8'b11111111;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h292, 2'b01,
 			14'h282, 2'b01,
@@ -1479,7 +1799,17 @@ module istream_tb ();
 			8'h52,
 			8'h43
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'b01000100;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b01000100;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h92,
+			8'h82,
+			8'h73,
+			8'h72,
+			8'h62,
+			8'h53,
+			8'h52,
+			8'h43
+		};
 		tb_after_PC_SENQ = 32'h90000020;
 		tb_LH_SENQ = 8'b01000100;
 		tb_GH_SENQ = 12'b010001000100;
@@ -1523,7 +1853,20 @@ module istream_tb ();
 			8'he1,
 			8'hf0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b1010;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b01100110;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b10000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h80000030, 32'h8000002e,
+			32'h8000002c, 32'h8000002a,
+			32'h80000028, 32'h80000026,
+			32'h80000024, 32'h80000022
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h96,
+			8'hb4,
+			8'hd2,
+			8'hf0
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h8000002c,
 			32'h80000028,
@@ -1564,6 +1907,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b1;
 		tb_valid_by_fetch_2B_SENQ = 8'b11111111;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h292, 2'b01,
 			14'h282, 2'b01,
@@ -1584,7 +1928,17 @@ module istream_tb ();
 			8'h52,
 			8'h43
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'b01000100;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b01000100;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h92,
+			8'h82,
+			8'h73,
+			8'h72,
+			8'h62,
+			8'h53,
+			8'h52,
+			8'h43
+		};
 		tb_after_PC_SENQ = 32'h90000020;
 		tb_LH_SENQ = 8'b01000100;
 		tb_GH_SENQ = 12'b010001000100;
@@ -1628,7 +1982,20 @@ module istream_tb ();
 			8'he1,
 			8'hf0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b1010;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b01100110;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b10000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h80000030, 32'h8000002e,
+			32'h8000002c, 32'h8000002a,
+			32'h80000028, 32'h80000026,
+			32'h80000024, 32'h80000022
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h96,
+			8'hb4,
+			8'hd2,
+			8'hf0
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h8000002c,
 			32'h80000028,
@@ -1669,6 +2036,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b1;
 		tb_valid_by_fetch_2B_SENQ = 8'b11111111;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h292, 2'b01,
 			14'h282, 2'b01,
@@ -1689,7 +2057,17 @@ module istream_tb ();
 			8'h52,
 			8'h43
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'b01000100;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b01000100;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h92,
+			8'h82,
+			8'h73,
+			8'h72,
+			8'h62,
+			8'h53,
+			8'h52,
+			8'h43
+		};
 		tb_after_PC_SENQ = 32'h90000020;
 		tb_LH_SENQ = 8'b01000100;
 		tb_GH_SENQ = 12'b010001000100;
@@ -1733,7 +2111,20 @@ module istream_tb ();
 			8'h69,
 			8'h78
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b1001;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b11100001;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h8000003a, 32'h80000038,
+			32'h80000038, 32'h80000036,
+			32'h80000036, 32'h80000034,
+			32'h80000034, 32'h80000032
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h4b,
+			8'h5a,
+			8'h69,
+			8'h78
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h80000036,
 			32'h80000034,
@@ -1774,6 +2165,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b0;
 		tb_valid_by_fetch_2B_SENQ = 8'h0;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'h0;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h0, 2'b00,
 			14'h0, 2'b00,
@@ -1794,7 +2186,17 @@ module istream_tb ();
 			8'h0,
 			8'h0
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'h0;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		tb_after_PC_SENQ = 32'h0;
 		tb_LH_SENQ = 8'h0;
 		tb_GH_SENQ = 12'h0;
@@ -1838,7 +2240,20 @@ module istream_tb ();
 			8'h2d,
 			8'h3c
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b1001;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b01100001;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b01100000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h80000042, 32'h80000040,
+			32'h80000040, 32'h8000003e,
+			32'h8000003e, 32'h8000003c,
+			32'h8000003c, 32'h8000003a
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h0f,
+			8'h1e,
+			8'h2d,
+			8'h3c
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h8000003e,
 			32'h8000003c,
@@ -1879,6 +2294,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b0;
 		tb_valid_by_fetch_2B_SENQ = 8'h0;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'h0;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h0, 2'b00,
 			14'h0, 2'b00,
@@ -1899,7 +2315,17 @@ module istream_tb ();
 			8'h0,
 			8'h0
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'h0;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		tb_after_PC_SENQ = 32'h0;
 		tb_LH_SENQ = 8'h0;
 		tb_GH_SENQ = 12'h0;
@@ -1943,7 +2369,20 @@ module istream_tb ();
 			8'h10,
 			8'h00
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b1111;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b01111000;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h8000004a, 32'h80000048,
+			32'h80000048, 32'h80000046,
+			32'h80000046, 32'h80000044,
+			32'h80000044, 32'h80000042
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h30,
+			8'h20,
+			8'h10,
+			8'h00
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h80000046,
 			32'h80000044,
@@ -1984,6 +2423,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b0;
 		tb_valid_by_fetch_2B_SENQ = 8'h0;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'h0;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h0, 2'b00,
 			14'h0, 2'b00,
@@ -2004,7 +2444,17 @@ module istream_tb ();
 			8'h0,
 			8'h0
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'h0;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		tb_after_PC_SENQ = 32'h0;
 		tb_LH_SENQ = 8'h0;
 		tb_GH_SENQ = 12'h0;
@@ -2048,7 +2498,20 @@ module istream_tb ();
 			8'h50,
 			8'h40
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b1110;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b11000110;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b00000001;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h7654321c, 32'h7654321a,
+			32'h76543218, 32'h76543216,
+			32'h76543216, 32'h76543214,
+			32'h76543214, 32'h76543210
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h70,
+			8'h60,
+			8'h50,
+			8'h40
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h76543218,
 			32'h76543214,
@@ -2089,6 +2552,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b0;
 		tb_valid_by_fetch_2B_SENQ = 8'h0;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'h0;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h0, 2'b00,
 			14'h0, 2'b00,
@@ -2109,7 +2573,17 @@ module istream_tb ();
 			8'h0,
 			8'h0
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'h0;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		tb_after_PC_SENQ = 32'h0;
 		tb_LH_SENQ = 8'h0;
 		tb_GH_SENQ = 12'h0;
@@ -2153,7 +2627,20 @@ module istream_tb ();
 			8'h90,
 			8'h80
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b0111;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b00000001;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b00011000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h76543226, 32'h76543224,
+			32'h76543222, 32'h76543220,
+			32'h76543220, 32'h7654321e,
+			32'h7654321e, 32'h7654321c
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'hB0,
+			8'hA0,
+			8'h90,
+			8'h80
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h76543222,
 			32'h7654321e,
@@ -2194,6 +2681,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b0;
 		tb_valid_by_fetch_2B_SENQ = 8'h0;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'h0;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h0, 2'b00,
 			14'h0, 2'b00,
@@ -2214,7 +2702,17 @@ module istream_tb ();
 			8'h0,
 			8'h0
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'h0;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		tb_after_PC_SENQ = 32'h0;
 		tb_LH_SENQ = 8'h0;
 		tb_GH_SENQ = 12'h0;
@@ -2237,50 +2735,63 @@ module istream_tb ();
 	    // SDEQ stage
 		expected_valid_SDEQ = 1'b1;
 		expected_valid_by_way_SDEQ = 4'b0001;
-		expected_uncompressed_by_way_SDEQ = 4'b0001;
+		expected_uncompressed_by_way_SDEQ = 4'b0011;
 		expected_instr_2B_by_way_by_chunk_SDEQ = {
-			14'h2A1, 2'b00,
-			14'h2A1, 2'b00,
-			14'h2A1, 2'b00,
-			14'h2A1, 2'b00,
-			14'h2A1, 2'b00,
-			14'h2A1, 2'b00,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
+			14'h2d0, 2'b11,
 			14'h2C1, 2'b00,
 			14'h2C0, 2'b11
 		};
 		expected_pred_info_by_way_by_chunk_SDEQ = {
-			8'hA1,
-			8'hA1,
-			8'hA1,
-			8'hA1,
-			8'hA1,
-			8'hA1,
+			8'h00,
+			8'h00,
+			8'h00,
+			8'h00,
+			8'h00,
+			8'hd0,
 			8'hC1,
 			8'hC0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b0000;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b00000010;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b00000110;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h00000000, 32'h00000000,
+			32'h00000000, 32'h00000000,
+			32'h00000000, 32'hfedcbaa0,
+			32'hfedcba9e, 32'h76543228
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h0,
+			8'h0,
+			8'hD0,
+			8'hC0
+		};
 		expected_PC_by_way_SDEQ = {
-			32'h76543220,
-			32'h76543220,
-			32'h76543220,
+			32'hfedcba90,
+			32'hfedcba90,
+			32'hfedcba9e,
 			32'h76543226
 		};
 		expected_LH_by_way_SDEQ = {
-			8'b11110000,
-			8'b11110000,
-			8'b11110000,
+			8'b00001111,
+			8'b00001111,
+			8'b00001111,
 			8'b11110000
 		};
 		expected_GH_by_way_SDEQ = {
-			12'b000011110000,
-			12'b000011110000,
-			12'b000011110000,
+			12'b111100001111,
+			12'b111100001111,
+			12'b111100001111,
 			12'b000011110000
 		};
 		expected_ras_index_by_way_SDEQ = {
-			3'b000,
-			3'b000,
-			3'b000,
+			3'b111,
+			3'b111,
+			3'b111,
 			3'b000
 		};
 	    // SDEQ feedback
@@ -2299,6 +2810,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b0;
 		tb_valid_by_fetch_2B_SENQ = 8'h0;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'h0;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h0, 2'b00,
 			14'h0, 2'b00,
@@ -2319,7 +2831,17 @@ module istream_tb ();
 			8'h0,
 			8'h0
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'h0;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		tb_after_PC_SENQ = 32'h0;
 		tb_LH_SENQ = 8'h0;
 		tb_GH_SENQ = 12'h0;
@@ -2342,10 +2864,10 @@ module istream_tb ();
 	    // SDEQ stage
 		expected_valid_SDEQ = 1'b1;
 		expected_valid_by_way_SDEQ = 4'b0111;
-		expected_uncompressed_by_way_SDEQ = 4'b1101;
+		expected_uncompressed_by_way_SDEQ = 4'b0101;
 		expected_instr_2B_by_way_by_chunk_SDEQ = {
-			14'h3ff, 2'b11,
-			14'h3ff, 2'b11,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
 			14'h2f1, 2'b10,
 			14'h2f0, 2'b11,
 			14'h2f0, 2'b11,
@@ -2354,8 +2876,8 @@ module istream_tb ();
 			14'h2d0, 2'b11
 		};
 		expected_pred_info_by_way_by_chunk_SDEQ = {
-			8'hff,
-			8'hff,
+			8'h00,
+			8'h00,
 			8'hf1,
 			8'hf0,
 			8'hf0,
@@ -2363,27 +2885,40 @@ module istream_tb ();
 			8'hd1,
 			8'hd0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b1001;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b00111010;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b00100001;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h00000000, 32'h00000000,
+			32'h90000000, 32'hfedcbaa6,
+			32'hfedcbaa6, 32'hfedcbaa4,
+			32'hfedcbaa2, 32'hfedcbaa0
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h00,
+			8'hf0,
+			8'he0,
+			8'hd0
+		};
 		expected_PC_by_way_SDEQ = {
-			32'hfedcba90,
+			32'hfedcbaa0,
 			32'hfedcbaa4,
 			32'hfedcbaa2,
 			32'hfedcba9e
 		};
 		expected_LH_by_way_SDEQ = {
-			8'b00001111,
+			8'b11011101,
 			8'b11011101,
 			8'b11011101,
 			8'b11011101
 		};
 		expected_GH_by_way_SDEQ = {
-			12'b111100001111,
+			12'b110111011101,
 			12'b110111011101,
 			12'b110111011101,
 			12'b110111011101
 		};
 		expected_ras_index_by_way_SDEQ = {
-			3'b111,
+			3'b101,
 			3'b101,
 			3'b101,
 			3'b101
@@ -2404,6 +2939,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b0;
 		tb_valid_by_fetch_2B_SENQ = 8'h0;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'h0;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h0, 2'b00,
 			14'h0, 2'b00,
@@ -2424,7 +2960,17 @@ module istream_tb ();
 			8'h0,
 			8'h0
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'h0;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		tb_after_PC_SENQ = 32'h0;
 		tb_LH_SENQ = 8'h0;
 		tb_GH_SENQ = 12'h0;
@@ -2468,7 +3014,20 @@ module istream_tb ();
 			8'h03,
 			8'h02
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b0101;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b00010001;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b10000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h90000010, 32'h9000000e,
+			32'h9000000c, 32'h9000000a,
+			32'h90000008, 32'h90000006,
+			32'h90000004, 32'h90000002
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h32,
+			8'h22,
+			8'h12,
+			8'h02
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h9000000c,
 			32'h90000008,
@@ -2509,6 +3068,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b0;
 		tb_valid_by_fetch_2B_SENQ = 8'h0;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'h0;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h0, 2'b00,
 			14'h0, 2'b00,
@@ -2529,7 +3089,17 @@ module istream_tb ();
 			8'h0,
 			8'h0
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'h0;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		tb_after_PC_SENQ = 32'h0;
 		tb_LH_SENQ = 8'h0;
 		tb_GH_SENQ = 12'h0;
@@ -2573,7 +3143,20 @@ module istream_tb ();
 			8'h43,
 			8'h42
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b0000;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b00001000;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b00000001;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h9000001c, 32'h9000001a,
+			32'h9000001a, 32'h90000018,
+			32'h90000016, 32'h90000014,
+			32'h90000012, 32'h90000010
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h72,
+			8'h62,
+			8'h52,
+			8'h42
+		};
 		expected_PC_by_way_SDEQ = {
 			32'h90000018,
 			32'h90000016,
@@ -2614,6 +3197,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b0;
 		tb_valid_by_fetch_2B_SENQ = 8'h0;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'h0;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h0, 2'b00,
 			14'h0, 2'b00,
@@ -2634,7 +3218,17 @@ module istream_tb ();
 			8'h0,
 			8'h0
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'h0;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		tb_after_PC_SENQ = 32'h0;
 		tb_LH_SENQ = 8'h0;
 		tb_GH_SENQ = 12'h0;
@@ -2657,49 +3251,62 @@ module istream_tb ();
 	    // SDEQ stage
 		expected_valid_SDEQ = 1'b1;
 		expected_valid_by_way_SDEQ = 4'b0011;
-		expected_uncompressed_by_way_SDEQ = 4'b1100;
+		expected_uncompressed_by_way_SDEQ = 4'b0000;
 		expected_instr_2B_by_way_by_chunk_SDEQ = {
-			14'h243, 2'b11,
-			14'h243, 2'b11,
-			14'h243, 2'b11,
-			14'h243, 2'b11,
-			14'h243, 2'b11,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
+			14'h000, 2'b00,
 			14'h292, 2'b01,
 			14'h292, 2'b01,
 			14'h282, 2'b01
 		};
 		expected_pred_info_by_way_by_chunk_SDEQ = {
-			8'h43,
-			8'h43,
-			8'h43,
-			8'h43,
-			8'h43,
+			8'h00,
+			8'h00,
+			8'h00,
+			8'h00,
+			8'h00,
 			8'h92,
 			8'h92,
 			8'h82
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b0001;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b00000001;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b00000110;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h00000000, 32'h00000000,
+			32'h00000000, 32'h00000000,
+			32'h00000000, 32'h90000020,
+			32'h90000020, 32'h9000001e
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h0,
+			8'h0,
+			8'h92,
+			8'h82
+		};
 		expected_PC_by_way_SDEQ = {
-			32'h90000010,
-			32'h90000010,
+			32'h90000020,
+			32'h90000020,
 			32'h9000001e,
 			32'h9000001c
 		};
 		expected_LH_by_way_SDEQ = {
-			8'b01000100,
-			8'b01000100,
+			8'b10011001,
+			8'b10011001,
 			8'b01000100,
 			8'b01000100
 		};
 		expected_GH_by_way_SDEQ = {
-			12'b010001000100,
-			12'b010001000100,
+			12'b100110011001,
+			12'b100110011001,
 			12'b010001000100,
 			12'b010001000100
 		};
 		expected_ras_index_by_way_SDEQ = {
-			3'b100,
-			3'b100,
+			3'b001,
+			3'b001,
 			3'b100,
 			3'b100
 		};
@@ -2719,6 +3326,7 @@ module istream_tb ();
 	    // SENQ stage
 		tb_valid_SENQ = 1'b0;
 		tb_valid_by_fetch_2B_SENQ = 8'h0;
+		tb_one_hot_redirect_by_fetch_2B_SENQ = 8'h0;
 		tb_instr_2B_by_fetch_2B_SENQ = {
 			14'h0, 2'b00,
 			14'h0, 2'b00,
@@ -2739,7 +3347,17 @@ module istream_tb ();
 			8'h0,
 			8'h0
 		};
-		tb_dep_pred_by_fetch_2B_SENQ = 8'h0;
+		tb_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
+		tb_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		tb_after_PC_SENQ = 32'h0;
 		tb_LH_SENQ = 8'h0;
 		tb_GH_SENQ = 12'h0;
@@ -2783,12 +3401,25 @@ module istream_tb ();
 			8'h0,
 			8'h0
 		};
-		expected_dep_pred_by_way_SDEQ = 4'b0000;
+		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_redirect_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h00000000, 32'h00000000,
+			32'h00000000, 32'h00000000,
+			32'h00000000, 32'h00000000,
+			32'h00000000, 32'h00000000
+		};
+		expected_mdp_info_by_way_SDEQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_PC_by_way_SDEQ = {
-			32'ha0000000,
-			32'ha0000000,
-			32'ha0000000,
-			32'ha0000000
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h00000000
 		};
 		expected_LH_by_way_SDEQ = {
 			8'h0,

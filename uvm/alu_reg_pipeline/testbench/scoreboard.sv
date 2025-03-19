@@ -92,6 +92,12 @@ class alu_reg_pipeline_scoreboard extends uvm_scoreboard;
       end else begin
         `uvm_info("COMPARE", $sformatf("Test Case: ALURP_0 : FAILED"), UVM_LOW)
       end
+      // - WB_ROB_index
+      if (curr_tx.WB_ROB_index == '0) begin
+        `uvm_info("COMPARE", $sformatf("Test Case: ALURP_0 : PASSED"), UVM_LOW)
+      end else begin
+        `uvm_info("COMPARE", $sformatf("Test Case: ALURP_0 : FAILED"), UVM_LOW)
+      end
     end
     
   endtask : compare

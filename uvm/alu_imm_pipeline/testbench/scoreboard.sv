@@ -24,11 +24,16 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
   `uvm_component_utils(alu_imm_pipeline_scoreboard)
 
   // --- Scoreboard Components --- //
-  uvm_analysis_export#(alu_imm_pipeline_sequence_item) predicted_export;
-  uvm_analysis_export#(alu_imm_pipeline_sequence_item) actual_export;
-  uvm_tlm_analysis_fifo#(alu_imm_pipeline_sequence_item) predicted_fifo;
+  uvm_analysis_export#(alu_imm_pipeline_sequence_item)   expected_export;
+  uvm_analysis_export#(alu_imm_pipeline_sequence_item)   actual_export;
+  uvm_tlm_analysis_fifo#(alu_imm_pipeline_sequence_item) expected_fifo;
   uvm_tlm_analysis_fifo#(alu_imm_pipeline_sequence_item) actual_fifo;
+
+  alu_imm_pipeline_sequence_item expected_tx;
+  alu_imm_pipeline_sequence_item actual_tx;
+
   int m_matches, m_mismatches, num_transactions;
+  string tc_name;
 
   // --- Constructor --- //
   function new(string name = "alu_imm_pipeline_scoreboard", uvm_component parent);
@@ -42,53 +47,60 @@ class alu_imm_pipeline_scoreboard extends uvm_scoreboard;
 
   // --- Build Phase --- //
   function void build_phase(uvm_phase phase);
-    // --- TLM FIFO Ports --- //
-    predicted_fifo = new("predicted_fifo", this);
-    actual_fifo = new("actual_fifo", this);
+    super.build_phase(phase);
+    
+    // --- Create FIFOs --- //
+    expected_fifo = new("expected_fifo", this);
+    actual_fifo   = new("actual_fifo", this);
 
-    // --- Scoreboard Exports --- //
-    predicted_export = new("predicted_export", this);
+    // --- Create Exports --- //
+    expected_export = new("expected_export", this);
     actual_export = new("actual_export", this);
+
+    // --- Connect Exports to FIFOs --- //
+    expected_export.connect(expected_fifo.analysis_export);
+    actual_export.connect(actual_fifo.analysis_export);
   endfunction : build_phase
 
-  // --- Connect Phase --- //
-  function void connect_phase(uvm_phase phase);
-    // --- Connecting Fifos to Exports --- //
-    predicted_export.connect(predicted_fifo.analysis_export);
-    actual_export.connect(actual_fifo.analysis_export);
-  endfunction
+  // --- Test Case Name - Debug -- //
+  function void set_test_case_name(string name);
+    tc_name = name;
+    `uvm_info("SCBD", $sformatf("Test case name set to: %s", tc_name), UVM_LOW)
+  endfunction : set_test_case_name
 
   // --- Run Phase --- //
-  task run_phase (uvm_phase phase);
+  task run_phase(uvm_phase phase);
     super.run_phase(phase);
-    `uvm_info("SCB_CLASS", "Run Phase", UVM_HIGH)
-   
+
+    expected_tx = alu_imm_pipeline_sequence_item::type_id::create("expected_tx");
+    actual_tx = alu_imm_pipeline_sequence_item::type_id::create("actual_tx");
+
     forever begin
-      alu_imm_pipeline_sequence_item predicted_tx;
-      alu_imm_pipeline_sequence_item actual_tx;
-      predicted_fifo.get(predicted_tx);
+      expected_fifo.get(expected_tx);
       actual_fifo.get(actual_tx);
+
       num_transactions++;
-      if (predicted_tx.compare(actual_tx)) begin
-            m_matches++;
-            uvm_report_info("SB", "Data match");
-      end 
-      else begin
-            m_mismatches++;
-            `uvm_info("SCBD", $sformatf("Test Case: : FAILED"), UVM_LOW)
-            // `uvm_report_info("SB", "Error: Data mismatch");
-            // predicted_tx.print_transaction("predicted_tx");
-            // actual_tx.print_transaction("actual_tx");
+
+      if (expected_tx.compare(actual_tx)) begin
+        m_matches++;
+        `uvm_info("SCBD", $sformatf("Test Case: %s : PASSED", tc_name), UVM_LOW)
+      end else begin
+        m_mismatches++;
+        `uvm_error("SCBD", $sformatf("Test Case: %s : FAILED", tc_name))
+        `uvm_info("SCBD", "Expected Transaction", UVM_LOW)
+        expected_tx.print();
+        `uvm_info("SCBD", "Actual Transaction", UVM_LOW)
+        actual_tx.print();
       end
     end
-    
   endtask : run_phase
+  
+  // --- Report Phase --- //
+  function void report_phase(uvm_phase phase);
 
-  // function void report_phase(uvm_phase phase);
-  //   `uvm_report_info("Comparator", $sformatf("Matches:    %0d", m_matches));
-  //   `uvm_report_info("Comparator", $sformatf("Mismatches: %0d", m_mismatches));
-  //   `uvm_report_info("Num trans", $sformatf("Number of transactions: %0d", num_transactions));
-  // endfunction
+  // TODO:
+
+  endfunction
 
 endclass : alu_imm_pipeline_scoreboard
 

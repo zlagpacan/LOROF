@@ -282,7 +282,7 @@ input interface
 unique "ops" flow through the pipeline stages in-order from issue to writeback following typical pipeline rules. 
 - on reset, the pipeline starts with all stages invalid. 
 - valid ops enter the pipeline in IS stage via the [ALU imm op issue from IQ](#alu-reg-op-issue-from-iq) interface as long as issue_ready = 1'b1. 
-- the pipeline moves forward when possible, stalling if necessary: PRF WB not being ready or OC stage not being ready. 
+- the pipeline stages individually move forward when possible, and stall if necessary
 - stall conditions propagate backward where relevant. e.g. there is no need to propagate a stall backward before a pipeline bubble (stage where op is not valid). 
 - see the stall conditions by stage below, where X stage valid means there is an op in X stage.
 
@@ -322,6 +322,8 @@ Potential operand states:
 - a stall in this stage corresponds to issue_ready = 1'b0
 
 ### OC Truth Table:
+This truth table essentially enumerates all the possible combinations of operand states as achieved by different IS stage inputs, combined with or without propagated WB stall, telling whether an operand stall OC stage stall occurs and what behavior the OC stage op should take
+
 | Description | issue_A_forward on Issue Cycle | A_reg_read_ack on This Cycle | issue_A_is_zero on Issue Cycle | WB Stall Propagated to OC | Operand A State | issue_ready This Cycle | Module Actions |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | issued last cycle, forward A this cycle | 1 | 0 | 0 | 0 | forwarding | 1 | continue to EX with A value from forward_data_by_bank |
@@ -355,15 +357,101 @@ Perform the R[A] op imm ALU operation. A bubble (invalid and all other signals d
 see [alu_imm_pipeline_example.md](alu_imm_pipeline_example.md)
 
 
+# Behavioral Model Ideas
+
+### EX Stage Logic
+- can just plug in the verified alu module or a predictor for the alu module to determine the results of the op
+
+### OC Stage Operand State Logic
+- follow OC stage rules and truth table in [Operand Collection (OC) Stage](#operand-collection-oc-stage)
+- essentially, keep operand A and operand B states, and determine if op ready, and if not what operand state transitions to take
+
+### Stall Logic
+- this logic determines the pipeline advancement and stalls by stage
+- determine what stages should stall in backwards order
+    - see the stall conditions in [Pipeline Stages](#pipeline-stages)
+    - maintain the known {valid, invalid} and associated op info per 
+    - start with WB and EX stage, propagating the WB_ready = 1'b0 stall backwards through valid pipeline stages
+    - determine the OC stage stall via the OC stage rules
+        - see [OC Stage Operand State Logic](#oc-stage-operand-state-logic)
+        - do WB and EX first since this logic needs to know if a WB stall has propagated to OC stage
+        - this logic determines OC and IS stage stalls
+    - with the stall information collected in the steps above, you can determine the operations that should be performed in each stage and the next {valid, invalid} by stage
+
+
 # Assertions
-- no output nor internal signal x's after reset
+- no output x's after reset
+- every cycle with (WB_valid == 1'b1 && WB_ready == 1'b1) is associated with a unique previous cycle with (issue_valid == 1'b1 && issue_ready == 1'b1)
+    - num cycles with (WB_valid == 1'b1 && WB_ready == 1'b1) <= num cycles with (issue_valid == 1'b1 && issue_ready == 1'b1)
+    - cycle with (WB_valid == 1'b1) can only happen at the soonest 3 cycles after the first cycle with (issue_valid == 1'b1 && issue_ready == 1'b1)
 
 
-# Test Ideas and Coverpoints
+# Coverpoints
 - every op
-- every truth table case
+- every OC stage truth table case
     - see [OC Truth Table](#oc-truth-table)
-- there are 2^4 possible combinations of {valid, invalid} for each of the 4 pipeline stages, all of which should be reachable. ideally, cover all of them with {no stall, WB stall, OC stall, WB and OC stall}
+- 2^4 possible combinations of {valid, invalid} for each of the 4 pipeline stages, all of which should be reachable
+    - ideally, cover all 2^4 * 4 combinations of pipeline stages + pipeline stall
+        - {valid, invalid}^4 x {no stall, WB stall, OC stall, WB and OC stall}
+
+
+# Test Ideas
+
+### Single Op of Interest at a Time in Pipeline
+- target basic functionality
+- target OC stage truth table coverage
+- follow single op of interest through pipeline
+    - IS stage cycle
+        - issue op
+        - issue_valid = 1'b1 with desired [ALU reg op issue from IQ](#alu-reg-op-issue-from-iq) interface signals
+    - OC stage cycle(s)
+        - create operand states and OC stall as desired
+        - give desired [reg read info and data from PRF](#reg-read-info-and-data-from-prf) interface signals
+        - give desired [forward data from PRF](#forward-data-from-prf) interface signals
+        - if want to force a WB stall to propagate to OC for this op, give 2 dummy ops on previous cycles which will be in EX stage and WB stage on this cycle, along with WB_ready = 1'b0
+            - if want to force this case, other ops may be in pipeline but they can be dummy ops which aren't the target of the test
+        - issue_valid = 1'b0
+            - no new ops
+    - EX stage cycle
+        - WB_ready = 1'b1
+            - pass op and any dummy ops to WB
+        - issue_valid = 1'b0
+            - no new ops
+    - WB stage cycle
+        - WB_ready = 1'b1
+            - finish WB
+        - check [writeback data to PRF](#writeback-data-to-prf) interface signals
+        - issue_valid = 1'b0
+            - no new ops
+    - on next cycle, can start next op of interest in IS stage
+- repeat single op (+ any dummy ops) sequence through pipeline for as many ops as needed to achieve coverage
+
+### Steady State Operation
+- target op coverage
+- after fill and before drain, all pipeline stages valid
+- always issue
+    - (issue_valid == 1'b1)
+- WB always ready
+    - (WB_ready == 1'b1)
+- operands always collected on-time
+    - for operand A, any of:
+        - (issue_A_is_zero == 1'b1) when op in IS stage
+        - (issue_A_forward == 1'b1) when op in IS stage
+        - (issue_A_forward == 1'b0) when op in IS stage and (A_reg_read_ack == 1'b1) when op in OC stage
+
+### Stall Insertions
+- target coverage of {valid, invalid} combinations for each pipeline stage
+    - as described in [Coverpoints](#coverpoints), ideally combinations of {valid, invalid}^4 x {no stall, WB stall, OC stall, WB and OC stall}
+- insert various stalls:
+    - no issue
+        - (issue_valid == 1'b0) for op in IS stage
+            - so essentially no new op given to the pipeline
+    - WB stalls
+        - (WB_ready == 1'b0)
+            - affect of this can vary depending on which pipeline stages are valid, and therefore how far the stall is allowed to propagate
+    - operand stalls
+        - (issue_A_forward == 1'b0) when op in IS stage and (A_reg_read_ack == 1'b0) when op in OC stage
+- dynamically follow stall condition rules in behavioral model to determine how pipeline stages should advance and determine on what {valid, invalid} pipeline stage combinations have been reached
 
 
 # Targeted Instructions

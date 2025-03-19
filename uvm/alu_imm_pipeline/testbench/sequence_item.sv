@@ -15,11 +15,8 @@ import uvm_pkg::*;
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
     
-// --- Includes --- //
-
 // --- Transaction --- //
 class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
-  `uvm_object_utils(alu_imm_pipeline_sequence_item)
 
   // --- Control Signals --- //
   rand logic nRST;
@@ -37,7 +34,7 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
   randc logic                                 A_reg_read_port;
   rand  logic [PRF_BANK_COUNT-1:0][1:0][31:0] reg_read_data_by_bank_by_port;
   rand  logic [PRF_BANK_COUNT-1:0][31:0]      forward_data_by_bank;
-  randc logic                                 WB_ready;
+  rand  logic                                 WB_ready;
   
   // --- Outputs --- //
   logic                       issue_ready;
@@ -45,6 +42,33 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
   logic [31:0]                WB_data;
   logic [LOG_PR_COUNT-1:0]    WB_PR;
   logic [LOG_ROB_ENTRIES-1:0] WB_ROB_index;
+
+  // --- UVM Debug Macro --- //
+  `uvm_object_utils_begin(alu_imm_pipeline_sequence_item)
+    // --- Reset --- //
+    `uvm_field_int(nRST,            UVM_NOCOMPARE)
+    // --- Inputs --- //
+    `uvm_field_int(issue_valid,     UVM_NOCOMPARE)
+    `uvm_field_int(issue_op,        UVM_NOCOMPARE)
+    `uvm_field_int(issue_imm12,     UVM_NOCOMPARE)
+    `uvm_field_int(issue_A_forward, UVM_NOCOMPARE)
+    `uvm_field_int(issue_A_bank,    UVM_NOCOMPARE)
+    `uvm_field_int(issue_A_is_zero, UVM_NOCOMPARE)
+    `uvm_field_int(issue_dest_PR,   UVM_NOCOMPARE)
+    `uvm_field_int(issue_ROB_index, UVM_NOCOMPARE)
+    `uvm_field_int(A_reg_read_ack,  UVM_NOCOMPARE)
+    `uvm_field_int(A_reg_read_port, UVM_NOCOMPARE)
+    `uvm_field_int(WB_ready,        UVM_NOCOMPARE)
+    // --- Inputs : Arrays --- //
+    `uvm_field_sarray_int(reg_read_data_by_bank_by_port, UVM_NOCOMPARE)
+    `uvm_field_sarray_int(forward_data_by_bank,          UVM_NOCOMPARE)
+    // --- Outputs --- //
+    `uvm_field_int(issue_ready,     UVM_DEFAULT)
+    `uvm_field_int(WB_valid,        UVM_DEFAULT)
+    `uvm_field_int(WB_data,         UVM_DEFAULT)
+    `uvm_field_int(WB_PR,           UVM_DEFAULT)
+    `uvm_field_int(WB_ROB_index,    UVM_DEFAULT)
+  `uvm_object_utils_end
   
   // --- Constraints --- //
   /*
@@ -54,67 +78,17 @@ class alu_imm_pipeline_sequence_item extends uvm_sequence_item;
   constraint nRST_ideal            { soft nRST            == 1'b1; }
   constraint issue_valid_ideal     { soft issue_valid     == 1'b1; }
   constraint issue_A_forward_ideal { soft issue_A_forward == 1'b1; }
+  constraint issue_A_is_zero_ideal { soft issue_A_is_zero == 1'b0; }
+
+  // --- DEBUG CONSTRAINTS : REMOVE --- //
+  // constraint TEST1 { soft issue_op    == '0; }
+  // // constraint TEST2 { soft issue_imm12 == '1; }
+  // constraint TEST3 { soft issue_A_bank == '0; }
+  // constraint TEST4 { soft forward_data_by_bank == '0; }
+
 
   // Temp Void - Dist constraints won't override
   // constraint WB_ready_ideal        { soft WB_ready        == 1'b1; }
-
-  virtual function bit do_compare(uvm_object rhs, uvm_comparer comparer);
-    alu_imm_pipeline_sequence_item rhs_tx;
-    if (!$cast(rhs_tx, rhs)) return 0; // Type check
-
-    return (
-        (issue_valid === rhs_tx.issue_valid) &&
-        (issue_op === rhs_tx.issue_op) &&
-        (issue_imm12 === rhs_tx.issue_imm12) &&
-        (issue_A_forward === rhs_tx.issue_A_forward) &&
-        (issue_A_is_zero === rhs_tx.issue_A_is_zero) &&
-        (issue_A_bank === rhs_tx.issue_A_bank) &&
-        (issue_dest_PR === rhs_tx.issue_dest_PR) &&
-        (issue_ROB_index === rhs_tx.issue_ROB_index) &&
-        (A_reg_read_ack === rhs_tx.A_reg_read_ack) &&
-        (A_reg_read_port === rhs_tx.A_reg_read_port) &&
-        (reg_read_data_by_bank_by_port === rhs_tx.reg_read_data_by_bank_by_port) &&
-        (forward_data_by_bank === rhs_tx.forward_data_by_bank) &&
-        (WB_ready === rhs_tx.WB_ready) &&
-        (issue_ready === rhs_tx.issue_ready) &&
-        (WB_valid === rhs_tx.WB_valid) &&
-        (WB_data === rhs_tx.WB_data) &&
-        (WB_PR === rhs_tx.WB_PR) &&
-        (WB_ROB_index === rhs_tx.WB_ROB_index)
-    );
-
-  endfunction
-
-  virtual function void copy(uvm_object rhs);
-    alu_imm_pipeline_sequence_item tr;
-    if (!$cast(tr, rhs)) begin
-      `uvm_error("COPY", "Cast failed in copy() method")
-      return;
-    end
-    
-    super.copy(rhs); // Copy base class fields
-    
-    this.nRST = tr.nRST;
-    this.issue_valid = tr.issue_valid;
-    this.issue_op = tr.issue_op;
-    this.issue_imm12 = tr.issue_imm12;
-    this.issue_A_forward = tr.issue_A_forward;
-    this.issue_A_is_zero = tr.issue_A_is_zero;
-    this.issue_A_bank = tr.issue_A_bank;
-    this.issue_dest_PR = tr.issue_dest_PR;
-    this.issue_ROB_index = tr.issue_ROB_index;
-    this.A_reg_read_ack = tr.A_reg_read_ack;
-    this.A_reg_read_port = tr.A_reg_read_port;
-    this.reg_read_data_by_bank_by_port = tr.reg_read_data_by_bank_by_port;
-    this.forward_data_by_bank = tr.forward_data_by_bank;
-    this.WB_ready = tr.WB_ready;
-    this.issue_ready = tr.issue_ready;
-    this.WB_valid = tr.WB_valid;
-    this.WB_data = tr.WB_data;
-    this.WB_PR = tr.WB_PR;
-    this.WB_ROB_index = tr.WB_ROB_index;
-  endfunction
-
 
   // --- Constructor --- //
   function new(string name = "alu_imm_pipeline_sequence_item");

@@ -2,7 +2,7 @@
 - Branch Resolution Unit Pipeline
 - backend functional unit for conditional branch, unconditional jump, and LUI and AUIPC operations
     - see [Targeted Instructions](#targeted-instructions)
-    - see [core_basics.md](../basics/core_basics.md) for the basic purpose of a functional unit in the backend of the core
+    - see [core_basics.md](../../basics/core_basics.md) for the basic purpose of a functional unit in the backend of the core
 
 
 # RTL Diagram

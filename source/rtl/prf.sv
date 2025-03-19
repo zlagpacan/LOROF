@@ -204,40 +204,40 @@ module prf #(
     // ----------------------------------------------------------------
     // Reg Read Logic:
 
-    // Read Request PQ's
+    // Read Request PE's
     genvar rr_bank;
     generate
         for (rr_bank = 0; rr_bank < PRF_BANK_COUNT; rr_bank++) begin
             
             // port 0:
-                // single PQ over raw compressed req's
+                // single PE over raw compressed req's
             
             // port 0 masked
-            pq_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT0_MASKED_PQ_LSB (
+            pe_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT0_MASKED_PE_LSB (
                 .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank] & last_read_mask_by_bank[rr_bank]),
                 .ack_one_hot(port0_masked_read_ack_by_bank_by_rr[rr_bank]),
                 .ack_mask()
             );
             
             // port 0 unmasked
-            pq_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT0_UNMASKED_PQ_LSB (
+            pe_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT0_UNMASKED_PE_LSB (
                 .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank]),
                 .ack_one_hot(port0_unmasked_read_ack_by_bank_by_rr[rr_bank]),
                 .ack_mask()
             );
 
             // port 1:
-                // single PQ over raw compressed req's with port 0 ack masked out
+                // single PE over raw compressed req's with port 0 ack masked out
             
             // port 1 masked
-            pq_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_MASKED_PQ_LSB (
+            pe_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_MASKED_PE_LSB (
                 .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank] & ~port0_read_ack_by_bank_by_rr[rr_bank] & last_read_mask_by_bank[rr_bank]),
                 .ack_one_hot(port1_masked_read_ack_by_bank_by_rr[rr_bank]),
                 .ack_mask()
             );
             
             // port 1 unmasked
-            pq_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_UNMASKED_PQ_LSB (
+            pe_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_UNMASKED_PE_LSB (
                 .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank] & ~port0_read_ack_by_bank_by_rr[rr_bank]),
                 .ack_one_hot(port1_unmasked_read_ack_by_bank_by_rr[rr_bank]),
                 .ack_mask()
@@ -272,7 +272,7 @@ module prf #(
         end
         
         // port 0 and port 1 select by bank
-            // use RR PQ's above
+            // use RR PE's above
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
 
             // select port 0:
@@ -381,20 +381,20 @@ module prf #(
     // ----------------------------------------------------------------
     // Writeback Logic:
 
-    // Write Request PQ's
+    // Write Request PE's
     genvar wr_bank;
     generate
         for (wr_bank = 0; wr_bank < PRF_BANK_COUNT; wr_bank++) begin
 
             // masked
-            pq_lsb #(.WIDTH(PRF_WR_COUNT)) WR_MASKED_PQ_LSB (
+            pe_lsb #(.WIDTH(PRF_WR_COUNT)) WR_MASKED_PE_LSB (
                 .req_vec(compressed_WB_valid_by_bank_by_wr[wr_bank] & last_WB_mask_by_bank[wr_bank]),
                 .ack_one_hot(masked_WB_ack_by_bank_by_wr[wr_bank]),
                 .ack_mask()
             );
 
             // unmasked
-            pq_lsb #(.WIDTH(PRF_WR_COUNT)) WR_UNMASKED_PQ_LSB (
+            pe_lsb #(.WIDTH(PRF_WR_COUNT)) WR_UNMASKED_PE_LSB (
                 .req_vec(compressed_WB_valid_by_bank_by_wr[wr_bank]),
                 .ack_one_hot(unmasked_WB_ack_by_bank_by_wr[wr_bank]),
                 .ack_mask()
@@ -434,7 +434,7 @@ module prf #(
         end
 
         // select by bank
-            // use RR PQ's above
+            // use RR PE's above
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
 
             // select masked vs. unmasked

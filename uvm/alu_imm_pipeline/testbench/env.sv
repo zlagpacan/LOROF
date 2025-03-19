@@ -24,15 +24,17 @@ import core_types_pkg::*;
 `include "agent.sv"
 `include "scoreboard.sv"
 `include "predictor.sv"
+`include "coverage.sv"
 
 // --- Environment --- //
 class alu_imm_pipeline_env extends uvm_env;
   `uvm_component_utils(alu_imm_pipeline_env)
   
   // --- Env Components --- //
-  alu_imm_pipeline_agent agnt;
+  alu_imm_pipeline_agent      agnt;
   alu_imm_pipeline_scoreboard scb;
-  alu_imm_pipeline_predictor pred;
+  alu_imm_pipeline_predictor  pred;
+  alu_imm_pipeline_coverage   coverage;
 
   // --- Constructor --- //
   function new(string name = "alu_imm_pipeline_env", uvm_component parent);
@@ -46,9 +48,10 @@ class alu_imm_pipeline_env extends uvm_env;
     `uvm_info("ENV_CLASS", "Build Phase", UVM_HIGH)
     
     // --- Build Agent + Scoreboard --- //
-    agnt = alu_imm_pipeline_agent::type_id::create("agnt", this);
-    scb  = alu_imm_pipeline_scoreboard::type_id::create("scb", this);
-    pred = alu_imm_pipeline_predictor::type_id::create("pred",this);
+    agnt     = alu_imm_pipeline_agent::type_id::create("agnt", this);
+    scb      = alu_imm_pipeline_scoreboard::type_id::create("scb", this);
+    pred     = alu_imm_pipeline_predictor::type_id::create("pred",this);
+    coverage = alu_imm_pipeline_coverage::type_id::create("coverage",this);
     
   endfunction : build_phase
   
@@ -64,7 +67,10 @@ class alu_imm_pipeline_env extends uvm_env;
     agnt.mon.predictor_port.connect(pred.analysis_export);
 
     // --- Predictor -> Scoreboard --- //
-    pred.pred_ap.connect(scb.predicted_export);
+    pred.pred_ap.connect(scb.expected_export);
+
+    // --- Monitor -> Coverage Tracker --- //
+    agnt.mon.coverage_port.connect(coverage.cov_ap);
     
   endfunction : connect_phase
   

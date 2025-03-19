@@ -124,7 +124,7 @@ module bru_iq #(
 
     // incoming dispatch req masks for each of 4 possible dispatch ways
     logic [3:0][BRU_IQ_ENTRIES-1:0]     dispatch_open_mask_by_way;
-    logic [3:0][BRU_IQ_ENTRIES-1:0]     dispatch_pq_one_hot_by_way;
+    logic [3:0][BRU_IQ_ENTRIES-1:0]     dispatch_pe_one_hot_by_way;
     logic [3:0][BRU_IQ_ENTRIES-1:0]     dispatch_one_hot_by_way;
 
     // ----------------------------------------------------------------
@@ -149,8 +149,8 @@ module bru_iq #(
         (B_unneeded_or_is_zero_by_entry | B_ready_by_entry | B_forward_by_entry)
     ;
 
-    // pq
-    pq_lsb #(.WIDTH(BRU_IQ_ENTRIES)) ISSUE_PQ_LSB (
+    // pe
+    pe_lsb #(.WIDTH(BRU_IQ_ENTRIES)) ISSUE_PE_LSB (
         .req_vec(issue_ready_by_entry),
         .ack_one_hot(issue_one_hot_by_entry),
         .ack_mask(issue_mask)
@@ -217,41 +217,41 @@ module bru_iq #(
     // ----------------------------------------------------------------
     // Dispatch Logic:
 
-    // cascaded dispatch mask PQ's by way:
+    // cascaded dispatch mask PE's by way:
 
     // way 0
     assign dispatch_open_mask_by_way[0] = ~(valid_by_entry);
-    pq_lsb #(.WIDTH(BRU_IQ_ENTRIES)) DISPATCH_WAY0_PQ_LSB (
+    pe_lsb #(.WIDTH(BRU_IQ_ENTRIES)) DISPATCH_WAY0_PE_LSB (
         .req_vec(dispatch_open_mask_by_way[0]),
-        .ack_one_hot(dispatch_pq_one_hot_by_way[0]),
+        .ack_one_hot(dispatch_pe_one_hot_by_way[0]),
         .ack_mask() // unused
     );
-    assign dispatch_one_hot_by_way[0] = dispatch_pq_one_hot_by_way[0] & {BRU_IQ_ENTRIES{dispatch_attempt_by_way[0]}};
+    assign dispatch_one_hot_by_way[0] = dispatch_pe_one_hot_by_way[0] & {BRU_IQ_ENTRIES{dispatch_attempt_by_way[0]}};
 
     // way 1
     assign dispatch_open_mask_by_way[1] = dispatch_open_mask_by_way[0] & ~dispatch_one_hot_by_way[0];
-    pq_lsb #(.WIDTH(BRU_IQ_ENTRIES)) DISPATCH_WAY1_PQ_LSB (
+    pe_lsb #(.WIDTH(BRU_IQ_ENTRIES)) DISPATCH_WAY1_PE_LSB (
         .req_vec(dispatch_open_mask_by_way[1]),
-        .ack_one_hot(dispatch_pq_one_hot_by_way[1]),
+        .ack_one_hot(dispatch_pe_one_hot_by_way[1]),
         .ack_mask() // unused
     );
-    assign dispatch_one_hot_by_way[1] = dispatch_pq_one_hot_by_way[1] & {BRU_IQ_ENTRIES{dispatch_attempt_by_way[1]}};
+    assign dispatch_one_hot_by_way[1] = dispatch_pe_one_hot_by_way[1] & {BRU_IQ_ENTRIES{dispatch_attempt_by_way[1]}};
     
     assign dispatch_open_mask_by_way[2] = dispatch_open_mask_by_way[1] & ~dispatch_one_hot_by_way[1];
-    pq_lsb #(.WIDTH(BRU_IQ_ENTRIES)) DISPATCH_WAY2_PQ_LSB (
+    pe_lsb #(.WIDTH(BRU_IQ_ENTRIES)) DISPATCH_WAY2_PE_LSB (
         .req_vec(dispatch_open_mask_by_way[2]),
-        .ack_one_hot(dispatch_pq_one_hot_by_way[2]),
+        .ack_one_hot(dispatch_pe_one_hot_by_way[2]),
         .ack_mask() // unused
     );
-    assign dispatch_one_hot_by_way[2] = dispatch_pq_one_hot_by_way[2] & {BRU_IQ_ENTRIES{dispatch_attempt_by_way[2]}};
+    assign dispatch_one_hot_by_way[2] = dispatch_pe_one_hot_by_way[2] & {BRU_IQ_ENTRIES{dispatch_attempt_by_way[2]}};
     
     assign dispatch_open_mask_by_way[3] = dispatch_open_mask_by_way[2] & ~dispatch_one_hot_by_way[2];
-    pq_lsb #(.WIDTH(BRU_IQ_ENTRIES)) DISPATCH_WAY3_PQ_LSB (
+    pe_lsb #(.WIDTH(BRU_IQ_ENTRIES)) DISPATCH_WAY3_PE_LSB (
         .req_vec(dispatch_open_mask_by_way[3]),
-        .ack_one_hot(dispatch_pq_one_hot_by_way[3]),
+        .ack_one_hot(dispatch_pe_one_hot_by_way[3]),
         .ack_mask() // unused
     );
-    assign dispatch_one_hot_by_way[3] = dispatch_pq_one_hot_by_way[3] & {BRU_IQ_ENTRIES{dispatch_attempt_by_way[3]}};
+    assign dispatch_one_hot_by_way[3] = dispatch_pe_one_hot_by_way[3] & {BRU_IQ_ENTRIES{dispatch_attempt_by_way[3]}};
 
     // give dispatch feedback
     always_comb begin
@@ -260,7 +260,7 @@ module bru_iq #(
         end
     end
 
-    // route PQ'd dispatch to entries
+    // route PE'd dispatch to entries
     always_comb begin
     
         dispatch_valid_by_entry = '0;

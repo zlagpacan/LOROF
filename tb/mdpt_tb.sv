@@ -39,13 +39,13 @@ module mdpt_tb ();
 	logic [ASID_WIDTH-1:0] tb_ASID_REQ;
 
     // RESP stage
-	logic [MDPT_ENTRIES_PER_BLOCK-1:0] DUT_dep_pred_by_instr_RESP, expected_dep_pred_by_instr_RESP;
+	logic [MDPT_ENTRIES_PER_BLOCK-1:0][MDPT_INFO_WIDTH-1:0] DUT_mdp_info_by_instr_RESP, expected_mdp_info_by_instr_RESP;
 
     // Dep Update 0 stage
 	logic tb_dep_update0_valid;
 	logic [31:0] tb_dep_update0_start_full_PC;
 	logic [ASID_WIDTH-1:0] tb_dep_update0_ASID;
-	logic tb_dep_update0_dep_truth;
+	logic [MDPT_INFO_WIDTH-1:0] tb_dep_update0_mdp_info;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -62,13 +62,13 @@ module mdpt_tb ();
 		.ASID_REQ(tb_ASID_REQ),
 
 	    // RESP stage
-		.dep_pred_by_instr_RESP(DUT_dep_pred_by_instr_RESP),
+		.mdp_info_by_instr_RESP(DUT_mdp_info_by_instr_RESP),
 
 	    // Dep Update 0 stage
 		.dep_update0_valid(tb_dep_update0_valid),
 		.dep_update0_start_full_PC(tb_dep_update0_start_full_PC),
 		.dep_update0_ASID(tb_dep_update0_ASID),
-		.dep_update0_dep_truth(tb_dep_update0_dep_truth)
+		.dep_update0_mdp_info(tb_dep_update0_mdp_info)
 	);
 
     // ----------------------------------------------------------------
@@ -76,9 +76,9 @@ module mdpt_tb ();
 
     task check_outputs();
     begin
-		if (expected_dep_pred_by_instr_RESP !== DUT_dep_pred_by_instr_RESP) begin
-			$display("TB ERROR: expected_dep_pred_by_instr_RESP (%h) != DUT_dep_pred_by_instr_RESP (%h)",
-				expected_dep_pred_by_instr_RESP, DUT_dep_pred_by_instr_RESP);
+		if (expected_mdp_info_by_instr_RESP !== DUT_mdp_info_by_instr_RESP) begin
+			$display("TB ERROR: expected_mdp_info_by_instr_RESP (%h) != DUT_mdp_info_by_instr_RESP (%h)",
+				expected_mdp_info_by_instr_RESP, DUT_mdp_info_by_instr_RESP);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -124,7 +124,7 @@ module mdpt_tb ();
             1'b0
         };
 		tb_dep_update0_ASID = 9'h0;
-		tb_dep_update0_dep_truth = 1'b0;
+		tb_dep_update0_mdp_info = 8'h0;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -132,7 +132,16 @@ module mdpt_tb ();
 
 	    // REQ stage
 	    // RESP stage
-		expected_dep_pred_by_instr_RESP = 8'b00000000;
+		expected_mdp_info_by_instr_RESP = {
+            8'h0,
+            8'h0,
+            8'h0,
+            8'h0,
+            8'h0,
+            8'h0,
+            8'h0,
+            8'h0
+        };
 	    // Dep Update 0 stage
 
 		check_outputs();
@@ -162,7 +171,7 @@ module mdpt_tb ();
             1'b0
         };
 		tb_dep_update0_ASID = 9'h0;
-		tb_dep_update0_dep_truth = 1'b0;
+		tb_dep_update0_mdp_info = 8'h0;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -170,18 +179,27 @@ module mdpt_tb ();
 
 	    // REQ stage
 	    // RESP stage
-		expected_dep_pred_by_instr_RESP = 8'b00000000;
+		expected_mdp_info_by_instr_RESP = {
+            8'h0,
+            8'h0,
+            8'h0,
+            8'h0,
+            8'h0,
+            8'h0,
+            8'h0,
+            8'h0
+        };
 	    // Dep Update 0 stage
 
 		check_outputs();
 
         // ------------------------------------------------------------
-        // update chain (evens not dep, odds dep):
-        test_case = "update chain (evens not dep, odds dep)";
+        // update chain:
+        test_case = "update chain";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-        for (int i = 0; i < 2**12; i++) begin
+        for (int i = 0; i < MDPT_ENTRIES; i++) begin
 
             @(posedge CLK); #(PERIOD/10);
 
@@ -210,7 +228,7 @@ module mdpt_tb ();
                 1'b0
             };
             tb_dep_update0_ASID = 9'b111111111;
-            tb_dep_update0_dep_truth = i % 2 ? 1'b1 : 1'b0;
+            tb_dep_update0_mdp_info = i[7:0];
 
             @(negedge CLK);
 
@@ -218,15 +236,24 @@ module mdpt_tb ();
 
             // REQ stage
             // RESP stage
-            expected_dep_pred_by_instr_RESP = 8'b00000000;
+            expected_mdp_info_by_instr_RESP = {
+                8'h0,
+                8'h0,
+                8'h0,
+                8'h0,
+                8'h0,
+                8'h0,
+                8'h0,
+                8'h0
+            };
             // Dep Update 0 stage
 
             check_outputs();
         end
 
         // ------------------------------------------------------------
-        // read chain (evens not pred, odds pred):
-        test_case = "read chain (evens not pred, odds pred)";
+        // read chain:
+        test_case = "read chain";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
@@ -257,7 +284,7 @@ module mdpt_tb ();
             1'b0
         };
         tb_dep_update0_ASID = 9'h0;
-        tb_dep_update0_dep_truth = 1'b0;
+        tb_dep_update0_mdp_info = 8'h0;
 
         @(negedge CLK);
 
@@ -265,12 +292,21 @@ module mdpt_tb ();
 
         // REQ stage
         // RESP stage
-        expected_dep_pred_by_instr_RESP = 8'b00000000;
+		expected_mdp_info_by_instr_RESP = {
+            8'h0,
+            8'h0,
+            8'h0,
+            8'h0,
+            8'h0,
+            8'h0,
+            8'h0,
+            8'h0
+        };
         // Dep Update 0 stage
 
         check_outputs();
 
-        for (int i = 8; i < 2**12; i+=8) begin
+        for (int i = 8; i < MDPT_ENTRIES; i+=8) begin
 
             @(posedge CLK); #(PERIOD/10);
 
@@ -299,7 +335,7 @@ module mdpt_tb ();
                 1'b0
             };
             tb_dep_update0_ASID = 9'h0;
-            tb_dep_update0_dep_truth = 1'b0;
+            tb_dep_update0_mdp_info = 8'h0;
 
             @(negedge CLK);
 
@@ -307,7 +343,16 @@ module mdpt_tb ();
 
             // REQ stage
             // RESP stage
-            expected_dep_pred_by_instr_RESP = 8'b10101010;
+            expected_mdp_info_by_instr_RESP = {
+                {i - 8 + 7}[7:0],
+                {i - 8 + 6}[7:0],
+                {i - 8 + 5}[7:0],
+                {i - 8 + 4}[7:0],
+                {i - 8 + 3}[7:0],
+                {i - 8 + 2}[7:0],
+                {i - 8 + 1}[7:0],
+                {i - 8 + 0}[7:0]
+            };
             // Dep Update 0 stage
 
             check_outputs();
@@ -340,7 +385,7 @@ module mdpt_tb ();
             1'b0
         };
         tb_dep_update0_ASID = 9'h0;
-        tb_dep_update0_dep_truth = 1'b0;
+        tb_dep_update0_mdp_info = 8'h0;
 
         @(negedge CLK);
 
@@ -348,541 +393,16 @@ module mdpt_tb ();
 
         // REQ stage
         // RESP stage
-        expected_dep_pred_by_instr_RESP = 8'b10101010;
-        // Dep Update 0 stage
-
-        check_outputs();
-
-        // ------------------------------------------------------------
-        // update chain (mod 4 == 3: dep):
-        test_case = "update chain (mod 4 == 3: dep)";
-        $display("\ntest %0d: %s", test_num, test_case);
-        test_num++;
-
-        for (int i = 0; i < 2**12; i++) begin
-
-            @(posedge CLK); #(PERIOD/10);
-
-            // inputs
-            sub_test_case = $sformatf("update 0x%3h", i);
-            $display("\t- sub_test: %s", sub_test_case);
-
-            // reset
-            nRST = 1'b1;
-            // REQ stage
-            tb_valid_REQ = 1'b0;
-            tb_full_PC_REQ = {
-                19'h0,
-                9'h0,
-                3'h0,
-                1'b0
-            };
-            tb_ASID_REQ = 9'h0;
-            // RESP stage
-            // Dep Update 0 stage
-            tb_dep_update0_valid = 1'b1;
-            tb_dep_update0_start_full_PC = {
-                19'h0,
-                9'b111111111,
-                i[2:0],
-                1'b0
-            };
-            tb_dep_update0_ASID = ~i[11:3];
-            tb_dep_update0_dep_truth = i % 4 == 3 ? 1'b1 : 1'b0;
-
-            @(negedge CLK);
-
-            // outputs:
-
-            // REQ stage
-            // RESP stage
-            expected_dep_pred_by_instr_RESP = 8'b10101010;
-            // Dep Update 0 stage
-
-            check_outputs();
-        end
-
-        // ------------------------------------------------------------
-        // read chain (mod 4 == 3: dep):
-        test_case = "read chain (mod 4 == 3: dep)";
-        $display("\ntest %0d: %s", test_num, test_case);
-        test_num++;
-
-        @(posedge CLK); #(PERIOD/10);
-
-        // inputs
-        sub_test_case = $sformatf("REQ: 0x000, RESP: NOP");
-        $display("\t- sub_test: %s", sub_test_case);
-
-        // reset
-        nRST = 1'b1;
-        // REQ stage
-        tb_valid_REQ = 1'b1;
-        tb_full_PC_REQ = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
+        expected_mdp_info_by_instr_RESP = {
+            8'hff,
+            8'hfe,
+            8'hfd,
+            8'hfc,
+            8'hfb,
+            8'hfa,
+            8'hf9,
+            8'hf8
         };
-        tb_ASID_REQ = 9'h0;
-        // RESP stage
-        // Dep Update 0 stage
-        tb_dep_update0_valid = 1'b0;
-        tb_dep_update0_start_full_PC = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-        tb_dep_update0_ASID = 9'h0;
-        tb_dep_update0_dep_truth = 1'b0;
-
-        @(negedge CLK);
-
-        // outputs:
-
-        // REQ stage
-        // RESP stage
-        expected_dep_pred_by_instr_RESP = 8'b10101010;
-        // Dep Update 0 stage
-
-        check_outputs();
-
-        for (int i = 8; i < 2**12; i+=8) begin
-
-            @(posedge CLK); #(PERIOD/10);
-
-            // inputs
-            sub_test_case = $sformatf("REQ: 0x%3h, RESP: 0x%3h", i, i-8);
-            $display("\t- sub_test: %s", sub_test_case);
-
-            // reset
-            nRST = 1'b1;
-            // REQ stage
-            tb_valid_REQ = 1'b1;
-            tb_full_PC_REQ = {
-                19'h0,
-                9'h0,
-                i[2:0],
-                1'b0
-            };
-            tb_ASID_REQ = i[11:3];
-            // RESP stage
-            // Dep Update 0 stage
-            tb_dep_update0_valid = 1'b0;
-            tb_dep_update0_start_full_PC = {
-                19'h0,
-                9'h0,
-                3'h0,
-                1'b0
-            };
-            tb_dep_update0_ASID = 9'h0;
-            tb_dep_update0_dep_truth = 1'b0;
-
-            @(negedge CLK);
-
-            // outputs:
-
-            // REQ stage
-            // RESP stage
-            expected_dep_pred_by_instr_RESP = 8'b10101010;
-            // Dep Update 0 stage
-
-            check_outputs();
-        end
-
-        @(posedge CLK); #(PERIOD/10);
-
-        // inputs
-        sub_test_case = $sformatf("REQ: NOP, RESP: 0xff8");
-        $display("\t- sub_test: %s", sub_test_case);
-
-        // reset
-        nRST = 1'b1;
-        // REQ stage
-        tb_valid_REQ = 1'b1;
-        tb_full_PC_REQ = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-        tb_ASID_REQ = 9'h0;
-        // RESP stage
-        // Dep Update 0 stage
-        tb_dep_update0_valid = 1'b0;
-        tb_dep_update0_start_full_PC = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-        tb_dep_update0_ASID = 9'h0;
-        tb_dep_update0_dep_truth = 1'b0;
-
-        @(negedge CLK);
-
-        // outputs:
-
-        // REQ stage
-        // RESP stage
-        expected_dep_pred_by_instr_RESP = 8'b10101010;
-        // Dep Update 0 stage
-
-        check_outputs();
-
-        // ------------------------------------------------------------
-        // update chain (mod 4 == 3: dep pt 2):
-        test_case = "update chain (mod 4 == 3: dep pt 2)";
-        $display("\ntest %0d: %s", test_num, test_case);
-        test_num++;
-
-        for (int i = 0; i < 2**12; i++) begin
-
-            @(posedge CLK); #(PERIOD/10);
-
-            // inputs
-            sub_test_case = $sformatf("update 0x%3h", i);
-            $display("\t- sub_test: %s", sub_test_case);
-
-            // reset
-            nRST = 1'b1;
-            // REQ stage
-            tb_valid_REQ = 1'b0;
-            tb_full_PC_REQ = {
-                19'h0,
-                9'h0,
-                3'h0,
-                1'b0
-            };
-            tb_ASID_REQ = 9'h0;
-            // RESP stage
-            // Dep Update 0 stage
-            tb_dep_update0_valid = 1'b1;
-            tb_dep_update0_start_full_PC = {
-                19'h0,
-                4'b0000, i[7:3],
-                i[2:0],
-                1'b0
-            };
-            tb_dep_update0_ASID = {i[11:8], 5'b00000};
-            tb_dep_update0_dep_truth = i % 4 == 3 ? 1'b1 : 1'b0;
-
-            @(negedge CLK);
-
-            // outputs:
-
-            // REQ stage
-            // RESP stage
-            expected_dep_pred_by_instr_RESP = 8'b10101010;
-            // Dep Update 0 stage
-
-            check_outputs();
-        end
-
-        // ------------------------------------------------------------
-        // read chain (mod 4 == 3: dep pt 2):
-        test_case = "read chain (mod 4 == 3: dep pt 2)";
-        $display("\ntest %0d: %s", test_num, test_case);
-        test_num++;
-
-        @(posedge CLK); #(PERIOD/10);
-
-        // inputs
-        sub_test_case = $sformatf("REQ: 0x000, RESP: NOP");
-        $display("\t- sub_test: %s", sub_test_case);
-
-        // reset
-        nRST = 1'b1;
-        // REQ stage
-        tb_valid_REQ = 1'b1;
-        tb_full_PC_REQ = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-        tb_ASID_REQ = 9'h0;
-        // RESP stage
-        // Dep Update 0 stage
-        tb_dep_update0_valid = 1'b0;
-        tb_dep_update0_start_full_PC = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-        tb_dep_update0_ASID = 9'h0;
-        tb_dep_update0_dep_truth = 1'b0;
-
-        @(negedge CLK);
-
-        // outputs:
-
-        // REQ stage
-        // RESP stage
-        expected_dep_pred_by_instr_RESP = 8'b10101010;
-        // Dep Update 0 stage
-
-        check_outputs();
-
-        for (int i = 8; i < 2**12; i+=8) begin
-
-            @(posedge CLK); #(PERIOD/10);
-
-            // inputs
-            sub_test_case = $sformatf("REQ: 0x%3h, RESP: 0x%3h", i, i-8);
-            $display("\t- sub_test: %s", sub_test_case);
-
-            // reset
-            nRST = 1'b1;
-            // REQ stage
-            tb_valid_REQ = 1'b1;
-            tb_full_PC_REQ = {
-                19'h0,
-                i[11:3],
-                i[2:0],
-                1'b0
-            };
-            tb_ASID_REQ = 9'h0;
-            // RESP stage
-            // Dep Update 0 stage
-            tb_dep_update0_valid = 1'b0;
-            tb_dep_update0_start_full_PC = {
-                19'h0,
-                9'h0,
-                3'h0,
-                1'b0
-            };
-            tb_dep_update0_ASID = 9'h0;
-            tb_dep_update0_dep_truth = 1'b0;
-
-            @(negedge CLK);
-
-            // outputs:
-
-            // REQ stage
-            // RESP stage
-            expected_dep_pred_by_instr_RESP = 8'b10101010;
-            // Dep Update 0 stage
-
-            check_outputs();
-        end
-
-        @(posedge CLK); #(PERIOD/10);
-
-        // inputs
-        sub_test_case = $sformatf("REQ: NOP, RESP: 0xff8");
-        $display("\t- sub_test: %s", sub_test_case);
-
-        // reset
-        nRST = 1'b1;
-        // REQ stage
-        tb_valid_REQ = 1'b1;
-        tb_full_PC_REQ = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-        tb_ASID_REQ = 9'h0;
-        // RESP stage
-        // Dep Update 0 stage
-        tb_dep_update0_valid = 1'b0;
-        tb_dep_update0_start_full_PC = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-        tb_dep_update0_ASID = 9'h0;
-        tb_dep_update0_dep_truth = 1'b0;
-
-        @(negedge CLK);
-
-        // outputs:
-
-        // REQ stage
-        // RESP stage
-        expected_dep_pred_by_instr_RESP = 8'b10101010;
-        // Dep Update 0 stage
-
-        check_outputs();
-
-        // ------------------------------------------------------------
-        // update chain (mod 4 == 0: dep):
-        test_case = "update chain (mod 4 == 0: dep)";
-        $display("\ntest %0d: %s", test_num, test_case);
-        test_num++;
-
-        for (int i = 0; i < 2**12; i++) begin
-
-            @(posedge CLK); #(PERIOD/10);
-
-            // inputs
-            sub_test_case = $sformatf("update 0x%3h", i);
-            $display("\t- sub_test: %s", sub_test_case);
-
-            // reset
-            nRST = 1'b1;
-            // REQ stage
-            tb_valid_REQ = 1'b0;
-            tb_full_PC_REQ = {
-                19'h0,
-                9'h0,
-                3'h0,
-                1'b0
-            };
-            tb_ASID_REQ = 9'h0;
-            // RESP stage
-            // Dep Update 0 stage
-            tb_dep_update0_valid = 1'b1;
-            tb_dep_update0_start_full_PC = {
-                19'h0,
-                4'b0000, i[7:3],
-                i[2:0],
-                1'b0
-            };
-            tb_dep_update0_ASID = {i[11:8], 5'b00000};
-            tb_dep_update0_dep_truth = i % 4 == 0 ? 1'b1 : 1'b0;
-
-            @(negedge CLK);
-
-            // outputs:
-
-            // REQ stage
-            // RESP stage
-            expected_dep_pred_by_instr_RESP = 8'b10101010;
-            // Dep Update 0 stage
-
-            check_outputs();
-        end
-
-        // ------------------------------------------------------------
-        // read chain (mod 4 == 0: dep):
-        test_case = "read chain (mod 4 == 0: dep)";
-        $display("\ntest %0d: %s", test_num, test_case);
-        test_num++;
-
-        @(posedge CLK); #(PERIOD/10);
-
-        // inputs
-        sub_test_case = $sformatf("REQ: 0x000, RESP: NOP");
-        $display("\t- sub_test: %s", sub_test_case);
-
-        // reset
-        nRST = 1'b1;
-        // REQ stage
-        tb_valid_REQ = 1'b1;
-        tb_full_PC_REQ = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-        tb_ASID_REQ = 9'h0;
-        // RESP stage
-        // Dep Update 0 stage
-        tb_dep_update0_valid = 1'b0;
-        tb_dep_update0_start_full_PC = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-        tb_dep_update0_ASID = 9'h0;
-        tb_dep_update0_dep_truth = 1'b0;
-
-        @(negedge CLK);
-
-        // outputs:
-
-        // REQ stage
-        // RESP stage
-        expected_dep_pred_by_instr_RESP = 8'b10101010;
-        // Dep Update 0 stage
-
-        check_outputs();
-
-        for (int i = 8; i < 2**12; i+=8) begin
-
-            @(posedge CLK); #(PERIOD/10);
-
-            // inputs
-            sub_test_case = $sformatf("REQ: 0x%3h, RESP: 0x%3h", i, i-8);
-            $display("\t- sub_test: %s", sub_test_case);
-
-            // reset
-            nRST = 1'b1;
-            // REQ stage
-            tb_valid_REQ = 1'b1;
-            tb_full_PC_REQ = {
-                19'h0,
-                i[11:3],
-                i[2:0],
-                1'b0
-            };
-            tb_ASID_REQ = 9'h0;
-            // RESP stage
-            // Dep Update 0 stage
-            tb_dep_update0_valid = 1'b0;
-            tb_dep_update0_start_full_PC = {
-                19'h0,
-                9'h0,
-                3'h0,
-                1'b0
-            };
-            tb_dep_update0_ASID = 9'h0;
-            tb_dep_update0_dep_truth = 1'b0;
-
-            @(negedge CLK);
-
-            // outputs:
-
-            // REQ stage
-            // RESP stage
-            expected_dep_pred_by_instr_RESP = 8'b10011001;
-            // Dep Update 0 stage
-
-            check_outputs();
-        end
-
-        @(posedge CLK); #(PERIOD/10);
-
-        // inputs
-        sub_test_case = $sformatf("REQ: NOP, RESP: 0xff8");
-        $display("\t- sub_test: %s", sub_test_case);
-
-        // reset
-        nRST = 1'b1;
-        // REQ stage
-        tb_valid_REQ = 1'b1;
-        tb_full_PC_REQ = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-        tb_ASID_REQ = 9'h0;
-        // RESP stage
-        // Dep Update 0 stage
-        tb_dep_update0_valid = 1'b0;
-        tb_dep_update0_start_full_PC = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-        tb_dep_update0_ASID = 9'h0;
-        tb_dep_update0_dep_truth = 1'b0;
-
-        @(negedge CLK);
-
-        // outputs:
-
-        // REQ stage
-        // RESP stage
-        expected_dep_pred_by_instr_RESP = 8'b10011001;
         // Dep Update 0 stage
 
         check_outputs();

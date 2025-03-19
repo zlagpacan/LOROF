@@ -96,11 +96,11 @@ module upct (
 
     assign update1_have_match = |update1_matching_upper_PC_by_entry;
 
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(8),
         .USE_ONE_HOT(0),
         .USE_INDEX(1)
-    ) CAM_PQ (
+    ) CAM_PE (
         .req_vec(update1_matching_upper_PC_by_entry),
         .ack_index(update1_matching_index)
     );

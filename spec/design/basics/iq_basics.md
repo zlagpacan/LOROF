@@ -30,12 +30,12 @@ the general policy of an issue queue is to issue the oldest instruction(s) whose
 - 8-entry
 - out-of-order issue
 
-### alu_imm_ld_iq
+### alu_imm_ldu_iq
 - accepts ALU register-immediate and load ops
-- 16-entry
+- 8-entry
 - out-of-order issue
 
-### st_amo_iq
+### stamou_iq
 - accepts store and AMO ops
 - 16-entry
 - in-order issue

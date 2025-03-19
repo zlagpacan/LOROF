@@ -1,5 +1,5 @@
 # alu_reg_mdu_iq
-- backend issue queue for ALU Register-Register Pipeline and MDU Pipeline
+- backend issue queue for ALU Register-Register Pipeline and Multiplication-Division Unit Pipeline
     - see [core_basics.md](../../basics/core_basics.md) for the basic purpose of an issue queue in the backend of the core
     - see [iq_basics.md](../../basics/iq_basics.md) for the basic function of an issue queue
 - example operation: [alu_reg_mdu_iq_example.md](alu_reg_mdu_iq_example.md)
@@ -284,7 +284,7 @@ output interface
         - an ALU Reg-Reg op is identifiable by dispatch_valid_alu_reg_by_way being high upon dispatch
         - op ready -> both operands in a ready or "forwardable" state
     - if this signal is high, the remaining signals in this interface follow the oldest ALU Reg-Reg op in the IQ
-    - if this signal is low, the remaining signals in this interface are don't cares
+    - if this signal is low, the remaining signals in this interface are all '0
     - reset value:
         - 1'b0
 - issue_alu_reg_op
@@ -306,6 +306,9 @@ output interface
     - indicate to the pipeline that operand A should be an internally-produced 32-bit zero (and therefore does not need to perform a register read)
     - single flag
     - this signal is high if the op being issued currently has operand A in "is zero" state
+    - if this siganl is high, the following signals are don't-cares:
+        - issue_alu_reg_A_forward
+        - issue_alu_reg_A_bank
     - reset value:
         - 1'b0
 - issue_alu_reg_A_bank
@@ -395,6 +398,7 @@ output interface
         - a MDU op is identifiable by dispatch_valid_mdu_by_way being high upon dispatch
         - op ready -> both operands in a "ready", "forwardable", or "is zero" state
     - if this signal is high, the remaining signals in this interface follow the oldest MDU op in the IQ
+    - if this signal is low, the remaining signals in this interface are all '0
     - reset value:
         - 1'b0
 - issue_mdu_op
@@ -416,6 +420,9 @@ output interface
     - indicate to the pipeline that operand A should be an internally-produced 32-bit zero (and therefore does not need to perform a register read)
     - single flag
     - this signal is high if the op being issued currently has operand A in "is zero" state
+    - if this siganl is high, the following signals are don't-cares:
+        - issue_mdu_A_forward
+        - issue_mdu_A_bank
     - reset value:
         - 1'b0
 - issue_mdu_A_bank
@@ -526,6 +533,8 @@ output interface
     - an op is not ready if either of its operands, A OR B, are "not ready" 
 
 ### Op State Truth Table:
+This truth table enumerates all the possible combinations of operand states as achieved by different dispatch and WB bus inputs telling whether an op is a candidate to be issued and what behavior should take place if the op is not issued
+
 | Description | dispatch_A_ready_by_way on dispatch cycle OR operand A was forwardable on previous cycle | dispatch_B_ready_by_way on dispatch cycle OR operand B was forwardable on previous cycle | dispatch_A_PR_by_way on dispatch cycle matching WB_bus_valid_by_bank + WB_bus_upper_PR_by_bank on this cycle | dispatch_B_PR_by_way on dispatch cycle matching WB_bus_valid_by_bank + WB_bus_upper_PR_by_bank on this cycle | dispatch_A_is_zero_by_way on dispatch cycle | dispatch_B_is_zero_by_way on dispatch cycle | Operand A State | Operand B State | op is ready and candidate to be issued this cycle? | Module Actions |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | A and B ready | 1 | 1 | 0 | 0 | 0 | 0 | ready | ready | YES | none |
@@ -556,26 +565,139 @@ output interface
 see [alu_reg_mdu_iq_example.md](alu_reg_mdu_iq_example.md)
 
 
+# Behavioral Model Ideas
+
+### Dispatch Logic
+- at beginning of cycle, check the number of empty entries: this is the maximum number of valid dispatches that can be acked
+- make a list, appending in increasing way order dispatch way ops with dispatch_attempt_by_way[way] = 1'b1, stopping early if the maximum number of valid dispatches is reached
+    - all of these ways should receive a dispatch_ack_by_way[way] = 1'b1
+- this "dispatch list" can be concatenated to the end of the issue queue op list which is determined for the next cycle based on the ops currently in the list
+    - see [Entry Logic](#entry-logic)
+- the final state of the ops in the dispatch list which will enter into the issue queue can be determined by the given dispatch_valid_alu_reg_by_way[way] and dispatch_valid_mdu_by_way[way] signals
+    - ALU Reg-Reg op
+        - dispatch_valid_alu_reg_by_way[way] == 1'b1 && dispatch_valid_mdu_by_way[way] == 1'b0
+    - MDU op
+        - dispatch_valid_alu_reg_by_way[way] == 1'b0 && dispatch_valid_mdu_by_way[way] == 1'b1
+    - invalid op (if want, can skip enqueueing this onto the dispatch list)
+        - dispatch_valid_alu_reg_by_way[way] == 1'b0 && dispatch_valid_mdu_by_way[way] == 1'b0
+
+### Issue Logic
+- 3 passes through the issue queue entries to determine what to issue
+    - logically 3 passes occur. this can obviously be optimized as desired
+- first pass: determine states of operands in each entry, and consequently the readiness of the op in the entry
+    - use current state and [writeback bus by bank](#writeback-bus-by-bank) interface inputs
+- second pass: select ALU Reg-Reg op to issue prioritizing lowest to highest entry
+    - will iterate through all entries and fail to issue if there are no ready ALU Reg-Reg ops
+    - skip if alu_reg_pipeline_ready == 1'b0
+- third pass: select MDU op to issue prioritizing lowest to highest entry
+    - will iterate through all entries and fail to issue if there are no ready MDU ops
+    - skip if mdu_pipeline_ready == 1'b0
+
+### Entry Logic
+- perform dispatch and issue modeling for this cycle first
+- pop the issued ops out of the list
+    - can be in the middle of the list, so ideally treat this as a linked list or python list so middle entries can be easily popped out
+- concatenate the dispatch list at the end of the remaining entries
+- now have the issue queue entries for next cycle
+
+
 # Assertions
-- no output nor internal signal x's after reset
-- as many or fewer valid issue's than valid dispatch's
-    - or just track the ops you expect and make sure no unexpected ones occur
+- no output x's after reset
+- no issue without pipeline ready
+    - (issue_alu_reg_valid == 1'b1) -> (alu_reg_pipeline_ready == 1'b1)
+    - (issue_mdu_valid == 1'b1) -> (mdu_pipeline_ready == 1'b1)
+- every issued op is associated with a dispatched op
+    - issued ALU Reg-Reg op:
+        - (issue_alu_reg_valid == 1'b1)
+        - all other signals in [op issue to ALU Reg-Reg Pipeline](#op-issue-to-alu-reg-reg-pipeline) interface follow what expected for this op
+        - signals in [ALU Reg-Reg Pipeline reg read req to PRF](#alu-reg-reg-pipeline-reg-read-req-to-prf) interface follow what expected for this op
+    - dispatched ALU Reg-Reg op:
+        - (dispatch_attempt_by_way[way] == 1'b1 && dispatch_valid_alu_reg_by_way[way] == 1'b1 && dispatch_valid_mdu_by_way[way] == 1'b0 && dispatch_ack_by_way[way] == 1'b1)
+        - all same way associated with this same op
+        - all other signals in [op dispatch by way](#op-dispatch-by-way) interface for the same way also associated with this op
+    - issued MDU op:
+        - (issue_mdu_valid == 1'b1)
+        - all other signals in [op issue to MDU Pipeline](#op-issue-to-mdu-pipeline) interface follow what expected for this op
+        - signals in [MDU Pipeline reg read req to PRF](#mdu-pipeline-reg-read-req-to-prf) interface follow what expected for this op
+    - dispatched MDU op:
+        - (dispatch_attempt_by_way[way] == 1'b1 && dispatch_valid_alu_reg_by_way[way] == 1'b0 && dispatch_valid_mdu_by_way[way] == 1'b1 && dispatch_ack_by_way[way] == 1'b1)
+        - all same way associated with this same op
+        - all other signals in [op dispatch by way](#op-dispatch-by-way) interface for the same way also associated with this op
+    - num cycles with (issue_alu_reg_valid == 1'b1) + num cycles with (issue_mdu_valid == 1'b1) <= num dispatched ops
+- issued op with forwarding operand means have corresponding WB bus inputs this cycle and no PRF read
+    - (issue_alu_reg_valid == 1'b1 && issue_alu_reg_A_forward == 1'b1 && issue_alu_reg_A_is_zero == 1'b0) -> (WB_bus_valid_by_bank[issue_alu_reg_A_bank] == 1'b1 && PRF_alu_reg_req_A_valid == 1'b0)
+        - same for operand B
+        - same for operands A and B for MDU
+- issued op with zero operand means have no PRF read
+    - (issue_alu_reg_valid == 1'b1 && issue_alu_reg_A_is_zero == 1'b1) -> (PRF_alu_reg_req_A_valid == 1'b0)
+        - same for operand B
+        - same for operands A and B for MDU
 
 
-# Test Ideas and Coverpoints
-- every op for ALU Reg-Reg, every op for MDU
+# Coverpoints
 - every truth table case
     - see [Op State Truth Table](#op-state-truth-table)
-- there are 2^4 possible combinations of dispatch's
+- 2^4 possible combinations of dispatch's
     - {valid, invalid} for each of 4 dispatch ways. no constraints
     - there are 3^4 combinations if differentiate {ALU Reg-Reg, MDU, invalid} dispatch
     - there are many more combinations for attempted dispatches which don't end up being valid
-    - there are many more combinations of possible dispatch's for each possible issue queue occupancy state. these could be targetted as well if reasonable. otherwise a good coverage of high-occupancy (e.g. 4 or fewer open entries) combinations would be desired
-- there are 9^2 possible combinations of issue's
+    - there are many more combinations of possible dispatch's for each possible issue queue occupancy state. these could be targetted as well if reasonable. otherwise a good coverage of high-occupancy combinations would be desired (e.g. 4 or fewer open entries, essentially targetting when different dispatch_ack_by_way output can be achieved)
+- 9^2 possible combinations of issue's
     - {no issue, entry 0, entry 1, ...} for ALU Reg-Reg and MDU
-- there are sum(i=0,8)2^i = 511 possible combinations of {invalid op, ALU Reg-Reg op, MDU op} per issue queue entry for 8 total issue queue entries. ideally all of these are reached
+    - some of these are not possible as a single entry can't be issued to both pipelines
+- sum(i=0,8)2^i = 511 possible combinations of {invalid op, ALU Reg-Reg op, MDU op} per issue queue entry for 8 total issue queue entries. ideally all of these are reached
     - there can be 0-8 valid entries, which must be a run of valid's starting at IQ entry 0
     - each valid entry can be ALU Reg-Reg or MDU
+
+
+# Test Ideas
+
+### Single Op of Interest at a Time in IQ
+- target basic functionality
+- target truth table coverage
+- follow single op of interest from dispatch through issue
+    - dispatch cycle
+        - dispatch op
+        - (dispatch_attempt_by_way[way] == 1'b1 && (dispatch_valid_alu_reg_by_way[way] ^ dispatch_valid_mdu_by_way[way] == 1'b1) && dispatch_ack_by_way[way] == 1'b1)
+            - can test any way in {0, 1, 2, 3}
+    - cycle(s) in IQ entry
+        - create desired operand states and op readiness
+        - give desired [writeback bus by bank](#writeback-bus-by-bank) interface signals
+        - control pipeline stalling as desired with alu_reg_pipeline_ready and mdu_pipeline_ready
+        - if op is ready, check for op issue
+    - on next cycle, can start next op of interest's dispatch cycle
+- repeat single op sequence from dispatch through issue for as many ops as needed to achieve coverage
+
+### Steady State Operation
+- target dispatch functionality
+- target acking functionality
+- target issue queue entry state coverage
+- always attempt to dispatch >= 1 ALU Reg-Reg Pipeline ops and >= 1 Load Unit Pipeline ops per cycle
+    - \>= 1 ALU Reg-Reg Pipeline ops
+        - (dispatch_attempt_by_way[way] == 1'b1 && dispatch_valid_alu_reg_by_way[way] == 1'b1 && dispatch_valid_mdu_by_way[way] == 1'b0) for 1-3 ways
+    - \>= 1 Load Unit Pipeline ops
+        - (dispatch_attempt_by_way[way] == 1'b1 && dispatch_valid_alu_reg_by_way[way] == 1'b0 && dispatch_valid_mdu_by_way[way] == 1'b1) for 1-3 other ways
+    - check dispatch_ack_by_way behaves as expected
+- always issue to both ALU Reg-Reg Pipeline and Load Unit Pipeline after first cycle
+    - (issue_alu_reg_valid == 1'b1 && issue_mdu_valid == 1'b1)
+    - check [op issue to ALU Reg-Reg Pipeline](#op-issue-to-alu-reg-reg-pipeline) interface signals
+    - check [ALU Reg-Reg Pipeline reg read req to PRF](#alu-reg-reg-pipeline-reg-read-req-to-prf) interface signals
+    - check [op issue to MDU Pipeline](#op-issue-to-mdu-pipeline) interface signals
+    - check [MDU Pipeline reg read req to PRF](#mdu-pipeline-reg-read-req-to-prf) interface signals
+
+### Full Random Operation
+- target dispatch coverage
+    - 3^4 combinations of {ALU Reg-Reg, MDU, invalid} dispatch by way
+- target issue coverage
+    - {no issue, entry 0, entry 1, ...} for ALU Reg-Reg and MDU
+- randomized [op dispatch by way](#op-dispatch-by-way) interface inputs
+- randomized [pipeline feedback](#pipeline-feedback) interface inputs
+- randomized [writeback bus by bank](#writeback-bus-by-bank) interface inputs
+- check dispatch_ack_by_way
+- check [op issue to ALU Reg-Reg Pipeline](#op-issue-to-alu-reg-reg-pipeline) interface outputs
+- check [ALU Reg-Reg Pipeline reg read req to PRF](#alu-reg-reg-pipeline-reg-read-req-to-prf) interface outputs
+- check [op issue to MDU Pipeline](#op-issue-to-mdu-pipeline) interface outputs
+- check [MDU Pipeline reg read req to PRF](#mdu-pipeline-reg-read-req-to-prf) interface outputs
 
 
 # Targeted Instructions
