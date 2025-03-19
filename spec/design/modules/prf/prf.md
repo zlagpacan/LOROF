@@ -377,11 +377,46 @@ As far as verification is concerned, read requests and write requests should fol
 see [prf_example.md](prf_example.md)
 
 
+# Behavioral Model Ideas
+- RR: Read Requestor
+- WR: Write Requestor
+
+### Read Arbitration
+- model per bank
+- start with RR left off at -> "continue RR"
+    - 0 on reset
+    - cleared back to 0 if second read port was not used last cycle
+- read port 0: select next valid RR in order starting at the continue RR, allowing wrap around back to 0 after 10
+    - prioritize saved read request by RR if present
+    - eliminate this RR from contention
+    - can be non-existent if 0 RR's are active this cycle
+- read port 1: select next valid read requestor in order starting at the RR after the RR selected by read port 0
+    - prioritize saved read request by RR if present
+    - eliminate this requestor from contention
+    - set the continue RR to the RR after this selected RR
+    - can be non-existent if 0 or 1 RR's are active this cycle
+        - if this is the case, clear the continue RR back to 0
+- any non-eliminated RR's have their read requests saved for the next cycle
+
+### Write Arbitration
+- model per bank
+- start with write requestor left off at -> "continue WR"
+    - 0 on reset
+    - cleared back to 0 if write port was not used last cycle
+- select next valid WR in order starting at the continue WR, allowing wrap around back to 0 after 6
+    - prioritize saved write request by WR if present
+    - eliminate this write requestor from contention
+    - set the continue WR to the WR after this selected WR
+    - can be non-existent if 0 WR's are active this cycle
+        - if this is the case, clear the continue WR back to 0
+- any non-eliminated WR's have their write requests saved for the next cycle
+
+
 # Assertions
-- no output nor internal signal x's after reset
+- no output x's after reset
 - read response ack before upper bound response time after read request for all read requests
-- write request ready only low for the upper bound response time x cycles
-- read value for given PR follows reset value of 32'h0 OR the value written to the register the last time it appeared on the [writeback bus by bank](#writeback-bus-by-bank) interface
+- write request ready only low for the upper bound response time cycles
+- read value for given PR follows reset value of 32'h0 if the PR has never been written to, else it follows the value written to the PR the last time the PR appeared on the [writeback bus by bank](#writeback-bus-by-bank) interface
 
 
 # Test Ideas and Coverpoints
