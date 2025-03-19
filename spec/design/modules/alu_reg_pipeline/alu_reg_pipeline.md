@@ -471,7 +471,7 @@ see [alu_reg_pipeline_example.md](alu_reg_pipeline_example.md)
 - always issue
     - (issue_valid == 1'b1)
 - WB always ready
-    - WB_ready = 1'b1
+    - (WB_ready == 1'b1)
 - operands always collected on-time
     - for each operand, any of:
         - (issue_A/B_is_zero == 1'b1) when op in IS stage
