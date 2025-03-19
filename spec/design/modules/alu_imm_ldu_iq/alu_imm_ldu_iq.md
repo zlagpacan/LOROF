@@ -537,28 +537,92 @@ output interface
 # Example Operation
 
 see [alu_reg_mdu_iq_example.md](../alu_reg_mdu_iq/alu_reg_mdu_iq_example.md) for a working example with the very similar alu_reg_mdu_iq module
+- only notable difference is that alu_imm_ldu_iq only has to worry about a single operand per op as opposed to alu_reg_mdu_iq which has to worry about 2 operands per op
+
+
+# Behavioral Model Ideas
+
+### Dispatch Logic
+- at beginning of cycle, check the number of empty entries: this is the maximum number of valid dispatches that can be acked
+- make a list, appending in increasing way order dispatch way ops with dispatch_attempt_by_way[way] = 1'b1, stopping early if the maximum number of valid dispatches is reached
+    - all of these ways should receive a dispatch_ack_by_way[way] = 1'b1
+- this "dispatch list" can be concatenated to the end of the issue queue op list which is determined for the next cycle based on the ops currently in the list
+    - see [Entry Logic](#entry-logic)
+- the final state of the ops in the dispatch list which will enter into the issue queue can be determined by the given dispatch_valid_alu_imm_by_way[way] and dispatch_valid_ldu_by_way[way] signals
+    - ALU Reg-Imm op
+        - dispatch_valid_alu_imm_by_way[way] == 1'b1 && dispatch_valid_ldu_by_way[way] == 1'b0
+    - Load Unit op
+        - dispatch_valid_alu_imm_by_way[way] == 1'b0 && dispatch_valid_ldu_by_way[way] == 1'b1
+    - invalid op (if want, can skip enqueueing this onto the dispatch list)
+        - dispatch_valid_alu_imm_by_way[way] == 1'b0 && dispatch_valid_ldu_by_way[way] == 1'b0
+
+### Issue Logic
+- 3 passes through the issue queue entries to determine what to issue
+    - logically 3 passes occur. this can obviously be optimized as desired
+- first pass: determine states of operands in each entry, and consequently the readiness of the op in the entry
+    - use current state and [writeback bus by bank](#writeback-bus-by-bank) interface inputs
+- second pass: select ALU Reg-Imm op to issue prioritizing lowest to highest entry
+    - will iterate through all entries and fail to issue if there are no ready ALU Reg-Imm ops
+    - skip if alu_imm_pipeline_ready == 1'b0
+- third pass: select Load Unit op to issue prioritizing lowest to highest entry
+    - will iterate through all entries and fail to issue if there are no ready Load Unit ops
+    - skip if ldu_pipeline_ready == 1'b0
+
+### Entry Logic
+- perform dispatch and issue modeling for this cycle first
+- pop the issued ops out of the list
+    - can be in the middle of the list, so ideally treat this as a linked list or python list so middle entries can be easily popped out
+- concatenate the dispatch list at the end of the remaining entries
+- now have the issue queue entries for next cycle
 
 
 # Assertions
-- no output nor internal signal x's after reset
-- as many or fewer valid issue's than valid dispatch's
-    - or just track the ops you expect and make sure no unexpected ones occur
+- no output x's after reset
+- no issue without pipeline ready
+    - (issue_alu_imm_valid == 1'b1) -> (alu_imm_pipeline_ready == 1'b1)
+    - (issue_ldu_valid == 1'b1) -> (ldu_pipeline_ready == 1'b1)
+- every issued op is associated with a dispatched op
+    - issued ALU Reg-Imm op:
+        - (issue_alu_imm_valid == 1'b1)
+        - all other signals in [op issue to ALU Reg-Imm Pipeline](#op-issue-to-alu-reg-reg-pipeline) interface follow what expected for this op
+        - signals in [ALU Reg-Imm Pipeline reg read req to PRF](#alu-reg-reg-pipeline-reg-read-req-to-prf) interface follow what expected for this op
+    - dispatched ALU Reg-Imm op:
+        - (dispatch_attempt_by_way[way] == 1'b1 && dispatch_valid_alu_imm_by_way[way] == 1'b1 && dispatch_valid_ldu_by_way[way] == 1'b0 && dispatch_ack_by_way[way] == 1'b1)
+        - all same way associated with this same op
+        - all other signals in [op dispatch by way](#op-dispatch-by-way) interface for the same way also associated with this op
+    - issued Load Unit op:
+        - (issue_ldu_valid == 1'b1)
+        - all other signals in [op issue to Load Unit Pipeline](#op-issue-to-load-unit-pipeline) interface follow what expected for this op
+        - signals in [Load Unit Pipeline reg read req to PRF](#load-unit-pipeline-reg-read-req-to-prf) interface follow what expected for this op
+    - dispatched Load Unit op:
+        - (dispatch_attempt_by_way[way] == 1'b1 && dispatch_valid_alu_imm_by_way[way] == 1'b0 && dispatch_valid_ldu_by_way[way] == 1'b1 && dispatch_ack_by_way[way] == 1'b1)
+        - all same way associated with this same op
+        - all other signals in [op dispatch by way](#op-dispatch-by-way) interface for the same way also associated with this op
+    - num cycles with (issue_alu_imm_valid == 1'b1) + num cycles with (issue_ldu_valid == 1'b1) <= num dispatched ops
+- issued op with forwarding operand means have corresponding WB bus inputs this cycle and no PRF read
+    - (issue_alu_imm_valid == 1'b1 && issue_alu_imm_A_forward == 1'b1 && issue_alu_imm_A_is_zero == 1'b0) -> (WB_bus_valid_by_bank[issue_alu_imm_A_bank] == 1'b1 && PRF_alu_imm_req_A_valid == 1'b0)
+        - same for operand A for Load Unit
+- issued op with zero operand means have no PRF read
+    - (issue_alu_imm_valid == 1'b1 && issue_alu_imm_A_is_zero == 1'b1) -> (PRF_alu_imm_req_A_valid == 1'b0)
+        - same for operands A for Load Unit
 
 
-# Test Ideas and Coverpoints
-- every op for ALU Reg-Imm, every op for LDU
+# Coverpoints
+- every op for ALU Reg-Imm
+- every op for Load Unit
 - every truth table case
     - see [Op State Truth Table](#op-state-truth-table)
-- there are 2^4 possible combinations of dispatch's
+- 2^4 possible combinations of dispatch's
     - {valid, invalid} for each of 4 dispatch ways. no constraints
-    - there are 3^4 combinations if differentiate {ALU Reg-Imm, LDU, invalid} dispatch
+    - there are 3^4 combinations if differentiate {ALU Reg-Imm, Load Unit, invalid} dispatch
     - there are many more combinations for attempted dispatches which don't end up being valid
-    - there are many more combinations of possible dispatch's for each possible issue queue occupancy state. these could be targetted as well if reasonable. otherwise a good coverage of high-occupancy (e.g. 4 or fewer open entries) combinations would be desired
-- there are 9^2 possible combinations of issue's
-    - {no issue, entry 0, entry 1, ...} for ALU Reg-Imm and LDU
-- there are sum(i=0,8)2^i = 511 possible combinations of {invalid op, ALU Reg-Imm op, LDU op} per issue queue entry for 8 total issue queue entries. ideally all of these are reached
+    - there are many more combinations of possible dispatch's for each possible issue queue occupancy state. these could be targetted as well if reasonable. otherwise a good coverage of high-occupancy combinations would be desired (e.g. 4 or fewer open entries, essentially targetting when different dispatch_ack_by_way output can be achieved)
+- 9^2 possible combinations of issue's
+    - {no issue, entry 0, entry 1, ...} for ALU Reg-Imm and Load Unit
+    - some of these are not possible as a single entry can't be issued to both pipelines
+- sum(i=0,8)2^i = 511 possible combinations of {invalid op, ALU Reg-Imm op, Load Unit op} per issue queue entry for 8 total issue queue entries. ideally all of these are reached
     - there can be 0-8 valid entries, which must be a run of valid's starting at IQ entry 0
-    - each valid entry can be ALU Reg-Imm or LDU
+    - each valid entry can be ALU Reg-Imm or Load Unit
 
 
 # Targeted Instructions
@@ -639,7 +703,7 @@ see [alu_reg_mdu_iq_example.md](../alu_reg_mdu_iq/alu_reg_mdu_iq_example.md) for
     - dispatch_valid_ldu_by_way[way] = 1'b0
     - dispatch_op_by_way[way] = 4'b0111
 
-### LDU
+### Load Unit
 - LB
     - dispatch_valid_alu_imm_by_way[way] = 1'b0
     - dispatch_valid_ldu_by_way[way] = 1'b1
@@ -661,7 +725,7 @@ see [alu_reg_mdu_iq_example.md](../alu_reg_mdu_iq/alu_reg_mdu_iq_example.md) for
     - dispatch_valid_ldu_by_way[way] = 1'b1
     - dispatch_op_by_way[way][2:0] = 4'b0101
 
-### Compressed ALU Reg-Imm
+### Compressed Load Unit
 - C.LW
     - dispatch_valid_alu_imm_by_way[way] = 1'b0
     - dispatch_valid_ldu_by_way[way] = 1'b1
