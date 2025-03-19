@@ -584,8 +584,8 @@ see [alu_reg_mdu_iq_example.md](../alu_reg_mdu_iq/alu_reg_mdu_iq_example.md) for
 - every issued op is associated with a dispatched op
     - issued ALU Reg-Imm op:
         - (issue_alu_imm_valid == 1'b1)
-        - all other signals in [op issue to ALU Reg-Imm Pipeline](#op-issue-to-alu-reg-reg-pipeline) interface follow what expected for this op
-        - signals in [ALU Reg-Imm Pipeline reg read req to PRF](#alu-reg-reg-pipeline-reg-read-req-to-prf) interface follow what expected for this op
+        - all other signals in [op issue to ALU Reg-Imm Pipeline](#op-issue-to-alu-reg-imm-pipeline) interface follow what expected for this op
+        - signals in [ALU Reg-Imm Pipeline reg read req to PRF](#alu-reg-imm-pipeline-reg-read-req-to-prf) interface follow what expected for this op
     - dispatched ALU Reg-Imm op:
         - (dispatch_attempt_by_way[way] == 1'b1 && dispatch_valid_alu_imm_by_way[way] == 1'b1 && dispatch_valid_ldu_by_way[way] == 1'b0 && dispatch_ack_by_way[way] == 1'b1)
         - all same way associated with this same op
@@ -623,6 +623,56 @@ see [alu_reg_mdu_iq_example.md](../alu_reg_mdu_iq/alu_reg_mdu_iq_example.md) for
 - sum(i=0,8)2^i = 511 possible combinations of {invalid op, ALU Reg-Imm op, Load Unit op} per issue queue entry for 8 total issue queue entries. ideally all of these are reached
     - there can be 0-8 valid entries, which must be a run of valid's starting at IQ entry 0
     - each valid entry can be ALU Reg-Imm or Load Unit
+
+
+# Test Ideas
+
+### Single Op of Interest at a Time in IQ
+- target basic functionality
+- target truth table coverage
+- follow single op of interest from dispatch through issue
+    - dispatch cycle
+        - dispatch op
+        - (dispatch_attempt_by_way[way] == 1'b1 && (dispatch_valid_alu_imm_by_way[way] ^ dispatch_valid_ldu_by_way[way] == 1'b1) && dispatch_ack_by_way[way] == 1'b1)
+            - can test any way in {0, 1, 2, 3}
+    - cycle(s) in IQ entry
+        - create desired operand states and op readiness
+        - give desired [writeback bus by bank](#writeback-bus-by-bank) interface signals
+        - control pipeline stalling as desired with alu_imm_pipeline_ready and ldu_pipeline_ready
+        - if op is ready, check for op issue
+    - on next cycle, can start next op of interest's dispatch cycle
+- repeat single op sequence from dispatch through issue for as many ops as needed to achieve coverage
+
+### Steady State Operation
+- target dispatch functionality
+- target acking functionality
+- target issue queue entry state coverage
+- always attempt to dispatch >= 1 ALU Reg-Imm Pipeline ops and >= 1 Load Unit Pipeline ops per cycle
+    - \>= 1 ALU Reg-Imm Pipeline ops
+        - (dispatch_attempt_by_way[way] == 1'b1 && dispatch_valid_alu_imm_by_way[way] == 1'b1 && dispatch_valid_ldu_by_way[way] == 1'b0) for 1-3 ways
+    - \>= 1 Load Unit Pipeline ops
+        - (dispatch_attempt_by_way[way] == 1'b1 && dispatch_valid_alu_imm_by_way[way] == 1'b0 && dispatch_valid_ldu_by_way[way] == 1'b1) for 1-3 other ways
+    - check dispatch_ack_by_way behaves as expected
+- always issue to both ALU Reg-Imm Pipeline and Load Unit Pipeline after first cycle
+    - (issue_alu_imm_valid == 1'b1 && issue_ldu_valid == 1'b1)
+    - check [op issue to ALU Reg-Imm Pipeline](#op-issue-to-alu-reg-imm-pipeline) interface signals
+    - check [ALU Reg-Imm Pipeline reg read req to PRF](#alu-reg-imm-pipeline-reg-read-req-to-prf) interface signals
+    - check [op issue to Load Unit Pipeline](#op-issue-to-load-unit-pipeline) interface signals
+    - check [Load Unit Pipeline reg read req to PRF](#load-unit-pipeline-reg-read-req-to-prf) interface signals
+
+### Full Random Operation
+- target dispatch coverage
+    - 3^4 combinations of {ALU Reg-Imm, Load Unit, invalid} dispatch by way
+- target issue coverage
+    - {no issue, entry 0, entry 1, ...} for ALU Reg-Imm and Load Unit
+- randomized [op dispatch by way](#op-dispatch-by-way) interface inputs
+- randomized [pipeline feedback](#pipeline-feedback) interface inputs
+- randomized [writeback bus by bank](#writeback-bus-by-bank) interface inputs
+- check dispatch_ack_by_way
+- check [op issue to ALU Reg-Imm Pipeline](#op-issue-to-alu-reg-imm-pipeline) interface outputs
+- check [ALU Reg-Imm Pipeline reg read req to PRF](#alu-reg-imm-pipeline-reg-read-req-to-prf) interface outputs
+- check [op issue to Load Unit Pipeline](#op-issue-to-load-unit-pipeline) interface outputs
+- check [Load Unit Pipeline reg read req to PRF](#load-unit-pipeline-reg-read-req-to-prf) interface outputs
 
 
 # Targeted Instructions
