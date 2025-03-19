@@ -8,8 +8,10 @@ add wave -noupdate -expand -group Inputs /top/alu_reg_mdu_iq_intf/dispatch_valid
 add wave -noupdate -expand -group Inputs /top/alu_reg_mdu_iq_intf/dispatch_op_by_way
 add wave -noupdate -expand -group Inputs /top/alu_reg_mdu_iq_intf/dispatch_A_PR_by_way
 add wave -noupdate -expand -group Inputs /top/alu_reg_mdu_iq_intf/dispatch_A_ready_by_way
+add wave -noupdate -expand -group Inputs /top/MDU_IQ/dispatch_A_is_zero_by_way
 add wave -noupdate -expand -group Inputs /top/alu_reg_mdu_iq_intf/dispatch_B_PR_by_way
 add wave -noupdate -expand -group Inputs /top/alu_reg_mdu_iq_intf/dispatch_B_ready_by_way
+add wave -noupdate -expand -group Inputs /top/MDU_IQ/dispatch_B_is_zero_by_way
 add wave -noupdate -expand -group Inputs /top/alu_reg_mdu_iq_intf/dispatch_dest_PR_by_way
 add wave -noupdate -expand -group Inputs /top/alu_reg_mdu_iq_intf/dispatch_ROB_index_by_way
 add wave -noupdate -expand -group Inputs /top/alu_reg_mdu_iq_intf/alu_reg_pipeline_ready
@@ -20,8 +22,10 @@ add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/dispatch_ack_
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_alu_reg_valid
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_alu_reg_op
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_alu_reg_A_forward
+add wave -noupdate -expand -group outputs /top/MDU_IQ/issue_alu_reg_A_is_zero
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_alu_reg_A_bank
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_alu_reg_B_forward
+add wave -noupdate -expand -group outputs /top/MDU_IQ/issue_alu_reg_B_is_zero
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_alu_reg_B_bank
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_alu_reg_dest_PR
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_alu_reg_ROB_index
@@ -32,8 +36,10 @@ add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/PRF_alu_reg_r
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_mdu_valid
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_mdu_op
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_mdu_A_forward
+add wave -noupdate -expand -group outputs /top/MDU_IQ/issue_mdu_A_is_zero
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_mdu_A_bank
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_mdu_B_forward
+add wave -noupdate -expand -group outputs /top/MDU_IQ/issue_mdu_B_is_zero
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_mdu_B_bank
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_mdu_dest_PR
 add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/issue_mdu_ROB_index
@@ -44,7 +50,7 @@ add wave -noupdate -expand -group outputs /top/alu_reg_mdu_iq_intf/PRF_mdu_req_B
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {1057 ns} 0}
 quietly wave cursor active 1
-configure wave -namecolwidth 187
+configure wave -namecolwidth 231
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
 configure wave -signalnamewidth 1
@@ -58,4 +64,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {945 ns} {1239 ns}
+WaveRestoreZoom {945 ns} {1225 ns}

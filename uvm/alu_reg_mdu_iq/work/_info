@@ -1,21 +1,7 @@
 m255
 K4
 z2
-Z0 !s99 nomlopt
-R0
-R0
-R0
-R0
-R0
-R0
-R0
-R0
-R0
-R0
-R0
-R0
-R0
-R0
+!s99 nomlopt
 !s11f MIXED_VERSIONS
 13
 !s112 1.1
@@ -23,101 +9,101 @@ R0
 !i10e 25
 !i10f 100
 cModel Technology
-Z1 d/home/shay/a/omer0/LOROF/uvm/alu_reg_mdu_iq
+Z0 d/home/shay/a/omer0/LOROF/uvm/alu_reg_mdu_iq
 T_opt
 !s11d alu_reg_mdu_iq_sv_unit /home/shay/a/omer0/LOROF/uvm/alu_reg_mdu_iq/work 1 alu_reg_mdu_iq_if 1 /home/shay/a/omer0/LOROF/uvm/alu_reg_mdu_iq/work 
-!s110 1740774168
-VY;^]3?7I=cIX9KL;XXgRV3
+!s110 1742414205
+V5aJlYQM>Q<jg;ai19c2jl3
 04 3 4 work top fast 0
-=1-b49691d91a85-67c21b17-e8cad-22c23d
+=1-b49691d916b5-67db217c-9083-3cf0ea
 !s124 OEM100
 o-quiet -auto_acc_if_foreign -work work -L /package/eda/mg/questa2021.4/questasim/uvm-1.2 +acc
-Z2 tCvgOpt 0
+Z1 tCvgOpt 0
 n@_opt
 OL;O;2021.4;73
 valu_reg_mdu_iq
-Z3 DXx6 sv_std 3 std 0 22 9oUSJO;AeEaW`l:M@^WG92
-Z4 DXx4 work 14 core_types_pkg 0 22 R:4??W027`71FKi=?<[<Z0
-Z5 DXx46 /package/eda/mg/questa2021.4/questasim/uvm-1.2 7 uvm_pkg 0 22 j8Zha7ihL:X5gY?98N]Y51
-Z6 DXx4 work 22 alu_reg_mdu_iq_sv_unit 0 22 cD:_41[J0_F;;XOOEGCAX2
-Z7 !s110 1740774164
-Z8 VDg1SIo80bB@j0V0VzS_@n1
+Z2 DXx6 sv_std 3 std 0 22 9oUSJO;AeEaW`l:M@^WG92
+Z3 DXx4 work 14 core_types_pkg 0 22 Sjei;H`Kkn2U?`LO[kmOO2
+Z4 DXx46 /package/eda/mg/questa2021.4/questasim/uvm-1.2 7 uvm_pkg 0 22 j8Zha7ihL:X5gY?98N]Y51
+Z5 DXx4 work 22 alu_reg_mdu_iq_sv_unit 0 22 z89CB@4On0G^fg``l[HVc1
+Z6 !s110 1742414194
+Z7 VDg1SIo80bB@j0V0VzS_@n1
 r1
 !s85 0
 !i10b 1
-!s100 3i?:o[oe8`]1I3c]X>B1a3
-I1F_QhgI3e@VjdX13IDZ4G0
-Z9 !s105 alu_reg_mdu_iq_sv_unit
+!s100 =UkCnT]PQ8o5Uk@43gLNb2
+I_P827zCQSbM<D8Vl0ZG9K3
+Z8 !s105 alu_reg_mdu_iq_sv_unit
 S1
-R1
-Z10 w1740706936
-Z11 8../../source/rtl/alu_reg_mdu_iq.sv
-Z12 F../../source/rtl/alu_reg_mdu_iq.sv
-!i122 29
-L0 11 597
-Z13 OL;L;2021.4;73
+R0
+Z9 w1742413784
+Z10 8../../source/rtl/alu_reg_mdu_iq.sv
+Z11 F../../source/rtl/alu_reg_mdu_iq.sv
+!i122 2
+L0 11 696
+Z12 OL;L;2021.4;73
 31
-Z14 !s108 1740774163.000000
-Z15 !s107 testbench/sequences/reset_seq.sv|testbench/test.sv|testbench/predictor.sv|testbench/env.sv|testbench/scoreboard.sv|testbench/agent.sv|testbench/monitor.sv|testbench/driver.sv|testbench/sequencer.sv|testbench/sequence_item.sv|testbench/interface.sv|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_deprecated_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_reg_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_callback_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_sequence_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/tlm1/uvm_tlm_imps.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_tlm_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_printer_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_object_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_phase_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_message_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_global_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_version_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/uvm_macros.svh|../../source/include/core_types_pkg.vh|testbench/assertions/alu_reg_mdu_iq_sva.sv|testbench/testbench.sv|../../source/rtl/pq_lsb.sv|../../source/rtl/alu_reg_mdu_iq.sv|
-Z16 !s90 -mfcu|+incdir+../../source/rtl/alu_reg_mdu_iq.sv|+incdir+../../source/rtl/pq_lsb.sv|+incdir+|+incdir+../../source/include|+acc|+cover|-L|/package/eda/mg/questa2021.4/questasim/uvm-1.2|-sv|../../source/rtl/alu_reg_mdu_iq.sv|-sv|../../source/rtl/pq_lsb.sv|-sv|testbench/testbench.sv|-sv|testbench/assertions/alu_reg_mdu_iq_sva.sv|-logfile|compile.log|
+Z13 !s108 1742414193.000000
+Z14 !s107 testbench/sequences/reset_seq.sv|testbench/test.sv|testbench/pred_comp.sv|testbench/predictor.sv|testbench/env.sv|testbench/scoreboard.sv|testbench/agent.sv|testbench/monitor.sv|testbench/driver.sv|testbench/sequencer.sv|testbench/sequence_item.sv|testbench/interface.sv|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_deprecated_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_reg_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_callback_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_sequence_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/tlm1/uvm_tlm_imps.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_tlm_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_printer_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_object_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_phase_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_message_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_global_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_version_defines.svh|/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/uvm_macros.svh|../../source/include/core_types_pkg.vh|testbench/assertions/alu_reg_mdu_iq_sva.sv|testbench/testbench.sv|../../source/rtl/pe_lsb.sv|../../source/rtl/alu_reg_mdu_iq.sv|
+Z15 !s90 -mfcu|+incdir+../../source/rtl/alu_reg_mdu_iq.sv|+incdir+../../source/rtl/pe_lsb.sv|+incdir+|+incdir+../../source/include|+acc|+cover|-L|/package/eda/mg/questa2021.4/questasim/uvm-1.2|-sv|../../source/rtl/alu_reg_mdu_iq.sv|-sv|../../source/rtl/pe_lsb.sv|-sv|testbench/testbench.sv|-sv|testbench/assertions/alu_reg_mdu_iq_sva.sv|-sv|-logfile|compile.log|
 !i113 0
-Z17 !s102 +cover
-Z18 o-mfcu +acc +cover -L /package/eda/mg/questa2021.4/questasim/uvm-1.2 -sv -sv -sv -sv -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
-Z19 !s92 -mfcu +incdir+../../source/rtl/alu_reg_mdu_iq.sv +incdir+../../source/rtl/pq_lsb.sv +incdir+ +incdir+../../source/include +acc +cover -L /package/eda/mg/questa2021.4/questasim/uvm-1.2 -sv -sv -sv -sv -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
-R2
+Z16 !s102 +cover
+Z17 o-mfcu +acc +cover -L /package/eda/mg/questa2021.4/questasim/uvm-1.2 -sv -sv -sv -sv -sv -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+Z18 !s92 -mfcu +incdir+../../source/rtl/alu_reg_mdu_iq.sv +incdir+../../source/rtl/pe_lsb.sv +incdir+ +incdir+../../source/include +acc +cover -L /package/eda/mg/questa2021.4/questasim/uvm-1.2 -sv -sv -sv -sv -sv -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+R1
 Yalu_reg_mdu_iq_if
+R2
 R3
 R4
 R5
 R6
 R7
-R8
 r1
 !s85 0
 !i10b 1
-!s100 znFWjC1bl]97[X1VO:QmI1
-IcF]`mj_To9:liPUjf=Aca2
-R9
+!s100 [Z1GdmiCTDJNn0^NWN=Xm0
+I6=h74?I`QbFOIkYCRB>ao0
+R8
 S1
-R1
-w1740699387
+R0
+w1742333611
 8testbench/interface.sv
-Z20 Ftestbench/interface.sv
-!i122 29
+Z19 Ftestbench/interface.sv
+!i122 2
 L0 17 0
-R13
+R12
 31
+R13
 R14
 R15
-R16
 !i113 0
+R16
 R17
 R18
-R19
-R2
+R1
 Xalu_reg_mdu_iq_sv_unit
 !s115 alu_reg_mdu_iq_if
+R2
 R3
 R4
-R5
-R7
-VcD:_41[J0_F;;XOOEGCAX2
+R6
+Vz89CB@4On0G^fg``l[HVc1
 r1
 !s85 0
 !i10b 1
-!s100 Q9V[?LNNTfeITK2gBTh@^0
-IcD:_41[J0_F;;XOOEGCAX2
+!s100 ]4Pbzb0Me<37?m2T0V;`S0
+Iz89CB@4On0G^fg``l[HVc1
 !i103 1
 S1
-R1
-w1740774148
+R0
+R9
+R10
 R11
-R12
-Z21 F../../source/include/core_types_pkg.vh
-Z22 8../../source/rtl/pq_lsb.sv
-Z23 F../../source/rtl/pq_lsb.sv
-Z24 8testbench/testbench.sv
-Z25 Ftestbench/testbench.sv
+Z20 F../../source/include/core_types_pkg.vh
+Z21 8../../source/rtl/pe_lsb.sv
+Z22 F../../source/rtl/pe_lsb.sv
+Z23 8testbench/testbench.sv
+Z24 Ftestbench/testbench.sv
 F/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/uvm_macros.svh
 F/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_version_defines.svh
 F/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_global_defines.svh
@@ -131,7 +117,7 @@ F/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macro
 F/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_callback_defines.svh
 F/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_reg_defines.svh
 F/package/eda/mg/questa2021.4/questasim/uvm-1.2/../verilog_src/uvm-1.2/src/macros/uvm_deprecated_defines.svh
-R20
+R19
 Ftestbench/sequence_item.sv
 Ftestbench/sequencer.sv
 Ftestbench/driver.sv
@@ -140,135 +126,136 @@ Ftestbench/agent.sv
 Ftestbench/scoreboard.sv
 Ftestbench/env.sv
 Ftestbench/predictor.sv
+Ftestbench/pred_comp.sv
 Ftestbench/test.sv
 Ftestbench/sequences/reset_seq.sv
-Z26 8testbench/assertions/alu_reg_mdu_iq_sva.sv
-Z27 Ftestbench/assertions/alu_reg_mdu_iq_sva.sv
-!i122 29
+Z25 8testbench/assertions/alu_reg_mdu_iq_sva.sv
+Z26 Ftestbench/assertions/alu_reg_mdu_iq_sva.sv
+!i122 2
 L0 9 0
-R13
+R12
 31
+R13
 R14
 R15
-R16
 !i113 0
+R16
 R17
 R18
-R19
-R2
+R1
 valu_reg_mdu_iq_sva
+R2
 R3
 R4
 R5
 R6
 R7
-R8
 r1
 !s85 0
 !i10b 1
 !s100 ]j6>PejgQ@MA`g5hL>WP?1
-IaI]h@_^b12a]M;QP>cNAV1
-R9
+IVSE8Aj@YC1YYg=aFE?<Gm2
+R8
 S1
-R1
+R0
 w1740099663
-R26
-R27
-!i122 29
-L0 1 3
-R13
-31
-R14
-R15
-R16
-!i113 0
-R17
-R18
-R19
-R2
-Xcore_types_pkg
-R3
-!s110 1740774163
-!i10b 1
-!s100 ?>C4OR6AP8kYm[E[mE4]^0
-IR:4??W027`71FKi=?<[<Z0
-S1
-R1
-R10
-8../../source/include/core_types_pkg.vh
-R21
-!i122 29
-L0 4 0
-VR:4??W027`71FKi=?<[<Z0
-R13
-r1
-!s85 0
-31
-R14
-R15
-R16
-!i113 0
-R17
-R18
-R19
-R2
-vpq_lsb
-R3
-R4
-R5
-R6
-R7
-R8
-r1
-!s85 0
-!i10b 1
-!s100 XDFdgX`4He<1Y`S?edlR62
-IEb?j92d4RjZ=?2NJ_R][d3
-R9
-S1
-R1
-w1740012507
-R22
-R23
-!i122 29
-L0 7 80
-R13
-31
-R14
-R15
-R16
-!i113 0
-R17
-R18
-R19
-R2
-vtop
-R3
-R4
-R5
-R6
-R7
-R8
-r1
-!s85 0
-!i10b 1
-!s100 RGzg^o>?EEF@7AEI2J[8B0
-IQg0ikFPQnKM]IoEi;Ze9i0
-R9
-S1
-R1
-w1740699843
-R24
 R25
-!i122 29
-L0 32 83
-R13
+R26
+!i122 2
+L0 1 3
+R12
 31
+R13
 R14
 R15
-R16
 !i113 0
+R16
 R17
 R18
-R19
+R1
+Xcore_types_pkg
 R2
+!s110 1742414193
+!i10b 1
+!s100 @TTmNMBNW0GC>_KK]_0lb1
+ISjei;H`Kkn2U?`LO[kmOO2
+S1
+R0
+R9
+8../../source/include/core_types_pkg.vh
+R20
+!i122 2
+L0 4 0
+VSjei;H`Kkn2U?`LO[kmOO2
+R12
+r1
+!s85 0
+31
+R13
+R14
+R15
+!i113 0
+R16
+R17
+R18
+R1
+vpe_lsb
+R2
+R3
+R4
+R5
+R6
+R7
+r1
+!s85 0
+!i10b 1
+!s100 lo2DKzACJOS2_jc@?fWOS3
+IRnRC4V=EWAV?@o`ca^[_j0
+R8
+S1
+R0
+R9
+R21
+R22
+!i122 2
+L0 7 80
+R12
+31
+R13
+R14
+R15
+!i113 0
+R16
+R17
+R18
+R1
+vtop
+R2
+R3
+R4
+R5
+R6
+R7
+r1
+!s85 0
+!i10b 1
+!s100 93K5HmVa9aVHeIl1mz^oB3
+I9T_G8@lOoCeSEP:Gb8FMo0
+R8
+S1
+R0
+w1742406294
+R23
+R24
+!i122 2
+L0 32 89
+R12
+31
+R13
+R14
+R15
+!i113 0
+R16
+R17
+R18
+R1
