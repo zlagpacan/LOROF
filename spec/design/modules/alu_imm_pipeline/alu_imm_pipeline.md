@@ -401,6 +401,8 @@ see [alu_imm_pipeline_example.md](alu_imm_pipeline_example.md)
 - target basic functionality
 - target op coverage
 - after fill and before drain, all pipeline stages valid
+- always issue
+    - issue_valid = 1'b1
 - WB always ready
     - WB_ready = 1'b1
 - operands always collected on-time
