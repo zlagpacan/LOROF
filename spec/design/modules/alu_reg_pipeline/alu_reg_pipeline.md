@@ -437,6 +437,7 @@ see [alu_reg_pipeline_example.md](alu_reg_pipeline_example.md)
 # Test Ideas
 
 ### Single Op of Interest at a Time in Pipeline
+- target basic functionality
 - target OC stage truth table coverage
 - follow single op of interest through pipeline
     - IS stage cycle
@@ -465,7 +466,6 @@ see [alu_reg_pipeline_example.md](alu_reg_pipeline_example.md)
 - repeat single op (+ any dummy ops) sequence through pipeline for as many ops as needed to achieve coverage
 
 ### Steady State Operation
-- target basic functionality
 - target op coverage
 - after fill and before drain, all pipeline stages valid
 - always issue
