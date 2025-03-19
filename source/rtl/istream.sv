@@ -249,7 +249,7 @@ module istream #(
     end
 
     // lower way 0: can guarantee in lower 8
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(8),
         .USE_ONE_HOT(1),
         .USE_COLD(1),
@@ -267,7 +267,7 @@ module istream #(
     assign lower_ack_index_by_way[0][3] = 1'b0;
 
     // upper by way
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(16),
         .USE_ONE_HOT(1),
         .USE_COLD(1),
@@ -282,10 +282,10 @@ module istream #(
 
     genvar way;
     generate
-        for (way = 1; way < 4; way++) begin : lower_pq_upper_pq_by_way
+        for (way = 1; way < 4; way++) begin : lower_pe_upper_pe_by_way
 
             // lower by way
-            pq_lsb #(
+            pe_lsb #(
                 .WIDTH(16),
                 .USE_ONE_HOT(1),
                 .USE_COLD(1),
@@ -299,7 +299,7 @@ module istream #(
             );
 
             // upper by way
-            pq_lsb #(
+            pe_lsb #(
                 .WIDTH(16),
                 .USE_ONE_HOT(1),
                 .USE_COLD(1),
@@ -571,12 +571,12 @@ module istream #(
         end
     end
 
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(ISTREAM_SETS),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) ENQ_VALID_PQ (
+    ) ENQ_VALID_PE (
         .req_vec(~set_valid_array),
         .ack_one_hot(set_enq_one_hot)
     );

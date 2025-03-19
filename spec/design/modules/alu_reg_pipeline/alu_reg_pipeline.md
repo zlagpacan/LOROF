@@ -333,7 +333,7 @@ Potential operand states:
 - a stall in this stage corresponds to issue_ready = 1'b0
 
 ### OC Truth Table:
-This truth table essentially enumerates all the possible combinations of operand states as achieved by different IS stage inputs, combined with or without propagated WB stall, telling whether an operand stall OC stage stall occurs and what behavior the OC stage op should take
+This truth table enumerates all the possible combinations of operand states as achieved by different IS and OC stage inputs, combined with or without propagated WB stall, telling whether an operand stall OC stage stall occurs and what behavior the OC stage op should take
 
 | Description | issue_A_forward on IS Cycle | issue_B_forward on IS Cycle | A_reg_read_ack on This Cycle | B_reg_read_ack on This Cycle | issue_A_is_zero on IS Cycle | issue_B_is_zero on IS Cycle | WB Stall Propagated to OC | Operand A State | Operand B State | issue_ready This Cycle | Module Actions |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |

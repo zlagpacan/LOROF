@@ -1,8 +1,8 @@
 /*
-    Filename: pq_tb.sv
+    Filename: pe_lsb_tb.sv
     Author: zlagpacan
-    Description: Testbench for pq module. 
-    Spec: LOROF/spec/design/pq.md
+    Description: Testbench for pe_lsb module. 
+    Spec: LOROF/spec/design/pe_lsb.md
 */
 
 `timescale 1ns/100ps
@@ -10,7 +10,7 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module pq_tb ();
+module pe_lsb_tb ();
 
     // ----------------------------------------------------------------
     // TB setup:
@@ -31,15 +31,24 @@ module pq_tb ();
 
     // ----------------------------------------------------------------
     // DUT signals:
-	logic [14-1:0] tb_req_vec;
-	logic [14-1:0] DUT_pq_vec, expected_pq_vec;
+
+    parameter WIDTH = 8;
+
+	logic [WIDTH-1:0] tb_req_vec;
+	logic [WIDTH-1:0] DUT_ack_one_hot, expected_ack_one_hot;
+	logic [WIDTH-1:0] DUT_ack_mask, expected_ack_mask;
+	logic [WIDTH-1:0] DUT_cold_ack_mask, expected_cold_ack_mask;
+	logic [$clog2(WIDTH)-1:0] DUT_ack_index, expected_ack_index;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	pq DUT (
+	pe_lsb #(.WIDTH(WIDTH), .USE_COLD(1), .USE_INDEX(1)) DUT (
 		.req_vec(tb_req_vec),
-		.pq_vec(DUT_pq_vec)
+		.ack_one_hot(DUT_ack_one_hot),
+		.ack_mask(DUT_ack_mask),
+        .cold_ack_mask(DUT_cold_ack_mask),
+        .ack_index(DUT_ack_index)
 	);
 
     // ----------------------------------------------------------------
@@ -47,9 +56,30 @@ module pq_tb ();
 
     task check_outputs();
     begin
-		if (expected_pq_vec !== DUT_pq_vec) begin
-			$display("TB ERROR: expected_pq_vec (%14b) != DUT_pq_vec (%14b)",
-				expected_pq_vec, DUT_pq_vec);
+		if (expected_ack_one_hot !== DUT_ack_one_hot) begin
+			$display("TB ERROR: expected_ack_one_hot (%b) != DUT_ack_one_hot (%b)",
+				expected_ack_one_hot, DUT_ack_one_hot);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_ack_mask !== DUT_ack_mask) begin
+			$display("TB ERROR: expected_ack_mask (%b) != DUT_ack_mask (%b)",
+				expected_ack_mask, DUT_ack_mask);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_cold_ack_mask !== DUT_cold_ack_mask) begin
+			$display("TB ERROR: expected_cold_ack_mask (%b) != DUT_cold_ack_mask (%b)",
+				expected_cold_ack_mask, DUT_cold_ack_mask);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_ack_index !== DUT_ack_index) begin
+			$display("TB ERROR: expected_ack_index (%b) != DUT_ack_index (%b)",
+				expected_ack_index, DUT_ack_index);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -76,13 +106,16 @@ module pq_tb ();
 
 		// reset
 		nRST = 1'b0;
-		tb_req_vec = 14'h0;
+		tb_req_vec = 8'b00000000;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-		expected_pq_vec = 14'h0;
+		expected_ack_one_hot = 8'b00000000;
+		expected_ack_mask = 8'b00000000;
+		expected_cold_ack_mask = 8'b00000000;
+		expected_ack_index = 3'h0;
 
 		check_outputs();
 
@@ -92,28 +125,31 @@ module pq_tb ();
 
 		// reset
 		nRST = 1'b1;
-		tb_req_vec = 14'h0;
+		tb_req_vec = 8'b00000000;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-		expected_pq_vec = 14'h0;
+		expected_ack_one_hot = 8'b00000000;
+		expected_ack_mask = 8'b00000000;
+		expected_cold_ack_mask = 8'b00000000;
+		expected_ack_index = 3'h0;
 
 		check_outputs();
 
         // ------------------------------------------------------------
-        // loop:
-        test_case = "loop";
+        // default:
+        test_case = "default";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-        for (int i = 0; i < 2**14; i++) begin
+        for (int i = 0; i < 2**WIDTH; i++) begin
 
             @(posedge CLK); #(PERIOD/10);
 
             // inputs
-            sub_test_case = $sformatf("input = %14b", i);
+            sub_test_case = $sformatf("i = %8b", i);
             $display("\t- sub_test: %s", sub_test_case);
 
             // reset
@@ -123,11 +159,20 @@ module pq_tb ();
             @(negedge CLK);
 
             // outputs:
-
-            expected_pq_vec = 14'h0;
-            for (int j = 13; j >= 0; j--) begin
-                if (i[j]) begin 
-                    expected_pq_vec[j] = 1'b1;
+            expected_ack_one_hot = '0;
+            expected_ack_mask = '0;
+            expected_cold_ack_mask = '0;
+            expected_ack_index = '0;
+            for (int j = 0; j < WIDTH; j++) begin
+                if (i[j]) begin
+                    expected_ack_one_hot[j] = 1'b1;
+                    expected_ack_index = j;
+                    for (int k = j; k < WIDTH; k++) begin
+                        expected_ack_mask[k] = 1'b1;
+                    end
+                    for (int l = j+1; l < WIDTH; l++) begin
+                        expected_cold_ack_mask[l] = 1'b1;
+                    end
                     break;
                 end
             end

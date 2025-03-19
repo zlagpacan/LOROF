@@ -1,10 +1,10 @@
 /*
-    Filename: pq_lsb.sv
+    Filename: pe_lsb.sv
     Author: zlagpacan
-    Description: RTL for Priority Queue prioritizing lsb
+    Description: RTL for Priority Encoder prioritizing lsb
 */
 
-module pq_lsb #(
+module pe_lsb #(
     parameter WIDTH = 8,
     parameter USE_ONE_HOT = 1,
     parameter USE_COLD = 0,

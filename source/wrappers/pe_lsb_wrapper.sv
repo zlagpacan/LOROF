@@ -1,8 +1,8 @@
 /*
-    Filename: pq_lsb_wrapper.sv
+    Filename: pe_lsb_wrapper.sv
     Author: zlagpacan
-    Description: RTL wrapper around pq_lsb module. 
-    Spec: LOROF/spec/design/pq_lsb.md
+    Description: RTL wrapper around pe_lsb module. 
+    Spec: LOROF/spec/design/pe_lsb.md
 */
 
 `timescale 1ns/100ps
@@ -12,7 +12,7 @@ import core_types_pkg::*;
 
 parameter WIDTH = 8;
 
-module pq_lsb_wrapper (
+module pe_lsb_wrapper (
 
     // seq
     input logic CLK,
@@ -31,7 +31,7 @@ module pq_lsb_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    pq_lsb WRAPPED_MODULE (.*);
+    pe_lsb WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:

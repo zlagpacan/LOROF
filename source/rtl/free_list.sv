@@ -86,7 +86,7 @@ module free_list #(
 
     // swizzle deQ
     logic [FREE_LIST_BANK_COUNT-1:0][FREE_LIST_SHIFT_REG_ENTRIES-1:0]   shift_reg_open_mask_by_bank;
-    logic [FREE_LIST_BANK_COUNT-1:0][FREE_LIST_SHIFT_REG_ENTRIES-1:0]   shift_reg_pq_one_hot_by_bank;
+    logic [FREE_LIST_BANK_COUNT-1:0][FREE_LIST_SHIFT_REG_ENTRIES-1:0]   shift_reg_pe_one_hot_by_bank;
     logic [FREE_LIST_BANK_COUNT-1:0][FREE_LIST_SHIFT_REG_ENTRIES-1:0]   shift_reg_one_hot_by_bank;
 
     logic deq_to_shift_reg_condition;
@@ -140,30 +140,30 @@ module free_list #(
     assign enq_lower_threshold_bank_req_vec_by_bank[0] = lower_threshold_bank_mask;
     assign enq_not_upper_threshold_bank_req_vec_by_bank[0] = not_upper_threshold_bank_mask;
     assign enq_not_full_bank_req_vec_by_bank[0] = not_full_bank_mask;
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) ENQ_BANK0_LOWER_THRESHOLD_PQ (
+    ) ENQ_BANK0_LOWER_THRESHOLD_PE (
         .req_vec(enq_lower_threshold_bank_req_vec_by_bank[0]),
         .ack_one_hot(enq_lower_threshold_bank_ack_one_hot_by_bank[0])
     );
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) ENQ_BANK0_UPPER_THRESHOLD_PQ (
+    ) ENQ_BANK0_UPPER_THRESHOLD_PE (
         .req_vec(enq_not_upper_threshold_bank_req_vec_by_bank[0]),
         .ack_one_hot(enq_not_upper_threshold_bank_ack_one_hot_by_bank[0])
     );
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) ENQ_BANK0_NOT_FULL_PQ (
+    ) ENQ_BANK0_NOT_FULL_PE (
         .req_vec(enq_not_full_bank_req_vec_by_bank[0]),
         .ack_one_hot(enq_not_full_bank_ack_one_hot_by_bank[0])
     );
@@ -174,30 +174,30 @@ module free_list #(
     assign enq_lower_threshold_bank_req_vec_by_bank[1] = enq_lower_threshold_bank_req_vec_by_bank[0] & ~enq_bank_ack_one_hot_by_bank[0];
     assign enq_not_upper_threshold_bank_req_vec_by_bank[1] = enq_not_upper_threshold_bank_req_vec_by_bank[0] & ~enq_bank_ack_one_hot_by_bank[0];
     assign enq_not_full_bank_req_vec_by_bank[1] = enq_not_full_bank_req_vec_by_bank[0] & ~enq_bank_ack_one_hot_by_bank[0];
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) ENQ_BANK1_LOWER_THRESHOLD_PQ (
+    ) ENQ_BANK1_LOWER_THRESHOLD_PE (
         .req_vec(enq_lower_threshold_bank_req_vec_by_bank[1]),
         .ack_one_hot(enq_lower_threshold_bank_ack_one_hot_by_bank[1])
     );
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) ENQ_BANK1_UPPER_THRESHOLD_PQ (
+    ) ENQ_BANK1_UPPER_THRESHOLD_PE (
         .req_vec(enq_not_upper_threshold_bank_req_vec_by_bank[1]),
         .ack_one_hot(enq_not_upper_threshold_bank_ack_one_hot_by_bank[1])
     );
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) ENQ_BANK1_NOT_FULL_PQ (
+    ) ENQ_BANK1_NOT_FULL_PE (
         .req_vec(enq_not_full_bank_req_vec_by_bank[1]),
         .ack_one_hot(enq_not_full_bank_ack_one_hot_by_bank[1])
     );
@@ -208,30 +208,30 @@ module free_list #(
     assign enq_lower_threshold_bank_req_vec_by_bank[2] = enq_lower_threshold_bank_req_vec_by_bank[1] & ~enq_bank_ack_one_hot_by_bank[1];
     assign enq_not_upper_threshold_bank_req_vec_by_bank[2] = enq_not_upper_threshold_bank_req_vec_by_bank[1] & ~enq_bank_ack_one_hot_by_bank[1];
     assign enq_not_full_bank_req_vec_by_bank[2] = enq_not_full_bank_req_vec_by_bank[1] & ~enq_bank_ack_one_hot_by_bank[1];
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) ENQ_BANK2_LOWER_THRESHOLD_PQ (
+    ) ENQ_BANK2_LOWER_THRESHOLD_PE (
         .req_vec(enq_lower_threshold_bank_req_vec_by_bank[2]),
         .ack_one_hot(enq_lower_threshold_bank_ack_one_hot_by_bank[2])
     );
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) ENQ_BANK2_UPPER_THRESHOLD_PQ (
+    ) ENQ_BANK2_UPPER_THRESHOLD_PE (
         .req_vec(enq_not_upper_threshold_bank_req_vec_by_bank[2]),
         .ack_one_hot(enq_not_upper_threshold_bank_ack_one_hot_by_bank[2])
     );
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) ENQ_BANK2_NOT_FULL_PQ (
+    ) ENQ_BANK2_NOT_FULL_PE (
         .req_vec(enq_not_full_bank_req_vec_by_bank[2]),
         .ack_one_hot(enq_not_full_bank_ack_one_hot_by_bank[2])
     );
@@ -242,30 +242,30 @@ module free_list #(
     assign enq_lower_threshold_bank_req_vec_by_bank[3] = enq_lower_threshold_bank_req_vec_by_bank[2] & ~enq_bank_ack_one_hot_by_bank[2];
     assign enq_not_upper_threshold_bank_req_vec_by_bank[3] = enq_not_upper_threshold_bank_req_vec_by_bank[2] & ~enq_bank_ack_one_hot_by_bank[2];
     assign enq_not_full_bank_req_vec_by_bank[3] = enq_not_full_bank_req_vec_by_bank[2] & ~enq_bank_ack_one_hot_by_bank[2];
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) ENQ_BANK3_LOWER_THRESHOLD_PQ (
+    ) ENQ_BANK3_LOWER_THRESHOLD_PE (
         .req_vec(enq_lower_threshold_bank_req_vec_by_bank[3]),
         .ack_one_hot(enq_lower_threshold_bank_ack_one_hot_by_bank[3])
     );
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) ENQ_BANK3_UPPER_THRESHOLD_PQ (
+    ) ENQ_BANK3_UPPER_THRESHOLD_PE (
         .req_vec(enq_not_upper_threshold_bank_req_vec_by_bank[3]),
         .ack_one_hot(enq_not_upper_threshold_bank_ack_one_hot_by_bank[3])
     );
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(FREE_LIST_BANK_COUNT),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) ENQ_BANK3_NOT_FULL_PQ (
+    ) ENQ_BANK3_NOT_FULL_PE (
         .req_vec(enq_not_full_bank_req_vec_by_bank[3]),
         .ack_one_hot(enq_not_full_bank_ack_one_hot_by_bank[3])
     );
@@ -315,68 +315,68 @@ module free_list #(
 
     // way 0
     assign shift_reg_open_mask_by_bank[0] = ~shift_reg_valid_by_entry;
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(FREE_LIST_SHIFT_REG_ENTRIES),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) DEQ_TO_SHIFT_REG_PQ_WAY0 (
+    ) DEQ_TO_SHIFT_REG_PE_WAY0 (
         .req_vec(shift_reg_open_mask_by_bank[0]),
-        .ack_one_hot(shift_reg_pq_one_hot_by_bank[0])
+        .ack_one_hot(shift_reg_pe_one_hot_by_bank[0])
     );
     assign shift_reg_one_hot_by_bank[0] = 
-        shift_reg_pq_one_hot_by_bank[0] 
+        shift_reg_pe_one_hot_by_bank[0] 
         & 
         {FREE_LIST_SHIFT_REG_ENTRIES{~empty_by_bank[0] & deq_to_shift_reg_condition}}
     ;
 
     // way 1
     assign shift_reg_open_mask_by_bank[1] = shift_reg_open_mask_by_bank[0] & ~shift_reg_one_hot_by_bank[0];
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(FREE_LIST_SHIFT_REG_ENTRIES),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) DEQ_TO_SHIFT_REG_PQ_WAY1 (
+    ) DEQ_TO_SHIFT_REG_PE_WAY1 (
         .req_vec(shift_reg_open_mask_by_bank[1]),
-        .ack_one_hot(shift_reg_pq_one_hot_by_bank[1])
+        .ack_one_hot(shift_reg_pe_one_hot_by_bank[1])
     );
     assign shift_reg_one_hot_by_bank[1] = 
-        shift_reg_pq_one_hot_by_bank[1] 
+        shift_reg_pe_one_hot_by_bank[1] 
         & 
         {FREE_LIST_SHIFT_REG_ENTRIES{~empty_by_bank[1] & deq_to_shift_reg_condition}}
     ;
 
     // way 2
     assign shift_reg_open_mask_by_bank[2] = shift_reg_open_mask_by_bank[1] & ~shift_reg_one_hot_by_bank[1];
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(FREE_LIST_SHIFT_REG_ENTRIES),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) DEQ_TO_SHIFT_REG_PQ_WAY2 (
+    ) DEQ_TO_SHIFT_REG_PE_WAY2 (
         .req_vec(shift_reg_open_mask_by_bank[2]),
-        .ack_one_hot(shift_reg_pq_one_hot_by_bank[2])
+        .ack_one_hot(shift_reg_pe_one_hot_by_bank[2])
     );
     assign shift_reg_one_hot_by_bank[2] = 
-        shift_reg_pq_one_hot_by_bank[2] 
+        shift_reg_pe_one_hot_by_bank[2] 
         & 
         {FREE_LIST_SHIFT_REG_ENTRIES{~empty_by_bank[2] & deq_to_shift_reg_condition}}
     ;
 
     // way 3
     assign shift_reg_open_mask_by_bank[3] = shift_reg_open_mask_by_bank[2] & ~shift_reg_one_hot_by_bank[2];
-    pq_lsb #(
+    pe_lsb #(
         .WIDTH(FREE_LIST_SHIFT_REG_ENTRIES),
         .USE_ONE_HOT(1),
         .USE_COLD(0),
         .USE_INDEX(0)
-    ) DEQ_TO_SHIFT_REG_PQ_WAY3 (
+    ) DEQ_TO_SHIFT_REG_PE_WAY3 (
         .req_vec(shift_reg_open_mask_by_bank[3]),
-        .ack_one_hot(shift_reg_pq_one_hot_by_bank[3])
+        .ack_one_hot(shift_reg_pe_one_hot_by_bank[3])
     );
     assign shift_reg_one_hot_by_bank[3] = 
-        shift_reg_pq_one_hot_by_bank[3] 
+        shift_reg_pe_one_hot_by_bank[3] 
         & 
         {FREE_LIST_SHIFT_REG_ENTRIES{~empty_by_bank[3] & deq_to_shift_reg_condition}}
     ;

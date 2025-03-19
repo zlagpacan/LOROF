@@ -533,6 +533,8 @@ output interface
     - an op is not ready if either of its operands, A OR B, are "not ready" 
 
 ### Op State Truth Table:
+This truth table enumerates all the possible combinations of operand states as achieved by different dispatch and WB bus inputs telling whether an op is a candidate to be issued and what behavior should take place if the op is not issued
+
 | Description | dispatch_A_ready_by_way on dispatch cycle OR operand A was forwardable on previous cycle | dispatch_B_ready_by_way on dispatch cycle OR operand B was forwardable on previous cycle | dispatch_A_PR_by_way on dispatch cycle matching WB_bus_valid_by_bank + WB_bus_upper_PR_by_bank on this cycle | dispatch_B_PR_by_way on dispatch cycle matching WB_bus_valid_by_bank + WB_bus_upper_PR_by_bank on this cycle | dispatch_A_is_zero_by_way on dispatch cycle | dispatch_B_is_zero_by_way on dispatch cycle | Operand A State | Operand B State | op is ready and candidate to be issued this cycle? | Module Actions |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | A and B ready | 1 | 1 | 0 | 0 | 0 | 0 | ready | ready | YES | none |
@@ -563,24 +565,30 @@ output interface
 see [alu_reg_mdu_iq_example.md](alu_reg_mdu_iq_example.md)
 
 
+# Behavioral Model Ideas
+
+
+
+
 # Assertions
 - no output nor internal signal x's after reset
 - as many or fewer valid issue's than valid dispatch's
     - or just track the ops you expect and make sure no unexpected ones occur
 
 
-# Test Ideas and Coverpoints
+# Coverpoints
 - every op for ALU Reg-Reg, every op for MDU
 - every truth table case
     - see [Op State Truth Table](#op-state-truth-table)
-- there are 2^4 possible combinations of dispatch's
+- 2^4 possible combinations of dispatch's
     - {valid, invalid} for each of 4 dispatch ways. no constraints
     - there are 3^4 combinations if differentiate {ALU Reg-Reg, MDU, invalid} dispatch
     - there are many more combinations for attempted dispatches which don't end up being valid
-    - there are many more combinations of possible dispatch's for each possible issue queue occupancy state. these could be targetted as well if reasonable. otherwise a good coverage of high-occupancy (e.g. 4 or fewer open entries) combinations would be desired
-- there are 9^2 possible combinations of issue's
+    - there are many more combinations of possible dispatch's for each possible issue queue occupancy state. these could be targetted as well if reasonable. otherwise a good coverage of high-occupancy combinations would be desired (e.g. 4 or fewer open entries, essentially targetting when different dispatch_ack_by_way output can be achieved)
+- 9^2 possible combinations of issue's
     - {no issue, entry 0, entry 1, ...} for ALU Reg-Reg and MDU
-- there are sum(i=0,8)2^i = 511 possible combinations of {invalid op, ALU Reg-Reg op, MDU op} per issue queue entry for 8 total issue queue entries. ideally all of these are reached
+    - some of these are not possible as a single entry can't be issued to both pipelines
+- sum(i=0,8)2^i = 511 possible combinations of {invalid op, ALU Reg-Reg op, MDU op} per issue queue entry for 8 total issue queue entries. ideally all of these are reached
     - there can be 0-8 valid entries, which must be a run of valid's starting at IQ entry 0
     - each valid entry can be ALU Reg-Reg or MDU
 
