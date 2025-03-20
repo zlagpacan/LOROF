@@ -32,8 +32,10 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
   rand logic [3:0][3:0]                                                dispatch_op_by_way;
   rand logic [3:0][LOG_PR_COUNT-1:0]                                   dispatch_A_PR_by_way;
   rand logic [3:0]                                                     dispatch_A_ready_by_way;
+  rand logic [3:0]                                                     dispatch_A_is_zero_by_way;
   rand logic [3:0][LOG_PR_COUNT-1:0]                                   dispatch_B_PR_by_way;
   rand logic [3:0]                                                     dispatch_B_ready_by_way;
+  rand logic [3:0]                                                     dispatch_B_is_zero_by_way;
   rand logic [3:0][LOG_PR_COUNT-1:0]                                   dispatch_dest_PR_by_way;
   rand logic [3:0][LOG_ROB_ENTRIES-1:0]                                dispatch_ROB_index_by_way;
   rand logic                                                           alu_reg_pipeline_ready;
@@ -46,8 +48,10 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
   logic                          issue_alu_reg_valid;
   logic [3:0]                    issue_alu_reg_op;
   logic                          issue_alu_reg_A_forward;
+  logic                          issue_alu_reg_A_is_zero;
   logic [LOG_PRF_BANK_COUNT-1:0] issue_alu_reg_A_bank;
   logic                          issue_alu_reg_B_forward;
+  logic                          issue_alu_reg_B_is_zero;
   logic [LOG_PRF_BANK_COUNT-1:0] issue_alu_reg_B_bank;
   logic [LOG_PR_COUNT-1:0]       issue_alu_reg_dest_PR;
   logic [LOG_ROB_ENTRIES-1:0]    issue_alu_reg_ROB_index;
@@ -58,8 +62,10 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
   logic                          issue_mdu_valid;
   logic [3:0]                    issue_mdu_op;
   logic                          issue_mdu_A_forward;
+  logic                          issue_mdu_A_is_zero;
   logic [LOG_PRF_BANK_COUNT-1:0] issue_mdu_A_bank;
   logic                          issue_mdu_B_forward;
+  logic                          issue_mdu_B_is_zero;
   logic [LOG_PRF_BANK_COUNT-1:0] issue_mdu_B_bank;
   logic [LOG_PR_COUNT-1:0]       issue_mdu_dest_PR;
   logic [LOG_ROB_ENTRIES-1:0]    issue_mdu_ROB_index;
@@ -78,8 +84,10 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
         (issue_alu_reg_valid === rhs_tx.issue_alu_reg_valid) &&
         (issue_alu_reg_op === rhs_tx.issue_alu_reg_op) &&
         (issue_alu_reg_A_forward === rhs_tx.issue_alu_reg_A_forward) &&
+        (issue_alu_reg_A_is_zero === rhs_tx.issue_alu_reg_A_is_zero) &&
         (issue_alu_reg_A_bank === rhs_tx.issue_alu_reg_A_bank) &&
         (issue_alu_reg_B_forward === rhs_tx.issue_alu_reg_B_forward) &&
+        (issue_alu_reg_B_is_zero === rhs_tx.issue_alu_reg_B_is_zero) &&
         (issue_alu_reg_B_bank === rhs_tx.issue_alu_reg_B_bank) &&
         (issue_alu_reg_dest_PR === rhs_tx.issue_alu_reg_dest_PR) &&
         (issue_alu_reg_ROB_index === rhs_tx.issue_alu_reg_ROB_index) &&
@@ -90,8 +98,10 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
         (issue_mdu_valid === rhs_tx.issue_mdu_valid) &&
         (issue_mdu_op === rhs_tx.issue_mdu_op) &&
         (issue_mdu_A_forward === rhs_tx.issue_mdu_A_forward) &&
+        (issue_mdu_A_is_zero === rhs_tx.issue_mdu_A_is_zero) &&
         (issue_mdu_A_bank === rhs_tx.issue_mdu_A_bank) &&
         (issue_mdu_B_forward === rhs_tx.issue_mdu_B_forward) &&
+        (issue_mdu_B_is_zero === rhs_tx.issue_mdu_B_is_zero) &&
         (issue_mdu_B_bank === rhs_tx.issue_mdu_B_bank) &&
         (issue_mdu_dest_PR === rhs_tx.issue_mdu_dest_PR) &&
         (issue_mdu_ROB_index === rhs_tx.issue_mdu_ROB_index) &&
@@ -121,8 +131,10 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
     this.dispatch_op_by_way = tr.dispatch_op_by_way;
     this.dispatch_A_PR_by_way = tr.dispatch_A_PR_by_way;
     this.dispatch_A_ready_by_way = tr.dispatch_A_ready_by_way;
+    this.dispatch_A_is_zero_by_way = tr.dispatch_A_is_zero_by_way;
     this.dispatch_B_PR_by_way = tr.dispatch_B_PR_by_way;
     this.dispatch_B_ready_by_way = tr.dispatch_B_ready_by_way;
+    this.dispatch_B_is_zero_by_way = tr.dispatch_B_is_zero_by_way;
     this.dispatch_dest_PR_by_way = tr.dispatch_dest_PR_by_way;
     this.dispatch_ROB_index_by_way = tr.dispatch_ROB_index_by_way;
     this.alu_reg_pipeline_ready = tr.alu_reg_pipeline_ready;
@@ -133,8 +145,10 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
     this.issue_alu_reg_valid = tr.issue_alu_reg_valid;
     this.issue_alu_reg_op = tr.issue_alu_reg_op;
     this.issue_alu_reg_A_forward = tr.issue_alu_reg_A_forward;
+    this.issue_alu_reg_A_is_zero = tr.issue_alu_reg_A_is_zero;
     this.issue_alu_reg_A_bank = tr.issue_alu_reg_A_bank;
     this.issue_alu_reg_B_forward = tr.issue_alu_reg_B_forward;
+    this.issue_alu_reg_B_is_zero = tr.issue_alu_reg_B_is_zero;
     this.issue_alu_reg_B_bank = tr.issue_alu_reg_B_bank;
     this.issue_alu_reg_dest_PR = tr.issue_alu_reg_dest_PR;
     this.issue_alu_reg_ROB_index = tr.issue_alu_reg_ROB_index;
@@ -145,8 +159,10 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
     this.issue_mdu_valid = tr.issue_mdu_valid;
     this.issue_mdu_op = tr.issue_mdu_op;
     this.issue_mdu_A_forward = tr.issue_mdu_A_forward;
+    this.issue_mdu_A_is_zero = tr.issue_mdu_A_is_zero;
     this.issue_mdu_A_bank = tr.issue_mdu_A_bank;
     this.issue_mdu_B_forward = tr.issue_mdu_B_forward;
+    this.issue_mdu_B_is_zero = tr.issue_mdu_B_is_zero;
     this.issue_mdu_B_bank = tr.issue_mdu_B_bank;
     this.issue_mdu_dest_PR = tr.issue_mdu_dest_PR;
     this.issue_mdu_ROB_index = tr.issue_mdu_ROB_index;
@@ -182,12 +198,18 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
   
     foreach (dispatch_A_ready_by_way[i])
       $display("dispatch_A_ready_by_way[%0d]: %b", i, dispatch_A_ready_by_way[i]);
+
+    foreach (dispatch_A_is_zero_by_way[i])
+      $display("dispatch_A_is_zero_by_way[%0d]: %b", i, dispatch_A_is_zero_by_way[i]);
   
     foreach (dispatch_B_PR_by_way[i])
       $display("dispatch_B_PR_by_way[%0d]: %h", i, dispatch_B_PR_by_way[i]);
   
     foreach (dispatch_B_ready_by_way[i])
       $display("dispatch_B_ready_by_way[%0d]: %b", i, dispatch_B_ready_by_way[i]);
+
+    foreach (dispatch_B_is_zero_by_way[i])
+      $display("dispatch_B_is_zero_by_way[%0d]: %b", i, dispatch_B_is_zero_by_way[i]);
   
     foreach (dispatch_dest_PR_by_way[i])
       $display("dispatch_dest_PR_by_way[%0d]: %h", i, dispatch_dest_PR_by_way[i]);
@@ -214,8 +236,10 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
     $display("issue_alu_reg_valid: %b", issue_alu_reg_valid);
     $display("issue_alu_reg_op: %h", issue_alu_reg_op);
     $display("issue_alu_reg_A_forward: %b", issue_alu_reg_A_forward);
+    $display("issue_alu_reg_A_is_zero: %b", issue_alu_reg_A_is_zero);
     $display("issue_alu_reg_A_bank: %h", issue_alu_reg_A_bank);
     $display("issue_alu_reg_B_forward: %b", issue_alu_reg_B_forward);
+    $display("issue_alu_reg_B_is_zero: %b", issue_alu_reg_B_is_zero);
     $display("issue_alu_reg_B_bank: %h", issue_alu_reg_B_bank);
     $display("issue_alu_reg_dest_PR: %h", issue_alu_reg_dest_PR);
     $display("issue_alu_reg_ROB_index: %h", issue_alu_reg_ROB_index);
@@ -228,8 +252,10 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
     $display("issue_mdu_valid: %b", issue_mdu_valid);
     $display("issue_mdu_op: %h", issue_mdu_op);
     $display("issue_mdu_A_forward: %b", issue_mdu_A_forward);
+    $display("issue_mdu_A_is_zero: %b", issue_mdu_A_is_zero);
     $display("issue_mdu_A_bank: %h", issue_mdu_A_bank);
     $display("issue_mdu_B_forward: %b", issue_mdu_B_forward);
+    $display("issue_mdu_B_is_zero: %b", issue_mdu_B_is_zero);
     $display("issue_mdu_B_bank: %h", issue_mdu_B_bank);
     $display("issue_mdu_dest_PR: %h", issue_mdu_dest_PR);
     $display("issue_mdu_ROB_index: %h", issue_mdu_ROB_index);

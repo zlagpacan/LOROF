@@ -8,7 +8,7 @@ include ../Makefile.inc
 DUT      = alu_reg_mdu_iq
 DESIGN   = ../../source/rtl/$(DUT).sv
 PKG      = ../../source/include
-RTL_DEPS = ../../source/rtl/pq_lsb.sv
+RTL_DEPS = ../../source/rtl/pe_lsb.sv
 
 # --- Testbench/Sim --- #
 UVM_DIR  = testbench
