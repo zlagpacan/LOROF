@@ -124,16 +124,16 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
         - rs1, rd ignored
 - ECALL
     - FU: sys_pipeline
-    - {12'b00000000000<mark>0</mark>, 5'b00000, 3'b000, 5'b00000, 5'b11100, 2'b11}
+    - {7'b0000000, 5'b0000<mark>0</mark>, 5'b00000, 3'b000, 5'b00000, 5'b11100, 2'b11}
 - EBREAK
     - FU: sys_pipeline
-    - {12'b00000000000<mark>1</mark>, 5'b00000, 3'b000, 5'b00000, 5'b11100, 2'b11}
+    - {7'b0000000, 5'b0000<mark>1</mark>, 5'b00000, 3'b000, 5'b00000, 5'b11100, 2'b11}
 
 ## Zifencei Extension
 - FENCE.I
     - FU: sys_pipeline
     - {imm[11:0], rs1[4:0], 3'b001, rd[4:0], 5'b00011, 2'b11}
-        - rs1, rd ignored
+        - rs1, rd, imm ignored
 
 ## Zicsr Extension
 - CSRRW
