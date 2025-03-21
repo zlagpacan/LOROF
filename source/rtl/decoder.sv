@@ -51,6 +51,9 @@ module decoder (
     // imm
     output logic [19:0] imm20,
 
+    // pred info out
+    output logic [BTB_PRED_INFO_WIDTH-1:0] pred_info_out,
+
     // ordering
     output logic flush_fetch,
     output logic stall_mem_read,
@@ -59,10 +62,12 @@ module decoder (
 
     // faults
     output logic instr_yield,
-    output logic non_branch_notif,
-    output logic fault_after_chunk0,
-    output logic fault_after_chunk1,
-    output logic fault_unrecoverable
+    output logic non_branch_notif_chunk0,
+    output logic non_branch_notif_chunk1,
+    output logic restart_on_chunk0,
+    output logic restart_after_chunk0,
+    output logic restart_after_chunk1,
+    output logic unrecoverable_fault
 );
 
     // ----------------------------------------------------------------
@@ -101,7 +106,6 @@ module decoder (
     // uncompressed helper signals
     logic uncfunct7_is_0bx1xxxxx;
     logic uncfunct7_is_0bx0xxxxx;
-    logic uncfunct7_is_0bx1xxxxx;
     logic uncfunct7_not_0b0x00000;
     logic uncfunct7_not_0b0000001;
     logic uncfunct7_is_0bxxxxxx1;
@@ -113,17 +117,130 @@ module decoder (
     logic [4:0]     cA_AR;
     logic [4:0]     cB_AR;
     logic [4:0]     cdest_AR;
-    logic           use_cimm20;
     logic [19:0]    cimm20;
 
     // ----------------------------------------------------------------
-    // Instr Resolution Logic: 
+    // Instr Resolution Logic:
+        // uses some main case decode logic
 
-    assign instr_yield = 
-    assign non_branch_notif = 
-    assign fault_after_chunk0 = 
-    assign fault_after_chunk1 = 
-    assign fault_unrecoverable = 
+    always_comb begin
+
+        // check allegedly uncompressed but is compressed
+        if (uncompressed & (instr_opcode_lsbs != 2'b11)) begin
+            instr_yield = 1'b0;
+            non_branch_notif_chunk0 = 1'b0;
+            non_branch_notif_chunk1 = 1'b0;
+            restart_on_chunk0 = 1'b0;
+            restart_after_chunk0 = 1'b0;
+            restart_after_chunk1 = 1'b0;
+            unrecoverable_fault = 1'b1;
+        end
+
+        // otherwise, check correctly uncompressed
+        else if (uncompressed) begin
+
+            // check have pred on chunk 0
+                // decided not to optim restart if simple branch NT on chunk 0 for unC
+            if (pred_info_chunk0[7] | pred_info_chunk0[6]) begin
+                instr_yield = 1'b0;
+                non_branch_notif_chunk0 = 1'b1;
+                non_branch_notif_chunk1 = 1'b0;
+                restart_on_chunk0 = 1'b1;
+                restart_after_chunk0 = 1'b0;
+                restart_after_chunk1 = 1'b0;
+                unrecoverable_fault = 1'b0;
+            end
+
+            // otherwise, check have pred on chunk 1
+            else if (pred_info_chunk1[7] | pred_info_chunk1[6]) begin
+
+                // check will use pred
+                if (use_pred_info) begin
+                    instr_yield = 1'b1;
+                    non_branch_notif_chunk0 = 1'b0;
+                    non_branch_notif_chunk1 = 1'b0;
+                    restart_on_chunk0 = 1'b0;
+                    restart_after_chunk0 = 1'b0;
+                    restart_after_chunk1 = 1'b0;
+                    unrecoverable_fault = 1'b0;
+                end
+
+                // otherwise, bad pred
+                else begin
+                    instr_yield = 1'b1;
+                    non_branch_notif_chunk0 = 1'b0;
+                    non_branch_notif_chunk1 = 1'b1;
+                    restart_on_chunk0 = 1'b0;
+                    restart_after_chunk0 = 1'b0;
+                    restart_after_chunk1 = 1'b1;
+                    unrecoverable_fault = 1'b0;
+                end
+            end
+
+            // otherwise, no pred's, all good
+            else begin
+                instr_yield = 1'b1;
+                non_branch_notif_chunk0 = 1'b0;
+                non_branch_notif_chunk1 = 1'b0;
+                restart_on_chunk0 = 1'b0;
+                restart_after_chunk0 = 1'b0;
+                restart_after_chunk1 = 1'b0;
+                unrecoverable_fault = 1'b0;
+            end
+        end
+
+        // otherwise, check allegedly compressed but is uncompressed
+        else if (instr_opcode_lsbs == 2'b11) begin
+            instr_yield = 1'b0;
+            non_branch_notif_chunk0 = 1'b0;
+            non_branch_notif_chunk1 = 1'b0;
+            restart_on_chunk0 = 1'b0;
+            restart_after_chunk0 = 1'b0;
+            restart_after_chunk1 = 1'b0;
+            unrecoverable_fault = 1'b1;
+        end
+
+        // otherwise, correctly compressed
+        else begin
+
+            // check have pred on chunk 0
+            if (pred_info_chunk0[7] | pred_info_chunk0[6]) begin
+
+                // check will use pred
+                if (use_pred_info) begin
+                    instr_yield = 1'b1;
+                    non_branch_notif_chunk0 = 1'b0;
+                    non_branch_notif_chunk1 = 1'b0;
+                    restart_on_chunk0 = 1'b0;
+                    restart_after_chunk0 = 1'b0;
+                    restart_after_chunk1 = 1'b0;
+                    unrecoverable_fault = 1'b0;
+                end
+
+                // otherwise, bad pred
+                else begin
+                    instr_yield = 1'b1;
+                    non_branch_notif_chunk0 = 1'b1;
+                    non_branch_notif_chunk1 = 1'b0;
+                    restart_on_chunk0 = 1'b0;
+                    restart_after_chunk0 = 1'b1;
+                    restart_after_chunk1 = 1'b0;
+                    unrecoverable_fault = 1'b0;
+                end
+            end
+
+            // otherwise, no pred's, all good
+            else begin
+                instr_yield = 1'b1;
+                non_branch_notif_chunk0 = 1'b0;
+                non_branch_notif_chunk1 = 1'b0;
+                restart_on_chunk0 = 1'b0;
+                restart_after_chunk0 = 1'b0;
+                restart_after_chunk1 = 1'b0;
+                unrecoverable_fault = 1'b0;
+            end
+        end
+    end
 
     // ----------------------------------------------------------------
     // Helper Logic: 
@@ -152,7 +269,6 @@ module decoder (
     assign cinstr_funct2_high = instr32[11:10];
     assign cinstr_funct1 = instr32[12];
     
-    assign uncfunct7_is_0bx1xxxxx = uncinstr_funct3 != 3'b010;
     assign uncfunct7_is_0bx0xxxxx = ~uncinstr_funct7[5];
     assign uncfunct7_is_0bx1xxxxx = uncinstr_funct7[5];
     assign uncfunct7_not_0b0x00000 = {uncinstr_funct7[6], uncinstr_funct7[4:0]} != 6'b000000;
@@ -167,7 +283,33 @@ module decoder (
     // ----------------------------------------------------------------
     // Outside Main Case:
 
+    assign A_AR = uncompressed ? uncinstr_rs1 : cA_AR;
+    assign A_is_zero = (A_AR == 5'h0);
+    assign A_is_ret_ra = (A_AR == 5'h1) | (A_AR == 5'h5);
 
+    assign B_AR = uncompressed ? uncinstr_rs2 : cB_AR;
+    assign B_is_zero = (B_AR == 5'h0);
+
+    assign dest_AR = uncompressed ? uncinstr_rd : cdest_AR;
+    assign dest_is_zero = (dest_AR == 5'h0);
+    assign dest_is_link_ra = (dest_AR == 5'h1) | (dest_AR == 5'h5);
+
+    always_comb begin
+        if (uncompressed & uncimm_type) begin
+            // S-Type, B-Type Imm
+            imm20 = {instr32[19:12], instr32[31], instr32[30:25], instr32[11:8], instr32[7]};
+        end
+        else if (uncompressed) begin
+            // I-Type, U-Type, J-Type Imm
+            imm20 = {instr32[19:12], instr32[31], instr32[30:25], instr32[24:21], instr32[20]};
+        end
+        else begin
+            // Compressed Imm
+            imm20 = cimm20;
+        end
+    end
+
+    assign pred_info_out = uncompressed ? pred_info_chunk1 : pred_info_chunk0;
 
     // ----------------------------------------------------------------
     // Main Case:
@@ -205,14 +347,12 @@ module decoder (
         cA_AR = cinstr_rhigh;
         cB_AR = cinstr_rlow;
         cdest_AR = cinstr_rhigh;
-        use_cimm20 = 1'b0;
-        cimm20 = 
+        cimm20 = {{15{instr32[12]}}, instr32[6:2]};
 
         case (instr_opcode_lsbs)
 
             2'b00: // compressed 00
             begin
-                use_cimm20 = 1'b1;
                 cB_AR = {2'b01, cinstr_rlow[2:0]};
                 cdest_AR = {2'b01, cinstr_rhigh[2:0]};
 
@@ -266,7 +406,6 @@ module decoder (
 
             2'b01: // compressed 01
             begin
-                use_cimm20 = 1'b1;
 
                 case (cinstr_funct3)
                 
@@ -359,7 +498,7 @@ module decoder (
                                 // C.ANDI
                                     // ANDI rd', rd', imm
                                 is_alu_imm = 1'b1;
-                                op[2:0] = 3'b111
+                                op[2:0] = 3'b111;
                                 cimm20 = {{15{instr32[12]}}, instr32[6:2]};
                             end
 
@@ -443,7 +582,6 @@ module decoder (
             
             2'b10: // compressed 10
             begin
-                use_cimm20 = 1'b1;
 
                 case (cinstr_funct3)
 
@@ -612,7 +750,7 @@ module decoder (
                     5'b00000:
                     begin
                         // Load
-                        is_mem_read = 1'b0;
+                        is_ldu = 1'b0;
                         op[2:0] = uncinstr_funct3;
 
                         case (uncinstr_funct3)
@@ -655,7 +793,7 @@ module decoder (
                     5'b00100:
                     begin
                         // ALU Reg-Imm
-                        op[3] = uncfunct7_is_0bx1xxxxx
+                        op[3] = uncfunct7_is_0bx1xxxxx;
                         op[2:0] = uncinstr_funct3;
 
                         case (uncinstr_funct3)
