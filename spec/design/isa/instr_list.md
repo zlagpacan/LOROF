@@ -131,7 +131,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 
 ## Zifencei Extension
 - FENCE.I
-    - FU: sys_pipeline
+    - FU: stamou
     - {imm[11:0], rs1[4:0], 3'b001, rd[4:0], 5'b00011, 2'b11}
         - rs1, rd, imm ignored
 
