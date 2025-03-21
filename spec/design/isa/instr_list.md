@@ -117,6 +117,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - FU: stamofu
     - {fm[3:0], pred[3:0], succ[3:0], rs1[4:0], 3'b000, rd[4:0], 5'b00011, 2'b11}
         - only fm[3:0] = 4'b0000 used
+            - fm[3:0] = 4'b1000 used for FENCE.TSO
         - rs1, rd ignored
 - FENCE.TSO
     - FU: stamofu
