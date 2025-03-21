@@ -36,7 +36,7 @@
     - 256-entry
     - direct-mapped
 - Memory Dependence Prediction Table (MDPT)
-    - 2-bit prediction that load is vs. isn't dependent on data in STAMOU
+    - 2-bit prediction that load is vs. isn't dependent on data in STAMOFU
     - associated with each 2B of 16B instruction fetch
         - 8-entry read per cycle
     - 4096-entry
@@ -128,10 +128,10 @@
     - collect load address register operand
     - calculate load address
     - perform load: read dcache
-    - check STAMOU for dependent store or AMO
+    - check STAMOFU for dependent store or AMO
         - potentially forward value to load
         - potentially send restart request to ROB if dependent store or AMO was discovered after load value returned from dcache
-- Store + Atomic Memory Operation Unit (STAMOU) Pipeline + Queue
+- Store + Atomic Memory Operation + Fence Unit (STAMOFU) Pipeline + Queue
     - TBD stages
     - collect store/AMO address and data register operands
     - calculate store/AMO address
@@ -159,10 +159,11 @@
     - simultaneous 1x out-of-order issue per pipeline
         - 2x issue per cycle if have ALU Reg-Imm and LDU ready op
     - 8x entry
-- STAMOU IQ
-    - 1x in-order issue
-        - 1x issue per cycle if oldest STAMOU op is ready
-    - 16x entry
+- STAMOFU DQ
+    - dispatch queue as opposed to issue queue
+    - 1x in-order dispatch from STAMOFU DQ into STAMOFU Queue
+        - 1x issue per cycle if have any STAMOFU op
+    - 4x entry
 - SYS IQ
     - in-order issue
         - 1x issue per cycle if oldest SYS op is ready

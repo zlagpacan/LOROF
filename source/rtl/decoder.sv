@@ -22,34 +22,38 @@ module decoder (
     output logic is_bru,
     output logic is_mdu,
     output logic is_ldu,
-    output logic is_stamou,
+    output logic is_store,
+    output logic is_amo,
+    output logic is_fence,
     output logic is_sys,
     output logic is_illegal_instr,
 
     // op
-    output logic [4:0]  op5,
+    output logic [3:0]  op,
+    output logic        is_reg_write,
     
     // A operand
     output logic [4:0]  A_AR,
     output logic        A_is_zero,
-    output logic        is_ret_ra,
+    output logic        A_is_ret_ra,
 
     // B operand
     output logic [4:0]  B_AR,
     output logic        B_is_zero,
 
     // dest operand
-    output logic        is_reg_write,
     output logic [4:0]  dest_AR,
     output logic        dest_is_zero,
-    output logic        is_link_ra,
+    output logic        dest_is_link_ra,
 
     // imm
     output logic [19:0] imm20,
 
-    // ordering
-    output logic is_acquire,
-    output logic is_release,
+    // memory
+    output logic is_amo,
+    output logic is_mem_read,
+    output logic stall_mem_read,
+    output logic wait_write_buffer,
 
     // faults
     output logic instr_yield,
@@ -58,9 +62,6 @@ module decoder (
     output logic fault_after_chunk1,
     output logic fault_unrecoverable
 );
-
-    // stamou can fit into op5 if invert AMO ops
-        // also need acquire release bits
 
     // ----------------------------------------------------------------
     // Signals:
@@ -90,6 +91,9 @@ module decoder (
     logic [1:0]     cinstr_funct2_high;
     logic           cinstr_funct1;
 
+    // helper signals
+    logic use_pred_info;
+
     // uncompressed helper signals
     logic unc_funct3_not_0b010;
     logic unc_funct7_is_0b0000000;
@@ -97,11 +101,23 @@ module decoder (
     logic unc_funct7_not_0b0x00000;
     logic unc_funct7_not_0b0000001;
     logic unc_fm_not_0bx000;
+    logic unc_imm_type;
 
     // compressed helper signals
     logic [4:0]     cA_AR;
     logic [4:0]     cB_AR;
     logic [4:0]     cdest_AR;
+    logic           use_cimm20;
+    logic [19:0]    cimm20;
+
+    // ----------------------------------------------------------------
+    // Instr Resolution Logic: 
+
+    assign instr_yield = 
+    assign non_branch_notif = 
+    assign fault_after_chunk0 = 
+    assign fault_after_chunk1 = 
+    assign fault_unrecoverable = 
 
     // ----------------------------------------------------------------
     // Helper Logic: 
@@ -134,11 +150,46 @@ module decoder (
     assign unc_funct7_not_0b0x00000 = {instr_funct7[6], instr_funct7[4:0]} != 6'b000000;
     assign unc_funct7_not_0b0000001 = instr_func7 != 7'b0000001;
     assign unc_fm_not_0bx000 = instr_fm[2:0] != 3'b000;
-    
+
+    // ----------------------------------------------------------------
+    // Outside Main Case:
+
+
+
     // ----------------------------------------------------------------
     // Main Case:
 
     always_comb begin
+
+        // defaults:
+        is_alu_reg = 1'b0;
+        is_alu_imm = 1'b0;
+        is_bru = 1'b0;
+        is_mdu = 1'b0;
+        is_ldu = 1'b0;
+        is_store = 1'b0;
+        is_amo = 1'b0;
+        is_fence = 1'b0;
+        is_sys = 1'b0;
+        is_illegal_instr = 1'b0;
+
+        op = 
+        is_reg_write = 1'b0;
+
+        is_mem_read = 1'b0;
+        stall_mem_read = 1'b0;
+        wait_write_buffer = 1'b0;
+
+        use_pred_info = 1'b0;
+
+        unc_imm_type = 1'b0;
+
+        cA_AR = cinstr_rhigh;
+        cB_AR = cinstr_rlow;
+        cdest_AR = cinstr_rhigh;
+        use_cimm20 = 1'b0;
+        cimm20 = 
+
         case (instr_opcode_lsbs)
 
             2'b00: // compressed 00
@@ -163,7 +214,79 @@ module decoder (
                     5'b01101:
                     begin
                         // LUI:
-                        
+                        is_bru = 1'b1;
+                        op = 4'b0110;
+                        is_reg_write = 1'b1;
+                    end
+
+                    5'b00101:
+                    begin
+                        // AUIPC:
+                        is_bru = 1'b1;
+                        op = 4'b0111;
+                        is_reg_write = 1'b1;
+                    end
+
+                    5'b11011:
+                    begin
+                        // JAL:
+                        is_bru = 1'b1;
+                        op = 4'b0010;
+                        is_reg_write = 1'b1;
+                        use_pred_info = 1'b1;
+                    end
+
+                    5'b11001:
+                    begin
+                        // JALR:
+                        is_bru = 1'b1;
+                        op = 4'b0000;
+                        is_reg_write = 1'b1;
+                        use_pred_info = 1'b1;
+                    end
+
+                    5'b11001:
+                    begin
+                        // Branch:
+                        is_bru = 1'b1;
+                        use_pred_info = 1'b1;
+                        unc_imm_type = 1'b1;
+                        op[3] = 1'b1;
+                        op[2:0] = uncinstr_funct3;
+                        if (uncinstr_funct3[2:1] == 2'b01) begin
+                            is_illegal_instr = 1'b1;
+                        end
+                    end
+
+                    5'b00000:
+                    begin
+                        // Load
+                        is_ldu = 1'b1;
+                        is_mem_read = 1'b0;
+                        op[2:0] = uncinstr_funct3;
+
+                        case (uncinstr_funct3)
+
+                            3'b000, 3'b001, 3'b010, 3'b100, 3'b101:
+                            begin
+                                // LB, LH, LW, LBU, LHU
+                                is_reg_write = 1'b1;
+                            end
+
+                            default:
+                            begin
+                                is_illegal_instr = 1'b1;
+                            end
+                        endcase
+                    end
+
+                    5'b01000:
+                    begin
+                        // Store
+                        is_store = 1'b1;
+                        op[3] = 1'b0;
+                        op[2:0] = uncinstr_funct3;
+                        unc_imm_type = 1'b1;
                     end
                 endcase
             end
@@ -330,7 +453,8 @@ module decoder (
         // opcode_msbs: 5'b01011
             // funct3: 3'b010
                 // funct5: 5'b00010
-                    // LR.W
+                    // uimm: 5'b00000
+                        // LR.W
                 // funct5: 5'b00011
                     // SC.W
                 // funct5: 5'b00001
@@ -414,7 +538,5 @@ module decoder (
                     // C.ADD
         // cfunct3: 3'b110
             // C.SWSP
-
-
 
 endmodule

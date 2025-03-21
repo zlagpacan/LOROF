@@ -31,8 +31,8 @@ package core_types_pkg;
 
     parameter ALU_REG_MDU_IQ_ENTRIES = 8;
     parameter ALU_IMM_LDU_IQ_ENTRIES = 8;
-    parameter STAMOU_IQ_ENTRIES = 16;
     parameter BRU_IQ_ENTRIES = 4;
+    parameter STAMOFU_DQ_ENTRIES = 4;
     parameter SYS_IQ_ENTRIES = 4;
 
     // ----------------------------------------------------------------
@@ -133,8 +133,8 @@ package core_types_pkg;
     // ldu
     parameter LDU_Q_ENTRIES = 32;
 
-    // stamou
-    parameter STAMOU_Q_ENTRIES = 24;
+    // stamofu
+    parameter STAMOFU_Q_ENTRIES = 24;
 
 endpackage
 

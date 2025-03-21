@@ -35,10 +35,13 @@ the general policy of an issue queue is to issue the oldest instruction(s) whose
 - 8-entry
 - out-of-order issue
 
-### stamou_iq
-- accepts store and AMO ops
-- 16-entry
-- in-order issue
+### stamofu_dq
+- accepts store, AMO, and fence ops
+- 4-entry
+- dispatch queue as opposed to issue queue
+    - really just acts as a bandwidth converting buffer from the 4-way superscalar frontend to the 1-per-cycle enqueue onto the stamofu queue, where the readiness of instructions is not tested before they are launched into the stamofu queue
+        - readiness testing and collection of operands will be done by the stamofu queue
+- in-order "issue" out of the dispatch queue
 
 ### bru_iq
 - accepts branch, jump, LUI, AUIPC ops

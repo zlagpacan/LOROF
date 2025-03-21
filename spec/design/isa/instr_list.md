@@ -48,13 +48,13 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - FU: ldu
     - {imm[11:0], rs1[4:0], 3'b101, rd[4:0], 5'b00000, 2'b11}
 - SB
-    - FU: stamou
+    - FU: stamofu
     - {imm[11:5], rs2[4:0], rs1[4:0], 3'b000, imm[4:0], 5'b01000, 2'b11}
 - SH
-    - FU: stamou
+    - FU: stamofu
     - {imm[11:5], rs2[4:0], rs1[4:0], 3'b001, imm[4:0], 5'b01000, 2'b11}
 - SW
-    - FU: stamou
+    - FU: stamofu
     - {imm[11:5], rs2[4:0], rs1[4:0], 3'b010, imm[4:0], 5'b01000, 2'b11}
 - ADDI
     - FU: alu_imm_pipeline
@@ -114,12 +114,12 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - FU: alu_reg_pipeline
     - {7'b0000000, rs2[4:0], rs1[4:0], 3'b111, rd[4:0], 5'b01100, 2'b11}
 - FENCE
-    - FU: stamou
+    - FU: stamofu
     - {fm[3:0], pred[3:0], succ[3:0], rs1[4:0], 3'b000, rd[4:0], 5'b00011, 2'b11}
         - only fm[3:0] = 4'b0000 used
         - rs1, rd ignored
 - FENCE.TSO
-    - FU: stamou
+    - FU: stamofu
     - {4'b1000, 4'b0011, 4'b0011, 5'b00000, 3'b000, 5'b00000, 5'b00011, 2'b11}
         - rs1, rd ignored
 - ECALL
@@ -131,7 +131,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 
 ## Zifencei Extension
 - FENCE.I
-    - FU: stamou
+    - FU: stamofu
     - {imm[11:0], rs1[4:0], 3'b001, rd[4:0], 5'b00011, 2'b11}
         - rs1, rd, imm ignored
 
@@ -183,37 +183,37 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 
 ## A Extension
 - LR.W
-    - FU: stamou
+    - FU: stamofu
     - {5'b00010, aq, rl, 5'b00000, rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
 - SC.W
-    - FU: stamou
+    - FU: stamofu
     - {5'b00011, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
 - AMOSWAP.W
-    - FU: stamou
+    - FU: stamofu
     - {5'b00001, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
 - AMOADD.W
-    - FU: stamou
+    - FU: stamofu
     - {5'b00000, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
 - AMOXOR.W
-    - FU: stamou
+    - FU: stamofu
     - {5'b00100, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
 - AMOAND.W
-    - FU: stamou
+    - FU: stamofu
     - {5'b01100, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
 - AMOOR.W
-    - FU: stamou
+    - FU: stamofu
     - {5'b01000, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
 - AMOMIN.W
-    - FU: stamou
+    - FU: stamofu
     - {5'b10000, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
 - AMOMAX.W
-    - FU: stamou
+    - FU: stamofu
     - {5'b10100, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
 - AMOMINU.W
-    - FU: stamou
+    - FU: stamofu
     - {5'b11000, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
 - AMOMAXU.W
-    - FU: stamou
+    - FU: stamofu
     - {5'b11100, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
 
 ## C Extension
@@ -229,7 +229,7 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
     - {3'b010, uimm[5:3], rs1'[2:0], uimm[2|6], rd'[2:0], 2'b00}
 - C.SW
     - SW rs2', uimm(rs1')
-    - FU: stamou
+    - FU: stamofu
     - {3'b110, uimm[5:3], rs1'[2:0], uimm[2|6], rs2'[2:0], 2'b00}
 - C.NOP
     - ADDI x0, x0, imm
@@ -331,7 +331,7 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
         - (rs2 == 0) -> C.JALR
 - C.SWSP
     - SW rs2, uimm(sp/x2)
-    - FU: stamou
+    - FU: stamofu
     - {3'b110, uimm[5:2|7:6], rs2[4:0], 2'b10}
 
 ## Machine-Mode Privileged Instructions
