@@ -34,11 +34,13 @@ module decoder (
     
     // A operand
     output logic [4:0]  A_AR,
+    output logic        A_unneeded,
     output logic        A_is_zero,
     output logic        A_is_ret_ra,
 
     // B operand
     output logic [4:0]  B_AR,
+    output logic        B_unneeded,
     output logic        B_is_zero,
 
     // dest operand
@@ -105,6 +107,7 @@ module decoder (
     logic uncfunct7_is_0bxxxxxx1;
     logic uncfm_not_0bx000;
     logic uncimm_type;
+    logic [3:0] uncamoop;
 
     // compressed helper signals
     logic [4:0]     cA_AR;
@@ -156,6 +159,10 @@ module decoder (
     assign uncfunct7_not_0b0000001 = uncinstr_funct7 != 7'b0000001;
     assign uncfunct7_is_0bxxxxxx1 = uncinstr_funct7[0];
     assign uncfm_not_0bx000 = uncinstr_fm[2:0] != 3'b000;
+    assign uncamoop[3] = uncinstr_funct5[3] ^ uncinstr_funct5[4];
+    assign uncamoop[2] = uncinstr_funct5[2] | (~uncinstr_funct5[1] & uncinstr_funct5[0]);
+    assign uncamoop[1] = uncinstr_funct5[1] | (~uncinstr_funct5[1] & uncinstr_funct5[0]);
+    assign uncamoop[0] = uncinstr_funct5[0] | uncinstr_funct5[4];
 
     // ----------------------------------------------------------------
     // Outside Main Case:
@@ -183,6 +190,9 @@ module decoder (
         op[2:0] = uncinstr_funct3;
         is_reg_write = 1'b0;
 
+        A_unneeded = 1'b1;
+        B_unneeded = 1'b1;
+
         flush_fetch = 1'b0;
         stall_mem_read = 1'b0;
         stall_mem_write = 1'b0;
@@ -202,21 +212,341 @@ module decoder (
 
             2'b00: // compressed 00
             begin
+                use_cimm20 = 1'b1;
+                cB_AR = {2'b01, cinstr_rlow[2:0]};
+                cdest_AR = {2'b01, cinstr_rhigh[2:0]};
 
+                case (cinstr_funct3)
+
+                    3'b000:
+                    begin
+                        op = 4'b0000;
+                        cA_AR = 5'h2;
+                        cimm20 = {10'h0, instr32[10:7], instr32[12:11], instr32[5], instr32[6], 2'b00};
+
+                        if ({cinstr_rhigh, cinstr_rlow} == '0) begin
+                            is_illegal_instr = 1'b1;
+                        end
+                        else begin
+                            // C.ADDI4SPN
+                                // ADDI rd', sp/x2, uimm
+                            is_alu_imm = 1'b1;
+                            is_reg_write = 1'b1;
+                        end
+                    end
+
+                    3'b010:
+                    begin
+                        // C.LW
+                            // LW rd', uimm(rs1')
+                        is_ldu = 1'b1;
+                        op[2:0] = 3'b010;
+                        is_reg_write = 1'b1;
+                        cA_AR = {2'b01, cinstr_rhigh[2:0]};
+                        cimm20 = {13'h0, instr32[5], instr32[12:10], instr32[6], 2'b00};
+                    end
+
+                    3'b110:
+                    begin
+                        // C.SW
+                            // SW rs2', uimm(rs1')
+                        is_store = 1'b1;
+                        op[1:0] = 2'b10;
+                        cA_AR = {2'b01, cinstr_rhigh[2:0]};
+                        cB_AR = {2'b01, cinstr_rlow[2:0]};
+                        cimm20 = {13'h0, instr32[5], instr32[12:10], instr32[6], 2'b00};
+                    end
+
+                    default:
+                    begin
+                        is_illegal_instr = 1'b1;
+                    end
+                endcase
             end
 
             2'b01: // compressed 01
             begin
+                use_cimm20 = 1'b1;
 
+                case (cinstr_funct3)
+                
+                    3'b000:
+                    begin
+                        // C.ADDI
+                            // ADDI rd, rd, imm
+                        is_alu_imm = 1'b1;
+                        op = 4'b0000;
+                        is_reg_write = 1'b1;
+                        cA_AR = cinstr_rhigh;
+                        cdest_AR = cinstr_rhigh;
+                        cimm20 = {{15{instr32[12]}}, instr32[6:2]};
+                    end
+
+                    3'b001:
+                    begin
+                        // C.JAL
+                            // JAL ra/x1, imm
+                        is_bru = 1'b1;
+                        op = 4'b0011;
+                        is_reg_write = 1'b1;
+                        use_pred_info = 1'b1;
+                        cdest_AR = 5'h1;
+                        cimm20 = {{9{instr32[12]}}, instr32[8], instr32[10:9], instr32[6], instr32[7], instr32[2], instr32[11], instr32[5:3], instr32[12]};
+                    end
+
+                    3'b010:
+                    begin
+                        // C.LI
+                            // ADDI rd, x0, imm
+                        is_alu_imm = 1'b1;
+                        op = 4'b0000;
+                        is_reg_write = 1'b1;
+                        cdest_AR = cinstr_rhigh;
+                        cimm20 = {{15{instr32[12]}}, instr32[6:2]};
+                    end
+
+                    3'b011:
+                    begin
+                        cA_AR = cinstr_rhigh;
+                        cdest_AR = cinstr_rhigh;
+                        is_reg_write = 1'b1;
+
+                        if (cinstr_rhigh == 5'h2) begin
+                            // C.ADDI16SP
+                                // ADDI sp/x2, sp/x2, imm
+                            is_alu_imm = 1'b1;
+                            op = 4'b0000;
+                            cimm20 = {{11{instr32[12]}}, instr32[4:3], instr32[5], instr32[2], instr32[6], 4'h0};
+                        end
+                        else begin
+                            // C.LUI
+                                // LUI rd, imm
+                            is_bru = 1'b1;
+                            op = 4'b0110;
+                            cimm20 = {{3{instr32[12]}}, instr32[6:2], {12{instr32[12]}}};
+                        end
+                    end
+
+                    3'b100:
+                    begin
+                        is_reg_write = 1'b1;
+                        cA_AR = {2'b01, cinstr_rhigh[2:0]};     // rs1'
+                        cB_AR = {2'b01, cinstr_rlow[2:0]};      // rs2'
+                        cdest_AR = {2'b01, cinstr_rhigh[2:0]};  // rd'
+                        
+                        case (cinstr_funct2_high)
+
+                            2'b00:
+                            begin
+                                // C.SRLI
+                                    // SRLI rd', rd', uimm
+                                is_alu_imm = 1'b1;
+                                op = 4'b0101;
+                                cimm20 = {14'h0, instr32[12], instr32[6:2]};
+                            end
+
+                            2'b01:
+                            begin
+                                // C.SRAI
+                                    // SRAI rd', rd', uimm
+                                is_alu_imm = 1'b1;
+                                op = 4'b1101;
+                                cimm20 = {14'h0, instr32[12], instr32[6:2]};
+                            end
+
+                            2'b10:
+                            begin
+                                // C.ANDI
+                                    // ANDI rd', rd', imm
+                                is_alu_imm = 1'b1;
+                                op[2:0] = 3'b111
+                                cimm20 = {{15{instr32[12]}}, instr32[6:2]};
+                            end
+
+                            2'b11:
+                            begin
+                                is_alu_reg = 1'b1;
+
+                                case (cinstr_funct2_low)
+
+                                    2'b00:
+                                    begin
+                                        // C.SUB
+                                            // SUB rd', rd', rs2'
+                                        op = 4'b1000;
+                                    end
+
+                                    2'b01:
+                                    begin
+                                        // C.XOR
+                                            // XOR rd', rd', rs2'
+                                        op[2:0] = 3'b100;
+                                    end
+
+                                    2'b10:
+                                    begin
+                                        // C.OR
+                                            // OR rd', rd', rs2'
+                                        op[2:0] = 3'b110;
+                                    end
+
+                                    2'b11:
+                                    begin
+                                        // C.AND
+                                            // AND rd', rd', rs2'
+                                        op[2:0] = 3'b111;
+                                    end
+                                endcase
+                            end
+                        endcase
+                    end
+
+                    3'b101:
+                    begin
+                        // C.J
+                            // JAL x0, imm
+                        is_bru = 1'b1;
+                        op = 4'b0100;
+                        use_pred_info = 1'b1;
+                        cimm20 = {{9{instr32[12]}}, instr32[8], instr32[10:9], instr32[6], instr32[7], instr32[2], instr32[11], instr32[5:3], instr32[12]};
+                    end
+
+                    3'b110:
+                    begin
+                        // C.BEQZ
+                            // BEQ rs1', x0, imm
+                        is_bru = 1'b1;
+                        op = 4'b1010;
+                        use_pred_info = 1'b1;
+                        A_unneeded = 1'b0;
+                        // B_unneeded = 1'b0; // won't need, will be zero anyway
+                        cA_AR = {2'b01, cinstr_rhigh[2:0]};
+                        cB_AR = 5'h0;
+                        cimm20 = {{12{instr32[12]}}, instr32[6:5], instr32[2], instr32[11:10], instr32[4:3], instr32[12]};
+                    end
+
+                    3'b111:
+                    begin
+                        // C.BNEZ
+                            // BNE rs1', x0, imm
+                        is_bru = 1'b1;
+                        op = 4'b1011;
+                        use_pred_info = 1'b1;
+                        A_unneeded = 1'b0;
+                        // B_unneeded = 1'b0; // won't need, will be zero anyway
+                        cA_AR = {2'b01, cinstr_rhigh[2:0]};
+                        cB_AR = 5'h0;
+                        cimm20 = {{12{instr32[12]}}, instr32[6:5], instr32[2], instr32[11:10], instr32[4:3], instr32[12]};
+                    end
+                endcase
             end
             
             2'b10: // compressed 10
             begin
+                use_cimm20 = 1'b1;
 
+                case (cinstr_funct3)
+
+                    3'b000:
+                    begin
+                        // C.SLLI
+                            // SLLI rd, rd, uimm
+                        is_alu_imm = 1'b1;
+                        op[2:0] = 3'b001;
+                        is_reg_write = 1'b1;
+                        cA_AR = cinstr_rhigh;
+                        cdest_AR = cinstr_rhigh;
+                        cimm20 = {14'h0, instr32[12], instr32[6:2]};
+                    end
+
+                    3'b010:
+                    begin
+                        // C.LWSP
+                            // LW rd, uimm(sp/x2)
+                        is_ldu = 1'b1;
+                        op[2:0] = 3'b010;
+                        is_reg_write = 1'b1;
+                        cA_AR = 5'h2;
+                        cdest_AR = cinstr_rhigh;
+                        cimm20 = {12'h0, instr32[3:2], instr32[12], instr32[6:4], 2'h0};
+                    end
+
+                    3'b100:
+                    begin
+                        if (cinstr_funct1) begin
+                            if (cinstr_rlow == 5'h0) begin
+                                // C.JR
+                                    // JALR x0, 0(rs1)
+                                is_bru = 1'b1;
+                                op = 4'b0101;
+                                A_unneeded = 1'b0;
+                                use_pred_info = 1'b1;
+                                cA_AR = cinstr_rhigh;
+                            end
+                            else begin
+                                // C.MV
+                                    // ADD rd, x0, rs2
+                                is_alu_reg = 1'b1;
+                                op = 4'b0000;
+                                is_reg_write = 1'b1;
+                                cA_AR = 5'h0;
+                                cB_AR = cinstr_rlow;
+                                cdest_AR = cinstr_rhigh;
+                            end
+                        end
+                        else begin
+                            if (cinstr_rhigh == 5'h0 & cinstr_rlow == 5'h0) begin
+                                // C.EBREAK
+                                    // EBREAK
+                                is_sys = 1'b1;
+                                op[2:0] = 3'b000;
+                                flush_fetch = 1'b1;
+                            end
+                            else if (cinstr_rlow == 5'h0) begin
+                                // C.JALR
+                                    // JALR ra/x1, 0(rs1)
+                                is_bru = 1'b1;
+                                op = 4'b0001;
+                                is_reg_write = 1'b1;
+                                A_unneeded = 1'b0;
+                                use_pred_info = 1'b1;
+                                cA_AR = cinstr_rhigh;
+                                cdest_AR = 5'h1;
+                            end
+                            else begin
+                                // C.ADD
+                                    // ADD rd, rd, rs2
+                                is_alu_reg = 1'b1;
+                                op = 4'b0000;
+                                is_reg_write = 1'b1;
+                                cA_AR = cinstr_rhigh;
+                                cB_AR = cinstr_rlow;
+                                cdest_AR = cinstr_rhigh;
+                            end
+                        end
+                    end
+
+                    3'b110:
+                    begin
+                        // C.SWSP
+                            // SW rs2, uimm(sp/x2)
+                        is_store = 1'b1;
+                        op[1:0] = 2'b10;
+                        cA_AR = 5'h2;
+                        cB_AR = cinstr_rlow;
+                        cimm20 = {12'h0, instr32[8:7], instr32[12:9], 2'h0};
+                    end
+
+                    default:
+                    begin
+                        is_illegal_instr = 1'b1;
+                    end
+                endcase
             end
             
             2'b11: // uncompressed
             begin
+
                 case (uncinstr_opcode_msbs) 
 
                     5'b01101:
@@ -250,16 +580,19 @@ module decoder (
                         is_bru = 1'b1;
                         op = 4'b0000;
                         is_reg_write = 1'b1;
+                        A_unneeded = 1'b0;
                         use_pred_info = 1'b1;
                     end
 
                     5'b11001:
                     begin
                         // Branch:
-                        use_pred_info = 1'b1;
-                        uncimm_type = 1'b1;
                         op[3] = 1'b1;
                         op[2:0] = uncinstr_funct3;
+                        A_unneeded = 1'b0;
+                        B_unneeded = 1'b0;
+                        use_pred_info = 1'b1;
+                        uncimm_type = 1'b1;
 
                         case (uncinstr_funct3[2:1] == 2'b01)
 
@@ -582,11 +915,13 @@ module decoder (
                                             // ECALL
                                             is_sys = 1'b1;
                                             op[2:0] = uncinstr_funct3;
+                                            flush_fetch = 1'b1;
                                         end
                                         else if (uncinstr_uimm == 5'b00001) begin
                                             // EBREAK
                                             is_sys = 1'b1;
                                             op[2:0] = uncinstr_funct3;
+                                            flush_fetch = 1'b1;
                                         end
                                         else begin
                                             is_illegal_instr = 1'b1;
@@ -599,6 +934,7 @@ module decoder (
                                             // SRET
                                             is_sys = 1'b1;
                                             op[2:0] = uncinstr_funct3;
+                                            flush_fetch = 1'b1;
                                         end
                                         else if (uncinstr_uimm == 5'b00101) begin
                                             // WFI
@@ -631,6 +967,7 @@ module decoder (
                                             // MRET
                                             is_sys = 1'b1;
                                             op[2:0] = uncinstr_funct3;
+                                            flush_fetch = 1'b1;
                                         end
                                         else begin
                                             is_illegal_instr = 1'b1;
@@ -649,6 +986,7 @@ module decoder (
                                 // CSRRW, CSRRS, CSRRC, CSRRWI, CSRRSI, CSRRCI
                                 is_sys = 1'b1;
                                 op[2:0] = uncinstr_funct3;
+                                is_reg_write = 1'b1;
                             end
 
                             default:
@@ -661,6 +999,7 @@ module decoder (
                     5'b01100:
                     begin
                         // MDU
+                        op[2:0] = uncinstr_funct3;
 
                         if (uncfunct7_not_0b0000001) begin
                             is_illegal_instr = 1'b1;
@@ -668,25 +1007,125 @@ module decoder (
                         else begin
                             // MUL, MULH, MULHSU, MULHU, DIV, DIVU, REM, REMU
                             is_mdu = 1'b1;
-                            op[2:0] = uncinstr_funct3;
+                            is_reg_write = 1'b1;
                         end
                     end
 
                     5'b01011:
                     begin
                         // AMO
+                        op = uncamoop;
                         
-
                         if (uncinstr_funct3 != 3'b010) begin
                             is_illegal_instr = 1'b1;
                         end
                         else begin
                             
+                            case (uncinstr_funct5)
+
+                                5'b00010:
+                                begin
+                                    // LR.W
+                                    is_amo = 1'b1;
+                                    is_reg_write = 1'b1;
+                                    stall_mem_read = uncinstr_aq;
+                                    wait_write_buffer = uncinstr_rl;
+                                end
+
+                                5'b00011:
+                                begin
+                                    // SC.W
+                                    is_amo = 1'b1;
+                                    is_reg_write = 1'b1;
+                                    stall_mem_read = uncinstr_aq;
+                                    wait_write_buffer = uncinstr_rl;
+                                end
+
+                                5'b00001:
+                                begin
+                                    // AMOSWAP.W
+                                    is_amo = 1'b1;
+                                    is_reg_write = 1'b1;
+                                    stall_mem_read = uncinstr_aq;
+                                    wait_write_buffer = uncinstr_rl;
+                                end
+
+                                5'b00000:
+                                begin
+                                    // AMOADD.W
+                                    is_amo = 1'b1;
+                                    is_reg_write = 1'b1;
+                                    stall_mem_read = uncinstr_aq;
+                                    wait_write_buffer = uncinstr_rl;
+                                end
+
+                                5'b00100:
+                                begin
+                                    // AMOXOR.W
+                                    is_amo = 1'b1;
+                                    is_reg_write = 1'b1;
+                                    stall_mem_read = uncinstr_aq;
+                                    wait_write_buffer = uncinstr_rl;
+                                end
+
+                                5'b01100:
+                                begin
+                                    // AMOAND.W
+                                    is_amo = 1'b1;
+                                    is_reg_write = 1'b1;
+                                    stall_mem_read = uncinstr_aq;
+                                    wait_write_buffer = uncinstr_rl;
+                                end
+
+                                5'b01000:
+                                begin
+                                    // AMOOR.W
+                                    is_amo = 1'b1;
+                                    is_reg_write = 1'b1;
+                                    stall_mem_read = uncinstr_aq;
+                                    wait_write_buffer = uncinstr_rl;
+                                end
+
+                                5'b10000:
+                                begin
+                                    // AMOMIN.W
+                                    is_amo = 1'b1;
+                                    is_reg_write = 1'b1;
+                                    stall_mem_read = uncinstr_aq;
+                                    wait_write_buffer = uncinstr_rl;
+                                end
+
+                                5'b10100:
+                                begin
+                                    // AMOMAX.W
+                                    is_amo = 1'b1;
+                                    is_reg_write = 1'b1;
+                                    stall_mem_read = uncinstr_aq;
+                                    wait_write_buffer = uncinstr_rl;
+                                end
+
+                                5'b11000:
+                                begin
+                                    // AMOMINU.W
+                                    is_amo = 1'b1;
+                                    is_reg_write = 1'b1;
+                                    stall_mem_read = uncinstr_aq;
+                                    wait_write_buffer = uncinstr_rl;
+                                end
+
+                                5'b11100:
+                                begin
+                                    // AMOMAXU.W
+                                    is_amo = 1'b1;
+                                    is_reg_write = 1'b1;
+                                    stall_mem_read = uncinstr_aq;
+                                    wait_write_buffer = uncinstr_rl;
+                                end
+                            endcase
                         end
                     end
                 endcase
             end
-
         endcase
     end
 

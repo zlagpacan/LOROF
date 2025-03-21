@@ -259,11 +259,11 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
     - {3'b011, imm[17], rd[4:0], imm[16:12], 2'b01}
         - (rd == 2) -> C.ADDI16SP
 - C.SRLI
-    - SLRI rd', rd', uimm
+    - SRLI rd', rd', uimm
     - FU: alu_imm_pipeline
     - {3'b100, uimm[5], 2'b00, rs1'/rd'[2:0], uimm[4:0], 2'b01}
 - C.SRAI
-    - SRAI rd', rd', imm
+    - SRAI rd', rd', uimm
     - FU: alu_imm_pipeline
     - {3'b100, uimm[5], 2'b01, rs1'/rd'[2:0], uimm[4:0], 2'b01}
 - C.ANDI
@@ -311,7 +311,7 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
     - FU: bru_pipeline
     - {3'b100, 1'b0, rs1[4:0], 5'b00000, 2'b10}
 - C.MV
-    - ADDI rd, x0, rs2
+    - ADD rd, x0, rs2
     - FU: alu_reg_pipeline
     - {3'b100, 1'b0, rd[4:0], rs2[4:0], 2'b10}
         - (rs2 == 0) -> C.JR
