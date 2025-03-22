@@ -11,9 +11,9 @@ import core_types_pkg::*;
 module ar_dep_check (
 
     // inputs by way
-    input logic [3:0]       valid_by_way,
     input logic [3:0][4:0]  A_AR_by_way,
     input logic [3:0][4:0]  B_AR_by_way,
+    input logic [3:0]       regwrite_by_way,
     input logic [3:0][4:0]  dest_AR_by_way,
 
     // outputs by way
@@ -36,7 +36,7 @@ module ar_dep_check (
     always_comb begin
 
         // A
-        if (valid_by_way[0] & (dest_AR_by_way[0] == A_AR_by_way[1])) begin
+        if (regwrite_by_way[0] & (dest_AR_by_way[0] == A_AR_by_way[1])) begin
             A_PR_dep_by_way[1] = 1'b1;
             A_PR_sel_by_way[1] = 2'h0;
         end
@@ -46,7 +46,7 @@ module ar_dep_check (
         end
         
         // B
-        if (valid_by_way[0] & (dest_AR_by_way[0] == B_AR_by_way[1])) begin
+        if (regwrite_by_way[0] & (dest_AR_by_way[0] == B_AR_by_way[1])) begin
             B_PR_dep_by_way[1] = 1'b1;
             B_PR_sel_by_way[1] = 2'h0;
         end
@@ -60,11 +60,11 @@ module ar_dep_check (
     always_comb begin
 
         // A
-        if (valid_by_way[1] & (dest_AR_by_way[1] == A_AR_by_way[2])) begin
+        if (regwrite_by_way[1] & (dest_AR_by_way[1] == A_AR_by_way[2])) begin
             A_PR_dep_by_way[2] = 1'b1;
             A_PR_sel_by_way[2] = 2'h1;
         end
-        else if (valid_by_way[0] & (dest_AR_by_way[0] == A_AR_by_way[2])) begin
+        else if (regwrite_by_way[0] & (dest_AR_by_way[0] == A_AR_by_way[2])) begin
             A_PR_dep_by_way[2] = 1'b1;
             A_PR_sel_by_way[2] = 2'h0;
         end
@@ -74,11 +74,11 @@ module ar_dep_check (
         end
 
         // B
-        if (valid_by_way[1] & (dest_AR_by_way[1] == B_AR_by_way[2])) begin
+        if (regwrite_by_way[1] & (dest_AR_by_way[1] == B_AR_by_way[2])) begin
             B_PR_dep_by_way[2] = 1'b1;
             B_PR_sel_by_way[2] = 2'h1;
         end
-        else if (valid_by_way[0] & (dest_AR_by_way[0] == B_AR_by_way[2])) begin
+        else if (regwrite_by_way[0] & (dest_AR_by_way[0] == B_AR_by_way[2])) begin
             B_PR_dep_by_way[2] = 1'b1;
             B_PR_sel_by_way[2] = 2'h0;
         end
@@ -92,15 +92,15 @@ module ar_dep_check (
     always_comb begin
 
         // A
-        if (valid_by_way[2] & (dest_AR_by_way[2] == A_AR_by_way[3])) begin
+        if (regwrite_by_way[2] & (dest_AR_by_way[2] == A_AR_by_way[3])) begin
             A_PR_dep_by_way[3] = 1'b1;
             A_PR_sel_by_way[3] = 2'h2;
         end
-        else if (valid_by_way[1] & (dest_AR_by_way[1] == A_AR_by_way[3])) begin
+        else if (regwrite_by_way[1] & (dest_AR_by_way[1] == A_AR_by_way[3])) begin
             A_PR_dep_by_way[3] = 1'b1;
             A_PR_sel_by_way[3] = 2'h1;
         end
-        else if (valid_by_way[0] & (dest_AR_by_way[0] == A_AR_by_way[3])) begin
+        else if (regwrite_by_way[0] & (dest_AR_by_way[0] == A_AR_by_way[3])) begin
             A_PR_dep_by_way[3] = 1'b1;
             A_PR_sel_by_way[3] = 2'h0;
         end
@@ -110,15 +110,15 @@ module ar_dep_check (
         end
 
         // B
-        if (valid_by_way[2] & (dest_AR_by_way[2] == B_AR_by_way[3])) begin
+        if (regwrite_by_way[2] & (dest_AR_by_way[2] == B_AR_by_way[3])) begin
             B_PR_dep_by_way[3] = 1'b1;
             B_PR_sel_by_way[3] = 2'h2;
         end
-        else if (valid_by_way[1] & (dest_AR_by_way[1] == B_AR_by_way[3])) begin
+        else if (regwrite_by_way[1] & (dest_AR_by_way[1] == B_AR_by_way[3])) begin
             B_PR_dep_by_way[3] = 1'b1;
             B_PR_sel_by_way[3] = 2'h1;
         end
-        else if (valid_by_way[0] & (dest_AR_by_way[0] == B_AR_by_way[3])) begin
+        else if (regwrite_by_way[0] & (dest_AR_by_way[0] == B_AR_by_way[3])) begin
             B_PR_dep_by_way[3] = 1'b1;
             B_PR_sel_by_way[3] = 2'h0;
         end

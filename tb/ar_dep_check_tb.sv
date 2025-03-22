@@ -33,7 +33,7 @@ module ar_dep_check_tb ();
     // DUT signals:
 
     // inputs by way
-	logic [3:0] tb_valid_by_way;
+	logic [3:0] tb_regwrite_by_way;
 	logic [3:0][4:0] tb_A_AR_by_way;
 	logic [3:0][4:0] tb_B_AR_by_way;
 	logic [3:0][4:0] tb_dest_AR_by_way;
@@ -50,7 +50,7 @@ module ar_dep_check_tb ();
 	ar_dep_check DUT (
 
 	    // inputs by way
-		.valid_by_way(tb_valid_by_way),
+		.regwrite_by_way(tb_regwrite_by_way),
 		.A_AR_by_way(tb_A_AR_by_way),
 		.B_AR_by_way(tb_B_AR_by_way),
 		.dest_AR_by_way(tb_dest_AR_by_way),
@@ -118,7 +118,7 @@ module ar_dep_check_tb ();
 		// reset
 		nRST = 1'b0;
 	    // inputs by way
-		tb_valid_by_way = 4'b0000;
+		tb_regwrite_by_way = 4'b0000;
 		tb_A_AR_by_way = {
 			5'h0,
 			5'h0,
@@ -169,7 +169,7 @@ module ar_dep_check_tb ();
 		// reset
 		nRST = 1'b1;
 	    // inputs by way
-		tb_valid_by_way = 4'b0000;
+		tb_regwrite_by_way = 4'b0000;
 		tb_A_AR_by_way = {
 			5'h0,
 			5'h0,
@@ -228,7 +228,7 @@ module ar_dep_check_tb ();
 		// reset
 		nRST = 1'b1;
 	    // inputs by way
-		tb_valid_by_way = 4'b0000;
+		tb_regwrite_by_way = 4'b0000;
 		tb_A_AR_by_way = {
 			5'h0,
 			5'h0,

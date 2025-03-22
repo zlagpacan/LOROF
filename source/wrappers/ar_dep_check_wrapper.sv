@@ -17,9 +17,9 @@ module ar_dep_check_wrapper (
     input logic nRST,
 
     // inputs by way
-	input logic [3:0] next_valid_by_way,
 	input logic [3:0][4:0] next_A_AR_by_way,
 	input logic [3:0][4:0] next_B_AR_by_way,
+	input logic [3:0] next_regwrite_by_way,
 	input logic [3:0][4:0] next_dest_AR_by_way,
 
     // outputs by way
@@ -33,9 +33,9 @@ module ar_dep_check_wrapper (
     // Direct Module Connections:
 
     // inputs by way
-	logic [3:0] valid_by_way;
 	logic [3:0][4:0] A_AR_by_way;
 	logic [3:0][4:0] B_AR_by_way;
+	logic [3:0] regwrite_by_way;
 	logic [3:0][4:0] dest_AR_by_way;
 
     // outputs by way
@@ -56,9 +56,9 @@ module ar_dep_check_wrapper (
         if (~nRST) begin
 
 		    // inputs by way
-			valid_by_way <= '0;
 			A_AR_by_way <= '0;
 			B_AR_by_way <= '0;
+			regwrite_by_way <= '0;
 			dest_AR_by_way <= '0;
 
 		    // outputs by way
@@ -70,9 +70,9 @@ module ar_dep_check_wrapper (
         else begin
 
 		    // inputs by way
-			valid_by_way <= next_valid_by_way;
 			A_AR_by_way <= next_A_AR_by_way;
 			B_AR_by_way <= next_B_AR_by_way;
+			regwrite_by_way <= next_regwrite_by_way;
 			dest_AR_by_way <= next_dest_AR_by_way;
 
 		    // outputs by way
