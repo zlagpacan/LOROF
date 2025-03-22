@@ -1,5 +1,5 @@
 QuestaSim-64 vlog 2021.4 Compiler 2021.10 Oct 13 2021
-Start time: 15:56:33 on Mar 19,2025
+Start time: 15:39:51 on Mar 20,2025
 vlog -mfcu "+incdir+../../source/rtl/alu_reg_mdu_iq.sv" "+incdir+../../source/rtl/pe_lsb.sv" "+incdir+" "+incdir+../../source/include" "+acc" "+cover" -L /package/eda/mg/questa2021.4/questasim/uvm-1.2 -sv ../../source/rtl/alu_reg_mdu_iq.sv -sv ../../source/rtl/pe_lsb.sv -sv testbench/testbench.sv -sv testbench/assertions/alu_reg_mdu_iq_sva.sv -sv -logfile compile.log 
 -- Compiling package core_types_pkg
 ** Warning: ../../source/rtl/alu_reg_mdu_iq.sv(22): (vlog-13314) Defaulting port 'dispatch_op_by_way' kind to 'var' rather than 'wire' due to default compile option setting of -svinputport=relaxed.
@@ -14,6 +14,7 @@ vlog -mfcu "+incdir+../../source/rtl/alu_reg_mdu_iq.sv" "+incdir+../../source/rt
 -- Importing package /package/eda/mg/questa2021.4/questasim/uvm-1.2.uvm_pkg (uvm-1.2 Built-in)
 ** Warning: testbench/sequences/reset_seq.sv(26): (vlog-2240) Treating stand-alone use of function 'randomize' as an implicit VOID cast.
 ** Warning: testbench/sequences/reset_seq.sv(52): (vlog-2240) Treating stand-alone use of function 'randomize' as an implicit VOID cast.
+** Warning: testbench/sequences/standard_seq.sv(25): (vlog-2240) Treating stand-alone use of function 'randomize' as an implicit VOID cast.
 -- Compiling module alu_reg_mdu_iq
 ** Warning: ../../source/rtl/alu_reg_mdu_iq.sv(22): (vlog-13314) Defaulting port 'dispatch_op_by_way' kind to 'var' rather than 'wire' due to default compile option setting of -svinputport=relaxed.
 ** Warning: ../../source/rtl/alu_reg_mdu_iq.sv(23): (vlog-13314) Defaulting port 'dispatch_A_PR_by_way' kind to 'var' rather than 'wire' due to default compile option setting of -svinputport=relaxed.
@@ -29,5 +30,5 @@ vlog -mfcu "+incdir+../../source/rtl/alu_reg_mdu_iq.sv" "+incdir+../../source/rt
 Top level modules:
 	top
 	alu_reg_mdu_iq_sva
-End time: 15:56:34 on Mar 19,2025, Elapsed time: 0:00:01
-Errors: 0, Warnings: 14
+End time: 15:39:52 on Mar 20,2025, Elapsed time: 0:00:01
+Errors: 0, Warnings: 15

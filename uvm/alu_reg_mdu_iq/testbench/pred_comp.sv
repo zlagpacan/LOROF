@@ -95,17 +95,35 @@ typedef struct packed {
         super.new(name);
     endfunction
 
+    function void print();
+        node temp;
+        temp = queue;
+
+        while(temp != null) begin
+            $display("[temp.frame.r1 = %d]",temp.frame.r1);
+            $display("->");
+            temp = temp.next;
+        end
+        $display("null");
+    endfunction
+
     // 1st check what you can dispatch into the queue
     // Check whats forwardable and then check if you can issue 
     // Think about as linked list (pop)
     function void issue(alu_reg_mdu_iq_sequence_item trans);
+        bit issued_reg;
+        bit issued_mdu;
         node temp = queue;
         if(temp == null) return;
+
+        issued_reg = 1'b0;
+        issued_mdu = 1'b0;
         while(temp != null) begin
             if((temp.frame.r1_state == ZERO || temp.frame.r1_state == READY || temp.frame.r1_state == FORWARD)
-            && (temp.frame.r1_state == ZERO || temp.frame.r2_state == READY || temp.frame.r2_state == FORWARD)) begin
+            && (temp.frame.r2_state == ZERO || temp.frame.r2_state == READY || temp.frame.r2_state == FORWARD)) begin
                 // REG OUT
-                if(temp.frame.pipestate == REG && trans.alu_reg_pipeline_ready) begin
+                if(temp.frame.pipestate == REG && trans.alu_reg_pipeline_ready && !issued_reg) begin
+                    issued_reg = 1'b1;
                     trans.issue_alu_reg_valid = 1;
                     trans.issue_alu_reg_op = temp.frame.op_code;
                     trans.issue_alu_reg_A_forward = (temp.frame.r1_state == FORWARD);
@@ -116,7 +134,6 @@ typedef struct packed {
                     trans.issue_alu_reg_B_bank = (temp.frame.r2[1:0]);
                     trans.issue_alu_reg_dest_PR = temp.frame.dest;
                     trans.issue_alu_reg_ROB_index = temp.frame.rob_idx;
-                    trans.PRF_alu_reg_req_A_valid = 1;
                     // PRF Outputs
                     trans.PRF_alu_reg_req_A_valid = (temp.frame.r1_state == READY);
                     trans.PRF_alu_reg_req_A_PR = temp.frame.r1;
@@ -126,7 +143,8 @@ typedef struct packed {
                 end
 
                 // MDU OUT
-                else if(temp.frame.pipestate == MDU && trans.mdu_pipeline_ready) begin
+                else if(temp.frame.pipestate == MDU && trans.mdu_pipeline_ready && !issued_mdu) begin
+                    issued_mdu = 1'b1;
                     trans.issue_mdu_valid = 1;
                     trans.issue_mdu_op = temp.frame.op_code;
                     trans.issue_mdu_A_forward = (temp.frame.r1_state == FORWARD);
@@ -233,7 +251,7 @@ typedef struct packed {
         // Figure out which WB regs 
         for(i = 0; i < 4; i++) begin
             if(trans.WB_bus_valid_by_bank[i]) begin
-                wb[i] = {trans.WB_bus_upper_PR_by_bank[i],i};
+                wb[i] = {trans.WB_bus_upper_PR_by_bank[i], i[1:0]};
             end
         end
 
@@ -241,13 +259,13 @@ typedef struct packed {
         if(temp == null) return;
 
         for(j = 0; j < 8; j++) begin
-            if (temp.frame.r1 == wb[0] || temp.frame.r1 == wb[1] || temp.frame.r1 == wb[2] || temp.frame.r1 == wb[3]) begin
+            if (temp.frame.r1 === wb[0] || temp.frame.r1 === wb[1] || temp.frame.r1 === wb[2] || temp.frame.r1 === wb[3]) begin
                 temp.frame.r1_state = FORWARD;
             end
-            if (temp.frame.r2 == wb[0] || temp.frame.r2 == wb[1] || temp.frame.r2 == wb[2] || temp.frame.r2 == wb[3]) begin
+            if (temp.frame.r2 === wb[0] || temp.frame.r2 === wb[1] || temp.frame.r2 === wb[2] || temp.frame.r2 === wb[3]) begin
                 temp.frame.r2_state = FORWARD ;
             end
-            temp = temp.next; // move to next frame
+            if(temp.next != null) temp = temp.next; // move to next frame
         end
     endfunction
 
@@ -280,6 +298,7 @@ typedef struct packed {
         trans.issue_mdu_A_is_zero = '0;
         trans.issue_mdu_A_bank = '0;
         trans.issue_mdu_B_forward = '0;
+        trans.issue_mdu_B_is_zero = '0;
         trans.issue_alu_reg_B_is_zero = '0;
         trans.issue_mdu_B_bank = '0;
         trans.issue_mdu_dest_PR = '0;
@@ -296,21 +315,23 @@ typedef struct packed {
         // update status of queue
         update_forward(trans);
 
+        print();
+
         // issuing 
         issue(trans); 
 
         // Dispatching into queue
         for(int i = 0; i < 4; i++) begin
             if(num_open_frames > 0 && num_open_frames <= 8) begin // Needs to be less than 8 frames
-                if(trans.dispatch_valid_alu_reg_by_way[i]) begin
-                    trans.dispatch_ack_by_way[i] = 1'b1;
-                    insert_queue(trans,i); 
+                if(trans.dispatch_attempt_by_way[i]) begin
+                    trans.dispatch_ack_by_way[i] = 1;
                     num_open_frames --;
-                end
-                else if(trans.dispatch_valid_mdu_by_way[i]) begin
-                    trans.dispatch_ack_by_way[i] = 1'b1;
-                    insert_queue(trans,i);
-                    num_open_frames --;
+                    if(trans.dispatch_valid_alu_reg_by_way[i]) begin
+                        insert_queue(trans,i); 
+                    end
+                    else if(trans.dispatch_valid_mdu_by_way[i]) begin
+                        insert_queue(trans,i);
+                    end
                 end
             end
         end

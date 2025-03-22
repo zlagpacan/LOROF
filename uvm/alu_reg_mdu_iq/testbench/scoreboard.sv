@@ -84,6 +84,8 @@ class alu_reg_mdu_iq_scoreboard extends uvm_scoreboard;
       if (predicted_tx.compare(actual_tx)) begin
             m_matches++;
             uvm_report_info("SB", "Data match");
+            predicted_tx.print_transaction("predicted_tx");
+            actual_tx.print_transaction("actual_tx");
       end 
       else begin
             m_mismatches++;

@@ -74,7 +74,7 @@ class alu_reg_mdu_iq_predictor extends uvm_subscriber#(alu_reg_mdu_iq_sequence_i
             output_tx.PRF_mdu_req_B_valid = '0;
             output_tx.PRF_mdu_req_B_PR = '0;
             // $display("PRED TO SB nRST == %d, at time %t",output_tx.nRST,$time);
-            pred_ap.write(output_tx);
+            // pred_ap.write(output_tx);
         end
 
         else begin
@@ -82,7 +82,7 @@ class alu_reg_mdu_iq_predictor extends uvm_subscriber#(alu_reg_mdu_iq_sequence_i
         end
         
         // --- Write to SB --- //
-        // pred_ap.write(output_tx);
+        pred_ap.write(output_tx);
     endfunction
 endclass
 

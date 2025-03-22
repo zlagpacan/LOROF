@@ -19,6 +19,7 @@ import core_types_pkg::*;
 `include "sequence_item.sv"
 `include "interface.sv"
 `include "sequences/reset_seq.sv"
+`include "sequences/standard_seq.sv"
 
 // --- Test --- //
 class alu_reg_mdu_iq_test extends uvm_test;
@@ -28,6 +29,7 @@ class alu_reg_mdu_iq_test extends uvm_test;
   alu_reg_mdu_iq_env env;
   reset_sequence reset_seq;
   garbage_sequence garb_seq;
+  standard_sequence std_seq;
 
   // --- Constructor --- //
   function new(string name = "alu_reg_mdu_iq_test", uvm_component parent);
@@ -43,6 +45,7 @@ class alu_reg_mdu_iq_test extends uvm_test;
     // --- Build Sequence --- //
     reset_seq = reset_sequence::type_id::create("reset_seq");
     garb_seq = garbage_sequence::type_id::create("garb_seq");
+    std_seq = standard_sequence::type_id::create("std_seq");
 
     // --- Build Environment --- //
     env = alu_reg_mdu_iq_env::type_id::create("env", this);
@@ -57,20 +60,21 @@ class alu_reg_mdu_iq_test extends uvm_test;
     phase.raise_objection(this);
 
       // --- Test Procedure --- //
+      // User fills in 
 
       // TEST 1 RESET
-    // TODO some X's in waves is that normal
-    `uvm_info("ALU_md_IQ reset", "", UVM_MEDIUM)
-    repeat(20) begin
-      repeat(5) begin
-        garb_seq.start(env.agnt.seqr);
-      end
-      reset_seq.start(env.agnt.seqr);
-    end
+    // TODO some X's in waves is that normal ASK ZACH
+    // `uvm_info("ALU_md_IQ reset", "", UVM_MEDIUM)
+    // repeat(20) begin
+    //   repeat(5) begin
+    //     garb_seq.start(env.agnt.seqr);
+    //   end
+    //   reset_seq.start(env.agnt.seqr);
+    // end
       
-
-      #10ns;
-      // User fills in 
+    repeat(4) std_seq.start(env.agnt.seqr);
+    // std_seq.start(env.agnt.seqr);
+    #10ns;
     
     phase.drop_objection(this);
 
