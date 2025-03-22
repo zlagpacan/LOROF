@@ -20,6 +20,9 @@ module istream_wrapper (
     // SENQ stage
 	input logic next_valid_SENQ,
 	input logic [7:0] next_valid_by_fetch_2B_SENQ,
+	input logic [7:0] next_one_hot_redirect_by_fetch_2B_SENQ,
+        // means take after PC as pred PC
+        // always the last instr in the fetch block
 	input logic [7:0][15:0] next_instr_2B_by_fetch_2B_SENQ,
 	input logic [7:0][BTB_PRED_INFO_WIDTH-1:0] next_pred_info_by_fetch_2B_SENQ,
 	input logic [7:0] next_pred_lru_by_fetch_2B_SENQ,
@@ -39,6 +42,8 @@ module istream_wrapper (
 	output logic [3:0][1:0][15:0] last_instr_2B_by_way_by_chunk_SDEQ,
 	output logic [3:0][1:0][BTB_PRED_INFO_WIDTH-1:0] last_pred_info_by_way_by_chunk_SDEQ,
 	output logic [3:0][1:0] last_pred_lru_by_way_by_chunk_SDEQ,
+	output logic [3:0][1:0] last_redirect_by_way_by_chunk_SDEQ,
+	output logic [3:0][1:0][31:0] last_pred_PC_by_way_by_chunk_SDEQ,
 	output logic [3:0][MDPT_INFO_WIDTH-1:0] last_mdp_info_by_way_SDEQ,
 	output logic [3:0][31:0] last_PC_by_way_SDEQ,
 	output logic [3:0][LH_LENGTH-1:0] last_LH_by_way_SDEQ,
@@ -60,6 +65,9 @@ module istream_wrapper (
     // SENQ stage
 	logic valid_SENQ;
 	logic [7:0] valid_by_fetch_2B_SENQ;
+	logic [7:0] one_hot_redirect_by_fetch_2B_SENQ;
+        // means take after PC as pred PC
+        // always the last instr in the fetch block
 	logic [7:0][15:0] instr_2B_by_fetch_2B_SENQ;
 	logic [7:0][BTB_PRED_INFO_WIDTH-1:0] pred_info_by_fetch_2B_SENQ;
 	logic [7:0] pred_lru_by_fetch_2B_SENQ;
@@ -79,6 +87,8 @@ module istream_wrapper (
 	logic [3:0][1:0][15:0] instr_2B_by_way_by_chunk_SDEQ;
 	logic [3:0][1:0][BTB_PRED_INFO_WIDTH-1:0] pred_info_by_way_by_chunk_SDEQ;
 	logic [3:0][1:0] pred_lru_by_way_by_chunk_SDEQ;
+	logic [3:0][1:0] redirect_by_way_by_chunk_SDEQ;
+	logic [3:0][1:0][31:0] pred_PC_by_way_by_chunk_SDEQ;
 	logic [3:0][MDPT_INFO_WIDTH-1:0] mdp_info_by_way_SDEQ;
 	logic [3:0][31:0] PC_by_way_SDEQ;
 	logic [3:0][LH_LENGTH-1:0] LH_by_way_SDEQ;
@@ -95,7 +105,7 @@ module istream_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    istream #(
+	istream #(
 		.ISTREAM_SETS(ISTREAM_SETS),
 		.INIT_PC(32'h80000000)
 	) WRAPPED_MODULE (.*);
@@ -110,6 +120,9 @@ module istream_wrapper (
 		    // SENQ stage
 			valid_SENQ <= '0;
 			valid_by_fetch_2B_SENQ <= '0;
+			one_hot_redirect_by_fetch_2B_SENQ <= '0;
+		        // means take after PC as pred PC
+		        // always the last instr in the fetch block
 			instr_2B_by_fetch_2B_SENQ <= '0;
 			pred_info_by_fetch_2B_SENQ <= '0;
 			pred_lru_by_fetch_2B_SENQ <= '0;
@@ -129,6 +142,8 @@ module istream_wrapper (
 			last_instr_2B_by_way_by_chunk_SDEQ <= '0;
 			last_pred_info_by_way_by_chunk_SDEQ <= '0;
 			last_pred_lru_by_way_by_chunk_SDEQ <= '0;
+			last_redirect_by_way_by_chunk_SDEQ <= '0;
+			last_pred_PC_by_way_by_chunk_SDEQ <= '0;
 			last_mdp_info_by_way_SDEQ <= '0;
 			last_PC_by_way_SDEQ <= '0;
 			last_LH_by_way_SDEQ <= '0;
@@ -148,6 +163,9 @@ module istream_wrapper (
 		    // SENQ stage
 			valid_SENQ <= next_valid_SENQ;
 			valid_by_fetch_2B_SENQ <= next_valid_by_fetch_2B_SENQ;
+			one_hot_redirect_by_fetch_2B_SENQ <= next_one_hot_redirect_by_fetch_2B_SENQ;
+		        // means take after PC as pred PC
+		        // always the last instr in the fetch block
 			instr_2B_by_fetch_2B_SENQ <= next_instr_2B_by_fetch_2B_SENQ;
 			pred_info_by_fetch_2B_SENQ <= next_pred_info_by_fetch_2B_SENQ;
 			pred_lru_by_fetch_2B_SENQ <= next_pred_lru_by_fetch_2B_SENQ;
@@ -167,6 +185,8 @@ module istream_wrapper (
 			last_instr_2B_by_way_by_chunk_SDEQ <= instr_2B_by_way_by_chunk_SDEQ;
 			last_pred_info_by_way_by_chunk_SDEQ <= pred_info_by_way_by_chunk_SDEQ;
 			last_pred_lru_by_way_by_chunk_SDEQ <= pred_lru_by_way_by_chunk_SDEQ;
+			last_redirect_by_way_by_chunk_SDEQ <= redirect_by_way_by_chunk_SDEQ;
+			last_pred_PC_by_way_by_chunk_SDEQ <= pred_PC_by_way_by_chunk_SDEQ;
 			last_mdp_info_by_way_SDEQ <= mdp_info_by_way_SDEQ;
 			last_PC_by_way_SDEQ <= PC_by_way_SDEQ;
 			last_LH_by_way_SDEQ <= LH_by_way_SDEQ;
