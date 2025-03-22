@@ -59,6 +59,7 @@ module decoder_wrapper (
 
     // pred info out
 	output logic [BTB_PRED_INFO_WIDTH-1:0] last_pred_info_out,
+	output logic last_missing_pred,
 
     // ordering
 	output logic last_flush_fetch,
@@ -122,6 +123,7 @@ module decoder_wrapper (
 
     // pred info out
 	logic [BTB_PRED_INFO_WIDTH-1:0] pred_info_out;
+	logic missing_pred;
 
     // ordering
 	logic flush_fetch;
@@ -192,6 +194,7 @@ module decoder_wrapper (
 
 		    // pred info out
 			last_pred_info_out <= '0;
+			last_missing_pred <= '0;
 
 		    // ordering
 			last_flush_fetch <= '0;
@@ -253,6 +256,7 @@ module decoder_wrapper (
 
 		    // pred info out
 			last_pred_info_out <= pred_info_out;
+			last_missing_pred <= missing_pred;
 
 		    // ordering
 			last_flush_fetch <= flush_fetch;

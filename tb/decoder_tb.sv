@@ -75,6 +75,7 @@ module decoder_tb ();
 
     // pred info out
 	logic [BTB_PRED_INFO_WIDTH-1:0] DUT_pred_info_out, expected_pred_info_out;
+	logic DUT_missing_pred, expected_missing_pred;
 
     // ordering
 	logic DUT_flush_fetch, expected_flush_fetch;
@@ -139,6 +140,7 @@ module decoder_tb ();
 
 	    // pred info out
 		.pred_info_out(DUT_pred_info_out),
+		.missing_pred(DUT_missing_pred),
 
 	    // ordering
 		.flush_fetch(DUT_flush_fetch),
@@ -329,6 +331,13 @@ module decoder_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_missing_pred !== DUT_missing_pred) begin
+			$display("TB ERROR: expected_missing_pred (%h) != DUT_missing_pred (%h)",
+				expected_missing_pred, DUT_missing_pred);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_flush_fetch !== DUT_flush_fetch) begin
 			$display("TB ERROR: expected_flush_fetch (%h) != DUT_flush_fetch (%h)",
 				expected_flush_fetch, DUT_flush_fetch);
@@ -479,6 +488,7 @@ module decoder_tb ();
 		expected_imm20 = 20'h0;
 	    // pred info out
 		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
 	    // ordering
 		expected_flush_fetch = 1'b0;
 		expected_stall_mem_read = 1'b0;
@@ -552,6 +562,7 @@ module decoder_tb ();
 		expected_imm20 = 20'h0;
 	    // pred info out
 		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
 	    // ordering
 		expected_flush_fetch = 1'b0;
 		expected_stall_mem_read = 1'b0;
@@ -633,6 +644,7 @@ module decoder_tb ();
 		expected_imm20 = 20'h0;
 	    // pred info out
 		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
 	    // ordering
 		expected_flush_fetch = 1'b0;
 		expected_stall_mem_read = 1'b0;

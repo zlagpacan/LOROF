@@ -52,7 +52,8 @@ module decoder (
     output logic [19:0] imm20,
 
     // pred info out
-    output logic [BTB_PRED_INFO_WIDTH-1:0] pred_info_out,
+    output logic [BTB_PRED_INFO_WIDTH-1:0]  pred_info_out,
+    output logic                            missing_pred,
 
     // ordering
     output logic flush_fetch,
@@ -310,6 +311,8 @@ module decoder (
     end
 
     assign pred_info_out = uncompressed ? pred_info_chunk1 : pred_info_chunk0;
+
+    assign missing_pred = use_pred_info & ~(pred_info_out[7] | pred_info_out[6]);
 
     // ----------------------------------------------------------------
     // Main Case:
