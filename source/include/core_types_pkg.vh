@@ -128,6 +128,10 @@ package core_types_pkg;
     parameter FREE_LIST_LOWER_THRESHOLD = 8;
     parameter FREE_LIST_UPPER_THRESHOLD = 24;
 
+    // checkpoint array:
+    parameter CHECKPOINT_COUNT = 8;
+    parameter CHECKPOINT_INDEX_WIDTH = $clog2(CHECKPOINT_COUNT);
+
     // ----------------------------------------------------------------
     // LSQ:
 
