@@ -148,13 +148,13 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - {csr[11:0], rs1[4:0], 3'b011, rd[4:0], 5'b11100, 2'b11}
 - CSRRWI
     - FU: sys_pipeline
-    - {csr[11:0], rs1[4:0], 3'b101, rd[4:0], 5'b11100, 2'b11}
+    - {csr[11:0], uimm[4:0], 3'b101, rd[4:0], 5'b11100, 2'b11}
 - CSRRSI
     - FU: sys_pipeline
-    - {csr[11:0], rs1[4:0], 3'b110, rd[4:0], 5'b11100, 2'b11}
+    - {csr[11:0], uimm[4:0], 3'b110, rd[4:0], 5'b11100, 2'b11}
 - CSRRCI
     - FU: sys_pipeline
-    - {csr[11:0], rs1[4:0], 3'b111, rd[4:0], 5'b11100, 2'b11}
+    - {csr[11:0], uimm[4:0], 3'b111, rd[4:0], 5'b11100, 2'b11}
 
 ## M Extension
 - MUL

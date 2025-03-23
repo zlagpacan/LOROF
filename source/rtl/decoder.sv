@@ -91,7 +91,6 @@ module decoder (
     logic [3:0]     uncinstr_pred_set;
     logic [3:0]     uncinstr_succ_set;
     logic [11:0]    uncinstr_csr;
-    logic [4:0]     uncinstr_uimm;
     
     // compressed instr components
     logic [2:0]     cinstr_funct3;
@@ -108,7 +107,6 @@ module decoder (
     logic uncfunct7_is_0bx1xxxxx;
     logic uncfunct7_is_0bx0xxxxx;
     logic uncfunct7_not_0b0x00000;
-    logic uncfunct7_not_0b0000001;
     logic uncfunct7_is_0bxxxxxx1;
     logic uncfm_not_0bx000;
     logic uncimm_type;
@@ -261,7 +259,6 @@ module decoder (
     assign uncinstr_pred_set = instr32[27:24];
     assign uncinstr_succ_set = instr32[23:20];
     assign uncinstr_csr = instr32[31:20];
-    assign uncinstr_uimm = instr32[19:15];
 
     assign cinstr_funct3 = instr32[15:13];
     assign cinstr_rlow = instr32[6:2];
@@ -273,7 +270,6 @@ module decoder (
     assign uncfunct7_is_0bx0xxxxx = ~uncinstr_funct7[5];
     assign uncfunct7_is_0bx1xxxxx = uncinstr_funct7[5];
     assign uncfunct7_not_0b0x00000 = {uncinstr_funct7[6], uncinstr_funct7[4:0]} != 6'b000000;
-    assign uncfunct7_not_0b0000001 = uncinstr_funct7 != 7'b0000001;
     assign uncfunct7_is_0bxxxxxx1 = uncinstr_funct7[0];
     assign uncfm_not_0bx000 = uncinstr_fm[2:0] != 3'b000;
     assign uncamoop[3] = uncinstr_funct5[3] ^ uncinstr_funct5[4];
@@ -881,118 +877,128 @@ module decoder (
 
                     5'b01100:
                     begin
-                        // ALU Reg-Reg
+                        // ALU Reg-Reg + M-Ext
                         op[3] = uncfunct7_is_0bx1xxxxx;
                         op[2:0] = uncinstr_funct3;
 
-                        case (uncinstr_funct3)
+                        if (uncinstr_funct7 == 7'b0000001) begin
+                            // M-Ext
+                                // MUL, MULH, MULHSU, MULHU, DIV, DIVU, REM, REMU
+                            is_mdu = 1'b1;
+                            is_reg_write = 1'b1;
+                        end
+                        else begin
+                            // ALU Reg-Reg
+                            
+                            case (uncinstr_funct3)
 
-                            3'b000:
-                            begin
-                                if (uncfunct7_not_0b0x00000) begin
-                                    is_illegal_instr = 1'b1;
+                                3'b000:
+                                begin
+                                    if (uncfunct7_not_0b0x00000) begin
+                                        is_illegal_instr = 1'b1;
+                                    end
+                                    else if (uncfunct7_is_0bx0xxxxx) begin
+                                        // ADD
+                                        is_alu_reg = 1'b1;
+                                        is_reg_write = 1'b1;
+                                    end
+                                    else begin
+                                        // SUB
+                                        is_alu_reg = 1'b1;
+                                        is_reg_write = 1'b1;
+                                    end
                                 end
-                                else if (uncfunct7_is_0bx0xxxxx) begin
-                                    // ADD
-                                    is_alu_reg = 1'b1;
-                                    is_reg_write = 1'b1;
-                                end
-                                else begin
-                                    // SUB
-                                    is_alu_reg = 1'b1;
-                                    is_reg_write = 1'b1;
-                                end
-                            end
 
-                            3'b001:
-                            begin
-                                if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
-                                    is_illegal_instr = 1'b1;
+                                3'b001:
+                                begin
+                                    if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                        is_illegal_instr = 1'b1;
+                                    end
+                                    else begin
+                                        // SLL
+                                        is_alu_reg = 1'b1;
+                                        is_reg_write = 1'b1;
+                                    end
                                 end
-                                else begin
-                                    // SLL
-                                    is_alu_reg = 1'b1;
-                                    is_reg_write = 1'b1;
-                                end
-                            end
 
-                            3'b010:
-                            begin
-                                if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
-                                    is_illegal_instr = 1'b1;
+                                3'b010:
+                                begin
+                                    if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                        is_illegal_instr = 1'b1;
+                                    end
+                                    else begin
+                                        // SLT
+                                        is_alu_reg = 1'b1;
+                                        is_reg_write = 1'b1;
+                                    end
                                 end
-                                else begin
-                                    // SLT
-                                    is_alu_reg = 1'b1;
-                                    is_reg_write = 1'b1;
-                                end
-                            end
 
-                            3'b011:
-                            begin
-                                if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
-                                    is_illegal_instr = 1'b1;
+                                3'b011:
+                                begin
+                                    if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                        is_illegal_instr = 1'b1;
+                                    end
+                                    else begin
+                                        // SLTU
+                                        is_alu_reg = 1'b1;
+                                        is_reg_write = 1'b1;
+                                    end
                                 end
-                                else begin
-                                    // SLTU
-                                    is_alu_reg = 1'b1;
-                                    is_reg_write = 1'b1;
-                                end
-                            end
 
-                            3'b100:
-                            begin
-                                if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
-                                    is_illegal_instr = 1'b1;
+                                3'b100:
+                                begin
+                                    if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                        is_illegal_instr = 1'b1;
+                                    end
+                                    else begin
+                                        // XOR
+                                        is_alu_reg = 1'b1;
+                                        is_reg_write = 1'b1;
+                                    end
                                 end
-                                else begin
-                                    // XOR
-                                    is_alu_reg = 1'b1;
-                                    is_reg_write = 1'b1;
-                                end
-                            end
 
-                            3'b101:
-                            begin
-                                if (uncfunct7_not_0b0x00000) begin
-                                    is_illegal_instr = 1'b1;
+                                3'b101:
+                                begin
+                                    if (uncfunct7_not_0b0x00000) begin
+                                        is_illegal_instr = 1'b1;
+                                    end
+                                    else if (uncfunct7_is_0bx0xxxxx) begin
+                                        // SRL
+                                        is_alu_reg = 1'b1;
+                                        is_reg_write = 1'b1;
+                                    end
+                                    else begin
+                                        // SRA
+                                        is_alu_reg = 1'b1;
+                                        is_reg_write = 1'b1;
+                                    end
                                 end
-                                else if (uncfunct7_is_0bx0xxxxx) begin
-                                    // SRL
-                                    is_alu_reg = 1'b1;
-                                    is_reg_write = 1'b1;
-                                end
-                                else begin
-                                    // SRA
-                                    is_alu_reg = 1'b1;
-                                    is_reg_write = 1'b1;
-                                end
-                            end
 
-                            3'b110:
-                            begin
-                                if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
-                                    is_illegal_instr = 1'b1;
+                                3'b110:
+                                begin
+                                    if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                        is_illegal_instr = 1'b1;
+                                    end
+                                    else begin
+                                        // OR
+                                        is_alu_reg = 1'b1;
+                                        is_reg_write = 1'b1;
+                                    end
                                 end
-                                else begin
-                                    // OR
-                                    is_alu_reg = 1'b1;
-                                    is_reg_write = 1'b1;
-                                end
-                            end
 
-                            3'b111:
-                            begin
-                                if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
-                                    is_illegal_instr = 1'b1;
+                                3'b111:
+                                begin
+                                    if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                        is_illegal_instr = 1'b1;
+                                    end
+                                    else begin
+                                        // AND
+                                        is_alu_reg = 1'b1;
+                                        is_reg_write = 1'b1;
+                                    end
                                 end
-                                else begin
-                                    // AND
-                                    is_alu_reg = 1'b1;
-                                    is_reg_write = 1'b1;
-                                end
-                            end
-                        endcase
+                            endcase
+                        end
                     end
 
                     5'b00011:
@@ -1057,13 +1063,13 @@ module decoder (
 
                                     7'b0000000:
                                     begin
-                                        if (uncinstr_uimm == 5'b00000) begin
+                                        if (uncinstr_rs2 == 5'b00000) begin
                                             // ECALL
                                             is_sys = 1'b1;
                                             op[2:0] = uncinstr_funct3;
                                             flush_fetch = 1'b1;
                                         end
-                                        else if (uncinstr_uimm == 5'b00001) begin
+                                        else if (uncinstr_rs2 == 5'b00001) begin
                                             // EBREAK
                                             is_sys = 1'b1;
                                             op[2:0] = uncinstr_funct3;
@@ -1076,13 +1082,13 @@ module decoder (
 
                                     7'b0001000:
                                     begin
-                                        if (uncinstr_uimm == 5'b00010) begin
+                                        if (uncinstr_rs2 == 5'b00010) begin
                                             // SRET
                                             is_sys = 1'b1;
                                             op[2:0] = uncinstr_funct3;
                                             flush_fetch = 1'b1;
                                         end
-                                        else if (uncinstr_uimm == 5'b00101) begin
+                                        else if (uncinstr_rs2 == 5'b00101) begin
                                             // WFI
                                                 // flush fetch to be resumed after interrupt
                                             is_sys = 1'b1;
@@ -1104,12 +1110,11 @@ module decoder (
                                         op[1:0] = 2'b10;
                                         stall_mem_read = 1'b1;
                                         stall_mem_write = 1'b1;
-                                        wait_write_buffer = 1'b1;
                                     end
 
                                     7'b0011000:
                                     begin
-                                        if (uncinstr_uimm == 5'b00010) begin
+                                        if (uncinstr_rs2 == 5'b00010) begin
                                             // MRET
                                             is_sys = 1'b1;
                                             op[2:0] = uncinstr_funct3;
@@ -1140,21 +1145,6 @@ module decoder (
                                 is_illegal_instr = 1'b1;
                             end
                         endcase
-                    end
-
-                    5'b01100:
-                    begin
-                        // MDU
-                        op[2:0] = uncinstr_funct3;
-
-                        if (uncfunct7_not_0b0000001) begin
-                            is_illegal_instr = 1'b1;
-                        end
-                        else begin
-                            // MUL, MULH, MULHSU, MULHU, DIV, DIVU, REM, REMU
-                            is_mdu = 1'b1;
-                            is_reg_write = 1'b1;
-                        end
                     end
 
                     5'b01011:
