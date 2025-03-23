@@ -717,15 +717,20 @@ module decoder (
 
                     5'b11001:
                     begin
-                        // JALR:
-                        is_bru = 1'b1;
-                        op = 4'b0000;
-                        is_reg_write = 1'b1;
-                        A_unneeded = 1'b0;
-                        use_pred_info = 1'b1;
+                        if (uncinstr_funct3 == 3'b000) begin
+                            // JALR:
+                            is_bru = 1'b1;
+                            op = 4'b0000;
+                            is_reg_write = 1'b1;
+                            A_unneeded = 1'b0;
+                            use_pred_info = 1'b1;
+                        end
+                        else begin
+                            is_illegal_instr = 1'b1;
+                        end
                     end
 
-                    5'b11001:
+                    5'b11000:
                     begin
                         // Branch:
                         op[3] = 1'b1;
@@ -735,7 +740,7 @@ module decoder (
                         use_pred_info = 1'b1;
                         uncimm_type = 1'b1;
 
-                        case (uncinstr_funct3[2:1] == 2'b01)
+                        case (uncinstr_funct3)
 
                             3'b000, 3'b001, 3'b100, 3'b101, 3'b110, 3'b111:
                             begin
@@ -1264,6 +1269,11 @@ module decoder (
                                 end
                             endcase
                         end
+                    end
+
+                    default:
+                    begin
+                        is_illegal_instr = 1'b1;
                     end
                 endcase
             end

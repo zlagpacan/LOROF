@@ -580,22 +580,22 @@ module decoder_tb ();
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // simple cases:
+        test_case = "simple cases";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "default";
+		sub_test_case = "all 1's";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
 	    // input info
-		tb_uncompressed = 1'b0;
-		tb_instr32 = 32'h0;
+		tb_uncompressed = 1'b1;
+		tb_instr32 = '1;
 		tb_pred_info_chunk0 = 8'h0;
 		tb_pred_info_chunk1 = 8'h0;
 	    // FU select
@@ -625,15 +625,1459 @@ module decoder_tb ();
 		expected_is_sys = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
-		expected_op = 4'h0;
+		expected_op = 4'b1111;
 		expected_is_reg_write = 1'b0;
 	    // A operand
-		expected_A_AR = 5'h2;
+		expected_A_AR = 5'h1F;
 		expected_A_unneeded = 1'b1;
 		expected_A_is_zero = 1'b0;
 		expected_A_is_ret_ra = 1'b0;
 	    // B operand
+		expected_B_AR = 5'h1F;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h1F;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'hFFFFF;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "LUI";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {20'h555AA, 5'h0, 5'b01101, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b1;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0110;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h15;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h15;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h0;
+		expected_dest_is_zero = 1'b1;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'hAA555;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "Compressed AUIPC";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b0;
+		tb_instr32 = {20'h333CC, 5'h1, 5'b00101, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b1;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0111;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h1;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b1;
+	    // B operand
+		expected_B_AR = 5'h5;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h1;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b1;
+	    // imm
+		expected_imm20 = 20'h5;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b0;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b1;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "AUIPC";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {20'h333CC, 5'h1, 5'b00101, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b1;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0111;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h19;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h13;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h1;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b1;
+	    // imm
+		expected_imm20 = 20'hcc333;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "pred chunk 0 JAL";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {20'h12345, 5'h2, 5'b11011, 2'b11};
+		tb_pred_info_chunk0 = 8'b10101010;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b1;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0010;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h8;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h3;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h2;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h45123;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b1;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b0;
+		expected_non_branch_notif_chunk0 = 1'b1;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b1;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "JAL";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {20'h12345, 5'h2, 5'b11011, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b1;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0010;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h8;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h3;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h2;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h45123;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b1;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "pred chunk 1 JALR";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {20'hfed, 5'h3, 3'b000, 5'h4, 5'b11001, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'b01010101;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b1;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0000;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h3;
+		expected_A_unneeded = 1'b0;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'hd;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h4;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h18fed;
+	    // pred info out
+		expected_pred_info_out = 8'b01010101;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "pred chunk 1 bad funct3 JALR";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {20'hfed, 5'h3, 3'b101, 5'h4, 5'b11001, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'b01010101;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b1101;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h3;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'hd;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h4;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h1dfed;
+	    // pred info out
+		expected_pred_info_out = 8'b01010101;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b1;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b1;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "BEQ";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b1000001, 5'h6, 5'h5, 3'b000, 5'b10001, 5'b11000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b1;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b1000;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h5;
+		expected_A_unneeded = 1'b0;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b1;
+	    // B operand
+		expected_B_AR = 5'h6;
+		expected_B_unneeded = 1'b0;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h11;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'b00101000100000110001;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b1;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "pred chunk 0 BNE";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0111110, 5'h8, 5'h7, 3'b001, 5'b01110, 5'b11000, 2'b11};
+		tb_pred_info_chunk0 = 8'b11001100;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b1;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b1001;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h7;
+		expected_A_unneeded = 1'b0;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
 		expected_B_AR = 5'h8;
+		expected_B_unneeded = 1'b0;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'he;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'b00111001011111001110;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b1;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b0;
+		expected_non_branch_notif_chunk0 = 1'b1;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b1;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "bad branch";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b1001001, 5'ha, 5'h9, 3'b010, 5'b10101, 5'b11000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b1010;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h9;
+		expected_A_unneeded = 1'b0;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'ha;
+		expected_B_unneeded = 1'b0;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h15;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h4a935;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b1;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "pred chunk 1 BLT";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b1001001, 5'ha, 5'h9, 3'b100, 5'b10101, 5'b11000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'b10000001;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b1;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b1100;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h9;
+		expected_A_unneeded = 1'b0;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'ha;
+		expected_B_unneeded = 1'b0;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h15;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'b01001100100100110101;
+	    // pred info out
+		expected_pred_info_out = 8'b10000001;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "BGE";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0110110, 5'hc, 5'hb, 3'b101, 5'b01010, 5'b11000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b1;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b1101;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'hb;
+		expected_A_unneeded = 1'b0;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'hc;
+		expected_B_unneeded = 1'b0;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'ha;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'b01011101011011001010;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b1;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "BLTU";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0110110, 5'he, 5'hd, 3'b110, 5'b01010, 5'b11000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b1;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b1110;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'hd;
+		expected_A_unneeded = 1'b0;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'he;
+		expected_B_unneeded = 1'b0;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'ha;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'b01101110011011001010;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b1;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "BGEU";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0110110, 5'h0, 5'hf, 3'b111, 5'b01010, 5'b11000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b1;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b1111;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'hf;
+		expected_A_unneeded = 1'b0;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h0;
+		expected_B_unneeded = 1'b0;
+		expected_B_is_zero = 1'b1;
+	    // dest operand
+		expected_dest_AR = 5'ha;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'b01111111011011001010;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b1;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "LB";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {12'ha98, 5'h1, 3'b000, 5'h2, 5'b00000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b1;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0000;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h1;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b1;
+	    // B operand
+		expected_B_AR = 5'h18;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h2;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h08a98;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "LH";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {12'hfff, 5'h3, 3'b001, 5'h4, 5'b00000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b1;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b1001;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h3;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h1f;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h4;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h19fff;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "LW";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {12'h5a5, 5'h5, 3'b010, 5'h6, 5'b00000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b1;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b1010;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h5;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b1;
+	    // B operand
+		expected_B_AR = 5'h5;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h6;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h2a5a5;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "bad load";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {12'h5a5, 5'h5, 3'b011, 5'h6, 5'b00000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b1011;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h5;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b1;
+	    // B operand
+		expected_B_AR = 5'h5;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h6;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h2b5a5;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "LBU";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {12'ha5a, 5'h7, 3'b100, 5'h8, 5'b00000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b1;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0100;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h7;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h1a;
 		expected_B_unneeded = 1'b1;
 		expected_B_is_zero = 1'b0;
 	    // dest operand
@@ -641,7 +2085,2135 @@ module decoder_tb ();
 		expected_dest_is_zero = 1'b0;
 		expected_dest_is_link_ra = 1'b0;
 	    // imm
-		expected_imm20 = 20'h0;
+		expected_imm20 = 20'h3ca5a;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "LHU";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {12'h345, 5'h9, 3'b101, 5'ha, 5'b00000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b1;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0101;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h9;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h5;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'ha;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h4d345;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "bad load 110";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {12'h678, 5'h9, 3'b110, 5'ha, 5'b00000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b1110;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h9;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h18;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'ha;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h4e678;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "bad load 111";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {12'h9ab, 5'h9, 3'b111, 5'ha, 5'b00000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b0111;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h9;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'hb;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'ha;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h4f9ab;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SB";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0101010, 5'hc, 5'hb, 3'b000, 5'b10101, 5'b01000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b1;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b1000;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'hb;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'hc;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h15;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'b01011000010101010101;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SH";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b1010101, 5'he, 5'hd, 3'b001, 5'b01010, 5'b01000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b1;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0001;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'hd;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'he;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'ha;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'b01101001101010101010;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SW";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b1111000, 5'h0, 5'hf, 3'b010, 5'b11100, 5'b01000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b1;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b1010;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'hf;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h0;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b1;
+	    // dest operand
+		expected_dest_AR = 5'h1c;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'b01111010111100011100;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "bad store 011";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0000111, 5'h0, 5'hf, 3'b011, 5'b00011, 5'b01000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b0011;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'hf;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h0;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b1;
+	    // dest operand
+		expected_dest_AR = 5'h3;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h7b0e3;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "bad store 100";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0000111, 5'h0, 5'hf, 3'b100, 5'b00011, 5'b01000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b0100;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'hf;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h0;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b1;
+	    // dest operand
+		expected_dest_AR = 5'h3;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h7c0e3;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "bad store 101";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0000111, 5'h0, 5'hf, 3'b101, 5'b00011, 5'b01000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b0101;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'hf;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h0;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b1;
+	    // dest operand
+		expected_dest_AR = 5'h3;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h7d0e3;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "bad store 110";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0000111, 5'h0, 5'hf, 3'b110, 5'b00011, 5'b01000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b0110;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'hf;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h0;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b1;
+	    // dest operand
+		expected_dest_AR = 5'h3;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h7e0e3;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "bad store 111";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0000111, 5'h0, 5'hf, 3'b111, 5'b00011, 5'b01000, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b0111;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'hf;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h0;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b1;
+	    // dest operand
+		expected_dest_AR = 5'h3;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h7f0e3;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "ADDI";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {12'h210, 5'h1, 3'b000, 5'h2, 5'b00100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b1;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0000;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h1;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b1;
+	    // B operand
+		expected_B_AR = 5'h10;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h2;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h08210;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SLLI";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0000000, 5'b10101, 5'h3, 3'b001, 5'h4, 5'b00100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b1;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0001;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h3;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h15;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h4;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h19015;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "bad SLLI";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0000001, 5'b10101, 5'h3, 3'b001, 5'h4, 5'b00100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b0001;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h3;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h15;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h4;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h19035;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SLTI";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {12'h876, 5'h5, 3'b010, 5'h6, 5'b00100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b1;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0010;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h5;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b1;
+	    // B operand
+		expected_B_AR = 5'h16;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h6;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h2a876;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SLTIU";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {12'hba9, 5'h7, 3'b011, 5'h8, 5'b00100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b1;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0011;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h7;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h9;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h8;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h3bba9;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "XORI";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {12'hedc, 5'h9, 3'b100, 5'ha, 5'b00100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b1;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b1100;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h9;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h1c;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'ha;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h4cedc;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SRLI";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b00000000, 5'h11, 5'h9, 3'b101, 5'ha, 5'b00100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b1;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0101;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h9;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h11;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'ha;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h4d011;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SRAI";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0100000, 5'h11, 5'h9, 3'b101, 5'ha, 5'b00100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b1;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b1101;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h9;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h11;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'ha;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h4d411;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "bad SRLI/SRAI";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0001000, 5'h11, 5'h9, 3'b101, 5'ha, 5'b00100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b0101;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h9;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h11;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'ha;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h4d111;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "ORI";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {12'hfff, 5'h9, 3'b110, 5'ha, 5'b00100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b1;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b1110;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h9;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h1f;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'ha;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h4efff;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "ANDI";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {12'haaa, 5'h9, 3'b111, 5'ha, 5'b00100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b1;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0111;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h9;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'ha;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'ha;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h4faaa;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "ADD";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0000000, 5'h4, 5'h2, 3'b000, 5'h6, 5'b01100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b1;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0000;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h2;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h4;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h6;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h10004;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SUB";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0100000, 5'ha, 5'h8, 3'b000, 5'hc, 5'b01100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b1;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b1000;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h8;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'ha;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'hc;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h4040a;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "bad ADD/SUB";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b1111111, 5'h3, 5'h1, 3'b000, 5'h5, 5'b01100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b1000;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h1;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b1;
+	    // B operand
+		expected_B_AR = 5'h3;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h5;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b1;
+	    // imm
+		expected_imm20 = 20'h08fe3;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SLL";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0000000, 5'h9, 5'h7, 3'b001, 5'hb, 5'b01100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b1;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0001;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'h7;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h9;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'hb;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h39009;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SLT";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0000000, 5'hf, 5'hd, 3'b010, 5'h1, 5'b01100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b1;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0010;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'hd;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'hf;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h1;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b1;
+	    // imm
+		expected_imm20 = 20'h6a00f;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_flush_fetch = 1'b0;
+		expected_stall_mem_read = 1'b0;
+		expected_stall_mem_write = 1'b0;
+		expected_wait_write_buffer = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SLTU";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0000000, 5'hf, 5'hd, 3'b011, 5'h1, 5'b01100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input info
+	    // FU select
+		expected_is_alu_reg = 1'b1;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0011;
+		expected_is_reg_write = 1'b1;
+	    // A operand
+		expected_A_AR = 5'hd;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'hf;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h1;
+		expected_dest_is_zero = 1'b0;
+		expected_dest_is_link_ra = 1'b1;
+	    // imm
+		expected_imm20 = 20'h6b00f;
 	    // pred info out
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
