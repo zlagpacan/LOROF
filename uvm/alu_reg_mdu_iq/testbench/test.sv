@@ -72,7 +72,7 @@ class alu_reg_mdu_iq_test extends uvm_test;
     //   reset_seq.start(env.agnt.seqr);
     // end
       
-    repeat(4) std_seq.start(env.agnt.seqr);
+    repeat(12) std_seq.start(env.agnt.seqr);
     // std_seq.start(env.agnt.seqr);
     #10ns;
     

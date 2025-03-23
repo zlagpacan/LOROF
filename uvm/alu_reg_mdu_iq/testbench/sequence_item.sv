@@ -180,6 +180,7 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
     // --- Control Signals ---
     $display("nRST: %b", nRST);
   
+    if(x == "predicted_tx") begin
     // --- Randomized Inputs ---
     foreach (dispatch_attempt_by_way[i])
       $display("dispatch_attempt_by_way[%0d]: %b", i, dispatch_attempt_by_way[i]);
@@ -225,7 +226,7 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
   
     foreach (WB_bus_upper_PR_by_bank[i])
       $display("WB_bus_upper_PR_by_bank[%0d]: %h", i, WB_bus_upper_PR_by_bank[i]);
-  
+    end
     // --- Outputs ---
 
     $display("Outputs");

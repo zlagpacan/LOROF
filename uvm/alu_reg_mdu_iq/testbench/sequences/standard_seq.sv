@@ -25,9 +25,11 @@ class standard_sequence extends uvm_sequence;
         standard_tx.randomize() with {
             nRST == 1'b1;
             dispatch_attempt_by_way == 4'b1;
-            dispatch_valid_alu_reg_by_way == 4'b1;
+            // dispatch_valid_alu_reg_by_way == 4'b1;
+            dispatch_valid_mdu_by_way == 4'b1;
             dispatch_A_ready_by_way == 4'b1;
             alu_reg_pipeline_ready == 1;
+            // mdu_pipeline_ready == 1;
             WB_bus_valid_by_bank == 0;
         };
         finish_item(standard_tx);
