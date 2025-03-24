@@ -889,7 +889,7 @@ module decoder (
                         end
                         else begin
                             // ALU Reg-Reg
-                            
+
                             case (uncinstr_funct3)
 
                                 3'b000:
@@ -1256,6 +1256,11 @@ module decoder (
                                     is_reg_write = 1'b1;
                                     stall_mem_read = uncinstr_aq;
                                     wait_write_buffer = uncinstr_rl;
+                                end
+
+                                default:
+                                begin
+                                    is_illegal_instr = 1'b1;
                                 end
                             endcase
                         end
