@@ -353,7 +353,7 @@ module decoder (
             2'b00: // compressed 00
             begin
                 cB_AR = {2'b01, cinstr_rlow[2:0]};
-                cdest_AR = {2'b01, cinstr_rhigh[2:0]};
+                cdest_AR = {2'b01, cinstr_rlow[2:0]};
 
                 case (cinstr_funct3)
 
@@ -439,6 +439,7 @@ module decoder (
                         is_alu_imm = 1'b1;
                         op = 4'b0000;
                         is_reg_write = 1'b1;
+                        cA_AR = 5'h0;
                         cdest_AR = cinstr_rhigh;
                         cimm20 = {{15{instr32[12]}}, instr32[6:2]};
                     end
@@ -557,9 +558,7 @@ module decoder (
                         op = 4'b1010;
                         use_pred_info = 1'b1;
                         A_unneeded = 1'b0;
-                        // B_unneeded = 1'b0; // won't need, will be zero anyway
                         cA_AR = {2'b01, cinstr_rhigh[2:0]};
-                        cB_AR = 5'h0;
                         cimm20 = {{12{instr32[12]}}, instr32[6:5], instr32[2], instr32[11:10], instr32[4:3], instr32[12]};
                     end
 
@@ -571,9 +570,7 @@ module decoder (
                         op = 4'b1011;
                         use_pred_info = 1'b1;
                         A_unneeded = 1'b0;
-                        // B_unneeded = 1'b0; // won't need, will be zero anyway
                         cA_AR = {2'b01, cinstr_rhigh[2:0]};
-                        cB_AR = 5'h0;
                         cimm20 = {{12{instr32[12]}}, instr32[6:5], instr32[2], instr32[11:10], instr32[4:3], instr32[12]};
                     end
                 endcase
@@ -610,7 +607,7 @@ module decoder (
 
                     3'b100:
                     begin
-                        if (cinstr_funct1) begin
+                        if (~cinstr_funct1) begin
                             if (cinstr_rlow == 5'h0) begin
                                 // C.JR
                                     // JALR x0, 0(rs1)
@@ -638,6 +635,7 @@ module decoder (
                                 is_sys = 1'b1;
                                 op[2:0] = 3'b000;
                                 flush_fetch = 1'b1;
+                                cimm20 = {8'b00000000, 7'b0000000, 5'b00001};
                             end
                             else if (cinstr_rlow == 5'h0) begin
                                 // C.JALR
