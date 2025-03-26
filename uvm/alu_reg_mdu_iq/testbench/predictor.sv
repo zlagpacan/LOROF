@@ -44,6 +44,7 @@ class alu_reg_mdu_iq_predictor extends uvm_subscriber#(alu_reg_mdu_iq_sequence_i
         
         // If Reset 
         if(t.nRST == 1'b0) begin
+            queue.golden(output_tx); // nulls queue
             output_tx.dispatch_ack_by_way = t.dispatch_attempt_by_way;  
             output_tx.issue_alu_reg_valid = '0;
             output_tx.issue_alu_reg_op = '0;

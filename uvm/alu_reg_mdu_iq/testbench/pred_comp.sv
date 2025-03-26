@@ -100,11 +100,23 @@ typedef struct packed {
         temp = queue;
 
         while(temp != null) begin
-            $display("[temp.frame.ROB_IDX = %d]",temp.frame.rob_idx);
+            $display("[temp.frame.ROB_IDX = %h]",temp.frame.rob_idx);
             $display("->");
             temp = temp.next;
         end
         $display("null");
+    endfunction
+
+    function void print_frame(node issued);
+        $display("rob_idx = %h", issued.frame.rob_idx);
+        $display("op_code = %h", issued.frame.op_code);
+        $display("rd = %h", issued.frame.rd);
+        $display("r1 = %h", issued.frame.r1);
+        $display("r1_state = %h", issued.frame.r1_state);
+        $display("r2 = %h", issued.frame.r2);
+        $display("r2_state = %h", issued.frame.r2_state);
+        $display("dest = %h", issued.frame.dest);
+        $display("pipestate = %h", issued.frame.pipestate);
     endfunction
 
     // 1st check what you can dispatch into the queue
@@ -122,54 +134,6 @@ typedef struct packed {
         issued_reg = 1'b0;
         issued_mdu = 1'b0;
         // $display("temp.frame.r1_state = %d",temp.frame.r1_state);
-        
-        // if((temp.frame.r1_state == ZERO || temp.frame.r1_state == READY || temp.frame.r1_state == FORWARD)
-        //     && (temp.frame.r2_state == ZERO || temp.frame.r2_state == READY || temp.frame.r2_state == FORWARD)) begin
-        //         // $display("WE IN HERE b");
-        //         // REG OUT
-        //         if(temp.frame.pipestate == REG && trans.alu_reg_pipeline_ready && !issued_reg) begin
-        //             // $display("WE IN HERE bbbbb");
-        //             issued_reg = 1'b1;
-        //             trans.issue_alu_reg_valid = 1;
-        //             trans.issue_alu_reg_op = temp.frame.op_code;
-        //             trans.issue_alu_reg_A_forward = (temp.frame.r1_state == FORWARD);
-        //             trans.issue_alu_reg_A_is_zero = (temp.frame.r1_state == ZERO);
-        //             trans.issue_alu_reg_A_bank = (temp.frame.r1[1:0]);
-        //             trans.issue_alu_reg_B_forward = (temp.frame.r2_state == FORWARD);
-        //             trans.issue_alu_reg_B_is_zero = (temp.frame.r2_state == ZERO);
-        //             trans.issue_alu_reg_B_bank = (temp.frame.r2[1:0]);
-        //             trans.issue_alu_reg_dest_PR = temp.frame.dest;
-        //             trans.issue_alu_reg_ROB_index = temp.frame.rob_idx;
-        //             // PRF Outputs
-        //             trans.PRF_alu_reg_req_A_valid = (temp.frame.r1_state == READY);
-        //             trans.PRF_alu_reg_req_A_PR = temp.frame.r1;
-        //             trans.PRF_alu_reg_req_B_valid = (temp.frame.r2_state == READY);
-        //             trans.PRF_alu_reg_req_B_PR = temp.frame.r2; 
-        //             delete_queue(temp.frame); // Delete frame
-        //         end
-
-        //         // MDU OUT
-        //         else if(temp.frame.pipestate == MDU && trans.mdu_pipeline_ready && !issued_mdu) begin
-        //             issued_mdu = 1'b1;
-        //             trans.issue_mdu_valid = 1;
-        //             trans.issue_mdu_op = temp.frame.op_code;
-        //             trans.issue_mdu_A_forward = (temp.frame.r1_state == FORWARD);
-        //             trans.issue_mdu_A_is_zero = (temp.frame.r1_state == ZERO);
-        //             trans.issue_mdu_A_bank = (temp.frame.r1[1:0]);
-        //             trans.issue_mdu_B_forward = (temp.frame.r2_state == FORWARD);
-        //             trans.issue_mdu_B_is_zero = (temp.frame.r2_state == ZERO);
-        //             trans.issue_mdu_B_bank = (temp.frame.r2[1:0]);
-        //             trans.issue_mdu_dest_PR = temp.frame.dest;
-        //             trans.issue_mdu_ROB_index = temp.frame.rob_idx;
-        //             // PRF Outputs
-        //             trans.PRF_mdu_req_A_valid = (temp.frame.r1_state == READY);
-        //             trans.PRF_mdu_req_A_PR = temp.frame.r1;
-        //             trans.PRF_mdu_req_B_valid = (temp.frame.r2_state == READY);
-        //             trans.PRF_mdu_req_B_PR = temp.frame.r2; 
-        //             delete_queue(temp.frame); // Delete frame
-        //         end
-        //     end
-            
         while(temp != null) begin
             if((temp.frame.r1_state == ZERO || temp.frame.r1_state == READY || temp.frame.r1_state == FORWARD)
             && (temp.frame.r2_state == ZERO || temp.frame.r2_state == READY || temp.frame.r2_state == FORWARD)) begin
@@ -192,6 +156,7 @@ typedef struct packed {
                     trans.PRF_alu_reg_req_A_PR = temp.frame.r1;
                     trans.PRF_alu_reg_req_B_valid = (temp.frame.r2_state == READY);
                     trans.PRF_alu_reg_req_B_PR = temp.frame.r2; 
+                    print_frame(temp);
                     delete_queue(temp.frame); // Delete frame
                 end
 
@@ -214,6 +179,7 @@ typedef struct packed {
                     trans.PRF_mdu_req_A_PR = temp.frame.r1;
                     trans.PRF_mdu_req_B_valid = (temp.frame.r2_state == READY);
                     trans.PRF_mdu_req_B_PR = temp.frame.r2; 
+                    print_frame(temp);
                     delete_queue(temp.frame); // Delete frame
                 end
             end
@@ -225,7 +191,7 @@ typedef struct packed {
         node temp = queue;
         int count = 0;
         if(temp == null) return 8;
-        while(temp.next != null) begin
+        while(temp != null) begin
             count += 1;
             temp = temp.next;
         end
@@ -335,6 +301,9 @@ typedef struct packed {
         end
     endfunction
 
+    // function void null;
+    //     queue = null;
+    // endfunction
 
     // Actual golden model function
     function void golden(alu_reg_mdu_iq_sequence_item trans);
@@ -375,6 +344,10 @@ typedef struct packed {
         trans.PRF_mdu_req_B_PR = '0;
       
         // $display("I AM HERE 2x");
+
+        if(!trans.nRST) begin
+            queue = null;
+        end
     
         // # of frames that are open
         num_open_frames = dispatch_amount();
@@ -384,17 +357,17 @@ typedef struct packed {
 
 
         // issuing 
-        // $display("Bro");
         print();
+        $display("Bro");
         issue(trans); 
-        print();
+        // print();
 
 
         // Dispatching into queue
         for(int i = 0; i < 4; i++) begin
             if(num_open_frames > 0 && num_open_frames <= 8) begin // Needs to be less than 8 frames
                 if(trans.dispatch_attempt_by_way[i]) begin
-                    // $display("I AM HERE, %d",i);
+                    $display("Frames left, %d",num_open_frames);
                     trans.dispatch_ack_by_way[i] = 1;
                     num_open_frames --;
                     if(trans.dispatch_valid_alu_reg_by_way[i]) begin
