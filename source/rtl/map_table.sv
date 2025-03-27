@@ -20,7 +20,7 @@ module map_table (
 
     // 4x write ports
     input logic [3:0]                       write_valid_by_port,
-    input logic [3:0]                       write_AR_by_port,
+    input logic [3:0][LOG_AR_COUNT-1:0]     write_AR_by_port,
     input logic [3:0][LOG_PR_COUNT-1:0]     write_PR_by_port,
 
     // checkpoint save
