@@ -273,8 +273,74 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
   
   // --- Constraints --- //
   constraint valid_dispatch {
-    // dispatch_attempt_by_way solve before {dispatch_valid_alu_reg_by_way, dispatch_valid_mdu_by_way};
-    (dispatch_valid_alu_reg_by_way | dispatch_valid_mdu_by_way) <= dispatch_attempt_by_way;
+    if(!dispatch_attempt_by_way[0]) { 
+      dispatch_valid_mdu_by_way[0] == 0;
+      dispatch_valid_alu_reg_by_way[0] == 0;
+    }
+
+    if(!dispatch_attempt_by_way[1]) {
+      dispatch_valid_mdu_by_way[1] == 0;
+      dispatch_valid_alu_reg_by_way[1] == 0;
+    }
+
+    if(!dispatch_attempt_by_way[2]) {
+      dispatch_valid_mdu_by_way[2] == 0;
+      dispatch_valid_alu_reg_by_way[2] == 0;
+    }
+
+    if(!dispatch_attempt_by_way[3]) { 
+      dispatch_valid_mdu_by_way[3] == 0;
+      dispatch_valid_alu_reg_by_way[3] == 0;
+    }
+
+    !(dispatch_valid_alu_reg_by_way & dispatch_valid_mdu_by_way);
+        
+      if(dispatch_valid_alu_reg_by_way[0] == 0) {
+        dispatch_valid_alu_reg_by_way[1] == 0;
+        dispatch_valid_alu_reg_by_way[2] == 0;
+        dispatch_valid_alu_reg_by_way[3] == 0;
+      }
+// 1001
+      if(dispatch_valid_alu_reg_by_way[1] == 0) { // 1101, 0101, 1000,1111
+        dispatch_valid_alu_reg_by_way[2] == 0;
+        dispatch_valid_alu_reg_by_way[3] == 0;
+      }
+
+      if(dispatch_valid_alu_reg_by_way[2] == 0) {
+        dispatch_valid_alu_reg_by_way[3] == 0;
+      }
+
+      // Mdu by way
+      if(dispatch_valid_mdu_by_way[0] == 0) {
+        dispatch_valid_mdu_by_way[1] == 0;
+        dispatch_valid_mdu_by_way[2] == 0;
+        dispatch_valid_mdu_by_way[3] == 0;
+      }
+
+      if(dispatch_valid_mdu_by_way[1] == 0) {
+        if(!dispatch_attempt_by_way[2]) dispatch_valid_mdu_by_way[2] == 0;
+        if(!dispatch_attempt_by_way[3]) dispatch_valid_mdu_by_way[3] == 0;
+      }
+
+      if(dispatch_valid_mdu_by_way[2] == 0) {
+        if(!dispatch_attempt_by_way[3]) dispatch_valid_mdu_by_way[3] == 0;
+      }
+
+
+
+      (dispatch_valid_mdu_by_way[0] > 1'b0) dist { 1 := 70, 0 := 30 }; // 70% chance my_var > X, 30% chance otherwise
+      (dispatch_valid_alu_reg_by_way[0] > 1'b0) dist { 1 := 70, 0 := 30 }; // 70% chance my_var > X, 30% chance otherwise
+      
+      (dispatch_valid_mdu_by_way[1] > 1'b0) dist { 1 := 70, 0 := 30 }; // 70% chance my_var > X, 30% chance otherwise
+      (dispatch_valid_alu_reg_by_way[1] > 1'b0) dist { 1 := 70, 0 := 30 }; // 70% chance my_var > X, 30% chance otherwise
+      
+      (dispatch_valid_mdu_by_way[2] > 1'b0) dist { 1 := 70, 0 := 30 }; // 70% chance my_var > X, 30% chance otherwise
+      (dispatch_valid_alu_reg_by_way[2] > 1'b0) dist { 1 := 70, 0 := 30 }; // 70% chance my_var > X, 30% chance otherwise
+      
+      (dispatch_valid_mdu_by_way[3] > 1'b0) dist { 1 := 70, 0 := 30 }; // 70% chance my_var > X, 30% chance otherwise
+      (dispatch_valid_alu_reg_by_way[3] > 1'b0) dist { 1 := 70, 0 := 30 }; // 70% chance my_var > X, 30% chance otherwise
+    // (dispatch_valid_alu_reg_by_way | dispatch_valid_mdu_by_way) <= dispatch_attempt_by_way;
+    
   }
 
 
