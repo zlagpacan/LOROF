@@ -186,57 +186,122 @@ module ready_table_tb ();
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // read reset vals:
+        test_case = "read reset vals";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		@(posedge CLK); #(PERIOD/10);
+		for (int i = 0; i < 128; i += 8) begin
 
-		// inputs
-		sub_test_case = "default";
-		$display("\t- sub_test: %s", sub_test_case);
+			@(posedge CLK); #(PERIOD/10);
 
-		// reset
-		nRST = 1'b1;
-	    // 8x read ports
-		tb_read_PR_by_port = {
-			7'h0,
-			7'h1,
-			7'h2,
-			7'h3,
-			7'h4,
-			7'h5,
-			7'h6,
-			7'h7
-		};
-	    // 4x set ports
-		tb_set_valid_by_port = 4'b0000;
-		tb_set_PR_by_port = {
-			7'h0,
-			7'h0,
-			7'h0,
-			7'h0
-		};
-	    // 4x clear ports
-		tb_clear_valid_by_port = 4'b0000;
-		tb_clear_PR_by_port = {
-			7'h0,
-			7'h0,
-			7'h0,
-			7'h0
-		};
+			// inputs
+			sub_test_case = $sformatf("read %0d:%0d", i, i+7);;
+			$display("\t- sub_test: %s", sub_test_case);
 
-		@(negedge CLK);
+			// reset
+			nRST = 1'b1;
+			// 8x read ports
+			tb_read_PR_by_port = {
+				{i + 7}[6:0],
+				{i + 6}[6:0],
+				{i + 5}[6:0],
+				{i + 4}[6:0],
+				{i + 3}[6:0],
+				{i + 2}[6:0],
+				{i + 1}[6:0],
+				{i + 0}[6:0]
+			};
+			// 4x set ports
+			tb_set_valid_by_port = 4'b0000;
+			tb_set_PR_by_port = {
+				7'h0,
+				7'h0,
+				7'h0,
+				7'h0
+			};
+			// 4x clear ports
+			tb_clear_valid_by_port = 4'b0000;
+			tb_clear_PR_by_port = {
+				7'h0,
+				7'h0,
+				7'h0,
+				7'h0
+			};
 
-		// outputs:
+			@(negedge CLK);
 
-	    // 8x read ports
-		expected_read_ready_by_port = 8'b11111111;
-	    // 4x set ports
-	    // 4x clear ports
+			// outputs:
 
-		check_outputs();
+			// 8x read ports
+			if (i < 32) begin
+				expected_read_ready_by_port = 8'b11111111;
+			end
+			else begin
+				expected_read_ready_by_port = 8'b00000000;
+			end
+			// 4x set ports
+			// 4x clear ports
+
+			check_outputs();
+		end
+
+        // ------------------------------------------------------------
+        // set evens, clear odds:
+        test_case = "set evens, clear odds";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+		for (int i = 0; i < 128; i += 4) begin
+
+			@(posedge CLK); #(PERIOD/10);
+
+			// inputs
+			sub_test_case = $sformatf("set %0h,%0h,%0h,%0h; clear %0h,%0h,%0h,%0h", 
+				i, i+2, i+4, i+6, i+1, i+3, i+5, i+7);
+			$display("\t- sub_test: %s", sub_test_case);
+
+			// reset
+			nRST = 1'b1;
+			// 8x read ports
+			tb_read_PR_by_port = {
+				{i + 7}[6:0],
+				{i + 6}[6:0],
+				{i + 5}[6:0],
+				{i + 4}[6:0],
+				{i + 3}[6:0],
+				{i + 2}[6:0],
+				{i + 1}[6:0],
+				{i + 0}[6:0]
+			};
+			// 4x set ports
+			tb_set_valid_by_port = 4'b1111;
+			tb_set_PR_by_port = {
+				{i + 6}[6:0],
+				{i + 4}[6:0],
+				{i + 2}[6:0],
+				{i + 0}[6:0]
+			};
+			// 4x clear ports
+			tb_clear_valid_by_port = 4'b1111;
+			tb_clear_PR_by_port = {
+				{i + 7}[6:0],
+				{i + 5}[6:0],
+				{i + 3}[6:0],
+				{i + 1}[6:0]
+			};
+
+			@(negedge CLK);
+
+			// outputs:
+
+			// 8x read ports
+			expected_read_ready_by_port = 8'b01010101;
+			// 4x set ports
+			// 4x clear ports
+
+			check_outputs();
+		end
 
         // ------------------------------------------------------------
         // finish:
