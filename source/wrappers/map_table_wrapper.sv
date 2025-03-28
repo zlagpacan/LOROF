@@ -23,7 +23,7 @@ module map_table_wrapper (
 
     // 4x write ports
 	input logic [3:0] next_write_valid_by_port,
-	input logic [3:0] next_write_AR_by_port,
+	input logic [3:0][LOG_AR_COUNT-1:0] next_write_AR_by_port,
 	input logic [3:0][LOG_PR_COUNT-1:0] next_write_PR_by_port,
 
     // checkpoint save
@@ -44,7 +44,7 @@ module map_table_wrapper (
 
     // 4x write ports
 	logic [3:0] write_valid_by_port;
-	logic [3:0] write_AR_by_port;
+	logic [3:0][LOG_AR_COUNT-1:0] write_AR_by_port;
 	logic [3:0][LOG_PR_COUNT-1:0] write_PR_by_port;
 
     // checkpoint save
