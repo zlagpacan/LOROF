@@ -1,3 +1,9 @@
+/*
+    Filename: core_types_pkg.vh
+    Author: zlagpacan
+    Description: Package Header File for CPU Core Types
+*/
+
 `ifndef CORE_TYPES_VH
 `define CORE_TYPES_VH
 
