@@ -131,6 +131,7 @@ package core_types_pkg;
     // checkpoint array:
     parameter CHECKPOINT_COUNT = 8;
     parameter CHECKPOINT_INDEX_WIDTH = $clog2(CHECKPOINT_COUNT);
+    parameter CHECKPOINT_THRESHOLD = 3;
 
     // ----------------------------------------------------------------
     // LSQ:
