@@ -14,9 +14,9 @@ module map_table (
     input logic CLK,
     input logic nRST,
 
-    // 8x read ports
-    input logic [7:0][LOG_AR_COUNT-1:0]     read_AR_by_port,
-    output logic [7:0][LOG_PR_COUNT-1:0]    read_PR_by_port,
+    // 12x read ports
+    input logic [11:0][LOG_AR_COUNT-1:0]    read_AR_by_port,
+    output logic [11:0][LOG_PR_COUNT-1:0]   read_PR_by_port,
 
     // 4x write ports
     input logic [3:0]                       write_valid_by_port,
@@ -45,7 +45,7 @@ module map_table (
 
     // map table reads
     always_comb begin
-        for (int rport = 0; rport < 8; rport++) begin
+        for (int rport = 0; rport < 12; rport++) begin
             read_PR_by_port[rport] = map_table[read_AR_by_port[rport]];
         end
     end

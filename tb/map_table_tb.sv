@@ -33,9 +33,9 @@ module map_table_tb ();
     // DUT signals:
 
 
-    // 8x read ports
-	logic [7:0][LOG_AR_COUNT-1:0] tb_read_AR_by_port;
-	logic [7:0][LOG_PR_COUNT-1:0] DUT_read_PR_by_port, expected_read_PR_by_port;
+    // 12x read ports
+	logic [11:0][LOG_AR_COUNT-1:0] tb_read_AR_by_port;
+	logic [11:0][LOG_PR_COUNT-1:0] DUT_read_PR_by_port, expected_read_PR_by_port;
 
     // 4x write ports
 	logic [3:0] tb_write_valid_by_port;
@@ -58,7 +58,7 @@ module map_table_tb ();
 		.nRST(nRST),
 
 
-	    // 8x read ports
+	    // 12x read ports
 		.read_AR_by_port(tb_read_AR_by_port),
 		.read_PR_by_port(DUT_read_PR_by_port),
 
@@ -122,16 +122,20 @@ module map_table_tb ();
 
 		// reset
 		nRST = 1'b0;
-	    // 8x read ports
+	    // 12x read ports
 		tb_read_AR_by_port = {
-			5'h0,
-			5'h1,
-			5'h2,
-			5'h3,
-			5'h4,
-			5'h5,
+			5'hb,
+			5'ha,
+			5'h9,
+			5'h8,
+			5'h7,
 			5'h6,
-			5'h7
+			5'h5,
+			5'h4,
+			5'h3,
+			5'h2,
+			5'h1,
+			5'h0
 		};
 	    // 4x write ports
 		tb_write_valid_by_port = 4'b0000;
@@ -156,16 +160,20 @@ module map_table_tb ();
 
 		// outputs:
 
-	    // 8x read ports
+	    // 12x read ports
 		expected_read_PR_by_port = {
-			7'h0,
-			7'h1,
-			7'h2,
-			7'h3,
-			7'h4,
-			7'h5,
+			7'hb,
+			7'ha,
+			7'h9,
+			7'h8,
+			7'h7,
 			7'h6,
-			7'h7
+			7'h5,
+			7'h4,
+			7'h3,
+			7'h2,
+			7'h1,
+			7'h0
 		};
 	    // 4x write ports
 	    // checkpoint save
@@ -182,16 +190,20 @@ module map_table_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // 8x read ports
+	    // 12x read ports
 		tb_read_AR_by_port = {
-			5'h0,
-			5'h1,
-			5'h2,
-			5'h3,
-			5'h4,
-			5'h5,
+			5'hb,
+			5'ha,
+			5'h9,
+			5'h8,
+			5'h7,
 			5'h6,
-			5'h7
+			5'h5,
+			5'h4,
+			5'h3,
+			5'h2,
+			5'h1,
+			5'h0
 		};
 	    // 4x write ports
 		tb_write_valid_by_port = 4'b0000;
@@ -216,16 +228,20 @@ module map_table_tb ();
 
 		// outputs:
 
-	    // 8x read ports
+	    // 12x read ports
 		expected_read_PR_by_port = {
-			7'h0,
-			7'h1,
-			7'h2,
-			7'h3,
-			7'h4,
-			7'h5,
+			7'hb,
+			7'ha,
+			7'h9,
+			7'h8,
+			7'h7,
 			7'h6,
-			7'h7
+			7'h5,
+			7'h4,
+			7'h3,
+			7'h2,
+			7'h1,
+			7'h0
 		};
 	    // 4x write ports
 	    // checkpoint save
@@ -242,7 +258,7 @@ module map_table_tb ();
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		for (int i = 0; i < 32; i+=8) begin
+		for (int i = 0; i < 32; i+=12) begin
 
 			@(posedge CLK); #(PERIOD/10);
 
@@ -252,8 +268,12 @@ module map_table_tb ();
 
 			// reset
 			nRST = 1'b1;
-			// 8x read ports
+			// 12x read ports
 			tb_read_AR_by_port = {
+				{i + 11}[4:0],
+				{i + 10}[4:0],
+				{i + 9}[4:0],
+				{i + 8}[4:0],
 				{i + 7}[4:0],
 				{i + 6}[4:0],
 				{i + 5}[4:0],
@@ -286,8 +306,12 @@ module map_table_tb ();
 
 			// outputs:
 
-			// 8x read ports
+			// 12x read ports
 			expected_read_PR_by_port = {
+				{(i + 11) % 32}[6:0],
+				{(i + 10) % 32}[6:0],
+				{(i + 9) % 32}[6:0],
+				{(i + 8) % 32}[6:0],
 				{i + 7}[6:0],
 				{i + 6}[6:0],
 				{i + 5}[6:0],
@@ -323,8 +347,12 @@ module map_table_tb ();
 
 			// reset
 			nRST = 1'b1;
-			// 8x read ports
+			// 12x read ports
 			tb_read_AR_by_port = {
+				5'h0,
+				5'h0,
+				5'h0,
+				5'h0,
 				5'h0,
 				5'h0,
 				5'h0,
@@ -357,9 +385,13 @@ module map_table_tb ();
 
 			// outputs:
 
-			// 8x read ports
+			// 12x read ports
 			if (i > 0) begin
 				expected_read_PR_by_port = {
+					7'h20,
+					7'h20,
+					7'h20,
+					7'h20,
 					7'h20,
 					7'h20,
 					7'h20,
@@ -372,6 +404,10 @@ module map_table_tb ();
 			end
 			else begin
 				expected_read_PR_by_port = {
+					7'h0,
+					7'h0,
+					7'h0,
+					7'h0,
 					7'h0,
 					7'h0,
 					7'h0,
@@ -403,7 +439,7 @@ module map_table_tb ();
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		for (int i = 0; i < 32; i+=8) begin
+		for (int i = 0; i < 32; i+=12) begin
 
 			@(posedge CLK); #(PERIOD/10);
 
@@ -413,8 +449,12 @@ module map_table_tb ();
 
 			// reset
 			nRST = 1'b1;
-			// 8x read ports
+			// 12x read ports
 			tb_read_AR_by_port = {
+				{i + 11}[4:0],
+				{i + 10}[4:0],
+				{i + 9}[4:0],
+				{i + 8}[4:0],
 				{i + 7}[4:0],
 				{i + 6}[4:0],
 				{i + 5}[4:0],
@@ -447,8 +487,12 @@ module map_table_tb ();
 
 			// outputs:
 
-			// 8x read ports
+			// 12x read ports
 			expected_read_PR_by_port = {
+				{(i + 11) % 32 + 32}[6:0],
+				{(i + 10) % 32 + 32}[6:0],
+				{(i + 9) % 32 + 32}[6:0],
+				{(i + 8) % 32 + 32}[6:0],
 				{i + 32 + 7}[6:0],
 				{i + 32 + 6}[6:0],
 				{i + 32 + 5}[6:0],
@@ -482,8 +526,12 @@ module map_table_tb ();
 
 		// reset
 		nRST = 1'b1;
-		// 8x read ports
+		// 12x read ports
 		tb_read_AR_by_port = {
+			5'h0,
+			5'h0,
+			5'h0,
+			5'h0,
 			5'h0,
 			5'h0,
 			5'h0,
@@ -518,8 +566,12 @@ module map_table_tb ();
 
 		// outputs:
 
-		// 8x read ports
+		// 12x read ports
 		expected_read_PR_by_port = {
+			7'h20,
+			7'h20,
+			7'h20,
+			7'h20,
 			7'h20,
 			7'h20,
 			7'h20,
@@ -544,7 +596,7 @@ module map_table_tb ();
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		for (int i = 0; i < 32; i+=8) begin
+		for (int i = 0; i < 32; i+=12) begin
 
 			@(posedge CLK); #(PERIOD/10);
 
@@ -554,7 +606,7 @@ module map_table_tb ();
 
 			// reset
 			nRST = 1'b1;
-			// 8x read ports
+			// 12x read ports
 			tb_read_AR_by_port = {
 				{i + 7}[4:0],
 				{i + 6}[4:0],
@@ -588,7 +640,7 @@ module map_table_tb ();
 
 			// outputs:
 
-			// 8x read ports
+			// 12x read ports
 			expected_read_PR_by_port = {
 				{(i + 7) * 2}[6:0],
 				{(i + 6) * 2}[6:0],

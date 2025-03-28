@@ -17,9 +17,9 @@ module map_table_wrapper (
     input logic nRST,
 
 
-    // 8x read ports
-	input logic [7:0][LOG_AR_COUNT-1:0] next_read_AR_by_port,
-	output logic [7:0][LOG_PR_COUNT-1:0] last_read_PR_by_port,
+    // 12x read ports
+	input logic [11:0][LOG_AR_COUNT-1:0] next_read_AR_by_port,
+	output logic [11:0][LOG_PR_COUNT-1:0] last_read_PR_by_port,
 
     // 4x write ports
 	input logic [3:0] next_write_valid_by_port,
@@ -38,9 +38,9 @@ module map_table_wrapper (
     // Direct Module Connections:
 
 
-    // 8x read ports
-	logic [7:0][LOG_AR_COUNT-1:0] read_AR_by_port;
-	logic [7:0][LOG_PR_COUNT-1:0] read_PR_by_port;
+    // 12x read ports
+	logic [11:0][LOG_AR_COUNT-1:0] read_AR_by_port;
+	logic [11:0][LOG_PR_COUNT-1:0] read_PR_by_port;
 
     // 4x write ports
 	logic [3:0] write_valid_by_port;
@@ -66,7 +66,7 @@ module map_table_wrapper (
         if (~nRST) begin
 
 
-		    // 8x read ports
+		    // 12x read ports
 			read_AR_by_port <= '0;
 			last_read_PR_by_port <= '0;
 
@@ -85,7 +85,7 @@ module map_table_wrapper (
         else begin
 
 
-		    // 8x read ports
+		    // 12x read ports
 			read_AR_by_port <= next_read_AR_by_port;
 			last_read_PR_by_port <= read_PR_by_port;
 
