@@ -31,7 +31,8 @@ package system_types_pkg;
             // 16B*2-way fetch width
             // {tag, index[], blkoff[0]}[]
     parameter ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE);
-    parameter ICACHE_INDEX_WIDTH = $clog2(ICACHE_SIZE / ICACHE_ASSOC / ICACHE_BLOCK_SIZE);
+    parameter ICACHE_NUM_SETS = ICACHE_SIZE / ICACHE_ASSOC / ICACHE_BLOCK_SIZE;
+    parameter ICACHE_INDEX_WIDTH = $clog2(ICACHE_NUM_SETS);
     parameter ICACHE_TAG_WIDTH = PA_WIDTH - ICACHE_INDEX_WIDTH - ICACHE_BLOCK_OFFSET_WIDTH;
         // fetch side interface
     parameter ICACHE_FETCH_WIDTH = 16;

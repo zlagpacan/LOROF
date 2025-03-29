@@ -53,7 +53,7 @@ module istream #(
     // SDEQ feedback
     input logic stall_SDEQ,
 
-    // control
+    // restart
     input logic         restart,
     input logic [31:0]  restart_PC
 );
