@@ -92,13 +92,10 @@ module prf #(
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    compressed_read_req_valid_by_bank_by_rr;
     logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]      compressed_read_req_PR_by_rr;
 
-    // logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port0_masked_read_ack_by_bank_by_rr;
-    // logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port0_unmasked_read_ack_by_bank_by_rr;
-    // logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port1_masked_read_ack_by_bank_by_rr;
-    // logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port1_unmasked_read_ack_by_bank_by_rr;
-
-    logic [PRF_BANK_COUNT-1:0][2*PRF_RR_COUNT-1:0]    port0_read_ack_masked_unmasked_by_bank_by_rr;
-    logic [PRF_BANK_COUNT-1:0][2*PRF_RR_COUNT-1:0]    port1_read_ack_masked_unmasked_by_bank_by_rr;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port0_masked_read_ack_by_bank_by_rr;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port0_unmasked_read_ack_by_bank_by_rr;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port1_masked_read_ack_by_bank_by_rr;
+    logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port1_unmasked_read_ack_by_bank_by_rr;
 
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port0_read_ack_by_bank_by_rr;
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port1_read_ack_by_bank_by_rr;
@@ -215,55 +212,34 @@ module prf #(
             // port 0:
                 // single PE over raw compressed req's
             
-            // // port 0 masked
-            // pe_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT0_MASKED_PE_LSB (
-            //     .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank] & last_read_mask_by_bank[rr_bank]),
-            //     .ack_one_hot(port0_masked_read_ack_by_bank_by_rr[rr_bank]),
-            //     .ack_mask()
-            // );
+            // port 0 masked
+            pe_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT0_MASKED_PE_LSB (
+                .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank] & last_read_mask_by_bank[rr_bank]),
+                .ack_one_hot(port0_masked_read_ack_by_bank_by_rr[rr_bank]),
+                .ack_mask()
+            );
             
-            // // port 0 unmasked
-            // pe_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT0_UNMASKED_PE_LSB (
-            //     .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank]),
-            //     .ack_one_hot(port0_unmasked_read_ack_by_bank_by_rr[rr_bank]),
-            //     .ack_mask()
-            // );
-            
-            // port 0 masked + unmasked
-            pe_lsb #(.WIDTH(PRF_RR_COUNT * 2)) RR_PORT0_MASKED_UNMASKED_PE_LSB (
-                .req_vec({
-                    compressed_read_req_valid_by_bank_by_rr[rr_bank], 
-                    compressed_read_req_valid_by_bank_by_rr[rr_bank] & last_read_mask_by_bank[rr_bank]
-                }),
-                .ack_one_hot(port0_read_ack_masked_unmasked_by_bank_by_rr[rr_bank]),
+            // port 0 unmasked
+            pe_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT0_UNMASKED_PE_LSB (
+                .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank]),
+                .ack_one_hot(port0_unmasked_read_ack_by_bank_by_rr[rr_bank]),
                 .ack_mask()
             );
 
             // port 1:
                 // single PE over raw compressed req's with port 0 ack masked out
             
-            // // port 1 masked
-            // pe_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_MASKED_PE_LSB (
-            //     .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank] & ~port0_read_ack_by_bank_by_rr[rr_bank] & last_read_mask_by_bank[rr_bank]),
-            //     .ack_one_hot(port1_masked_read_ack_by_bank_by_rr[rr_bank]),
-            //     .ack_mask()
-            // );
+            // port 1 masked
+            pe_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_MASKED_PE_LSB (
+                .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank] & ~port0_read_ack_by_bank_by_rr[rr_bank] & last_read_mask_by_bank[rr_bank]),
+                .ack_one_hot(port1_masked_read_ack_by_bank_by_rr[rr_bank]),
+                .ack_mask()
+            );
             
-            // // port 1 unmasked
-            // pe_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_UNMASKED_PE_LSB (
-            //     .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank] & ~port0_read_ack_by_bank_by_rr[rr_bank]),
-            //     .ack_one_hot(port1_unmasked_read_ack_by_bank_by_rr[rr_bank]),
-            //     .ack_mask()
-            // );
-            
-            // port 1 masked + unmasked
-            pe_lsb #(.WIDTH(PRF_RR_COUNT * 2)) RR_PORT1_MASKED_UNMASKED_PE_LSB (
-                .req_vec({
-                    compressed_read_req_valid_by_bank_by_rr[rr_bank], 
-                    compressed_read_req_valid_by_bank_by_rr[rr_bank] & last_read_mask_by_bank[rr_bank]
-                } & ~port0_read_ack_masked_unmasked_by_bank_by_rr[rr_bank]
-                ),
-                .ack_one_hot(port1_read_ack_masked_unmasked_by_bank_by_rr[rr_bank]),
+            // port 1 unmasked
+            pe_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_UNMASKED_PE_LSB (
+                .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank] & ~port0_read_ack_by_bank_by_rr[rr_bank]),
+                .ack_one_hot(port1_unmasked_read_ack_by_bank_by_rr[rr_bank]),
                 .ack_mask()
             );
 
@@ -299,35 +275,25 @@ module prf #(
             // use RR PE's above
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
 
-            // // select port 0:
-            //     // if any masked req, use masked
-            //     // else use unmasked
-            // if (|(compressed_read_req_valid_by_bank_by_rr[bank] & last_read_mask_by_bank[bank])) begin
-            //     port0_read_ack_by_bank_by_rr[bank] = port0_masked_read_ack_by_bank_by_rr[bank];
-            // end
-            // else begin
-            //     port0_read_ack_by_bank_by_rr[bank] = port0_unmasked_read_ack_by_bank_by_rr[bank];
-            // end
+            // select port 0:
+                // if any masked req, use masked
+                // else use unmasked
+            if (|(compressed_read_req_valid_by_bank_by_rr[bank] & last_read_mask_by_bank[bank])) begin
+                port0_read_ack_by_bank_by_rr[bank] = port0_masked_read_ack_by_bank_by_rr[bank];
+            end
+            else begin
+                port0_read_ack_by_bank_by_rr[bank] = port0_unmasked_read_ack_by_bank_by_rr[bank];
+            end
 
-            port0_read_ack_by_bank_by_rr[bank] = 
-                port0_read_ack_masked_unmasked_by_bank_by_rr[bank][PRF_RR_COUNT-1:0] | 
-                port0_read_ack_masked_unmasked_by_bank_by_rr[bank][2*PRF_RR_COUNT-1:PRF_RR_COUNT]
-            ;
-
-            // // select port 1:
-            //     // if any masked req, use masked
-            //     // else use unmasked
-            // if (|(compressed_read_req_valid_by_bank_by_rr[bank] & ~port0_read_ack_by_bank_by_rr[bank] & last_read_mask_by_bank[bank])) begin
-            //     port1_read_ack_by_bank_by_rr[bank] = port1_masked_read_ack_by_bank_by_rr[bank];
-            // end
-            // else begin
-            //     port1_read_ack_by_bank_by_rr[bank] = port1_unmasked_read_ack_by_bank_by_rr[bank];
-            // end
-
-            port1_read_ack_by_bank_by_rr[bank] = 
-                port1_read_ack_masked_unmasked_by_bank_by_rr[bank][PRF_RR_COUNT-1:0] | 
-                port1_read_ack_masked_unmasked_by_bank_by_rr[bank][2*PRF_RR_COUNT-1:PRF_RR_COUNT]
-            ;
+            // select port 1:
+                // if any masked req, use masked
+                // else use unmasked
+            if (|(compressed_read_req_valid_by_bank_by_rr[bank] & ~port0_read_ack_by_bank_by_rr[bank] & last_read_mask_by_bank[bank])) begin
+                port1_read_ack_by_bank_by_rr[bank] = port1_masked_read_ack_by_bank_by_rr[bank];
+            end
+            else begin
+                port1_read_ack_by_bank_by_rr[bank] = port1_unmasked_read_ack_by_bank_by_rr[bank];
+            end
         end
 
         // final ack
@@ -336,18 +302,8 @@ module prf #(
         next_read_resp_ack_by_rr = '0;
         next_read_resp_port_by_rr = '0;
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-            // next_read_resp_ack_by_rr |= port0_read_ack_by_bank_by_rr[bank] | port1_read_ack_by_bank_by_rr[bank];
-            // next_read_resp_port_by_rr |= port1_read_ack_by_bank_by_rr[bank];
-            next_read_resp_ack_by_rr |= 
-                port0_read_ack_masked_unmasked_by_bank_by_rr[bank][PRF_RR_COUNT-1:0] | 
-                port0_read_ack_masked_unmasked_by_bank_by_rr[bank][2*PRF_RR_COUNT-1:PRF_RR_COUNT] | 
-                port1_read_ack_masked_unmasked_by_bank_by_rr[bank][PRF_RR_COUNT-1:0] | 
-                port1_read_ack_masked_unmasked_by_bank_by_rr[bank][2*PRF_RR_COUNT-1:PRF_RR_COUNT]
-            ;
-            next_read_resp_port_by_rr |= 
-                port1_read_ack_masked_unmasked_by_bank_by_rr[bank][PRF_RR_COUNT-1:0] | 
-                port1_read_ack_masked_unmasked_by_bank_by_rr[bank][2*PRF_RR_COUNT-1:PRF_RR_COUNT]
-            ;
+            next_read_resp_ack_by_rr |= port0_read_ack_by_bank_by_rr[bank] | port1_read_ack_by_bank_by_rr[bank];
+            next_read_resp_port_by_rr |= port1_read_ack_by_bank_by_rr[bank];
         end
 
         // unacked req's
