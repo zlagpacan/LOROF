@@ -159,9 +159,11 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
             - MIE:
                 - M-mode interrupt enable
                 - enable interrupts when executing in M-mode
+                - WARL
             - SIE:
                 - S-mode interrupt enable
                 - enable interrupts when executing in S-mode
+                - WARL
             - regardless of these values, still never get interrupted by interrupts for lower privelege modes
                 - M-mode execution cannot be interrupted by S-mode level interrupt
             - regardless of these value, can still get interrupted by interrupts for higher privilege modes
@@ -176,20 +178,24 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
                 - M-mode previous interrupt enable
                 - MIE value before this trap
                     - SW can restore MIE to this MPIE value if wants to disable interrupts to take care of this trap
+                - WARL
             - SPIE:
                 - S-mode previous interrupt enable
                 - SIE value before this trap
                     - SW can restore SIE to this SPIE value if wants to disable interrupts to take care of this trap
+                - WARL
             - MPP[1:0]:
                 - M-mode previous privelege mode
                 - 00: previously U-mode
                 - 01: previously S-mode
                 - 10: reserved
                 - 11: previously M-mode
+                - WARL
             - SPP:
                 - S-mode previous privelege mode
                 - 0: previously U-mode
                 - 1: previously S-mode
+                - WARL
             - HW support:
                 - trap to M-mode
                     - set MPIE with MIE value
@@ -215,6 +221,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
                 - use executing privelege mode's DATA (load/store/amo) memory translation and protection rules
             - MPRV = 1:
                 - use DATA (load/store/amo) memory translation and protection rules designated by the MPP privelege mode
+            - WARL
             - essentially, SW can enable translation and protection for M-mode loads and stores
                 - e.g. misaligned load, can directly use virtual address that S-mode or U-mode tried to access
             - MPRV = 0 guaranteed for U-mode and S-mode
@@ -225,6 +232,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
                 - normal translation and protection rules where can only load from page with R=1
             - MXR = 1:
                 - allow loads from pages with X=1 or R=1
+            - WARL
             - implies MPRV = 1 for this field to be relevant, when trying to do a translated and protected load in M-mode
         - SUM:
             - Permit Supervisor User Memory Access
@@ -232,6 +240,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
                 - S-mode accesses to U=1 pages will fault
             - SUM = 1:
                 - S-mode accesses to U=1 pages are permitted
+            - WARL
             - implies translation and protection in effect for this field to have an effect
             - relevant to M-mode when MPRV=1 & MPP=S-mode
                 - this is when DATA memory accesses are effectively S-mode accesses
@@ -239,19 +248,61 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
             - byte endianness for DATA memory accesses
                 - instruction accesses always little-endian
             - 0 for little endian, 1 for big endian
-            - MBE = 1'b0
-                - Machine Byte Endianness
+            - UBE = 1'b0:
+                - U-mode Byte Endianness
                 - WARL
                     - will ignore writes
-            - SBE = 1'b0
-                - Supervisor Byte Endianness
+            - SBE and MBE in mstatush
+        - TVM:
+            - Trap Virtual Memory
+            - TVM = 0:
+                - satp CSR reads/writes and SFENCE.VMA allowed in S-mode
+            - TVM = 1:
+                - satp CSR reads/writes and SFENCE.VMA raise an illegal-instruction exception in S-mode 
+            - WARL
+        - TW:
+            - Timeout Wait
+            - TW = 0:
+                - S-mode can freely execute WFI
+            - TW = 1:
+                - S-mode use of WFI either:
+                    - waits for bounded time before completing
+                    - gives illegal instruction
+            - WARL
+            - U-mode use of WFI always either:
+                - waits for bounded time before completing
+                - gives illegal instruction
+            - simple: 
+                - TW = 1 & S-mode immediately gives illegal instruction
+                - U-mode WFI always immediately gives illegal instruction
+        - TSR:
+            - Trap SRET
+            - TSR = 0:
+                - SRET is permitted in S-mode
+            - TSR = 1:
+                - SRET in S-mode raises illegal-instruction exception
+            - WARL
+        - FS, VS, XS, SD:
+            - extension context status
+                - 2 bits each for {Off, Initial, Clean, Dirty} states
+            - FS[1:0]:
+                - FPU state encoding
+                - WARL
+                    - allow writes and reads for FPU emulation in SW
+            - VS[1:0] = 2'b00:
+                - Vector state encoding
+                - WARL
+                    - allow writes and reads for FPU emulation in SW
+            - XS[1:0] = 2'b00:
+                - additional U-mode extension state encoding
                 - WARL
                     - will ignore writes
-            - UBE = 1'b0
-                - User Byte Endianness
-                - WARL
-                    - will ignore writes
-                
+            - SD:
+                - SD = 0:
+                    - none of FS, VS, XS dirty
+                - SD = 1: 
+                    - any of FS, VS, XS dirty
+                - read-only
 - 0x301: misa
     - ISA and extensions
     - MRW
@@ -276,15 +327,80 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 - 0x302: medeleg
     - machine exception delegation
     - MRW
+    - all exceptions trap to M-mode by default
+    - set bits in medeleg, medelegh for corresponding exceptions to trap to S-mode when executing in S-mode or U-mode
+        - corresponding exceptions executing in M-mode still trap to M-mode
+    - bit indexes correspond to mcause bit indexes
+    - HW support for delegated exception:
+        - set scause
+        - set sepc
+        - set stval
+        - set mstatus.SPP following execution mode when trapped
+        - set mstatus.SIE = 0
+    - HW support for all bits as writeable 0 or 1:
+        - means HW support for any exception delegatable 
+        - exceptions that aren't possible in lower privileged modes are read-only zero
+            - medeleg[11] = 1'b0
 - 0x303: mideleg
     - machine interrupt delegation
     - MRW
+    - mostly same semantics as medeleg but for interrupts
+    - delegated interrupts are ignored in M-mode
+        - instead of interrupting to M-mode if executing in M-mode, these are now ignored
+    - bit indexes correspond to mcause bit indexes
+    - no midelegh
 - 0x304: mie
     - machine interrupt enable
     - MRW
+    - bit indexes correspond to mcause bit indexes
+    - when interrupt into M-mode for interrupt i:
+        - either:
+            - executing in M-mode and mstatus.MIE = 1'b1
+            - executing in S-mode OR U-mode
+        - mip[i] = 1'b1 & mie[i] = 1'b1
+        - mideleg[i] = 1'b0
+    - propagate changes to mip, mie, mstatus, mideleg immediately on MRET, SRET
+    - propagate changes to mip, mie, mstatus, mideleg immediately on dependent CSR writes
+    - M-mode interrupts take priority over S-mode delegated interrupts
+    - bits of supported interrupts can be written by CSR writes
+    - bits of unsupported interrupts are read-only zero
+    - {upper16[15:0], 2'b00, LCOFIE, 1'b0, MEIE, 1'b0, SEIE, 1'b0, MTIE, 1'b0, STIE, 1'b0, MSIE, 1'b0, SSIE, 1'b0}
+        - upper16[15:0] = 16'h0:
+            - upper 16 bits are implementation defined
+            - HW custom interrupts here
+                - none planned right now
+        - LCOFIE = 1'b0:
+            - not supported
+            - would be used for Sscofpmf extension for counter overflow interrupts
+        - MEIE:
+            - M External Interrupt enable
+        - MTIE:
+            - M Timer Interrupt Enable
+        - MSIE:
+            - M Software Interrupt Enable
+        - 
 - 0x305: mtvec
-    - machine trap handler base address
+    - machine trap-vector base-address
     - MRW
+    - {BASE[31:2], MODE[1:0]}
+        - BASE:
+            - base address of trap PC
+            - give 4-byte aligned upper 30 PC bits
+            - WARL
+        - MODE:
+            - trap vectorization enable
+            - WARL
+            - MODE = 2'b00: Direct
+                - all exceptions and interrupts:
+                    - PC <= BASE
+            - MODE = 2'b01: Vectored
+                - exceptions:
+                    - PC <= BASE
+                - interrupts:
+                    - PC <= BASE + 4 * (interrupt cause)
+            - MODE = 2'b10, 2'b11:
+                - reserved
+                - WARL so force to 2'b00 or 2'b01 if try to write these
 - 0x306: mcounteren
     - machine counter enable
     - MRW
@@ -292,6 +408,18 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - upper 32 bits of mstatus
     - MRW
     - {WPRI[25:0], MBE, SBE, WPRI[3:0]}
+        - MBE, SBE:
+            - byte endianness for DATA memory accesses
+                - instruction accesses always little-endian
+            - 0 for little endian, 1 for big endian
+            - MBE = 1'b0:
+                - M-mode Byte Endianness
+                - WARL
+                    - will ignore writes
+            - SBE = 1'b0:
+                - S-mode Byte Endianness
+                - WARL
+                    - will ignore writes
 - 0x312: medelegh
     - upper 32 bits of medeleg
 
@@ -310,7 +438,33 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - MRW
 - 0x344: mip
     - machine interrupt pending
+    - use this reg to give indication of existent interrupt
+        - i.e. use these actual reg bits to determine if interrupt core
     - MRW
+    - bit indexes correspond to mcause bit indexes
+    - bits of supported interrupts can be cleared to 0 by CSR writes
+    - bits of unsupported interrupts are read-only zero
+    - {upper16[15:0], 2'b00, LCOFIP, 1'b0, MEIP, 1'b0, SEIP, 1'b0, MTIP, 1'b0, STIP, 1'b0, MSIP, 1'b0, SSIP, 1'b0}
+        - upper16[15:0] = 16'h0:
+            - upper 16 bits are implementation defined
+            - HW custom interrupts here
+                - none planned right now
+        - LCOFIP = 1'b0:
+            - not supported
+            - would be used for Sscofpmf extension for counter overflow interrupts
+        - MEIP:
+            - M External Interrupt Pending
+            - read-only by CSR instr's
+            - set and cleared by PLIC
+        - MTIP:
+            - M Timer Interrupt Pending
+            - read-only by CSR instr's
+            - set and cleared by writing to mem-mapped M-mode timer compare CSR
+        - MSIP:
+            - M Software Interrupt Pending
+            - read-only by CSR instr's
+            - set and cleared by mem-mapped IPI CSR's
+    - see mie ^ for remaining semantics
     
 #### Config
 - skip
