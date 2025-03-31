@@ -1089,6 +1089,7 @@ module decoder (
                                         else if (uncinstr_rs2 == 5'b00101) begin
                                             // WFI
                                                 // flush fetch to be resumed after interrupt
+                                                // sys_pipeline takes care of WFI stall state
                                             is_sys = 1'b1;
                                             op[2:0] = uncinstr_funct3;
                                             flush_fetch = 1'b1;
