@@ -51,7 +51,19 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 ### Unprivileged CSR's
 
 #### FPU
-- unsupported
+- 0x001: fflags
+    - FPU accrued exceptions
+    - URW
+    - F extension unsupported, illegal instr
+- 0x002: frm
+    - FPU dynamic rounding mode
+    - URW
+    - F extension unsupported, illegal instr
+- 0x003: fcsr
+    - FPU control and status register
+        - superset of equivalent bits when read fflags, frm individually
+    - URW
+    - F extension unsupported, illegal instr
 
 #### Counters, Timers
 - 0xC00: cycle
@@ -149,6 +161,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 - 0x5A8: scontext
     - supervisor context
     - SRW
+    - unratified, illegal instr
 
 #### State Enable
 - 0x10C:0x10F: sstateen0:3
@@ -410,7 +423,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
             - HW custom interrupts here
                 - none planned right now
         - LCOFIE = 1'b0:
-            - not supported
+            - unsupported
             - would be used for Sscofpmf extension for counter overflow interrupts
         - MEIE:
             - M External Interrupt Enable
@@ -489,11 +502,13 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
                     - will ignore writes
 - 0x312: medelegh
     - upper 32 bits of medeleg
+    - MRW
 
 #### Trap Handling
 - 0x340: mscratch
     - scrath register for machine trap handlers
     - MRW
+        - just read/write reg
 - 0x341: mepc
     - machine exception PC
     - MRW
@@ -526,7 +541,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
                 - [11]: M external interrupt
                 - [12]: Reserved = 1'b0
                 - [13]: Counter-overflow interrupt = 1'b0
-                    - not supported
+                    - unsupported
                 - [14:15]: Reserved = 2'b00
                 - [16:31]: platform's choice = 16'h0
                     - none planned
@@ -534,18 +549,18 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
             - Interrupt = 0:
                 - [0]: instr addr misaligned = 1'b0
                     - IALIGN=16, so won't happen
-                - [1]: instr access fault = 1'b0
-                    - PMP not supported
+                - [1]: instr access fault
+                    - PMA (supported) or PMP (unsupported)
                 - [2]: illegal instr
                 - [3]: breakpoint
                     - EBREAK
                 - [4]: load addr misaligned
                     - TBD if will support
                 - [5]: load access fault = 1'b0
-                    - PMP not supported
+                    - PMA (supported) or PMP (unsupported)
                 - [6]: store/amo addr misaligned
                 - [7]: store/amo access fault = 1'b0
-                    - PMP not supported
+                    - PMA (supported) or PMP (unsupported)
                 - [8]: ECALL from U-mode
                 - [9]: ECALL from S-mode
                 - [10]: Reserved = 1'b0
@@ -563,7 +578,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
                     - can use for unrecoverable fetch fault or other hardware bug detections
                 - [20:23]: Reserved = 4'b0000
                 - [24:30]: custom extensions = 7'h0
-                    - not supported
+                    - unsupported
         - exception priority
             - priority exists, see spec, not worth putting here
             - platform doesn't do fancy speculation that would ever raise exception in different priority order, so no need to enforce a specific priority 
@@ -572,7 +587,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - MRW
     - HW sets on all traps to M-mode
         - bad address exceptions:
-            - breakpoint, addr misaligned, PMP access fault, or page fault
+            - breakpoint, addr misaligned, PMA or PMP access fault, or page fault
             - set to virtual address
                 - PC for bad fetch addr
                 - load/store/amo address for bad dmem access 
@@ -597,7 +612,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
             - HW custom interrupts here
                 - none planned right now
         - LCOFIP = 1'b0:
-            - not supported
+            - unsupported
             - would be used for Sscofpmf extension for counter overflow interrupts for mhpmevent[i] counters
         - MEIP:
             - M External Interrupt Pending
@@ -635,11 +650,11 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 - 0x34A: mtinst
     - machine trap instruction (transformed)
     - MRW
-        - unsupported, read-only zero
+    - H extension unsupported, illegal instr
 - 0x34B: mtval2
     - machine bad guest physical address
     - MRW
-        - unsupported, read-only zero
+    - H extension unsupported, illegal instr
     
 #### Config
 - 0x30A: menvcfg
@@ -676,11 +691,11 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 - 0x747: mseccfg
     - machine security config
     - MRW
-    - not supported, illegal instr
+    - unsupported, illegal instr
 - 0x757: mseccfgh
     - upper 32 bits of mseccfg
     - MRW
-    - not supported, illegal instr
+    - unsupported, illegal instr
 
 #### Memory Protection
 - 0x3A0:0x3AF: pmpcfg0:15
@@ -706,28 +721,36 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 
 #### Non-Maskable Interrupt Handling
 - 0x740: mnscratch
-    - unsupported
+    - NMI scratch reg
+    - MRW
+    - NMI's unsupported, illegal instr
 - 0x741: mnepc
-    - unsupported
+    - NMI PC
+    - MRW
+    - NMI's unsupported, illegal instr
 - 0x742: mncause
-    - unsupported
+    - NMI cause
+    - MRW
+    - NMI's unsupported, illegal instr
 - 0x744: mnstatus
-    - unsupported
+    - NMI status
+    - MRW
+    - NMI's unsupported, illegal instr
 
 #### Counters, Timers
 - 0xB00: mcycle
-    - machine cycle counter
+    - machine cycle 64-bit counter with mcycleh
     - MRW
     - can write to give new value to continue counting from
 - 0xB02: minstret
-    - machine instructions retired counter
+    - machine instructions retired 64-bit counter with minstreth
     - instructions retired since arbitrary time in past
     - MRW
     - can write to give new value to continue counting from
     - don't increment for instructions causing synchronous exceptions
         - ECALL, EBREAK, illegal instr, etc.
 - 0xB03:0xB1F: mhpmcounter3:31
-    - machine perf monitoring counters
+    - machine perf monitoring 64-bit counters with mhpmcounter3h:31h
     - MRW
     - can write to give new value to continue counting from
     - platform-specific and ideally local to core for routing concerns
@@ -785,6 +808,11 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 - 0x323:0x33F: mhpmevent3:31
     - machine perf monitoring event selector
     - MRW
+    - platform-specific
+        - likely not worth it to define more than 29 counters, so event selects wouldn't be used
+            - especially since can use partial fields in the counters
+        - if do select, CSR's essentially treated as indirect reg's
+        - TBD, but likely make all read-only hardwired value
 - 0x723:0x73F: mhpmevent3h:31h
     - upper 32 bits of mhpmevent[i]
     - MRW
@@ -794,32 +822,41 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 - 0x7A0: tselect
     - debug/trace trigger select
     - MRW
+    - unratified, illegal instr
 - 0x7A1: tdata1
     - debug/trace trigger data 1
     - MRW
+    - unratified, illegal instr
 - 0x7A2: tdata2
     - debug/trace trigger data 2
     - MRW
+    - unratified, illegal instr
 - 0x7A3: tdata3
     - debug/trace trigger data 3
     - MRW
+    - unratified, illegal instr
 - 0x7A8: mcontext
     - machine context
     - MRW
+    - unratified, illegal instr
 
 #### Debug Mode
 - 0x7B0: dcsr
     - debug control and status
     - DRW
+    - unratified, illegal instr
 - 0x7B1: dpc
     - debug PC
     - DRW
+    - unratified, illegal instr
 - 0x7B2: dscratch0
     - debug scratch reg 0
     - DRW
+    - unratified, illegal instr
 - 0x7B3: dscratch1
     - debug scratch reg 1
     - DRW
+    - unratified, illegal instr
 
 ### Machine MMCSR's
 - memory-mapped machine-level CSR's
