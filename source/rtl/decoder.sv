@@ -1039,6 +1039,8 @@ module decoder (
                                 is_fence = 1'b1;
                                 flush_fetch = 1'b1;
                                 wait_write_buffer = 1'b1;
+                                    // need local hart stores in front of the FENCE.I to be visible to this hart's icache
+                                    // instruction stream after fence.i expects normal program order of stores, not global order
                             end
 
                             default:
