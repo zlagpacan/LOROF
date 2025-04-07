@@ -17,13 +17,18 @@ Quad-Core, so 4 of each:
     - 2-way associative
     - 32B block
     - private, per-core
+    - coherent
+        - receives snoops from L2 Cache
     - {valid, invalid} cache block states
 - Instruction TLB
     - 32-entry
     - 2-way associative
     - private, per-core
+    - incoherent
+        - SFENCE.VMA instruction triggers relevant TLB entry flush
+        - inter-processor interrupts used to notify other cores of page table updates
     - {valid, invalid} page table entry states
-- L1 Coherent Data Cache
+- L1 Data Cache
     - 8KB
     - 2-way associative
     - 32B block
@@ -38,6 +43,9 @@ Quad-Core, so 4 of each:
     - 32-entry
     - 2-way associative
     - private, per-core
+    - incoherent
+        - SFENCE.VMA instruction triggers relevant TLB entry flush
+        - inter-processor interrupts used to notify other cores of page table updates
     - {valid, invalid} page table entry states
 - Page Table Walker
     - unified instruction + data
@@ -54,11 +62,13 @@ Quad-Core, so 4 of each:
     - inclusive with L1 Data Cache
     - coherent
         - receives snoops from Bus
-        - snoops L1 Data Cache
+        - sends snoops to L1 Instruction Cache
+        - sends snoops L1 Data Cache
     - MOESI cache block states
     - write-back
 
-# System Modules
+
+# Shared System Modules
 - Bus
     - split-transaction, pipelined
     - MOESI coherence
@@ -76,10 +86,13 @@ Quad-Core, so 4 of each:
 - Memory Controller
     - DDR3 DRAM controller
     - TBD
+- Memory-Mapped CSR's
+    - timers
+    - clock
+    - inter-processor interrupts
 - DMA
     - TBD
 - I/O Bus
-    - blocking
     - TBD
 - I/O Devices
     - TBD
