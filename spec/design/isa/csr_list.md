@@ -913,6 +913,8 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
                 - reads to hpmcounter[i], hpmcounter[i]h by U-mode CSR instr gives illegal instr
             - HPM[i] = 1:
                 - reads to hpmcounter[i], hpmcounter[i]h by U-mode CSR instr permitted if mcounteren.HPM[i] = 1, else illegal instr
+    - for S-mode, CSR read allowed if mcounteren.\<counter\>
+    - for U-mode, CSR read allowed if mcounteren.\<counter\> & scounteren.\<counter\>
 
 #### Config
 - 0x10A: senvcfg
