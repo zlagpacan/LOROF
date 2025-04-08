@@ -470,7 +470,8 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
                     - unsupported
         - exception priority
             - priority exists, see spec, not worth putting here
-            - platform doesn't do fancy speculation that would ever raise exception in different priority order, so no need to enforce a specific priority 
+            - platform doesn't do fancy speculation that would ever raise exception in different priority order, so no need to enforce a specific priority
+    - HW sets on trap into M-mode
 - 0x343: mtval
     - machine bad address or instruction
     - MRW
@@ -922,8 +923,10 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 
 #### Counter Setup
 - 0x120: scountinhibit
-    - supervisor sounter-inhibit
+    - supervisor counter-inhibit
     - SRW
+    - unsupported
+        - used by Smcdeleg Extension for counter delegation
 
 #### Trap Handling
 - 0x140: sscratch
@@ -936,9 +939,72 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 - 0x141: sepc
     - supervisor exception PC
     - SRW
+    - separate from mepc
+        - want separate exception information per execution mode
+    - {sepc[31:1], 1'b0}
+        - HW sets sepc[31:1] with the PC of the instruction interrupted or the instruction that raised the exception on a trap to S-mode
+        - SW can freely write sepc[31:1]
 - 0x142: scause
     - supervisor trap cause
     - SRW
+    - separate from mcause
+        - want separate exception information per execution mode
+        - scause supports subset of non-M-mode bits in mcause, but should be separate hardware so that S-mode can track its own exception information
+    - {Interrupt, Exception Code[30:0]}
+        - Interrupt:
+            - if interrupt, HW sets Interrupt = 1'b1
+            - if exception, HW sets Interrupt = 1'b0
+        - Exception Code[30:0]:
+            - HW sets corresponding Exception Code bit
+                - seems like only set highest exception: i.e. one hot
+                - also seems like must cleanly order an interrupt vs. an exception since can't report both same cycle
+            - Interrupt = 1:
+                - [0]: Reserved = 1'b0
+                - [1]: S software interrupt
+                - [4:2]: Reserved = 3'b000
+                - [5]: S timer interrupt
+                - [8:6]: Reserved = 3'b000
+                - [9]: S external interrupt
+                - [12:10]: Reserved = 3'b000
+                - [13]: Counter-overflow interrupt = 1'b0
+                    - unsupported
+                - [14:15]: Reserved = 2'b00
+                - [16:31]: platform's choice = 16'h0
+                    - none planned
+                    - maybe [16] for power-on reset
+            - Interrupt = 0:
+                - [0]: instr addr misaligned = 1'b0
+                    - IALIGN=16, so won't happen
+                - [1]: instr access fault
+                    - PMA (supported) or PMP (unsupported)
+                - [2]: illegal instr
+                - [3]: breakpoint
+                    - EBREAK
+                - [4]: load addr misaligned
+                    - TBD if will support
+                - [5]: load access fault = 1'b0
+                    - PMA (supported) or PMP (unsupported)
+                - [6]: store/amo addr misaligned
+                - [7]: store/amo access fault = 1'b0
+                    - PMA (supported) or PMP (unsupported)
+                - [8]: ECALL from U-mode
+                - [9]: ECALL from S-mode
+                - [11:10]: Reserved = 2'b00
+                - [12]: instr page fault
+                - [13]: load page fault
+                    - includes LR.W
+                - [14]: Reserved = 1'b0
+                - [15]: store/amo page fault
+                - [16:17]: Reserved = 2'b00
+                - [18]: software check = 1'b0
+                    - no extension present which would raise this
+                        - e.g. for Spectre/Meltdown check
+                - [19]: hardware error
+                    - can use for unrecoverable fetch fault or other hardware bug detections
+                - [20:23]: Reserved = 4'b0000
+                - [24:30]: custom extensions = 7'h0
+                    - unsupported
+    - HW sets on trap into S-mode
 - 0x143: stval
     - supervisor bad address or instruction
     - SRW
