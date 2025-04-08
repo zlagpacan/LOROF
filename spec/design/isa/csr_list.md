@@ -29,6 +29,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - these value modifications do not cause CSR write side affects for the dependent CSR
 - implicit CSR reads are equivalent in affect of explicit CSR reads
     - i.e. satp CSR modifications must propagate immediately
+- unsupported CSR -> raise illegal instruction
 
 ### CSR Fields
 - WPRI
@@ -46,129 +47,11 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - no exceptions if illegal value
     - always read legal values unless wrote illegal value previously
 
-## Supported CSR's
 
-### Unprivileged CSR's
-
-#### FPU
-- 0x001: fflags
-    - FPU accrued exceptions
-    - URW
-    - F extension unsupported, illegal instr
-- 0x002: frm
-    - FPU dynamic rounding mode
-    - URW
-    - F extension unsupported, illegal instr
-- 0x003: fcsr
-    - FPU control and status register
-        - superset of equivalent bits when read fflags, frm individually
-    - URW
-    - F extension unsupported, illegal instr
-
-#### Counters, Timers
-- 0xC00: cycle
-    - user cycle counter
-    - cycles since arbitrary time in past
-    - URO
-    - alias to mcycle
-- 0xC01: time
-    - user time
-    - real time since arbitrary time in past
-    - tick at reasonable rate
-        - when implement real time clock, probably some multiple of seconds or milliseconds or microseconds
-    - URO
-    - alias to read of mtime MMCSR
-- 0xC02: instret
-    - user instructions retired
-    - instructions retired since arbitrary time in past
-    - URO
-    - don't increment for instructions causing synchronous exceptions
-        - ECALL, EBREAK, illegal instr, etc.
-    - alias to minstret
-- 0xC03:0xC1F: hpmcounter3:31
-    - perf monitoring counters
-    - URO
-    - alias to mhpmcounter3:31
-- 0xC80: cycleh
-    - upper 32 bits of cycle
-    - URO
-    - alias to mcycleh
-- 0xC81: timeh
-    - upper 32 bits of time
-    - URO
-    - alias to read of upper 32 bits of mtime MMCSR
-- 0xC82: instreth
-    - upper 32 bits of instret
-    - URO
-    - alias to minstreth
-- 0xC83:0xC9F: hpmcounter3h:31h
-    - upper 32 bits of hpmcounter[i]
-    - URO
-    - alias to mhpmcounter3h:31h
-
-### Supervisor CSR's
-
-#### Trap Setup
-- 0x100: sstatus
-    - supervisor status
-    - SRW
-- 0x104: sie
-    - supervisor interrupt-enable
-    - SRW
-- 0x105: stvec
-    - supervisor trap handler base address
-    - SRW
-- 0x106: scounteren
-    - supervisor counter enable
-    - SRW
-
-#### Config
-- 0x10A: senvcfg
-    - supervisor environment config
-
-#### Counter Setup
-- 0x120: scountinhibit
-    - supervisor sounter-inhibit
-    - SRW
-
-#### Trap Handling
-- 0x140: sscratch
-    - scratch register for supervisor trap handlers
-    - SRW
-- 0x141: sepc
-    - supervisor exception PC
-    - SRW
-- 0x142: scause
-    - supervisor trap cause
-    - SRW
-- 0x143: stval
-    - supervisor bad address or instruction
-    - SRW
-- 0x144: sip
-    - supervisor interrupt pending
-    - SRW
-- 0xDA0: scountovf
-    - supervisor count overflow
-    - unsupported
-    -   would be used for Sscofpmf extension for counter overflow diagnostics
-
-#### VM
-- 0x180: satp
-    - supervisor address translation and protection
-    - SRW
-
-#### Debug/Trace
-- 0x5A8: scontext
-    - supervisor context
-    - SRW
-    - unratified, illegal instr
-
-#### State Enable
-- 0x10C:0x10F: sstateen0:3
-    - supervisor state enables
-    - SRW
-    - for Smstateen extension
-    - unsupported, illegal instr
+## ISA CSR's
+- ISA defined per-core Control/Status Registers
+- listing all of the RISC-V standard M, S, and U mode CSR's, and explicitly vetoing the ones which are unsupported
+    - H mode CSR's are also standard, but none of them are supported
 
 ### Machine CSR's
 - M-mode-only accessible CSR's
@@ -211,7 +94,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 - 0x300: mstatus
     - machine status
     - MRW
-    - {SD, WPRI[7:0], TSR, TW, TVM, MXR, SM, MPRV, XS[1:0], FS[1:0], MPP[1:0], VS[1:0], SPP, MPIE, UBE, SPIE, WPRI, MIE, WPRI, SIE, WPRI}
+    - {SD, WPRI[7:0], TSR, TW, TVM, MXR, SUM, MPRV, XS[1:0], FS[1:0], MPP[1:0], VS[1:0], SPP, MPIE, UBE, SPIE, WPRI, MIE, WPRI, SIE, WPRI}
         - MIE, SIE: 
             - interrupt enables
             - MIE:
@@ -256,11 +139,13 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
                 - WARL
             - HW support:
                 - trap to M-mode
-                    - set MPIE with MIE value
-                    - set MPP with mode trapped from
+                    - MPIE <= MIE
+                    - MIE <= 1'b0
+                    - MPP <= mode trapped from
                 - trap to S-mode
-                    - set SPIE with SIE value
-                    - set SPP with mode trapped from
+                    - SPIE <= SIE
+                    - SIE <= 1'b0
+                    - SPP <= mode trapped from
                 - MRET
                     - see [Trap Return](#trap-return)
                 - SRET
@@ -285,13 +170,14 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
             - WARL
             - implies MPRV = 1 for this field to be relevant, when trying to do a translated and protected load in M-mode
         - SUM:
-            - Permit Supervisor User Memory Access
+            - permit Supervisor User Memory access
             - SUM = 0:
-                - S-mode accesses to U=1 pages will fault
+                - S-mode load/store accesses to U=1 pages will fault
             - SUM = 1:
-                - S-mode accesses to U=1 pages are permitted
+                - S-mode load/store accesses to U=1 pages are permitted
             - WARL
             - implies translation and protection in effect for this field to have an effect
+            - S-mode instruction execute access to U=1 pages always faults
             - relevant to M-mode when MPRV=1 & MPP=S-mode
                 - this is when DATA memory accesses are effectively S-mode accesses
         - MBE, SBE, UBE:
@@ -301,7 +187,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
             - UBE = 1'b0:
                 - U-mode Byte Endianness
                 - WARL
-                    - will ignore writes
+                    - will ignore writes, only support little endian
             - SBE and MBE in mstatush
         - TVM:
             - Trap Virtual Memory
@@ -412,8 +298,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
             - executing in S-mode OR U-mode
         - mip[i] = 1'b1 & mie[i] = 1'b1
         - mideleg[i] = 1'b0
-    - propagate changes to mip, mie, mstatus, mideleg immediately on MRET, SRET
-    - propagate changes to mip, mie, mstatus, mideleg immediately on dependent CSR writes
+    - propagate changes to mip, mie, mstatus, mideleg immediately on MRET, SRET, and dependent CSR writes
     - M-mode interrupts take priority over S-mode delegated interrupts
     - bits of supported interrupts can be written by CSR writes
     - bits of unsupported interrupts are read-only zero
@@ -462,28 +347,32 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 - 0x306: mcounteren
     - machine counter enable
     - MRW
-    - give access to shadow CSR reads for S-mode and U-mode using time, instret, and hpmcounter[i] U reg's
+    - give access to aliased CSR reads for S-mode and U-mode using time, instret, and hpmcounter[i] U CSR's
     - {HPM[31:3], IR, TM, CY}
         - CY:
             - CY = 0:
                 - reads to cycle, cycleh by S-mode or U-mode CSR instr gives illegal instr
             - CY = 1:
-                - reads to cycle, cycleh by S-mode or U-mode CSR instr permitted
+                - reads to cycle, cycleh by S-mode CSR instr permitted
+                - reads to cycle, cycleh by U-mode CSR instr permitted if scounteren.CY = 1, else illegal instr
         - TM:
             - TM = 0:
                 - reads to time, timeh by S-mode or U-mode CSR instr gives illegal instr
             - TM = 1:
-                - reads to time, timeh by S-mode or U-mode CSR instr permitted
+                - reads to time, timeh by S-mode CSR instr permitted
+                - reads to time, timeh by U-mode CSR instr permitted if scounteren.TM = 1, else illegal instr
         - IR:
             - IR = 0:
                 - reads to instret, instreth by S-mode or U-mode CSR instr gives illegal instr
             - IR = 1:
-                - reads to instret, instreth by S-mode or U-mode CSR instr permitted
+                - reads to instret, instreth by S-mode CSR instr permitted
+                - reads to instret, instreth by U-mode CSR instr permitted if scounteren.IR = 1, else illegal instr
         - HPM[31:3]:
             - HPM[i] = 0:
                 - reads to hpmcounter[i], hpmcounter[i]h by S-mode or U-mode CSR instr gives illegal instr
             - HPM[i] = 1:
-                - reads to hpmcounter[i], hpmcounter[i]h by S-mode or U-mode CSR isntr permitted
+                - reads to hpmcounter[i], hpmcounter[i]h by S-mode CSR instr permitted
+                - reads to hpmcounter[i], hpmcounter[i]h by U-mode CSR instr permitted if scounteren.HPM[i] = 1, else illegal instr
 - 0x310: mstatush
     - upper 32 bits of mstatus
     - MRW
@@ -600,11 +489,10 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - SW can freely write
 - 0x344: mip
     - machine interrupt pending
-    - use this reg to give indication of existent interrupt
-        - i.e. use these actual reg bits to determine if interrupt core
+        - use this reg to give indication of existent interrupt
+            - i.e. use these actual reg bits to determine if interrupt core
     - MRW
     - bit indexes correspond to mcause bit indexes
-    - bits of supported interrupts can be cleared to 0 by CSR writes
     - bits of unsupported interrupts are read-only zero
     - {upper16[15:0], 2'b00, LCOFIP, 1'b0, MEIP, 1'b0, SEIP, 1'b0, MTIP, 1'b0, STIP, 1'b0, MSIP, 1'b0, SSIP, 1'b0}
         - upper16[15:0] = 16'h0:
@@ -642,7 +530,8 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
             - writable by CSR instr's so M-mode can signal timer interrupt to S-mode
         - SSIP:
             - S Software Interrupt Pending
-            - writable by CSR instr's so M-mode can signal 
+            - writable by CSR instr's
+                - M-mode can signal to S-mode 
             - also set and cleared by IPI MMCSR's
     - priority:
         - MEI > MSI > MTI > SEI > SSI > STI > LCOFI
@@ -858,8 +747,323 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - DRW
     - unratified, illegal instr
 
+
+### Supervisor CSR's
+- many of these are aliased subsets of machine-mode CSR's
+
+#### Trap Setup
+- 0x100: sstatus
+    - supervisor status
+    - SRW
+    - aliased subset of mstatus
+    - {SD, WPRI[10:0], MXR, SUM, WPRI, XS[1:0], FS[1:0], WPRI[1:0], VS[1:0], SPP, WPRI, UBE, SPIE, WPRI[3:0], SIE, WPRI}
+        - SIE:
+            - S-mode interrupt enable
+            - enable interrupts when executing in S-mode
+            - WARL
+            - regardless of value, can still get interrupted by interrupts for higher privilege modes
+                - S-mode execution can always be interrupted by M-mode level interrupt
+                - U-mode execution can always be interrupted by M-mode or S-mode level interrupts
+        - SPIE, SPP:
+            - previous enable and privilege mode
+            - make up two-level privilege mode stack
+                - two-level in that save current and previous mode info
+                - SW must be careful to maintain this stack e.g. guarantee no exceptions while saving privilege mode stack
+            - SPIE:
+                - S-mode previous interrupt enable
+                - SIE value before this trap
+                    - SW can restore SIE to this SPIE value if wants to disable interrupts to take care of this trap
+                - WARL
+            - SPP:
+                - S-mode previous privilege mode
+                - 0: previously U-mode
+                - 1: previously S-mode
+                - WARL
+            - HW support:
+                - trap to S-mode
+                    - SPIE <= SIE
+                    - SIE <= 1'b0
+                    - SPP <= mode trapped from
+                - SRET
+                    - see [Trap Return](#trap-return)
+        - MXR:
+            - Make Executable Readable
+            - MXR = 0:
+                - normal translation and protection rules where can only load from page with R=1
+            - MXR = 1:
+                - allow loads from pages with X=1 or R=1
+            - WARL
+        - SUM:
+            - permit Supervisor User Memory access
+            - SUM = 0:
+                - S-mode load/store accesses to U=1 pages will fault
+            - SUM = 1:
+                - S-mode load/store accesses to U=1 pages are permitted
+            - WARL
+            - implies translation and protection in effect for this field to have an effect
+            - S-mode instruction execute access to U=1 pages always faults
+        - UBE:
+            - byte endianness for DATA memory accesses
+                - instruction accesses always little-endian
+            - 0 for little endian, 1 for big endian
+            - UBE = 1'b0:
+                - U-mode Byte Endianness
+                - WARL
+                    - will ignore writes, only support little endian
+        - FS, VS, XS, SD:
+            - extension context status
+                - 2 bits each for {Off, Initial, Clean, Dirty} states
+            - FS[1:0]:
+                - FPU state encoding
+                - WARL
+                    - allow writes and reads for FPU emulation in SW
+            - VS[1:0] = 2'b00:
+                - Vector state encoding
+                - WARL
+                    - allow writes and reads for FPU emulation in SW
+            - XS[1:0] = 2'b00:
+                - additional U-mode extension state encoding
+                - WARL
+                    - will ignore writes
+            - SD:
+                - SD = 0:
+                    - none of FS, VS, XS dirty
+                - SD = 1: 
+                    - any of FS, VS, XS dirty
+                - read-only
+- 0x104: sie
+    - supervisor interrupt-enable
+    - SRW
+    - aliased subset of mstatus
+        - mie and mip have diff bits for M vs. S mode versions of interrupts, of which sie and sip can RW the S-mode versions
+    - bit indexes correspond to scause bit indexes
+        - following Interrupt = 1'b1
+    - when interrupt into S-mode for interrupt i:
+        - either:
+            - executing in S-mode and sstatus.SIE = 1'b1
+            - executing in U-mode
+        - sip[i] = 1'b1 & sie[i] = 1'b1
+        - mideleg[i] = 1'b1?
+            - spec doesn't mention but seems to be implied, else would have interrupted into M-mode
+    - propagate changes to sip, sie, sstatus immediately on SRET and dependent CSR writes
+    - bits of supported interrupts can be written by CSR writes
+    - bits of unsupported interrupts are read-only zero
+    - {upper16[15:0], 2'b00, LCOFIE, 3'b000, SEIE, 3'b000, STIE, 3'b000, SSIE, 1'b0}
+        - upper16[15:0] = 16'h0:
+            - upper 16 bits are platform defined
+            - HW custom interrupts here
+                - none planned right now
+        - LCOFIE = 1'b0:
+            - unsupported
+            - would be used for Sscofpmf extension for counter overflow interrupts
+        - SEIE:
+            - S External Interrupt Enable
+        - STIE:
+            - S Timer Interrupt Enable
+        - SSIE:
+            - S Software Interrupt Enable
+- 0x105: stvec
+    - supervisor trap handler base address
+    - SRW
+    - separate from mtvec
+        - need to jump to different places for M-mode traps vs. S-mode traps
+    - {BASE[31:2], MODE[1:0]}
+        - BASE:
+            - base address of trap PC
+            - give 4-byte aligned upper 30 PC bits
+            - WARL
+        - MODE:
+            - trap vectorization enable
+            - WARL
+            - MODE = 2'b00: Direct
+                - all exceptions and interrupts:
+                    - PC <= BASE
+            - MODE = 2'b01: Vectored
+                - exceptions:
+                    - PC <= BASE
+                - interrupts:
+                    - PC <= BASE + 4 * (interrupt cause)
+            - MODE = 2'b10, 2'b11:
+                - reserved
+                - WARL so force to 2'b00 or 2'b01 if try to write these
+- 0x106: scounteren
+    - supervisor counter enable
+    - SRW
+    - separate from mcounteren
+        - this is separate control to also check for allowing access in U-mode
+    - give access to aliased CSR reads for U-mode using time, instret, and hpmcounter[i] U CSR's
+    - {HPM[31:3], IR, TM, CY}
+        - CY:
+            - CY = 0:
+                - reads to cycle, cycleh by U-mode CSR instr gives illegal instr
+            - CY = 1:
+                - reads to cycle, cycleh by U-mode CSR instr permitted if mcounteren.CY = 1, else illegal instr
+        - TM:
+            - TM = 0:
+                - reads to time, timeh by U-mode CSR instr gives illegal instr
+            - TM = 1:
+                - reads to time, timeh by U-mode CSR instr permitted if mcounteren.TM = 1, else illegal instr
+        - IR:
+            - IR = 0:
+                - reads to instret, instreth by U-mode CSR instr gives illegal instr
+            - IR = 1:
+                - reads to instret, instreth by U-mode CSR instr permitted if mcounteren.IR = 1, else illegal instr
+        - HPM[31:3]:
+            - HPM[i] = 0:
+                - reads to hpmcounter[i], hpmcounter[i]h by U-mode CSR instr gives illegal instr
+            - HPM[i] = 1:
+                - reads to hpmcounter[i], hpmcounter[i]h by U-mode CSR instr permitted if mcounteren.HPM[i] = 1, else illegal instr
+
+#### Config
+- 0x10A: senvcfg
+    - supervisor environment config
+
+#### Counter Setup
+- 0x120: scountinhibit
+    - supervisor sounter-inhibit
+    - SRW
+
+#### Trap Handling
+- 0x140: sscratch
+    - scratch register for supervisor trap handlers
+    - SRW
+        - just read/write reg
+    - separate from mscratch
+        - for S mode purposes
+    - typically used to store pointer to hart-local suprvisor context while hart executing in U
+- 0x141: sepc
+    - supervisor exception PC
+    - SRW
+- 0x142: scause
+    - supervisor trap cause
+    - SRW
+- 0x143: stval
+    - supervisor bad address or instruction
+    - SRW
+- 0x144: sip
+    - supervisor interrupt pending
+        - use this reg to give indication of existent interrupt
+            - i.e. use these actual reg bits to determine if interrupt core
+    - SRW
+    - aliased subset of mstatus
+        - mie and mip have diff bits for M vs. S mode versions of interrupts, of which sie and sip can RW the S-mode versions
+    - bit indexes correspond to scause bit indexes
+    - bits of unsupported interrupts are read-only zero
+    - {upper16[15:0], 2'b00, LCOFIP, 3'b000, SEIP, 3'b000, STIP, 3'b000, SSIP, 1'b0}
+        - upper16[15:0] = 16'h0:
+            - upper 16 bits are platform defined
+            - HW custom interrupts here
+                - none planned right now
+        - LCOFIP = 1'b0:
+            - unsupported
+            - would be used for Sscofpmf extension for counter overflow interrupts for mhpmevent[i] counters
+        - SEIP:
+            - S External Interrupt Pending
+            - read-only by CSR instr's
+            - set and cleared by PLIC
+        - STIP:
+            - S Timer Interrupt Pending
+            - read-only by CSR instr's
+                - M-mode will get MTIP trap, take care of timer details, then write STIP with CSR instr so S mode can get timer interrupt
+        - SSIP:
+            - S Software Interrupt Pending
+            - writable by CSR instr's
+                - probably so S-mode can clear self since S mode will not be touching IPI MMCSR's
+                - self S-mode signal also possible since can set as well
+            - also set by IPI MMCSR's
+                - not cleared since that's M-mode's job to use IPI MMCSR's?
+    - priority:
+        - SEI > SSI > STI > LCOFI
+    - see sie ^ for remaining semantics
+- 0xDA0: scountovf
+    - supervisor count overflow
+    - unsupported
+    - would be used for Sscofpmf extension for counter overflow diagnostics
+
+#### VM
+- 0x180: satp
+    - supervisor address translation and protection
+    - SRW
+
+#### Debug/Trace
+- 0x5A8: scontext
+    - supervisor context
+    - SRW
+    - unratified, illegal instr
+
+#### State Enable
+- 0x10C:0x10F: sstateen0:3
+    - supervisor state enables
+    - SRW
+    - for Smstateen extension
+    - unsupported, illegal instr
+
+
+### User CSR's
+
+#### FPU
+- 0x001: fflags
+    - FPU accrued exceptions
+    - URW
+    - F extension unsupported, illegal instr
+- 0x002: frm
+    - FPU dynamic rounding mode
+    - URW
+    - F extension unsupported, illegal instr
+- 0x003: fcsr
+    - FPU control and status register
+        - superset of equivalent bits when read fflags, frm individually
+    - URW
+    - F extension unsupported, illegal instr
+
+#### Counters, Timers
+- 0xC00: cycle
+    - user cycle counter
+    - cycles since arbitrary time in past
+    - URO
+    - alias to mcycle
+- 0xC01: time
+    - user time
+    - real time since arbitrary time in past
+    - tick at reasonable rate
+        - when implement real time clock, probably some multiple of seconds or milliseconds or microseconds
+    - URO
+    - alias to read of mtime MMCSR
+- 0xC02: instret
+    - user instructions retired
+    - instructions retired since arbitrary time in past
+    - URO
+    - don't increment for instructions causing synchronous exceptions
+        - ECALL, EBREAK, illegal instr, etc.
+    - alias to minstret
+- 0xC03:0xC1F: hpmcounter3:31
+    - perf monitoring counters
+    - URO
+    - alias to mhpmcounter3:31
+- 0xC80: cycleh
+    - upper 32 bits of cycle
+    - URO
+    - alias to mcycleh
+- 0xC81: timeh
+    - upper 32 bits of time
+    - URO
+    - alias to read of upper 32 bits of mtime MMCSR
+- 0xC82: instreth
+    - upper 32 bits of instret
+    - URO
+    - alias to minstreth
+- 0xC83:0xC9F: hpmcounter3h:31h
+    - upper 32 bits of hpmcounter[i]
+    - URO
+    - alias to mhpmcounter3h:31h
+
+
+## MMCSR's
+- memory-mapped CSR's
+- platform defined
+
 ### Machine MMCSR's
-- memory-mapped machine-level CSR's
+- machine-level memory-mapped CSR's 
 
 #### Machine Timer Registers
 - mtime
@@ -875,6 +1079,10 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - RW
         - SW can reset value
         - SW's job to set lower 32b and upper 32b such that don't get spurious interrupt while changing the value
+
+#### Inter-Processor Interrupt Registers
+- TODO
+
 
 ## Privileged Instructions
 
@@ -929,13 +1137,16 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
         - allows mie to be true mask over mip functionality
     - if take interrupt, set mpec <= pc + 4, instr after WFI
 
+
 ## Excepting Instructions
 - what CSR's to set
 - PC following mtvec
 
+
 ## Interrupts
 - what CSR's to set
 - PC following mtvec
+
 
 ## Reset Functionality
 - start execution in M-mode
