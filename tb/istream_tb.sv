@@ -45,6 +45,8 @@ module istream_tb ();
 	logic [LH_LENGTH-1:0] tb_LH_SENQ;
 	logic [GH_LENGTH-1:0] tb_GH_SENQ;
 	logic [RAS_INDEX_WIDTH-1:0] tb_ras_index_SENQ;
+	logic tb_page_fault_SENQ;
+	logic tb_access_fault_SENQ;
 
     // SENQ feedback
 	logic DUT_stall_SENQ, expected_stall_SENQ;
@@ -58,6 +60,8 @@ module istream_tb ();
 	logic [3:0][1:0] DUT_pred_lru_by_way_by_chunk_SDEQ, expected_pred_lru_by_way_by_chunk_SDEQ;
 	logic [3:0][1:0] DUT_redirect_by_way_by_chunk_SDEQ, expected_redirect_by_way_by_chunk_SDEQ;
 	logic [3:0][1:0][31:0] DUT_pred_PC_by_way_by_chunk_SDEQ, expected_pred_PC_by_way_by_chunk_SDEQ;
+	logic [3:0][1:0] DUT_page_fault_by_way_by_chunk_SDEQ, expected_page_fault_by_way_by_chunk_SDEQ;
+	logic [3:0][1:0] DUT_access_fault_by_way_by_chunk_SDEQ, expected_access_fault_by_way_by_chunk_SDEQ;
 	logic [3:0][MDPT_INFO_WIDTH-1:0] DUT_mdp_info_by_way_SDEQ, expected_mdp_info_by_way_SDEQ;
 	logic [3:0][31:0] DUT_PC_by_way_SDEQ, expected_PC_by_way_SDEQ;
 	logic [3:0][LH_LENGTH-1:0] DUT_LH_by_way_SDEQ, expected_LH_by_way_SDEQ;
@@ -95,6 +99,8 @@ module istream_tb ();
 		.LH_SENQ(tb_LH_SENQ),
 		.GH_SENQ(tb_GH_SENQ),
 		.ras_index_SENQ(tb_ras_index_SENQ),
+		.page_fault_SENQ(tb_page_fault_SENQ),
+		.access_fault_SENQ(tb_access_fault_SENQ),
 
 	    // SENQ feedback
 		.stall_SENQ(DUT_stall_SENQ),
@@ -108,6 +114,8 @@ module istream_tb ();
 		.pred_lru_by_way_by_chunk_SDEQ(DUT_pred_lru_by_way_by_chunk_SDEQ),
 		.redirect_by_way_by_chunk_SDEQ(DUT_redirect_by_way_by_chunk_SDEQ),
 		.pred_PC_by_way_by_chunk_SDEQ(DUT_pred_PC_by_way_by_chunk_SDEQ),
+		.page_fault_by_way_by_chunk_SDEQ(DUT_page_fault_by_way_by_chunk_SDEQ),
+		.access_fault_by_way_by_chunk_SDEQ(DUT_access_fault_by_way_by_chunk_SDEQ),
 		.mdp_info_by_way_SDEQ(DUT_mdp_info_by_way_SDEQ),
 		.PC_by_way_SDEQ(DUT_PC_by_way_SDEQ),
 		.LH_by_way_SDEQ(DUT_LH_by_way_SDEQ),
@@ -179,6 +187,20 @@ module istream_tb ();
 		if (expected_pred_PC_by_way_by_chunk_SDEQ !== DUT_pred_PC_by_way_by_chunk_SDEQ) begin
 			$display("TB ERROR: expected_pred_PC_by_way_by_chunk_SDEQ (%h) != DUT_pred_PC_by_way_by_chunk_SDEQ (%h)",
 				expected_pred_PC_by_way_by_chunk_SDEQ, DUT_pred_PC_by_way_by_chunk_SDEQ);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_page_fault_by_way_by_chunk_SDEQ !== DUT_page_fault_by_way_by_chunk_SDEQ) begin
+			$display("TB ERROR: expected_page_fault_by_way_by_chunk_SDEQ (%h) != DUT_page_fault_by_way_by_chunk_SDEQ (%h)",
+				expected_page_fault_by_way_by_chunk_SDEQ, DUT_page_fault_by_way_by_chunk_SDEQ);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_access_fault_by_way_by_chunk_SDEQ !== DUT_access_fault_by_way_by_chunk_SDEQ) begin
+			$display("TB ERROR: expected_access_fault_by_way_by_chunk_SDEQ (%h) != DUT_access_fault_by_way_by_chunk_SDEQ (%h)",
+				expected_access_fault_by_way_by_chunk_SDEQ, DUT_access_fault_by_way_by_chunk_SDEQ);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -286,6 +308,8 @@ module istream_tb ();
 		tb_LH_SENQ = 8'h0;
 		tb_GH_SENQ = 12'h0;
 		tb_ras_index_SENQ = 3'h0;
+		tb_page_fault_SENQ = 1'b0;
+		tb_access_fault_SENQ = 1'b0;
 	    // SENQ feedback
 	    // SDEQ stage
 	    // SDEQ feedback
@@ -319,6 +343,8 @@ module istream_tb ();
 		};
 		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
 		expected_redirect_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
 		expected_pred_PC_by_way_by_chunk_SDEQ = {
 			32'h0, 32'h0,
 			32'h0, 32'h0,
@@ -405,6 +431,8 @@ module istream_tb ();
 		tb_LH_SENQ = 8'h0;
 		tb_GH_SENQ = 12'h0;
 		tb_ras_index_SENQ = 3'h0;
+		tb_page_fault_SENQ = 1'b0;
+		tb_access_fault_SENQ = 1'b0;
 	    // SENQ feedback
 	    // SDEQ stage
 	    // SDEQ feedback
@@ -438,6 +466,8 @@ module istream_tb ();
 		};
 		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
 		expected_redirect_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
 		expected_pred_PC_by_way_by_chunk_SDEQ = {
 			32'h0, 32'h0,
 			32'h0, 32'h0,
@@ -532,6 +562,8 @@ module istream_tb ();
 		tb_LH_SENQ = 8'b10101010;
 		tb_GH_SENQ = 12'b101010101010;
 		tb_ras_index_SENQ = 3'b010;
+		tb_page_fault_SENQ = 1'b0;
+		tb_access_fault_SENQ = 1'b0;
 	    // SENQ feedback
 	    // SDEQ stage
 	    // SDEQ feedback
@@ -565,6 +597,8 @@ module istream_tb ();
 		};
 		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
 		expected_redirect_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
 		expected_pred_PC_by_way_by_chunk_SDEQ = {
 			32'h0, 32'h0,
 			32'h0, 32'h0,
@@ -653,6 +687,8 @@ module istream_tb ();
 		tb_LH_SENQ = 8'b01010101;
 		tb_GH_SENQ = 12'b010101010101;
 		tb_ras_index_SENQ = 3'b101;
+		tb_page_fault_SENQ = 1'b1;
+		tb_access_fault_SENQ = 1'b1;
 	    // SENQ feedback
 	    // SDEQ stage
 	    // SDEQ feedback
@@ -694,6 +730,8 @@ module istream_tb ();
 		};
 		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b10101010;
 		expected_redirect_by_way_by_chunk_SDEQ = 8'b10000000;
+		expected_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
 		expected_pred_PC_by_way_by_chunk_SDEQ = {
 			32'h80000010, 32'h8000000e,
 			32'h8000000c, 32'h8000000a,
@@ -782,6 +820,8 @@ module istream_tb ();
 		tb_LH_SENQ = 8'b01100110;
 		tb_GH_SENQ = 12'b011001100110;
 		tb_ras_index_SENQ = 3'b110;
+		tb_page_fault_SENQ = 1'b0;
+		tb_access_fault_SENQ = 1'b0;
 	    // SENQ feedback
 	    // SDEQ stage
 	    // SDEQ feedback
@@ -823,6 +863,8 @@ module istream_tb ();
 		};
 		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b10011001;
 		expected_redirect_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_page_fault_by_way_by_chunk_SDEQ = 8'b11111111;
+		expected_access_fault_by_way_by_chunk_SDEQ = 8'b11111111;
 		expected_pred_PC_by_way_by_chunk_SDEQ = {
 			32'h8000001a, 32'h80000018,
 			32'h80000018, 32'h80000016,
@@ -911,6 +953,8 @@ module istream_tb ();
 		tb_LH_SENQ = 8'b10011001;
 		tb_GH_SENQ = 12'b100110011001;
 		tb_ras_index_SENQ = 3'b001;
+		tb_page_fault_SENQ = 1'b0;
+		tb_access_fault_SENQ = 1'b0;
 	    // SENQ feedback
 	    // SDEQ stage
 	    // SDEQ feedback
@@ -952,6 +996,8 @@ module istream_tb ();
 		};
 		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b00011001;
 		expected_redirect_by_way_by_chunk_SDEQ = 8'b01100000;
+		expected_page_fault_by_way_by_chunk_SDEQ = 8'b01111111;
+		expected_access_fault_by_way_by_chunk_SDEQ = 8'b01111111;
 		expected_pred_PC_by_way_by_chunk_SDEQ = {
 			32'h80000022, 32'h80000020,
 			32'h80000020, 32'h8000001e,
@@ -1040,6 +1086,8 @@ module istream_tb ();
 		tb_LH_SENQ = 8'b11001100;
 		tb_GH_SENQ = 12'b110011001100;
 		tb_ras_index_SENQ = 3'b100;
+		tb_page_fault_SENQ = 1'b0;
+		tb_access_fault_SENQ = 1'b0;
 	    // SENQ feedback
 	    // SDEQ stage
 	    // SDEQ feedback
@@ -1081,6 +1129,8 @@ module istream_tb ();
 		};
 		expected_pred_lru_by_way_by_chunk_SDEQ = 8'b01100110;
 		expected_redirect_by_way_by_chunk_SDEQ = 8'b10000000;
+		expected_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		expected_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
 		expected_pred_PC_by_way_by_chunk_SDEQ = {
 			32'h80000030, 32'h8000002e,
 			32'h8000002c, 32'h8000002a,

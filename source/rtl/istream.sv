@@ -31,6 +31,8 @@ module istream #(
     input logic [LH_LENGTH-1:0]                 LH_SENQ,
     input logic [GH_LENGTH-1:0]                 GH_SENQ,
     input logic [RAS_INDEX_WIDTH-1:0]           ras_index_SENQ,
+    input logic                                 page_fault_SENQ,
+    input logic                                 access_fault_SENQ,
 
     // SENQ feedback
     output logic stall_SENQ,
@@ -44,6 +46,8 @@ module istream #(
     output logic [3:0][1:0]                             pred_lru_by_way_by_chunk_SDEQ,
     output logic [3:0][1:0]                             redirect_by_way_by_chunk_SDEQ,
     output logic [3:0][1:0][31:0]                       pred_PC_by_way_by_chunk_SDEQ,
+    output logic [3:0][1:0]                             page_fault_by_way_by_chunk_SDEQ,
+    output logic [3:0][1:0]                             access_fault_by_way_by_chunk_SDEQ,
     output logic [3:0][MDPT_INFO_WIDTH-1:0]             mdp_info_by_way_SDEQ,
     output logic [3:0][31:0]                            PC_by_way_SDEQ,
     output logic [3:0][LH_LENGTH-1:0]                   LH_by_way_SDEQ,
@@ -80,6 +84,8 @@ module istream #(
         logic [LH_LENGTH-1:0]           LH;
         logic [GH_LENGTH-1:0]           GH;
         logic [RAS_INDEX_WIDTH-1:0]     ras_index;
+        logic                           page_fault;
+        logic                           access_fault;
     } stream_set_t;
 
     stream_set_t [ISTREAM_SETS-1:0] stream_set_array, next_stream_set_array;
@@ -128,6 +134,8 @@ module istream #(
     logic [15:0]                            pred_lru_vec;
     logic [15:0][MDPT_INFO_WIDTH-1:0]       mdp_info_vec;
     logic [15:0][31:0]                      pred_PC_vec;
+    logic [15:0]                            page_fault_vec;
+    logic [15:0]                            access_fault_vec;
 
     logic [3:0]         lower_present_by_way;
     logic [3:0][15:0]   lower_req_vec_by_way;
@@ -173,6 +181,8 @@ module istream #(
             pred_info_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].pred_info;
             pred_lru_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].pred_lru;
             mdp_info_vec[i] = stream_set_array[stream_deq0_ptr.index].chunks[i].mdp_info;
+            page_fault_vec[i] = stream_set_array[stream_deq0_ptr.index].page_fault;
+            access_fault_vec[i] = stream_set_array[stream_deq0_ptr.index].access_fault;
         end
 
         valid_vec[15:8] = valid_set_vec_array[1];
@@ -185,6 +195,8 @@ module istream #(
             pred_info_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].pred_info;
             pred_lru_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].pred_lru;
             mdp_info_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].chunks[j].mdp_info;
+            page_fault_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].page_fault;
+            access_fault_vec[j + 8] = stream_set_array[stream_deq1_ptr.index].access_fault;
         end
     end
 
@@ -413,12 +425,14 @@ module istream #(
                 end
             end
 
-            // instr, pred info, pred lru, pred PC follow lower to chunk 0, upper to chunk 1:
+            // instr, pred info, pred lru, pred PC, page fault, access fault follow lower to chunk 0, upper to chunk 1:
             instr_2B_by_way_by_chunk_SDEQ[way] = '0;
             pred_info_by_way_by_chunk_SDEQ[way] = '0;
             pred_lru_by_way_by_chunk_SDEQ[way] = '0;
             redirect_by_way_by_chunk_SDEQ[way] = '0;
             pred_PC_by_way_by_chunk_SDEQ[way] = '0;
+            page_fault_by_way_by_chunk_SDEQ[way] = '0;
+            access_fault_by_way_by_chunk_SDEQ[way] = '0;
             for (int i = 0; i < 16; i++) begin
                 if (lower_ack_one_hot_by_way[way][i]) begin
                     instr_2B_by_way_by_chunk_SDEQ[way][0] |= instr_2B_vec[i];
@@ -426,6 +440,8 @@ module istream #(
                     pred_lru_by_way_by_chunk_SDEQ[way][0] |= pred_lru_vec[i];
                     redirect_by_way_by_chunk_SDEQ[way][0] |= redirect_vec[i];
                     pred_PC_by_way_by_chunk_SDEQ[way][0] |= pred_PC_vec[i];
+                    page_fault_by_way_by_chunk_SDEQ[way][0] |= page_fault_vec[i];
+                    access_fault_by_way_by_chunk_SDEQ[way][0] |= access_fault_vec[i];
                 end
                 if (upper_ack_one_hot_by_way[way][i]) begin
                     instr_2B_by_way_by_chunk_SDEQ[way][1] |= instr_2B_vec[i];
@@ -433,6 +449,8 @@ module istream #(
                     pred_lru_by_way_by_chunk_SDEQ[way][1] |= pred_lru_vec[i];
                     redirect_by_way_by_chunk_SDEQ[way][1] |= redirect_vec[i];
                     pred_PC_by_way_by_chunk_SDEQ[way][1] |= pred_PC_vec[i];
+                    page_fault_by_way_by_chunk_SDEQ[way][1] |= page_fault_vec[i];
+                    access_fault_by_way_by_chunk_SDEQ[way][1] |= access_fault_vec[i];
                 end
             end
 
@@ -704,6 +722,8 @@ module istream #(
             next_stream_set_array[stream_enq_ptr.index].LH = LH_SENQ;
             next_stream_set_array[stream_enq_ptr.index].GH = GH_SENQ;
             next_stream_set_array[stream_enq_ptr.index].ras_index = ras_index_SENQ;
+            next_stream_set_array[stream_enq_ptr.index].page_fault = page_fault_SENQ;
+            next_stream_set_array[stream_enq_ptr.index].access_fault = access_fault_SENQ;
 
             // incr enQ ptr
             next_stream_enq_ptr = stream_enq_ptr + 1;
