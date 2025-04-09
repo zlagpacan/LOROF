@@ -27,6 +27,8 @@ module frontend #(
     // itlb resp
     input logic                     itlb_resp_valid,
     input logic [PPN_WIDTH-1:0]     itlb_ppn,
+    input logic                     itlb_page_fault,
+    input logic                     itlb_access_fault,
 
     // icache req
     output logic                                        icache_req_valid,

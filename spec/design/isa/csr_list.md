@@ -1,4 +1,6 @@
 # CSR List
+Control/Status Register and other privileged info for ISA.
+
 ISA: RV32IMAC_Zicsr_Zifencei Sv32
 
 ## General Rules
@@ -920,6 +922,23 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 #### Config
 - 0x10A: senvcfg
     - supervisor environment config
+    - SRW
+    - no senvcfgh
+    - {WPRI[23:0], CBZE, CBCFE, CBIE[1:0], WPRI[2:0], FIOM}
+        - FIOM:
+            - Fence of I/O implies Memory
+            - relevant for S-mode and U-mode
+            - keep WARL but has no effect since all fence's imply both I/O and memory fenced
+                - fundamental reason did this is because can't figure out if address is to I/O vs. memory until after dtlb, which is too late to enact an acquire for this platform
+                    - this platform uses stall_mem_read in dispatch
+                - consider changing for this platform
+        - CBZE = 1'b0:
+            - unratified Zicboz extension unsupported
+        - {CBCFE, CBIE[1:0]} = 3'b000:
+            - unratified Zicbom extension unsupported
+        - PMM = 1'b0:
+            - unratified Smnpm extension unsupported
+    - really just 1-bit FIOM, which is bit unused by HW that can be written by SW, rest read-only zero
 
 #### Counter Setup
 - 0x120: scountinhibit
@@ -1008,6 +1027,19 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 - 0x143: stval
     - supervisor bad address or instruction
     - SRW
+    - HW sets on all traps to S-mode
+        - bad address exceptions:
+            - breakpoint, addr misaligned, PMA or PMP access fault, or page fault
+            - set to virtual address
+                - PC for bad fetch addr
+                - load/store/amo address for bad dmem access 
+                    - only have this after dtlb lookup and no later, wouldn't want to complete instr anyway, so give ldu/stamofu page fault immediately after dtlb lookup
+        - illegal instr:
+            - write zero-extended instruction
+                - compressed should follow {16'h0, instr[15:0]}
+        - else: 
+            - write 32'h0
+    - SW can freely write
 - 0x144: sip
     - supervisor interrupt pending
         - use this reg to give indication of existent interrupt
@@ -1052,6 +1084,32 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 - 0x180: satp
     - supervisor address translation and protection
     - SRW
+    - unique to S-mode
+        - no M-mode copy nor alias
+    - PTBR + ASID
+    - {MODE, ASID[8:0], PPN[21:0]}
+        - MODE:
+            - MODE = 1'b0:
+                - "Bare" mode
+                - PA = VA
+                    - assuming zero-extended
+                - SW's job to write rest of reg to 0's
+                - HW ignores rest of reg
+            - MODE = 1'b1:
+                - "Sv32" mode
+                - VM enabled
+            - relevant when satp "active" -> executing in S-mode or U-mode
+        - ASID:
+            - Address Space ID
+            - full WARL
+        - PPN:
+            - PPN of page table for this context
+            - essentially PTBR
+            - full WARL
+    - satp updates don't perform any ordering or synchronization of page table updates
+        - this is SFENCE.VMA's job
+        - not strictly necessary on some context switches, and as such SFENCE.VMA can be skipped, so performance will improve
+
 
 #### Debug/Trace
 - 0x5A8: scontext
