@@ -1290,3 +1290,80 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - can be 32'h0 for no special interpretation of reset
 - everything else undefined, seems like just choose logical reset val
     - WARL's must be legal value
+
+
+## Sv32 Paging
+- Sv32 Mode
+    - satp.MODE = 1
+    - use paging in S-mode or U-mode
+        - never use paging in M-mode, M-mode always acts like Bare Mode
+    - 32b VA -> 34b PA
+    - 20b VPN -> 22b PPN
+    - 12b PO = 12b PO
+- Bare Mode
+    - satp.MODE = 0
+    - no paging in any modes
+    - 32b VA -> 34b PA = {2'b00, 32b VA}
+    - 20b VPN -> 22b PPN = {2'b00, 20b VPN}
+    - 12b PO = 12b PO
+- satp.PPN is PPN of root page table
+    - PTBR
+
+### Page Table Entry
+- Sv32 Virtual Address
+    - {VPN1[9:0], VPN0[9:0], PO[11:0]}
+        - VPN1:
+            - 
+        - VPN0:
+            - 
+        - PO:
+            - 
+- Sv32 Physical Address
+    - {PPN1[11:0], PPN0[9:0], PO[11:0]}
+        - PPN1:
+            - 
+        - PPN0:
+            - 
+        - PO:
+            - 
+- Sv32 Page Table Entry
+    - {PPN1, PPN0, RSW[1:0], D, A, G, U, X, W, R, V}
+        - V: valid
+            - true valid when V = 1
+            - all other bits don't cares if V = 0
+        - X, W, R:
+            - X: execute permissions
+                - can fetch instructions from page
+            - W: write permissions
+                - can store, SC.W, or AMO to page
+            - R: read permissions
+                - can load or LR.W from page
+            - case (X, W, R):
+                - 000: pointer to next level of page table
+                - 001: read-only
+                - 010: reserved
+                - 011: read-write
+                - 100: execute-only
+                - 101: read-execute
+                - 110: reserved
+                - 111: read-write-execute
+            - page fault of perform memory access and don't have required permissions
+        - U:
+            - U-mode accessible
+            - U = 1:
+                - U-mode can access
+                - if sstatus.SUM = 1, S-mode can access
+            - U = 0:
+                - U-mode cannot access
+                - S-mode can access
+        - G:
+            - Global mapping
+            - mapping true for all ASID's
+            - if non-leaf PTE is G, all leaves under this are G
+            - can share TLB entry between ASID's
+            - don't have to flush G TLB entries on SFENCE.VMA if rs2 doesn't pick x0, so only targetting ASID instead of all
+        - RSW = 2'b00
+            - reserved
+        - A, D:
+            - A: Accessed
+            - D: Dirty

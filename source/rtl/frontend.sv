@@ -121,7 +121,7 @@ module frontend #(
     input logic [31:0] restart_PC,
 
     // mode
-    input logic mode_virtual
+    input logic virtual_mode
 );
 
     // ----------------------------------------------------------------
