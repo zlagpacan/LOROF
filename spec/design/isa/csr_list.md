@@ -1309,61 +1309,139 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 - satp.PPN is PPN of root page table
     - PTBR
 
-### Page Table Entry
-- Sv32 Virtual Address
-    - {VPN1[9:0], VPN0[9:0], PO[11:0]}
-        - VPN1:
-            - 
-        - VPN0:
-            - 
-        - PO:
-            - 
-- Sv32 Physical Address
-    - {PPN1[11:0], PPN0[9:0], PO[11:0]}
-        - PPN1:
-            - 
-        - PPN0:
-            - 
-        - PO:
-            - 
-- Sv32 Page Table Entry
-    - {PPN1, PPN0, RSW[1:0], D, A, G, U, X, W, R, V}
-        - V: valid
-            - true valid when V = 1
-            - all other bits don't cares if V = 0
-        - X, W, R:
-            - X: execute permissions
-                - can fetch instructions from page
-            - W: write permissions
-                - can store, SC.W, or AMO to page
-            - R: read permissions
-                - can load or LR.W from page
-            - case (X, W, R):
-                - 000: pointer to next level of page table
-                - 001: read-only
-                - 010: reserved
-                - 011: read-write
-                - 100: execute-only
-                - 101: read-execute
-                - 110: reserved
-                - 111: read-write-execute
-            - page fault of perform memory access and don't have required permissions
-        - U:
-            - U-mode accessible
-            - U = 1:
-                - U-mode can access
-                - if sstatus.SUM = 1, S-mode can access
-            - U = 0:
-                - U-mode cannot access
-                - S-mode can access
-        - G:
-            - Global mapping
-            - mapping true for all ASID's
-            - if non-leaf PTE is G, all leaves under this are G
-            - can share TLB entry between ASID's
-            - don't have to flush G TLB entries on SFENCE.VMA if rs2 doesn't pick x0, so only targetting ASID instead of all
-        - RSW = 2'b00
-            - reserved
-        - A, D:
-            - A: Accessed
-            - D: Dirty
+### Sv32 Virtual Address
+- {VPN1[9:0], VPN0[9:0], PO[11:0]}
+    - VPN1:
+        - root level 1 VPN
+            - use VPN1 to access root level 1 PTE PA
+                - {satp.PPN (PTBR), VPN1 * 4}
+        - 10b for 2^10 * 4B = 2^12 B = 4KB root page table
+    - VPN0:
+        - leaf level 0 VPN
+            - use VPN0 to access leaf level 0 PTE PA
+                - {level 1 PTE.PPN1, level 1 PTE.PPN0, VPN0 * 4}
+        - 10b for 2^10 * 4B = 2^12 B = 4KB level 0 page table
+    - PO:
+        - Page Offset
+        - 12b for 2^12 B = 4KB page
+
+### Sv32 Physical Address
+- {PPN1[11:0], PPN0[9:0], PO[11:0]}
+    - PPN1:
+        - for PA of root level 1 PTE: satp.PPN[21:10]
+        - for PA of leaf level 0 PTE: root level 1 PTE.PPN1
+        - for PA of VA: leaf level 0 PTE.PPN1
+        - for PA of Bare VA: {2'b00, VA.VPN1}
+    - PPN0:
+        - for PA of root level 1 PTE: satp.PPN[9:0]
+        - for PA of leaf level 0 PTE: root level 1 PTE.PPN0
+        - for PA of VA: leaf level 0 PTE.PPN0
+        - for PA of Bare VA: VA.VPN0
+    - PO:
+        - Page Offset
+        - 12b for 2^12 B = 4KB page
+        - for PA of root level 1 PTE: VA.VPN1
+        - for PA of leaf level 0 PTE: VA.VPN0
+        - for PA of VA: VA.PO
+        - for PA of Bare VA: VA.PO
+- accessing root level 1 PTE:
+    - PPN1 = satp.PPN[21:10]
+    - PPN0 = satp.PPN[9:0]
+    - PO = VA.VPN1
+- accessing leaf level 0 PTE:
+    - PPN1 = root level 1 PTE.PPN1
+    - PPN0 = root level 1 PTE.PPN0
+    - PO = VA.VPN0
+- VA -> PA:
+    - PPN1 = leaf level 0 PTE.PPN1
+    - PPN0 = leaf level 0 PTE.PPN0
+    - PO = VA.PO
+- Bare VA -> PA:
+    - PPN1 = {2'b00, VA.VPN1}
+    - PPN0 = VA.VPN0
+    - PO = VA.PO
+
+### Sv32 Page Table Entry
+- {PPN1[11:0], PPN0[9:0], RSW[1:0], D, A, G, U, X, W, R, V}
+    - V: valid
+        - true valid when V = 1
+        - all other bits don't cares if V = 0
+        - if access PTE with V = 0, page fault
+    - X, W, R:
+        - X: execute permissions
+            - can fetch instructions from page
+            - can also load or LR.W from page if m/sstatus.MXR = 1
+        - W: write permissions
+            - can store, SC.W, or AMO to page
+        - R: read permissions
+            - can load or LR.W from page
+        - case (X, W, R):
+            - 000: pointer to next level of page table
+                - page fault if already at level 0 leaf
+            - 001: read-only
+            - 010: reserved -> page fault
+            - 011: read-write -> page fault
+            - 100: execute-only
+            - 101: read-execute
+            - 110: reserved -> page fault
+            - 111: read-write-execute
+        - if get leaf page at level 1, have superpage
+            - must have PPN0 == '0, else misaligned superpage, page fault
+        - page fault of perform memory access and don't have required permissions
+    - U:
+        - U-mode accessible
+        - only relevant for leaf pages
+        - U = 1:
+            - U-mode can access
+            - if sstatus.SUM = 1, S-mode can access
+        - U = 0:
+            - U-mode cannot access
+            - S-mode can access
+    - G:
+        - Global mapping
+        - mapping true for all ASID's
+        - if non-leaf PTE is G, all leaves under this are G
+        - can share TLB entry between ASID's
+        - don't have to flush G TLB entries on SFENCE.VMA if rs2 doesn't pick x0, so only targetting ASID instead of all
+    - RSW = 2'b00
+        - reserved
+    - A, D:
+        - A: 
+            - Accessed
+            - set on instruction fetch, data read, or data write
+                - sets for fetches and reads can be speculative
+        - D: 
+            - Dirty
+            - set on write
+        - only relevant for leaf pages
+        - updates to these must be ordered before the access causing the update
+            - TLB miss until update is visible
+        - functionality requirements:
+            - updates must be performed as coherent writes
+            - ideally don't need to snoop into TLB's and page table walkers, as these already have software synchronization via SFENCE.VMA
+        - idea: full MMU coherence
+            - gets performance benefit of sharing TLB capacity among cores if there is sharing
+            - means MMU caches must be inclusive and follow 64B cache block granularity
+                - RIP if have page table sparsity
+            - may get functionality issues with untimely TLB updates not controlled by SFENCE.VMA
+        - idea: BusInv + BusWB
+            - MMU performs BusInv to invalidate any copies of PTE in coherent memory
+            - MMU performs masked BusWB to write new PTE value to coherent memory (so essentially at L3)
+            - issue: if PTE entry currently in other core's MMU, then the update would be missed. if the first update is A & D, and the second update is A & !D, then the second update will ruin the first
+                - racey fix: broadcast PTE entry update to other MMU's
+                - maybe amazing fix: only perform bit set's at L3 for PTE update BusWB
+                    - already has to be unique since not at block granularity
+            - issue: coherent memory could have a new value
+                - would be doing BusUpgrade/BusInv when it is possible coherent memory has the block in M. maybe unsupported case for bus. would need to grab M block value and RMW A/D bit set
+        - idea: L2 BusRdX
+            - spec makes it seem like PTE A/D update must be fully coherent (due to atomic check for update of value at PTE when try to set A/D), so it needs coherent memory value of the PTE. if a new value is found, the translation process is even restarted given the updated PTE
+                - this seems like a little much
+                - just need atomic A/D sets and should be good to go
+            - MMU gives read exclusive request to L2 just like dcache would on a store
+                - L2 in E/M already, snoop dcache if in dcache, then good to go
+                - otherwise, L2 performs a BusRdX and gets the coherent block in M state
+            - perform A/D set for block in L2
+                - don't clear any bits in case didn't have up-to-date PTE, only set
+            - when done, TLB can be unblocked and allow access causing A/D set to complete
+                - iTLB would be blocked unless this process was interrupted
+                - dTLB could move on but acts as a dTLB miss for the load or store of interest until returns
