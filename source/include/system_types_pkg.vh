@@ -13,11 +13,16 @@ package system_types_pkg;
     // General:
 
     parameter VA_WIDTH = 32;
-    parameter PA_WIDTH = 34;
-
-    parameter PAGE_OFFSET_WIDTH = 12;
     parameter VPN_WIDTH = 20;
+    parameter VPN1_WIDTH = 10;
+    parameter VPN0_WIDTH = 10;
+
+    parameter PA_WIDTH = 34;
     parameter PPN_WIDTH = 22;
+    parameter PPN1_WIDTH = 12;
+    parameter PPN0_WIDTH = 10;
+
+    parameter PO_WIDTH = 12;
 
     // ----------------------------------------------------------------
     // Caches:

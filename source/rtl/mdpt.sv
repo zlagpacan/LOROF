@@ -22,11 +22,11 @@ module mdpt (
     // RESP stage
     output logic [MDPT_ENTRIES_PER_BLOCK-1:0][MDPT_INFO_WIDTH-1:0] mdp_info_by_instr_RESP,
 
-    // Dep Update 0 stage
-    input logic                         dep_update0_valid,
-    input logic [31:0]                  dep_update0_start_full_PC,
-    input logic [ASID_WIDTH-1:0]        dep_update0_ASID,
-    input logic [MDPT_INFO_WIDTH-1:0]   dep_update0_mdp_info
+    // MDPT Update 0 stage
+    input logic                         mdpt_update0_valid,
+    input logic [31:0]                  mdpt_update0_start_full_PC,
+    input logic [ASID_WIDTH-1:0]        mdpt_update0_ASID,
+    input logic [MDPT_INFO_WIDTH-1:0]   mdpt_update0_mdp_info
 );
 
     // ----------------------------------------------------------------
@@ -36,9 +36,9 @@ module mdpt (
     logic [MDPT_INDEX_WIDTH-1:0] hashed_index_REQ;
 
     // Dep Update 0:
-    logic [MDPT_INDEX_WIDTH-1:0]                                dep_update0_hashed_index;
-    logic [LOG_MDPT_ENTRIES_PER_BLOCK-1:0]                      dep_update0_instr;
-    logic [MDPT_ENTRIES_PER_BLOCK-1:0][MDPT_INFO_WIDTH/8-1:0]   dep_update0_byte_mask_by_instr;
+    logic [MDPT_INDEX_WIDTH-1:0]                                mdpt_update0_hashed_index;
+    logic [LOG_MDPT_ENTRIES_PER_BLOCK-1:0]                      mdpt_update0_instr;
+    logic [MDPT_ENTRIES_PER_BLOCK-1:0][MDPT_INFO_WIDTH/8-1:0]   mdpt_update0_byte_mask_by_instr;
 
     // ----------------------------------------------------------------
     // REQ Stage Logic:
@@ -52,17 +52,17 @@ module mdpt (
     // ----------------------------------------------------------------
     // Dep Update 0 Logic:
 
-    assign dep_update0_instr = dep_update0_start_full_PC[LOG_MDPT_ENTRIES_PER_BLOCK + 1 - 1: 1];
+    assign mdpt_update0_instr = mdpt_update0_start_full_PC[LOG_MDPT_ENTRIES_PER_BLOCK + 1 - 1: 1];
 
-    mdpt_index_hash MDPT_DEP_UPDATE0_INDEX_HASH(
-        .PC(dep_update0_start_full_PC),
-        .ASID(dep_update0_ASID),
-        .index(dep_update0_hashed_index)
+    mdpt_index_hash MDPT_mdpt_UPDATE0_INDEX_HASH(
+        .PC(mdpt_update0_start_full_PC),
+        .ASID(mdpt_update0_ASID),
+        .index(mdpt_update0_hashed_index)
     );
 
     always_comb begin
-        dep_update0_byte_mask_by_instr = '0;
-        dep_update0_byte_mask_by_instr[dep_update0_instr] = dep_update0_valid ? '1 : '0;
+        mdpt_update0_byte_mask_by_instr = '0;
+        mdpt_update0_byte_mask_by_instr[mdpt_update0_instr] = mdpt_update0_valid ? '1 : '0;
     end
 
     // ----------------------------------------------------------------
@@ -86,9 +86,9 @@ module mdpt (
         .rindex(hashed_index_REQ),
         .rdata(mdp_info_by_instr_RESP),
 
-        .wen_byte(dep_update0_byte_mask_by_instr),
-        .windex(dep_update0_hashed_index),
-        .wdata({MDPT_ENTRIES_PER_BLOCK{dep_update0_mdp_info}})
+        .wen_byte(mdpt_update0_byte_mask_by_instr),
+        .windex(mdpt_update0_hashed_index),
+        .wdata({MDPT_ENTRIES_PER_BLOCK{mdpt_update0_mdp_info}})
     );
 
 endmodule

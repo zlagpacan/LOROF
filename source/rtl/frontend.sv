@@ -12,7 +12,7 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 module frontend #(
-    parameter INIT_PC = 32'h80000000  
+    parameter INIT_PC = 32'h0
 ) (
 
     // seq
@@ -21,14 +21,15 @@ module frontend #(
 
     // itlb req
     output logic                    itlb_req_valid,
-    output logic [VPN_WIDTH-1:0]    itlb_vpn,
-    output logic [ASID_WIDTH-1:0]   itlb_ASID,
+    output logic [1:0]              itlb_req_exec_mode,
+    output logic [VPN_WIDTH-1:0]    itlb_req_vpn,
+    output logic [ASID_WIDTH-1:0]   itlb_req_ASID,
 
     // itlb resp
     input logic                     itlb_resp_valid,
-    input logic [PPN_WIDTH-1:0]     itlb_ppn,
-    input logic                     itlb_page_fault,
-    input logic                     itlb_access_fault,
+    input logic [PPN_WIDTH-1:0]     itlb_resp_ppn,
+    input logic                     itlb_resp_page_fault,
+    input logic                     itlb_resp_access_fault,
 
     // icache req
     output logic                                        icache_req_valid,
@@ -49,15 +50,35 @@ module frontend #(
     output logic [ICACHE_ASSOC-1:0]         icache_resp_notif_way,
     output logic [ICACHE_TAG_WIDTH-1:0]     icache_resp_notif_tag,
 
-    // op dispatch by way
+    // op dispatch by way:
+
+    // 4-way ROB entry valid
     output logic                                    dispatch_rob_valid,
 
+    // general instr info
+    output logic [3:0]                              dispatch_valid_by_way,
+    output logic [3:0]                              dispatch_uncompressed_by_way,
+    output logic [31:0]                             dispatch_PC_by_way,
+    output logic [3:0]                              dispatch_is_rename_by_way,
+    output logic [3:0][BTB_PRED_INFO_WIDTH-1:0]     dispatch_pred_info_by_way,
+    output logic [3:0][MDPT_INFO_WIDTH-1:0]         dispatch_mdp_info_by_way,
+    output logic                                    dispatch_wait_write_buffer,
+    output logic [3:0][3:0]                         dispatch_op_by_way,
+    output logic [19:0]                             dispatch_imm20_by_way,
+
+    // instr fetch + decode exceptions
+    output logic [3:0]                              dispatch_page_fault_by_way,
+    output logic [3:0]                              dispatch_access_fault_by_way,
+    output logic [3:0]                              dispatch_illegal_instr_by_way,
+
+    // instr IQ attempts
     output logic [3:0]                              dispatch_attempt_alu_reg_mdu_iq_by_way,
     output logic [3:0]                              dispatch_attempt_alu_imm_ldu_iq_by_way,
     output logic [3:0]                              dispatch_attempt_bru_iq_by_way,
     output logic [3:0]                              dispatch_attempt_stamofu_iq_by_way,
     output logic [3:0]                              dispatch_attempt_sys_iq_by_way,
 
+    // instr FU valids
     output logic [3:0]                              dispatch_valid_alu_reg_by_way,
     output logic [3:0]                              dispatch_valid_mdu_by_way,
     output logic [3:0]                              dispatch_valid_alu_imm_by_way,
@@ -67,37 +88,39 @@ module frontend #(
     output logic [3:0]                              dispatch_valid_amo_by_way,
     output logic [3:0]                              dispatch_valid_fence_by_way,
     output logic [3:0]                              dispatch_valid_sys_by_way,
-    output logic [3:0]                              dispatch_valid_illegal_op_by_way,
 
-    output logic [3:0][3:0]                         dispatch_op_by_way,
-    output logic [3:0]                              dispatch_is_reg_write_by_way,
-    output logic [3:0][BTB_PRED_INFO_WIDTH-1:0]     dispatch_pred_info_by_way,
-    output logic [3:0][MDPT_INFO_WIDTH-1:0]         dispatch_mdp_info_by_way,
-    output logic                                    dispatch_wait_write_buffer,
-
+    // operand A
     output logic [3:0][LOG_PR_COUNT-1:0]            dispatch_A_PR_by_way,
     output logic [3:0]                              dispatch_A_ready_by_way,
     output logic [3:0]                              dispatch_A_unneeded_or_is_zero_by_way,
     output logic [3:0]                              dispatch_A_is_ret_ra_by_way,
 
+    // operand B
     output logic [3:0][LOG_PR_COUNT-1:0]            dispatch_B_PR_by_way,
     output logic [3:0]                              dispatch_B_ready_by_way,
     output logic [3:0]                              dispatch_B_unneeded_or_is_zero_by_way,
 
+    // dest operand
     output logic [3:0][LOG_AR_COUNT-1:0]            dispatch_dest_AR_by_way,
     output logic [3:0][LOG_PR_COUNT-1:0]            dispatch_dest_old_PR_by_way,
     output logic [3:0][LOG_PR_COUNT-1:0]            dispatch_dest_new_PR_by_way,
+    output logic [3:0]                              dispatch_dest_is_zero_by_way,
+    output logic [3:0]                              dispatch_dest_is_link_ra,
 
-    output logic [19:0]                             dispatch_imm20_by_way,
+    // op dispatch feedback:
 
-    // op dispatch feedback
-    input logic         dispatch_rob_ack,
+    // 4-way ROB entry open
+    input logic         dispatch_rob_ready,
 
-    input logic [3:0]   dispatch_attempt_alu_reg_mdu_iq_by_way,
-    input logic [3:0]   dispatch_attempt_alu_imm_ldu_iq_by_way,
-    input logic [3:0]   dispatch_attempt_bru_iq_by_way,
-    input logic [3:0]   dispatch_attempt_stamofu_iq_by_way,
-    input logic [3:0]   dispatch_attempt_sys_iq_by_way,
+    // instr IQ acks
+    input logic [3:0]   dispatch_ack_alu_reg_mdu_iq_by_way,
+    input logic [3:0]   dispatch_ack_alu_imm_ldu_iq_by_way,
+    input logic [3:0]   dispatch_ack_bru_iq_by_way,
+    input logic [3:0]   dispatch_ack_stamofu_iq_by_way,
+    input logic [3:0]   dispatch_ack_sys_iq_by_way,
+
+    // stamofu fence feedback
+    input logic stamofu_mem_read_fence_clear,
 
     // update
     input logic                             update_valid,
@@ -111,17 +134,19 @@ module frontend #(
     output logic update_ready,
 
     // mdpt update
-    input logic                         dep_update_valid,
-    input logic [31:0]                  dep_update_start_full_PC,
-    input logic [ASID_WIDTH-1:0]        dep_update_ASID,
-    input logic [MDPT_INFO_WIDTH-1:0]   dep_update_mdp_info
+    input logic                         mdpt_update_valid,
+    input logic [31:0]                  mdpt_update_start_full_PC,
+    input logic [ASID_WIDTH-1:0]        mdpt_update_ASID,
+    input logic [MDPT_INFO_WIDTH-1:0]   mdpt_update_mdp_info,
 
     // restart
     input logic restart_valid,
     input logic [31:0] restart_PC,
 
-    // mode
-    input logic virtual_mode
+    // environment config
+    input logic [1:0] env_exec_mode,
+    input logic env_virtual,
+    input logic [8:0] env_ASID
 );
 
     // ----------------------------------------------------------------
@@ -130,9 +155,10 @@ module frontend #(
     // Fetch Req Stage:
 
     // state
-    logic [31:0]            fetch_PC;
-    logic [ASID_WIDTH-1:0]  fetch_ASID;
+    logic [31:0]            fetch_PC, next_fetch_PC;
+    logic [ASID_WIDTH-1:0]  fetch_ASID, next_fetch_ASID;
 
-    // 
+    // interruptable access PC
+    logic [31:0] access_PC;
 
 endmodule

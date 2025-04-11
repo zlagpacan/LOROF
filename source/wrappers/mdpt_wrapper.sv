@@ -25,11 +25,11 @@ module mdpt_wrapper (
     // RESP stage
 	output logic [MDPT_ENTRIES_PER_BLOCK-1:0][MDPT_INFO_WIDTH-1:0] last_mdp_info_by_instr_RESP,
 
-    // Dep Update 0 stage
-	input logic next_dep_update0_valid,
-	input logic [31:0] next_dep_update0_start_full_PC,
-	input logic [ASID_WIDTH-1:0] next_dep_update0_ASID,
-	input logic [MDPT_INFO_WIDTH-1:0] next_dep_update0_mdp_info
+    // MDPT Update 0 stage
+	input logic next_mdpt_update0_valid,
+	input logic [31:0] next_mdpt_update0_start_full_PC,
+	input logic [ASID_WIDTH-1:0] next_mdpt_update0_ASID,
+	input logic [MDPT_INFO_WIDTH-1:0] next_mdpt_update0_mdp_info
 );
 
     // ----------------------------------------------------------------
@@ -44,11 +44,11 @@ module mdpt_wrapper (
     // RESP stage
 	logic [MDPT_ENTRIES_PER_BLOCK-1:0][MDPT_INFO_WIDTH-1:0] mdp_info_by_instr_RESP;
 
-    // Dep Update 0 stage
-	logic dep_update0_valid;
-	logic [31:0] dep_update0_start_full_PC;
-	logic [ASID_WIDTH-1:0] dep_update0_ASID;
-	logic [MDPT_INFO_WIDTH-1:0] dep_update0_mdp_info;
+    // MDPT Update 0 stage
+	logic mdpt_update0_valid;
+	logic [31:0] mdpt_update0_start_full_PC;
+	logic [ASID_WIDTH-1:0] mdpt_update0_ASID;
+	logic [MDPT_INFO_WIDTH-1:0] mdpt_update0_mdp_info;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -70,11 +70,11 @@ module mdpt_wrapper (
 		    // RESP stage
 			last_mdp_info_by_instr_RESP <= '0;
 
-		    // Dep Update 0 stage
-			dep_update0_valid <= '0;
-			dep_update0_start_full_PC <= '0;
-			dep_update0_ASID <= '0;
-			dep_update0_mdp_info <= '0;
+		    // MDPT Update 0 stage
+			mdpt_update0_valid <= '0;
+			mdpt_update0_start_full_PC <= '0;
+			mdpt_update0_ASID <= '0;
+			mdpt_update0_mdp_info <= '0;
         end
         else begin
 
@@ -87,11 +87,11 @@ module mdpt_wrapper (
 		    // RESP stage
 			last_mdp_info_by_instr_RESP <= mdp_info_by_instr_RESP;
 
-		    // Dep Update 0 stage
-			dep_update0_valid <= next_dep_update0_valid;
-			dep_update0_start_full_PC <= next_dep_update0_start_full_PC;
-			dep_update0_ASID <= next_dep_update0_ASID;
-			dep_update0_mdp_info <= next_dep_update0_mdp_info;
+		    // MDPT Update 0 stage
+			mdpt_update0_valid <= next_mdpt_update0_valid;
+			mdpt_update0_start_full_PC <= next_mdpt_update0_start_full_PC;
+			mdpt_update0_ASID <= next_mdpt_update0_ASID;
+			mdpt_update0_mdp_info <= next_mdpt_update0_mdp_info;
         end
     end
 
