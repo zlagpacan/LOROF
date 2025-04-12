@@ -21,7 +21,7 @@ module frontend #(
 
     // itlb req
     output logic                    itlb_req_valid,
-    output logic [1:0]              itlb_req_exec_mode,
+    output logic                    itlb_req_virtual_mode,
     output logic [VPN_WIDTH-1:0]    itlb_req_vpn,
     output logic [ASID_WIDTH-1:0]   itlb_req_ASID,
 
@@ -70,6 +70,7 @@ module frontend #(
     output logic [3:0]                              dispatch_page_fault_by_way,
     output logic [3:0]                              dispatch_access_fault_by_way,
     output logic [3:0]                              dispatch_illegal_instr_by_way,
+    output logic [31:0]                             dispatch_excepting_illegal_instr,
 
     // instr IQ attempts
     output logic [3:0]                              dispatch_attempt_alu_reg_mdu_iq_by_way,
@@ -120,7 +121,8 @@ module frontend #(
     input logic [3:0]   dispatch_ack_sys_iq_by_way,
 
     // stamofu fence feedback
-    input logic stamofu_mem_read_fence_clear,
+    input logic stamofu_stall_mem_read,
+    input logic stamofu_stall_mem_write,
 
     // update
     input logic                             update_valid,
@@ -140,13 +142,14 @@ module frontend #(
     input logic [MDPT_INFO_WIDTH-1:0]   mdpt_update_mdp_info,
 
     // restart
-    input logic restart_valid,
-    input logic [31:0] restart_PC,
-
-    // environment config
-    input logic [1:0] env_exec_mode,
-    input logic env_virtual,
-    input logic [8:0] env_ASID
+    input logic         restart_valid,
+    input logic [31:0]  restart_PC,
+    input logic [8:0]   restart_ASID,
+    input logic [1:0]   restart_exec_mode,
+    input logic         restart_virtual_mode,
+    input logic         restart_trap_sfence,
+    input logic         restart_trap_wfi,
+    input logic         restart_trap_sret
 );
 
     // ----------------------------------------------------------------
@@ -160,5 +163,12 @@ module frontend #(
 
     // interruptable access PC
     logic [31:0] access_PC;
+
+    // save restart state
+        // keep local copy
+            // use version of value when intended to be used
+            // limit fanout
+
+    // wait for restart state from decoder
 
 endmodule

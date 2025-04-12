@@ -243,46 +243,70 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - {5'b00010, aq, rl, 5'b00000, rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0010
+    - raise misaligned exception
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
 - SC.W
     - {5'b00011, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0011
+    - raise misaligned exception
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
 - AMOSWAP.W
     - {5'b00001, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0111
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
 - AMOADD.W
     - {5'b00000, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0000
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
 - AMOXOR.W
     - {5'b00100, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0100
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
 - AMOAND.W
     - {5'b01100, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b1100
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
 - AMOOR.W
     - {5'b01000, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b1000
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
 - AMOMIN.W
     - {5'b10000, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b1001
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
 - AMOMAX.W
     - {5'b10100, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b1101
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
 - AMOMINU.W
     - {5'b11000, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0001
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
 - AMOMAXU.W
     - {5'b11100, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0101
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
 
 ## C Extension
 rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}

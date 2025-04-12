@@ -10,7 +10,7 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-parameter WIDTH = 8;
+parameter WIDTH = 40;
 
 module pe_lsb_wrapper (
 
@@ -18,20 +18,31 @@ module pe_lsb_wrapper (
     input logic CLK,
     input logic nRST,
 	input logic [WIDTH-1:0] next_req_vec,
+
 	output logic [WIDTH-1:0] last_ack_one_hot,
-	output logic [WIDTH-1:0] last_ack_mask
+	output logic [WIDTH-1:0] last_ack_mask,
+	output logic [WIDTH-1:0] last_cold_ack_mask,
+	output logic [$clog2(WIDTH)-1:0] last_ack_index
 );
 
     // ----------------------------------------------------------------
     // Direct Module Connections:
 	logic [WIDTH-1:0] req_vec;
+
 	logic [WIDTH-1:0] ack_one_hot;
 	logic [WIDTH-1:0] ack_mask;
+	logic [WIDTH-1:0] cold_ack_mask;
+	logic [$clog2(WIDTH)-1:0] ack_index;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    pe_lsb WRAPPED_MODULE (.*);
+    pe_lsb #(
+        .WIDTH(WIDTH),
+        .USE_ONE_HOT(1),
+        .USE_COLD(1),
+        .USE_INDEX(1)
+    ) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -39,13 +50,19 @@ module pe_lsb_wrapper (
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
 			req_vec <= '0;
+
 			last_ack_one_hot <= '0;
 			last_ack_mask <= '0;
+			last_cold_ack_mask <= '0;
+			last_ack_index <= '0;
         end
         else begin
 			req_vec <= next_req_vec;
+
 			last_ack_one_hot <= ack_one_hot;
 			last_ack_mask <= ack_mask;
+			last_cold_ack_mask <= cold_ack_mask;
+			last_ack_index <= ack_index;
         end
     end
 

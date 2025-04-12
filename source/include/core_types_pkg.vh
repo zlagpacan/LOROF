@@ -19,6 +19,13 @@ package core_types_pkg;
     parameter INIT_PC = 32'h80000000;
 
     // ----------------------------------------------------------------
+    // Environment:
+
+    parameter U_MODE = 2'b00;
+    parameter S_MODE = 2'b01;
+    parameter M_MODE = 2'b11;
+
+    // ----------------------------------------------------------------
     // Central:
 
     // prf

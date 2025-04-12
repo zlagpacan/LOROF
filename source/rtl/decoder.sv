@@ -10,7 +10,13 @@ import core_types_pkg::*;
 
 module decoder (
 
-    // input info
+    // environment info
+    input logic [1:0] env_exec_mode,
+    input logic env_trap_sfence,
+    input logic env_trap_wfi,
+    input logic env_trap_sret,
+
+    // instr input
     input logic                             uncompressed,
     input logic [31:0]                      instr32,
     input logic [BTB_PRED_INFO_WIDTH-1:0]   pred_info_chunk0,
@@ -56,9 +62,9 @@ module decoder (
     output logic                            missing_pred,
 
     // ordering
-    output logic flush_fetch,
-    output logic stall_mem_read,
-    output logic stall_mem_write,
+    output logic wait_for_restart,
+    output logic stall_ldu_dispatch,
+    output logic stall_stamofu_dispatch,
     output logic wait_write_buffer,
 
     // faults
@@ -334,9 +340,9 @@ module decoder (
         A_unneeded = 1'b1;
         B_unneeded = 1'b1;
 
-        flush_fetch = 1'b0;
-        stall_mem_read = 1'b0;
-        stall_mem_write = 1'b0;
+        wait_for_restart = 1'b0;
+        stall_ldu_dispatch = 1'b0;
+        stall_stamofu_dispatch = 1'b0;
         wait_write_buffer = 1'b0;
 
         use_pred_info = 1'b0;
@@ -634,7 +640,7 @@ module decoder (
                                     // EBREAK
                                 is_sys = 1'b1;
                                 op[2:0] = 3'b000;
-                                flush_fetch = 1'b1;
+                                wait_for_restart = 1'b1;
                                 cimm20 = {8'b00000000, 7'b0000000, 5'b00001};
                             end
                             else if (cinstr_rlow == 5'h0) begin
@@ -1020,7 +1026,7 @@ module decoder (
                                     // read after: stall mem read
                                         // I or R in succ set
                                     if (uncinstr_succ_set[3] | uncinstr_succ_set[1]) begin
-                                        stall_mem_read = 1'b1;
+                                        stall_ldu_dispatch = 1'b1;
                                     end
 
                                     // write before: wait write buffer
@@ -1037,7 +1043,7 @@ module decoder (
                                     // make sure writes propagate to icache when eventually does reads
                                     // op will tell stamofu to perform icache flush when committed
                                 is_fence = 1'b1;
-                                flush_fetch = 1'b1;
+                                wait_for_restart = 1'b1;
                                 wait_write_buffer = 1'b1;
                                     // need local hart stores in front of the FENCE.I to be visible to this hart's icache
                                     // instruction stream after fence.i expects normal program order of stores, not global order
@@ -1067,13 +1073,13 @@ module decoder (
                                             // ECALL
                                             is_sys = 1'b1;
                                             op[2:0] = uncinstr_funct3;
-                                            flush_fetch = 1'b1;
+                                            wait_for_restart = 1'b1;
                                         end
                                         else if (uncinstr_rs2 == 5'b00001) begin
                                             // EBREAK
                                             is_sys = 1'b1;
                                             op[2:0] = uncinstr_funct3;
-                                            flush_fetch = 1'b1;
+                                            wait_for_restart = 1'b1;
                                         end
                                         else begin
                                             is_illegal_instr = 1'b1;
@@ -1084,17 +1090,35 @@ module decoder (
                                     begin
                                         if (uncinstr_rs2 == 5'b00010) begin
                                             // SRET
-                                            is_sys = 1'b1;
-                                            op[2:0] = uncinstr_funct3;
-                                            flush_fetch = 1'b1;
+                                            if (
+                                                env_exec_mode == U_MODE 
+                                                | 
+                                                (env_exec_mode == S_MODE & env_trap_sret)
+                                            ) begin
+                                                is_illegal_instr = 1'b1;
+                                            end 
+                                            else begin
+                                                is_sys = 1'b1;
+                                                op[2:0] = uncinstr_funct3;
+                                                wait_for_restart = 1'b1; 
+                                            end
                                         end
                                         else if (uncinstr_rs2 == 5'b00101) begin
                                             // WFI
+                                            if (
+                                                env_exec_mode == U_MODE
+                                                |
+                                                env_exec_mode == S_MODE & env_trap_wfi
+                                            ) begin
+                                                is_illegal_instr = 1'b1;
+                                            end
+                                            else begin
                                                 // flush fetch to be resumed after interrupt
-                                                // sys_pipeline takes care of WFI stall state
-                                            is_sys = 1'b1;
-                                            op[2:0] = uncinstr_funct3;
-                                            flush_fetch = 1'b1;
+                                                // rob takes care of WFI stall state
+                                                is_sys = 1'b1;
+                                                op[2:0] = uncinstr_funct3;
+                                                wait_for_restart = 1'b1;
+                                            end
                                         end
                                         else begin
                                             is_illegal_instr = 1'b1;
@@ -1104,22 +1128,39 @@ module decoder (
                                     7'b0001001:
                                     begin
                                         // SFENCE.VMA
+                                        if (
+                                            env_exec_mode == U_MODE
+                                            |
+                                            env_exec_mode == S_MODE & env_trap_sfence
+                                            |
+                                            env_exec_mode == M_MODE
+                                        ) begin
+                                            is_illegal_instr = 1'b1;
+                                        end
+                                        else begin
                                             // don't have to flush out instructions
                                                 // FENCE.I will be used if page table update is in executable memory
                                             // do need to make sure no new data mem ops try to get a dTLB translation
-                                        is_fence = 1'b1;
-                                        op[1:0] = 2'b10;
-                                        stall_mem_read = 1'b1;
-                                        stall_mem_write = 1'b1;
+                                            is_fence = 1'b1;
+                                            op[1:0] = 2'b10;
+                                            stall_ldu_dispatch = 1'b1;
+                                            stall_stamofu_dispatch = 1'b1;
+                                        end
                                     end
 
                                     7'b0011000:
                                     begin
                                         if (uncinstr_rs2 == 5'b00010) begin
                                             // MRET
-                                            is_sys = 1'b1;
-                                            op[2:0] = uncinstr_funct3;
-                                            flush_fetch = 1'b1;
+                                            if (env_exec_mode != M_MODE)
+                                            begin
+                                                is_illegal_instr = 1'b1;
+                                            end
+                                            else begin
+                                                is_sys = 1'b1;
+                                                op[2:0] = uncinstr_funct3;
+                                                wait_for_restart = 1'b1;
+                                            end
                                         end
                                         else begin
                                             is_illegal_instr = 1'b1;
@@ -1165,7 +1206,7 @@ module decoder (
                                     // LR.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_mem_read = uncinstr_aq;
+                                    stall_ldu_dispatch = uncinstr_aq;
                                     wait_write_buffer = uncinstr_rl;
                                 end
 
@@ -1174,7 +1215,7 @@ module decoder (
                                     // SC.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_mem_read = uncinstr_aq;
+                                    stall_ldu_dispatch = uncinstr_aq;
                                     wait_write_buffer = uncinstr_rl;
                                 end
 
@@ -1183,7 +1224,7 @@ module decoder (
                                     // AMOSWAP.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_mem_read = uncinstr_aq;
+                                    stall_ldu_dispatch = uncinstr_aq;
                                     wait_write_buffer = uncinstr_rl;
                                 end
 
@@ -1192,7 +1233,7 @@ module decoder (
                                     // AMOADD.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_mem_read = uncinstr_aq;
+                                    stall_ldu_dispatch = uncinstr_aq;
                                     wait_write_buffer = uncinstr_rl;
                                 end
 
@@ -1201,7 +1242,7 @@ module decoder (
                                     // AMOXOR.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_mem_read = uncinstr_aq;
+                                    stall_ldu_dispatch = uncinstr_aq;
                                     wait_write_buffer = uncinstr_rl;
                                 end
 
@@ -1210,7 +1251,7 @@ module decoder (
                                     // AMOAND.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_mem_read = uncinstr_aq;
+                                    stall_ldu_dispatch = uncinstr_aq;
                                     wait_write_buffer = uncinstr_rl;
                                 end
 
@@ -1219,7 +1260,7 @@ module decoder (
                                     // AMOOR.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_mem_read = uncinstr_aq;
+                                    stall_ldu_dispatch = uncinstr_aq;
                                     wait_write_buffer = uncinstr_rl;
                                 end
 
@@ -1228,7 +1269,7 @@ module decoder (
                                     // AMOMIN.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_mem_read = uncinstr_aq;
+                                    stall_ldu_dispatch = uncinstr_aq;
                                     wait_write_buffer = uncinstr_rl;
                                 end
 
@@ -1237,7 +1278,7 @@ module decoder (
                                     // AMOMAX.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_mem_read = uncinstr_aq;
+                                    stall_ldu_dispatch = uncinstr_aq;
                                     wait_write_buffer = uncinstr_rl;
                                 end
 
@@ -1246,7 +1287,7 @@ module decoder (
                                     // AMOMINU.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_mem_read = uncinstr_aq;
+                                    stall_ldu_dispatch = uncinstr_aq;
                                     wait_write_buffer = uncinstr_rl;
                                 end
 
@@ -1255,7 +1296,7 @@ module decoder (
                                     // AMOMAXU.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_mem_read = uncinstr_aq;
+                                    stall_ldu_dispatch = uncinstr_aq;
                                     wait_write_buffer = uncinstr_rl;
                                 end
 
@@ -1275,250 +1316,5 @@ module decoder (
             end
         endcase
     end
-
-    // opcode_lsbs: 2'b11
-        // opcode_msbs: 5'b01101
-            // LUI
-        // opcode_msbs: 5'b00101
-            // AUIPC
-        // opcode_msbs: 5'b11011
-            // JAL
-        // opcode_msbs: 5'b11001
-            // JALR
-        // opcode_msbs: 5'b11000
-            // Branch
-            // funct3: 3'b000
-                // BEQ
-            // funct3: 3'b001
-                // BNE
-            // funct3: 3'b100
-                // BLT
-            // funct3: 3'b101
-                // BGE
-            // funct3: 3'b110
-                // BLTU
-            // funct3: 3'b111
-                // BGEU
-        // opcode_msbs: 5'b00000
-            // Load
-            // funct3: 3'b000
-                // LB
-            // funct3: 3'b001
-                // LH
-            // funct3: 3'b010
-                // LW
-            // funct3: 3'b100
-                // LBU
-            // funct3: 3'b101
-                // LHU
-        // opcode_msbs: 5'b01000
-            // Store
-            // funct3: 3'b000
-                // SB
-            // funct3: 3'b001
-                // SH
-            // funct3: 3'b010
-                // SW
-        // opcode_msbs: 5'b00100
-            // ALU Reg-Imm
-            // funct3: 3'b000
-                // ADDI
-            // funct3: 3'b001
-                // funct7: 7'b0000000
-                    // SLLI
-            // funct3: 3'b010
-                // SLTI
-            // funct3: 3'b011
-                // SLTIU
-            // funct3: 3'b100
-                // XORI
-            // funct3: 3'b101
-                // funct7: 7'b0000000
-                    // SRLI
-                // funct7: 7'b0100000
-                    // SRAI
-            // funct3: 3'b110
-                // ORI
-            // funct3: 3'b111
-                // ANDI
-        // opcode_msbs: 5'b01100
-            // funct3: 3'b000
-                // funct7: 7'b0000000
-                    // ADD
-                // funct7: 7'b0100000
-                    // SUB
-            // funct3: 3'b001
-                // funct7: 7'b0000000
-                    // SLL
-            // funct3: 3'b010
-                // funct7: 7'b0000000
-                    // SLT
-            // funct3: 3'b011
-                // funct7: 7'b0000000
-                    // SLTU
-            // funct3: 3'b100
-                // funct7: 7'b0000000
-                    // XOR
-            // funct3: 3'b101
-                // funct7: 7'b0000000
-                    // SRL
-                // funct7: 7'b0100000
-                    // SRA
-            // funct3: 3'b110
-                // funct7: 7'b0000000
-                    // OR
-            // funct3: 3'b111
-                // funct7: 7'b0000000
-                    // AND
-        // opcode_msbs: 5'b00011
-            // funct3: 3'b000
-                // fm: 4'b0000
-                    // FENCE
-                // fm: 4'b1000
-                    // FENCE.TSO
-            // funct3: 3'b001
-                // FENCE.I
-        // opcode_msbs: 5'b11100
-            // funct3: 3'b000
-                // funct7: 7'b0000000
-                    // uimm: 5'b00000
-                        // ECALL
-                    // uimm: 5'b00001
-                        // EBREAK
-                // funct7: 7'b0001000
-                    // uimm: 5'b00010
-                        // SRET
-                    // uimm: 5'b00101
-                        // WFI
-                // funct7: 7'b0001001
-                    // SFENCE.VMA
-                // funct7: 7'b0011000
-                    // uimm: 5'b00010
-                        // MRET
-            // funct3: 3'b001
-                // CSRRW
-            // funct3: 3'b010
-                // CSRRS
-            // funct3: 3'b011
-                // CSRRC
-            // funct3: 3'b101
-                // CSRRWI
-            // funct3: 3'b110
-                // CSRRSI
-            // funct3: 3'b111
-                // CSRRCI
-        // opcode_msbs: 5'b01100
-            // funct3: 3'b000
-                // funct7: 7'b0000001
-                    // MUL
-            // funct3: 3'b001
-                // funct7: 7'b0000001
-                    // MULH
-            // funct3: 3'b010
-                // funct7: 7'b0000001
-                    // MULHSU
-            // funct3: 3'b011
-                // funct7: 7'b0000001
-                    // MULHU
-            // funct3: 3'b100
-                // funct7: 7'b0000001
-                    // DIV
-            // funct3: 3'b101
-                // funct7: 7'b0000001
-                    // DIVU
-            // funct3: 3'b110
-                // funct7: 7'b0000001
-                    // REM
-            // funct3: 3'b111
-                // funct7: 7'b0000001
-                    // REMU
-        // opcode_msbs: 5'b01011
-            // funct3: 3'b010
-                // funct5: 5'b00010
-                    // uimm: 5'b00000
-                        // LR.W
-                // funct5: 5'b00011
-                    // SC.W
-                // funct5: 5'b00001
-                    // AMOSWAP.W
-                // funct5: 5'b00000
-                    // AMOADD.W
-                // funct5: 5'b00100
-                    // AMOXOR.W
-                // funct5: 5'b01100
-                    // AMOAND.W
-                // funct5: 5'b01000
-                    // AMOOR.W
-                // funct5: 5'b10000
-                    // AMOMIN.W
-                // funct5: 5'b10100
-                    // AMOMAX.W
-                // funct5: 5'b11000
-                    // AMOMINU.W
-                // funct5: 5'b11100
-                    // AMOMAXU.W
-    // opcode_lsbs: 2'b00
-        // cfunct3: 3'b000
-            // C.ADDI4SPN
-        // cfunct3: 3'b010
-            // C.LW
-        // cfunct3: 3'b110
-            // C.SW
-    // opcode_lsbs: 2'b01
-        // cfunct3: 3'b000
-            // C.NOP, C.ADDI
-        // cfunct3: 3'b001
-            // C.JAL
-        // cfunct3: 3'b010
-            // C.LI
-        // cfunct3: 3'b011
-            // crhigh: 5'b00010 
-                // C.ADDI16SP
-            // crhigh: else
-                // C.LUI
-        // cfunct3: 3'b100
-            // cfunct2_high: 2'b00
-                // C.SRLI
-            // cfunct2_high: 2'b01
-                // C.SRAI
-            // cfunct2_high: 2'b10
-                // C.ANDI
-            // cfunct2_high: 2'b11
-                // cfunct1: 1'b0
-                    // cfunct2_low: 2'b00
-                        // C.SUB
-                    // cfunct2_low: 2'b01
-                        // C.XOR
-                    // cfunct2_low: 2'b10
-                        // C.OR
-                    // cfunct2_low: 2'b11
-                        // C.AND
-        // cfunct3: 3'b101
-            // C.J
-        // cfunct3: 3'b110
-            // C.BEQZ
-        // cfunct3: 3'b111
-            // C.BNEZ
-    // opcode_lsbs: 2'b10
-        // cfunct3: 3'b000
-            // C.SLLI
-        // cfunct3: 3'b010
-            // C.LWSP
-        // cfunct3: 3'b100
-            // funct1: 1'b0
-                // crlow: 5'b00000
-                    // C.MV
-                // crlow: else
-                    // C.JR
-            // funct1: 1'b1
-                // crlow: 5'b00000
-                    // crhigh: 5'b00000
-                        // C.EBREAK
-                    // crhigh: else
-                        // C.JALR
-                // crlow: else
-                    // C.ADD
-        // cfunct3: 3'b110
-            // C.SWSP
 
 endmodule

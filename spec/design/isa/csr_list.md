@@ -554,12 +554,11 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - MRW
     - 64-bit with menvcfgh
     - {STCE, PBMTE, ADUE, CDE, WPRI[25:0], PMM[1:0], WPRI[23:0], CBZE, CBCFE, CBIE[1:0], WPRI[2:0], FIOM}
-        - FIOM:
-            - Fence of I/O implies Memory
-            - relevant for S-mode and U-mode
-            - keep WARL but has no effect since all fence's imply both I/O and memory fenced
+        - FIOM = 1'b1:
+            - Fence of I/O implies Memory for S-mode and U-mode
+            - on this platform, this is always true (even for M-mode)
+                - this platform stalls dispatch for all later loads for acquire and does a generic wait for write buffer for release
                 - fundamental reason did this is because can't figure out if address is to I/O vs. memory until after dtlb, which is too late to enact an acquire for this platform
-                    - this platform uses stall_mem_read in dispatch
                 - consider changing for this platform
         - PBMTE = 1'b0:
             - Svpbmt extension for RV64I page attributes unsupported
