@@ -64,7 +64,7 @@ module mdpt_tb ();
 	    // RESP stage
 		.mdp_info_by_instr_RESP(DUT_mdp_info_by_instr_RESP),
 
-	    // Dep Update 0 stage
+	    // MDPT Update 0 stage
 		.mdpt_update0_valid(tb_mdpt_update0_valid),
 		.mdpt_update0_start_full_PC(tb_mdpt_update0_start_full_PC),
 		.mdpt_update0_ASID(tb_mdpt_update0_ASID),
@@ -115,7 +115,7 @@ module mdpt_tb ();
         };
 		tb_ASID_REQ = 9'h0;
 	    // RESP stage
-	    // Dep Update 0 stage
+	    // MDPT Update 0 stage
 		tb_mdpt_update0_valid = 1'b0;
 		tb_mdpt_update0_start_full_PC = {
             19'h0,
@@ -142,7 +142,7 @@ module mdpt_tb ();
             8'h0,
             8'h0
         };
-	    // Dep Update 0 stage
+	    // MDPT Update 0 stage
 
 		check_outputs();
 
@@ -162,7 +162,7 @@ module mdpt_tb ();
         };
 		tb_ASID_REQ = 9'h0;
 	    // RESP stage
-	    // Dep Update 0 stage
+	    // MDPT Update 0 stage
 		tb_mdpt_update0_valid = 1'b0;
 		tb_mdpt_update0_start_full_PC = {
             19'h0,
@@ -189,7 +189,7 @@ module mdpt_tb ();
             8'h0,
             8'h0
         };
-	    // Dep Update 0 stage
+	    // MDPT Update 0 stage
 
 		check_outputs();
 
@@ -219,7 +219,7 @@ module mdpt_tb ();
             };
             tb_ASID_REQ = 9'h0;
             // RESP stage
-            // Dep Update 0 stage
+            // MDPT Update 0 stage
             tb_mdpt_update0_valid = 1'b1;
             tb_mdpt_update0_start_full_PC = {
                 19'h0,
@@ -246,7 +246,7 @@ module mdpt_tb ();
                 8'h0,
                 8'h0
             };
-            // Dep Update 0 stage
+            // MDPT Update 0 stage
 
             check_outputs();
         end
@@ -275,7 +275,7 @@ module mdpt_tb ();
         };
         tb_ASID_REQ = 9'h0;
         // RESP stage
-        // Dep Update 0 stage
+        // MDPT Update 0 stage
         tb_mdpt_update0_valid = 1'b0;
         tb_mdpt_update0_start_full_PC = {
             19'h0,
@@ -302,7 +302,7 @@ module mdpt_tb ();
             8'h0,
             8'h0
         };
-        // Dep Update 0 stage
+        // MDPT Update 0 stage
 
         check_outputs();
 
@@ -326,7 +326,7 @@ module mdpt_tb ();
             };
             tb_ASID_REQ = i[11:3];
             // RESP stage
-            // Dep Update 0 stage
+            // MDPT Update 0 stage
             tb_mdpt_update0_valid = 1'b0;
             tb_mdpt_update0_start_full_PC = {
                 19'h0,
@@ -353,7 +353,7 @@ module mdpt_tb ();
                 {i - 8 + 1}[7:0],
                 {i - 8 + 0}[7:0]
             };
-            // Dep Update 0 stage
+            // MDPT Update 0 stage
 
             check_outputs();
         end
@@ -376,7 +376,7 @@ module mdpt_tb ();
         };
         tb_ASID_REQ = 9'h0;
         // RESP stage
-        // Dep Update 0 stage
+        // MDPT Update 0 stage
         tb_mdpt_update0_valid = 1'b0;
         tb_mdpt_update0_start_full_PC = {
             19'h0,
@@ -403,7 +403,7 @@ module mdpt_tb ();
             8'hf9,
             8'hf8
         };
-        // Dep Update 0 stage
+        // MDPT Update 0 stage
 
         check_outputs();
 
