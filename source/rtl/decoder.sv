@@ -63,9 +63,10 @@ module decoder (
 
     // ordering
     output logic wait_for_restart,
-    output logic stall_ldu_dispatch,
-    output logic stall_stamofu_dispatch,
-    output logic wait_write_buffer,
+    output logic mem_aq,
+    output logic io_aq,
+    output logic mem_rl,
+    output logic io_rl,
 
     // faults
     output logic instr_yield,
@@ -341,9 +342,10 @@ module decoder (
         B_unneeded = 1'b1;
 
         wait_for_restart = 1'b0;
-        stall_ldu_dispatch = 1'b0;
-        stall_stamofu_dispatch = 1'b0;
-        wait_write_buffer = 1'b0;
+        mem_aq = 1'b0;
+        io_aq = 1'b0;
+        mem_rl = 1'b0;
+        io_rl = 1'b0;
 
         use_pred_info = 1'b0;
 
@@ -1009,6 +1011,15 @@ module decoder (
                     begin
                         // FENCE's
                         op[2:0] = uncinstr_funct3;
+
+                        // R in succ set
+                        if (uncinstr_succ_set[1]) mem_aq = 1'b1;
+                        // I in succ set
+                        if (uncinstr_succ_set[3]) io_aq = 1'b1;
+                        // W in pred set
+                        if (uncinstr_pred_set[0]) mem_rl = 1'b1;
+                        // O in pred set
+                        if (uncinstr_pred_set[2]) io_rl = 1'b1;
                         
                         case (uncinstr_funct3) 
 
@@ -1020,20 +1031,6 @@ module decoder (
                                 else begin
                                     // FENCE, FENCE.TSO
                                     is_fence = 1'b1;
-
-                                    // don't differentiate I vs. R, O vs. W
-
-                                    // read after: stall mem read
-                                        // I or R in succ set
-                                    if (uncinstr_succ_set[3] | uncinstr_succ_set[1]) begin
-                                        stall_ldu_dispatch = 1'b1;
-                                    end
-
-                                    // write before: wait write buffer
-                                        // O or W in pred set
-                                    if (uncinstr_pred_set[2] | uncinstr_pred_set[0]) begin
-                                        wait_write_buffer = 1'b1;
-                                    end
                                 end
                             end
 
@@ -1044,7 +1041,7 @@ module decoder (
                                     // op will tell stamofu to perform icache flush when committed
                                 is_fence = 1'b1;
                                 wait_for_restart = 1'b1;
-                                wait_write_buffer = 1'b1;
+                                mem_rl = 1'b1;
                                     // need local hart stores in front of the FENCE.I to be visible to this hart's icache
                                     // instruction stream after fence.i expects normal program order of stores, not global order
                             end
@@ -1132,8 +1129,6 @@ module decoder (
                                             env_exec_mode == U_MODE
                                             |
                                             env_exec_mode == S_MODE & env_trap_sfence
-                                            |
-                                            env_exec_mode == M_MODE
                                         ) begin
                                             is_illegal_instr = 1'b1;
                                         end
@@ -1141,10 +1136,13 @@ module decoder (
                                             // don't have to flush out instructions
                                                 // FENCE.I will be used if page table update is in executable memory
                                             // do need to make sure no new data mem ops try to get a dTLB translation
+                                                // would need bunch of special case logic for functionality in LSQ
+                                                    // loads could be stopped with regular acquire rules
+                                                    // currently no mechanism to stop stores or AMO's from grabbing a translation
+                                                // just do a restart 
                                             is_fence = 1'b1;
                                             op[1:0] = 2'b10;
-                                            stall_ldu_dispatch = 1'b1;
-                                            stall_stamofu_dispatch = 1'b1;
+                                            wait_for_restart = 1'b1;
                                         end
                                     end
 
@@ -1193,6 +1191,12 @@ module decoder (
                     begin
                         // AMO
                         op = uncamoop;
+
+                        // don't know io vs. mem, mark both aq's and rl's
+                        mem_aq = uncinstr_aq;
+                        io_aq = uncinstr_aq;
+                        mem_rl = uncinstr_rl;
+                        io_rl = uncinstr_rl;
                         
                         if (uncinstr_funct3 != 3'b010) begin
                             is_illegal_instr = 1'b1;
@@ -1206,8 +1210,6 @@ module decoder (
                                     // LR.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_ldu_dispatch = uncinstr_aq;
-                                    wait_write_buffer = uncinstr_rl;
                                 end
 
                                 5'b00011:
@@ -1215,8 +1217,12 @@ module decoder (
                                     // SC.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_ldu_dispatch = uncinstr_aq;
-                                    wait_write_buffer = uncinstr_rl;
+
+                                    // don't know io vs. mem, mark both aq's and rl's
+                                    mem_aq = uncinstr_aq;
+                                    io_aq = uncinstr_aq;
+                                    mem_rl = uncinstr_rl;
+                                    io_rl = uncinstr_rl;
                                 end
 
                                 5'b00001:
@@ -1224,8 +1230,12 @@ module decoder (
                                     // AMOSWAP.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_ldu_dispatch = uncinstr_aq;
-                                    wait_write_buffer = uncinstr_rl;
+
+                                    // don't know io vs. mem, mark both aq's and rl's
+                                    mem_aq = uncinstr_aq;
+                                    io_aq = uncinstr_aq;
+                                    mem_rl = uncinstr_rl;
+                                    io_rl = uncinstr_rl;
                                 end
 
                                 5'b00000:
@@ -1233,8 +1243,12 @@ module decoder (
                                     // AMOADD.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_ldu_dispatch = uncinstr_aq;
-                                    wait_write_buffer = uncinstr_rl;
+
+                                    // don't know io vs. mem, mark both aq's and rl's
+                                    mem_aq = uncinstr_aq;
+                                    io_aq = uncinstr_aq;
+                                    mem_rl = uncinstr_rl;
+                                    io_rl = uncinstr_rl;
                                 end
 
                                 5'b00100:
@@ -1242,8 +1256,12 @@ module decoder (
                                     // AMOXOR.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_ldu_dispatch = uncinstr_aq;
-                                    wait_write_buffer = uncinstr_rl;
+
+                                    // don't know io vs. mem, mark both aq's and rl's
+                                    mem_aq = uncinstr_aq;
+                                    io_aq = uncinstr_aq;
+                                    mem_rl = uncinstr_rl;
+                                    io_rl = uncinstr_rl;
                                 end
 
                                 5'b01100:
@@ -1251,8 +1269,12 @@ module decoder (
                                     // AMOAND.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_ldu_dispatch = uncinstr_aq;
-                                    wait_write_buffer = uncinstr_rl;
+
+                                    // don't know io vs. mem, mark both aq's and rl's
+                                    mem_aq = uncinstr_aq;
+                                    io_aq = uncinstr_aq;
+                                    mem_rl = uncinstr_rl;
+                                    io_rl = uncinstr_rl;
                                 end
 
                                 5'b01000:
@@ -1260,8 +1282,12 @@ module decoder (
                                     // AMOOR.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_ldu_dispatch = uncinstr_aq;
-                                    wait_write_buffer = uncinstr_rl;
+
+                                    // don't know io vs. mem, mark both aq's and rl's
+                                    mem_aq = uncinstr_aq;
+                                    io_aq = uncinstr_aq;
+                                    mem_rl = uncinstr_rl;
+                                    io_rl = uncinstr_rl;
                                 end
 
                                 5'b10000:
@@ -1269,8 +1295,12 @@ module decoder (
                                     // AMOMIN.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_ldu_dispatch = uncinstr_aq;
-                                    wait_write_buffer = uncinstr_rl;
+
+                                    // don't know io vs. mem, mark both aq's and rl's
+                                    mem_aq = uncinstr_aq;
+                                    io_aq = uncinstr_aq;
+                                    mem_rl = uncinstr_rl;
+                                    io_rl = uncinstr_rl;
                                 end
 
                                 5'b10100:
@@ -1278,8 +1308,12 @@ module decoder (
                                     // AMOMAX.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_ldu_dispatch = uncinstr_aq;
-                                    wait_write_buffer = uncinstr_rl;
+
+                                    // don't know io vs. mem, mark both aq's and rl's
+                                    mem_aq = uncinstr_aq;
+                                    io_aq = uncinstr_aq;
+                                    mem_rl = uncinstr_rl;
+                                    io_rl = uncinstr_rl;
                                 end
 
                                 5'b11000:
@@ -1287,8 +1321,12 @@ module decoder (
                                     // AMOMINU.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_ldu_dispatch = uncinstr_aq;
-                                    wait_write_buffer = uncinstr_rl;
+
+                                    // don't know io vs. mem, mark both aq's and rl's
+                                    mem_aq = uncinstr_aq;
+                                    io_aq = uncinstr_aq;
+                                    mem_rl = uncinstr_rl;
+                                    io_rl = uncinstr_rl;
                                 end
 
                                 5'b11100:
@@ -1296,8 +1334,12 @@ module decoder (
                                     // AMOMAXU.W
                                     is_amo = 1'b1;
                                     is_reg_write = 1'b1;
-                                    stall_ldu_dispatch = uncinstr_aq;
-                                    wait_write_buffer = uncinstr_rl;
+
+                                    // don't know io vs. mem, mark both aq's and rl's
+                                    mem_aq = uncinstr_aq;
+                                    io_aq = uncinstr_aq;
+                                    mem_rl = uncinstr_rl;
+                                    io_rl = uncinstr_rl;
                                 end
 
                                 default:

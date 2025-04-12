@@ -56,18 +56,44 @@ module lsq #(
             // operand + imm
             // mark relevant word addresses and bitmasks for dependence checking
             // determine if need 2x load launch
-        // ldu_addr_pipeline L stage
-            // Launch stage
-            // dTLB req + dcache req + stamofu_cq CAM
+                // misaligned such that need 2x word-aligned access
+        // ldu_addr_pipeline PL stage
+            // Pipeline Launch stage
+            // dTLB req + dcache req
             // can be stalled if there is a second-try launch this cycle
-            // mark ldu_cq entry as launched and waiting for resp
-            // need 2x load launch for misaligned 
+            // mark ldu_cq entry as launched and waiting for dTLB resp
+            // need 2x load launch for misaligned
+                // first launch can stall if there is second-try launch this cycle
+                // second launch can stall if there is no ldu_mq entry available
+                // when second launch happens, allocate ldu_mq entry, set symmetric pointers b/w ldu_mq entry and ldu_cq entry
         // ldu_cq first cycle after launch
-            // if dTLB resp, collect PA, check  then dcache access is valid, mark as waiting for dcache
+            // if dTLB resp, collect PA
+                // if no applicable io nor mem fence then dcache launch from last cycle is valid, mark as waiting for dcache
+                    // also launch stamofu_cq CAM
+                // else, need to wait mark entry as waiting for second try launch after fence clear
             // else, mark entry as waiting for second try launch after dTLB resp
-        // ldu_cq second try launch
+        // ldu_cq late dTLB resp
             // wait until late dTLB resp returns
-        // ldu_cq 
+                // if no applicable io nor mem fence then can do second try launch to dcache, mark as waiting for dcache if get launch arbitrated
+                    // also launch stamofu_cq CAM
+                // else, need to wait, mark entry as waiting for fence clear
+        // ldu_cq fence clear
+            // implies already got dTLB resp, on first cycle or late, and found applicable io or mem fence
+            // wait until load older than oldest applicable io vs. mem fence
+                // can do second try launch to dcache, mark as waiting for dcache if get launch arbitrated
+        // ldu_cq dcache resp
+            // implies already got dTLB resp and already waited for applicable io vs. mem fence
+            // dcache hit means dcache resp might arrive before stamofu_cq CAM depending on how timing ends up working out
+                // if have store set, or maybe always, buffer dcache val(s) 
+            // wait until get dcache resp
+                // if got forward from SQ CAM, ignore dcache resp
+                // else, if entry has store set which is not resolved
+                    // got ROB index to wait until in order for entry to be marked ready
+                // else, free to perform dcache resp reg write
+        // ldu_cq stamofu_cq CAM resp
+            // launched after get dTLB resp(s)
+                // need good PA
+            // 
 
     // store path:
         // 2x complete path dTLB cycles for misaligned
@@ -87,7 +113,7 @@ module lsq #(
             // then what is point of SQ launch head?
                 // just let ROB dequeue from its unexceptable head as it pleases and it is SQ's job
                 // to correctly mark entries as unexceptable in ROB and to only dequeue from
-                // SQ once 
+                // SQ once reg write value has been returned
 
 
     // fence path:
@@ -107,10 +133,51 @@ module lsq #(
 
     // dcache's job to deal with write buffer dependences
         // load launch CAM's write buffer checking for dependence
-        // if write buffer has superset dependence, load can safely steal it as-is
-        // if write buffer has matching partial dependence or AMO, need to wait for dependence to finish writing to cache array
-            // can use MSHR to hold dependent read until last partial dependent or AMO write 
-                // found by write buffer CAM index is completed into cache array
-        // have backpressure by usual limiting of launches unless MSHR available
+        // if write buffer has superset dependence, load can safely steal write buffer entry value as-is
+        // if write buffer has matching partial dependence or AMO:
+            // option 1: wait for dependence to finish writing to cache array
+                // can use MSHR to hold dependent read until last partial dependent or AMO write 
+                    // found by write buffer CAM index is completed into cache array
+            // option 2: deal with partial dependences
+                // always perform regular dcache array read, then forward dependent bytes from write buffer
+                    // as needed
+                // if dcache miss, recheck write buffer on MSHR miss return 
+        // have backpressure by stalling launches unless MSHR available or not currently trying miss return 
+            // dcache array and write buffer lookups
+
+
+    // structures:
+
+        // ldu:
+
+            // ldu_dq
+                // Dispatch Queue
+
+            // ldu_addr_pipeline
+
+            // ldu_cq
+                // Central Queue
+
+            // ldu_mq
+                // Misaligned Queue
+
+        // stamofu:
+        
+            // stamofu_dq
+                // Dispatch Queue
+
+            // stamofu_addr_pipeline
+
+            // stamofu_cq
+                // Central Queue
+            
+            // stamofu_mq
+                // Misaligned Queue
+
+        // mem_aq_q
+            // Mem Acquire Queue
+
+        // io_aq_q
+            // IO Acquire Queue
 
 endmodule

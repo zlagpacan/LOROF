@@ -66,6 +66,12 @@ module frontend #(
     output logic [3:0][3:0]                         dispatch_op_by_way,
     output logic [19:0]                             dispatch_imm20_by_way,
 
+    // ordering
+    output logic dispatch_mem_aq,
+    output logic dispatch_io_aq,
+    output logic dispatch_mem_rl,
+    output logic dispatch_io_rl
+
     // instr fetch + decode exceptions
     output logic [3:0]                              dispatch_page_fault_by_way,
     output logic [3:0]                              dispatch_access_fault_by_way,
