@@ -16,7 +16,7 @@ module decoder (
     input logic env_trap_wfi,
     input logic env_trap_sret,
 
-    // instr input
+    // instr info
     input logic                             uncompressed,
     input logic [31:0]                      instr32,
     input logic [BTB_PRED_INFO_WIDTH-1:0]   pred_info_chunk0,

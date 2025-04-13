@@ -287,16 +287,19 @@ module lsq #(
                 // perform CAM of ldu_cq + ldu_mq
                     // described above
                     // this CAM'ing doesn't affect stamofu_cq
-                // now know specifically if in mem vs. io, so update mem_aq_q and io_aq_q
-                    // one will see dequeue, which loads will react to naturally when dequeue propagates,
-                    // potentially enabling load second launch
+                // now know specifically if in mem vs. io
+                    // update mem_aq_q and io_aq_q
+                        // if applicable, one will see dequeue, which loads will react to naturally when dequeue propagates,
+                        // potentially enabling loads for second launch
+                    // update stamofu_cq entry mem_rl and io_rl rules
+                        // if applicable, one will be cleared
         // ldu_cq CAM of stamofu_cq
             // described above
             // this CAM'ing doesn't affect stamofu_cq entry values, only reads them
         // stamofu_cq wait for launch of this stamofu_cq entry to dcache
             // ROB will signal commit for stamofu_cq head to launch
             // stall following mem_rl and io_rl if write buffer has any mem or io entries, respectively
-            // launch amo to amo unit
+            // if no stall, launch amo to amo unit
         // stamofu_cq wait for dcache resp
             // send reg write
             // broadcast ROB_index so loads waiting for amo commit can do second launch
@@ -400,7 +403,7 @@ module lsq #(
 
         // io_aq_q
             // IO Acquire Queue
-            
+
 
     // misc:
 

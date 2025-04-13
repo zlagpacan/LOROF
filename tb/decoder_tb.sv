@@ -32,7 +32,13 @@ module decoder_tb ();
     // ----------------------------------------------------------------
     // DUT signals:
 
-    // input info
+    // environment info
+    logic [1:0] tb_env_exec_mode;
+    logic tb_env_trap_sfence;
+    logic tb_env_trap_wfi;
+    logic tb_env_trap_sret;
+
+    // instr input
 	logic tb_uncompressed;
 	logic [31:0] tb_instr32;
 	logic [BTB_PRED_INFO_WIDTH-1:0] tb_pred_info_chunk0;
@@ -78,10 +84,11 @@ module decoder_tb ();
 	logic DUT_missing_pred, expected_missing_pred;
 
     // ordering
-	logic DUT_flush_fetch, expected_flush_fetch;
-	logic DUT_stall_mem_read, expected_stall_mem_read;
-	logic DUT_stall_mem_write, expected_stall_mem_write;
-	logic DUT_wait_write_buffer, expected_wait_write_buffer;
+    logic DUT_wait_for_restart, expected_wait_for_restart;
+    logic DUT_mem_aq, expected_mem_aq;
+    logic DUT_io_aq, expected_io_aq;
+    logic DUT_mem_rl, expected_mem_rl;
+    logic DUT_io_rl, expected_io_rl;
 
     // faults
 	logic DUT_instr_yield, expected_instr_yield;
@@ -97,7 +104,13 @@ module decoder_tb ();
 
 	decoder DUT (
 
-	    // input info
+    	// environment info
+		.env_exec_mode(tb_env_exec_mode),
+		.env_trap_sfence(tb_env_trap_sfence),
+		.env_trap_wfi(tb_env_trap_wfi),
+		.env_trap_sret(tb_env_trap_sret),
+
+	    // instr info
 		.uncompressed(tb_uncompressed),
 		.instr32(tb_instr32),
 		.pred_info_chunk0(tb_pred_info_chunk0),
@@ -143,10 +156,11 @@ module decoder_tb ();
 		.missing_pred(DUT_missing_pred),
 
 	    // ordering
-		.flush_fetch(DUT_flush_fetch),
-		.stall_mem_read(DUT_stall_mem_read),
-		.stall_mem_write(DUT_stall_mem_write),
-		.wait_write_buffer(DUT_wait_write_buffer),
+		.wait_for_restart(DUT_wait_for_restart),
+		.mem_aq(DUT_mem_aq),
+		.io_aq(DUT_io_aq),
+		.mem_rl(DUT_mem_rl),
+		.io_rl(DUT_io_rl),
 
 	    // faults
 		.instr_yield(DUT_instr_yield),
@@ -338,30 +352,37 @@ module decoder_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_flush_fetch !== DUT_flush_fetch) begin
-			$display("TB ERROR: expected_flush_fetch (%h) != DUT_flush_fetch (%h)",
-				expected_flush_fetch, DUT_flush_fetch);
+		if (expected_wait_for_restart !== DUT_wait_for_restart) begin
+			$display("TB ERROR: expected_wait_for_restart (%h) != DUT_wait_for_restart (%h)",
+				expected_wait_for_restart, DUT_wait_for_restart);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_stall_mem_read !== DUT_stall_mem_read) begin
-			$display("TB ERROR: expected_stall_mem_read (%h) != DUT_stall_mem_read (%h)",
-				expected_stall_mem_read, DUT_stall_mem_read);
+		if (expected_mem_aq !== DUT_mem_aq) begin
+			$display("TB ERROR: expected_mem_aq (%h) != DUT_mem_aq (%h)",
+				expected_mem_aq, DUT_mem_aq);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_stall_mem_write !== DUT_stall_mem_write) begin
-			$display("TB ERROR: expected_stall_mem_write (%h) != DUT_stall_mem_write (%h)",
-				expected_stall_mem_write, DUT_stall_mem_write);
+		if (expected_io_aq !== DUT_io_aq) begin
+			$display("TB ERROR: expected_io_aq (%h) != DUT_io_aq (%h)",
+				expected_io_aq, DUT_io_aq);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_wait_write_buffer !== DUT_wait_write_buffer) begin
-			$display("TB ERROR: expected_wait_write_buffer (%h) != DUT_wait_write_buffer (%h)",
-				expected_wait_write_buffer, DUT_wait_write_buffer);
+		if (expected_mem_rl !== DUT_mem_rl) begin
+			$display("TB ERROR: expected_mem_rl (%h) != DUT_mem_rl (%h)",
+				expected_mem_rl, DUT_mem_rl);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_io_rl !== DUT_io_rl) begin
+			$display("TB ERROR: expected_io_rl (%h) != DUT_io_rl (%h)",
+				expected_io_rl, DUT_io_rl);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -437,7 +458,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b0;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = 32'h0;
 		tb_pred_info_chunk0 = 8'h0;
@@ -456,7 +482,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -490,10 +516,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -511,7 +538,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = 32'h0;
 		tb_pred_info_chunk0 = 8'h0;
@@ -530,7 +562,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -564,10 +596,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -593,7 +626,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = '1;
 		tb_pred_info_chunk0 = 8'h0;
@@ -612,7 +650,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -646,10 +684,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -669,7 +708,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {20'h555AA, 5'h0, 5'b01101, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -688,7 +732,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -722,10 +766,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -745,7 +790,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {20'h333CC, 5'h1, 5'b00101, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -764,7 +814,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -798,10 +848,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b0;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -821,7 +872,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {20'h333CC, 5'h1, 5'b00101, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -840,7 +896,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -874,10 +930,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -897,7 +954,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {20'h12345, 5'h2, 5'b11011, 2'b11};
 		tb_pred_info_chunk0 = 8'b10101010;
@@ -916,7 +978,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -950,10 +1012,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b1;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b0;
 		expected_non_branch_notif_chunk0 = 1'b1;
@@ -973,7 +1036,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {20'h12345, 5'h2, 5'b11011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -992,7 +1060,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -1026,10 +1094,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b1;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -1049,7 +1118,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {20'hfed, 5'h3, 3'b000, 5'h4, 5'b11001, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -1068,7 +1142,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -1102,10 +1176,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'b01010101;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -1125,7 +1200,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {20'hfed, 5'h3, 3'b101, 5'h4, 5'b11001, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -1144,7 +1224,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -1178,10 +1258,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'b01010101;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -1201,7 +1282,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b1000001, 5'h6, 5'h5, 3'b000, 5'b10001, 5'b11000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -1220,7 +1306,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -1254,10 +1340,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b1;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -1277,7 +1364,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0111110, 5'h8, 5'h7, 3'b001, 5'b01110, 5'b11000, 2'b11};
 		tb_pred_info_chunk0 = 8'b11001100;
@@ -1296,7 +1388,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -1330,10 +1422,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b1;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b0;
 		expected_non_branch_notif_chunk0 = 1'b1;
@@ -1353,7 +1446,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b1001001, 5'ha, 5'h9, 3'b010, 5'b10101, 5'b11000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -1372,7 +1470,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -1406,10 +1504,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b1;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -1429,7 +1528,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b1001001, 5'ha, 5'h9, 3'b100, 5'b10101, 5'b11000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -1448,7 +1552,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -1482,10 +1586,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'b10000001;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -1505,7 +1610,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0110110, 5'hc, 5'hb, 3'b101, 5'b01010, 5'b11000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -1524,7 +1634,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -1558,10 +1668,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b1;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -1581,7 +1692,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0110110, 5'he, 5'hd, 3'b110, 5'b01010, 5'b11000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -1600,7 +1716,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -1634,10 +1750,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b1;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -1657,7 +1774,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0110110, 5'h0, 5'hf, 3'b111, 5'b01010, 5'b11000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -1676,7 +1798,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -1710,10 +1832,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b1;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -1733,7 +1856,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'ha98, 5'h1, 3'b000, 5'h2, 5'b00000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -1752,7 +1880,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -1786,10 +1914,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -1809,7 +1938,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'ha98, 5'h1, 3'b000, 5'h2, 5'b00000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -1828,7 +1962,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -1862,10 +1996,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'b01000000;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -1885,7 +2020,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'hfff, 5'h3, 3'b001, 5'h4, 5'b00000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -1904,7 +2044,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -1938,10 +2078,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -1961,7 +2102,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'hfff, 5'h3, 3'b001, 5'h4, 5'b00000, 2'b11};
 		tb_pred_info_chunk0 = 8'b11110000;
@@ -1980,7 +2126,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -2014,10 +2160,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'b10000100;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b0;
 		expected_non_branch_notif_chunk0 = 1'b1;
@@ -2037,7 +2184,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'h5a5, 5'h5, 3'b010, 5'h6, 5'b00000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -2056,7 +2208,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -2090,10 +2242,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -2113,7 +2266,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'h5a5, 5'h5, 3'b011, 5'h6, 5'b00000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -2132,7 +2290,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -2166,10 +2324,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -2189,7 +2348,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'ha5a, 5'h7, 3'b100, 5'h8, 5'b00000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -2208,7 +2372,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -2242,10 +2406,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -2265,7 +2430,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'h345, 5'h9, 3'b101, 5'ha, 5'b00000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -2284,7 +2454,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -2318,10 +2488,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -2341,7 +2512,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'h678, 5'h9, 3'b110, 5'ha, 5'b00000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -2360,7 +2536,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -2394,10 +2570,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -2417,7 +2594,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'h9ab, 5'h9, 3'b111, 5'ha, 5'b00000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -2436,7 +2618,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -2470,10 +2652,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -2493,7 +2676,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0101010, 5'hc, 5'hb, 3'b000, 5'b10101, 5'b01000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -2512,7 +2700,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -2546,10 +2734,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -2569,7 +2758,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b1010101, 5'he, 5'hd, 3'b001, 5'b01010, 5'b01000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -2588,7 +2782,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -2622,10 +2816,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -2645,7 +2840,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b1111000, 5'h0, 5'hf, 3'b010, 5'b11100, 5'b01000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -2664,7 +2864,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -2698,10 +2898,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -2721,7 +2922,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000111, 5'h0, 5'hf, 3'b011, 5'b00011, 5'b01000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -2740,7 +2946,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -2774,10 +2980,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -2797,7 +3004,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000111, 5'h0, 5'hf, 3'b100, 5'b00011, 5'b01000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -2816,7 +3028,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -2850,10 +3062,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -2873,7 +3086,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000111, 5'h0, 5'hf, 3'b101, 5'b00011, 5'b01000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -2892,7 +3110,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -2926,10 +3144,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -2949,7 +3168,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000111, 5'h0, 5'hf, 3'b110, 5'b00011, 5'b01000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -2968,7 +3192,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -3002,10 +3226,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -3025,7 +3250,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000111, 5'h0, 5'hf, 3'b111, 5'b00011, 5'b01000, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -3044,7 +3274,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -3078,10 +3308,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -3101,7 +3332,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'h210, 5'h1, 3'b000, 5'h2, 5'b00100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -3120,7 +3356,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -3154,10 +3390,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -3177,7 +3414,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000000, 5'b10101, 5'h3, 3'b001, 5'h4, 5'b00100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -3196,7 +3438,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -3230,10 +3472,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -3253,7 +3496,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000001, 5'b10101, 5'h3, 3'b001, 5'h4, 5'b00100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -3272,7 +3520,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -3306,10 +3554,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -3329,7 +3578,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'h876, 5'h5, 3'b010, 5'h6, 5'b00100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -3348,7 +3602,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -3382,10 +3636,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -3405,7 +3660,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'hba9, 5'h7, 3'b011, 5'h8, 5'b00100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -3424,7 +3684,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -3458,10 +3718,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -3481,7 +3742,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'hedc, 5'h9, 3'b100, 5'ha, 5'b00100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -3500,7 +3766,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -3534,10 +3800,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -3557,9 +3824,14 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
-		tb_instr32 = {7'b00000000, 5'h11, 5'h9, 3'b101, 5'ha, 5'b00100, 2'b11};
+		tb_instr32 = {7'b0000000, 5'h11, 5'h9, 3'b101, 5'ha, 5'b00100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
 		tb_pred_info_chunk1 = 8'h0;
 	    // FU select
@@ -3576,7 +3848,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -3610,10 +3882,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -3633,7 +3906,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0100000, 5'h11, 5'h9, 3'b101, 5'ha, 5'b00100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -3652,7 +3930,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -3686,10 +3964,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -3709,7 +3988,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0001000, 5'h11, 5'h9, 3'b101, 5'ha, 5'b00100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -3728,7 +4012,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -3762,10 +4046,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -3785,7 +4070,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'hfff, 5'h9, 3'b110, 5'ha, 5'b00100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -3804,7 +4094,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -3838,10 +4128,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -3861,7 +4152,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'haaa, 5'h9, 3'b111, 5'ha, 5'b00100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -3880,7 +4176,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -3914,10 +4210,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -3937,7 +4234,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000000, 5'h4, 5'h2, 3'b000, 5'h6, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -3956,7 +4258,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b1;
 		expected_is_alu_imm = 1'b0;
@@ -3990,10 +4292,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -4013,7 +4316,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0100000, 5'ha, 5'h8, 3'b000, 5'hc, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -4032,7 +4340,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b1;
 		expected_is_alu_imm = 1'b0;
@@ -4066,10 +4374,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -4089,7 +4398,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b1111111, 5'h3, 5'h1, 3'b000, 5'h5, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -4108,7 +4422,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -4142,10 +4456,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -4165,7 +4480,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000000, 5'h9, 5'h7, 3'b001, 5'hb, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -4184,7 +4504,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b1;
 		expected_is_alu_imm = 1'b0;
@@ -4218,10 +4538,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -4241,7 +4562,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000000, 5'hf, 5'hd, 3'b010, 5'h1, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -4260,7 +4586,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b1;
 		expected_is_alu_imm = 1'b0;
@@ -4294,10 +4620,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -4317,7 +4644,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000000, 5'hf, 5'hd, 3'b011, 5'h1, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -4336,7 +4668,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b1;
 		expected_is_alu_imm = 1'b0;
@@ -4370,10 +4702,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -4393,7 +4726,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000000, 5'h4, 5'h0, 3'b100, 5'h8, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -4412,7 +4750,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b1;
 		expected_is_alu_imm = 1'b0;
@@ -4446,10 +4784,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -4469,7 +4808,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000000, 5'h5, 5'h1, 3'b101, 5'h9, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -4488,7 +4832,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b1;
 		expected_is_alu_imm = 1'b0;
@@ -4522,10 +4866,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -4545,7 +4890,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0100000, 5'h6, 5'h2, 3'b101, 5'ha, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -4564,7 +4914,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b1;
 		expected_is_alu_imm = 1'b0;
@@ -4598,10 +4948,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -4621,7 +4972,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000000, 5'h7, 5'h3, 3'b110, 5'hb, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -4640,7 +4996,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b1;
 		expected_is_alu_imm = 1'b0;
@@ -4674,10 +5030,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -4697,7 +5054,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000000, 5'h8, 5'h4, 3'b111, 5'hc, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -4716,7 +5078,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b1;
 		expected_is_alu_imm = 1'b0;
@@ -4750,10 +5112,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -4773,7 +5136,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {4'b0000, 4'b0000, 4'b1111, 5'ha, 3'b000, 5'h5, 5'b00011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -4792,7 +5160,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -4826,10 +5194,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b1;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b1;
+		expected_io_aq = 1'b1;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -4849,7 +5218,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {4'b1000, 4'b0001, 4'b1110, 5'ha, 3'b000, 5'h5, 5'b00011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -4868,7 +5242,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -4902,10 +5276,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b1;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b1;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b1;
+		expected_io_aq = 1'b1;
+		expected_mem_rl = 1'b1;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -4925,7 +5300,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {4'b0100, 4'b0010, 4'b1101, 5'ha, 3'b000, 5'h5, 5'b00011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -4944,7 +5324,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -4978,10 +5358,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b1;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -5001,7 +5382,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {4'b0000, 4'b1001, 4'b0110, 5'ha, 3'b000, 5'h5, 5'b00011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -5020,7 +5406,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -5054,10 +5440,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b1;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b1;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b1;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b1;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -5077,7 +5464,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {4'b0000, 4'b0110, 4'b1001, 5'ha, 3'b000, 5'h5, 5'b00011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -5096,7 +5488,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -5130,10 +5522,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b1;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b1;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b1;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b1;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -5153,7 +5546,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {4'b0000, 4'b0010, 4'b0100, 5'ha, 3'b000, 5'h5, 5'b00011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -5172,7 +5570,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -5206,10 +5604,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -5229,7 +5628,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {4'b0000, 4'b1000, 4'b0001, 5'ha, 3'b000, 5'h5, 5'b00011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -5248,7 +5652,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -5282,10 +5686,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -5305,7 +5710,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {4'b1000, 4'b0100, 4'b1000, 5'ha, 3'b000, 5'h5, 5'b00011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -5324,7 +5734,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -5358,10 +5768,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b1;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b1;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b1;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b1;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -5381,7 +5792,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {4'b1000, 4'b0001, 4'b0010, 5'ha, 3'b000, 5'h5, 5'b00011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -5400,7 +5816,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -5434,10 +5850,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b1;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b1;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b1;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b1;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -5457,7 +5874,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {4'b0000, 4'b0001, 4'b0000, 5'ha, 3'b000, 5'h5, 5'b00011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -5476,7 +5898,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -5510,10 +5932,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b1;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b1;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -5533,7 +5956,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {4'b0000, 4'b0100, 4'b0101, 5'ha, 3'b000, 5'h5, 5'b00011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -5552,7 +5980,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -5586,10 +6014,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b1;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b1;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -5609,7 +6038,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {4'b0000, 4'b0000, 4'b1000, 5'ha, 3'b000, 5'h5, 5'b00011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -5628,7 +6062,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -5662,10 +6096,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b1;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b1;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -5685,7 +6120,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {4'b0000, 4'b1010, 4'b1010, 5'ha, 3'b000, 5'h5, 5'b00011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -5704,7 +6144,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -5738,10 +6178,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b1;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b1;
+		expected_io_aq = 1'b1;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -5761,7 +6202,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'h5a5, 5'ha, 3'b001, 5'h5, 5'b00011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -5780,7 +6226,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -5814,10 +6260,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b1;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b1;
+		expected_wait_for_restart = 1'b1;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b1;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -5832,12 +6279,17 @@ module decoder_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "bad fence";
+		sub_test_case = "bad fence 1010,0101";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'h5a5, 5'ha, 3'b110, 5'h5, 5'b00011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -5856,7 +6308,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -5890,10 +6342,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -5913,7 +6366,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000000, 5'b00000, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -5932,7 +6390,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -5966,10 +6424,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b1;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b1;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -5989,7 +6448,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000000, 5'b00001, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -6008,7 +6472,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -6042,10 +6506,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b1;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b1;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -6065,7 +6530,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000000, 5'b01000, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -6084,7 +6554,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -6118,10 +6588,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -6136,12 +6607,17 @@ module decoder_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "SRET";
+		sub_test_case = "SRET U-mode";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0001000, 5'b00010, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -6160,7 +6636,89 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b0000;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h0;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b1;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h2;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h0;
+		expected_dest_is_zero = 1'b1;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h00102;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SRET S-mode, TSR = 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b1;
+		tb_env_trap_wfi = 1'b1;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0001000, 5'b00010, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -6194,10 +6752,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b1;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b1;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -6212,12 +6771,181 @@ module decoder_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "WFI";
+		sub_test_case = "SRET S-mode, TSR = 1";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b1;
+	    // instr info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0001000, 5'b00010, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // instr info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b0000;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h0;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b1;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h2;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h0;
+		expected_dest_is_zero = 1'b1;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h00102;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SRET M-mode";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b1;
+		tb_env_trap_wfi = 1'b1;
+		tb_env_trap_sret = 1'b1;
+	    // instr info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0001000, 5'b00010, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // instr info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b1;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0000;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h0;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b1;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h2;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h0;
+		expected_dest_is_zero = 1'b1;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h00102;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_wait_for_restart = 1'b1;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "WFI U-mode";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0001000, 5'b00101, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -6236,7 +6964,89 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b0000;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h0;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b1;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h5;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h0;
+		expected_dest_is_zero = 1'b1;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h00105;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "WFI S-mode, TW = 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b1;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b1;
+	    // instr info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0001000, 5'b00101, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -6270,10 +7080,175 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b1;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b1;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "WFI S-mode, TW = 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b1;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0001000, 5'b00101, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // instr info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b0000;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h0;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b1;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h5;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h0;
+		expected_dest_is_zero = 1'b1;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h00105;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "WFI M-mode";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b1;
+		tb_env_trap_wfi = 1'b1;
+		tb_env_trap_sret = 1'b1;
+	    // instr info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0001000, 5'b00101, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // instr info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b1;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0000;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h0;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b1;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h5;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h0;
+		expected_dest_is_zero = 1'b1;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h00105;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_wait_for_restart = 1'b1;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -6293,7 +7268,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0001000, 5'b00000, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -6312,7 +7292,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -6346,10 +7326,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -6364,12 +7345,17 @@ module decoder_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "SFENCE.VMA";
+		sub_test_case = "SFENCE.VMA U-mode";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0001001, 5'ha, 5'h5, 3'b000, 5'h0, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -6388,7 +7374,89 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b0000;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h5;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b1;
+	    // B operand
+		expected_B_AR = 5'ha;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h0;
+		expected_dest_is_zero = 1'b1;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h2812a;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SFENCE.VMA S-mode TVM = 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b1;
+		tb_env_trap_sret = 1'b1;
+	    // instr info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0001001, 5'ha, 5'h5, 3'b000, 5'h0, 5'b11100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -6422,10 +7490,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b1;
-		expected_stall_mem_write = 1'b1;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b1;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -6440,12 +7509,181 @@ module decoder_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "MRET";
+		sub_test_case = "SFENCE.VMA S-mode TVM = 1";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b1;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0001001, 5'ha, 5'h5, 3'b000, 5'h0, 5'b11100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // instr info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b0000;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h5;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b1;
+	    // B operand
+		expected_B_AR = 5'ha;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h0;
+		expected_dest_is_zero = 1'b1;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h2812a;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SFENCE.VMA M-mode";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b1;
+		tb_env_trap_wfi = 1'b1;
+		tb_env_trap_sret = 1'b1;
+	    // instr info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0001001, 5'ha, 5'h5, 3'b000, 5'h0, 5'b11100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // instr info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b1;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b0;
+	    // op
+		expected_op = 4'b0010;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h5;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b0;
+		expected_A_is_ret_ra = 1'b1;
+	    // B operand
+		expected_B_AR = 5'ha;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h0;
+		expected_dest_is_zero = 1'b1;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h2812a;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_wait_for_restart = 1'b1;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "MRET U-mode";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0011000, 5'b00010, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -6464,7 +7702,171 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b0000;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h0;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b1;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h2;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h0;
+		expected_dest_is_zero = 1'b1;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h00302;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "MRET S-mode";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0011000, 5'b00010, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // instr info
+	    // FU select
+		expected_is_alu_reg = 1'b0;
+		expected_is_alu_imm = 1'b0;
+		expected_is_bru = 1'b0;
+		expected_is_mdu = 1'b0;
+		expected_is_ldu = 1'b0;
+		expected_is_store = 1'b0;
+		expected_is_amo = 1'b0;
+		expected_is_fence = 1'b0;
+		expected_is_sys = 1'b0;
+		expected_is_illegal_instr = 1'b1;
+	    // op
+		expected_op = 4'b0000;
+		expected_is_reg_write = 1'b0;
+	    // A operand
+		expected_A_AR = 5'h0;
+		expected_A_unneeded = 1'b1;
+		expected_A_is_zero = 1'b1;
+		expected_A_is_ret_ra = 1'b0;
+	    // B operand
+		expected_B_AR = 5'h2;
+		expected_B_unneeded = 1'b1;
+		expected_B_is_zero = 1'b0;
+	    // dest operand
+		expected_dest_AR = 5'h0;
+		expected_dest_is_zero = 1'b1;
+		expected_dest_is_link_ra = 1'b0;
+	    // imm
+		expected_imm20 = 20'h00302;
+	    // pred info out
+		expected_pred_info_out = 8'h0;
+		expected_missing_pred = 1'b0;
+	    // ordering
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
+	    // faults
+		expected_instr_yield = 1'b1;
+		expected_non_branch_notif_chunk0 = 1'b0;
+		expected_non_branch_notif_chunk1 = 1'b0;
+		expected_restart_on_chunk0 = 1'b0;
+		expected_restart_after_chunk0 = 1'b0;
+		expected_restart_after_chunk1 = 1'b0;
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "MRET M-mode";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b1;
+		tb_env_trap_wfi = 1'b1;
+		tb_env_trap_sret = 1'b1;
+	    // instr info
+		tb_uncompressed = 1'b1;
+		tb_instr32 = {7'b0011000, 5'b00010, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
+		tb_pred_info_chunk0 = 8'h0;
+		tb_pred_info_chunk1 = 8'h0;
+	    // FU select
+	    // op
+	    // A operand
+	    // B operand
+	    // dest operand
+	    // imm
+	    // pred info out
+	    // ordering
+	    // faults
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -6498,10 +7900,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b1;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b1;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -6521,7 +7924,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0011000, 5'b11101, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -6540,7 +7948,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -6574,10 +7982,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -6597,7 +8006,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b1000001, 5'b10001, 5'h0, 3'b000, 5'h0, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -6616,7 +8030,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -6650,10 +8064,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -6673,7 +8088,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'h246, 5'h1, 3'b001, 5'h3, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -6692,7 +8112,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -6726,10 +8146,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -6749,7 +8170,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'h8ac, 5'h5, 3'b010, 5'h7, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -6768,7 +8194,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -6802,10 +8228,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -6825,7 +8252,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'he02, 5'h9, 3'b011, 5'hb, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -6844,7 +8276,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -6878,10 +8310,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -6901,7 +8334,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'h468, 5'hd, 3'b100, 5'hf, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -6920,7 +8358,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -6954,10 +8392,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -6977,7 +8416,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'hace, 5'h2, 3'b101, 5'h0, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -6996,7 +8440,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -7030,10 +8474,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -7053,7 +8498,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'hfed, 5'h3, 3'b110, 5'h1, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -7072,7 +8522,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -7106,10 +8556,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -7129,7 +8580,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {12'hcba, 5'h4, 3'b111, 5'h2, 5'b11100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -7148,7 +8604,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -7182,10 +8638,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -7205,7 +8662,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000001, 5'hf, 5'he, 3'b000, 5'h0, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -7224,7 +8686,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -7258,10 +8720,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -7281,7 +8744,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000001, 5'h2, 5'h1, 3'b001, 5'h3, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -7300,7 +8768,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -7334,10 +8802,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -7357,7 +8826,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000001, 5'h5, 5'h4, 3'b010, 5'h6, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -7376,7 +8850,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -7410,10 +8884,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -7433,7 +8908,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000001, 5'h8, 5'h7, 3'b011, 5'h9, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -7452,7 +8932,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -7486,10 +8966,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -7509,7 +8990,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000001, 5'hb, 5'ha, 3'b100, 5'hc, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -7528,7 +9014,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -7562,10 +9048,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -7585,7 +9072,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000001, 5'he, 5'hd, 3'b101, 5'hf, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -7604,7 +9096,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -7638,10 +9130,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -7661,7 +9154,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000001, 5'h0, 5'h0, 3'b110, 5'h0, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -7680,7 +9178,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -7714,10 +9212,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -7737,7 +9236,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {7'b0000001, 5'h3, 5'h3, 3'b111, 5'h3, 5'b01100, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -7756,7 +9260,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -7790,10 +9294,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -7813,7 +9318,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {5'b00010, 1'b0, 1'b0, 5'h0, 5'hf, 3'b010, 5'h1, 5'b01011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -7832,7 +9342,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -7866,10 +9376,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -7884,12 +9395,17 @@ module decoder_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "bad AMO funct5";
+		sub_test_case = "bad AMO funct5 rl";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {5'b11111, 1'b0, 1'b1, 5'h0, 5'hf, 3'b010, 5'h1, 5'b01011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -7908,7 +9424,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -7942,10 +9458,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b1;
+		expected_io_rl = 1'b1;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -7960,12 +9477,17 @@ module decoder_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "bad AMO funct3";
+		sub_test_case = "bad AMO funct3 aq";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {5'b00010, 1'b1, 1'b0, 5'h0, 5'hf, 3'b101, 5'h1, 5'b01011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -7984,7 +9506,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -8018,10 +9540,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b1;
+		expected_io_aq = 1'b1;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -8036,12 +9559,17 @@ module decoder_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "SC.W release";
+		sub_test_case = "SC.W rl";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {5'b00011, 1'b0, 1'b1, 5'h0, 5'hf, 3'b010, 5'h1, 5'b01011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -8060,7 +9588,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -8094,10 +9622,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b1;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b1;
+		expected_io_rl = 1'b1;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -8117,7 +9646,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {5'b00001, 1'b1, 1'b1, 5'h0, 5'hf, 3'b010, 5'h1, 5'b01011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -8136,7 +9670,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -8170,10 +9704,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b1;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b1;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b1;
+		expected_io_aq = 1'b1;
+		expected_mem_rl = 1'b1;
+		expected_io_rl = 1'b1;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -8193,7 +9728,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {5'b00000, 1'b0, 1'b0, 5'h0, 5'hf, 3'b010, 5'h1, 5'b01011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -8212,7 +9752,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -8246,10 +9786,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -8269,7 +9810,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {5'b00100, 1'b1, 1'b0, 5'h0, 5'hf, 3'b010, 5'h1, 5'b01011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -8288,7 +9834,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -8322,10 +9868,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b1;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b1;
+		expected_io_aq = 1'b1;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -8345,7 +9892,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {5'b01100, 1'b0, 1'b1, 5'h0, 5'hf, 3'b010, 5'h1, 5'b01011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -8364,7 +9916,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -8398,10 +9950,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b1;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b1;
+		expected_io_rl = 1'b1;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -8421,7 +9974,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {5'b01000, 1'b1, 1'b1, 5'h0, 5'hf, 3'b010, 5'h1, 5'b01011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -8440,7 +9998,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -8474,10 +10032,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b1;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b1;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b1;
+		expected_io_aq = 1'b1;
+		expected_mem_rl = 1'b1;
+		expected_io_rl = 1'b1;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -8497,7 +10056,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {5'b10000, 1'b0, 1'b0, 5'h0, 5'hf, 3'b010, 5'h1, 5'b01011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -8516,7 +10080,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -8550,10 +10114,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -8573,7 +10138,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b11;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {5'b10100, 1'b0, 1'b1, 5'h0, 5'hf, 3'b010, 5'h1, 5'b01011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -8592,7 +10162,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -8626,10 +10196,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b1;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b1;
+		expected_io_rl = 1'b1;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -8649,7 +10220,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {5'b11000, 1'b1, 1'b1, 5'h0, 5'hf, 3'b010, 5'h1, 5'b01011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -8668,7 +10244,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -8702,10 +10278,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b1;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b1;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b1;
+		expected_io_aq = 1'b1;
+		expected_mem_rl = 1'b1;
+		expected_io_rl = 1'b1;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -8720,12 +10297,17 @@ module decoder_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "AMOMAXU.W aq rl";
+		sub_test_case = "AMOMAXU.W aq";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b01;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {5'b11100, 1'b1, 1'b0, 5'h0, 5'hf, 3'b010, 5'h1, 5'b01011, 2'b11};
 		tb_pred_info_chunk0 = 8'h0;
@@ -8744,7 +10326,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -8778,10 +10360,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b1;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b1;
+		expected_io_aq = 1'b1;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -8807,7 +10390,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'habcd, 3'b000, 8'b10011001, 3'b001, 2'b00};
 		tb_pred_info_chunk0 = 8'h0;
@@ -8826,7 +10414,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -8860,10 +10448,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -8883,7 +10472,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b000, 8'b01000101, 3'b110, 2'b00};
 		tb_pred_info_chunk0 = 8'b10000000;
@@ -8902,7 +10496,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -8936,10 +10530,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h80;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b1;
@@ -8959,7 +10554,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b001, 8'b01000101, 3'b110, 2'b00};
 		tb_pred_info_chunk0 = 8'b10000000;
@@ -8978,7 +10578,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -9012,10 +10612,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h80;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b1;
@@ -9035,7 +10636,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'hf0f0, 3'b010, 3'b110, 3'b101, 2'b01, 3'b010, 2'b00};
 		tb_pred_info_chunk0 = 8'h0;
@@ -9054,7 +10660,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -9088,10 +10694,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -9111,7 +10718,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b1;
 		tb_instr32 = {16'h5a5a, 3'b010, 3'b010, 3'b101, 2'b10, 3'b010, 2'b00};
 		tb_pred_info_chunk0 = 8'h0;
@@ -9130,7 +10742,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -9164,10 +10776,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b0;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -9187,7 +10800,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b110, 3'b010, 3'b100, 2'b10, 3'b111, 2'b00};
 		tb_pred_info_chunk0 = 8'h0;
@@ -9206,7 +10824,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -9240,10 +10858,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -9263,7 +10882,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b000, 1'b0, 5'h0, 5'b00000, 2'b01};
 		tb_pred_info_chunk0 = 8'h0;
@@ -9282,7 +10906,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -9316,10 +10940,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -9339,7 +10964,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b000, 1'b1, 5'h13, 5'b01101, 2'b01};
 		tb_pred_info_chunk0 = 8'h0;
@@ -9358,7 +10988,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -9392,10 +11022,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -9415,7 +11046,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b001, 11'b10100110010, 2'b01};
 		tb_pred_info_chunk0 = 8'b00111111;
@@ -9434,7 +11070,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -9468,10 +11104,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h3f;
 		expected_missing_pred = 1'b1;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -9491,7 +11128,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b001, 11'b01110111000, 2'b01};
 		tb_pred_info_chunk0 = 8'b10010010;
@@ -9510,7 +11152,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -9544,10 +11186,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h92;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -9567,7 +11210,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b010, 1'b1, 5'h1e, 5'b10111, 2'b01};
 		tb_pred_info_chunk0 = 8'b10010010;
@@ -9586,7 +11234,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -9620,10 +11268,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h92;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b1;
@@ -9643,7 +11292,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b011, 1'b0, 5'b00010, 5'b11001, 2'b01};
 		tb_pred_info_chunk0 = 8'h0;
@@ -9662,7 +11316,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -9696,10 +11350,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -9719,7 +11374,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b011, 1'b1, 5'b00010, 5'b01111, 2'b01};
 		tb_pred_info_chunk0 = 8'h0;
@@ -9738,7 +11398,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -9772,10 +11432,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -9795,7 +11456,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b011, 1'b1, 5'h19, 5'b00011, 2'b01};
 		tb_pred_info_chunk0 = 8'h0;
@@ -9814,7 +11480,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -9848,10 +11514,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -9871,7 +11538,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b100, 1'b1, 2'b00, 3'b000, 5'b01010, 2'b01};
 		tb_pred_info_chunk0 = 8'h0;
@@ -9890,7 +11562,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -9924,10 +11596,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -9947,7 +11620,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b100, 1'b0, 2'b01, 3'b011, 5'b10101, 2'b01};
 		tb_pred_info_chunk0 = 8'h0;
@@ -9966,7 +11644,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -10000,10 +11678,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -10023,7 +11702,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b100, 1'b1, 2'b10, 3'b100, 5'b01001, 2'b01};
 		tb_pred_info_chunk0 = 8'h0;
@@ -10042,7 +11726,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -10076,10 +11760,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -10099,7 +11784,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b100, 1'b0, 2'b11, 3'b010, 2'b00, 3'b001, 2'b01};
 		tb_pred_info_chunk0 = 8'h0;
@@ -10118,7 +11808,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b1;
 		expected_is_alu_imm = 1'b0;
@@ -10152,10 +11842,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -10175,7 +11866,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b100, 1'b0, 2'b11, 3'b110, 2'b01, 3'b101, 2'b01};
 		tb_pred_info_chunk0 = 8'h0;
@@ -10194,7 +11890,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b1;
 		expected_is_alu_imm = 1'b0;
@@ -10228,10 +11924,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -10251,7 +11948,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b100, 1'b0, 2'b11, 3'b001, 2'b10, 3'b010, 2'b01};
 		tb_pred_info_chunk0 = 8'h0;
@@ -10270,7 +11972,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b1;
 		expected_is_alu_imm = 1'b0;
@@ -10304,10 +12006,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -10327,7 +12030,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b100, 1'b0, 2'b11, 3'b011, 2'b11, 3'b011, 2'b01};
 		tb_pred_info_chunk0 = 8'h0;
@@ -10346,7 +12054,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b1;
 		expected_is_alu_imm = 1'b0;
@@ -10380,10 +12088,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -10403,7 +12112,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b101, 11'b01110101110, 2'b01};
 		tb_pred_info_chunk0 = 8'h0;
@@ -10422,7 +12136,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -10456,10 +12170,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b1;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -10479,7 +12194,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b101, 11'b10010010001, 2'b01};
 		tb_pred_info_chunk0 = 8'b10101010;
@@ -10498,7 +12218,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -10532,10 +12252,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'haa;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -10555,7 +12276,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b110, 3'b100, 3'b011, 5'b10101, 2'b01};
 		tb_pred_info_chunk0 = 8'h0;
@@ -10574,7 +12300,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -10608,10 +12334,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b1;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -10631,7 +12358,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b110, 3'b001, 3'b000, 5'b11000, 2'b01};
 		tb_pred_info_chunk0 = 8'b01101001;
@@ -10650,7 +12382,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -10684,10 +12416,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h69;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -10707,7 +12440,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b111, 3'b011, 3'b111, 5'b01110, 2'b01};
 		tb_pred_info_chunk0 = 8'h0;
@@ -10726,7 +12464,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -10760,10 +12498,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b1;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -10783,7 +12522,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b111, 3'b110, 3'b110, 5'b00111, 2'b01};
 		tb_pred_info_chunk0 = 8'b11111111;
@@ -10802,7 +12546,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -10836,10 +12580,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'hff;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -10859,7 +12604,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b000, 1'b0, 5'h12, 5'b10001, 2'b10};
 		tb_pred_info_chunk0 = 8'h0;
@@ -10878,7 +12628,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b1;
@@ -10912,10 +12662,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -10937,7 +12688,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b001, 1'b0, 5'h12, 5'b10001, 2'b10};
 		tb_pred_info_chunk0 = 8'h0;
@@ -10956,7 +12712,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -10990,10 +12746,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -11013,7 +12770,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b010, 1'b1, 5'h4, 5'b01001, 2'b10};
 		tb_pred_info_chunk0 = 8'h0;
@@ -11032,7 +12794,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -11066,10 +12828,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -11089,7 +12852,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b100, 1'b0, 5'h6, 5'h0, 2'b10};
 		tb_pred_info_chunk0 = 8'h0;
@@ -11108,7 +12876,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -11142,10 +12910,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b1;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -11165,7 +12934,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b100, 1'b0, 5'h1f, 5'h0, 2'b10};
 		tb_pred_info_chunk0 = 8'b10000000;
@@ -11184,7 +12958,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -11218,10 +12992,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h80;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -11241,7 +13016,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b100, 1'b0, 5'h7, 5'h10, 2'b10};
 		tb_pred_info_chunk0 = 8'h0;
@@ -11260,7 +13040,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b1;
 		expected_is_alu_imm = 1'b0;
@@ -11294,10 +13074,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -11317,7 +13098,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b100, 1'b1, 5'h0, 5'h0, 2'b10};
 		tb_pred_info_chunk0 = 8'h0;
@@ -11336,7 +13122,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -11370,10 +13156,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b1;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b1;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -11393,7 +13180,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b100, 1'b1, 5'h1a, 5'h0, 2'b10};
 		tb_pred_info_chunk0 = 8'h0;
@@ -11412,7 +13204,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -11446,10 +13238,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b1;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -11469,7 +13262,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b100, 1'b1, 5'h1, 5'h0, 2'b10};
 		tb_pred_info_chunk0 = 8'b11100000;
@@ -11488,7 +13286,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -11522,10 +13320,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'he0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -11545,7 +13344,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b100, 1'b1, 5'ha, 5'h5, 2'b10};
 		tb_pred_info_chunk0 = 8'h0;
@@ -11564,7 +13368,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b1;
 		expected_is_alu_imm = 1'b0;
@@ -11598,10 +13402,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -11621,7 +13426,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b101, 1'b1, 5'ha, 5'h5, 2'b10};
 		tb_pred_info_chunk0 = 8'h0;
@@ -11640,7 +13450,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -11674,10 +13484,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
@@ -11697,7 +13508,12 @@ module decoder_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // input info
+		// environment info
+		tb_env_exec_mode = 2'b00;
+		tb_env_trap_sfence = 1'b0;
+		tb_env_trap_wfi = 1'b0;
+		tb_env_trap_sret = 1'b0;
+	    // instr info
 		tb_uncompressed = 1'b0;
 		tb_instr32 = {16'h0123, 3'b110, 6'h26, 5'h17, 2'b10};
 		tb_pred_info_chunk0 = 8'h0;
@@ -11716,7 +13532,7 @@ module decoder_tb ();
 
 		// outputs:
 
-	    // input info
+	    // instr info
 	    // FU select
 		expected_is_alu_reg = 1'b0;
 		expected_is_alu_imm = 1'b0;
@@ -11750,10 +13566,11 @@ module decoder_tb ();
 		expected_pred_info_out = 8'h0;
 		expected_missing_pred = 1'b0;
 	    // ordering
-		expected_flush_fetch = 1'b0;
-		expected_stall_mem_read = 1'b0;
-		expected_stall_mem_write = 1'b0;
-		expected_wait_write_buffer = 1'b0;
+		expected_wait_for_restart = 1'b0;
+		expected_mem_aq = 1'b0;
+		expected_io_aq = 1'b0;
+		expected_mem_rl = 1'b0;
+		expected_io_rl = 1'b0;
 	    // faults
 		expected_instr_yield = 1'b1;
 		expected_non_branch_notif_chunk0 = 1'b0;
