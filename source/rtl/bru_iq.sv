@@ -392,7 +392,7 @@ module bru_iq #(
                 // [BRU_IQ_ENTRIES-1] can only take self
             for (int i = 0; i <= BRU_IQ_ENTRIES-2; i++) begin
 
-                // check take 2 above
+                // check take above
                 if (issue_mask[i]) begin
 
                     // take valid entry above
