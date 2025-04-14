@@ -32,81 +32,85 @@ module alu_imm_iq_tb ();
     // ----------------------------------------------------------------
     // DUT signals:
 
-
-    // ALU op dispatch by way
+    // op dispatch by way
 	logic [3:0] tb_dispatch_attempt_by_way;
-	logic [3:0] tb_dispatch_valid_by_way;
+	logic [3:0] tb_dispatch_valid_alu_imm_by_way;
 	logic [3:0][3:0] tb_dispatch_op_by_way;
 	logic [3:0][11:0] tb_dispatch_imm12_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_A_PR_by_way;
 	logic [3:0] tb_dispatch_A_ready_by_way;
+	logic [3:0] tb_dispatch_A_is_zero_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_dest_PR_by_way;
 	logic [3:0][LOG_ROB_ENTRIES-1:0] tb_dispatch_ROB_index_by_way;
 
-    // ALU op dispatch feedback by way
-	logic [3:0] DUT_dispatch_ready_advertisement, expected_dispatch_ready_advertisement;
+    // op dispatch feedback
+	logic [3:0] DUT_dispatch_ack_by_way, expected_dispatch_ack_by_way;
 
-    // ALU pipeline feedback
-	logic tb_pipeline_ready;
+    // pipeline feedback
+	logic tb_alu_imm_pipeline_ready;
 
     // writeback bus by bank
 	logic [PRF_BANK_COUNT-1:0] tb_WB_bus_valid_by_bank;
 	logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] tb_WB_bus_upper_PR_by_bank;
 
-    // ALU op issue to ALU pipeline
-	logic DUT_issue_valid, expected_issue_valid;
-	logic [3:0] DUT_issue_op, expected_issue_op;
-	logic [11:0] DUT_issue_imm12, expected_issue_imm12;
-	logic DUT_issue_A_forward, expected_issue_A_forward;
-	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_A_bank, expected_issue_A_bank;
-	logic [LOG_PR_COUNT-1:0] DUT_issue_dest_PR, expected_issue_dest_PR;
-	logic [LOG_ROB_ENTRIES-1:0] DUT_issue_ROB_index, expected_issue_ROB_index;
+    // op issue to ALU Reg-Imm Pipeline
+	logic DUT_issue_alu_imm_valid, expected_issue_alu_imm_valid;
+	logic [3:0] DUT_issue_alu_imm_op, expected_issue_alu_imm_op;
+	logic [11:0] DUT_issue_alu_imm_imm12, expected_issue_alu_imm_imm12;
+	logic DUT_issue_alu_imm_A_forward, expected_issue_alu_imm_A_forward;
+	logic DUT_issue_alu_imm_A_is_zero, expected_issue_alu_imm_A_is_zero;
+	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_alu_imm_A_bank, expected_issue_alu_imm_A_bank;
+	logic [LOG_PR_COUNT-1:0] DUT_issue_alu_imm_dest_PR, expected_issue_alu_imm_dest_PR;
+	logic [LOG_ROB_ENTRIES-1:0] DUT_issue_alu_imm_ROB_index, expected_issue_alu_imm_ROB_index;
 
-    // reg read req to PRF
-	logic DUT_PRF_req_A_valid, expected_PRF_req_A_valid;
-	logic [LOG_PR_COUNT-1:0] DUT_PRF_req_A_PR, expected_PRF_req_A_PR;
+    // ALU Reg-Imm Pipeline reg read req to PRF
+	logic DUT_PRF_alu_imm_req_A_valid, expected_PRF_alu_imm_req_A_valid;
+	logic [LOG_PR_COUNT-1:0] DUT_PRF_alu_imm_req_A_PR, expected_PRF_alu_imm_req_A_PR;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	alu_imm_iq DUT (
+	alu_imm_iq #(
+		.ALU_IMM_IQ_ENTRIES(8)
+	) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
 
-
-	    // ALU op dispatch by way
+	    // op dispatch by way
 		.dispatch_attempt_by_way(tb_dispatch_attempt_by_way),
-		.dispatch_valid_by_way(tb_dispatch_valid_by_way),
+		.dispatch_valid_alu_imm_by_way(tb_dispatch_valid_alu_imm_by_way),
 		.dispatch_op_by_way(tb_dispatch_op_by_way),
 		.dispatch_imm12_by_way(tb_dispatch_imm12_by_way),
 		.dispatch_A_PR_by_way(tb_dispatch_A_PR_by_way),
 		.dispatch_A_ready_by_way(tb_dispatch_A_ready_by_way),
+		.dispatch_A_is_zero_by_way(tb_dispatch_A_is_zero_by_way),
 		.dispatch_dest_PR_by_way(tb_dispatch_dest_PR_by_way),
 		.dispatch_ROB_index_by_way(tb_dispatch_ROB_index_by_way),
 
-	    // ALU op dispatch feedback by way
-		.dispatch_ready_advertisement(DUT_dispatch_ready_advertisement),
+	    // op dispatch feedback
+		.dispatch_ack_by_way(DUT_dispatch_ack_by_way),
 
-	    // ALU pipeline feedback
-		.pipeline_ready(tb_pipeline_ready),
+	    // pipeline feedback
+		.alu_imm_pipeline_ready(tb_alu_imm_pipeline_ready),
 
 	    // writeback bus by bank
 		.WB_bus_valid_by_bank(tb_WB_bus_valid_by_bank),
 		.WB_bus_upper_PR_by_bank(tb_WB_bus_upper_PR_by_bank),
 
-	    // ALU op issue to ALU pipeline
-		.issue_valid(DUT_issue_valid),
-		.issue_op(DUT_issue_op),
-		.issue_imm12(DUT_issue_imm12),
-		.issue_A_forward(DUT_issue_A_forward),
-		.issue_A_bank(DUT_issue_A_bank),
-		.issue_dest_PR(DUT_issue_dest_PR),
-		.issue_ROB_index(DUT_issue_ROB_index),
+	    // op issue to ALU Reg-Imm Pipeline
+		.issue_alu_imm_valid(DUT_issue_alu_imm_valid),
+		.issue_alu_imm_op(DUT_issue_alu_imm_op),
+		.issue_alu_imm_imm12(DUT_issue_alu_imm_imm12),
+		.issue_alu_imm_A_forward(DUT_issue_alu_imm_A_forward),
+		.issue_alu_imm_A_is_zero(DUT_issue_alu_imm_A_is_zero),
+		.issue_alu_imm_A_bank(DUT_issue_alu_imm_A_bank),
+		.issue_alu_imm_dest_PR(DUT_issue_alu_imm_dest_PR),
+		.issue_alu_imm_ROB_index(DUT_issue_alu_imm_ROB_index),
 
-	    // reg read req to PRF
-		.PRF_req_A_valid(DUT_PRF_req_A_valid),
-		.PRF_req_A_PR(DUT_PRF_req_A_PR)
+	    // ALU Reg-Imm Pipeline reg read req to PRF
+		.PRF_alu_imm_req_A_valid(DUT_PRF_alu_imm_req_A_valid),
+		.PRF_alu_imm_req_A_PR(DUT_PRF_alu_imm_req_A_PR)
 	);
 
     // ----------------------------------------------------------------
@@ -114,72 +118,79 @@ module alu_imm_iq_tb ();
 
     task check_outputs();
     begin
-		if (expected_dispatch_ready_advertisement !== DUT_dispatch_ready_advertisement) begin
-			$display("TB ERROR: expected_dispatch_ready_advertisement (%h) != DUT_dispatch_ready_advertisement (%h)",
-				expected_dispatch_ready_advertisement, DUT_dispatch_ready_advertisement);
+		if (expected_dispatch_ack_by_way !== DUT_dispatch_ack_by_way) begin
+			$display("TB ERROR: expected_dispatch_ack_by_way (%h) != DUT_dispatch_ack_by_way (%h)",
+				expected_dispatch_ack_by_way, DUT_dispatch_ack_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_valid !== DUT_issue_valid) begin
-			$display("TB ERROR: expected_issue_valid (%h) != DUT_issue_valid (%h)",
-				expected_issue_valid, DUT_issue_valid);
+		if (expected_issue_alu_imm_valid !== DUT_issue_alu_imm_valid) begin
+			$display("TB ERROR: expected_issue_alu_imm_valid (%h) != DUT_issue_alu_imm_valid (%h)",
+				expected_issue_alu_imm_valid, DUT_issue_alu_imm_valid);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_op !== DUT_issue_op) begin
-			$display("TB ERROR: expected_issue_op (%h) != DUT_issue_op (%h)",
-				expected_issue_op, DUT_issue_op);
+		if (expected_issue_alu_imm_op !== DUT_issue_alu_imm_op) begin
+			$display("TB ERROR: expected_issue_alu_imm_op (%h) != DUT_issue_alu_imm_op (%h)",
+				expected_issue_alu_imm_op, DUT_issue_alu_imm_op);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_imm12 !== DUT_issue_imm12) begin
-			$display("TB ERROR: expected_issue_imm12 (%h) != DUT_issue_imm12 (%h)",
-				expected_issue_imm12, DUT_issue_imm12);
+		if (expected_issue_alu_imm_imm12 !== DUT_issue_alu_imm_imm12) begin
+			$display("TB ERROR: expected_issue_alu_imm_imm12 (%h) != DUT_issue_alu_imm_imm12 (%h)",
+				expected_issue_alu_imm_imm12, DUT_issue_alu_imm_imm12);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_A_forward !== DUT_issue_A_forward) begin
-			$display("TB ERROR: expected_issue_A_forward (%h) != DUT_issue_A_forward (%h)",
-				expected_issue_A_forward, DUT_issue_A_forward);
+		if (expected_issue_alu_imm_A_forward !== DUT_issue_alu_imm_A_forward) begin
+			$display("TB ERROR: expected_issue_alu_imm_A_forward (%h) != DUT_issue_alu_imm_A_forward (%h)",
+				expected_issue_alu_imm_A_forward, DUT_issue_alu_imm_A_forward);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_A_bank !== DUT_issue_A_bank) begin
-			$display("TB ERROR: expected_issue_A_bank (%h) != DUT_issue_A_bank (%h)",
-				expected_issue_A_bank, DUT_issue_A_bank);
+		if (expected_issue_alu_imm_A_is_zero !== DUT_issue_alu_imm_A_is_zero) begin
+			$display("TB ERROR: expected_issue_alu_imm_A_is_zero (%h) != DUT_issue_alu_imm_A_is_zero (%h)",
+				expected_issue_alu_imm_A_is_zero, DUT_issue_alu_imm_A_is_zero);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_dest_PR !== DUT_issue_dest_PR) begin
-			$display("TB ERROR: expected_issue_dest_PR (%h) != DUT_issue_dest_PR (%h)",
-				expected_issue_dest_PR, DUT_issue_dest_PR);
+		if (expected_issue_alu_imm_A_bank !== DUT_issue_alu_imm_A_bank) begin
+			$display("TB ERROR: expected_issue_alu_imm_A_bank (%h) != DUT_issue_alu_imm_A_bank (%h)",
+				expected_issue_alu_imm_A_bank, DUT_issue_alu_imm_A_bank);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_ROB_index !== DUT_issue_ROB_index) begin
-			$display("TB ERROR: expected_issue_ROB_index (%h) != DUT_issue_ROB_index (%h)",
-				expected_issue_ROB_index, DUT_issue_ROB_index);
+		if (expected_issue_alu_imm_dest_PR !== DUT_issue_alu_imm_dest_PR) begin
+			$display("TB ERROR: expected_issue_alu_imm_dest_PR (%h) != DUT_issue_alu_imm_dest_PR (%h)",
+				expected_issue_alu_imm_dest_PR, DUT_issue_alu_imm_dest_PR);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_PRF_req_A_valid !== DUT_PRF_req_A_valid) begin
-			$display("TB ERROR: expected_PRF_req_A_valid (%h) != DUT_PRF_req_A_valid (%h)",
-				expected_PRF_req_A_valid, DUT_PRF_req_A_valid);
+		if (expected_issue_alu_imm_ROB_index !== DUT_issue_alu_imm_ROB_index) begin
+			$display("TB ERROR: expected_issue_alu_imm_ROB_index (%h) != DUT_issue_alu_imm_ROB_index (%h)",
+				expected_issue_alu_imm_ROB_index, DUT_issue_alu_imm_ROB_index);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_PRF_req_A_PR !== DUT_PRF_req_A_PR) begin
-			$display("TB ERROR: expected_PRF_req_A_PR (%h) != DUT_PRF_req_A_PR (%h)",
-				expected_PRF_req_A_PR, DUT_PRF_req_A_PR);
+		if (expected_PRF_alu_imm_req_A_valid !== DUT_PRF_alu_imm_req_A_valid) begin
+			$display("TB ERROR: expected_PRF_alu_imm_req_A_valid (%h) != DUT_PRF_alu_imm_req_A_valid (%h)",
+				expected_PRF_alu_imm_req_A_valid, DUT_PRF_alu_imm_req_A_valid);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_PRF_alu_imm_req_A_PR !== DUT_PRF_alu_imm_req_A_PR) begin
+			$display("TB ERROR: expected_PRF_alu_imm_req_A_PR (%h) != DUT_PRF_alu_imm_req_A_PR (%h)",
+				expected_PRF_alu_imm_req_A_PR, DUT_PRF_alu_imm_req_A_PR);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -206,44 +217,46 @@ module alu_imm_iq_tb ();
 
 		// reset
 		nRST = 1'b0;
-	    // ALU op dispatch by way
+	    // op dispatch by way
 		tb_dispatch_attempt_by_way = 4'b0000;
-		tb_dispatch_valid_by_way = 4'b0000;
+		tb_dispatch_valid_alu_imm_by_way = 4'b0000;
 		tb_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
 		tb_dispatch_imm12_by_way = {12'h0, 12'h0, 12'h0, 12'h0};
 		tb_dispatch_A_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
 		tb_dispatch_A_ready_by_way = 4'b0000;
+		tb_dispatch_A_is_zero_by_way = 4'b0000;
 		tb_dispatch_dest_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
 		tb_dispatch_ROB_index_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
-	    // ALU op dispatch feedback by way
-	    // ALU pipeline feedback
-		tb_pipeline_ready = 1'b1;
+	    // op dispatch feedback
+	    // pipeline feedback
+		tb_alu_imm_pipeline_ready = 1'b1;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
-	    // ALU op issue to ALU pipeline
-	    // reg read req to PRF
+	    // op issue to ALU Reg-Imm Pipeline
+	    // ALU Reg-Imm Pipeline reg read req to PRF
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-	    // ALU op dispatch by way
-	    // ALU op dispatch feedback by way
-		expected_dispatch_ready_advertisement = 4'b1111;
-	    // ALU pipeline feedback
+	    // op dispatch by way
+	    // op dispatch feedback
+		expected_dispatch_ack_by_way = 4'b0000;
+	    // pipeline feedback
 	    // writeback bus by bank
-	    // ALU op issue to ALU pipeline
-		expected_issue_valid = 1'b0;
-		expected_issue_op = 4'b0000;
-		expected_issue_imm12 = 12'h0;
-		expected_issue_A_forward = 1'b0;
-		expected_issue_A_bank = 2'h0;
-		expected_issue_dest_PR = 7'h0;
-		expected_issue_ROB_index = 7'h0;
-	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b0;
-		expected_PRF_req_A_PR = 7'h0;
+	    // op issue to ALU Reg-Imm Pipeline
+		expected_issue_alu_imm_valid = 1'b0;
+		expected_issue_alu_imm_op = 4'b0000;
+		expected_issue_alu_imm_imm12 = 12'h0;
+		expected_issue_alu_imm_A_forward = 1'b0;
+		expected_issue_alu_imm_A_is_zero = 1'b0;
+		expected_issue_alu_imm_A_bank = 2'h0;
+		expected_issue_alu_imm_dest_PR = 7'h0;
+		expected_issue_alu_imm_ROB_index = 7'h0;
+	    // ALU Reg-Imm Pipeline reg read req to PRF
+		expected_PRF_alu_imm_req_A_valid = 1'b0;
+		expected_PRF_alu_imm_req_A_PR = 7'h0;
 
 		check_outputs();
 
@@ -253,44 +266,46 @@ module alu_imm_iq_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // ALU op dispatch by way
+	    // op dispatch by way
 		tb_dispatch_attempt_by_way = 4'b0000;
-		tb_dispatch_valid_by_way = 4'b0000;
+		tb_dispatch_valid_alu_imm_by_way = 4'b0000;
 		tb_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
 		tb_dispatch_imm12_by_way = {12'h0, 12'h0, 12'h0, 12'h0};
 		tb_dispatch_A_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
 		tb_dispatch_A_ready_by_way = 4'b0000;
+		tb_dispatch_A_is_zero_by_way = 4'b0000;
 		tb_dispatch_dest_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
 		tb_dispatch_ROB_index_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
-	    // ALU op dispatch feedback by way
-	    // ALU pipeline feedback
-		tb_pipeline_ready = 1'b1;
+	    // op dispatch feedback
+	    // pipeline feedback
+		tb_alu_imm_pipeline_ready = 1'b1;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
-	    // ALU op issue to ALU pipeline
-	    // reg read req to PRF
+	    // op issue to ALU Reg-Imm Pipeline
+	    // ALU Reg-Imm Pipeline reg read req to PRF
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-	    // ALU op dispatch by way
-	    // ALU op dispatch feedback by way
-		expected_dispatch_ready_advertisement = 4'b1111;
-	    // ALU pipeline feedback
+	    // op dispatch by way
+	    // op dispatch feedback
+		expected_dispatch_ack_by_way = 4'b0000;
+	    // pipeline feedback
 	    // writeback bus by bank
-	    // ALU op issue to ALU pipeline
-		expected_issue_valid = 1'b0;
-		expected_issue_op = 4'b0000;
-		expected_issue_imm12 = 12'h0;
-		expected_issue_A_forward = 1'b0;
-		expected_issue_A_bank = 2'h0;
-		expected_issue_dest_PR = 7'h0;
-		expected_issue_ROB_index = 7'h0;
-	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b0;
-		expected_PRF_req_A_PR = 7'h0;
+	    // op issue to ALU Reg-Imm Pipeline
+		expected_issue_alu_imm_valid = 1'b0;
+		expected_issue_alu_imm_op = 4'b0000;
+		expected_issue_alu_imm_imm12 = 12'h0;
+		expected_issue_alu_imm_A_forward = 1'b0;
+		expected_issue_alu_imm_A_is_zero = 1'b0;
+		expected_issue_alu_imm_A_bank = 2'h0;
+		expected_issue_alu_imm_dest_PR = 7'h0;
+		expected_issue_alu_imm_ROB_index = 7'h0;
+	    // ALU Reg-Imm Pipeline reg read req to PRF
+		expected_PRF_alu_imm_req_A_valid = 1'b0;
+		expected_PRF_alu_imm_req_A_PR = 7'h0;
 
 		check_outputs();
 
@@ -308,44 +323,46 @@ module alu_imm_iq_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // ALU op dispatch by way
+	    // op dispatch by way
 		tb_dispatch_attempt_by_way = 4'b0000;
-		tb_dispatch_valid_by_way = 4'b0000;
+		tb_dispatch_valid_alu_imm_by_way = 4'b0000;
 		tb_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
 		tb_dispatch_imm12_by_way = {12'h0, 12'h0, 12'h0, 12'h0};
 		tb_dispatch_A_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
 		tb_dispatch_A_ready_by_way = 4'b0000;
+		tb_dispatch_A_is_zero_by_way = 4'b0000;
 		tb_dispatch_dest_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
 		tb_dispatch_ROB_index_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
-	    // ALU op dispatch feedback by way
-	    // ALU pipeline feedback
-		tb_pipeline_ready = 1'b1;
+	    // op dispatch feedback
+	    // pipeline feedback
+		tb_alu_imm_pipeline_ready = 1'b1;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
-	    // ALU op issue to ALU pipeline
-	    // reg read req to PRF
+	    // op issue to ALU Reg-Imm Pipeline
+	    // ALU Reg-Imm Pipeline reg read req to PRF
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // ALU op dispatch by way
-	    // ALU op dispatch feedback by way
-		expected_dispatch_ready_advertisement = 4'b1111;
-	    // ALU pipeline feedback
+	    // op dispatch by way
+	    // op dispatch feedback
+		expected_dispatch_ack_by_way = 4'b0000;
+	    // pipeline feedback
 	    // writeback bus by bank
-	    // ALU op issue to ALU pipeline
-		expected_issue_valid = 1'b0;
-		expected_issue_op = 4'b0000;
-		expected_issue_imm12 = 12'h0;
-		expected_issue_A_forward = 1'b0;
-		expected_issue_A_bank = 2'h0;
-		expected_issue_dest_PR = 7'h0;
-		expected_issue_ROB_index = 7'h0;
-	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b0;
-		expected_PRF_req_A_PR = 7'h0;
+	    // op issue to ALU Reg-Imm Pipeline
+		expected_issue_alu_imm_valid = 1'b0;
+		expected_issue_alu_imm_op = 4'b0000;
+		expected_issue_alu_imm_imm12 = 12'h0;
+		expected_issue_alu_imm_A_forward = 1'b0;
+		expected_issue_alu_imm_A_is_zero = 1'b0;
+		expected_issue_alu_imm_A_bank = 2'h0;
+		expected_issue_alu_imm_dest_PR = 7'h0;
+		expected_issue_alu_imm_ROB_index = 7'h0;
+	    // ALU Reg-Imm Pipeline reg read req to PRF
+		expected_PRF_alu_imm_req_A_valid = 1'b0;
+		expected_PRF_alu_imm_req_A_PR = 7'h0;
 
 		check_outputs();
 
