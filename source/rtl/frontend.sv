@@ -165,6 +165,7 @@ module frontend #(
     input logic [3:0][LOG_PR_COUNT-1:0]     rob_map_table_write_PR_by_port,
 
     // ROB control of checkpoint table
+    TODO
     input logic                                     restore_valid,
     input logic [CHECKPOINT_INDEX_WIDTH-1:0]        restore_index,
 
