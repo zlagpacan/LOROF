@@ -67,10 +67,10 @@ module frontend #(
     output logic [19:0]                             dispatch_imm20_by_way,
 
     // ordering
-    output logic dispatch_mem_aq,
-    output logic dispatch_io_aq,
-    output logic dispatch_mem_rl,
-    output logic dispatch_io_rl
+    output logic [3:0]                              dispatch_mem_aq,
+    output logic [3:0]                              dispatch_io_aq,
+    output logic [3:0]                              dispatch_mem_rl,
+    output logic [3:0]                              dispatch_io_rl
 
     // instr fetch + decode exceptions
     output logic [3:0]                              dispatch_page_fault_by_way,
@@ -121,7 +121,8 @@ module frontend #(
 
     // instr IQ acks
     input logic [3:0]   dispatch_ack_alu_reg_mdu_iq_by_way,
-    input logic [3:0]   dispatch_ack_alu_imm_ldu_iq_by_way,
+    input logic [3:0]   dispatch_ack_alu_imm_iq_by_way,
+    input logic [3:0]   dispatch_ack_ldu_iq_by_way,
     input logic [3:0]   dispatch_ack_bru_iq_by_way,
     input logic [3:0]   dispatch_ack_stamofu_iq_by_way,
     input logic [3:0]   dispatch_ack_sys_iq_by_way,
@@ -147,7 +148,7 @@ module frontend #(
     input logic [ASID_WIDTH-1:0]        mdpt_update_ASID,
     input logic [MDPT_INFO_WIDTH-1:0]   mdpt_update_mdp_info,
 
-    // restart
+    // fetch + decode restart from ROB
     input logic         restart_valid,
     input logic [31:0]  restart_PC,
     input logic [8:0]   restart_ASID,
@@ -155,8 +156,55 @@ module frontend #(
     input logic         restart_virtual_mode,
     input logic         restart_trap_sfence,
     input logic         restart_trap_wfi,
-    input logic         restart_trap_sret
+    input logic         restart_trap_sret,
+
+    // ROB control of map table
+    input logic                             rob_controlling_map_table,
+    input logic [3:0]                       rob_map_table_write_valid_by_port,
+    input logic [3:0][LOG_AR_COUNT-1:0]     rob_map_table_write_AR_by_port,
+    input logic [3:0][LOG_PR_COUNT-1:0]     rob_map_table_write_PR_by_port,
+
+    // ROB control of checkpoint table
+    input logic                                     restore_valid,
+    input logic [CHECKPOINT_INDEX_WIDTH-1:0]        restore_index,
+
+    // hardware failure
+    output logic istream_unrecoverable_fault
 );
+    
+    // Pipeline Stages
+        // Fetch Req
+            // PC
+            // iTLB req
+            // icache req
+            // btb req
+            // lht req
+            // mdpt req
+        // Fetch Resp
+            // iTLB resp
+            // icache resp
+            // btb resp
+            // lht resp
+            // mdpt resp
+            // pred logic
+            // upct
+            // ras
+            // istream enQ
+            // lbpt req
+            // gbpt req
+            // after stall:
+                // lbpt resp
+                // gbpt resp
+        // Stream DeQ
+            // istream deQ
+        // Decode
+            // 4x decoder
+        // Rename
+            // map_table
+            // free_list
+            // ar_dep_check
+            // checkpoint_array
+        // Dispatch
 
     // ----------------------------------------------------------------
     // Signals:
@@ -164,11 +212,17 @@ module frontend #(
     // Fetch Req Stage:
 
     // state
-    logic [31:0]            fetch_PC, next_fetch_PC;
+    logic [31:0]            fetch_req_PC, next_fetch_req_PC;
     logic [ASID_WIDTH-1:0]  fetch_ASID, next_fetch_ASID;
+    logic                   fetch_virtual_mode;
 
     // interruptable access PC
-    logic [31:0] access_PC;
+    logic [31:0] fetch_req_access_PC;
+
+    // Decode Stage:
+    
+    // state
+    logic decode_exe
 
     // save restart state
         // keep local copy

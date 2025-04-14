@@ -54,5 +54,33 @@ module rob #(
         // "unexceptable" for this purpose then requires that operands have been read
         // since doing no instr kills in non-mem and non-sys pipelines, seems like forced to just wait for non-mem and non-sys to be fully complete before move on unexceptable head
             // maybe not since guaranteed reg write happens
+    
+    // solid plan for now: use true head
+        // perform commit when 4-way @ head complete
+            // perform free's if exist
+            // clear checkpoint if exists
+            // launch stamofu
+                // can only do 1 per cycle
+                    // repeat as needed
+                        // prolly invalidating entries as go anyway so will naturally move onto the next store on the next cycle
+                // AMO's not fully complete until read returned, so head stalled
+                // multiple stores in 4-way and AMO's are rare case, just eat the (potential) perf hit
+                    // only a perf hit if ejection rate of stores/amos/fences or ROB capacity are limiters for program
+
+    // on restart
+        // can treat early and late restart the same
+        // restore oldest checkpoint younger than restart if exists
+        // then take control of map table to finish off rollback
+            // serial rollback of 4-way entries get to desired 4-way entry
+            // make changes required to get to state within desired 4-way entry 
+            // this process should probably use head port
+                // save head for later continuing of true commit
+                // keep tail where it is so that younger garbage register writes and checkpoints
+                // can get cleared out when they reach the head
+                // i.e. never trample over anything in the ROB, let everything get to head, including garbage
+                // head actions are now: 
+                    // good instr, commit -> free old PR
+                    // bad instr, rollback -> free new PR
+                    // NO MAP TABLE CHANGES HERE
 
 endmodule

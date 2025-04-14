@@ -61,8 +61,8 @@ module map_table (
         end
     end
 
-    // save map table follows updated map table with writes
-    assign save_map_table = updated_map_table;
+    // save map table follows current map table so faster and can perform fine-grain rollback within 4-way as needed
+    assign save_map_table = map_table;
 
     // map table FF logic
     always_ff @ (posedge CLK, negedge nRST) begin

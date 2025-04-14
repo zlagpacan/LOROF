@@ -437,4 +437,12 @@ module lsq #(
             // have backpressure by stalling launches unless MSHR available or not currently trying miss return
                 // dcache array and write buffer lookups
 
+        // seriously consider using LQ_index, SQ_index paradigm as this makes the age check much simpler for the CAM's
+            // in theory is tractable as have only 1-way launch to each *_cq each cycle
+            // issue is can get things OoO b/w *_cq's due to time in *_dq's
+            // maybe can use counters to infer indexes
+                // can get issues w/ full buffer
+                    // if either full, stall both *_dq's?
+                // analyze
+
 endmodule
