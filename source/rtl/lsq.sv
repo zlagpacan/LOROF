@@ -12,13 +12,13 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 module lsq #(
-    parameter 
+    parameter
 ) (
 
     // seq
     input logic CLK,
     input logic nRST,
-    
+
 );
     // Load Path:
         // enqueue into ldu_dq
@@ -45,7 +45,7 @@ module lsq #(
             // mark next ldu_cq state as issued
         // ldu_addr_pipeline PR stage
             // PRF Request stage
-                // other FU's would do prf request on IS, 
+                // other FU's would do prf request on IS,
                 // but ldu_cq is too big to do issue and prf req same-cycle
             // this stage knows which operands needed given op
             // stall here and don't send request if OC stall
@@ -62,6 +62,7 @@ module lsq #(
         // ldu_addr_pipeline PL stage
             // Pipeline Launch stage
             // dTLB req + dcache req
+                // can stall if dTLB or dcache ran out of MSHR's
             // can be stalled if there is a second-try launch this cycle
             // mark ldu_cq entry as launched and waiting for dTLB resp
             // need 2x load launch for misaligned
@@ -92,7 +93,7 @@ module lsq #(
         // ldu_cq dcache resp
             // implies already got dTLB resp and already waited for applicable io vs. mem fence
             // dcache hit means dcache resp might arrive before stamofu_cq CAM depending on how timing ends up working out
-                // if have store set, or maybe always, buffer dcache val(s) 
+                // if have store set, or maybe always, buffer dcache val(s)
             // wait until get dcache resp
                 // if got forward from stamofu_cq + stamofu_mq CAM, ignore dcache resp
                     // must have been full match, else would have been completely restarted
@@ -105,7 +106,7 @@ module lsq #(
                 // need 2x dcache resp if misaligned
                     // still perform single reg write
                         // must combine ldu_cq + ldu_mq values
-                        // dcache needs to uniquely identify return, maybe designate to dcache if should write to mq vs. cq 
+                        // dcache needs to uniquely identify return, maybe designate to dcache if should write to mq vs. cq
         // ldu_cq CAM of stamofu_cq and stamofu_mq resp
             // launched after get dTLB resp(s)
                 // so essentially, the official launch after pipeline launch is verified by dTLB
@@ -127,7 +128,7 @@ module lsq #(
                 // if any amo byte has youngest data, clear buffered data and mark entry as needing to wait for amo commit to do second launch
         // ldu_cq wait for CAM of preceding stamofu_cq entries
             // stamofu_cq CAM of ldu_cq + ldu_mq
-                // check for oldest entry which has given reg write data 
+                // check for oldest entry which has given reg write data
                     // if store: give new reg write data
                     // if amo: clear buffered data and mark entry as needing to wait for amo commit to do second launch
                     // restart after load
@@ -135,16 +136,16 @@ module lsq #(
                     // if store: update byte masked data if relevant to store
                         // updates must happen to all relevant stores, not just single of interest
                         // mark any ldu_cq/ldu_mq entries which misbehave and report if there is a restart case
-                        // update cases: 
+                        // update cases:
                             // check for already have forward from younger stores -> ignore update
                                 // from oldest ROB_index took dependent data from ^
                             // update of ldu_cq entry with full match
-                                // freely accept update, which now is implied to be the youngest store seen so far 
+                                // freely accept update, which now is implied to be the youngest store seen so far
                             // update of ldu_cq entry with partial match
                                 // check no dependent data from before
                                     // if have dcache data, can freely accept update
                                     // if don't have dcache data, completely restart this load
-                                        // only have mechanism to update from dcache data, 
+                                        // only have mechanism to update from dcache data,
                                         // not get update first then fill in non-updated after
                                         // uncommon case since misaligned forwarding with dcache miss
                                 // otherwise, haven't kept track of which bytes are which ages, completely restart this load
@@ -208,6 +209,7 @@ module lsq #(
         // stamofu_addr_pipeline PC stage
             // Pipeline Complete stage
             // dTLB req
+                // can stall if dTLB ran out of MSHR's
             // mark stamofu_cq entry as operands collected and waiting for dTLB resp
             // need 2x store complete for misaligned
                 // first complete guaranteed
@@ -243,7 +245,7 @@ module lsq #(
             // 1-way in-order
             // track operands becoming ready while in stamofu_dq
                 // no forwarding, only mark as individual operands ready
-            // stall if have mem_aq + io_aq and don't have open entry in both of mem_aq_q and io_aq_q 
+            // stall if have mem_aq + io_aq and don't have open entry in both of mem_aq_q and io_aq_q
             // otherwise if not stall, enqueue onto mem_aq_q and io_aq_q if have
         // waiting to issue from stamofu_cq
             // check next issue ready
@@ -276,6 +278,7 @@ module lsq #(
         // stamofu_addr_pipeline PC stage
             // Pipeline Complete stage
             // dTLB req
+                // can stall if dTLB ran out of MSHR's
             // mark stamofu_cq entry as operands collected and waiting for dTLB resp
             // amo's not allowed to be misaligned
                 // guaranteed single complete
@@ -386,7 +389,7 @@ module lsq #(
                 // Misaligned Queue
 
         // stamofu:
-        
+
             // stamofu_dq
                 // Dispatch Queue
 
@@ -394,7 +397,7 @@ module lsq #(
 
             // stamofu_cq
                 // Central Queue
-            
+
             // stamofu_mq
                 // Misaligned Queue
 
@@ -425,13 +428,13 @@ module lsq #(
             // if write buffer has superset dependence, load can safely steal write buffer entry value as-is
             // if write buffer has matching partial dependence or AMO:
                 // option 1: wait for dependence to finish writing to cache array
-                    // can use MSHR to hold dependent read until last partial dependent or AMO write 
+                    // can use MSHR to hold dependent read until last partial dependent or AMO write
                         // found by write buffer CAM index is completed into cache array
                 // option 2: deal with partial dependences
                     // always perform regular dcache array read, then forward dependent bytes from write buffer
                         // as needed
-                    // if dcache miss, recheck write buffer on MSHR miss return 
-            // have backpressure by stalling launches unless MSHR available or not currently trying miss return 
+                    // if dcache miss, recheck write buffer on MSHR miss return
+            // have backpressure by stalling launches unless MSHR available or not currently trying miss return
                 // dcache array and write buffer lookups
 
 endmodule
