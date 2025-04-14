@@ -44,7 +44,7 @@ package core_types_pkg;
     // IQ's:
 
     parameter ALU_REG_MDU_IQ_ENTRIES = 8;
-    parameter ALU_IMM_LDU_IQ_ENTRIES = 8;
+    parameter ALU_IMM_IQ_ENTRIES = 8;
     parameter BRU_IQ_ENTRIES = 4;
     parameter STAMOFU_DQ_ENTRIES = 4;
     parameter SYS_IQ_ENTRIES = 4;
@@ -150,10 +150,14 @@ package core_types_pkg;
     // LSQ:
 
     // ldu
-    parameter LDU_Q_ENTRIES = 32;
+    parameter LDU_DQ_ENTRIES = 4;
+    parameter LDU_CQ_ENTRIES = 40;
+    parameter LDU_MQ_ENTRIES = 4;
 
     // stamofu
-    parameter STAMOFU_Q_ENTRIES = 24;
+    parameter STAMOFU_DQ_ENTRIES = 4;
+    parameter STAMOFU_CQ_ENTRIES = 24;
+    parameter STAMOFU_MQ_ENTRIES = 4;
 
 endpackage
 
