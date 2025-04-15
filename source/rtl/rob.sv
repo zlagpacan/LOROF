@@ -8,14 +8,14 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module rob #(
-    parameter 
-) (
+module rob (
 
     // seq
     input logic CLK,
     input logic nRST,
     
+    input logic TODO
+
 );
 
     // unexceptable head and true head

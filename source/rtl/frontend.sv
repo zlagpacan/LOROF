@@ -70,7 +70,7 @@ module frontend #(
     output logic [3:0]                              dispatch_mem_aq,
     output logic [3:0]                              dispatch_io_aq,
     output logic [3:0]                              dispatch_mem_rl,
-    output logic [3:0]                              dispatch_io_rl
+    output logic [3:0]                              dispatch_io_rl,
 
     // instr fetch + decode exceptions
     output logic [3:0]                              dispatch_page_fault_by_way,
@@ -165,7 +165,7 @@ module frontend #(
     input logic [3:0][LOG_PR_COUNT-1:0]     rob_map_table_write_PR_by_port,
 
     // ROB control of checkpoint table
-    TODO
+    // TODO
     input logic                                     restore_valid,
     input logic [CHECKPOINT_INDEX_WIDTH-1:0]        restore_index,
 
@@ -223,7 +223,7 @@ module frontend #(
     // Decode Stage:
     
     // state
-    logic decode_exe
+    // logic decode_exe
 
     // save restart state
         // keep local copy

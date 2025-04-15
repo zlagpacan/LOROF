@@ -11,13 +11,13 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-module lsq #(
-    parameter
-) (
+module lsq (
 
     // seq
     input logic CLK,
     input logic nRST,
+
+    input logic TODO
 
 );
     // Load Path:
