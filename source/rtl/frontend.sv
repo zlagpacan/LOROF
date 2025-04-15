@@ -37,12 +37,9 @@ module frontend #(
     output logic [ICACHE_INDEX_WIDTH-1:0]               icache_req_index,
 
     // icache resp
-    input logic                                 icache_resp_valid_way0,
-    input logic [ICACHE_TAG_WIDTH-1:0]          icache_resp_tag_way0,
-    input logic [ICACHE_FETCH_WIDTH-1:0][7:0]   icache_resp_instr_16B_way0,
-    input logic                                 icache_resp_valid_way1,
-    input logic [ICACHE_TAG_WIDTH-1:0]          icache_resp_tag_way1,
-    input logic [ICACHE_FETCH_WIDTH-1:0][7:0]   icache_resp_instr_16B_way1,
+    input logic [1:0]                               icache_resp_valid_by_way,
+    input logic [1:0][ICACHE_TAG_WIDTH-1:0]         icache_resp_tag_by_way,
+    input logic [1:0][ICACHE_FETCH_WIDTH-1:0][7:0]  icache_resp_instr_16B_by_way,
 
     // icache resp feedback
     output logic                            icache_resp_notif_valid,
@@ -152,8 +149,8 @@ module frontend #(
     input logic         restart_valid,
     input logic [31:0]  restart_PC,
     input logic [8:0]   restart_ASID,
-    input logic [1:0]   restart_exec_mode,
     input logic         restart_virtual_mode,
+    input logic [1:0]   restart_exec_mode,
     input logic         restart_trap_sfence,
     input logic         restart_trap_wfi,
     input logic         restart_trap_sret,
@@ -164,10 +161,9 @@ module frontend #(
     input logic [3:0][LOG_AR_COUNT-1:0]     rob_map_table_write_AR_by_port,
     input logic [3:0][LOG_PR_COUNT-1:0]     rob_map_table_write_PR_by_port,
 
-    // ROB control of checkpoint table
-    // TODO
-    input logic                                     restore_valid,
-    input logic [CHECKPOINT_INDEX_WIDTH-1:0]        restore_index,
+    // ROB control of checkpoint restore
+    input logic                                 rob_checkpoint_restore_valid,
+    input logic [CHECKPOINT_INDEX_WIDTH-1:0]    rob_checkpoint_restore_index,
 
     // hardware failure
     output logic istream_unrecoverable_fault
@@ -210,25 +206,71 @@ module frontend #(
     // ----------------------------------------------------------------
     // Signals:
 
-    // Fetch Req Stage:
+    //////////////////////
+    // Fetch Req Stage: //
+    //////////////////////
 
     // state
-    logic [31:0]            fetch_req_PC, next_fetch_req_PC;
-    logic [ASID_WIDTH-1:0]  fetch_ASID, next_fetch_ASID;
-    logic                   fetch_virtual_mode;
+    logic [31:0]            fetch_req_PC_VA, next_fetch_req_PC_VA;
+    logic [ASID_WIDTH-1:0]  fetch_req_ASID, next_fetch_req_ASID;
+    logic                   fetch_req_virtual_mode;
+    logic                   fetch_req_wait_for_restart_state;
 
     // interruptable access PC
-    logic [31:0] fetch_req_access_PC;
+    logic [31:0] fetch_req_access_PC_VA;
 
-    // Decode Stage:
+    ///////////////////////
+    // Fetch Resp Stage: //
+    ///////////////////////
+
+    // state
+    logic fetch_resp_valid;
+    logic fetch_resp_virtual_mode;
+    typedef enum logic [1:0] {
+        FETCH_RESP_NORMAL,
+        FETCH_RESP_ITLB_HIT_COMPLEX_BRANCH,
+        FETCH_RESP_ITLB_MISS
+    } fetch_resp_state_t;
+    fetch_resp_state_t fetch_resp_state, next_fetch_resp_state;
+
+    // pipeline latch
+    logic [31:0] fetch_resp_PC_VA, next_fetch_resp_PC_VA;
+
+    // translated PC
+    logic [31:0] fetch_resp_PC_PA;
+
+    /////////////////
+    // Stream DeQ: //
+    /////////////////
+
+    // state
+
+    // pipeline latch
+
+    // 
+
+    ///////////////////
+    // Decode Stage: //
+    ///////////////////
     
     // state
-    // logic decode_exe
+    logic [1:0]     decode_exec_mode,
+    logic           decode_trap_sfence,
+    logic           decode_trap_wfi,
+    logic           decode_trap_sret,
 
-    // save restart state
-        // keep local copy
-            // use version of value when intended to be used
-            // limit fanout
+    // pipeline latch
+
+    /////////////////
+    // Stream DeQ: //
+    /////////////////
+
+    // state
+
+    // pipeline latch
+        // istream acts as latch at beginning of stage
+
+    // 
 
     // wait for restart state from decoder
 
