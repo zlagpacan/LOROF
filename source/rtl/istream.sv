@@ -10,7 +10,7 @@ import core_types_pkg::*;
 
 module istream #(
     parameter ISTREAM_SETS = 8,
-    parameter INIT_PC = 32'h80000000
+    parameter INIT_PC = 32'h0
 ) (
 
     // seq

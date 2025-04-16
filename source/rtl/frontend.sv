@@ -12,7 +12,9 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 module frontend #(
-    parameter INIT_PC = 32'h0
+    parameter INIT_PC = 32'h0,
+    parameter INIT_ASID = 9'h0,
+    parameter INIT_EXEC_MODE = M_MODE
 ) (
 
     // seq
@@ -111,10 +113,12 @@ module frontend #(
     output logic [3:0]                              dispatch_dest_is_zero_by_way,
     output logic [3:0]                              dispatch_dest_is_link_ra,
 
-    // op dispatch feedback:
-
     // 4-way ROB entry open
-    input logic         dispatch_rob_ready,
+    input logic dispatch_rob_ready,
+
+    // writeback bus by bank
+    input logic [PRF_BANK_COUNT-1:0]                                        WB_bus_valid_by_bank,
+    input logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]   WB_bus_upper_PR_by_bank,
 
     // instr IQ acks
     input logic [3:0]   dispatch_ack_alu_reg_mdu_iq_by_way,
@@ -124,21 +128,6 @@ module frontend #(
     input logic [3:0]   dispatch_ack_stamofu_iq_by_way,
     input logic [3:0]   dispatch_ack_sys_iq_by_way,
 
-    // stamofu fence feedback
-    input logic stamofu_stall_mem_read,
-    input logic stamofu_stall_mem_write,
-
-    // update
-    input logic                             update_valid,
-    input logic [31:0]                      update_start_full_PC,
-    input logic [ASID_WIDTH-1:0]            update_ASID,
-    input logic [BTB_PRED_INFO_WIDTH-1:0]   update_pred_info,
-    input logic                             update_pred_lru,
-    input logic [31:0]                      update_target_full_PC,
-
-    // update feedback
-    output logic update_ready,
-
     // mdpt update
     input logic                         mdpt_update_valid,
     input logic [31:0]                  mdpt_update_start_full_PC,
@@ -146,14 +135,25 @@ module frontend #(
     input logic [MDPT_INFO_WIDTH-1:0]   mdpt_update_mdp_info,
 
     // fetch + decode restart from ROB
-    input logic         restart_valid,
-    input logic [31:0]  restart_PC,
-    input logic [8:0]   restart_ASID,
-    input logic         restart_virtual_mode,
-    input logic [1:0]   restart_exec_mode,
-    input logic         restart_trap_sfence,
-    input logic         restart_trap_wfi,
-    input logic         restart_trap_sret,
+    input logic                             rob_restart_valid,
+    input logic [31:0]                      rob_restart_PC,
+    input logic [8:0]                       rob_restart_ASID,
+    input logic                             rob_restart_virtual_mode,
+    input logic [1:0]                       rob_restart_exec_mode,
+    input logic                             rob_restart_trap_sfence,
+    input logic                             rob_restart_trap_wfi,
+    input logic                             rob_restart_trap_sret,
+
+    // branch update from ROB
+    input logic                             rob_branch_update_valid,
+    input logic                             rob_branch_update_is_mispredict,
+    input logic                             rob_branch_update_is_taken,
+    input logic                             rob_branch_update_use_upct,
+    input logic [BTB_PRED_INFO_WIDTH-1:0]   rob_branch_update_updated_pred_info,
+    input logic                             rob_branch_update_pred_lru,
+    input logic [31:0]                      rob_branch_update_start_PC,
+    input logic [31:0]                      rob_branch_update_target_PC,
+    input logic                             rob_branch_update_have_checkpoint,
 
     // ROB control of map table
     input logic                             rob_controlling_map_table,
@@ -163,45 +163,18 @@ module frontend #(
 
     // ROB control of checkpoint restore
     input logic                                 rob_checkpoint_restore_valid,
+    input logic                                 rob_checkpoint_restore_clear,
     input logic [CHECKPOINT_INDEX_WIDTH-1:0]    rob_checkpoint_restore_index,
 
     // hardware failure
     output logic istream_unrecoverable_fault
 );
-    
-    // Pipeline Stages
-        // Fetch Req
-            // PC
-            // iTLB req
-            // icache req
-            // btb req
-            // lht req
-            // mdpt req
-        // Fetch Resp
-            // iTLB resp
-            // icache resp
-            // btb resp
-            // lht resp
-            // mdpt resp
-            // pred logic
-            // upct
-            // ras
-            // istream enQ
-            // lbpt req
-            // gbpt req
-            // after stall:
-                // lbpt resp
-                // gbpt resp
-        // Stream DeQ
-            // istream deQ
-        // Decode
-            // 4x decoder
-        // Rename
-            // map_table
-            // free_list
-            // ar_dep_check
-            // checkpoint_array
-        // Dispatch
+
+    // restart sources:
+        // rob restart
+        // decode restart
+
+    // wait for restart from decode
 
     // ----------------------------------------------------------------
     // Signals:
@@ -211,55 +184,244 @@ module frontend #(
     //////////////////////
 
     // state
+    logic                   fetch_req_wait_for_restart_state, next_fetch_req_wait_for_restart_state;
     logic [31:0]            fetch_req_PC_VA, next_fetch_req_PC_VA;
     logic [ASID_WIDTH-1:0]  fetch_req_ASID, next_fetch_req_ASID;
-    logic                   fetch_req_virtual_mode;
-    logic                   fetch_req_wait_for_restart_state;
+    logic                   fetch_req_virtual_mode, next_fetch_req_virtual_mode;
+
+    // control
+    // logic fetch_req_clear; // have all info in restarts
+    logic fetch_req_stall;
+        // stage valid (not in wait for restart state) AND:
+            // valid fetch resp not moving on
 
     // interruptable access PC
+    logic fetch_req_access_PC_change;
     logic [31:0] fetch_req_access_PC_VA;
+
+    // modules:
+
+    // mdpt:
+
+        // REQ stage
+        logic                   mdpt_valid_REQ;
+        logic [31:0]            mdpt_full_PC_REQ;
+        logic [ASID_WIDTH-1:0]  mdpt_ASID_REQ;
+
+        // RESP stage
+        logic [MDPT_ENTRIES_PER_BLOCK-1:0][MDPT_INFO_WIDTH-1:0] mdpt_mdp_info_by_instr_RESP;
+
+        // MDPT Update 0 stage
+        logic                           mdpt_mdpt_update0_valid;
+        logic [31:0]                    mdpt_mdpt_update0_start_full_PC;
+        logic [ASID_WIDTH-1:0]          mdpt_mdpt_update0_ASID;
+        logic [MDPT_INFO_WIDTH-1:0]     mdpt_mdpt_update0_mdp_info;
+
+    // lht:
+
+        // REQ stage
+        logic                     lht_valid_REQ;
+        logic [31:0]              lht_full_PC_REQ;
+        logic [ASID_WIDTH-1:0]    lht_ASID_REQ;
+
+        // RESP stage
+        logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH-1:0] lht_LH_by_instr_RESP;
+
+        // Update 0 stage
+        logic                     lht_update0_valid;
+        logic [31:0]              lht_update0_start_full_PC;
+        logic [ASID_WIDTH-1:0]    lht_update0_ASID;
+        logic [LH_LENGTH-1:0]     lht_update0_LH;
+
+    // btb:
+
+        // REQ stage
+        logic                   btb_valid_REQ;
+        logic [31:0]            btb_full_PC_REQ;
+        logic [ASID_WIDTH-1:0]  btb_ASID_REQ;
+
+        // RESP stage
+        logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_PRED_INFO_WIDTH-1:0] btb_pred_info_by_instr_RESP;
+        logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0]                          btb_pred_lru_by_instr_RESP;
+        logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TARGET_WIDTH-1:0]    btb_target_by_instr_RESP;
+
+        // Update 0
+        logic                   btb_update0_valid;
+        logic [31:0]            btb_update0_start_full_PC;
+        logic [ASID_WIDTH-1:0]  btb_update0_ASID;
+
+        // Update 1
+        logic [BTB_PRED_INFO_WIDTH-1:0] btb_update1_pred_info;
+        logic                           btb_update1_pred_lru;
+        logic [31:0]                    btb_update1_target_full_PC;
+
+    // itlb req:
+        
+        // in frontend interface
+
+    // icache req:
+    
+        // in frontend interface
 
     ///////////////////////
     // Fetch Resp Stage: //
     ///////////////////////
 
     // state
-    logic fetch_resp_valid;
+    logic fetch_resp_stage_valid;
     logic fetch_resp_virtual_mode;
     typedef enum logic [1:0] {
         FETCH_RESP_NORMAL,
-        FETCH_RESP_ITLB_HIT_COMPLEX_BRANCH,
-        FETCH_RESP_ITLB_MISS
+        FETCH_RESP_HIT_COMPLEX_BRANCH,
+        FETCH_RESP_MISS
     } fetch_resp_state_t;
     fetch_resp_state_t fetch_resp_state, next_fetch_resp_state;
 
     // pipeline latch
     logic [31:0] fetch_resp_PC_VA, next_fetch_resp_PC_VA;
 
+    // control
+    logic fetch_resp_clear;
+    logic fetch_resp_stall;
+        // going to stall fetch resp state
+        // istream_stall_SENQ
+
     // translated PC
     logic [31:0] fetch_resp_PC_PA;
 
-    /////////////////
-    // Stream DeQ: //
-    /////////////////
+    // ghr
+    logic [GH_LENGTH-1:0] ghr, next_ghr;
 
-    // state
+    // pred logic
+    logic TODO;
 
-    // pipeline latch
+    // modules:
 
-    // 
+    // lbpt:
 
-    ///////////////////
-    // Decode Stage: //
-    ///////////////////
-    
-    // state
-    logic [1:0]     decode_exec_mode,
-    logic           decode_trap_sfence,
-    logic           decode_trap_wfi,
-    logic           decode_trap_sret,
+        // RESP stage
+        logic                   lbpt_valid_RESP;
+        logic [31:0]            lbpt_full_PC_RESP;
+        logic [LH_LENGTH-1:0]   lbpt_LH_RESP;
+        logic [ASID_WIDTH-1:0]  lbpt_ASID_RESP;
 
-    // pipeline latch
+        // RESTART stage
+        logic lbpt_pred_taken_RESTART;
+
+        // Update 0
+        logic                   lbpt_update0_valid;
+        logic [31:0]            lbpt_update0_start_full_PC;
+        logic [LH_LENGTH-1:0]   lbpt_update0_LH;
+        logic [ASID_WIDTH-1:0]  lbpt_update0_ASID;
+        logic                   lbpt_update0_taken;
+
+        // Update 1
+        logic lbpt_update1_correct;
+
+    // gbpt:
+
+        // RESP stage
+        logic                   gbpt_valid_RESP;
+        logic [31:0]            gbpt_full_PC_RESP;
+        logic [GH_LENGTH-1:0]   gbpt_GH_RESP;
+        logic [ASID_WIDTH-1:0]  gbpt_ASID_RESP;
+
+        // RESTART stage
+        logic gbpt_pred_taken_RESTART;
+
+        // Update 0
+        logic                   gbpt_update0_valid;
+        logic [31:0]            gbpt_update0_start_full_PC;
+        logic [GH_LENGTH-1:0]   gbpt_update0_GH;
+        logic [ASID_WIDTH-1:0]  gbpt_update0_ASID;
+        logic                   gbpt_update0_taken;
+
+        // Update 1
+        logic gbpt_update1_correct;
+
+    // upct:
+
+        // RESP stage
+        logic                           upct_valid_RESP;
+        logic [LOG_UPCT_ENTRIES-1:0]    upct_upct_index_RESP;
+        logic [UPPER_PC_WIDTH-1:0]      upct_upper_PC_RESP;
+
+        // Update 0
+        logic           upct_update0_valid;
+        logic [31:0]    upct_update0_start_full_PC;
+
+        // Update 1
+        logic [LOG_UPCT_ENTRIES-1:0]    upct_update1_upct_index;
+
+    // ras:
+
+        // RESP stage
+        logic           ras_link_RESP;
+        logic [31:0]    ras_link_full_PC_RESP;
+        logic           ras_ret_RESP;
+
+        logic [31:0]                ras_ret_full_PC_RESP;
+        logic [RAS_INDEX_WIDTH-1:0] ras_ras_index_RESP;
+
+        // Update 0
+        logic                       ras_update0_valid;
+        logic [RAS_INDEX_WIDTH-1:0] ras_update0_ras_index;
+
+    // itlb resp:
+
+        // in frontend interface
+
+    // icache resp:
+
+        // in frontend interface
+
+    //////////////////////////
+    // Branch Update Stage: //
+    //////////////////////////
+
+    // LH from checkpoint
+    // GH from checkpoint
+
+    logic [LH_LENGTH-1:0]           branch_update_LH;
+    logic [GH_LENGTH-1:0]           branch_update_GH;
+    logic [RAS_INDEX_WIDTH-1:0]     branch_update_ras_index;
+
+    /////////////////////
+    // Update 0 Stage: //
+    /////////////////////
+
+    // valid
+    // start pc
+    // ASID
+    // LH
+    // GH
+    // ras index
+    // taken
+
+    logic                           update0_valid;
+    logic [31:0]                    update0_start_full_PC;
+    logic [ASID_WIDTH-1:0]          update0_ASID;
+    logic [LH_LENGTH-1:0]           update0_LH;
+    logic [GH_LENGTH-1:0]           update0_GH;
+    logic [RAS_INDEX_WIDTH-1:0]     update0_ras_index;
+    logic                           update0_taken;
+
+    logic update0_update_checkpoint_dependent;
+
+    /////////////////////
+    // Update 1 Stage: //
+    /////////////////////
+
+    // correct
+    // upct index
+    // pred info
+    // pred lru
+    // target full pc
+
+    logic update1_correct;
+    logic [LOG_UPCT_ENTRIES-1:0] update1_upct_index;
+
+    logic update1_update_checkpoint_dependent;
 
     /////////////////
     // Stream DeQ: //
@@ -270,8 +432,342 @@ module frontend #(
     // pipeline latch
         // istream acts as latch at beginning of stage
 
-    // 
+    // control
+    logic istream_clear;
+    // logic istream_stall_SDEQ;
+        // decode stall
 
-    // wait for restart state from decoder
+    // modules:
+
+    // istream:
+
+        // SENQ stage
+        logic           istream_valid_SENQ;
+        logic [7:0]     istream_valid_by_fetch_2B_SENQ;
+        logic [7:0]     istream_one_hot_redirect_by_fetch_2B_SENQ,;
+            // means take after PC as pred PC
+            // always the last instr in the fetch block
+        logic [7:0][15:0]                       istream_instr_2B_by_fetch_2B_SENQ;
+        logic [7:0][BTB_PRED_INFO_WIDTH-1:0]    istream_pred_info_by_fetch_2B_SENQ;
+        logic [7:0]                             istream_pred_lru_by_fetch_2B_SENQ;
+        logic [7:0][MDPT_INFO_WIDTH-1:0]        istream_mdp_info_by_fetch_2B_SENQ;
+        logic [31:0]                            istream_after_PC_SENQ;
+        logic [LH_LENGTH-1:0]                   istream_LH_SENQ;
+        logic [GH_LENGTH-1:0]                   istream_GH_SENQ;
+        logic [RAS_INDEX_WIDTH-1:0]             istream_ras_index_SENQ;
+        logic                                   istream_page_fault_SENQ;
+        logic                                   istream_access_fault_SENQ;
+
+        // SENQ feedback
+        logic istream_stall_SENQ;
+
+        // SDEQ stage
+        logic                                       istream_valid_SDEQ;
+        logic [3:0]                                 istream_valid_by_way_SDEQ;
+        logic [3:0]                                 istream_uncompressed_by_way_SDEQ;
+        logic [3:0][1:0][15:0]                      istream_instr_2B_by_way_by_chunk_SDEQ;
+        logic [3:0][1:0][BTB_PRED_INFO_WIDTH-1:0]   istream_pred_info_by_way_by_chunk_SDEQ;
+        logic [3:0][1:0]                            istream_pred_lru_by_way_by_chunk_SDEQ;
+        logic [3:0][1:0]                            istream_redirect_by_way_by_chunk_SDEQ;
+        logic [3:0][1:0][31:0]                      istream_pred_PC_by_way_by_chunk_SDEQ;
+        logic [3:0][1:0]                            istream_page_fault_by_way_by_chunk_SDEQ;
+        logic [3:0][1:0]                            istream_access_fault_by_way_by_chunk_SDEQ;
+        logic [3:0][MDPT_INFO_WIDTH-1:0]            istream_mdp_info_by_way_SDEQ;
+        logic [3:0][31:0]                           istream_PC_by_way_SDEQ;
+        logic [3:0][LH_LENGTH-1:0]                  istream_LH_by_way_SDEQ;
+        logic [3:0][GH_LENGTH-1:0]                  istream_GH_by_way_SDEQ;
+        logic [3:0][RAS_INDEX_WIDTH-1:0]            istream_ras_index_by_way_SDEQ;
+
+        // SDEQ feedback
+        logic istream_stall_SDEQ;
+
+        // restart
+        logic         istream_restart;
+        logic [31:0]  istream_restart_PC;
+
+    ///////////////////
+    // Decode Stage: //
+    ///////////////////
+    
+    // state
+    typedef enum logic [1:0] {
+        DECODE_NOT_RESTARTING,
+        DECODE_RESTART_UPDATE0,
+        DECODE_RESTART_UPDATE1,
+        DECODE_RESTART_UPDATE_DONE
+    } decode_state_t;
+    decode_state_t decode_state, next_decode_state;
+
+    logic [1:0]     decode_exec_mode;
+    logic           decode_trap_sfence;
+    logic           decode_trap_wfi;
+    logic           decode_trap_sret;
+
+    // pipeline latch
+
+    // control
+    logic decode_clear;
+    logic decode_stall;
+        // stage valid AND:
+            // rename stall
+
+    logic decode_restart_valid;
+    logic decode_restart_PC;
+
+    logic decode_wait_for_restart;
+
+    // modules:
+
+    // decoder by way:
+
+        // environment info
+        logic [3:0][1:0]    decoder_env_exec_mode_by_way;
+        logic [3:0]         decoder_env_trap_sfence_by_way;
+        logic [3:0]         decoder_env_trap_wfi_by_way;
+        logic [3:0]         decoder_env_trap_sret_by_way;
+
+        // instr info
+        logic [3:0]                             decoder_uncompressed_by_way;
+        logic [3:0][31:0]                       decoder_instr32_by_way;
+        logic [3:0][BTB_PRED_INFO_WIDTH-1:0]    decoder_pred_info_chunk0_by_way;
+        logic [3:0][BTB_PRED_INFO_WIDTH-1:0]    decoder_pred_info_chunk1_by_way;
+
+        // FU select
+        logic [3:0] decoder_is_alu_reg_by_way;
+        logic [3:0] decoder_is_alu_imm_by_way;
+        logic [3:0] decoder_is_bru_by_way;
+        logic [3:0] decoder_is_mdu_by_way;
+        logic [3:0] decoder_is_ldu_by_way;
+        logic [3:0] decoder_is_store_by_way;
+        logic [3:0] decoder_is_amo_by_way;
+        logic [3:0] decoder_is_fence_by_way;
+        logic [3:0] decoder_is_sys_by_way;
+        logic [3:0] decoder_is_illegal_instr_by_way;
+
+        // op
+        logic [3:0][3:0]    decoder_op_by_way;
+        logic [3:0]         decoder_is_reg_write_by_way;
+        
+        // A operand
+        logic [3:0][4:0]    decoder_A_AR_by_way;
+        logic [3:0]         decoder_A_unneeded_by_way;
+        logic [3:0]         decoder_A_is_zero_by_way;
+        logic [3:0]         decoder_A_is_ret_ra_by_way;
+
+        // B operand
+        logic [3:0][4:0]    decoder_B_AR_by_way;
+        logic [3:0]         decoder_B_unneeded_by_way;
+        logic [3:0]         decoder_B_is_zero_by_way;
+
+        // dest operand
+        logic [3:0][4:0]    decoder_dest_AR_by_way;
+        logic [3:0]         decoder_dest_is_zero_by_way;
+        logic [3:0]         decoder_dest_is_link_ra_by_way;
+
+        // imm
+        logic [3:0][19:0] decoder_imm20_by_way;
+
+        // pred info out
+        logic [3:0][BTB_PRED_INFO_WIDTH-1:0]    decoder_pred_info_out_by_way;
+        logic [3:0]                             decoder_missing_pred_by_way;
+
+        // ordering
+        logic [3:0] decoder_wait_for_restart_by_way;
+        logic [3:0] decoder_mem_aq_by_way;
+        logic [3:0] decoder_io_aq_by_way;
+        logic [3:0] decoder_mem_rl_by_way;
+        logic [3:0] decoder_io_rl_by_way;
+
+        // faults
+        logic [3:0] decoder_instr_yield_by_way;
+        logic [3:0] decoder_non_branch_notif_chunk0_by_way;
+        logic [3:0] decoder_non_branch_notif_chunk1_by_way;
+        logic [3:0] decoder_restart_on_chunk0_by_way;
+        logic [3:0] decoder_restart_after_chunk0_by_way;
+        logic [3:0] decoder_restart_after_chunk1_by_way;
+        logic [3:0] decoder_unrecoverable_fault_by_way;
+
+    ///////////////////
+    // Rename Stage: //
+    ///////////////////
+
+    // state
+    logic rename_valid;
+
+    // pipeline latch
+
+    // control
+    logic rename_clear;
+    logic rename_stall;
+        // stage valid AND:
+            // dispatch stall
+            // free_list failed rename
+
+    // modules:
+
+    // free_list:
+
+        // enqueue request
+        logic [FREE_LIST_BANK_COUNT-1:0]                    free_list_enq_req_valid_by_bank;
+        logic [FREE_LIST_BANK_COUNT-1:0][LOG_PR_COUNT-1:0]  free_list_enq_req_PR_by_bank;
+
+        // enqueue feedback
+        logic [FREE_LIST_BANK_COUNT-1:0]                    free_list_enq_resp_ack_by_bank;
+
+        // dequeue request
+        logic [FREE_LIST_BANK_COUNT-1:0]                    free_list_deq_req_valid_by_bank;
+        logic [FREE_LIST_BANK_COUNT-1:0][LOG_PR_COUNT-1:0]  free_list_deq_req_PR_by_bank;
+
+        // dequeue feedback
+        logic [FREE_LIST_BANK_COUNT-1:0]                    free_list_deq_resp_ready_by_bank;
+
+    // map_table:
+
+        // 12x read ports
+        logic [11:0][LOG_AR_COUNT-1:0]  map_table_read_AR_by_port;
+        logic [11:0][LOG_PR_COUNT-1:0]  map_table_read_PR_by_port;
+
+        // 4x write ports
+        logic [3:0]                     map_table_write_valid_by_port;
+        logic [3:0][LOG_AR_COUNT-1:0]   map_table_write_AR_by_port;
+        logic [3:0][LOG_PR_COUNT-1:0]   map_table_write_PR_by_port;
+
+        // checkpoint save
+        logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0]  map_table_save_map_table;
+
+        // checkpoint restore
+        logic                                   map_table_restore_valid;
+        logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0]  map_table_restore_map_table;
+
+    // checkpoint_array:
+
+        // checkpoint save
+        logic                                   checkpoint_array_save_valid;
+        logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0]  checkpoint_array_save_map_table;
+        logic [LH_LENGTH-1:0]                   checkpoint_array_save_LH;
+        logic [GH_LENGTH-1:0]                   checkpoint_array_save_GH;
+        logic [RAS_INDEX_WIDTH-1:0]             checkpoint_array_save_ras_index;
+
+        logic                                   checkpoint_array_save_ready;
+        logic [CHECKPOINT_INDEX_WIDTH-1:0]      checkpoint_array_save_index;
+
+        // checkpoint restore
+        logic                                   checkpoint_array_restore_valid;
+        logic [CHECKPOINT_INDEX_WIDTH-1:0]      checkpoint_array_restore_index;
+
+        logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0]  checkpoint_array_restore_map_table;
+        logic [LH_LENGTH-1:0]                   checkpoint_array_restore_LH;
+        logic [GH_LENGTH-1:0]                   checkpoint_array_restore_GH;
+        logic [RAS_INDEX_WIDTH-1:0]             checkpoint_array_restore_ras_index;
+
+        // advertized threshold
+        logic checkpoint_array_above_threshold;
+
+    // ar_dep_check:
+
+        // inputs by way
+        logic [3:0][4:0]    ar_dep_check_A_AR_by_way;
+        logic [3:0][4:0]    ar_dep_check_B_AR_by_way;
+        logic [3:0]         ar_dep_check_regwrite_by_way;
+        logic [3:0][4:0]    ar_dep_check_dest_AR_by_way;
+
+        // outputs by way
+        logic [3:0]         ar_dep_check_A_PR_dep_by_way;
+        logic [3:0][1:0]    ar_dep_check_A_PR_sel_by_way;
+        logic [3:0]         ar_dep_check_B_PR_dep_by_way;
+        logic [3:0][1:0]    ar_dep_check_B_PR_sel_by_way;
+
+    /////////////////////
+    // Dispatch Stage: //
+    /////////////////////
+
+    // state
+
+    // pipeline latch
+
+    // control
+    logic dispatch_clear;
+    logic dispatch_stall;
+        // stage valid AND:
+            // failed IQ dispatch
+            // ROB not ready
+
+    // modules:
+
+    // ready_table:
+
+        // 8x read ports
+        logic [7:0][LOG_PR_COUNT-1:0]   ready_table_read_PR_by_port;
+        logic [7:0]                     ready_table_read_ready_by_port;
+
+        // 4x set ports
+        logic [3:0]                     ready_table_set_valid_by_port;
+        logic [3:0][LOG_PR_COUNT-1:0]   ready_table_set_PR_by_port;
+
+        // 4x clear ports
+        logic [3:0]                     ready_table_clear_valid_by_port;
+        logic [3:0][LOG_PR_COUNT-1:0]   ready_table_clear_PR_by_port;
+
+    // ----------------------------------------------------------------
+    // Signals:
+
+    //////////////////////
+    // Fetch Req Stage: //
+    //////////////////////
+
+    // FF logic;
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            fetch_req_wait_for_restart_state <= 1'b0;
+            fetch_req_PC_VA <= INIT_PC;
+            fetch_req_ASID <= INIT_ASID;
+            fetch_req_virtual_mode <= 1'b0;
+        end
+        else begin
+            fetch_req_wait_for_restart_state <= next_fetch_req_wait_for_restart_state;
+            fetch_req_PC_VA <= next_fetch_req_PC_VA;
+            fetch_req_ASID <= next_fetch_req_ASID;
+            fetch_req_virtual_mode <= next_fetch_req_virtual_mode;
+        end
+    end
+
+    // next state logic:
+    always_comb begin
+
+        next_fetch_req_wait_for_restart_state = fetch_req_wait_for_restart_state;
+        next_fetch_req_PC_VA = fetch_req_PC_VA;
+        next_fetch_req_ASID = fetch_req_ASID;
+        next_fetch_req_virtual_mode = fetch_req_virtual_mode;
+
+        if (rob_restart_valid) begin
+            next_fetch_req_wait_for_restart_state = 1'b0;
+            next_fetch_req_PC_VA = rob_restart_PC;
+        end
+        else if (decode_restart_valid) begin
+            next_fetch_req_wait_for_restart_state = 1'b0;
+            next_fetch_req_PC_VA = decode_restart_PC;
+        end
+        else if (decode_wait_for_restart) begin
+            next_fetch_req_wait_for_restart_state = 1'b1;
+        end
+        else if (fetch_req_wait_for_restart_state) begin
+            next_fetch_req_wait_for_restart_state = 1'b1;
+        end
+        else if (fetch_req_stall) begin
+            next_fetch_req_wait_for_restart_state = 1'b0;
+        end
+        else begin
+            next_fetch_req_wait_for_restart_state = 1'b0;
+            if (fetch_req_access_PC_change) begin
+                next_fetch_req_PC_VA = {fetch_req_access_PC_VA[31:4] + 28'h1, 4'b0000};
+            end
+            else begin
+                next_fetch_req_PC_VA = {fetch_req_PC_VA[31:4] + 28'h1, 4'b0000};
+            end
+        end
+    end
+
+    // output logic
+    
 
 endmodule

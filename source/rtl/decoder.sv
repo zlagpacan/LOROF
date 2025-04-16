@@ -11,10 +11,10 @@ import core_types_pkg::*;
 module decoder (
 
     // environment info
-    input logic [1:0] env_exec_mode,
-    input logic env_trap_sfence,
-    input logic env_trap_wfi,
-    input logic env_trap_sret,
+    input logic [1:0]   env_exec_mode,
+    input logic         env_trap_sfence,
+    input logic         env_trap_wfi,
+    input logic         env_trap_sret,
 
     // instr info
     input logic                             uncompressed,

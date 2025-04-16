@@ -445,4 +445,10 @@ module lsq (
                     // if either full, stall both *_dq's?
                 // analyze
 
+        // probably want specific dTLB miss queue so that can localize determination of next dcache launch
+            // dTLB miss queue right after pipeline
+            // hold PA's right there, can choose between short list of dTLB misses which are currently returning vs. pipeline output
+            // can easily freeze pipeline if have dTLB miss return
+            // uncommon case anyway
+
 endmodule
