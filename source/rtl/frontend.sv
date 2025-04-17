@@ -185,11 +185,13 @@ module frontend #(
 
     // state
     logic                   fetch_req_wait_for_restart_state, next_fetch_req_wait_for_restart_state;
-    logic [31:0]            fetch_req_PC_VA, next_fetch_req_PC_VA;
+    logic [VA_WIDTH-1:0]    fetch_req_PC_VA, next_fetch_req_PC_VA;
     logic [ASID_WIDTH-1:0]  fetch_req_ASID, next_fetch_req_ASID;
     logic                   fetch_req_virtual_mode, next_fetch_req_virtual_mode;
 
     // control
+    logic fetch_req_valid;
+    logic fetch_req_output_valid;
     // logic fetch_req_clear; // have all info in restarts
     logic fetch_req_stall;
         // stage valid (not in wait for restart state) AND:
@@ -197,41 +199,9 @@ module frontend #(
 
     // interruptable access PC
     logic fetch_req_access_PC_change;
-    logic [31:0] fetch_req_access_PC_VA;
+    logic [VA_WIDTH-1:0] fetch_req_access_PC_VA;
 
     // modules:
-
-    // mdpt:
-
-        // REQ stage
-        logic                   mdpt_valid_REQ;
-        logic [31:0]            mdpt_full_PC_REQ;
-        logic [ASID_WIDTH-1:0]  mdpt_ASID_REQ;
-
-        // RESP stage
-        logic [MDPT_ENTRIES_PER_BLOCK-1:0][MDPT_INFO_WIDTH-1:0] mdpt_mdp_info_by_instr_RESP;
-
-        // MDPT Update 0 stage
-        logic                           mdpt_mdpt_update0_valid;
-        logic [31:0]                    mdpt_mdpt_update0_start_full_PC;
-        logic [ASID_WIDTH-1:0]          mdpt_mdpt_update0_ASID;
-        logic [MDPT_INFO_WIDTH-1:0]     mdpt_mdpt_update0_mdp_info;
-
-    // lht:
-
-        // REQ stage
-        logic                     lht_valid_REQ;
-        logic [31:0]              lht_full_PC_REQ;
-        logic [ASID_WIDTH-1:0]    lht_ASID_REQ;
-
-        // RESP stage
-        logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH-1:0] lht_LH_by_instr_RESP;
-
-        // Update 0 stage
-        logic                     lht_update0_valid;
-        logic [31:0]              lht_update0_start_full_PC;
-        logic [ASID_WIDTH-1:0]    lht_update0_ASID;
-        logic [LH_LENGTH-1:0]     lht_update0_LH;
 
     // btb:
 
@@ -255,6 +225,38 @@ module frontend #(
         logic                           btb_update1_pred_lru;
         logic [31:0]                    btb_update1_target_full_PC;
 
+    // lht:
+
+        // REQ stage
+        logic                     lht_valid_REQ;
+        logic [31:0]              lht_full_PC_REQ;
+        logic [ASID_WIDTH-1:0]    lht_ASID_REQ;
+
+        // RESP stage
+        logic [LHT_ENTRIES_PER_BLOCK-1:0][LH_LENGTH-1:0] lht_LH_by_instr_RESP;
+
+        // Update 0 stage
+        logic                     lht_update0_valid;
+        logic [31:0]              lht_update0_start_full_PC;
+        logic [ASID_WIDTH-1:0]    lht_update0_ASID;
+        logic [LH_LENGTH-1:0]     lht_update0_LH;
+
+    // mdpt:
+
+        // REQ stage
+        logic                   mdpt_valid_REQ;
+        logic [31:0]            mdpt_full_PC_REQ;
+        logic [ASID_WIDTH-1:0]  mdpt_ASID_REQ;
+
+        // RESP stage
+        logic [MDPT_ENTRIES_PER_BLOCK-1:0][MDPT_INFO_WIDTH-1:0] mdpt_mdp_info_by_instr_RESP;
+
+        // MDPT Update 0 stage
+        logic                           mdpt_mdpt_update0_valid;
+        logic [31:0]                    mdpt_mdpt_update0_start_full_PC;
+        logic [ASID_WIDTH-1:0]          mdpt_mdpt_update0_ASID;
+        logic [MDPT_INFO_WIDTH-1:0]     mdpt_mdpt_update0_mdp_info;
+
     // itlb req:
         
         // in frontend interface
@@ -268,26 +270,27 @@ module frontend #(
     ///////////////////////
 
     // state
-    logic fetch_resp_stage_valid;
-    logic fetch_resp_virtual_mode;
-    typedef enum logic [1:0] {
-        FETCH_RESP_NORMAL,
+    typedef enum logic [2:0] {
+        FETCH_RESP_IDLE,
+        FETCH_RESP_FIRST_CYCLE,
         FETCH_RESP_HIT_COMPLEX_BRANCH,
-        FETCH_RESP_MISS
+        FETCH_RESP_ITLB_MISS,
+        FETCH_RESP_ICACHE_MISS
     } fetch_resp_state_t;
+
     fetch_resp_state_t fetch_resp_state, next_fetch_resp_state;
 
     // pipeline latch
-    logic [31:0] fetch_resp_PC_VA, next_fetch_resp_PC_VA;
+    logic [VA_WIDTH-1:0] fetch_resp_PC_VA, next_fetch_resp_PC_VA;
 
     // control
-    logic fetch_resp_clear;
     logic fetch_resp_stall;
         // going to stall fetch resp state
         // istream_stall_SENQ
+    logic fetch_resp_output_valid;
 
     // translated PC
-    logic [31:0] fetch_resp_PC_PA;
+    logic [PA_WIDTH-1:0] fetch_resp_PC_PA;
 
     // ghr
     logic [GH_LENGTH-1:0] ghr, next_ghr;
@@ -375,16 +378,16 @@ module frontend #(
 
         // in frontend interface
 
-    //////////////////////////
-    // Branch Update Stage: //
-    //////////////////////////
+    ////////////////////////
+    // Update Prep Stage: //
+    ////////////////////////
 
     // LH from checkpoint
     // GH from checkpoint
 
-    logic [LH_LENGTH-1:0]           branch_update_LH;
-    logic [GH_LENGTH-1:0]           branch_update_GH;
-    logic [RAS_INDEX_WIDTH-1:0]     branch_update_ras_index;
+    logic [LH_LENGTH-1:0]           update_prep_LH;
+    logic [GH_LENGTH-1:0]           update_prep_GH;
+    logic [RAS_INDEX_WIDTH-1:0]     update_prep_ras_index;
 
     /////////////////////
     // Update 0 Stage: //
@@ -491,11 +494,11 @@ module frontend #(
     
     // state
     typedef enum logic [1:0] {
-        DECODE_NOT_RESTARTING,
+        DECODE_WAITING_FOR_RESTART,
         DECODE_RESTART_UPDATE0,
-        DECODE_RESTART_UPDATE1,
-        DECODE_RESTART_UPDATE_DONE
+        DECODE_RESTART_UPDATE1
     } decode_state_t;
+
     decode_state_t decode_state, next_decode_state;
 
     logic [1:0]     decode_exec_mode;
@@ -767,7 +770,187 @@ module frontend #(
         end
     end
 
-    // output logic
-    
+    // next pipeline latch
+    always_comb begin
+        next_fetch_resp_PC_VA = fetch_req_access_PC_VA;
+    end
+
+    // control
+    always_comb begin
+        fetch_req_stall = fetch_resp_stall;
+        fetch_req_valid = ~fetch_req_wait_for_restart_state;
+        fetch_req_output_valid = fetch_req_valid & ~fetch_req_stall;
+    end
+
+    // interruptable access PC
+    always_comb begin
+        fetch_req_access_PC_change = 1'b0;
+        fetch_req_access_PC_VA = fetch_req_PC_VA;
+    end
+
+    // module connections:
+    always_comb begin
+
+        // btb:
+        btb_valid_REQ = fetch_req_output_valid;
+        btb_full_PC_REQ = fetch_req_access_PC_VA;
+        btb_ASID_REQ = fetch_req_ASID;
+        
+        btb_update0_valid = 
+        btb_update0_start_full_PC = 
+        btb_update0_ASID = 
+
+        btb_update1_pred_info = 
+        btb_update1_pred_lru = 
+        btb_update1_target_full_PC = 
+
+        // lht:
+        lht_valid_REQ = fetch_req_output_valid;
+        lht_full_PC_REQ = fetch_req_access_PC_VA;
+        lht_ASID_REQ = fetch_req_ASID;
+
+        lht_update0_valid = 
+        lht_update0_start_full_PC = 
+        lht_update0_ASID = 
+        lht_update0_LH = 
+
+        // mdpt:
+        mdpt_valid_REQ = fetch_req_output_valid;
+        mdpt_full_PC_REQ = fetch_req_access_PC_VA;
+        mdpt_ASID_REQ = fetch_req_ASID;
+
+        mdpt_mdpt_update0_valid = 
+        mdpt_mdpt_update0_start_full_PC = 
+        mdpt_mdpt_update0_ASID = 
+        mdpt_mdpt_update0_mdp_info = 
+
+        // itlb:
+        itlb_req_valid = fetch_req_output_valid;
+        itlb_req_virtual_mode = fetch_req_virtual_mode;
+        itlb_req_vpn = fetch_req_access_PC_VA;
+        itlb_req_ASID = fetch_req_ASID;
+
+        // icache:
+        icache_req_valid = fetch_req_output_valid;
+        icache_req_block_offset = fetch_req_access_PC_VA[ICACHE_BLOCK_OFFSET_WIDTH4]; // choose first or second 16B of 32B block
+        icache_req_index = fetch_req_access_PC_VA[
+            ICACHE_INDEX_WIDTH + ICACHE_BLOCK_OFFSET_WIDTH - 1 : ICACHE_BLOCK_OFFSET_WIDTH
+        ];
+    end
+
+    // modules:
+
+    btb BTB (
+        .CLK(CLK),
+        .nRST(nRST),
+        .valid_REQ(btb_valid_REQ),
+        .full_PC_REQ(btb_full_PC_REQ),
+        .ASID_REQ(btb_ASID_REQ),
+        .pred_info_by_instr_RESP(btb_pred_info_by_instr_RESP),
+        .pred_lru_by_instr_RESP(btb_pred_lru_by_instr_RESP),
+        .target_by_instr_RESP(btb_target_by_instr_RESP),
+        .update0_valid(btb_update0_valid),
+        .update0_start_full_PC(btb_update0_start_full_PC),
+        .update0_ASID(btb_update0_ASID),
+        .update1_pred_info(btb_update1_pred_info),
+        .update1_pred_lru(btb_update1_pred_lru),
+        .update1_target_full_PC(btb_update1_target_full_PC)
+    );
+
+    lht LHT (
+        .CLK(CLK),
+        .nRST(nRST),
+        .valid_REQ(lht_valid_REQ),
+        .full_PC_REQ(lht_full_PC_REQ),
+        .ASID_REQ(lht_ASID_REQ),
+        .LH_by_instr_RESP(lht_LH_by_instr_RESP),
+        .update0_valid(lht_update0_valid),
+        .update0_start_full_PC(lht_update0_start_full_PC),
+        .update0_ASID(lht_update0_ASID),
+        .update0_LH(lht_update0_LH)
+    );
+
+    mdpt MPDT (
+        .CLK(CLK),
+        .nRST(nRST),
+        .valid_REQ(mdpt_valid_REQ),
+        .full_PC_REQ(mdpt_full_PC_REQ),
+        .ASID_REQ(mdpt_ASID_REQ),
+        .mdp_info_by_instr_RESP(mdpt_mdp_info_by_instr_RESP),
+        .mdpt_update0_valid(mdpt_mdpt_update0_valid),
+        .mdpt_update0_start_full_PC(mdpt_mdpt_update0_start_full_PC),
+        .mdpt_update0_ASID(mdpt_mdpt_update0_ASID),
+        .mdpt_update0_mdp_info(mdpt_mdpt_update0_mdp_info)
+    );
+
+    ///////////////////////
+    // Fetch Resp Stage: //
+    ///////////////////////
+
+    // FF logic:
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            fetch_resp_state <= FETCH_RESP_NORMAL;
+            ghr <= '0;
+        end
+        else begin
+            fetch_resp_state <= next_fetch_resp_state;
+            ghr <= next_ghr;
+        end
+    end
+
+    // pipeline latch logic:
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            fetch_resp_PC_VA <= 32'h0;
+        end
+        else begin
+            if (rob_restart_valid) begin
+                fetch_resp_PC_VA <= rob_restart_PC;
+            end
+            else if (decode_restart_valid) begin
+                fetch_resp_PC_VA <= decode_restart_PC;
+            end
+            else if (~fetch_resp_stall) begin
+                fetch_resp_PC_VA <= next_fetch_resp_PC_VA;
+            end
+        end
+    end
+
+    // pred logic + state machine
+    always_comb begin
+
+        fetch_resp_PC_PA = {itlb_resp_ppn, fetch_resp_PC_VA[PO_WIDTH-1:0]};
+
+        next_fetch_resp_state = fetch_resp_state;
+        fetch_resp_stall = 1'b0;
+        fetch_resp_output_valid = 1'b0;
+        next_ghr = ghr;
+
+        case (fetch_resp_state)
+
+            FETCH_RESP_IDLE:
+            begin
+                if (fetch_req_valid) begin
+                    next_fetch_resp_state = FETCH_RESP_FIRST_CYCLE;
+                end
+            end
+
+            FETCH_RESP_FIRST_CYCLE:
+            begin
+
+            end
+
+            FETCH_RESP_HIT_COMPLEX_BRANCH:
+            begin
+
+            end
+
+            FETCH_RESP_MISS:
+            begin
+
+            end
+        endcase
+    end
 
 endmodule
