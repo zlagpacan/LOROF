@@ -23,6 +23,7 @@ module frontend #(
 
     // itlb req
     output logic                    itlb_req_valid,
+    output logic                    itlb_req_exec_mode,
     output logic                    itlb_req_virtual_mode,
     output logic [VPN_WIDTH-1:0]    itlb_req_vpn,
     output logic [ASID_WIDTH-1:0]   itlb_req_ASID,
@@ -44,10 +45,10 @@ module frontend #(
     input logic [1:0][ICACHE_FETCH_WIDTH-1:0][7:0]  icache_resp_instr_16B_by_way,
 
     // icache resp feedback
-    output logic                            icache_resp_notif_valid,
-    output logic                            icache_resp_notif_miss,
-    output logic [ICACHE_ASSOC-1:0]         icache_resp_notif_way,
-    output logic [ICACHE_TAG_WIDTH-1:0]     icache_resp_notif_tag,
+    output logic                            icache_resp_hit_valid,
+    output logic                            icache_resp_hit_way,
+    output logic                            icache_resp_miss_valid,
+    output logic [ICACHE_TAG_WIDTH-1:0]     icache_resp_miss_tag,
 
     // op dispatch by way:
 
@@ -187,15 +188,12 @@ module frontend #(
     logic                   fetch_req_wait_for_restart_state, next_fetch_req_wait_for_restart_state;
     logic [VA_WIDTH-1:0]    fetch_req_PC_VA, next_fetch_req_PC_VA;
     logic [ASID_WIDTH-1:0]  fetch_req_ASID, next_fetch_req_ASID;
+    logic [1:0]             fetch_req_exec_mode, next_fetch_req_exec_mode;
     logic                   fetch_req_virtual_mode, next_fetch_req_virtual_mode;
 
     // control
     logic fetch_req_valid;
-    logic fetch_req_output_valid;
     // logic fetch_req_clear; // have all info in restarts
-    logic fetch_req_stall;
-        // stage valid (not in wait for restart state) AND:
-            // valid fetch resp not moving on
 
     // interruptable access PC
     logic fetch_req_access_PC_change;
@@ -272,8 +270,8 @@ module frontend #(
     // state
     typedef enum logic [2:0] {
         FETCH_RESP_IDLE,
-        FETCH_RESP_FIRST_CYCLE,
-        FETCH_RESP_HIT_COMPLEX_BRANCH,
+        FETCH_RESP_ACTIVE,
+        FETCH_RESP_COMPLEX_BRANCH,
         FETCH_RESP_ITLB_MISS,
         FETCH_RESP_ICACHE_MISS
     } fetch_resp_state_t;
@@ -281,22 +279,35 @@ module frontend #(
     fetch_resp_state_t fetch_resp_state, next_fetch_resp_state;
 
     // pipeline latch
-    logic [VA_WIDTH-1:0] fetch_resp_PC_VA, next_fetch_resp_PC_VA;
+    logic [VA_WIDTH-1:0]    fetch_resp_PC_VA, next_fetch_resp_PC_VA;
+    logic [7:0]             fetch_resp_PC_mask;
 
     // control
-    logic fetch_resp_stall;
-        // going to stall fetch resp state
-        // istream_stall_SENQ
-    logic fetch_resp_output_valid;
-
-    // translated PC
-    logic [PA_WIDTH-1:0] fetch_resp_PC_PA;
+    // logic fetch_resp_clear; // have all info in restarts
+    logic fetch_resp_instr_yield;
+    logic fetch_resp_perform_pred_actions;
 
     // ghr
     logic [GH_LENGTH-1:0] ghr, next_ghr;
 
+    // hit logic
+    logic ihit;
+    logic [PA_WIDTH-1:0] fetch_resp_PC_PA;
+    logic [ICACHE_FETCH_WIDTH-1:0][7:0] fetch_resp_selected_instr_16B;
+
     // pred logic
-    logic TODO;
+    logic [7:0]     fetch_resp_raw_pred_vec;
+    logic [7:0]     fetch_resp_candidate_pred_vec;
+    logic           fetch_resp_pred_present;
+    logic [7:0]     fetch_resp_selected_pred_one_hot;
+    logic [7:0]     fetch_resp_selected_cold_ack_mask;
+    logic [2:0]     fetch_resp_selected_pred_index;
+    logic [7:0]     fetch_resp_selected_pred_info;
+    logic [31:0]    fetch_resp_pred_PC_VA;
+
+    // pred actions
+    logic [7:0]     fetch_resp_instr_16B_yield_vec;
+    logic [7:0]     fetch_resp_redirect_vec;
 
     // modules:
 
@@ -447,7 +458,7 @@ module frontend #(
         // SENQ stage
         logic           istream_valid_SENQ;
         logic [7:0]     istream_valid_by_fetch_2B_SENQ;
-        logic [7:0]     istream_one_hot_redirect_by_fetch_2B_SENQ,;
+        logic [7:0]     istream_one_hot_redirect_by_fetch_2B_SENQ;
             // means take after PC as pred PC
             // always the last instr in the fetch block
         logic [7:0][15:0]                       istream_instr_2B_by_fetch_2B_SENQ;
@@ -724,12 +735,14 @@ module frontend #(
             fetch_req_wait_for_restart_state <= 1'b0;
             fetch_req_PC_VA <= INIT_PC;
             fetch_req_ASID <= INIT_ASID;
+            fetch_req_exec_mode <= M_MODE;
             fetch_req_virtual_mode <= 1'b0;
         end
         else begin
             fetch_req_wait_for_restart_state <= next_fetch_req_wait_for_restart_state;
             fetch_req_PC_VA <= next_fetch_req_PC_VA;
             fetch_req_ASID <= next_fetch_req_ASID;
+            fetch_req_exec_mode <= next_fetch_req_exec_mode;
             fetch_req_virtual_mode <= next_fetch_req_virtual_mode;
         end
     end
@@ -740,11 +753,15 @@ module frontend #(
         next_fetch_req_wait_for_restart_state = fetch_req_wait_for_restart_state;
         next_fetch_req_PC_VA = fetch_req_PC_VA;
         next_fetch_req_ASID = fetch_req_ASID;
+        next_fetch_req_exec_mode = fetch_req_exec_mode;
         next_fetch_req_virtual_mode = fetch_req_virtual_mode;
 
         if (rob_restart_valid) begin
             next_fetch_req_wait_for_restart_state = 1'b0;
             next_fetch_req_PC_VA = rob_restart_PC;
+            next_fetch_req_ASID = rob_restart_ASID;
+            next_fetch_req_exec_mode = rob_restart_exec_mode;
+            next_fetch_req_virtual_mode = rob_restart_virtual_mode;
         end
         else if (decode_restart_valid) begin
             next_fetch_req_wait_for_restart_state = 1'b0;
@@ -755,9 +772,6 @@ module frontend #(
         end
         else if (fetch_req_wait_for_restart_state) begin
             next_fetch_req_wait_for_restart_state = 1'b1;
-        end
-        else if (fetch_req_stall) begin
-            next_fetch_req_wait_for_restart_state = 1'b0;
         end
         else begin
             next_fetch_req_wait_for_restart_state = 1'b0;
@@ -777,22 +791,14 @@ module frontend #(
 
     // control
     always_comb begin
-        fetch_req_stall = fetch_resp_stall;
         fetch_req_valid = ~fetch_req_wait_for_restart_state;
-        fetch_req_output_valid = fetch_req_valid & ~fetch_req_stall;
-    end
-
-    // interruptable access PC
-    always_comb begin
-        fetch_req_access_PC_change = 1'b0;
-        fetch_req_access_PC_VA = fetch_req_PC_VA;
     end
 
     // module connections:
     always_comb begin
 
         // btb:
-        btb_valid_REQ = fetch_req_output_valid;
+        btb_valid_REQ = fetch_req_valid;
         btb_full_PC_REQ = fetch_req_access_PC_VA;
         btb_ASID_REQ = fetch_req_ASID;
         
@@ -805,7 +811,7 @@ module frontend #(
         btb_update1_target_full_PC = 
 
         // lht:
-        lht_valid_REQ = fetch_req_output_valid;
+        lht_valid_REQ = fetch_req_valid;
         lht_full_PC_REQ = fetch_req_access_PC_VA;
         lht_ASID_REQ = fetch_req_ASID;
 
@@ -815,7 +821,7 @@ module frontend #(
         lht_update0_LH = 
 
         // mdpt:
-        mdpt_valid_REQ = fetch_req_output_valid;
+        mdpt_valid_REQ = fetch_req_valid;
         mdpt_full_PC_REQ = fetch_req_access_PC_VA;
         mdpt_ASID_REQ = fetch_req_ASID;
 
@@ -825,13 +831,14 @@ module frontend #(
         mdpt_mdpt_update0_mdp_info = 
 
         // itlb:
-        itlb_req_valid = fetch_req_output_valid;
+        itlb_req_valid = fetch_req_valid;
+        itlb_req_exec_mode = fetch_req_exec_mode;
         itlb_req_virtual_mode = fetch_req_virtual_mode;
         itlb_req_vpn = fetch_req_access_PC_VA;
         itlb_req_ASID = fetch_req_ASID;
 
         // icache:
-        icache_req_valid = fetch_req_output_valid;
+        icache_req_valid = fetch_req_valid;
         icache_req_block_offset = fetch_req_access_PC_VA[ICACHE_BLOCK_OFFSET_WIDTH4]; // choose first or second 16B of 32B block
         icache_req_index = fetch_req_access_PC_VA[
             ICACHE_INDEX_WIDTH + ICACHE_BLOCK_OFFSET_WIDTH - 1 : ICACHE_BLOCK_OFFSET_WIDTH
@@ -894,7 +901,12 @@ module frontend #(
             ghr <= '0;
         end
         else begin
-            fetch_resp_state <= next_fetch_resp_state;
+            if (rob_restart_valid | decode_restart_valid) begin
+                fetch_resp_state <= FETCH_RESP_IDLE;
+            end
+            else begin
+                fetch_resp_state <= next_fetch_resp_state;
+            end
             ghr <= next_ghr;
         end
     end
@@ -903,53 +915,230 @@ module frontend #(
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             fetch_resp_PC_VA <= 32'h0;
+            fetch_resp_PC_mask <= 8'b00000000;
         end
         else begin
-            if (rob_restart_valid) begin
-                fetch_resp_PC_VA <= rob_restart_PC;
-            end
-            else if (decode_restart_valid) begin
-                fetch_resp_PC_VA <= decode_restart_PC;
-            end
-            else if (~fetch_resp_stall) begin
-                fetch_resp_PC_VA <= next_fetch_resp_PC_VA;
-            end
+            fetch_resp_PC_VA <= next_fetch_resp_PC_VA;
+
+            // create PC mask
+            case (next_fetch_resp_PC_VA[3:1])
+                3'b000: fetch_resp_PC_mask <= 8'b11111111;
+                3'b001: fetch_resp_PC_mask <= 8'b11111110;
+                3'b010: fetch_resp_PC_mask <= 8'b11111100;
+                3'b011: fetch_resp_PC_mask <= 8'b11111000;
+                3'b100: fetch_resp_PC_mask <= 8'b11110000;
+                3'b101: fetch_resp_PC_mask <= 8'b11100000;
+                3'b110: fetch_resp_PC_mask <= 8'b11000000;
+                3'b111: fetch_resp_PC_mask <= 8'b10000000;
+            endcase
         end
     end
 
-    // pred logic + state machine
+    // hit logic
     always_comb begin
 
+        // defaults:
+        ihit = 1'b0;
         fetch_resp_PC_PA = {itlb_resp_ppn, fetch_resp_PC_VA[PO_WIDTH-1:0]};
+        fetch_resp_selected_instr_16B = icache_resp_instr_16B_by_way[0];
+
+        icache_resp_hit_valid = 1'b0;
+        icache_resp_hit_way = 1'b0;
+        icache_resp_miss_valid = 1'b0;
+        icache_resp_miss_tag = fetch_resp_PC_PA[31:32-ICACHE_TAG_WIDTH];
+
+        // TLB hit check
+        if (itlb_resp_valid) begin
+
+            // page fault or access fault
+            if (itlb_resp_page_fault | itlb_resp_access_fault) begin
+
+                // automatic ihit
+                ihit = 1'b1;
+            end
+
+            // cache hit check way 0
+            if (icache_resp_valid_by_way[0] & 
+                icache_resp_tag_by_way[0] == fetch_resp_PC_PA[31:32-ICACHE_TAG_WIDTH]
+            ) begin
+                ihit = 1'b1;
+                fetch_resp_selected_instr_16B = icache_resp_instr_16B_by_way[0];
+
+                icache_resp_hit_valid = 1'b1;
+                icache_resp_hit_way = 1'b0;
+            end
+        
+            // cache hit check way 1
+            else if (icache_resp_valid_by_way[1] & 
+                icache_resp_tag_by_way[1] == fetch_resp_PC_PA[31:32-ICACHE_TAG_WIDTH]
+            ) begin
+                ihit = 1'b1;
+                fetch_resp_selected_instr_16B = icache_resp_instr_16B_by_way[1];
+
+                icache_resp_hit_valid = 1'b1;
+                icache_resp_hit_way = 1'b1;
+            end
+
+            // otherwise, cache miss
+            else begin
+                ihit = 1'b0;
+
+                // only send cache miss on first time missing
+                icache_resp_miss_valid = fetch_resp_state != FETCH_RESP_ICACHE_MISS;
+                icache_resp_miss_tag = fetch_resp_PC_PA[31:32-ICACHE_TAG_WIDTH];
+            end
+        end
+
+        // otherwise, TLB miss
+        else begin
+            ihit = 1'b0;
+        end
+    end
+
+    // pred logic:
+    always_comb begin
+
+        for (int i = 0; i < 8; i++) begin
+            fetch_resp_raw_pred_vec[i] = btb_pred_info_by_instr_RESP[i][7] | btb_pred_info_by_instr_RESP[i][6];
+        end
+
+        fetch_resp_candidate_pred_vec = fetch_resp_raw_pred_vec & fetch_resp_PC_mask;
+
+        fetch_resp_pred_present = |fetch_resp_candidate_pred_vec;
+
+        // use one hot to quickly selected out pred of interest
+        fetch_resp_selected_pred_info = '0;
+        for (int i = 0; i < 8; i++) begin
+            fetch_resp_selected_pred_info |= btb_pred_info_by_instr_RESP[i] & {8{fetch_resp_selected_pred_one_hot[i]}};
+        end
+    end
+
+    pe_lsb #(
+        .WIDTH(8),
+        .USE_ONE_HOT(1),
+        .USE_COLD(1),
+        .USE_INDEX(1)
+    ) PRED_PE (
+        .req_vec(fetch_resp_candidate_pred_vec),
+        .ack_one_hot(fetch_resp_selected_pred_one_hot),
+        .cold_ack_mask(fetch_resp_selected_cold_ack_mask),
+        .ack_index(fetch_resp_selected_pred_index)
+    );
+
+    // pred actions
+    always_comb begin
+
+        // check for complex branch
+        if (fetch_resp_selected_pred_info[7:6] == 2'b11) begin
+            // can only yield below complex branch
+            fetch_resp_instr_16B_yield_vec = fetch_resp_PC_mask & ~fetch_resp_selected_cold_ack_mask;
+        end
+        else begin
+            fetch_resp_instr_16B_yield_vec = fetch_resp_PC_mask & ~fetch_resp_selected_cold_ack_mask;
+        end
+
+        // redirect at last chunk by default
+        fetch_resp_redirect_vec = 8'b10000000;
+
+        if (fetch_resp_perform_pred_actions)
+
+        // TODO: figure out how to yield instr's after complex branch on second cycle if not taken
+            // concern is that one of these instr's may have its own pred while pred is being used on complex branch
+            // can save complex branch pred info, which can be directly referred to in complex branch state
+            // could also completely ignore this for simplicity but would effectively be putting 2x bubbles
+                // every time see a complex branch
+    end
+
+    // state machine + control + interruptable access PC
+    always_comb begin
+
+        fetch_req_access_PC_change = 1'b0;
+        fetch_req_access_PC_VA = fetch_req_PC_VA;
+            // interrupt on istream stall
+            // interrupt on branch prediction
+            // interrupt on itlb or icache miss
 
         next_fetch_resp_state = fetch_resp_state;
-        fetch_resp_stall = 1'b0;
-        fetch_resp_output_valid = 1'b0;
-        next_ghr = ghr;
 
+        fetch_resp_instr_yield = 1'b0;
+        fetch_resp_perform_pred_actions = 1'b0;
+
+        // state machine:
+            // restarts are taken care of in FF logic
         case (fetch_resp_state)
 
             FETCH_RESP_IDLE:
             begin
                 if (fetch_req_valid) begin
-                    next_fetch_resp_state = FETCH_RESP_FIRST_CYCLE;
+                    next_fetch_resp_state = FETCH_RESP_ACTIVE;
                 end
             end
 
-            FETCH_RESP_FIRST_CYCLE:
+            FETCH_RESP_ACTIVE:
+            begin
+                // check miss
+                if (~ihit) begin
+                    
+                    // redo current fetch resp access in fetch req
+                    fetch_req_access_PC_change = 1'b1;
+                    fetch_req_access_PC_VA = fetch_resp_PC_VA;
+
+                    // check itlb miss
+                    if (~itlb_resp_valid) begin
+                        next_fetch_resp_state = FETCH_RESP_ITLB_MISS;
+                    end
+
+                    // otherwise, icache miss
+                    else begin
+                        next_fetch_resp_state = FETCH_RESP_ICACHE_MISS;
+                    end
+                end
+
+                // check istream stall with icache hit
+                else if (istream_stall_SENQ) begin
+                    
+                    // redo current fetch resp access in fetch req
+                    fetch_req_access_PC_change = 1'b1;
+                    fetch_req_access_PC_VA = fetch_resp_PC_VA;
+                end
+                
+                // otherwise, clean icache hit
+                else begin
+
+                    // check for pred
+                    if (fetch_resp_pred_present) begin
+
+                        // check for complex branch
+                        if (fetch_resp_selected_pred_info[7:6] == 2'b11) begin
+
+                            // yield only if complex branch is 1:7
+                                // 0 would have empty yield
+                            fetch_resp_instr_yield = |fetch_resp_instr_16B_yield_vec[7:1];
+                        end
+                    end
+
+                    // otherwise, simple move on
+                    else begin
+
+                    end
+                end
+            end
+
+            FETCH_RESP_COMPLEX_BRANCH:
             begin
 
             end
 
-            FETCH_RESP_HIT_COMPLEX_BRANCH:
+            FETCH_RESP_ITLB_MISS:
             begin
 
             end
 
-            FETCH_RESP_MISS:
+            FETCH_RESP_ICACHE_MISS:
             begin
 
             end
+
         endcase
     end
 
