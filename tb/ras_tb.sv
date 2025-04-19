@@ -47,7 +47,7 @@ module ras_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	ras #(.RAS_ENTRIES(8)) DUT (
+	ras DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
