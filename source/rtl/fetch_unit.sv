@@ -16,7 +16,7 @@ module fetch_unit #(
     parameter INIT_ASID = 9'h0,
     parameter INIT_EXEC_MODE = M_MODE,
     parameter INIT_VIRTUAL_MODE = 1'b0,
-    parameter INIT_WAIT_FOR_RESTART_STATE = 1'b0
+    parameter INIT_WAIT_FOR_RESTART_STATE = 1'b1
 ) (
 
     // seq
@@ -74,11 +74,13 @@ module fetch_unit #(
     input logic         rob_restart_valid,
     input logic [31:0]  rob_restart_PC,
     input logic [8:0]   rob_restart_ASID,
+    input logic [1:0]   rob_restart_exec_mode,
     input logic         rob_restart_virtual_mode,
 
-    // decode restart
+    // decode unit control
     input logic         decode_restart_valid,
     input logic [31:0]  decode_restart_PC,
+    input logic         decode_trigger_wait_for_restart,
 
     // branch update from decode unit
     input logic                             decode_unit_branch_update_valid,
@@ -400,7 +402,7 @@ module fetch_unit #(
             next_fetch_req_wait_for_restart_state = 1'b0;
             next_fetch_req_PC_VA = decode_restart_PC;
         end
-        else if (decode_wait_for_restart) begin
+        else if (decode_trigger_wait_for_restart) begin
             next_fetch_req_wait_for_restart_state = 1'b1;
         end
         else if (fetch_req_wait_for_restart_state) begin
@@ -409,10 +411,14 @@ module fetch_unit #(
         else begin
             next_fetch_req_wait_for_restart_state = 1'b0;
             if (fetch_req_access_PC_change) begin
-                next_fetch_req_PC_VA = {{fetch_req_access_PC_VA[31:4] + 28'h1}[27:0], 4'b0000};
+                next_fetch_req_PC_VA = {
+                    {{fetch_req_access_PC_VA[31:4] + 28'h1}[27:0]},
+                    4'b0000};
             end
             else begin
-                next_fetch_req_PC_VA = {{fetch_req_PC_VA[31:4] + 28'h1}[27:0], 4'b0000};
+                next_fetch_req_PC_VA = {
+                    {fetch_req_PC_VA[31:4] + 28'h1}[27:0],
+                    4'b0000};
             end
         end
     end
@@ -448,7 +454,7 @@ module fetch_unit #(
         lht_full_PC_REQ = fetch_req_access_PC_VA;
         lht_ASID_REQ = fetch_req_ASID;
 
-        // check for restart value of LH
+        // check for complex branch restart value of LH
         if (
             decode_unit_branch_update_valid 
             & decode_unit_branch_update_has_checkpoint
@@ -479,7 +485,7 @@ module fetch_unit #(
             lht_update0_start_full_PC = {fetch_resp_PC_VA[31:4], fetch_resp_saved_index, 1'b0};
             lht_update0_ASID = fetch_req_ASID;
             lht_update0_LH = {
-                fetch_resp_saved_LH[LH_LENGTH-2:0]
+                fetch_resp_saved_LH[LH_LENGTH-2:0],
                 fetch_resp_complex_branch_taken};
         end
 
@@ -502,7 +508,7 @@ module fetch_unit #(
 
         // icache:
         icache_req_valid = fetch_req_valid;
-        icache_req_block_offset = fetch_req_access_PC_VA[ICACHE_BLOCK_OFFSET_WIDTH4]; // choose first or second 16B of 32B block
+        icache_req_block_offset = fetch_req_access_PC_VA[ICACHE_BLOCK_OFFSET_WIDTH]; // choose first or second 16B of 32B block
         icache_req_index = fetch_req_access_PC_VA[
             ICACHE_INDEX_WIDTH + ICACHE_BLOCK_OFFSET_WIDTH - 1 : ICACHE_BLOCK_OFFSET_WIDTH
         ];
@@ -560,7 +566,7 @@ module fetch_unit #(
     // FF logic:
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            fetch_resp_state <= FETCH_RESP_NORMAL;
+            fetch_resp_state <= FETCH_RESP_IDLE;
             ghr <= '0;
         end
         else begin
@@ -571,9 +577,9 @@ module fetch_unit #(
                 fetch_resp_state <= next_fetch_resp_state;
             end
 
-            // check for restart value of GHR
+            // check for complex branch restart value of GHR
             if (
-                decode_unit_branch_update_valid 
+                decode_unit_branch_update_valid
                 & decode_unit_branch_update_has_checkpoint
                 & decode_unit_branch_update_is_mispredict
                 & decode_unit_branch_update_is_complex
@@ -582,6 +588,15 @@ module fetch_unit #(
                 ghr <= {
                     decode_unit_branch_update_GH[GH_LENGTH-2:0],
                     decode_unit_branch_update_is_taken};
+            end
+            // check for non-complex restart value of GHR
+            else if (
+                // take update pure GH
+                decode_unit_branch_update_valid
+                & decode_unit_branch_update_has_checkpoint
+                & decode_unit_branch_update_is_mispredict
+            ) begin
+                ghr <= decode_unit_branch_update_GH;
             end
             // check for complex branch update present
             else if (fetch_resp_check_complex_branch_taken & fetch_resp_perform_pred_actions) begin
@@ -959,7 +974,7 @@ module fetch_unit #(
                 else begin
 
                     // can perform pred actions
-                    fetch_resp_perform_pred_actions = 1'b1
+                    fetch_resp_perform_pred_actions = 1'b1;
 
                     // check for pred
                     if (fetch_resp_pred_present) begin
@@ -1055,7 +1070,7 @@ module fetch_unit #(
                 else begin
 
                     // can perform pred actions
-                    fetch_resp_perform_pred_actions = 1'b1
+                    fetch_resp_perform_pred_actions = 1'b1;
                     
                     // check this complex branch taken
                     if (fetch_resp_complex_branch_taken) begin
@@ -1071,7 +1086,7 @@ module fetch_unit #(
                         next_fetch_resp_state = FETCH_RESP_ACTIVE;
                     end
                     // else check for other pred
-                    else if (fetch_resp_present) begin
+                    else if (fetch_resp_pred_present) begin
 
                         // check for complex branch
                         if (fetch_resp_selected_pred_info[7:6] == 2'b11) begin
@@ -1156,7 +1171,7 @@ module fetch_unit #(
                     next_fetch_resp_state = FETCH_RESP_ACTIVE;
 
                     // can perform pred actions
-                    fetch_resp_perform_pred_actions = 1'b1
+                    fetch_resp_perform_pred_actions = 1'b1;
 
                     // check for pred
                     if (fetch_resp_pred_present) begin
@@ -1263,14 +1278,29 @@ module fetch_unit #(
         ras_update0_valid = 
             decode_unit_branch_update_valid
             & decode_unit_branch_update_has_checkpoint;
-        ras_update0_ras_index = ;
+        ras_update0_ras_index = decode_unit_branch_update_ras_index;
     end
 
     ///////////////////////
     // Stream EnQ Stage: //
     ///////////////////////
 
+    always_comb begin
 
+        istream_valid_SENQ = fetch_resp_instr_yield;
+        istream_valid_by_fetch_2B_SENQ = fetch_resp_instr_16B_yield_vec;
+        istream_one_hot_redirect_by_fetch_2B_SENQ = fetch_resp_redirect_vec;
+        istream_instr_2B_by_fetch_2B_SENQ = fetch_resp_selected_instr_16B;
+        istream_pred_info_by_fetch_2B_SENQ = btb_pred_info_by_instr_RESP;
+        istream_pred_lru_by_fetch_2B_SENQ = btb_pred_lru_by_instr_RESP;
+        istream_mdp_info_by_fetch_2B_SENQ = mdpt_mdp_info_by_instr_RESP;
+        istream_after_PC_SENQ = fetch_req_access_PC_VA;
+        istream_LH_SENQ = fetch_resp_saved_LH;
+        istream_GH_SENQ = ghr;
+        istream_ras_index_SENQ = ras_ras_index_RESP;
+        istream_page_fault_SENQ = itlb_resp_page_fault;
+        istream_access_fault_SENQ = itlb_resp_access_fault;
+    end
 
     /////////////////////
     // Update 0 Stage: //
@@ -1309,7 +1339,7 @@ module fetch_unit #(
     end
 
     always_comb begin
-        update1_final_pred_info = update1_intermediate_pred_info
+        update1_final_pred_info = update1_intermediate_pred_info;
 
         // check for complex branch 2bc increment/decrement using gbpt, lbpt correctness feedback in update1
         if (update1_is_complex) begin
