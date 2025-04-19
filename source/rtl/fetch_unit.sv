@@ -1,8 +1,8 @@
 /*
-    Filename: frontend.sv
+    Filename: fetch_unit.sv
     Author: zlagpacan
-    Description: RTL for Front End
-    Spec: LOROF/spec/design/frontend.md
+    Description: RTL for Fetch Unit
+    Spec: LOROF/spec/design/fetch_unit.md
 */
 
 `include "core_types_pkg.vh"
@@ -11,10 +11,9 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-module frontend #(
+module fetch_unit #(
     parameter INIT_PC = 32'h0,
-    parameter INIT_ASID = 9'h0,
-    parameter INIT_EXEC_MODE = M_MODE
+    parameter INIT_ASID = 9'h0
 ) (
 
     // seq
@@ -50,85 +49,6 @@ module frontend #(
     output logic                            icache_resp_miss_valid,
     output logic [ICACHE_TAG_WIDTH-1:0]     icache_resp_miss_tag,
 
-    // op dispatch by way:
-
-    // 4-way ROB entry valid
-    output logic                                    dispatch_rob_valid,
-
-    // general instr info
-    output logic [3:0]                              dispatch_valid_by_way,
-    output logic [3:0]                              dispatch_uncompressed_by_way,
-    output logic [31:0]                             dispatch_PC_by_way,
-    output logic [3:0]                              dispatch_is_rename_by_way,
-    output logic [3:0][BTB_PRED_INFO_WIDTH-1:0]     dispatch_pred_info_by_way,
-    output logic [3:0][MDPT_INFO_WIDTH-1:0]         dispatch_mdp_info_by_way,
-    output logic                                    dispatch_wait_write_buffer,
-    output logic [3:0][3:0]                         dispatch_op_by_way,
-    output logic [19:0]                             dispatch_imm20_by_way,
-
-    // ordering
-    output logic [3:0]                              dispatch_mem_aq,
-    output logic [3:0]                              dispatch_io_aq,
-    output logic [3:0]                              dispatch_mem_rl,
-    output logic [3:0]                              dispatch_io_rl,
-
-    // instr fetch + decode exceptions
-    output logic [3:0]                              dispatch_page_fault_by_way,
-    output logic [3:0]                              dispatch_access_fault_by_way,
-    output logic [3:0]                              dispatch_illegal_instr_by_way,
-    output logic [31:0]                             dispatch_excepting_illegal_instr,
-
-    // instr IQ attempts
-    output logic [3:0]                              dispatch_attempt_alu_reg_mdu_iq_by_way,
-    output logic [3:0]                              dispatch_attempt_alu_imm_ldu_iq_by_way,
-    output logic [3:0]                              dispatch_attempt_bru_iq_by_way,
-    output logic [3:0]                              dispatch_attempt_stamofu_iq_by_way,
-    output logic [3:0]                              dispatch_attempt_sys_iq_by_way,
-
-    // instr FU valids
-    output logic [3:0]                              dispatch_valid_alu_reg_by_way,
-    output logic [3:0]                              dispatch_valid_mdu_by_way,
-    output logic [3:0]                              dispatch_valid_alu_imm_by_way,
-    output logic [3:0]                              dispatch_valid_ldu_by_way,
-    output logic [3:0]                              dispatch_valid_bru_by_way,
-    output logic [3:0]                              dispatch_valid_store_by_way,
-    output logic [3:0]                              dispatch_valid_amo_by_way,
-    output logic [3:0]                              dispatch_valid_fence_by_way,
-    output logic [3:0]                              dispatch_valid_sys_by_way,
-
-    // operand A
-    output logic [3:0][LOG_PR_COUNT-1:0]            dispatch_A_PR_by_way,
-    output logic [3:0]                              dispatch_A_ready_by_way,
-    output logic [3:0]                              dispatch_A_unneeded_or_is_zero_by_way,
-    output logic [3:0]                              dispatch_A_is_ret_ra_by_way,
-
-    // operand B
-    output logic [3:0][LOG_PR_COUNT-1:0]            dispatch_B_PR_by_way,
-    output logic [3:0]                              dispatch_B_ready_by_way,
-    output logic [3:0]                              dispatch_B_unneeded_or_is_zero_by_way,
-
-    // dest operand
-    output logic [3:0][LOG_AR_COUNT-1:0]            dispatch_dest_AR_by_way,
-    output logic [3:0][LOG_PR_COUNT-1:0]            dispatch_dest_old_PR_by_way,
-    output logic [3:0][LOG_PR_COUNT-1:0]            dispatch_dest_new_PR_by_way,
-    output logic [3:0]                              dispatch_dest_is_zero_by_way,
-    output logic [3:0]                              dispatch_dest_is_link_ra,
-
-    // 4-way ROB entry open
-    input logic dispatch_rob_ready,
-
-    // writeback bus by bank
-    input logic [PRF_BANK_COUNT-1:0]                                        WB_bus_valid_by_bank,
-    input logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]   WB_bus_upper_PR_by_bank,
-
-    // instr IQ acks
-    input logic [3:0]   dispatch_ack_alu_reg_mdu_iq_by_way,
-    input logic [3:0]   dispatch_ack_alu_imm_iq_by_way,
-    input logic [3:0]   dispatch_ack_ldu_iq_by_way,
-    input logic [3:0]   dispatch_ack_bru_iq_by_way,
-    input logic [3:0]   dispatch_ack_stamofu_iq_by_way,
-    input logic [3:0]   dispatch_ack_sys_iq_by_way,
-
     // mdpt update
     input logic                         mdpt_update_valid,
     input logic [31:0]                  mdpt_update_start_full_PC,
@@ -140,10 +60,6 @@ module frontend #(
     input logic [31:0]                      rob_restart_PC,
     input logic [8:0]                       rob_restart_ASID,
     input logic                             rob_restart_virtual_mode,
-    input logic [1:0]                       rob_restart_exec_mode,
-    input logic                             rob_restart_trap_sfence,
-    input logic                             rob_restart_trap_wfi,
-    input logic                             rob_restart_trap_sret,
 
     // branch update from ROB
     input logic                             rob_branch_update_valid,
@@ -446,291 +362,6 @@ module frontend #(
     logic [LOG_UPCT_ENTRIES-1:0] update1_upct_index;
 
     logic update1_update_checkpoint_dependent;
-
-    /////////////////
-    // Stream DeQ: //
-    /////////////////
-
-    // state
-
-    // pipeline latch
-        // istream acts as latch at beginning of stage
-
-    // control
-    logic istream_clear;
-    // logic istream_stall_SDEQ;
-        // decode stall
-
-    // modules:
-
-    // istream:
-
-        // SENQ stage
-        logic           istream_valid_SENQ;
-        logic [7:0]     istream_valid_by_fetch_2B_SENQ;
-        logic [7:0]     istream_one_hot_redirect_by_fetch_2B_SENQ;
-            // means take after PC as pred PC
-            // always the last instr in the fetch block
-        logic [7:0][15:0]                       istream_instr_2B_by_fetch_2B_SENQ;
-        logic [7:0][BTB_PRED_INFO_WIDTH-1:0]    istream_pred_info_by_fetch_2B_SENQ;
-        logic [7:0]                             istream_pred_lru_by_fetch_2B_SENQ;
-        logic [7:0][MDPT_INFO_WIDTH-1:0]        istream_mdp_info_by_fetch_2B_SENQ;
-        logic [31:0]                            istream_after_PC_SENQ;
-        logic [LH_LENGTH-1:0]                   istream_LH_SENQ;
-        logic [GH_LENGTH-1:0]                   istream_GH_SENQ;
-        logic [RAS_INDEX_WIDTH-1:0]             istream_ras_index_SENQ;
-        logic                                   istream_page_fault_SENQ;
-        logic                                   istream_access_fault_SENQ;
-
-        // SENQ feedback
-        logic istream_stall_SENQ;
-
-        // SDEQ stage
-        logic                                       istream_valid_SDEQ;
-        logic [3:0]                                 istream_valid_by_way_SDEQ;
-        logic [3:0]                                 istream_uncompressed_by_way_SDEQ;
-        logic [3:0][1:0][15:0]                      istream_instr_2B_by_way_by_chunk_SDEQ;
-        logic [3:0][1:0][BTB_PRED_INFO_WIDTH-1:0]   istream_pred_info_by_way_by_chunk_SDEQ;
-        logic [3:0][1:0]                            istream_pred_lru_by_way_by_chunk_SDEQ;
-        logic [3:0][1:0]                            istream_redirect_by_way_by_chunk_SDEQ;
-        logic [3:0][1:0][31:0]                      istream_pred_PC_by_way_by_chunk_SDEQ;
-        logic [3:0][1:0]                            istream_page_fault_by_way_by_chunk_SDEQ;
-        logic [3:0][1:0]                            istream_access_fault_by_way_by_chunk_SDEQ;
-        logic [3:0][MDPT_INFO_WIDTH-1:0]            istream_mdp_info_by_way_SDEQ;
-        logic [3:0][31:0]                           istream_PC_by_way_SDEQ;
-        logic [3:0][LH_LENGTH-1:0]                  istream_LH_by_way_SDEQ;
-        logic [3:0][GH_LENGTH-1:0]                  istream_GH_by_way_SDEQ;
-        logic [3:0][RAS_INDEX_WIDTH-1:0]            istream_ras_index_by_way_SDEQ;
-
-        // SDEQ feedback
-        logic istream_stall_SDEQ;
-
-        // restart
-        logic         istream_restart;
-        logic [31:0]  istream_restart_PC;
-
-    ///////////////////
-    // Decode Stage: //
-    ///////////////////
-    
-    // state
-    typedef enum logic [1:0] {
-        DECODE_WAITING_FOR_RESTART,
-        DECODE_RESTART_UPDATE0,
-        DECODE_RESTART_UPDATE1
-    } decode_state_t;
-
-    decode_state_t decode_state, next_decode_state;
-
-    logic [1:0]     decode_exec_mode;
-    logic           decode_trap_sfence;
-    logic           decode_trap_wfi;
-    logic           decode_trap_sret;
-
-    // pipeline latch
-
-    // control
-    logic decode_clear;
-    logic decode_stall;
-        // stage valid AND:
-            // rename stall
-
-    logic decode_restart_valid;
-    logic decode_restart_PC;
-
-    logic decode_wait_for_restart;
-
-    // modules:
-
-    // decoder by way:
-
-        // environment info
-        logic [3:0][1:0]    decoder_env_exec_mode_by_way;
-        logic [3:0]         decoder_env_trap_sfence_by_way;
-        logic [3:0]         decoder_env_trap_wfi_by_way;
-        logic [3:0]         decoder_env_trap_sret_by_way;
-
-        // instr info
-        logic [3:0]                             decoder_uncompressed_by_way;
-        logic [3:0][31:0]                       decoder_instr32_by_way;
-        logic [3:0][BTB_PRED_INFO_WIDTH-1:0]    decoder_pred_info_chunk0_by_way;
-        logic [3:0][BTB_PRED_INFO_WIDTH-1:0]    decoder_pred_info_chunk1_by_way;
-
-        // FU select
-        logic [3:0] decoder_is_alu_reg_by_way;
-        logic [3:0] decoder_is_alu_imm_by_way;
-        logic [3:0] decoder_is_bru_by_way;
-        logic [3:0] decoder_is_mdu_by_way;
-        logic [3:0] decoder_is_ldu_by_way;
-        logic [3:0] decoder_is_store_by_way;
-        logic [3:0] decoder_is_amo_by_way;
-        logic [3:0] decoder_is_fence_by_way;
-        logic [3:0] decoder_is_sys_by_way;
-        logic [3:0] decoder_is_illegal_instr_by_way;
-
-        // op
-        logic [3:0][3:0]    decoder_op_by_way;
-        logic [3:0]         decoder_is_reg_write_by_way;
-        
-        // A operand
-        logic [3:0][4:0]    decoder_A_AR_by_way;
-        logic [3:0]         decoder_A_unneeded_by_way;
-        logic [3:0]         decoder_A_is_zero_by_way;
-        logic [3:0]         decoder_A_is_ret_ra_by_way;
-
-        // B operand
-        logic [3:0][4:0]    decoder_B_AR_by_way;
-        logic [3:0]         decoder_B_unneeded_by_way;
-        logic [3:0]         decoder_B_is_zero_by_way;
-
-        // dest operand
-        logic [3:0][4:0]    decoder_dest_AR_by_way;
-        logic [3:0]         decoder_dest_is_zero_by_way;
-        logic [3:0]         decoder_dest_is_link_ra_by_way;
-
-        // imm
-        logic [3:0][19:0] decoder_imm20_by_way;
-
-        // pred info out
-        logic [3:0][BTB_PRED_INFO_WIDTH-1:0]    decoder_pred_info_out_by_way;
-        logic [3:0]                             decoder_missing_pred_by_way;
-
-        // ordering
-        logic [3:0] decoder_wait_for_restart_by_way;
-        logic [3:0] decoder_mem_aq_by_way;
-        logic [3:0] decoder_io_aq_by_way;
-        logic [3:0] decoder_mem_rl_by_way;
-        logic [3:0] decoder_io_rl_by_way;
-
-        // faults
-        logic [3:0] decoder_instr_yield_by_way;
-        logic [3:0] decoder_non_branch_notif_chunk0_by_way;
-        logic [3:0] decoder_non_branch_notif_chunk1_by_way;
-        logic [3:0] decoder_restart_on_chunk0_by_way;
-        logic [3:0] decoder_restart_after_chunk0_by_way;
-        logic [3:0] decoder_restart_after_chunk1_by_way;
-        logic [3:0] decoder_unrecoverable_fault_by_way;
-
-    ///////////////////
-    // Rename Stage: //
-    ///////////////////
-
-    // state
-    logic rename_valid;
-
-    // pipeline latch
-
-    // control
-    logic rename_clear;
-    logic rename_stall;
-        // stage valid AND:
-            // dispatch stall
-            // free_list failed rename
-
-    // modules:
-
-    // free_list:
-
-        // enqueue request
-        logic [FREE_LIST_BANK_COUNT-1:0]                    free_list_enq_req_valid_by_bank;
-        logic [FREE_LIST_BANK_COUNT-1:0][LOG_PR_COUNT-1:0]  free_list_enq_req_PR_by_bank;
-
-        // enqueue feedback
-        logic [FREE_LIST_BANK_COUNT-1:0]                    free_list_enq_resp_ack_by_bank;
-
-        // dequeue request
-        logic [FREE_LIST_BANK_COUNT-1:0]                    free_list_deq_req_valid_by_bank;
-        logic [FREE_LIST_BANK_COUNT-1:0][LOG_PR_COUNT-1:0]  free_list_deq_req_PR_by_bank;
-
-        // dequeue feedback
-        logic [FREE_LIST_BANK_COUNT-1:0]                    free_list_deq_resp_ready_by_bank;
-
-    // map_table:
-
-        // 12x read ports
-        logic [11:0][LOG_AR_COUNT-1:0]  map_table_read_AR_by_port;
-        logic [11:0][LOG_PR_COUNT-1:0]  map_table_read_PR_by_port;
-
-        // 4x write ports
-        logic [3:0]                     map_table_write_valid_by_port;
-        logic [3:0][LOG_AR_COUNT-1:0]   map_table_write_AR_by_port;
-        logic [3:0][LOG_PR_COUNT-1:0]   map_table_write_PR_by_port;
-
-        // checkpoint save
-        logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0]  map_table_save_map_table;
-
-        // checkpoint restore
-        logic                                   map_table_restore_valid;
-        logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0]  map_table_restore_map_table;
-
-    // checkpoint_array:
-
-        // checkpoint save
-        logic                                   checkpoint_array_save_valid;
-        logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0]  checkpoint_array_save_map_table;
-        logic [LH_LENGTH-1:0]                   checkpoint_array_save_LH;
-        logic [GH_LENGTH-1:0]                   checkpoint_array_save_GH;
-        logic [RAS_INDEX_WIDTH-1:0]             checkpoint_array_save_ras_index;
-
-        logic                                   checkpoint_array_save_ready;
-        logic [CHECKPOINT_INDEX_WIDTH-1:0]      checkpoint_array_save_index;
-
-        // checkpoint restore
-        logic                                   checkpoint_array_restore_valid;
-        logic [CHECKPOINT_INDEX_WIDTH-1:0]      checkpoint_array_restore_index;
-
-        logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0]  checkpoint_array_restore_map_table;
-        logic [LH_LENGTH-1:0]                   checkpoint_array_restore_LH;
-        logic [GH_LENGTH-1:0]                   checkpoint_array_restore_GH;
-        logic [RAS_INDEX_WIDTH-1:0]             checkpoint_array_restore_ras_index;
-
-        // advertized threshold
-        logic checkpoint_array_above_threshold;
-
-    // ar_dep_check:
-
-        // inputs by way
-        logic [3:0][4:0]    ar_dep_check_A_AR_by_way;
-        logic [3:0][4:0]    ar_dep_check_B_AR_by_way;
-        logic [3:0]         ar_dep_check_regwrite_by_way;
-        logic [3:0][4:0]    ar_dep_check_dest_AR_by_way;
-
-        // outputs by way
-        logic [3:0]         ar_dep_check_A_PR_dep_by_way;
-        logic [3:0][1:0]    ar_dep_check_A_PR_sel_by_way;
-        logic [3:0]         ar_dep_check_B_PR_dep_by_way;
-        logic [3:0][1:0]    ar_dep_check_B_PR_sel_by_way;
-
-    /////////////////////
-    // Dispatch Stage: //
-    /////////////////////
-
-    // state
-
-    // pipeline latch
-
-    // control
-    logic dispatch_clear;
-    logic dispatch_stall;
-        // stage valid AND:
-            // failed IQ dispatch
-            // ROB not ready
-
-    // modules:
-
-    // ready_table:
-
-        // 8x read ports
-        logic [7:0][LOG_PR_COUNT-1:0]   ready_table_read_PR_by_port;
-        logic [7:0]                     ready_table_read_ready_by_port;
-
-        // 4x set ports
-        logic [3:0]                     ready_table_set_valid_by_port;
-        logic [3:0][LOG_PR_COUNT-1:0]   ready_table_set_PR_by_port;
-
-        // 4x clear ports
-        logic [3:0]                     ready_table_clear_valid_by_port;
-        logic [3:0][LOG_PR_COUNT-1:0]   ready_table_clear_PR_by_port;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -1617,8 +1248,5 @@ module frontend #(
         ras_update0_valid = ;
         ras_update0_ras_index = ;
     end
-
-
-    // determine what rob branch updates to make to which modules based on pred info and if restarting vs. clearing
 
 endmodule
