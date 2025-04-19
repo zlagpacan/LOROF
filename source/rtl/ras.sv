@@ -8,9 +8,7 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module ras #(
-    parameter RAS_ENTRIES = 8 
-) (
+module ras (
 
     // seq
     input logic CLK,
@@ -53,7 +51,7 @@ module ras #(
     end
 
     always_comb begin
-        
+
         // hold array by default
         next_ras_array = ras_array;
 
