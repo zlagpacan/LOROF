@@ -1281,6 +1281,63 @@ module fetch_unit #(
         ras_update0_ras_index = decode_unit_branch_update_ras_index;
     end
 
+    // modules:
+
+    lbpt LBPT (
+        .CLK(CLK),
+        .nRST(nRST),
+        .valid_RESP(lbpt_valid_RESP),
+        .full_PC_RESP(lbpt_full_PC_RESP),
+        .LH_RESP(lbpt_LH_RESP),
+        .ASID_RESP(lbpt_ASID_RESP),
+        .pred_taken_RESTART(lbpt_pred_taken_RESTART),
+        .update0_valid(lbpt_update0_valid),
+        .update0_start_full_PC(lbpt_update0_start_full_PC),
+        .update0_LH(lbpt_update0_LH),
+        .update0_ASID(lbpt_update0_ASID),
+        .update0_taken(lbpt_update0_taken),
+        .update1_correct(lbpt_update1_correct)
+    );
+
+    gbpt GPBT (
+        .CLK(CLK),
+        .nRST(nRST),
+        .valid_RESP(gbpt_valid_RESP),
+        .full_PC_RESP(gbpt_full_PC_RESP),
+        .GH_RESP(gbpt_GH_RESP),
+        .ASID_RESP(gbpt_ASID_RESP),
+        .pred_taken_RESTART(gbpt_pred_taken_RESTART),
+        .update0_valid(gbpt_update0_valid),
+        .update0_start_full_PC(gbpt_update0_start_full_PC),
+        .update0_GH(gbpt_update0_GH),
+        .update0_ASID(gbpt_update0_ASID),
+        .update0_taken(gbpt_update0_taken),
+        .update1_correct(gbpt_update1_correct)
+    );
+
+    upct UPCT (
+        .CLK(CLK),
+        .nRST(nRST),
+        .valid_RESP(upct_valid_RESP),
+        .upct_index_RESP(upct_upct_index_RESP),
+        .upper_PC_RESP(upct_upper_PC_RESP),
+        .update0_valid(upct_update0_valid),
+        .update0_start_full_PC(upct_update0_start_full_PC),
+        .update1_upct_index(upct_update1_upct_index)
+    );
+
+    ras RAS (
+        .CLK(CLK),
+        .nRST(nRST),
+        .link_RESP(ras_link_RESP),
+        .link_full_PC_RESP(ras_link_full_PC_RESP),
+        .ret_RESP(ras_ret_RESP),
+        .ret_full_PC_RESP(ras_ret_full_PC_RESP),
+        .ras_index_RESP(ras_ras_index_RESP),
+        .update0_valid(ras_update0_valid),
+        .update0_ras_index(ras_update0_ras_index)
+    );
+
     ///////////////////////
     // Stream EnQ Stage: //
     ///////////////////////

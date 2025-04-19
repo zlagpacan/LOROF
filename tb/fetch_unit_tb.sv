@@ -10,6 +10,9 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
 module fetch_unit_tb ();
 
     // ----------------------------------------------------------------
@@ -90,7 +93,7 @@ module fetch_unit_tb ();
     // decode unit control
 	logic tb_decode_restart_valid;
 	logic [31:0] tb_decode_restart_PC;
-	logic tb_decode_wait_for_restart;
+	logic tb_decode_trigger_wait_for_restart;
 
     // branch update from decode unit
 	logic tb_decode_unit_branch_update_valid;
@@ -121,7 +124,7 @@ module fetch_unit_tb ();
 		.INIT_ASID(9'h0),
 		.INIT_EXEC_MODE(M_MODE),
 		.INIT_VIRTUAL_MODE(1'b0),
-		.INIT_WAIT_FOR_RESTART_STATE(1'b1),
+		.INIT_WAIT_FOR_RESTART_STATE(1'b1)
 	) DUT (
 		// seq
 		.CLK(CLK),
@@ -185,7 +188,7 @@ module fetch_unit_tb ();
 	    // decode unit control
 		.decode_restart_valid(tb_decode_restart_valid),
 		.decode_restart_PC(tb_decode_restart_PC),
-		.decode_wait_for_restart(tb_decode_wait_for_restart),
+		.decode_trigger_wait_for_restart(tb_decode_trigger_wait_for_restart),
 
 	    // branch update from decode unit
 		.decode_unit_branch_update_valid(tb_decode_unit_branch_update_valid),
@@ -456,7 +459,7 @@ module fetch_unit_tb ();
 	    // decode unit control
 		tb_decode_restart_valid = 1'b0;
 		tb_decode_restart_PC = 32'h0;
-		tb_decode_wait_for_restart = 1'b0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -482,14 +485,14 @@ module fetch_unit_tb ();
 		// outputs:
 
 	    // itlb req
-		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_valid = 1'b0;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
 		expected_itlb_req_vpn = 22'h0;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
-		expected_icache_req_valid = 1'b1;
+		expected_icache_req_valid = 1'b0;
 		expected_icache_req_block_offset = 1'b0;
 		expected_icache_req_index = 7'h0;
 	    // icache resp
@@ -500,7 +503,7 @@ module fetch_unit_tb ();
 		expected_icache_resp_miss_tag = 22'h0;
 	    // output to istream
 		expected_istream_valid_SENQ = 1'b0;
-		expected_istream_valid_by_fetch_2B_SENQ = 8'b00000000;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b11111111;
 		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
 		expected_istream_instr_2B_by_fetch_2B_SENQ = {
 			{
@@ -610,7 +613,7 @@ module fetch_unit_tb ();
 	    // decode unit control
 		tb_decode_restart_valid = 1'b0;
 		tb_decode_restart_PC = 32'h0;
-		tb_decode_wait_for_restart = 1'b0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -636,14 +639,14 @@ module fetch_unit_tb ();
 		// outputs:
 
 	    // itlb req
-		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_valid = 1'b0;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
 		expected_itlb_req_vpn = 22'h0;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
-		expected_icache_req_valid = 1'b1;
+		expected_icache_req_valid = 1'b0;
 		expected_icache_req_block_offset = 1'b0;
 		expected_icache_req_index = 7'h0;
 	    // icache resp
@@ -654,7 +657,7 @@ module fetch_unit_tb ();
 		expected_icache_resp_miss_tag = 22'h0;
 	    // output to istream
 		expected_istream_valid_SENQ = 1'b0;
-		expected_istream_valid_by_fetch_2B_SENQ = 8'b00000000;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b11111111;
 		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
 		expected_istream_instr_2B_by_fetch_2B_SENQ = {
 			{
@@ -772,7 +775,7 @@ module fetch_unit_tb ();
 	    // decode unit control
 		tb_decode_restart_valid = 1'b0;
 		tb_decode_restart_PC = 32'h0;
-		tb_decode_wait_for_restart = 1'b0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -798,14 +801,14 @@ module fetch_unit_tb ();
 		// outputs:
 
 	    // itlb req
-		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_valid = 1'b0;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
 		expected_itlb_req_vpn = 22'h0;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
-		expected_icache_req_valid = 1'b1;
+		expected_icache_req_valid = 1'b0;
 		expected_icache_req_block_offset = 1'b0;
 		expected_icache_req_index = 7'h0;
 	    // icache resp
@@ -816,7 +819,7 @@ module fetch_unit_tb ();
 		expected_icache_resp_miss_tag = 22'h0;
 	    // output to istream
 		expected_istream_valid_SENQ = 1'b0;
-		expected_istream_valid_by_fetch_2B_SENQ = 8'b00000000;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b11111111;
 		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
 		expected_istream_instr_2B_by_fetch_2B_SENQ = {
 			{
