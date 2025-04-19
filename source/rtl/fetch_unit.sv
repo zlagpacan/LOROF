@@ -13,7 +13,10 @@ import system_types_pkg::*;
 
 module fetch_unit #(
     parameter INIT_PC = 32'h0,
-    parameter INIT_ASID = 9'h0
+    parameter INIT_ASID = 9'h0,
+    parameter INIT_EXEC_MODE = M_MODE,
+    parameter INIT_VIRTUAL_MODE = 1'b0,
+    parameter INIT_WAIT_FOR_RESTART_STATE = 1'b0
 ) (
 
     // seq
@@ -49,42 +52,54 @@ module fetch_unit #(
     output logic                            icache_resp_miss_valid,
     output logic [ICACHE_TAG_WIDTH-1:0]     icache_resp_miss_tag,
 
+    // output to istream
+    output logic                                    istream_valid_SENQ,
+    output logic [7:0]                              istream_valid_by_fetch_2B_SENQ,
+    output logic [7:0]                              istream_one_hot_redirect_by_fetch_2B_SENQ,
+    output logic [7:0][15:0]                        istream_instr_2B_by_fetch_2B_SENQ,
+    output logic [7:0][BTB_PRED_INFO_WIDTH-1:0]     istream_pred_info_by_fetch_2B_SENQ,
+    output logic [7:0]                              istream_pred_lru_by_fetch_2B_SENQ,
+    output logic [7:0][MDPT_INFO_WIDTH-1:0]         istream_mdp_info_by_fetch_2B_SENQ,
+    output logic [31:0]                             istream_after_PC_SENQ,
+    output logic [LH_LENGTH-1:0]                    istream_LH_SENQ,
+    output logic [GH_LENGTH-1:0]                    istream_GH_SENQ,
+    output logic [RAS_INDEX_WIDTH-1:0]              istream_ras_index_SENQ,
+    output logic                                    istream_page_fault_SENQ,
+    output logic                                    istream_access_fault_SENQ,
+
+    // istream feedback
+    input logic istream_stall_SENQ,
+
+    // fetch + decode restart from ROB
+    input logic         rob_restart_valid,
+    input logic [31:0]  rob_restart_PC,
+    input logic [8:0]   rob_restart_ASID,
+    input logic         rob_restart_virtual_mode,
+
+    // decode restart
+    input logic         decode_restart_valid,
+    input logic [31:0]  decode_restart_PC,
+
+    // branch update from decode unit
+    input logic                             decode_unit_branch_update_valid,
+    input logic                             decode_unit_branch_update_has_checkpoint,
+    input logic                             decode_unit_branch_update_is_mispredict,
+    input logic                             decode_unit_branch_update_is_taken,
+    input logic                             decode_unit_branch_update_is_complex,
+    input logic                             decode_unit_branch_update_use_upct,
+    input logic [BTB_PRED_INFO_WIDTH-1:0]   decode_unit_branch_update_intermediate_pred_info,
+    input logic                             decode_unit_branch_update_pred_lru,
+    input logic [31:0]                      decode_unit_branch_update_start_PC,
+    input logic [31:0]                      decode_unit_branch_update_target_PC,
+    input logic [LH_LENGTH-1:0]             decode_unit_branch_update_LH,
+    input logic [GH_LENGTH-1:0]             decode_unit_branch_update_GH,
+    input logic [RAS_INDEX_WIDTH-1:0]       decode_unit_branch_update_ras_index,
+
     // mdpt update
     input logic                         mdpt_update_valid,
     input logic [31:0]                  mdpt_update_start_full_PC,
     input logic [ASID_WIDTH-1:0]        mdpt_update_ASID,
-    input logic [MDPT_INFO_WIDTH-1:0]   mdpt_update_mdp_info,
-
-    // fetch + decode restart from ROB
-    input logic                             rob_restart_valid,
-    input logic [31:0]                      rob_restart_PC,
-    input logic [8:0]                       rob_restart_ASID,
-    input logic                             rob_restart_virtual_mode,
-
-    // branch update from ROB
-    input logic                             rob_branch_update_valid,
-    input logic                             rob_branch_update_is_mispredict,
-    input logic                             rob_branch_update_is_taken,
-    input logic                             rob_branch_update_use_upct,
-    input logic [BTB_PRED_INFO_WIDTH-1:0]   rob_branch_update_updated_pred_info,
-    input logic                             rob_branch_update_pred_lru,
-    input logic [31:0]                      rob_branch_update_start_PC,
-    input logic [31:0]                      rob_branch_update_target_PC,
-    input logic                             rob_branch_update_have_checkpoint,
-
-    // ROB control of map table
-    input logic                             rob_controlling_map_table,
-    input logic [3:0]                       rob_map_table_write_valid_by_port,
-    input logic [3:0][LOG_AR_COUNT-1:0]     rob_map_table_write_AR_by_port,
-    input logic [3:0][LOG_PR_COUNT-1:0]     rob_map_table_write_PR_by_port,
-
-    // ROB control of checkpoint restore
-    input logic                                 rob_checkpoint_restore_valid,
-    input logic                                 rob_checkpoint_restore_clear,
-    input logic [CHECKPOINT_INDEX_WIDTH-1:0]    rob_checkpoint_restore_index,
-
-    // hardware failure
-    output logic istream_unrecoverable_fault
+    input logic [MDPT_INFO_WIDTH-1:0]   mdpt_update_mdp_info
 );
 
     // ----------------------------------------------------------------
@@ -315,53 +330,30 @@ module fetch_unit #(
 
         // in frontend interface
 
-    ////////////////////////
-    // Update Prep Stage: //
-    ////////////////////////
-
-    // LH from checkpoint
-    // GH from checkpoint
-
-    logic [LH_LENGTH-1:0]           update_prep_LH;
-    logic [GH_LENGTH-1:0]           update_prep_GH;
-    logic [RAS_INDEX_WIDTH-1:0]     update_prep_ras_index;
-
     /////////////////////
     // Update 0 Stage: //
     /////////////////////
+        // combined with branch update from decode unit
 
-    // valid
-    // start pc
-    // ASID
-    // LH
-    // GH
-    // ras index
-    // taken
-
-    logic                           update0_valid;
-    logic [31:0]                    update0_start_full_PC;
-    logic [ASID_WIDTH-1:0]          update0_ASID;
-    logic [LH_LENGTH-1:0]           update0_LH;
-    logic [GH_LENGTH-1:0]           update0_GH;
-    logic [RAS_INDEX_WIDTH-1:0]     update0_ras_index;
-    logic                           update0_taken;
-
-    logic update0_update_checkpoint_dependent;
+    logic [ASID_WIDTH-1:0] update0_ASID;
 
     /////////////////////
     // Update 1 Stage: //
     /////////////////////
 
-    // correct
     // upct index
     // pred info
     // pred lru
     // target full pc
 
-    logic update1_correct;
-    logic [LOG_UPCT_ENTRIES-1:0] update1_upct_index;
-
-    logic update1_update_checkpoint_dependent;
+    logic [BTB_PRED_INFO_WIDTH-1:0]     update1_final_pred_info;
+    
+    // saved from update0
+    logic                               update1_is_complex;
+    logic                               update1_use_upct;
+    logic [BTB_PRED_INFO_WIDTH-1:0]     update1_intermediate_pred_info;
+    logic                               update1_pred_lru;
+    logic [31:0]                        update1_target_full_PC;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -373,18 +365,18 @@ module fetch_unit #(
     // FF logic;
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            fetch_req_wait_for_restart_state <= 1'b0;
             fetch_req_PC_VA <= INIT_PC;
             fetch_req_ASID <= INIT_ASID;
-            fetch_req_exec_mode <= M_MODE;
-            fetch_req_virtual_mode <= 1'b0;
+            fetch_req_exec_mode <= INIT_EXEC_MODE;
+            fetch_req_virtual_mode <= INIT_VIRTUAL_MODE;
+            fetch_req_wait_for_restart_state <= INIT_WAIT_FOR_RESTART_STATE;
         end
         else begin
-            fetch_req_wait_for_restart_state <= next_fetch_req_wait_for_restart_state;
             fetch_req_PC_VA <= next_fetch_req_PC_VA;
             fetch_req_ASID <= next_fetch_req_ASID;
             fetch_req_exec_mode <= next_fetch_req_exec_mode;
             fetch_req_virtual_mode <= next_fetch_req_virtual_mode;
+            fetch_req_wait_for_restart_state <= next_fetch_req_wait_for_restart_state;
         end
     end
 
@@ -443,13 +435,13 @@ module fetch_unit #(
         btb_full_PC_REQ = fetch_req_access_PC_VA;
         btb_ASID_REQ = fetch_req_ASID;
         
-        btb_update0_valid = 
-        btb_update0_start_full_PC = 
-        btb_update0_ASID = 
+        btb_update0_valid = decode_unit_branch_update_valid;
+        btb_update0_start_full_PC = decode_unit_branch_update_start_PC;
+        btb_update0_ASID = update0_ASID;
 
-        btb_update1_pred_info = 
-        btb_update1_pred_lru = 
-        btb_update1_target_full_PC = 
+        btb_update1_pred_info = update1_final_pred_info;
+        btb_update1_pred_lru = update1_pred_lru;
+        btb_update1_target_full_PC = update1_target_full_PC;
 
         // lht:
         lht_valid_REQ = fetch_req_valid;
@@ -457,26 +449,38 @@ module fetch_unit #(
         lht_ASID_REQ = fetch_req_ASID;
 
         // check for restart value of LH
-        if () begin
-            lht_update0_valid = 
-            lht_update0_start_full_PC = 
-            lht_update0_ASID = 
-            lht_update0_LH = 
+        if (
+            decode_unit_branch_update_valid 
+            & decode_unit_branch_update_has_checkpoint
+            & decode_unit_branch_update_is_mispredict
+            & decode_unit_branch_update_is_complex
+        ) begin
+            // shift in based on if update is T/NT
+            lht_update0_valid = 1'b1;
+            lht_update0_start_full_PC = decode_unit_branch_update_start_PC;
+            lht_update0_ASID = update0_ASID;
+            lht_update0_LH = {
+                decode_unit_branch_update_LH[LH_LENGTH-2:0],
+                decode_unit_branch_update_is_taken};
         end
         // check for complex branch update present
         else if (fetch_resp_check_complex_branch_taken & fetch_resp_perform_pred_actions) begin
-            // shift in based on if complex branch T/NT
-            lht_update0_valid = 
-            lht_update0_start_full_PC = 
-            lht_update0_ASID = 
-            lht_update0_LH = 
+            // shift in based on if complex branch is T/NT
+            lht_update0_valid = 1'b1;
+            lht_update0_start_full_PC = {fetch_resp_PC_VA[31:4], fetch_resp_saved_index, 1'b0};
+            lht_update0_ASID = fetch_req_ASID;
+            lht_update0_LH = {
+                fetch_resp_saved_LH[LH_LENGTH-2:0],
+                fetch_resp_complex_branch_taken};
         end
         // otherwise no update
         else begin
             lht_update0_valid = 1'b0;
-            lht_update0_start_full_PC = 
-            lht_update0_ASID = 
-            lht_update0_LH = 
+            lht_update0_start_full_PC = {fetch_resp_PC_VA[31:4], fetch_resp_saved_index, 1'b0};
+            lht_update0_ASID = fetch_req_ASID;
+            lht_update0_LH = {
+                fetch_resp_saved_LH[LH_LENGTH-2:0]
+                fetch_resp_complex_branch_taken};
         end
 
         // mdpt:
@@ -484,10 +488,10 @@ module fetch_unit #(
         mdpt_full_PC_REQ = fetch_req_access_PC_VA;
         mdpt_ASID_REQ = fetch_req_ASID;
 
-        mdpt_mdpt_update0_valid = 
-        mdpt_mdpt_update0_start_full_PC = 
-        mdpt_mdpt_update0_ASID = 
-        mdpt_mdpt_update0_mdp_info = 
+        mdpt_mdpt_update0_valid = mdpt_update_valid;
+        mdpt_mdpt_update0_start_full_PC = mdpt_update_start_full_PC;
+        mdpt_mdpt_update0_ASID = mdpt_update_ASID;
+        mdpt_mdpt_update0_mdp_info = mdpt_update_mdp_info;
 
         // itlb:
         itlb_req_valid = fetch_req_valid;
@@ -568,14 +572,23 @@ module fetch_unit #(
             end
 
             // check for restart value of GHR
-            if () begin
-                ghr <= 
+            if (
+                decode_unit_branch_update_valid 
+                & decode_unit_branch_update_has_checkpoint
+                & decode_unit_branch_update_is_mispredict
+                & decode_unit_branch_update_is_complex
+            ) begin
+                // shift in based on if update is T/NT
+                ghr <= {
+                    decode_unit_branch_update_GH[GH_LENGTH-2:0],
+                    decode_unit_branch_update_is_taken};
             end
-
             // check for complex branch update present
             else if (fetch_resp_check_complex_branch_taken & fetch_resp_perform_pred_actions) begin
-                // shift in based on if complex branch T/NT
-                ghr <= {ghr[GH_LENGTH-2:0], fetch_resp_complex_branch_taken};
+                // shift in based on if complex branch is T/NT
+                ghr <= {
+                    ghr[GH_LENGTH-2:0],
+                    fetch_resp_complex_branch_taken};
             end
         end
     end
@@ -589,7 +602,7 @@ module fetch_unit #(
             fetch_resp_saved_one_hot <= 8'b00000000;
             fetch_resp_saved_cold_ack_mask <= 8'b11111111;
             fetch_resp_saved_index <= 3'h0;
-            fetch_resp_saved_pred_info <= 8'b00000000;
+            fetch_resp_saved_pred_info <= 8'h0;
             fetch_resp_saved_target <= '0;
             fetch_resp_saved_LH <= 8'h0;
         end
@@ -1202,13 +1215,14 @@ module fetch_unit #(
         lbpt_LH_RESP = fetch_resp_selected_LH;
         lbpt_ASID_RESP = fetch_req_ASID;
 
-        lbpt_update0_valid = ;
-        lbpt_update0_start_full_PC = ;
-        lbpt_update0_LH = ;
-        lbpt_update0_ASID = ;
-        lbpt_update0_taken = ;
-
-        lbpt_update1_correct = ;
+        lbpt_update0_valid = 
+            decode_unit_branch_update_valid 
+            & decode_unit_branch_update_has_checkpoint
+            & decode_unit_branch_update_is_complex;
+        lbpt_update0_start_full_PC = decode_unit_branch_update_start_PC;
+        lbpt_update0_LH = decode_unit_branch_update_LH;
+        lbpt_update0_ASID = update0_ASID;
+        lbpt_update0_taken = decode_unit_branch_update_is_taken;
 
         // gbpt:
         gbpt_valid_RESP = fetch_resp_selected_pred_info[7:6] == 2'b11;
@@ -1216,22 +1230,23 @@ module fetch_unit #(
         gbpt_GH_RESP = ghr;
         gbpt_ASID_RESP = fetch_req_ASID;
         
-        gbpt_update0_valid = ;
-        gbpt_update0_start_full_PC = ;
-        gbpt_update0_GH = ;
-        gbpt_update0_ASID = ;
-        gbpt_update0_taken = ;
-
-        gbpt_update1_correct = ;
+        gbpt_update0_valid = 
+            decode_unit_branch_update_valid 
+            & decode_unit_branch_update_has_checkpoint
+            & decode_unit_branch_update_is_complex;
+        gbpt_update0_start_full_PC = decode_unit_branch_update_start_PC;
+        gbpt_update0_GH = decode_unit_branch_update_GH;
+        gbpt_update0_ASID = update0_ASID;
+        gbpt_update0_taken = decode_unit_branch_update_is_taken;
 
         // upct:
         // upct_valid_RESP = ; // handled in pred-specific actions
         // upct_upct_index_RESP = ; // handled in pred-specific actions
         
-        upct_update0_valid = ;
-        upct_update0_start_full_PC = ;
-        
-        upct_update1_upct_index = ;
+        upct_update0_valid = 
+            decode_unit_branch_update_valid
+            & decode_unit_branch_update_use_upct;
+        upct_update0_start_full_PC = decode_unit_branch_update_start_PC;
 
         // ras:
         // ras_link_RESP = ; // handled in pred-specific actions
@@ -1245,8 +1260,109 @@ module fetch_unit #(
         end
         // ras_ret_RESP = ; // handled in pred-specific actions
 
-        ras_update0_valid = ;
+        ras_update0_valid = 
+            decode_unit_branch_update_valid
+            & decode_unit_branch_update_has_checkpoint;
         ras_update0_ras_index = ;
+    end
+
+    ///////////////////////
+    // Stream EnQ Stage: //
+    ///////////////////////
+
+
+
+    /////////////////////
+    // Update 0 Stage: //
+    /////////////////////
+
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            update0_ASID <= INIT_ASID;
+        end
+        else begin
+            if (rob_restart_valid) begin
+                update0_ASID <= rob_restart_ASID;
+            end
+        end
+    end
+
+    /////////////////////
+    // Update 1 Stage: //
+    /////////////////////
+
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            update1_is_complex <= 1'b0;
+            update1_use_upct <= 1'b0;
+            update1_intermediate_pred_info <= 8'h0;
+            update1_pred_lru <= 1'b0;
+            update1_target_full_PC <= 32'h0;
+        end
+        else begin
+            update1_is_complex <= decode_unit_branch_update_is_complex;
+            update1_use_upct <= decode_unit_branch_update_use_upct;
+            update1_intermediate_pred_info <= decode_unit_branch_update_intermediate_pred_info;
+            update1_pred_lru <= decode_unit_branch_update_pred_lru;
+            update1_target_full_PC <= decode_unit_branch_update_target_PC;
+        end
+    end
+
+    always_comb begin
+        update1_final_pred_info = update1_intermediate_pred_info
+
+        // check for complex branch 2bc increment/decrement using gbpt, lbpt correctness feedback in update1
+        if (update1_is_complex) begin
+            case (update1_intermediate_pred_info[5:4])
+
+                2'b00:
+                begin
+                    // increment
+                    if (gbpt_update1_correct & ~lbpt_update1_correct) begin
+                        update1_final_pred_info[5:4] = 2'b01;
+                    end
+                end
+
+                2'b01:
+                begin
+                    // increment
+                    if (gbpt_update1_correct & ~lbpt_update1_correct) begin
+                        update1_final_pred_info[5:4] = 2'b10;
+                    end
+
+                    // decrement
+                    if (~gbpt_update1_correct & lbpt_update1_correct) begin
+                        update1_final_pred_info[5:4] = 2'b00;
+                    end
+                end
+
+                2'b10:
+                begin
+                    // increment
+                    if (gbpt_update1_correct & ~lbpt_update1_correct) begin
+                        update1_final_pred_info[5:4] = 2'b11;
+                    end
+
+                    // decrement
+                    if (~gbpt_update1_correct & lbpt_update1_correct) begin
+                        update1_final_pred_info[5:4] = 2'b01;
+                    end
+                end
+
+                2'b11:
+                begin
+                    // decrement
+                    if (~gbpt_update1_correct & lbpt_update1_correct) begin
+                        update1_final_pred_info[5:4] = 2'b10;
+                    end
+                end
+            endcase
+        end
+
+        // use upct's index generated in update1
+        if (update1_use_upct) begin
+            update1_final_pred_info[2:0] = upct_update1_upct_index;
+        end
     end
 
 endmodule

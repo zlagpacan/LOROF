@@ -20,9 +20,7 @@ module istream #(
     // SENQ stage
     input logic                                 valid_SENQ,
     input logic [7:0]                           valid_by_fetch_2B_SENQ,
-    input logic [7:0]                           one_hot_redirect_by_fetch_2B_SENQ, 
-        // means take after PC as pred PC
-        // always the last instr in the fetch block
+    input logic [7:0]                           one_hot_redirect_by_fetch_2B_SENQ,
     input logic [7:0][15:0]                     instr_2B_by_fetch_2B_SENQ,
     input logic [7:0][BTB_PRED_INFO_WIDTH-1:0]  pred_info_by_fetch_2B_SENQ,
     input logic [7:0]                           pred_lru_by_fetch_2B_SENQ,
