@@ -132,6 +132,7 @@ module fetch_unit #(
     // PC arithmetic
     logic [27:0] fetch_req_PC28_plus_1;
     logic [27:0] fetch_resp_PC28_plus_1;
+    logic [7:0][27:0] fetch_resp_curr_pred_PC28_plus_1_by_instr;
     logic [27:0] fetch_resp_curr_pred_PC28_plus_1;
     logic [27:0] fetch_resp_saved_pred_PC28_plus_1;
     logic [27:0] fetch_req_access_PC28_plus_1;
@@ -452,8 +453,16 @@ module fetch_unit #(
     always_comb begin
         // fetch_req_PC28_plus_1 = fetch_req_PC_VA[31:4] + 28'h1;
         // fetch_resp_PC28_plus_1 = fetch_resp_PC_VA[31:4] + 28'h1;
-        // fetch_resp_curr_pred_PC28_plus_1 = fetch_resp_pred_PC_VA[31:4] + 28'h1;
-        // fetch_resp_saved_pred_PC28_plus_1 = fetch_resp_pred_PC_VA[31:4] + 28'h1;
+        // fetch_resp_curr_pred_PC28_plus_1 = fetch_resp_curr_pred_PC_VA[31:4] + 28'h1;
+        // fetch_resp_saved_pred_PC28_plus_1 = fetch_resp_saved_pred_PC_VA[31:4] + 28'h1;
+
+        // fetch_resp_curr_pred_PC28_plus_1 = '0;
+        // for (int instr = 0; instr < 8; instr++) begin
+        //     fetch_resp_curr_pred_PC28_plus_1_by_instr[instr] = fetch_resp_curr_pred_PC_VA_by_instr[instr][31:4] + 28'h1;
+        //     if (fetch_resp_selected_one_hot[instr]) begin
+        //         fetch_resp_curr_pred_PC28_plus_1 |= fetch_resp_curr_pred_PC28_plus_1_by_instr[instr];
+        //     end
+        // end
         
         // if (use_fetch_resp_PC) begin
         //     fetch_req_access_PC28_plus_1 = fetch_resp_PC28_plus_1;
@@ -564,8 +573,8 @@ module fetch_unit #(
 
     // modules:
 
-    // btb BTB (
-    btb_one_way BTB_ONE_WAY (
+    btb BTB (
+    // btb_one_way BTB_ONE_WAY (
         .CLK(CLK),
         .nRST(nRST),
         .valid_REQ(btb_valid_REQ),

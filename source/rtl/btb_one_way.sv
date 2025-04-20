@@ -1,8 +1,8 @@
 /*
-    Filename: btb.sv
+    Filename: btb_one_way.sv
     Author: zlagpacan
-    Description: RTL for Branch Target (and Branch Prediction Info) Buffer
-    Spec: LOROF/spec/design/btb.md
+    Description: RTL for Branch Target (and Branch Prediction Info) Buffer. One-way associative version.
+    Spec: LOROF/spec/design/btb_one_way.md
 */
 
 `include "core_types_pkg.vh"
@@ -139,7 +139,9 @@ module btb_one_way (
             //     ({BTB_TARGET_WIDTH{vtm_by_instr_by_way_RESP[i][1]}}
             //         & array_pred_info_tag_target_by_instr_by_way_RESP[i][1].target);
 
-            pred_info_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_RESP[i].pred_info;
+            pred_info_by_instr_RESP[i] = {
+                {2{vtm_by_instr_RESP[i]}} & array_pred_info_tag_target_by_instr_RESP[i].pred_info[7:6],
+                array_pred_info_tag_target_by_instr_RESP[i].pred_info[5:0]};
             target_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_RESP[i].target;
             pred_lru_by_instr_RESP[i] = 1'b0;
 
