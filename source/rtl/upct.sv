@@ -14,10 +14,19 @@ module upct (
     input logic CLK,
     input logic nRST,
 
+    // // RESP stage
+    // input logic                         valid_RESP,
+    // input logic [LOG_UPCT_ENTRIES-1:0]  upct_index_RESP,
+    // output logic [UPPER_PC_WIDTH-1:0]   upper_PC_RESP,
+
     // RESP stage
-    input logic                         valid_RESP,
-    input logic [LOG_UPCT_ENTRIES-1:0]  upct_index_RESP,
-    output logic [UPPER_PC_WIDTH-1:0]   upper_PC_RESP,
+    input logic                         read_valid_RESP,
+    input logic [LOG_UPCT_ENTRIES-1:0]  read_index_RESP,
+
+    input logic [LOG_UPCT_ENTRIES-1:0]  observer0_index_RESP,
+    output logic [UPPER_PC_WIDTH-1:0]   observer0_upper_PC_RESP,
+    input logic [LOG_UPCT_ENTRIES-1:0]  observer1_index_RESP,
+    output logic [UPPER_PC_WIDTH-1:0]   observer1_upper_PC_RESP,
 
     // Update 0
     input logic         update0_valid,
@@ -92,7 +101,8 @@ module upct (
 
     // Update 1 and RESP logic:
 
-    assign upper_PC_RESP = upct_array[upct_index_RESP];
+    assign observer0_upper_PC_RESP = upct_array[observer0_index_RESP];
+    assign observer1_upper_PC_RESP = upct_array[observer1_index_RESP];
 
     assign update1_have_match = |update1_matching_upper_PC_by_entry;
 
@@ -144,12 +154,12 @@ module upct (
         end
 
         // check RESP access
-        else if (valid_RESP) begin
+        else if (read_valid_RESP) begin
 
             // adjust PLRU following RESP index
-            next_plru2 = ~upct_index_RESP[2];
-            next_plru1[upct_index_RESP[2]] = ~upct_index_RESP[1];
-            next_plru0[upct_index_RESP[2]][upct_index_RESP[1]] = ~upct_index_RESP[0];
+            next_plru2 = ~read_index_RESP[2];
+            next_plru1[read_index_RESP[2]] = ~read_index_RESP[1];
+            next_plru0[read_index_RESP[2]][read_index_RESP[1]] = ~read_index_RESP[0];
         end
     end
 
