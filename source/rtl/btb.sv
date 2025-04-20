@@ -117,14 +117,30 @@ module btb (
             vtm_by_instr_by_way_RESP[i][0] = replicated_tags_by_instr_RESP[i] == array_pred_info_tag_target_by_instr_by_way_RESP[i][0].tag;
             vtm_by_instr_by_way_RESP[i][1] = replicated_tags_by_instr_RESP[i] == array_pred_info_tag_target_by_instr_by_way_RESP[i][1].tag;
 
+            // pred info one-hot mux
+            pred_info_by_instr_RESP[i] = 
+                ({BTB_PRED_INFO_WIDTH{vtm_by_instr_by_way_RESP[i][0]}}
+                    & array_pred_info_tag_target_by_instr_by_way_RESP[i][0].pred_info)
+                |
+                ({BTB_PRED_INFO_WIDTH{vtm_by_instr_by_way_RESP[i][1]}}
+                    & array_pred_info_tag_target_by_instr_by_way_RESP[i][1].pred_info);
+
+            // target one-hot mux
+            target_by_instr_RESP[i] = 
+                ({BTB_TARGET_WIDTH{vtm_by_instr_by_way_RESP[i][0]}}
+                    & array_pred_info_tag_target_by_instr_by_way_RESP[i][0].target)
+                |
+                ({BTB_TARGET_WIDTH{vtm_by_instr_by_way_RESP[i][1]}}
+                    & array_pred_info_tag_target_by_instr_by_way_RESP[i][1].target);
+
             // prioritize way 0
             if (vtm_by_instr_by_way_RESP[i][0]) begin
 
-                // pred info
-                pred_info_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][0].pred_info;
+                // // pred info
+                // pred_info_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][0].pred_info;
 
-                // target
-                target_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][0].target;
+                // // target
+                // target_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][0].target;
 
                 // lru -> this way: 0
                 pred_lru_by_instr_RESP[i] = 1'b0;
@@ -133,11 +149,11 @@ module btb (
             // way 1 and not way 0
             else if (vtm_by_instr_by_way_RESP[i][1]) begin
 
-                // pred info
-                pred_info_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][1].pred_info;
+                // // pred info
+                // pred_info_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][1].pred_info;
 
-                // target
-                target_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][1].target;
+                // // target
+                // target_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][1].target;
 
                 // lru -> this way: 1
                 pred_lru_by_instr_RESP[i] = 1'b1;
@@ -146,15 +162,15 @@ module btb (
             // otherwise, inv pred info
             else begin
 
-                // pred info
-                    // 2 msb's cleared since inv
-                    // lower bits default to way 0
-                pred_info_by_instr_RESP[i][7:6] = 2'b00;
-                pred_info_by_instr_RESP[i][5:0] = array_pred_info_tag_target_by_instr_by_way_RESP[i][0].pred_info[5:0];
+                // // pred info
+                //     // 2 msb's cleared since inv
+                //     // lower bits default to way 0
+                // pred_info_by_instr_RESP[i][7:6] = 2'b00;
+                // pred_info_by_instr_RESP[i][5:0] = array_pred_info_tag_target_by_instr_by_way_RESP[i][0].pred_info[5:0];
 
-                // target
-                    // default to way 0
-                target_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][0].target;
+                // // target
+                //     // default to way 0
+                // target_by_instr_RESP[i] = array_pred_info_tag_target_by_instr_by_way_RESP[i][0].target;
 
                 // lru -> given lru
                 pred_lru_by_instr_RESP[i] = array_pred_lru_by_instr_RESP[i];

@@ -401,7 +401,10 @@ module fetch_unit #(
     always_comb begin
 
         next_fetch_req_wait_for_restart_state = fetch_req_wait_for_restart_state;
-        next_fetch_req_PC_VA = fetch_req_PC_VA;
+        // next_fetch_req_PC_VA = fetch_req_PC_VA;
+        next_fetch_req_PC_VA = {
+            fetch_req_access_PC28_plus_1,
+            4'b0000};
         next_fetch_req_ASID = fetch_req_ASID;
         next_fetch_req_exec_mode = fetch_req_exec_mode;
         next_fetch_req_virtual_mode = fetch_req_virtual_mode;
@@ -433,19 +436,21 @@ module fetch_unit #(
 
     // fetch req PC arithmetic
     always_comb begin
-        fetch_req_PC28_plus_1 = fetch_req_PC_VA[31:4] + 28'h1;
-        fetch_resp_PC28_plus_1 = fetch_resp_PC_VA[31:4] + 28'h1;
-        fetch_resp_pred_PC28_plus_1 = fetch_resp_pred_PC_VA[31:4] + 28'h1;
+        // fetch_req_PC28_plus_1 = fetch_req_PC_VA[31:4] + 28'h1;
+        // fetch_resp_PC28_plus_1 = fetch_resp_PC_VA[31:4] + 28'h1;
+        // fetch_resp_pred_PC28_plus_1 = fetch_resp_pred_PC_VA[31:4] + 28'h1;
         
-        if (use_fetch_resp_PC) begin
-            fetch_req_access_PC28_plus_1 = fetch_resp_PC28_plus_1;
-        end
-        else if (use_fetch_resp_pred_PC) begin
-            fetch_req_access_PC28_plus_1 = fetch_resp_pred_PC28_plus_1;
-        end
-        else begin
-            fetch_req_access_PC28_plus_1 = fetch_req_PC28_plus_1;
-        end
+        // if (use_fetch_resp_PC) begin
+        //     fetch_req_access_PC28_plus_1 = fetch_resp_PC28_plus_1;
+        // end
+        // else if (use_fetch_resp_pred_PC) begin
+        //     fetch_req_access_PC28_plus_1 = fetch_resp_pred_PC28_plus_1;
+        // end
+        // else begin
+        //     fetch_req_access_PC28_plus_1 = fetch_req_PC28_plus_1;
+        // end
+
+        fetch_req_access_PC28_plus_1 = fetch_req_access_PC_VA;
     end
 
     // next pipeline latch
