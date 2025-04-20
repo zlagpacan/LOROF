@@ -123,7 +123,7 @@ module fetch_unit #(
     // logic fetch_req_clear; // have all info in restarts
 
     // interruptable access PC
-    logic [VA_WIDTH-1:0]    fetch_req_access_PC_VA;
+    logic [VA_WIDTH-1:0] fetch_req_access_PC_VA;
 
     logic use_fetch_resp_PC;
     logic use_fetch_resp_curr_pred_PC;
@@ -451,10 +451,10 @@ module fetch_unit #(
 
     // fetch req PC arithmetic
     always_comb begin
-        // fetch_req_PC28_plus_1 = fetch_req_PC_VA[31:4] + 28'h1;
-        // fetch_resp_PC28_plus_1 = fetch_resp_PC_VA[31:4] + 28'h1;
-        // fetch_resp_curr_pred_PC28_plus_1 = fetch_resp_curr_pred_PC_VA[31:4] + 28'h1;
-        // fetch_resp_saved_pred_PC28_plus_1 = fetch_resp_saved_pred_PC_VA[31:4] + 28'h1;
+        fetch_req_PC28_plus_1 = fetch_req_PC_VA[31:4] + 28'h1;
+        fetch_resp_PC28_plus_1 = fetch_resp_PC_VA[31:4] + 28'h1;
+        fetch_resp_curr_pred_PC28_plus_1 = fetch_resp_curr_pred_PC_VA[31:4] + 28'h1;
+        fetch_resp_saved_pred_PC28_plus_1 = fetch_resp_saved_pred_PC_VA[31:4] + 28'h1;
 
         // fetch_resp_curr_pred_PC28_plus_1 = '0;
         // for (int instr = 0; instr < 8; instr++) begin
@@ -464,20 +464,20 @@ module fetch_unit #(
         //     end
         // end
         
-        // if (use_fetch_resp_PC) begin
-        //     fetch_req_access_PC28_plus_1 = fetch_resp_PC28_plus_1;
-        // end
-        // else if (use_fetch_resp_curr_pred_PC) begin
-        //     fetch_req_access_PC28_plus_1 = fetch_resp_curr_pred_PC28_plus_1;
-        // end
-        // else if (use_fetch_resp_saved_pred_PC) begin
-        //     fetch_req_access_PC28_plus_1 = fetch_resp_saved_pred_PC28_plus_1;
-        // end
-        // else begin
-        //     fetch_req_access_PC28_plus_1 = fetch_req_PC28_plus_1;
-        // end
+        if (use_fetch_resp_PC) begin
+            fetch_req_access_PC28_plus_1 = fetch_resp_PC28_plus_1;
+        end
+        else if (use_fetch_resp_curr_pred_PC) begin
+            fetch_req_access_PC28_plus_1 = fetch_resp_curr_pred_PC28_plus_1;
+        end
+        else if (use_fetch_resp_saved_pred_PC) begin
+            fetch_req_access_PC28_plus_1 = fetch_resp_saved_pred_PC28_plus_1;
+        end
+        else begin
+            fetch_req_access_PC28_plus_1 = fetch_req_PC28_plus_1;
+        end
 
-        fetch_req_access_PC28_plus_1 = fetch_req_access_PC_VA;
+        // fetch_req_access_PC28_plus_1 = fetch_req_access_PC_VA;
     end
 
     // next pipeline latch
@@ -1112,10 +1112,27 @@ module fetch_unit #(
     //     end
     // end
 
+    // interruptable access PC
+    always_comb begin
+
+        if (use_fetch_resp_PC) begin
+            fetch_req_access_PC_VA = fetch_resp_PC_VA;
+        end
+        else if (use_fetch_resp_curr_pred_PC) begin
+            fetch_req_access_PC_VA = fetch_resp_curr_pred_PC_VA;
+        end
+        else if (use_fetch_resp_saved_pred_PC) begin
+            fetch_req_access_PC_VA = fetch_resp_saved_pred_PC_VA;
+        end
+        else begin
+            fetch_req_access_PC_VA = fetch_req_PC_VA;
+        end
+    end
+
     // state machine + control + interruptable access PC
     always_comb begin
 
-        fetch_req_access_PC_VA = fetch_req_PC_VA;
+        // fetch_req_access_PC_VA = fetch_req_PC_VA;
         use_fetch_resp_PC = 1'b0;
         use_fetch_resp_curr_pred_PC = 1'b0;
         use_fetch_resp_saved_pred_PC = 1'b0;
@@ -1157,7 +1174,7 @@ module fetch_unit #(
                 if (~ihit) begin
                     
                     // redo current fetch resp access in fetch req
-                    fetch_req_access_PC_VA = fetch_resp_PC_VA;
+                    // fetch_req_access_PC_VA = fetch_resp_PC_VA;
                     use_fetch_resp_PC = 1'b1;
 
                     // check itlb miss -> stay here
@@ -1173,7 +1190,7 @@ module fetch_unit #(
                 else if (istream_stall_SENQ) begin
                     
                     // redo current fetch resp access in fetch req
-                    fetch_req_access_PC_VA = fetch_resp_PC_VA;
+                    // fetch_req_access_PC_VA = fetch_resp_PC_VA;
                     use_fetch_resp_PC = 1'b1;
                 end
                 // otherwise, clean icache hit
@@ -1189,7 +1206,7 @@ module fetch_unit #(
                         if (fetch_resp_selected_pred_info[7:6] == 2'b11) begin
 
                             // redo current fetch resp access in fetch req
-                            fetch_req_access_PC_VA = fetch_resp_PC_VA;
+                            // fetch_req_access_PC_VA = fetch_resp_PC_VA;
                             use_fetch_resp_PC = 1'b1;
 
                             // will get complex branch info next cycle
@@ -1211,7 +1228,7 @@ module fetch_unit #(
                         else begin
 
                             // use curr predicted fetch resp access in fetch req
-                            fetch_req_access_PC_VA = fetch_resp_curr_pred_PC_VA;
+                            // fetch_req_access_PC_VA = fetch_resp_curr_pred_PC_VA;
                             use_fetch_resp_curr_pred_PC = 1'b1;
 
                             // yield instr's
@@ -1236,7 +1253,7 @@ module fetch_unit #(
                 if (~ihit) begin
                     
                     // redo current fetch resp access in fetch req
-                    fetch_req_access_PC_VA = fetch_resp_PC_VA;
+                    // fetch_req_access_PC_VA = fetch_resp_PC_VA;
                     use_fetch_resp_PC = 1'b1;
 
                     // check itlb miss -> stay here
@@ -1261,7 +1278,7 @@ module fetch_unit #(
                 else if (istream_stall_SENQ) begin
                     
                     // redo current fetch resp access in fetch req
-                    fetch_req_access_PC_VA = fetch_resp_PC_VA;
+                    // fetch_req_access_PC_VA = fetch_resp_PC_VA;
                     use_fetch_resp_PC = 1'b1;
                     
                     // hold all complex branch state
@@ -1282,7 +1299,7 @@ module fetch_unit #(
                     if (fetch_resp_complex_branch_taken) begin
 
                         // use saved predicted fetch resp access in fetch req
-                        fetch_req_access_PC_VA = fetch_resp_saved_pred_PC_VA;
+                        // fetch_req_access_PC_VA = fetch_resp_saved_pred_PC_VA;
                         use_fetch_resp_saved_pred_PC = 1'b1;
                     
                         // yield instr's
@@ -1298,7 +1315,7 @@ module fetch_unit #(
                         if (fetch_resp_selected_pred_info[7:6] == 2'b11) begin
 
                             // redo current fetch resp access in fetch req
-                            fetch_req_access_PC_VA = fetch_resp_PC_VA;
+                            // fetch_req_access_PC_VA = fetch_resp_PC_VA;
                             use_fetch_resp_PC = 1'b1;
 
                             // will get complex branch info next cycle
@@ -1320,7 +1337,7 @@ module fetch_unit #(
                         else begin
 
                             // use curr predicted fetch resp access in fetch req
-                            fetch_req_access_PC_VA = fetch_resp_curr_pred_PC_VA;
+                            // fetch_req_access_PC_VA = fetch_resp_curr_pred_PC_VA;
                             use_fetch_resp_curr_pred_PC = 1'b1;
 
                             // yield instr's
@@ -1348,7 +1365,7 @@ module fetch_unit #(
                 if (~ihit) begin
                     
                     // redo current fetch resp access in fetch req
-                    fetch_req_access_PC_VA = fetch_resp_PC_VA;
+                    // fetch_req_access_PC_VA = fetch_resp_PC_VA;
                     use_fetch_resp_PC = 1'b1;
 
                     // check itlb miss -> stay here
@@ -1367,7 +1384,7 @@ module fetch_unit #(
                     next_fetch_resp_state = FETCH_RESP_ACTIVE;
                     
                     // redo current fetch resp access in fetch req
-                    fetch_req_access_PC_VA = fetch_resp_PC_VA;
+                    // fetch_req_access_PC_VA = fetch_resp_PC_VA;
                     use_fetch_resp_PC = 1'b1;
                 end
                 // otherwise, clean icache hit
@@ -1386,7 +1403,7 @@ module fetch_unit #(
                         if (fetch_resp_selected_pred_info[7:6] == 2'b11) begin
 
                             // redo current fetch resp access in fetch req
-                            fetch_req_access_PC_VA = fetch_resp_PC_VA;
+                            // fetch_req_access_PC_VA = fetch_resp_PC_VA;
                             use_fetch_resp_PC = 1'b1;
 
                             // will get complex branch info next cycle
@@ -1408,7 +1425,7 @@ module fetch_unit #(
                         else begin
 
                             // use curr predicted fetch resp access in fetch req
-                            fetch_req_access_PC_VA = fetch_resp_curr_pred_PC_VA;
+                            // fetch_req_access_PC_VA = fetch_resp_curr_pred_PC_VA;
                             use_fetch_resp_curr_pred_PC = 1'b1;
 
                             // yield instr's
