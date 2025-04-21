@@ -224,7 +224,8 @@ module fetch_unit #(
     
     // PC arithmetic
     logic [UPPER_PC_WIDTH-1:0] fetch_resp_upper_PC_plus_saved_pred_info;
-    logic [UPPER_PC_WIDTH-1:0] fetch_resp_upper_PC_plus_selected_pred_info;
+    // logic [UPPER_PC_WIDTH-1:0] fetch_resp_upper_PC_plus_selected_pred_info;
+    logic [7:0][UPPER_PC_WIDTH-1:0] fetch_resp_upper_PC_plus_selected_pred_info_by_instr;
 
     // selected index arithmetic
     logic [2:0] fetch_resp_selected_index_plus_1;
@@ -253,6 +254,8 @@ module fetch_unit #(
     logic [7:0]                     fetch_resp_selected_pred_info;
     logic [BTB_TARGET_WIDTH-1:0]    fetch_resp_selected_target;
     logic [LH_LENGTH-1:0]           fetch_resp_selected_LH;
+
+    logic fetch_resp_selected_complex_branch;
 
     logic [7:0]                     fetch_resp_saved_one_hot, next_fetch_resp_saved_one_hot;
     logic [7:0]                     fetch_resp_saved_cold_ack_mask, next_fetch_resp_saved_cold_ack_mask;
@@ -447,37 +450,6 @@ module fetch_unit #(
                 fetch_req_access_PC28_plus_1,
                 4'b0000};
         end
-    end
-
-    // fetch req PC arithmetic
-    always_comb begin
-        fetch_req_PC28_plus_1 = fetch_req_PC_VA[31:4] + 28'h1;
-        fetch_resp_PC28_plus_1 = fetch_resp_PC_VA[31:4] + 28'h1;
-        fetch_resp_curr_pred_PC28_plus_1 = fetch_resp_curr_pred_PC_VA[31:4] + 28'h1;
-        fetch_resp_saved_pred_PC28_plus_1 = fetch_resp_saved_pred_PC_VA[31:4] + 28'h1;
-
-        // fetch_resp_curr_pred_PC28_plus_1 = '0;
-        // for (int instr = 0; instr < 8; instr++) begin
-        //     fetch_resp_curr_pred_PC28_plus_1_by_instr[instr] = fetch_resp_curr_pred_PC_VA_by_instr[instr][31:4] + 28'h1;
-        //     if (fetch_resp_selected_one_hot[instr]) begin
-        //         fetch_resp_curr_pred_PC28_plus_1 |= fetch_resp_curr_pred_PC28_plus_1_by_instr[instr];
-        //     end
-        // end
-        
-        if (use_fetch_resp_PC) begin
-            fetch_req_access_PC28_plus_1 = fetch_resp_PC28_plus_1;
-        end
-        else if (use_fetch_resp_curr_pred_PC) begin
-            fetch_req_access_PC28_plus_1 = fetch_resp_curr_pred_PC28_plus_1;
-        end
-        else if (use_fetch_resp_saved_pred_PC) begin
-            fetch_req_access_PC28_plus_1 = fetch_resp_saved_pred_PC28_plus_1;
-        end
-        else begin
-            fetch_req_access_PC28_plus_1 = fetch_req_PC28_plus_1;
-        end
-
-        // fetch_req_access_PC28_plus_1 = fetch_req_access_PC_VA;
     end
 
     // next pipeline latch
@@ -832,7 +804,8 @@ module fetch_unit #(
             fetch_resp_redirect_vec = fetch_resp_saved_one_hot;
         end
         // check for simple branch or jump
-        else if (fetch_resp_selected_pred_info[7] | fetch_resp_selected_pred_info[6]) begin
+        // else if (fetch_resp_selected_pred_info[7] | fetch_resp_selected_pred_info[6]) begin
+        else if (fetch_resp_pred_present) begin
             // can yield up to and including branch and jump (this cold ack mask)
             fetch_resp_instr_16B_yield_vec = fetch_resp_PC_mask & ~fetch_resp_selected_cold_ack_mask;
             // redirect at this branch or jump (this one hot)
@@ -853,10 +826,12 @@ module fetch_unit #(
             +
             {{(UPPER_PC_WIDTH-2){fetch_resp_saved_pred_info[2]}}, fetch_resp_saved_pred_info[1:0]};
 
-        fetch_resp_upper_PC_plus_selected_pred_info = 
-            fetch_resp_PC_VA[31:32-UPPER_PC_WIDTH]
-            +
-            {{(UPPER_PC_WIDTH-2){fetch_resp_selected_pred_info[2]}}, fetch_resp_selected_pred_info[1:0]};
+        for (int instr = 0; instr < 8; instr++) begin
+            fetch_resp_upper_PC_plus_selected_pred_info_by_instr[instr] = 
+                fetch_resp_PC_VA[31:32-UPPER_PC_WIDTH]
+                +
+                {{(UPPER_PC_WIDTH-2){btb_pred_info_by_instr_RESP[instr][2]}}, btb_pred_info_by_instr_RESP[instr][1:0]};
+        end
     end
 
     // pred-specific actions per instr
@@ -901,7 +876,7 @@ module fetch_unit #(
                     // otherwise, upper PC + 3bindex, target
                     else begin
                         fetch_resp_curr_pred_PC_VA_by_instr[instr] = {
-                            fetch_resp_upper_PC_plus_selected_pred_info, 
+                            fetch_resp_upper_PC_plus_selected_pred_info_by_instr[instr], 
                             btb_target_by_instr_RESP[instr], 1'b0};
                     end
                 end
@@ -917,7 +892,7 @@ module fetch_unit #(
                     // otherwise, upper PC + 3bindex, target
                     else begin
                         fetch_resp_curr_pred_PC_VA_by_instr[instr] = {
-                            fetch_resp_upper_PC_plus_selected_pred_info, 
+                            fetch_resp_upper_PC_plus_selected_pred_info_by_instr[instr], 
                             btb_target_by_instr_RESP[instr], 1'b0};
                     end
                 end
@@ -944,7 +919,9 @@ module fetch_unit #(
 
                 4'b11??: // complex branch
                 begin
-                    // don't care
+                    // take fetch_req_PC_VA since need to stall
+                    fetch_resp_curr_pred_PC_VA_by_instr[instr] = 
+                        fetch_req_PC_VA;
                 end
             endcase
         end
@@ -1115,18 +1092,93 @@ module fetch_unit #(
     // interruptable access PC
     always_comb begin
 
+        // FETCH_RESP_IDLE:
+            // fetch_req_PC_VA
+        // FETCH_RESP_ACTIVE:
+            // ~ihit | istream_stall_SENQ:
+                // fetch_resp_PC_VA
+            // else:
+                // selected complex branch:
+                    // fetch_resp_PC_VA -> fetch_resp_curr_pred_PC_VA
+                // other selected pred:
+                    // fetch_resp_curr_pred_PC_VA
+                // else:
+                    // fetch_req_PC_VA
+        // FETCH_RESP_COMPLEX_BRANCH:
+            // ~ihit | istream_stall_SENQ:
+                // fetch_resp_PC_VA
+            // else:
+                // complex branch taken:
+                    // fetch_resp_saved_pred_PC_VA
+                // selected complex branch:
+                    // fetch_resp_PC_VA -> fetch_resp_curr_pred_PC_VA
+                // other selected pred:
+                    // fetch_resp_curr_pred_PC_VA
+                // else:
+                    // fetch_req_PC_VA
+        // FETCH_RESP_ICACHE_MISS:
+            // ~ihit | istream_stall_SENQ:
+                // fetch_resp_PC_VA
+            // else:
+                // selected complex branch:
+                    // fetch_resp_PC_VA -> fetch_resp_curr_pred_PC_VA
+                // other selected pred:
+                    // fetch_resp_curr_pred_PC_VA
+                // else:
+                    // fetch_req_PC_VA
+
+        fetch_resp_selected_complex_branch = 1'b0;
+        for (int instr = 0; instr < 8; instr++) begin
+            if (fetch_resp_selected_one_hot[instr] & btb_pred_info_by_instr_RESP[instr][7] & btb_pred_info_by_instr_RESP[instr][6]) begin
+                fetch_resp_selected_complex_branch = 1'b1;
+            end
+        end
+
         if (use_fetch_resp_PC) begin
             fetch_req_access_PC_VA = fetch_resp_PC_VA;
-        end
-        else if (use_fetch_resp_curr_pred_PC) begin
-            fetch_req_access_PC_VA = fetch_resp_curr_pred_PC_VA;
         end
         else if (use_fetch_resp_saved_pred_PC) begin
             fetch_req_access_PC_VA = fetch_resp_saved_pred_PC_VA;
         end
+        else if (use_fetch_resp_curr_pred_PC) begin
+            fetch_req_access_PC_VA = fetch_resp_curr_pred_PC_VA;
+        end
         else begin
             fetch_req_access_PC_VA = fetch_req_PC_VA;
         end
+        
+        // fetch_req_access_PC_VA = fetch_req_PC_VA;
+    end
+
+    // fetch req PC arithmetic
+    always_comb begin
+        // fetch_req_PC28_plus_1 = fetch_req_PC_VA[31:4] + 28'h1;
+        // fetch_resp_PC28_plus_1 = fetch_resp_PC_VA[31:4] + 28'h1;
+        // fetch_resp_curr_pred_PC28_plus_1 = fetch_resp_curr_pred_PC_VA[31:4] + 28'h1;
+        // fetch_resp_saved_pred_PC28_plus_1 = fetch_resp_saved_pred_PC_VA[31:4] + 28'h1;
+
+        // fetch_resp_curr_pred_PC28_plus_1 = '0;
+        // for (int instr = 0; instr < 8; instr++) begin
+        //     fetch_resp_curr_pred_PC28_plus_1_by_instr[instr] = fetch_resp_curr_pred_PC_VA_by_instr[instr][31:4] + 28'h1;
+        //     if (fetch_resp_selected_one_hot[instr]) begin
+        //         fetch_resp_curr_pred_PC28_plus_1 |= fetch_resp_curr_pred_PC28_plus_1_by_instr[instr];
+        //     end
+        // end
+        
+        if (use_fetch_resp_PC) begin
+            fetch_req_access_PC28_plus_1 = fetch_resp_PC28_plus_1;
+        end
+        else if (use_fetch_resp_saved_pred_PC) begin
+            fetch_req_access_PC28_plus_1 = fetch_resp_saved_pred_PC28_plus_1;
+        end
+        else if (use_fetch_resp_curr_pred_PC) begin
+            fetch_req_access_PC28_plus_1 = fetch_resp_curr_pred_PC28_plus_1;
+        end
+        else begin
+            fetch_req_access_PC28_plus_1 = fetch_req_PC28_plus_1;
+        end
+
+        // fetch_req_access_PC28_plus_1 = fetch_req_access_PC_VA;
     end
 
     // state machine + control + interruptable access PC
@@ -1134,8 +1186,8 @@ module fetch_unit #(
 
         // fetch_req_access_PC_VA = fetch_req_PC_VA;
         use_fetch_resp_PC = 1'b0;
-        use_fetch_resp_curr_pred_PC = 1'b0;
         use_fetch_resp_saved_pred_PC = 1'b0;
+        use_fetch_resp_curr_pred_PC = 1'b0;
             // interrupt on istream stall
             // interrupt on branch prediction
             // interrupt on itlb or icache miss
@@ -1201,13 +1253,15 @@ module fetch_unit #(
 
                     // check for pred
                     if (fetch_resp_pred_present) begin
+                        use_fetch_resp_curr_pred_PC = 1'b1;
 
                         // check for complex branch
-                        if (fetch_resp_selected_pred_info[7:6] == 2'b11) begin
+                        // if (fetch_resp_selected_pred_info[7:6] == 2'b11) begin
+                        if (fetch_resp_selected_complex_branch) begin
 
                             // redo current fetch resp access in fetch req
                             // fetch_req_access_PC_VA = fetch_resp_PC_VA;
-                            use_fetch_resp_PC = 1'b1;
+                            // use_fetch_resp_PC = 1'b1;
 
                             // will get complex branch info next cycle
                             next_fetch_resp_state = FETCH_RESP_COMPLEX_BRANCH;
@@ -1229,7 +1283,7 @@ module fetch_unit #(
 
                             // use curr predicted fetch resp access in fetch req
                             // fetch_req_access_PC_VA = fetch_resp_curr_pred_PC_VA;
-                            use_fetch_resp_curr_pred_PC = 1'b1;
+                            // use_fetch_resp_curr_pred_PC = 1'b1;
 
                             // yield instr's
                             fetch_resp_instr_yield = 1'b1;
@@ -1310,13 +1364,15 @@ module fetch_unit #(
                     end
                     // else check for other pred
                     else if (fetch_resp_pred_present) begin
+                        use_fetch_resp_curr_pred_PC = 1'b1;
 
                         // check for complex branch
-                        if (fetch_resp_selected_pred_info[7:6] == 2'b11) begin
+                        // if (fetch_resp_selected_pred_info[7:6] == 2'b11) begin
+                        if (fetch_resp_selected_complex_branch) begin
 
                             // redo current fetch resp access in fetch req
                             // fetch_req_access_PC_VA = fetch_resp_PC_VA;
-                            use_fetch_resp_PC = 1'b1;
+                            // use_fetch_resp_PC = 1'b1;
 
                             // will get complex branch info next cycle
                             next_fetch_resp_state = FETCH_RESP_COMPLEX_BRANCH;
@@ -1338,7 +1394,7 @@ module fetch_unit #(
 
                             // use curr predicted fetch resp access in fetch req
                             // fetch_req_access_PC_VA = fetch_resp_curr_pred_PC_VA;
-                            use_fetch_resp_curr_pred_PC = 1'b1;
+                            // use_fetch_resp_curr_pred_PC = 1'b1;
 
                             // yield instr's
                             fetch_resp_instr_yield = 1'b1;
@@ -1398,13 +1454,15 @@ module fetch_unit #(
 
                     // check for pred
                     if (fetch_resp_pred_present) begin
+                        use_fetch_resp_curr_pred_PC = 1'b1;
 
                         // check for complex branch
-                        if (fetch_resp_selected_pred_info[7:6] == 2'b11) begin
+                        // if (fetch_resp_selected_pred_info[7:6] == 2'b11) begin
+                        if (fetch_resp_selected_complex_branch) begin
 
                             // redo current fetch resp access in fetch req
                             // fetch_req_access_PC_VA = fetch_resp_PC_VA;
-                            use_fetch_resp_PC = 1'b1;
+                            // use_fetch_resp_PC = 1'b1;
 
                             // will get complex branch info next cycle
                             next_fetch_resp_state = FETCH_RESP_COMPLEX_BRANCH;
@@ -1426,7 +1484,7 @@ module fetch_unit #(
 
                             // use curr predicted fetch resp access in fetch req
                             // fetch_req_access_PC_VA = fetch_resp_curr_pred_PC_VA;
-                            use_fetch_resp_curr_pred_PC = 1'b1;
+                            // use_fetch_resp_curr_pred_PC = 1'b1;
 
                             // yield instr's
                             fetch_resp_instr_yield = 1'b1;
@@ -1454,7 +1512,8 @@ module fetch_unit #(
     always_comb begin
 
         // lbpt:
-        lbpt_valid_RESP = fetch_resp_selected_pred_info[7:6] == 2'b11;
+        // lbpt_valid_RESP = fetch_resp_selected_pred_info[7:6] == 2'b11;
+        lbpt_valid_RESP = fetch_resp_selected_complex_branch;
         lbpt_full_PC_RESP = {fetch_resp_PC_VA[31:4], fetch_resp_selected_index, 1'b0};
         lbpt_LH_RESP = fetch_resp_selected_LH;
         lbpt_ASID_RESP = fetch_req_ASID;
@@ -1469,7 +1528,8 @@ module fetch_unit #(
         lbpt_update0_taken = decode_unit_branch_update_is_taken;
 
         // gbpt:
-        gbpt_valid_RESP = fetch_resp_selected_pred_info[7:6] == 2'b11;
+        // gbpt_valid_RESP = fetch_resp_selected_pred_info[7:6] == 2'b11;
+        gbpt_valid_RESP = fetch_resp_selected_complex_branch;
         gbpt_full_PC_RESP = {fetch_resp_PC_VA[31:4], fetch_resp_selected_index, 1'b0};;
         gbpt_GH_RESP = ghr;
         gbpt_ASID_RESP = fetch_req_ASID;
