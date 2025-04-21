@@ -206,14 +206,15 @@ module fetch_unit #(
     ///////////////////////
 
     // state
-    typedef enum logic [1:0] {
-        FETCH_RESP_IDLE,
-        FETCH_RESP_ACTIVE,
-        FETCH_RESP_COMPLEX_BRANCH,
+    typedef enum logic [2:0] {
+        FETCH_RESP_IDLE = 3'b001,
+        FETCH_RESP_ACTIVE = 3'b010,
+        FETCH_RESP_COMPLEX_BRANCH = 3'b100
         // FETCH_RESP_ITLB_MISS, 
             // tlb misses are handled in ACTIVE and ICACHE_MISS states
             // can become TLB miss on invalidation during ICACHE_MISS
-        FETCH_RESP_ICACHE_MISS
+        // FETCH_RESP_ICACHE_MISS
+            // can resend icache misses no problem
     } fetch_resp_state_t;
 
     fetch_resp_state_t fetch_resp_state, next_fetch_resp_state;
@@ -681,7 +682,7 @@ module fetch_unit #(
         icache_resp_hit_valid = 1'b0;
         icache_resp_hit_way = 1'b0;
         icache_resp_miss_valid = 1'b0;
-        icache_resp_miss_tag = fetch_resp_PC_PA[31:32-ICACHE_TAG_WIDTH];
+        icache_resp_miss_tag = fetch_resp_PC_PA[PA_WIDTH-1:PA_WIDTH-ICACHE_TAG_WIDTH];
 
         // TODO: optimize hit path
 
@@ -691,13 +692,13 @@ module fetch_unit #(
             // page fault or access fault
             if (itlb_resp_page_fault | itlb_resp_access_fault) begin
 
-                // automatic ihit
+                // automatic ihit, don't bother generating cache miss
                 ihit = 1'b1;
             end
 
             // cache hit check way 0
-            if (icache_resp_valid_by_way[0] & 
-                icache_resp_tag_by_way[0] == fetch_resp_PC_PA[31:32-ICACHE_TAG_WIDTH]
+            else if (icache_resp_valid_by_way[0] & 
+                icache_resp_tag_by_way[0] == fetch_resp_PC_PA[PA_WIDTH-1:PA_WIDTH-ICACHE_TAG_WIDTH]
             ) begin
                 ihit = 1'b1;
                 fetch_resp_selected_instr_16B = icache_resp_instr_16B_by_way[0];
@@ -708,7 +709,7 @@ module fetch_unit #(
         
             // cache hit check way 1
             else if (icache_resp_valid_by_way[1] & 
-                icache_resp_tag_by_way[1] == fetch_resp_PC_PA[31:32-ICACHE_TAG_WIDTH]
+                icache_resp_tag_by_way[1] == fetch_resp_PC_PA[PA_WIDTH-1:PA_WIDTH-ICACHE_TAG_WIDTH]
             ) begin
                 ihit = 1'b1;
                 fetch_resp_selected_instr_16B = icache_resp_instr_16B_by_way[1];
@@ -723,8 +724,10 @@ module fetch_unit #(
 
                 // only send cache miss on first time missing
                     // can be in ACTIVE, COMPLEX_BRANCH, or ITLB_MISS state
-                icache_resp_miss_valid = fetch_resp_state != FETCH_RESP_ICACHE_MISS;
-                icache_resp_miss_tag = fetch_resp_PC_PA[31:32-ICACHE_TAG_WIDTH];
+                // icache_resp_miss_valid = fetch_resp_state != FETCH_RESP_ICACHE_MISS;
+                    // can resend icache misses no problem
+                icache_resp_miss_valid = 1'b1;
+                icache_resp_miss_tag = fetch_resp_PC_PA[PA_WIDTH-1:PA_WIDTH-ICACHE_TAG_WIDTH];
             end
         end
 
@@ -1227,14 +1230,14 @@ module fetch_unit #(
                     // fetch_req_access_PC_VA = fetch_resp_PC_VA;
                     use_fetch_resp_PC = 1'b1;
 
-                    // check itlb miss -> stay here
-                    if (~itlb_resp_valid) begin
-                        next_fetch_resp_state = FETCH_RESP_ACTIVE;
-                    end
-                    // otherwise, icache miss
-                    else begin
-                        next_fetch_resp_state = FETCH_RESP_ICACHE_MISS;
-                    end
+                    // // check itlb miss -> stay here
+                    // if (~itlb_resp_valid) begin
+                    //     next_fetch_resp_state = FETCH_RESP_ACTIVE;
+                    // end
+                    // // otherwise, icache miss
+                    // else begin
+                    //     next_fetch_resp_state = FETCH_RESP_ICACHE_MISS;
+                    // end
                 end
                 // check istream stall with icache hit
                 else if (istream_stall_SENQ) begin
@@ -1308,23 +1311,23 @@ module fetch_unit #(
                     // fetch_req_access_PC_VA = fetch_resp_PC_VA;
                     use_fetch_resp_PC = 1'b1;
 
-                    // check itlb miss -> stay here
-                    if (~itlb_resp_valid) begin
+                    // // check itlb miss -> stay here
+                    // if (~itlb_resp_valid) begin
                     
-                        // hold all complex branch state state
-                        next_fetch_resp_saved_one_hot = fetch_resp_saved_one_hot;
-                        next_fetch_resp_saved_cold_ack_mask = fetch_resp_saved_cold_ack_mask;
-                        next_fetch_resp_saved_index = fetch_resp_saved_index;
-                        next_fetch_resp_saved_pred_info = fetch_resp_saved_pred_info;
-                        next_fetch_resp_saved_target = fetch_resp_saved_target;
-                        next_fetch_resp_saved_LH = fetch_resp_saved_LH;
+                    //     // hold all complex branch state state
+                    //     next_fetch_resp_saved_one_hot = fetch_resp_saved_one_hot;
+                    //     next_fetch_resp_saved_cold_ack_mask = fetch_resp_saved_cold_ack_mask;
+                    //     next_fetch_resp_saved_index = fetch_resp_saved_index;
+                    //     next_fetch_resp_saved_pred_info = fetch_resp_saved_pred_info;
+                    //     next_fetch_resp_saved_target = fetch_resp_saved_target;
+                    //     next_fetch_resp_saved_LH = fetch_resp_saved_LH;
 
-                        next_fetch_resp_state = FETCH_RESP_COMPLEX_BRANCH;
-                    end
-                    // otherwise, icache miss
-                    else begin
-                        next_fetch_resp_state = FETCH_RESP_ICACHE_MISS;
-                    end
+                    //     next_fetch_resp_state = FETCH_RESP_COMPLEX_BRANCH;
+                    // end
+                    // // otherwise, icache miss
+                    // else begin
+                    //     next_fetch_resp_state = FETCH_RESP_ICACHE_MISS;
+                    // end
                 end
                 // if istream_stall_SENQ, hold all complex branch state
                 else if (istream_stall_SENQ) begin
@@ -1333,13 +1336,13 @@ module fetch_unit #(
                     // fetch_req_access_PC_VA = fetch_resp_PC_VA;
                     use_fetch_resp_PC = 1'b1;
                     
-                    // hold all complex branch state
-                    next_fetch_resp_saved_one_hot = fetch_resp_saved_one_hot;
-                    next_fetch_resp_saved_cold_ack_mask = fetch_resp_saved_cold_ack_mask;
-                    next_fetch_resp_saved_index = fetch_resp_saved_index;
-                    next_fetch_resp_saved_pred_info = fetch_resp_saved_pred_info;
-                    next_fetch_resp_saved_target = fetch_resp_saved_target;
-                    next_fetch_resp_saved_LH = fetch_resp_saved_LH;
+                    // // hold all complex branch state
+                    // next_fetch_resp_saved_one_hot = fetch_resp_saved_one_hot;
+                    // next_fetch_resp_saved_cold_ack_mask = fetch_resp_saved_cold_ack_mask;
+                    // next_fetch_resp_saved_index = fetch_resp_saved_index;
+                    // next_fetch_resp_saved_pred_info = fetch_resp_saved_pred_info;
+                    // next_fetch_resp_saved_target = fetch_resp_saved_target;
+                    // next_fetch_resp_saved_LH = fetch_resp_saved_LH;
                 end
                 // if hit, continue using complex branch state
                 else begin
@@ -1413,89 +1416,89 @@ module fetch_unit #(
                 end
             end
 
-            FETCH_RESP_ICACHE_MISS:
-            begin
-                // check miss
-                if (~ihit) begin
+            // FETCH_RESP_ICACHE_MISS:
+            // begin
+            //     // check miss
+            //     if (~ihit) begin
                     
-                    // redo current fetch resp access in fetch req
-                    // fetch_req_access_PC_VA = fetch_resp_PC_VA;
-                    use_fetch_resp_PC = 1'b1;
+            //         // redo current fetch resp access in fetch req
+            //         // fetch_req_access_PC_VA = fetch_resp_PC_VA;
+            //         use_fetch_resp_PC = 1'b1;
 
-                    // check itlb miss -> stay here
-                    if (~itlb_resp_valid) begin
-                        next_fetch_resp_state = FETCH_RESP_ICACHE_MISS;
-                    end
-                    // otherwise, icache miss
-                    else begin
-                        next_fetch_resp_state = FETCH_RESP_ICACHE_MISS;
-                    end
-                end
-                // check istream stall with icache hit
-                else if (istream_stall_SENQ) begin
+            //         // check itlb miss -> stay here
+            //         if (~itlb_resp_valid) begin
+            //             next_fetch_resp_state = FETCH_RESP_ICACHE_MISS;
+            //         end
+            //         // otherwise, icache miss
+            //         else begin
+            //             next_fetch_resp_state = FETCH_RESP_ICACHE_MISS;
+            //         end
+            //     end
+            //     // check istream stall with icache hit
+            //     else if (istream_stall_SENQ) begin
 
-                    // back to ACTIVE
-                    next_fetch_resp_state = FETCH_RESP_ACTIVE;
+            //         // back to ACTIVE
+            //         next_fetch_resp_state = FETCH_RESP_ACTIVE;
                     
-                    // redo current fetch resp access in fetch req
-                    // fetch_req_access_PC_VA = fetch_resp_PC_VA;
-                    use_fetch_resp_PC = 1'b1;
-                end
-                // otherwise, clean icache hit
-                else begin
+            //         // redo current fetch resp access in fetch req
+            //         // fetch_req_access_PC_VA = fetch_resp_PC_VA;
+            //         use_fetch_resp_PC = 1'b1;
+            //     end
+            //     // otherwise, clean icache hit
+            //     else begin
 
-                    // back to ACTIVE
-                    next_fetch_resp_state = FETCH_RESP_ACTIVE;
+            //         // back to ACTIVE
+            //         next_fetch_resp_state = FETCH_RESP_ACTIVE;
 
-                    // can perform pred actions
-                    fetch_resp_perform_pred_actions = 1'b1;
+            //         // can perform pred actions
+            //         fetch_resp_perform_pred_actions = 1'b1;
 
-                    // check for pred
-                    if (fetch_resp_pred_present) begin
-                        use_fetch_resp_curr_pred_PC = 1'b1;
+            //         // check for pred
+            //         if (fetch_resp_pred_present) begin
+            //             use_fetch_resp_curr_pred_PC = 1'b1;
 
-                        // check for complex branch
-                        // if (fetch_resp_selected_pred_info[7:6] == 2'b11) begin
-                        if (fetch_resp_selected_complex_branch) begin
+            //             // check for complex branch
+            //             // if (fetch_resp_selected_pred_info[7:6] == 2'b11) begin
+            //             if (fetch_resp_selected_complex_branch) begin
 
-                            // redo current fetch resp access in fetch req
-                            // fetch_req_access_PC_VA = fetch_resp_PC_VA;
-                            // use_fetch_resp_PC = 1'b1;
+            //                 // redo current fetch resp access in fetch req
+            //                 // fetch_req_access_PC_VA = fetch_resp_PC_VA;
+            //                 // use_fetch_resp_PC = 1'b1;
 
-                            // will get complex branch info next cycle
-                            next_fetch_resp_state = FETCH_RESP_COMPLEX_BRANCH;
+            //                 // will get complex branch info next cycle
+            //                 next_fetch_resp_state = FETCH_RESP_COMPLEX_BRANCH;
 
-                            // save complex branch state
-                            next_fetch_resp_saved_one_hot = fetch_resp_selected_one_hot;
-                            next_fetch_resp_saved_cold_ack_mask = fetch_resp_selected_cold_ack_mask;
-                            next_fetch_resp_saved_index = fetch_resp_selected_index;
-                            next_fetch_resp_saved_pred_info = fetch_resp_selected_pred_info;
-                            next_fetch_resp_saved_target = fetch_resp_selected_target;
-                            next_fetch_resp_saved_LH = fetch_resp_selected_LH;
+            //                 // save complex branch state
+            //                 next_fetch_resp_saved_one_hot = fetch_resp_selected_one_hot;
+            //                 next_fetch_resp_saved_cold_ack_mask = fetch_resp_selected_cold_ack_mask;
+            //                 next_fetch_resp_saved_index = fetch_resp_selected_index;
+            //                 next_fetch_resp_saved_pred_info = fetch_resp_selected_pred_info;
+            //                 next_fetch_resp_saved_target = fetch_resp_selected_target;
+            //                 next_fetch_resp_saved_LH = fetch_resp_selected_LH;
 
-                            // no instr yields yet
-                            fetch_resp_instr_yield = 1'b0;
-                        end
+            //                 // no instr yields yet
+            //                 fetch_resp_instr_yield = 1'b0;
+            //             end
 
-                        // otherwise, branch or jump
-                        else begin
+            //             // otherwise, branch or jump
+            //             else begin
 
-                            // use curr predicted fetch resp access in fetch req
-                            // fetch_req_access_PC_VA = fetch_resp_curr_pred_PC_VA;
-                            // use_fetch_resp_curr_pred_PC = 1'b1;
+            //                 // use curr predicted fetch resp access in fetch req
+            //                 // fetch_req_access_PC_VA = fetch_resp_curr_pred_PC_VA;
+            //                 // use_fetch_resp_curr_pred_PC = 1'b1;
 
-                            // yield instr's
-                            fetch_resp_instr_yield = 1'b1;
-                        end
-                    end
-                    // otherwise, simple move on
-                    else begin
+            //                 // yield instr's
+            //                 fetch_resp_instr_yield = 1'b1;
+            //             end
+            //         end
+            //         // otherwise, simple move on
+            //         else begin
 
-                        // yield instr's
-                        fetch_resp_instr_yield = 1'b1;
-                    end
-                end
-            end
+            //             // yield instr's
+            //             fetch_resp_instr_yield = 1'b1;
+            //         end
+            //     end
+            // end
 
         endcase
     end
