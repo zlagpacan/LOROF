@@ -50,7 +50,7 @@ package core_types_pkg;
     parameter ALU_REG_MDU_IQ_ENTRIES = 8;
     parameter ALU_IMM_IQ_ENTRIES = 8;
     parameter BRU_IQ_ENTRIES = 4;
-    parameter SYS_IQ_ENTRIES = 4;
+    parameter SYS_DQ_ENTRIES = 4;
 
     // ----------------------------------------------------------------
     // Fetch Predictors:

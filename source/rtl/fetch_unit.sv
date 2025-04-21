@@ -129,13 +129,13 @@ module fetch_unit #(
     logic use_fetch_resp_curr_pred_PC;
     logic use_fetch_resp_saved_pred_PC;
 
-    // PC arithmetic
-    logic [27:0] fetch_req_PC28_plus_1;
-    logic [27:0] fetch_resp_PC28_plus_1;
-    logic [7:0][27:0] fetch_resp_curr_pred_PC28_plus_1_by_instr;
-    logic [27:0] fetch_resp_curr_pred_PC28_plus_1;
-    logic [27:0] fetch_resp_saved_pred_PC28_plus_1;
-    logic [27:0] fetch_req_access_PC28_plus_1;
+    // // PC arithmetic
+    // logic [27:0] fetch_req_PC28_plus_1;
+    // logic [27:0] fetch_resp_PC28_plus_1;
+    // logic [7:0][27:0] fetch_resp_curr_pred_PC28_plus_1_by_instr;
+    // logic [27:0] fetch_resp_curr_pred_PC28_plus_1;
+    // logic [27:0] fetch_resp_saved_pred_PC28_plus_1;
+    // logic [27:0] fetch_req_access_PC28_plus_1;
 
     // modules:
 
@@ -236,7 +236,7 @@ module fetch_unit #(
     logic fetch_resp_perform_pred_actions;
 
     // ghr
-    logic [GH_LENGTH-1:0] ghr, next_ghr;
+    logic [GH_LENGTH-1:0] ghr;
 
     // hit logic
     logic ihit;
@@ -419,10 +419,7 @@ module fetch_unit #(
     always_comb begin
 
         next_fetch_req_wait_for_restart_state = fetch_req_wait_for_restart_state;
-        // next_fetch_req_PC_VA = fetch_req_PC_VA;
-        next_fetch_req_PC_VA = {
-            fetch_req_access_PC28_plus_1,
-            4'b0000};
+        next_fetch_req_PC_VA = fetch_req_access_PC_VA;
         next_fetch_req_ASID = fetch_req_ASID;
         next_fetch_req_exec_mode = fetch_req_exec_mode;
         next_fetch_req_virtual_mode = fetch_req_virtual_mode;
@@ -446,9 +443,7 @@ module fetch_unit #(
         end
         else begin
             next_fetch_req_wait_for_restart_state = 1'b0;
-            next_fetch_req_PC_VA = {
-                fetch_req_access_PC28_plus_1,
-                4'b0000};
+            next_fetch_req_PC_VA = fetch_req_access_PC_VA;
         end
     end
 
@@ -532,12 +527,12 @@ module fetch_unit #(
         itlb_req_valid = fetch_req_valid;
         itlb_req_exec_mode = fetch_req_exec_mode;
         itlb_req_virtual_mode = fetch_req_virtual_mode;
-        itlb_req_vpn = fetch_req_access_PC_VA;
+        itlb_req_vpn = fetch_req_access_PC_VA[VA_WIDTH-1:VA_WIDTH-VPN_WIDTH];
         itlb_req_ASID = fetch_req_ASID;
 
         // icache:
         icache_req_valid = fetch_req_valid;
-        icache_req_block_offset = fetch_req_access_PC_VA[ICACHE_BLOCK_OFFSET_WIDTH]; // choose first or second 16B of 32B block
+        icache_req_block_offset = fetch_req_access_PC_VA[ICACHE_BLOCK_OFFSET_WIDTH-1]; // choose first or second 16B of 32B block
         icache_req_index = fetch_req_access_PC_VA[
             ICACHE_INDEX_WIDTH + ICACHE_BLOCK_OFFSET_WIDTH - 1 : ICACHE_BLOCK_OFFSET_WIDTH
         ];
@@ -576,7 +571,7 @@ module fetch_unit #(
         .update0_LH(lht_update0_LH)
     );
 
-    mdpt MPDT (
+    mdpt MDPT (
         .CLK(CLK),
         .nRST(nRST),
         .valid_REQ(mdpt_valid_REQ),
@@ -1143,43 +1138,46 @@ module fetch_unit #(
         else if (use_fetch_resp_curr_pred_PC) begin
             fetch_req_access_PC_VA = fetch_resp_curr_pred_PC_VA;
         end
-        else begin
+        else if (fetch_resp_state == FETCH_RESP_IDLE) begin
             fetch_req_access_PC_VA = fetch_req_PC_VA;
         end
+        else begin
+            fetch_req_access_PC_VA = {fetch_req_PC_VA[31:4] + 28'h1, 4'b0000};
+        end 
         
         // fetch_req_access_PC_VA = fetch_req_PC_VA;
     end
 
-    // fetch req PC arithmetic
-    always_comb begin
-        // fetch_req_PC28_plus_1 = fetch_req_PC_VA[31:4] + 28'h1;
-        // fetch_resp_PC28_plus_1 = fetch_resp_PC_VA[31:4] + 28'h1;
-        // fetch_resp_curr_pred_PC28_plus_1 = fetch_resp_curr_pred_PC_VA[31:4] + 28'h1;
-        // fetch_resp_saved_pred_PC28_plus_1 = fetch_resp_saved_pred_PC_VA[31:4] + 28'h1;
+    // // fetch req PC arithmetic
+    // always_comb begin
+    //     // fetch_req_PC28_plus_1 = fetch_req_PC_VA[31:4] + 28'h1;
+    //     // fetch_resp_PC28_plus_1 = fetch_resp_PC_VA[31:4] + 28'h1;
+    //     // // fetch_resp_curr_pred_PC28_plus_1 = fetch_resp_curr_pred_PC_VA[31:4] + 28'h1;
+    //     // fetch_resp_saved_pred_PC28_plus_1 = fetch_resp_saved_pred_PC_VA[31:4] + 28'h1;
 
-        // fetch_resp_curr_pred_PC28_plus_1 = '0;
-        // for (int instr = 0; instr < 8; instr++) begin
-        //     fetch_resp_curr_pred_PC28_plus_1_by_instr[instr] = fetch_resp_curr_pred_PC_VA_by_instr[instr][31:4] + 28'h1;
-        //     if (fetch_resp_selected_one_hot[instr]) begin
-        //         fetch_resp_curr_pred_PC28_plus_1 |= fetch_resp_curr_pred_PC28_plus_1_by_instr[instr];
-        //     end
-        // end
+    //     // fetch_resp_curr_pred_PC28_plus_1 = '0;
+    //     // for (int instr = 0; instr < 8; instr++) begin
+    //     //     fetch_resp_curr_pred_PC28_plus_1_by_instr[instr] = fetch_resp_curr_pred_PC_VA_by_instr[instr][31:4] + 28'h1;
+    //     //     if (fetch_resp_selected_one_hot[instr]) begin
+    //     //         fetch_resp_curr_pred_PC28_plus_1 |= fetch_resp_curr_pred_PC28_plus_1_by_instr[instr];
+    //     //     end
+    //     // end
         
-        if (use_fetch_resp_PC) begin
-            fetch_req_access_PC28_plus_1 = fetch_resp_PC28_plus_1;
-        end
-        else if (use_fetch_resp_saved_pred_PC) begin
-            fetch_req_access_PC28_plus_1 = fetch_resp_saved_pred_PC28_plus_1;
-        end
-        else if (use_fetch_resp_curr_pred_PC) begin
-            fetch_req_access_PC28_plus_1 = fetch_resp_curr_pred_PC28_plus_1;
-        end
-        else begin
-            fetch_req_access_PC28_plus_1 = fetch_req_PC28_plus_1;
-        end
+    //     // if (use_fetch_resp_PC) begin
+    //     //     fetch_req_access_PC28_plus_1 = fetch_resp_PC28_plus_1;
+    //     // end
+    //     // else if (use_fetch_resp_saved_pred_PC) begin
+    //     //     fetch_req_access_PC28_plus_1 = fetch_resp_saved_pred_PC28_plus_1;
+    //     // end
+    //     // else if (use_fetch_resp_curr_pred_PC) begin
+    //     //     fetch_req_access_PC28_plus_1 = fetch_resp_curr_pred_PC28_plus_1;
+    //     // end
+    //     // else begin
+    //     //     fetch_req_access_PC28_plus_1 = fetch_req_PC28_plus_1;
+    //     // end
 
-        // fetch_req_access_PC28_plus_1 = fetch_req_access_PC_VA;
-    end
+    //     // fetch_req_access_PC28_plus_1 = fetch_req_access_PC_VA;
+    // end
 
     // state machine + control + interruptable access PC
     always_comb begin
