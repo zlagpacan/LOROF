@@ -451,4 +451,6 @@ module lsq (
             // can easily freeze pipeline if have dTLB miss return
             // uncommon case anyway
 
+        // killed loads need to complete their writes so that dependent garbage instructions in other pipelines can finish
+
 endmodule

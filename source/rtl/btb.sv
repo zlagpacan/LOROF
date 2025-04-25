@@ -57,7 +57,8 @@ module btb (
     logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0] array_pred_lru_by_instr_RESP;
 
     // replicated tags
-    logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TAG_WIDTH-1:0] replicated_tags_by_instr_RESP;
+    // logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TAG_WIDTH-1:0] replicated_tags_by_instr_RESP;
+    logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][1:0][BTB_TAG_WIDTH-1:0] replicated_tags_by_instr_by_way_RESP;
 
     // VTM's
     logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][1:0] vtm_by_instr_by_way_RESP;
@@ -99,11 +100,13 @@ module btb (
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            replicated_tags_by_instr_RESP <= '0;
+            // replicated_tags_by_instr_RESP <= '0;
+            replicated_tags_by_instr_by_way_RESP <= '0;
             array_pred_lru_by_instr_RESP <= '0;
         end
         else begin
-            replicated_tags_by_instr_RESP <= {BTB_NWAY_ENTRIES_PER_BLOCK{hashed_tag_REQ}};
+            // replicated_tags_by_instr_RESP <= {BTB_NWAY_ENTRIES_PER_BLOCK{hashed_tag_REQ}};
+            replicated_tags_by_instr_by_way_RESP <= {(BTB_NWAY_ENTRIES_PER_BLOCK*2){hashed_tag_REQ}};
             array_pred_lru_by_instr_RESP <= array_pred_lru_by_instr_REQ;
         end
     end
@@ -114,8 +117,14 @@ module btb (
         for (int i = 0; i < BTB_NWAY_ENTRIES_PER_BLOCK; i++) begin
 
             // check way 0 and way 1 for vtm
-            vtm_by_instr_by_way_RESP[i][0] = replicated_tags_by_instr_RESP[i] == array_pred_info_tag_target_by_instr_by_way_RESP[i][0].tag;
-            vtm_by_instr_by_way_RESP[i][1] = replicated_tags_by_instr_RESP[i] == array_pred_info_tag_target_by_instr_by_way_RESP[i][1].tag;
+            // vtm_by_instr_by_way_RESP[i][0] = 
+            //     replicated_tags_by_instr_RESP[i] == array_pred_info_tag_target_by_instr_by_way_RESP[i][0].tag;
+            // vtm_by_instr_by_way_RESP[i][1] = 
+            //     replicated_tags_by_instr_RESP[i] == array_pred_info_tag_target_by_instr_by_way_RESP[i][1].tag;
+            vtm_by_instr_by_way_RESP[i][0] = 
+                replicated_tags_by_instr_by_way_RESP[i][0] == array_pred_info_tag_target_by_instr_by_way_RESP[i][0].tag;
+            vtm_by_instr_by_way_RESP[i][1] = 
+                replicated_tags_by_instr_by_way_RESP[i][1] == array_pred_info_tag_target_by_instr_by_way_RESP[i][1].tag;
 
             // pred info one-hot mux
             pred_info_by_instr_RESP[i] = 
