@@ -1567,7 +1567,8 @@ module fetch_unit #(
 
         ras_update0_valid = 
             decode_unit_branch_update_valid
-            & decode_unit_branch_update_has_checkpoint;
+            & decode_unit_branch_update_has_checkpoint
+            & decode_unit_branch_update_is_mispredict;
         ras_update0_ras_index = decode_unit_branch_update_ras_index;
     end
 
