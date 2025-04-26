@@ -1320,24 +1320,14 @@ module fetch_unit #(
                     // redo current fetch resp access in fetch req
                     // fetch_req_access_PC_VA = fetch_resp_PC_VA;
                     use_fetch_resp_PC = 1'b1;
-
-                    // // check itlb miss -> stay here
-                    // if (~itlb_resp_valid) begin
                     
-                    //     // hold all complex branch state state
-                    //     next_fetch_resp_saved_one_hot = fetch_resp_saved_one_hot;
-                    //     next_fetch_resp_saved_cold_ack_mask = fetch_resp_saved_cold_ack_mask;
-                    //     next_fetch_resp_saved_index = fetch_resp_saved_index;
-                    //     next_fetch_resp_saved_pred_info = fetch_resp_saved_pred_info;
-                    //     next_fetch_resp_saved_target = fetch_resp_saved_target;
-                    //     next_fetch_resp_saved_LH = fetch_resp_saved_LH;
-
-                    //     next_fetch_resp_state = FETCH_RESP_COMPLEX_BRANCH;
-                    // end
-                    // // otherwise, icache miss
-                    // else begin
-                    //     next_fetch_resp_state = FETCH_RESP_ICACHE_MISS;
-                    // end
+                    // hold all complex branch state state
+                    next_fetch_resp_saved_one_hot = fetch_resp_saved_one_hot;
+                    next_fetch_resp_saved_cold_ack_mask = fetch_resp_saved_cold_ack_mask;
+                    next_fetch_resp_saved_index = fetch_resp_saved_index;
+                    next_fetch_resp_saved_pred_info = fetch_resp_saved_pred_info;
+                    next_fetch_resp_saved_target = fetch_resp_saved_target;
+                    next_fetch_resp_saved_LH = fetch_resp_saved_LH;
                 end
                 // if istream_stall_SENQ, hold all complex branch state
                 else if (istream_stall_SENQ) begin
@@ -1346,13 +1336,13 @@ module fetch_unit #(
                     // fetch_req_access_PC_VA = fetch_resp_PC_VA;
                     use_fetch_resp_PC = 1'b1;
                     
-                    // // hold all complex branch state
-                    // next_fetch_resp_saved_one_hot = fetch_resp_saved_one_hot;
-                    // next_fetch_resp_saved_cold_ack_mask = fetch_resp_saved_cold_ack_mask;
-                    // next_fetch_resp_saved_index = fetch_resp_saved_index;
-                    // next_fetch_resp_saved_pred_info = fetch_resp_saved_pred_info;
-                    // next_fetch_resp_saved_target = fetch_resp_saved_target;
-                    // next_fetch_resp_saved_LH = fetch_resp_saved_LH;
+                    // hold all complex branch state
+                    next_fetch_resp_saved_one_hot = fetch_resp_saved_one_hot;
+                    next_fetch_resp_saved_cold_ack_mask = fetch_resp_saved_cold_ack_mask;
+                    next_fetch_resp_saved_index = fetch_resp_saved_index;
+                    next_fetch_resp_saved_pred_info = fetch_resp_saved_pred_info;
+                    next_fetch_resp_saved_target = fetch_resp_saved_target;
+                    next_fetch_resp_saved_LH = fetch_resp_saved_LH;
                 end
                 // if hit, continue using complex branch state
                 else begin

@@ -496,7 +496,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h0;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -599,7 +608,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h0;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -710,7 +728,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h0;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -815,7 +842,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h12340000;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -920,7 +956,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h12340000;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -1025,7 +1070,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h12340000;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -1130,7 +1184,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h12340000;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -1235,7 +1298,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h12340000;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -1340,7 +1412,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h12340010;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -1445,7 +1526,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h12340020;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -1550,7 +1640,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h12340020;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -1655,7 +1754,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h12340020;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -1760,7 +1868,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h12340030;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -1792,19 +1909,34 @@ module fetch_unit_tb ();
 			// "\t\tbranch update 5677FFF2 nothing"
 			
 			// "\t\tbranch update BCDEFFE6 complex B local A NT -> BCDEFFFC",
-				// "\n\t\t\tlocal A AA->58, global 123->246"
+				// "\n\t\t\tlocal A AA->54, global 123->246"
+
 			// "\t\tbranch update BCDEFFE8 complex B global B NT -> BCDF0004",
 				// "\n\t\t\tlocal B BB->76, global 246->48C"
+
 			// "\t\tbranch update BCDEFFFE complex B local C T -> BCDEFFE4",
 				// "\n\t\t\tlocal C CC->99, global 48C->919"
+			// "\t\tsecond branch update BCDEFFFE complex B local C T -> BCDEFFE4",
+				// "\n\t\t\tlocal C CC->99, global 48C->919"
+
 			// "\t\tbranch update BCDEFFE6 complex B local A T -> BCDEFFFC",
-				// "\n\t\t\tlocal A 58->B0, global 919->233"
+				// "\n\t\t\tlocal A 54->B0, global 919->233"
+			// "\t\tsecond branch update BCDEFFE6 complex B local A T -> BCDEFFFC",
+				// "\n\t\t\tlocal A 54->B0, global 919->233"
+
 			// "\t\tbranch update BCDEFFFE complex B local C NT -> BCDEFFE4",
 				// "\n\t\t\tlocal C 99->32, global 233->466"
+
 			// "\t\tbranch update BCDF0006 complex B global D T -> BCDEFFE8",
 				// "\n\t\t\tlocal D DD->BB, global 466->8CD"
+			// "\t\tsecond branch update BCDF0006 complex B global D T -> BCDEFFE8",
+				// "\n\t\t\tlocal D DD->BB, global 466->8CD"
+
 			// "\t\tbranch update BCDEFFE8 complex B global B T -> BCDF0004",
 				// "\n\t\t\tlocal B 76->ED, global 8CD->19B"
+			// "\t\tsecond branch update BCDEFFE8 complex B global B T -> BCDF0004",
+				// "\n\t\t\tlocal B 76->ED, global 8CD->19B"
+
 			// "\t\tbranch update BCDF0006 complex B global D NT -> BCDEFFE8",
 				// "\n\t\t\tlocal D BB->76, global 19B->336"
 
@@ -1814,7 +1946,7 @@ module fetch_unit_tb ();
 				// "\n\t\t\tLH=BB, GH=FFF"
 			// "\t\tbranch update BCDEFFFE complex B local C -> BCDEFFE4",
 				// "\n\t\t\tLH=CC, GH=FFE"
-			// "\t\tbranch update BCDF0006 complex B local D -> BCDEFFE8",
+			// "\t\tbranch update BCDF0006 complex B global D -> BCDEFFE8",
 				// "\n\t\t\tLH=DD, GH=123, ras_index=2"
 
 			// "\t\tbranch update BCDF000A J -> 80808080"
@@ -1914,7 +2046,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h12340040;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -2022,7 +2163,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h12340050;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -2130,7 +2280,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h12340060;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -2238,7 +2397,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h12340070;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -2346,7 +2514,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h12340080;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -2454,7 +2631,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h12340090;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -2562,7 +2748,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h123400A0;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -2670,7 +2865,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h123400B0;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -2691,7 +2895,7 @@ module fetch_unit_tb ();
 		sub_test_case = {
 			"req: 123400C0, resp: 123400B0 ihit\n",
 			"\t\tbranch update BCDEFFE6 complex B local A NT -> BCDEFFFC",
-				"\n\t\t\tlocal A AA->58, global 123->246"
+				"\n\t\t\tlocal A AA->54, global 123->246"
 		};
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -2737,10 +2941,10 @@ module fetch_unit_tb ();
 		tb_decode_unit_branch_update_GH = 12'hFFF;
 		tb_decode_unit_branch_update_ras_index = 3'h7;
 	    // mdpt update
-		tb_mdpt_update_valid = 1'b0;
-		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_valid = 1'b1;
+		tb_mdpt_update_start_full_PC = 32'hBCDEFFE6;
 		tb_mdpt_update_ASID = 9'h0;
-		tb_mdpt_update_mdp_info = 8'h0;
+		tb_mdpt_update_mdp_info = 8'hA5;
 
 		@(negedge CLK);
 
@@ -2779,7 +2983,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h123400C0;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -2842,14 +3055,14 @@ module fetch_unit_tb ();
 		tb_decode_unit_branch_update_pred_lru = 1'b1;
 		tb_decode_unit_branch_update_start_PC = 32'hBCDEFFE8;
 		tb_decode_unit_branch_update_target_PC = 32'hBCDF0004;
-		tb_decode_unit_branch_update_LH = 8'hBB;
+		tb_decode_unit_branch_update_LH = 8'hFF;
 		tb_decode_unit_branch_update_GH = 12'h246;
 		tb_decode_unit_branch_update_ras_index = 3'h7;
 	    // mdpt update
-		tb_mdpt_update_valid = 1'b0;
-		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_valid = 1'b1;
+		tb_mdpt_update_start_full_PC = 32'hBCDEFFE8;
 		tb_mdpt_update_ASID = 9'h0;
-		tb_mdpt_update_mdp_info = 8'h0;
+		tb_mdpt_update_mdp_info = 8'hB4;
 
 		@(negedge CLK);
 
@@ -2888,7 +3101,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h123400D0;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -2952,13 +3174,13 @@ module fetch_unit_tb ();
 		tb_decode_unit_branch_update_start_PC = 32'hBCDEFFFE;
 		tb_decode_unit_branch_update_target_PC = 32'hBCDEFFE4;
 		tb_decode_unit_branch_update_LH = 8'hCC;
-		tb_decode_unit_branch_update_GH = 12'h48C;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
 		tb_decode_unit_branch_update_ras_index = 3'h7;
 	    // mdpt update
-		tb_mdpt_update_valid = 1'b0;
-		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_valid = 1'b1;
+		tb_mdpt_update_start_full_PC = 32'hBCDEFFFE;
 		tb_mdpt_update_ASID = 9'h0;
-		tb_mdpt_update_mdp_info = 8'h0;
+		tb_mdpt_update_mdp_info = 8'hC3;
 
 		@(negedge CLK);
 
@@ -2997,7 +3219,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h123400E0;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -3017,8 +3248,8 @@ module fetch_unit_tb ();
 		// inputs
 		sub_test_case = {
 			"req: 123400F0, resp: 123400E0 ihit\n",
-			"\t\tbranch update BCDEFFE6 complex B local A T -> BCDEFFFC",
-				"\n\t\t\tlocal A 58->B0, global 919->233"
+			"\t\tsecond branch update BCDEFFFE complex B local C T -> BCDEFFE4",
+				"\n\t\t\tlocal C CC->99, global 48C->919"
 		};
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -3058,10 +3289,10 @@ module fetch_unit_tb ();
 		tb_decode_unit_branch_update_use_upct = 1'b0;
 		tb_decode_unit_branch_update_intermediate_pred_info = 8'b11010000;
 		tb_decode_unit_branch_update_pred_lru = 1'b0;
-		tb_decode_unit_branch_update_start_PC = 32'hBCDEFFE6;
-		tb_decode_unit_branch_update_target_PC = 32'hBCDEFFFC;
-		tb_decode_unit_branch_update_LH = 8'h58;
-		tb_decode_unit_branch_update_GH = 12'h919;
+		tb_decode_unit_branch_update_start_PC = 32'hBCDEFFFE;
+		tb_decode_unit_branch_update_target_PC = 32'hBCDEFFE4;
+		tb_decode_unit_branch_update_LH = 8'hCC;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
 		tb_decode_unit_branch_update_ras_index = 3'h7;
 	    // mdpt update
 		tb_mdpt_update_valid = 1'b0;
@@ -3106,7 +3337,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h123400F0;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
@@ -3126,6 +3366,242 @@ module fetch_unit_tb ();
 		// inputs
 		sub_test_case = {
 			"req: 12340100, resp: 123400F0 ihit\n",
+			"\t\tbranch update BCDEFFE6 complex B local A T -> BCDEFFFC",
+				"\n\t\t\tlocal A 54->B0, global 919->233"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b01;
+		tb_icache_resp_tag_by_way = {22'h56789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b0;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b1;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b1;
+		tb_decode_unit_branch_update_is_complex = 1'b1;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'b11010000;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hBCDEFFE6;
+		tb_decode_unit_branch_update_target_PC = 32'hBCDEFFFC;
+		tb_decode_unit_branch_update_LH = 8'h54;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b0;
+		expected_icache_req_index = 7'h8;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b0;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h123456;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b1;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b11111111;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'hfedcba98765432100123456789abcdef;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'h12340100;
+		expected_istream_LH_SENQ = 8'h0;
+		expected_istream_GH_SENQ = 12'h0;
+		expected_istream_ras_index_SENQ = 3'h0;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: 12340110, resp: 12340100 ihit\n",
+			"\t\tsecond branch update BCDEFFE6 complex B local A T -> BCDEFFFC",
+				"\n\t\t\tlocal A 54->B0, global 919->233"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b01;
+		tb_icache_resp_tag_by_way = {22'h56789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b0;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b1;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b1;
+		tb_decode_unit_branch_update_is_complex = 1'b1;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'b11010000;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hBCDEFFE6;
+		tb_decode_unit_branch_update_target_PC = 32'hBCDEFFFC;
+		tb_decode_unit_branch_update_LH = 8'h54;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b1;
+		expected_icache_req_index = 7'h8;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b0;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h123456;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b1;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b11111111;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'hfedcba98765432100123456789abcdef;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'h12340110;
+		expected_istream_LH_SENQ = 8'h0;
+		expected_istream_GH_SENQ = 12'h0;
+		expected_istream_ras_index_SENQ = 3'h0;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: 12340120, resp: 12340110 ihit\n",
 			"\t\tbranch update BCDEFFFE complex B local C NT -> BCDEFFE4",
 				"\n\t\t\tlocal C 99->32, global 233->466"
 		};
@@ -3170,7 +3646,7 @@ module fetch_unit_tb ();
 		tb_decode_unit_branch_update_start_PC = 32'hBCDEFFFE;
 		tb_decode_unit_branch_update_target_PC = 32'hBCDEFFE4;
 		tb_decode_unit_branch_update_LH = 8'h99;
-		tb_decode_unit_branch_update_GH = 12'h233;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
 		tb_decode_unit_branch_update_ras_index = 3'h7;
 	    // mdpt update
 		tb_mdpt_update_valid = 1'b0;
@@ -3192,7 +3668,7 @@ module fetch_unit_tb ();
 	    // icache req
 		expected_icache_req_valid = 1'b1;
 		expected_icache_req_block_offset = 1'b0;
-		expected_icache_req_index = 7'h8;
+		expected_icache_req_index = 7'h9;
 	    // icache resp
 	    // icache resp feedback
 		expected_icache_resp_hit_valid = 1'b1;
@@ -3215,8 +3691,17 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
-		expected_istream_after_PC_SENQ = 32'h12340100;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'h12340120;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
 		expected_istream_ras_index_SENQ = 3'h0;
@@ -3234,7 +3719,7 @@ module fetch_unit_tb ();
 
 		// inputs
 		sub_test_case = {
-			"req: 12340110, resp: 12340100 ihit\n",
+			"req: 12340130, resp: 12340120 ihit\n",
 			"\t\tbranch update BCDF0006 complex B global D T -> BCDEFFE8",
 				"\n\t\t\tlocal D DD->BB, global 466->8CD"
 		};
@@ -3278,14 +3763,14 @@ module fetch_unit_tb ();
 		tb_decode_unit_branch_update_pred_lru = 1'b1;
 		tb_decode_unit_branch_update_start_PC = 32'hBCDF0006;
 		tb_decode_unit_branch_update_target_PC = 32'hBCDEFFE8;
-		tb_decode_unit_branch_update_LH = 8'hDD;
+		tb_decode_unit_branch_update_LH = 8'hFF;
 		tb_decode_unit_branch_update_GH = 12'h466;
 		tb_decode_unit_branch_update_ras_index = 3'h7;
 	    // mdpt update
-		tb_mdpt_update_valid = 1'b0;
-		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_valid = 1'b1;
+		tb_mdpt_update_start_full_PC = 32'hBCDF0006;
 		tb_mdpt_update_ASID = 9'h0;
-		tb_mdpt_update_mdp_info = 8'h0;
+		tb_mdpt_update_mdp_info = 8'hD2;
 
 		@(negedge CLK);
 
@@ -3301,7 +3786,7 @@ module fetch_unit_tb ();
 	    // icache req
 		expected_icache_req_valid = 1'b1;
 		expected_icache_req_block_offset = 1'b1;
-		expected_icache_req_index = 7'h8;
+		expected_icache_req_index = 7'h9;
 	    // icache resp
 	    // icache resp feedback
 		expected_icache_resp_hit_valid = 1'b1;
@@ -3324,8 +3809,17 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
-		expected_istream_after_PC_SENQ = 32'h12340110;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'h12340130;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
 		expected_istream_ras_index_SENQ = 3'h0;
@@ -3343,7 +3837,125 @@ module fetch_unit_tb ();
 
 		// inputs
 		sub_test_case = {
-			"req: 12340120, resp: 12340110 ihit\n",
+			"req: 12340140, resp: 12340130 ihit\n",
+			"\t\tsecond branch update BCDF0006 complex B global D T -> BCDEFFE8",
+				"\n\t\t\tlocal D DD->BB, global 466->8CD"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b01;
+		tb_icache_resp_tag_by_way = {22'h56789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b0;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b1;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b1;
+		tb_decode_unit_branch_update_is_complex = 1'b1;
+		tb_decode_unit_branch_update_use_upct = 1'b1;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'b11110000;
+		tb_decode_unit_branch_update_pred_lru = 1'b1;
+		tb_decode_unit_branch_update_start_PC = 32'hBCDF0006;
+		tb_decode_unit_branch_update_target_PC = 32'hBCDEFFE8;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'h466;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b0;
+		expected_icache_req_index = 7'hA;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b0;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h123456;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b1;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b11111111;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'hfedcba98765432100123456789abcdef;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'h12340140;
+		expected_istream_LH_SENQ = 8'h0;
+		expected_istream_GH_SENQ = 12'h0;
+		expected_istream_ras_index_SENQ = 3'h0;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: 12340150, resp: 12340140 ihit\n",
 			"\t\tbranch update BCDEFFE8 complex B global B T -> BCDF0004",
 				"\n\t\t\tlocal B 76->ED, global 8CD->19B"
 		};
@@ -3387,7 +3999,7 @@ module fetch_unit_tb ();
 		tb_decode_unit_branch_update_pred_lru = 1'b1;
 		tb_decode_unit_branch_update_start_PC = 32'hBCDEFFE8;
 		tb_decode_unit_branch_update_target_PC = 32'hBCDF0004;
-		tb_decode_unit_branch_update_LH = 8'h76;
+		tb_decode_unit_branch_update_LH = 8'hFF;
 		tb_decode_unit_branch_update_GH = 12'h8CD;
 		tb_decode_unit_branch_update_ras_index = 3'h7;
 	    // mdpt update
@@ -3409,8 +4021,8 @@ module fetch_unit_tb ();
 	    // itlb resp
 	    // icache req
 		expected_icache_req_valid = 1'b1;
-		expected_icache_req_block_offset = 1'b0;
-		expected_icache_req_index = 7'h9;
+		expected_icache_req_block_offset = 1'b1;
+		expected_icache_req_index = 7'hA;
 	    // icache resp
 	    // icache resp feedback
 		expected_icache_resp_hit_valid = 1'b1;
@@ -3433,8 +4045,17 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
-		expected_istream_after_PC_SENQ = 32'h12340120;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'h12340150;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
 		expected_istream_ras_index_SENQ = 3'h0;
@@ -3452,7 +4073,125 @@ module fetch_unit_tb ();
 
 		// inputs
 		sub_test_case = {
-			"req: 12340130, resp: 12340120 ihit\n",
+			"req: 12340160, resp: 12340150 ihit\n",
+			"\t\tsecond branch update BCDEFFE8 complex B global B T -> BCDF0004",
+				"\n\t\t\tlocal B 76->ED, global 8CD->19B"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b01;
+		tb_icache_resp_tag_by_way = {22'h56789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b0;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b1;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b1;
+		tb_decode_unit_branch_update_is_complex = 1'b1;
+		tb_decode_unit_branch_update_use_upct = 1'b1;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'b11011011;
+		tb_decode_unit_branch_update_pred_lru = 1'b1;
+		tb_decode_unit_branch_update_start_PC = 32'hBCDEFFE8;
+		tb_decode_unit_branch_update_target_PC = 32'hBCDF0004;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'h8CD;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b0;
+		expected_icache_req_index = 7'hB;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b0;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h123456;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b1;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b11111111;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'hfedcba98765432100123456789abcdef;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'h12340160;
+		expected_istream_LH_SENQ = 8'h0;
+		expected_istream_GH_SENQ = 12'h0;
+		expected_istream_ras_index_SENQ = 3'h0;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: 12340170, resp: 12340160 ihit\n",
 			"\t\tbranch update BCDF0006 complex B global D NT -> BCDEFFE8",
 				"\n\t\t\tlocal D BB->76, global 19B->336"
 		};
@@ -3496,7 +4235,7 @@ module fetch_unit_tb ();
 		tb_decode_unit_branch_update_pred_lru = 1'b1;
 		tb_decode_unit_branch_update_start_PC = 32'hBCDF0006;
 		tb_decode_unit_branch_update_target_PC = 32'hBCDEFFE8;
-		tb_decode_unit_branch_update_LH = 8'hBB;
+		tb_decode_unit_branch_update_LH = 8'hFF;
 		tb_decode_unit_branch_update_GH = 12'h19B;
 		tb_decode_unit_branch_update_ras_index = 3'h7;
 	    // mdpt update
@@ -3519,7 +4258,7 @@ module fetch_unit_tb ();
 	    // icache req
 		expected_icache_req_valid = 1'b1;
 		expected_icache_req_block_offset = 1'b1;
-		expected_icache_req_index = 7'h9;
+		expected_icache_req_index = 7'hB;
 	    // icache resp
 	    // icache resp feedback
 		expected_icache_resp_hit_valid = 1'b1;
@@ -3542,8 +4281,17 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
-		expected_istream_after_PC_SENQ = 32'h12340130;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'h12340170;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
 		expected_istream_ras_index_SENQ = 3'h0;
@@ -3561,7 +4309,7 @@ module fetch_unit_tb ();
 
 		// inputs
 		sub_test_case = {
-			"req: 12340140, resp: 12340130 ihit\n",
+			"req: 12340180, resp: 12340170 ihit\n",
 			"\t\tbranch update BCDEFFE6 complex B local A -> BCDEFFFC",
 				"\n\t\t\tLH=AA, GH=FFF"
 		};
@@ -3628,7 +4376,7 @@ module fetch_unit_tb ();
 	    // icache req
 		expected_icache_req_valid = 1'b1;
 		expected_icache_req_block_offset = 1'b0;
-		expected_icache_req_index = 7'hA;
+		expected_icache_req_index = 7'hC;
 	    // icache resp
 	    // icache resp feedback
 		expected_icache_resp_hit_valid = 1'b1;
@@ -3651,8 +4399,17 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
-		expected_istream_after_PC_SENQ = 32'h12340140;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'h12340180;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h0;
 		expected_istream_ras_index_SENQ = 3'h0;
@@ -3670,7 +4427,7 @@ module fetch_unit_tb ();
 
 		// inputs
 		sub_test_case = {
-			"req: 12340150, resp: 12340140 ihit\n",
+			"req: 12340190, resp: 12340180 ihit\n",
 			"\t\tbranch update BCDEFFE8 complex B global B -> BCDF0004",
 				"\n\t\t\tLH=BB, GH=FFF"
 		};
@@ -3737,7 +4494,7 @@ module fetch_unit_tb ();
 	    // icache req
 		expected_icache_req_valid = 1'b1;
 		expected_icache_req_block_offset = 1'b1;
-		expected_icache_req_index = 7'hA;
+		expected_icache_req_index = 7'hC;
 	    // icache resp
 	    // icache resp feedback
 		expected_icache_resp_hit_valid = 1'b1;
@@ -3760,8 +4517,17 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
-		expected_istream_after_PC_SENQ = 32'h12340150;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'h12340190;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'hFFE;
 		expected_istream_ras_index_SENQ = 3'h7;
@@ -3779,7 +4545,7 @@ module fetch_unit_tb ();
 
 		// inputs
 		sub_test_case = {
-			"req: 12340160, resp: 12340150 ihit\n",
+			"req: 123401A0, resp: 12340190 ihit\n",
 			"\t\tbranch update BCDEFFFE complex B local C -> BCDEFFE4",
 				"\n\t\t\tLH=CC, GH=FFE"
 		};
@@ -3846,7 +4612,7 @@ module fetch_unit_tb ();
 	    // icache req
 		expected_icache_req_valid = 1'b1;
 		expected_icache_req_block_offset = 1'b0;
-		expected_icache_req_index = 7'hB;
+		expected_icache_req_index = 7'hD;
 	    // icache resp
 	    // icache resp feedback
 		expected_icache_resp_hit_valid = 1'b1;
@@ -3869,8 +4635,17 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
-		expected_istream_after_PC_SENQ = 32'h12340160;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'h123401A0;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'hFFF;
 		expected_istream_ras_index_SENQ = 3'h7;
@@ -3888,8 +4663,8 @@ module fetch_unit_tb ();
 
 		// inputs
 		sub_test_case = {
-			"req: 12340170, resp: 12340160 ihit\n",
-			"\t\tbranch update BCDEFFFE complex B local D -> BCDEFFE8",
+			"req: 123401B0, resp: 123401A0 ihit\n",
+			"\t\tbranch update BCDF0006 complex B global D -> BCDEFFE8",
 				"\n\t\t\tLH=DD, GH=123, ras_index=2"
 		};
 		$display("\t- sub_test: %s", sub_test_case);
@@ -3955,7 +4730,7 @@ module fetch_unit_tb ();
 	    // icache req
 		expected_icache_req_valid = 1'b1;
 		expected_icache_req_block_offset = 1'b1;
-		expected_icache_req_index = 7'hB;
+		expected_icache_req_index = 7'hD;
 	    // icache resp
 	    // icache resp feedback
 		expected_icache_resp_hit_valid = 1'b1;
@@ -3978,8 +4753,17 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
-		expected_istream_after_PC_SENQ = 32'h12340170;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'h123401B0;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'hFFE;
 		expected_istream_ras_index_SENQ = 3'h7;
@@ -3997,7 +4781,7 @@ module fetch_unit_tb ();
 
 		// inputs
 		sub_test_case = {
-			"req: 12340180, resp: 12340170 ihit\n",
+			"req: 123401C0, resp: 123401B0 ihit\n",
 			"\t\tbranch update BCDF000A J -> 80808080"
 		};
 		$display("\t- sub_test: %s", sub_test_case);
@@ -4036,7 +4820,7 @@ module fetch_unit_tb ();
 		tb_decode_unit_branch_update_is_taken = 1'b0;
 		tb_decode_unit_branch_update_is_complex = 1'b0;
 		tb_decode_unit_branch_update_use_upct = 1'b1;
-		tb_decode_unit_branch_update_intermediate_pred_info = 8'b10000001;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'b01000001;
 		tb_decode_unit_branch_update_pred_lru = 1'b0;
 		tb_decode_unit_branch_update_start_PC = 32'hBCDF000A;
 		tb_decode_unit_branch_update_target_PC = 32'h80808080;
@@ -4063,7 +4847,7 @@ module fetch_unit_tb ();
 	    // icache req
 		expected_icache_req_valid = 1'b1;
 		expected_icache_req_block_offset = 1'b0;
-		expected_icache_req_index = 7'hC;
+		expected_icache_req_index = 7'hE;
 	    // icache resp
 	    // icache resp feedback
 		expected_icache_resp_hit_valid = 1'b1;
@@ -4086,8 +4870,17 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
-		expected_istream_after_PC_SENQ = 32'h12340180;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'h123401C0;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h123;
 		expected_istream_ras_index_SENQ = 3'h2;
@@ -4111,7 +4904,7 @@ module fetch_unit_tb ();
 
 		// inputs
 		sub_test_case = {
-			"req: 12340190, resp: 12340180 ihit, decode restart @ 5678000E"
+			"req: 123401D0, resp: 123401C0 ihit, decode restart @ 5678000E"
 		};
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -4176,7 +4969,7 @@ module fetch_unit_tb ();
 	    // icache req
 		expected_icache_req_valid = 1'b1;
 		expected_icache_req_block_offset = 1'b1;
-		expected_icache_req_index = 7'hC;
+		expected_icache_req_index = 7'hE;
 	    // icache resp
 	    // icache resp feedback
 		expected_icache_resp_hit_valid = 1'b1;
@@ -4199,8 +4992,17 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
-		expected_istream_after_PC_SENQ = 32'h12340190;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'h123401D0;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h123;
 		expected_istream_ras_index_SENQ = 3'h2;
@@ -4306,7 +5108,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h5678000E;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h123;
@@ -4413,7 +5224,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00100000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hD2,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h56780010;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h123;
@@ -4520,7 +5340,16 @@ module fetch_unit_tb ();
 			8'b01000111
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h56780010;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h123;
@@ -4627,7 +5456,16 @@ module fetch_unit_tb ();
 			8'b01000111
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h56780010;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h123;
@@ -4734,7 +5572,16 @@ module fetch_unit_tb ();
 			8'b01000111
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h5677FFF2;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h123;
@@ -4841,7 +5688,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b10010000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'hC3,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'hBCDEFEFE;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h123;
@@ -4948,7 +5804,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'hBCDEFF00;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h123;
@@ -5055,7 +5920,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00100000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h5677FFFA;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h123;
@@ -5162,7 +6036,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b10010000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'hC3,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'h56780000;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h123;
@@ -5269,7 +6152,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00100000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hD2,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'hBCDEFF06;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h123;
@@ -5376,7 +6268,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00100000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'hBCDEFFDE;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h123;
@@ -5483,7 +6384,16 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'hBCDEFFE0;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h123;
@@ -5584,13 +6494,22 @@ module fetch_unit_tb ();
 			8'h0,
 			8'h0,
 			8'b11101010,
-			8'b11010000,
+			8'b11000000,
 			8'h0,
 			8'h0,
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00010000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hB4,
+			8'hA5,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'hBCDEFFE0;
 		expected_istream_LH_SENQ = 8'h0;
 		expected_istream_GH_SENQ = 12'h123;
@@ -5609,7 +6528,7 @@ module fetch_unit_tb ();
 
 		// inputs
 		sub_test_case = {
-			"req: BCDEFFE0, resp: BCDEFFE0 icache miss (stall, resets complex), BCDEFFE6 complex B local A NT, BCDEFFE8 complex B global B NT"
+			"req: BCDEFFE0, resp: BCDEFFE0 icache miss (stall), BCDEFFE6 complex B local A NT, BCDEFFE8 complex B global B NT"
 		};
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -5691,120 +6610,22 @@ module fetch_unit_tb ();
 			8'h0,
 			8'h0,
 			8'b11101010,
-			8'b11010000,
+			8'b11000000,
 			8'h0,
 			8'h0,
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00010000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
-		expected_istream_after_PC_SENQ = 32'hBCDEFFE0;
-		expected_istream_LH_SENQ = 8'hAA;
-		expected_istream_GH_SENQ = 12'h123;
-		expected_istream_ras_index_SENQ = 3'h2;
-		expected_istream_page_fault_SENQ = 1'b0;
-		expected_istream_access_fault_SENQ = 1'b0;
-	    // istream feedback
-	    // fetch + decode restart from ROB
-	    // decode unit control
-	    // branch update from decode unit
-	    // mdpt update
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = {
-			"req: BCDEFFE0, resp: BCDEFFE0 ihit, BCDEFFE6 complex B local A NT (stall), BCDEFFE8 complex B global B NT"
-		};
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // itlb req
-	    // itlb resp
-		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
-		tb_itlb_resp_page_fault = 1'b0;
-		tb_itlb_resp_access_fault = 1'b0;
-	    // icache req
-	    // icache resp
-		tb_icache_resp_valid_by_way = 2'b11;
-		tb_icache_resp_tag_by_way = {22'h056789, 22'h123456};
-		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
-	    // icache resp feedback
-	    // output to istream
-	    // istream feedback
-		tb_istream_stall_SENQ = 1'b0;
-	    // fetch + decode restart from ROB
-		tb_rob_restart_valid = 1'b0;
-		tb_rob_restart_PC = 32'h0;
-		tb_rob_restart_ASID = 9'h0;
-		tb_rob_restart_exec_mode = M_MODE;
-		tb_rob_restart_virtual_mode = 1'b0;
-	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
-	    // branch update from decode unit
-		tb_decode_unit_branch_update_valid = 1'b0;
-		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
-		tb_decode_unit_branch_update_is_mispredict = 1'b0;
-		tb_decode_unit_branch_update_is_taken = 1'b0;
-		tb_decode_unit_branch_update_is_complex = 1'b0;
-		tb_decode_unit_branch_update_use_upct = 1'b0;
-		tb_decode_unit_branch_update_intermediate_pred_info = 8'hFF;
-		tb_decode_unit_branch_update_pred_lru = 1'b0;
-		tb_decode_unit_branch_update_start_PC = 32'hFFFFFFFF;
-		tb_decode_unit_branch_update_target_PC = 32'hFFFFFFFF;
-		tb_decode_unit_branch_update_LH = 8'hFF;
-		tb_decode_unit_branch_update_GH = 12'hFFF;
-		tb_decode_unit_branch_update_ras_index = 3'h7;
-	    // mdpt update
-		tb_mdpt_update_valid = 1'b0;
-		tb_mdpt_update_start_full_PC = 32'h0;
-		tb_mdpt_update_ASID = 9'h0;
-		tb_mdpt_update_mdp_info = 8'h0;
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // itlb req
-		expected_itlb_req_valid = 1'b1;
-		expected_itlb_req_exec_mode = M_MODE;
-		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
-		expected_itlb_req_ASID = 9'h0;
-	    // itlb resp
-	    // icache req
-		expected_icache_req_valid = 1'b1;
-		expected_icache_req_block_offset = 1'b0;
-		expected_icache_req_index = 7'h7F;
-	    // icache resp
-	    // icache resp feedback
-		expected_icache_resp_hit_valid = 1'b1;
-		expected_icache_resp_hit_way = 1'b1;
-		expected_icache_resp_miss_valid = 1'b0;
-		expected_icache_resp_miss_tag = 22'h056789;
-	    // output to istream
-		expected_istream_valid_SENQ = 1'b0;
-		expected_istream_valid_by_fetch_2B_SENQ = 8'b00001111;
-		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b00001000;
-		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'h0123456789abcdeffedcba9876543210;
-		expected_istream_pred_info_by_fetch_2B_SENQ = {
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
 			8'h0,
 			8'h0,
 			8'h0,
-			8'b11101010,
-			8'b11010000,
+			8'hB4,
+			8'hA5,
 			8'h0,
 			8'h0,
 			8'h0
 		};
-		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00010000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
 		expected_istream_after_PC_SENQ = 32'hBCDEFFE0;
 		expected_istream_LH_SENQ = 8'hAA;
 		expected_istream_GH_SENQ = 12'h123;
@@ -5905,15 +6726,140 @@ module fetch_unit_tb ();
 			8'h0,
 			8'h0,
 			8'b11101010,
-			8'b11010000,
+			8'b11000000,
 			8'h0,
 			8'h0,
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00010000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hB4,
+			8'hA5,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'hBCDEFFE0;
 		expected_istream_LH_SENQ = 8'hAA;
+		expected_istream_GH_SENQ = 12'h123;
+		expected_istream_ras_index_SENQ = 3'h2;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: BCDEFFF0, resp: BCDEFFE0 istream stall, BCDEFFE6 complex B local A NT, BCDEFFE8 complex B global B NT"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b11;
+		tb_icache_resp_tag_by_way = {22'h056789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b1;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b0;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b0;
+		tb_decode_unit_branch_update_is_complex = 1'b0;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'hFF;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_target_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b0;
+		expected_icache_req_index = 7'h7F;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b1;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h056789;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b0;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b11111111;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'h0123456789abcdeffedcba9876543210;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'b11101010,
+			8'b11000000,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00010000;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hB4,
+			8'hA5,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'hBCDEFFE0;
+		expected_istream_LH_SENQ = 8'hBB;
 		expected_istream_GH_SENQ = 12'h246;
 		expected_istream_ras_index_SENQ = 3'h2;
 		expected_istream_page_fault_SENQ = 1'b0;
@@ -6012,16 +6958,25 @@ module fetch_unit_tb ();
 			8'h0,
 			8'h0,
 			8'b11101010,
-			8'b11010000,
+			8'b11000000,
 			8'h0,
 			8'h0,
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00010000;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hB4,
+			8'hA5,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'hBCDEFFF0;
 		expected_istream_LH_SENQ = 8'hBB;
-		expected_istream_GH_SENQ = 12'h48C;
+		expected_istream_GH_SENQ = 12'h246;
 		expected_istream_ras_index_SENQ = 3'h2;
 		expected_istream_page_fault_SENQ = 1'b0;
 		expected_istream_access_fault_SENQ = 1'b0;
@@ -6115,7 +7070,7 @@ module fetch_unit_tb ();
 		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
 		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'h0123456789abcdeffedcba9876543210;
 		expected_istream_pred_info_by_fetch_2B_SENQ = {
-			8'b11010000,
+			8'b11000000,
 			8'h0,
 			8'h0,
 			8'h0,
@@ -6125,10 +7080,1643 @@ module fetch_unit_tb ();
 			8'h0
 		};
 		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000010;
-		expected_istream_mdp_info_by_fetch_2B_SENQ = 64'h0;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'hC3,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
 		expected_istream_after_PC_SENQ = 32'hBCDEFFF0;
 		expected_istream_LH_SENQ = 8'hBB;
 		expected_istream_GH_SENQ = 12'h48C;
+		expected_istream_ras_index_SENQ = 3'h2;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: BCDEFFE4, resp: BCDEFFF0 ihit, BCDEFFFE complex B local C T"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b11;
+		tb_icache_resp_tag_by_way = {22'h056789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b0;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b0;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b0;
+		tb_decode_unit_branch_update_is_complex = 1'b0;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'hFF;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_target_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b0;
+		expected_icache_req_index = 7'h7F;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b1;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h056789;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b1;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b11111111;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'h0123456789abcdeffedcba9876543210;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'b11000000,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000010;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'hC3,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'hBCDEFFE4;
+		expected_istream_LH_SENQ = 8'hCC;
+		expected_istream_GH_SENQ = 12'h48C;
+		expected_istream_ras_index_SENQ = 3'h2;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: BCDEFFE4, resp: BCDEFFE4 ihit, BCDEFFE6 complex B local A T (stall)"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b11;
+		tb_icache_resp_tag_by_way = {22'h056789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b0;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b0;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b0;
+		tb_decode_unit_branch_update_is_complex = 1'b0;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'hFF;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_target_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b0;
+		expected_icache_req_index = 7'h7F;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b1;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h056789;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b0;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b00001100;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b00001000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'h0123456789abcdeffedcba9876543210;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'b11101010,
+			8'b11000000,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00010000;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hB4,
+			8'hA5,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'hBCDEFFE4;
+		expected_istream_LH_SENQ = 8'hCC;
+		expected_istream_GH_SENQ = 12'h919;
+		expected_istream_ras_index_SENQ = 3'h2;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: BCDEFFFC, resp: BCDEFFE4 ihit, BCDEFFE6 complex B local A T"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b11;
+		tb_icache_resp_tag_by_way = {22'h056789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b0;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b0;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b0;
+		tb_decode_unit_branch_update_is_complex = 1'b0;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'hFF;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_target_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b1;
+		expected_icache_req_index = 7'h7F;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b1;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h056789;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b1;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b00001100;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b00001000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'h0123456789abcdeffedcba9876543210;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'b11101010,
+			8'b11000000,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00010000;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hB4,
+			8'hA5,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'hBCDEFFFC;
+		expected_istream_LH_SENQ = 8'h54;
+		expected_istream_GH_SENQ = 12'h919;
+		expected_istream_ras_index_SENQ = 3'h2;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: BCDEFFFC, resp: BCDEFFFC ihit, BCDEFFFE complex B local C NT (stall)"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b11;
+		tb_icache_resp_tag_by_way = {22'h056789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b0;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b0;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b0;
+		tb_decode_unit_branch_update_is_complex = 1'b0;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'hFF;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_target_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b1;
+		expected_icache_req_index = 7'h7F;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b1;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h056789;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b0;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b11000000;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'h0123456789abcdeffedcba9876543210;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'b11000000,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000010;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'hC3,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'hBCDEFFFC;
+		expected_istream_LH_SENQ = 8'h54;
+		expected_istream_GH_SENQ = 12'h233;
+		expected_istream_ras_index_SENQ = 3'h2;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: BCDF0000, resp: BCDEFFFC ihit, BCDEFFFE complex B local C NT"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b11;
+		tb_icache_resp_tag_by_way = {22'h056789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b0;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b0;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b0;
+		tb_decode_unit_branch_update_is_complex = 1'b0;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'hFF;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_target_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'hBCDF0;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b0;
+		expected_icache_req_index = 7'h00;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b1;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h056789;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b1;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b11000000;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b10000000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'h0123456789abcdeffedcba9876543210;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'b11000000,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00000010;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'hC3,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'hBCDF0000;
+		expected_istream_LH_SENQ = 8'h99;
+		expected_istream_GH_SENQ = 12'h233;
+		expected_istream_ras_index_SENQ = 3'h2;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: BCDF0000, resp: BCDF0000 ihit, BCDF0006 complex B global D T (stall)"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b11;
+		tb_icache_resp_tag_by_way = {22'h056789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b0;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b0;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b0;
+		tb_decode_unit_branch_update_is_complex = 1'b0;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'hFF;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_target_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'hBCDF0;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b0;
+		expected_icache_req_index = 7'h00;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b1;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h056789;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b0;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b00001111;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b00001000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'h0123456789abcdeffedcba9876543210;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'b01001110,
+			8'h0,
+			8'b11111000,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b01001000;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hD2,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'hBCDF0000;
+		expected_istream_LH_SENQ = 8'h99;
+		expected_istream_GH_SENQ = 12'h466;
+		expected_istream_ras_index_SENQ = 3'h2;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: BCDEFFE8, resp: BCDF0000 ihit, BCDF0006 complex B global D T"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b11;
+		tb_icache_resp_tag_by_way = {22'h056789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b0;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b0;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b0;
+		tb_decode_unit_branch_update_is_complex = 1'b0;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'hFF;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_target_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b0;
+		expected_icache_req_index = 7'h7F;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b1;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h056789;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b1;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b00001111;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b00001000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'h0123456789abcdeffedcba9876543210;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'b01001110,
+			8'h0,
+			8'b11111000,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b01001000;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hD2,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'hBCDEFFE8;
+		expected_istream_LH_SENQ = 8'hDD;
+		expected_istream_GH_SENQ = 12'h466;
+		expected_istream_ras_index_SENQ = 3'h2;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: BCDEFFE8, resp: BCDEFFE8 ihit, BCDEFFE8 complex B global B T (stall)"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b11;
+		tb_icache_resp_tag_by_way = {22'h056789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b0;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b0;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b0;
+		tb_decode_unit_branch_update_is_complex = 1'b0;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'hFF;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_target_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b0;
+		expected_icache_req_index = 7'h7F;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b1;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h056789;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b0;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b00010000;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b00010000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'h0123456789abcdeffedcba9876543210;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'b11101010,
+			8'b11000000,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00010000;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hB4,
+			8'hA5,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'hBCDEFFE8;
+		expected_istream_LH_SENQ = 8'hDD;
+		expected_istream_GH_SENQ = 12'h8CD;
+		expected_istream_ras_index_SENQ = 3'h2;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: BCDEFFE8, resp: BCDEFFE8 itlb miss (stall), BCDEFFE8 complex B global B T"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b0;
+		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b11;
+		tb_icache_resp_tag_by_way = {22'h056789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b0;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b0;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b0;
+		tb_decode_unit_branch_update_is_complex = 1'b0;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'hFF;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_target_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b0;
+		expected_icache_req_index = 7'h7F;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b0;
+		expected_icache_resp_hit_way = 1'b0;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h056789;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b0;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b00010000;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b00010000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'hfedcba98765432100123456789abcdef;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'b11101010,
+			8'b11000000,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00010000;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hB4,
+			8'hA5,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'hBCDEFFE8;
+		expected_istream_LH_SENQ = 8'h76;
+		expected_istream_GH_SENQ = 12'h8CD;
+		expected_istream_ras_index_SENQ = 3'h2;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: BCDF0004, resp: BCDEFFE8 ihit, BCDEFFE8 complex B global B T"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b11;
+		tb_icache_resp_tag_by_way = {22'h056789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b0;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b0;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b0;
+		tb_decode_unit_branch_update_is_complex = 1'b0;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'hFF;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_target_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'hBCDF0;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b0;
+		expected_icache_req_index = 7'h00;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b1;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h056789;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b1;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b00010000;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b00010000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'h0123456789abcdeffedcba9876543210;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'b11101010,
+			8'b11000000,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b00010000;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hB4,
+			8'hA5,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'hBCDF0004;
+		expected_istream_LH_SENQ = 8'h76;
+		expected_istream_GH_SENQ = 12'h8CD;
+		expected_istream_ras_index_SENQ = 3'h2;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: BCDF0004, resp: BCDF0004 istream stall (stall), BCDF0006 complex B global D NT"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b11;
+		tb_icache_resp_tag_by_way = {22'h056789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b1;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b0;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b0;
+		tb_decode_unit_branch_update_is_complex = 1'b0;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'hFF;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_target_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'hBCDF0;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b0;
+		expected_icache_req_index = 7'h00;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b1;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h056789;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b0;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b00001100;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b00001000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'h0123456789abcdeffedcba9876543210;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'b01001110,
+			8'h0,
+			8'b11111000,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b01001000;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hD2,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'hBCDF0004;
+		expected_istream_LH_SENQ = 8'h76;
+		expected_istream_GH_SENQ = 12'h19B;
+		expected_istream_ras_index_SENQ = 3'h2;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: BCDF0004, resp: BCDF0004 ihit, BCDF0006 complex B global D NT (stall)"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b11;
+		tb_icache_resp_tag_by_way = {22'h056789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b0;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b0;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b0;
+		tb_decode_unit_branch_update_is_complex = 1'b0;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'hFF;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_target_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'hBCDF0;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b0;
+		expected_icache_req_index = 7'h00;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b1;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h056789;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b0;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b00001100;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b00001000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'h0123456789abcdeffedcba9876543210;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'b01001110,
+			8'h0,
+			8'b11111000,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b01001000;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hD2,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'hBCDF0004;
+		expected_istream_LH_SENQ = 8'h76;
+		expected_istream_GH_SENQ = 12'h19B;
+		expected_istream_ras_index_SENQ = 3'h2;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: BCDF0004, resp: BCDF0004 icache miss + istream stall (stall), BCDF0006 complex B global D NT, BCDF000A J -> 80808080"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b01;
+		tb_icache_resp_tag_by_way = {22'h056789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b1;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b0;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b0;
+		tb_decode_unit_branch_update_is_complex = 1'b0;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'hFF;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_target_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'hBCDF0;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b0;
+		expected_icache_req_index = 7'h00;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b0;
+		expected_icache_resp_hit_way = 1'b0;
+		expected_icache_resp_miss_valid = 1'b1;
+		expected_icache_resp_miss_tag = 22'h056789;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b0;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b00111100;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b00100000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'hfedcba98765432100123456789abcdef;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'b01001110,
+			8'h0,
+			8'b11111000,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b01001000;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hD2,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'hBCDF0004;
+		expected_istream_LH_SENQ = 8'hBB;
+		expected_istream_GH_SENQ = 12'h19B;
+		expected_istream_ras_index_SENQ = 3'h2;
+		expected_istream_page_fault_SENQ = 1'b0;
+		expected_istream_access_fault_SENQ = 1'b0;
+	    // istream feedback
+	    // fetch + decode restart from ROB
+	    // decode unit control
+	    // branch update from decode unit
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"req: 80808080, resp: BCDF0004 ihit, BCDF0006 complex B global D NT, BCDF000A J -> 80808080"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b11;
+		tb_icache_resp_tag_by_way = {22'h056789, 22'h123456};
+		tb_icache_resp_instr_16B_by_way = {128'h0123456789abcdeffedcba9876543210, 128'hfedcba98765432100123456789abcdef};
+	    // icache resp feedback
+	    // output to istream
+	    // istream feedback
+		tb_istream_stall_SENQ = 1'b0;
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_PC = 32'h0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // decode unit control
+		tb_decode_restart_valid = 1'b0;
+		tb_decode_restart_PC = 32'h0;
+		tb_decode_trigger_wait_for_restart = 1'b0;
+	    // branch update from decode unit
+		tb_decode_unit_branch_update_valid = 1'b0;
+		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
+		tb_decode_unit_branch_update_is_mispredict = 1'b0;
+		tb_decode_unit_branch_update_is_taken = 1'b0;
+		tb_decode_unit_branch_update_is_complex = 1'b0;
+		tb_decode_unit_branch_update_use_upct = 1'b0;
+		tb_decode_unit_branch_update_intermediate_pred_info = 8'hFF;
+		tb_decode_unit_branch_update_pred_lru = 1'b0;
+		tb_decode_unit_branch_update_start_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_target_PC = 32'hFFFFFFFF;
+		tb_decode_unit_branch_update_LH = 8'hFF;
+		tb_decode_unit_branch_update_GH = 12'hFFF;
+		tb_decode_unit_branch_update_ras_index = 3'h7;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_start_full_PC = 32'h0;
+		tb_mdpt_update_ASID = 9'h0;
+		tb_mdpt_update_mdp_info = 8'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_exec_mode = M_MODE;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_vpn = 20'h80808;
+		expected_itlb_req_ASID = 9'h0;
+	    // itlb resp
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_block_offset = 1'b0;
+		expected_icache_req_index = 7'h04;
+	    // icache resp
+	    // icache resp feedback
+		expected_icache_resp_hit_valid = 1'b1;
+		expected_icache_resp_hit_way = 1'b1;
+		expected_icache_resp_miss_valid = 1'b0;
+		expected_icache_resp_miss_tag = 22'h056789;
+	    // output to istream
+		expected_istream_valid_SENQ = 1'b1;
+		expected_istream_valid_by_fetch_2B_SENQ = 8'b00111100;
+		expected_istream_one_hot_redirect_by_fetch_2B_SENQ = 8'b00100000;
+		expected_istream_instr_2B_by_fetch_2B_SENQ = 128'h0123456789abcdeffedcba9876543210;
+		expected_istream_pred_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'b01001110,
+			8'h0,
+			8'b11111000,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_pred_lru_by_fetch_2B_SENQ = 8'b01001000;
+		expected_istream_mdp_info_by_fetch_2B_SENQ = {
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'hD2,
+			8'h0,
+			8'h0,
+			8'h0
+		};
+		expected_istream_after_PC_SENQ = 32'h80808080;
+		expected_istream_LH_SENQ = 8'hBB;
+		expected_istream_GH_SENQ = 12'h19B;
 		expected_istream_ras_index_SENQ = 3'h2;
 		expected_istream_page_fault_SENQ = 1'b0;
 		expected_istream_access_fault_SENQ = 1'b0;
