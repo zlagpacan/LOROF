@@ -23,7 +23,6 @@ module btb_wrapper (
 	input logic [ASID_WIDTH-1:0] next_ASID_REQ,
 
     // RESP stage
-	output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0] last_hit_by_instr_RESP,
 	output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_PRED_INFO_WIDTH-1:0] last_pred_info_by_instr_RESP,
 	output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0] last_pred_lru_by_instr_RESP,
 	output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TARGET_WIDTH-1:0] last_target_by_instr_RESP,
@@ -49,7 +48,6 @@ module btb_wrapper (
 	logic [ASID_WIDTH-1:0] ASID_REQ;
 
     // RESP stage
-	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0] hit_by_instr_RESP;
 	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_PRED_INFO_WIDTH-1:0] pred_info_by_instr_RESP;
 	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0] pred_lru_by_instr_RESP;
 	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TARGET_WIDTH-1:0] target_by_instr_RESP;
@@ -82,7 +80,6 @@ module btb_wrapper (
 			ASID_REQ <= '0;
 
 		    // RESP stage
-			last_hit_by_instr_RESP <= '0;
 			last_pred_info_by_instr_RESP <= '0;
 			last_pred_lru_by_instr_RESP <= '0;
 			last_target_by_instr_RESP <= '0;
@@ -106,7 +103,6 @@ module btb_wrapper (
 			ASID_REQ <= next_ASID_REQ;
 
 		    // RESP stage
-			last_hit_by_instr_RESP <= hit_by_instr_RESP;
 			last_pred_info_by_instr_RESP <= pred_info_by_instr_RESP;
 			last_pred_lru_by_instr_RESP <= pred_lru_by_instr_RESP;
 			last_target_by_instr_RESP <= target_by_instr_RESP;

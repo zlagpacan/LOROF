@@ -1174,25 +1174,25 @@ module btb_tb ();
 		// REQ stage
 		// RESP stage
 		expected_pred_info_by_instr_RESP = {
-			8'h3f,
-			8'h3e,
-			8'h3d,
-			8'h3c,
-			8'h3b,
-			8'h3a,
-			8'h39,
-			8'h38
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
 		};
 		expected_pred_lru_by_instr_RESP = {8{1'b0}};
 		expected_target_by_instr_RESP = {
-			10'h3ff,
-			10'h3fe,
-			10'h3fd,
-			10'h3fc,
-			10'h3fb,
-			10'h3fa,
-			10'h3f9,
-			10'h3f8
+			10'h0,
+			10'h0,
+			10'h0,
+			10'h0,
+			10'h0,
+			10'h0,
+			10'h0,
+			10'h0
 		};
 		// Update 0
 		// Update 1
@@ -1262,25 +1262,25 @@ module btb_tb ();
 			// REQ stage
 			// RESP stage
 			expected_pred_info_by_instr_RESP = {
-				2'b00, {last_i + 7}[5:0],
-				2'b00, {last_i + 6}[5:0],
-				2'b00, {last_i + 5}[5:0],
-				2'b00, {last_i + 4}[5:0],
-				2'b00, {last_i + 3}[5:0],
-				2'b00, {last_i + 2}[5:0],
-				2'b00, {last_i + 1}[5:0],
-				2'b00, {last_i + 0}[5:0]
+				8'h0,
+				8'h0,
+				8'h0,
+				8'h0,
+				8'h0,
+				8'h0,
+				8'h0,
+				8'h0
 			};
 			expected_pred_lru_by_instr_RESP = {8{1'b0}};
 			expected_target_by_instr_RESP = {
-				{last_i + 7}[9:0],
-				{last_i + 6}[9:0],
-				{last_i + 5}[9:0],
-				{last_i + 4}[9:0],
-				{last_i + 3}[9:0],
-				{last_i + 2}[9:0],
-				{last_i + 1}[9:0],
-				{last_i + 0}[9:0]
+				10'h0,
+				10'h0,
+				10'h0,
+				10'h0,
+				10'h0,
+				10'h0,
+				10'h0,
+				10'h0
 			};
 
 			// Update 0
@@ -1346,25 +1346,25 @@ module btb_tb ();
 		// REQ stage
 		// RESP stage
 		expected_pred_info_by_instr_RESP = {
-			8'h3f,
-			8'h3e,
-			8'h3d,
-			8'h3c,
-			8'h3b,
-			8'h3a,
-			8'h39,
-			8'h38
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0,
+			8'h0
 		};
 		expected_pred_lru_by_instr_RESP = {8{1'b0}};
 		expected_target_by_instr_RESP = {
-			10'h3ff,
-			10'h3fe,
-			10'h3fd,
-			10'h3fc,
-			10'h3fb,
-			10'h3fa,
-			10'h3f9,
-			10'h3f8
+			10'h0,
+			10'h0,
+			10'h0,
+			10'h0,
+			10'h0,
+			10'h0,
+			10'h0,
+			10'h0
 		};
 		// Update 0
 		// Update 1

@@ -34,13 +34,14 @@ module upct_tb ();
 
 
     // RESP stage
-	logic tb_valid_RESP;
-	logic [LOG_UPCT_ENTRIES-1:0] tb_upct_index_RESP;
-	logic [UPPER_PC_WIDTH-1:0] DUT_upper_PC_RESP, expected_upper_PC_RESP;
+	logic tb_read_valid_RESP;
+	logic [LOG_UPCT_ENTRIES-1:0] tb_read_index_RESP;
+
+   	logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] DUT_upct_array, expected_upct_array;
 
     // Update 0
 	logic tb_update0_valid;
-	logic [31:0] tb_update0_start_full_PC;
+	logic [31:0] tb_update0_target_full_PC;
 
     // Update 1
 	logic [LOG_UPCT_ENTRIES-1:0] DUT_update1_upct_index, expected_update1_upct_index;
@@ -53,15 +54,15 @@ module upct_tb ();
 		.CLK(CLK),
 		.nRST(nRST),
 
-
 	    // RESP stage
-		.valid_RESP(tb_valid_RESP),
-		.upct_index_RESP(tb_upct_index_RESP),
-		.upper_PC_RESP(DUT_upper_PC_RESP),
+		.read_valid_RESP(tb_read_valid_RESP),
+		.read_index_RESP(tb_read_index_RESP),
+
+		.upct_array(DUT_upct_array),
 
 	    // Update 0
 		.update0_valid(tb_update0_valid),
-		.update0_start_full_PC(tb_update0_start_full_PC),
+		.update0_target_full_PC(tb_update0_target_full_PC),
 
 	    // Update 1
 		.update1_upct_index(DUT_update1_upct_index)
@@ -72,9 +73,9 @@ module upct_tb ();
 
     task check_outputs();
     begin
-		if (expected_upper_PC_RESP !== DUT_upper_PC_RESP) begin
-			$display("TB ERROR: expected_upper_PC_RESP (%h) != DUT_upper_PC_RESP (%h)",
-				expected_upper_PC_RESP, DUT_upper_PC_RESP);
+		if (expected_upct_array !== DUT_upct_array) begin
+			$display("TB ERROR: expected_upct_array (%h) != DUT_upct_array (%h)",
+				expected_upct_array, DUT_upct_array);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -111,11 +112,11 @@ module upct_tb ();
 		// reset
 		nRST = 1'b0;
 	    // RESP stage
-		tb_valid_RESP = 1'b0;
-		tb_upct_index_RESP = 3'h0;
+		tb_read_valid_RESP = 1'b0;
+		tb_read_index_RESP = 3'h0;
 	    // Update 0
 		tb_update0_valid = 1'b0;
-		tb_update0_start_full_PC = {
+		tb_update0_target_full_PC = {
 			21'h0,
 			11'h0
 		};
@@ -126,7 +127,16 @@ module upct_tb ();
 		// outputs:
 
 	    // RESP stage
-		expected_upper_PC_RESP = 21'h0;
+		expected_upct_array = {
+			21'h0,
+			21'h0,
+			21'h0,
+			21'h0,
+			21'h0,
+			21'h0,
+			21'h0,
+			21'h0
+		};
 	    // Update 0
 	    // Update 1
 		expected_update1_upct_index = 3'h0;
@@ -140,11 +150,11 @@ module upct_tb ();
 		// reset
 		nRST = 1'b1;
 	    // RESP stage
-		tb_valid_RESP = 1'b0;
-		tb_upct_index_RESP = 3'h0;
+		tb_read_valid_RESP = 1'b0;
+		tb_read_index_RESP = 3'h0;
 	    // Update 0
 		tb_update0_valid = 1'b0;
-		tb_update0_start_full_PC = {
+		tb_update0_target_full_PC = {
 			21'h0,
 			11'h0
 		};
@@ -155,7 +165,16 @@ module upct_tb ();
 		// outputs:
 
 	    // RESP stage
-		expected_upper_PC_RESP = 21'h0;
+		expected_upct_array = {
+			21'h0,
+			21'h0,
+			21'h0,
+			21'h0,
+			21'h0,
+			21'h0,
+			21'h0,
+			21'h0
+		};
 	    // Update 0
 	    // Update 1
 		expected_update1_upct_index = 3'h0;
@@ -177,11 +196,11 @@ module upct_tb ();
 		// reset
 		nRST = 1'b1;
 		// RESP stage
-		tb_valid_RESP = 1'b0;
-		tb_upct_index_RESP = 3'h0;
+		tb_read_valid_RESP = 1'b0;
+		tb_read_index_RESP = 3'h0;
 		// Update 0
 		tb_update0_valid = 1'b1;
-		tb_update0_start_full_PC = {
+		tb_update0_target_full_PC = {
 			3'h0, {3{3'h7, 3'h0}},
 			11'h0
 		};
@@ -192,7 +211,18 @@ module upct_tb ();
 		// outputs:
 
 		// RESP stage
-		expected_upper_PC_RESP = 21'h0;
+		// expected_observer0_upper_PC_RESP = 21'h0;
+		// expected_observer1_upper_PC_RESP = 21'h0;
+		expected_upct_array = {
+			21'h0,
+			21'h0,
+			21'h0,
+			21'h0,
+			21'h0,
+			21'h0,
+			21'h0,
+			21'h0
+		};
 		// Update 0
 		// Update 1
 		expected_update1_upct_index = 3'h0;
@@ -210,11 +240,11 @@ module upct_tb ();
 			// reset
 			nRST = 1'b1;
 			// RESP stage
-			tb_valid_RESP = 1'b0;
-			tb_upct_index_RESP = 3'h0;
+			tb_read_valid_RESP = 1'b0;
+			tb_read_index_RESP = 3'h0;
 			// Update 0
 			tb_update0_valid = 1'b1;
-			tb_update0_start_full_PC = {
+			tb_update0_target_full_PC = {
 				i[2:0], {3{~i[2:0], i[2:0]}},
 				11'h0
 			};
@@ -225,7 +255,17 @@ module upct_tb ();
 			// outputs:
 
 			// RESP stage
-			expected_upper_PC_RESP = i == 1 ? 21'h0 : {3'h0, {3{3'h7, 3'h0}}};
+			// expected_upper_PC_RESP = i == 1 ? 21'h0 : {3'h0, {3{3'h7, 3'h0}}};
+			expected_upct_array = {
+				21'h0,
+				(i > 4) ? 21'b011100011100011100011 : 21'h0,
+				(i > 6) ? 21'b101010101010101010101 : 21'h0,
+				(i > 2) ? 21'b001110001110001110001 : 21'h0,
+				21'h0,
+				(i > 3) ? 21'b010101010101010101010 : 21'h0,
+				(i > 5) ? 21'b100011100011100011100 : 21'h0,
+				(i > 1) ? 21'b000111000111000111000 : 21'h0
+			};
 			// Update 0
 			// Update 1
 			expected_update1_upct_index = first_pass_plru_mapping[i-1];
@@ -242,11 +282,11 @@ module upct_tb ();
 		// reset
 		nRST = 1'b1;
 		// RESP stage
-		tb_valid_RESP = 1'b0;
-		tb_upct_index_RESP = 3'h0;
+		tb_read_valid_RESP = 1'b0;
+		tb_read_index_RESP = 3'h0;
 		// Update 0
 		tb_update0_valid = 1'b0;
-		tb_update0_start_full_PC = {
+		tb_update0_target_full_PC = {
 			21'h0,
 			11'h0
 		};
@@ -257,7 +297,16 @@ module upct_tb ();
 		// outputs:
 
 		// RESP stage
-		expected_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
+		expected_upct_array = {
+			21'h0,
+			21'b011100011100011100011,
+			21'b101010101010101010101,
+			21'b001110001110001110001,
+			21'b110001110001110001110,
+			21'b010101010101010101010,
+			21'b100011100011100011100,
+			21'b000111000111000111000
+		};
 		// Update 0
 		// Update 1
 		expected_update1_upct_index = first_pass_plru_mapping[7];
@@ -281,11 +330,11 @@ module upct_tb ();
 			// reset
 			nRST = 1'b1;
 			// RESP stage
-			tb_valid_RESP = 1'b1;
-			tb_upct_index_RESP = i[2:0];
+			tb_read_valid_RESP = 1'b1;
+			tb_read_index_RESP = i[2:0];
 			// Update 0
 			tb_update0_valid = 1'b0;
-			tb_update0_start_full_PC = {
+			tb_update0_target_full_PC = {
 				21'h0,
 				11'h0
 			};
@@ -296,7 +345,18 @@ module upct_tb ();
 			// outputs:
 
 			// RESP stage
-			expected_upper_PC_RESP = {first_pass_plru_mapping[i][2:0], {3{~first_pass_plru_mapping[i][2:0], first_pass_plru_mapping[i][2:0]}}};
+			// expected_observer0_upper_PC_RESP = {first_pass_plru_mapping[i][2:0], {3{~first_pass_plru_mapping[i][2:0], first_pass_plru_mapping[i][2:0]}}};
+			// expected_observer1_upper_PC_RESP = {first_pass_plru_mapping[i][2:0], {3{~first_pass_plru_mapping[i][2:0], first_pass_plru_mapping[i][2:0]}}};
+			expected_upct_array = {
+				21'b111000111000111000111,
+				21'b011100011100011100011,
+				21'b101010101010101010101,
+				21'b001110001110001110001,
+				21'b110001110001110001110,
+				21'b010101010101010101010,
+				21'b100011100011100011100,
+				21'b000111000111000111000
+			};
 			// Update 0
 			// Update 1
 			expected_update1_upct_index = i > 2 ? 3'h0 : 3'h7;
@@ -319,11 +379,11 @@ module upct_tb ();
 		// reset
 		nRST = 1'b1;
 		// RESP stage
-		tb_valid_RESP = 1'b0;
-		tb_upct_index_RESP = 3'h0;
+		tb_read_valid_RESP = 1'b0;
+		tb_read_index_RESP = 3'h0;
 		// Update 0
 		tb_update0_valid = 1'b1;
-		tb_update0_start_full_PC = {
+		tb_update0_target_full_PC = {
 			3'h0, {3{3'h7, 3'h0}},
 			11'h0
 		};
@@ -334,7 +394,18 @@ module upct_tb ();
 		// outputs:
 
 		// RESP stage
-		expected_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
+		// expected_observer0_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
+		// expected_observer1_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
+		expected_upct_array = {
+			21'b111000111000111000111,
+			21'b011100011100011100011,
+			21'b101010101010101010101,
+			21'b001110001110001110001,
+			21'b110001110001110001110,
+			21'b010101010101010101010,
+			21'b100011100011100011100,
+			21'b000111000111000111000
+		};
 		// Update 0
 		// Update 1
 		expected_update1_upct_index = 3'h7;
@@ -352,11 +423,11 @@ module upct_tb ();
 			// reset
 			nRST = 1'b1;
 			// RESP stage
-			tb_valid_RESP = 1'b0;
-			tb_upct_index_RESP = 3'h0;
+			tb_read_valid_RESP = 1'b0;
+			tb_read_index_RESP = 3'h0;
 			// Update 0
 			tb_update0_valid = 1'b1;
-			tb_update0_start_full_PC = {
+			tb_update0_target_full_PC = {
 				i[2:0], {3{~i[2:0], i[2:0]}},
 				11'h0
 			};
@@ -367,7 +438,18 @@ module upct_tb ();
 			// outputs:
 
 			// RESP stage
-			expected_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
+			// expected_observer0_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
+			// expected_observer1_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
+			expected_upct_array = {
+				21'b111000111000111000111,
+				21'b011100011100011100011,
+				21'b101010101010101010101,
+				21'b001110001110001110001,
+				21'b110001110001110001110,
+				21'b010101010101010101010,
+				21'b100011100011100011100,
+				21'b000111000111000111000
+			};
 			// Update 0
 			// Update 1
 			expected_update1_upct_index = first_pass_plru_mapping[i-1];
@@ -384,11 +466,11 @@ module upct_tb ();
 		// reset
 		nRST = 1'b1;
 		// RESP stage
-		tb_valid_RESP = 1'b0;
-		tb_upct_index_RESP = 3'h0;
+		tb_read_valid_RESP = 1'b0;
+		tb_read_index_RESP = 3'h0;
 		// Update 0
 		tb_update0_valid = 1'b0;
-		tb_update0_start_full_PC = {
+		tb_update0_target_full_PC = {
 			21'h0,
 			11'h0
 		};
@@ -399,7 +481,18 @@ module upct_tb ();
 		// outputs:
 
 		// RESP stage
-		expected_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
+		// expected_observer0_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
+		// expected_observer1_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
+		expected_upct_array = {
+			21'b111000111000111000111,
+			21'b011100011100011100011,
+			21'b101010101010101010101,
+			21'b001110001110001110001,
+			21'b110001110001110001110,
+			21'b010101010101010101010,
+			21'b100011100011100011100,
+			21'b000111000111000111000
+		};
 		// Update 0
 		// Update 1
 		expected_update1_upct_index = first_pass_plru_mapping[7];

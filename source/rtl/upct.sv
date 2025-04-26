@@ -14,23 +14,15 @@ module upct (
     input logic CLK,
     input logic nRST,
 
-    // // RESP stage
-    // input logic                         valid_RESP,
-    // input logic [LOG_UPCT_ENTRIES-1:0]  upct_index_RESP,
-    // output logic [UPPER_PC_WIDTH-1:0]   upper_PC_RESP,
-
     // RESP stage
     input logic                         read_valid_RESP,
     input logic [LOG_UPCT_ENTRIES-1:0]  read_index_RESP,
 
-    input logic [LOG_UPCT_ENTRIES-1:0]  observer0_index_RESP,
-    output logic [UPPER_PC_WIDTH-1:0]   observer0_upper_PC_RESP,
-    input logic [LOG_UPCT_ENTRIES-1:0]  observer1_index_RESP,
-    output logic [UPPER_PC_WIDTH-1:0]   observer1_upper_PC_RESP,
+    output logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] upct_array,
 
     // Update 0
     input logic         update0_valid,
-    input logic [31:0]  update0_start_full_PC,
+    input logic [31:0]  update0_target_full_PC,
 
     // Update 1
     output logic [LOG_UPCT_ENTRIES-1:0] update1_upct_index
@@ -40,7 +32,8 @@ module upct (
     // Signals:
 
     // FF Array:
-    logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] upct_array, next_upct_array;
+    // logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] upct_array, next_upct_array;
+    logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] next_upct_array;
 
     // PLRU Arrays:
     logic               plru2, next_plru2;  // index bit 2
@@ -89,7 +82,7 @@ module upct (
 
     // Update 0 Logic:
 
-    assign update0_upper_PC = update0_start_full_PC[31:32-UPPER_PC_WIDTH];
+    assign update0_upper_PC = update0_target_full_PC[31:32-UPPER_PC_WIDTH];
 
     always_comb begin
 
@@ -101,8 +94,8 @@ module upct (
 
     // Update 1 and RESP logic:
 
-    assign observer0_upper_PC_RESP = upct_array[observer0_index_RESP];
-    assign observer1_upper_PC_RESP = upct_array[observer1_index_RESP];
+    // assign observer0_upper_PC_RESP = upct_array[observer0_index_RESP];
+    // assign observer1_upper_PC_RESP = upct_array[observer1_index_RESP];
 
     assign update1_have_match = |update1_matching_upper_PC_by_entry;
 

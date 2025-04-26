@@ -277,6 +277,10 @@ module fetch_unit #(
     logic [7:0] fetch_resp_instr_16B_yield_vec;
     logic [7:0] fetch_resp_redirect_vec;
 
+    // upct accesses
+    logic [UPPER_PC_WIDTH-1:0]          fetch_resp_saved_upc;
+    logic [7:0][UPPER_PC_WIDTH-1:0]     fetch_resp_selected_upc_by_instr;
+
     // modules:
 
     // lbpt:
@@ -323,23 +327,20 @@ module fetch_unit #(
 
     // upct:
 
-        // // RESP stage
-        // logic                           upct_valid_RESP;
-        // logic [LOG_UPCT_ENTRIES-1:0]    upct_upct_index_RESP;
-        // logic [UPPER_PC_WIDTH-1:0]      upct_upper_PC_RESP;
-
         // RESP stage
         logic                           upct_read_valid_RESP;
         logic [LOG_UPCT_ENTRIES-1:0]    upct_read_index_RESP;
 
-        logic [LOG_UPCT_ENTRIES-1:0]    upct_observer0_index_RESP; // for saved pred info
-        logic [UPPER_PC_WIDTH-1:0]      upct_observer0_upper_PC_RESP;
-        logic [LOG_UPCT_ENTRIES-1:0]    upct_observer1_index_RESP; // for selected pred info
-        logic [UPPER_PC_WIDTH-1:0]      upct_observer1_upper_PC_RESP;
+        // logic [LOG_UPCT_ENTRIES-1:0]    upct_observer0_index_RESP; // for saved pred info
+        // logic [UPPER_PC_WIDTH-1:0]      upct_observer0_upper_PC_RESP;
+        // logic [LOG_UPCT_ENTRIES-1:0]    upct_observer1_index_RESP; // for selected pred info
+        // logic [UPPER_PC_WIDTH-1:0]      upct_observer1_upper_PC_RESP;
+
+        logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] upct_upct_array;
 
         // Update 0
         logic           upct_update0_valid;
-        logic [31:0]    upct_update0_start_full_PC;
+        logic [31:0]    upct_update0_target_full_PC;
 
         // Update 1
         logic [LOG_UPCT_ENTRIES-1:0]    upct_update1_upct_index;
@@ -832,6 +833,15 @@ module fetch_unit #(
         end
     end
 
+    // upct accesses
+    always_comb begin
+        fetch_resp_saved_upc = upct_upct_array[fetch_resp_saved_pred_info[2:0]];
+
+        for (int instr = 0; instr < 8; instr++) begin
+            fetch_resp_selected_upc_by_instr[instr] = upct_upct_array[btb_pred_info_by_instr_RESP[instr][2:0]];
+        end
+    end
+
     // pred-specific actions per instr
     always_comb begin
 
@@ -839,7 +849,7 @@ module fetch_unit #(
         if (fetch_resp_saved_pred_info[3]) begin
             // bit [3] tells if use upct
             fetch_resp_saved_pred_PC_VA = {
-                upct_observer0_upper_PC_RESP, 
+                fetch_resp_saved_upc, 
                 fetch_resp_saved_target, 1'b0};
         end
         else begin
@@ -856,7 +866,7 @@ module fetch_unit #(
                 fetch_resp_PC_VA[31:32-UPPER_PC_WIDTH], 
                 btb_target_by_instr_RESP[instr], 1'b0};
 
-            casez (btb_pred_info_by_instr_RESP[instr])
+            casez (btb_pred_info_by_instr_RESP[instr][7:4])
 
                 4'b00??: // no pred
                 begin
@@ -868,7 +878,7 @@ module fetch_unit #(
                     // bit [3] tells if use upct
                     if (btb_pred_info_by_instr_RESP[instr][3]) begin
                         fetch_resp_curr_pred_PC_VA_by_instr[instr] = {
-                            upct_observer1_upper_PC_RESP, 
+                            fetch_resp_selected_upc_by_instr[instr], 
                             btb_target_by_instr_RESP[instr], 1'b0};
                     end
                     // otherwise, upper PC + 3bindex, target
@@ -884,7 +894,7 @@ module fetch_unit #(
                     // bit [3] tells if use upct
                     if (btb_pred_info_by_instr_RESP[instr][3]) begin
                         fetch_resp_curr_pred_PC_VA_by_instr[instr] = {
-                            upct_observer1_upper_PC_RESP, 
+                            fetch_resp_selected_upc_by_instr[instr], 
                             btb_target_by_instr_RESP[instr], 1'b0};
                     end
                     // otherwise, upper PC + 3bindex, target
@@ -947,8 +957,8 @@ module fetch_unit #(
         end
 
         // observer indexes 
-        upct_observer0_index_RESP = fetch_resp_saved_pred_info[2:0];
-        upct_observer1_index_RESP = fetch_resp_selected_pred_info[2:0];
+        // upct_observer0_index_RESP = fetch_resp_saved_pred_info[2:0];
+        // upct_observer1_index_RESP = fetch_resp_selected_pred_info[2:0];
         
         // // upct_upct_index_RESP
         // if (fetch_resp_check_complex_branch_taken & fetch_resp_complex_branch_taken) begin
@@ -1551,17 +1561,17 @@ module fetch_unit #(
         upct_update0_valid = 
             decode_unit_branch_update_valid
             & decode_unit_branch_update_use_upct;
-        upct_update0_start_full_PC = decode_unit_branch_update_start_PC;
+        upct_update0_target_full_PC = decode_unit_branch_update_target_PC;
 
         // ras:
         // ras_link_RESP = ; // handled in pred-specific actions
         if (fetch_resp_selected_one_hot[7]) begin
             // use PC+16 if link on last instr in this 16B
-            ras_link_full_PC_RESP = {fetch_req_PC_VA, fetch_resp_selected_index_plus_1, 1'b0};
+            ras_link_full_PC_RESP = {fetch_req_PC_VA[31:4], fetch_resp_selected_index_plus_1, 1'b0};
         end
         else begin
             // use next instr PC link
-            ras_link_full_PC_RESP = {fetch_resp_PC_VA, fetch_resp_selected_index_plus_1, 1'b0};
+            ras_link_full_PC_RESP = {fetch_resp_PC_VA[31:4], fetch_resp_selected_index_plus_1, 1'b0};
         end
         // ras_ret_RESP = ; // handled in pred-specific actions
 
@@ -1615,13 +1625,14 @@ module fetch_unit #(
         // .upper_PC_RESP(upct_upper_PC_RESP),
         .read_valid_RESP(upct_read_valid_RESP),
         .read_index_RESP(upct_read_index_RESP),
-        .observer0_index_RESP(upct_observer0_index_RESP),
-        .observer0_upper_PC_RESP(upct_observer0_upper_PC_RESP),
-        .observer1_index_RESP(upct_observer1_index_RESP),
-        .observer1_upper_PC_RESP(upct_observer1_upper_PC_RESP),
+        // .observer0_index_RESP(upct_observer0_index_RESP),
+        // .observer0_upper_PC_RESP(upct_observer0_upper_PC_RESP),
+        // .observer1_index_RESP(upct_observer1_index_RESP),
+        // .observer1_upper_PC_RESP(upct_observer1_upper_PC_RESP),
+        .upct_array(upct_upct_array),
 
         .update0_valid(upct_update0_valid),
-        .update0_start_full_PC(upct_update0_start_full_PC),
+        .update0_target_full_PC(upct_update0_target_full_PC),
         .update1_upct_index(upct_update1_upct_index)
     );
 
@@ -1748,6 +1759,7 @@ module fetch_unit #(
 
         // use upct's index generated in update1
         if (update1_use_upct) begin
+            update1_final_pred_info[3] = 1'b1;
             update1_final_pred_info[2:0] = upct_update1_upct_index;
         end
     end

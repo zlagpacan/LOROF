@@ -18,13 +18,14 @@ module upct_wrapper (
 
 
     // RESP stage
-	input logic next_valid_RESP,
-	input logic [LOG_UPCT_ENTRIES-1:0] next_upct_index_RESP,
-	output logic [UPPER_PC_WIDTH-1:0] last_upper_PC_RESP,
+	input logic next_read_valid_RESP,
+	input logic [LOG_UPCT_ENTRIES-1:0] next_read_index_RESP,
+
+	output logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] last_upct_array,
 
     // Update 0
 	input logic next_update0_valid,
-	input logic [31:0] next_update0_start_full_PC,
+	input logic [31:0] next_update0_target_full_PC,
 
     // Update 1
 	output logic [LOG_UPCT_ENTRIES-1:0] last_update1_upct_index
@@ -35,13 +36,14 @@ module upct_wrapper (
 
 
     // RESP stage
-	logic valid_RESP;
-	logic [LOG_UPCT_ENTRIES-1:0] upct_index_RESP;
-	logic [UPPER_PC_WIDTH-1:0] upper_PC_RESP;
+	logic read_valid_RESP;
+	logic [LOG_UPCT_ENTRIES-1:0] read_index_RESP;
+
+	logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] upct_array;
 
     // Update 0
 	logic update0_valid;
-	logic [31:0] update0_start_full_PC;
+	logic [31:0] update0_target_full_PC;
 
     // Update 1
 	logic [LOG_UPCT_ENTRIES-1:0] update1_upct_index;
@@ -59,13 +61,14 @@ module upct_wrapper (
 
 
 		    // RESP stage
-			valid_RESP <= '0;
-			upct_index_RESP <= '0;
-			last_upper_PC_RESP <= '0;
+			read_valid_RESP <= '0;
+			read_index_RESP <= '0;
+
+			last_upct_array <= '0;
 
 		    // Update 0
 			update0_valid <= '0;
-			update0_start_full_PC <= '0;
+			update0_target_full_PC <= '0;
 
 		    // Update 1
 			last_update1_upct_index <= '0;
@@ -74,13 +77,14 @@ module upct_wrapper (
 
 
 		    // RESP stage
-			valid_RESP <= next_valid_RESP;
-			upct_index_RESP <= next_upct_index_RESP;
-			last_upper_PC_RESP <= upper_PC_RESP;
+			read_valid_RESP <= next_read_valid_RESP;
+			read_index_RESP <= next_read_index_RESP;
+
+			last_upct_array <= upct_array;
 
 		    // Update 0
 			update0_valid <= next_update0_valid;
-			update0_start_full_PC <= next_update0_start_full_PC;
+			update0_target_full_PC <= next_update0_target_full_PC;
 
 		    // Update 1
 			last_update1_upct_index <= update1_upct_index;
