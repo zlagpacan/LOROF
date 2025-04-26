@@ -78,9 +78,9 @@ module fetch_unit #(
     input logic         rob_restart_virtual_mode,
 
     // decode unit control
-    input logic         decode_restart_valid,
-    input logic [31:0]  decode_restart_PC,
-    input logic         decode_trigger_wait_for_restart,
+    input logic         decode_unit_restart_valid,
+    input logic [31:0]  decode_unit_restart_PC,
+    input logic         decode_unit_trigger_wait_for_restart,
 
     // branch update from decode unit
     input logic                             decode_unit_branch_update_valid,
@@ -433,11 +433,11 @@ module fetch_unit #(
             next_fetch_req_exec_mode = rob_restart_exec_mode;
             next_fetch_req_virtual_mode = rob_restart_virtual_mode;
         end
-        else if (decode_restart_valid) begin
+        else if (decode_unit_restart_valid) begin
             next_fetch_req_wait_for_restart_state = 1'b0;
-            next_fetch_req_PC_VA = decode_restart_PC;
+            next_fetch_req_PC_VA = decode_unit_restart_PC;
         end
-        else if (decode_trigger_wait_for_restart) begin
+        else if (decode_unit_trigger_wait_for_restart) begin
             next_fetch_req_wait_for_restart_state = 1'b1;
         end
         else if (fetch_req_wait_for_restart_state) begin
@@ -597,7 +597,7 @@ module fetch_unit #(
             ghr <= '0;
         end
         else begin
-            if (rob_restart_valid | decode_restart_valid) begin
+            if (rob_restart_valid | decode_unit_restart_valid) begin
                 fetch_resp_state <= FETCH_RESP_IDLE;
             end
             else begin

@@ -75,9 +75,9 @@ module fetch_unit_wrapper (
 	input logic next_rob_restart_virtual_mode,
 
     // decode unit control
-	input logic next_decode_restart_valid,
-	input logic [31:0] next_decode_restart_PC,
-	input logic next_decode_trigger_wait_for_restart,
+	input logic next_decode_unit_restart_valid,
+	input logic [31:0] next_decode_unit_restart_PC,
+	input logic next_decode_unit_trigger_wait_for_restart,
 
     // branch update from decode unit
 	input logic next_decode_unit_branch_update_valid,
@@ -160,9 +160,9 @@ module fetch_unit_wrapper (
 	logic rob_restart_virtual_mode;
 
     // decode unit control
-	logic decode_restart_valid;
-	logic [31:0] decode_restart_PC;
-	logic decode_trigger_wait_for_restart;
+	logic decode_unit_restart_valid;
+	logic [31:0] decode_unit_restart_PC;
+	logic decode_unit_trigger_wait_for_restart;
 
     // branch update from decode unit
 	logic decode_unit_branch_update_valid;
@@ -252,9 +252,9 @@ module fetch_unit_wrapper (
 			rob_restart_virtual_mode <= '0;
 
 		    // decode unit control
-			decode_restart_valid <= '0;
-			decode_restart_PC <= '0;
-			decode_trigger_wait_for_restart <= '0;
+			decode_unit_restart_valid <= '0;
+			decode_unit_restart_PC <= '0;
+			decode_unit_trigger_wait_for_restart <= '0;
 
 		    // branch update from decode unit
 			decode_unit_branch_update_valid <= '0;
@@ -335,9 +335,9 @@ module fetch_unit_wrapper (
 			rob_restart_virtual_mode <= next_rob_restart_virtual_mode;
 
 		    // decode unit control
-			decode_restart_valid <= next_decode_restart_valid;
-			decode_restart_PC <= next_decode_restart_PC;
-			decode_trigger_wait_for_restart <= next_decode_trigger_wait_for_restart;
+			decode_unit_restart_valid <= next_decode_unit_restart_valid;
+			decode_unit_restart_PC <= next_decode_unit_restart_PC;
+			decode_unit_trigger_wait_for_restart <= next_decode_unit_trigger_wait_for_restart;
 
 		    // branch update from decode unit
 			decode_unit_branch_update_valid <= next_decode_unit_branch_update_valid;

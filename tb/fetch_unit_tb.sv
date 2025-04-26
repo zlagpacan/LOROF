@@ -91,9 +91,9 @@ module fetch_unit_tb ();
 	logic tb_rob_restart_virtual_mode;
 
     // decode unit control
-	logic tb_decode_restart_valid;
-	logic [31:0] tb_decode_restart_PC;
-	logic tb_decode_trigger_wait_for_restart;
+	logic tb_decode_unit_restart_valid;
+	logic [31:0] tb_decode_unit_restart_PC;
+	logic tb_decode_unit_trigger_wait_for_restart;
 
     // branch update from decode unit
 	logic tb_decode_unit_branch_update_valid;
@@ -186,9 +186,9 @@ module fetch_unit_tb ();
 		.rob_restart_virtual_mode(tb_rob_restart_virtual_mode),
 
 	    // decode unit control
-		.decode_restart_valid(tb_decode_restart_valid),
-		.decode_restart_PC(tb_decode_restart_PC),
-		.decode_trigger_wait_for_restart(tb_decode_trigger_wait_for_restart),
+		.decode_unit_restart_valid(tb_decode_unit_restart_valid),
+		.decode_unit_restart_PC(tb_decode_unit_restart_PC),
+		.decode_unit_trigger_wait_for_restart(tb_decode_unit_trigger_wait_for_restart),
 
 	    // branch update from decode unit
 		.decode_unit_branch_update_valid(tb_decode_unit_branch_update_valid),
@@ -436,9 +436,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -548,9 +548,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -668,9 +668,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -782,9 +782,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -896,9 +896,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -1010,9 +1010,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -1124,9 +1124,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -1238,9 +1238,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -1352,9 +1352,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -1466,9 +1466,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -1580,9 +1580,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -1694,9 +1694,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -1808,9 +1808,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -1986,9 +1986,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -2103,9 +2103,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -2220,9 +2220,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -2337,9 +2337,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -2454,9 +2454,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -2571,9 +2571,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -2688,9 +2688,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -2805,9 +2805,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -2923,9 +2923,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
@@ -3041,9 +3041,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
@@ -3159,9 +3159,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
@@ -3277,9 +3277,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
@@ -3395,9 +3395,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
@@ -3513,9 +3513,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
@@ -3631,9 +3631,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
@@ -3749,9 +3749,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
@@ -3867,9 +3867,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
@@ -3985,9 +3985,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
@@ -4103,9 +4103,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
@@ -4221,9 +4221,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
@@ -4339,9 +4339,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
@@ -4457,9 +4457,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
@@ -4575,9 +4575,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
@@ -4693,9 +4693,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b1;
@@ -4810,9 +4810,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b1;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -4932,9 +4932,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b1;
-		tb_decode_restart_PC = 32'h5678000E;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b1;
+		tb_decode_unit_restart_PC = 32'h5678000E;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -5048,9 +5048,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -5164,9 +5164,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -5280,9 +5280,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -5396,9 +5396,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -5512,9 +5512,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -5628,9 +5628,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -5744,9 +5744,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -5860,9 +5860,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -5976,9 +5976,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -6092,9 +6092,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -6208,9 +6208,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -6324,9 +6324,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -6440,9 +6440,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -6556,9 +6556,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -6672,9 +6672,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -6788,9 +6788,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -6904,9 +6904,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -7020,9 +7020,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -7136,9 +7136,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -7252,9 +7252,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -7368,9 +7368,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -7484,9 +7484,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -7600,9 +7600,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -7716,9 +7716,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -7832,9 +7832,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -7948,9 +7948,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -8064,9 +8064,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -8180,9 +8180,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -8296,9 +8296,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -8412,9 +8412,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -8528,9 +8528,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
@@ -8644,9 +8644,9 @@ module fetch_unit_tb ();
 		tb_rob_restart_exec_mode = M_MODE;
 		tb_rob_restart_virtual_mode = 1'b0;
 	    // decode unit control
-		tb_decode_restart_valid = 1'b0;
-		tb_decode_restart_PC = 32'h0;
-		tb_decode_trigger_wait_for_restart = 1'b0;
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_PC = 32'h0;
+		tb_decode_unit_trigger_wait_for_restart = 1'b0;
 	    // branch update from decode unit
 		tb_decode_unit_branch_update_valid = 1'b0;
 		tb_decode_unit_branch_update_has_checkpoint = 1'b0;
