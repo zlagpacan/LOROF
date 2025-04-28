@@ -20,11 +20,11 @@ import core_types_pkg::*;
 // --- Transaction --- //
 class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
   `uvm_object_utils(alu_reg_mdu_iq_sequence_item)
-
-  rand logic [1:0] way; // for functions below 
   // --- Control Signals --- //
   rand logic nRST;
-
+  // --- Used for banks --- //
+  rand logic [1:0] idx;
+  rand logic [1:0] idx2;
   // --- Randomized Inputs --- //
   rand logic [3:0]                                                     dispatch_attempt_by_way;
   rand logic [3:0]                                                     dispatch_valid_alu_reg_by_way;
@@ -123,7 +123,7 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
     super.copy(rhs); // Copy base class fields
     
     // Manually copy each field
-    this.way = tr.way;
+    // this.way = tr.way;
     this.nRST = tr.nRST;
     this.dispatch_attempt_by_way = tr.dispatch_attempt_by_way;
     this.dispatch_valid_alu_reg_by_way = tr.dispatch_valid_alu_reg_by_way;
@@ -273,78 +273,47 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
   
   // --- Constraints --- //
   constraint valid_dispatch {
-    if(!dispatch_attempt_by_way[0]) { 
-      dispatch_valid_mdu_by_way[0] == 0;
-      dispatch_valid_alu_reg_by_way[0] == 0;
+      // Mutual exclusivity: dispatch_valid_alu_reg_by_way and dispatch_valid_mdu_by_way cannot be high at the same time for any way
+    foreach (dispatch_valid_alu_reg_by_way[way]) {
+      ~(dispatch_valid_alu_reg_by_way[way] & dispatch_valid_mdu_by_way[way]);
     }
 
-    if(!dispatch_attempt_by_way[1]) {
-      dispatch_valid_mdu_by_way[1] == 0;
-      dispatch_valid_alu_reg_by_way[1] == 0;
-    }
+    // Ensure (dispatch_valid_alu_reg_by_way | dispatch_valid_mdu_by_way) is a subset of dispatch_attempt_by_way
+    ((dispatch_valid_alu_reg_by_way | dispatch_valid_mdu_by_way) & dispatch_attempt_by_way) == (dispatch_valid_alu_reg_by_way | dispatch_valid_mdu_by_way);
 
-    if(!dispatch_attempt_by_way[2]) {
-      dispatch_valid_mdu_by_way[2] == 0;
-      dispatch_valid_alu_reg_by_way[2] == 0;
-    }
+    // Ensure only upper significant high bits are excluded
+    (dispatch_valid_alu_reg_by_way | dispatch_valid_mdu_by_way) inside {
+      dispatch_attempt_by_way,
+      dispatch_attempt_by_way & 4'b0111,
+      dispatch_attempt_by_way & 4'b0011,
+      dispatch_attempt_by_way & 4'b0001,
+      4'b0000
+    };
 
-    if(!dispatch_attempt_by_way[3]) { 
-      dispatch_valid_mdu_by_way[3] == 0;
-      dispatch_valid_alu_reg_by_way[3] == 0;
-    }
-
-    !(dispatch_valid_alu_reg_by_way & dispatch_valid_mdu_by_way);
-        
-      if(dispatch_valid_alu_reg_by_way[0] == 0) {
-        dispatch_valid_alu_reg_by_way[1] == 0;
-        dispatch_valid_alu_reg_by_way[2] == 0;
-        dispatch_valid_alu_reg_by_way[3] == 0;
-      }
-// 1001
-      if(dispatch_valid_alu_reg_by_way[1] == 0) { // 1101, 0101, 1000,1111
-        dispatch_valid_alu_reg_by_way[2] == 0;
-        dispatch_valid_alu_reg_by_way[3] == 0;
-      }
-
-      if(dispatch_valid_alu_reg_by_way[2] == 0) {
-        dispatch_valid_alu_reg_by_way[3] == 0;
-      }
-
-      // Mdu by way
-      if(dispatch_valid_mdu_by_way[0] == 0) {
-        dispatch_valid_mdu_by_way[1] == 0;
-        dispatch_valid_mdu_by_way[2] == 0;
-        dispatch_valid_mdu_by_way[3] == 0;
-      }
-
-      if(dispatch_valid_mdu_by_way[1] == 0) {
-        if(!dispatch_attempt_by_way[2]) dispatch_valid_mdu_by_way[2] == 0;
-        if(!dispatch_attempt_by_way[3]) dispatch_valid_mdu_by_way[3] == 0;
-      }
-
-      if(dispatch_valid_mdu_by_way[2] == 0) {
-        if(!dispatch_attempt_by_way[3]) dispatch_valid_mdu_by_way[3] == 0;
-      }
-
-
-
-      (dispatch_valid_mdu_by_way[0] > 1'b0) dist { 1 := 70, 0 := 30 }; // 70% chance my_var > X, 30% chance otherwise
-      (dispatch_valid_alu_reg_by_way[0] > 1'b0) dist { 1 := 70, 0 := 30 }; // 70% chance my_var > X, 30% chance otherwise
+    (dispatch_valid_mdu_by_way[0] > 1'b0) dist { 1 := 50, 0 := 50 }; // 50% chance my_var > X, 50% chance otherwise
+      (dispatch_valid_alu_reg_by_way[0] > 1'b0) dist { 1 := 50, 0 := 50 }; // 50% chance my_var > X, 50% chance otherwise
       
-      (dispatch_valid_mdu_by_way[1] > 1'b0) dist { 1 := 70, 0 := 30 }; // 70% chance my_var > X, 30% chance otherwise
-      (dispatch_valid_alu_reg_by_way[1] > 1'b0) dist { 1 := 70, 0 := 30 }; // 70% chance my_var > X, 30% chance otherwise
+      (dispatch_valid_mdu_by_way[1] > 1'b0) dist { 1 := 50, 0 := 50 }; // 50% chance my_var > X, 50% chance otherwise
+      (dispatch_valid_alu_reg_by_way[1] > 1'b0) dist { 1 := 50, 0 := 50 }; // 50% chance my_var > X, 50% chance otherwise
       
-      (dispatch_valid_mdu_by_way[2] > 1'b0) dist { 1 := 70, 0 := 30 }; // 70% chance my_var > X, 30% chance otherwise
-      (dispatch_valid_alu_reg_by_way[2] > 1'b0) dist { 1 := 70, 0 := 30 }; // 70% chance my_var > X, 30% chance otherwise
+      (dispatch_valid_mdu_by_way[2] > 1'b0) dist { 1 := 50, 0 := 50 }; // 50% chance my_var > X, 50% chance otherwise
+      (dispatch_valid_alu_reg_by_way[2] > 1'b0) dist { 1 := 50, 0 := 50 }; // 50% chance my_var > X, 50% chance otherwise
       
-      (dispatch_valid_mdu_by_way[3] > 1'b0) dist { 1 := 70, 0 := 30 }; // 70% chance my_var > X, 30% chance otherwise
-      (dispatch_valid_alu_reg_by_way[3] > 1'b0) dist { 1 := 70, 0 := 30 }; // 70% chance my_var > X, 30% chance otherwise
-    // (dispatch_valid_alu_reg_by_way | dispatch_valid_mdu_by_way) <= dispatch_attempt_by_way;
-    
+      (dispatch_valid_mdu_by_way[3] > 1'b0) dist { 1 := 50, 0 := 50 }; // 50% chance my_var > X, 50% chance otherwise
+      (dispatch_valid_alu_reg_by_way[3] > 1'b0) dist { 1 := 50, 0 := 50 }; // 50% chance my_var > X, 50% chance otherwise
   }
 
-
-  //TODO MAY NEED TO ADD OPCODE CONSTRAINTS
+  // TODO MAY NEED TO GET RID OF
+  constraint zero {
+    foreach(dispatch_A_is_zero_by_way[i]) {
+      if(dispatch_A_is_zero_by_way[i] == 1) {
+        dispatch_A_PR_by_way[i] == 0;
+      }
+      if(dispatch_B_is_zero_by_way[i] == 1) {
+        dispatch_B_PR_by_way[i] == 0;
+      }
+    }
+  }
 
 
   // --- Constructor --- //
@@ -354,115 +323,5 @@ class alu_reg_mdu_iq_sequence_item extends uvm_sequence_item;
 
 
 endclass : alu_reg_mdu_iq_sequence_item
-
-// // May use may not will see
-//   virtual function void add();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
-//     dispatch_valid_mdu_by_way[way] = 1'b0;
-//     dispatch_op_by_way[way] = 4'b0000;
-//   endfunction
-
-//   virtual function void sub ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
-//     dispatch_valid_mdu_by_way[way] = 1'b0;
-//     dispatch_op_by_way[way] = 4'b1000;
-//   endfunction
-
-//  virtual function sll void ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
-//     dispatch_valid_mdu_by_way[way] = 1'b0;
-//     dispatch_op_by_way[way] = 4'b0001;
-//   endfunction
-
-//  virtual function slt void ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
-//     dispatch_valid_mdu_by_way[way] = 1'b0;
-//     dispatch_op_by_way[way] = 4'b0010;
-//   endfunction
-
-//  virtual function sltu void ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
-//     dispatch_valid_mdu_by_way[way] = 1'b0;
-//     dispatch_op_by_way[way] = 4'b0011;
-//   endfunction
-
-//  virtual function xor void ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
-//     dispatch_valid_mdu_by_way[way] = 1'b0;
-//     dispatch_op_by_way[way] = 4'b0100;
-//   endfunction
-
-//  virtual function srl void ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
-//     dispatch_valid_mdu_by_way[way] = 1'b0;
-//     dispatch_op_by_way[way] = 4'b0101;
-//   endfunction
-
-//  virtual function sra void ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
-//     dispatch_valid_mdu_by_way[way] = 1'b0;
-//     dispatch_op_by_way[way] = 4'b1101;
-//   endfunction
-
-//  virtual function or void ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
-//     dispatch_valid_mdu_by_way[way] = 1'b0;
-//     dispatch_op_by_way[way] = 4'b0110;
-//   endfunction
-
-//  virtual function and void ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b1;
-//     dispatch_valid_mdu_by_way[way] = 1'b0;
-//     dispatch_op_by_way[way] = 4'b0111;
-//   endfunction
-
-//   // MUL DIV FUNCTIONS
-//  virtual function MUL void ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b0;
-//     dispatch_valid_mdu_by_way[way] = 1'b1;
-//     dispatch_op_by_way[way] = 4'b0000;
-//   endfunction
-
-//  virtual function MULH void ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b0;
-//     dispatch_valid_mdu_by_way[way] = 1'b1;
-//     dispatch_op_by_way[way] = 4'b0001;
-//   endfunction
-
-//  virtual function MULHSU void ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b0;
-//     dispatch_valid_mdu_by_way[way] = 1'b1;
-//     dispatch_op_by_way[way] = 4'b0010;
-//   endfunction
-
-//  virtual function MULHU void ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b0;
-//     dispatch_valid_mdu_by_way[way] = 1'b1;
-//     dispatch_op_by_way[way] = 4'b0011;
-//   endfunction
-  
-//  virtual function DIV void ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b0;
-//     dispatch_valid_mdu_by_way[way] = 1'b1;
-//     dispatch_op_by_way[way] = 4'b0100;
-//   endfunction
-
-//  virtual function DIVU void ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b0;
-//     dispatch_valid_mdu_by_way[way] = 1'b1;
-//     dispatch_op_by_way[way] = 4'b0101;
-//   endfunction
-
-//  virtual function REM void ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b0;
-//     dispatch_valid_mdu_by_way[way] = 1'b1;
-//     dispatch_op_by_way[way] = 4'b0110;
-//   endfunction
-
-//  virtual function REMU void ();
-//     dispatch_valid_alu_reg_by_way[way] = 1'b0;
-//     dispatch_valid_mdu_by_way[way] = 1'b1;
-//     dispatch_op_by_way[way] = 4'b0111;
-//   endfunction
 
 `endif

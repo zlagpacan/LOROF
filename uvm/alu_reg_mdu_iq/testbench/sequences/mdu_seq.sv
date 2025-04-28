@@ -87,6 +87,8 @@ class simp_mdu_a_b_nr extends uvm_sequence;
             dispatch_valid_alu_reg_by_way == 4'b0; // no mdu dispatch 
             dispatch_A_ready_by_way == 4'b0;
             dispatch_B_ready_by_way == 4'b0;
+            dispatch_A_is_zero_by_way == 4'b0;
+            dispatch_B_is_zero_by_way == 4'b0;
             alu_reg_pipeline_ready == 0; // alu reg pipe not ready
             mdu_pipeline_ready == 1; // MDU ready
             WB_bus_valid_by_bank == 0; // no wb
