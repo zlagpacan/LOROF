@@ -80,6 +80,7 @@ module fetch_unit #(
     // decode unit control
     input logic         decode_unit_restart_valid,
     input logic [31:0]  decode_unit_restart_PC,
+
     input logic         decode_unit_trigger_wait_for_restart,
 
     // branch update from decode unit

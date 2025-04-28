@@ -28,8 +28,8 @@ module checkpoint_array #(
     output logic [CHECKPOINT_INDEX_WIDTH-1:0]       save_index,
 
     // checkpoint restore
-    input logic                                     restore_valid,
     input logic [CHECKPOINT_INDEX_WIDTH-1:0]        restore_index,
+    input logic                                     restore_clear,
 
     output logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0]   restore_map_table,
     output logic [LH_LENGTH-1:0]                    restore_LH,
@@ -76,7 +76,7 @@ module checkpoint_array #(
 
     always_comb begin
         keep_valid_array = '1;
-        if (restore_valid) begin
+        if (restore_clear) begin
             keep_valid_array[restore_index] = 1'b0;
         end
     end

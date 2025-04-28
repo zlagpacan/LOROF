@@ -43,7 +43,7 @@ module checkpoint_array_tb ();
 	logic [CHECKPOINT_INDEX_WIDTH-1:0] DUT_save_index, expected_save_index;
 
     // checkpoint restore
-	logic tb_restore_valid;
+	logic tb_restore_clear;
 	logic [CHECKPOINT_INDEX_WIDTH-1:0] tb_restore_index;
 
 	logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] DUT_restore_map_table, expected_restore_map_table;
@@ -77,7 +77,7 @@ module checkpoint_array_tb ();
 		.save_index(DUT_save_index),
 
 	    // checkpoint restore
-		.restore_valid(tb_restore_valid),
+		.restore_clear(tb_restore_clear),
 		.restore_index(tb_restore_index),
 
 		.restore_map_table(DUT_restore_map_table),
@@ -172,7 +172,7 @@ module checkpoint_array_tb ();
 		tb_save_GH = '0;
 		tb_save_ras_index = '0;
 	    // checkpoint restore
-		tb_restore_valid = 1'b0;
+		tb_restore_clear = 1'b0;
 		tb_restore_index = '0;
 	    // advertized threshold
 
@@ -206,7 +206,7 @@ module checkpoint_array_tb ();
 		tb_save_GH = '0;
 		tb_save_ras_index = '0;
 	    // checkpoint restore
-		tb_restore_valid = 1'b0;
+		tb_restore_clear = 1'b0;
 		tb_restore_index = '0;
 	    // advertized threshold
 
@@ -250,7 +250,7 @@ module checkpoint_array_tb ();
 		tb_save_GH = 12'h000;
 		tb_save_ras_index = 3'h0;
 	    // checkpoint restore
-		tb_restore_valid = 1'b0;
+		tb_restore_clear = 1'b0;
 		tb_restore_index = '0;
 	    // advertized threshold
 
@@ -288,7 +288,7 @@ module checkpoint_array_tb ();
 		tb_save_GH = 12'h111;
 		tb_save_ras_index = 3'h1;
 	    // checkpoint restore
-		tb_restore_valid = 1'b0;
+		tb_restore_clear = 1'b0;
 		tb_restore_index = '0;
 	    // advertized threshold
 
@@ -328,7 +328,7 @@ module checkpoint_array_tb ();
 		tb_save_GH = 12'h222;
 		tb_save_ras_index = 3'h2;
 	    // checkpoint restore
-		tb_restore_valid = 1'b0;
+		tb_restore_clear = 1'b0;
 		tb_restore_index = '0;
 	    // advertized threshold
 
@@ -368,7 +368,7 @@ module checkpoint_array_tb ();
 		tb_save_GH = 12'h333;
 		tb_save_ras_index = 3'h3;
 	    // checkpoint restore
-		tb_restore_valid = 1'b0;
+		tb_restore_clear = 1'b0;
 		tb_restore_index = '0;
 	    // advertized threshold
 
@@ -408,7 +408,7 @@ module checkpoint_array_tb ();
 		tb_save_GH = 12'h444;
 		tb_save_ras_index = 3'h4;
 	    // checkpoint restore
-		tb_restore_valid = 1'b0;
+		tb_restore_clear = 1'b0;
 		tb_restore_index = '0;
 	    // advertized threshold
 
@@ -448,7 +448,7 @@ module checkpoint_array_tb ();
 		tb_save_GH = 12'h555;
 		tb_save_ras_index = 3'h5;
 	    // checkpoint restore
-		tb_restore_valid = 1'b0;
+		tb_restore_clear = 1'b0;
 		tb_restore_index = '0;
 	    // advertized threshold
 
@@ -488,7 +488,7 @@ module checkpoint_array_tb ();
 		tb_save_GH = 12'h666;
 		tb_save_ras_index = 3'h6;
 	    // checkpoint restore
-		tb_restore_valid = 1'b0;
+		tb_restore_clear = 1'b0;
 		tb_restore_index = '0;
 	    // advertized threshold
 
@@ -528,7 +528,7 @@ module checkpoint_array_tb ();
 		tb_save_GH = 12'h777;
 		tb_save_ras_index = 3'h7;
 	    // checkpoint restore
-		tb_restore_valid = 1'b0;
+		tb_restore_clear = 1'b0;
 		tb_restore_index = '0;
 	    // advertized threshold
 
@@ -568,7 +568,7 @@ module checkpoint_array_tb ();
 		tb_save_GH = 12'h888;
 		tb_save_ras_index = 3'h8;
 	    // checkpoint restore
-		tb_restore_valid = 1'b0;
+		tb_restore_clear = 1'b0;
 		tb_restore_index = '0;
 	    // advertized threshold
 
@@ -614,7 +614,7 @@ module checkpoint_array_tb ();
 		tb_save_GH = 12'h777;
 		tb_save_ras_index = 3'h7;
 	    // checkpoint restore
-		tb_restore_valid = 1'b1;
+		tb_restore_clear = 1'b1;
 		tb_restore_index = 3'h1;
 	    // advertized threshold
 
@@ -654,7 +654,7 @@ module checkpoint_array_tb ();
 		tb_save_GH = 12'h777;
 		tb_save_ras_index = 3'h7;
 	    // checkpoint restore
-		tb_restore_valid = 1'b1;
+		tb_restore_clear = 1'b1;
 		tb_restore_index = 3'h4;
 	    // advertized threshold
 
@@ -694,7 +694,7 @@ module checkpoint_array_tb ();
 		tb_save_GH = 12'h777;
 		tb_save_ras_index = 3'h7;
 	    // checkpoint restore
-		tb_restore_valid = 1'b1;
+		tb_restore_clear = 1'b1;
 		tb_restore_index = 3'h2;
 	    // advertized threshold
 
@@ -734,7 +734,7 @@ module checkpoint_array_tb ();
 		tb_save_GH = 12'hbbb;
 		tb_save_ras_index = 3'hb;
 	    // checkpoint restore
-		tb_restore_valid = 1'b1;
+		tb_restore_clear = 1'b1;
 		tb_restore_index = 3'h5;
 	    // advertized threshold
 
@@ -774,7 +774,7 @@ module checkpoint_array_tb ();
 		tb_save_GH = 12'hccc;
 		tb_save_ras_index = 3'hc;
 	    // checkpoint restore
-		tb_restore_valid = 1'b1;
+		tb_restore_clear = 1'b1;
 		tb_restore_index = 3'h7;
 	    // advertized threshold
 
