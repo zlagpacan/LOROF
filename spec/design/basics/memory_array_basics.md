@@ -38,8 +38,6 @@ Below are some classes of memories that are useful for processor design:
     - dequeue operation: remove element from FIFO
         - read value at read index
         - increment read index
-    - a FIFO might allow simultaneous enqueue and dequeue operations
-        - essentially, 
 
 ### LIFO
 
@@ -88,7 +86,7 @@ A large memory array can be split up into banks, which are mutually-exclusive su
 
 Just as there would be conflicts if a regular RAM had more read and/or write requests than read and/or write ports, bank conflicts occur when there are more read and/or write requests than read and/or write ports for the bank. In the case of a conflict, the requests must be stalled and serviced serially, limiting the potential bandwidth. A banked implementation of a RAM array can approach a bankwise multiplication in access bandwidth if bank conflicts are minimized. Bank conflict minimization simply relies on a good distribution of accesses among banks. With a good, naturally-uniformly-accessed RAM array, this can be as simple as assigning banks following bits in the access index. 
 
-Banking has a roughly O(n) increase in area and power, but with a large coefficient c*n as conflict detection and arbitration logic must be replicated per bank.
+Banking has a roughly O(n) increase in area and power, but with a large coefficient c*n as conflict detection and arbitration logic must be replicated per bank. There can also be significant area and power consequences due to routing port requests to multiple banks instead of a single array.
 
 ### Other Tricks for Bandwidth or Improved Parallelism
 - striping, interleaving
