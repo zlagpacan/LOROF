@@ -38,8 +38,6 @@ Below are some classes of memories that are useful for processor design:
     - dequeue operation: remove element from FIFO
         - read value at read index
         - increment read index
-    - a FIFO might allow simultaneous enqueue and dequeue operations
-        - essentially, 
 
 ### LIFO
 
