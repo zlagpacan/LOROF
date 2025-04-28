@@ -144,6 +144,10 @@ package core_types_pkg;
     parameter FREE_LIST_LOWER_THRESHOLD = 8;
     parameter FREE_LIST_UPPER_THRESHOLD = 24;
 
+    // map_table
+    parameter MAP_TABLE_READ_PORT_COUNT = 12;
+    parameter MAP_TABLE_WRITE_PORT_COUNT = 4;
+
     // checkpoint array:
     parameter CHECKPOINT_COUNT = 8;
     parameter CHECKPOINT_INDEX_WIDTH = $clog2(CHECKPOINT_COUNT);

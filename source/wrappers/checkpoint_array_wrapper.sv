@@ -27,8 +27,8 @@ module checkpoint_array_wrapper (
 	output logic [CHECKPOINT_INDEX_WIDTH-1:0] last_save_index,
 
     // checkpoint restore
-	input logic next_restore_valid,
 	input logic [CHECKPOINT_INDEX_WIDTH-1:0] next_restore_index,
+	input logic next_restore_clear,
 
 	output logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] last_restore_map_table,
 	output logic [LH_LENGTH-1:0] last_restore_LH,
@@ -53,8 +53,8 @@ module checkpoint_array_wrapper (
 	logic [CHECKPOINT_INDEX_WIDTH-1:0] save_index;
 
     // checkpoint restore
-	logic restore_valid;
 	logic [CHECKPOINT_INDEX_WIDTH-1:0] restore_index;
+	logic restore_clear;
 
 	logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] restore_map_table;
 	logic [LH_LENGTH-1:0] restore_LH;
@@ -90,8 +90,8 @@ module checkpoint_array_wrapper (
 			last_save_index <= '0;
 
 		    // checkpoint restore
-			restore_valid <= '0;
 			restore_index <= '0;
+			restore_clear <= '0;
 
 			last_restore_map_table <= '0;
 			last_restore_LH <= '0;
@@ -114,8 +114,8 @@ module checkpoint_array_wrapper (
 			last_save_index <= save_index;
 
 		    // checkpoint restore
-			restore_valid <= next_restore_valid;
 			restore_index <= next_restore_index;
+			restore_clear <= next_restore_clear;
 
 			last_restore_map_table <= restore_map_table;
 			last_restore_LH <= restore_LH;

@@ -8,20 +8,23 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module map_table (
+module map_table #(
+    parameter MAP_TABLE_READ_PORT_COUNT = 12,
+    parameter MAP_TABLE_WRITE_PORT_COUNT = 4
+) (
 
     // seq
     input logic CLK,
     input logic nRST,
 
-    // 12x read ports
-    input logic [11:0][LOG_AR_COUNT-1:0]    read_AR_by_port,
-    output logic [11:0][LOG_PR_COUNT-1:0]   read_PR_by_port,
+    // read ports
+    input logic [MAP_TABLE_READ_PORT_COUNT-1:0][LOG_AR_COUNT-1:0]    read_AR_by_port,
+    output logic [MAP_TABLE_READ_PORT_COUNT-1:0][LOG_PR_COUNT-1:0]   read_PR_by_port,
 
-    // 4x write ports
-    input logic [3:0]                       write_valid_by_port,
-    input logic [3:0][LOG_AR_COUNT-1:0]     write_AR_by_port,
-    input logic [3:0][LOG_PR_COUNT-1:0]     write_PR_by_port,
+    // write ports
+    input logic [MAP_TABLE_WRITE_PORT_COUNT-1:0]                       write_valid_by_port,
+    input logic [MAP_TABLE_WRITE_PORT_COUNT-1:0][LOG_AR_COUNT-1:0]     write_AR_by_port,
+    input logic [MAP_TABLE_WRITE_PORT_COUNT-1:0][LOG_PR_COUNT-1:0]     write_PR_by_port,
 
     // checkpoint save
     output logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0]   save_map_table,
@@ -45,7 +48,7 @@ module map_table (
 
     // map table reads
     always_comb begin
-        for (int rport = 0; rport < 12; rport++) begin
+        for (int rport = 0; rport < MAP_TABLE_READ_PORT_COUNT; rport++) begin
             read_PR_by_port[rport] = map_table[read_AR_by_port[rport]];
         end
     end
@@ -54,7 +57,7 @@ module map_table (
     always_comb begin
         // low to high port iteration order: higher ports given higher priority
         updated_map_table = map_table;
-        for (int wport = 0; wport < 4; wport++) begin
+        for (int wport = 0; wport < MAP_TABLE_WRITE_PORT_COUNT; wport++) begin
             if (write_valid_by_port[wport]) begin
                 updated_map_table[write_AR_by_port[wport]] = write_PR_by_port[wport];
             end

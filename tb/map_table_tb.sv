@@ -10,6 +10,9 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
+parameter MAP_TABLE_READ_PORT_COUNT = 12;
+parameter MAP_TABLE_WRITE_PORT_COUNT = 4;
+
 module map_table_tb ();
 
     // ----------------------------------------------------------------
@@ -33,14 +36,14 @@ module map_table_tb ();
     // DUT signals:
 
 
-    // 12x read ports
-	logic [11:0][LOG_AR_COUNT-1:0] tb_read_AR_by_port;
-	logic [11:0][LOG_PR_COUNT-1:0] DUT_read_PR_by_port, expected_read_PR_by_port;
+    // read ports
+	logic [MAP_TABLE_READ_PORT_COUNT-1:0][LOG_AR_COUNT-1:0] tb_read_AR_by_port;
+	logic [MAP_TABLE_READ_PORT_COUNT-1:0][LOG_PR_COUNT-1:0] DUT_read_PR_by_port, expected_read_PR_by_port;
 
-    // 4x write ports
-	logic [3:0] tb_write_valid_by_port;
-	logic [3:0][LOG_AR_COUNT-1:0] tb_write_AR_by_port;
-	logic [3:0][LOG_PR_COUNT-1:0] tb_write_PR_by_port;
+    // write ports
+	logic [MAP_TABLE_WRITE_PORT_COUNT-1:0] tb_write_valid_by_port;
+	logic [MAP_TABLE_WRITE_PORT_COUNT-1:0][LOG_AR_COUNT-1:0] tb_write_AR_by_port;
+	logic [MAP_TABLE_WRITE_PORT_COUNT-1:0][LOG_PR_COUNT-1:0] tb_write_PR_by_port;
 
     // checkpoint save
 	logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] DUT_save_map_table, expected_save_map_table;
@@ -52,7 +55,10 @@ module map_table_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	map_table DUT (
+	map_table #(
+		.MAP_TABLE_READ_PORT_COUNT(12),
+		.MAP_TABLE_WRITE_PORT_COUNT(4)
+	) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
@@ -421,7 +427,7 @@ module map_table_tb ();
 			// 4x write ports
 			// checkpoint save
 			for (int j = 0; j < 32; j++) begin
-				if (j < i + 4) begin
+				if (j < i) begin
 					expected_save_map_table[j[4:0]] = {j + 32}[6:0];
 				end
 				else begin

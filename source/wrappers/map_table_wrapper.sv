@@ -17,14 +17,14 @@ module map_table_wrapper (
     input logic nRST,
 
 
-    // 12x read ports
-	input logic [11:0][LOG_AR_COUNT-1:0] next_read_AR_by_port,
-	output logic [11:0][LOG_PR_COUNT-1:0] last_read_PR_by_port,
+    // read ports
+	input logic [MAP_TABLE_READ_PORT_COUNT-1:0][LOG_AR_COUNT-1:0] next_read_AR_by_port,
+	output logic [MAP_TABLE_READ_PORT_COUNT-1:0][LOG_PR_COUNT-1:0] last_read_PR_by_port,
 
-    // 4x write ports
-	input logic [3:0] next_write_valid_by_port,
-	input logic [3:0][LOG_AR_COUNT-1:0] next_write_AR_by_port,
-	input logic [3:0][LOG_PR_COUNT-1:0] next_write_PR_by_port,
+    // write ports
+	input logic [MAP_TABLE_WRITE_PORT_COUNT-1:0] next_write_valid_by_port,
+	input logic [MAP_TABLE_WRITE_PORT_COUNT-1:0][LOG_AR_COUNT-1:0] next_write_AR_by_port,
+	input logic [MAP_TABLE_WRITE_PORT_COUNT-1:0][LOG_PR_COUNT-1:0] next_write_PR_by_port,
 
     // checkpoint save
 	output logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] last_save_map_table,
@@ -38,14 +38,14 @@ module map_table_wrapper (
     // Direct Module Connections:
 
 
-    // 12x read ports
-	logic [11:0][LOG_AR_COUNT-1:0] read_AR_by_port;
-	logic [11:0][LOG_PR_COUNT-1:0] read_PR_by_port;
+    // read ports
+	logic [MAP_TABLE_READ_PORT_COUNT-1:0][LOG_AR_COUNT-1:0] read_AR_by_port;
+	logic [MAP_TABLE_READ_PORT_COUNT-1:0][LOG_PR_COUNT-1:0] read_PR_by_port;
 
-    // 4x write ports
-	logic [3:0] write_valid_by_port;
-	logic [3:0][LOG_AR_COUNT-1:0] write_AR_by_port;
-	logic [3:0][LOG_PR_COUNT-1:0] write_PR_by_port;
+    // write ports
+	logic [MAP_TABLE_WRITE_PORT_COUNT-1:0] write_valid_by_port;
+	logic [MAP_TABLE_WRITE_PORT_COUNT-1:0][LOG_AR_COUNT-1:0] write_AR_by_port;
+	logic [MAP_TABLE_WRITE_PORT_COUNT-1:0][LOG_PR_COUNT-1:0] write_PR_by_port;
 
     // checkpoint save
 	logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] save_map_table;
@@ -57,7 +57,10 @@ module map_table_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    map_table WRAPPED_MODULE (.*);
+    map_table #(
+		.MAP_TABLE_READ_PORT_COUNT(MAP_TABLE_READ_PORT_COUNT),
+		.MAP_TABLE_WRITE_PORT_COUNT(MAP_TABLE_WRITE_PORT_COUNT)
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -66,11 +69,11 @@ module map_table_wrapper (
         if (~nRST) begin
 
 
-		    // 12x read ports
+		    // read ports
 			read_AR_by_port <= '0;
 			last_read_PR_by_port <= '0;
 
-		    // 4x write ports
+		    // write ports
 			write_valid_by_port <= '0;
 			write_AR_by_port <= '0;
 			write_PR_by_port <= '0;
@@ -85,11 +88,11 @@ module map_table_wrapper (
         else begin
 
 
-		    // 12x read ports
+		    // read ports
 			read_AR_by_port <= next_read_AR_by_port;
 			last_read_PR_by_port <= read_PR_by_port;
 
-		    // 4x write ports
+		    // write ports
 			write_valid_by_port <= next_write_valid_by_port;
 			write_AR_by_port <= next_write_AR_by_port;
 			write_PR_by_port <= next_write_PR_by_port;

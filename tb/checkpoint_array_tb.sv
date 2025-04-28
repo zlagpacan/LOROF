@@ -77,8 +77,8 @@ module checkpoint_array_tb ();
 		.save_index(DUT_save_index),
 
 	    // checkpoint restore
-		.restore_clear(tb_restore_clear),
 		.restore_index(tb_restore_index),
+		.restore_clear(tb_restore_clear),
 
 		.restore_map_table(DUT_restore_map_table),
 		.restore_LH(DUT_restore_LH),
