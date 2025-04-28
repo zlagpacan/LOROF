@@ -44,7 +44,7 @@ Below are some classes of memories that are useful for processor design:
 <img src="lifo_simple.png" alt="LIFO Diagram" width="150">
 
 - Last-In, First-Out
-- AKA stack
+- reverse-order stack/LIFO
 - LIFOs can be modeled as a RAM with a single simple incrementing or decrementing read/write index/TOS (Top-Of-Stack)
     - push operation: add element to LIFO
         - increment TOS
