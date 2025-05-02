@@ -26,7 +26,7 @@ module decode_unit #(
     input logic [3:0][1:0][15:0]                   		istream_instr_2B_by_way_by_chunk_SDEQ,
     input logic [3:0][1:0][BTB_PRED_INFO_WIDTH-1:0]		istream_pred_info_by_way_by_chunk_SDEQ,
     input logic [3:0][1:0]                         		istream_pred_lru_by_way_by_chunk_SDEQ,
-    input logic [3:0][1:0]                         		istream_redirect_by_way_by_chunk_SDEQ,
+    // input logic [3:0][1:0]                           	istream_redirect_by_way_by_chunk_SDEQ, // unused
     input logic [3:0][1:0][31:0]                   		istream_pred_PC_by_way_by_chunk_SDEQ,
     input logic [3:0][1:0]                         		istream_page_fault_by_way_by_chunk_SDEQ,
     input logic [3:0][1:0]                         		istream_access_fault_by_way_by_chunk_SDEQ,
@@ -76,8 +76,9 @@ module decode_unit #(
 
     // instr IQ attempts
     output logic [3:0]                              dispatch_attempt_alu_reg_mdu_iq_by_way,
-    output logic [3:0]                              dispatch_attempt_alu_imm_ldu_iq_by_way,
+    output logic [3:0]                              dispatch_attempt_alu_imm_iq_by_way,
     output logic [3:0]                              dispatch_attempt_bru_iq_by_way,
+	output logic [3:0]								dispatch_attempt_ldu_iq_by_way,
     output logic [3:0]                              dispatch_attempt_stamofu_iq_by_way,
     output logic [3:0]                              dispatch_attempt_sys_iq_by_way,
 
@@ -85,8 +86,8 @@ module decode_unit #(
     output logic [3:0]                              dispatch_valid_alu_reg_by_way,
     output logic [3:0]                              dispatch_valid_mdu_by_way,
     output logic [3:0]                              dispatch_valid_alu_imm_by_way,
-    output logic [3:0]                              dispatch_valid_ldu_by_way,
     output logic [3:0]                              dispatch_valid_bru_by_way,
+    output logic [3:0]                              dispatch_valid_ldu_by_way,
     output logic [3:0]                              dispatch_valid_store_by_way,
     output logic [3:0]                              dispatch_valid_amo_by_way,
     output logic [3:0]                              dispatch_valid_fence_by_way,
@@ -114,8 +115,8 @@ module decode_unit #(
     // instr IQ acks
     input logic [3:0] dispatch_ack_alu_reg_mdu_iq_by_way,
     input logic [3:0] dispatch_ack_alu_imm_iq_by_way,
-    input logic [3:0] dispatch_ack_ldu_iq_by_way,
     input logic [3:0] dispatch_ack_bru_iq_by_way,
+    input logic [3:0] dispatch_ack_ldu_iq_by_way,
     input logic [3:0] dispatch_ack_stamofu_iq_by_way,
     input logic [3:0] dispatch_ack_sys_iq_by_way,
 
@@ -261,6 +262,7 @@ module decode_unit #(
 
 	// non-decoder
 	logic [3:0] 						valid_by_way_RNM, next_valid_by_way_RNM;
+	logic [3:0]                        	uncompressed_by_way_RNM, next_uncompressed_by_way_RNM;
 	logic [3:0][31:0] 					PC_by_way_RNM, next_PC_by_way_RNM;
 	logic [3:0][31:0] 					pred_PC_by_way_RNM, next_pred_PC_by_way_RNM;
 	logic [3:0]							pred_lru_by_way_RNM, next_pred_lru_by_way_RNM;
@@ -380,7 +382,7 @@ module decode_unit #(
 		// faults
 		logic [3:0] decoder_instr_yield_by_way;
 		logic [3:0] decoder_non_branch_notif_chunk0_by_way;
-		logic [3:0] decoder_non_branch_notif_chunk1_by_way;
+		logic [3:0] decoder_non_branch_notif_chunk1_by_way; // unused
 		logic [3:0] decoder_restart_on_chunk0_by_way;
 		logic [3:0] decoder_restart_after_chunk0_by_way;
 		logic [3:0] decoder_restart_after_chunk1_by_way;
@@ -401,6 +403,7 @@ module decode_unit #(
 
 	// RNM/DISP pipeline reg's:
 	logic [3:0] 							valid_by_way_DISP, next_valid_by_way_DISP;
+	logic [3:0]                            	uncompressed_by_way_DISP, next_uncompressed_by_way_DISP;
 	logic [3:0][31:0] 						PC_by_way_DISP, next_PC_by_way_DISP;
 	logic [3:0][31:0] 						pred_PC_by_way_DISP, next_pred_PC_by_way_DISP;
 	logic [3:0][BTB_PRED_INFO_WIDTH-1:0]	pred_info_by_way_DISP, next_pred_info_by_way_DISP;
@@ -509,7 +512,7 @@ module decode_unit #(
 		logic [RAS_INDEX_WIDTH-1:0]            	checkpoint_array_restore_ras_index;
 
 		// advertized threshold
-		logic checkpoint_array_above_threshold;
+		logic checkpoint_array_above_threshold; // unused for now
 
 	// ar_dep_check:
 
@@ -605,8 +608,7 @@ module decode_unit #(
 			instr_2B_by_way_by_chunk_DEC <= '0;
 			pred_info_by_way_by_chunk_DEC <= '0;
 			pred_lru_by_way_by_chunk_DEC <= '0;
-			redirect_by_way_by_chunk_DEC <= '0;
-			pred_PC_by_way_by_chunk_DEC <= '0;
+			pred_PC_by_way_DEC <= '0;
 			page_fault_by_way_DEC <= '0;
 			access_fault_by_way_DEC <= '0;
 			mdp_info_by_way_DEC <= '0;
@@ -659,8 +661,11 @@ module decode_unit #(
 	always_ff @ (posedge CLK, negedge nRST) begin
 		if (~nRST) begin
 			state_DEC <= DEC_IDLE;
+
 			restart_wfr_saved_index_DEC <= 2'h0;
-			restart_wfr_saved_PC_DEC <= 32'h0;
+			restart_wfr_saved_branch_notif_PC_DEC <= 32'h0;
+			restart_wfr_saved_restart_PC_DEC <= 32'h0;
+			restart_wfr_saved_pred_lru_DEC <= 1'b0;
 
 			exec_mode_DEC <= M_MODE;
 			trap_sfence_DEC <= INIT_TRAP_SFENCE;
@@ -681,6 +686,7 @@ module decode_unit #(
 				restart_wfr_saved_index_DEC <= next_restart_wfr_saved_index_DEC;
 				restart_wfr_saved_branch_notif_PC_DEC <= next_restart_wfr_saved_branch_notif_PC_DEC;
 				restart_wfr_saved_restart_PC_DEC <= next_restart_wfr_saved_restart_PC_DEC;
+				restart_wfr_saved_pred_lru_DEC <= next_restart_wfr_saved_pred_lru_DEC;
 			end
 
 			// update decode state on rob restart
@@ -697,9 +703,9 @@ module decode_unit #(
 		cancel_by_way_DEC = 4'b0000;
 
 		next_restart_wfr_saved_index_DEC = 2'h0;
-		next_restart_wfr_saved_restart_PC_DEC = PC_by_way_DEC[way];
-		next_restart_wfr_saved_branch_notif_PC_DEC = PC_by_way_DEC[way];
-		next_restart_wfr_saved_pred_lru_DEC = lru_by
+		next_restart_wfr_saved_restart_PC_DEC = PC_by_way_DEC[0];
+		next_restart_wfr_saved_branch_notif_PC_DEC = PC_by_way_DEC[0];
+		next_restart_wfr_saved_pred_lru_DEC = pred_lru_by_way_by_chunk_DEC[0][0];
 
 		// iter way 0:3, oldest to youngest checking for restart or wfr
 		restart_present_DEC = 1'b0;
@@ -825,7 +831,7 @@ module decode_unit #(
 				end
 
 				// check for wfr
-				else if (restart_wfr_present_DEC) begin
+				else if (wfr_present_DEC) begin
 					stall_DEC = 1'b1;
 					valid_RNM_from_DEC = 1'b0;
 					next_state_DEC = DEC_TRIGGER_WFR;
@@ -852,7 +858,7 @@ module decode_unit #(
 					// no stall since had to have been no stall when in DEC_ACTIVE
 				stall_DEC = 1'b0;
 				valid_RNM_from_DEC = 1'b1;
-				next_state_DEC = IDLE;
+				next_state_DEC = DEC_IDLE;
 				
 				// send WFR trigger info this cycle
 				decode_unit_trigger_wait_for_restart = 1'b1;
@@ -989,6 +995,7 @@ module decode_unit #(
 
 		// non-decoder:
 		next_valid_by_way_RNM = valid_by_way_DEC;
+		next_uncompressed_by_way_RNM = uncompressed_by_way_DEC;
 		next_PC_by_way_RNM = PC_by_way_DEC;
 		next_pred_PC_by_way_RNM = pred_PC_by_way_DEC;
 		next_mdp_info_by_way_RNM = mdp_info_by_way_DEC;
@@ -1039,7 +1046,7 @@ module decode_unit #(
 				if (valid_by_way_DEC[way] 
 					& (
 						decoder_missing_pred_by_way[way]
-						| next_pred_lru_by_way_RNM[way][7:6] == 2'b11)
+						| decoder_pred_info_out_by_way[way][7:6] == 2'b11)
 				) begin
 					next_checkpoint_marked_RNM = 1'b1;
 					next_LH_RNM = LH_by_way_DEC[way];
@@ -1096,6 +1103,7 @@ module decode_unit #(
 		if (~nRST) begin
 			// non-decoder:
 			valid_by_way_RNM <= '0;
+			uncompressed_by_way_RNM <= '0;
 			PC_by_way_RNM <= '0;
 			pred_PC_by_way_RNM <= '0;
 			pred_lru_by_way_RNM <= '0;
@@ -1106,6 +1114,7 @@ module decode_unit #(
 			is_illegal_instr_RNM <= '0;
 			exception_present_RNM <= '0;
 			exception_index_RNM <= '0;
+			illegal_instr32_RNM <= '0;
 
 			checkpoint_marked_RNM <= '0;
 			LH_RNM <= '0;
@@ -1151,6 +1160,7 @@ module decode_unit #(
 		else if (stall_RNM) begin
 			// non-decoder:
 			valid_by_way_RNM <= valid_by_way_RNM;
+			uncompressed_by_way_RNM <= uncompressed_by_way_RNM;
 			PC_by_way_RNM <= PC_by_way_RNM;
 			pred_PC_by_way_RNM <= pred_PC_by_way_RNM;
 			pred_lru_by_way_RNM <= pred_lru_by_way_RNM;
@@ -1161,6 +1171,7 @@ module decode_unit #(
 			is_illegal_instr_RNM <= is_illegal_instr_RNM;
 			exception_present_RNM <= exception_present_RNM;
 			exception_index_RNM <= exception_index_RNM;
+			illegal_instr32_RNM <= illegal_instr32_RNM;
 
 			checkpoint_marked_RNM <= checkpoint_marked_RNM;
 			LH_RNM <= LH_RNM;
@@ -1206,6 +1217,7 @@ module decode_unit #(
 		else begin
 			// non-decoder:
 			valid_by_way_RNM <= next_valid_by_way_RNM;
+			uncompressed_by_way_RNM <= next_uncompressed_by_way_RNM;
 			PC_by_way_RNM <= next_PC_by_way_RNM;
 			pred_PC_by_way_RNM <= next_pred_PC_by_way_RNM;
 			pred_lru_by_way_RNM <= next_pred_lru_by_way_RNM;
@@ -1216,6 +1228,7 @@ module decode_unit #(
 			is_illegal_instr_RNM <= next_is_illegal_instr_RNM;
 			exception_present_RNM <= next_exception_present_RNM;
 			exception_index_RNM <= next_exception_index_RNM;
+			illegal_instr32_RNM <= next_illegal_instr32_RNM;
 
 			checkpoint_marked_RNM <= next_checkpoint_marked_RNM;
 			LH_RNM <= next_LH_RNM;
@@ -1385,11 +1398,10 @@ module decode_unit #(
 		decode_unit_branch_update_valid = rob_branch_update_valid | DEC_decode_unit_branch_update_valid;
 		decode_unit_branch_update_is_mispredict = rob_branch_update_is_mispredict;
 		decode_unit_branch_update_is_taken = rob_branch_update_is_taken;
-		decode_unit_branch_update_target_PC = rob_branch_update_target_PC
+		decode_unit_branch_update_target_PC = rob_branch_update_target_PC;
 		decode_unit_branch_update_LH = checkpoint_array_restore_LH;
 		decode_unit_branch_update_GH = checkpoint_array_restore_GH;
 		decode_unit_branch_update_ras_index = checkpoint_array_restore_ras_index;
-		decode_unit_branch_update_target_PC = rob_branch_update_target_PC;
 
 		// rob branch update
 		if (rob_branch_update_valid) begin
@@ -1502,9 +1514,9 @@ module decode_unit #(
 	ar_dep_check AR_DEP_CHECK (
 
 	    // inputs by way
-		.regwrite_by_way(ar_dep_check_A_AR_by_way),
-		.A_AR_by_way(ar_dep_check_B_AR_by_way),
-		.B_AR_by_way(ar_dep_check_regwrite_by_way),
+		.regwrite_by_way(ar_dep_check_regwrite_by_way),
+		.A_AR_by_way(ar_dep_check_A_AR_by_way),
+		.B_AR_by_way(ar_dep_check_B_AR_by_way),
 		.dest_AR_by_way(ar_dep_check_dest_AR_by_way),
 
 	    // outputs by way
@@ -1518,6 +1530,7 @@ module decode_unit #(
 	always_comb begin
 
 		next_valid_by_way_DISP = valid_by_way_RNM;
+		next_uncompressed_by_way_DISP = uncompressed_by_way_RNM;
 		next_PC_by_way_DISP = PC_by_way_RNM;
 		next_pred_PC_by_way_DISP = pred_PC_by_way_RNM;
 		next_pred_info_by_way_DISP = pred_info_out_by_way_RNM;
@@ -1548,11 +1561,11 @@ module decode_unit #(
 		next_is_reg_write_by_way_DISP = is_reg_write_by_way_RNM;
 		
 		for (int way = 0; way < 4; way++) begin
-			if (ar_dep_check_A_PR_dep_by_way) begin
-				next_A_PR_by_way_DISP = free_list_deq_req_PR_by_bank[ar_dep_check_A_PR_sel_by_way];
+			if (ar_dep_check_A_PR_dep_by_way[way]) begin
+				next_A_PR_by_way_DISP[way] = free_list_deq_req_PR_by_bank[ar_dep_check_A_PR_sel_by_way];
 			end
 			else begin
-				next_A_PR_by_way_DISP = map_table_read_PR_by_port[3:0];
+				next_A_PR_by_way_DISP[way] = map_table_read_PR_by_port[3:0];
 			end
 		end
 		next_A_unneeded_by_way_DISP = A_unneeded_by_way_RNM;
@@ -1560,11 +1573,11 @@ module decode_unit #(
 		next_A_is_ret_ra_by_way_DISP = A_is_ret_ra_by_way_RNM;
 		
 		for (int way = 0; way < 4; way++) begin
-			if (ar_dep_check_B_PR_dep_by_way) begin
-				next_B_PR_by_way_DISP = free_list_deq_req_PR_by_bank[ar_dep_check_B_PR_sel_by_way];
+			if (ar_dep_check_B_PR_dep_by_way[way]) begin
+				next_B_PR_by_way_DISP[way] = free_list_deq_req_PR_by_bank[ar_dep_check_B_PR_sel_by_way];
 			end
 			else begin
-				next_B_PR_by_way_DISP = map_table_read_PR_by_port[7:4];
+				next_B_PR_by_way_DISP[way] = map_table_read_PR_by_port[7:4];
 			end
 		end
 		next_B_unneeded_by_way_DISP = B_unneeded_by_way_RNM;
@@ -1591,6 +1604,7 @@ module decode_unit #(
 	always_ff @ (posedge CLK, negedge nRST) begin
 		if (~nRST) begin
 			valid_by_way_DISP <= '0;
+			uncompressed_by_way_DISP <= '0;
 			PC_by_way_DISP <= '0;
 			pred_PC_by_way_DISP <= '0;
 			pred_info_by_way_DISP <= '0;
@@ -1643,6 +1657,7 @@ module decode_unit #(
 		end
 		else if (stall_DISP) begin
 			valid_by_way_DISP <= valid_by_way_DISP;
+			uncompressed_by_way_DISP <= uncompressed_by_way_DISP;
 			PC_by_way_DISP <= PC_by_way_DISP;
 			pred_PC_by_way_DISP <= pred_PC_by_way_DISP;
 			pred_info_by_way_DISP <= pred_info_by_way_DISP;
@@ -1695,6 +1710,7 @@ module decode_unit #(
 		end
 		else begin
 			valid_by_way_DISP <= next_valid_by_way_DISP;
+			uncompressed_by_way_DISP <= next_uncompressed_by_way_DISP;
 			PC_by_way_DISP <= next_PC_by_way_DISP;
 			pred_PC_by_way_DISP <= next_pred_PC_by_way_DISP;
 			pred_info_by_way_DISP <= next_pred_info_by_way_DISP;
@@ -1759,9 +1775,34 @@ module decode_unit #(
 
 	always_comb begin
 
+		// check for stall and generate stalls in this block
+
 		// check active state
 		if (active_DISP) begin
-			
+
+			// check valid dispatch
+				// rob ready
+				// way not valid or way got ack
+			if (
+				dispatch_rob_enqueue_ready
+				& &(
+					~valid_by_way_DISP
+					| dispatch_ack_alu_reg_mdu_iq_by_way
+					| dispatch_ack_alu_imm_iq_by_way
+					| dispatch_ack_bru_iq_by_way
+					| dispatch_ack_ldu_iq_by_way
+					| dispatch_ack_stamofu_iq_by_way
+					| dispatch_ack_sys_iq_by_way)
+			) begin
+				perform_DISP = 1'b1;
+				stall_DISP = 1'b0;
+			end
+
+			// otherwise, stall
+			else begin
+				perform_DISP = 1'b0;
+				stall_DISP = 1'b1;
+			end
 		end
 		else begin
 			perform_DISP = 1'b0;
@@ -1769,7 +1810,15 @@ module decode_unit #(
 		end
 
 		// check active next cycle
-		if ()
+		if (active_DISP & stall_DISP) begin
+			next_active_DISP = 1'b1;
+		end
+		else if (~stall_DISP & valid_DISP_from_RNM) begin
+			next_active_DISP = 1'b1;
+		end
+		else begin
+			next_active_DISP = 1'b0;
+		end
 	end
 
 	// dispatch attempt = type & valid
@@ -1779,16 +1828,113 @@ module decode_unit #(
 
 	// ignore restarts since arch state changes have been made and ROB must undo them
 
-	// state:
-	logic active_DISP, next_active_DISP;
-	logic perform_DISP;
+	// module connections:
+	always_comb begin
 
-	// control:
-	logic stall_DISP;
+		// ready_table:
+		ready_table_read_PR_by_port = {B_PR_by_way_DISP, A_PR_by_way_DISP};
+
+		ready_table_set_valid_by_port = WB_bus_valid_by_bank;
+		ready_table_set_PR_by_port = {
+			WB_bus_upper_PR_by_bank[3], 2'h3,
+			WB_bus_upper_PR_by_bank[2], 2'h2,
+			WB_bus_upper_PR_by_bank[1], 2'h1,
+			WB_bus_upper_PR_by_bank[0], 2'h0
+		};
+		
+		ready_table_clear_valid_by_port = is_reg_write_by_way_DISP;
+		ready_table_clear_PR_by_port = dest_new_PR_by_way_DISP;
+	end
+
+	// modules:
+
+	ready_table READY_TABLE (
+		// seq
+		.CLK(CLK),
+		.nRST(nRST),
+		// 8x read ports
+		.read_PR_by_port(ready_table_read_PR_by_port),
+		.read_ready_by_port(ready_table_read_ready_by_port),
+		// 4x set ports
+		.set_valid_by_port(ready_table_set_valid_by_port),
+		.set_PR_by_port(ready_table_set_PR_by_port),
+		// 4x clear ports
+		.clear_valid_by_port(ready_table_clear_valid_by_port),
+		.clear_PR_by_port(ready_table_clear_PR_by_port)
+	);
 
 	// dispatch outputs
 	always_comb begin
 
+		// 4-way ROB entry
+		dispatch_rob_enqueue_valid = perform_DISP;
+
+		// general instr info
+		dispatch_valid_by_way = valid_by_way_DISP;
+		dispatch_uncompressed_by_way = uncompressed_by_way_DISP;
+		dispatch_PC_by_way = PC_by_way_DISP;
+		dispatch_pred_PC_by_way = pred_PC_by_way_DISP;
+		dispatch_is_rename_by_way = is_reg_write_by_way_DISP;
+		dispatch_pred_info_by_way = pred_info_by_way_DISP;
+		dispatch_mdp_info_by_way = mdp_info_by_way_DISP;
+		dispatch_op_by_way = op_by_way_DISP;
+		dispatch_imm20_by_way = imm20_by_way_DISP;
+
+		// ordering
+		dispatch_mem_aq_by_way = mem_aq_by_way_DISP;
+		dispatch_io_aq_by_way = io_aq_by_way_DISP;
+		dispatch_mem_rl_by_way = mem_rl_by_way_DISP;
+		dispatch_io_rl_by_way = io_rl_by_way_DISP;
+
+		// exception info
+		dispatch_is_page_fault = is_page_fault_DISP;
+		dispatch_is_access_fault = is_access_fault_DISP;
+		dispatch_is_illegal_instr = is_illegal_instr_DISP;
+		dispatch_exception_present = exception_present_DISP;
+		dispatch_exception_index = exception_index_DISP;
+		dispatch_illegal_instr32 = illegal_instr32_DISP;
+
+		// checkpoint info
+		dispatch_has_checkpoint = checkpoint_saved_DISP;
+		dispatch_checkpoint_index = checkpoint_saved_index_DISP;
+
+		// instr IQ attempts
+		dispatch_attempt_alu_reg_mdu_iq_by_way = is_alu_reg_by_way_DISP | is_mdu_by_way_DISP;
+		dispatch_attempt_alu_imm_iq_by_way = is_alu_imm_by_way_DISP;
+		dispatch_attempt_bru_iq_by_way = is_bru_by_way_DISP;
+		dispatch_attempt_ldu_iq_by_way = is_ldu_by_way_DISP;
+		dispatch_attempt_stamofu_iq_by_way = is_store_by_way_DISP | is_amo_by_way_DISP | is_fence_by_way_DISP;
+		dispatch_attempt_sys_iq_by_way = is_sys_by_way_DISP;
+
+		// instr FU valids
+		dispatch_valid_alu_reg_by_way = is_alu_reg_by_way_DISP & perform_DISP;
+		dispatch_valid_mdu_by_way = is_mdu_by_way_DISP & perform_DISP;
+		dispatch_valid_alu_imm_by_way = is_alu_imm_by_way_DISP & perform_DISP;
+		dispatch_valid_bru_by_way = is_bru_by_way_DISP & perform_DISP;
+		dispatch_valid_ldu_by_way = is_ldu_by_way_DISP & perform_DISP;
+		dispatch_valid_store_by_way = is_store_by_way_DISP & perform_DISP;
+		dispatch_valid_amo_by_way = is_amo_by_way_DISP & perform_DISP;
+		dispatch_valid_fence_by_way = is_fence_by_way_DISP & perform_DISP;
+		dispatch_valid_sys_by_way = is_sys_by_way_DISP & perform_DISP;
+
+		// operand A
+		dispatch_A_PR_by_way = A_PR_by_way_DISP;
+		dispatch_A_ready_by_way = ready_table_read_ready_by_port[3:0];
+		dispatch_A_is_zero_by_way = A_is_zero_by_way_DISP;
+		dispatch_A_unneeded_or_is_zero_by_way = A_unneeded_by_way_DISP | A_is_zero_by_way_DISP;
+		dispatch_A_is_ret_ra_by_way = A_is_ret_ra_by_way_DISP;
+
+		// operand B
+		dispatch_B_PR_by_way = B_PR_by_way_DISP;
+		dispatch_B_ready_by_way = ready_table_read_ready_by_port[7:4];
+		dispatch_B_is_zero_by_way = B_is_zero_by_way_DISP;
+		dispatch_B_unneeded_or_is_zero_by_way = B_unneeded_by_way_DISP | B_is_zero_by_way_DISP;
+
+		// dest operand
+		dispatch_dest_AR_by_way = dest_AR_by_way_DISP;
+		dispatch_dest_old_PR_by_way = dest_old_PR_by_way_DISP;
+		dispatch_dest_new_PR_by_way = dest_new_PR_by_way_DISP;
+		dispatch_dest_is_link_ra = dest_is_link_ra_by_way_DISP;
 	end
 
 endmodule
