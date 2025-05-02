@@ -33,6 +33,7 @@ module bram_2rport_1wport #(
     generate
         if (INIT_FILE != "") begin: use_init_file
             initial begin
+                $display($sformatf("Initializing memory with file: %s", INIT_FILE));
                 $readmemh(INIT_FILE, bram_array, 0, (OUTER_WIDTH * INNER_WIDTH/8)-1);
             end
         end 

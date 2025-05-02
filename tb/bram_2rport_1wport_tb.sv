@@ -54,7 +54,7 @@ module bram_2rport_1wport_tb ();
 	bram_2rport_1wport #(
 		.INNER_WIDTH(32),
 		.OUTER_WIDTH(32),
-		.INIT_FILE("")
+		.INIT_FILE(INIT_FILE)
 	) DUT (
 		// seq
 		.CLK(CLK),
@@ -230,9 +230,9 @@ module bram_2rport_1wport_tb ();
 			// reset
 			nRST = 1'b1;
 			tb_port0_ren = 1'b1;
-			tb_port0_rindex = {i+1}[4:0];
+			tb_port0_rindex = {i+1};
 			tb_port1_ren = 1'b1;
-			tb_port1_rindex = {i+1}[4:0];
+			tb_port1_rindex = {i+1};
 			tb_wen_byte = 4'b0000;
 			tb_windex = 5'h0;
 			tb_wdata = 32'h0;

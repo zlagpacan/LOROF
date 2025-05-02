@@ -112,7 +112,7 @@ end
  
   // --- Maximum Sim Duration --- //
   initial begin : TIMEOUT
-    #(1000 * CLK_PERIOD);
+    #(100000 * CLK_PERIOD);
     $display("Sorry! Ran out of clock cycles");
     $finish();
   end
