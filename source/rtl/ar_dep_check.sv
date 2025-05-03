@@ -20,8 +20,12 @@ module ar_dep_check (
     output logic [3:0]          A_PR_dep_by_way,
     output logic [3:0][1:0]     A_PR_sel_by_way,
     output logic [3:0]          B_PR_dep_by_way,
-    output logic [3:0][1:0]     B_PR_sel_by_way
+    output logic [3:0][1:0]     B_PR_sel_by_way,
+    output logic [3:0]          dest_PR_dep_by_way,
+    output logic [3:0][1:0]     dest_PR_sel_by_way
 );
+
+    // interested in RAW and WAW hazards
 
     // ----------------------------------------------------------------
     // Logic:
@@ -31,11 +35,13 @@ module ar_dep_check (
     assign A_PR_sel_by_way[0] = 2'h0;
     assign B_PR_dep_by_way[0] = 1'b0;
     assign B_PR_sel_by_way[0] = 2'h0;
+    assign dest_PR_dep_by_way[0] = 1'b0;
+    assign dest_PR_sel_by_way[0] = 2'h0;
 
     // way 1 can dep on way 0:
     always_comb begin
 
-        // A
+        // A RAW
         if (regwrite_by_way[0] & (dest_AR_by_way[0] == A_AR_by_way[1])) begin
             A_PR_dep_by_way[1] = 1'b1;
             A_PR_sel_by_way[1] = 2'h0;
@@ -45,7 +51,7 @@ module ar_dep_check (
             A_PR_sel_by_way[1] = 2'h0;
         end
         
-        // B
+        // B RAW
         if (regwrite_by_way[0] & (dest_AR_by_way[0] == B_AR_by_way[1])) begin
             B_PR_dep_by_way[1] = 1'b1;
             B_PR_sel_by_way[1] = 2'h0;
@@ -54,12 +60,22 @@ module ar_dep_check (
             B_PR_dep_by_way[1] = 1'b0;
             B_PR_sel_by_way[1] = 2'h0;
         end
+
+        // dest WAW
+        if (regwrite_by_way[0] & (dest_AR_by_way[0] == dest_AR_by_way[1])) begin
+            dest_PR_dep_by_way[1] = 1'b1;
+            dest_PR_sel_by_way[1] = 2'h0;
+        end
+        else begin
+            dest_PR_dep_by_way[1] = 1'b0;
+            dest_PR_sel_by_way[1] = 2'h0;
+        end
     end
 
     // way 2 can dep on ways 1, 0:
     always_comb begin
 
-        // A
+        // A RAW
         if (regwrite_by_way[1] & (dest_AR_by_way[1] == A_AR_by_way[2])) begin
             A_PR_dep_by_way[2] = 1'b1;
             A_PR_sel_by_way[2] = 2'h1;
@@ -73,7 +89,7 @@ module ar_dep_check (
             A_PR_sel_by_way[2] = 2'h0;
         end
 
-        // B
+        // B RAW
         if (regwrite_by_way[1] & (dest_AR_by_way[1] == B_AR_by_way[2])) begin
             B_PR_dep_by_way[2] = 1'b1;
             B_PR_sel_by_way[2] = 2'h1;
@@ -86,12 +102,26 @@ module ar_dep_check (
             B_PR_dep_by_way[2] = 1'b0;
             B_PR_sel_by_way[2] = 2'h0;
         end
+
+        // dest WAW
+        if (regwrite_by_way[1] & (dest_AR_by_way[1] == dest_AR_by_way[2])) begin
+            dest_PR_dep_by_way[2] = 1'b1;
+            dest_PR_sel_by_way[2] = 2'h1;
+        end
+        else if (regwrite_by_way[0] & (dest_AR_by_way[0] == dest_AR_by_way[2])) begin
+            dest_PR_dep_by_way[2] = 1'b1;
+            dest_PR_sel_by_way[2] = 2'h0;
+        end
+        else begin
+            dest_PR_dep_by_way[2] = 1'b0;
+            dest_PR_sel_by_way[2] = 2'h0;
+        end
     end
 
     // way 3 can dep on ways 2, 1, 0:
     always_comb begin
 
-        // A
+        // A RAW
         if (regwrite_by_way[2] & (dest_AR_by_way[2] == A_AR_by_way[3])) begin
             A_PR_dep_by_way[3] = 1'b1;
             A_PR_sel_by_way[3] = 2'h2;
@@ -109,7 +139,7 @@ module ar_dep_check (
             A_PR_sel_by_way[3] = 2'h0;
         end
 
-        // B
+        // B RAW
         if (regwrite_by_way[2] & (dest_AR_by_way[2] == B_AR_by_way[3])) begin
             B_PR_dep_by_way[3] = 1'b1;
             B_PR_sel_by_way[3] = 2'h2;
@@ -125,6 +155,24 @@ module ar_dep_check (
         else begin
             B_PR_dep_by_way[3] = 1'b0;
             B_PR_sel_by_way[3] = 2'h0;
+        end
+
+        // dest WAW
+        if (regwrite_by_way[2] & (dest_AR_by_way[2] == dest_AR_by_way[3])) begin
+            dest_PR_dep_by_way[3] = 1'b1;
+            dest_PR_sel_by_way[3] = 2'h2;
+        end
+        else if (regwrite_by_way[1] & (dest_AR_by_way[1] == dest_AR_by_way[3])) begin
+            dest_PR_dep_by_way[3] = 1'b1;
+            dest_PR_sel_by_way[3] = 2'h1;
+        end
+        else if (regwrite_by_way[0] & (dest_AR_by_way[0] == dest_AR_by_way[3])) begin
+            dest_PR_dep_by_way[3] = 1'b1;
+            dest_PR_sel_by_way[3] = 2'h0;
+        end
+        else begin
+            dest_PR_dep_by_way[3] = 1'b0;
+            dest_PR_sel_by_way[3] = 2'h0;
         end
     end
 

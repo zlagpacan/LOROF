@@ -43,6 +43,8 @@ module ar_dep_check_tb ();
 	logic [3:0][1:0] DUT_A_PR_sel_by_way, expected_A_PR_sel_by_way;
 	logic [3:0] DUT_B_PR_dep_by_way, expected_B_PR_dep_by_way;
 	logic [3:0][1:0] DUT_B_PR_sel_by_way, expected_B_PR_sel_by_way;
+	logic [3:0] DUT_dest_PR_dep_by_way, expected_dest_PR_dep_by_way;
+	logic [3:0][1:0] DUT_dest_PR_sel_by_way, expected_dest_PR_sel_by_way;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -59,7 +61,9 @@ module ar_dep_check_tb ();
 		.A_PR_dep_by_way(DUT_A_PR_dep_by_way),
 		.A_PR_sel_by_way(DUT_A_PR_sel_by_way),
 		.B_PR_dep_by_way(DUT_B_PR_dep_by_way),
-		.B_PR_sel_by_way(DUT_B_PR_sel_by_way)
+		.B_PR_sel_by_way(DUT_B_PR_sel_by_way),
+		.dest_PR_dep_by_way(DUT_dest_PR_dep_by_way),
+		.dest_PR_sel_by_way(DUT_dest_PR_sel_by_way)
 	);
 
     // ----------------------------------------------------------------
@@ -91,6 +95,20 @@ module ar_dep_check_tb ();
 		if (expected_B_PR_sel_by_way !== DUT_B_PR_sel_by_way) begin
 			$display("TB ERROR: expected_B_PR_sel_by_way (%h) != DUT_B_PR_sel_by_way (%h)",
 				expected_B_PR_sel_by_way, DUT_B_PR_sel_by_way);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_dest_PR_dep_by_way !== DUT_dest_PR_dep_by_way) begin
+			$display("Tdest ERROR: expected_dest_PR_dep_by_way (%h) != DUT_dest_PR_dep_by_way (%h)",
+				expected_dest_PR_dep_by_way, DUT_dest_PR_dep_by_way);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_dest_PR_sel_by_way !== DUT_dest_PR_sel_by_way) begin
+			$display("Tdest ERROR: expected_dest_PR_sel_by_way (%h) != DUT_dest_PR_sel_by_way (%h)",
+				expected_dest_PR_sel_by_way, DUT_dest_PR_sel_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -159,6 +177,13 @@ module ar_dep_check_tb ();
 			2'h0,
 			2'h0
 		};
+		expected_dest_PR_dep_by_way = 4'b0000;
+		expected_dest_PR_sel_by_way = {
+			2'h0,
+			2'h0,
+			2'h0,
+			2'h0
+		};
 
 		check_outputs();
 
@@ -205,6 +230,13 @@ module ar_dep_check_tb ();
 		};
 		expected_B_PR_dep_by_way = 4'b0000;
 		expected_B_PR_sel_by_way = {
+			2'h0,
+			2'h0,
+			2'h0,
+			2'h0
+		};
+		expected_dest_PR_dep_by_way = 4'b0000;
+		expected_dest_PR_sel_by_way = {
 			2'h0,
 			2'h0,
 			2'h0,
@@ -587,6 +619,13 @@ module ar_dep_check_tb ();
 			2'h0,
 			2'h0
 		};
+		expected_dest_PR_dep_by_way = 4'b0010;
+		expected_dest_PR_sel_by_way = {
+			2'h0,
+			2'h0,
+			2'h0,
+			2'h0
+		};
 
 		check_outputs();
 
@@ -637,6 +676,73 @@ module ar_dep_check_tb ();
 		expected_B_PR_sel_by_way = {
 			2'h2,
 			2'h0,
+			2'h0,
+			2'h0
+		};
+		expected_dest_PR_dep_by_way = 4'b1110;
+		expected_dest_PR_sel_by_way = {
+			2'h2,
+			2'h0,
+			2'h0,
+			2'h0
+		};
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "full crap";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // inputs by way
+		tb_regwrite_by_way = 4'b1111;
+		tb_A_AR_by_way = {
+			5'h22,
+			5'h22,
+			5'h22,
+			5'h22
+		};
+		tb_B_AR_by_way = {
+			5'h22,
+			5'h22,
+			5'h22,
+			5'h22
+		};
+		tb_dest_AR_by_way = {
+			5'h22,
+			5'h22,
+			5'h22,
+			5'h22
+		};
+	    // outputs by way
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // inputs by way
+	    // outputs by way
+		expected_A_PR_dep_by_way = 4'b1110;
+		expected_A_PR_sel_by_way = {
+			2'h2,
+			2'h1,
+			2'h0,
+			2'h0
+		};
+		expected_B_PR_dep_by_way = 4'b1110;
+		expected_B_PR_sel_by_way = {
+			2'h2,
+			2'h1,
+			2'h0,
+			2'h0
+		};
+		expected_dest_PR_dep_by_way = 4'b1110;
+		expected_dest_PR_sel_by_way = {
+			2'h2,
+			2'h1,
 			2'h0,
 			2'h0
 		};
