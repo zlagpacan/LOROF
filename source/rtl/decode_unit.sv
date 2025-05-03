@@ -527,6 +527,8 @@ module decode_unit #(
 		logic [3:0][1:0]  	ar_dep_check_A_PR_sel_by_way;
 		logic [3:0]       	ar_dep_check_B_PR_dep_by_way;
 		logic [3:0][1:0]  	ar_dep_check_B_PR_sel_by_way;
+		logic [3:0]       	ar_dep_check_dest_PR_dep_by_way;
+		logic [3:0][1:0]  	ar_dep_check_dest_PR_sel_by_way;
 
 	/////////////////
 	// DISP Stage: //
@@ -1330,7 +1332,7 @@ module decode_unit #(
 	always_comb begin
 
 		// start with only reason to stall being DISP. add reasons as go
-		stall_RNM = stall_DISP;
+		stall_RNM = stall_DISP & active_RNM;
 
 		// free_list:
 		free_list_enq_req_valid_by_bank = rob_PR_free_req_valid_by_bank;
@@ -1343,7 +1345,7 @@ module decode_unit #(
 			& is_reg_write_by_way_RNM;
 
 		// stall RNM if not all free list deq's ready
-		if (
+		if (active_RNM &
 			~&(free_list_deq_resp_ready_by_bank 
 				| ~(valid_by_way_RNM 
 					& is_reg_write_by_way_RNM))
@@ -1528,7 +1530,9 @@ module decode_unit #(
 		.A_PR_dep_by_way(ar_dep_check_A_PR_dep_by_way),
 		.A_PR_sel_by_way(ar_dep_check_A_PR_sel_by_way),
 		.B_PR_dep_by_way(ar_dep_check_B_PR_dep_by_way),
-		.B_PR_sel_by_way(ar_dep_check_B_PR_sel_by_way)
+		.B_PR_sel_by_way(ar_dep_check_B_PR_sel_by_way),
+		.dest_PR_dep_by_way(ar_dep_check_dest_PR_dep_by_way),
+		.dest_PR_sel_by_way(ar_dep_check_dest_PR_sel_by_way)
 	);
 
 	// RNM/DISP pipeline reg inputs:
@@ -1565,6 +1569,7 @@ module decode_unit #(
 		next_op_by_way_DISP = op_by_way_RNM;
 		next_is_reg_write_by_way_DISP = is_reg_write_by_way_RNM;
 		
+		// A RAW check
 		for (int way = 0; way < 4; way++) begin
 			if (ar_dep_check_A_PR_dep_by_way[way]) begin
 				next_A_PR_by_way_DISP[way] = free_list_deq_req_PR_by_bank[ar_dep_check_A_PR_sel_by_way[way]];
@@ -1577,6 +1582,7 @@ module decode_unit #(
 		next_A_is_zero_by_way_DISP = A_is_zero_by_way_RNM;
 		next_A_is_ret_ra_by_way_DISP = A_is_ret_ra_by_way_RNM;
 		
+		// B RAW check
 		for (int way = 0; way < 4; way++) begin
 			if (ar_dep_check_B_PR_dep_by_way[way]) begin
 				next_B_PR_by_way_DISP[way] = free_list_deq_req_PR_by_bank[ar_dep_check_B_PR_sel_by_way[way]];
@@ -1589,7 +1595,15 @@ module decode_unit #(
 		next_B_is_zero_by_way_DISP = B_is_zero_by_way_RNM;
 		
 		next_dest_AR_by_way_DISP = dest_AR_by_way_RNM;
-		next_dest_old_PR_by_way_DISP = map_table_read_PR_by_port[11:8]; // take into account old PR written within this 4-way
+		// dest WAW check
+		for (int way = 0; way < 4; way++) begin
+			if (ar_dep_check_dest_PR_dep_by_way[way]) begin
+				next_dest_old_PR_by_way_DISP[way] = free_list_deq_req_PR_by_bank[ar_dep_check_dest_PR_sel_by_way[way]];
+			end
+			else begin
+				next_dest_old_PR_by_way_DISP[way] = map_table_read_PR_by_port[way+8];
+			end
+		end
 		next_dest_new_PR_by_way_DISP = free_list_deq_req_PR_by_bank;
 		next_dest_is_link_ra_by_way_DISP = dest_is_link_ra_by_way_RNM;
 
