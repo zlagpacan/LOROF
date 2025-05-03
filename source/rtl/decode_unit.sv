@@ -48,13 +48,13 @@ module decode_unit #(
     // general instr info
     output logic [3:0]                              dispatch_valid_by_way,
     output logic [3:0]                              dispatch_uncompressed_by_way,
-    output logic [31:0]                             dispatch_PC_by_way,
-    output logic [31:0]                             dispatch_pred_PC_by_way,
+    output logic [3:0][31:0]                        dispatch_PC_by_way,
+    output logic [3:0][31:0]                        dispatch_pred_PC_by_way,
     output logic [3:0]                              dispatch_is_rename_by_way,
     output logic [3:0][BTB_PRED_INFO_WIDTH-1:0]		dispatch_pred_info_by_way,
     output logic [3:0][MDPT_INFO_WIDTH-1:0]         dispatch_mdp_info_by_way,
     output logic [3:0][3:0]                         dispatch_op_by_way,
-    output logic [19:0]                             dispatch_imm20_by_way,
+    output logic [3:0][19:0]                       	dispatch_imm20_by_way,
 
     // ordering
     output logic [3:0]                              dispatch_mem_aq_by_way,
@@ -204,7 +204,7 @@ module decode_unit #(
 	logic [3:0][1:0][15:0]                   	instr_2B_by_way_by_chunk_DEC, next_instr_2B_by_way_by_chunk_DEC;
 	logic [3:0][1:0][BTB_PRED_INFO_WIDTH-1:0]	pred_info_by_way_by_chunk_DEC, next_pred_info_by_way_by_chunk_DEC;
 	logic [3:0][1:0]                         	pred_lru_by_way_by_chunk_DEC, next_pred_lru_by_way_by_chunk_DEC;
-	logic [3:0][1:0][31:0]                   	pred_PC_by_way_DEC, next_pred_PC_by_way_DEC;
+	logic [3:0][31:0]                   		pred_PC_by_way_DEC, next_pred_PC_by_way_DEC;
 	logic [3:0][1:0]                         	page_fault_by_way_DEC, next_page_fault_by_way_DEC;
 	logic [3:0][1:0]                         	access_fault_by_way_DEC, next_access_fault_by_way_DEC;
 	logic [3:0][MDPT_INFO_WIDTH-1:0]         	mdp_info_by_way_DEC, next_mdp_info_by_way_DEC;
@@ -910,14 +910,15 @@ module decode_unit #(
 	always_comb begin
 
 		// decoder by way:
+		decoder_uncompressed_by_way = uncompressed_by_way_DEC;
+		decoder_instr32_by_way = instr_2B_by_way_by_chunk_DEC;
+
 		for (int way = 0; way < 4; way++) begin
 			decoder_env_exec_mode_by_way[way] = exec_mode_DEC;
 			decoder_env_trap_sfence_by_way[way] = trap_sfence_DEC;
 			decoder_env_trap_wfi_by_way[way] = trap_wfi_DEC;
 			decoder_env_trap_sret_by_way[way] = trap_sret_DEC;
 
-			decoder_uncompressed_by_way[way] = uncompressed_by_way_DEC[way];
-			decoder_instr32_by_way[way] = instr_2B_by_way_by_chunk_DEC[way];
 			decoder_pred_info_chunk0_by_way[way] = pred_info_by_way_by_chunk_DEC[way][0];
 			decoder_pred_info_chunk1_by_way[way] = pred_info_by_way_by_chunk_DEC[way][1];
 		end
@@ -1041,6 +1042,9 @@ module decode_unit #(
 			// OR launch multiple 4-way's
 			// not considering checkpoint count threshold right now
 		next_checkpoint_marked_RNM = 1'b0;
+		next_LH_RNM = LH_by_way_DEC[0];
+		next_GH_RNM = GH_by_way_DEC[0];
+		next_ras_index_RNM = ras_index_by_way_DEC[0];
 		for (int way = 0; way < 4; way++) begin
 			if (~next_checkpoint_marked_RNM) begin
 				if (valid_by_way_DEC[way] 
@@ -1367,6 +1371,7 @@ module decode_unit #(
 		end
 
 		map_table_restore_valid = rob_checkpoint_restore_valid;
+		map_table_restore_map_table = checkpoint_array_restore_map_table;
 
 		// checkpoint_array:
 		checkpoint_array_save_valid = 
@@ -1562,10 +1567,10 @@ module decode_unit #(
 		
 		for (int way = 0; way < 4; way++) begin
 			if (ar_dep_check_A_PR_dep_by_way[way]) begin
-				next_A_PR_by_way_DISP[way] = free_list_deq_req_PR_by_bank[ar_dep_check_A_PR_sel_by_way];
+				next_A_PR_by_way_DISP[way] = free_list_deq_req_PR_by_bank[ar_dep_check_A_PR_sel_by_way[way]];
 			end
 			else begin
-				next_A_PR_by_way_DISP[way] = map_table_read_PR_by_port[3:0];
+				next_A_PR_by_way_DISP[way] = map_table_read_PR_by_port[way];
 			end
 		end
 		next_A_unneeded_by_way_DISP = A_unneeded_by_way_RNM;
@@ -1574,17 +1579,17 @@ module decode_unit #(
 		
 		for (int way = 0; way < 4; way++) begin
 			if (ar_dep_check_B_PR_dep_by_way[way]) begin
-				next_B_PR_by_way_DISP[way] = free_list_deq_req_PR_by_bank[ar_dep_check_B_PR_sel_by_way];
+				next_B_PR_by_way_DISP[way] = free_list_deq_req_PR_by_bank[ar_dep_check_B_PR_sel_by_way[way]];
 			end
 			else begin
-				next_B_PR_by_way_DISP[way] = map_table_read_PR_by_port[7:4];
+				next_B_PR_by_way_DISP[way] = map_table_read_PR_by_port[way+4];
 			end
 		end
 		next_B_unneeded_by_way_DISP = B_unneeded_by_way_RNM;
 		next_B_is_zero_by_way_DISP = B_is_zero_by_way_RNM;
 		
 		next_dest_AR_by_way_DISP = dest_AR_by_way_RNM;
-		next_dest_old_PR_by_way_DISP = map_table_read_PR_by_port[11:8];
+		next_dest_old_PR_by_way_DISP = map_table_read_PR_by_port[11:8]; // take into account old PR written within this 4-way
 		next_dest_new_PR_by_way_DISP = free_list_deq_req_PR_by_bank;
 		next_dest_is_link_ra_by_way_DISP = dest_is_link_ra_by_way_RNM;
 
@@ -1907,15 +1912,15 @@ module decode_unit #(
 		dispatch_attempt_sys_iq_by_way = is_sys_by_way_DISP;
 
 		// instr FU valids
-		dispatch_valid_alu_reg_by_way = is_alu_reg_by_way_DISP & perform_DISP;
-		dispatch_valid_mdu_by_way = is_mdu_by_way_DISP & perform_DISP;
-		dispatch_valid_alu_imm_by_way = is_alu_imm_by_way_DISP & perform_DISP;
-		dispatch_valid_bru_by_way = is_bru_by_way_DISP & perform_DISP;
-		dispatch_valid_ldu_by_way = is_ldu_by_way_DISP & perform_DISP;
-		dispatch_valid_store_by_way = is_store_by_way_DISP & perform_DISP;
-		dispatch_valid_amo_by_way = is_amo_by_way_DISP & perform_DISP;
-		dispatch_valid_fence_by_way = is_fence_by_way_DISP & perform_DISP;
-		dispatch_valid_sys_by_way = is_sys_by_way_DISP & perform_DISP;
+		dispatch_valid_alu_reg_by_way = is_alu_reg_by_way_DISP & {4{perform_DISP}};
+		dispatch_valid_mdu_by_way = is_mdu_by_way_DISP & {4{perform_DISP}};
+		dispatch_valid_alu_imm_by_way = is_alu_imm_by_way_DISP & {4{perform_DISP}};
+		dispatch_valid_bru_by_way = is_bru_by_way_DISP & {4{perform_DISP}};
+		dispatch_valid_ldu_by_way = is_ldu_by_way_DISP & {4{perform_DISP}};
+		dispatch_valid_store_by_way = is_store_by_way_DISP & {4{perform_DISP}};
+		dispatch_valid_amo_by_way = is_amo_by_way_DISP & {4{perform_DISP}};
+		dispatch_valid_fence_by_way = is_fence_by_way_DISP & {4{perform_DISP}};
+		dispatch_valid_sys_by_way = is_sys_by_way_DISP & {4{perform_DISP}};
 
 		// operand A
 		dispatch_A_PR_by_way = A_PR_by_way_DISP;
