@@ -151,7 +151,7 @@ module decode_unit_wrapper (
 
 	// ROB physical register freeing
 	input logic [3:0] next_rob_PR_free_req_valid_by_bank,
-	input logic [3:0] next_rob_PR_free_req_PR_by_bank,
+	input logic [3:0][LOG_PR_COUNT-1:0] next_rob_PR_free_req_PR_by_bank,
 	output logic [3:0] last_rob_PR_free_resp_ack_by_bank,
 
     // branch update to fetch unit
@@ -317,7 +317,7 @@ module decode_unit_wrapper (
 
 	// ROB physical register freeing
 	logic [3:0] rob_PR_free_req_valid_by_bank;
-	logic [3:0] rob_PR_free_req_PR_by_bank;
+	logic [3:0][LOG_PR_COUNT-1:0] rob_PR_free_req_PR_by_bank;
 	logic [3:0] rob_PR_free_resp_ack_by_bank;
 
     // branch update to fetch unit

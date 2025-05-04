@@ -166,7 +166,7 @@ module decode_unit_tb ();
 
 	// ROB physical register freeing
 	logic [3:0] tb_rob_PR_free_req_valid_by_bank;
-	logic [3:0] tb_rob_PR_free_req_PR_by_bank;
+	logic [3:0][LOG_PR_COUNT-1:0] tb_rob_PR_free_req_PR_by_bank;
 	logic [3:0] DUT_rob_PR_free_resp_ack_by_bank, expected_rob_PR_free_resp_ack_by_bank;
 
     // branch update to fetch unit
@@ -4032,18 +4032,18 @@ module decode_unit_tb ();
 		check_outputs();
 
         // ------------------------------------------------------------
-        // less simple sequence:
-        test_case = "less simple sequence";
+        // complex sequence:
+        test_case = "complex sequence";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"less simple sequence cycle 0\n",
+		sub_test_case = {"complex sequence cycle 0\n",
 			"\t\tSDEQ: \n",
-			"\t\t\t", "12345678: ", "inv", "\n",
-			"\t\t\t", "12345678: ", "c.jr x1", "\n",
+			"\t\t\t", "12345680: ", "inv illegal instr", "\n",
+			"\t\t\t", "1234567E: ", "c.jr x1", "\n",
 			"\t\t\t", "1234567A: ", "rem x24, x16, x0", "\n",
 			"\t\t\t", "12345678: ", "c.swsp x6, 0x14", "\n",
 			"\t\tDEC: NOP\n",
@@ -4055,9 +4055,9 @@ module decode_unit_tb ();
 		// reset
 		nRST = 1'b1;
 	    // input from istream
-		tb_istream_valid_SDEQ = 1'b0;
+		tb_istream_valid_SDEQ = 1'b1;
 		tb_istream_valid_by_way_SDEQ = 4'b0111;
-		tb_istream_uncompressed_by_way_SDEQ = 4'b1111;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b1010;
 		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
 			32'hffffffff,
 			32'hf0f08082,
@@ -4066,14 +4066,14 @@ module decode_unit_tb ();
 		};
 		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
 			8'b01000000, 8'b00000000,
-			8'b00000000, 8'b01100000,
+			8'b00000000, 8'b01101001,
 			8'b00000000, 8'b00000000,
 			8'b10100000, 8'b00000000
 		};
 		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
 		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
 			32'h12345684, 32'h12345682,
-			32'h12345682, 32'h12345680,
+			32'h12345682, 32'h40000002,
 			32'h1234567E, 32'h1234567C,
 			32'h1234567C, 32'h1234567A
 		};
@@ -4098,10 +4098,10 @@ module decode_unit_tb ();
 			8'h7A
 		};
 		tb_istream_GH_by_way_SDEQ = {
-			12'h5684,
-			12'h5682,
-			12'h567E,
-			12'h567C
+			12'h684,
+			12'h682,
+			12'h67E,
+			12'h67C
 		};
 		tb_istream_ras_index_by_way_SDEQ = {
 			3'h2,
@@ -4275,6 +4275,4202 @@ module decode_unit_tb ();
 	    // decode unit control
 		expected_decode_unit_restart_valid = 1'b0;
 		expected_decode_unit_restart_PC = 32'h345678b2;
+		expected_decode_unit_trigger_wait_for_restart = 1'b0;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle 1\n",
+			"\t\tSDEQ: \n",
+			"\t\t\t", "4000000A: ", "mulhu x8, x8, x8", "\n",
+			"\t\t\t", "40000006: ", "amoxor.w.rl x8, x8, (x7) BAD PRED AFTER", "\n",
+			"\t\t\t", "40000004: ", "c.lw x8, 20(x13)", "\n",
+			"\t\t\t", "40000002: ", "c.slli x7, 23", "\n",
+			"\t\tDEC: \n",
+			"\t\t\t", "12345680: ", "inv illegal instr", "\n",
+			"\t\t\t", "1234567E: ", "c.jr x1", "\n",
+			"\t\t\t", "1234567A: ", "rem x24, x16, x0", "\n",
+			"\t\t\t", "12345678: ", "c.swsp x6, 0x14", "\n",
+			"\t\tRNM: NOP\n",
+			"\t\tDISP: NOP\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b1;
+		tb_istream_valid_by_way_SDEQ = 4'b1111;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b1100;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'h02843433,
+			32'h2283a42f,
+			32'hf0f04ac0,
+			32'h0f0f03de
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b00000000,
+			8'b01101001, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h80000004, 32'h80000002,
+			32'h80000000, 32'h40000008,
+			32'h40000008, 32'h40000006,
+			32'h40000006, 32'h40000004
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'h80000000,
+			32'h40000006,
+			32'h40000004,
+			32'h40000002
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h02,
+			8'h08,
+			8'h06,
+			8'h04
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h004,
+			12'h000,
+			12'h008,
+			12'h006
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'h2,
+			3'h8,
+			3'h6,
+			3'h4
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0000;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b0;
+		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_is_mispredict = 1'b0;
+		tb_rob_branch_update_is_taken = 1'b0;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'h0;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h0;
+		tb_rob_branch_update_target_PC = 32'h0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b0;
+		tb_rob_checkpoint_restore_valid = 1'b0;
+		tb_rob_checkpoint_restore_clear = 1'b0;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b0000;
+		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
+		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0000;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b0;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b0;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b1111;
+		expected_dispatch_uncompressed_by_way = 4'b1111;
+		expected_dispatch_PC_by_way = {
+			32'h345678BE,
+			32'h345678BA,
+			32'h345678B6,
+			32'h345678B2
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'h345678C2,
+			32'h345678BE,
+			32'h345678BA,
+			32'h345678B6
+		};
+		expected_dispatch_is_rename_by_way = 4'b0011;
+		expected_dispatch_pred_info_by_way = {
+			8'b00000000,
+			8'b00000000,
+			8'b00000000,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'hc2,
+			8'hbe,
+			8'hba,
+			8'hb6
+		};
+		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0010, 4'b0000};
+		expected_dispatch_imm20_by_way = 80'h0000000102a210060038;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0000;
+		expected_dispatch_io_rl_by_way = 4'b0000;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b0;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b0;
+		expected_dispatch_exception_present = 1'b0;
+		expected_dispatch_exception_index = 2'h0;
+		expected_dispatch_illegal_instr32 = 32'h03860333;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0010;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b1100;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0000;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0000;
+		expected_dispatch_valid_bru_by_way = 4'b0000;
+		expected_dispatch_valid_ldu_by_way = 4'b0000;
+		expected_dispatch_valid_store_by_way = 4'b0000;
+		expected_dispatch_valid_amo_by_way = 4'b0000;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0000;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h00, 7'h00, 7'h14, 7'hc};
+		expected_dispatch_A_ready_by_way = 4'b1111;
+		expected_dispatch_A_is_zero_by_way = 4'b1100;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1111;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0000;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h00, 7'h02, 7'h00, 7'h18};
+		expected_dispatch_B_ready_by_way = 4'b1111;
+		expected_dispatch_B_is_zero_by_way = 4'b1010;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h00, 5'h00, 5'h0a, 5'h06};
+		expected_dispatch_dest_old_PR_by_way = {7'h00, 7'h00, 7'h29, 7'h27};
+		expected_dispatch_dest_new_PR_by_way = {7'h2d, 7'h2c, 7'h2b, 7'h2a};
+		expected_dispatch_dest_is_link_ra = 4'b0000;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0000;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b0;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b0;
+		expected_decode_unit_branch_update_is_mispredict = 1'b0;
+		expected_decode_unit_branch_update_is_taken = 1'b0;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'h0;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'h345678b2;
+		expected_decode_unit_branch_update_target_PC = 32'h0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b0;
+		expected_decode_unit_restart_PC = 32'h345678b2;
+		expected_decode_unit_trigger_wait_for_restart = 1'b0;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle 2\n",
+			"\t\tSDEQ: ignored\n",
+			"\t\t\t", "90000004: ", "sra x31, x0, x0", "\n",
+			"\t\t\t", "90000000: ", "addi x0, x5, 24", "\n",
+			"\t\t\t", "80000008: ", "c.j -2048", "\n",
+			"\t\t\t", "80000004: ", "lhu, x0, 2(x0)", "\n",
+			"\t\tDEC: stall -> restart sequence\n",
+			"\t\t\t", "80000000: ", "mulhu x8, x8, x8", "\n",
+			"\t\t\t", "40000006: ", "amoxor.w.rl x8, x8, (x7) BAD PRED AFTER", "\n",
+			"\t\t\t", "40000004: ", "c.lw x8, 20(x13)", "\n",
+			"\t\t\t", "40000002: ", "c.slli x7, 23", "\n",
+			"\t\tRNM: \n",
+			"\t\t\t", "12345680: ", "inv illegal instr", "\n",
+			"\t\t\t", "1234567E: ", "c.jr x1", "\n",
+			"\t\t\t", "1234567A: ", "rem x24, x16, x0", "\n",
+			"\t\t\t", "12345678: ", "c.swsp x6, 0x14", "\n",
+			"\t\tDISP: NOP\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b0;
+		tb_istream_valid_by_way_SDEQ = 4'b1111;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b1100;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'h40005fb3,
+			32'h01828013,
+			32'hf0f0b001,
+			32'h00205003
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b10011001,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h80000004, 32'h80000002,
+			32'h80000000, 32'h40000008,
+			32'h40000008, 32'h40000006,
+			32'h40000006, 32'h40000004
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'h90000004,
+			32'h90000000,
+			32'h80000008,
+			32'h80000004
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h02,
+			8'h08,
+			8'h06,
+			8'h04
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h004,
+			12'h000,
+			12'h008,
+			12'h006
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'h2,
+			3'h8,
+			3'h6,
+			3'h4
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0000;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b0;
+		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_is_mispredict = 1'b0;
+		tb_rob_branch_update_is_taken = 1'b0;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'h0;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h0;
+		tb_rob_branch_update_target_PC = 32'h0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b0;
+		tb_rob_checkpoint_restore_valid = 1'b0;
+		tb_rob_checkpoint_restore_clear = 1'b0;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b0000;
+		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
+		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0000;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b1;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b0;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b1111;
+		expected_dispatch_uncompressed_by_way = 4'b1111;
+		expected_dispatch_PC_by_way = {
+			32'h345678BE,
+			32'h345678BA,
+			32'h345678B6,
+			32'h345678B2
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'h345678C2,
+			32'h345678BE,
+			32'h345678BA,
+			32'h345678B6
+		};
+		expected_dispatch_is_rename_by_way = 4'b0011;
+		expected_dispatch_pred_info_by_way = {
+			8'b00000000,
+			8'b00000000,
+			8'b00000000,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'hc2,
+			8'hbe,
+			8'hba,
+			8'hb6
+		};
+		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0010, 4'b0000};
+		expected_dispatch_imm20_by_way = 80'h0000000102a210060038;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0000;
+		expected_dispatch_io_rl_by_way = 4'b0000;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b0;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b0;
+		expected_dispatch_exception_present = 1'b0;
+		expected_dispatch_exception_index = 2'h0;
+		expected_dispatch_illegal_instr32 = 32'h03860333;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0010;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b1100;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0000;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0000;
+		expected_dispatch_valid_bru_by_way = 4'b0000;
+		expected_dispatch_valid_ldu_by_way = 4'b0000;
+		expected_dispatch_valid_store_by_way = 4'b0000;
+		expected_dispatch_valid_amo_by_way = 4'b0000;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0000;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h00, 7'h00, 7'h14, 7'hc};
+		expected_dispatch_A_ready_by_way = 4'b1111;
+		expected_dispatch_A_is_zero_by_way = 4'b1100;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1111;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0000;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h00, 7'h02, 7'h00, 7'h18};
+		expected_dispatch_B_ready_by_way = 4'b1111;
+		expected_dispatch_B_is_zero_by_way = 4'b1010;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h00, 5'h00, 5'h0a, 5'h06};
+		expected_dispatch_dest_old_PR_by_way = {7'h00, 7'h00, 7'h29, 7'h27};
+		expected_dispatch_dest_new_PR_by_way = {7'h2d, 7'h2c, 7'h2b, 7'h2a};
+		expected_dispatch_dest_is_link_ra = 4'b0000;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0000;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b0;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b0;
+		expected_decode_unit_branch_update_is_mispredict = 1'b0;
+		expected_decode_unit_branch_update_is_taken = 1'b0;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'h0;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'h12345678;
+		expected_decode_unit_branch_update_target_PC = 32'h0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b0;
+		expected_decode_unit_restart_PC = 32'h12345678;
+		expected_decode_unit_trigger_wait_for_restart = 1'b0;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle 3\n",
+			"\t\tSDEQ: ignored\n",
+			"\t\t\t", "90000004: ", "sra x31, x0, x0", "\n",
+			"\t\t\t", "90000000: ", "addi x0, x5, 24", "\n",
+			"\t\t\t", "80000008: ", "c.j -2048", "\n",
+			"\t\t\t", "80000004: ", "lhu, x0, 2(x0)", "\n",
+			"\t\tDEC: restart 0\n",
+			"\t\t\t", "80000000: ", "mulhu x8, x8, x8", "\n",
+			"\t\t\t", "40000006: ", "amoxor.w.rl x8, x8, (x7) BAD PRED AFTER", "\n",
+			"\t\t\t", "40000004: ", "c.lw x8, 20(x13)", "\n",
+			"\t\t\t", "40000002: ", "c.slli x7, 23", "\n",
+			"\t\tRNM: \n",
+			"\t\tDISP: stalled IQ ack\n",
+			"\t\t\t", "12345680: ", "inv illegal instr", "\n",
+			"\t\t\t", "1234567E: ", "c.jr x1", "\n",
+			"\t\t\t", "1234567A: ", "rem x24, x16, x0", "\n",
+			"\t\t\t", "12345678: ", "c.swsp x6, 0x14", "\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b0;
+		tb_istream_valid_by_way_SDEQ = 4'b1111;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b1100;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'h40005fb3,
+			32'h01828013,
+			32'hf0f0b001,
+			32'h00205003
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b10011001,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h80000004, 32'h80000002,
+			32'h80000000, 32'h40000008,
+			32'h40000008, 32'h40000006,
+			32'h40000006, 32'h40000004
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'h90000004,
+			32'h90000000,
+			32'h80000008,
+			32'h80000004
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h02,
+			8'h08,
+			8'h06,
+			8'h04
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h004,
+			12'h000,
+			12'h008,
+			12'h006
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'h2,
+			3'h8,
+			3'h6,
+			3'h4
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0010;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_iq_by_way = 4'b1000;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0001;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0000;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b0;
+		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_is_mispredict = 1'b0;
+		tb_rob_branch_update_is_taken = 1'b0;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'h0;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h0;
+		tb_rob_branch_update_target_PC = 32'h0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b0;
+		tb_rob_checkpoint_restore_valid = 1'b0;
+		tb_rob_checkpoint_restore_clear = 1'b0;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b0000;
+		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
+		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0000;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b1;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b0;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b0111;
+		expected_dispatch_uncompressed_by_way = 4'b1010;
+		expected_dispatch_PC_by_way = {
+			32'h12345680,
+			32'h1234567E,
+			32'h1234567A,
+			32'h12345678
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'h12345684,
+			32'h40000002,
+			32'h1234567E,
+			32'h1234567A
+		};
+		expected_dispatch_is_rename_by_way = 4'b0010;
+		expected_dispatch_pred_info_by_way = {
+			8'b01000000,
+			8'b01101001,
+			8'b00000000,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'h84,
+			8'h82,
+			8'h7E,
+			8'h7C
+		};
+		expected_dispatch_op_by_way = {4'b1111, 4'b0101, 4'b0110, 4'b0110};
+		expected_dispatch_imm20_by_way = 80'hfffff000008602000014;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0000;
+		expected_dispatch_io_rl_by_way = 4'b0000;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b0;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b0;
+		expected_dispatch_exception_present = 1'b0;
+		expected_dispatch_exception_index = 2'h0;
+		expected_dispatch_illegal_instr32 = 32'h0f0fca1a;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0010;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0100;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b0000;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0000;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0000;
+		expected_dispatch_valid_bru_by_way = 4'b0000;
+		expected_dispatch_valid_ldu_by_way = 4'b0000;
+		expected_dispatch_valid_store_by_way = 4'b0000;
+		expected_dispatch_valid_amo_by_way = 4'b0000;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0000;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h22, 7'h21, 7'h10, 7'h2};
+		expected_dispatch_A_ready_by_way = 4'b0011;
+		expected_dispatch_A_is_zero_by_way = 4'b0000;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1011;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0100;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h22, 7'h00, 7'h00, 7'h27};
+		expected_dispatch_B_ready_by_way = 4'b0110;
+		expected_dispatch_B_is_zero_by_way = 4'b0110;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h1f, 5'h01, 5'h18, 5'h14};
+		expected_dispatch_dest_old_PR_by_way = {7'h22, 7'h21, 7'h18, 7'h14};
+		expected_dispatch_dest_new_PR_by_way = {7'h2d, 7'h2c, 7'h2b, 7'h2a};
+		expected_dispatch_dest_is_link_ra = 4'b0100;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0000;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b1;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b0;
+		expected_decode_unit_branch_update_is_mispredict = 1'b0;
+		expected_decode_unit_branch_update_is_taken = 1'b0;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'h0;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'h40000008;
+		expected_decode_unit_branch_update_target_PC = 32'h0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b0;
+		expected_decode_unit_restart_PC = 32'h4000000a;
+		expected_decode_unit_trigger_wait_for_restart = 1'b0;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle 4\n",
+			"\t\tSDEQ: ignored\n",
+			"\t\t\t", "90000004: ", "sra x31, x0, x0", "\n",
+			"\t\t\t", "90000000: ", "addi x0, x5, 24", "\n",
+			"\t\t\t", "80000008: ", "c.j -2048", "\n",
+			"\t\t\t", "80000004: ", "lhu, x0, 2(x0)", "\n",
+			"\t\tDEC: restart 1\n",
+			"\t\t\t", "80000000: ", "mulhu x8, x8, x8", "\n",
+			"\t\t\t", "40000006: ", "amoxor.w.rl x8, x8, (x7) BAD PRED AFTER", "\n",
+			"\t\t\t", "40000004: ", "c.lw x8, 20(x13)", "\n",
+			"\t\t\t", "40000002: ", "c.slli x7, 23", "\n",
+			"\t\tRNM: NOP\n",
+			"\t\tDISP: \n",
+			"\t\t\t", "12345680: ", "inv illegal instr", "\n",
+			"\t\t\t", "1234567E: ", "c.jr x1", "\n",
+			"\t\t\t", "1234567A: ", "rem x24, x16, x0", "\n",
+			"\t\t\t", "12345678: ", "c.swsp x6, 0x14", "\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b0;
+		tb_istream_valid_by_way_SDEQ = 4'b1111;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b1100;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'h40005fb3,
+			32'h01828013,
+			32'hf0f0b001,
+			32'h00205003
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b10011001,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h80000004, 32'h80000002,
+			32'h80000000, 32'h40000008,
+			32'h40000008, 32'h40000006,
+			32'h40000006, 32'h40000004
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'h90000004,
+			32'h90000000,
+			32'h80000008,
+			32'h80000004
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h02,
+			8'h08,
+			8'h06,
+			8'h04
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h004,
+			12'h000,
+			12'h008,
+			12'h006
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'h2,
+			3'h8,
+			3'h6,
+			3'h4
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0010;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_iq_by_way = 4'b0100;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0001;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0000;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b0;
+		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_is_mispredict = 1'b0;
+		tb_rob_branch_update_is_taken = 1'b0;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'h0;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h0;
+		tb_rob_branch_update_target_PC = 32'h0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b0;
+		tb_rob_checkpoint_restore_valid = 1'b0;
+		tb_rob_checkpoint_restore_clear = 1'b1;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b0000;
+		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
+		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0000;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b1;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b1;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b0111;
+		expected_dispatch_uncompressed_by_way = 4'b1010;
+		expected_dispatch_PC_by_way = {
+			32'h12345680,
+			32'h1234567E,
+			32'h1234567A,
+			32'h12345678
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'h12345684,
+			32'h40000002,
+			32'h1234567E,
+			32'h1234567A
+		};
+		expected_dispatch_is_rename_by_way = 4'b0010;
+		expected_dispatch_pred_info_by_way = {
+			8'b01000000,
+			8'b01101001,
+			8'b00000000,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'h84,
+			8'h82,
+			8'h7E,
+			8'h7C
+		};
+		expected_dispatch_op_by_way = {4'b1111, 4'b0101, 4'b0110, 4'b0110};
+		expected_dispatch_imm20_by_way = 80'hfffff000008602000014;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0000;
+		expected_dispatch_io_rl_by_way = 4'b0000;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b0;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b0;
+		expected_dispatch_exception_present = 1'b0;
+		expected_dispatch_exception_index = 2'h0;
+		expected_dispatch_illegal_instr32 = 32'h0f0fca1a;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0010;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0100;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b0000;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0010;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0000;
+		expected_dispatch_valid_bru_by_way = 4'b0100;
+		expected_dispatch_valid_ldu_by_way = 4'b0000;
+		expected_dispatch_valid_store_by_way = 4'b0001;
+		expected_dispatch_valid_amo_by_way = 4'b0000;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0000;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h22, 7'h21, 7'h10, 7'h2};
+		expected_dispatch_A_ready_by_way = 4'b0011;
+		expected_dispatch_A_is_zero_by_way = 4'b0000;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1011;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0100;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h22, 7'h00, 7'h00, 7'h27};
+		expected_dispatch_B_ready_by_way = 4'b0110;
+		expected_dispatch_B_is_zero_by_way = 4'b0110;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h1f, 5'h01, 5'h18, 5'h14};
+		expected_dispatch_dest_old_PR_by_way = {7'h22, 7'h21, 7'h18, 7'h14};
+		expected_dispatch_dest_new_PR_by_way = {7'h2d, 7'h2c, 7'h2b, 7'h2a};
+		expected_dispatch_dest_is_link_ra = 4'b0100;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0000;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b0;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b0;
+		expected_decode_unit_branch_update_is_mispredict = 1'b0;
+		expected_decode_unit_branch_update_is_taken = 1'b0;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'h0;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'h40000008;
+		expected_decode_unit_branch_update_target_PC = 32'h0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b0;
+		expected_decode_unit_restart_PC = 32'h4000000a;
+		expected_decode_unit_trigger_wait_for_restart = 1'b0;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle 5\n",
+			"\t\tSDEQ: \n",
+			"\t\t\t", "90000004: ", "illegal instr", "\n",
+			"\t\t\t", "90000000: ", "addi x0, x5, 24", "\n",
+			"\t\t\t", "80000008: ", "c.j -2048", "\n",
+			"\t\t\t", "80000004: ", "lhu, x0, 2(x0)", "\n",
+			"\t\tDEC: restart 2\n",
+			"\t\t\t", "80000000: ", "mulhu x8, x8, x8", "\n",
+			"\t\t\t", "40000006: ", "amoxor.w.rl x8, x8, (x7) BAD PRED AFTER", "\n",
+			"\t\t\t", "40000004: ", "c.lw x8, 20(x13)", "\n",
+			"\t\t\t", "40000002: ", "c.slli x7, 23", "\n",
+			"\t\tRNM: NOP\n",
+			"\t\tDISP: NOP\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b1;
+		tb_istream_valid_by_way_SDEQ = 4'b1111;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b0101;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'hffff0000,
+			32'h01828013,
+			32'hf0f0b001,
+			32'h00205003
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b10011001,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h90000008, 32'h90000006,
+			32'h90000004, 32'h90000002,
+			32'h8000000C, 32'h90000000,
+			32'h80000008, 32'h80000006
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h08,
+			8'h04,
+			8'h0C,
+			8'h08
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'h90000004,
+			32'h90000000,
+			32'h80000008,
+			32'h80000004
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h06,
+			8'h02,
+			8'h00,
+			8'h06
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h008,
+			12'h004,
+			12'h00C,
+			12'h008
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'h6,
+			3'h2,
+			3'h0,
+			3'h6
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0001;
+		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0010;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0100;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0000;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b0;
+		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_is_mispredict = 1'b0;
+		tb_rob_branch_update_is_taken = 1'b0;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'h0;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h0;
+		tb_rob_branch_update_target_PC = 32'h0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b0;
+		tb_rob_checkpoint_restore_valid = 1'b0;
+		tb_rob_checkpoint_restore_clear = 1'b1;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b0000;
+		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
+		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0000;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b0;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b0;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b0111;
+		expected_dispatch_uncompressed_by_way = 4'b1100;
+		expected_dispatch_PC_by_way = {
+			32'h80000000,
+			32'h40000006,
+			32'h40000004,
+			32'h40000002
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'h80000004,
+			32'h80000000,
+			32'h40000006,
+			32'h40000004
+		};
+		expected_dispatch_is_rename_by_way = 4'b1111;
+		expected_dispatch_pred_info_by_way = {
+			8'b00000000,
+			8'b01101001,
+			8'b00000000,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		expected_dispatch_op_by_way = {4'b0011, 4'b0100, 4'b1010, 4'b0001};
+		expected_dispatch_imm20_by_way = 80'h430283a2280001400017;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0100;
+		expected_dispatch_io_rl_by_way = 4'b0100;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b0;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b0;
+		expected_dispatch_exception_present = 1'b0;
+		expected_dispatch_exception_index = 2'h0;
+		expected_dispatch_illegal_instr32 = 32'h0f0f03de;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0010;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0100;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b0000;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0000;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0000;
+		expected_dispatch_valid_bru_by_way = 4'b0000;
+		expected_dispatch_valid_ldu_by_way = 4'b0000;
+		expected_dispatch_valid_store_by_way = 4'b0000;
+		expected_dispatch_valid_amo_by_way = 4'b0000;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0000;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h2d, 7'h2a, 7'h0d, 7'h07};
+		expected_dispatch_A_ready_by_way = 4'b0011;
+		expected_dispatch_A_is_zero_by_way = 4'b0000;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1111;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0000;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h2d, 7'h2c, 7'h08, 7'h17};
+		expected_dispatch_B_ready_by_way = 4'b0011;
+		expected_dispatch_B_is_zero_by_way = 4'b0000;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h08, 5'h07};
+		expected_dispatch_dest_old_PR_by_way = {7'h2d, 7'h2c, 7'h08, 7'h07};
+		expected_dispatch_dest_new_PR_by_way = {7'h2e, 7'h2d, 7'h2c, 7'h2a};
+		expected_dispatch_dest_is_link_ra = 4'b0000;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0000;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b0;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b0;
+		expected_decode_unit_branch_update_is_mispredict = 1'b0;
+		expected_decode_unit_branch_update_is_taken = 1'b0;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'h0;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'h40000008;
+		expected_decode_unit_branch_update_target_PC = 32'h0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b1;
+		expected_decode_unit_restart_PC = 32'h4000000a;
+		expected_decode_unit_trigger_wait_for_restart = 1'b0;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle 6\n",
+			"\t\tSDEQ: ignored\n",
+			"\t\t\t", "90000004: ", "illegal instr", "\n",
+			"\t\t\t", "90000000: ", "illegal instr", "\n",
+			"\t\t\t", "80000008: ", "csrrwi x0, 0x15, 13 PAGE FAULT", "\n",
+			"\t\t\t", "80000004: ", "c.lui x16, 29", "\n",
+			"\t\tDEC: stall -> illegal instr WFR\n",
+			"\t\t\t", "90000004: ", "illegal instr", "\n",
+			"\t\t\t", "90000000: ", "addi x0, x5, 24", "\n",
+			"\t\t\t", "80000008: ", "c.j -2048", "\n",
+			"\t\t\t", "80000004: ", "lhu, x0, 2(x0)", "\n",
+			"\t\tRNM: \n",
+			"\t\t\t", "80000000: ", "mulhu x8, x8, x8", "\n",
+			"\t\t\t", "40000006: ", "amoxor.w.rl x8, x8, (x7) BAD PRED AFTER", "\n",
+			"\t\t\t", "40000004: ", "c.lw x8, 20(x13)", "\n",
+			"\t\t\t", "40000002: ", "c.slli x7, 23", "\n",
+			"\t\tDISP: NOP\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b0;
+		tb_istream_valid_by_way_SDEQ = 4'b1111;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b1110;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'h00000000,
+			32'h00000000,
+			32'h0156d073,
+			32'h0f0f6875
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'h90000008, 32'h90000006,
+			32'h90000004, 32'h90000002,
+			32'h8000000C, 32'h90000000,
+			32'h80000008, 32'h80000006
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'h90000004,
+			32'h90000000,
+			32'h80000008,
+			32'h80000004
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h02,
+			8'h08,
+			8'h06,
+			8'h04
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h004,
+			12'h000,
+			12'h008,
+			12'h006
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'h2,
+			3'h8,
+			3'h6,
+			3'h4
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0001;
+		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0010;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0100;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0000;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b0;
+		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_is_mispredict = 1'b0;
+		tb_rob_branch_update_is_taken = 1'b0;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'h0;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h0;
+		tb_rob_branch_update_target_PC = 32'h0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b0;
+		tb_rob_checkpoint_restore_valid = 1'b0;
+		tb_rob_checkpoint_restore_clear = 1'b1;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b0000;
+		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
+		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0000;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b1;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b0;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b0111;
+		expected_dispatch_uncompressed_by_way = 4'b1100;
+		expected_dispatch_PC_by_way = {
+			32'h80000000,
+			32'h40000006,
+			32'h40000004,
+			32'h40000002
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'h80000004,
+			32'h80000000,
+			32'h40000006,
+			32'h40000004
+		};
+		expected_dispatch_is_rename_by_way = 4'b1111;
+		expected_dispatch_pred_info_by_way = {
+			8'b00000000,
+			8'b01101001,
+			8'b00000000,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		expected_dispatch_op_by_way = {4'b0011, 4'b0100, 4'b1010, 4'b0001};
+		expected_dispatch_imm20_by_way = 80'h430283a2280001400017;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0100;
+		expected_dispatch_io_rl_by_way = 4'b0100;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b0;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b0;
+		expected_dispatch_exception_present = 1'b0;
+		expected_dispatch_exception_index = 2'h0;
+		expected_dispatch_illegal_instr32 = 32'h0f0f03de;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0010;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0100;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b0000;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0000;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0000;
+		expected_dispatch_valid_bru_by_way = 4'b0000;
+		expected_dispatch_valid_ldu_by_way = 4'b0000;
+		expected_dispatch_valid_store_by_way = 4'b0000;
+		expected_dispatch_valid_amo_by_way = 4'b0000;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0000;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h2d, 7'h2a, 7'h0d, 7'h07};
+		expected_dispatch_A_ready_by_way = 4'b0011;
+		expected_dispatch_A_is_zero_by_way = 4'b0000;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1111;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0000;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h2d, 7'h2c, 7'h08, 7'h17};
+		expected_dispatch_B_ready_by_way = 4'b0011;
+		expected_dispatch_B_is_zero_by_way = 4'b0000;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h08, 5'h07};
+		expected_dispatch_dest_old_PR_by_way = {7'h2d, 7'h2c, 7'h08, 7'h07};
+		expected_dispatch_dest_new_PR_by_way = {7'h2e, 7'h2d, 7'h2c, 7'h2a};
+		expected_dispatch_dest_is_link_ra = 4'b0000;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0000;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b0;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b0;
+		expected_decode_unit_branch_update_is_mispredict = 1'b0;
+		expected_decode_unit_branch_update_is_taken = 1'b0;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'h0;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'h40000008;
+		expected_decode_unit_branch_update_target_PC = 32'h0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b0;
+		expected_decode_unit_restart_PC = 32'h4000000a;
+		expected_decode_unit_trigger_wait_for_restart = 1'b0;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle 7\n",
+			"\t\tSDEQ: \n",
+			"\t\t\t", "A0000004: ", "illegal instr", "\n",
+			"\t\t\t", "A0000002: ", "illegal instr", "\n",
+			"\t\t\t", "9FFFFFFE: ", "csrrwi x0, 0x15, 0xd PAGE FAULT", "\n",
+			"\t\t\t", "9FFFFFFC: ", "c.lui x16, 29", "\n",
+			"\t\tDEC: illegal instr WFR\n",
+			"\t\t\t", "90000004: ", "illegal instr", "\n",
+			"\t\t\t", "90000000: ", "addi x0, x5, 24", "\n",
+			"\t\t\t", "80000008: ", "c.j -2048", "\n",
+			"\t\t\t", "80000004: ", "lhu, x0, 2(x0)", "\n",
+			"\t\tRNM: NOP\n",
+			"\t\tDISP: \n",
+			"\t\t\t", "80000000: ", "mulhu x8, x8, x8", "\n",
+			"\t\t\t", "40000006: ", "amoxor.w.rl x8, x8, (x7) BAD PRED AFTER", "\n",
+			"\t\t\t", "40000004: ", "c.lw x8, 20(x13)", "\n",
+			"\t\t\t", "40000002: ", "c.slli x7, 23", "\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b1;
+		tb_istream_valid_by_way_SDEQ = 4'b1111;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b0010;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'h00000000,
+			32'h00000000,
+			32'h0156d073,
+			32'h0f0f6875
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b11111111,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'hA0000008, 32'hA0000006,
+			32'hA0000006, 32'hA0000004,
+			32'hA0000002, 32'hA0000000,
+			32'hA0000000, 32'h9FFFFFFE
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00001010;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h08,
+			8'h06,
+			8'h02,
+			8'h00
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE,
+			32'h9FFFFFFC
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h06,
+			8'h04,
+			8'h00,
+			8'hFE
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h008,
+			12'h006,
+			12'h002,
+			12'h000
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'h6,
+			3'h4,
+			3'h0,
+			3'hE
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0001;
+		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0010;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0100;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0000;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b0;
+		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_is_mispredict = 1'b0;
+		tb_rob_branch_update_is_taken = 1'b0;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'h0;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h0;
+		tb_rob_branch_update_target_PC = 32'h0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b0;
+		tb_rob_checkpoint_restore_valid = 1'b0;
+		tb_rob_checkpoint_restore_clear = 1'b1;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b0000;
+		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
+		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0000;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b0;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b1;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b0111;
+		expected_dispatch_uncompressed_by_way = 4'b1100;
+		expected_dispatch_PC_by_way = {
+			32'h80000000,
+			32'h40000006,
+			32'h40000004,
+			32'h40000002
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'h80000004,
+			32'h80000000,
+			32'h40000006,
+			32'h40000004
+		};
+		expected_dispatch_is_rename_by_way = 4'b1111;
+		expected_dispatch_pred_info_by_way = {
+			8'b00000000,
+			8'b01101001,
+			8'b00000000,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		expected_dispatch_op_by_way = {4'b0011, 4'b0100, 4'b1010, 4'b0001};
+		expected_dispatch_imm20_by_way = 80'h430283a2280001400017;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0100;
+		expected_dispatch_io_rl_by_way = 4'b0100;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b0;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b0;
+		expected_dispatch_exception_present = 1'b0;
+		expected_dispatch_exception_index = 2'h0;
+		expected_dispatch_illegal_instr32 = 32'h0f0f03de;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0010;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0100;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b0000;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0000;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0001;
+		expected_dispatch_valid_bru_by_way = 4'b0000;
+		expected_dispatch_valid_ldu_by_way = 4'b0010;
+		expected_dispatch_valid_store_by_way = 4'b0000;
+		expected_dispatch_valid_amo_by_way = 4'b0100;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0000;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h2d, 7'h2a, 7'h0d, 7'h07};
+		expected_dispatch_A_ready_by_way = 4'b0011;
+		expected_dispatch_A_is_zero_by_way = 4'b0000;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1111;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0000;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h2d, 7'h2c, 7'h08, 7'h17};
+		expected_dispatch_B_ready_by_way = 4'b0011;
+		expected_dispatch_B_is_zero_by_way = 4'b0000;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h08, 5'h07};
+		expected_dispatch_dest_old_PR_by_way = {7'h2d, 7'h2c, 7'h08, 7'h07};
+		expected_dispatch_dest_new_PR_by_way = {7'h2e, 7'h2d, 7'h2c, 7'h2a};
+		expected_dispatch_dest_is_link_ra = 4'b0000;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0000;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b0;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b0;
+		expected_decode_unit_branch_update_is_mispredict = 1'b0;
+		expected_decode_unit_branch_update_is_taken = 1'b0;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'h0;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'h80000004;
+		expected_decode_unit_branch_update_target_PC = 32'h0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b0;
+		expected_decode_unit_restart_PC = 32'h80000004;
+		expected_decode_unit_trigger_wait_for_restart = 1'b1;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle 8\n",
+			"\t\tSDEQ: NOP\n",
+			"\t\tDEC: stall -> page fault WFR\n",
+			"\t\t\t", "A0000004: ", "illegal instr", "\n",
+			"\t\t\t", "A0000002: ", "illegal instr", "\n",
+			"\t\t\t", "9FFFFFFE: ", "csrrwi x0, 0x15, 0xd PAGE FAULT", "\n",
+			"\t\t\t", "9FFFFFFC: ", "c.lui x16, 29", "\n",
+			"\t\tRNM: \n",
+			"\t\t\t", "90000004: ", "illegal instr", "\n",
+			"\t\t\t", "90000000: ", "addi x0, x5, 24", "\n",
+			"\t\t\t", "80000008: ", "c.j -2048", "\n",
+			"\t\t\t", "80000004: ", "lhu, x0, 2(x0)", "\n",
+			"\t\tDISP: NOP\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b0;
+		tb_istream_valid_by_way_SDEQ = 4'b1111;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b0010;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'h00000000,
+			32'h00000000,
+			32'h0156d073,
+			32'h0f0f6875
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b11111111,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'hA0000008, 32'hA0000006,
+			32'hA0000006, 32'hA0000004,
+			32'hA0000002, 32'hA0000000,
+			32'hA0000000, 32'h9FFFFFFE
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE,
+			32'h9FFFFFFC
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h02,
+			8'h08,
+			8'h06,
+			8'h04
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h004,
+			12'h000,
+			12'h008,
+			12'h006
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'h2,
+			3'h8,
+			3'h6,
+			3'h4
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0100;
+		tb_dispatch_ack_bru_iq_by_way = 4'b0010;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0001;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0000;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b0;
+		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_is_mispredict = 1'b0;
+		tb_rob_branch_update_is_taken = 1'b0;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'h0;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h0;
+		tb_rob_branch_update_target_PC = 32'h0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b0;
+		tb_rob_checkpoint_restore_valid = 1'b0;
+		tb_rob_checkpoint_restore_clear = 1'b1;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b0000;
+		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
+		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0000;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b1;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b0;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b1111;
+		expected_dispatch_uncompressed_by_way = 4'b0101;
+		expected_dispatch_PC_by_way = {
+			32'h90000004,
+			32'h90000000,
+			32'h80000008,
+			32'h80000004
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'h90000006,
+			32'h90000004,
+			32'h90000000,
+			32'h80000008
+		};
+		expected_dispatch_is_rename_by_way = 4'b0000;
+		expected_dispatch_pred_info_by_way = {
+			8'b00000000,
+			8'b00000000,
+			8'b10011001,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'h08,
+			8'h04,
+			8'h0C,
+			8'h08
+		};
+		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0100, 4'b0101};
+		expected_dispatch_imm20_by_way = 80'h0000028018ff80105002;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0000;
+		expected_dispatch_io_rl_by_way = 4'b0000;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b0;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b1;
+		expected_dispatch_exception_present = 1'b1;
+		expected_dispatch_exception_index = 2'h3;
+		expected_dispatch_illegal_instr32 = 32'h00000000;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0100;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0010;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b0000;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0000;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0000;
+		expected_dispatch_valid_bru_by_way = 4'b0000;
+		expected_dispatch_valid_ldu_by_way = 4'b0000;
+		expected_dispatch_valid_store_by_way = 4'b0000;
+		expected_dispatch_valid_amo_by_way = 4'b0000;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0000;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h02, 7'h20, 7'h00, 7'h00};
+		expected_dispatch_A_ready_by_way = 4'b1011;
+		expected_dispatch_A_is_zero_by_way = 4'b0011;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1111;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0100;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h2d, 7'h2b, 7'h00, 7'h02};
+		expected_dispatch_B_ready_by_way = 4'b0011;
+		expected_dispatch_B_is_zero_by_way = 4'b0010;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h08, 5'h00, 5'h00, 5'h00};
+		expected_dispatch_dest_old_PR_by_way = {7'h2d, 7'h00, 7'h00, 7'h00};
+		expected_dispatch_dest_new_PR_by_way = {7'h31, 7'h30, 7'h2f, 7'h2e};
+		expected_dispatch_dest_is_link_ra = 4'b0000;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0000;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b0;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b0;
+		expected_decode_unit_branch_update_is_mispredict = 1'b0;
+		expected_decode_unit_branch_update_is_taken = 1'b0;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'h0;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'h80000004;
+		expected_decode_unit_branch_update_target_PC = 32'h0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b0;
+		expected_decode_unit_restart_PC = 32'h80000004;
+		expected_decode_unit_trigger_wait_for_restart = 1'b0;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle 9\n",
+			"\t\tSDEQ: NOP\n",
+			"\t\tDEC: page fault WFR\n",
+			"\t\t\t", "A0000004: ", "illegal instr", "\n",
+			"\t\t\t", "A0000002: ", "illegal instr", "\n",
+			"\t\t\t", "9FFFFFFE: ", "csrrwi x0, 0x15, 0xd PAGE FAULT", "\n",
+			"\t\t\t", "9FFFFFFC: ", "c.lui x16, 29", "\n",
+			"\t\tRNM: NOP\n",
+			"\t\tDISP: \n",
+			"\t\t\t", "90000004: ", "illegal instr", "\n",
+			"\t\t\t", "90000000: ", "addi x0, x5, 24", "\n",
+			"\t\t\t", "80000008: ", "c.j -2048", "\n",
+			"\t\t\t", "80000004: ", "lhu, x0, 2(x0)", "\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b0;
+		tb_istream_valid_by_way_SDEQ = 4'b1111;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b0010;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'h00000000,
+			32'h00000000,
+			32'h0156d073,
+			32'h0f0f6875
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b11111111,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'hA0000008, 32'hA0000006,
+			32'hA0000006, 32'hA0000004,
+			32'hA0000002, 32'hA0000000,
+			32'hA0000000, 32'h9FFFFFFE
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE,
+			32'h9FFFFFFC
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h02,
+			8'h08,
+			8'h06,
+			8'h04
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h004,
+			12'h000,
+			12'h008,
+			12'h006
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'h2,
+			3'h8,
+			3'h6,
+			3'h4
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0100;
+		tb_dispatch_ack_bru_iq_by_way = 4'b0010;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0001;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0000;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b0;
+		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_is_mispredict = 1'b0;
+		tb_rob_branch_update_is_taken = 1'b0;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'h0;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h0;
+		tb_rob_branch_update_target_PC = 32'h0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b0;
+		tb_rob_checkpoint_restore_valid = 1'b0;
+		tb_rob_checkpoint_restore_clear = 1'b1;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b0000;
+		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
+		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0000;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b0;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b1;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b1111;
+		expected_dispatch_uncompressed_by_way = 4'b0101;
+		expected_dispatch_PC_by_way = {
+			32'h90000004,
+			32'h90000000,
+			32'h80000008,
+			32'h80000004
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'h90000006,
+			32'h90000004,
+			32'h90000000,
+			32'h80000008
+		};
+		expected_dispatch_is_rename_by_way = 4'b0000;
+		expected_dispatch_pred_info_by_way = {
+			8'b00000000,
+			8'b00000000,
+			8'b10011001,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'h08,
+			8'h04,
+			8'h0C,
+			8'h08
+		};
+		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0100, 4'b0101};
+		expected_dispatch_imm20_by_way = 80'h0000028018ff80105002;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0000;
+		expected_dispatch_io_rl_by_way = 4'b0000;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b0;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b1;
+		expected_dispatch_exception_present = 1'b1;
+		expected_dispatch_exception_index = 2'h3;
+		expected_dispatch_illegal_instr32 = 32'h00000000;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0100;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0010;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b0000;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0000;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0100;
+		expected_dispatch_valid_bru_by_way = 4'b0010;
+		expected_dispatch_valid_ldu_by_way = 4'b0001;
+		expected_dispatch_valid_store_by_way = 4'b0000;
+		expected_dispatch_valid_amo_by_way = 4'b0000;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0000;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h02, 7'h20, 7'h00, 7'h00};
+		expected_dispatch_A_ready_by_way = 4'b1011;
+		expected_dispatch_A_is_zero_by_way = 4'b0011;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1111;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0100;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h2d, 7'h2b, 7'h00, 7'h02};
+		expected_dispatch_B_ready_by_way = 4'b0011;
+		expected_dispatch_B_is_zero_by_way = 4'b0010;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h08, 5'h00, 5'h00, 5'h00};
+		expected_dispatch_dest_old_PR_by_way = {7'h2d, 7'h00, 7'h00, 7'h00};
+		expected_dispatch_dest_new_PR_by_way = {7'h31, 7'h30, 7'h2f, 7'h2e};
+		expected_dispatch_dest_is_link_ra = 4'b0000;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0000;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b0;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b0;
+		expected_decode_unit_branch_update_is_mispredict = 1'b0;
+		expected_decode_unit_branch_update_is_taken = 1'b0;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'h0;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'h9ffffffc;
+		expected_decode_unit_branch_update_target_PC = 32'h0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b0;
+		expected_decode_unit_restart_PC = 32'h9ffffffc;
+		expected_decode_unit_trigger_wait_for_restart = 1'b1;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle A\n",
+			"\t\tSDEQ: NOP\n",
+			"\t\tDEC: NOP\n",
+			"\t\tRNM: \n",
+			"\t\t\t", "A0000004: ", "illegal instr", "\n",
+			"\t\t\t", "A0000002: ", "illegal instr", "\n",
+			"\t\t\t", "9FFFFFFE: ", "csrrwi x0, 0x15, 0xd PAGE FAULT", "\n",
+			"\t\t\t", "9FFFFFFC: ", "c.lui x16, 29", "\n",
+			"\t\tDISP: NOP\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b0;
+		tb_istream_valid_by_way_SDEQ = 4'b1111;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b0010;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'h00000000,
+			32'h00000000,
+			32'h0156d073,
+			32'h0f0f6875
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b11111111,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'hA0000008, 32'hA0000006,
+			32'hA0000006, 32'hA0000004,
+			32'hA0000002, 32'hA0000000,
+			32'hA0000000, 32'h9FFFFFFE
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE,
+			32'h9FFFFFFC
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h02,
+			8'h08,
+			8'h06,
+			8'h04
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h004,
+			12'h000,
+			12'h008,
+			12'h006
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'h2,
+			3'h8,
+			3'h6,
+			3'h4
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_iq_by_way = 4'b0001;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0010;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b0;
+		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_is_mispredict = 1'b0;
+		tb_rob_branch_update_is_taken = 1'b0;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'h0;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h0;
+		tb_rob_branch_update_target_PC = 32'h0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b0;
+		tb_rob_checkpoint_restore_valid = 1'b0;
+		tb_rob_checkpoint_restore_clear = 1'b1;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b0000;
+		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
+		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0000;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b0;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b0;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b1111;
+		expected_dispatch_uncompressed_by_way = 4'b0010;
+		expected_dispatch_PC_by_way = {
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE,
+			32'h9FFFFFFC
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'hA0000006,
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE
+		};
+		expected_dispatch_is_rename_by_way = 4'b0001;
+		expected_dispatch_pred_info_by_way = {
+			8'b11111111,
+			8'b00000000,
+			8'b00000000,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'h08,
+			8'h06,
+			8'h02,
+			8'h00
+		};
+		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0101, 4'b0110};
+		expected_dispatch_imm20_by_way = 80'h00000000006d0151d000;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0000;
+		expected_dispatch_io_rl_by_way = 4'b0000;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b1;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b0;
+		expected_dispatch_exception_present = 1'b1;
+		expected_dispatch_exception_index = 2'h1;
+		expected_dispatch_illegal_instr32 = 32'h0f0f6875;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b0010;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0000;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0000;
+		expected_dispatch_valid_bru_by_way = 4'b0000;
+		expected_dispatch_valid_ldu_by_way = 4'b0000;
+		expected_dispatch_valid_store_by_way = 4'b0000;
+		expected_dispatch_valid_amo_by_way = 4'b0000;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0000;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h02, 7'h02, 7'h0d, 7'h10};
+		expected_dispatch_A_ready_by_way = 4'b1111;
+		expected_dispatch_A_is_zero_by_way = 4'b0000;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1111;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0000;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h2d, 7'h2d, 7'h15, 7'h1d};
+		expected_dispatch_B_ready_by_way = 4'b0011;
+		expected_dispatch_B_is_zero_by_way = 4'b0000;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h00, 5'h10};
+		expected_dispatch_dest_old_PR_by_way = {7'h2d, 7'h2d, 7'h00, 7'h10};
+		expected_dispatch_dest_new_PR_by_way = {7'h31, 7'h30, 7'h2f, 7'h2e};
+		expected_dispatch_dest_is_link_ra = 4'b0000;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0000;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b0;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b0;
+		expected_decode_unit_branch_update_is_mispredict = 1'b0;
+		expected_decode_unit_branch_update_is_taken = 1'b0;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'h0;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'h9ffffffc;
+		expected_decode_unit_branch_update_target_PC = 32'h0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b0;
+		expected_decode_unit_restart_PC = 32'h9ffffffc;
+		expected_decode_unit_trigger_wait_for_restart = 1'b0;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle B (rob restart + restore checkpoint 0)\n",
+			"\t\tSDEQ: NOP\n",
+			"\t\tDEC: NOP\n",
+			"\t\tRNM: NOP\n",
+			"\t\tDISP: \n",
+			"\t\t\t", "A0000004: ", "illegal instr", "\n",
+			"\t\t\t", "A0000002: ", "illegal instr", "\n",
+			"\t\t\t", "9FFFFFFE: ", "csrrwi x0, 0x15, 0xd PAGE FAULT", "\n",
+			"\t\t\t", "9FFFFFFC: ", "c.lui x16, 29", "\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b0;
+		tb_istream_valid_by_way_SDEQ = 4'b1111;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b0010;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'h00000000,
+			32'h00000000,
+			32'h0156d073,
+			32'h0f0f6875
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b11111111,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'hA0000008, 32'hA0000006,
+			32'hA0000006, 32'hA0000004,
+			32'hA0000002, 32'hA0000000,
+			32'hA0000000, 32'h9FFFFFFE
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE,
+			32'h9FFFFFFC
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h02,
+			8'h08,
+			8'h06,
+			8'h04
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h004,
+			12'h000,
+			12'h008,
+			12'h006
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'h2,
+			3'h8,
+			3'h6,
+			3'h4
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_iq_by_way = 4'b0001;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0010;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b1;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b1;
+		tb_rob_branch_update_has_checkpoint = 1'b1;
+		tb_rob_branch_update_is_mispredict = 1'b1;
+		tb_rob_branch_update_is_taken = 1'b1;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'b10100101;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h12345678;
+		tb_rob_branch_update_target_PC = 32'h9abcdef0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b1;
+		tb_rob_checkpoint_restore_valid = 1'b1;
+		tb_rob_checkpoint_restore_clear = 1'b1;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b0000;
+		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
+		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0000;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b0;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b1;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b0011;
+		expected_dispatch_uncompressed_by_way = 4'b0010;
+		expected_dispatch_PC_by_way = {
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE,
+			32'h9FFFFFFC
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'hA0000006,
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE
+		};
+		expected_dispatch_is_rename_by_way = 4'b0001;
+		expected_dispatch_pred_info_by_way = {
+			8'b11111111,
+			8'b00000000,
+			8'b00000000,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'h08,
+			8'h06,
+			8'h02,
+			8'h00
+		};
+		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0101, 4'b0110};
+		expected_dispatch_imm20_by_way = 80'h00000000006d0151d000;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0000;
+		expected_dispatch_io_rl_by_way = 4'b0000;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b1;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b0;
+		expected_dispatch_exception_present = 1'b1;
+		expected_dispatch_exception_index = 2'h1;
+		expected_dispatch_illegal_instr32 = 32'h0f0f6875;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b0010;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0000;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0000;
+		expected_dispatch_valid_bru_by_way = 4'b0001;
+		expected_dispatch_valid_ldu_by_way = 4'b0000;
+		expected_dispatch_valid_store_by_way = 4'b0000;
+		expected_dispatch_valid_amo_by_way = 4'b0000;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0010;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h02, 7'h02, 7'h0d, 7'h10};
+		expected_dispatch_A_ready_by_way = 4'b1111;
+		expected_dispatch_A_is_zero_by_way = 4'b0000;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1111;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0000;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h2d, 7'h2d, 7'h15, 7'h1d};
+		expected_dispatch_B_ready_by_way = 4'b0011;
+		expected_dispatch_B_is_zero_by_way = 4'b0000;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h00, 5'h10};
+		expected_dispatch_dest_old_PR_by_way = {7'h2d, 7'h2d, 7'h00, 7'h10};
+		expected_dispatch_dest_new_PR_by_way = {7'h31, 7'h30, 7'h2f, 7'h2e};
+		expected_dispatch_dest_is_link_ra = 4'b0000;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0000;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b1;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b1;
+		expected_decode_unit_branch_update_is_mispredict = 1'b1;
+		expected_decode_unit_branch_update_is_taken = 1'b1;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'b10100101;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'h12345678;
+		expected_decode_unit_branch_update_target_PC = 32'h9abcdef0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b0;
+		expected_decode_unit_restart_PC = 32'h9ffffffc;
+		expected_decode_unit_trigger_wait_for_restart = 1'b0;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle C (rob map r4:7->p74:77, free p1)\n",
+			"\t\tSDEQ: NOP\n",
+			"\t\tDEC: NOP\n",
+			"\t\tRNM: NOP\n",
+			"\t\tDISP: NOP\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b0;
+		tb_istream_valid_by_way_SDEQ = 4'b1111;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b0010;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'h00000000,
+			32'h00000000,
+			32'h0156d073,
+			32'h0f0f6875
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b11111111,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'hA0000008, 32'hA0000006,
+			32'hA0000006, 32'hA0000004,
+			32'hA0000002, 32'hA0000000,
+			32'hA0000000, 32'h9FFFFFFE
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE,
+			32'h9FFFFFFC
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h02,
+			8'h08,
+			8'h06,
+			8'h04
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h004,
+			12'h000,
+			12'h008,
+			12'h006
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'h2,
+			3'h8,
+			3'h6,
+			3'h4
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_iq_by_way = 4'b0001;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0010;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b0;
+		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_is_mispredict = 1'b0;
+		tb_rob_branch_update_is_taken = 1'b0;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'h0;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h0;
+		tb_rob_branch_update_target_PC = 32'h0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b1;
+		tb_rob_checkpoint_restore_valid = 1'b0;
+		tb_rob_checkpoint_restore_clear = 1'b0;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b1111;
+		tb_rob_map_table_write_AR_by_port = {5'h7, 5'h6, 5'h5, 5'h4};
+		tb_rob_map_table_write_PR_by_port = {7'h77, 7'h76, 7'h75, 7'h74};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0010;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h1, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b0;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b0;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b1111;
+		expected_dispatch_uncompressed_by_way = 4'b0010;
+		expected_dispatch_PC_by_way = {
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE,
+			32'h9FFFFFFC
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'hA0000006,
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE
+		};
+		expected_dispatch_is_rename_by_way = 4'b0001;
+		expected_dispatch_pred_info_by_way = {
+			8'b11111111,
+			8'b00000000,
+			8'b00000000,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0101, 4'b0110};
+		expected_dispatch_imm20_by_way = 80'h00000000006d0151d000;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0000;
+		expected_dispatch_io_rl_by_way = 4'b0000;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b0;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b1;
+		expected_dispatch_exception_present = 1'b1;
+		expected_dispatch_exception_index = 2'h2;
+		expected_dispatch_illegal_instr32 = 32'h00000000;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b0010;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0000;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0000;
+		expected_dispatch_valid_bru_by_way = 4'b0000;
+		expected_dispatch_valid_ldu_by_way = 4'b0000;
+		expected_dispatch_valid_store_by_way = 4'b0000;
+		expected_dispatch_valid_amo_by_way = 4'b0000;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0000;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h02, 7'h02, 7'h0d, 7'h2e};
+		expected_dispatch_A_ready_by_way = 4'b1110;
+		expected_dispatch_A_is_zero_by_way = 4'b0000;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1111;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0000;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h2d, 7'h2d, 7'h15, 7'h1d};
+		expected_dispatch_B_ready_by_way = 4'b0011;
+		expected_dispatch_B_is_zero_by_way = 4'b0000;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h00, 5'h10};
+		expected_dispatch_dest_old_PR_by_way = {7'h2d, 7'h2d, 7'h00, 7'h2e};
+		expected_dispatch_dest_new_PR_by_way = {7'h32, 7'h31, 7'h30, 7'h2f};
+		expected_dispatch_dest_is_link_ra = 4'b0000;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0010;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b0;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b0;
+		expected_decode_unit_branch_update_is_mispredict = 1'b0;
+		expected_decode_unit_branch_update_is_taken = 1'b0;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'h0;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'h9ffffffc;
+		expected_decode_unit_branch_update_target_PC = 32'h0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b0;
+		expected_decode_unit_restart_PC = 32'h9ffffffc;
+		expected_decode_unit_trigger_wait_for_restart = 1'b0;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle D\n",
+			"\t\tSDEQ: \n",
+			"\t\t\t", "B0000008: ", "inv illegal instr", "\n",
+			"\t\t\t", "B0000006: ", "inv illegal instr", "\n",
+			"\t\t\t", "B0000004: ", "inv illegal instr", "\n",
+			"\t\t\t", "B0000000: ", "divu x1, x7, x5", "\n",
+			"\t\tDEC: NOP\n",
+			"\t\tRNM: NOP\n",
+			"\t\tDISP: NOP\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b1;
+		tb_istream_valid_by_way_SDEQ = 4'b0001;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b0001;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h0253d0b3
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'hB000000C, 32'hB000000A,
+			32'hB000000A, 32'hB0000008,
+			32'hB0000008, 32'hB0000006,
+			32'hB0000004, 32'hB0000002
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h0C,
+			8'h0A,
+			8'h08,
+			8'h04
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'hB0000008,
+			32'hB0000006,
+			32'hB0000004,
+			32'hB0000000
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h0A,
+			8'h08,
+			8'h06,
+			8'h02
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h00C,
+			12'h00A,
+			12'h008,
+			12'h004
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'hA,
+			3'h8,
+			3'h6,
+			3'h2
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_iq_by_way = 4'b0001;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0010;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b0;
+		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_is_mispredict = 1'b0;
+		tb_rob_branch_update_is_taken = 1'b0;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'h0;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h0;
+		tb_rob_branch_update_target_PC = 32'h0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b0;
+		tb_rob_checkpoint_restore_valid = 1'b0;
+		tb_rob_checkpoint_restore_clear = 1'b0;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b0100;
+		tb_rob_map_table_write_AR_by_port = {5'h7, 5'h6, 5'h5, 5'h4};
+		tb_rob_map_table_write_PR_by_port = {7'h77, 7'h76, 7'h75, 7'h74};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0000;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b0;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b0;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b1111;
+		expected_dispatch_uncompressed_by_way = 4'b0010;
+		expected_dispatch_PC_by_way = {
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE,
+			32'h9FFFFFFC
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'hA0000006,
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE
+		};
+		expected_dispatch_is_rename_by_way = 4'b0001;
+		expected_dispatch_pred_info_by_way = {
+			8'b11111111,
+			8'b00000000,
+			8'b00000000,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0101, 4'b0110};
+		expected_dispatch_imm20_by_way = 80'h00000000006d0151d000;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0000;
+		expected_dispatch_io_rl_by_way = 4'b0000;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b0;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b1;
+		expected_dispatch_exception_present = 1'b1;
+		expected_dispatch_exception_index = 2'h2;
+		expected_dispatch_illegal_instr32 = 32'h00000000;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b0010;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0000;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0000;
+		expected_dispatch_valid_bru_by_way = 4'b0000;
+		expected_dispatch_valid_ldu_by_way = 4'b0000;
+		expected_dispatch_valid_store_by_way = 4'b0000;
+		expected_dispatch_valid_amo_by_way = 4'b0000;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0000;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h02, 7'h02, 7'h0d, 7'h10};
+		expected_dispatch_A_ready_by_way = 4'b1111;
+		expected_dispatch_A_is_zero_by_way = 4'b0000;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1111;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0000;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h08, 7'h08, 7'h15, 7'h1d};
+		expected_dispatch_B_ready_by_way = 4'b1111;
+		expected_dispatch_B_is_zero_by_way = 4'b0000;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h00, 5'h10};
+		expected_dispatch_dest_old_PR_by_way = {7'h08, 7'h08, 7'h00, 7'h10};
+		expected_dispatch_dest_new_PR_by_way = {7'h32, 7'h31, 7'h30, 7'h2f};
+		expected_dispatch_dest_is_link_ra = 4'b0000;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0000;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b0;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b0;
+		expected_decode_unit_branch_update_is_mispredict = 1'b0;
+		expected_decode_unit_branch_update_is_taken = 1'b0;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'h0;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'h9ffffffc;
+		expected_decode_unit_branch_update_target_PC = 32'h0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b0;
+		expected_decode_unit_restart_PC = 32'h9ffffffc;
+		expected_decode_unit_trigger_wait_for_restart = 1'b0;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle E\n",
+			"\t\tSDEQ: NOP\n",
+			"\t\tDEC: \n",
+			"\t\t\t", "B0000008: ", "inv illegal instr", "\n",
+			"\t\t\t", "B0000006: ", "inv illegal instr", "\n",
+			"\t\t\t", "B0000004: ", "inv illegal instr", "\n",
+			"\t\t\t", "B0000000: ", "divu x1, x7, x5", "\n",
+			"\t\tRNM: NOP\n",
+			"\t\tDISP: NOP\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b0;
+		tb_istream_valid_by_way_SDEQ = 4'b0001;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b0001;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h0253d0b3
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'hB000000C, 32'hB000000A,
+			32'hB000000A, 32'hB0000008,
+			32'hB0000008, 32'hB0000006,
+			32'hB0000004, 32'hB0000002
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h0C,
+			8'h0A,
+			8'h08,
+			8'h04
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'hB0000008,
+			32'hB0000006,
+			32'hB0000004,
+			32'hB0000000
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h0A,
+			8'h08,
+			8'h06,
+			8'h02
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h00C,
+			12'h00A,
+			12'h008,
+			12'h004
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'hA,
+			3'h8,
+			3'h6,
+			3'h2
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_iq_by_way = 4'b0001;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0010;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b0;
+		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_is_mispredict = 1'b0;
+		tb_rob_branch_update_is_taken = 1'b0;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'h0;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h0;
+		tb_rob_branch_update_target_PC = 32'h0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b0;
+		tb_rob_checkpoint_restore_valid = 1'b0;
+		tb_rob_checkpoint_restore_clear = 1'b0;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b0100;
+		tb_rob_map_table_write_AR_by_port = {5'h7, 5'h6, 5'h5, 5'h4};
+		tb_rob_map_table_write_PR_by_port = {7'h77, 7'h76, 7'h75, 7'h74};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0000;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b0;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b0;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b1111;
+		expected_dispatch_uncompressed_by_way = 4'b0010;
+		expected_dispatch_PC_by_way = {
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE,
+			32'h9FFFFFFC
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'hA0000006,
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE
+		};
+		expected_dispatch_is_rename_by_way = 4'b0001;
+		expected_dispatch_pred_info_by_way = {
+			8'b11111111,
+			8'b00000000,
+			8'b00000000,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0101, 4'b0110};
+		expected_dispatch_imm20_by_way = 80'h00000000006d0151d000;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0000;
+		expected_dispatch_io_rl_by_way = 4'b0000;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b0;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b1;
+		expected_dispatch_exception_present = 1'b1;
+		expected_dispatch_exception_index = 2'h2;
+		expected_dispatch_illegal_instr32 = 32'h00000000;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b0010;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0000;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0000;
+		expected_dispatch_valid_bru_by_way = 4'b0000;
+		expected_dispatch_valid_ldu_by_way = 4'b0000;
+		expected_dispatch_valid_store_by_way = 4'b0000;
+		expected_dispatch_valid_amo_by_way = 4'b0000;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0000;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h02, 7'h02, 7'h0d, 7'h10};
+		expected_dispatch_A_ready_by_way = 4'b1111;
+		expected_dispatch_A_is_zero_by_way = 4'b0000;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1111;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0000;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h08, 7'h08, 7'h15, 7'h1d};
+		expected_dispatch_B_ready_by_way = 4'b1111;
+		expected_dispatch_B_is_zero_by_way = 4'b0000;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h00, 5'h10};
+		expected_dispatch_dest_old_PR_by_way = {7'h08, 7'h08, 7'h00, 7'h10};
+		expected_dispatch_dest_new_PR_by_way = {7'h32, 7'h31, 7'h30, 7'h2f};
+		expected_dispatch_dest_is_link_ra = 4'b0000;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0000;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b0;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b0;
+		expected_decode_unit_branch_update_is_mispredict = 1'b0;
+		expected_decode_unit_branch_update_is_taken = 1'b0;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'h0;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'h9ffffffc;
+		expected_decode_unit_branch_update_target_PC = 32'h0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b0;
+		expected_decode_unit_restart_PC = 32'h9ffffffc;
+		expected_decode_unit_trigger_wait_for_restart = 1'b0;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle F\n",
+			"\t\tSDEQ: NOP\n",
+			"\t\tDEC: NOP\n",
+			"\t\tRNM: \n",
+			"\t\t\t", "B0000008: ", "inv illegal instr", "\n",
+			"\t\t\t", "B0000006: ", "inv illegal instr", "\n",
+			"\t\t\t", "B0000004: ", "inv illegal instr", "\n",
+			"\t\t\t", "B0000000: ", "divu x1, x7, x5", "\n",
+			"\t\tDISP: NOP\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b0;
+		tb_istream_valid_by_way_SDEQ = 4'b0001;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b0001;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h0253d0b3
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'hB000000C, 32'hB000000A,
+			32'hB000000A, 32'hB0000008,
+			32'hB0000008, 32'hB0000006,
+			32'hB0000004, 32'hB0000002
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h0C,
+			8'h0A,
+			8'h08,
+			8'h04
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'hB0000008,
+			32'hB0000006,
+			32'hB0000004,
+			32'hB0000000
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h0A,
+			8'h08,
+			8'h06,
+			8'h02
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h00C,
+			12'h00A,
+			12'h008,
+			12'h004
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'hA,
+			3'h8,
+			3'h6,
+			3'h2
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_iq_by_way = 4'b0001;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0010;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b0;
+		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_is_mispredict = 1'b0;
+		tb_rob_branch_update_is_taken = 1'b0;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'h0;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h0;
+		tb_rob_branch_update_target_PC = 32'h0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b0;
+		tb_rob_checkpoint_restore_valid = 1'b0;
+		tb_rob_checkpoint_restore_clear = 1'b0;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b0100;
+		tb_rob_map_table_write_AR_by_port = {5'h7, 5'h6, 5'h5, 5'h4};
+		tb_rob_map_table_write_PR_by_port = {7'h77, 7'h76, 7'h75, 7'h74};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0000;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b0;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b0;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b1111;
+		expected_dispatch_uncompressed_by_way = 4'b0010;
+		expected_dispatch_PC_by_way = {
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE,
+			32'h9FFFFFFC
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'hA0000006,
+			32'hA0000004,
+			32'hA0000002,
+			32'h9FFFFFFE
+		};
+		expected_dispatch_is_rename_by_way = 4'b0001;
+		expected_dispatch_pred_info_by_way = {
+			8'b11111111,
+			8'b00000000,
+			8'b00000000,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'h04,
+			8'h00,
+			8'h08,
+			8'h06
+		};
+		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0101, 4'b0110};
+		expected_dispatch_imm20_by_way = 80'h00000000006d0151d000;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0000;
+		expected_dispatch_io_rl_by_way = 4'b0000;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b0;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b1;
+		expected_dispatch_exception_present = 1'b1;
+		expected_dispatch_exception_index = 2'h2;
+		expected_dispatch_illegal_instr32 = 32'h00000000;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b0010;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0000;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0000;
+		expected_dispatch_valid_bru_by_way = 4'b0000;
+		expected_dispatch_valid_ldu_by_way = 4'b0000;
+		expected_dispatch_valid_store_by_way = 4'b0000;
+		expected_dispatch_valid_amo_by_way = 4'b0000;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0000;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h02, 7'h02, 7'h0d, 7'h10};
+		expected_dispatch_A_ready_by_way = 4'b1111;
+		expected_dispatch_A_is_zero_by_way = 4'b0000;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1111;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0000;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h08, 7'h08, 7'h15, 7'h1d};
+		expected_dispatch_B_ready_by_way = 4'b1111;
+		expected_dispatch_B_is_zero_by_way = 4'b0000;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h00, 5'h10};
+		expected_dispatch_dest_old_PR_by_way = {7'h08, 7'h08, 7'h00, 7'h10};
+		expected_dispatch_dest_new_PR_by_way = {7'h32, 7'h31, 7'h30, 7'h2f};
+		expected_dispatch_dest_is_link_ra = 4'b0000;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0000;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b0;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b0;
+		expected_decode_unit_branch_update_is_mispredict = 1'b0;
+		expected_decode_unit_branch_update_is_taken = 1'b0;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'h0;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'hB0000000;
+		expected_decode_unit_branch_update_target_PC = 32'h0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b0;
+		expected_decode_unit_restart_PC = 32'hB0000000;
+		expected_decode_unit_trigger_wait_for_restart = 1'b0;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle 10\n",
+			"\t\tSDEQ: NOP\n",
+			"\t\tDEC: NOP\n",
+			"\t\tRNM: NOP\n",
+			"\t\tDISP: \n",
+			"\t\t\t", "B0000008: ", "inv illegal instr", "\n",
+			"\t\t\t", "B0000006: ", "inv illegal instr", "\n",
+			"\t\t\t", "B0000004: ", "inv illegal instr", "\n",
+			"\t\t\t", "B0000000: ", "divu x1, x7, x5", "\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b0;
+		tb_istream_valid_by_way_SDEQ = 4'b0001;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b0001;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h0253d0b3
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'hB000000C, 32'hB000000A,
+			32'hB000000A, 32'hB0000008,
+			32'hB0000008, 32'hB0000006,
+			32'hB0000004, 32'hB0000002
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h0C,
+			8'h0A,
+			8'h08,
+			8'h04
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'hB0000008,
+			32'hB0000006,
+			32'hB0000004,
+			32'hB0000000
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h0A,
+			8'h08,
+			8'h06,
+			8'h02
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h00C,
+			12'h00A,
+			12'h008,
+			12'h004
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'hA,
+			3'h8,
+			3'h6,
+			3'h2
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0001;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0000;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b0;
+		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_is_mispredict = 1'b0;
+		tb_rob_branch_update_is_taken = 1'b0;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'h0;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h0;
+		tb_rob_branch_update_target_PC = 32'h0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b0;
+		tb_rob_checkpoint_restore_valid = 1'b0;
+		tb_rob_checkpoint_restore_clear = 1'b0;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b0100;
+		tb_rob_map_table_write_AR_by_port = {5'h7, 5'h6, 5'h5, 5'h4};
+		tb_rob_map_table_write_PR_by_port = {7'h77, 7'h76, 7'h75, 7'h74};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0000;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b0;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b1;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b0001;
+		expected_dispatch_uncompressed_by_way = 4'b0001;
+		expected_dispatch_PC_by_way = {
+			32'hB0000008,
+			32'hB0000006,
+			32'hB0000004,
+			32'hB0000000
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'hB000000A,
+			32'hB0000008,
+			32'hB0000006,
+			32'hB0000004
+		};
+		expected_dispatch_is_rename_by_way = 4'b0001;
+		expected_dispatch_pred_info_by_way = {
+			8'b00000000,
+			8'b00000000,
+			8'b00000000,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'h0C,
+			8'h0A,
+			8'h08,
+			8'h04
+		};
+		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0000, 4'b0101};
+		expected_dispatch_imm20_by_way = 80'h0000000000000003d025;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0000;
+		expected_dispatch_io_rl_by_way = 4'b0000;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b0;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b0;
+		expected_dispatch_exception_present = 1'b0;
+		expected_dispatch_exception_index = 2'h0;
+		expected_dispatch_illegal_instr32 = 32'h0253d0b3;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b0000;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0001;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0000;
+		expected_dispatch_valid_bru_by_way = 4'b0000;
+		expected_dispatch_valid_ldu_by_way = 4'b0000;
+		expected_dispatch_valid_store_by_way = 4'b0000;
+		expected_dispatch_valid_amo_by_way = 4'b0000;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0000;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h02, 7'h02, 7'h02, 7'h77};
+		expected_dispatch_A_ready_by_way = 4'b1110;
+		expected_dispatch_A_is_zero_by_way = 4'b0000;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1111;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0000;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h08, 7'h08, 7'h08, 7'h75};
+		expected_dispatch_B_ready_by_way = 4'b1110;
+		expected_dispatch_B_is_zero_by_way = 4'b0000;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h08, 5'h01};
+		expected_dispatch_dest_old_PR_by_way = {7'h08, 7'h08, 7'h08, 7'h01};
+		expected_dispatch_dest_new_PR_by_way = {7'h32, 7'h31, 7'h30, 7'h2f};
+		expected_dispatch_dest_is_link_ra = 4'b0001;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0000;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b0;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b0;
+		expected_decode_unit_branch_update_is_mispredict = 1'b0;
+		expected_decode_unit_branch_update_is_taken = 1'b0;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'h0;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'hB0000000;
+		expected_decode_unit_branch_update_target_PC = 32'h0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b0;
+		expected_decode_unit_restart_PC = 32'hB0000000;
+		expected_decode_unit_trigger_wait_for_restart = 1'b0;
+		// hardware failure
+		expected_unrecoverable_fault = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"complex sequence cycle 11\n",
+			"\t\tSDEQ: NOP\n",
+			"\t\tDEC: NOP\n",
+			"\t\tRNM: NOP\n",
+			"\t\tDISP: NOP\n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // input from istream
+		tb_istream_valid_SDEQ = 1'b0;
+		tb_istream_valid_by_way_SDEQ = 4'b0001;
+		tb_istream_uncompressed_by_way_SDEQ = 4'b0001;
+		tb_istream_instr_2B_by_way_by_chunk_SDEQ = {
+			32'h00000000,
+			32'h00000000,
+			32'h00000000,
+			32'h0253d0b3
+		};
+		tb_istream_pred_info_by_way_by_chunk_SDEQ = {
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000,
+			8'b00000000, 8'b00000000
+		};
+		tb_istream_pred_lru_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_pred_PC_by_way_by_chunk_SDEQ = {
+			32'hB000000C, 32'hB000000A,
+			32'hB000000A, 32'hB0000008,
+			32'hB0000008, 32'hB0000006,
+			32'hB0000004, 32'hB0000002
+		};
+		tb_istream_page_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_access_fault_by_way_by_chunk_SDEQ = 8'b00000000;
+		tb_istream_mdp_info_by_way_SDEQ = {
+			8'h0C,
+			8'h0A,
+			8'h08,
+			8'h04
+		};
+		tb_istream_PC_by_way_SDEQ = {
+			32'hB0000008,
+			32'hB0000006,
+			32'hB0000004,
+			32'hB0000000
+		};
+		tb_istream_LH_by_way_SDEQ = {
+			8'h0A,
+			8'h08,
+			8'h06,
+			8'h02
+		};
+		tb_istream_GH_by_way_SDEQ = {
+			12'h00C,
+			12'h00A,
+			12'h008,
+			12'h004
+		};
+		tb_istream_ras_index_by_way_SDEQ = {
+			3'hA,
+			3'h8,
+			3'h6,
+			3'h2
+		};
+	    // feedback to istream
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		tb_dispatch_rob_enqueue_ready = 1'b1;
+	    // general instr info
+	    // ordering
+	    // exception info
+		// checkpoint info
+	    // instr IQ attempts
+	    // instr FU valids
+	    // operand A
+	    // operand B
+	    // dest operand
+	    // instr IQ acks
+		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0001;
+		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_sys_iq_by_way = 4'b0000;
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // fetch + decode restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_trap_sfence = 1'b0;
+		tb_rob_restart_trap_wfi = 1'b0;
+		tb_rob_restart_trap_sret = 1'b0;
+	    // branch update from ROB
+		tb_rob_branch_update_valid = 1'b0;
+		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_is_mispredict = 1'b0;
+		tb_rob_branch_update_is_taken = 1'b0;
+		tb_rob_branch_update_use_upct = 1'b0;
+		tb_rob_branch_update_intermediate_pred_info = 8'h0;
+		tb_rob_branch_update_pred_lru = 1'b0;
+		tb_rob_branch_update_start_PC = 32'h0;
+		tb_rob_branch_update_target_PC = 32'h0;
+	    // ROB control of rename
+		tb_rob_controlling_rename = 1'b0;
+		tb_rob_checkpoint_restore_valid = 1'b0;
+		tb_rob_checkpoint_restore_clear = 1'b0;
+		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_map_table_write_valid_by_port = 4'b0100;
+		tb_rob_map_table_write_AR_by_port = {5'h7, 5'h6, 5'h5, 5'h4};
+		tb_rob_map_table_write_PR_by_port = {7'h77, 7'h76, 7'h75, 7'h74};
+		// ROB physical register freeing
+		tb_rob_PR_free_req_valid_by_bank = 4'b0000;
+		tb_rob_PR_free_req_PR_by_bank = {7'h0, 7'h0, 7'h0, 7'h0};
+	    // branch update to fetch unit
+	    // decode unit control
+		// hardware failure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // input from istream
+	    // feedback to istream
+		expected_istream_stall_SDEQ = 1'b0;
+	    // op dispatch by way:
+	    // 4-way ROB entry
+		expected_dispatch_rob_enqueue_valid = 1'b0;
+	    // general instr info
+		expected_dispatch_valid_by_way = 4'b0001;
+		expected_dispatch_uncompressed_by_way = 4'b0001;
+		expected_dispatch_PC_by_way = {
+			32'hB0000008,
+			32'hB0000006,
+			32'hB0000004,
+			32'hB0000000
+		};
+		expected_dispatch_pred_PC_by_way = {
+			32'hB000000A,
+			32'hB0000008,
+			32'hB0000006,
+			32'hB0000004
+		};
+		expected_dispatch_is_rename_by_way = 4'b0001;
+		expected_dispatch_pred_info_by_way = {
+			8'b00000000,
+			8'b00000000,
+			8'b00000000,
+			8'b00000000
+		};
+		expected_dispatch_mdp_info_by_way = {
+			8'h0C,
+			8'h0A,
+			8'h08,
+			8'h04
+		};
+		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0000, 4'b0101};
+		expected_dispatch_imm20_by_way = 80'h0000000000000003d025;
+	    // ordering
+		expected_dispatch_mem_aq_by_way = 4'b0000;
+		expected_dispatch_io_aq_by_way = 4'b0000;
+		expected_dispatch_mem_rl_by_way = 4'b0000;
+		expected_dispatch_io_rl_by_way = 4'b0000;
+	    // exception info
+		expected_dispatch_is_page_fault = 1'b0;
+		expected_dispatch_is_access_fault = 1'b0;
+		expected_dispatch_is_illegal_instr = 1'b0;
+		expected_dispatch_exception_present = 1'b0;
+		expected_dispatch_exception_index = 2'h0;
+		expected_dispatch_illegal_instr32 = 32'h0253d0b3;
+		// checkpoint info
+		expected_dispatch_has_checkpoint = 1'b0;
+		expected_dispatch_checkpoint_index = 3'h0;
+	    // instr IQ attempts
+		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0001;
+		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_sys_iq_by_way = 4'b0000;
+	    // instr FU valids
+		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
+		expected_dispatch_valid_mdu_by_way = 4'b0000;
+		expected_dispatch_valid_alu_imm_by_way = 4'b0000;
+		expected_dispatch_valid_bru_by_way = 4'b0000;
+		expected_dispatch_valid_ldu_by_way = 4'b0000;
+		expected_dispatch_valid_store_by_way = 4'b0000;
+		expected_dispatch_valid_amo_by_way = 4'b0000;
+		expected_dispatch_valid_fence_by_way = 4'b0000;
+		expected_dispatch_valid_sys_by_way = 4'b0000;
+	    // operand A
+		expected_dispatch_A_PR_by_way = {7'h02, 7'h02, 7'h02, 7'h77};
+		expected_dispatch_A_ready_by_way = 4'b1110;
+		expected_dispatch_A_is_zero_by_way = 4'b0000;
+		expected_dispatch_A_unneeded_or_is_zero_by_way = 4'b1111;
+		expected_dispatch_A_is_ret_ra_by_way = 4'b0000;
+	    // operand B
+		expected_dispatch_B_PR_by_way = {7'h08, 7'h08, 7'h08, 7'h75};
+		expected_dispatch_B_ready_by_way = 4'b1110;
+		expected_dispatch_B_is_zero_by_way = 4'b0000;
+		expected_dispatch_B_unneeded_or_is_zero_by_way = 4'b1111;
+	    // dest operand
+		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h08, 5'h01};
+		expected_dispatch_dest_old_PR_by_way = {7'h08, 7'h08, 7'h08, 7'h2f};
+		expected_dispatch_dest_new_PR_by_way = {7'h33, 7'h32, 7'h31, 7'h30};
+		expected_dispatch_dest_is_link_ra = 4'b0001;
+	    // instr IQ acks
+	    // writeback bus by bank
+	    // fetch + decode restart from ROB
+	    // branch update from ROB
+	    // ROB control of rename
+		// ROB physical register freeing
+		expected_rob_PR_free_resp_ack_by_bank = 4'b0000;
+	    // branch update to fetch unit
+		expected_decode_unit_branch_update_valid = 1'b0;
+		expected_decode_unit_branch_update_has_checkpoint = 1'b0;
+		expected_decode_unit_branch_update_is_mispredict = 1'b0;
+		expected_decode_unit_branch_update_is_taken = 1'b0;
+		expected_decode_unit_branch_update_is_complex = 1'b0;
+		expected_decode_unit_branch_update_use_upct = 1'b0;
+		expected_decode_unit_branch_update_intermediate_pred_info = 8'h0;
+		expected_decode_unit_branch_update_pred_lru = 1'b0;
+		expected_decode_unit_branch_update_start_PC = 32'hB0000000;
+		expected_decode_unit_branch_update_target_PC = 32'h0;
+		expected_decode_unit_branch_update_LH = 8'h06;
+		expected_decode_unit_branch_update_GH = 12'h008;
+		expected_decode_unit_branch_update_ras_index = 3'h6;
+	    // decode unit control
+		expected_decode_unit_restart_valid = 1'b0;
+		expected_decode_unit_restart_PC = 32'hB0000000;
 		expected_decode_unit_trigger_wait_for_restart = 1'b0;
 		// hardware failure
 		expected_unrecoverable_fault = 1'b0;

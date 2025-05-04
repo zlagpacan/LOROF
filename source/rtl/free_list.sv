@@ -574,7 +574,7 @@ module free_list #(
                 shift_reg_valid_by_entry[FREE_LIST_SHIFT_REG_ENTRIES-4] <= 1'b0;
             end
             // check take 3 above
-            else if (upper_take_2_above) begin
+            else if (upper_take_3_above) begin
                 // take valid entry 3 above
                 if (shift_reg_valid_by_entry[FREE_LIST_SHIFT_REG_ENTRIES-1]) begin
                     shift_reg_valid_by_entry[FREE_LIST_SHIFT_REG_ENTRIES-4] <= shift_reg_valid_by_entry[FREE_LIST_SHIFT_REG_ENTRIES-1];
