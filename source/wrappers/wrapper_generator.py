@@ -15,8 +15,8 @@
 
 import sys
 
-# PRINTS = False
-PRINTS = True
+PRINTS = False
+# PRINTS = True
 BLOCK_IS_SEQ = False
 
 class Signal():
@@ -343,4 +343,4 @@ if __name__ == "__main__":
     with open("wrapper_output.txt", "w") as fp:
         fp.writelines(output_lines)
 
-    print("generated wrapper in wrapper_output.txt")
+    print("SUCCESS: generated wrapper in wrapper_output.txt")

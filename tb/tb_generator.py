@@ -15,8 +15,8 @@
 
 import sys
 
-# PRINTS = False
-PRINTS = True
+PRINTS = False
+# PRINTS = True
 BLOCK_IS_SEQ = False
 
 class Signal():
@@ -492,4 +492,4 @@ if __name__ == "__main__":
     with open("tb_output.txt", "w") as fp:
         fp.writelines(output_lines)
 
-    print("generated tb in tb_output.txt")
+    print("SUCCESS: generated tb in tb_output.txt")

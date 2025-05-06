@@ -158,13 +158,23 @@ package core_types_pkg;
 
     // ldu
     parameter LDU_DQ_ENTRIES = 4;
+    parameter LOG_LDU_DQ_ENTRIES = $clog2(LDU_DQ_ENTRIES);
+    parameter LDU_IQ_ENTRIES = 4;
+    parameter LOG_LDU_IQ_ENTRIES = $clog2(LDU_IQ_ENTRIES);
     parameter LDU_CQ_ENTRIES = 40;
+    parameter LOG_LDU_CQ_ENTRIES = $clog2(LDU_CQ_ENTRIES);
     parameter LDU_MQ_ENTRIES = 4;
+    parameter LOG_LDU_MQ_ENTRIES = $clog2(LDU_MQ_ENTRIES);
 
     // stamofu
     parameter STAMOFU_DQ_ENTRIES = 4;
+    parameter LOG_STAMOFU_DQ_ENTRIES = $clog2(STAMOFU_DQ_ENTRIES);
+    parameter STAMOFU_IQ_ENTRIES = 8;
+    parameter LOG_STAMOFU_IQ_ENTRIES = $clog2(STAMOFU_IQ_ENTRIES);
     parameter STAMOFU_CQ_ENTRIES = 24;
+    parameter LOG_STAMOFU_CQ_ENTRIES = $clog2(STAMOFU_CQ_ENTRIES);
     parameter STAMOFU_MQ_ENTRIES = 4;
+    parameter LOG_STAMOFU_MQ_ENTRIES = $clog2(STAMOFU_MQ_ENTRIES);
 
 endpackage
 
