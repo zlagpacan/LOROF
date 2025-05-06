@@ -183,7 +183,7 @@ module ldu_dq #(
         dispatch_ROB_index_by_entry = '0;
 
         // one-hot mux selecting among ways at each entry
-        for (int entry = 0; entry < ALU_REG_MDU_IQ_ENTRIES; entry++) begin
+        for (int entry = 0; entry < LDU_DQ_ENTRIES; entry++) begin
 
             for (int way = 0; way < 4; way++) begin
 
@@ -245,7 +245,7 @@ module ldu_dq #(
                         imm12_by_entry[LDU_DQ_ENTRIES-1] <= imm12_by_entry[LDU_DQ_ENTRIES-1];
                         mdp_info_by_entry[LDU_DQ_ENTRIES-1] <= mdp_info_by_entry[LDU_DQ_ENTRIES-1];
                         A_PR_by_entry[LDU_DQ_ENTRIES-1] <= A_PR_by_entry[LDU_DQ_ENTRIES-1];
-                        A_ready_by_entry[LDU_DQ_ENTRIES-1] <= A_ready_by_entry[LDU_DQ_ENTRIES-1];
+                        A_ready_by_entry[LDU_DQ_ENTRIES-1] <= A_ready_by_entry[LDU_DQ_ENTRIES-1] | new_A_ready_by_entry[LDU_DQ_ENTRIES-1];
                         A_is_zero_by_entry[LDU_DQ_ENTRIES-1] <= A_is_zero_by_entry[LDU_DQ_ENTRIES-1];
                         dest_PR_by_entry[LDU_DQ_ENTRIES-1] <= dest_PR_by_entry[LDU_DQ_ENTRIES-1];
                         ROB_index_by_entry[LDU_DQ_ENTRIES-1] <= ROB_index_by_entry[LDU_DQ_ENTRIES-1];
@@ -302,7 +302,7 @@ module ldu_dq #(
                     // otherwise take self
                     else begin
 
-                        // take valid entry above
+                        // take self valid entry
                         if (valid_by_entry[i]) begin
                             valid_by_entry[i] <= 1'b1;
                             op_by_entry[i] <= op_by_entry[i];
@@ -315,7 +315,7 @@ module ldu_dq #(
                             ROB_index_by_entry[i] <= ROB_index_by_entry[i];
                         end
 
-                        // take dispatch above
+                        // take self dispatch
                         else begin
                             valid_by_entry[i] <= dispatch_valid_by_entry[i];
                             op_by_entry[i] <= dispatch_op_by_entry[i];

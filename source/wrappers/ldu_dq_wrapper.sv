@@ -111,7 +111,7 @@ module ldu_dq_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    ldu_dq WRAPPED_MODULE (.*);
+    ldu_dq #(.LDU_DQ_ENTRIES(LDU_DQ_ENTRIES)) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
