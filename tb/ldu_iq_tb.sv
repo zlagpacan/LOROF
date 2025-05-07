@@ -291,15 +291,24 @@ module ldu_iq_tb ();
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // sequence:
+        test_case = "sequence";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "default";
+		sub_test_case = {
+			"\n\t\tEnQueue: i",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: i",
+			"\n\t\t\t", "1: i",
+			"\n\t\t\t", "0: i",
+			"\n\t\tWB bus: i",
+			"\n\t\tIssue: i"
+		};
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -340,6 +349,690 @@ module ldu_iq_tb ();
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
 		expected_PRF_req_A_PR = 7'h0;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnQueue: v 0 zero",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: i",
+			"\n\t\t\t", "1: i",
+			"\n\t\t\t", "0: i",
+			"\n\t\tWB bus: i",
+			"\n\t\tIssue: i"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_ldu_iq_enq_valid = 1'b1;
+		tb_ldu_iq_enq_op = 4'b0000;
+		tb_ldu_iq_enq_imm12 = 12'h000;
+		tb_ldu_iq_enq_A_PR = 7'h0;
+		tb_ldu_iq_enq_A_ready = 1'b0;
+		tb_ldu_iq_enq_A_is_zero = 1'b1;
+		tb_ldu_iq_enq_cq_index = 0;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_ldu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue
+		expected_issue_valid = 1'b0;
+		expected_issue_op = 4'b0000;
+		expected_issue_imm12 = 12'h0;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h0;
+		expected_issue_cq_index = 0;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b0;
+		expected_PRF_req_A_PR = 7'h0;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnQueue: v 1 n",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: i",
+			"\n\t\t\t", "1: i",
+			"\n\t\t\t", "0: v 0 zero",
+			"\n\t\tWB bus: i",
+			"\n\t\tIssue: v 0 zero"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_ldu_iq_enq_valid = 1'b1;
+		tb_ldu_iq_enq_op = 4'b0001;
+		tb_ldu_iq_enq_imm12 = 12'h111;
+		tb_ldu_iq_enq_A_PR = 7'h1;
+		tb_ldu_iq_enq_A_ready = 1'b0;
+		tb_ldu_iq_enq_A_is_zero = 1'b0;
+		tb_ldu_iq_enq_cq_index = 1;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_ldu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue
+		expected_issue_valid = 1'b1;
+		expected_issue_op = 4'b0000;
+		expected_issue_imm12 = 12'h0;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b1;
+		expected_issue_A_bank = 2'h0;
+		expected_issue_cq_index = 0;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b0;
+		expected_PRF_req_A_PR = 7'h0;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnQueue: v 2 r",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: i",
+			"\n\t\t\t", "1: i",
+			"\n\t\t\t", "0: v 1 n",
+			"\n\t\tWB bus: i",
+			"\n\t\tIssue: i"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_ldu_iq_enq_valid = 1'b1;
+		tb_ldu_iq_enq_op = 4'b0010;
+		tb_ldu_iq_enq_imm12 = 12'h222;
+		tb_ldu_iq_enq_A_PR = 7'h2;
+		tb_ldu_iq_enq_A_ready = 1'b1;
+		tb_ldu_iq_enq_A_is_zero = 1'b0;
+		tb_ldu_iq_enq_cq_index = 2;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_ldu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue
+		expected_issue_valid = 1'b0;
+		expected_issue_op = 4'b0000;
+		expected_issue_imm12 = 12'h0;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h0;
+		expected_issue_cq_index = 0;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b0;
+		expected_PRF_req_A_PR = 7'h0;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnQueue: v 3 n",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: i",
+			"\n\t\t\t", "1: v 2 r",
+			"\n\t\t\t", "0: v 1 nF",
+			"\n\t\tWB bus: v 1",
+			"\n\t\tIssue: v 1 nF"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_ldu_iq_enq_valid = 1'b1;
+		tb_ldu_iq_enq_op = 4'b0011;
+		tb_ldu_iq_enq_imm12 = 12'h333;
+		tb_ldu_iq_enq_A_PR = 7'h3;
+		tb_ldu_iq_enq_A_ready = 1'b0;
+		tb_ldu_iq_enq_A_is_zero = 1'b0;
+		tb_ldu_iq_enq_cq_index = 3;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0010;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_ldu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue
+		expected_issue_valid = 1'b1;
+		expected_issue_op = 4'b0001;
+		expected_issue_imm12 = 12'h111;
+		expected_issue_A_forward = 1'b1;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h1;
+		expected_issue_cq_index = 1;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b0;
+		expected_PRF_req_A_PR = 7'h1;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnQueue: v 4 n",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: i",
+			"\n\t\t\t", "1: v 3 nR",
+			"\n\t\t\t", "0: v 2 r",
+			"\n\t\tWB bus: v 3",
+			"\n\t\tIssue: i (pipeline not ready)"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_ldu_iq_enq_valid = 1'b1;
+		tb_ldu_iq_enq_op = 4'b0100;
+		tb_ldu_iq_enq_imm12 = 12'h444;
+		tb_ldu_iq_enq_A_PR = 7'h4;
+		tb_ldu_iq_enq_A_ready = 1'b0;
+		tb_ldu_iq_enq_A_is_zero = 1'b0;
+		tb_ldu_iq_enq_cq_index = 4;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b1000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_ldu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue
+		expected_issue_valid = 1'b0;
+		expected_issue_op = 4'b0000;
+		expected_issue_imm12 = 12'h000;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h0;
+		expected_issue_cq_index = 0;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b0;
+		expected_PRF_req_A_PR = 7'h0;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnQueue: v 5 r",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: v 4 n",
+			"\n\t\t\t", "1: v 3 r",
+			"\n\t\t\t", "0: v 2 r",
+			"\n\t\tWB bus: i",
+			"\n\t\tIssue: i (pipeline not ready)"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_ldu_iq_enq_valid = 1'b1;
+		tb_ldu_iq_enq_op = 4'b0101;
+		tb_ldu_iq_enq_imm12 = 12'h555;
+		tb_ldu_iq_enq_A_PR = 7'h5;
+		tb_ldu_iq_enq_A_ready = 1'b1;
+		tb_ldu_iq_enq_A_is_zero = 1'b0;
+		tb_ldu_iq_enq_cq_index = 5;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_ldu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue
+		expected_issue_valid = 1'b0;
+		expected_issue_op = 4'b0000;
+		expected_issue_imm12 = 12'h000;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h0;
+		expected_issue_cq_index = 0;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b0;
+		expected_PRF_req_A_PR = 7'h0;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnQueue: i 6 n",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: v 5 r",
+			"\n\t\t\t", "2: v 4 n",
+			"\n\t\t\t", "1: v 3 r",
+			"\n\t\t\t", "0: v 2 r",
+			"\n\t\tWB bus: i",
+			"\n\t\tIssue: v 2 r"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_ldu_iq_enq_valid = 1'b0;
+		tb_ldu_iq_enq_op = 4'b0110;
+		tb_ldu_iq_enq_imm12 = 12'h666;
+		tb_ldu_iq_enq_A_PR = 7'h6;
+		tb_ldu_iq_enq_A_ready = 1'b0;
+		tb_ldu_iq_enq_A_is_zero = 1'b0;
+		tb_ldu_iq_enq_cq_index = 6;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_ldu_iq_enq_ready = 1'b0;
+	    // writeback bus by bank
+	    // pipeline issue
+		expected_issue_valid = 1'b1;
+		expected_issue_op = 4'b0010;
+		expected_issue_imm12 = 12'h222;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h2;
+		expected_issue_cq_index = 2;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b1;
+		expected_PRF_req_A_PR = 7'h2;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnQueue: v 6 n",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: v 5 r",
+			"\n\t\t\t", "1: v 4 n",
+			"\n\t\t\t", "0: v 3 r",
+			"\n\t\tWB bus: i",
+			"\n\t\tIssue: v 3 r"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_ldu_iq_enq_valid = 1'b1;
+		tb_ldu_iq_enq_op = 4'b0110;
+		tb_ldu_iq_enq_imm12 = 12'h666;
+		tb_ldu_iq_enq_A_PR = 7'h6;
+		tb_ldu_iq_enq_A_ready = 1'b0;
+		tb_ldu_iq_enq_A_is_zero = 1'b0;
+		tb_ldu_iq_enq_cq_index = 6;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_ldu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue
+		expected_issue_valid = 1'b1;
+		expected_issue_op = 4'b0011;
+		expected_issue_imm12 = 12'h333;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h3;
+		expected_issue_cq_index = 3;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b1;
+		expected_PRF_req_A_PR = 7'h3;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnQueue: v 7 r",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: v 6 n",
+			"\n\t\t\t", "1: v 5 r",
+			"\n\t\t\t", "0: v 4 n",
+			"\n\t\tWB bus: i",
+			"\n\t\tIssue: v 5 r"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_ldu_iq_enq_valid = 1'b1;
+		tb_ldu_iq_enq_op = 4'b0111;
+		tb_ldu_iq_enq_imm12 = 12'h777;
+		tb_ldu_iq_enq_A_PR = 7'h7;
+		tb_ldu_iq_enq_A_ready = 1'b1;
+		tb_ldu_iq_enq_A_is_zero = 1'b0;
+		tb_ldu_iq_enq_cq_index = 7;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_ldu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue
+		expected_issue_valid = 1'b1;
+		expected_issue_op = 4'b0101;
+		expected_issue_imm12 = 12'h555;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h1;
+		expected_issue_cq_index = 5;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b1;
+		expected_PRF_req_A_PR = 7'h5;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnQueue: v 8 n",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: v 7 r",
+			"\n\t\t\t", "1: v 6 nF",
+			"\n\t\t\t", "0: v 4 n",
+			"\n\t\tWB bus: v 6",
+			"\n\t\tIssue: v 6 nF"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_ldu_iq_enq_valid = 1'b1;
+		tb_ldu_iq_enq_op = 4'b1000;
+		tb_ldu_iq_enq_imm12 = 12'h888;
+		tb_ldu_iq_enq_A_PR = 7'h8;
+		tb_ldu_iq_enq_A_ready = 1'b0;
+		tb_ldu_iq_enq_A_is_zero = 1'b0;
+		tb_ldu_iq_enq_cq_index = 8;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0100;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h1, 5'h0, 5'h0};
+	    // pipeline issue
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_ldu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue
+		expected_issue_valid = 1'b1;
+		expected_issue_op = 4'b0110;
+		expected_issue_imm12 = 12'h666;
+		expected_issue_A_forward = 1'b1;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h2;
+		expected_issue_cq_index = 6;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b0;
+		expected_PRF_req_A_PR = 7'h6;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnQueue: i 9 n",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: v 8 n",
+			"\n\t\t\t", "1: v 7 r",
+			"\n\t\t\t", "0: v 4 n",
+			"\n\t\tWB bus: i",
+			"\n\t\tIssue: v 7 r"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_ldu_iq_enq_valid = 1'b0;
+		tb_ldu_iq_enq_op = 4'b1001;
+		tb_ldu_iq_enq_imm12 = 12'h999;
+		tb_ldu_iq_enq_A_PR = 7'h9;
+		tb_ldu_iq_enq_A_ready = 1'b0;
+		tb_ldu_iq_enq_A_is_zero = 1'b0;
+		tb_ldu_iq_enq_cq_index = 9;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h1, 5'h0, 5'h0};
+	    // pipeline issue
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_ldu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue
+		expected_issue_valid = 1'b1;
+		expected_issue_op = 4'b0111;
+		expected_issue_imm12 = 12'h777;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h3;
+		expected_issue_cq_index = 7;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b1;
+		expected_PRF_req_A_PR = 7'h7;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnQueue: i 9 n",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: in",
+			"\n\t\t\t", "1: v 8 n",
+			"\n\t\t\t", "0: v 4 nF",
+			"\n\t\tWB bus: v 4",
+			"\n\t\tIssue: v 4 nF"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_ldu_iq_enq_valid = 1'b0;
+		tb_ldu_iq_enq_op = 4'b1001;
+		tb_ldu_iq_enq_imm12 = 12'h999;
+		tb_ldu_iq_enq_A_PR = 7'h9;
+		tb_ldu_iq_enq_A_ready = 1'b0;
+		tb_ldu_iq_enq_A_is_zero = 1'b0;
+		tb_ldu_iq_enq_cq_index = 9;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0001;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h1, 5'h0, 5'h1};
+	    // pipeline issue
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_ldu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue
+		expected_issue_valid = 1'b1;
+		expected_issue_op = 4'b0100;
+		expected_issue_imm12 = 12'h444;
+		expected_issue_A_forward = 1'b1;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h4;
+		expected_issue_cq_index = 4;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b0;
+		expected_PRF_req_A_PR = 7'h4;
 	    // pipeline feedback
 
 		check_outputs();

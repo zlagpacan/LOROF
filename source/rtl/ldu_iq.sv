@@ -247,7 +247,7 @@ module ldu_iq #(
                 else begin
 
                     // take self valid entry
-                    if (valid_by_entry[i+1]) begin
+                    if (valid_by_entry[i]) begin
                         valid_by_entry[i] <= 1'b1;
                         op_by_entry[i] <= op_by_entry[i];
                         imm12_by_entry[i] <= imm12_by_entry[i];
