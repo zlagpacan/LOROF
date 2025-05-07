@@ -159,7 +159,7 @@ package core_types_pkg;
     // ldu
     parameter LDU_DQ_ENTRIES = 4;
     parameter LOG_LDU_DQ_ENTRIES = $clog2(LDU_DQ_ENTRIES);
-    parameter LDU_IQ_ENTRIES = 4;
+    parameter LDU_IQ_ENTRIES = 8;
     parameter LOG_LDU_IQ_ENTRIES = $clog2(LDU_IQ_ENTRIES);
     parameter LDU_CQ_ENTRIES = 40;
     parameter LOG_LDU_CQ_ENTRIES = $clog2(LDU_CQ_ENTRIES);
