@@ -99,7 +99,7 @@ module alu_reg_mdu_dq_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    alu_reg_mdu_dq WRAPPED_MODULE (.*);
+    alu_reg_mdu_dq #(.ALU_REG_MDU_DQ_ENTRIES(ALU_REG_MDU_DQ_ENTRIES)) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:

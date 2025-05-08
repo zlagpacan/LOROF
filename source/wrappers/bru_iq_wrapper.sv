@@ -131,7 +131,7 @@ module bru_iq_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    bru_iq WRAPPED_MODULE (.*);
+    bru_iq #(.BRU_IQ_ENTRIES(BRU_IQ_ENTRIES)) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:

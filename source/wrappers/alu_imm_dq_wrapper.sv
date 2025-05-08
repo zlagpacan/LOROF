@@ -85,7 +85,7 @@ module alu_imm_dq_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    alu_imm_dq WRAPPED_MODULE (.*);
+    alu_imm_dq #(.ALU_IMM_DQ_ENTRIES(ALU_IMM_DQ_ENTRIES)) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:

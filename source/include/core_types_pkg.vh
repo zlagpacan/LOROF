@@ -54,7 +54,7 @@ package core_types_pkg;
     parameter ALU_IMM_IQ_ENTRIES = 12;
 
     parameter BRU_DQ_ENTRIES = 4;
-    parameter BRU_IQ_ENTRIES = 6;
+    parameter BRU_IQ_ENTRIES = 4;
 
     parameter SYS_DQ_ENTRIES = 4;
 

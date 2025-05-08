@@ -123,7 +123,7 @@ module bru_dq_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    bru_dq WRAPPED_MODULE (.*);
+    bru_dq #(.BRU_DQ_ENTRIES(BRU_DQ_ENTRIES)) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
