@@ -1,7 +1,7 @@
 /*
     Filename: alu_reg_mdu_iq.sv
     Author: zlagpacan
-    Description: RTL for Load Unit Issue Queue
+    Description: RTL for ALU Reg-Reg + Mul-Div Unit Issue Queue
     Spec: LOROF/spec/design/alu_reg_mdu_iq.md
 */
 
@@ -9,7 +9,7 @@
 import core_types_pkg::*;
 
 module alu_reg_mdu_iq #(
-    parameter ALU_REG_MDU_IQ_ENTRIES = 8
+    parameter ALU_REG_MDU_IQ_ENTRIES = 12
 ) (
     // seq
     input logic CLK,
@@ -134,7 +134,8 @@ module alu_reg_mdu_iq #(
         {ALU_REG_MDU_IQ_ENTRIES{alu_reg_issue_ready}}
         & valid_by_entry
         & is_alu_reg_by_entry
-        & (A_ready_by_entry | A_forward_by_entry | A_is_zero_by_entry);
+        & (A_ready_by_entry | A_forward_by_entry | A_is_zero_by_entry)
+        & (B_ready_by_entry | B_forward_by_entry | B_is_zero_by_entry);
 
     // pe
     pe_lsb #(.WIDTH(ALU_REG_MDU_IQ_ENTRIES)) ALU_REG_ISSUE_PE_LSB (
@@ -194,7 +195,8 @@ module alu_reg_mdu_iq #(
         {ALU_REG_MDU_IQ_ENTRIES{mdu_issue_ready}}
         & valid_by_entry
         & is_mdu_by_entry
-        & (A_ready_by_entry | A_forward_by_entry | A_is_zero_by_entry);
+        & (A_ready_by_entry | A_forward_by_entry | A_is_zero_by_entry)
+        & (B_ready_by_entry | B_forward_by_entry | B_is_zero_by_entry);
 
     // pe
     pe_lsb #(.WIDTH(ALU_REG_MDU_IQ_ENTRIES)) MDU_ISSUE_PE_LSB (

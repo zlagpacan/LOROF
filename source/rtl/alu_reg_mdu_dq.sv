@@ -1,7 +1,7 @@
 /*
     Filename: alu_reg_mdu_dq.sv
     Author: zlagpacan
-    Description: RTL for Load Unit Dispatch Queue
+    Description: RTL for ALU Reg-Reg + Mul-Div Unit Dispatch Queue
     Spec: LOROF/spec/design/alu_reg_mdu_dq.md
 */
 

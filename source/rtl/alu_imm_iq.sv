@@ -1,7 +1,7 @@
 /*
     Filename: alu_imm_iq.sv
     Author: zlagpacan
-    Description: RTL for Load Unit Issue Queue
+    Description: RTL for ALU Reg-Imm Issue Queue
     Spec: LOROF/spec/design/alu_imm_iq.md
 */
 
@@ -9,7 +9,7 @@
 import core_types_pkg::*;
 
 module alu_imm_iq #(
-    parameter ALU_IMM_IQ_ENTRIES = 4
+    parameter ALU_IMM_IQ_ENTRIES = 12
 ) (
     // seq
     input logic CLK,

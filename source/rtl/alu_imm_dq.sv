@@ -1,7 +1,7 @@
 /*
     Filename: alu_imm_dq.sv
     Author: zlagpacan
-    Description: RTL for Load Unit Dispatch Queue
+    Description: RTL for ALU Reg-Imm Dispatch Queue
     Spec: LOROF/spec/design/alu_imm_dq.md
 */
 
