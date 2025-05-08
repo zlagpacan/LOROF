@@ -9,8 +9,7 @@
 import core_types_pkg::*;
 
 module ldu_iq #(
-    parameter LDU_IQ_ENTRIES = 4,
-    parameter LOG_LDU_IQ_ENTRIES = $clog2(LDU_IQ_ENTRIES)
+    parameter LDU_IQ_ENTRIES = 4
 ) (
     // seq
     input logic CLK,
@@ -152,19 +151,7 @@ module ldu_iq #(
     assign ldu_iq_enq_ready = |dispatch_open_mask;
 
     // route PE'd dispatch to entries
-    always_comb begin
-        
-        dispatch_valid_by_entry = '0;
-
-        // one-hot mux selecting entry for valid dispatch
-        for (int entry = 0; entry < LDU_IQ_ENTRIES; entry++) begin
-            
-            if (dispatch_one_hot[entry]) begin
-
-                dispatch_valid_by_entry[entry] |= 1'b1;
-            end
-        end
-    end
+    assign dispatch_valid_by_entry = dispatch_one_hot;
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin

@@ -9,8 +9,7 @@
 import core_types_pkg::*;
 
 module ldu_dq #(
-    parameter LDU_DQ_ENTRIES = 4,
-    parameter LOG_LDU_DQ_ENTRIES = $clog2(LDU_DQ_ENTRIES)
+    parameter LDU_DQ_ENTRIES = 4
 ) (
     // seq
     input logic CLK,

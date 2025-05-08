@@ -45,11 +45,17 @@ package core_types_pkg;
     parameter LOG_ROB_ENTRIES = $clog2(ROB_ENTRIES);
 
     // ----------------------------------------------------------------
-    // IQ's:
+    // DQ's and IQ's:
 
-    parameter ALU_REG_MDU_IQ_ENTRIES = 8;
-    parameter ALU_IMM_IQ_ENTRIES = 8;
-    parameter BRU_IQ_ENTRIES = 4;
+    parameter ALU_REG_MDU_DQ_ENTRIES = 4;
+    parameter ALU_REG_MDU_IQ_ENTRIES = 12;
+
+    parameter ALU_IMM_DQ_ENTRIES = 4;
+    parameter ALU_IMM_IQ_ENTRIES = 12;
+
+    parameter BRU_DQ_ENTRIES = 4;
+    parameter BRU_IQ_ENTRIES = 6;
+
     parameter SYS_DQ_ENTRIES = 4;
 
     // ----------------------------------------------------------------
@@ -158,9 +164,7 @@ package core_types_pkg;
 
     // ldu
     parameter LDU_DQ_ENTRIES = 4;
-    parameter LOG_LDU_DQ_ENTRIES = $clog2(LDU_DQ_ENTRIES);
     parameter LDU_IQ_ENTRIES = 8;
-    parameter LOG_LDU_IQ_ENTRIES = $clog2(LDU_IQ_ENTRIES);
     parameter LDU_CQ_ENTRIES = 40;
     parameter LOG_LDU_CQ_ENTRIES = $clog2(LDU_CQ_ENTRIES);
     parameter LDU_MQ_ENTRIES = 4;
@@ -168,9 +172,7 @@ package core_types_pkg;
 
     // stamofu
     parameter STAMOFU_DQ_ENTRIES = 4;
-    parameter LOG_STAMOFU_DQ_ENTRIES = $clog2(STAMOFU_DQ_ENTRIES);
     parameter STAMOFU_IQ_ENTRIES = 8;
-    parameter LOG_STAMOFU_IQ_ENTRIES = $clog2(STAMOFU_IQ_ENTRIES);
     parameter STAMOFU_CQ_ENTRIES = 24;
     parameter LOG_STAMOFU_CQ_ENTRIES = $clog2(STAMOFU_CQ_ENTRIES);
     parameter STAMOFU_MQ_ENTRIES = 4;
