@@ -36,6 +36,7 @@ module ldu_dq #(
 
     // op enqueue to central queue
     output logic                            ldu_cq_enq_valid,
+    output logic                            ldu_cq_enq_killed,
     output logic [MDPT_INFO_WIDTH-1:0]      ldu_cq_enq_mdp_info,
     output logic [LOG_PR_COUNT-1:0]         ldu_cq_enq_dest_PR,
     output logic [LOG_ROB_ENTRIES-1:0]      ldu_cq_enq_ROB_index,
@@ -56,8 +57,10 @@ module ldu_dq #(
     // issue queue enqueue feedback
     input logic                             ldu_iq_enq_ready,
 
-    // restart from ROB
-    input logic rob_restart_valid
+    // ROB kill
+    input logic                         rob_kill_valid,
+    input logic [LOG_ROB_ENTRIES-1:0]   rob_kill_abs_head_index,
+    input logic [LOG_ROB_ENTRIES-1:0]   rob_kill_rel_kill_younger_index
 );
 
     // ----------------------------------------------------------------
@@ -65,6 +68,7 @@ module ldu_dq #(
 
     // DQ entries
     logic [LDU_DQ_ENTRIES-1:0]                          valid_by_entry;
+    logic [LDU_DQ_ENTRIES-1:0]                          killed_by_entry;
     logic [LDU_DQ_ENTRIES-1:0][3:0]                     op_by_entry;
     logic [LDU_DQ_ENTRIES-1:0][11:0]                    imm12_by_entry;
     logic [LDU_DQ_ENTRIES-1:0][MDPT_INFO_WIDTH-1:0]     mdp_info_by_entry;
@@ -76,6 +80,9 @@ module ldu_dq #(
 
     // new ready check
     logic [LDU_DQ_ENTRIES-1:0] new_A_ready_by_entry;
+
+    // new kill check
+    logic [LDU_DQ_ENTRIES-1:0] new_killed_by_entry;
 
     // incoming dispatch crossbar by entry
     logic [LDU_DQ_ENTRIES-1:0]                          dispatch_valid_by_entry;
@@ -99,18 +106,24 @@ module ldu_dq #(
     // ----------------------------------------------------------------
     // Launch Logic:
 
-    assign launching = valid_by_entry[0] & ldu_cq_enq_ready & ldu_iq_enq_ready;
+    assign launching = 
+        valid_by_entry[0] 
+        & ldu_cq_enq_ready 
+        & ldu_iq_enq_ready;
 
     // new ready check
     always_comb begin
         for (int i = 0; i < LDU_DQ_ENTRIES; i++) begin
             new_A_ready_by_entry[i] = (A_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
+            new_killed_by_entry[i] = rob_kill_valid & 
+                (ROB_index_by_entry[i] - rob_kill_abs_head_index) > rob_kill_rel_kill_younger_index;
         end
     end
 
     // launch from lowest DQ entry
     always_comb begin
         ldu_cq_enq_valid = launching;
+        ldu_cq_enq_killed = killed_by_entry[0] | new_killed_by_entry[0];
         ldu_cq_enq_mdp_info = mdp_info_by_entry[0];
         ldu_cq_enq_dest_PR = dest_PR_by_entry[0];
         ldu_cq_enq_ROB_index = ROB_index_by_entry[0];
@@ -205,6 +218,7 @@ module ldu_dq #(
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             valid_by_entry <= '0;
+            killed_by_entry <= '0;
             op_by_entry <= '0;
             imm12_by_entry <= '0;
             mdp_info_by_entry <= '0;
@@ -216,116 +230,112 @@ module ldu_dq #(
         end
         else begin
 
-            // check rob restart
-                // invalidate DQ
-            if (rob_restart_valid) begin
-                valid_by_entry <= '0;
+            // --------------------------------------------------------
+            // highest entry only takes self:
+                // self: [LDU_DQ_ENTRIES-1]
+
+            // check launch -> clear entry
+            if (launching) begin
+                valid_by_entry[LDU_DQ_ENTRIES-1] <= 1'b0;
             end
 
-            // otherwise, normal operation:
+            // otherwise take self
             else begin
 
-                // --------------------------------------------------------
-                // highest entry only takes self:
-                    // self: [LDU_DQ_ENTRIES-1]
+                // take self valid entry
+                if (valid_by_entry[LDU_DQ_ENTRIES-1]) begin
+                    valid_by_entry[LDU_DQ_ENTRIES-1] <= 1'b1;
+                    killed_by_entry[LDU_DQ_ENTRIES-1] <= killed_by_entry[LDU_DQ_ENTRIES-1] | new_killed_by_entry[LDU_DQ_ENTRIES-1];
+                    op_by_entry[LDU_DQ_ENTRIES-1] <= op_by_entry[LDU_DQ_ENTRIES-1];
+                    imm12_by_entry[LDU_DQ_ENTRIES-1] <= imm12_by_entry[LDU_DQ_ENTRIES-1];
+                    mdp_info_by_entry[LDU_DQ_ENTRIES-1] <= mdp_info_by_entry[LDU_DQ_ENTRIES-1];
+                    A_PR_by_entry[LDU_DQ_ENTRIES-1] <= A_PR_by_entry[LDU_DQ_ENTRIES-1];
+                    A_ready_by_entry[LDU_DQ_ENTRIES-1] <= A_ready_by_entry[LDU_DQ_ENTRIES-1] | new_A_ready_by_entry[LDU_DQ_ENTRIES-1];
+                    A_is_zero_by_entry[LDU_DQ_ENTRIES-1] <= A_is_zero_by_entry[LDU_DQ_ENTRIES-1];
+                    dest_PR_by_entry[LDU_DQ_ENTRIES-1] <= dest_PR_by_entry[LDU_DQ_ENTRIES-1];
+                    ROB_index_by_entry[LDU_DQ_ENTRIES-1] <= ROB_index_by_entry[LDU_DQ_ENTRIES-1];
+                end
 
-                // check launch -> clear entry
+                // take self dispatch
+                else begin
+                    valid_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_valid_by_entry[LDU_DQ_ENTRIES-1];
+                    killed_by_entry[LDU_DQ_ENTRIES-1] <= 1'b0;
+                    op_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_op_by_entry[LDU_DQ_ENTRIES-1];
+                    imm12_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_imm12_by_entry[LDU_DQ_ENTRIES-1];
+                    mdp_info_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_mdp_info_by_entry[LDU_DQ_ENTRIES-1];
+                    A_PR_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_A_PR_by_entry[LDU_DQ_ENTRIES-1];
+                    A_ready_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_A_ready_by_entry[LDU_DQ_ENTRIES-1];
+                    A_is_zero_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_A_is_zero_by_entry[LDU_DQ_ENTRIES-1];
+                    dest_PR_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_dest_PR_by_entry[LDU_DQ_ENTRIES-1];
+                    ROB_index_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_ROB_index_by_entry[LDU_DQ_ENTRIES-1];
+                end
+            end
+
+            // --------------------------------------------------------
+            // remaining lower entries can take self or above
+            for (int i = 0; i <= LDU_DQ_ENTRIES-2; i++) begin
+
+                // check launch -> take above
                 if (launching) begin
-                    valid_by_entry[LDU_DQ_ENTRIES-1] <= 1'b0;
+
+                    // take valid entry above
+                    if (valid_by_entry[i+1]) begin
+                        valid_by_entry[i] <= 1'b1;
+                        killed_by_entry[i] <= killed_by_entry[i+1] | new_killed_by_entry[i+1];
+                        op_by_entry[i] <= op_by_entry[i+1];
+                        imm12_by_entry[i] <= imm12_by_entry[i+1];
+                        mdp_info_by_entry[i] <= mdp_info_by_entry[i+1];
+                        A_PR_by_entry[i] <= A_PR_by_entry[i+1];
+                        A_ready_by_entry[i] <= A_ready_by_entry[i+1] | new_A_ready_by_entry[i+1];
+                        A_is_zero_by_entry[i] <= A_is_zero_by_entry[i+1];
+                        dest_PR_by_entry[i] <= dest_PR_by_entry[i+1];
+                        ROB_index_by_entry[i] <= ROB_index_by_entry[i+1];
+                    end
+
+                    // take dispatch above
+                    else begin
+                        valid_by_entry[i] <= dispatch_valid_by_entry[i+1];
+                        killed_by_entry[i] <= 1'b0;
+                        op_by_entry[i] <= dispatch_op_by_entry[i+1];
+                        imm12_by_entry[i] <= dispatch_imm12_by_entry[i+1];
+                        mdp_info_by_entry[i] <= dispatch_mdp_info_by_entry[i+1];
+                        A_PR_by_entry[i] <= dispatch_A_PR_by_entry[i+1];
+                        A_ready_by_entry[i] <= dispatch_A_ready_by_entry[i+1];
+                        A_is_zero_by_entry[i] <= dispatch_A_is_zero_by_entry[i+1];
+                        dest_PR_by_entry[i] <= dispatch_dest_PR_by_entry[i+1];
+                        ROB_index_by_entry[i] <= dispatch_ROB_index_by_entry[i+1];
+                    end
                 end
 
                 // otherwise take self
                 else begin
 
                     // take self valid entry
-                    if (valid_by_entry[LDU_DQ_ENTRIES-1]) begin
-                        valid_by_entry[LDU_DQ_ENTRIES-1] <= 1'b1;
-                        op_by_entry[LDU_DQ_ENTRIES-1] <= op_by_entry[LDU_DQ_ENTRIES-1];
-                        imm12_by_entry[LDU_DQ_ENTRIES-1] <= imm12_by_entry[LDU_DQ_ENTRIES-1];
-                        mdp_info_by_entry[LDU_DQ_ENTRIES-1] <= mdp_info_by_entry[LDU_DQ_ENTRIES-1];
-                        A_PR_by_entry[LDU_DQ_ENTRIES-1] <= A_PR_by_entry[LDU_DQ_ENTRIES-1];
-                        A_ready_by_entry[LDU_DQ_ENTRIES-1] <= A_ready_by_entry[LDU_DQ_ENTRIES-1] | new_A_ready_by_entry[LDU_DQ_ENTRIES-1];
-                        A_is_zero_by_entry[LDU_DQ_ENTRIES-1] <= A_is_zero_by_entry[LDU_DQ_ENTRIES-1];
-                        dest_PR_by_entry[LDU_DQ_ENTRIES-1] <= dest_PR_by_entry[LDU_DQ_ENTRIES-1];
-                        ROB_index_by_entry[LDU_DQ_ENTRIES-1] <= ROB_index_by_entry[LDU_DQ_ENTRIES-1];
+                    if (valid_by_entry[i]) begin
+                        valid_by_entry[i] <= 1'b1;
+                        killed_by_entry[i] <= killed_by_entry[i] | new_killed_by_entry[i];
+                        op_by_entry[i] <= op_by_entry[i];
+                        imm12_by_entry[i] <= imm12_by_entry[i];
+                        mdp_info_by_entry[i] <= mdp_info_by_entry[i];
+                        A_PR_by_entry[i] <= A_PR_by_entry[i];
+                        A_ready_by_entry[i] <= A_ready_by_entry[i] | new_A_ready_by_entry[i];
+                        A_is_zero_by_entry[i] <= A_is_zero_by_entry[i];
+                        dest_PR_by_entry[i] <= dest_PR_by_entry[i];
+                        ROB_index_by_entry[i] <= ROB_index_by_entry[i];
                     end
 
                     // take self dispatch
                     else begin
-                        valid_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_valid_by_entry[LDU_DQ_ENTRIES-1];
-                        op_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_op_by_entry[LDU_DQ_ENTRIES-1];
-                        imm12_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_imm12_by_entry[LDU_DQ_ENTRIES-1];
-                        mdp_info_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_mdp_info_by_entry[LDU_DQ_ENTRIES-1];
-                        A_PR_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_A_PR_by_entry[LDU_DQ_ENTRIES-1];
-                        A_ready_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_A_ready_by_entry[LDU_DQ_ENTRIES-1];
-                        A_is_zero_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_A_is_zero_by_entry[LDU_DQ_ENTRIES-1];
-                        dest_PR_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_dest_PR_by_entry[LDU_DQ_ENTRIES-1];
-                        ROB_index_by_entry[LDU_DQ_ENTRIES-1] <= dispatch_ROB_index_by_entry[LDU_DQ_ENTRIES-1];
-                    end
-                end
-
-                // --------------------------------------------------------
-                // remaining lower entries can take self or above
-                for (int i = 0; i <= LDU_DQ_ENTRIES-2; i++) begin
-
-                    // check launch -> take above
-                    if (launching) begin
-
-                        // take valid entry above
-                        if (valid_by_entry[i+1]) begin
-                            valid_by_entry[i] <= 1'b1;
-                            op_by_entry[i] <= op_by_entry[i+1];
-                            imm12_by_entry[i] <= imm12_by_entry[i+1];
-                            mdp_info_by_entry[i] <= mdp_info_by_entry[i+1];
-                            A_PR_by_entry[i] <= A_PR_by_entry[i+1];
-                            A_ready_by_entry[i] <= A_ready_by_entry[i+1] | new_A_ready_by_entry[i+1];
-                            A_is_zero_by_entry[i] <= A_is_zero_by_entry[i+1];
-                            dest_PR_by_entry[i] <= dest_PR_by_entry[i+1];
-                            ROB_index_by_entry[i] <= ROB_index_by_entry[i+1];
-                        end
-
-                        // take dispatch above
-                        else begin
-                            valid_by_entry[i] <= dispatch_valid_by_entry[i+1];
-                            op_by_entry[i] <= dispatch_op_by_entry[i+1];
-                            imm12_by_entry[i] <= dispatch_imm12_by_entry[i+1];
-                            mdp_info_by_entry[i] <= dispatch_mdp_info_by_entry[i+1];
-                            A_PR_by_entry[i] <= dispatch_A_PR_by_entry[i+1];
-                            A_ready_by_entry[i] <= dispatch_A_ready_by_entry[i+1];
-                            A_is_zero_by_entry[i] <= dispatch_A_is_zero_by_entry[i+1];
-                            dest_PR_by_entry[i] <= dispatch_dest_PR_by_entry[i+1];
-                            ROB_index_by_entry[i] <= dispatch_ROB_index_by_entry[i+1];
-                        end
-                    end
-
-                    // otherwise take self
-                    else begin
-
-                        // take self valid entry
-                        if (valid_by_entry[i]) begin
-                            valid_by_entry[i] <= 1'b1;
-                            op_by_entry[i] <= op_by_entry[i];
-                            imm12_by_entry[i] <= imm12_by_entry[i];
-                            mdp_info_by_entry[i] <= mdp_info_by_entry[i];
-                            A_PR_by_entry[i] <= A_PR_by_entry[i];
-                            A_ready_by_entry[i] <= A_ready_by_entry[i] | new_A_ready_by_entry[i];
-                            A_is_zero_by_entry[i] <= A_is_zero_by_entry[i];
-                            dest_PR_by_entry[i] <= dest_PR_by_entry[i];
-                            ROB_index_by_entry[i] <= ROB_index_by_entry[i];
-                        end
-
-                        // take self dispatch
-                        else begin
-                            valid_by_entry[i] <= dispatch_valid_by_entry[i];
-                            op_by_entry[i] <= dispatch_op_by_entry[i];
-                            imm12_by_entry[i] <= dispatch_imm12_by_entry[i];
-                            mdp_info_by_entry[i] <= dispatch_mdp_info_by_entry[i];
-                            A_PR_by_entry[i] <= dispatch_A_PR_by_entry[i];
-                            A_ready_by_entry[i] <= dispatch_A_ready_by_entry[i];
-                            A_is_zero_by_entry[i] <= dispatch_A_is_zero_by_entry[i];
-                            dest_PR_by_entry[i] <= dispatch_dest_PR_by_entry[i];
-                            ROB_index_by_entry[i] <= dispatch_ROB_index_by_entry[i];
-                        end
+                        valid_by_entry[i] <= dispatch_valid_by_entry[i];
+                        killed_by_entry[i] <= 1'b0;
+                        op_by_entry[i] <= dispatch_op_by_entry[i];
+                        imm12_by_entry[i] <= dispatch_imm12_by_entry[i];
+                        mdp_info_by_entry[i] <= dispatch_mdp_info_by_entry[i];
+                        A_PR_by_entry[i] <= dispatch_A_PR_by_entry[i];
+                        A_ready_by_entry[i] <= dispatch_A_ready_by_entry[i];
+                        A_is_zero_by_entry[i] <= dispatch_A_is_zero_by_entry[i];
+                        dest_PR_by_entry[i] <= dispatch_dest_PR_by_entry[i];
+                        ROB_index_by_entry[i] <= dispatch_ROB_index_by_entry[i];
                     end
                 end
             end

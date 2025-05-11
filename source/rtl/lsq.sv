@@ -452,5 +452,7 @@ module lsq (
             // uncommon case anyway
 
         // killed loads need to complete their writes so that dependent garbage instructions in other pipelines can finish
+            // mark if load or store killed in dispatch queue, pass info to central queue's accordingly
+                // can skip issue queues if killed this early
 
 endmodule

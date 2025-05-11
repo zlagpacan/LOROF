@@ -37,6 +37,7 @@ module ldu_dq_wrapper (
 
     // op enqueue to central queue
 	output logic last_ldu_cq_enq_valid,
+	output logic last_ldu_cq_enq_killed,
 	output logic [MDPT_INFO_WIDTH-1:0] last_ldu_cq_enq_mdp_info,
 	output logic [LOG_PR_COUNT-1:0] last_ldu_cq_enq_dest_PR,
 	output logic [LOG_ROB_ENTRIES-1:0] last_ldu_cq_enq_ROB_index,
@@ -57,8 +58,10 @@ module ldu_dq_wrapper (
     // issue queue enqueue feedback
 	input logic next_ldu_iq_enq_ready,
 
-    // restart from ROB
-	input logic next_rob_restart_valid
+    // ROB kill
+	input logic next_rob_kill_valid,
+	input logic [LOG_ROB_ENTRIES-1:0] next_rob_kill_abs_head_index,
+	input logic [LOG_ROB_ENTRIES-1:0] next_rob_kill_rel_kill_younger_index
 );
 
     // ----------------------------------------------------------------
@@ -85,6 +88,7 @@ module ldu_dq_wrapper (
 
     // op enqueue to central queue
 	logic ldu_cq_enq_valid;
+	logic ldu_cq_enq_killed;
 	logic [MDPT_INFO_WIDTH-1:0] ldu_cq_enq_mdp_info;
 	logic [LOG_PR_COUNT-1:0] ldu_cq_enq_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] ldu_cq_enq_ROB_index;
@@ -105,13 +109,15 @@ module ldu_dq_wrapper (
     // issue queue enqueue feedback
 	logic ldu_iq_enq_ready;
 
-    // restart from ROB
-	logic rob_restart_valid;
+    // ROB kill
+	logic rob_kill_valid;
+	logic [LOG_ROB_ENTRIES-1:0] rob_kill_abs_head_index;
+	logic [LOG_ROB_ENTRIES-1:0] rob_kill_rel_kill_younger_index;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    ldu_dq #(.LDU_DQ_ENTRIES(LDU_DQ_ENTRIES)) WRAPPED_MODULE (.*);
+    ldu_dq WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -140,6 +146,7 @@ module ldu_dq_wrapper (
 
 		    // op enqueue to central queue
 			last_ldu_cq_enq_valid <= '0;
+			last_ldu_cq_enq_killed <= '0;
 			last_ldu_cq_enq_mdp_info <= '0;
 			last_ldu_cq_enq_dest_PR <= '0;
 			last_ldu_cq_enq_ROB_index <= '0;
@@ -160,8 +167,10 @@ module ldu_dq_wrapper (
 		    // issue queue enqueue feedback
 			ldu_iq_enq_ready <= '0;
 
-		    // restart from ROB
-			rob_restart_valid <= '0;
+		    // ROB kill
+			rob_kill_valid <= '0;
+			rob_kill_abs_head_index <= '0;
+			rob_kill_rel_kill_younger_index <= '0;
         end
         else begin
 
@@ -186,6 +195,7 @@ module ldu_dq_wrapper (
 
 		    // op enqueue to central queue
 			last_ldu_cq_enq_valid <= ldu_cq_enq_valid;
+			last_ldu_cq_enq_killed <= ldu_cq_enq_killed;
 			last_ldu_cq_enq_mdp_info <= ldu_cq_enq_mdp_info;
 			last_ldu_cq_enq_dest_PR <= ldu_cq_enq_dest_PR;
 			last_ldu_cq_enq_ROB_index <= ldu_cq_enq_ROB_index;
@@ -206,8 +216,10 @@ module ldu_dq_wrapper (
 		    // issue queue enqueue feedback
 			ldu_iq_enq_ready <= next_ldu_iq_enq_ready;
 
-		    // restart from ROB
-			rob_restart_valid <= next_rob_restart_valid;
+		    // ROB kill
+			rob_kill_valid <= next_rob_kill_valid;
+			rob_kill_abs_head_index <= next_rob_kill_abs_head_index;
+			rob_kill_rel_kill_younger_index <= next_rob_kill_rel_kill_younger_index;
         end
     end
 

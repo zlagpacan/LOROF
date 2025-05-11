@@ -53,6 +53,7 @@ module ldu_dq_tb ();
 
     // op enqueue to central queue
 	logic DUT_ldu_cq_enq_valid, expected_ldu_cq_enq_valid;
+	logic DUT_ldu_cq_enq_killed, expected_ldu_cq_enq_killed;
 	logic [MDPT_INFO_WIDTH-1:0] DUT_ldu_cq_enq_mdp_info, expected_ldu_cq_enq_mdp_info;
 	logic [LOG_PR_COUNT-1:0] DUT_ldu_cq_enq_dest_PR, expected_ldu_cq_enq_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_ldu_cq_enq_ROB_index, expected_ldu_cq_enq_ROB_index;
@@ -73,8 +74,10 @@ module ldu_dq_tb ();
     // issue queue enqueue feedback
 	logic tb_ldu_iq_enq_ready;
 
-    // restart from ROB
-	logic tb_rob_restart_valid;
+    // ROB kill
+	logic tb_rob_kill_valid;
+	logic [LOG_ROB_ENTRIES-1:0] tb_rob_kill_abs_head_index;
+	logic [LOG_ROB_ENTRIES-1:0]	tb_rob_kill_rel_kill_younger_index;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -107,6 +110,7 @@ module ldu_dq_tb ();
 
 	    // op enqueue to central queue
 		.ldu_cq_enq_valid(DUT_ldu_cq_enq_valid),
+		.ldu_cq_enq_killed(DUT_ldu_cq_enq_killed),
 		.ldu_cq_enq_mdp_info(DUT_ldu_cq_enq_mdp_info),
 		.ldu_cq_enq_dest_PR(DUT_ldu_cq_enq_dest_PR),
 		.ldu_cq_enq_ROB_index(DUT_ldu_cq_enq_ROB_index),
@@ -128,7 +132,9 @@ module ldu_dq_tb ();
 		.ldu_iq_enq_ready(tb_ldu_iq_enq_ready),
 
 	    // restart from ROB
-		.rob_restart_valid(tb_rob_restart_valid)
+		.rob_kill_valid(tb_rob_kill_valid),
+		.rob_kill_abs_head_index(tb_rob_kill_abs_head_index),
+		.rob_kill_rel_kill_younger_index(tb_rob_kill_rel_kill_younger_index)
 	);
 
     // ----------------------------------------------------------------
@@ -146,6 +152,13 @@ module ldu_dq_tb ();
 		if (expected_ldu_cq_enq_valid !== DUT_ldu_cq_enq_valid) begin
 			$display("TB ERROR: expected_ldu_cq_enq_valid (%h) != DUT_ldu_cq_enq_valid (%h)",
 				expected_ldu_cq_enq_valid, DUT_ldu_cq_enq_valid);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_ldu_cq_enq_killed !== DUT_ldu_cq_enq_killed) begin
+			$display("TB ERROR: expected_ldu_cq_enq_killed (%h) != DUT_ldu_cq_enq_killed (%h)",
+				expected_ldu_cq_enq_killed, DUT_ldu_cq_enq_killed);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -264,8 +277,10 @@ module ldu_dq_tb ();
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
 		tb_ldu_iq_enq_ready = 1'b1;
-	    // restart from ROB
-		tb_rob_restart_valid = 1'b0;
+	    // ROB kill
+		tb_rob_kill_valid = 1'b0;
+		tb_rob_kill_abs_head_index = 7'h0;
+		tb_rob_kill_rel_kill_younger_index = 7'h0;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -277,6 +292,7 @@ module ldu_dq_tb ();
 	    // writeback bus by bank
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b0;
+		expected_ldu_cq_enq_killed = 1'b0;
 		expected_ldu_cq_enq_mdp_info = 8'h0;
 		expected_ldu_cq_enq_dest_PR = 7'h0;
 		expected_ldu_cq_enq_ROB_index = 7'h0;
@@ -322,8 +338,10 @@ module ldu_dq_tb ();
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
 		tb_ldu_iq_enq_ready = 1'b1;
-	    // restart from ROB
-		tb_rob_restart_valid = 1'b0;
+	    // ROB kill
+		tb_rob_kill_valid = 1'b0;
+		tb_rob_kill_abs_head_index = 7'h0;
+		tb_rob_kill_rel_kill_younger_index = 7'h0;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -335,6 +353,7 @@ module ldu_dq_tb ();
 	    // writeback bus by bank
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b0;
+		expected_ldu_cq_enq_killed = 1'b0;
 		expected_ldu_cq_enq_mdp_info = 8'h0;
 		expected_ldu_cq_enq_dest_PR = 7'h0;
 		expected_ldu_cq_enq_ROB_index = 7'h0;
@@ -399,8 +418,10 @@ module ldu_dq_tb ();
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
 		tb_ldu_iq_enq_ready = 1'b1;
-	    // restart from ROB
-		tb_rob_restart_valid = 1'b0;
+	    // ROB kill
+		tb_rob_kill_valid = 1'b0;
+		tb_rob_kill_abs_head_index = 7'h0;
+		tb_rob_kill_rel_kill_younger_index = 7'h0;
 
 		@(negedge CLK);
 
@@ -412,6 +433,7 @@ module ldu_dq_tb ();
 	    // writeback bus by bank
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b0;
+		expected_ldu_cq_enq_killed = 1'b0;
 		expected_ldu_cq_enq_mdp_info = 8'h0;
 		expected_ldu_cq_enq_dest_PR = 7'h0;
 		expected_ldu_cq_enq_ROB_index = 7'h0;
@@ -470,8 +492,10 @@ module ldu_dq_tb ();
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
 		tb_ldu_iq_enq_ready = 1'b1;
-	    // restart from ROB
-		tb_rob_restart_valid = 1'b0;
+	    // ROB kill
+		tb_rob_kill_valid = 1'b0;
+		tb_rob_kill_abs_head_index = 7'h0;
+		tb_rob_kill_rel_kill_younger_index = 7'h0;
 
 		@(negedge CLK);
 
@@ -483,6 +507,7 @@ module ldu_dq_tb ();
 	    // writeback bus by bank
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b0;
+		expected_ldu_cq_enq_killed = 1'b0;
 		expected_ldu_cq_enq_mdp_info = 8'h0;
 		expected_ldu_cq_enq_dest_PR = 7'h0;
 		expected_ldu_cq_enq_ROB_index = 7'h0;
@@ -541,8 +566,10 @@ module ldu_dq_tb ();
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
 		tb_ldu_iq_enq_ready = 1'b1;
-	    // restart from ROB
-		tb_rob_restart_valid = 1'b0;
+	    // ROB kill
+		tb_rob_kill_valid = 1'b0;
+		tb_rob_kill_abs_head_index = 7'h0;
+		tb_rob_kill_rel_kill_younger_index = 7'h0;
 
 		@(negedge CLK);
 
@@ -554,6 +581,7 @@ module ldu_dq_tb ();
 	    // writeback bus by bank
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b1;
+		expected_ldu_cq_enq_killed = 1'b0;
 		expected_ldu_cq_enq_mdp_info = 8'h0f;
 		expected_ldu_cq_enq_dest_PR = 7'hf0;
 		expected_ldu_cq_enq_ROB_index = 7'hf0;
@@ -612,8 +640,10 @@ module ldu_dq_tb ();
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
 		tb_ldu_iq_enq_ready = 1'b1;
-	    // restart from ROB
-		tb_rob_restart_valid = 1'b0;
+	    // ROB kill
+		tb_rob_kill_valid = 1'b0;
+		tb_rob_kill_abs_head_index = 7'h0;
+		tb_rob_kill_rel_kill_younger_index = 7'h0;
 
 		@(negedge CLK);
 
@@ -625,6 +655,7 @@ module ldu_dq_tb ();
 	    // writeback bus by bank
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b1;
+		expected_ldu_cq_enq_killed = 1'b0;
 		expected_ldu_cq_enq_mdp_info = 8'h1e;
 		expected_ldu_cq_enq_dest_PR = 7'he1;
 		expected_ldu_cq_enq_ROB_index = 7'he1;
@@ -683,8 +714,10 @@ module ldu_dq_tb ();
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
 		tb_ldu_iq_enq_ready = 1'b1;
-	    // restart from ROB
-		tb_rob_restart_valid = 1'b0;
+	    // ROB kill
+		tb_rob_kill_valid = 1'b0;
+		tb_rob_kill_abs_head_index = 7'h0;
+		tb_rob_kill_rel_kill_younger_index = 7'h0;
 
 		@(negedge CLK);
 
@@ -696,6 +729,7 @@ module ldu_dq_tb ();
 	    // writeback bus by bank
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b0;
+		expected_ldu_cq_enq_killed = 1'b0;
 		expected_ldu_cq_enq_mdp_info = 8'h2d;
 		expected_ldu_cq_enq_dest_PR = 7'hd2;
 		expected_ldu_cq_enq_ROB_index = 7'hd2;
@@ -754,8 +788,10 @@ module ldu_dq_tb ();
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
 		tb_ldu_iq_enq_ready = 1'b1;
-	    // restart from ROB
-		tb_rob_restart_valid = 1'b0;
+	    // ROB kill
+		tb_rob_kill_valid = 1'b0;
+		tb_rob_kill_abs_head_index = 7'h0;
+		tb_rob_kill_rel_kill_younger_index = 7'h0;
 
 		@(negedge CLK);
 
@@ -767,6 +803,7 @@ module ldu_dq_tb ();
 	    // writeback bus by bank
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b1;
+		expected_ldu_cq_enq_killed = 1'b0;
 		expected_ldu_cq_enq_mdp_info = 8'h2d;
 		expected_ldu_cq_enq_dest_PR = 7'hd2;
 		expected_ldu_cq_enq_ROB_index = 7'hd2;
@@ -825,8 +862,10 @@ module ldu_dq_tb ();
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
 		tb_ldu_iq_enq_ready = 1'b1;
-	    // restart from ROB
-		tb_rob_restart_valid = 1'b0;
+	    // ROB kill
+		tb_rob_kill_valid = 1'b0;
+		tb_rob_kill_abs_head_index = 7'h0;
+		tb_rob_kill_rel_kill_younger_index = 7'h0;
 
 		@(negedge CLK);
 
@@ -838,6 +877,7 @@ module ldu_dq_tb ();
 	    // writeback bus by bank
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b1;
+		expected_ldu_cq_enq_killed = 1'b0;
 		expected_ldu_cq_enq_mdp_info = 8'h3c;
 		expected_ldu_cq_enq_dest_PR = 7'hc3;
 		expected_ldu_cq_enq_ROB_index = 7'hc3;
@@ -896,8 +936,10 @@ module ldu_dq_tb ();
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
 		tb_ldu_iq_enq_ready = 1'b1;
-	    // restart from ROB
-		tb_rob_restart_valid = 1'b0;
+	    // ROB kill
+		tb_rob_kill_valid = 1'b0;
+		tb_rob_kill_abs_head_index = 7'h0;
+		tb_rob_kill_rel_kill_younger_index = 7'h0;
 
 		@(negedge CLK);
 
@@ -909,6 +951,7 @@ module ldu_dq_tb ();
 	    // writeback bus by bank
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b1;
+		expected_ldu_cq_enq_killed = 1'b0;
 		expected_ldu_cq_enq_mdp_info = 8'h4b;
 		expected_ldu_cq_enq_dest_PR = 7'hb4;
 		expected_ldu_cq_enq_ROB_index = 7'hb4;
@@ -938,8 +981,8 @@ module ldu_dq_tb ();
 			"\n\t\tEntries:",
 			"\n\t\t\t", "3: i",
 			"\n\t\t\t", "2: v 7 n",
-			"\n\t\t\t", "1: v 6 r",
-			"\n\t\t\t", "0: v 5 r (ROB RESTARTING)"
+			"\n\t\t\t", "1: vK 6 r",
+			"\n\t\t\t", "0: vK 5 r"
 		};
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -967,8 +1010,10 @@ module ldu_dq_tb ();
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
 		tb_ldu_iq_enq_ready = 1'b1;
-	    // restart from ROB
-		tb_rob_restart_valid = 1'b1;
+	    // ROB kill
+		tb_rob_kill_valid = 1'b1;
+		tb_rob_kill_abs_head_index = 7'h0;
+		tb_rob_kill_rel_kill_younger_index = 7'h95;
 
 		@(negedge CLK);
 
@@ -980,6 +1025,7 @@ module ldu_dq_tb ();
 	    // writeback bus by bank
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b1;
+		expected_ldu_cq_enq_killed = 1'b1;
 		expected_ldu_cq_enq_mdp_info = 8'h5a;
 		expected_ldu_cq_enq_dest_PR = 7'ha5;
 		expected_ldu_cq_enq_ROB_index = 7'ha5;
@@ -1008,9 +1054,9 @@ module ldu_dq_tb ();
 			"\n\t\t\t", "0: v 9 n",
 			"\n\t\tEntries:",
 			"\n\t\t\t", "3: i",
-			"\n\t\t\t", "2: i",
-			"\n\t\t\t", "1: i",
-			"\n\t\t\t", "0: i"
+			"\n\t\t\t", "2: v 8 n",
+			"\n\t\t\t", "1: v 7 n",
+			"\n\t\t\t", "0: vK 6 r"
 		};
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -1038,8 +1084,10 @@ module ldu_dq_tb ();
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
 		tb_ldu_iq_enq_ready = 1'b1;
-	    // restart from ROB
-		tb_rob_restart_valid = 1'b1;
+	    // ROB kill
+		tb_rob_kill_valid = 1'b0;
+		tb_rob_kill_abs_head_index = 7'h0;
+		tb_rob_kill_rel_kill_younger_index = 7'h0;
 
 		@(negedge CLK);
 
@@ -1047,22 +1095,97 @@ module ldu_dq_tb ();
 
 	    // op dispatch by way
 	    // op dispatch feedback
-		expected_dispatch_ack_by_way = 4'b1111;
+		expected_dispatch_ack_by_way = 4'b0001;
 	    // writeback bus by bank
 	    // op enqueue to central queue
-		expected_ldu_cq_enq_valid = 1'b0;
-		expected_ldu_cq_enq_mdp_info = 8'h5a;
-		expected_ldu_cq_enq_dest_PR = 7'ha5;
-		expected_ldu_cq_enq_ROB_index = 7'ha5;
+		expected_ldu_cq_enq_valid = 1'b1;
+		expected_ldu_cq_enq_killed = 1'b1;
+		expected_ldu_cq_enq_mdp_info = 8'h69;
+		expected_ldu_cq_enq_dest_PR = 7'h96;
+		expected_ldu_cq_enq_ROB_index = 7'h96;
 	    // central queue enqueue feedback
 	    // op enqueue to issue queue
-		expected_ldu_iq_enq_valid = 1'b0;
-		expected_ldu_iq_enq_op = 4'b0101;
-		expected_ldu_iq_enq_imm12 = 12'h555;
-		expected_ldu_iq_enq_A_PR = 7'h5;
+		expected_ldu_iq_enq_valid = 1'b1;
+		expected_ldu_iq_enq_op = 4'b0110;
+		expected_ldu_iq_enq_imm12 = 12'h666;
+		expected_ldu_iq_enq_A_PR = 7'h6;
 		expected_ldu_iq_enq_A_ready = 1'b1;
 		expected_ldu_iq_enq_A_is_zero = 1'b0;
 		expected_ldu_iq_enq_cq_index = 6;
+	    // issue queue enqueue feedback
+	    // restart from ROB
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tDispatch:",
+			"\n\t\t\t", "3: v C n",
+			"\n\t\t\t", "2: v B r",
+			"\n\t\t\t", "1: v A n",
+			"\n\t\t\t", "0: i 9 n",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: v 9 n",
+			"\n\t\t\t", "1: v 8 n",
+			"\n\t\t\t", "0: v 7 n"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op dispatch by way
+		tb_dispatch_attempt_by_way = 4'b1110;
+		tb_dispatch_valid_by_way = 4'b1110;
+		tb_dispatch_op_by_way = {4'b1100, 4'b1011, 4'b1010, 4'b1001};
+		tb_dispatch_imm12_by_way = {12'hccc, 12'hbbb, 12'haaa, 12'h999};
+		tb_dispatch_mdp_info_by_way = {8'hc3, 8'hb4, 8'ha5, 8'h96};
+		tb_dispatch_A_PR_by_way = {7'hc, 7'hb, 7'ha, 7'h9};
+		tb_dispatch_A_ready_by_way = 4'b0100;
+		tb_dispatch_A_is_zero_by_way = 4'b0000;
+		tb_dispatch_dest_PR_by_way = {7'h3c, 7'h4b, 7'h5a, 7'h69};
+		tb_dispatch_ROB_index_by_way = {7'h3c, 7'h4b, 7'h5a, 7'h69};
+	    // op dispatch feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // op enqueue to central queue
+	    // central queue enqueue feedback
+		tb_ldu_cq_enq_ready = 1'b1;
+		tb_ldu_cq_enq_index = 7;
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		tb_ldu_iq_enq_ready = 1'b1;
+	    // ROB kill
+		tb_rob_kill_valid = 1'b0;
+		tb_rob_kill_abs_head_index = 7'h0;
+		tb_rob_kill_rel_kill_younger_index = 7'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op dispatch by way
+	    // op dispatch feedback
+		expected_dispatch_ack_by_way = 4'b0010;
+	    // writeback bus by bank
+	    // op enqueue to central queue
+		expected_ldu_cq_enq_valid = 1'b1;
+		expected_ldu_cq_enq_killed = 1'b0;
+		expected_ldu_cq_enq_mdp_info = 8'h78;
+		expected_ldu_cq_enq_dest_PR = 7'h87;
+		expected_ldu_cq_enq_ROB_index = 7'h87;
+	    // central queue enqueue feedback
+	    // op enqueue to issue queue
+		expected_ldu_iq_enq_valid = 1'b1;
+		expected_ldu_iq_enq_op = 4'b0111;
+		expected_ldu_iq_enq_imm12 = 12'h777;
+		expected_ldu_iq_enq_A_PR = 7'h7;
+		expected_ldu_iq_enq_A_ready = 1'b0;
+		expected_ldu_iq_enq_A_is_zero = 1'b0;
+		expected_ldu_iq_enq_cq_index = 7;
 	    // issue queue enqueue feedback
 	    // restart from ROB
 
