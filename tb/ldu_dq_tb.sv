@@ -680,6 +680,80 @@ module ldu_dq_tb ();
 			"\n\t\tDispatch:",
 			"\n\t\t\t", "3: i",
 			"\n\t\t\t", "2: i",
+			"\n\t\t\t", "1: i 5 n",
+			"\n\t\t\t", "0: i 4 n",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: v 4 n",
+			"\n\t\t\t", "1: v 3 r",
+			"\n\t\t\t", "0: v 2 n (not ready)"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op dispatch by way
+		tb_dispatch_attempt_by_way = 4'b0010;
+		tb_dispatch_valid_by_way = 4'b0001;
+		tb_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0101, 4'b0100};
+		tb_dispatch_imm12_by_way = {12'h000, 12'h000, 12'h555, 12'h444};
+		tb_dispatch_mdp_info_by_way = {8'h00, 8'h00, 8'h5a, 8'h4b};
+		tb_dispatch_A_PR_by_way = {7'h0, 7'h0, 7'h5, 7'h4};
+		tb_dispatch_A_ready_by_way = 4'b0000;
+		tb_dispatch_A_is_zero_by_way = 4'b0000;
+		tb_dispatch_dest_PR_by_way = {7'h00, 7'h00, 7'ha5, 7'hb4};
+		tb_dispatch_ROB_index_by_way = {7'h00, 7'h00, 7'ha5, 7'hb4};
+	    // op dispatch feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // op enqueue to central queue
+	    // central queue enqueue feedback
+		tb_ldu_cq_enq_ready = 1'b0;
+		tb_ldu_cq_enq_index = 2;
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		tb_ldu_iq_enq_ready = 1'b1;
+	    // ROB kill
+		tb_rob_kill_valid = 1'b0;
+		tb_rob_kill_abs_head_index = 7'h0;
+		tb_rob_kill_rel_kill_younger_index = 7'h0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op dispatch by way
+	    // op dispatch feedback
+		expected_dispatch_ack_by_way = 4'b0010;
+	    // writeback bus by bank
+	    // op enqueue to central queue
+		expected_ldu_cq_enq_valid = 1'b0;
+		expected_ldu_cq_enq_killed = 1'b0;
+		expected_ldu_cq_enq_mdp_info = 8'h2d;
+		expected_ldu_cq_enq_dest_PR = 7'hd2;
+		expected_ldu_cq_enq_ROB_index = 7'hd2;
+	    // central queue enqueue feedback
+	    // op enqueue to issue queue
+		expected_ldu_iq_enq_valid = 1'b0;
+		expected_ldu_iq_enq_op = 4'b0010;
+		expected_ldu_iq_enq_imm12 = 12'h222;
+		expected_ldu_iq_enq_A_PR = 7'h2;
+		expected_ldu_iq_enq_A_ready = 1'b0;
+		expected_ldu_iq_enq_A_is_zero = 1'b0;
+		expected_ldu_iq_enq_cq_index = 2;
+	    // issue queue enqueue feedback
+	    // restart from ROB
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tDispatch:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: i",
 			"\n\t\t\t", "1: v 5 n",
 			"\n\t\t\t", "0: i 4 n",
 			"\n\t\tEntries:",
@@ -709,11 +783,11 @@ module ldu_dq_tb ();
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
 	    // op enqueue to central queue
 	    // central queue enqueue feedback
-		tb_ldu_cq_enq_ready = 1'b0;
+		tb_ldu_cq_enq_ready = 1'b1;
 		tb_ldu_cq_enq_index = 2;
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
-		tb_ldu_iq_enq_ready = 1'b1;
+		tb_ldu_iq_enq_ready = 1'b0;
 	    // ROB kill
 		tb_rob_kill_valid = 1'b0;
 		tb_rob_kill_abs_head_index = 7'h0;
@@ -1009,7 +1083,7 @@ module ldu_dq_tb ();
 		tb_ldu_cq_enq_index = 5;
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
-		tb_ldu_iq_enq_ready = 1'b1;
+		tb_ldu_iq_enq_ready = 1'b0;
 	    // ROB kill
 		tb_rob_kill_valid = 1'b1;
 		tb_rob_kill_abs_head_index = 7'h0;
@@ -1031,7 +1105,7 @@ module ldu_dq_tb ();
 		expected_ldu_cq_enq_ROB_index = 7'ha5;
 	    // central queue enqueue feedback
 	    // op enqueue to issue queue
-		expected_ldu_iq_enq_valid = 1'b1;
+		expected_ldu_iq_enq_valid = 1'b0;
 		expected_ldu_iq_enq_op = 4'b0101;
 		expected_ldu_iq_enq_imm12 = 12'h555;
 		expected_ldu_iq_enq_A_PR = 7'h5;
@@ -1056,7 +1130,7 @@ module ldu_dq_tb ();
 			"\n\t\t\t", "3: i",
 			"\n\t\t\t", "2: v 8 n",
 			"\n\t\t\t", "1: v 7 n",
-			"\n\t\t\t", "0: vK 6 r"
+			"\n\t\t\t", "0: k 6 r"
 		};
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -1105,7 +1179,7 @@ module ldu_dq_tb ();
 		expected_ldu_cq_enq_ROB_index = 7'h96;
 	    // central queue enqueue feedback
 	    // op enqueue to issue queue
-		expected_ldu_iq_enq_valid = 1'b1;
+		expected_ldu_iq_enq_valid = 1'b0;
 		expected_ldu_iq_enq_op = 4'b0110;
 		expected_ldu_iq_enq_imm12 = 12'h666;
 		expected_ldu_iq_enq_A_PR = 7'h6;

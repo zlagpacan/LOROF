@@ -101,20 +101,27 @@ module ldu_dq #(
     logic [3:0][LDU_DQ_ENTRIES-1:0] dispatch_one_hot_by_way;
 
     // launching
+    logic killed_at_0;
     logic launching;
 
     // ----------------------------------------------------------------
     // Launch Logic:
 
+    assign killed_at_0 = killed_by_entry[0] | new_killed_by_entry[0];
+
     assign launching = 
         valid_by_entry[0] 
         & ldu_cq_enq_ready 
-        & ldu_iq_enq_ready;
+        & (ldu_iq_enq_ready
+            | killed_at_0);
 
-    // new ready check
+    // new ready and killed checks
     always_comb begin
         for (int i = 0; i < LDU_DQ_ENTRIES; i++) begin
-            new_A_ready_by_entry[i] = (A_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
+            new_A_ready_by_entry[i] = 
+                (A_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) 
+                & WB_bus_valid_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
+
             new_killed_by_entry[i] = rob_kill_valid & 
                 (ROB_index_by_entry[i] - rob_kill_abs_head_index) > rob_kill_rel_kill_younger_index;
         end
@@ -128,7 +135,7 @@ module ldu_dq #(
         ldu_cq_enq_dest_PR = dest_PR_by_entry[0];
         ldu_cq_enq_ROB_index = ROB_index_by_entry[0];
 
-        ldu_iq_enq_valid = launching;
+        ldu_iq_enq_valid = launching & ~killed_at_0;
         ldu_iq_enq_op = op_by_entry[0];
         ldu_iq_enq_imm12 = imm12_by_entry[0];
         ldu_iq_enq_A_PR = A_PR_by_entry[0];
