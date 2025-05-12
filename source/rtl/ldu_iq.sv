@@ -9,7 +9,7 @@
 import core_types_pkg::*;
 
 module ldu_iq #(
-    parameter LDU_IQ_ENTRIES = 4
+    parameter LDU_IQ_ENTRIES = 8
 ) (
     // seq
     input logic CLK,

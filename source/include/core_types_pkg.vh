@@ -176,7 +176,6 @@ package core_types_pkg;
     parameter STAMOFU_CQ_ENTRIES = 24;
     parameter LOG_STAMOFU_CQ_ENTRIES = $clog2(STAMOFU_CQ_ENTRIES);
     parameter STAMOFU_AQ_ENTRIES = 4;
-    parameter LOG_STAMOFU_AQ_ENTRIES = $clog2(STAMOFU_AQ_ENTRIES);
     parameter STAMOFU_MQ_ENTRIES = 4;
     parameter LOG_STAMOFU_MQ_ENTRIES = $clog2(STAMOFU_MQ_ENTRIES);
 

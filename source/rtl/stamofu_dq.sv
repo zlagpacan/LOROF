@@ -78,7 +78,7 @@ module stamofu_dq #(
     output logic [LOG_PR_COUNT-1:0]             stamofu_iq_enq_B_PR,
     output logic                                stamofu_iq_enq_B_ready,
     output logic                                stamofu_iq_enq_B_is_zero,
-    output logic [LOG_ROB_ENTRIES-1:0]          stamofu_iq_enq_ROB_index, // to update aq entry if still exists
+    output logic [LOG_ROB_ENTRIES-1:0]          stamofu_iq_enq_ROB_index,
     output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   stamofu_iq_enq_cq_index,
 
     // issue queue enqueue feedback
