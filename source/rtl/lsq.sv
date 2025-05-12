@@ -380,6 +380,9 @@ module lsq (
             // ldu_dq
                 // Dispatch Queue
 
+            // ldu_iq
+                // Issue Queue
+
             // ldu_addr_pipeline
 
             // ldu_cq
@@ -393,6 +396,9 @@ module lsq (
             // stamofu_dq
                 // Dispatch Queue
 
+            // stamofu_iq
+                // Issue Queue
+
             // stamofu_addr_pipeline
 
             // stamofu_cq
@@ -401,11 +407,9 @@ module lsq (
             // stamofu_mq
                 // Misaligned Queue
 
-        // mem_aq_q
-            // Mem Acquire Queue
-
-        // io_aq_q
-            // IO Acquire Queue
+            // stamofu_aq
+                // Acquire Queue
+                // reference via ROB_index
 
 
     // misc:
