@@ -383,7 +383,14 @@ module lsq (
             // ldu_iq
                 // Issue Queue
 
-            // ldu_addr_pipeline
+            // ldu_pipeline
+                // pipeline for:
+                    // operand collection
+                    // address calculation
+                    // ldu_mq allocation
+                    // dTLB lookup
+                    // (initial) dcache launch
+                    // stamofu CAM
 
             // ldu_cq
                 // Central Queue
@@ -399,7 +406,13 @@ module lsq (
             // stamofu_iq
                 // Issue Queue
 
-            // stamofu_addr_pipeline
+            // stamofu_pipeline
+                // pipeline for:
+                    // operand collection
+                    // address calculation
+                    // stamofu_mq allocation
+                    // dTLB lookup
+                    // ldu CAM
 
             // stamofu_cq
                 // Central Queue
