@@ -57,7 +57,6 @@ module stamofu_dq #(
     output logic                                stamofu_cq_enq_io_rl,
     output logic [LOG_PR_COUNT-1:0]             stamofu_cq_enq_dest_PR,
     output logic [LOG_ROB_ENTRIES-1:0]          stamofu_cq_enq_ROB_index,
-    output logic [LOG_STAMOFU_AQ_ENTRIES-1:0]   stamofu_cq_enq_aq_index,
 
     // central queue enqueue feedback
     input logic                                 stamofu_cq_enq_ready,
@@ -79,7 +78,7 @@ module stamofu_dq #(
     output logic [LOG_PR_COUNT-1:0]             stamofu_iq_enq_B_PR,
     output logic                                stamofu_iq_enq_B_ready,
     output logic                                stamofu_iq_enq_B_is_zero,
-    output logic [LOG_ROB_ENTRIES-1:0]          stamofu_aq_enq_ROB_index, // to update aq entry if still exists
+    output logic [LOG_ROB_ENTRIES-1:0]          stamofu_iq_enq_ROB_index, // to update aq entry if still exists
     output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   stamofu_iq_enq_cq_index,
 
     // issue queue enqueue feedback
@@ -105,6 +104,7 @@ module stamofu_dq #(
 
     // DQ entries
     logic [STAMOFU_DQ_ENTRIES-1:0]                          valid_by_entry;
+    logic [STAMOFU_DQ_ENTRIES-1:0]                          killed_by_entry;
     logic [STAMOFU_DQ_ENTRIES-1:0]                          is_store_by_entry;
     logic [STAMOFU_DQ_ENTRIES-1:0]                          is_amo_by_entry;
     logic [STAMOFU_DQ_ENTRIES-1:0]                          is_fence_by_entry;
@@ -115,18 +115,21 @@ module stamofu_dq #(
     logic [STAMOFU_DQ_ENTRIES-1:0]                          io_aq_by_entry;
     logic [STAMOFU_DQ_ENTRIES-1:0]                          mem_rl_by_entry;
     logic [STAMOFU_DQ_ENTRIES-1:0]                          io_rl_by_entry;
-    logic [STAMOFU_DQ_ENTRIES-1:0]                          A_PR_by_entry;
+    logic [STAMOFU_DQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]        A_PR_by_entry;
     logic [STAMOFU_DQ_ENTRIES-1:0]                          A_ready_by_entry;
     logic [STAMOFU_DQ_ENTRIES-1:0]                          A_is_zero_by_entry;
-    logic [STAMOFU_DQ_ENTRIES-1:0]                          B_PR_by_entry;
+    logic [STAMOFU_DQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]        B_PR_by_entry;
     logic [STAMOFU_DQ_ENTRIES-1:0]                          B_ready_by_entry;
     logic [STAMOFU_DQ_ENTRIES-1:0]                          B_is_zero_by_entry;
-    logic [STAMOFU_DQ_ENTRIES-1:0]                          dest_PR_by_entry;
-    logic [STAMOFU_DQ_ENTRIES-1:0]                          ROB_index_by_entry;
+    logic [STAMOFU_DQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]        dest_PR_by_entry;
+    logic [STAMOFU_DQ_ENTRIES-1:0][LOG_ROB_ENTRIES-1:0]     ROB_index_by_entry;
 
     // new ready check
     logic [STAMOFU_DQ_ENTRIES-1:0] new_A_ready_by_entry;
     logic [STAMOFU_DQ_ENTRIES-1:0] new_B_ready_by_entry;
+
+    // new kill check
+    logic [STAMOFU_DQ_ENTRIES-1:0] new_killed_by_entry;
 
     // incoming dispatch crossbar by entry
     logic [STAMOFU_DQ_ENTRIES-1:0]                          dispatch_valid_by_entry;
@@ -140,14 +143,14 @@ module stamofu_dq #(
     logic [STAMOFU_DQ_ENTRIES-1:0]                          dispatch_io_aq_by_entry;
     logic [STAMOFU_DQ_ENTRIES-1:0]                          dispatch_mem_rl_by_entry;
     logic [STAMOFU_DQ_ENTRIES-1:0]                          dispatch_io_rl_by_entry;
-    logic [STAMOFU_DQ_ENTRIES-1:0]                          dispatch_A_PR_by_entry;
+    logic [STAMOFU_DQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]        dispatch_A_PR_by_entry;
     logic [STAMOFU_DQ_ENTRIES-1:0]                          dispatch_A_ready_by_entry;
     logic [STAMOFU_DQ_ENTRIES-1:0]                          dispatch_A_is_zero_by_entry;
-    logic [STAMOFU_DQ_ENTRIES-1:0]                          dispatch_B_PR_by_entry;
+    logic [STAMOFU_DQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]        dispatch_B_PR_by_entry;
     logic [STAMOFU_DQ_ENTRIES-1:0]                          dispatch_B_ready_by_entry;
     logic [STAMOFU_DQ_ENTRIES-1:0]                          dispatch_B_is_zero_by_entry;
-    logic [STAMOFU_DQ_ENTRIES-1:0]                          dispatch_dest_PR_by_entry;
-    logic [STAMOFU_DQ_ENTRIES-1:0]                          dispatch_ROB_index_by_entry;
+    logic [STAMOFU_DQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]        dispatch_dest_PR_by_entry;
+    logic [STAMOFU_DQ_ENTRIES-1:0][LOG_ROB_ENTRIES-1:0]     dispatch_ROB_index_by_entry;
 
     // incoming dispatch req masks for each of 4 possible dispatch ways
     logic [3:0][STAMOFU_DQ_ENTRIES-1:0] dispatch_open_mask_by_way;
@@ -210,7 +213,7 @@ module stamofu_dq #(
         stamofu_iq_enq_valid = 
             launching
             & ~(killed_at_0
-                | ~(mem_aq_by_entry[0] | io_aq_by_entry[0]));
+                | (is_fence_by_entry[0] & ~op_by_entry[1]));
         stamofu_iq_enq_is_store = is_store_by_entry[0];
         stamofu_iq_enq_is_amo = is_amo_by_entry[0];
         stamofu_iq_enq_is_fence = is_fence_by_entry[0];
@@ -225,7 +228,314 @@ module stamofu_dq #(
         stamofu_iq_enq_B_PR = B_PR_by_entry[0];
         stamofu_iq_enq_B_ready = B_ready_by_entry[0] | new_B_ready_by_entry[0];
         stamofu_iq_enq_B_is_zero = B_is_zero_by_entry[0];
-        stamofu_iq_enq_cq_index = stamofu_cq_enq_index[0];
+        stamofu_iq_enq_ROB_index = ROB_index_by_entry[0];
+        stamofu_iq_enq_cq_index = stamofu_cq_enq_index;
+
+        stamofu_aq_enq_valid = 
+            launching
+            & ~(killed_at_0
+                | ~(mem_aq_by_entry[0] | io_aq_by_entry[0]));
+        stamofu_aq_enq_mem_aq = mem_aq_by_entry[0];
+        stamofu_aq_enq_io_aq = io_aq_by_entry[0];
+        stamofu_aq_enq_ROB_index = ROB_index_by_entry[0];
+    end
+
+    // ----------------------------------------------------------------
+    // Dispatch Logic:
+
+    // way 0
+    assign dispatch_open_mask_by_way[0] = ~valid_by_entry;
+    pe_lsb #(.WIDTH(STAMOFU_DQ_ENTRIES)) DISPATCH_WAY0_PE_LSB (
+        .req_vec(dispatch_open_mask_by_way[0]),
+        .ack_one_hot(dispatch_pe_one_hot_by_way[0]),
+        .ack_mask() // unused
+    );
+    assign dispatch_one_hot_by_way[0] = dispatch_pe_one_hot_by_way[0] & {STAMOFU_DQ_ENTRIES{dispatch_attempt_by_way[0]}};
+
+    // way 1
+    assign dispatch_open_mask_by_way[1] = dispatch_open_mask_by_way[0] & ~dispatch_one_hot_by_way[0];
+    pe_lsb #(.WIDTH(STAMOFU_DQ_ENTRIES)) DISPATCH_WAY1_PE_LSB (
+        .req_vec(dispatch_open_mask_by_way[1]),
+        .ack_one_hot(dispatch_pe_one_hot_by_way[1]),
+        .ack_mask() // unused
+    );
+    assign dispatch_one_hot_by_way[1] = dispatch_pe_one_hot_by_way[1] & {STAMOFU_DQ_ENTRIES{dispatch_attempt_by_way[1]}};
+    
+    assign dispatch_open_mask_by_way[2] = dispatch_open_mask_by_way[1] & ~dispatch_one_hot_by_way[1];
+    pe_lsb #(.WIDTH(STAMOFU_DQ_ENTRIES)) DISPATCH_WAY2_PE_LSB (
+        .req_vec(dispatch_open_mask_by_way[2]),
+        .ack_one_hot(dispatch_pe_one_hot_by_way[2]),
+        .ack_mask() // unused
+    );
+    assign dispatch_one_hot_by_way[2] = dispatch_pe_one_hot_by_way[2] & {STAMOFU_DQ_ENTRIES{dispatch_attempt_by_way[2]}};
+    
+    assign dispatch_open_mask_by_way[3] = dispatch_open_mask_by_way[2] & ~dispatch_one_hot_by_way[2];
+    pe_lsb #(.WIDTH(STAMOFU_DQ_ENTRIES)) DISPATCH_WAY3_PE_LSB (
+        .req_vec(dispatch_open_mask_by_way[3]),
+        .ack_one_hot(dispatch_pe_one_hot_by_way[3]),
+        .ack_mask() // unused
+    );
+    assign dispatch_one_hot_by_way[3] = dispatch_pe_one_hot_by_way[3] & {STAMOFU_DQ_ENTRIES{dispatch_attempt_by_way[3]}};
+
+    // give dispatch feedback
+    always_comb begin
+        for (int way = 0; way < 4; way++) begin
+            dispatch_ack_by_way[way] = |(dispatch_open_mask_by_way[way] & {STAMOFU_DQ_ENTRIES{dispatch_attempt_by_way[way]}});
+        end
+    end
+
+    // route PE'd dispatch to entries
+    always_comb begin
+    
+        dispatch_valid_by_entry = '0;
+        dispatch_is_store_by_entry = '0;
+        dispatch_is_amo_by_entry = '0;
+        dispatch_is_fence_by_entry = '0;
+        dispatch_op_by_entry = '0;
+        dispatch_imm12_by_entry = '0;
+        dispatch_mdp_info_by_entry = '0;
+        dispatch_mem_aq_by_entry = '0;
+        dispatch_io_aq_by_entry = '0;
+        dispatch_mem_rl_by_entry = '0;
+        dispatch_io_rl_by_entry = '0;
+        dispatch_A_PR_by_entry = '0;
+        dispatch_A_ready_by_entry = '0;
+        dispatch_A_is_zero_by_entry = '0;
+        dispatch_B_PR_by_entry = '0;
+        dispatch_B_ready_by_entry = '0;
+        dispatch_B_is_zero_by_entry = '0;
+        dispatch_dest_PR_by_entry = '0;
+        dispatch_ROB_index_by_entry = '0;
+
+        // one-hot mux selecting among ways at each entry
+        for (int entry = 0; entry < STAMOFU_DQ_ENTRIES; entry++) begin
+
+            for (int way = 0; way < 4; way++) begin
+
+                if (dispatch_one_hot_by_way[way][entry]) begin
+
+                    dispatch_valid_by_entry[entry] |= 
+                        dispatch_valid_store_by_way[way]
+                        | dispatch_valid_amo_by_way[way]
+                        | dispatch_valid_fence_by_way[way];
+                    dispatch_is_store_by_entry[entry] |= dispatch_valid_store_by_way[way];
+                    dispatch_is_amo_by_entry[entry] |= dispatch_valid_amo_by_way[way];
+                    dispatch_is_fence_by_entry[entry] |= dispatch_valid_fence_by_way[way];
+                    dispatch_op_by_entry[entry] |= dispatch_op_by_way[way];
+                    dispatch_imm12_by_entry[entry] |= dispatch_imm12_by_way[way];
+                    dispatch_mdp_info_by_entry[entry] |= dispatch_mdp_info_by_way[way];
+                    dispatch_mem_aq_by_entry[entry] |= dispatch_mem_aq_by_way[way];
+                    dispatch_io_aq_by_entry[entry] |= dispatch_io_aq_by_way[way];
+                    dispatch_mem_rl_by_entry[entry] |= dispatch_mem_rl_by_way[way];
+                    dispatch_io_rl_by_entry[entry] |= dispatch_io_rl_by_way[way];
+                    dispatch_A_PR_by_entry[entry] |= dispatch_A_PR_by_way[way];
+                    dispatch_A_ready_by_entry[entry] |= dispatch_A_ready_by_way[way];
+                    dispatch_A_is_zero_by_entry[entry] |= dispatch_A_is_zero_by_way[way];
+                    dispatch_B_PR_by_entry[entry] |= dispatch_B_PR_by_way[way];
+                    dispatch_B_ready_by_entry[entry] |= dispatch_B_ready_by_way[way];
+                    dispatch_B_is_zero_by_entry[entry] |= dispatch_B_is_zero_by_way[way];
+                    dispatch_dest_PR_by_entry[entry] |= dispatch_dest_PR_by_way[way];
+                    dispatch_ROB_index_by_entry[entry] |= dispatch_ROB_index_by_way[way];
+                end
+            end
+        end
+    end
+
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            valid_by_entry <= '0;
+            killed_by_entry <= '0;
+            is_store_by_entry <= '0;
+            is_amo_by_entry <= '0;
+            is_fence_by_entry <= '0;
+            op_by_entry <= '0;
+            imm12_by_entry <= '0;
+            mdp_info_by_entry <= '0;
+            mem_aq_by_entry <= '0;
+            io_aq_by_entry <= '0;
+            mem_rl_by_entry <= '0;
+            io_rl_by_entry <= '0;
+            A_PR_by_entry <= '0;
+            A_ready_by_entry <= '0;
+            A_is_zero_by_entry <= '0;
+            B_PR_by_entry <= '0;
+            B_ready_by_entry <= '0;
+            B_is_zero_by_entry <= '0;
+            dest_PR_by_entry <= '0;
+            ROB_index_by_entry <= '0;
+        end
+        else begin
+
+            // --------------------------------------------------------
+            // highest entry only takes self:
+                // self: [STAMOFU_DQ_ENTRIES-1]
+
+            // check launch -> clear entry
+            if (launching) begin
+                valid_by_entry[STAMOFU_DQ_ENTRIES-1] <= 1'b0;
+            end
+
+            // otherwise take self
+            else begin
+
+                // take self valid entry
+                if (valid_by_entry[STAMOFU_DQ_ENTRIES-1]) begin
+                    valid_by_entry[STAMOFU_DQ_ENTRIES-1] <= 1'b1;
+                    killed_by_entry[STAMOFU_DQ_ENTRIES-1] <= killed_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    is_store_by_entry[STAMOFU_DQ_ENTRIES-1] <= is_store_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    is_amo_by_entry[STAMOFU_DQ_ENTRIES-1] <= is_amo_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    is_fence_by_entry[STAMOFU_DQ_ENTRIES-1] <= is_fence_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    op_by_entry[STAMOFU_DQ_ENTRIES-1] <= op_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    imm12_by_entry[STAMOFU_DQ_ENTRIES-1] <= imm12_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    mdp_info_by_entry[STAMOFU_DQ_ENTRIES-1] <= mdp_info_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    mem_aq_by_entry[STAMOFU_DQ_ENTRIES-1] <= mem_aq_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    io_aq_by_entry[STAMOFU_DQ_ENTRIES-1] <= io_aq_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    mem_rl_by_entry[STAMOFU_DQ_ENTRIES-1] <= mem_rl_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    io_rl_by_entry[STAMOFU_DQ_ENTRIES-1] <= io_rl_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    A_PR_by_entry[STAMOFU_DQ_ENTRIES-1] <= A_PR_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    A_ready_by_entry[STAMOFU_DQ_ENTRIES-1] <= A_ready_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    A_is_zero_by_entry[STAMOFU_DQ_ENTRIES-1] <= A_is_zero_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    B_PR_by_entry[STAMOFU_DQ_ENTRIES-1] <= B_PR_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    B_ready_by_entry[STAMOFU_DQ_ENTRIES-1] <= B_ready_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    B_is_zero_by_entry[STAMOFU_DQ_ENTRIES-1] <= B_is_zero_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    dest_PR_by_entry[STAMOFU_DQ_ENTRIES-1] <= dest_PR_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    ROB_index_by_entry[STAMOFU_DQ_ENTRIES-1] <= ROB_index_by_entry[STAMOFU_DQ_ENTRIES-1];
+                end
+
+                // take self dispatch
+                else begin
+                    valid_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_valid_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    killed_by_entry[STAMOFU_DQ_ENTRIES-1] <= 1'b0;
+                    is_store_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_is_store_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    is_amo_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_is_amo_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    is_fence_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_is_fence_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    op_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_op_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    imm12_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_imm12_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    mdp_info_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_mdp_info_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    mem_aq_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_mem_aq_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    io_aq_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_io_aq_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    mem_rl_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_mem_rl_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    io_rl_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_io_rl_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    A_PR_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_A_PR_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    A_ready_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_A_ready_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    A_is_zero_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_A_is_zero_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    B_PR_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_B_PR_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    B_ready_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_B_ready_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    B_is_zero_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_B_is_zero_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    dest_PR_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_dest_PR_by_entry[STAMOFU_DQ_ENTRIES-1];
+                    ROB_index_by_entry[STAMOFU_DQ_ENTRIES-1] <= dispatch_ROB_index_by_entry[STAMOFU_DQ_ENTRIES-1];
+                end
+            end
+
+            // --------------------------------------------------------
+            // remaining lower entries can take self or above
+            for (int i = 0; i <= LDU_DQ_ENTRIES-2; i++) begin
+
+                // check launch -> take above
+                if (launching) begin
+                    
+                    // take valid entry above
+                    if (valid_by_entry[i+1]) begin
+                        valid_by_entry[i] <= 1'b1;
+                        killed_by_entry[i] <= killed_by_entry[i+1] | new_killed_by_entry[i+1];
+                        is_store_by_entry[i] <= is_store_by_entry[i+1];
+                        is_amo_by_entry[i] <= is_amo_by_entry[i+1];
+                        is_fence_by_entry[i] <= is_fence_by_entry[i+1];
+                        op_by_entry[i] <= op_by_entry[i+1];
+                        imm12_by_entry[i] <= imm12_by_entry[i+1];
+                        mdp_info_by_entry[i] <= mdp_info_by_entry[i+1];
+                        mem_aq_by_entry[i] <= mem_aq_by_entry[i+1];
+                        io_aq_by_entry[i] <= io_aq_by_entry[i+1];
+                        mem_rl_by_entry[i] <= mem_rl_by_entry[i+1];
+                        io_rl_by_entry[i] <= io_rl_by_entry[i+1];
+                        A_PR_by_entry[i] <= A_PR_by_entry[i+1];
+                        A_ready_by_entry[i] <= A_ready_by_entry[i+1] | new_A_ready_by_entry[i+1];
+                        A_is_zero_by_entry[i] <= A_is_zero_by_entry[i+1];
+                        B_PR_by_entry[i] <= B_PR_by_entry[i+1];
+                        B_ready_by_entry[i] <= B_ready_by_entry[i+1] | new_B_ready_by_entry[i+1];
+                        B_is_zero_by_entry[i] <= B_is_zero_by_entry[i+1];
+                        dest_PR_by_entry[i] <= dest_PR_by_entry[i+1];
+                        ROB_index_by_entry[i] <= ROB_index_by_entry[i+1];
+                    end
+
+                    // take dispatch above
+                    else begin
+                        valid_by_entry[i] <= dispatch_valid_by_entry[i+1];
+                        killed_by_entry[i] <= 1'b0;
+                        is_store_by_entry[i] <= dispatch_is_store_by_entry[i+1];
+                        is_amo_by_entry[i] <= dispatch_is_amo_by_entry[i+1];
+                        is_fence_by_entry[i] <= dispatch_is_fence_by_entry[i+1];
+                        op_by_entry[i] <= dispatch_op_by_entry[i+1];
+                        imm12_by_entry[i] <= dispatch_imm12_by_entry[i+1];
+                        mdp_info_by_entry[i] <= dispatch_mdp_info_by_entry[i+1];
+                        mem_aq_by_entry[i] <= dispatch_mem_aq_by_entry[i+1];
+                        io_aq_by_entry[i] <= dispatch_io_aq_by_entry[i+1];
+                        mem_rl_by_entry[i] <= dispatch_mem_rl_by_entry[i+1];
+                        io_rl_by_entry[i] <= dispatch_io_rl_by_entry[i+1];
+                        A_PR_by_entry[i] <= dispatch_A_PR_by_entry[i+1];
+                        A_ready_by_entry[i] <= dispatch_A_ready_by_entry[i+1];
+                        A_is_zero_by_entry[i] <= dispatch_A_is_zero_by_entry[i+1];
+                        B_PR_by_entry[i] <= dispatch_B_PR_by_entry[i+1];
+                        B_ready_by_entry[i] <= dispatch_B_ready_by_entry[i+1];
+                        B_is_zero_by_entry[i] <= dispatch_B_is_zero_by_entry[i+1];
+                        dest_PR_by_entry[i] <= dispatch_dest_PR_by_entry[i+1];
+                        ROB_index_by_entry[i] <= dispatch_ROB_index_by_entry[i+1];
+                    end
+                end
+
+                // otherwise take self
+                else begin
+                    
+                    // take self valid entry
+                    if (valid_by_entry[i]) begin
+                        valid_by_entry[i] <= 1'b1;
+                        killed_by_entry[i] <= killed_by_entry[i] | new_killed_by_entry[i];
+                        is_store_by_entry[i] <= is_store_by_entry[i];
+                        is_amo_by_entry[i] <= is_amo_by_entry[i];
+                        is_fence_by_entry[i] <= is_fence_by_entry[i];
+                        op_by_entry[i] <= op_by_entry[i];
+                        imm12_by_entry[i] <= imm12_by_entry[i];
+                        mdp_info_by_entry[i] <= mdp_info_by_entry[i];
+                        mem_aq_by_entry[i] <= mem_aq_by_entry[i];
+                        io_aq_by_entry[i] <= io_aq_by_entry[i];
+                        mem_rl_by_entry[i] <= mem_rl_by_entry[i];
+                        io_rl_by_entry[i] <= io_rl_by_entry[i];
+                        A_PR_by_entry[i] <= A_PR_by_entry[i];
+                        A_ready_by_entry[i] <= A_ready_by_entry[i] | new_A_ready_by_entry[i];
+                        A_is_zero_by_entry[i] <= A_is_zero_by_entry[i];
+                        B_PR_by_entry[i] <= B_PR_by_entry[i];
+                        B_ready_by_entry[i] <= B_ready_by_entry[i] | new_B_ready_by_entry[i];
+                        B_is_zero_by_entry[i] <= B_is_zero_by_entry[i];
+                        dest_PR_by_entry[i] <= dest_PR_by_entry[i];
+                        ROB_index_by_entry[i] <= ROB_index_by_entry[i];
+                    end
+
+                    // take dispatch above
+                    else begin
+                        valid_by_entry[i] <= dispatch_valid_by_entry[i];
+                        killed_by_entry[i] <= 1'b0;
+                        is_store_by_entry[i] <= dispatch_is_store_by_entry[i];
+                        is_amo_by_entry[i] <= dispatch_is_amo_by_entry[i];
+                        is_fence_by_entry[i] <= dispatch_is_fence_by_entry[i];
+                        op_by_entry[i] <= dispatch_op_by_entry[i];
+                        imm12_by_entry[i] <= dispatch_imm12_by_entry[i];
+                        mdp_info_by_entry[i] <= dispatch_mdp_info_by_entry[i];
+                        mem_aq_by_entry[i] <= dispatch_mem_aq_by_entry[i];
+                        io_aq_by_entry[i] <= dispatch_io_aq_by_entry[i];
+                        mem_rl_by_entry[i] <= dispatch_mem_rl_by_entry[i];
+                        io_rl_by_entry[i] <= dispatch_io_rl_by_entry[i];
+                        A_PR_by_entry[i] <= dispatch_A_PR_by_entry[i];
+                        A_ready_by_entry[i] <= dispatch_A_ready_by_entry[i];
+                        A_is_zero_by_entry[i] <= dispatch_A_is_zero_by_entry[i];
+                        B_PR_by_entry[i] <= dispatch_B_PR_by_entry[i];
+                        B_ready_by_entry[i] <= dispatch_B_ready_by_entry[i];
+                        B_is_zero_by_entry[i] <= dispatch_B_is_zero_by_entry[i];
+                        dest_PR_by_entry[i] <= dispatch_dest_PR_by_entry[i];
+                        ROB_index_by_entry[i] <= dispatch_ROB_index_by_entry[i];
+                    end
+                end
+            end
+        end
     end
 
 endmodule

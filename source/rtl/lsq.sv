@@ -409,7 +409,10 @@ module lsq (
 
             // stamofu_aq
                 // Acquire Queue
-                // reference via ROB_index
+                // reference via ROB index
+                // enq on dq launch
+                // update after iq finds out address region via ROB index
+                // on commit, delete from entry 0 if still in aq -> check matching ROB index
 
 
     // misc:
