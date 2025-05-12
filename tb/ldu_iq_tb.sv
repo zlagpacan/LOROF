@@ -300,7 +300,7 @@ module ldu_iq_tb ();
 
 		// inputs
 		sub_test_case = {
-			"\n\t\tEnQueue: i",
+			"\n\t\tEnqueue: i",
 			"\n\t\tEntries:",
 			"\n\t\t\t", "3: i",
 			"\n\t\t\t", "2: i",
@@ -357,7 +357,7 @@ module ldu_iq_tb ();
 
 		// inputs
 		sub_test_case = {
-			"\n\t\tEnQueue: v 0 zero",
+			"\n\t\tEnqueue: v 0 zero",
 			"\n\t\tEntries:",
 			"\n\t\t\t", "3: i",
 			"\n\t\t\t", "2: i",
@@ -414,7 +414,7 @@ module ldu_iq_tb ();
 
 		// inputs
 		sub_test_case = {
-			"\n\t\tEnQueue: v 1 n",
+			"\n\t\tEnqueue: v 1 n",
 			"\n\t\tEntries:",
 			"\n\t\t\t", "3: i",
 			"\n\t\t\t", "2: i",
@@ -471,7 +471,7 @@ module ldu_iq_tb ();
 
 		// inputs
 		sub_test_case = {
-			"\n\t\tEnQueue: v 2 r",
+			"\n\t\tEnqueue: v 2 r",
 			"\n\t\tEntries:",
 			"\n\t\t\t", "3: i",
 			"\n\t\t\t", "2: i",
@@ -528,7 +528,7 @@ module ldu_iq_tb ();
 
 		// inputs
 		sub_test_case = {
-			"\n\t\tEnQueue: v 3 n",
+			"\n\t\tEnqueue: v 3 n",
 			"\n\t\tEntries:",
 			"\n\t\t\t", "3: i",
 			"\n\t\t\t", "2: i",
@@ -585,7 +585,7 @@ module ldu_iq_tb ();
 
 		// inputs
 		sub_test_case = {
-			"\n\t\tEnQueue: v 4 n",
+			"\n\t\tEnqueue: v 4 n",
 			"\n\t\tEntries:",
 			"\n\t\t\t", "3: i",
 			"\n\t\t\t", "2: i",
@@ -642,7 +642,7 @@ module ldu_iq_tb ();
 
 		// inputs
 		sub_test_case = {
-			"\n\t\tEnQueue: v 5 r",
+			"\n\t\tEnqueue: v 5 r",
 			"\n\t\tEntries:",
 			"\n\t\t\t", "3: i",
 			"\n\t\t\t", "2: v 4 n",
@@ -699,7 +699,7 @@ module ldu_iq_tb ();
 
 		// inputs
 		sub_test_case = {
-			"\n\t\tEnQueue: i 6 n",
+			"\n\t\tEnqueue: i 6 n",
 			"\n\t\tEntries:",
 			"\n\t\t\t", "3: v 5 r",
 			"\n\t\t\t", "2: v 4 n",
@@ -756,7 +756,7 @@ module ldu_iq_tb ();
 
 		// inputs
 		sub_test_case = {
-			"\n\t\tEnQueue: v 6 n",
+			"\n\t\tEnqueue: v 6 n",
 			"\n\t\tEntries:",
 			"\n\t\t\t", "3: i",
 			"\n\t\t\t", "2: v 5 r",
@@ -813,7 +813,7 @@ module ldu_iq_tb ();
 
 		// inputs
 		sub_test_case = {
-			"\n\t\tEnQueue: v 7 r",
+			"\n\t\tEnqueue: v 7 r",
 			"\n\t\tEntries:",
 			"\n\t\t\t", "3: i",
 			"\n\t\t\t", "2: v 6 n",
@@ -870,7 +870,7 @@ module ldu_iq_tb ();
 
 		// inputs
 		sub_test_case = {
-			"\n\t\tEnQueue: v 8 n",
+			"\n\t\tEnqueue: v 8 n",
 			"\n\t\tEntries:",
 			"\n\t\t\t", "3: i",
 			"\n\t\t\t", "2: v 7 r",
@@ -927,7 +927,7 @@ module ldu_iq_tb ();
 
 		// inputs
 		sub_test_case = {
-			"\n\t\tEnQueue: i 9 n",
+			"\n\t\tEnqueue: i 9 n",
 			"\n\t\tEntries:",
 			"\n\t\t\t", "3: i",
 			"\n\t\t\t", "2: v 8 n",
@@ -984,7 +984,7 @@ module ldu_iq_tb ();
 
 		// inputs
 		sub_test_case = {
-			"\n\t\tEnQueue: i 9 n",
+			"\n\t\tEnqueue: i 9 n",
 			"\n\t\tEntries:",
 			"\n\t\t\t", "3: i",
 			"\n\t\t\t", "2: in",

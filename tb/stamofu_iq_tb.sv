@@ -357,7 +357,7 @@ module stamofu_iq_tb ();
 	    // pipeline issue 
 	    // reg read req to PRF
 	    // pipeline feedback
-		tb_pipeline_ready = 1'b0;
+		tb_pipeline_ready = 1'b1;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -425,7 +425,7 @@ module stamofu_iq_tb ();
 	    // pipeline issue 
 	    // reg read req to PRF
 	    // pipeline feedback
-		tb_pipeline_ready = 1'b0;
+		tb_pipeline_ready = 1'b1;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -463,15 +463,24 @@ module stamofu_iq_tb ();
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // sequence:
+        test_case = "sequence";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "default";
+		sub_test_case = {
+			"\n\t\tEnqueue: i",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: i",
+			"\n\t\t\t", "1: i",
+			"\n\t\t\t", "0: i",
+			"\n\t\tWB bus: ",
+			"\n\t\tIssue: i"
+		};
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -494,6 +503,164 @@ module stamofu_iq_tb ();
 		tb_stamofu_iq_enq_B_is_zero = 1'b0;
 		tb_stamofu_iq_enq_ROB_index = 7'h0;
 		tb_stamofu_iq_enq_cq_index = 0;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue 
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_stamofu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue 
+		expected_issue_valid = 1'b0;
+		expected_issue_is_store = 1'b0;
+		expected_issue_is_amo = 1'b0;
+		expected_issue_is_fence = 1'b0;
+		expected_issue_op = 4'b0000;
+		expected_issue_imm12 = 12'h0;
+		expected_issue_mdp_info = 8'h0;
+		expected_issue_mem_aq = 1'b0;
+		expected_issue_io_aq = 1'b0;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h0;
+		expected_issue_B_forward = 1'b0;
+		expected_issue_B_is_zero = 1'b0;
+		expected_issue_B_bank = 2'h0;
+		expected_issue_ROB_index = 7'h0;
+		expected_issue_cq_index = 0;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b0;
+		expected_PRF_req_A_PR = 7'h0;
+		expected_PRF_req_B_valid = 1'b0;
+		expected_PRF_req_B_PR = 7'h0;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnqueue: v s 0 z,z",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: i",
+			"\n\t\t\t", "1: i",
+			"\n\t\t\t", "0: i",
+			"\n\t\tWB bus: ",
+			"\n\t\tIssue: i"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_stamofu_iq_enq_valid = 1'b1;
+		tb_stamofu_iq_enq_is_store = 1'b1;
+		tb_stamofu_iq_enq_is_amo = 1'b0;
+		tb_stamofu_iq_enq_is_fence = 1'b0;
+		tb_stamofu_iq_enq_op = 4'b0000;
+		tb_stamofu_iq_enq_imm12 = 12'h000;
+		tb_stamofu_iq_enq_mdp_info = 8'h00;
+		tb_stamofu_iq_enq_mem_aq = 1'b0;
+		tb_stamofu_iq_enq_io_aq = 1'b0;
+		tb_stamofu_iq_enq_A_PR = 7'h0;
+		tb_stamofu_iq_enq_A_ready = 1'b0;
+		tb_stamofu_iq_enq_A_is_zero = 1'b1;
+		tb_stamofu_iq_enq_B_PR = 7'h00;
+		tb_stamofu_iq_enq_B_ready = 1'b0;
+		tb_stamofu_iq_enq_B_is_zero = 1'b1;
+		tb_stamofu_iq_enq_ROB_index = 7'h00;
+		tb_stamofu_iq_enq_cq_index = 0;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue 
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_stamofu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue 
+		expected_issue_valid = 1'b0;
+		expected_issue_is_store = 1'b0;
+		expected_issue_is_amo = 1'b0;
+		expected_issue_is_fence = 1'b0;
+		expected_issue_op = 4'b0000;
+		expected_issue_imm12 = 12'h0;
+		expected_issue_mdp_info = 8'h0;
+		expected_issue_mem_aq = 1'b0;
+		expected_issue_io_aq = 1'b0;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h0;
+		expected_issue_B_forward = 1'b0;
+		expected_issue_B_is_zero = 1'b0;
+		expected_issue_B_bank = 2'h0;
+		expected_issue_ROB_index = 7'h0;
+		expected_issue_cq_index = 0;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b0;
+		expected_PRF_req_A_PR = 7'h0;
+		expected_PRF_req_B_valid = 1'b0;
+		expected_PRF_req_B_PR = 7'h0;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnqueue: v a 1 n,r",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: i",
+			"\n\t\t\t", "1: i",
+			"\n\t\t\t", "0: v s 0 z,z (pipeline not ready)",
+			"\n\t\tWB bus: ",
+			"\n\t\tIssue: i"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_stamofu_iq_enq_valid = 1'b1;
+		tb_stamofu_iq_enq_is_store = 1'b0;
+		tb_stamofu_iq_enq_is_amo = 1'b1;
+		tb_stamofu_iq_enq_is_fence = 1'b0;
+		tb_stamofu_iq_enq_op = 4'b0001;
+		tb_stamofu_iq_enq_imm12 = 12'h111;
+		tb_stamofu_iq_enq_mdp_info = 8'h11;
+		tb_stamofu_iq_enq_mem_aq = 1'b1;
+		tb_stamofu_iq_enq_io_aq = 1'b0;
+		tb_stamofu_iq_enq_A_PR = 7'h1;
+		tb_stamofu_iq_enq_A_ready = 1'b0;
+		tb_stamofu_iq_enq_A_is_zero = 1'b0;
+		tb_stamofu_iq_enq_B_PR = 7'h11;
+		tb_stamofu_iq_enq_B_ready = 1'b1;
+		tb_stamofu_iq_enq_B_is_zero = 1'b0;
+		tb_stamofu_iq_enq_ROB_index = 7'h11;
+		tb_stamofu_iq_enq_cq_index = 1;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
@@ -528,6 +695,717 @@ module stamofu_iq_tb ();
 		expected_issue_B_is_zero = 1'b0;
 		expected_issue_B_bank = 2'h0;
 		expected_issue_ROB_index = 7'h0;
+		expected_issue_cq_index = 0;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b0;
+		expected_PRF_req_A_PR = 7'h0;
+		expected_PRF_req_B_valid = 1'b0;
+		expected_PRF_req_B_PR = 7'h0;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnqueue: v f 2 n,n",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: i",
+			"\n\t\t\t", "1: v a 1 nF,r",
+			"\n\t\t\t", "0: v s 0 z,z",
+			"\n\t\tWB bus: 1",
+			"\n\t\tIssue: v s 0 z,z"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_stamofu_iq_enq_valid = 1'b1;
+		tb_stamofu_iq_enq_is_store = 1'b0;
+		tb_stamofu_iq_enq_is_amo = 1'b0;
+		tb_stamofu_iq_enq_is_fence = 1'b1;
+		tb_stamofu_iq_enq_op = 4'b0010;
+		tb_stamofu_iq_enq_imm12 = 12'h222;
+		tb_stamofu_iq_enq_mdp_info = 8'h22;
+		tb_stamofu_iq_enq_mem_aq = 1'b0;
+		tb_stamofu_iq_enq_io_aq = 1'b1;
+		tb_stamofu_iq_enq_A_PR = 7'h2;
+		tb_stamofu_iq_enq_A_ready = 1'b0;
+		tb_stamofu_iq_enq_A_is_zero = 1'b0;
+		tb_stamofu_iq_enq_B_PR = 7'h22;
+		tb_stamofu_iq_enq_B_ready = 1'b0;
+		tb_stamofu_iq_enq_B_is_zero = 1'b0;
+		tb_stamofu_iq_enq_ROB_index = 7'h22;
+		tb_stamofu_iq_enq_cq_index = 2;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0010;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue 
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_stamofu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue 
+		expected_issue_valid = 1'b1;
+		expected_issue_is_store = 1'b1;
+		expected_issue_is_amo = 1'b0;
+		expected_issue_is_fence = 1'b0;
+		expected_issue_op = 4'b0000;
+		expected_issue_imm12 = 12'h000;
+		expected_issue_mdp_info = 8'h00;
+		expected_issue_mem_aq = 1'b0;
+		expected_issue_io_aq = 1'b0;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b1;
+		expected_issue_A_bank = 2'h0;
+		expected_issue_B_forward = 1'b0;
+		expected_issue_B_is_zero = 1'b1;
+		expected_issue_B_bank = 2'h0;
+		expected_issue_ROB_index = 7'h00;
+		expected_issue_cq_index = 0;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b0;
+		expected_PRF_req_A_PR = 7'h0;
+		expected_PRF_req_B_valid = 1'b0;
+		expected_PRF_req_B_PR = 7'h00;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnqueue: v s 3 r,n",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: i",
+			"\n\t\t\t", "1: v f 2 n,nR",
+			"\n\t\t\t", "0: v a 1 r,r",
+			"\n\t\tWB bus: 22",
+			"\n\t\tIssue: i (pipeline not ready)"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_stamofu_iq_enq_valid = 1'b1;
+		tb_stamofu_iq_enq_is_store = 1'b1;
+		tb_stamofu_iq_enq_is_amo = 1'b0;
+		tb_stamofu_iq_enq_is_fence = 1'b0;
+		tb_stamofu_iq_enq_op = 4'b0011;
+		tb_stamofu_iq_enq_imm12 = 12'h333;
+		tb_stamofu_iq_enq_mdp_info = 8'h33;
+		tb_stamofu_iq_enq_mem_aq = 1'b1;
+		tb_stamofu_iq_enq_io_aq = 1'b1;
+		tb_stamofu_iq_enq_A_PR = 7'h3;
+		tb_stamofu_iq_enq_A_ready = 1'b1;
+		tb_stamofu_iq_enq_A_is_zero = 1'b0;
+		tb_stamofu_iq_enq_B_PR = 7'h33;
+		tb_stamofu_iq_enq_B_ready = 1'b0;
+		tb_stamofu_iq_enq_B_is_zero = 1'b0;
+		tb_stamofu_iq_enq_ROB_index = 7'h33;
+		tb_stamofu_iq_enq_cq_index = 3;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0100;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h8, 5'h0, 5'h0};
+	    // pipeline issue 
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_stamofu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue 
+		expected_issue_valid = 1'b0;
+		expected_issue_is_store = 1'b0;
+		expected_issue_is_amo = 1'b0;
+		expected_issue_is_fence = 1'b0;
+		expected_issue_op = 4'b0000;
+		expected_issue_imm12 = 12'h000;
+		expected_issue_mdp_info = 8'h00;
+		expected_issue_mem_aq = 1'b0;
+		expected_issue_io_aq = 1'b0;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h0;
+		expected_issue_B_forward = 1'b0;
+		expected_issue_B_is_zero = 1'b0;
+		expected_issue_B_bank = 2'h0;
+		expected_issue_ROB_index = 7'h00;
+		expected_issue_cq_index = 0;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b0;
+		expected_PRF_req_A_PR = 7'h0;
+		expected_PRF_req_B_valid = 1'b0;
+		expected_PRF_req_B_PR = 7'h00;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnqueue: v a 4 r,r",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: v s 3 r,n",
+			"\n\t\t\t", "1: v f 2 n,r",
+			"\n\t\t\t", "0: v a 1 r,r",
+			"\n\t\tWB bus: ",
+			"\n\t\tIssue: i (pipeline not ready)"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_stamofu_iq_enq_valid = 1'b1;
+		tb_stamofu_iq_enq_is_store = 1'b0;
+		tb_stamofu_iq_enq_is_amo = 1'b1;
+		tb_stamofu_iq_enq_is_fence = 1'b0;
+		tb_stamofu_iq_enq_op = 4'b0100;
+		tb_stamofu_iq_enq_imm12 = 12'h444;
+		tb_stamofu_iq_enq_mdp_info = 8'h44;
+		tb_stamofu_iq_enq_mem_aq = 1'b0;
+		tb_stamofu_iq_enq_io_aq = 1'b0;
+		tb_stamofu_iq_enq_A_PR = 7'h4;
+		tb_stamofu_iq_enq_A_ready = 1'b1;
+		tb_stamofu_iq_enq_A_is_zero = 1'b0;
+		tb_stamofu_iq_enq_B_PR = 7'h44;
+		tb_stamofu_iq_enq_B_ready = 1'b1;
+		tb_stamofu_iq_enq_B_is_zero = 1'b0;
+		tb_stamofu_iq_enq_ROB_index = 7'h44;
+		tb_stamofu_iq_enq_cq_index = 4;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue 
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_stamofu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue 
+		expected_issue_valid = 1'b0;
+		expected_issue_is_store = 1'b0;
+		expected_issue_is_amo = 1'b0;
+		expected_issue_is_fence = 1'b0;
+		expected_issue_op = 4'b0000;
+		expected_issue_imm12 = 12'h000;
+		expected_issue_mdp_info = 8'h00;
+		expected_issue_mem_aq = 1'b0;
+		expected_issue_io_aq = 1'b0;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h0;
+		expected_issue_B_forward = 1'b0;
+		expected_issue_B_is_zero = 1'b0;
+		expected_issue_B_bank = 2'h0;
+		expected_issue_ROB_index = 7'h00;
+		expected_issue_cq_index = 0;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b0;
+		expected_PRF_req_A_PR = 7'h0;
+		expected_PRF_req_B_valid = 1'b0;
+		expected_PRF_req_B_PR = 7'h00;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnqueue: v f 5 n,n (fail)",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: v a 4 r,r",
+			"\n\t\t\t", "2: v s 3 r,n",
+			"\n\t\t\t", "1: v f 2 n,r",
+			"\n\t\t\t", "0: v a 1 r,r",
+			"\n\t\tWB bus: ",
+			"\n\t\tIssue: v a 1 r,r"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_stamofu_iq_enq_valid = 1'b1;
+		tb_stamofu_iq_enq_is_store = 1'b0;
+		tb_stamofu_iq_enq_is_amo = 1'b0;
+		tb_stamofu_iq_enq_is_fence = 1'b1;
+		tb_stamofu_iq_enq_op = 4'b0101;
+		tb_stamofu_iq_enq_imm12 = 12'h555;
+		tb_stamofu_iq_enq_mdp_info = 8'h55;
+		tb_stamofu_iq_enq_mem_aq = 1'b1;
+		tb_stamofu_iq_enq_io_aq = 1'b0;
+		tb_stamofu_iq_enq_A_PR = 7'h5;
+		tb_stamofu_iq_enq_A_ready = 1'b0;
+		tb_stamofu_iq_enq_A_is_zero = 1'b0;
+		tb_stamofu_iq_enq_B_PR = 7'h55;
+		tb_stamofu_iq_enq_B_ready = 1'b0;
+		tb_stamofu_iq_enq_B_is_zero = 1'b0;
+		tb_stamofu_iq_enq_ROB_index = 7'h55;
+		tb_stamofu_iq_enq_cq_index = 5;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue 
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_stamofu_iq_enq_ready = 1'b0;
+	    // writeback bus by bank
+	    // pipeline issue 
+		expected_issue_valid = 1'b1;
+		expected_issue_is_store = 1'b0;
+		expected_issue_is_amo = 1'b1;
+		expected_issue_is_fence = 1'b0;
+		expected_issue_op = 4'b0001;
+		expected_issue_imm12 = 12'h111;
+		expected_issue_mdp_info = 8'h11;
+		expected_issue_mem_aq = 1'b1;
+		expected_issue_io_aq = 1'b0;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h1;
+		expected_issue_B_forward = 1'b0;
+		expected_issue_B_is_zero = 1'b0;
+		expected_issue_B_bank = 2'h1;
+		expected_issue_ROB_index = 7'h11;
+		expected_issue_cq_index = 1;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b1;
+		expected_PRF_req_A_PR = 7'h1;
+		expected_PRF_req_B_valid = 1'b1;
+		expected_PRF_req_B_PR = 7'h11;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnqueue: v f 5 n,n",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: v a 4 r,r",
+			"\n\t\t\t", "1: v s 3 r,n",
+			"\n\t\t\t", "0: v f 2 n,r",
+			"\n\t\tWB bus: ",
+			"\n\t\tIssue: v a 4 r,r"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_stamofu_iq_enq_valid = 1'b1;
+		tb_stamofu_iq_enq_is_store = 1'b0;
+		tb_stamofu_iq_enq_is_amo = 1'b0;
+		tb_stamofu_iq_enq_is_fence = 1'b1;
+		tb_stamofu_iq_enq_op = 4'b0101;
+		tb_stamofu_iq_enq_imm12 = 12'h555;
+		tb_stamofu_iq_enq_mdp_info = 8'h55;
+		tb_stamofu_iq_enq_mem_aq = 1'b1;
+		tb_stamofu_iq_enq_io_aq = 1'b0;
+		tb_stamofu_iq_enq_A_PR = 7'h5;
+		tb_stamofu_iq_enq_A_ready = 1'b0;
+		tb_stamofu_iq_enq_A_is_zero = 1'b0;
+		tb_stamofu_iq_enq_B_PR = 7'h55;
+		tb_stamofu_iq_enq_B_ready = 1'b0;
+		tb_stamofu_iq_enq_B_is_zero = 1'b0;
+		tb_stamofu_iq_enq_ROB_index = 7'h55;
+		tb_stamofu_iq_enq_cq_index = 5;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue 
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_stamofu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue 
+		expected_issue_valid = 1'b1;
+		expected_issue_is_store = 1'b0;
+		expected_issue_is_amo = 1'b1;
+		expected_issue_is_fence = 1'b0;
+		expected_issue_op = 4'b0100;
+		expected_issue_imm12 = 12'h444;
+		expected_issue_mdp_info = 8'h44;
+		expected_issue_mem_aq = 1'b0;
+		expected_issue_io_aq = 1'b0;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h0;
+		expected_issue_B_forward = 1'b0;
+		expected_issue_B_is_zero = 1'b0;
+		expected_issue_B_bank = 2'h0;
+		expected_issue_ROB_index = 7'h44;
+		expected_issue_cq_index = 4;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b1;
+		expected_PRF_req_A_PR = 7'h4;
+		expected_PRF_req_B_valid = 1'b1;
+		expected_PRF_req_B_PR = 7'h44;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnqueue: i",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: v f 5 n,n",
+			"\n\t\t\t", "1: v s 3 r,nR",
+			"\n\t\t\t", "0: v f 2 nF,r",
+			"\n\t\tWB bus: 2, 33",
+			"\n\t\tIssue: v f 2 nF,r"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_stamofu_iq_enq_valid = 1'b0;
+		tb_stamofu_iq_enq_is_store = 1'b0;
+		tb_stamofu_iq_enq_is_amo = 1'b0;
+		tb_stamofu_iq_enq_is_fence = 1'b0;
+		tb_stamofu_iq_enq_op = 4'b0000;
+		tb_stamofu_iq_enq_imm12 = 12'h000;
+		tb_stamofu_iq_enq_mdp_info = 8'h00;
+		tb_stamofu_iq_enq_mem_aq = 1'b0;
+		tb_stamofu_iq_enq_io_aq = 1'b0;
+		tb_stamofu_iq_enq_A_PR = 7'h0;
+		tb_stamofu_iq_enq_A_ready = 1'b0;
+		tb_stamofu_iq_enq_A_is_zero = 1'b0;
+		tb_stamofu_iq_enq_B_PR = 7'h00;
+		tb_stamofu_iq_enq_B_ready = 1'b0;
+		tb_stamofu_iq_enq_B_is_zero = 1'b0;
+		tb_stamofu_iq_enq_ROB_index = 7'h00;
+		tb_stamofu_iq_enq_cq_index = 0;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b1100;
+		tb_WB_bus_upper_PR_by_bank = {5'hC, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue 
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_stamofu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue 
+		expected_issue_valid = 1'b1;
+		expected_issue_is_store = 1'b0;
+		expected_issue_is_amo = 1'b0;
+		expected_issue_is_fence = 1'b1;
+		expected_issue_op = 4'b0010;
+		expected_issue_imm12 = 12'h222;
+		expected_issue_mdp_info = 8'h22;
+		expected_issue_mem_aq = 1'b0;
+		expected_issue_io_aq = 1'b1;
+		expected_issue_A_forward = 1'b1;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h2;
+		expected_issue_B_forward = 1'b0;
+		expected_issue_B_is_zero = 1'b0;
+		expected_issue_B_bank = 2'h2;
+		expected_issue_ROB_index = 7'h22;
+		expected_issue_cq_index = 2;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b0;
+		expected_PRF_req_A_PR = 7'h2;
+		expected_PRF_req_B_valid = 1'b1;
+		expected_PRF_req_B_PR = 7'h22;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnqueue: i",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: i",
+			"\n\t\t\t", "1: v f 5 nR,n",
+			"\n\t\t\t", "0: v s 3 r,r",
+			"\n\t\tWB bus: 5",
+			"\n\t\tIssue: v s 3 r,r"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_stamofu_iq_enq_valid = 1'b0;
+		tb_stamofu_iq_enq_is_store = 1'b0;
+		tb_stamofu_iq_enq_is_amo = 1'b0;
+		tb_stamofu_iq_enq_is_fence = 1'b0;
+		tb_stamofu_iq_enq_op = 4'b0000;
+		tb_stamofu_iq_enq_imm12 = 12'h000;
+		tb_stamofu_iq_enq_mdp_info = 8'h00;
+		tb_stamofu_iq_enq_mem_aq = 1'b0;
+		tb_stamofu_iq_enq_io_aq = 1'b0;
+		tb_stamofu_iq_enq_A_PR = 7'h0;
+		tb_stamofu_iq_enq_A_ready = 1'b0;
+		tb_stamofu_iq_enq_A_is_zero = 1'b0;
+		tb_stamofu_iq_enq_B_PR = 7'h00;
+		tb_stamofu_iq_enq_B_ready = 1'b0;
+		tb_stamofu_iq_enq_B_is_zero = 1'b0;
+		tb_stamofu_iq_enq_ROB_index = 7'h00;
+		tb_stamofu_iq_enq_cq_index = 0;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0010;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h1, 5'h0};
+	    // pipeline issue 
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_stamofu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue 
+		expected_issue_valid = 1'b1;
+		expected_issue_is_store = 1'b1;
+		expected_issue_is_amo = 1'b0;
+		expected_issue_is_fence = 1'b0;
+		expected_issue_op = 4'b0011;
+		expected_issue_imm12 = 12'h333;
+		expected_issue_mdp_info = 8'h33;
+		expected_issue_mem_aq = 1'b1;
+		expected_issue_io_aq = 1'b1;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h3;
+		expected_issue_B_forward = 1'b0;
+		expected_issue_B_is_zero = 1'b0;
+		expected_issue_B_bank = 2'h3;
+		expected_issue_ROB_index = 7'h33;
+		expected_issue_cq_index = 3;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b1;
+		expected_PRF_req_A_PR = 7'h3;
+		expected_PRF_req_B_valid = 1'b1;
+		expected_PRF_req_B_PR = 7'h33;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnqueue: i",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: i",
+			"\n\t\t\t", "1: i",
+			"\n\t\t\t", "0: v f 5 r,nF",
+			"\n\t\tWB bus: 55",
+			"\n\t\tIssue: i"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_stamofu_iq_enq_valid = 1'b0;
+		tb_stamofu_iq_enq_is_store = 1'b0;
+		tb_stamofu_iq_enq_is_amo = 1'b0;
+		tb_stamofu_iq_enq_is_fence = 1'b0;
+		tb_stamofu_iq_enq_op = 4'b0000;
+		tb_stamofu_iq_enq_imm12 = 12'h000;
+		tb_stamofu_iq_enq_mdp_info = 8'h00;
+		tb_stamofu_iq_enq_mem_aq = 1'b0;
+		tb_stamofu_iq_enq_io_aq = 1'b0;
+		tb_stamofu_iq_enq_A_PR = 7'h0;
+		tb_stamofu_iq_enq_A_ready = 1'b0;
+		tb_stamofu_iq_enq_A_is_zero = 1'b0;
+		tb_stamofu_iq_enq_B_PR = 7'h00;
+		tb_stamofu_iq_enq_B_ready = 1'b0;
+		tb_stamofu_iq_enq_B_is_zero = 1'b0;
+		tb_stamofu_iq_enq_ROB_index = 7'h00;
+		tb_stamofu_iq_enq_cq_index = 0;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0010;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h15, 5'h0};
+	    // pipeline issue 
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_stamofu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue 
+		expected_issue_valid = 1'b1;
+		expected_issue_is_store = 1'b0;
+		expected_issue_is_amo = 1'b0;
+		expected_issue_is_fence = 1'b1;
+		expected_issue_op = 4'b0101;
+		expected_issue_imm12 = 12'h555;
+		expected_issue_mdp_info = 8'h55;
+		expected_issue_mem_aq = 1'b1;
+		expected_issue_io_aq = 1'b0;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h1;
+		expected_issue_B_forward = 1'b1;
+		expected_issue_B_is_zero = 1'b0;
+		expected_issue_B_bank = 2'h1;
+		expected_issue_ROB_index = 7'h55;
+		expected_issue_cq_index = 5;
+	    // reg read req to PRF
+		expected_PRF_req_A_valid = 1'b1;
+		expected_PRF_req_A_PR = 7'h5;
+		expected_PRF_req_B_valid = 1'b0;
+		expected_PRF_req_B_PR = 7'h55;
+	    // pipeline feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tEnqueue: i",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: i",
+			"\n\t\t\t", "1: i",
+			"\n\t\t\t", "0: i",
+			"\n\t\tWB bus: ",
+			"\n\t\tIssue: i"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to issue queue
+		tb_stamofu_iq_enq_valid = 1'b0;
+		tb_stamofu_iq_enq_is_store = 1'b0;
+		tb_stamofu_iq_enq_is_amo = 1'b0;
+		tb_stamofu_iq_enq_is_fence = 1'b0;
+		tb_stamofu_iq_enq_op = 4'b0000;
+		tb_stamofu_iq_enq_imm12 = 12'h000;
+		tb_stamofu_iq_enq_mdp_info = 8'h00;
+		tb_stamofu_iq_enq_mem_aq = 1'b0;
+		tb_stamofu_iq_enq_io_aq = 1'b0;
+		tb_stamofu_iq_enq_A_PR = 7'h0;
+		tb_stamofu_iq_enq_A_ready = 1'b0;
+		tb_stamofu_iq_enq_A_is_zero = 1'b0;
+		tb_stamofu_iq_enq_B_PR = 7'h00;
+		tb_stamofu_iq_enq_B_ready = 1'b0;
+		tb_stamofu_iq_enq_B_is_zero = 1'b0;
+		tb_stamofu_iq_enq_ROB_index = 7'h00;
+		tb_stamofu_iq_enq_cq_index = 0;
+	    // issue queue enqueue feedback
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = 4'b0000;
+		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+	    // pipeline issue 
+	    // reg read req to PRF
+	    // pipeline feedback
+		tb_pipeline_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to issue queue
+	    // issue queue enqueue feedback
+		expected_stamofu_iq_enq_ready = 1'b1;
+	    // writeback bus by bank
+	    // pipeline issue 
+		expected_issue_valid = 1'b0;
+		expected_issue_is_store = 1'b0;
+		expected_issue_is_amo = 1'b0;
+		expected_issue_is_fence = 1'b0;
+		expected_issue_op = 4'b0000;
+		expected_issue_imm12 = 12'h000;
+		expected_issue_mdp_info = 8'h00;
+		expected_issue_mem_aq = 1'b0;
+		expected_issue_io_aq = 1'b0;
+		expected_issue_A_forward = 1'b0;
+		expected_issue_A_is_zero = 1'b0;
+		expected_issue_A_bank = 2'h0;
+		expected_issue_B_forward = 1'b0;
+		expected_issue_B_is_zero = 1'b0;
+		expected_issue_B_bank = 2'h0;
+		expected_issue_ROB_index = 7'h00;
 		expected_issue_cq_index = 0;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
