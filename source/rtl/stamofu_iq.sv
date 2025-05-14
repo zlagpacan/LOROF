@@ -76,6 +76,7 @@ module stamofu_iq #(
     // ----------------------------------------------------------------
     // Signals:
 
+    // IQ entries
     logic [STAMOFU_IQ_ENTRIES-1:0]                              valid_by_entry;
     logic [STAMOFU_IQ_ENTRIES-1:0]                              is_store_by_entry;
     logic [STAMOFU_IQ_ENTRIES-1:0]                              is_amo_by_entry;
