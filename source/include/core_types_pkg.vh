@@ -65,7 +65,7 @@ package core_types_pkg;
     parameter FETCH_WIDTH_2B = 8;
 
     // btb:
-    parameter BTB_NWAY_ENTRIES = 2048;
+    parameter BTB_NWAY_ENTRIES = 512;
     parameter LOG_BTB_NWAY_ENTRIES = $clog2(BTB_NWAY_ENTRIES);
     parameter BTB_ENTRY_ASSOC = 2;
     parameter LOG_BTB_ENTRY_ASSOC = $clog2(BTB_ENTRY_ASSOC);
@@ -75,8 +75,8 @@ package core_types_pkg;
     parameter BTB_INDEX_WIDTH = $clog2(BTB_SETS);
     // btb per way
     parameter BTB_PRED_INFO_WIDTH = 8;
-    parameter BTB_TAG_WIDTH = 6;
-    parameter BTB_TARGET_WIDTH = 10;
+    parameter BTB_TAG_WIDTH = 5;
+    parameter BTB_TARGET_WIDTH = 11;
     // btb shared over ways
     parameter BTB_LRU_INFO_WIDTH = 1;
 
