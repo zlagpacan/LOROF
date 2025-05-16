@@ -26,71 +26,66 @@ module lsq (
         // waiting to dequeue from ldu_dq
             // track operands becoming ready while in ldu_dq
                 // no forwarding, only mark as individual operand ready
-        // dequeue from ldu_dq, enqueue into ldu_cq
+        // dequeue from ldu_dq, enqueue into ldu_cq + ldu_iq
             // 1-way in-order
             // track operands becoming ready while in ldu_dq
                 // no forwarding, only mark as individual operand ready
-        // waiting to issue from ldu_cq
-            // check next issue ready
-                // check current operand state
-                    // track next operand becoming ready while in ldu_cq
-                        // no forwarding, only mark as operand ready
-                    // if operand still not ready, still not issuable
-            // while have issue ready, wait until turn to issue into ldu_addr_pipeline
-        // issue from ldu_cq into ldu_addr_pipeline (IS stage)
-            // no issue if ldu_addr_pipeline stalled
-            // PE on issuable entries
-            // select issuing entry following oldest issuable
-                // masked lowest else unmasked lowest
-            // mark next ldu_cq state as issued
-        // ldu_addr_pipeline PR stage
-            // PRF Request stage
-                // other FU's would do prf request on IS,
-                // but ldu_cq is too big to do issue and prf req same-cycle
-            // this stage knows which operands needed given op
-            // stall here and don't send request if OC stall
-        // ldu_addr_pipeline OC stage
+            // ldu_cq and ldu_iq must be ready
+            // ldu_cq entry initialization
+                // mark as waiting on address
+        // waiting to issue from ldu_iq
+            // check current operand state
+                // track next operand becoming ready while in ldu_cq
+                    // no forwarding, only mark as operand ready
+                // if operand still not ready, still not issuable
+        // issue from ldu_iq into ldu_pipeline (IS stage)
+            // no issue if ldu_pipeline stalled
+            // regular IQ operation with PRF request upon issue
+        // ldu_pipeline OC stage
             // Operand Collection stage
             // wait for operand read ack, read it from the associated read bank and port
-        // ldu_addr_pipeline AC stage
+        // ldu_pipeline AC stage
             // Address Calculation stage
             // operand + imm
             // mark relevant word addresses and bitmasks for dependence checking
             // determine if need 2x load launch
                 // misaligned such that need 2x word-aligned access
-                // when pipeline unstalled, send first launch to PL stage, keep second launch in AC stage
-        // ldu_addr_pipeline PL stage
-            // Pipeline Launch stage
+                // when pipeline unstalled, send first launch to REQ stage, keep second launch in AC stage
+        // ldu_pipeline REQ stage
+            // Request stage
             // dTLB req + dcache req
                 // can stall if dTLB or dcache ran out of MSHR's
             // can be stalled if there is a second-try launch this cycle
-            // mark ldu_cq entry as launched and waiting for dTLB resp
+            // can be stalled if there will be a late dcache resp next cycle
             // need 2x load launch for misaligned
                 // first launch can stall if there is second-try launch this cycle
                 // second launch can stall if there is no ldu_mq entry available
                 // when second launch happens, allocate ldu_mq entry, set symmetric pointers b/w ldu_mq entry and ldu_cq entry
-        // ldu_cq first cycle after launch
-            // if dTLB resp, collect PA
+        // ldu_pipeline RESP stage
+            // Response stage
+            // if dTLB resp, collect PA and give to ldu_cq/ldu_mq
                 // check for page fault or access fault
-                    // send exception using stamofu_cq ROB_index
+                    // send exception using ldu_cq ROB_index
+                    // just like a killed load op, writeback garbage to dest PR
                 // if no applicable io nor mem fence then dcache launch from last cycle is valid, mark as waiting for dcache
                     // also launch stamofu_cq CAM
                     // when all launches done, also send complete to ROB
                 // else, need to wait mark entry as waiting for second try launch after fence clear
             // else, mark entry as waiting for second try launch after dTLB resp
-        // ldu_cq late dTLB resp
+        // ldu_cq/ldu_mq late dTLB resp
             // wait until late dTLB resp returns
                 // check for page fault or access fault
-                    // send exception using stamofu_cq ROB_index
+                    // send exception using ldu_cq ROB_index
+                    // just like a killed load op, writeback garbage to dest PR
                 // if no applicable io nor mem fence then can do second try launch to dcache, mark as waiting for dcache if get launch arbitrated
                     // also launch stamofu_cq CAM
                     // when all launches done, also send complete to ROB
                 // else, need to wait, mark entry as waiting for fence clear
-        // ldu_cq fence clear
+        // ldu_cq/ldu_mq fence clear
             // implies already got dTLB resp, on first cycle or late, and found applicable io or mem fence
             // wait until load older than oldest applicable io vs. mem fence
                 // can do second try launch to dcache, mark as waiting for dcache if get launch arbitrated
-        // ldu_cq dcache resp
+        // ldu_cq/ldu_mq dcache resp
             // implies already got dTLB resp and already waited for applicable io vs. mem fence
             // dcache hit means dcache resp might arrive before stamofu_cq CAM depending on how timing ends up working out
                 // if have store set, or maybe always, buffer dcache val(s)
@@ -110,7 +105,7 @@ module lsq (
         // ldu_cq CAM of stamofu_cq and stamofu_mq resp
             // launched after get dTLB resp(s)
                 // so essentially, the official launch after pipeline launch is verified by dTLB
-                    // PL stage launch from pipeline if get immediate dTLB hit
+                    // REQ stage launch from pipeline if get immediate dTLB hit
                     // second try launch
                 // need good PA
             // one CAM per aligned access
@@ -183,30 +178,30 @@ module lsq (
                     // track next operand(s) becoming ready while in stamofu_cq
                         // no forwarding, only mark as operand(s) ready
                     // if operands still not ready, still not issuable
-            // while have issue ready, wait until turn to issue into stamofu_addr_pipeline
-        // issue from stamofu_cq into stamofu_addr_pipeline (IS stage)
-            // no issue if stamofu_addr_pipeline stalled
+            // while have issue ready, wait until turn to issue into stamofu_pipeline
+        // issue from stamofu_cq into stamofu_pipeline (IS stage)
+            // no issue if stamofu_pipeline stalled
             // PE on issuable entries
             // select issuing entry following oldest issuable
                 // masked lowest else unmasked lowest
             // mark next stamofu_cq state as issued
-        // stamofu_addr_pipeline PR stage
+        // stamofu_pipeline PR stage
             // PRF Request stage
                 // other FU's would do prf request on IS,
                 // but stamofu_cq is too big to do issue and prf req same-cycle
             // this stage knows which operands needed given op
             // stall here and don't send request if OC stall
-        // stamofu_addr_pipeline OC stage
+        // stamofu_pipeline OC stage
             // Operand Collection stage
             // wait for operand read ack, read it from the associated read bank and port
-        // stamofu_addr_pipeline AC stage
+        // stamofu_pipeline AC stage
             // Address Calculation stage
             // A operand + imm, B operand
             // mark relevant word addresses and bitmasks for dependence checking
             // determine if need 2x store complete
                 // misaligned such that need 2x word-aligned access
                 // when pipeline unstalled, send first complete to PC stage, keep second complete in AC stage
-        // stamofu_addr_pipeline PC stage
+        // stamofu_pipeline PC stage
             // Pipeline Complete stage
             // dTLB req
                 // can stall if dTLB ran out of MSHR's
@@ -253,29 +248,29 @@ module lsq (
                     // track next operand(s) becoming ready while in stamofu_cq
                         // no forwarding, only mark as operand(s) ready
                     // if operands still not ready, still not issuable
-            // while have issue ready, wait until turn to issue into stamofu_addr_pipeline
-        // issue from stamofu_cq into stamofu_addr_pipeline (IS stage)
-            // no issue if stamofu_addr_pipeline stalled
+            // while have issue ready, wait until turn to issue into stamofu_pipeline
+        // issue from stamofu_cq into stamofu_pipeline (IS stage)
+            // no issue if stamofu_pipeline stalled
             // PE on issuable entries
             // select issuing entry following oldest issuable
                 // masked lowest else unmasked lowest
             // mark next stamofu_cq state as issued
-        // stamofu_addr_pipeline PR stage
+        // stamofu_pipeline PR stage
             // PRF Request stage
                 // other FU's would do prf request on IS,
                 // but stamofu_cq is too big to do issue and prf req same-cycle
             // this stage knows which operands needed given op
             // stall here and don't send request if OC stall
-        // stamofu_addr_pipeline OC stage
+        // stamofu_pipeline OC stage
             // Operand Collection stage
             // wait for operand read ack, read it from the associated read bank and port
-        // stamofu_addr_pipeline AC stage
+        // stamofu_pipeline AC stage
             // Address Calculation stage
             // A operand, B operand
             // mark relevant word addresses and bitmaks for dependence checking
             // amo's not allowed to be misaligned
                 // check if misaligned, prep to send misaligned exception on complete
-        // stamofu_addr_pipeline PC stage
+        // stamofu_pipeline PC stage
             // Pipeline Complete stage
             // dTLB req
                 // can stall if dTLB ran out of MSHR's
@@ -326,33 +321,33 @@ module lsq (
                 // mem_aq -> mem_aq_q
                 // io_aq -> io_aq_q
             // otherwise if not stall, enqueue onto mem_aq_q and/or io_aq_q if have
-            // for non-sfence.vma, enter stamofu_cq as already complete, skip upcoming stamofu_addr_pipeline steps
+            // for non-sfence.vma, enter stamofu_cq as already complete, skip upcoming stamofu_pipeline steps
         // waiting to issue from stamofu_cq if sfence.vma
             // check next issue ready
                 // check current operand states
                     // track next operand(s) becoming ready while in stamofu_cq
                         // no forwarding, only mark as operand(s) ready
                     // if operands still not ready, still not issuable
-            // while have issue ready, wait until turn to issue into stamofu_addr_pipeline
-        // issue from stamofu_cq into stamofu_addr_pipeline if sfence.vma (IS stage)
-            // no issue if stamofu_addr_pipeline stalled
+            // while have issue ready, wait until turn to issue into stamofu_pipeline
+        // issue from stamofu_cq into stamofu_pipeline if sfence.vma (IS stage)
+            // no issue if stamofu_pipeline stalled
             // PE on issuable entries
             // select issuing entry following oldest issuable
                 // masked lowest else unmasked lowest
             // mark next stamofu_cq state as issued
-        // stamofu_addr_pipeline PR stage if sfence.vma
+        // stamofu_pipeline PR stage if sfence.vma
             // PRF Request stage
                 // other FU's would do prf request on IS,
                 // but stamofu_cq is too big to do issue and prf req same-cycle
             // this stage knows which operands needed given op
             // stall here and don't send request if OC stall
-        // stamofu_addr_pipeline OC stage if sfence.vma
+        // stamofu_pipeline OC stage if sfence.vma
             // Operand Collection stage
             // wait for operand read ack, read it from the associated read bank and port
-        // stamofu_addr_pipeline AC stage if sfence.vma
+        // stamofu_pipeline AC stage if sfence.vma
             // Address Calculation stage
             // A operand, B operand
-        // stamofu_addr_pipeline PC stage if sfence.vma
+        // stamofu_pipeline PC stage if sfence.vma
             // Pipeline Complete stage
             // mark stamofu_cq entry as complete
         // ldu_cq CAM of stamofu_cq

@@ -38,7 +38,25 @@ package core_types_pkg;
     parameter PRF_BANK_COUNT = 4;
     parameter LOG_PRF_BANK_COUNT = $clog2(PRF_BANK_COUNT);
     parameter PRF_RR_COUNT = 11;
+        // ALU Reg-Reg A
+        // ALU Reg-Reg B
+        // MDU A
+        // MDU B
+        // ALU Reg-Imm A
+        // BRU A
+        // BRU B
+        // LDU A
+        // STAMOFU A
+        // STAMOFU B
+        // SYS A
     parameter PRF_WR_COUNT = 7;
+        // ALU Reg-Reg
+        // MDU
+        // ALU Reg-Imm
+        // BRU
+        // LDU
+        // STAMOFU
+        // SYS
 
     // rob
     parameter ROB_ENTRIES = 128;
@@ -178,6 +196,10 @@ package core_types_pkg;
     parameter STAMOFU_AQ_ENTRIES = 4;
     parameter STAMOFU_MQ_ENTRIES = 4;
     parameter LOG_STAMOFU_MQ_ENTRIES = $clog2(STAMOFU_MQ_ENTRIES);
+
+    // sst
+    parameter STORE_SET_COUNT = 64; // hardwired in sst
+    parameter SSID_WIDTH = $clog2(STORE_SET_COUNT); // hardwired in sst
 
 endpackage
 
