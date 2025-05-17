@@ -37,6 +37,7 @@ module ldu_dq #(
     // op enqueue to central queue
     output logic                            ldu_cq_enq_valid,
     output logic                            ldu_cq_enq_killed,
+    output logic [3:0]                      ldu_cq_enq_op,
     output logic [MDPT_INFO_WIDTH-1:0]      ldu_cq_enq_mdp_info,
     output logic [LOG_PR_COUNT-1:0]         ldu_cq_enq_dest_PR,
     output logic [LOG_ROB_ENTRIES-1:0]      ldu_cq_enq_ROB_index,
@@ -131,6 +132,7 @@ module ldu_dq #(
     always_comb begin
         ldu_cq_enq_valid = launching;
         ldu_cq_enq_killed = killed_by_entry[0] | new_killed_by_entry[0];
+        ldu_cq_enq_op = op_by_entry[0];
         ldu_cq_enq_mdp_info = mdp_info_by_entry[0];
         ldu_cq_enq_dest_PR = dest_PR_by_entry[0];
         ldu_cq_enq_ROB_index = ROB_index_by_entry[0];

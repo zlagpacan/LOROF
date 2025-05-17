@@ -38,6 +38,7 @@ module ldu_dq_wrapper (
     // op enqueue to central queue
 	output logic last_ldu_cq_enq_valid,
 	output logic last_ldu_cq_enq_killed,
+	output logic [3:0] last_ldu_cq_enq_op,
 	output logic [MDPT_INFO_WIDTH-1:0] last_ldu_cq_enq_mdp_info,
 	output logic [LOG_PR_COUNT-1:0] last_ldu_cq_enq_dest_PR,
 	output logic [LOG_ROB_ENTRIES-1:0] last_ldu_cq_enq_ROB_index,
@@ -89,6 +90,7 @@ module ldu_dq_wrapper (
     // op enqueue to central queue
 	logic ldu_cq_enq_valid;
 	logic ldu_cq_enq_killed;
+	logic [3:0] ldu_cq_enq_op;
 	logic [MDPT_INFO_WIDTH-1:0] ldu_cq_enq_mdp_info;
 	logic [LOG_PR_COUNT-1:0] ldu_cq_enq_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] ldu_cq_enq_ROB_index;
@@ -117,7 +119,7 @@ module ldu_dq_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    ldu_dq WRAPPED_MODULE (.*);
+    ldu_dq #(.LDU_DQ_ENTRIES(LDU_DQ_ENTRIES)) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -147,6 +149,7 @@ module ldu_dq_wrapper (
 		    // op enqueue to central queue
 			last_ldu_cq_enq_valid <= '0;
 			last_ldu_cq_enq_killed <= '0;
+			last_ldu_cq_enq_op <= '0;
 			last_ldu_cq_enq_mdp_info <= '0;
 			last_ldu_cq_enq_dest_PR <= '0;
 			last_ldu_cq_enq_ROB_index <= '0;
@@ -196,6 +199,7 @@ module ldu_dq_wrapper (
 		    // op enqueue to central queue
 			last_ldu_cq_enq_valid <= ldu_cq_enq_valid;
 			last_ldu_cq_enq_killed <= ldu_cq_enq_killed;
+			last_ldu_cq_enq_op <= ldu_cq_enq_op;
 			last_ldu_cq_enq_mdp_info <= ldu_cq_enq_mdp_info;
 			last_ldu_cq_enq_dest_PR <= ldu_cq_enq_dest_PR;
 			last_ldu_cq_enq_ROB_index <= ldu_cq_enq_ROB_index;

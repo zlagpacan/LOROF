@@ -18,6 +18,7 @@ module ldu_cq #(
     // entry:
         // valid
         // killed
+        // op
         // mdp info
         // dest PR
         // ROB index

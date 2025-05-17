@@ -54,6 +54,7 @@ module ldu_dq_tb ();
     // op enqueue to central queue
 	logic DUT_ldu_cq_enq_valid, expected_ldu_cq_enq_valid;
 	logic DUT_ldu_cq_enq_killed, expected_ldu_cq_enq_killed;
+	logic [3:0] DUT_ldu_cq_enq_op, expected_ldu_cq_enq_op;
 	logic [MDPT_INFO_WIDTH-1:0] DUT_ldu_cq_enq_mdp_info, expected_ldu_cq_enq_mdp_info;
 	logic [LOG_PR_COUNT-1:0] DUT_ldu_cq_enq_dest_PR, expected_ldu_cq_enq_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_ldu_cq_enq_ROB_index, expected_ldu_cq_enq_ROB_index;
@@ -111,6 +112,7 @@ module ldu_dq_tb ();
 	    // op enqueue to central queue
 		.ldu_cq_enq_valid(DUT_ldu_cq_enq_valid),
 		.ldu_cq_enq_killed(DUT_ldu_cq_enq_killed),
+		.ldu_cq_enq_op(DUT_ldu_cq_enq_op),
 		.ldu_cq_enq_mdp_info(DUT_ldu_cq_enq_mdp_info),
 		.ldu_cq_enq_dest_PR(DUT_ldu_cq_enq_dest_PR),
 		.ldu_cq_enq_ROB_index(DUT_ldu_cq_enq_ROB_index),
@@ -159,6 +161,13 @@ module ldu_dq_tb ();
 		if (expected_ldu_cq_enq_killed !== DUT_ldu_cq_enq_killed) begin
 			$display("TB ERROR: expected_ldu_cq_enq_killed (%h) != DUT_ldu_cq_enq_killed (%h)",
 				expected_ldu_cq_enq_killed, DUT_ldu_cq_enq_killed);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_ldu_cq_enq_op !== DUT_ldu_cq_enq_op) begin
+			$display("TB ERROR: expected_ldu_cq_enq_op (%h) != DUT_ldu_cq_enq_op (%h)",
+				expected_ldu_cq_enq_op, DUT_ldu_cq_enq_op);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -293,6 +302,7 @@ module ldu_dq_tb ();
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b0;
 		expected_ldu_cq_enq_killed = 1'b0;
+		expected_ldu_cq_enq_op = 4'b0000;
 		expected_ldu_cq_enq_mdp_info = 8'h0;
 		expected_ldu_cq_enq_dest_PR = 7'h0;
 		expected_ldu_cq_enq_ROB_index = 7'h0;
@@ -354,6 +364,7 @@ module ldu_dq_tb ();
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b0;
 		expected_ldu_cq_enq_killed = 1'b0;
+		expected_ldu_cq_enq_op = 4'b0000;
 		expected_ldu_cq_enq_mdp_info = 8'h0;
 		expected_ldu_cq_enq_dest_PR = 7'h0;
 		expected_ldu_cq_enq_ROB_index = 7'h0;
@@ -434,6 +445,7 @@ module ldu_dq_tb ();
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b0;
 		expected_ldu_cq_enq_killed = 1'b0;
+		expected_ldu_cq_enq_op = 4'b0000;
 		expected_ldu_cq_enq_mdp_info = 8'h0;
 		expected_ldu_cq_enq_dest_PR = 7'h0;
 		expected_ldu_cq_enq_ROB_index = 7'h0;
@@ -508,6 +520,7 @@ module ldu_dq_tb ();
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b0;
 		expected_ldu_cq_enq_killed = 1'b0;
+		expected_ldu_cq_enq_op = 4'b0000;
 		expected_ldu_cq_enq_mdp_info = 8'h0;
 		expected_ldu_cq_enq_dest_PR = 7'h0;
 		expected_ldu_cq_enq_ROB_index = 7'h0;
@@ -582,6 +595,7 @@ module ldu_dq_tb ();
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b1;
 		expected_ldu_cq_enq_killed = 1'b0;
+		expected_ldu_cq_enq_op = 4'b0000;
 		expected_ldu_cq_enq_mdp_info = 8'h0f;
 		expected_ldu_cq_enq_dest_PR = 7'hf0;
 		expected_ldu_cq_enq_ROB_index = 7'hf0;
@@ -656,6 +670,7 @@ module ldu_dq_tb ();
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b1;
 		expected_ldu_cq_enq_killed = 1'b0;
+		expected_ldu_cq_enq_op = 4'b0001;
 		expected_ldu_cq_enq_mdp_info = 8'h1e;
 		expected_ldu_cq_enq_dest_PR = 7'he1;
 		expected_ldu_cq_enq_ROB_index = 7'he1;
@@ -730,6 +745,7 @@ module ldu_dq_tb ();
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b0;
 		expected_ldu_cq_enq_killed = 1'b0;
+		expected_ldu_cq_enq_op = 4'b0010;
 		expected_ldu_cq_enq_mdp_info = 8'h2d;
 		expected_ldu_cq_enq_dest_PR = 7'hd2;
 		expected_ldu_cq_enq_ROB_index = 7'hd2;
@@ -804,6 +820,7 @@ module ldu_dq_tb ();
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b0;
 		expected_ldu_cq_enq_killed = 1'b0;
+		expected_ldu_cq_enq_op = 4'b0010;
 		expected_ldu_cq_enq_mdp_info = 8'h2d;
 		expected_ldu_cq_enq_dest_PR = 7'hd2;
 		expected_ldu_cq_enq_ROB_index = 7'hd2;
@@ -878,6 +895,7 @@ module ldu_dq_tb ();
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b1;
 		expected_ldu_cq_enq_killed = 1'b0;
+		expected_ldu_cq_enq_op = 4'b0010;
 		expected_ldu_cq_enq_mdp_info = 8'h2d;
 		expected_ldu_cq_enq_dest_PR = 7'hd2;
 		expected_ldu_cq_enq_ROB_index = 7'hd2;
@@ -952,6 +970,7 @@ module ldu_dq_tb ();
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b1;
 		expected_ldu_cq_enq_killed = 1'b0;
+		expected_ldu_cq_enq_op = 4'b0011;
 		expected_ldu_cq_enq_mdp_info = 8'h3c;
 		expected_ldu_cq_enq_dest_PR = 7'hc3;
 		expected_ldu_cq_enq_ROB_index = 7'hc3;
@@ -1026,6 +1045,7 @@ module ldu_dq_tb ();
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b1;
 		expected_ldu_cq_enq_killed = 1'b0;
+		expected_ldu_cq_enq_op = 4'b0100;
 		expected_ldu_cq_enq_mdp_info = 8'h4b;
 		expected_ldu_cq_enq_dest_PR = 7'hb4;
 		expected_ldu_cq_enq_ROB_index = 7'hb4;
@@ -1100,6 +1120,7 @@ module ldu_dq_tb ();
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b1;
 		expected_ldu_cq_enq_killed = 1'b1;
+		expected_ldu_cq_enq_op = 4'b0101;
 		expected_ldu_cq_enq_mdp_info = 8'h5a;
 		expected_ldu_cq_enq_dest_PR = 7'ha5;
 		expected_ldu_cq_enq_ROB_index = 7'ha5;
@@ -1174,6 +1195,7 @@ module ldu_dq_tb ();
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b1;
 		expected_ldu_cq_enq_killed = 1'b1;
+		expected_ldu_cq_enq_op = 4'b0110;
 		expected_ldu_cq_enq_mdp_info = 8'h69;
 		expected_ldu_cq_enq_dest_PR = 7'h96;
 		expected_ldu_cq_enq_ROB_index = 7'h96;
@@ -1248,6 +1270,7 @@ module ldu_dq_tb ();
 	    // op enqueue to central queue
 		expected_ldu_cq_enq_valid = 1'b1;
 		expected_ldu_cq_enq_killed = 1'b0;
+		expected_ldu_cq_enq_op = 4'b0111;
 		expected_ldu_cq_enq_mdp_info = 8'h78;
 		expected_ldu_cq_enq_dest_PR = 7'h87;
 		expected_ldu_cq_enq_ROB_index = 7'h87;
