@@ -471,6 +471,7 @@ module lsq (
                 // can skip issue queues if killed this early
 
         // if stuck waiting for ldu_mq entry for too long, can just foreably restart the load
-            // any younger loads that refuse to finish will not be pushed through the IQ first anymore, so this oldest load gets first
+            // any younger loads that refuse to finish will not be pushed through the IQ first anymore
+                // since this load's addr operand will be ready on-time now, so this oldest load gets first
 
 endmodule
