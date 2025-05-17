@@ -39,16 +39,12 @@ module stamofu_iq_tb ();
 	logic tb_stamofu_iq_enq_is_fence;
 	logic [3:0] tb_stamofu_iq_enq_op;
 	logic [11:0] tb_stamofu_iq_enq_imm12;
-	logic [MDPT_INFO_WIDTH-1:0] tb_stamofu_iq_enq_mdp_info;
-	logic tb_stamofu_iq_enq_mem_aq;
-	logic tb_stamofu_iq_enq_io_aq;
 	logic [LOG_PR_COUNT-1:0] tb_stamofu_iq_enq_A_PR;
 	logic tb_stamofu_iq_enq_A_ready;
 	logic tb_stamofu_iq_enq_A_is_zero;
 	logic [LOG_PR_COUNT-1:0] tb_stamofu_iq_enq_B_PR;
 	logic tb_stamofu_iq_enq_B_ready;
 	logic tb_stamofu_iq_enq_B_is_zero;
-	logic [LOG_ROB_ENTRIES-1:0] tb_stamofu_iq_enq_ROB_index;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] tb_stamofu_iq_enq_cq_index;
 
     // issue queue enqueue feedback
@@ -65,16 +61,12 @@ module stamofu_iq_tb ();
 	logic DUT_issue_is_fence, expected_issue_is_fence;
 	logic [3:0] DUT_issue_op, expected_issue_op;
 	logic [11:0] DUT_issue_imm12, expected_issue_imm12;
-	logic [MDPT_INFO_WIDTH-1:0] DUT_issue_mdp_info, expected_issue_mdp_info;
-	logic DUT_issue_mem_aq, expected_issue_mem_aq;
-	logic DUT_issue_io_aq, expected_issue_io_aq;
 	logic DUT_issue_A_forward, expected_issue_A_forward;
 	logic DUT_issue_A_is_zero, expected_issue_A_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_A_bank, expected_issue_A_bank;
 	logic DUT_issue_B_forward, expected_issue_B_forward;
 	logic DUT_issue_B_is_zero, expected_issue_B_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_B_bank, expected_issue_B_bank;
-	logic [LOG_ROB_ENTRIES-1:0] DUT_issue_ROB_index, expected_issue_ROB_index;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] DUT_issue_cq_index, expected_issue_cq_index;
 
     // reg read req to PRF
@@ -103,16 +95,12 @@ module stamofu_iq_tb ();
 		.stamofu_iq_enq_is_fence(tb_stamofu_iq_enq_is_fence),
 		.stamofu_iq_enq_op(tb_stamofu_iq_enq_op),
 		.stamofu_iq_enq_imm12(tb_stamofu_iq_enq_imm12),
-		.stamofu_iq_enq_mdp_info(tb_stamofu_iq_enq_mdp_info),
-		.stamofu_iq_enq_mem_aq(tb_stamofu_iq_enq_mem_aq),
-		.stamofu_iq_enq_io_aq(tb_stamofu_iq_enq_io_aq),
 		.stamofu_iq_enq_A_PR(tb_stamofu_iq_enq_A_PR),
 		.stamofu_iq_enq_A_ready(tb_stamofu_iq_enq_A_ready),
 		.stamofu_iq_enq_A_is_zero(tb_stamofu_iq_enq_A_is_zero),
 		.stamofu_iq_enq_B_PR(tb_stamofu_iq_enq_B_PR),
 		.stamofu_iq_enq_B_ready(tb_stamofu_iq_enq_B_ready),
 		.stamofu_iq_enq_B_is_zero(tb_stamofu_iq_enq_B_is_zero),
-		.stamofu_iq_enq_ROB_index(tb_stamofu_iq_enq_ROB_index),
 		.stamofu_iq_enq_cq_index(tb_stamofu_iq_enq_cq_index),
 
 	    // issue queue enqueue feedback
@@ -129,16 +117,12 @@ module stamofu_iq_tb ();
 		.issue_is_fence(DUT_issue_is_fence),
 		.issue_op(DUT_issue_op),
 		.issue_imm12(DUT_issue_imm12),
-		.issue_mdp_info(DUT_issue_mdp_info),
-		.issue_mem_aq(DUT_issue_mem_aq),
-		.issue_io_aq(DUT_issue_io_aq),
 		.issue_A_forward(DUT_issue_A_forward),
 		.issue_A_is_zero(DUT_issue_A_is_zero),
 		.issue_A_bank(DUT_issue_A_bank),
 		.issue_B_forward(DUT_issue_B_forward),
 		.issue_B_is_zero(DUT_issue_B_is_zero),
 		.issue_B_bank(DUT_issue_B_bank),
-		.issue_ROB_index(DUT_issue_ROB_index),
 		.issue_cq_index(DUT_issue_cq_index),
 
 	    // reg read req to PRF
@@ -205,27 +189,6 @@ module stamofu_iq_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_mdp_info !== DUT_issue_mdp_info) begin
-			$display("TB ERROR: expected_issue_mdp_info (%h) != DUT_issue_mdp_info (%h)",
-				expected_issue_mdp_info, DUT_issue_mdp_info);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_issue_mem_aq !== DUT_issue_mem_aq) begin
-			$display("TB ERROR: expected_issue_mem_aq (%h) != DUT_issue_mem_aq (%h)",
-				expected_issue_mem_aq, DUT_issue_mem_aq);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_issue_io_aq !== DUT_issue_io_aq) begin
-			$display("TB ERROR: expected_issue_io_aq (%h) != DUT_issue_io_aq (%h)",
-				expected_issue_io_aq, DUT_issue_io_aq);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
 		if (expected_issue_A_forward !== DUT_issue_A_forward) begin
 			$display("TB ERROR: expected_issue_A_forward (%h) != DUT_issue_A_forward (%h)",
 				expected_issue_A_forward, DUT_issue_A_forward);
@@ -264,13 +227,6 @@ module stamofu_iq_tb ();
 		if (expected_issue_B_bank !== DUT_issue_B_bank) begin
 			$display("TB ERROR: expected_issue_B_bank (%h) != DUT_issue_B_bank (%h)",
 				expected_issue_B_bank, DUT_issue_B_bank);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_issue_ROB_index !== DUT_issue_ROB_index) begin
-			$display("TB ERROR: expected_issue_ROB_index (%h) != DUT_issue_ROB_index (%h)",
-				expected_issue_ROB_index, DUT_issue_ROB_index);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -339,16 +295,12 @@ module stamofu_iq_tb ();
 		tb_stamofu_iq_enq_is_fence = 1'b0;
 		tb_stamofu_iq_enq_op = 4'b0000;
 		tb_stamofu_iq_enq_imm12 = 12'h0;
-		tb_stamofu_iq_enq_mdp_info = 8'h0;
-		tb_stamofu_iq_enq_mem_aq = 1'b0;
-		tb_stamofu_iq_enq_io_aq = 1'b0;
 		tb_stamofu_iq_enq_A_PR = 7'h0;
 		tb_stamofu_iq_enq_A_ready = 1'b0;
 		tb_stamofu_iq_enq_A_is_zero = 1'b0;
 		tb_stamofu_iq_enq_B_PR = 7'h0;
 		tb_stamofu_iq_enq_B_ready = 1'b0;
 		tb_stamofu_iq_enq_B_is_zero = 1'b0;
-		tb_stamofu_iq_enq_ROB_index = 7'h0;
 		tb_stamofu_iq_enq_cq_index = 0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
@@ -374,16 +326,12 @@ module stamofu_iq_tb ();
 		expected_issue_is_fence = 1'b0;
 		expected_issue_op = 4'b0000;
 		expected_issue_imm12 = 12'h0;
-		expected_issue_mdp_info = 8'h0;
-		expected_issue_mem_aq = 1'b0;
-		expected_issue_io_aq = 1'b0;
 		expected_issue_A_forward = 1'b0;
 		expected_issue_A_is_zero = 1'b0;
 		expected_issue_A_bank = 2'h0;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b0;
 		expected_issue_B_bank = 2'h0;
-		expected_issue_ROB_index = 7'h0;
 		expected_issue_cq_index = 0;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
@@ -407,16 +355,12 @@ module stamofu_iq_tb ();
 		tb_stamofu_iq_enq_is_fence = 1'b0;
 		tb_stamofu_iq_enq_op = 4'b0000;
 		tb_stamofu_iq_enq_imm12 = 12'h0;
-		tb_stamofu_iq_enq_mdp_info = 8'h0;
-		tb_stamofu_iq_enq_mem_aq = 1'b0;
-		tb_stamofu_iq_enq_io_aq = 1'b0;
 		tb_stamofu_iq_enq_A_PR = 7'h0;
 		tb_stamofu_iq_enq_A_ready = 1'b0;
 		tb_stamofu_iq_enq_A_is_zero = 1'b0;
 		tb_stamofu_iq_enq_B_PR = 7'h0;
 		tb_stamofu_iq_enq_B_ready = 1'b0;
 		tb_stamofu_iq_enq_B_is_zero = 1'b0;
-		tb_stamofu_iq_enq_ROB_index = 7'h0;
 		tb_stamofu_iq_enq_cq_index = 0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
@@ -442,16 +386,12 @@ module stamofu_iq_tb ();
 		expected_issue_is_fence = 1'b0;
 		expected_issue_op = 4'b0000;
 		expected_issue_imm12 = 12'h0;
-		expected_issue_mdp_info = 8'h0;
-		expected_issue_mem_aq = 1'b0;
-		expected_issue_io_aq = 1'b0;
 		expected_issue_A_forward = 1'b0;
 		expected_issue_A_is_zero = 1'b0;
 		expected_issue_A_bank = 2'h0;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b0;
 		expected_issue_B_bank = 2'h0;
-		expected_issue_ROB_index = 7'h0;
 		expected_issue_cq_index = 0;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
@@ -492,16 +432,12 @@ module stamofu_iq_tb ();
 		tb_stamofu_iq_enq_is_fence = 1'b0;
 		tb_stamofu_iq_enq_op = 4'b0000;
 		tb_stamofu_iq_enq_imm12 = 12'h0;
-		tb_stamofu_iq_enq_mdp_info = 8'h0;
-		tb_stamofu_iq_enq_mem_aq = 1'b0;
-		tb_stamofu_iq_enq_io_aq = 1'b0;
 		tb_stamofu_iq_enq_A_PR = 7'h0;
 		tb_stamofu_iq_enq_A_ready = 1'b0;
 		tb_stamofu_iq_enq_A_is_zero = 1'b0;
 		tb_stamofu_iq_enq_B_PR = 7'h0;
 		tb_stamofu_iq_enq_B_ready = 1'b0;
 		tb_stamofu_iq_enq_B_is_zero = 1'b0;
-		tb_stamofu_iq_enq_ROB_index = 7'h0;
 		tb_stamofu_iq_enq_cq_index = 0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
@@ -527,16 +463,12 @@ module stamofu_iq_tb ();
 		expected_issue_is_fence = 1'b0;
 		expected_issue_op = 4'b0000;
 		expected_issue_imm12 = 12'h0;
-		expected_issue_mdp_info = 8'h0;
-		expected_issue_mem_aq = 1'b0;
-		expected_issue_io_aq = 1'b0;
 		expected_issue_A_forward = 1'b0;
 		expected_issue_A_is_zero = 1'b0;
 		expected_issue_A_bank = 2'h0;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b0;
 		expected_issue_B_bank = 2'h0;
-		expected_issue_ROB_index = 7'h0;
 		expected_issue_cq_index = 0;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
@@ -571,16 +503,12 @@ module stamofu_iq_tb ();
 		tb_stamofu_iq_enq_is_fence = 1'b0;
 		tb_stamofu_iq_enq_op = 4'b0000;
 		tb_stamofu_iq_enq_imm12 = 12'h000;
-		tb_stamofu_iq_enq_mdp_info = 8'h00;
-		tb_stamofu_iq_enq_mem_aq = 1'b0;
-		tb_stamofu_iq_enq_io_aq = 1'b0;
 		tb_stamofu_iq_enq_A_PR = 7'h0;
 		tb_stamofu_iq_enq_A_ready = 1'b0;
 		tb_stamofu_iq_enq_A_is_zero = 1'b1;
 		tb_stamofu_iq_enq_B_PR = 7'h00;
 		tb_stamofu_iq_enq_B_ready = 1'b0;
 		tb_stamofu_iq_enq_B_is_zero = 1'b1;
-		tb_stamofu_iq_enq_ROB_index = 7'h00;
 		tb_stamofu_iq_enq_cq_index = 0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
@@ -606,16 +534,12 @@ module stamofu_iq_tb ();
 		expected_issue_is_fence = 1'b0;
 		expected_issue_op = 4'b0000;
 		expected_issue_imm12 = 12'h0;
-		expected_issue_mdp_info = 8'h0;
-		expected_issue_mem_aq = 1'b0;
-		expected_issue_io_aq = 1'b0;
 		expected_issue_A_forward = 1'b0;
 		expected_issue_A_is_zero = 1'b0;
 		expected_issue_A_bank = 2'h0;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b0;
 		expected_issue_B_bank = 2'h0;
-		expected_issue_ROB_index = 7'h0;
 		expected_issue_cq_index = 0;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
@@ -650,16 +574,12 @@ module stamofu_iq_tb ();
 		tb_stamofu_iq_enq_is_fence = 1'b0;
 		tb_stamofu_iq_enq_op = 4'b0001;
 		tb_stamofu_iq_enq_imm12 = 12'h111;
-		tb_stamofu_iq_enq_mdp_info = 8'h11;
-		tb_stamofu_iq_enq_mem_aq = 1'b1;
-		tb_stamofu_iq_enq_io_aq = 1'b0;
 		tb_stamofu_iq_enq_A_PR = 7'h1;
 		tb_stamofu_iq_enq_A_ready = 1'b0;
 		tb_stamofu_iq_enq_A_is_zero = 1'b0;
 		tb_stamofu_iq_enq_B_PR = 7'h11;
 		tb_stamofu_iq_enq_B_ready = 1'b1;
 		tb_stamofu_iq_enq_B_is_zero = 1'b0;
-		tb_stamofu_iq_enq_ROB_index = 7'h11;
 		tb_stamofu_iq_enq_cq_index = 1;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
@@ -685,16 +605,12 @@ module stamofu_iq_tb ();
 		expected_issue_is_fence = 1'b0;
 		expected_issue_op = 4'b0000;
 		expected_issue_imm12 = 12'h0;
-		expected_issue_mdp_info = 8'h0;
-		expected_issue_mem_aq = 1'b0;
-		expected_issue_io_aq = 1'b0;
 		expected_issue_A_forward = 1'b0;
 		expected_issue_A_is_zero = 1'b0;
 		expected_issue_A_bank = 2'h0;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b0;
 		expected_issue_B_bank = 2'h0;
-		expected_issue_ROB_index = 7'h0;
 		expected_issue_cq_index = 0;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
@@ -729,16 +645,12 @@ module stamofu_iq_tb ();
 		tb_stamofu_iq_enq_is_fence = 1'b1;
 		tb_stamofu_iq_enq_op = 4'b0010;
 		tb_stamofu_iq_enq_imm12 = 12'h222;
-		tb_stamofu_iq_enq_mdp_info = 8'h22;
-		tb_stamofu_iq_enq_mem_aq = 1'b0;
-		tb_stamofu_iq_enq_io_aq = 1'b1;
 		tb_stamofu_iq_enq_A_PR = 7'h2;
 		tb_stamofu_iq_enq_A_ready = 1'b0;
 		tb_stamofu_iq_enq_A_is_zero = 1'b0;
 		tb_stamofu_iq_enq_B_PR = 7'h22;
 		tb_stamofu_iq_enq_B_ready = 1'b0;
 		tb_stamofu_iq_enq_B_is_zero = 1'b0;
-		tb_stamofu_iq_enq_ROB_index = 7'h22;
 		tb_stamofu_iq_enq_cq_index = 2;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
@@ -764,16 +676,12 @@ module stamofu_iq_tb ();
 		expected_issue_is_fence = 1'b0;
 		expected_issue_op = 4'b0000;
 		expected_issue_imm12 = 12'h000;
-		expected_issue_mdp_info = 8'h00;
-		expected_issue_mem_aq = 1'b0;
-		expected_issue_io_aq = 1'b0;
 		expected_issue_A_forward = 1'b0;
 		expected_issue_A_is_zero = 1'b1;
 		expected_issue_A_bank = 2'h0;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b1;
 		expected_issue_B_bank = 2'h0;
-		expected_issue_ROB_index = 7'h00;
 		expected_issue_cq_index = 0;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
@@ -808,16 +716,12 @@ module stamofu_iq_tb ();
 		tb_stamofu_iq_enq_is_fence = 1'b0;
 		tb_stamofu_iq_enq_op = 4'b0011;
 		tb_stamofu_iq_enq_imm12 = 12'h333;
-		tb_stamofu_iq_enq_mdp_info = 8'h33;
-		tb_stamofu_iq_enq_mem_aq = 1'b1;
-		tb_stamofu_iq_enq_io_aq = 1'b1;
 		tb_stamofu_iq_enq_A_PR = 7'h3;
 		tb_stamofu_iq_enq_A_ready = 1'b1;
 		tb_stamofu_iq_enq_A_is_zero = 1'b0;
 		tb_stamofu_iq_enq_B_PR = 7'h33;
 		tb_stamofu_iq_enq_B_ready = 1'b0;
 		tb_stamofu_iq_enq_B_is_zero = 1'b0;
-		tb_stamofu_iq_enq_ROB_index = 7'h33;
 		tb_stamofu_iq_enq_cq_index = 3;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
@@ -843,16 +747,12 @@ module stamofu_iq_tb ();
 		expected_issue_is_fence = 1'b0;
 		expected_issue_op = 4'b0000;
 		expected_issue_imm12 = 12'h000;
-		expected_issue_mdp_info = 8'h00;
-		expected_issue_mem_aq = 1'b0;
-		expected_issue_io_aq = 1'b0;
 		expected_issue_A_forward = 1'b0;
 		expected_issue_A_is_zero = 1'b0;
 		expected_issue_A_bank = 2'h0;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b0;
 		expected_issue_B_bank = 2'h0;
-		expected_issue_ROB_index = 7'h00;
 		expected_issue_cq_index = 0;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
@@ -887,16 +787,12 @@ module stamofu_iq_tb ();
 		tb_stamofu_iq_enq_is_fence = 1'b0;
 		tb_stamofu_iq_enq_op = 4'b0100;
 		tb_stamofu_iq_enq_imm12 = 12'h444;
-		tb_stamofu_iq_enq_mdp_info = 8'h44;
-		tb_stamofu_iq_enq_mem_aq = 1'b0;
-		tb_stamofu_iq_enq_io_aq = 1'b0;
 		tb_stamofu_iq_enq_A_PR = 7'h4;
 		tb_stamofu_iq_enq_A_ready = 1'b1;
 		tb_stamofu_iq_enq_A_is_zero = 1'b0;
 		tb_stamofu_iq_enq_B_PR = 7'h44;
 		tb_stamofu_iq_enq_B_ready = 1'b1;
 		tb_stamofu_iq_enq_B_is_zero = 1'b0;
-		tb_stamofu_iq_enq_ROB_index = 7'h44;
 		tb_stamofu_iq_enq_cq_index = 4;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
@@ -922,16 +818,12 @@ module stamofu_iq_tb ();
 		expected_issue_is_fence = 1'b0;
 		expected_issue_op = 4'b0000;
 		expected_issue_imm12 = 12'h000;
-		expected_issue_mdp_info = 8'h00;
-		expected_issue_mem_aq = 1'b0;
-		expected_issue_io_aq = 1'b0;
 		expected_issue_A_forward = 1'b0;
 		expected_issue_A_is_zero = 1'b0;
 		expected_issue_A_bank = 2'h0;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b0;
 		expected_issue_B_bank = 2'h0;
-		expected_issue_ROB_index = 7'h00;
 		expected_issue_cq_index = 0;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
@@ -966,16 +858,12 @@ module stamofu_iq_tb ();
 		tb_stamofu_iq_enq_is_fence = 1'b1;
 		tb_stamofu_iq_enq_op = 4'b0101;
 		tb_stamofu_iq_enq_imm12 = 12'h555;
-		tb_stamofu_iq_enq_mdp_info = 8'h55;
-		tb_stamofu_iq_enq_mem_aq = 1'b1;
-		tb_stamofu_iq_enq_io_aq = 1'b0;
 		tb_stamofu_iq_enq_A_PR = 7'h5;
 		tb_stamofu_iq_enq_A_ready = 1'b0;
 		tb_stamofu_iq_enq_A_is_zero = 1'b0;
 		tb_stamofu_iq_enq_B_PR = 7'h55;
 		tb_stamofu_iq_enq_B_ready = 1'b0;
 		tb_stamofu_iq_enq_B_is_zero = 1'b0;
-		tb_stamofu_iq_enq_ROB_index = 7'h55;
 		tb_stamofu_iq_enq_cq_index = 5;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
@@ -1001,16 +889,12 @@ module stamofu_iq_tb ();
 		expected_issue_is_fence = 1'b0;
 		expected_issue_op = 4'b0001;
 		expected_issue_imm12 = 12'h111;
-		expected_issue_mdp_info = 8'h11;
-		expected_issue_mem_aq = 1'b1;
-		expected_issue_io_aq = 1'b0;
 		expected_issue_A_forward = 1'b0;
 		expected_issue_A_is_zero = 1'b0;
 		expected_issue_A_bank = 2'h1;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b0;
 		expected_issue_B_bank = 2'h1;
-		expected_issue_ROB_index = 7'h11;
 		expected_issue_cq_index = 1;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b1;
@@ -1045,16 +929,12 @@ module stamofu_iq_tb ();
 		tb_stamofu_iq_enq_is_fence = 1'b1;
 		tb_stamofu_iq_enq_op = 4'b0101;
 		tb_stamofu_iq_enq_imm12 = 12'h555;
-		tb_stamofu_iq_enq_mdp_info = 8'h55;
-		tb_stamofu_iq_enq_mem_aq = 1'b1;
-		tb_stamofu_iq_enq_io_aq = 1'b0;
 		tb_stamofu_iq_enq_A_PR = 7'h5;
 		tb_stamofu_iq_enq_A_ready = 1'b0;
 		tb_stamofu_iq_enq_A_is_zero = 1'b0;
 		tb_stamofu_iq_enq_B_PR = 7'h55;
 		tb_stamofu_iq_enq_B_ready = 1'b0;
 		tb_stamofu_iq_enq_B_is_zero = 1'b0;
-		tb_stamofu_iq_enq_ROB_index = 7'h55;
 		tb_stamofu_iq_enq_cq_index = 5;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
@@ -1080,16 +960,12 @@ module stamofu_iq_tb ();
 		expected_issue_is_fence = 1'b0;
 		expected_issue_op = 4'b0100;
 		expected_issue_imm12 = 12'h444;
-		expected_issue_mdp_info = 8'h44;
-		expected_issue_mem_aq = 1'b0;
-		expected_issue_io_aq = 1'b0;
 		expected_issue_A_forward = 1'b0;
 		expected_issue_A_is_zero = 1'b0;
 		expected_issue_A_bank = 2'h0;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b0;
 		expected_issue_B_bank = 2'h0;
-		expected_issue_ROB_index = 7'h44;
 		expected_issue_cq_index = 4;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b1;
@@ -1124,16 +1000,12 @@ module stamofu_iq_tb ();
 		tb_stamofu_iq_enq_is_fence = 1'b0;
 		tb_stamofu_iq_enq_op = 4'b0000;
 		tb_stamofu_iq_enq_imm12 = 12'h000;
-		tb_stamofu_iq_enq_mdp_info = 8'h00;
-		tb_stamofu_iq_enq_mem_aq = 1'b0;
-		tb_stamofu_iq_enq_io_aq = 1'b0;
 		tb_stamofu_iq_enq_A_PR = 7'h0;
 		tb_stamofu_iq_enq_A_ready = 1'b0;
 		tb_stamofu_iq_enq_A_is_zero = 1'b0;
 		tb_stamofu_iq_enq_B_PR = 7'h00;
 		tb_stamofu_iq_enq_B_ready = 1'b0;
 		tb_stamofu_iq_enq_B_is_zero = 1'b0;
-		tb_stamofu_iq_enq_ROB_index = 7'h00;
 		tb_stamofu_iq_enq_cq_index = 0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
@@ -1159,16 +1031,12 @@ module stamofu_iq_tb ();
 		expected_issue_is_fence = 1'b1;
 		expected_issue_op = 4'b0010;
 		expected_issue_imm12 = 12'h222;
-		expected_issue_mdp_info = 8'h22;
-		expected_issue_mem_aq = 1'b0;
-		expected_issue_io_aq = 1'b1;
 		expected_issue_A_forward = 1'b1;
 		expected_issue_A_is_zero = 1'b0;
 		expected_issue_A_bank = 2'h2;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b0;
 		expected_issue_B_bank = 2'h2;
-		expected_issue_ROB_index = 7'h22;
 		expected_issue_cq_index = 2;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;
@@ -1203,16 +1071,12 @@ module stamofu_iq_tb ();
 		tb_stamofu_iq_enq_is_fence = 1'b0;
 		tb_stamofu_iq_enq_op = 4'b0000;
 		tb_stamofu_iq_enq_imm12 = 12'h000;
-		tb_stamofu_iq_enq_mdp_info = 8'h00;
-		tb_stamofu_iq_enq_mem_aq = 1'b0;
-		tb_stamofu_iq_enq_io_aq = 1'b0;
 		tb_stamofu_iq_enq_A_PR = 7'h0;
 		tb_stamofu_iq_enq_A_ready = 1'b0;
 		tb_stamofu_iq_enq_A_is_zero = 1'b0;
 		tb_stamofu_iq_enq_B_PR = 7'h00;
 		tb_stamofu_iq_enq_B_ready = 1'b0;
 		tb_stamofu_iq_enq_B_is_zero = 1'b0;
-		tb_stamofu_iq_enq_ROB_index = 7'h00;
 		tb_stamofu_iq_enq_cq_index = 0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
@@ -1238,16 +1102,12 @@ module stamofu_iq_tb ();
 		expected_issue_is_fence = 1'b0;
 		expected_issue_op = 4'b0011;
 		expected_issue_imm12 = 12'h333;
-		expected_issue_mdp_info = 8'h33;
-		expected_issue_mem_aq = 1'b1;
-		expected_issue_io_aq = 1'b1;
 		expected_issue_A_forward = 1'b0;
 		expected_issue_A_is_zero = 1'b0;
 		expected_issue_A_bank = 2'h3;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b0;
 		expected_issue_B_bank = 2'h3;
-		expected_issue_ROB_index = 7'h33;
 		expected_issue_cq_index = 3;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b1;
@@ -1282,16 +1142,12 @@ module stamofu_iq_tb ();
 		tb_stamofu_iq_enq_is_fence = 1'b0;
 		tb_stamofu_iq_enq_op = 4'b0000;
 		tb_stamofu_iq_enq_imm12 = 12'h000;
-		tb_stamofu_iq_enq_mdp_info = 8'h00;
-		tb_stamofu_iq_enq_mem_aq = 1'b0;
-		tb_stamofu_iq_enq_io_aq = 1'b0;
 		tb_stamofu_iq_enq_A_PR = 7'h0;
 		tb_stamofu_iq_enq_A_ready = 1'b0;
 		tb_stamofu_iq_enq_A_is_zero = 1'b0;
 		tb_stamofu_iq_enq_B_PR = 7'h00;
 		tb_stamofu_iq_enq_B_ready = 1'b0;
 		tb_stamofu_iq_enq_B_is_zero = 1'b0;
-		tb_stamofu_iq_enq_ROB_index = 7'h00;
 		tb_stamofu_iq_enq_cq_index = 0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
@@ -1317,16 +1173,12 @@ module stamofu_iq_tb ();
 		expected_issue_is_fence = 1'b1;
 		expected_issue_op = 4'b0101;
 		expected_issue_imm12 = 12'h555;
-		expected_issue_mdp_info = 8'h55;
-		expected_issue_mem_aq = 1'b1;
-		expected_issue_io_aq = 1'b0;
 		expected_issue_A_forward = 1'b0;
 		expected_issue_A_is_zero = 1'b0;
 		expected_issue_A_bank = 2'h1;
 		expected_issue_B_forward = 1'b1;
 		expected_issue_B_is_zero = 1'b0;
 		expected_issue_B_bank = 2'h1;
-		expected_issue_ROB_index = 7'h55;
 		expected_issue_cq_index = 5;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b1;
@@ -1361,16 +1213,12 @@ module stamofu_iq_tb ();
 		tb_stamofu_iq_enq_is_fence = 1'b0;
 		tb_stamofu_iq_enq_op = 4'b0000;
 		tb_stamofu_iq_enq_imm12 = 12'h000;
-		tb_stamofu_iq_enq_mdp_info = 8'h00;
-		tb_stamofu_iq_enq_mem_aq = 1'b0;
-		tb_stamofu_iq_enq_io_aq = 1'b0;
 		tb_stamofu_iq_enq_A_PR = 7'h0;
 		tb_stamofu_iq_enq_A_ready = 1'b0;
 		tb_stamofu_iq_enq_A_is_zero = 1'b0;
 		tb_stamofu_iq_enq_B_PR = 7'h00;
 		tb_stamofu_iq_enq_B_ready = 1'b0;
 		tb_stamofu_iq_enq_B_is_zero = 1'b0;
-		tb_stamofu_iq_enq_ROB_index = 7'h00;
 		tb_stamofu_iq_enq_cq_index = 0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
@@ -1396,16 +1244,12 @@ module stamofu_iq_tb ();
 		expected_issue_is_fence = 1'b0;
 		expected_issue_op = 4'b0000;
 		expected_issue_imm12 = 12'h000;
-		expected_issue_mdp_info = 8'h00;
-		expected_issue_mem_aq = 1'b0;
-		expected_issue_io_aq = 1'b0;
 		expected_issue_A_forward = 1'b0;
 		expected_issue_A_is_zero = 1'b0;
 		expected_issue_A_bank = 2'h0;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b0;
 		expected_issue_B_bank = 2'h0;
-		expected_issue_ROB_index = 7'h00;
 		expected_issue_cq_index = 0;
 	    // reg read req to PRF
 		expected_PRF_req_A_valid = 1'b0;

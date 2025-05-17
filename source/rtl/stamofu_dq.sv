@@ -69,16 +69,12 @@ module stamofu_dq #(
     output logic                                stamofu_iq_enq_is_fence,
     output logic [3:0]                          stamofu_iq_enq_op,
     output logic [11:0]                         stamofu_iq_enq_imm12,
-    output logic [MDPT_INFO_WIDTH-1:0]          stamofu_iq_enq_mdp_info,
-    output logic                                stamofu_iq_enq_mem_aq,
-    output logic                                stamofu_iq_enq_io_aq,
     output logic [LOG_PR_COUNT-1:0]             stamofu_iq_enq_A_PR,
     output logic                                stamofu_iq_enq_A_ready,
     output logic                                stamofu_iq_enq_A_is_zero,
     output logic [LOG_PR_COUNT-1:0]             stamofu_iq_enq_B_PR,
     output logic                                stamofu_iq_enq_B_ready,
     output logic                                stamofu_iq_enq_B_is_zero,
-    output logic [LOG_ROB_ENTRIES-1:0]          stamofu_iq_enq_ROB_index,
     output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   stamofu_iq_enq_cq_index,
 
     // issue queue enqueue feedback
@@ -219,16 +215,12 @@ module stamofu_dq #(
         stamofu_iq_enq_is_fence = is_fence_by_entry[0];
         stamofu_iq_enq_op = op_by_entry[0];
         stamofu_iq_enq_imm12 = imm12_by_entry[0];
-        stamofu_iq_enq_mdp_info = mdp_info_by_entry[0];
-        stamofu_iq_enq_mem_aq = mem_aq_by_entry[0];
-        stamofu_iq_enq_io_aq = io_aq_by_entry[0];
         stamofu_iq_enq_A_PR = A_PR_by_entry[0];
         stamofu_iq_enq_A_ready = A_ready_by_entry[0] | new_A_ready_by_entry[0];
         stamofu_iq_enq_A_is_zero = A_is_zero_by_entry[0];
         stamofu_iq_enq_B_PR = B_PR_by_entry[0];
         stamofu_iq_enq_B_ready = B_ready_by_entry[0] | new_B_ready_by_entry[0];
         stamofu_iq_enq_B_is_zero = B_is_zero_by_entry[0];
-        stamofu_iq_enq_ROB_index = ROB_index_by_entry[0];
         stamofu_iq_enq_cq_index = stamofu_cq_enq_index;
 
         stamofu_aq_enq_valid = 

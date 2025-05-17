@@ -23,16 +23,12 @@ module stamofu_iq_wrapper (
 	input logic next_stamofu_iq_enq_is_fence,
 	input logic [3:0] next_stamofu_iq_enq_op,
 	input logic [11:0] next_stamofu_iq_enq_imm12,
-	input logic [MDPT_INFO_WIDTH-1:0] next_stamofu_iq_enq_mdp_info,
-	input logic next_stamofu_iq_enq_mem_aq,
-	input logic next_stamofu_iq_enq_io_aq,
 	input logic [LOG_PR_COUNT-1:0] next_stamofu_iq_enq_A_PR,
 	input logic next_stamofu_iq_enq_A_ready,
 	input logic next_stamofu_iq_enq_A_is_zero,
 	input logic [LOG_PR_COUNT-1:0] next_stamofu_iq_enq_B_PR,
 	input logic next_stamofu_iq_enq_B_ready,
 	input logic next_stamofu_iq_enq_B_is_zero,
-	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_iq_enq_ROB_index,
 	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_iq_enq_cq_index,
 
     // issue queue enqueue feedback
@@ -49,16 +45,12 @@ module stamofu_iq_wrapper (
 	output logic last_issue_is_fence,
 	output logic [3:0] last_issue_op,
 	output logic [11:0] last_issue_imm12,
-	output logic [MDPT_INFO_WIDTH-1:0] last_issue_mdp_info,
-	output logic last_issue_mem_aq,
-	output logic last_issue_io_aq,
 	output logic last_issue_A_forward,
 	output logic last_issue_A_is_zero,
 	output logic [LOG_PRF_BANK_COUNT-1:0] last_issue_A_bank,
 	output logic last_issue_B_forward,
 	output logic last_issue_B_is_zero,
 	output logic [LOG_PRF_BANK_COUNT-1:0] last_issue_B_bank,
-	output logic [LOG_ROB_ENTRIES-1:0] last_issue_ROB_index,
 	output logic [LOG_STAMOFU_CQ_ENTRIES-1:0] last_issue_cq_index,
 
     // reg read req to PRF
@@ -81,16 +73,12 @@ module stamofu_iq_wrapper (
 	logic stamofu_iq_enq_is_fence;
 	logic [3:0] stamofu_iq_enq_op;
 	logic [11:0] stamofu_iq_enq_imm12;
-	logic [MDPT_INFO_WIDTH-1:0] stamofu_iq_enq_mdp_info;
-	logic stamofu_iq_enq_mem_aq;
-	logic stamofu_iq_enq_io_aq;
 	logic [LOG_PR_COUNT-1:0] stamofu_iq_enq_A_PR;
 	logic stamofu_iq_enq_A_ready;
 	logic stamofu_iq_enq_A_is_zero;
 	logic [LOG_PR_COUNT-1:0] stamofu_iq_enq_B_PR;
 	logic stamofu_iq_enq_B_ready;
 	logic stamofu_iq_enq_B_is_zero;
-	logic [LOG_ROB_ENTRIES-1:0] stamofu_iq_enq_ROB_index;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_iq_enq_cq_index;
 
     // issue queue enqueue feedback
@@ -107,16 +95,12 @@ module stamofu_iq_wrapper (
 	logic issue_is_fence;
 	logic [3:0] issue_op;
 	logic [11:0] issue_imm12;
-	logic [MDPT_INFO_WIDTH-1:0] issue_mdp_info;
-	logic issue_mem_aq;
-	logic issue_io_aq;
 	logic issue_A_forward;
 	logic issue_A_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_A_bank;
 	logic issue_B_forward;
 	logic issue_B_is_zero;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_B_bank;
-	logic [LOG_ROB_ENTRIES-1:0] issue_ROB_index;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] issue_cq_index;
 
     // reg read req to PRF
@@ -131,7 +115,7 @@ module stamofu_iq_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    stamofu_iq WRAPPED_MODULE (.*);
+    stamofu_iq #(.STAMOFU_IQ_ENTRIES(STAMOFU_IQ_ENTRIES)) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -146,16 +130,12 @@ module stamofu_iq_wrapper (
 			stamofu_iq_enq_is_fence <= '0;
 			stamofu_iq_enq_op <= '0;
 			stamofu_iq_enq_imm12 <= '0;
-			stamofu_iq_enq_mdp_info <= '0;
-			stamofu_iq_enq_mem_aq <= '0;
-			stamofu_iq_enq_io_aq <= '0;
 			stamofu_iq_enq_A_PR <= '0;
 			stamofu_iq_enq_A_ready <= '0;
 			stamofu_iq_enq_A_is_zero <= '0;
 			stamofu_iq_enq_B_PR <= '0;
 			stamofu_iq_enq_B_ready <= '0;
 			stamofu_iq_enq_B_is_zero <= '0;
-			stamofu_iq_enq_ROB_index <= '0;
 			stamofu_iq_enq_cq_index <= '0;
 
 		    // issue queue enqueue feedback
@@ -172,16 +152,12 @@ module stamofu_iq_wrapper (
 			last_issue_is_fence <= '0;
 			last_issue_op <= '0;
 			last_issue_imm12 <= '0;
-			last_issue_mdp_info <= '0;
-			last_issue_mem_aq <= '0;
-			last_issue_io_aq <= '0;
 			last_issue_A_forward <= '0;
 			last_issue_A_is_zero <= '0;
 			last_issue_A_bank <= '0;
 			last_issue_B_forward <= '0;
 			last_issue_B_is_zero <= '0;
 			last_issue_B_bank <= '0;
-			last_issue_ROB_index <= '0;
 			last_issue_cq_index <= '0;
 
 		    // reg read req to PRF
@@ -202,16 +178,12 @@ module stamofu_iq_wrapper (
 			stamofu_iq_enq_is_fence <= next_stamofu_iq_enq_is_fence;
 			stamofu_iq_enq_op <= next_stamofu_iq_enq_op;
 			stamofu_iq_enq_imm12 <= next_stamofu_iq_enq_imm12;
-			stamofu_iq_enq_mdp_info <= next_stamofu_iq_enq_mdp_info;
-			stamofu_iq_enq_mem_aq <= next_stamofu_iq_enq_mem_aq;
-			stamofu_iq_enq_io_aq <= next_stamofu_iq_enq_io_aq;
 			stamofu_iq_enq_A_PR <= next_stamofu_iq_enq_A_PR;
 			stamofu_iq_enq_A_ready <= next_stamofu_iq_enq_A_ready;
 			stamofu_iq_enq_A_is_zero <= next_stamofu_iq_enq_A_is_zero;
 			stamofu_iq_enq_B_PR <= next_stamofu_iq_enq_B_PR;
 			stamofu_iq_enq_B_ready <= next_stamofu_iq_enq_B_ready;
 			stamofu_iq_enq_B_is_zero <= next_stamofu_iq_enq_B_is_zero;
-			stamofu_iq_enq_ROB_index <= next_stamofu_iq_enq_ROB_index;
 			stamofu_iq_enq_cq_index <= next_stamofu_iq_enq_cq_index;
 
 		    // issue queue enqueue feedback
@@ -228,16 +200,12 @@ module stamofu_iq_wrapper (
 			last_issue_is_fence <= issue_is_fence;
 			last_issue_op <= issue_op;
 			last_issue_imm12 <= issue_imm12;
-			last_issue_mdp_info <= issue_mdp_info;
-			last_issue_mem_aq <= issue_mem_aq;
-			last_issue_io_aq <= issue_io_aq;
 			last_issue_A_forward <= issue_A_forward;
 			last_issue_A_is_zero <= issue_A_is_zero;
 			last_issue_A_bank <= issue_A_bank;
 			last_issue_B_forward <= issue_B_forward;
 			last_issue_B_is_zero <= issue_B_is_zero;
 			last_issue_B_bank <= issue_B_bank;
-			last_issue_ROB_index <= issue_ROB_index;
 			last_issue_cq_index <= issue_cq_index;
 
 		    // reg read req to PRF

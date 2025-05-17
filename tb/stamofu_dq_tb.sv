@@ -86,16 +86,12 @@ module stamofu_dq_tb ();
 	logic DUT_stamofu_iq_enq_is_fence, expected_stamofu_iq_enq_is_fence;
 	logic [3:0] DUT_stamofu_iq_enq_op, expected_stamofu_iq_enq_op;
 	logic [11:0] DUT_stamofu_iq_enq_imm12, expected_stamofu_iq_enq_imm12;
-	logic [MDPT_INFO_WIDTH-1:0] DUT_stamofu_iq_enq_mdp_info, expected_stamofu_iq_enq_mdp_info;
-	logic DUT_stamofu_iq_enq_mem_aq, expected_stamofu_iq_enq_mem_aq;
-	logic DUT_stamofu_iq_enq_io_aq, expected_stamofu_iq_enq_io_aq;
 	logic [LOG_PR_COUNT-1:0] DUT_stamofu_iq_enq_A_PR, expected_stamofu_iq_enq_A_PR;
 	logic DUT_stamofu_iq_enq_A_ready, expected_stamofu_iq_enq_A_ready;
 	logic DUT_stamofu_iq_enq_A_is_zero, expected_stamofu_iq_enq_A_is_zero;
 	logic [LOG_PR_COUNT-1:0] DUT_stamofu_iq_enq_B_PR, expected_stamofu_iq_enq_B_PR;
 	logic DUT_stamofu_iq_enq_B_ready, expected_stamofu_iq_enq_B_ready;
 	logic DUT_stamofu_iq_enq_B_is_zero, expected_stamofu_iq_enq_B_is_zero;
-	logic [LOG_ROB_ENTRIES-1:0] DUT_stamofu_iq_enq_ROB_index, expected_stamofu_iq_enq_ROB_index;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] DUT_stamofu_iq_enq_cq_index, expected_stamofu_iq_enq_cq_index;
 
     // issue queue enqueue feedback
@@ -179,16 +175,12 @@ module stamofu_dq_tb ();
 		.stamofu_iq_enq_is_fence(DUT_stamofu_iq_enq_is_fence),
 		.stamofu_iq_enq_op(DUT_stamofu_iq_enq_op),
 		.stamofu_iq_enq_imm12(DUT_stamofu_iq_enq_imm12),
-		.stamofu_iq_enq_mdp_info(DUT_stamofu_iq_enq_mdp_info),
-		.stamofu_iq_enq_mem_aq(DUT_stamofu_iq_enq_mem_aq),
-		.stamofu_iq_enq_io_aq(DUT_stamofu_iq_enq_io_aq),
 		.stamofu_iq_enq_A_PR(DUT_stamofu_iq_enq_A_PR),
 		.stamofu_iq_enq_A_ready(DUT_stamofu_iq_enq_A_ready),
 		.stamofu_iq_enq_A_is_zero(DUT_stamofu_iq_enq_A_is_zero),
 		.stamofu_iq_enq_B_PR(DUT_stamofu_iq_enq_B_PR),
 		.stamofu_iq_enq_B_ready(DUT_stamofu_iq_enq_B_ready),
 		.stamofu_iq_enq_B_is_zero(DUT_stamofu_iq_enq_B_is_zero),
-		.stamofu_iq_enq_ROB_index(DUT_stamofu_iq_enq_ROB_index),
 		.stamofu_iq_enq_cq_index(DUT_stamofu_iq_enq_cq_index),
 
 	    // issue queue enqueue feedback
@@ -354,27 +346,6 @@ module stamofu_dq_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_stamofu_iq_enq_mdp_info !== DUT_stamofu_iq_enq_mdp_info) begin
-			$display("TB ERROR: expected_stamofu_iq_enq_mdp_info (%h) != DUT_stamofu_iq_enq_mdp_info (%h)",
-				expected_stamofu_iq_enq_mdp_info, DUT_stamofu_iq_enq_mdp_info);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_stamofu_iq_enq_mem_aq !== DUT_stamofu_iq_enq_mem_aq) begin
-			$display("TB ERROR: expected_stamofu_iq_enq_mem_aq (%h) != DUT_stamofu_iq_enq_mem_aq (%h)",
-				expected_stamofu_iq_enq_mem_aq, DUT_stamofu_iq_enq_mem_aq);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_stamofu_iq_enq_io_aq !== DUT_stamofu_iq_enq_io_aq) begin
-			$display("TB ERROR: expected_stamofu_iq_enq_io_aq (%h) != DUT_stamofu_iq_enq_io_aq (%h)",
-				expected_stamofu_iq_enq_io_aq, DUT_stamofu_iq_enq_io_aq);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
 		if (expected_stamofu_iq_enq_A_PR !== DUT_stamofu_iq_enq_A_PR) begin
 			$display("TB ERROR: expected_stamofu_iq_enq_A_PR (%h) != DUT_stamofu_iq_enq_A_PR (%h)",
 				expected_stamofu_iq_enq_A_PR, DUT_stamofu_iq_enq_A_PR);
@@ -413,13 +384,6 @@ module stamofu_dq_tb ();
 		if (expected_stamofu_iq_enq_B_is_zero !== DUT_stamofu_iq_enq_B_is_zero) begin
 			$display("TB ERROR: expected_stamofu_iq_enq_B_is_zero (%h) != DUT_stamofu_iq_enq_B_is_zero (%h)",
 				expected_stamofu_iq_enq_B_is_zero, DUT_stamofu_iq_enq_B_is_zero);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_stamofu_iq_enq_ROB_index !== DUT_stamofu_iq_enq_ROB_index) begin
-			$display("TB ERROR: expected_stamofu_iq_enq_ROB_index (%h) != DUT_stamofu_iq_enq_ROB_index (%h)",
-				expected_stamofu_iq_enq_ROB_index, DUT_stamofu_iq_enq_ROB_index);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -550,16 +514,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b0;
 		expected_stamofu_iq_enq_op = 4'b0000;
 		expected_stamofu_iq_enq_imm12 = 12'h0;
-		expected_stamofu_iq_enq_mdp_info = 8'h0;
-		expected_stamofu_iq_enq_mem_aq = 1'b0;
-		expected_stamofu_iq_enq_io_aq = 1'b0;
 		expected_stamofu_iq_enq_A_PR = 7'h0;
 		expected_stamofu_iq_enq_A_ready = 1'b0;
 		expected_stamofu_iq_enq_A_is_zero = 1'b0;
 		expected_stamofu_iq_enq_B_PR = 7'h0;
 		expected_stamofu_iq_enq_B_ready = 1'b0;
 		expected_stamofu_iq_enq_B_is_zero = 1'b0;
-		expected_stamofu_iq_enq_ROB_index = 7'h0;
 		expected_stamofu_iq_enq_cq_index = 0;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue
@@ -647,16 +607,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b0;
 		expected_stamofu_iq_enq_op = 4'b0000;
 		expected_stamofu_iq_enq_imm12 = 12'h0;
-		expected_stamofu_iq_enq_mdp_info = 8'h0;
-		expected_stamofu_iq_enq_mem_aq = 1'b0;
-		expected_stamofu_iq_enq_io_aq = 1'b0;
 		expected_stamofu_iq_enq_A_PR = 7'h0;
 		expected_stamofu_iq_enq_A_ready = 1'b0;
 		expected_stamofu_iq_enq_A_is_zero = 1'b0;
 		expected_stamofu_iq_enq_B_PR = 7'h0;
 		expected_stamofu_iq_enq_B_ready = 1'b0;
 		expected_stamofu_iq_enq_B_is_zero = 1'b0;
-		expected_stamofu_iq_enq_ROB_index = 7'h0;
 		expected_stamofu_iq_enq_cq_index = 0;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue
@@ -764,16 +720,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b0;
 		expected_stamofu_iq_enq_op = 4'b0000;
 		expected_stamofu_iq_enq_imm12 = 12'h0;
-		expected_stamofu_iq_enq_mdp_info = 8'h0;
-		expected_stamofu_iq_enq_mem_aq = 1'b0;
-		expected_stamofu_iq_enq_io_aq = 1'b0;
 		expected_stamofu_iq_enq_A_PR = 7'h0;
 		expected_stamofu_iq_enq_A_ready = 1'b0;
 		expected_stamofu_iq_enq_A_is_zero = 1'b0;
 		expected_stamofu_iq_enq_B_PR = 7'h0;
 		expected_stamofu_iq_enq_B_ready = 1'b0;
 		expected_stamofu_iq_enq_B_is_zero = 1'b0;
-		expected_stamofu_iq_enq_ROB_index = 7'h0;
 		expected_stamofu_iq_enq_cq_index = 0;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue
@@ -875,16 +827,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b0;
 		expected_stamofu_iq_enq_op = 4'b0000;
 		expected_stamofu_iq_enq_imm12 = 12'h000;
-		expected_stamofu_iq_enq_mdp_info = 8'h00;
-		expected_stamofu_iq_enq_mem_aq = 1'b0;
-		expected_stamofu_iq_enq_io_aq = 1'b0;
 		expected_stamofu_iq_enq_A_PR = 7'h0;
 		expected_stamofu_iq_enq_A_ready = 1'b0;
 		expected_stamofu_iq_enq_A_is_zero = 1'b1;
 		expected_stamofu_iq_enq_B_PR = 7'h00;
 		expected_stamofu_iq_enq_B_ready = 1'b0;
 		expected_stamofu_iq_enq_B_is_zero = 1'b1;
-		expected_stamofu_iq_enq_ROB_index = 7'h00;
 		expected_stamofu_iq_enq_cq_index = 0;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue
@@ -986,16 +934,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b0;
 		expected_stamofu_iq_enq_op = 4'b0001;
 		expected_stamofu_iq_enq_imm12 = 12'h111;
-		expected_stamofu_iq_enq_mdp_info = 8'h11;
-		expected_stamofu_iq_enq_mem_aq = 1'b1;
-		expected_stamofu_iq_enq_io_aq = 1'b0;
 		expected_stamofu_iq_enq_A_PR = 7'h1;
 		expected_stamofu_iq_enq_A_ready = 1'b1;
 		expected_stamofu_iq_enq_A_is_zero = 1'b0;
 		expected_stamofu_iq_enq_B_PR = 7'h11;
 		expected_stamofu_iq_enq_B_ready = 1'b1;
 		expected_stamofu_iq_enq_B_is_zero = 1'b0;
-		expected_stamofu_iq_enq_ROB_index = 7'h11;
 		expected_stamofu_iq_enq_cq_index = 1;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue
@@ -1097,16 +1041,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b1;
 		expected_stamofu_iq_enq_op = 4'b0010;
 		expected_stamofu_iq_enq_imm12 = 12'h222;
-		expected_stamofu_iq_enq_mdp_info = 8'h22;
-		expected_stamofu_iq_enq_mem_aq = 1'b0;
-		expected_stamofu_iq_enq_io_aq = 1'b1;
 		expected_stamofu_iq_enq_A_PR = 7'h2;
 		expected_stamofu_iq_enq_A_ready = 1'b1;
 		expected_stamofu_iq_enq_A_is_zero = 1'b0;
 		expected_stamofu_iq_enq_B_PR = 7'h22;
 		expected_stamofu_iq_enq_B_ready = 1'b0;
 		expected_stamofu_iq_enq_B_is_zero = 1'b0;
-		expected_stamofu_iq_enq_ROB_index = 7'h22;
 		expected_stamofu_iq_enq_cq_index = 2;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue
@@ -1208,16 +1148,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b0;
 		expected_stamofu_iq_enq_op = 4'b0011;
 		expected_stamofu_iq_enq_imm12 = 12'h333;
-		expected_stamofu_iq_enq_mdp_info = 8'h33;
-		expected_stamofu_iq_enq_mem_aq = 1'b1;
-		expected_stamofu_iq_enq_io_aq = 1'b1;
 		expected_stamofu_iq_enq_A_PR = 7'h3;
 		expected_stamofu_iq_enq_A_ready = 1'b1;
 		expected_stamofu_iq_enq_A_is_zero = 1'b0;
 		expected_stamofu_iq_enq_B_PR = 7'h33;
 		expected_stamofu_iq_enq_B_ready = 1'b1;
 		expected_stamofu_iq_enq_B_is_zero = 1'b0;
-		expected_stamofu_iq_enq_ROB_index = 7'h33;
 		expected_stamofu_iq_enq_cq_index = 3;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue
@@ -1319,16 +1255,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b0;
 		expected_stamofu_iq_enq_op = 4'b0011;
 		expected_stamofu_iq_enq_imm12 = 12'h333;
-		expected_stamofu_iq_enq_mdp_info = 8'h33;
-		expected_stamofu_iq_enq_mem_aq = 1'b1;
-		expected_stamofu_iq_enq_io_aq = 1'b1;
 		expected_stamofu_iq_enq_A_PR = 7'h3;
 		expected_stamofu_iq_enq_A_ready = 1'b1;
 		expected_stamofu_iq_enq_A_is_zero = 1'b0;
 		expected_stamofu_iq_enq_B_PR = 7'h33;
 		expected_stamofu_iq_enq_B_ready = 1'b1;
 		expected_stamofu_iq_enq_B_is_zero = 1'b0;
-		expected_stamofu_iq_enq_ROB_index = 7'h33;
 		expected_stamofu_iq_enq_cq_index = 3;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue
@@ -1430,16 +1362,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b0;
 		expected_stamofu_iq_enq_op = 4'b0100;
 		expected_stamofu_iq_enq_imm12 = 12'h444;
-		expected_stamofu_iq_enq_mdp_info = 8'h44;
-		expected_stamofu_iq_enq_mem_aq = 1'b0;
-		expected_stamofu_iq_enq_io_aq = 1'b0;
 		expected_stamofu_iq_enq_A_PR = 7'h4;
 		expected_stamofu_iq_enq_A_ready = 1'b1;
 		expected_stamofu_iq_enq_A_is_zero = 1'b0;
 		expected_stamofu_iq_enq_B_PR = 7'h44;
 		expected_stamofu_iq_enq_B_ready = 1'b0;
 		expected_stamofu_iq_enq_B_is_zero = 1'b0;
-		expected_stamofu_iq_enq_ROB_index = 7'h44;
 		expected_stamofu_iq_enq_cq_index = 4;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue
@@ -1541,16 +1469,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b0;
 		expected_stamofu_iq_enq_op = 4'b0100;
 		expected_stamofu_iq_enq_imm12 = 12'h444;
-		expected_stamofu_iq_enq_mdp_info = 8'h44;
-		expected_stamofu_iq_enq_mem_aq = 1'b0;
-		expected_stamofu_iq_enq_io_aq = 1'b0;
 		expected_stamofu_iq_enq_A_PR = 7'h4;
 		expected_stamofu_iq_enq_A_ready = 1'b1;
 		expected_stamofu_iq_enq_A_is_zero = 1'b0;
 		expected_stamofu_iq_enq_B_PR = 7'h44;
 		expected_stamofu_iq_enq_B_ready = 1'b0;
 		expected_stamofu_iq_enq_B_is_zero = 1'b0;
-		expected_stamofu_iq_enq_ROB_index = 7'h44;
 		expected_stamofu_iq_enq_cq_index = 4;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue
@@ -1652,16 +1576,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b1;
 		expected_stamofu_iq_enq_op = 4'b0101;
 		expected_stamofu_iq_enq_imm12 = 12'h555;
-		expected_stamofu_iq_enq_mdp_info = 8'h55;
-		expected_stamofu_iq_enq_mem_aq = 1'b1;
-		expected_stamofu_iq_enq_io_aq = 1'b0;
 		expected_stamofu_iq_enq_A_PR = 7'h5;
 		expected_stamofu_iq_enq_A_ready = 1'b1;
 		expected_stamofu_iq_enq_A_is_zero = 1'b0;
 		expected_stamofu_iq_enq_B_PR = 7'h55;
 		expected_stamofu_iq_enq_B_ready = 1'b1;
 		expected_stamofu_iq_enq_B_is_zero = 1'b0;
-		expected_stamofu_iq_enq_ROB_index = 7'h55;
 		expected_stamofu_iq_enq_cq_index = 5;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue
@@ -1763,16 +1683,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b1;
 		expected_stamofu_iq_enq_op = 4'b0101;
 		expected_stamofu_iq_enq_imm12 = 12'h555;
-		expected_stamofu_iq_enq_mdp_info = 8'h55;
-		expected_stamofu_iq_enq_mem_aq = 1'b1;
-		expected_stamofu_iq_enq_io_aq = 1'b0;
 		expected_stamofu_iq_enq_A_PR = 7'h5;
 		expected_stamofu_iq_enq_A_ready = 1'b1;
 		expected_stamofu_iq_enq_A_is_zero = 1'b0;
 		expected_stamofu_iq_enq_B_PR = 7'h55;
 		expected_stamofu_iq_enq_B_ready = 1'b1;
 		expected_stamofu_iq_enq_B_is_zero = 1'b0;
-		expected_stamofu_iq_enq_ROB_index = 7'h55;
 		expected_stamofu_iq_enq_cq_index = 5;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue
@@ -1874,16 +1790,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b0;
 		expected_stamofu_iq_enq_op = 4'b0110;
 		expected_stamofu_iq_enq_imm12 = 12'h666;
-		expected_stamofu_iq_enq_mdp_info = 8'h66;
-		expected_stamofu_iq_enq_mem_aq = 1'b0;
-		expected_stamofu_iq_enq_io_aq = 1'b1;
 		expected_stamofu_iq_enq_A_PR = 7'h6;
 		expected_stamofu_iq_enq_A_ready = 1'b0;
 		expected_stamofu_iq_enq_A_is_zero = 1'b0;
 		expected_stamofu_iq_enq_B_PR = 7'h66;
 		expected_stamofu_iq_enq_B_ready = 1'b0;
 		expected_stamofu_iq_enq_B_is_zero = 1'b0;
-		expected_stamofu_iq_enq_ROB_index = 7'h66;
 		expected_stamofu_iq_enq_cq_index = 6;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue
@@ -1985,16 +1897,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b0;
 		expected_stamofu_iq_enq_op = 4'b0110;
 		expected_stamofu_iq_enq_imm12 = 12'h666;
-		expected_stamofu_iq_enq_mdp_info = 8'h66;
-		expected_stamofu_iq_enq_mem_aq = 1'b0;
-		expected_stamofu_iq_enq_io_aq = 1'b1;
 		expected_stamofu_iq_enq_A_PR = 7'h6;
 		expected_stamofu_iq_enq_A_ready = 1'b0;
 		expected_stamofu_iq_enq_A_is_zero = 1'b0;
 		expected_stamofu_iq_enq_B_PR = 7'h66;
 		expected_stamofu_iq_enq_B_ready = 1'b0;
 		expected_stamofu_iq_enq_B_is_zero = 1'b0;
-		expected_stamofu_iq_enq_ROB_index = 7'h66;
 		expected_stamofu_iq_enq_cq_index = 6;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue
@@ -2096,16 +2004,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b0;
 		expected_stamofu_iq_enq_op = 4'b0111;
 		expected_stamofu_iq_enq_imm12 = 12'h777;
-		expected_stamofu_iq_enq_mdp_info = 8'h77;
-		expected_stamofu_iq_enq_mem_aq = 1'b1;
-		expected_stamofu_iq_enq_io_aq = 1'b1;
 		expected_stamofu_iq_enq_A_PR = 7'h7;
 		expected_stamofu_iq_enq_A_ready = 1'b0;
 		expected_stamofu_iq_enq_A_is_zero = 1'b0;
 		expected_stamofu_iq_enq_B_PR = 7'h77;
 		expected_stamofu_iq_enq_B_ready = 1'b0;
 		expected_stamofu_iq_enq_B_is_zero = 1'b0;
-		expected_stamofu_iq_enq_ROB_index = 7'h77;
 		expected_stamofu_iq_enq_cq_index = 7;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue
@@ -2207,16 +2111,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b1;
 		expected_stamofu_iq_enq_op = 4'b1000;
 		expected_stamofu_iq_enq_imm12 = 12'h888;
-		expected_stamofu_iq_enq_mdp_info = 8'h88;
-		expected_stamofu_iq_enq_mem_aq = 1'b0;
-		expected_stamofu_iq_enq_io_aq = 1'b0;
 		expected_stamofu_iq_enq_A_PR = 7'h8;
 		expected_stamofu_iq_enq_A_ready = 1'b0;
 		expected_stamofu_iq_enq_A_is_zero = 1'b0;
 		expected_stamofu_iq_enq_B_PR = 7'h88;
 		expected_stamofu_iq_enq_B_ready = 1'b1;
 		expected_stamofu_iq_enq_B_is_zero = 1'b0;
-		expected_stamofu_iq_enq_ROB_index = 7'h88;
 		expected_stamofu_iq_enq_cq_index = 8;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue
@@ -2318,16 +2218,12 @@ module stamofu_dq_tb ();
 		expected_stamofu_iq_enq_is_fence = 1'b1;
 		expected_stamofu_iq_enq_op = 4'b1000;
 		expected_stamofu_iq_enq_imm12 = 12'h888;
-		expected_stamofu_iq_enq_mdp_info = 8'h88;
-		expected_stamofu_iq_enq_mem_aq = 1'b0;
-		expected_stamofu_iq_enq_io_aq = 1'b0;
 		expected_stamofu_iq_enq_A_PR = 7'h8;
 		expected_stamofu_iq_enq_A_ready = 1'b0;
 		expected_stamofu_iq_enq_A_is_zero = 1'b0;
 		expected_stamofu_iq_enq_B_PR = 7'h88;
 		expected_stamofu_iq_enq_B_ready = 1'b1;
 		expected_stamofu_iq_enq_B_is_zero = 1'b0;
-		expected_stamofu_iq_enq_ROB_index = 7'h88;
 		expected_stamofu_iq_enq_cq_index = 8;
 	    // issue queue enqueue feedback
 	    // op enqueue to acquire queue

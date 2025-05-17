@@ -70,16 +70,12 @@ module stamofu_dq_wrapper (
 	output logic last_stamofu_iq_enq_is_fence,
 	output logic [3:0] last_stamofu_iq_enq_op,
 	output logic [11:0] last_stamofu_iq_enq_imm12,
-	output logic [MDPT_INFO_WIDTH-1:0] last_stamofu_iq_enq_mdp_info,
-	output logic last_stamofu_iq_enq_mem_aq,
-	output logic last_stamofu_iq_enq_io_aq,
 	output logic [LOG_PR_COUNT-1:0] last_stamofu_iq_enq_A_PR,
 	output logic last_stamofu_iq_enq_A_ready,
 	output logic last_stamofu_iq_enq_A_is_zero,
 	output logic [LOG_PR_COUNT-1:0] last_stamofu_iq_enq_B_PR,
 	output logic last_stamofu_iq_enq_B_ready,
 	output logic last_stamofu_iq_enq_B_is_zero,
-	output logic [LOG_ROB_ENTRIES-1:0] last_stamofu_iq_enq_ROB_index,
 	output logic [LOG_STAMOFU_CQ_ENTRIES-1:0] last_stamofu_iq_enq_cq_index,
 
     // issue queue enqueue feedback
@@ -157,16 +153,12 @@ module stamofu_dq_wrapper (
 	logic stamofu_iq_enq_is_fence;
 	logic [3:0] stamofu_iq_enq_op;
 	logic [11:0] stamofu_iq_enq_imm12;
-	logic [MDPT_INFO_WIDTH-1:0] stamofu_iq_enq_mdp_info;
-	logic stamofu_iq_enq_mem_aq;
-	logic stamofu_iq_enq_io_aq;
 	logic [LOG_PR_COUNT-1:0] stamofu_iq_enq_A_PR;
 	logic stamofu_iq_enq_A_ready;
 	logic stamofu_iq_enq_A_is_zero;
 	logic [LOG_PR_COUNT-1:0] stamofu_iq_enq_B_PR;
 	logic stamofu_iq_enq_B_ready;
 	logic stamofu_iq_enq_B_is_zero;
-	logic [LOG_ROB_ENTRIES-1:0] stamofu_iq_enq_ROB_index;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_iq_enq_cq_index;
 
     // issue queue enqueue feedback
@@ -189,7 +181,7 @@ module stamofu_dq_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    stamofu_dq WRAPPED_MODULE (.*);
+    stamofu_dq #(.STAMOFU_DQ_ENTRIES(STAMOFU_DQ_ENTRIES)) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -251,16 +243,12 @@ module stamofu_dq_wrapper (
 			last_stamofu_iq_enq_is_fence <= '0;
 			last_stamofu_iq_enq_op <= '0;
 			last_stamofu_iq_enq_imm12 <= '0;
-			last_stamofu_iq_enq_mdp_info <= '0;
-			last_stamofu_iq_enq_mem_aq <= '0;
-			last_stamofu_iq_enq_io_aq <= '0;
 			last_stamofu_iq_enq_A_PR <= '0;
 			last_stamofu_iq_enq_A_ready <= '0;
 			last_stamofu_iq_enq_A_is_zero <= '0;
 			last_stamofu_iq_enq_B_PR <= '0;
 			last_stamofu_iq_enq_B_ready <= '0;
 			last_stamofu_iq_enq_B_is_zero <= '0;
-			last_stamofu_iq_enq_ROB_index <= '0;
 			last_stamofu_iq_enq_cq_index <= '0;
 
 		    // issue queue enqueue feedback
@@ -336,16 +324,12 @@ module stamofu_dq_wrapper (
 			last_stamofu_iq_enq_is_fence <= stamofu_iq_enq_is_fence;
 			last_stamofu_iq_enq_op <= stamofu_iq_enq_op;
 			last_stamofu_iq_enq_imm12 <= stamofu_iq_enq_imm12;
-			last_stamofu_iq_enq_mdp_info <= stamofu_iq_enq_mdp_info;
-			last_stamofu_iq_enq_mem_aq <= stamofu_iq_enq_mem_aq;
-			last_stamofu_iq_enq_io_aq <= stamofu_iq_enq_io_aq;
 			last_stamofu_iq_enq_A_PR <= stamofu_iq_enq_A_PR;
 			last_stamofu_iq_enq_A_ready <= stamofu_iq_enq_A_ready;
 			last_stamofu_iq_enq_A_is_zero <= stamofu_iq_enq_A_is_zero;
 			last_stamofu_iq_enq_B_PR <= stamofu_iq_enq_B_PR;
 			last_stamofu_iq_enq_B_ready <= stamofu_iq_enq_B_ready;
 			last_stamofu_iq_enq_B_is_zero <= stamofu_iq_enq_B_is_zero;
-			last_stamofu_iq_enq_ROB_index <= stamofu_iq_enq_ROB_index;
 			last_stamofu_iq_enq_cq_index <= stamofu_iq_enq_cq_index;
 
 		    // issue queue enqueue feedback

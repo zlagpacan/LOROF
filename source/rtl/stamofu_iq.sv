@@ -22,16 +22,12 @@ module stamofu_iq #(
     input logic                                 stamofu_iq_enq_is_fence,
     input logic [3:0]                           stamofu_iq_enq_op,
     input logic [11:0]                          stamofu_iq_enq_imm12,
-    input logic [MDPT_INFO_WIDTH-1:0]           stamofu_iq_enq_mdp_info,
-    input logic                                 stamofu_iq_enq_mem_aq,
-    input logic                                 stamofu_iq_enq_io_aq,
     input logic [LOG_PR_COUNT-1:0]              stamofu_iq_enq_A_PR,
     input logic                                 stamofu_iq_enq_A_ready,
     input logic                                 stamofu_iq_enq_A_is_zero,
     input logic [LOG_PR_COUNT-1:0]              stamofu_iq_enq_B_PR,
     input logic                                 stamofu_iq_enq_B_ready,
     input logic                                 stamofu_iq_enq_B_is_zero,
-    input logic [LOG_ROB_ENTRIES-1:0]           stamofu_iq_enq_ROB_index,
     input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_iq_enq_cq_index,
 
     // issue queue enqueue feedback
@@ -48,16 +44,12 @@ module stamofu_iq #(
     output logic                                issue_is_fence,
     output logic [3:0]                          issue_op,
     output logic [11:0]                         issue_imm12,
-    output logic [MDPT_INFO_WIDTH-1:0]          issue_mdp_info,
-    output logic                                issue_mem_aq,
-    output logic                                issue_io_aq,
     output logic                                issue_A_forward,
     output logic                                issue_A_is_zero,
     output logic [LOG_PRF_BANK_COUNT-1:0]       issue_A_bank,
     output logic                                issue_B_forward,
     output logic                                issue_B_is_zero,
     output logic [LOG_PRF_BANK_COUNT-1:0]       issue_B_bank,
-    output logic [LOG_ROB_ENTRIES-1:0]          issue_ROB_index,
     output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   issue_cq_index,
 
     // reg read req to PRF
@@ -83,16 +75,12 @@ module stamofu_iq #(
     logic [STAMOFU_IQ_ENTRIES-1:0]                              is_fence_by_entry;
     logic [STAMOFU_IQ_ENTRIES-1:0][3:0]                         op_by_entry;
     logic [STAMOFU_IQ_ENTRIES-1:0][11:0]                        imm12_by_entry;
-    logic [STAMOFU_IQ_ENTRIES-1:0][MDPT_INFO_WIDTH-1:0]         mdp_info_by_entry;
-    logic [STAMOFU_IQ_ENTRIES-1:0]                              mem_aq_by_entry;
-    logic [STAMOFU_IQ_ENTRIES-1:0]                              io_aq_by_entry;
     logic [STAMOFU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            A_PR_by_entry;
     logic [STAMOFU_IQ_ENTRIES-1:0]                              A_ready_by_entry;
     logic [STAMOFU_IQ_ENTRIES-1:0]                              A_is_zero_by_entry;
     logic [STAMOFU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            B_PR_by_entry;
     logic [STAMOFU_IQ_ENTRIES-1:0]                              B_ready_by_entry;
     logic [STAMOFU_IQ_ENTRIES-1:0]                              B_is_zero_by_entry;
-    logic [STAMOFU_IQ_ENTRIES-1:0][LOG_ROB_ENTRIES-1:0]         ROB_index_by_entry;
     logic [STAMOFU_IQ_ENTRIES-1:0][LOG_STAMOFU_CQ_ENTRIES-1:0]  cq_index_by_entry;
 
     // issue logic helper signals
@@ -149,16 +137,12 @@ module stamofu_iq #(
         issue_is_fence = '0;
         issue_op = '0;
         issue_imm12 = '0;
-        issue_mdp_info = '0;
-        issue_mem_aq = '0;
-        issue_io_aq = '0;
         issue_A_forward = '0;
         issue_A_is_zero = '0;
         issue_A_bank = '0;
         issue_B_forward = '0;
         issue_B_is_zero = '0;
         issue_B_bank = '0;
-        issue_ROB_index = '0;
         issue_cq_index = '0;
 
         PRF_req_A_valid = '0;
@@ -175,16 +159,12 @@ module stamofu_iq #(
                 issue_is_fence |= is_fence_by_entry[entry];
                 issue_op |= op_by_entry[entry];
                 issue_imm12 |= imm12_by_entry[entry];
-                issue_mdp_info |= mdp_info_by_entry[entry];
-                issue_mem_aq |= mem_aq_by_entry[entry];
-                issue_io_aq |= io_aq_by_entry[entry];
                 issue_A_forward |= A_forward_by_entry[entry];
                 issue_A_is_zero |= A_is_zero_by_entry[entry];
                 issue_A_bank |= A_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0];;
                 issue_B_forward |= B_forward_by_entry[entry];
                 issue_B_is_zero |= B_is_zero_by_entry[entry];
                 issue_B_bank |= B_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0];;
-                issue_ROB_index |= ROB_index_by_entry[entry];
                 issue_cq_index |= cq_index_by_entry[entry];
 
                 PRF_req_A_valid |= ~A_forward_by_entry[entry] & ~A_is_zero_by_entry[entry];
@@ -220,16 +200,12 @@ module stamofu_iq #(
             is_fence_by_entry <= '0;
             op_by_entry <= '0;
             imm12_by_entry <= '0;
-            mdp_info_by_entry <= '0;
-            mem_aq_by_entry <= '0;
-            io_aq_by_entry <= '0;
             A_PR_by_entry <= '0;
             A_ready_by_entry <= '0;
             A_is_zero_by_entry <= '0;
             B_PR_by_entry <= '0;
             B_ready_by_entry <= '0;
             B_is_zero_by_entry <= '0;
-            ROB_index_by_entry <= '0;
             cq_index_by_entry <= '0;
         end
         else begin
@@ -254,16 +230,12 @@ module stamofu_iq #(
                     is_fence_by_entry[STAMOFU_IQ_ENTRIES-1] <= is_fence_by_entry[STAMOFU_IQ_ENTRIES-1];
                     op_by_entry[STAMOFU_IQ_ENTRIES-1] <= op_by_entry[STAMOFU_IQ_ENTRIES-1];
                     imm12_by_entry[STAMOFU_IQ_ENTRIES-1] <= imm12_by_entry[STAMOFU_IQ_ENTRIES-1];
-                    mdp_info_by_entry[STAMOFU_IQ_ENTRIES-1] <= mdp_info_by_entry[STAMOFU_IQ_ENTRIES-1];
-                    mem_aq_by_entry[STAMOFU_IQ_ENTRIES-1] <= mem_aq_by_entry[STAMOFU_IQ_ENTRIES-1];
-                    io_aq_by_entry[STAMOFU_IQ_ENTRIES-1] <= io_aq_by_entry[STAMOFU_IQ_ENTRIES-1];
                     A_PR_by_entry[STAMOFU_IQ_ENTRIES-1] <= A_PR_by_entry[STAMOFU_IQ_ENTRIES-1];
                     A_ready_by_entry[STAMOFU_IQ_ENTRIES-1] <= A_ready_by_entry[STAMOFU_IQ_ENTRIES-1] | A_forward_by_entry[STAMOFU_IQ_ENTRIES-1];
                     A_is_zero_by_entry[STAMOFU_IQ_ENTRIES-1] <= A_is_zero_by_entry[STAMOFU_IQ_ENTRIES-1];
                     B_PR_by_entry[STAMOFU_IQ_ENTRIES-1] <= B_PR_by_entry[STAMOFU_IQ_ENTRIES-1];
                     B_ready_by_entry[STAMOFU_IQ_ENTRIES-1] <= B_ready_by_entry[STAMOFU_IQ_ENTRIES-1] | B_forward_by_entry[STAMOFU_IQ_ENTRIES-1];
                     B_is_zero_by_entry[STAMOFU_IQ_ENTRIES-1] <= B_is_zero_by_entry[STAMOFU_IQ_ENTRIES-1];
-                    ROB_index_by_entry[STAMOFU_IQ_ENTRIES-1] <= ROB_index_by_entry[STAMOFU_IQ_ENTRIES-1];
                     cq_index_by_entry[STAMOFU_IQ_ENTRIES-1] <= cq_index_by_entry[STAMOFU_IQ_ENTRIES-1];
                 end
 
@@ -275,16 +247,12 @@ module stamofu_iq #(
                     is_fence_by_entry[STAMOFU_IQ_ENTRIES-1] <= stamofu_iq_enq_is_fence;
                     op_by_entry[STAMOFU_IQ_ENTRIES-1] <= stamofu_iq_enq_op;
                     imm12_by_entry[STAMOFU_IQ_ENTRIES-1] <= stamofu_iq_enq_imm12;
-                    mdp_info_by_entry[STAMOFU_IQ_ENTRIES-1] <= stamofu_iq_enq_mdp_info;
-                    mem_aq_by_entry[STAMOFU_IQ_ENTRIES-1] <= stamofu_iq_enq_mem_aq;
-                    io_aq_by_entry[STAMOFU_IQ_ENTRIES-1] <= stamofu_iq_enq_io_aq;
                     A_PR_by_entry[STAMOFU_IQ_ENTRIES-1] <= stamofu_iq_enq_A_PR;
                     A_ready_by_entry[STAMOFU_IQ_ENTRIES-1] <= stamofu_iq_enq_A_ready;
                     A_is_zero_by_entry[STAMOFU_IQ_ENTRIES-1] <= stamofu_iq_enq_A_is_zero;
                     B_PR_by_entry[STAMOFU_IQ_ENTRIES-1] <= stamofu_iq_enq_B_PR;
                     B_ready_by_entry[STAMOFU_IQ_ENTRIES-1] <= stamofu_iq_enq_B_ready;
                     B_is_zero_by_entry[STAMOFU_IQ_ENTRIES-1] <= stamofu_iq_enq_B_is_zero;
-                    ROB_index_by_entry[STAMOFU_IQ_ENTRIES-1] <= stamofu_iq_enq_ROB_index;
                     cq_index_by_entry[STAMOFU_IQ_ENTRIES-1] <= stamofu_iq_enq_cq_index;
                 end
             end
@@ -304,16 +272,12 @@ module stamofu_iq #(
                         is_fence_by_entry[i] <= is_fence_by_entry[i+1];
                         op_by_entry[i] <= op_by_entry[i+1];
                         imm12_by_entry[i] <= imm12_by_entry[i+1];
-                        mdp_info_by_entry[i] <= mdp_info_by_entry[i+1];
-                        mem_aq_by_entry[i] <= mem_aq_by_entry[i+1];
-                        io_aq_by_entry[i] <= io_aq_by_entry[i+1];
                         A_PR_by_entry[i] <= A_PR_by_entry[i+1];
                         A_ready_by_entry[i] <= A_ready_by_entry[i+1] | A_forward_by_entry[i+1];
                         A_is_zero_by_entry[i] <= A_is_zero_by_entry[i+1];
                         B_PR_by_entry[i] <= B_PR_by_entry[i+1];
                         B_ready_by_entry[i] <= B_ready_by_entry[i+1] | B_forward_by_entry[i+1];
                         B_is_zero_by_entry[i] <= B_is_zero_by_entry[i+1];
-                        ROB_index_by_entry[i] <= ROB_index_by_entry[i+1];
                         cq_index_by_entry[i] <= cq_index_by_entry[i+1];
                     end
 
@@ -325,16 +289,12 @@ module stamofu_iq #(
                         is_fence_by_entry[i] <= stamofu_iq_enq_is_fence;
                         op_by_entry[i] <= stamofu_iq_enq_op;
                         imm12_by_entry[i] <= stamofu_iq_enq_imm12;
-                        mdp_info_by_entry[i] <= stamofu_iq_enq_mdp_info;
-                        mem_aq_by_entry[i] <= stamofu_iq_enq_mem_aq;
-                        io_aq_by_entry[i] <= stamofu_iq_enq_io_aq;
                         A_PR_by_entry[i] <= stamofu_iq_enq_A_PR;
                         A_ready_by_entry[i] <= stamofu_iq_enq_A_ready;
                         A_is_zero_by_entry[i] <= stamofu_iq_enq_A_is_zero;
                         B_PR_by_entry[i] <= stamofu_iq_enq_B_PR;
                         B_ready_by_entry[i] <= stamofu_iq_enq_B_ready;
                         B_is_zero_by_entry[i] <= stamofu_iq_enq_B_is_zero;
-                        ROB_index_by_entry[i] <= stamofu_iq_enq_ROB_index;
                         cq_index_by_entry[i] <= stamofu_iq_enq_cq_index;
                     end
                 end
@@ -350,16 +310,12 @@ module stamofu_iq #(
                         is_fence_by_entry[i] <= is_fence_by_entry[i];
                         op_by_entry[i] <= op_by_entry[i];
                         imm12_by_entry[i] <= imm12_by_entry[i];
-                        mdp_info_by_entry[i] <= mdp_info_by_entry[i];
-                        mem_aq_by_entry[i] <= mem_aq_by_entry[i];
-                        io_aq_by_entry[i] <= io_aq_by_entry[i];
                         A_PR_by_entry[i] <= A_PR_by_entry[i];
                         A_ready_by_entry[i] <= A_ready_by_entry[i] | A_forward_by_entry[i];
                         A_is_zero_by_entry[i] <= A_is_zero_by_entry[i];
                         B_PR_by_entry[i] <= B_PR_by_entry[i];
                         B_ready_by_entry[i] <= B_ready_by_entry[i] | B_forward_by_entry[i];
                         B_is_zero_by_entry[i] <= B_is_zero_by_entry[i];
-                        ROB_index_by_entry[i] <= ROB_index_by_entry[i];
                         cq_index_by_entry[i] <= cq_index_by_entry[i];
                     end
 
@@ -371,16 +327,12 @@ module stamofu_iq #(
                         is_fence_by_entry[i] <= stamofu_iq_enq_is_fence;
                         op_by_entry[i] <= stamofu_iq_enq_op;
                         imm12_by_entry[i] <= stamofu_iq_enq_imm12;
-                        mdp_info_by_entry[i] <= stamofu_iq_enq_mdp_info;
-                        mem_aq_by_entry[i] <= stamofu_iq_enq_mem_aq;
-                        io_aq_by_entry[i] <= stamofu_iq_enq_io_aq;
                         A_PR_by_entry[i] <= stamofu_iq_enq_A_PR;
                         A_ready_by_entry[i] <= stamofu_iq_enq_A_ready;
                         A_is_zero_by_entry[i] <= stamofu_iq_enq_A_is_zero;
                         B_PR_by_entry[i] <= stamofu_iq_enq_B_PR;
                         B_ready_by_entry[i] <= stamofu_iq_enq_B_ready;
                         B_is_zero_by_entry[i] <= stamofu_iq_enq_B_is_zero;
-                        ROB_index_by_entry[i] <= stamofu_iq_enq_ROB_index;
                         cq_index_by_entry[i] <= stamofu_iq_enq_cq_index;
                     end
                 end
