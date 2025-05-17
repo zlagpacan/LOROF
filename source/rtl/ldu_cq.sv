@@ -26,6 +26,7 @@ module ldu_cq #(
         // WB sent
         // misaligned
         // mq index
+        // matching mdp count
         // mdp update req
         // forwarded
         // forwarded ROB index

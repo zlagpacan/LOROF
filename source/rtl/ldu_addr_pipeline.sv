@@ -135,6 +135,7 @@ module ldu_addr_pipeline (
             A_forward_OC <= '0;
             A_is_zero_OC <= '0;
             A_bank_OC <= '0;
+            A_saved_data_OC <= '0;
             cq_index_OC <= '0;
         end
         else if (~issue_ready) begin
@@ -145,6 +146,7 @@ module ldu_addr_pipeline (
             A_forward_OC <= A_forward_OC;
             A_is_zero_OC <= A_is_zero_OC;
             A_bank_OC <= A_bank_OC;
+            A_saved_data_OC <= next_A_AC;
             cq_index_OC <= cq_index_OC;
         end
         else begin
@@ -155,6 +157,7 @@ module ldu_addr_pipeline (
             A_forward_OC <= issue_A_forward;
             A_is_zero_OC <= issue_A_is_zero;
             A_bank_OC <= issue_A_bank;
+            A_saved_data_OC <= next_A_AC;
             cq_index_OC <= issue_cq_index;
         end
     end
