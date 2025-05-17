@@ -470,4 +470,7 @@ module lsq (
             // mark if load or store killed in dispatch queue, pass info to central queue's accordingly
                 // can skip issue queues if killed this early
 
+        // if stuck waiting for ldu_mq entry for too long, can just foreably restart the load
+            // any younger loads that refuse to finish will not be pushed through the IQ first anymore, so this oldest load gets first
+
 endmodule
