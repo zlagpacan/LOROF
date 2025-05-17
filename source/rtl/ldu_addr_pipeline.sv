@@ -18,13 +18,13 @@ module ldu_addr_pipeline (
     input logic nRST,
 
     // op issue from IQ
-    output logic                            issue_valid,
-    output logic [3:0]                      issue_op,
-    output logic [11:0]                     issue_imm12,
-    output logic                            issue_A_forward,
-    output logic                            issue_A_is_zero,
-    output logic [LOG_PRF_BANK_COUNT-1:0]   issue_A_bank,
-    output logic [LOG_LDU_CQ_ENTRIES-1:0]   issue_cq_index,
+    input logic                             issue_valid,
+    input logic [3:0]                       issue_op,
+    input logic [11:0]                      issue_imm12,
+    input logic                             issue_A_forward,
+    input logic                             issue_A_is_zero,
+    input logic [LOG_PRF_BANK_COUNT-1:0]    issue_A_bank,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]    issue_cq_index,
 
     // output feedback to IQ
     output logic                            issue_ready,
@@ -46,7 +46,7 @@ module ldu_addr_pipeline (
     output logic [LOG_LDU_CQ_ENTRIES-1:0]   REQ_cq_index,
 
     // REQ stage feedback
-    input logic     REQ_ack
+    input logic                             REQ_ack
 );
 
     // ----------------------------------------------------------------
@@ -63,12 +63,13 @@ module ldu_addr_pipeline (
     logic                           valid_OC;
     logic [3:0]                     op_OC;
     logic [11:0]                    imm12_OC;
+    logic                           A_saved_OC;
     logic                           A_forward_OC;
     logic                           A_is_zero_OC;
     logic [LOG_PRF_BANK_COUNT-1:0]  A_bank_OC;
     logic [LOG_LDU_CQ_ENTRIES-1:0]  cq_index_OC;
 
-    logic [31:0] A_saved_data_OC;
+    logic [31:0]    A_saved_data_OC;
 
     logic launch_ready_OC;
 
@@ -101,12 +102,12 @@ module ldu_addr_pipeline (
     logic [31:0] saved_VA32_AC;
     logic [31:0] misaligned_VA32_AC;
 
-    logic                            next_REQ_valid;
-    logic                            next_REQ_misaligned;
-    logic [VPN_WIDTH-1:0]            next_REQ_VPN;
-    logic [PO_WIDTH-3:0]             next_REQ_PO_word;
-    logic [3:0]                      next_REQ_byte_mask;
-    logic [LOG_LDU_CQ_ENTRIES-1:0]   next_REQ_cq_index;
+    logic                           next_REQ_valid;
+    logic                           next_REQ_misaligned;
+    logic [VPN_WIDTH-1:0]           next_REQ_VPN;
+    logic [(PO_WIDTH-2)-1:0]        next_REQ_PO_word;
+    logic [3:0]                     next_REQ_byte_mask;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]  next_REQ_cq_index;
 
     // ----------------------------------------------------------------
     // REQ Stage Signals:
@@ -117,7 +118,8 @@ module ldu_addr_pipeline (
 
     // propagate stalls backwards
     assign stall_REQ = REQ_valid & ~REQ_ack;
-    assign stall_AC = (state_AC != AC_IDLE) & stall_REQ;
+    // assign stall_AC = (state_AC != AC_IDLE) & stall_REQ;
+        // must be done in AC state machine so can take into account misaligned op insertion
     assign stall_OC = valid_OC & stall_AC;
 
     // ----------------------------------------------------------------
@@ -129,15 +131,27 @@ module ldu_addr_pipeline (
             valid_OC <= '0;
             op_OC <= '0;
             imm12_OC <= '0;
+            A_saved_OC <= '0;
             A_forward_OC <= '0;
             A_is_zero_OC <= '0;
             A_bank_OC <= '0;
             cq_index_OC <= '0;
         end
-        else if (issue_ready) begin
+        else if (~issue_ready) begin
+            valid_OC <= valid_OC;
+            op_OC <= op_OC;
+            imm12_OC <= imm12_OC;
+            A_saved_OC <= A_saved_OC | A_forward_OC | A_reg_read_ack;
+            A_forward_OC <= A_forward_OC;
+            A_is_zero_OC <= A_is_zero_OC;
+            A_bank_OC <= A_bank_OC;
+            cq_index_OC <= cq_index_OC;
+        end
+        else begin
             valid_OC <= issue_valid;
             op_OC <= issue_op;
             imm12_OC <= issue_imm12;
+            A_saved_OC <= 1'b0;
             A_forward_OC <= issue_A_forward;
             A_is_zero_OC <= issue_A_is_zero;
             A_bank_OC <= issue_A_bank;
@@ -222,50 +236,172 @@ module ldu_addr_pipeline (
         // LW
         if (op_AC[1]) begin
 
+            // anything not word-aligned is misaligned
+            detected_misaligned_AC = VA32_AC[1:0] != 2'b00;
+
+            // check first cycle
+            if (state_AC != AC_MISALIGNED) begin
+                case (VA32_AC[1:0]) 
+                    2'b00:  next_REQ_byte_mask = 4'b1111;
+                    2'b01:  next_REQ_byte_mask = 4'b1110;
+                    2'b10:  next_REQ_byte_mask = 4'b1100;
+                    2'b11:  next_REQ_byte_mask = 4'b1000;
+                endcase
+            end
+
+            // check misaligned cycle
+            else begin
+                case (VA32_AC[1:0])
+                    2'b00:  next_REQ_byte_mask = 4'b0000;
+                    2'b01:  next_REQ_byte_mask = 4'b0001;
+                    2'b10:  next_REQ_byte_mask = 4'b0011;
+                    2'b11:  next_REQ_byte_mask = 4'b0111;
+                endcase
+            end
         end
 
         // LH, LHU
         else if (op_AC[0]) begin
 
+            // only 0x3->0x0 is misaligned
+            detected_misaligned_AC = VA32_AC[1:0] == 2'b11;
+
+            // check first cycle
+            if (state_AC != AC_MISALIGNED) begin
+                case (VA32_AC[1:0]) 
+                    2'b00:  next_REQ_byte_mask = 4'b0011;
+                    2'b01:  next_REQ_byte_mask = 4'b0110;
+                    2'b10:  next_REQ_byte_mask = 4'b1100;
+                    2'b11:  next_REQ_byte_mask = 4'b1000;
+                endcase
+            end
+
+            // check misaligned cycle
+            else begin
+                // guaranteed in 2'b11 case
+                next_REQ_byte_mask = 4'b0001;
+            end
         end
 
         // LB, LBU
         else begin
+            detected_misaligned_AC = 1'b0;
 
+            // guaranteed not misaligned
+            case (VA32_AC[1:0]) 
+                2'b00:  next_REQ_byte_mask = 4'b0001;
+                2'b01:  next_REQ_byte_mask = 4'b0010;
+                2'b10:  next_REQ_byte_mask = 4'b0100;
+                2'b11:  next_REQ_byte_mask = 4'b1000;
+            endcase
         end
     end
 
     // AC state machine
     always_comb begin
 
+        stall_AC = 1'b0;
+
+        next_REQ_valid = 1'b0;
+        next_REQ_misaligned = 1'b0;
+        next_REQ_VPN = VA32_AC[31-VPN_WIDTH:32-VPN_WIDTH-(PO_WIDTH-2)];
+        next_REQ_PO_word = VA32_AC[31-VPN_WIDTH:32-VPN_WIDTH-PO_WIDTH+2];
+        next_state_AC = AC_ACTIVE;
+
         case (state_AC)
 
             AC_IDLE:
             begin
+                stall_AC = 1'b0;
+
+                next_REQ_valid = 1'b0;
+                next_REQ_misaligned = 1'b0;
+                next_REQ_VPN = VA32_AC[31-VPN_WIDTH:32-VPN_WIDTH-(PO_WIDTH-2)];
+                next_REQ_PO_word = VA32_AC[31-VPN_WIDTH:32-VPN_WIDTH-PO_WIDTH+2];
+
                 if (next_valid_AC) begin
                     next_state_AC = AC_ACTIVE;
+                end
+                else begin
+                    next_state_AC = AC_IDLE;
                 end
             end
 
             AC_ACTIVE:
             begin
-                if (~stall_REQ & ) begin
+                next_REQ_valid = 1'b1;
+                next_REQ_misaligned = 1'b0;
+                next_REQ_VPN = VA32_AC[31:32-VPN_WIDTH];
+                next_REQ_PO_word = VA32_AC[31-VPN_WIDTH:32-VPN_WIDTH-(PO_WIDTH-2)];
 
+                if (~stall_REQ & detected_misaligned_AC) begin
+                    stall_AC = 1'b1;
+
+                    next_state_AC = AC_MISALIGNED;
                 end
-                else if (~stall_REQ & ) begin
-
+                else if (~stall_REQ & ~detected_misaligned_AC) begin
+                    stall_AC = 1'b0;
+                    
+                    if (next_valid_AC) begin
+                        next_state_AC = AC_ACTIVE;
+                    end
+                    else begin
+                        next_state_AC = AC_IDLE;
+                    end
                 end
                 else begin
+                    stall_AC = 1'b1;
+
                     next_state_AC = AC_ACTIVE;
                 end
             end
 
             AC_MISALIGNED:
             begin
+                next_REQ_valid = 1'b1;
+                next_REQ_misaligned = 1'b1;
+                next_REQ_VPN = misaligned_VA32_AC[31:32-VPN_WIDTH];
+                next_REQ_PO_word = misaligned_VA32_AC[31-VPN_WIDTH:32-VPN_WIDTH-(PO_WIDTH-2)];
 
+                if (~stall_REQ) begin
+                    stall_AC = 1'b0;
+                    if (next_valid_AC) begin
+                        next_state_AC = AC_ACTIVE;
+                    end
+                    else begin
+                        next_state_AC = AC_IDLE;
+                    end
+                end
+                else begin
+                    stall_AC = 1'b1;
+                    next_state_AC = AC_MISALIGNED;
+                end
             end
 
         endcase
+    end
+
+    // ----------------------------------------------------------------
+    // REQ Stage Logic:
+
+    // FF
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            REQ_valid <= '0;
+            REQ_misaligned <= '0;
+            REQ_VPN <= '0;
+            REQ_PO_word <= '0;
+            REQ_byte_mask <= '0;
+            REQ_cq_index <= '0;
+        end
+        else if (~stall_REQ) begin
+            REQ_valid <= next_REQ_valid;
+            REQ_misaligned <= next_REQ_misaligned;
+            REQ_VPN <= next_REQ_VPN;
+            REQ_PO_word <= next_REQ_PO_word;
+            REQ_byte_mask <= next_REQ_byte_mask;
+            REQ_cq_index <= next_REQ_cq_index;
+        end
     end
 
 endmodule

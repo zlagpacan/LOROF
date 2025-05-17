@@ -19,6 +19,7 @@ module ldu_cq #(
         // valid
         // killed
         // op
+            // need for realignment of bytes and signed vs unsigned
         // mdp info
         // dest PR
         // ROB index
