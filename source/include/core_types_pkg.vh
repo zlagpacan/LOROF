@@ -50,15 +50,15 @@ package core_types_pkg;
     //     // STAMOFU B
     //     // SYS A
     parameter PRF_RR_COUNT = 9;
-    //     // ALU Reg-Reg / MDU A
-    //     // ALU Reg-Reg / MDU B
-    //     // ALU Reg-Imm A
-    //     // BRU A
-    //     // BRU B
-    //     // LDU A
-    //     // STAMOFU A
-    //     // STAMOFU B
-    //     // SYS A
+        // ALU Reg-Reg / MDU A
+        // ALU Reg-Reg / MDU B
+        // ALU Reg-Imm A
+        // BRU A
+        // BRU B
+        // LDU A
+        // STAMOFU A
+        // STAMOFU B
+        // SYS A
     parameter PRF_WR_COUNT = 7;
         // ALU Reg-Reg
         // MDU
