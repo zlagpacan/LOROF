@@ -37,18 +37,28 @@ package core_types_pkg;
     parameter LOG_PR_COUNT = $clog2(PR_COUNT);
     parameter PRF_BANK_COUNT = 4;
     parameter LOG_PRF_BANK_COUNT = $clog2(PRF_BANK_COUNT);
-    parameter PRF_RR_COUNT = 11;
-        // ALU Reg-Reg A
-        // ALU Reg-Reg B
-        // MDU A
-        // MDU B
-        // ALU Reg-Imm A
-        // BRU A
-        // BRU B
-        // LDU A
-        // STAMOFU A
-        // STAMOFU B
-        // SYS A
+    // parameter PRF_RR_COUNT = 11;
+    //     // ALU Reg-Reg A
+    //     // ALU Reg-Reg B
+    //     // MDU A
+    //     // MDU B
+    //     // ALU Reg-Imm A
+    //     // BRU A
+    //     // BRU B
+    //     // LDU A
+    //     // STAMOFU A
+    //     // STAMOFU B
+    //     // SYS A
+    parameter PRF_RR_COUNT = 9;
+    //     // ALU Reg-Reg / MDU A
+    //     // ALU Reg-Reg / MDU B
+    //     // ALU Reg-Imm A
+    //     // BRU A
+    //     // BRU B
+    //     // LDU A
+    //     // STAMOFU A
+    //     // STAMOFU B
+    //     // SYS A
     parameter PRF_WR_COUNT = 7;
         // ALU Reg-Reg
         // MDU
