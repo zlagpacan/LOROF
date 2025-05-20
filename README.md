@@ -1,6 +1,8 @@
 # LOROF
 LOROF: Linux-on-RISCV-on-FPGA
 
+<img src="./logo.png" width="320">
+
 The goal of the LOROF project is to architect, design, verify, and validate a RISC-V RV32IMAC_Zicsr_Zifencei Sv32 Quad-Core Superscalar Out-of-Order Virtual-Memory-Supporting CPU, successfully booting and running Linux on an FPGA. The project will include RTL designs, UVM based testbenches, C/C++ and RISC-V drivers, and comprehensive documentation.
 
 ## Architecture Basics
