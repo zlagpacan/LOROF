@@ -38,7 +38,7 @@ module fetch_unit_tb ();
 
     // itlb req
 	logic DUT_itlb_req_valid, expected_itlb_req_valid;
-	logic DUT_itlb_req_exec_mode, expected_itlb_req_exec_mode;
+	logic [1:0] DUT_itlb_req_exec_mode, expected_itlb_req_exec_mode;
 	logic DUT_itlb_req_virtual_mode, expected_itlb_req_virtual_mode;
 	logic [VPN_WIDTH-1:0] DUT_itlb_req_vpn, expected_itlb_req_vpn;
 	logic [ASID_WIDTH-1:0] DUT_itlb_req_ASID, expected_itlb_req_ASID;

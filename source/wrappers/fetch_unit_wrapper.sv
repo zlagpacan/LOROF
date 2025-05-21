@@ -22,7 +22,7 @@ module fetch_unit_wrapper (
 
     // itlb req
 	output logic last_itlb_req_valid,
-	output logic last_itlb_req_exec_mode,
+	output logic [1:0] last_itlb_req_exec_mode,
 	output logic last_itlb_req_virtual_mode,
 	output logic [VPN_WIDTH-1:0] last_itlb_req_vpn,
 	output logic [ASID_WIDTH-1:0] last_itlb_req_ASID,
@@ -107,7 +107,7 @@ module fetch_unit_wrapper (
 
     // itlb req
 	logic itlb_req_valid;
-	logic itlb_req_exec_mode;
+	logic [1:0] itlb_req_exec_mode;
 	logic itlb_req_virtual_mode;
 	logic [VPN_WIDTH-1:0] itlb_req_vpn;
 	logic [ASID_WIDTH-1:0] itlb_req_ASID;

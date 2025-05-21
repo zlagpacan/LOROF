@@ -554,12 +554,9 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - MRW
     - 64-bit with menvcfgh
     - {STCE, PBMTE, ADUE, CDE, WPRI[25:0], PMM[1:0], WPRI[23:0], CBZE, CBCFE, CBIE[1:0], WPRI[2:0], FIOM}
-        - FIOM = 1'b1:
+        - FIOM = 1'b0:
             - Fence of I/O implies Memory for S-mode and U-mode
-            - on this platform, this is always true (even for M-mode)
-                - this platform stalls dispatch for all later loads for acquire and does a generic wait for write buffer for release
-                - fundamental reason did this is because can't figure out if address is to I/O vs. memory until after dtlb, which is too late to enact an acquire for this platform
-                - consider changing for this platform
+            - possible to implement, but not worth it
         - PBMTE = 1'b0:
             - Svpbmt extension for RV64I page attributes unsupported
         - ADUE = 1'b0:
@@ -574,7 +571,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
             - unratified Zicbom extension unsupported
         - PMM = 1'b0:
             - unratified Smnpm extension unsupported
-    - really just 1-bit FIOM, which is bit unused by HW that can be written by SW, rest read-only zero
+    - all read-only zero
 - 0x31A: menvcfgh
     - upper 32 bits of menvcfg
     - MRW
