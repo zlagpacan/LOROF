@@ -1,0 +1,346 @@
+"""
+    Filename: wrapper_generator.py
+    Author: zlagpacan
+    Description: Script to automatically generate simple wrappers for a target module.
+    Notes:
+        - need to manually set struct fields
+            - if use struct, also need to manually enumerate connections in wrapper for synthesized
+        - need to manually create signals to allow type conversion b/w enums and pure logic arrays
+            - output: constantly assign pure logic array synthesized module output to enum wrapper value
+                - explicit enum typecast
+            - input: constantly assign enum wrapper value to pure logic array synthesized module input
+                - explicit pure logic array typecast
+                    - may not be necessary?
+"""
+
+import sys
+
+PRINTS = False
+# PRINTS = True
+BLOCK_IS_SEQ = False
+
+class Signal():
+    def __init__(self, io, type, name):
+        self.io = io
+        self.type = type
+        self.name = name
+
+def parse_design(design_lines):
+
+    # iterate through design lines looking for design name
+    design_name = None
+    for line in design_lines:
+        if line.lstrip().startswith("module"):
+            design_name = line[len("module"):].lstrip().rstrip().rstrip("(#").rstrip()
+            break
+
+    assert design_name, "could not find design name"
+    print(f"design_name = {design_name}") if PRINTS else None
+
+    # iterate through design lines looking for design signals
+    design_signals = []
+    inside_multiline_comment = False
+    inside_io = False
+    for line_index, line in enumerate(design_lines):
+
+        # try to exit io
+        if line.lstrip().rstrip() == ");":
+            assert inside_io, "found I/O exit \");\" when not inside I/O def"
+            inside_io = False
+            break
+
+        # when inside I/O signal def
+        if inside_io:
+            stripped_line = line.lstrip().rstrip().rstrip(",")
+
+            # skip seq comment
+            if stripped_line.startswith("//") and "seq" in stripped_line:
+                continue
+
+            # skip CLK and nRST
+            if "CLK" in stripped_line or "nRST" in stripped_line:
+                global BLOCK_IS_SEQ
+                BLOCK_IS_SEQ = True
+                continue
+
+            # add any empty lines as signals
+            if not stripped_line:
+                design_signals.append(Signal("", "empty", line))
+                continue
+
+            # add any top level comments as signals
+            if stripped_line.startswith("//"):
+                design_signals.append(Signal("", "comment", line))
+                continue
+
+            # cut off any mid-line comments
+            if "//" in stripped_line:
+                stripped_line = stripped_line[:stripped_line.index("//")].rstrip().rstrip(",")
+
+            # split line at spaces
+                # first split is input vs. output
+                # last split is signal name
+                # middle splits are type 
+            tuple_line = tuple(stripped_line.split())
+            print(tuple_line) if PRINTS else None
+            design_signals.append(Signal(tuple_line[0], " ".join(tuple_line[1:-1]), tuple_line[-1]))
+            continue
+
+        # ignore empty lines
+        if not line.lstrip().rstrip():
+            print(f"found empty line at line {line_index}") if PRINTS else None
+            continue
+
+        # ignore comment lines
+        if "/*" in line:
+            print(f"entering multiline comment at line {line_index}") if PRINTS else None
+            inside_multiline_comment = True
+            continue
+        if inside_multiline_comment:
+            if "*/" in line:
+                print(f"exiting multiline comment at line {line_index}") if PRINTS else None
+                inside_multiline_comment = False
+            continue
+        if line.lstrip().rstrip().startswith("//"):
+            print(f"found comment at line {line_index}") if PRINTS else None
+            continue
+
+        # try to enter io
+        if (line.lstrip().startswith(")") and line.rstrip().endswith("(")) or (
+            line.lstrip().startswith("module") and line.rstrip().endswith("(") and "#" not in line):
+            inside_io = True
+            continue
+
+    if inside_io:
+        print("WARNING: did not find clean I/O section exit")
+
+    assert design_signals, "could not find any signals in design"
+
+    return design_name, design_signals
+
+def generate_wrapper(wrapper_base_lines, design_name, design_signals):
+    
+    output_lines = []
+
+    # iterate through wrapper base lines adding in info based on design_name and design_signals as go
+    num_found = 0
+    for line_index, line in enumerate(wrapper_base_lines):
+
+        # check for <design_name> line
+        if "<design_name>" in line:
+            replaced_line = line.replace("<design_name>", design_name)
+            print(f"found <design_name> in line") if PRINTS else None
+            print(f"old line: {line}") if PRINTS else None
+            print(f"replaced line: {replaced_line}") if PRINTS else None
+
+            output_lines.append(replaced_line)
+
+            num_found += 1
+            continue
+
+        # check for <wrapper io signals>
+        if line.lstrip().rstrip() == "<wrapper io signals>":
+            print(f"found <wrapper io signals> at line {line_index}") if PRINTS else None
+
+            # iterate through design_signals adding wrapper io signals declaration
+            wrapper_io_signal_lines = []
+            for signal in design_signals:
+                
+                # input
+                if signal.io == "input":
+                    wrapper_io_signal_lines.extend([
+                        f"\tinput {signal.type} next_{signal.name},\n",
+                    ])
+
+                # output
+                elif signal.io == "output":
+                    wrapper_io_signal_lines.extend([
+                        f"\toutput {signal.type} last_{signal.name},\n",
+                    ])
+
+                # empty
+                elif signal.type == "empty":
+                    wrapper_io_signal_lines.extend([
+                        f"\n"
+                    ])
+                    
+                # comment
+                elif signal.type == "comment":
+                    wrapper_io_signal_lines.extend([
+                        f"{signal.name}"
+                    ])
+
+                # not input or output
+                else:
+                    assert False, f"invalid input vs. output for signal {signal}"
+
+            # remove comma from last non-comment
+            found_last_comma = False
+            for i in range(-1, -1 - len(wrapper_io_signal_lines), -1):
+                if wrapper_io_signal_lines[i].endswith(",\n"):
+                    wrapper_io_signal_lines[i] = wrapper_io_signal_lines[i].rstrip().rstrip(",") + "\n"
+
+                    found_last_comma = True
+                    break
+
+            output_lines.extend(wrapper_io_signal_lines)
+
+            assert found_last_comma, "in wrapper io signals, did not find signal assignment ending in comma"
+
+            num_found += 1
+            continue
+
+        # check for <raw signals>
+        if line.lstrip().rstrip() == "<raw signals>":
+            print(f"found <raw signals> at line {line_index}") if PRINTS else None
+
+            # iterate through design_signals adding to raw module signals
+            raw_signal_lines = []
+            for signal in design_signals:
+                
+                # input or output
+                if signal.io == "input" or signal.io == "output":
+                    raw_signal_lines.extend([
+                        f"\t{signal.type} {signal.name};\n",
+                    ])
+
+                # empty
+                elif signal.type == "empty":
+                    raw_signal_lines.extend([
+                        f"\n"
+                    ])
+                    
+                # comment
+                elif signal.type == "comment":
+                    raw_signal_lines.extend([
+                        f"{signal.name}"
+                    ])
+
+                # not input or output
+                else:
+                    assert False, f"invalid input vs. output for signal {signal}"
+
+            output_lines.extend(raw_signal_lines)
+
+            num_found += 1
+            continue
+
+        # check for <reset wrapper signals>
+        if line.lstrip().rstrip() == "<reset wrapper signals>":
+            print(f"found <reset wrapper signals> at line {line_index}") if PRINTS else None
+
+            # iterate through design_signals adding to reset wrapper signals
+            reset_wrapper_signal_lines = []
+            for signal in design_signals:
+                
+                # input
+                if signal.io == "input":
+                    reset_wrapper_signal_lines.extend([
+                        f"\t\t\t{signal.name} <= '0;\n",
+                    ])
+
+                # output
+                elif signal.io == "output":
+                    reset_wrapper_signal_lines.extend([
+                        f"\t\t\tlast_{signal.name} <= '0;\n",
+                    ])
+
+                # empty
+                elif signal.type == "empty":
+                    reset_wrapper_signal_lines.extend([
+                        f"\n"
+                    ])
+                    
+                # comment
+                elif signal.type == "comment":
+                    reset_wrapper_signal_lines.extend([
+                        f"\t\t{signal.name}"
+                    ])
+
+                # not input or output
+                else:
+                    assert False, f"invalid input vs. output for signal {signal}"
+
+            output_lines.extend(reset_wrapper_signal_lines)
+
+            num_found += 1
+            continue
+
+        # check for <latched wrapper signals>
+        if line.lstrip().rstrip() == "<latched wrapper signals>":
+            print(f"found <latched wrapper signals> at line {line_index}") if PRINTS else None
+
+            # iterate through design_signals adding to latched wrapper signals
+            latched_wrapper_signal_lines = []
+            for signal in design_signals:
+                
+                # input
+                if signal.io == "input":
+                    latched_wrapper_signal_lines.extend([
+                        f"\t\t\t{signal.name} <= next_{signal.name};\n",
+                    ])
+
+                # output
+                elif signal.io == "output":
+                    latched_wrapper_signal_lines.extend([
+                        f"\t\t\tlast_{signal.name} <= {signal.name};\n",
+                    ])
+
+                # empty
+                elif signal.type == "empty":
+                    latched_wrapper_signal_lines.extend([
+                        f"\n"
+                    ])
+                    
+                # comment
+                elif signal.type == "comment":
+                    latched_wrapper_signal_lines.extend([
+                        f"\t\t{signal.name}"
+                    ])
+
+                # not input or output
+                else:
+                    assert False, f"invalid input vs. output for signal {signal}"
+
+            output_lines.extend(latched_wrapper_signal_lines)
+
+            num_found += 1
+            continue
+
+        # otherwise, regular wrapper base line, add as-is
+        output_lines.append(line)
+
+    assert num_found == 9, f"did not find all entries to replace in wrapper_base.txt. num_found = {num_found}\n" + \
+        "(may have added more and not updated required num_found in this script)"
+
+    return output_lines
+
+if __name__ == "__main__":
+
+    assert len(sys.argv) == 2, f"len(sys.argv) = {len(sys.argv)}; expect commandline input as:\n" + \
+        "python3 wrapper_generator.py <path to design .sv file>"
+
+    # get input design file
+    try:
+        with open(sys.argv[1], "r") as fp:
+            design_lines = fp.readlines()
+    except:
+        assert False, f"could not find {sys.argv[1]}"
+
+    # get wrapper base
+    try:
+        with open("wrapper_base.txt", "r") as fp:
+            wrapper_base_lines = fp.readlines()
+    except:
+        assert False, "could not find wrapper_base.txt"
+            
+    # run generator algo
+    design_name, design_signals = parse_design(design_lines)
+
+    output_lines = generate_wrapper(wrapper_base_lines, design_name, design_signals)
+
+    # write output to wrapper_output.txt
+    with open("wrapper_output.txt", "w") as fp:
+        fp.writelines(output_lines)
+
+    print("SUCCESS: generated wrapper in wrapper_output.txt")
