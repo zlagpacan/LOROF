@@ -481,7 +481,7 @@ module ldu_addr_pipeline_tb ();
 
 		// inputs
 		sub_test_case = {
-			"\n\t\tIS: v 4: LW 0x2(p77:f=0x77777777)",
+			"\n\t\tIS: v 4: LW 0xFFE(p77:f=0x77777777)",
 			"\n\t\tOC: v 3: LH 0x12(p9:R=0x12345678)",
 			"\n\t\tREQ: v 0: LB 0(zero)"
 		};
@@ -492,7 +492,7 @@ module ldu_addr_pipeline_tb ();
 	    // op issue from IQ
 		tb_issue_valid = 1'b1;
 		tb_issue_op = 4'b0010;
-		tb_issue_imm12 = 12'h2;
+		tb_issue_imm12 = 12'hFFE;
 		tb_issue_A_forward = 1'b1;
 		tb_issue_A_is_zero = 1'b0;
 		tb_issue_A_bank = 2'h3;
@@ -543,7 +543,7 @@ module ldu_addr_pipeline_tb ();
 		// inputs
 		sub_test_case = {
 			"\n\t\tIS: i 13: LBU 0x7(p21:r=0x44)",
-			"\n\t\tOC: v 4: LW 0x2(p77:fS=0x77777777)",
+			"\n\t\tOC: v 4: LW 0xFFE(p77:fS=0x77777777)",
 			"\n\t\tREQ: v 3: LH 0x12(p9:R=0x12345678) (no ack)"
 		};
 		$display("\t- sub_test: %s", sub_test_case);
@@ -604,7 +604,7 @@ module ldu_addr_pipeline_tb ();
 		// inputs
 		sub_test_case = {
 			"\n\t\tIS: v 13: LBU 0x7(p21:r=0x44)",
-			"\n\t\tOC: v 4: LW 0x2(p77:S=0x77777777)",
+			"\n\t\tOC: v 4: LW 0xFFE(p77:S=0x77777777)",
 			"\n\t\tREQ: v 3: LH 0x12(p9:R=0x12345678)"
 		};
 		$display("\t- sub_test: %s", sub_test_case);
@@ -666,7 +666,7 @@ module ldu_addr_pipeline_tb ();
 		sub_test_case = {
 			"\n\t\tIS: v 20: LHU 0x151(p6:r=0xAAAA)",
 			"\n\t\tOC: v 13: LBU 0x7(p21:r=0x44)",
-			"\n\t\tREQ: v 4: LW 0x2(p77:S=0x77777777) (new misaligned)"
+			"\n\t\tREQ: v 4: LW 0xFFE(p77:S=0x77777777) (new misaligned)"
 		};
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -714,7 +714,7 @@ module ldu_addr_pipeline_tb ();
 		expected_REQ_valid = 1'b1;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h77777;
-		expected_REQ_PO_word = ('h777 + 'h2) >> 2;
+		expected_REQ_PO_word = ('h777 - 'h2) >> 2;
 		expected_REQ_byte_mask = 4'b1110;
 		expected_REQ_cq_index = 4;
 	    // REQ stage feedback
@@ -727,7 +727,7 @@ module ldu_addr_pipeline_tb ();
 		sub_test_case = {
 			"\n\t\tIS: v 20: LHU 0x151(p6:r=0xAAAA)",
 			"\n\t\tOC: v 13: LBU 0x7(p21:R=0x44)",
-			"\n\t\tREQ: m 4: LW 0x2(p77:S=0x77777777)"
+			"\n\t\tREQ: m 4: LW 0xFFE(p77:S=0x77777777)"
 		};
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -775,7 +775,7 @@ module ldu_addr_pipeline_tb ();
 		expected_REQ_valid = 1'b1;
 		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h77777;
-		expected_REQ_PO_word = ('h777 + 'h2 + 'h4) >> 2;
+		expected_REQ_PO_word = ('h777 - 'h2 + 'h4) >> 2;
 		expected_REQ_byte_mask = 4'b0001;
 		expected_REQ_cq_index = 4;
 	    // REQ stage feedback
