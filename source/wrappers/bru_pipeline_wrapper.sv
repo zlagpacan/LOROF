@@ -1,8 +1,8 @@
 /*
-    Filename: bru_pipeline_wrapper.sv
+    Filename: bru_pipeline_fast_wrapper.sv
     Author: zlagpacan
-    Description: RTL wrapper around bru_pipeline module. 
-    Spec: LOROF/spec/design/bru_pipeline.md
+    Description: RTL wrapper around bru_pipeline_fast module. 
+    Spec: LOROF/spec/design/bru_pipeline_fast.md
 */
 
 `timescale 1ns/100ps
@@ -10,7 +10,7 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module bru_pipeline_wrapper (
+module bru_pipeline_fast_wrapper (
 
     // seq
     input logic CLK,
@@ -63,7 +63,7 @@ module bru_pipeline_wrapper (
 	output logic [LOG_ROB_ENTRIES-1:0] last_branch_notif_ROB_index,
 	output logic last_branch_notif_is_mispredict,
 	output logic last_branch_notif_is_taken,
-	output logic last_branch_notif_is_out_of_range,
+	output logic last_branch_notif_use_upct,
 	output logic [BTB_PRED_INFO_WIDTH-1:0] last_branch_notif_updated_pred_info,
 	output logic last_branch_notif_pred_lru,
 	output logic [31:0] last_branch_notif_start_PC,
@@ -123,7 +123,7 @@ module bru_pipeline_wrapper (
 	logic [LOG_ROB_ENTRIES-1:0] branch_notif_ROB_index;
 	logic branch_notif_is_mispredict;
 	logic branch_notif_is_taken;
-	logic branch_notif_is_out_of_range;
+	logic branch_notif_use_upct;
 	logic [BTB_PRED_INFO_WIDTH-1:0] branch_notif_updated_pred_info;
 	logic branch_notif_pred_lru;
 	logic [31:0] branch_notif_start_PC;
@@ -135,7 +135,7 @@ module bru_pipeline_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    bru_pipeline WRAPPED_MODULE (.*);
+    bru_pipeline_fast WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -190,7 +190,7 @@ module bru_pipeline_wrapper (
 			last_branch_notif_ROB_index <= '0;
 			last_branch_notif_is_mispredict <= '0;
 			last_branch_notif_is_taken <= '0;
-			last_branch_notif_is_out_of_range <= '0;
+			last_branch_notif_use_upct <= '0;
 			last_branch_notif_updated_pred_info <= '0;
 			last_branch_notif_pred_lru <= '0;
 			last_branch_notif_start_PC <= '0;
@@ -248,7 +248,7 @@ module bru_pipeline_wrapper (
 			last_branch_notif_ROB_index <= branch_notif_ROB_index;
 			last_branch_notif_is_mispredict <= branch_notif_is_mispredict;
 			last_branch_notif_is_taken <= branch_notif_is_taken;
-			last_branch_notif_is_out_of_range <= branch_notif_is_out_of_range;
+			last_branch_notif_use_upct <= branch_notif_use_upct;
 			last_branch_notif_updated_pred_info <= branch_notif_updated_pred_info;
 			last_branch_notif_pred_lru <= branch_notif_pred_lru;
 			last_branch_notif_start_PC <= branch_notif_start_PC;
