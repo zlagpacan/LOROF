@@ -1,8 +1,8 @@
 /*
-    Filename: bru_pipeline_fast_wrapper.sv
+    Filename: bru_pipeline_wrapper.sv
     Author: zlagpacan
-    Description: RTL wrapper around bru_pipeline_fast module. 
-    Spec: LOROF/spec/design/bru_pipeline_fast.md
+    Description: RTL wrapper around bru_pipeline module. 
+    Spec: LOROF/spec/design/bru_pipeline.md
 */
 
 `timescale 1ns/100ps
@@ -10,7 +10,7 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module bru_pipeline_fast_wrapper (
+module bru_pipeline_wrapper (
 
     // seq
     input logic CLK,
@@ -135,7 +135,7 @@ module bru_pipeline_fast_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    bru_pipeline_fast WRAPPED_MODULE (.*);
+    bru_pipeline WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
