@@ -29,7 +29,7 @@ module fetch_unit_wrapper (
 
     // itlb resp
 	input logic next_itlb_resp_valid,
-	input logic [PPN_WIDTH-1:0] next_itlb_resp_ppn,
+	input logic [PPN_WIDTH-1:0] next_itlb_resp_PPN,
 	input logic next_itlb_resp_page_fault,
 	input logic next_itlb_resp_access_fault,
 
@@ -114,7 +114,7 @@ module fetch_unit_wrapper (
 
     // itlb resp
 	logic itlb_resp_valid;
-	logic [PPN_WIDTH-1:0] itlb_resp_ppn;
+	logic [PPN_WIDTH-1:0] itlb_resp_PPN;
 	logic itlb_resp_page_fault;
 	logic itlb_resp_access_fault;
 
@@ -206,7 +206,7 @@ module fetch_unit_wrapper (
 
 		    // itlb resp
 			itlb_resp_valid <= '0;
-			itlb_resp_ppn <= '0;
+			itlb_resp_PPN <= '0;
 			itlb_resp_page_fault <= '0;
 			itlb_resp_access_fault <= '0;
 
@@ -289,7 +289,7 @@ module fetch_unit_wrapper (
 
 		    // itlb resp
 			itlb_resp_valid <= next_itlb_resp_valid;
-			itlb_resp_ppn <= next_itlb_resp_ppn;
+			itlb_resp_PPN <= next_itlb_resp_PPN;
 			itlb_resp_page_fault <= next_itlb_resp_page_fault;
 			itlb_resp_access_fault <= next_itlb_resp_access_fault;
 

@@ -32,7 +32,7 @@ module fetch_unit #(
 
     // itlb resp
     input logic                     itlb_resp_valid,
-    input logic [PPN_WIDTH-1:0]     itlb_resp_ppn,
+    input logic [PPN_WIDTH-1:0]     itlb_resp_PPN,
     input logic                     itlb_resp_page_fault,
     input logic                     itlb_resp_access_fault,
 
@@ -678,7 +678,7 @@ module fetch_unit #(
 
         // defaults:
         ihit = 1'b0;
-        fetch_resp_PC_PA = {itlb_resp_ppn, fetch_resp_PC_VA[PO_WIDTH-1:0]};
+        fetch_resp_PC_PA = {itlb_resp_PPN, fetch_resp_PC_VA[PO_WIDTH-1:0]};
         fetch_resp_selected_instr_16B = icache_resp_instr_16B_by_way[0];
 
         icache_resp_hit_valid = 1'b0;

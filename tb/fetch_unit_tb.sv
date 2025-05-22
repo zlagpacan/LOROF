@@ -45,7 +45,7 @@ module fetch_unit_tb ();
 
     // itlb resp
 	logic tb_itlb_resp_valid;
-	logic [PPN_WIDTH-1:0] tb_itlb_resp_ppn;
+	logic [PPN_WIDTH-1:0] tb_itlb_resp_PPN;
 	logic tb_itlb_resp_page_fault;
 	logic tb_itlb_resp_access_fault;
 
@@ -140,7 +140,7 @@ module fetch_unit_tb ();
 
 	    // itlb resp
 		.itlb_resp_valid(tb_itlb_resp_valid),
-		.itlb_resp_ppn(tb_itlb_resp_ppn),
+		.itlb_resp_PPN(tb_itlb_resp_PPN),
 		.itlb_resp_page_fault(tb_itlb_resp_page_fault),
 		.itlb_resp_access_fault(tb_itlb_resp_access_fault),
 
@@ -417,7 +417,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b0;
-		tb_itlb_resp_ppn = 22'h0;
+		tb_itlb_resp_PPN = 22'h0;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -529,7 +529,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b0;
-		tb_itlb_resp_ppn = 22'h0;
+		tb_itlb_resp_PPN = 22'h0;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -649,7 +649,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b0;
-		tb_itlb_resp_ppn = 22'h0;
+		tb_itlb_resp_PPN = 22'h0;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -763,7 +763,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b0;
-		tb_itlb_resp_ppn = 22'h0;
+		tb_itlb_resp_PPN = 22'h0;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -877,7 +877,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b0;
-		tb_itlb_resp_ppn = 22'h0;
+		tb_itlb_resp_PPN = 22'h0;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -991,7 +991,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b0;
-		tb_itlb_resp_ppn = 22'h0;
+		tb_itlb_resp_PPN = 22'h0;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -1105,7 +1105,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -1219,7 +1219,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -1333,7 +1333,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -1447,7 +1447,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -1561,7 +1561,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -1675,7 +1675,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -1789,7 +1789,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -1967,7 +1967,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -2084,7 +2084,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -2201,7 +2201,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -2318,7 +2318,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -2435,7 +2435,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -2552,7 +2552,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -2669,7 +2669,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -2786,7 +2786,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -2904,7 +2904,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -3022,7 +3022,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -3140,7 +3140,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -3258,7 +3258,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -3376,7 +3376,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -3494,7 +3494,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -3612,7 +3612,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -3730,7 +3730,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -3848,7 +3848,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -3966,7 +3966,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -4084,7 +4084,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -4202,7 +4202,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -4320,7 +4320,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -4438,7 +4438,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -4556,7 +4556,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -4674,7 +4674,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -4791,7 +4791,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -4913,7 +4913,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -5029,7 +5029,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h123456;
+		tb_itlb_resp_PPN = 22'h123456;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -5145,7 +5145,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -5261,7 +5261,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b0;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -5377,7 +5377,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -5493,7 +5493,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -5609,7 +5609,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -5725,7 +5725,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -5841,7 +5841,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -5957,7 +5957,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -6073,7 +6073,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -6189,7 +6189,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -6305,7 +6305,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -6421,7 +6421,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -6537,7 +6537,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -6653,7 +6653,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -6769,7 +6769,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -6885,7 +6885,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -7001,7 +7001,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -7117,7 +7117,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -7233,7 +7233,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -7349,7 +7349,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -7465,7 +7465,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -7581,7 +7581,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -7697,7 +7697,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -7813,7 +7813,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -7929,7 +7929,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -8045,7 +8045,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b0;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -8161,7 +8161,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -8277,7 +8277,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -8393,7 +8393,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -8509,7 +8509,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
@@ -8625,7 +8625,7 @@ module fetch_unit_tb ();
 	    // itlb req
 	    // itlb resp
 		tb_itlb_resp_valid = 1'b1;
-		tb_itlb_resp_ppn = 22'h056789;
+		tb_itlb_resp_PPN = 22'h056789;
 		tb_itlb_resp_page_fault = 1'b0;
 		tb_itlb_resp_access_fault = 1'b0;
 	    // icache req
