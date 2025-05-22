@@ -32,6 +32,8 @@ module prf_tb ();
     // ----------------------------------------------------------------
     // DUT signals:
 
+	parameter PR_COUNT = 128;
+	parameter PRF_BANK_COUNT = 4;
 	parameter PRF_RR_COUNT = 11;
 	parameter PRF_WR_COUNT = 7;
 
@@ -70,6 +72,8 @@ module prf_tb ();
     // DUT instantiation:
 
 	prf #(
+		.PR_COUNT(128),
+		.PRF_BANK_COUNT(4),
 		.PRF_RR_COUNT(11),
 		.PRF_WR_COUNT(7),
 		.USE_BRAM(1'b0)
