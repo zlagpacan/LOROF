@@ -13,7 +13,7 @@ module prf #(
     parameter LOG_PR_COUNT = $clog2(PR_COUNT),
     parameter PRF_BANK_COUNT = 4,
     parameter LOG_PRF_BANK_COUNT = $clog2(PRF_BANK_COUNT),
-    parameter PRF_RR_COUNT = 11,
+    parameter PRF_RR_COUNT = 9,
     parameter PRF_WR_COUNT = 7,
     
     parameter USE_BRAM = 1'b0

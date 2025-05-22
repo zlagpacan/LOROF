@@ -32,6 +32,8 @@ module prf_tb ();
     // ----------------------------------------------------------------
     // DUT signals:
 
+	parameter PRF_RR_COUNT = 11;
+	parameter PRF_WR_COUNT = 7;
 
     // reg read req by read requester
 	logic [PRF_RR_COUNT-1:0] tb_read_req_valid_by_rr;
@@ -67,7 +69,11 @@ module prf_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	prf #(.USE_BRAM(1'b0)) DUT (
+	prf #(
+		.PRF_RR_COUNT(11),
+		.PRF_WR_COUNT(7),
+		.USE_BRAM(1'b0)
+	) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),

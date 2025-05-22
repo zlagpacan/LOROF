@@ -87,7 +87,13 @@ module prf_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    prf WRAPPED_MODULE (.*);
+    prf #(
+		.PR_COUNT(PR_COUNT),
+		.PRF_BANK_COUNT(PRF_BANK_COUNT),
+		.PRF_RR_COUNT(PRF_RR_COUNT),
+		.PRF_WR_COUNT(PRF_WR_COUNT),
+		.USE_BRAM(0)
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
