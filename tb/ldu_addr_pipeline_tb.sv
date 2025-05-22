@@ -57,7 +57,8 @@ module ldu_addr_pipeline_tb ();
 	logic [PRF_BANK_COUNT-1:0][31:0] tb_forward_data_by_bank;
 
     // REQ stage info
-	logic DUT_REQ_valid, expected_REQ_valid;
+	logic DUT_REQ_valid_cq, expected_REQ_valid_cq;
+	logic DUT_REQ_valid_mq, expected_REQ_valid_mq;
 	logic DUT_REQ_misaligned, expected_REQ_misaligned;
 	logic [VPN_WIDTH-1:0] DUT_REQ_VPN, expected_REQ_VPN;
 	logic [PO_WIDTH-3:0] DUT_REQ_PO_word, expected_REQ_PO_word;
@@ -97,7 +98,8 @@ module ldu_addr_pipeline_tb ();
 		.forward_data_by_bank(tb_forward_data_by_bank),
 
 	    // REQ stage info
-		.REQ_valid(DUT_REQ_valid),
+		.REQ_valid_cq(DUT_REQ_valid_cq),
+		.REQ_valid_mq(DUT_REQ_valid_mq),
 		.REQ_misaligned(DUT_REQ_misaligned),
 		.REQ_VPN(DUT_REQ_VPN),
 		.REQ_PO_word(DUT_REQ_PO_word),
@@ -120,9 +122,16 @@ module ldu_addr_pipeline_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_REQ_valid !== DUT_REQ_valid) begin
-			$display("TB ERROR: expected_REQ_valid (%h) != DUT_REQ_valid (%h)",
-				expected_REQ_valid, DUT_REQ_valid);
+		if (expected_REQ_valid_cq !== DUT_REQ_valid_cq) begin
+			$display("TB ERROR: expected_REQ_valid_cq (%h) != DUT_REQ_valid_cq (%h)",
+				expected_REQ_valid_cq, DUT_REQ_valid_cq);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_REQ_valid_mq !== DUT_REQ_valid_mq) begin
+			$display("TB ERROR: expected_REQ_valid_mq (%h) != DUT_REQ_valid_mq (%h)",
+				expected_REQ_valid_mq, DUT_REQ_valid_mq);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -223,7 +232,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
+		expected_REQ_valid_cq = 1'b0;
+		expected_REQ_valid_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h0;
 		expected_REQ_PO_word = 10'h0;
@@ -278,7 +288,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
+		expected_REQ_valid_cq = 1'b0;
+		expected_REQ_valid_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h0;
 		expected_REQ_PO_word = 10'h0;
@@ -345,7 +356,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
+		expected_REQ_valid_cq = 1'b0;
+		expected_REQ_valid_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h0;
 		expected_REQ_PO_word = 10'h0;
@@ -406,7 +418,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
+		expected_REQ_valid_cq = 1'b0;
+		expected_REQ_valid_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h0;
 		expected_REQ_PO_word = 10'h0;
@@ -467,7 +480,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
+		expected_REQ_valid_cq = 1'b0;
+		expected_REQ_valid_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h0;
 		expected_REQ_PO_word = 10'h0;
@@ -528,7 +542,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_valid_cq = 1'b1;
+		expected_REQ_valid_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h0;
 		expected_REQ_PO_word = 10'h0;
@@ -589,7 +604,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_valid_cq = 1'b1;
+		expected_REQ_valid_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h12345;
 		expected_REQ_PO_word = ('h678 + 'h12) >> 2;
@@ -650,7 +666,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_valid_cq = 1'b1;
+		expected_REQ_valid_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h12345;
 		expected_REQ_PO_word = ('h678 + 'h12) >> 2;
@@ -711,8 +728,9 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
-		expected_REQ_misaligned = 1'b0;
+		expected_REQ_valid_cq = 1'b1;
+		expected_REQ_valid_mq = 1'b0;
+		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h77777;
 		expected_REQ_PO_word = ('h777 - 'h2) >> 2;
 		expected_REQ_byte_mask = 4'b1110;
@@ -772,7 +790,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_valid_cq = 1'b0;
+		expected_REQ_valid_mq = 1'b1;
 		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h77777;
 		expected_REQ_PO_word = ('h777 - 'h2 + 'h4) >> 2;
@@ -833,7 +852,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_valid_cq = 1'b1;
+		expected_REQ_valid_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h00000;
 		expected_REQ_PO_word = ('h44 + 'h7) >> 2;
@@ -894,8 +914,9 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
-		expected_REQ_misaligned = 1'b0;
+		expected_REQ_valid_cq = 1'b1;
+		expected_REQ_valid_mq = 1'b0;
+		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h0000A;
 		expected_REQ_PO_word = ('hAAA + 'h151) >> 2;
 		expected_REQ_byte_mask = 4'b1000;
@@ -955,7 +976,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_valid_cq = 1'b0;
+		expected_REQ_valid_mq = 1'b1;
 		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h0000A;
 		expected_REQ_PO_word = ('hAAA + 'h151 + 'h4) >> 2;
@@ -1016,8 +1038,9 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
-		expected_REQ_misaligned = 1'b0;
+		expected_REQ_valid_cq = 1'b0;
+		expected_REQ_valid_mq = 1'b0;
+		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h00000;
 		expected_REQ_PO_word = 12'h000;
 		expected_REQ_byte_mask = 4'b1110;
@@ -1077,7 +1100,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_valid_cq = 1'b1;
+		expected_REQ_valid_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h00010;
 		expected_REQ_PO_word = ('h000 + 'h000) >> 2;
@@ -1138,7 +1162,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_valid_cq = 1'b1;
+		expected_REQ_valid_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h00010;
 		expected_REQ_PO_word = ('h000 + 'h000) >> 2;
@@ -1199,8 +1224,9 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
-		expected_REQ_misaligned = 1'b0;
+		expected_REQ_valid_cq = 1'b1;
+		expected_REQ_valid_mq = 1'b0;
+		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h0F0F0;
 		expected_REQ_PO_word = ('hF0F + 'h3) >> 2;
 		expected_REQ_byte_mask = 4'b1100;
@@ -1260,8 +1286,9 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
-		expected_REQ_misaligned = 1'b0;
+		expected_REQ_valid_cq = 1'b1;
+		expected_REQ_valid_mq = 1'b0;
+		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h0F0F0;
 		expected_REQ_PO_word = ('hF0F + 'h3) >> 2;
 		expected_REQ_byte_mask = 4'b1100;
@@ -1321,8 +1348,9 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
-		expected_REQ_misaligned = 1'b0;
+		expected_REQ_valid_cq = 1'b1;
+		expected_REQ_valid_mq = 1'b0;
+		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h0F0F0;
 		expected_REQ_PO_word = ('hF0F + 'h3) >> 2;
 		expected_REQ_byte_mask = 4'b1100;
@@ -1382,7 +1410,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_valid_cq = 1'b0;
+		expected_REQ_valid_mq = 1'b1;
 		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h0F0F0;
 		expected_REQ_PO_word = ('hF0F + 'h3 + 'h4) >> 2;
@@ -1443,7 +1472,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_valid_cq = 1'b0;
+		expected_REQ_valid_mq = 1'b1;
 		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h0F0F0;
 		expected_REQ_PO_word = ('hF0F + 'h3 + 'h4) >> 2;
@@ -1504,8 +1534,9 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
-		expected_REQ_misaligned = 1'b0;
+		expected_REQ_valid_cq = 1'b0;
+		expected_REQ_valid_mq = 1'b0;
+		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h00000;
 		expected_REQ_PO_word = ('h000 + 'h000) >> 2;
 		expected_REQ_byte_mask = 4'b1000;

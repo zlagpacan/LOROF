@@ -38,7 +38,8 @@ module ldu_addr_pipeline (
     input logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank,
     
     // REQ stage info
-    output logic                            REQ_valid,
+    output logic                            REQ_valid_cq,
+    output logic                            REQ_valid_mq,
     output logic                            REQ_misaligned,
     output logic [VPN_WIDTH-1:0]            REQ_VPN,
     output logic [PO_WIDTH-3:0]             REQ_PO_word,
@@ -95,8 +96,6 @@ module ldu_addr_pipeline (
     REQ_state_t REQ_state, next_REQ_state;
 
     logic [31:0]    REQ_VA32;
-    logic           REQ_detected_misaligned;
-
     logic [31:0]    REQ_saved_VA32;
     logic [31:0]    REQ_misaligned_VA32;
 
@@ -219,7 +218,7 @@ module ldu_addr_pipeline (
         if (REQ_op[1]) begin
 
             // anything not word-aligned is misaligned
-            REQ_detected_misaligned = REQ_VA32[1:0] != 2'b00;
+            REQ_misaligned = REQ_VA32[1:0] != 2'b00;
 
             // check first cycle
             if (REQ_state != REQ_MISALIGNED) begin
@@ -246,7 +245,7 @@ module ldu_addr_pipeline (
         else if (REQ_op[0]) begin
 
             // only 0x3->0x0 is misaligned
-            REQ_detected_misaligned = REQ_VA32[1:0] == 2'b11;
+            REQ_misaligned = REQ_VA32[1:0] == 2'b11;
 
             // check first cycle
             if (REQ_state != REQ_MISALIGNED) begin
@@ -267,7 +266,7 @@ module ldu_addr_pipeline (
 
         // LB, LBU
         else begin
-            REQ_detected_misaligned = 1'b0;
+            REQ_misaligned = 1'b0;
 
             // guaranteed not misaligned
             case (REQ_VA32[1:0]) 
@@ -284,8 +283,8 @@ module ldu_addr_pipeline (
 
         stall_REQ = 1'b0;
 
-        REQ_valid = 1'b0;
-        REQ_misaligned = 1'b0;
+        REQ_valid_cq = 1'b0;
+        REQ_valid_mq = 1'b0;
         REQ_VPN = REQ_VA32[31-VPN_WIDTH:32-VPN_WIDTH-(PO_WIDTH-2)];
         REQ_PO_word = REQ_VA32[31-VPN_WIDTH:32-VPN_WIDTH-PO_WIDTH+2];
         
@@ -297,8 +296,8 @@ module ldu_addr_pipeline (
             begin
                 stall_REQ = 1'b0;
 
-                REQ_valid = 1'b0;
-                REQ_misaligned = 1'b0;
+                REQ_valid_cq = 1'b0;
+                REQ_valid_mq = 1'b0;
                 REQ_VPN = REQ_VA32[31-VPN_WIDTH:32-VPN_WIDTH-(PO_WIDTH-2)];
                 REQ_PO_word = REQ_VA32[31-VPN_WIDTH:32-VPN_WIDTH-PO_WIDTH+2];
 
@@ -312,17 +311,17 @@ module ldu_addr_pipeline (
 
             REQ_ACTIVE:
             begin
-                REQ_valid = 1'b1;
-                REQ_misaligned = 1'b0;
+                REQ_valid_cq = 1'b1;
+                REQ_valid_mq = 1'b0;
                 REQ_VPN = REQ_VA32[31:32-VPN_WIDTH];
                 REQ_PO_word = REQ_VA32[31-VPN_WIDTH:32-VPN_WIDTH-(PO_WIDTH-2)];
 
-                if (REQ_ack & REQ_detected_misaligned) begin
+                if (REQ_ack & REQ_misaligned) begin
                     stall_REQ = 1'b1;
 
                     next_REQ_state = REQ_MISALIGNED;
                 end
-                else if (REQ_ack & ~REQ_detected_misaligned) begin
+                else if (REQ_ack & ~REQ_misaligned) begin
                     stall_REQ = 1'b0;
                     
                     if (next_REQ_valid) begin
@@ -341,8 +340,8 @@ module ldu_addr_pipeline (
 
             REQ_MISALIGNED:
             begin
-                REQ_valid = 1'b1;
-                REQ_misaligned = 1'b1;
+                REQ_valid_cq = 1'b0;
+                REQ_valid_mq = 1'b1;
                 REQ_VPN = REQ_misaligned_VA32[31:32-VPN_WIDTH];
                 REQ_PO_word = REQ_misaligned_VA32[31-VPN_WIDTH:32-VPN_WIDTH-(PO_WIDTH-2)];
 

@@ -10,6 +10,9 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
 module ldu_addr_pipeline_wrapper (
 
     // seq
@@ -38,7 +41,8 @@ module ldu_addr_pipeline_wrapper (
 	input logic [PRF_BANK_COUNT-1:0][31:0] next_forward_data_by_bank,
 
     // REQ stage info
-	output logic last_REQ_valid,
+	output logic last_REQ_valid_cq,
+	output logic last_REQ_valid_mq,
 	output logic last_REQ_misaligned,
 	output logic [VPN_WIDTH-1:0] last_REQ_VPN,
 	output logic [PO_WIDTH-3:0] last_REQ_PO_word,
@@ -74,7 +78,8 @@ module ldu_addr_pipeline_wrapper (
 	logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank;
 
     // REQ stage info
-	logic REQ_valid;
+	logic REQ_valid_cq;
+	logic REQ_valid_mq;
 	logic REQ_misaligned;
 	logic [VPN_WIDTH-1:0] REQ_VPN;
 	logic [PO_WIDTH-3:0] REQ_PO_word;
@@ -117,7 +122,8 @@ module ldu_addr_pipeline_wrapper (
 			forward_data_by_bank <= '0;
 
 		    // REQ stage info
-			last_REQ_valid <= '0;
+			last_REQ_valid_cq <= '0;
+			last_REQ_valid_mq <= '0;
 			last_REQ_misaligned <= '0;
 			last_REQ_VPN <= '0;
 			last_REQ_PO_word <= '0;
@@ -151,7 +157,8 @@ module ldu_addr_pipeline_wrapper (
 			forward_data_by_bank <= next_forward_data_by_bank;
 
 		    // REQ stage info
-			last_REQ_valid <= REQ_valid;
+			last_REQ_valid_cq <= REQ_valid_cq;
+			last_REQ_valid_mq <= REQ_valid_mq;
 			last_REQ_misaligned <= REQ_misaligned;
 			last_REQ_VPN <= REQ_VPN;
 			last_REQ_PO_word <= REQ_PO_word;
