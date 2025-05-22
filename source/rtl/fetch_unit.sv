@@ -27,7 +27,7 @@ module fetch_unit #(
     output logic                    itlb_req_valid,
     output logic [1:0]              itlb_req_exec_mode,
     output logic                    itlb_req_virtual_mode,
-    output logic [VPN_WIDTH-1:0]    itlb_req_vpn,
+    output logic [VPN_WIDTH-1:0]    itlb_req_VPN,
     output logic [ASID_WIDTH-1:0]   itlb_req_ASID,
 
     // itlb resp
@@ -530,7 +530,7 @@ module fetch_unit #(
         itlb_req_valid = fetch_req_valid;
         itlb_req_exec_mode = fetch_req_exec_mode;
         itlb_req_virtual_mode = fetch_req_virtual_mode;
-        itlb_req_vpn = fetch_req_access_PC_VA[VA_WIDTH-1:VA_WIDTH-VPN_WIDTH];
+        itlb_req_VPN = fetch_req_access_PC_VA[VA_WIDTH-1:VA_WIDTH-VPN_WIDTH];
         itlb_req_ASID = fetch_req_ASID;
 
         // icache:

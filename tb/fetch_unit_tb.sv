@@ -40,7 +40,7 @@ module fetch_unit_tb ();
 	logic DUT_itlb_req_valid, expected_itlb_req_valid;
 	logic [1:0] DUT_itlb_req_exec_mode, expected_itlb_req_exec_mode;
 	logic DUT_itlb_req_virtual_mode, expected_itlb_req_virtual_mode;
-	logic [VPN_WIDTH-1:0] DUT_itlb_req_vpn, expected_itlb_req_vpn;
+	logic [VPN_WIDTH-1:0] DUT_itlb_req_VPN, expected_itlb_req_VPN;
 	logic [ASID_WIDTH-1:0] DUT_itlb_req_ASID, expected_itlb_req_ASID;
 
     // itlb resp
@@ -135,7 +135,7 @@ module fetch_unit_tb ();
 		.itlb_req_valid(DUT_itlb_req_valid),
 		.itlb_req_exec_mode(DUT_itlb_req_exec_mode),
 		.itlb_req_virtual_mode(DUT_itlb_req_virtual_mode),
-		.itlb_req_vpn(DUT_itlb_req_vpn),
+		.itlb_req_VPN(DUT_itlb_req_VPN),
 		.itlb_req_ASID(DUT_itlb_req_ASID),
 
 	    // itlb resp
@@ -238,9 +238,9 @@ module fetch_unit_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_itlb_req_vpn !== DUT_itlb_req_vpn) begin
-			$display("TB ERROR: expected_itlb_req_vpn (%h) != DUT_itlb_req_vpn (%h)",
-				expected_itlb_req_vpn, DUT_itlb_req_vpn);
+		if (expected_itlb_req_VPN !== DUT_itlb_req_VPN) begin
+			$display("TB ERROR: expected_itlb_req_VPN (%h) != DUT_itlb_req_VPN (%h)",
+				expected_itlb_req_VPN, DUT_itlb_req_VPN);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -467,7 +467,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b0;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h0;
+		expected_itlb_req_VPN = 20'h0;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -579,7 +579,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b0;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h0;
+		expected_itlb_req_VPN = 20'h0;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -699,7 +699,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b0;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h0;
+		expected_itlb_req_VPN = 20'h0;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -813,7 +813,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -927,7 +927,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -1041,7 +1041,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -1155,7 +1155,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -1269,7 +1269,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -1383,7 +1383,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -1497,7 +1497,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -1611,7 +1611,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -1725,7 +1725,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -1839,7 +1839,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -2017,7 +2017,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -2134,7 +2134,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -2251,7 +2251,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -2368,7 +2368,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -2485,7 +2485,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -2602,7 +2602,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -2719,7 +2719,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -2836,7 +2836,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -2954,7 +2954,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -3072,7 +3072,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -3190,7 +3190,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -3308,7 +3308,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -3426,7 +3426,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -3544,7 +3544,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -3662,7 +3662,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -3780,7 +3780,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -3898,7 +3898,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -4016,7 +4016,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -4134,7 +4134,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -4252,7 +4252,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -4370,7 +4370,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -4488,7 +4488,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -4606,7 +4606,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -4724,7 +4724,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -4841,7 +4841,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -4963,7 +4963,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h12340;
+		expected_itlb_req_VPN = 20'h12340;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -5079,7 +5079,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h56780;
+		expected_itlb_req_VPN = 20'h56780;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -5195,7 +5195,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h56780;
+		expected_itlb_req_VPN = 20'h56780;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -5311,7 +5311,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h56780;
+		expected_itlb_req_VPN = 20'h56780;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -5427,7 +5427,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h56780;
+		expected_itlb_req_VPN = 20'h56780;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -5543,7 +5543,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h5677F;
+		expected_itlb_req_VPN = 20'h5677F;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -5659,7 +5659,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -5775,7 +5775,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -5891,7 +5891,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h5677F;
+		expected_itlb_req_VPN = 20'h5677F;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -6007,7 +6007,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h56780;
+		expected_itlb_req_VPN = 20'h56780;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -6123,7 +6123,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -6239,7 +6239,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -6355,7 +6355,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -6471,7 +6471,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -6587,7 +6587,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -6703,7 +6703,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -6819,7 +6819,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -6935,7 +6935,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -7051,7 +7051,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -7167,7 +7167,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -7283,7 +7283,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -7399,7 +7399,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -7515,7 +7515,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -7631,7 +7631,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDF0;
+		expected_itlb_req_VPN = 20'hBCDF0;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -7747,7 +7747,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDF0;
+		expected_itlb_req_VPN = 20'hBCDF0;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -7863,7 +7863,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -7979,7 +7979,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -8095,7 +8095,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDEF;
+		expected_itlb_req_VPN = 20'hBCDEF;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -8211,7 +8211,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDF0;
+		expected_itlb_req_VPN = 20'hBCDF0;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -8327,7 +8327,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDF0;
+		expected_itlb_req_VPN = 20'hBCDF0;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -8443,7 +8443,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDF0;
+		expected_itlb_req_VPN = 20'hBCDF0;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -8559,7 +8559,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'hBCDF0;
+		expected_itlb_req_VPN = 20'hBCDF0;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req
@@ -8675,7 +8675,7 @@ module fetch_unit_tb ();
 		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_exec_mode = M_MODE;
 		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_vpn = 20'h80808;
+		expected_itlb_req_VPN = 20'h80808;
 		expected_itlb_req_ASID = 9'h0;
 	    // itlb resp
 	    // icache req

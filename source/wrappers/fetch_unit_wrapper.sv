@@ -24,7 +24,7 @@ module fetch_unit_wrapper (
 	output logic last_itlb_req_valid,
 	output logic [1:0] last_itlb_req_exec_mode,
 	output logic last_itlb_req_virtual_mode,
-	output logic [VPN_WIDTH-1:0] last_itlb_req_vpn,
+	output logic [VPN_WIDTH-1:0] last_itlb_req_VPN,
 	output logic [ASID_WIDTH-1:0] last_itlb_req_ASID,
 
     // itlb resp
@@ -109,7 +109,7 @@ module fetch_unit_wrapper (
 	logic itlb_req_valid;
 	logic [1:0] itlb_req_exec_mode;
 	logic itlb_req_virtual_mode;
-	logic [VPN_WIDTH-1:0] itlb_req_vpn;
+	logic [VPN_WIDTH-1:0] itlb_req_VPN;
 	logic [ASID_WIDTH-1:0] itlb_req_ASID;
 
     // itlb resp
@@ -201,7 +201,7 @@ module fetch_unit_wrapper (
 			last_itlb_req_valid <= '0;
 			last_itlb_req_exec_mode <= '0;
 			last_itlb_req_virtual_mode <= '0;
-			last_itlb_req_vpn <= '0;
+			last_itlb_req_VPN <= '0;
 			last_itlb_req_ASID <= '0;
 
 		    // itlb resp
@@ -284,7 +284,7 @@ module fetch_unit_wrapper (
 			last_itlb_req_valid <= itlb_req_valid;
 			last_itlb_req_exec_mode <= itlb_req_exec_mode;
 			last_itlb_req_virtual_mode <= itlb_req_virtual_mode;
-			last_itlb_req_vpn <= itlb_req_vpn;
+			last_itlb_req_VPN <= itlb_req_VPN;
 			last_itlb_req_ASID <= itlb_req_ASID;
 
 		    // itlb resp
