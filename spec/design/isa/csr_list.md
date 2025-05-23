@@ -764,7 +764,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
                 - S-mode execution can always be interrupted by M-mode level interrupt
                 - U-mode execution can always be interrupted by M-mode or S-mode level interrupts
         - SPIE, SPP:
-            - previous enable and privilege mode
+            - previous interrupt enable and privilege mode
             - make up two-level privilege mode stack
                 - two-level in that save current and previous mode info
                 - SW must be careful to maintain this stack e.g. guarantee no exceptions while saving privilege mode stack

@@ -36,5 +36,7 @@ module ldu_cq #(
         // return data
         // return request
         // restart request
+        // page fault
+        // access fault
 
 endmodule

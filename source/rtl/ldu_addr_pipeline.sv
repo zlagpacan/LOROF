@@ -38,8 +38,8 @@ module ldu_addr_pipeline (
     input logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank,
     
     // REQ stage info
-    output logic                            REQ_valid_cq,
-    output logic                            REQ_valid_mq,
+    output logic                            REQ_valid,
+    output logic                            REQ_is_mq,
     output logic                            REQ_misaligned,
     output logic [VPN_WIDTH-1:0]            REQ_VPN,
     output logic [PO_WIDTH-3:0]             REQ_PO_word,
@@ -283,8 +283,8 @@ module ldu_addr_pipeline (
 
         stall_REQ = 1'b0;
 
-        REQ_valid_cq = 1'b0;
-        REQ_valid_mq = 1'b0;
+        REQ_valid = 1'b0;
+        REQ_is_mq = 1'b0;
         REQ_VPN = REQ_VA32[31-VPN_WIDTH:32-VPN_WIDTH-(PO_WIDTH-2)];
         REQ_PO_word = REQ_VA32[31-VPN_WIDTH:32-VPN_WIDTH-PO_WIDTH+2];
         
@@ -296,8 +296,8 @@ module ldu_addr_pipeline (
             begin
                 stall_REQ = 1'b0;
 
-                REQ_valid_cq = 1'b0;
-                REQ_valid_mq = 1'b0;
+                REQ_valid = 1'b0;
+                REQ_is_mq = 1'b0;
                 REQ_VPN = REQ_VA32[31-VPN_WIDTH:32-VPN_WIDTH-(PO_WIDTH-2)];
                 REQ_PO_word = REQ_VA32[31-VPN_WIDTH:32-VPN_WIDTH-PO_WIDTH+2];
 
@@ -311,8 +311,8 @@ module ldu_addr_pipeline (
 
             REQ_ACTIVE:
             begin
-                REQ_valid_cq = 1'b1;
-                REQ_valid_mq = 1'b0;
+                REQ_valid = 1'b1;
+                REQ_is_mq = 1'b0;
                 REQ_VPN = REQ_VA32[31:32-VPN_WIDTH];
                 REQ_PO_word = REQ_VA32[31-VPN_WIDTH:32-VPN_WIDTH-(PO_WIDTH-2)];
 
@@ -340,8 +340,8 @@ module ldu_addr_pipeline (
 
             REQ_MISALIGNED:
             begin
-                REQ_valid_cq = 1'b0;
-                REQ_valid_mq = 1'b1;
+                REQ_valid = 1'b1;
+                REQ_is_mq = 1'b1;
                 REQ_VPN = REQ_misaligned_VA32[31:32-VPN_WIDTH];
                 REQ_PO_word = REQ_misaligned_VA32[31-VPN_WIDTH:32-VPN_WIDTH-(PO_WIDTH-2)];
 
