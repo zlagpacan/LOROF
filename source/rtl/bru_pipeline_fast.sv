@@ -34,7 +34,7 @@ module bru_pipeline_fast (
     input logic [LOG_ROB_ENTRIES-1:0]       issue_ROB_index,
 
     // output feedback to BRU IQ
-    output logic issue_ready,
+    output logic                            issue_ready,
 
     // reg read info and data from PRF
     input logic                                     A_reg_read_ack,
@@ -53,7 +53,7 @@ module bru_pipeline_fast (
     output logic [LOG_ROB_ENTRIES-1:0]  WB_ROB_index,
 
     // writeback backpressure from PRF
-    input logic WB_ready,
+    input logic                         WB_ready,
 
     // branch notification to ROB
     output logic                            branch_notif_valid,
@@ -67,7 +67,7 @@ module bru_pipeline_fast (
     output logic [31:0]                     branch_notif_target_PC,
 
     // branch notification backpressure from ROB
-    input logic branch_notif_ready
+    input logic                             branch_notif_ready
 );
 
     // ----------------------------------------------------------------
@@ -176,6 +176,9 @@ module bru_pipeline_fast (
     logic [31:0]                        WB_stage_write_data;
     logic [LOG_PR_COUNT-1:0]            WB_stage_dest_PR;
     logic [LOG_ROB_ENTRIES-1:0]         WB_stage_ROB_index;
+
+    logic WB_stage_WB_acked;
+    logic WB_stage_branch_notif_acked;
 
     logic                       WB_stage_start_neq_target_upper_PC;
     logic [UPPER_PC_WIDTH-1:0]  WB_stage_delta_start_target_upper_PC;
@@ -649,6 +652,9 @@ module bru_pipeline_fast (
             WB_stage_write_data <= 32'h4;
             WB_stage_dest_PR <= 7'h0;
             WB_stage_ROB_index <= 7'h0;
+
+            WB_stage_WB_acked <= 1'b0;
+            WB_stage_branch_notif_acked <= 1'b0;
         end
         else if (stall_WB) begin
             WB_stage_valid <= WB_stage_valid;
@@ -664,6 +670,9 @@ module bru_pipeline_fast (
             WB_stage_write_data <= WB_stage_write_data;
             WB_stage_dest_PR <= WB_stage_dest_PR;
             WB_stage_ROB_index <= WB_stage_ROB_index;
+
+            WB_stage_WB_acked <= WB_stage_WB_acked | WB_ready;
+            WB_stage_branch_notif_acked <= WB_stage_branch_notif_acked | branch_notif_ready;
         end
         else begin
             WB_stage_valid <= next_WB_stage_valid;
@@ -679,6 +688,9 @@ module bru_pipeline_fast (
             WB_stage_write_data <= next_WB_stage_write_data;
             WB_stage_dest_PR <= next_WB_stage_dest_PR;
             WB_stage_ROB_index <= next_WB_stage_ROB_index;
+
+            WB_stage_WB_acked <= 1'b0;
+            WB_stage_branch_notif_acked <= 1'b0;
         end
     end
 
@@ -786,6 +798,9 @@ module bru_pipeline_fast (
             end
 
         endcase
+
+        WB_valid &= ~WB_stage_WB_acked;
+        branch_notif_valid &= ~WB_stage_branch_notif_acked;
     end
 
 endmodule

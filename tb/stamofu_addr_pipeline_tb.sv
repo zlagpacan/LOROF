@@ -66,6 +66,7 @@ module stamofu_addr_pipeline_tb ();
 
     // REQ stage info
 	logic DUT_REQ_valid, expected_REQ_valid;
+	logic DUT_REQ_is_mq, expected_REQ_is_mq;
 	logic DUT_REQ_misaligned, expected_REQ_misaligned;
 	logic DUT_REQ_misaligned_exception, expected_REQ_misaligned_exception;
 	logic [VPN_WIDTH-1:0] DUT_REQ_VPN, expected_REQ_VPN;
@@ -116,6 +117,7 @@ module stamofu_addr_pipeline_tb ();
 
 	    // REQ stage info
 		.REQ_valid(DUT_REQ_valid),
+		.REQ_is_mq(DUT_REQ_is_mq),
 		.REQ_misaligned(DUT_REQ_misaligned),
 		.REQ_misaligned_exception(DUT_REQ_misaligned_exception),
 		.REQ_VPN(DUT_REQ_VPN),
@@ -143,6 +145,13 @@ module stamofu_addr_pipeline_tb ();
 		if (expected_REQ_valid !== DUT_REQ_valid) begin
 			$display("TB ERROR: expected_REQ_valid (%h) != DUT_REQ_valid (%h)",
 				expected_REQ_valid, DUT_REQ_valid);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_REQ_is_mq !== DUT_REQ_is_mq) begin
+			$display("TB ERROR: expected_REQ_is_mq (%h) != DUT_REQ_is_mq (%h)",
+				expected_REQ_is_mq, DUT_REQ_is_mq);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -261,6 +270,7 @@ module stamofu_addr_pipeline_tb ();
 	    // forward data from PRF
 	    // REQ stage info
 		expected_REQ_valid = 1'b0;
+		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_misaligned_exception = 1'b0;
 		expected_REQ_VPN = 20'h0;
@@ -321,6 +331,7 @@ module stamofu_addr_pipeline_tb ();
 	    // forward data from PRF
 	    // REQ stage info
 		expected_REQ_valid = 1'b0;
+		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_misaligned_exception = 1'b0;
 		expected_REQ_VPN = 20'h0;
@@ -389,6 +400,7 @@ module stamofu_addr_pipeline_tb ();
 	    // forward data from PRF
 	    // REQ stage info
 		expected_REQ_valid = 1'b0;
+		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_misaligned_exception = 1'b0;
 		expected_REQ_VPN = 20'h0;

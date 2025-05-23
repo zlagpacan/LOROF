@@ -57,6 +57,8 @@ package system_types_pkg;
     parameter DCACHE_NUM_SETS_PER_BANK = DCACHE_NUM_SETS / 2;
     parameter DCACHE_INDEX_WIDTH = $clog2(DCACHE_NUM_SETS_PER_BANK);
     parameter DCACHE_TAG_WIDTH = PA_WIDTH - DCACHE_INDEX_WIDTH - 1 - DCACHE_BLOCK_OFFSET_WIDTH;
+    parameter DCACHE_BANK_BIT = DCACHE_BLOCK_OFFSET_WIDTH;
+    parameter DCACHE_WORD_ADDR_BANK_BIT = DCACHE_BLOCK_OFFSET_WIDTH - 2;
     // data array access
         // grab index from index bits + upper block offset bits
     parameter DCACHE_DATA_WORD_WIDTH = 4;

@@ -50,6 +50,7 @@ module stamofu_addr_pipeline_wrapper (
 
     // REQ stage info
 	output logic last_REQ_valid,
+	output logic last_REQ_is_mq,
 	output logic last_REQ_misaligned,
 	output logic last_REQ_misaligned_exception,
 	output logic [VPN_WIDTH-1:0] last_REQ_VPN,
@@ -96,6 +97,7 @@ module stamofu_addr_pipeline_wrapper (
 
     // REQ stage info
 	logic REQ_valid;
+	logic REQ_is_mq;
 	logic REQ_misaligned;
 	logic REQ_misaligned_exception;
 	logic [VPN_WIDTH-1:0] REQ_VPN;
@@ -149,6 +151,7 @@ module stamofu_addr_pipeline_wrapper (
 
 		    // REQ stage info
 			last_REQ_valid <= '0;
+			last_REQ_is_mq <= '0;
 			last_REQ_misaligned <= '0;
 			last_REQ_misaligned_exception <= '0;
 			last_REQ_VPN <= '0;
@@ -193,6 +196,7 @@ module stamofu_addr_pipeline_wrapper (
 
 		    // REQ stage info
 			last_REQ_valid <= REQ_valid;
+			last_REQ_is_mq <= REQ_is_mq;
 			last_REQ_misaligned <= REQ_misaligned;
 			last_REQ_misaligned_exception <= REQ_misaligned_exception;
 			last_REQ_VPN <= REQ_VPN;
