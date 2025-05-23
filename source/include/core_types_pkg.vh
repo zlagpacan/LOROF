@@ -59,12 +59,13 @@ package core_types_pkg;
         // STAMOFU A
         // STAMOFU B
         // SYS A
-    parameter PRF_WR_COUNT = 7;
+    parameter PRF_WR_COUNT = 8;
         // ALU Reg-Reg
         // MDU
         // ALU Reg-Imm
         // BRU
-        // LDU
+        // LDU bank 0
+        // LDU bank 1
         // STAMOFU
         // SYS
 
