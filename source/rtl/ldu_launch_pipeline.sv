@@ -194,6 +194,9 @@ module ldu_launch_pipeline #(
     // REQ stage signals:
 
     logic                           REQ_stage_valid;
+    logic                           REQ_stage_is_first;
+    logic                           REQ_stage_is_second;
+    logic                           REQ_stage_is_data;
     logic                           REQ_stage_is_mq;
     logic                           REQ_stage_misaligned;
     logic                           REQ_stage_do_restart;
@@ -350,6 +353,9 @@ module ldu_launch_pipeline #(
     // dataflow
     always_comb begin
         // REQ_stage_valid // handled ^
+        REQ_stage_is_first = first_try_valid;
+        REQ_stage_is_second = ~first_try_valid & second_try_valid;
+        REQ_stage_is_data = ~first_try_valid & ~second_try_valid & data_try_valid;
         REQ_stage_is_mq = first_try_valid ? first_try_is_mq : second_try_is_mq;
         REQ_stage_misaligned = first_try_valid ? first_try_misaligned : second_try_misaligned;
         REQ_stage_do_restart = ~(first_try_valid | second_try_valid) & data_try_restart;
@@ -361,6 +367,14 @@ module ldu_launch_pipeline #(
         REQ_stage_mq_index = first_try_valid ? ldu_mq_enq_index : second_try_cq_index;
 
         ldu_mq_enq_valid = first_try_valid & first_try_is_mq & REQ_stage_valid;
+
+        dtlb_req_valid = first_try_valid & REQ_stage_valid;
+        dtlb_req_VPN = first_try_VPN;
+
+        dcache_req_valid = (first_try_valid | second_try_valid) & REQ_stage_valid;
+        dcache_req_block_offset = {REQ_stage_PO_word[DCACHE_WORD_ADDR_BANK_BIT-1 : 0], 2'b00};
+        // bank will be statically determined for instantiation
+        dcache_req_index = REQ_stage_PO_word[DCACHE_INDEX_WIDTH + DCACHE_WORD_ADDR_BANK_BIT - 1 : DCACHE_WORD_ADDR_BANK_BIT];
     end
 
 endmodule
