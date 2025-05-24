@@ -27,8 +27,8 @@ module fetch_unit #(
     output logic                    itlb_req_valid,
     output logic [1:0]              itlb_req_exec_mode,
     output logic                    itlb_req_virtual_mode,
-    output logic [VPN_WIDTH-1:0]    itlb_req_VPN,
     output logic [ASID_WIDTH-1:0]   itlb_req_ASID,
+    output logic [VPN_WIDTH-1:0]    itlb_req_VPN,
 
     // itlb resp
     input logic                     itlb_resp_valid,
