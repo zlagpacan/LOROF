@@ -377,6 +377,4 @@ module ldu_launch_pipeline #(
         dcache_req_index = REQ_stage_PO_word[DCACHE_INDEX_WIDTH + DCACHE_WORD_ADDR_BANK_BIT - 1 : DCACHE_WORD_ADDR_BANK_BIT];
     end
 
-		// add store launch here so can do exclusive req prefetch
-
 endmodule
