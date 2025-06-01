@@ -208,30 +208,24 @@ module ldu_launch_pipeline #(
     logic [LOG_LDU_MQ_ENTRIES-1:0]  REQ_stage_mq_index;
 
     // ----------------------------------------------------------------
+    // RESP stage signals:
+
+    logic                           RESP_stage_valid;
+    logic                           RESP_stage_is_first;
+    logic                           RESP_stage_is_second;
+    logic                           RESP_stage_is_data;
+    logic                           RESP_stage_is_mq;
+    logic                           RESP_stage_misaligned;
+    logic                           RESP_stage_do_restart;
+    logic [PPN_WIDTH-1:0]           RESP_stage_PN; // VPN if first try, PPN if second try
+    logic [PO_WIDTH-3:0]            RESP_stage_PO_word;
+    logic [3:0]                     RESP_stage_byte_mask;
+    logic [31:0]                    RESP_stage_data;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]  RESP_stage_cq_index;
+    logic [LOG_LDU_MQ_ENTRIES-1:0]  RESP_stage_mq_index;
+
+    // ----------------------------------------------------------------
     // REQ stage logic:
-
-    // // first try bank demux
-    // assign first_try_bank0_valid = 
-    //     first_try_valid
-    //     & first_try_PO_word[DCACHE_WORD_ADDR_BANK_BIT] == 1'b0;
-
-    // assign first_try_bank1_valid = 
-    //     first_try_valid
-    //     & first_try_PO_word[DCACHE_WORD_ADDR_BANK_BIT] == 1'b1;
-
-    // assign first_try_ack = first_try_ack | first_try_bank1_ack;
-
-    // // data try bank demux
-    //     // only do bank 0 if empty <-> bank 1 if bank 0 occupied
-    // assign data_try_bank0_valid = 
-    //     data_try_valid
-    //     & ~(first_try_bank0_valid | second_try_bank0_valid);
-        
-    // assign data_try_bank1_valid = 
-    //     data_try_valid
-    //     & (first_try_bank0_valid | second_try_bank0_valid);
-
-    // assign data_try_ack = data_try_ack | data_try_bank1_ack;
 
     // rob-restart determined state
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -375,6 +369,25 @@ module ldu_launch_pipeline #(
         dcache_req_block_offset = {REQ_stage_PO_word[DCACHE_WORD_ADDR_BANK_BIT-1 : 0], 2'b00};
         // bank will be statically determined for instantiation
         dcache_req_index = REQ_stage_PO_word[DCACHE_INDEX_WIDTH + DCACHE_WORD_ADDR_BANK_BIT - 1 : DCACHE_WORD_ADDR_BANK_BIT];
+    end
+
+    // ----------------------------------------------------------------
+    // RESP stage logic:
+
+    // stall, control, and ack logic
+    always_comb begin
+
+        // check valid RESP
+        if (valid_RESP) begin
+
+        end
+
+        // otherwise, NOP
+        else begin
+            stall_RESP = 1'b0;
+
+            RESP_stage_valid = 1'b0;
+        end
     end
 
 endmodule
