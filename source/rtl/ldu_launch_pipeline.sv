@@ -55,7 +55,10 @@ module ldu_launch_pipeline #(
     input logic                             second_try_valid,
     input logic                             second_try_is_mq,
     input logic                             second_try_misaligned,
-    input logic [VPN_WIDTH-1:0]             second_try_VPN,
+    input logic                             second_try_page_fault,
+    input logic                             second_try_access_fault,
+    input logic                             second_try_is_mem,
+    input logic [PPN_WIDTH-1:0]             second_try_PPN,
     input logic [PO_WIDTH-3:0]              second_try_PO_word,
     input logic [3:0]                       second_try_byte_mask,
     input logic [LOG_LDU_CQ_ENTRIES-1:0]    second_try_cq_index,
@@ -66,7 +69,7 @@ module ldu_launch_pipeline #(
     
     // data try
     input logic                             data_try_valid,
-    input logic                             data_try_restart,
+    input logic                             data_try_do_mispred,
     input logic [31:0]                      data_try_data,
     input logic [LOG_LDU_CQ_ENTRIES-1:0]    data_try_cq_index,
 
@@ -129,13 +132,9 @@ module ldu_launch_pipeline #(
     // central queue info grab
     output logic [LOG_LDU_CQ_ENTRIES-1:0]   ldu_cq_info_grab_cq_index,
     input logic [3:0]                       ldu_cq_info_grab_op,
+    input logic [MDPT_INFO_WIDTH-1:0]       ldu_cq_info_grab_mdp_info,
     input logic [LOG_PR_COUNT-1:0]          ldu_cq_info_grab_dest_PR,
     input logic [LOG_ROB_ENTRIES-1:0]       ldu_cq_info_grab_ROB_index,
-    input logic [PPN_WIDTH-1:0]             ldu_cq_info_grab_PA_word,
-
-    // misaligned queue info grab
-    output logic [LOG_LDU_MQ_ENTRIES-1:0]   ldu_mq_info_grab_mq_index,
-    input logic [PPN_WIDTH-1:0]             ldu_mq_info_grab_PA_word,
 
     // central queue info ret
     output logic                            ldu_cq_info_ret_valid,
@@ -144,6 +143,7 @@ module ldu_launch_pipeline #(
     output logic                            ldu_cq_info_ret_dcache_hit,
     output logic                            ldu_cq_info_ret_is_mem,
     output logic                            ldu_cq_info_ret_aq_blocking,
+    output logic                            ldu_cq_info_ret_mdp_present,
     output logic [31:0]                     ldu_cq_info_ret_data,
 
     // misaligned queue info ret
@@ -153,6 +153,7 @@ module ldu_launch_pipeline #(
     output logic                            ldu_mq_info_ret_dcache_hit,
     output logic                            ldu_mq_info_ret_is_mem,
     output logic                            ldu_mq_info_ret_aq_blocking,
+    output logic                            ldu_mq_info_ret_mdp_present,
     output logic [31:0]                     ldu_mq_info_ret_data,
 
     // misprediction notification to ROB
@@ -186,7 +187,6 @@ module ldu_launch_pipeline #(
     // ----------------------------------------------------------------
     // Control signals:
 
-    logic stall_REQ;
     logic stall_RESP;
     logic stall_RET;
 
@@ -199,8 +199,11 @@ module ldu_launch_pipeline #(
     logic                           REQ_stage_is_data;
     logic                           REQ_stage_is_mq;
     logic                           REQ_stage_misaligned;
-    logic                           REQ_stage_do_restart;
-    logic [PPN_WIDTH-1:0]           REQ_stage_PN; // VPN if first try, PPN if second try
+    logic                           REQ_stage_given_page_fault;
+    logic                           REQ_stage_given_access_fault;
+    logic                           REQ_stage_given_is_mem;
+    logic                           REQ_stage_do_mispred;
+    logic [PPN_WIDTH-1:0]           REQ_stage_given_PPN;
     logic [PO_WIDTH-3:0]            REQ_stage_PO_word;
     logic [3:0]                     REQ_stage_byte_mask;
     logic [31:0]                    REQ_stage_data;
@@ -216,13 +219,70 @@ module ldu_launch_pipeline #(
     logic                           RESP_stage_is_data;
     logic                           RESP_stage_is_mq;
     logic                           RESP_stage_misaligned;
-    logic                           RESP_stage_do_restart;
-    logic [PPN_WIDTH-1:0]           RESP_stage_PN; // VPN if first try, PPN if second try
+    logic                           RESP_stage_given_page_fault;
+    logic                           RESP_stage_given_access_fault;
+    logic                           RESP_stage_given_is_mem;
+    logic [PPN_WIDTH-1:0]           RESP_stage_given_PPN;
     logic [PO_WIDTH-3:0]            RESP_stage_PO_word;
     logic [3:0]                     RESP_stage_byte_mask;
     logic [31:0]                    RESP_stage_data;
     logic [LOG_LDU_CQ_ENTRIES-1:0]  RESP_stage_cq_index;
     logic [LOG_LDU_MQ_ENTRIES-1:0]  RESP_stage_mq_index;
+    
+    logic [3:0]                     RESP_stage_op;
+    logic                           RESP_stage_mdp_present;
+    logic [LOG_PR_COUNT-1:0]        RESP_stage_dest_PR;
+    logic [LOG_ROB_ENTRIES-1:0]     RESP_stage_ROB_index;
+
+    logic                           RESP_stage_selected_page_fault;
+    logic                           RESP_stage_selected_access_fault;
+    logic                           RESP_stage_selected_is_mem;
+    logic [PPN_WIDTH-1:0]           RESP_stage_selected_PPN;
+    logic [PA_WIDTH-1:0]            RESP_stage_selected_PA_word;
+
+    logic                           RESP_stage_aq_blocking;
+
+    logic                           RESP_stage_dtlb_hit;
+    logic                           RESP_stage_dcache_vtm;
+
+    logic                           RESP_stage_do_WB;
+    logic                           RESP_stage_do_CAM;
+    logic                           RESP_stage_do_exception;
+    logic                           RESP_stage_do_mispred;
+    logic                           RESP_stage_do_cq_ret;
+    logic                           RESP_stage_do_mq_ret;
+
+    // ----------------------------------------------------------------
+    // RET stage signals:
+
+    logic                           RET_stage_valid;
+    logic                           RET_stage_is_first;
+    logic                           RET_stage_is_second;
+    logic                           RET_stage_is_data;
+    logic                           RET_stage_is_mq;
+    logic                           RET_stage_misaligned;
+    logic [3:0]                     RET_stage_op;
+    logic                           RET_stage_mdp_present;
+    logic [LOG_PR_COUNT-1:0]        RET_stage_dest_PR;
+    logic [LOG_ROB_ENTRIES-1:0]     RET_stage_ROB_index;
+    logic                           RET_stage_selected_page_fault;
+    logic                           RET_stage_selected_access_fault;
+    logic                           RET_stage_selected_is_mem;
+    logic [PPN_WIDTH-1:0]           RET_stage_selected_PA_word;
+    logic                           RET_stage_aq_blocking;
+    logic [3:0]                     RET_stage_byte_mask;
+    logic [31:0]                    RET_stage_data;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]  RET_stage_cq_index;
+    logic [LOG_LDU_MQ_ENTRIES-1:0]  RET_stage_mq_index;
+    
+    logic                           RET_stage_do_WB;
+    logic                           RET_stage_do_CAM;
+    logic                           RET_stage_do_exception;
+    logic                           RET_stage_do_mispred;
+    logic                           RET_stage_do_cq_ret;
+    logic                           RET_stage_do_mq_ret;
+
+    logic                           RET_stage_perform;
 
     // ----------------------------------------------------------------
     // REQ stage logic:
@@ -251,91 +311,49 @@ module ldu_launch_pipeline #(
     always_comb begin
 
         // check first try
-        if (first_try_valid) begin
-
             // need no propagated stall, dtlb req, dcache req, and ldu mq enq if applicable
-            if (
-                ~(valid_RESP & stall_RESP)
-                & dtlb_req_ready 
-                & dcache_req_ready
-                & (~first_try_is_mq | ldu_mq_enq_ready)
-            ) begin
-                stall_REQ = 1'b0;
+        if (
+            first_try_valid
+            & ~stall_RESP
+            & dtlb_req_ready 
+            & dcache_req_ready
+            & (~first_try_is_mq | ldu_mq_enq_ready)
+        ) begin
+            REQ_stage_valid = 1'b1;
 
-                REQ_stage_valid = 1'b1;
-
-                first_try_ack = 1'b1;
-                second_try_ack = 1'b0;
-                data_try_ack = 1'b0;
-            end
-            else begin
-                stall_REQ = 1'b1;
-
-                REQ_stage_valid = 1'b0;
-
-                first_try_ack = 1'b0;
-                second_try_ack = 1'b0;
-                data_try_ack = 1'b0;
-            end
+            first_try_ack = 1'b1;
+            second_try_ack = 1'b0;
+            data_try_ack = 1'b0;
         end
 
         // otherwise, check second try
-        else if (second_try_valid) begin
-
             // need no propagated stall and dcache req
-            if (
-                ~(valid_RESP & stall_RESP)
-                & dcache_req_ready
-            ) begin
-                stall_REQ = 1'b0;
+        else if (
+            second_try_valid
+            & ~stall_RESP
+            & dcache_req_ready
+        ) begin
+            REQ_stage_valid = 1'b1;
 
-                REQ_stage_valid = 1'b1;
-
-                first_try_ack = 1'b0;
-                second_try_ack = 1'b1;
-                data_try_ack = 1'b0;
-            end
-            else begin
-                stall_REQ = 1'b1;
-
-                REQ_stage_valid = 1'b0;
-
-                first_try_ack = 1'b0;
-                second_try_ack = 1'b0;
-                data_try_ack = 1'b0;
-            end
+            first_try_ack = 1'b0;
+            second_try_ack = 1'b1;
+            data_try_ack = 1'b0;
         end
 
         // otherwise, check data
-        else if (data_try_valid) begin
+        else if (
+            data_try_valid
+            & ~stall_RESP
+        ) begin
+            REQ_stage_valid = 1'b1;
 
-            // need no propagated stall
-            if (
-                ~(valid_RESP & stall_RESP)
-            ) begin
-                stall_REQ = 1'b0;
-
-                REQ_stage_valid = 1'b1;
-
-                first_try_ack = 1'b0;
-                second_try_ack = 1'b0;
-                data_try_ack = 1'b1;
-            end
-            else begin
-                stall_REQ = 1'b1;
-
-                REQ_stage_valid = 1'b0;
-
-                first_try_ack = 1'b0;
-                second_try_ack = 1'b0;
-                data_try_ack = 1'b0;
-            end
+            first_try_ack = 1'b0;
+            second_try_ack = 1'b0;
+            data_try_ack = 1'b1;
         end
-        
-        // otherwise, NOP
-        else begin
-            stall_REQ = 1'b0;
 
+        // otherwise, REQ stage NOP
+        else begin
             REQ_stage_valid = 1'b0;
 
             first_try_ack = 1'b0;
@@ -347,47 +365,156 @@ module ldu_launch_pipeline #(
     // dataflow
     always_comb begin
         // REQ_stage_valid // handled ^
-        REQ_stage_is_first = first_try_valid;
-        REQ_stage_is_second = ~first_try_valid & second_try_valid;
-        REQ_stage_is_data = ~first_try_valid & ~second_try_valid & data_try_valid;
-        REQ_stage_is_mq = first_try_valid ? first_try_is_mq : second_try_is_mq;
-        REQ_stage_misaligned = first_try_valid ? first_try_misaligned : second_try_misaligned;
-        REQ_stage_do_restart = ~(first_try_valid | second_try_valid) & data_try_restart;
-        REQ_stage_PN = first_try_valid ? {2'b00, first_try_VPN} : second_try_PPN;
-        REQ_stage_PO_word = first_try_valid ? first_try_PO_word : second_try_PO_word;
-        REQ_stage_byte_mask = first_try_valid ? first_try_byte_mask : second_try_byte_mask;
+        REQ_stage_is_first = first_try_ack;
+        REQ_stage_is_second = second_try_ack;
+        REQ_stage_is_data = data_try_ack;
+        REQ_stage_is_mq = first_try_ack ? first_try_is_mq : second_try_is_mq;
+        REQ_stage_misaligned = first_try_ack ? first_try_misaligned : second_try_misaligned;
+        REQ_stage_given_page_fault = second_try_page_fault;
+        REQ_stage_given_access_fault = second_try_access_fault;
+        REQ_stage_given_is_mem = second_try_is_mem;
+        REQ_stage_do_mispred = data_try_ack & data_try_do_mispred;
+        REQ_stage_given_PPN = second_try_PPN;
+        REQ_stage_PO_word = first_try_ack ? first_try_PO_word : second_try_PO_word;
+        REQ_stage_byte_mask = first_try_ack ? first_try_byte_mask : second_try_byte_mask;
         REQ_stage_data = data_try_data;
-        REQ_stage_cq_index = first_try_valid ? first_try_cq_index : second_try_valid ? second_try_cq_index : data_try_cq_index;
-        REQ_stage_mq_index = first_try_valid ? ldu_mq_enq_index : second_try_cq_index;
+        REQ_stage_cq_index = first_try_ack ? first_try_cq_index : second_try_ack ? second_try_cq_index : data_try_cq_index;
+        REQ_stage_mq_index = first_try_ack ? ldu_mq_enq_index : second_try_cq_index;
 
-        ldu_mq_enq_valid = first_try_valid & first_try_is_mq & REQ_stage_valid;
+        ldu_mq_enq_valid = first_try_ack & first_try_is_mq;
 
-        dtlb_req_valid = first_try_valid & REQ_stage_valid;
+        dtlb_req_valid = first_try_ack;
         dtlb_req_VPN = first_try_VPN;
 
-        dcache_req_valid = (first_try_valid | second_try_valid) & REQ_stage_valid;
+        dcache_req_valid = (first_try_ack | second_try_ack);
         dcache_req_block_offset = {REQ_stage_PO_word[DCACHE_WORD_ADDR_BANK_BIT-1 : 0], 2'b00};
         // bank will be statically determined for instantiation
         dcache_req_index = REQ_stage_PO_word[DCACHE_INDEX_WIDTH + DCACHE_WORD_ADDR_BANK_BIT - 1 : DCACHE_WORD_ADDR_BANK_BIT];
+            // full index, so include bank bit
     end
 
     // ----------------------------------------------------------------
     // RESP stage logic:
 
+    // REQ/RESP stage FF output
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            RESP_stage_valid <= '0;
+            RESP_stage_is_first <= '0;
+            RESP_stage_is_second <= '0;
+            RESP_stage_is_data <= '0;
+            RESP_stage_is_mq <= '0;
+            RESP_stage_misaligned <= '0;
+            RESP_stage_given_page_fault <= '0;
+            RESP_stage_given_access_fault <= '0;
+            RESP_stage_given_is_mem <= '0;
+            RESP_stage_do_mispred <= '0;
+            RESP_stage_given_PPN <= '0;
+            RESP_stage_PO_word <= '0;
+            RESP_stage_byte_mask <= '0;
+            RESP_stage_data <= '0;
+            RESP_stage_cq_index <= '0;
+            RESP_stage_mq_index <= '0;
+        end
+        else if (~stall_RESP) begin
+            RESP_stage_valid <= REQ_stage_valid;
+            RESP_stage_is_first <= REQ_stage_is_first;
+            RESP_stage_is_second <= REQ_stage_is_second;
+            RESP_stage_is_data <= REQ_stage_is_data;
+            RESP_stage_is_mq <= REQ_stage_is_mq;
+            RESP_stage_misaligned <= REQ_stage_misaligned;
+            RESP_stage_given_page_fault <= REQ_stage_given_page_fault;
+            RESP_stage_given_access_fault <= REQ_stage_given_access_fault;
+            RESP_stage_given_is_mem <= REQ_stage_given_is_mem;
+            RESP_stage_do_mispred <= REQ_stage_do_mispred;
+            RESP_stage_given_PPN <= REQ_stage_given_PPN;
+            RESP_stage_PO_word <= REQ_stage_PO_word;
+            RESP_stage_byte_mask <= REQ_stage_byte_mask;
+            RESP_stage_data <= REQ_stage_data;
+            RESP_stage_cq_index <= REQ_stage_cq_index;
+            RESP_stage_mq_index <= REQ_stage_mq_index;
+        end
+    end
+
     // stall, control, and ack logic
     always_comb begin
 
         // check valid RESP
-        if (valid_RESP) begin
+        if (RESP_stage_valid) begin
 
+            // check RESP good to pass through
+                // need no propagated stall
+            if (~stall_RET) begin
+                stall_RESP = 1'b0;
+            end
+
+            // otherwise, stall
+            else begin
+                stall_RESP = 1'b1;
+            end
         end
 
         // otherwise, NOP
         else begin
             stall_RESP = 1'b0;
-
-            RESP_stage_valid = 1'b0;
         end
+    end
+
+    // dataflow
+    always_comb begin
+
+        // central queue info grab
+        ldu_cq_info_grab_cq_index = RESP_stage_cq_index;
+        RESP_stage_op = ldu_cq_info_grab_op;
+        RESP_stage_mdp_present = ldu_cq_info_grab_mdp_info[7:6] != 2'b00;
+        RESP_stage_dest_PR = ldu_cq_info_grab_dest_PR;
+        RESP_stage_ROB_index = ldu_cq_info_grab_ROB_index;
+
+        // select dtlb info
+        RESP_stage_selected_page_fault = RESP_stage_is_first ? dtlb_resp_page_fault : RESP_stage_given_page_fault;
+        RESP_stage_selected_access_fault = RESP_stage_is_first ? dtlb_resp_access_fault : RESP_stage_given_access_fault;
+        RESP_stage_selected_is_mem = RESP_stage_is_first ? dtlb_resp_is_mem : RESP_stage_given_is_mem;
+        RESP_stage_selected_PPN = RESP_stage_is_first ? dtlb_resp_PPN : RESP_stage_given_PPN;
+        RESP_stage_selected_PA_word = {RESP_stage_selected_PPN, RESP_stage_PO_word};
+
+        // check for blocking acquire
+        RESP_stage_aq_blocking = RESP_stage_selected_is_mem ?
+            stamofu_aq_mem_aq_active & 
+                (stamofu_aq_mem_aq_oldest_abs_ROB_index - rob_abs_head_index) 
+                > (RESP_stage_ROB_index - rob_abs_head_index)
+            : stamofu_aq_io_aq_active & 
+                (stamofu_aq_io_aq_oldest_abs_ROB_index - rob_abs_head_index) 
+                > (RESP_stage_ROB_index - rob_abs_head_index);
+
+        // dtlb and dcache hit and miss logic
+        RESP_stage_dtlb_hit = RESP_stage_is_second | RESP_stage_is_first & dtlb_resp_hit;
+        RESP_stage_dcache_vtm = 
+            dcache_resp_valid_by_way[0] & (dcache_resp_tag_by_way[0] == RESP_stage_selected_PPN)
+            | dcache_resp_valid_by_way[1] & (dcache_resp_tag_by_way[1] == RESP_stage_selected_PPN);
+
+        dcache_resp_hit_valid = 
+            RESP_stage_valid
+            & ~stall_RET
+            & (RESP_stage_is_first | RESP_stage_is_second)
+            & RESP_stage_dtlb_hit
+            & RESP_stage_dcache_vtm;
+        dcache_resp_hit_way = dcache_resp_valid_by_way[1] & (dcache_resp_tag_by_way[1] == RESP_stage_selected_PPN);
+        dcache_resp_miss_valid = 
+            RESP_stage_valid
+            & ~stall_RET
+            & (RESP_stage_is_first | RESP_stage_is_second)
+            & RESP_stage_dtlb_hit
+            & ~RESP_stage_dcache_vtm;
+        dcache_resp_miss_tag = RESP_stage_selected_PA_word[PA_WIDTH-3:PA_WIDTH-DCACHE_TAG_WIDTH-2];
+
+        // action determination
+        RESP_stage_do_WB = RESP_stage_is_data 
+            | (RESP_stage_dtlb_hit & ~RESP_stage_aq_blocking & RESP_stage_dcache_vtm & ~RESP_stage_mdp_present);
+        RESP_stage_do_CAM = RESP_stage_dtlb_hit & ~RESP_stage_aq_blocking;
+        RESP_stage_do_exception = RESP_stage_dtlb_hit & (RESP_stage_selected_page_fault | RESP_stage_selected_access_fault);
+        // RESP_stage_do_mispred handled in FF logic ^
+        RESP_stage_do_cq_ret = (RESP_stage_is_first | RESP_stage_is_second) & ~RESP_stage_is_mq;
+        RESP_stage_do_mq_ret = (RESP_stage_is_first | RESP_stage_is_second) & RESP_stage_is_mq;
     end
 
 endmodule
