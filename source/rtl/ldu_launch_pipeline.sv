@@ -395,8 +395,8 @@ module ldu_launch_pipeline #(
         dcache_req_valid = (first_try_ack | second_try_ack);
         dcache_req_block_offset = {REQ_stage_PO_word[DCACHE_WORD_ADDR_BANK_BIT-1 : 0], 2'b00};
         // bank will be statically determined for instantiation
-        dcache_req_index = REQ_stage_PO_word[DCACHE_INDEX_WIDTH + DCACHE_WORD_ADDR_BANK_BIT - 1 : DCACHE_WORD_ADDR_BANK_BIT];
-            // full index, so include bank bit
+        dcache_req_index = REQ_stage_PO_word[DCACHE_INDEX_WIDTH + DCACHE_WORD_ADDR_BANK_BIT + 1 - 1 : DCACHE_WORD_ADDR_BANK_BIT + 1];
+            // doesn't include bank bit
     end
 
     // ----------------------------------------------------------------
