@@ -143,18 +143,26 @@ module ldu_launch_pipeline #(
     output logic                            ldu_cq_info_ret_valid,
     output logic [LOG_LDU_CQ_ENTRIES-1:0]   ldu_cq_info_ret_cq_index,
     output logic                            ldu_cq_info_ret_dtlb_hit,
+    output logic                            ldu_cq_info_ret_page_fault,
+    output logic                            ldu_cq_info_ret_access_fault,
     output logic                            ldu_cq_info_ret_dcache_hit,
     output logic                            ldu_cq_info_ret_is_mem,
     output logic                            ldu_cq_info_ret_aq_blocking,
+    output logic [PA_WIDTH-2-1:0]           ldu_cq_info_ret_PA_word,
+    output logic [3:0]                      ldu_cq_info_ret_byte_mask,
     output logic [31:0]                     ldu_cq_info_ret_data,
 
     // misaligned queue info ret
     output logic                            ldu_mq_info_ret_valid,
     output logic [LOG_LDU_MQ_ENTRIES-1:0]   ldu_mq_info_ret_mq_index,
     output logic                            ldu_mq_info_ret_dtlb_hit,
+    output logic                            ldu_mq_info_ret_page_fault,
+    output logic                            ldu_mq_info_ret_access_fault,
     output logic                            ldu_mq_info_ret_dcache_hit,
     output logic                            ldu_mq_info_ret_is_mem,
     output logic                            ldu_mq_info_ret_aq_blocking,
+    output logic [PA_WIDTH-2-1:0]           ldu_mq_info_ret_PA_word,
+    output logic [3:0]                      ldu_mq_info_ret_byte_mask,
     output logic [31:0]                     ldu_mq_info_ret_data,
 
     // misprediction notification to ROB
@@ -239,7 +247,7 @@ module ldu_launch_pipeline #(
     logic                           RESP_stage_selected_access_fault;
     logic                           RESP_stage_selected_is_mem;
     logic [PPN_WIDTH-1:0]           RESP_stage_selected_PPN;
-    logic [PA_WIDTH-1:0]            RESP_stage_selected_PA_word;
+    logic [PA_WIDTH-3:0]            RESP_stage_selected_PA_word;
     logic [31:0]                    RESP_stage_selected_data;
 
     logic                           RESP_stage_aq_blocking;
@@ -274,7 +282,7 @@ module ldu_launch_pipeline #(
     logic                           RET_stage_dtlb_hit;
     logic                           RET_stage_dcache_hit;
     logic                           RET_stage_is_mem;
-    logic [PPN_WIDTH-1:0]           RET_stage_PA_word;
+    logic [PA_WIDTH-3:0]            RET_stage_PA_word;
     logic                           RET_stage_aq_blocking;
     logic [3:0]                     RET_stage_byte_mask;
     logic [31:0]                    RET_stage_data;
@@ -486,11 +494,11 @@ module ldu_launch_pipeline #(
         // check for blocking acquire
         RESP_stage_aq_blocking = RESP_stage_selected_is_mem ?
             stamofu_aq_mem_aq_active & 
-                (stamofu_aq_mem_aq_oldest_abs_ROB_index - rob_abs_head_index) 
-                > (RESP_stage_ROB_index - rob_abs_head_index)
+                (RESP_stage_ROB_index - rob_abs_head_index) 
+                > (stamofu_aq_mem_aq_oldest_abs_ROB_index - rob_abs_head_index)
             : stamofu_aq_io_aq_active & 
-                (stamofu_aq_io_aq_oldest_abs_ROB_index - rob_abs_head_index) 
-                > (RESP_stage_ROB_index - rob_abs_head_index);
+                (RESP_stage_ROB_index - rob_abs_head_index) 
+                > (stamofu_aq_io_aq_oldest_abs_ROB_index - rob_abs_head_index);
 
         // dtlb and dcache hit and miss logic
         RESP_stage_dtlb_hit = RESP_stage_is_second | RESP_stage_is_first & dtlb_resp_hit;
@@ -518,13 +526,27 @@ module ldu_launch_pipeline #(
             : RESP_stage_dcache_vtm_by_way[1] ? dcache_resp_data_by_way[1] : dcache_resp_data_by_way[0];
 
         // action determination
-        RESP_stage_do_WB = RESP_stage_is_data 
-            | (RESP_stage_dtlb_hit & ~RESP_stage_aq_blocking & RESP_stage_dcache_vtm & ~RESP_stage_mdp_present & ~RESP_stage_misaligned);
-        RESP_stage_do_CAM = RESP_stage_dtlb_hit & ~RESP_stage_aq_blocking;
-        RESP_stage_do_exception = RESP_stage_dtlb_hit & (RESP_stage_selected_page_fault | RESP_stage_selected_access_fault);
+        RESP_stage_do_WB = 
+            RESP_stage_is_data 
+            | (
+                RESP_stage_dtlb_hit
+                & ~RESP_stage_aq_blocking 
+                & RESP_stage_dcache_vtm 
+                & ~RESP_stage_mdp_present 
+                & ~RESP_stage_misaligned);
+        RESP_stage_do_CAM = 
+            RESP_stage_dtlb_hit 
+            & ~RESP_stage_aq_blocking;
+        RESP_stage_do_exception = 
+            RESP_stage_dtlb_hit 
+            & (RESP_stage_selected_page_fault | RESP_stage_selected_access_fault);
         // RESP_stage_do_mispred handled in FF logic ^
-        RESP_stage_do_cq_ret = (RESP_stage_is_first | RESP_stage_is_second) & ~RESP_stage_is_mq;
-        RESP_stage_do_mq_ret = (RESP_stage_is_first | RESP_stage_is_second) & RESP_stage_is_mq;
+        RESP_stage_do_cq_ret = 
+            (RESP_stage_is_first | RESP_stage_is_second) 
+            & ~RESP_stage_is_mq;
+        RESP_stage_do_mq_ret = 
+            (RESP_stage_is_first | RESP_stage_is_second) 
+            & RESP_stage_is_mq;
     end
 
     // ----------------------------------------------------------------
@@ -719,18 +741,26 @@ module ldu_launch_pipeline #(
         ldu_cq_info_ret_valid = RET_stage_do_cq_ret & RET_stage_perform;
         ldu_cq_info_ret_cq_index = RET_stage_cq_index;
         ldu_cq_info_ret_dtlb_hit = RET_stage_dtlb_hit;
+        ldu_cq_info_ret_page_fault = RET_stage_page_fault;
+        ldu_cq_info_ret_access_fault = RET_stage_access_fault;
         ldu_cq_info_ret_dcache_hit = RET_stage_dcache_hit;
         ldu_cq_info_ret_is_mem = RET_stage_is_mem;
         ldu_cq_info_ret_aq_blocking = RET_stage_aq_blocking;
+        ldu_cq_info_ret_PA_word = RET_stage_PA_word;
+        ldu_cq_info_ret_byte_mask = RET_stage_byte_mask;
         ldu_cq_info_ret_data = RET_stage_data;
 
         // mq ret
         ldu_mq_info_ret_valid = RET_stage_do_mq_ret & RET_stage_perform;
         ldu_mq_info_ret_mq_index = RET_stage_mq_index;
         ldu_mq_info_ret_dtlb_hit = RET_stage_dtlb_hit;
+        ldu_mq_info_ret_page_fault = RET_stage_page_fault;
+        ldu_mq_info_ret_access_fault = RET_stage_access_fault;
         ldu_mq_info_ret_dcache_hit = RET_stage_dcache_hit;
         ldu_mq_info_ret_is_mem = RET_stage_is_mem;
         ldu_mq_info_ret_aq_blocking = RET_stage_aq_blocking;
+        ldu_mq_info_ret_PA_word = RET_stage_PA_word;
+        ldu_mq_info_ret_byte_mask = RET_stage_byte_mask;
         ldu_mq_info_ret_data = RET_stage_data;
     end
 
