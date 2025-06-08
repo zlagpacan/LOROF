@@ -140,18 +140,26 @@ module ldu_launch_pipeline_wrapper (
 	output logic last_ldu_cq_info_ret_valid,
 	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_ldu_cq_info_ret_cq_index,
 	output logic last_ldu_cq_info_ret_dtlb_hit,
+	output logic last_ldu_cq_info_ret_page_fault,
+	output logic last_ldu_cq_info_ret_access_fault,
 	output logic last_ldu_cq_info_ret_dcache_hit,
 	output logic last_ldu_cq_info_ret_is_mem,
 	output logic last_ldu_cq_info_ret_aq_blocking,
+	output logic [PA_WIDTH-2-1:0] last_ldu_cq_info_ret_PA_word,
+	output logic [3:0] last_ldu_cq_info_ret_byte_mask,
 	output logic [31:0] last_ldu_cq_info_ret_data,
 
     // misaligned queue info ret
 	output logic last_ldu_mq_info_ret_valid,
 	output logic [LOG_LDU_MQ_ENTRIES-1:0] last_ldu_mq_info_ret_mq_index,
 	output logic last_ldu_mq_info_ret_dtlb_hit,
+	output logic last_ldu_mq_info_ret_page_fault,
+	output logic last_ldu_mq_info_ret_access_fault,
 	output logic last_ldu_mq_info_ret_dcache_hit,
 	output logic last_ldu_mq_info_ret_is_mem,
 	output logic last_ldu_mq_info_ret_aq_blocking,
+	output logic [PA_WIDTH-2-1:0] last_ldu_mq_info_ret_PA_word,
+	output logic [3:0] last_ldu_mq_info_ret_byte_mask,
 	output logic [31:0] last_ldu_mq_info_ret_data,
 
     // misprediction notification to ROB
@@ -303,18 +311,26 @@ module ldu_launch_pipeline_wrapper (
 	logic ldu_cq_info_ret_valid;
 	logic [LOG_LDU_CQ_ENTRIES-1:0] ldu_cq_info_ret_cq_index;
 	logic ldu_cq_info_ret_dtlb_hit;
+	logic ldu_cq_info_ret_page_fault;
+	logic ldu_cq_info_ret_access_fault;
 	logic ldu_cq_info_ret_dcache_hit;
 	logic ldu_cq_info_ret_is_mem;
 	logic ldu_cq_info_ret_aq_blocking;
+	logic [PA_WIDTH-2-1:0] ldu_cq_info_ret_PA_word;
+	logic [3:0] ldu_cq_info_ret_byte_mask;
 	logic [31:0] ldu_cq_info_ret_data;
 
     // misaligned queue info ret
 	logic ldu_mq_info_ret_valid;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] ldu_mq_info_ret_mq_index;
 	logic ldu_mq_info_ret_dtlb_hit;
+	logic ldu_mq_info_ret_page_fault;
+	logic ldu_mq_info_ret_access_fault;
 	logic ldu_mq_info_ret_dcache_hit;
 	logic ldu_mq_info_ret_is_mem;
 	logic ldu_mq_info_ret_aq_blocking;
+	logic [PA_WIDTH-2-1:0] ldu_mq_info_ret_PA_word;
+	logic [3:0] ldu_mq_info_ret_byte_mask;
 	logic [31:0] ldu_mq_info_ret_data;
 
     // misprediction notification to ROB
@@ -479,18 +495,26 @@ module ldu_launch_pipeline_wrapper (
 			last_ldu_cq_info_ret_valid <= '0;
 			last_ldu_cq_info_ret_cq_index <= '0;
 			last_ldu_cq_info_ret_dtlb_hit <= '0;
+			last_ldu_cq_info_ret_page_fault <= '0;
+			last_ldu_cq_info_ret_access_fault <= '0;
 			last_ldu_cq_info_ret_dcache_hit <= '0;
 			last_ldu_cq_info_ret_is_mem <= '0;
 			last_ldu_cq_info_ret_aq_blocking <= '0;
+			last_ldu_cq_info_ret_PA_word <= '0;
+			last_ldu_cq_info_ret_byte_mask <= '0;
 			last_ldu_cq_info_ret_data <= '0;
 
 		    // misaligned queue info ret
 			last_ldu_mq_info_ret_valid <= '0;
 			last_ldu_mq_info_ret_mq_index <= '0;
 			last_ldu_mq_info_ret_dtlb_hit <= '0;
+			last_ldu_mq_info_ret_page_fault <= '0;
+			last_ldu_mq_info_ret_access_fault <= '0;
 			last_ldu_mq_info_ret_dcache_hit <= '0;
 			last_ldu_mq_info_ret_is_mem <= '0;
 			last_ldu_mq_info_ret_aq_blocking <= '0;
+			last_ldu_mq_info_ret_PA_word <= '0;
+			last_ldu_mq_info_ret_byte_mask <= '0;
 			last_ldu_mq_info_ret_data <= '0;
 
 		    // misprediction notification to ROB
@@ -640,18 +664,26 @@ module ldu_launch_pipeline_wrapper (
 			last_ldu_cq_info_ret_valid <= ldu_cq_info_ret_valid;
 			last_ldu_cq_info_ret_cq_index <= ldu_cq_info_ret_cq_index;
 			last_ldu_cq_info_ret_dtlb_hit <= ldu_cq_info_ret_dtlb_hit;
+			last_ldu_cq_info_ret_page_fault <= ldu_cq_info_ret_page_fault;
+			last_ldu_cq_info_ret_access_fault <= ldu_cq_info_ret_access_fault;
 			last_ldu_cq_info_ret_dcache_hit <= ldu_cq_info_ret_dcache_hit;
 			last_ldu_cq_info_ret_is_mem <= ldu_cq_info_ret_is_mem;
 			last_ldu_cq_info_ret_aq_blocking <= ldu_cq_info_ret_aq_blocking;
+			last_ldu_cq_info_ret_PA_word <= ldu_cq_info_ret_PA_word;
+			last_ldu_cq_info_ret_byte_mask <= ldu_cq_info_ret_byte_mask;
 			last_ldu_cq_info_ret_data <= ldu_cq_info_ret_data;
 
 		    // misaligned queue info ret
 			last_ldu_mq_info_ret_valid <= ldu_mq_info_ret_valid;
 			last_ldu_mq_info_ret_mq_index <= ldu_mq_info_ret_mq_index;
 			last_ldu_mq_info_ret_dtlb_hit <= ldu_mq_info_ret_dtlb_hit;
+			last_ldu_mq_info_ret_page_fault <= ldu_mq_info_ret_page_fault;
+			last_ldu_mq_info_ret_access_fault <= ldu_mq_info_ret_access_fault;
 			last_ldu_mq_info_ret_dcache_hit <= ldu_mq_info_ret_dcache_hit;
 			last_ldu_mq_info_ret_is_mem <= ldu_mq_info_ret_is_mem;
 			last_ldu_mq_info_ret_aq_blocking <= ldu_mq_info_ret_aq_blocking;
+			last_ldu_mq_info_ret_PA_word <= ldu_mq_info_ret_PA_word;
+			last_ldu_mq_info_ret_byte_mask <= ldu_mq_info_ret_byte_mask;
 			last_ldu_mq_info_ret_data <= ldu_mq_info_ret_data;
 
 		    // misprediction notification to ROB

@@ -2596,7 +2596,7 @@ module ldu_launch_pipeline_tb ();
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
-		expected_dcache_resp_hit_valid = 1'b0;
+		expected_dcache_resp_hit_valid = 1'b1;
 		expected_dcache_resp_hit_way = 1'b1;
 		expected_dcache_resp_miss_valid = 1'b0;
 		expected_dcache_resp_miss_tag = 22'h222222;
@@ -2786,7 +2786,7 @@ module ldu_launch_pipeline_tb ();
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
-		expected_dcache_resp_hit_valid = 1'b1;
+		expected_dcache_resp_hit_valid = 1'b0;
 		expected_dcache_resp_hit_way = 1'b1;
 		expected_dcache_resp_miss_valid = 1'b0;
 		expected_dcache_resp_miss_tag = 22'h222222;
@@ -3712,7 +3712,7 @@ module ldu_launch_pipeline_tb ();
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
-		expected_dcache_resp_hit_valid = 1'b0;
+		expected_dcache_resp_hit_valid = 1'b1;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
 		expected_dcache_resp_miss_tag = 22'hdeadbe;
@@ -3894,7 +3894,7 @@ module ldu_launch_pipeline_tb ();
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
-		expected_dcache_resp_hit_valid = 1'b1;
+		expected_dcache_resp_hit_valid = 1'b0;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
 		expected_dcache_resp_miss_tag = 22'hdeadbe;

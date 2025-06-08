@@ -199,6 +199,8 @@ module ldu_launch_pipeline #(
     logic stall_RESP;
     logic stall_RET;
 
+    logic RESP_first_cycle;
+
     // ----------------------------------------------------------------
     // REQ stage signals:
 
@@ -474,6 +476,15 @@ module ldu_launch_pipeline #(
         end
     end
 
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            RESP_first_cycle <= 1'b1;
+        end
+        else begin
+            RESP_first_cycle <= ~stall_RET;
+        end
+    end
+
     // dataflow
     always_comb begin
 
@@ -510,13 +521,13 @@ module ldu_launch_pipeline #(
 
         dcache_resp_hit_valid = 
             RESP_stage_valid
-            & ~stall_RET
+            & RESP_first_cycle
             & RESP_stage_dtlb_hit
             & RESP_stage_dcache_vtm;
         dcache_resp_hit_way = RESP_stage_dcache_vtm_by_way[1];
         dcache_resp_miss_valid = 
             RESP_stage_valid
-            & ~stall_RET
+            & RESP_first_cycle
             & RESP_stage_dtlb_hit
             & ~RESP_stage_dcache_vtm;
         dcache_resp_miss_tag = RESP_stage_dcache_tag;
