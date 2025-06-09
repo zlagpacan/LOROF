@@ -73,7 +73,7 @@ module stamofu_addr_pipeline_tb ();
 	logic [PO_WIDTH-3:0] DUT_REQ_PO_word, expected_REQ_PO_word;
 	logic [3:0] DUT_REQ_byte_mask, expected_REQ_byte_mask;
 	logic [31:0] DUT_REQ_write_data, expected_REQ_write_data;
-	logic [LOG_LDU_CQ_ENTRIES-1:0] DUT_REQ_cq_index, expected_REQ_cq_index;
+	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] DUT_REQ_cq_index, expected_REQ_cq_index;
 
     // REQ stage feedback
 	logic tb_REQ_ack;

@@ -57,7 +57,7 @@ module stamofu_addr_pipeline_wrapper (
 	output logic [PO_WIDTH-3:0] last_REQ_PO_word,
 	output logic [3:0] last_REQ_byte_mask,
 	output logic [31:0] last_REQ_write_data,
-	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_REQ_cq_index,
+	output logic [LOG_STAMOFU_CQ_ENTRIES-1:0] last_REQ_cq_index,
 
     // REQ stage feedback
 	input logic next_REQ_ack
@@ -104,7 +104,7 @@ module stamofu_addr_pipeline_wrapper (
 	logic [PO_WIDTH-3:0] REQ_PO_word;
 	logic [3:0] REQ_byte_mask;
 	logic [31:0] REQ_write_data;
-	logic [LOG_LDU_CQ_ENTRIES-1:0] REQ_cq_index;
+	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] REQ_cq_index;
 
     // REQ stage feedback
 	logic REQ_ack;

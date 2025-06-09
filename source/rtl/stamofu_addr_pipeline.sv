@@ -46,18 +46,22 @@ module stamofu_addr_pipeline (
     input logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank,
 
     // REQ stage info
-    output logic                            REQ_valid,
-    output logic                            REQ_is_mq,
-    output logic                            REQ_misaligned,
-    output logic                            REQ_misaligned_exception,
-    output logic [VPN_WIDTH-1:0]            REQ_VPN,
-    output logic [PO_WIDTH-3:0]             REQ_PO_word,
-    output logic [3:0]                      REQ_byte_mask,
-    output logic [31:0]                     REQ_write_data,
-    output logic [LOG_LDU_CQ_ENTRIES-1:0]   REQ_cq_index,
+    output logic                                REQ_valid,
+    output logic                                REQ_is_store,
+    output logic                                REQ_is_amo,
+    output logic                                REQ_is_fence,
+    output logic [3:0]                          REQ_op,
+    output logic                                REQ_is_mq,
+    output logic                                REQ_misaligned,
+    output logic                                REQ_misaligned_exception,
+    output logic [VPN_WIDTH-1:0]                REQ_VPN,
+    output logic [PO_WIDTH-3:0]                 REQ_PO_word,
+    output logic [3:0]                          REQ_byte_mask,
+    output logic [31:0]                         REQ_write_data,
+    output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   REQ_cq_index,
 
     // REQ stage feedback
-    input logic                             REQ_ack
+    input logic                                 REQ_ack
 );
 
     // ----------------------------------------------------------------
@@ -70,45 +74,41 @@ module stamofu_addr_pipeline (
     // OC Stage Signals:
         // Operand Collection
 
-    logic                           valid_OC;
-    logic                           is_store_OC;
-    logic                           is_amo_OC;
-    logic                           is_fence_OC;
-    logic [3:0]                     op_OC;
-    logic [11:0]                    imm12_OC;
-    logic                           A_saved_OC;
-    logic                           A_forward_OC;
-    logic                           A_is_zero_OC;
-    logic [LOG_PRF_BANK_COUNT-1:0]  A_bank_OC;
-    logic                           B_saved_OC;
-    logic                           B_forward_OC;
-    logic                           B_is_zero_OC;
-    logic [LOG_PRF_BANK_COUNT-1:0]  B_bank_OC;
-    logic [LOG_LDU_CQ_ENTRIES-1:0]  cq_index_OC;
+    logic                               valid_OC;
+    logic                               is_store_OC;
+    logic                               is_amo_OC;
+    logic                               is_fence_OC;
+    logic [3:0]                         op_OC;
+    logic [11:0]                        imm12_OC;
+    logic                               A_saved_OC;
+    logic                               A_forward_OC;
+    logic                               A_is_zero_OC;
+    logic [LOG_PRF_BANK_COUNT-1:0]      A_bank_OC;
+    logic                               B_saved_OC;
+    logic                               B_forward_OC;
+    logic                               B_is_zero_OC;
+    logic [LOG_PRF_BANK_COUNT-1:0]      B_bank_OC;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  cq_index_OC;
 
     logic [31:0]    A_saved_data_OC;
     logic [31:0]    B_saved_data_OC;
 
     logic launch_ready_OC;
 
-    logic                           next_REQ_valid;
-    logic                           next_REQ_is_store;
-    logic                           next_REQ_is_amo;
-    logic                           next_REQ_is_fence;
-    logic [3:0]                     next_REQ_op;
-    logic [11:0]                    next_REQ_imm12;
-    logic [31:0]                    next_REQ_A;
-    logic [31:0]                    next_REQ_B;
-    logic [LOG_LDU_CQ_ENTRIES-1:0]  next_REQ_cq_index;
+    logic                               next_REQ_valid;
+    logic                               next_REQ_is_store;
+    logic                               next_REQ_is_amo;
+    logic                               next_REQ_is_fence;
+    logic [3:0]                         next_REQ_op;
+    logic [11:0]                        next_REQ_imm12;
+    logic [31:0]                        next_REQ_A;
+    logic [31:0]                        next_REQ_B;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  next_REQ_cq_index;
 
     // ----------------------------------------------------------------
     // REQ Stage Signals:
         // Request
-
-    logic           REQ_is_store;
-    logic           REQ_is_amo;
-    logic           REQ_is_fence;
-    logic [3:0]     REQ_op;
+        
     logic [11:0]    REQ_imm12;
     logic [31:0]    REQ_A;
     logic [31:0]    REQ_B;

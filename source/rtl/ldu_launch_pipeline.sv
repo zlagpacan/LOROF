@@ -189,9 +189,6 @@ module ldu_launch_pipeline #(
     input logic         rob_restart_MXR,
     input logic         rob_restart_SUM
 );
-    // assuming dtlb and dcache resp's are frozen if no new valid is given
-        // acts following BRAM clocked reg read behavior
-        // equivalently, only latch req -> resp if valid
 
     // ----------------------------------------------------------------
     // Control signals:
@@ -200,6 +197,7 @@ module ldu_launch_pipeline #(
     logic stall_RET;
 
     logic RESP_first_cycle;
+    logic RET_stage_perform;
 
     // ----------------------------------------------------------------
     // REQ stage signals:
@@ -321,8 +319,6 @@ module ldu_launch_pipeline #(
     logic                           RET_stage_do_mispred;
     logic                           RET_stage_do_cq_ret;
     logic                           RET_stage_do_mq_ret;
-
-    logic                           RET_stage_perform;
 
     // ----------------------------------------------------------------
     // REQ stage logic:
