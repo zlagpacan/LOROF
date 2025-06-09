@@ -2722,9 +2722,9 @@ module ldu_launch_pipeline_tb ();
 	    // dcache req feedback
 		tb_dcache_req_ready = 1'b1;
 	    // dcache resp
-		tb_dcache_resp_valid_by_way = 2'b10;
+		tb_dcache_resp_valid_by_way = 2'b01;
 		tb_dcache_resp_tag_by_way = {22'h222222, 22'h222222};
-		tb_dcache_resp_data_by_way = {32'h06060606, 32'hdeadbeef};
+		tb_dcache_resp_data_by_way = {32'hdeadbeef, 32'hdeadbeef};
 	    // dcache resp feedback
 	    // writeback data to PRF
 	    // writeback backpressure from PRF
@@ -3821,16 +3821,16 @@ module ldu_launch_pipeline_tb ();
 	    // dtlb req feedback
 		tb_dtlb_req_ready = 1'b0;
 	    // dtlb resp
-		tb_dtlb_resp_hit = 1'b1;
-		tb_dtlb_resp_PPN = 22'hdeadbe;
-		tb_dtlb_resp_is_mem = 1'b1;
-		tb_dtlb_resp_page_fault = 1'b1;
+		tb_dtlb_resp_hit = 1'b0;
+		tb_dtlb_resp_PPN = 22'h000000;
+		tb_dtlb_resp_is_mem = 1'b0;
+		tb_dtlb_resp_page_fault = 1'b0;
 		tb_dtlb_resp_access_fault = 1'b0;
 	    // dcache req
 	    // dcache req feedback
 		tb_dcache_req_ready = 1'b0;
 	    // dcache resp
-		tb_dcache_resp_valid_by_way = 2'b01;
+		tb_dcache_resp_valid_by_way = 2'b10;
 		tb_dcache_resp_tag_by_way = {22'h000000, 22'hdeadbe};
 		tb_dcache_resp_data_by_way = {32'h00000000, 32'hbeefbeef};
 	    // dcache resp feedback

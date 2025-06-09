@@ -267,6 +267,30 @@ module ldu_launch_pipeline #(
     logic                           RESP_stage_do_cq_ret;
     logic                           RESP_stage_do_mq_ret;
 
+    // saved dtlb resp
+    logic                   saved_dtlb_resp_hit;
+    logic [PPN_WIDTH-1:0]   saved_dtlb_resp_PPN;
+    logic                   saved_dtlb_resp_is_mem;
+    logic                   saved_dtlb_resp_page_fault;
+    logic                   saved_dtlb_resp_access_fault;
+
+    // saved dcache resp
+    logic [1:0]                         saved_dcache_resp_valid_by_way;
+    logic [1:0][DCACHE_TAG_WIDTH-1:0]   saved_dcache_resp_tag_by_way;
+    logic [1:0][31:0]                   saved_dcache_resp_data_by_way;
+
+    // selected dtlb resp
+    logic                   selected_dtlb_resp_hit;
+    logic [PPN_WIDTH-1:0]   selected_dtlb_resp_PPN;
+    logic                   selected_dtlb_resp_is_mem;
+    logic                   selected_dtlb_resp_page_fault;
+    logic                   selected_dtlb_resp_access_fault;
+
+    // selected dcache resp
+    logic [1:0]                         selected_dcache_resp_valid_by_way;
+    logic [1:0][DCACHE_TAG_WIDTH-1:0]   selected_dcache_resp_tag_by_way;
+    logic [1:0][31:0]                   selected_dcache_resp_data_by_way;
+
     // ----------------------------------------------------------------
     // RET stage signals:
 
@@ -485,6 +509,31 @@ module ldu_launch_pipeline #(
         end
     end
 
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            saved_dtlb_resp_hit <= 1'b0;
+            saved_dtlb_resp_PPN <= 22'h0;
+            saved_dtlb_resp_is_mem <= 1'b0;
+            saved_dtlb_resp_page_fault <= 1'b0;
+            saved_dtlb_resp_access_fault <= 1'b0;
+
+            saved_dcache_resp_valid_by_way <= 2'b00;
+            saved_dcache_resp_tag_by_way <= '0;
+            saved_dcache_resp_data_by_way <= {32'h0, 32'h0};
+        end
+        else if (RESP_first_cycle) begin
+            saved_dtlb_resp_hit <= dtlb_resp_hit;
+            saved_dtlb_resp_PPN <= dtlb_resp_PPN;
+            saved_dtlb_resp_is_mem <= dtlb_resp_is_mem;
+            saved_dtlb_resp_page_fault <= dtlb_resp_page_fault;
+            saved_dtlb_resp_access_fault <= dtlb_resp_access_fault;
+
+            saved_dcache_resp_valid_by_way <= dcache_resp_valid_by_way;
+            saved_dcache_resp_tag_by_way <= dcache_resp_tag_by_way;
+            saved_dcache_resp_data_by_way <= dcache_resp_data_by_way;
+        end
+    end
+
     // dataflow
     always_comb begin
 
@@ -495,11 +544,35 @@ module ldu_launch_pipeline #(
         RESP_stage_dest_PR = ldu_cq_info_grab_dest_PR;
         RESP_stage_ROB_index = ldu_cq_info_grab_ROB_index;
 
+        // choose saved vs current resp's
+        if (RESP_first_cycle) begin
+            selected_dtlb_resp_hit = dtlb_resp_hit;
+            selected_dtlb_resp_PPN = dtlb_resp_PPN;
+            selected_dtlb_resp_is_mem = dtlb_resp_is_mem;
+            selected_dtlb_resp_page_fault = dtlb_resp_page_fault;
+            selected_dtlb_resp_access_fault = dtlb_resp_access_fault;
+
+            selected_dcache_resp_valid_by_way = dcache_resp_valid_by_way;
+            selected_dcache_resp_tag_by_way = dcache_resp_tag_by_way;
+            selected_dcache_resp_data_by_way = dcache_resp_data_by_way;
+        end
+        else begin
+            selected_dtlb_resp_hit = saved_dtlb_resp_hit;
+            selected_dtlb_resp_PPN = saved_dtlb_resp_PPN;
+            selected_dtlb_resp_is_mem = saved_dtlb_resp_is_mem;
+            selected_dtlb_resp_page_fault = saved_dtlb_resp_page_fault;
+            selected_dtlb_resp_access_fault = saved_dtlb_resp_access_fault;
+
+            selected_dcache_resp_valid_by_way = saved_dcache_resp_valid_by_way;
+            selected_dcache_resp_tag_by_way = saved_dcache_resp_tag_by_way;
+            selected_dcache_resp_data_by_way = saved_dcache_resp_data_by_way;
+        end
+
         // select dtlb info
-        RESP_stage_selected_page_fault = RESP_stage_is_first ? dtlb_resp_page_fault : RESP_stage_given_page_fault;
-        RESP_stage_selected_access_fault = RESP_stage_is_first ? dtlb_resp_access_fault : RESP_stage_given_access_fault;
-        RESP_stage_selected_is_mem = RESP_stage_is_first ? dtlb_resp_is_mem : RESP_stage_given_is_mem;
-        RESP_stage_selected_PPN = RESP_stage_is_first ? dtlb_resp_PPN : RESP_stage_given_PPN;
+        RESP_stage_selected_page_fault = RESP_stage_is_first ? selected_dtlb_resp_page_fault : RESP_stage_given_page_fault;
+        RESP_stage_selected_access_fault = RESP_stage_is_first ? selected_dtlb_resp_access_fault : RESP_stage_given_access_fault;
+        RESP_stage_selected_is_mem = RESP_stage_is_first ? selected_dtlb_resp_is_mem : RESP_stage_given_is_mem;
+        RESP_stage_selected_PPN = RESP_stage_is_first ? selected_dtlb_resp_PPN : RESP_stage_given_PPN;
         RESP_stage_selected_PA_word = {RESP_stage_selected_PPN, RESP_stage_PO_word};
 
         // check for blocking acquire
@@ -512,10 +585,10 @@ module ldu_launch_pipeline #(
                 > (stamofu_aq_io_aq_oldest_abs_ROB_index - rob_abs_head_index);
 
         // dtlb and dcache hit and miss logic
-        RESP_stage_dtlb_hit = RESP_stage_is_second | RESP_stage_is_first & dtlb_resp_hit;
+        RESP_stage_dtlb_hit = RESP_stage_is_second | RESP_stage_is_first & selected_dtlb_resp_hit;
         RESP_stage_dcache_tag = RESP_stage_selected_PA_word[PA_WIDTH-3:PA_WIDTH-DCACHE_TAG_WIDTH-2];
-        RESP_stage_dcache_vtm_by_way[0] = dcache_resp_valid_by_way[0] & (dcache_resp_tag_by_way[0] == RESP_stage_dcache_tag);
-        RESP_stage_dcache_vtm_by_way[1] = dcache_resp_valid_by_way[1] & (dcache_resp_tag_by_way[1] == RESP_stage_dcache_tag);
+        RESP_stage_dcache_vtm_by_way[0] = selected_dcache_resp_valid_by_way[0] & (selected_dcache_resp_tag_by_way[0] == RESP_stage_dcache_tag);
+        RESP_stage_dcache_vtm_by_way[1] = selected_dcache_resp_valid_by_way[1] & (selected_dcache_resp_tag_by_way[1] == RESP_stage_dcache_tag);
         RESP_stage_dcache_vtm = |RESP_stage_dcache_vtm_by_way;
         RESP_stage_dcache_hit = RESP_stage_dtlb_hit & RESP_stage_dcache_vtm;
 
@@ -534,7 +607,7 @@ module ldu_launch_pipeline #(
 
         RESP_stage_selected_data = 
             RESP_stage_is_data ? RESP_stage_given_data 
-            : RESP_stage_dcache_vtm_by_way[1] ? dcache_resp_data_by_way[1] : dcache_resp_data_by_way[0];
+            : RESP_stage_dcache_vtm_by_way[1] ? selected_dcache_resp_data_by_way[1] : selected_dcache_resp_data_by_way[0];
 
         // action determination
         RESP_stage_do_WB = 
