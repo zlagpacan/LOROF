@@ -10,9 +10,9 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-parameter WIDTH = 16;
-
-module countones_wrapper (
+module countones_wrapper #(
+    parameter WIDTH = 8
+) (
 
     // seq
     input logic CLK,

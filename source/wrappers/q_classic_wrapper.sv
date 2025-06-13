@@ -57,7 +57,10 @@ module q_classic_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    q_classic WRAPPED_MODULE (.*);
+    q_classic #( 
+		.DATA_WIDTH(DATA_WIDTH),
+    	.NUM_ENTRIES(NUM_ENTRIES)
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
