@@ -33,7 +33,7 @@ module stamofu_launch_pipeline (
     input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    REQ_cq_index,
 
     // REQ stage feedback
-    input logic                                 REQ_ack,
+    output logic                                REQ_ack,
 
     // op enqueue to misaligned queue
     output logic                                stamofu_mq_enq_valid,
@@ -224,5 +224,11 @@ module stamofu_launch_pipeline (
 
     // ----------------------------------------------------------------
     // REQ stage logic:
+
+    // stall, control, and ack logic
+    always_comb begin
+
+
+    end
 
 endmodule
