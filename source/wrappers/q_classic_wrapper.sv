@@ -14,7 +14,7 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 parameter DATA_WIDTH = 32;
-parameter NUM_ENTRIES = 4;
+parameter NUM_ENTRIES = 32;
 
 module q_classic_wrapper (
 
