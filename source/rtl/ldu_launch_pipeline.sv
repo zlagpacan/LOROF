@@ -142,6 +142,7 @@ module ldu_launch_pipeline #(
     // central queue info ret
     output logic                            ldu_cq_info_ret_valid,
     output logic [LOG_LDU_CQ_ENTRIES-1:0]   ldu_cq_info_ret_cq_index,
+    output logic                            ldu_cq_info_ret_misaligned,
     output logic                            ldu_cq_info_ret_dtlb_hit,
     output logic                            ldu_cq_info_ret_page_fault,
     output logic                            ldu_cq_info_ret_access_fault,
@@ -820,6 +821,7 @@ module ldu_launch_pipeline #(
         // cq ret
         ldu_cq_info_ret_valid = RET_stage_do_cq_ret & RET_stage_perform;
         ldu_cq_info_ret_cq_index = RET_stage_cq_index;
+        ldu_cq_info_ret_misaligned = RET_stage_misaligned;
         ldu_cq_info_ret_dtlb_hit = RET_stage_dtlb_hit;
         ldu_cq_info_ret_page_fault = RET_stage_page_fault;
         ldu_cq_info_ret_access_fault = RET_stage_access_fault;
