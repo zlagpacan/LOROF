@@ -67,7 +67,6 @@ module stamofu_launch_pipeline (
     // dcache resp
     input logic [1:0]                               dcache_resp_valid_by_way,
     input logic [1:0][DCACHE_TAG_WIDTH-1:0]         dcache_resp_tag_by_way,
-    input logic [1:0][31:0]                         dcache_resp_data_by_way,
     
     // dcache resp feedback
     output logic                                    dcache_resp_hit_valid,
@@ -88,6 +87,10 @@ module stamofu_launch_pipeline (
 
     // central queue info grab
     output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   stamofu_cq_info_grab_cq_index,
+    input logic                                 stamofu_cq_info_grab_mem_aq,
+    input logic                                 stamofu_cq_info_grab_io_aq,
+    input logic                                 stamofu_cq_info_grab_mem_rl,
+    input logic                                 stamofu_cq_info_grab_io_rl,
     input logic [LOG_ROB_ENTRIES-1:0]           stamofu_cq_info_grab_ROB_index,
 
     // central queue info ret
@@ -97,6 +100,12 @@ module stamofu_launch_pipeline (
     output logic                                stamofu_cq_info_ret_page_fault,
     output logic                                stamofu_cq_info_ret_access_fault,
     output logic                                stamofu_cq_info_ret_is_mem,
+    output logic                                stamofu_cq_info_ret_mem_aq,
+    output logic                                stamofu_cq_info_ret_io_aq,
+    output logic                                stamofu_cq_info_ret_mem_rl,
+    output logic                                stamofu_cq_info_ret_io_rl,
+    output logic                                stamofu_cq_info_ret_misaligned,
+    output logic                                stamofu_cq_info_ret_misaligned_exception,
     output logic [PA_WIDTH-2-1:0]               stamofu_cq_info_ret_PA_word,
     output logic [3:0]                          stamofu_cq_info_ret_byte_mask,
     output logic [31:0]                         stamofu_cq_info_ret_data,
@@ -112,36 +121,17 @@ module stamofu_launch_pipeline (
     output logic [3:0]                          stamofu_mq_info_ret_byte_mask,
     output logic [31:0]                         stamofu_mq_info_ret_data,
 
-    // misprediction notification to ROB
-    output logic                        mispred_notif_valid,
-    output logic [LOG_ROB_ENTRIES-1:0]  mispred_notif_ROB_index,
-
-    // misprediction notification backpressure from ROB
-    input logic                         mispred_notif_ready,
-
-    // exception to ROB
-    output logic                        rob_exception_valid,
-    output logic                        rob_exception_misaligned,
-    output logic                        rob_exception_page_fault,
-    output logic                        rob_exception_access_fault,
-    output logic [LOG_ROB_ENTRIES-1:0]  rob_exception_ROB_index,
-
-    // exception backpressure from ROB
-    input logic                         rob_exception_ready,
+    // aq update
+    output logic                        stamofu_aq_update_valid,
+    output logic                        stamofu_aq_update_mem_aq,
+    output logic                        stamofu_aq_update_io_aq,
+    output logic [LOG_ROB_ENTRIES-1:0]  stamofu_aq_update_ROB_index
 );
 
     // exec_mode, virtual_mode, ASID, MXR, and SUM are all handled by ldu_launch_pipeline
 
     // send dcache prefetch miss only if told that bank is ready
         // not used by ldu launch nor write buffer and MSHR available
-
-    // ----------------------------------------------------------------
-    // Control signals:
-
-    logic stall_RESP;
-
-    logic RESP_first_cycle;
-    logic RESP_stage_perform;
 
     // ----------------------------------------------------------------
     // REQ stage signals:
@@ -165,62 +155,28 @@ module stamofu_launch_pipeline (
     // ----------------------------------------------------------------
     // RESP stage signals:
 
-    logic                               REQ_stage_valid;
-    logic                               REQ_stage_is_store;
-    logic                               REQ_stage_is_amo;
-    logic                               REQ_stage_is_fence;
-    logic [3:0]                         REQ_stage_op;
-    logic                               REQ_stage_is_mq;
-    logic                               REQ_stage_misaligned;
-    logic                               REQ_stage_misaligned_exception;
-    logic [PO_WIDTH-3:0]                REQ_stage_PO_word;
-    logic [3:0]                         REQ_stage_byte_mask;
-    logic [31:0]                        REQ_stage_write_data;
-    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  REQ_stage_cq_index;
-    logic [LOG_STAMOFU_MQ_ENTRIES-1:0]  REQ_stage_mq_index;
+    logic                               RESP_stage_valid;
+    logic                               RESP_stage_is_store;
+    logic                               RESP_stage_is_amo;
+    logic                               RESP_stage_is_fence;
+    logic [3:0]                         RESP_stage_op;
+    logic                               RESP_stage_is_mq;
+    logic                               RESP_stage_misaligned;
+    logic                               RESP_stage_misaligned_exception;
+    logic [PO_WIDTH-3:0]                RESP_stage_PO_word;
+    logic [3:0]                         RESP_stage_byte_mask;
+    logic [31:0]                        RESP_stage_write_data;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  RESP_stage_cq_index;
+    logic [LOG_STAMOFU_MQ_ENTRIES-1:0]  RESP_stage_mq_index;
 
     logic                               RESP_stage_prefetch_dcache;
 
-    logic [LOG_ROB_ENTRIES-1:0]         RESP_stage_ROB_index;
-
-    logic                               RESP_stage_selected_page_fault;
-    logic                               RESP_stage_selected_access_fault;
-    logic                               RESP_stage_selected_is_mem;
-    logic [PPN_WIDTH-1:0]               RESP_stage_selected_PPN;
-    logic [PA_WIDTH-3:0]                RESP_stage_selected_PA_word;
+    logic [PA_WIDTH-3:0]                RESP_stage_PA_word;
 
     logic                               RESP_stage_dtlb_hit;
     logic [DCACHE_TAG_WIDTH-1:0]        RESP_stage_dcache_tag;
     logic [1:0]                         RESP_stage_dcache_vtm_by_way;
     logic                               RESP_stage_dcache_vtm;
-
-    logic                               RESP_stage_do_exception;
-    logic                               RESP_stage_do_cq_ret;
-    logic                               RESP_stage_do_mq_ret;
-
-    // saved dtlb resp
-    logic                   saved_dtlb_resp_hit;
-    logic [PPN_WIDTH-1:0]   saved_dtlb_resp_PPN;
-    logic                   saved_dtlb_resp_is_mem;
-    logic                   saved_dtlb_resp_page_fault;
-    logic                   saved_dtlb_resp_access_fault;
-
-    // saved dcache resp
-    logic [1:0]                         saved_dcache_resp_valid_by_way;
-    logic [1:0][DCACHE_TAG_WIDTH-1:0]   saved_dcache_resp_tag_by_way;
-    logic [1:0][31:0]                   saved_dcache_resp_data_by_way;
-
-    // selected dtlb resp
-    logic                   selected_dtlb_resp_hit;
-    logic [PPN_WIDTH-1:0]   selected_dtlb_resp_PPN;
-    logic                   selected_dtlb_resp_is_mem;
-    logic                   selected_dtlb_resp_page_fault;
-    logic                   selected_dtlb_resp_access_fault;
-
-    // selected dcache resp
-    logic [1:0]                         selected_dcache_resp_valid_by_way;
-    logic [1:0][DCACHE_TAG_WIDTH-1:0]   selected_dcache_resp_tag_by_way;
-    logic [1:0][31:0]                   selected_dcache_resp_data_by_way;
 
     // ----------------------------------------------------------------
     // REQ stage logic:
@@ -228,7 +184,176 @@ module stamofu_launch_pipeline (
     // stall, control, and ack logic
     always_comb begin
 
+        // check for good REQ
+            // need dtlb ready, stamofu mq ready if applicable
+        if (
+            REQ_valid
+            & dtlb_req_ready
+            & (~REQ_is_mq | stamofu_mq_enq_ready)
+        ) begin
+            REQ_stage_valid = 1'b1;
 
+            REQ_ack = 1'b1;
+        end
+
+        // otherwise, REQ stage NOP
+        else begin
+            REQ_stage_valid = 1'b0;
+
+            REQ_ack = 1'b0;
+        end
+    end
+
+    // dataflow
+    always_comb begin
+        // REQ_stage_valid // handled ^
+        REQ_stage_is_store = REQ_is_store;
+        REQ_stage_is_amo = REQ_is_amo;
+        REQ_stage_is_fence = REQ_is_fence;
+        REQ_stage_op = REQ_op;
+        REQ_stage_is_mq = REQ_is_mq;
+        REQ_stage_misaligned = REQ_misaligned;
+        REQ_stage_misaligned_exception = REQ_misaligned_exception;
+        REQ_stage_PO_word = REQ_PO_word;
+        REQ_stage_byte_mask = REQ_byte_mask;
+        REQ_stage_write_data = REQ_write_data;
+        REQ_stage_cq_index = REQ_cq_index;
+        REQ_stage_mq_index = stamofu_mq_enq_index;
+
+        REQ_stage_prefetch_dcache = dcache_req_ready;
+
+        stamofu_mq_enq_valid = REQ_ack & REQ_is_mq;
+
+        dtlb_req_valid = REQ_ack;
+        dtlb_req_VPN = REQ_VPN;
+
+        dcache_req_valid = REQ_ack; // always try, may not be ready
+        dcache_req_block_offset = {REQ_stage_PO_word[DCACHE_WORD_ADDR_BANK_BIT-1 : 0], 2'b00};
+        // bank will be statically determined for instantation
+        dcache_req_index = REQ_stage_PO_word[DCACHE_INDEX_WIDTH + DCACHE_WORD_ADDR_BANK_BIT + 1 - 1 : DCACHE_WORD_ADDR_BANK_BIT + 1];
+            // doesn't include bank bit
+    end
+
+    // ----------------------------------------------------------------
+    // RESP stage logic:
+
+    // REQ/RESP stage FF output
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            RESP_stage_valid <= '0;
+            RESP_stage_is_store <= '0;
+            RESP_stage_is_amo <= '0;
+            RESP_stage_is_fence <= '0;
+            RESP_stage_op <= '0;
+            RESP_stage_is_mq <= '0;
+            RESP_stage_misaligned <= '0;
+            RESP_stage_misaligned_exception <= '0;
+            RESP_stage_PO_word <= '0;
+            RESP_stage_byte_mask <= '0;
+            RESP_stage_write_data <= '0;
+            RESP_stage_cq_index <= '0;
+            RESP_stage_mq_index <= '0;
+            RESP_stage_prefetch_dcache <= '0;
+        end
+        else begin
+            RESP_stage_valid <= REQ_stage_valid;
+            RESP_stage_is_store <= REQ_stage_is_store;
+            RESP_stage_is_amo <= REQ_stage_is_amo;
+            RESP_stage_is_fence <= REQ_stage_is_fence;
+            RESP_stage_op <= REQ_stage_op;
+            RESP_stage_is_mq <= REQ_stage_is_mq;
+            RESP_stage_misaligned <= REQ_stage_misaligned;
+            RESP_stage_misaligned_exception <= REQ_stage_misaligned_exception;
+            RESP_stage_PO_word <= REQ_stage_PO_word;
+            RESP_stage_byte_mask <= REQ_stage_byte_mask;
+            RESP_stage_write_data <= REQ_stage_write_data;
+            RESP_stage_cq_index <= REQ_stage_cq_index;
+            RESP_stage_mq_index <= REQ_stage_mq_index;
+            RESP_stage_prefetch_dcache <= REQ_stage_prefetch_dcache;
+        end
+    end
+
+    // dataflow
+    always_comb begin
+
+        // central queue info grab
+        stamofu_cq_info_grab_cq_index = RESP_stage_cq_index;
+
+        // dcache hit and miss logic
+        RESP_stage_PA_word = {dtlb_resp_PPN, RESP_stage_PO_word};
+        RESP_stage_dcache_tag = RESP_stage_PA_word[PA_WIDTH-3:PA_WIDTH-DCACHE_TAG_WIDTH-2];
+        RESP_stage_dcache_vtm_by_way[0] = dcache_resp_valid_by_way[0] & (dcache_resp_tag_by_way[0] == RESP_stage_dcache_tag);
+        RESP_stage_dcache_vtm_by_way[1] = dcache_resp_valid_by_way[1] & (dcache_resp_tag_by_way[1] == RESP_stage_dcache_tag);
+        RESP_stage_dcache_vtm = |RESP_stage_dcache_vtm_by_way;
+
+        dcache_resp_hit_valid = 
+            RESP_stage_valid
+            & RESP_stage_prefetch_dcache
+            & dtlb_resp_hit
+            & RESP_stage_dcache_vtm;
+        dcache_resp_hit_way = RESP_stage_dcache_vtm_by_way[1];
+        dcache_resp_miss_valid = 
+            RESP_stage_valid
+            & RESP_stage_prefetch_dcache
+            & dtlb_resp_hit
+            & ~RESP_stage_dcache_vtm;
+        dcache_resp_miss_tag = RESP_stage_dcache_tag;
+
+        // everything except LR.W gives exclusive miss
+        dcache_resp_miss_exclusive = ~(RESP_stage_is_amo & (RESP_stage_op == 4'b0010));
+
+        // CAM
+        ldu_CAM_launch_valid = RESP_stage_valid & dtlb_resp_hit;
+        ldu_CAM_launch_PA_word = RESP_stage_PA_word;
+        ldu_CAM_launch_byte_mask = RESP_stage_byte_mask;
+        ldu_CAM_launch_write_data = RESP_stage_write_data;
+        ldu_CAM_launch_ROB_index = stamofu_cq_info_grab_ROB_index;
+        ldu_CAM_launch_cq_index = RESP_stage_cq_index;
+        ldu_CAM_launch_is_mq = RESP_stage_is_mq;
+        ldu_CAM_launch_mq_index = RESP_stage_mq_index;
+
+        // cq ret
+        stamofu_cq_info_ret_valid = RESP_stage_valid;
+        stamofu_cq_info_ret_cq_index = RESP_stage_cq_index;
+        stamofu_cq_info_ret_dtlb_hit = dtlb_resp_hit;
+        stamofu_cq_info_ret_page_fault = dtlb_resp_page_fault;
+        stamofu_cq_info_ret_access_fault = dtlb_resp_access_fault;
+        stamofu_cq_info_ret_is_mem = dtlb_resp_is_mem;
+        // update aq, rl if amo and know mem vs. io
+        if (RESP_stage_is_amo & dtlb_resp_hit) begin
+            stamofu_cq_info_ret_mem_aq = stamofu_cq_info_grab_mem_aq & dtlb_resp_is_mem;
+            stamofu_cq_info_ret_io_aq = stamofu_cq_info_grab_io_aq & ~dtlb_resp_is_mem;
+            stamofu_cq_info_ret_mem_rl = stamofu_cq_info_grab_mem_rl & dtlb_resp_is_mem;
+            stamofu_cq_info_ret_io_rl = stamofu_cq_info_grab_io_rl & ~dtlb_resp_is_mem;
+        end
+        else begin
+            stamofu_cq_info_ret_mem_aq = stamofu_cq_info_grab_mem_aq;
+            stamofu_cq_info_ret_io_aq = stamofu_cq_info_grab_io_aq;
+            stamofu_cq_info_ret_mem_rl = stamofu_cq_info_grab_mem_rl;
+            stamofu_cq_info_ret_io_rl = stamofu_cq_info_grab_io_rl;
+        end
+        stamofu_cq_info_ret_misaligned = RESP_stage_misaligned;
+        stamofu_cq_info_ret_misaligned_exception = RESP_stage_misaligned_exception;
+        stamofu_cq_info_ret_PA_word = RESP_stage_PA_word;
+        stamofu_cq_info_ret_byte_mask = RESP_stage_byte_mask;
+        stamofu_cq_info_ret_data = RESP_stage_write_data;
+
+        // mq ret
+        stamofu_mq_info_ret_valid = RESP_stage_valid;
+        stamofu_mq_info_ret_mq_index = RESP_stage_mq_index;
+        stamofu_mq_info_ret_dtlb_hit = dtlb_resp_hit;
+        stamofu_mq_info_ret_page_fault = dtlb_resp_page_fault;
+        stamofu_mq_info_ret_access_fault = dtlb_resp_access_fault;
+        stamofu_mq_info_ret_is_mem = dtlb_resp_is_mem;
+        stamofu_mq_info_ret_PA_word = RESP_stage_PA_word;
+        stamofu_mq_info_ret_byte_mask = RESP_stage_byte_mask;
+        stamofu_mq_info_ret_data = RESP_stage_write_data;
+
+        // amo's send aq update
+        stamofu_aq_update_valid = RESP_stage_valid & RESP_stage_is_amo;
+        stamofu_aq_update_mem_aq = stamofu_cq_info_grab_mem_aq & dtlb_resp_is_mem;
+        stamofu_aq_update_io_aq = stamofu_cq_info_grab_io_aq & ~dtlb_resp_is_mem;
+        stamofu_aq_update_ROB_index = stamofu_cq_info_grab_ROB_index;
     end
 
 endmodule
