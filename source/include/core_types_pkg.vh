@@ -207,6 +207,7 @@ package core_types_pkg;
     parameter STAMOFU_AQ_ENTRIES = 4;
     parameter STAMOFU_MQ_ENTRIES = 4;
     parameter LOG_STAMOFU_MQ_ENTRIES = $clog2(STAMOFU_MQ_ENTRIES);
+    parameter STAMOFU_LQ_ENTRIES = 4;
 
     // sst
     parameter STORE_SET_COUNT = 64; // hardwired in sst

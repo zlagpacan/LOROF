@@ -25,6 +25,11 @@ class Signal():
         self.type = type
         self.name = name
 
+class Param():
+    def __init__(self, name, default_value):
+        self.name = name
+        self.default_value = default_value
+
 def parse_design(design_lines):
 
     # iterate through design lines looking for design name
@@ -39,8 +44,10 @@ def parse_design(design_lines):
 
     # iterate through design lines looking for design signals
     design_signals = []
+    design_params = []
     inside_multiline_comment = False
     inside_io = False
+    inside_param = False
     for line_index, line in enumerate(design_lines):
 
         # try to exit io
@@ -109,6 +116,20 @@ def parse_design(design_lines):
         if (line.lstrip().startswith(")") and line.rstrip().endswith("(")) or (
             line.lstrip().startswith("module") and line.rstrip().endswith("(") and "#" not in line):
             inside_io = True
+            inside_param = False
+            continue
+
+        # when still inside parameter section
+        if inside_param:
+            # expect non-empty lines to all be parameters
+            if (line.lstrip().startswith("parameter")):
+                design_params.append(Param(line[line.index("parameter ")+len("parameter "):line.index(" = ")], line[line.index(" = ")+len(" = "):].rstrip().rstrip(",")))
+            else:
+                print("WARNING: found unexpected parameter section line:", line)
+
+        # try to enter param
+        if (line.lstrip().startswith("module") and line.rstrip().endswith("(") and "#" in line):
+            inside_param = True
             continue
 
     if inside_io:
@@ -116,9 +137,9 @@ def parse_design(design_lines):
 
     assert design_signals, "could not find any signals in design"
 
-    return design_name, design_signals
+    return design_name, design_signals, design_params
 
-def generate_wrapper(wrapper_base_lines, design_name, design_signals):
+def generate_wrapper(wrapper_base_lines, design_name, design_signals, design_params):
     
     output_lines = []
 
@@ -221,6 +242,35 @@ def generate_wrapper(wrapper_base_lines, design_name, design_signals):
                     assert False, f"invalid input vs. output for signal {signal}"
 
             output_lines.extend(raw_signal_lines)
+
+            num_found += 1
+            continue
+
+        # check for <WRAPPED_MODULE instantiation>
+        if line.lstrip().rstrip() == "<WRAPPED_MODULE instantiation>":
+            print(f"found <WRAPPED_MODULE instantiation> at line {line_index}") if PRINTS else None
+
+            # add beginning of module instantation
+            output_lines.extend([
+                f"\t{design_name} #(\n",
+            ])
+
+            # iterate through params adding param lines
+            for i, param in enumerate(design_params):
+                # no comma on last
+                if i+1 == len(design_params):
+                    output_lines.extend([
+                        f"\t\t.{param.name}({param.default_value})\n",
+                    ])
+                else:
+                    output_lines.extend([
+                        f"\t\t.{param.name}({param.default_value}),\n",
+                    ])
+  
+            # add end of module instantiation
+            output_lines.extend([
+                f"\t) WRAPPED_MODULE (.*);\n",
+            ])
 
             num_found += 1
             continue
@@ -335,9 +385,9 @@ if __name__ == "__main__":
         assert False, "could not find wrapper_base.txt"
             
     # run generator algo
-    design_name, design_signals = parse_design(design_lines)
+    design_name, design_signals, design_params = parse_design(design_lines)
 
-    output_lines = generate_wrapper(wrapper_base_lines, design_name, design_signals)
+    output_lines = generate_wrapper(wrapper_base_lines, design_name, design_signals, design_params)
 
     # write output to wrapper_output.txt
     with open("wrapper_output.txt", "w") as fp:

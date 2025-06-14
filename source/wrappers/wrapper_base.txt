@@ -28,7 +28,7 @@ module <design_name>_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    <design_name> WRAPPED_MODULE (.*);
+<WRAPPED_MODULE instantiation>
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
