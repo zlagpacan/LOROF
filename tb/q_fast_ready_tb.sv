@@ -542,6 +542,96 @@ module q_fast_ready_tb ();
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "{i, i, i, i} - enq 6, failed deq 6/2";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // enq
+		tb_enq_valid = 1'b1;
+		tb_enq_data = 32'h99669966;
+	    // enq feedback
+	    // deq
+	    // deq feedback
+		tb_deq_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // enq
+	    // enq feedback
+		expected_enq_ready = 1'b1;
+	    // deq
+		expected_deq_valid = 1'b0;
+		expected_deq_data = 32'hdd22dd22;
+	    // deq feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "{i, i, 6, i} - deq 6";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // enq
+		tb_enq_valid = 1'b0;
+		tb_enq_data = 32'h88778877;
+	    // enq feedback
+	    // deq
+	    // deq feedback
+		tb_deq_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // enq
+	    // enq feedback
+		expected_enq_ready = 1'b1;
+	    // deq
+		expected_deq_valid = 1'b1;
+		expected_deq_data = 32'h99669966;
+	    // deq feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "{i, i, i, i} - failed deq 7/3";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // enq
+		tb_enq_valid = 1'b0;
+		tb_enq_data = 32'h88778877;
+	    // enq feedback
+	    // deq
+	    // deq feedback
+		tb_deq_ready = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // enq
+	    // enq feedback
+		expected_enq_ready = 1'b1;
+	    // deq
+		expected_deq_valid = 1'b0;
+		expected_deq_data = 32'hcc33cc33;
+	    // deq feedback
+
+		check_outputs();
+
         // ------------------------------------------------------------
         // finish:
         @(posedge CLK); #(PERIOD/10);
