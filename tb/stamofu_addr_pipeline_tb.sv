@@ -275,7 +275,7 @@ module stamofu_addr_pipeline_tb ();
 		expected_REQ_misaligned_exception = 1'b0;
 		expected_REQ_VPN = 20'h0;
 		expected_REQ_PO_word = 10'h0;
-		expected_REQ_byte_mask = 4'b0000;
+		expected_REQ_byte_mask = 4'b1111;
 		expected_REQ_write_data = 32'h0;
 		expected_REQ_cq_index = 0;
 	    // REQ stage feedback
@@ -336,7 +336,7 @@ module stamofu_addr_pipeline_tb ();
 		expected_REQ_misaligned_exception = 1'b0;
 		expected_REQ_VPN = 20'h0;
 		expected_REQ_PO_word = 10'h0;
-		expected_REQ_byte_mask = 4'b0000;
+		expected_REQ_byte_mask = 4'b1111;
 		expected_REQ_write_data = 32'h0;
 		expected_REQ_cq_index = 0;
 	    // REQ stage feedback
@@ -405,7 +405,7 @@ module stamofu_addr_pipeline_tb ();
 		expected_REQ_misaligned_exception = 1'b0;
 		expected_REQ_VPN = 20'h0;
 		expected_REQ_PO_word = 10'h0;
-		expected_REQ_byte_mask = 4'b0000;
+		expected_REQ_byte_mask = 4'b1111;
 		expected_REQ_write_data = 32'h0;
 		expected_REQ_cq_index = 0;
 	    // REQ stage feedback

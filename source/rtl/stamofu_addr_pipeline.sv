@@ -372,13 +372,27 @@ module stamofu_addr_pipeline (
         else if (REQ_is_amo) begin
             // REQ misaligned exception is separately checked for AMO's
             REQ_misaligned = 1'b0;
-            REQ_byte_mask = 4'b1111;
+
+            // keep OG byte mask encoding so can use for misaligned exception synthesis of VA
+            case (REQ_VA32[1:0])
+                2'b00:  REQ_byte_mask = 4'b1111;
+                2'b01:  REQ_byte_mask = 4'b1110;
+                2'b10:  REQ_byte_mask = 4'b1100;
+                2'b11:  REQ_byte_mask = 4'b1000;
+            endcase
         end
 
         else begin
             // fence guaranteed not misaligned
             REQ_misaligned = 1'b0;
-            REQ_byte_mask = 4'b0000;
+
+            // default
+            case (REQ_VA32[1:0])
+                2'b00:  REQ_byte_mask = 4'b1111;
+                2'b01:  REQ_byte_mask = 4'b1110;
+                2'b10:  REQ_byte_mask = 4'b1100;
+                2'b11:  REQ_byte_mask = 4'b1000;
+            endcase
         end
     end
 
