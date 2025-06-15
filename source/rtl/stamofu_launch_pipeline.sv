@@ -133,6 +133,8 @@ module stamofu_launch_pipeline (
     // send dcache prefetch miss only if told that bank is ready
         // not used by ldu launch nor write buffer and MSHR available
 
+    // transfer SFENCE.VMA virtual address through stamofu_cq_info_ret_PA_word
+
     // ----------------------------------------------------------------
     // REQ stage signals:
 
@@ -151,6 +153,8 @@ module stamofu_launch_pipeline (
     logic [LOG_STAMOFU_MQ_ENTRIES-1:0]  REQ_stage_mq_index;
 
     logic                               REQ_stage_prefetch_dcache;
+
+    logic [VPN_WIDTH-1:0]               REQ_stage_VPN;
 
     // ----------------------------------------------------------------
     // RESP stage signals:
@@ -171,6 +175,8 @@ module stamofu_launch_pipeline (
 
     logic                               RESP_stage_prefetch_dcache;
 
+    logic [VPN_WIDTH-1:0]               RESP_stage_VPN;
+
     logic [PA_WIDTH-3:0]                RESP_stage_PA_word;
 
     logic                               RESP_stage_dtlb_hit;
@@ -185,10 +191,10 @@ module stamofu_launch_pipeline (
     always_comb begin
 
         // check for good REQ
-            // need dtlb ready, stamofu mq ready if applicable
+            // need dtlb ready (as long as not SFENCE.VMA), stamofu mq ready if applicable
         if (
             REQ_valid
-            & dtlb_req_ready
+            & (dtlb_req_ready | REQ_stage_is_fence)
             & (~REQ_is_mq | stamofu_mq_enq_ready)
         ) begin
             REQ_stage_valid = 1'b1;
@@ -220,14 +226,17 @@ module stamofu_launch_pipeline (
         REQ_stage_cq_index = REQ_cq_index;
         REQ_stage_mq_index = stamofu_mq_enq_index;
 
-        REQ_stage_prefetch_dcache = dcache_req_ready;
+        REQ_stage_prefetch_dcache = dcache_req_ready & ~REQ_stage_is_fence;;
 
-        stamofu_mq_enq_valid = REQ_ack & REQ_is_mq;
+        // for SFENCE.VMA
+        REQ_stage_VPN = REQ_VPN;
 
-        dtlb_req_valid = REQ_ack;
-        dtlb_req_VPN = REQ_VPN;
+        stamofu_mq_enq_valid = REQ_ack & REQ_stage_is_mq;
 
-        dcache_req_valid = REQ_ack; // always try, may not be ready
+        dtlb_req_valid = REQ_ack & ~REQ_stage_is_fence;
+        dtlb_req_VPN = REQ_stage_VPN;
+
+        dcache_req_valid = REQ_ack & ~REQ_stage_is_fence;; // always try, may not be ready
         dcache_req_block_offset = {REQ_stage_PO_word[DCACHE_WORD_ADDR_BANK_BIT-1 : 0], 2'b00};
         // bank will be statically determined for instantation
         dcache_req_index = REQ_stage_PO_word[DCACHE_INDEX_WIDTH + DCACHE_WORD_ADDR_BANK_BIT + 1 - 1 : DCACHE_WORD_ADDR_BANK_BIT + 1];
@@ -254,6 +263,7 @@ module stamofu_launch_pipeline (
             RESP_stage_cq_index <= '0;
             RESP_stage_mq_index <= '0;
             RESP_stage_prefetch_dcache <= '0;
+            RESP_stage_VPN <= '0;
         end
         else begin
             RESP_stage_valid <= REQ_stage_valid;
@@ -270,6 +280,7 @@ module stamofu_launch_pipeline (
             RESP_stage_cq_index <= REQ_stage_cq_index;
             RESP_stage_mq_index <= REQ_stage_mq_index;
             RESP_stage_prefetch_dcache <= REQ_stage_prefetch_dcache;
+            RESP_stage_VPN <= REQ_stage_VPN;
         end
     end
 
@@ -334,7 +345,13 @@ module stamofu_launch_pipeline (
         end
         stamofu_cq_info_ret_misaligned = RESP_stage_misaligned;
         stamofu_cq_info_ret_misaligned_exception = RESP_stage_misaligned_exception;
-        stamofu_cq_info_ret_PA_word = RESP_stage_PA_word;
+        // SFENCE.VMA needs VPN instead of PPN
+        if (RESP_stage_is_fence) begin
+            stamofu_cq_info_ret_PA_word = {2'b00, RESP_stage_VPN, RESP_stage_PO_word};
+        end
+        else begin
+            stamofu_cq_info_ret_PA_word = RESP_stage_PA_word;
+        end
         stamofu_cq_info_ret_byte_mask = RESP_stage_byte_mask;
         stamofu_cq_info_ret_data = RESP_stage_write_data;
 
