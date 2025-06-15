@@ -188,6 +188,7 @@ module ldu_launch_pipeline_tb ();
 
     // exception to ROB
 	logic DUT_rob_exception_valid, expected_rob_exception_valid;
+	logic [VA_WIDTH-1:0] DUT_rob_exception_VA, expected_rob_exception_VA;
 	logic DUT_rob_exception_page_fault, expected_rob_exception_page_fault;
 	logic DUT_rob_exception_access_fault, expected_rob_exception_access_fault;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_rob_exception_ROB_index, expected_rob_exception_ROB_index;
@@ -370,6 +371,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // exception to ROB
 		.rob_exception_valid(DUT_rob_exception_valid),
+		.rob_exception_VA(DUT_rob_exception_VA),
 		.rob_exception_page_fault(DUT_rob_exception_page_fault),
 		.rob_exception_access_fault(DUT_rob_exception_access_fault),
 		.rob_exception_ROB_index(DUT_rob_exception_ROB_index),
@@ -783,6 +785,13 @@ module ldu_launch_pipeline_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_rob_exception_VA !== DUT_rob_exception_VA) begin
+			$display("TB ERROR: expected_rob_exception_VA (%h) != DUT_rob_exception_VA (%h)",
+				expected_rob_exception_VA, DUT_rob_exception_VA);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_rob_exception_page_fault !== DUT_rob_exception_page_fault) begin
 			$display("TB ERROR: expected_rob_exception_page_fault (%h) != DUT_rob_exception_page_fault (%h)",
 				expected_rob_exception_page_fault, DUT_rob_exception_page_fault);
@@ -993,6 +1002,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = 32'h00000000;
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b0;
 		expected_rob_exception_ROB_index = 7'h0;
@@ -1166,6 +1176,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = 32'h00000000;
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b0;
 		expected_rob_exception_ROB_index = 7'h0;
@@ -1354,6 +1365,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = 32'h00000000;
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b0;
 		expected_rob_exception_ROB_index = 7'h0;
@@ -1536,6 +1548,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = 32'h00000000;
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b0;
 		expected_rob_exception_ROB_index = 7'h0;
@@ -1718,6 +1731,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = 32'h00000000;
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b0;
 		expected_rob_exception_ROB_index = 7'h0;
@@ -1901,6 +1915,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = 32'h00000000;
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b0;
 		expected_rob_exception_ROB_index = 7'h0;
@@ -2092,6 +2107,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = 32'h00000000;
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b0;
 		expected_rob_exception_ROB_index = 7'h0;
@@ -2283,6 +2299,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = {20'h34567, 10'h012, 2'h0};
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b0;
 		expected_rob_exception_ROB_index = 7'h1;
@@ -2474,6 +2491,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = {20'h055055, 10'h050, 2'h2};
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b0;
 		expected_rob_exception_ROB_index = 7'h3;
@@ -2665,6 +2683,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = {20'h222222, 10'h606, 2'h1};
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b0;
 		expected_rob_exception_ROB_index = 7'h8;
@@ -2848,6 +2867,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = {20'h222222, 10'h606, 2'h1};
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b0;
 		expected_rob_exception_ROB_index = 7'h8;
@@ -3031,6 +3051,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = {20'h222222, 10'h606, 2'h1};
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b0;
 		expected_rob_exception_ROB_index = 7'h9;
@@ -3218,6 +3239,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = {20'h102030, 10'hdef, 2'h0};
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b0;
 		expected_rob_exception_ROB_index = 7'h7;
@@ -3405,6 +3427,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = {20'hffffff, 10'h111, 2'h3};
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b0;
 		expected_rob_exception_ROB_index = 7'h4;
@@ -3545,7 +3568,7 @@ module ldu_launch_pipeline_tb ();
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
-		expected_dcache_resp_hit_valid = 1'b1;
+		expected_dcache_resp_hit_valid = 1'b0;
 		expected_dcache_resp_hit_way = 1'b1;
 		expected_dcache_resp_miss_valid = 1'b0;
 		expected_dcache_resp_miss_tag = 22'h111111;
@@ -3596,6 +3619,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = {20'h111111, 10'h777, 2'h0};
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b1;
 		expected_rob_exception_ROB_index = 7'hb;
@@ -3736,10 +3760,10 @@ module ldu_launch_pipeline_tb ();
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
-		expected_dcache_resp_hit_valid = 1'b1;
+		expected_dcache_resp_hit_valid = 1'b0;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
-		expected_dcache_resp_miss_tag = 22'hdeadbe;
+		expected_dcache_resp_miss_tag = 22'h1f05d;
 	    // writeback data to PRF
 		expected_WB_valid = 1'b0;
 		expected_WB_data = 32'hbeefdead;
@@ -3772,6 +3796,7 @@ module ldu_launch_pipeline_tb ();
 		expected_ldu_mq_info_ret_dcache_hit = 1'b1;
 		expected_ldu_mq_info_ret_is_mem = 1'b0;
 		expected_ldu_mq_info_ret_aq_blocking = 1'b0;
+		expected_ldu_mq_info_ret_PA_word = {22'h111111, 10'h777};
 		expected_ldu_mq_info_ret_data = 32'hbeefdead;
 	    // misprediction notification to ROB
 		expected_mispred_notif_valid = 1'b0;
@@ -3779,6 +3804,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = {20'h111111, 10'h777, 2'h0};
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b1;
 		expected_rob_exception_ROB_index = 7'he;
@@ -3922,7 +3948,7 @@ module ldu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_valid = 1'b0;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
-		expected_dcache_resp_miss_tag = 22'hdeadbe;
+		expected_dcache_resp_miss_tag = 22'h1f05d;
 	    // writeback data to PRF
 		expected_WB_valid = 1'b0;
 		expected_WB_data = 32'hbeefdead;
@@ -3930,7 +3956,7 @@ module ldu_launch_pipeline_tb ();
 		expected_WB_ROB_index = 7'he;
 	    // writeback backpressure from PRF
 	    // CAM launch
-		expected_stamofu_CAM_launch_valid = 1'b1;
+		expected_stamofu_CAM_launch_valid = 1'b0;
 		expected_stamofu_CAM_launch_PA_word = {22'h111111, 10'h777};
 		expected_stamofu_CAM_launch_byte_mask = 4'b0111;
 		expected_stamofu_CAM_launch_ROB_index = 7'he;
@@ -3955,6 +3981,7 @@ module ldu_launch_pipeline_tb ();
 		expected_ldu_mq_info_ret_dcache_hit = 1'b1;
 		expected_ldu_mq_info_ret_is_mem = 1'b0;
 		expected_ldu_mq_info_ret_aq_blocking = 1'b0;
+		expected_ldu_mq_info_ret_PA_word = {22'h111111, 10'h777};
 		expected_ldu_mq_info_ret_data = 32'hbeefdead;
 	    // misprediction notification to ROB
 		expected_mispred_notif_valid = 1'b0;
@@ -3962,6 +3989,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b1;
+		expected_rob_exception_VA = {20'h111111, 10'h777, 2'h0};
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b1;
 		expected_rob_exception_ROB_index = 7'he;
@@ -4114,7 +4142,7 @@ module ldu_launch_pipeline_tb ();
 	    // writeback backpressure from PRF
 	    // CAM launch
 		expected_stamofu_CAM_launch_valid = 1'b0;
-		expected_stamofu_CAM_launch_PA_word = {22'hdeadbe, 10'habe};
+		expected_stamofu_CAM_launch_PA_word = {22'h01f05d, 10'habe};
 		expected_stamofu_CAM_launch_byte_mask = 4'b1000;
 		expected_stamofu_CAM_launch_ROB_index = 7'hf;
 		expected_stamofu_CAM_launch_cq_index = 'hf;
@@ -4129,10 +4157,10 @@ module ldu_launch_pipeline_tb ();
 		expected_ldu_cq_info_ret_dtlb_hit = 1'b1;
 		expected_ldu_cq_info_ret_page_fault = 1'b1;
 		expected_ldu_cq_info_ret_access_fault = 1'b0;
-		expected_ldu_cq_info_ret_dcache_hit = 1'b1;
+		expected_ldu_cq_info_ret_dcache_hit = 1'b0;
 		expected_ldu_cq_info_ret_is_mem = 1'b1;
 		expected_ldu_cq_info_ret_aq_blocking = 1'b1;
-		expected_ldu_cq_info_ret_PA_word = {22'hdeadbe, 10'habe};
+		expected_ldu_cq_info_ret_PA_word = {22'h01f05d, 10'habe};
 		expected_ldu_cq_info_ret_byte_mask = 4'b1000;
 		expected_ldu_cq_info_ret_data = 32'hbeefbeef;
 	    // misaligned queue info ret
@@ -4141,10 +4169,10 @@ module ldu_launch_pipeline_tb ();
 		expected_ldu_mq_info_ret_page_fault = 1'b1;
 		expected_ldu_mq_info_ret_access_fault = 1'b0;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b1;
-		expected_ldu_mq_info_ret_dcache_hit = 1'b1;
+		expected_ldu_mq_info_ret_dcache_hit = 1'b0;
 		expected_ldu_mq_info_ret_is_mem = 1'b1;
 		expected_ldu_mq_info_ret_aq_blocking = 1'b1;
-		expected_ldu_mq_info_ret_PA_word = {22'hdeadbe, 10'habe};
+		expected_ldu_mq_info_ret_PA_word = {22'h01f05d, 10'habe};
 		expected_ldu_mq_info_ret_byte_mask = 4'b1000;
 		expected_ldu_mq_info_ret_data = 32'hbeefbeef;
 	    // misprediction notification to ROB
@@ -4153,6 +4181,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b1;
+		expected_rob_exception_VA = {22'h01f05d, 10'habe, 2'h3};
 		expected_rob_exception_page_fault = 1'b1;
 		expected_rob_exception_access_fault = 1'b0;
 		expected_rob_exception_ROB_index = 7'hf;
@@ -4344,6 +4373,7 @@ module ldu_launch_pipeline_tb ();
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = {22'h111111, 10'h777, 2'h1};
 		expected_rob_exception_page_fault = 1'b0;
 		expected_rob_exception_access_fault = 1'b1;
 		expected_rob_exception_ROB_index = 7'hf;

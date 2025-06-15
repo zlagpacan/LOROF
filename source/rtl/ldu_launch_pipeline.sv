@@ -175,6 +175,7 @@ module ldu_launch_pipeline #(
 
     // exception to ROB
     output logic                        rob_exception_valid,
+    output logic [VA_WIDTH-1:0]         rob_exception_VA,
     output logic                        rob_exception_page_fault,
     output logic                        rob_exception_access_fault,
     output logic [LOG_ROB_ENTRIES-1:0]  rob_exception_ROB_index,
@@ -411,7 +412,7 @@ module ldu_launch_pipeline #(
         REQ_stage_given_access_fault = second_try_access_fault;
         REQ_stage_given_is_mem = second_try_is_mem;
         REQ_stage_do_mispred = data_try_ack & data_try_do_mispred;
-        REQ_stage_given_PPN = second_try_PPN;
+        REQ_stage_given_PPN = first_try_ack ? {2'b00, first_try_VPN} : second_try_PPN;
         REQ_stage_PO_word = first_try_ack ? first_try_PO_word : second_try_PO_word;
         REQ_stage_byte_mask = first_try_ack ? first_try_byte_mask : second_try_byte_mask;
         REQ_stage_given_data = data_try_data;
@@ -569,7 +570,8 @@ module ldu_launch_pipeline #(
         RESP_stage_selected_page_fault = RESP_stage_is_first ? selected_dtlb_resp_page_fault : RESP_stage_given_page_fault;
         RESP_stage_selected_access_fault = RESP_stage_is_first ? selected_dtlb_resp_access_fault : RESP_stage_given_access_fault;
         RESP_stage_selected_is_mem = RESP_stage_is_first ? selected_dtlb_resp_is_mem : RESP_stage_given_is_mem;
-        RESP_stage_selected_PPN = RESP_stage_is_first ? selected_dtlb_resp_PPN : RESP_stage_given_PPN;
+        RESP_stage_selected_PPN = (RESP_stage_is_first & ~RESP_stage_selected_page_fault & ~RESP_stage_selected_access_fault) ? selected_dtlb_resp_PPN : RESP_stage_given_PPN;
+            // first try exceptions need VPN in PPN slot 
         RESP_stage_selected_PA_word = {RESP_stage_selected_PPN, RESP_stage_PO_word};
 
         // check for blocking acquire
@@ -593,12 +595,14 @@ module ldu_launch_pipeline #(
             RESP_stage_valid
             & RESP_first_cycle
             & RESP_stage_dtlb_hit
+            & ~(RESP_stage_selected_page_fault | RESP_stage_selected_access_fault)
             & RESP_stage_dcache_vtm;
         dcache_resp_hit_way = RESP_stage_dcache_vtm_by_way[1];
         dcache_resp_miss_valid = 
             RESP_stage_valid
             & RESP_first_cycle
             & RESP_stage_dtlb_hit
+            & ~(RESP_stage_selected_page_fault | RESP_stage_selected_access_fault)
             & ~RESP_stage_dcache_vtm;
         dcache_resp_miss_tag = RESP_stage_dcache_tag;
 
@@ -617,6 +621,7 @@ module ldu_launch_pipeline #(
                 & ~RESP_stage_misaligned);
         RESP_stage_do_CAM = 
             RESP_stage_dtlb_hit 
+            & ~(RESP_stage_selected_page_fault | RESP_stage_selected_access_fault)
             & ~RESP_stage_aq_blocking;
         RESP_stage_do_exception = 
             RESP_stage_dtlb_hit 
@@ -813,6 +818,15 @@ module ldu_launch_pipeline #(
         rob_exception_page_fault = RET_stage_page_fault;
         rob_exception_access_fault = RET_stage_access_fault;
         rob_exception_ROB_index = RET_stage_ROB_index;
+
+        rob_exception_VA[31:2] = RET_stage_PA_word[29:0];
+        casez (RET_stage_byte_mask)
+            4'b0000:    rob_exception_VA[1:0] = 2'h0;
+            4'b???1:    rob_exception_VA[1:0] = 2'h0;
+            4'b??10:    rob_exception_VA[1:0] = 2'h1;
+            4'b?100:    rob_exception_VA[1:0] = 2'h2;
+            default:    rob_exception_VA[1:0] = 2'h3;
+        endcase
 
         // mispred
         mispred_notif_valid = RET_stage_do_mispred & RET_stage_perform;

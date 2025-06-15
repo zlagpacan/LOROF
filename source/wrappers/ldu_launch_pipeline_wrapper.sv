@@ -139,6 +139,7 @@ module ldu_launch_pipeline_wrapper (
     // central queue info ret
 	output logic last_ldu_cq_info_ret_valid,
 	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_ldu_cq_info_ret_cq_index,
+	output logic last_ldu_cq_info_ret_misaligned,
 	output logic last_ldu_cq_info_ret_dtlb_hit,
 	output logic last_ldu_cq_info_ret_page_fault,
 	output logic last_ldu_cq_info_ret_access_fault,
@@ -171,6 +172,7 @@ module ldu_launch_pipeline_wrapper (
 
     // exception to ROB
 	output logic last_rob_exception_valid,
+	output logic [VA_WIDTH-1:0] last_rob_exception_VA,
 	output logic last_rob_exception_page_fault,
 	output logic last_rob_exception_access_fault,
 	output logic [LOG_ROB_ENTRIES-1:0] last_rob_exception_ROB_index,
@@ -310,6 +312,7 @@ module ldu_launch_pipeline_wrapper (
     // central queue info ret
 	logic ldu_cq_info_ret_valid;
 	logic [LOG_LDU_CQ_ENTRIES-1:0] ldu_cq_info_ret_cq_index;
+	logic ldu_cq_info_ret_misaligned;
 	logic ldu_cq_info_ret_dtlb_hit;
 	logic ldu_cq_info_ret_page_fault;
 	logic ldu_cq_info_ret_access_fault;
@@ -342,6 +345,7 @@ module ldu_launch_pipeline_wrapper (
 
     // exception to ROB
 	logic rob_exception_valid;
+	logic [VA_WIDTH-1:0] rob_exception_VA;
 	logic rob_exception_page_fault;
 	logic rob_exception_access_fault;
 	logic [LOG_ROB_ENTRIES-1:0] rob_exception_ROB_index;
@@ -494,6 +498,7 @@ module ldu_launch_pipeline_wrapper (
 		    // central queue info ret
 			last_ldu_cq_info_ret_valid <= '0;
 			last_ldu_cq_info_ret_cq_index <= '0;
+			last_ldu_cq_info_ret_misaligned <= '0;
 			last_ldu_cq_info_ret_dtlb_hit <= '0;
 			last_ldu_cq_info_ret_page_fault <= '0;
 			last_ldu_cq_info_ret_access_fault <= '0;
@@ -526,6 +531,7 @@ module ldu_launch_pipeline_wrapper (
 
 		    // exception to ROB
 			last_rob_exception_valid <= '0;
+			last_rob_exception_VA <= '0;
 			last_rob_exception_page_fault <= '0;
 			last_rob_exception_access_fault <= '0;
 			last_rob_exception_ROB_index <= '0;
@@ -663,6 +669,7 @@ module ldu_launch_pipeline_wrapper (
 		    // central queue info ret
 			last_ldu_cq_info_ret_valid <= ldu_cq_info_ret_valid;
 			last_ldu_cq_info_ret_cq_index <= ldu_cq_info_ret_cq_index;
+			last_ldu_cq_info_ret_misaligned <= ldu_cq_info_ret_misaligned;
 			last_ldu_cq_info_ret_dtlb_hit <= ldu_cq_info_ret_dtlb_hit;
 			last_ldu_cq_info_ret_page_fault <= ldu_cq_info_ret_page_fault;
 			last_ldu_cq_info_ret_access_fault <= ldu_cq_info_ret_access_fault;
@@ -695,6 +702,7 @@ module ldu_launch_pipeline_wrapper (
 
 		    // exception to ROB
 			last_rob_exception_valid <= rob_exception_valid;
+			last_rob_exception_VA <= rob_exception_VA;
 			last_rob_exception_page_fault <= rob_exception_page_fault;
 			last_rob_exception_access_fault <= rob_exception_access_fault;
 			last_rob_exception_ROB_index <= rob_exception_ROB_index;
