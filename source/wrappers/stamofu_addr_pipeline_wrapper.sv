@@ -50,6 +50,10 @@ module stamofu_addr_pipeline_wrapper (
 
     // REQ stage info
 	output logic last_REQ_valid,
+	output logic last_REQ_is_store,
+	output logic last_REQ_is_amo,
+	output logic last_REQ_is_fence,
+	output logic [3:0] last_REQ_op,
 	output logic last_REQ_is_mq,
 	output logic last_REQ_misaligned,
 	output logic last_REQ_misaligned_exception,
@@ -97,6 +101,10 @@ module stamofu_addr_pipeline_wrapper (
 
     // REQ stage info
 	logic REQ_valid;
+	logic REQ_is_store;
+	logic REQ_is_amo;
+	logic REQ_is_fence;
+	logic [3:0] REQ_op;
 	logic REQ_is_mq;
 	logic REQ_misaligned;
 	logic REQ_misaligned_exception;
@@ -112,7 +120,8 @@ module stamofu_addr_pipeline_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    stamofu_addr_pipeline WRAPPED_MODULE (.*);
+	stamofu_addr_pipeline #(
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -151,6 +160,10 @@ module stamofu_addr_pipeline_wrapper (
 
 		    // REQ stage info
 			last_REQ_valid <= '0;
+			last_REQ_is_store <= '0;
+			last_REQ_is_amo <= '0;
+			last_REQ_is_fence <= '0;
+			last_REQ_op <= '0;
 			last_REQ_is_mq <= '0;
 			last_REQ_misaligned <= '0;
 			last_REQ_misaligned_exception <= '0;
@@ -196,6 +209,10 @@ module stamofu_addr_pipeline_wrapper (
 
 		    // REQ stage info
 			last_REQ_valid <= REQ_valid;
+			last_REQ_is_store <= REQ_is_store;
+			last_REQ_is_amo <= REQ_is_amo;
+			last_REQ_is_fence <= REQ_is_fence;
+			last_REQ_op <= REQ_op;
 			last_REQ_is_mq <= REQ_is_mq;
 			last_REQ_misaligned <= REQ_misaligned;
 			last_REQ_misaligned_exception <= REQ_misaligned_exception;
