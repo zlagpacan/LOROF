@@ -134,6 +134,7 @@ module ldu_launch_pipeline #(
     output logic [PA_WIDTH-2-1:0]           stamofu_CAM_launch_PA_word,
     output logic [3:0]                      stamofu_CAM_launch_byte_mask,
     output logic [LOG_ROB_ENTRIES-1:0]      stamofu_CAM_launch_ROB_index,
+    output logic [MDPT_INFO_WIDTH-1:0]      stamofu_CAM_launch_mdp_info,
     output logic [LOG_LDU_CQ_ENTRIES-1:0]   stamofu_CAM_launch_cq_index,
     output logic                            stamofu_CAM_launch_is_mq,
     output logic [LOG_LDU_MQ_ENTRIES-1:0]   stamofu_CAM_launch_mq_index,
@@ -247,9 +248,11 @@ module ldu_launch_pipeline #(
     logic [LOG_LDU_MQ_ENTRIES-1:0]  RESP_stage_mq_index;
     
     logic [3:0]                     RESP_stage_op;
-    logic                           RESP_stage_mdp_present;
+    logic [MDPT_INFO_WIDTH-1:0]     RESP_stage_mdp_info;
     logic [LOG_PR_COUNT-1:0]        RESP_stage_dest_PR;
     logic [LOG_ROB_ENTRIES-1:0]     RESP_stage_ROB_index;
+
+    logic                           RESP_stage_mdp_present;
 
     logic                           RESP_stage_selected_page_fault;
     logic                           RESP_stage_selected_access_fault;
@@ -307,6 +310,7 @@ module ldu_launch_pipeline #(
     logic                           RET_stage_is_mq;
     logic                           RET_stage_misaligned;
     logic [3:0]                     RET_stage_op;
+    logic [MDPT_INFO_WIDTH-1:0]     RET_stage_mdp_info;
     logic [LOG_PR_COUNT-1:0]        RET_stage_dest_PR;
     logic [LOG_ROB_ENTRIES-1:0]     RET_stage_ROB_index;
     logic                           RET_stage_page_fault;
@@ -550,9 +554,11 @@ module ldu_launch_pipeline #(
         // central queue info grab
         ldu_cq_info_grab_cq_index = RESP_stage_cq_index;
         RESP_stage_op = ldu_cq_info_grab_op;
-        RESP_stage_mdp_present = ldu_cq_info_grab_mdp_info[7:6] != 2'b00;
+        RESP_stage_mdp_info = ldu_cq_info_grab_mdp_info;
         RESP_stage_dest_PR = ldu_cq_info_grab_dest_PR;
         RESP_stage_ROB_index = ldu_cq_info_grab_ROB_index;
+        
+        RESP_stage_mdp_present = ldu_cq_info_grab_mdp_info[7:6] != 2'b00;
 
         // choose saved vs current resp's
         if (RESP_first_cycle) begin
@@ -660,6 +666,7 @@ module ldu_launch_pipeline #(
             RET_stage_is_mq <= '0;
             RET_stage_misaligned <= '0;
             RET_stage_op <= '0;
+            RET_stage_mdp_info <= '0;
             RET_stage_dest_PR <= '0;
             RET_stage_ROB_index <= '0;
             RET_stage_page_fault <= '0;
@@ -688,6 +695,7 @@ module ldu_launch_pipeline #(
             RET_stage_is_mq <= RESP_stage_is_mq;
             RET_stage_misaligned <= RESP_stage_misaligned;
             RET_stage_op <= RESP_stage_op;
+            RET_stage_mdp_info <= RESP_stage_mdp_info;
             RET_stage_dest_PR <= RESP_stage_dest_PR;
             RET_stage_ROB_index <= RESP_stage_ROB_index;
             RET_stage_page_fault <= RESP_stage_selected_page_fault;
@@ -821,6 +829,7 @@ module ldu_launch_pipeline #(
         stamofu_CAM_launch_PA_word = RET_stage_PA_word;
         stamofu_CAM_launch_byte_mask = RET_stage_byte_mask;
         stamofu_CAM_launch_ROB_index = RET_stage_ROB_index;
+        stamofu_CAM_launch_mdp_info = RET_stage_mdp_info;
         stamofu_CAM_launch_cq_index = RET_stage_cq_index;
         stamofu_CAM_launch_is_mq = RET_stage_is_mq;
         stamofu_CAM_launch_mq_index = RET_stage_mq_index;

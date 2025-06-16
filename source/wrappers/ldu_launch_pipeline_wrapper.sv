@@ -131,6 +131,7 @@ module ldu_launch_pipeline_wrapper (
 	output logic [PA_WIDTH-2-1:0] last_stamofu_CAM_launch_PA_word,
 	output logic [3:0] last_stamofu_CAM_launch_byte_mask,
 	output logic [LOG_ROB_ENTRIES-1:0] last_stamofu_CAM_launch_ROB_index,
+	output logic [MDPT_INFO_WIDTH-1:0] last_stamofu_CAM_launch_mdp_info,
 	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_stamofu_CAM_launch_cq_index,
 	output logic last_stamofu_CAM_launch_is_mq,
 	output logic [LOG_LDU_MQ_ENTRIES-1:0] last_stamofu_CAM_launch_mq_index,
@@ -310,6 +311,7 @@ module ldu_launch_pipeline_wrapper (
 	logic [PA_WIDTH-2-1:0] stamofu_CAM_launch_PA_word;
 	logic [3:0] stamofu_CAM_launch_byte_mask;
 	logic [LOG_ROB_ENTRIES-1:0] stamofu_CAM_launch_ROB_index;
+	logic [MDPT_INFO_WIDTH-1:0] stamofu_CAM_launch_mdp_info;
 	logic [LOG_LDU_CQ_ENTRIES-1:0] stamofu_CAM_launch_cq_index;
 	logic stamofu_CAM_launch_is_mq;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] stamofu_CAM_launch_mq_index;
@@ -502,6 +504,7 @@ module ldu_launch_pipeline_wrapper (
 			last_stamofu_CAM_launch_PA_word <= '0;
 			last_stamofu_CAM_launch_byte_mask <= '0;
 			last_stamofu_CAM_launch_ROB_index <= '0;
+			last_stamofu_CAM_launch_mdp_info <= '0;
 			last_stamofu_CAM_launch_cq_index <= '0;
 			last_stamofu_CAM_launch_is_mq <= '0;
 			last_stamofu_CAM_launch_mq_index <= '0;
@@ -679,6 +682,7 @@ module ldu_launch_pipeline_wrapper (
 			last_stamofu_CAM_launch_PA_word <= stamofu_CAM_launch_PA_word;
 			last_stamofu_CAM_launch_byte_mask <= stamofu_CAM_launch_byte_mask;
 			last_stamofu_CAM_launch_ROB_index <= stamofu_CAM_launch_ROB_index;
+			last_stamofu_CAM_launch_mdp_info <= stamofu_CAM_launch_mdp_info;
 			last_stamofu_CAM_launch_cq_index <= stamofu_CAM_launch_cq_index;
 			last_stamofu_CAM_launch_is_mq <= stamofu_CAM_launch_is_mq;
 			last_stamofu_CAM_launch_mq_index <= stamofu_CAM_launch_mq_index;
