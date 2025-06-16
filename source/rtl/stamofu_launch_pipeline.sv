@@ -256,6 +256,7 @@ module stamofu_launch_pipeline (
         dcache_req_valid = 
             REQ_ack 
             & ~REQ_stage_is_fence
+            & (~REQ_stage_is_amo | (REQ_stage_op == 4'b0010)) // only prefetch stores, LR.W
             & ~REQ_stage_misaligned_exception;
         dcache_req_block_offset = {REQ_stage_PO_word[DCACHE_WORD_ADDR_BANK_BIT-1 : 0], 2'b00};
         // bank will be statically determined for instantation
@@ -336,6 +337,7 @@ module stamofu_launch_pipeline (
             RESP_stage_valid
             & RESP_stage_prefetch_dcache
             & dtlb_resp_hit
+            & ~(dtlb_resp_page_fault | dtlb_resp_access_fault)
             & RESP_stage_dcache_vtm;
         dcache_resp_hit_exclusive = RESP_stage_exclusive;
         dcache_resp_hit_way = RESP_stage_dcache_vtm_by_way[1];
@@ -343,15 +345,16 @@ module stamofu_launch_pipeline (
             RESP_stage_valid
             & RESP_stage_prefetch_dcache
             & dtlb_resp_hit
+            & ~(dtlb_resp_page_fault | dtlb_resp_access_fault)
             & ~RESP_stage_dcache_vtm;
         dcache_resp_miss_exclusive = RESP_stage_exclusive;
         dcache_resp_miss_tag = RESP_stage_dcache_tag;
 
         // CAM
         ldu_CAM_launch_valid = 
-            RESP_stage_valid 
-            & dtlb_resp_hit
+            RESP_stage_valid
             & ~RESP_stage_is_fence
+            & dtlb_resp_hit
             & ~(dtlb_resp_page_fault | dtlb_resp_access_fault)
             & ~RESP_stage_misaligned_exception;
         ldu_CAM_launch_PA_word = RESP_stage_return_PA_word;
@@ -400,7 +403,7 @@ module stamofu_launch_pipeline (
         stamofu_mq_info_ret_data = RESP_stage_write_data;
 
         // amo's send aq update
-        stamofu_aq_update_valid = RESP_stage_valid & RESP_stage_is_amo;
+        stamofu_aq_update_valid = RESP_stage_valid & RESP_stage_is_amo & dtlb_resp_hit;
         stamofu_aq_update_mem_aq = stamofu_cq_info_grab_mem_aq & dtlb_resp_is_mem;
         stamofu_aq_update_io_aq = stamofu_cq_info_grab_io_aq & ~dtlb_resp_is_mem;
         stamofu_aq_update_ROB_index = stamofu_cq_info_grab_ROB_index;

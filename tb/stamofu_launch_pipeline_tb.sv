@@ -1453,7 +1453,7 @@ module stamofu_launch_pipeline_tb ();
 	    // op enqueue to misaligned queue
 	    // misaligned queue enqueue feedback
 		tb_stamofu_mq_enq_ready = 1'b1;
-		tb_stamofu_mq_enq_index = 'he;
+		tb_stamofu_mq_enq_index = 'hd;
 	    // dtlb req
 	    // dtlb req feedback
 		tb_dtlb_req_ready = 1'b1;
@@ -1552,6 +1552,1054 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_aq_update_mem_aq = 1'b0;
 		expected_stamofu_aq_update_io_aq = 1'b0;
 		expected_stamofu_aq_update_ROB_index = 7'hd2;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tREQ: 3: SW c3, 33333->cccccc,c3c3,1110 mem, cq, dtlb miss",
+			"\n\t\tRESP: 2: SH d2, 22222->dddddd,d2d,1100 io, mq, d$ miss"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage info
+		tb_REQ_valid = 1'b1;
+		tb_REQ_is_store = 1'b1;
+		tb_REQ_is_amo = 1'b0;
+		tb_REQ_is_fence = 1'b0;
+		tb_REQ_op = 4'b0010;
+		tb_REQ_is_mq = 1'b0;
+		tb_REQ_misaligned = 1'b1;
+		tb_REQ_misaligned_exception = 1'b0;
+		tb_REQ_VPN = 20'h33333;
+		tb_REQ_PO_word = 10'hc3c;
+		tb_REQ_byte_mask = 4'b1110;
+		tb_REQ_write_data = 32'hc3c3c3c3;
+		tb_REQ_cq_index = 3;
+	    // REQ stage feedback
+	    // op enqueue to misaligned queue
+	    // misaligned queue enqueue feedback
+		tb_stamofu_mq_enq_ready = 1'b0;
+		tb_stamofu_mq_enq_index = 'h0;
+	    // dtlb req
+	    // dtlb req feedback
+		tb_dtlb_req_ready = 1'b1;
+	    // dtlb resp
+		tb_dtlb_resp_hit = 1'b1;
+		tb_dtlb_resp_PPN = 22'hdddddd;
+		tb_dtlb_resp_is_mem = 1'b0;
+		tb_dtlb_resp_page_fault = 1'b0;
+		tb_dtlb_resp_access_fault = 1'b0;
+	    // dcache req
+	    // dcache req feedback
+		tb_dcache_req_ready = 1'b1;
+	    // dcache resp
+		tb_dcache_resp_valid_by_way = 2'b11;
+		tb_dcache_resp_exclusive_by_way = 2'b10;
+		tb_dcache_resp_tag_by_way = {22'h022222, 22'hdddddd};
+	    // dcache resp feedback
+	    // CAM launch
+	    // central queue info grab
+		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
+		tb_stamofu_cq_info_grab_io_aq = 1'b0;
+		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
+		tb_stamofu_cq_info_grab_io_rl = 1'b0;
+		tb_stamofu_cq_info_grab_ROB_index = 7'hd2;
+	    // central queue info ret
+	    // misaligned queue info ret
+	    // aq update
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage info
+	    // REQ stage feedback
+		expected_REQ_ack = 1'b1;
+	    // op enqueue to misaligned queue
+		expected_stamofu_mq_enq_valid = 1'b0;
+	    // misaligned queue enqueue feedback
+	    // dtlb req
+		expected_dtlb_req_valid = 1'b1;
+		expected_dtlb_req_VPN = 20'h33333;
+	    // dtlb req feedback
+	    // dtlb resp
+	    // dcache req
+		expected_dcache_req_valid = 1'b1;
+		expected_dcache_req_block_offset = 'hc3c << 2;
+		expected_dcache_req_index = 'hc3c >> 4;
+	    // dcache req feedback
+	    // dcache resp
+	    // dcache resp feedback
+		expected_dcache_resp_hit_valid = 1'b0;
+		expected_dcache_resp_hit_exclusive = 1'b1;
+		expected_dcache_resp_hit_way = 1'b0;
+		expected_dcache_resp_miss_valid = 1'b1;
+		expected_dcache_resp_miss_exclusive = 1'b1;
+		expected_dcache_resp_miss_tag = 22'hdddddd;
+	    // CAM launch
+		expected_ldu_CAM_launch_valid = 1'b1;
+		expected_ldu_CAM_launch_PA_word = {22'hdddddd, 10'hd2d};
+		expected_ldu_CAM_launch_byte_mask = 4'b0001;
+		expected_ldu_CAM_launch_write_data = 32'hd2d2d2d2;
+		expected_ldu_CAM_launch_ROB_index = 7'hd2;
+		expected_ldu_CAM_launch_cq_index = 2;
+		expected_ldu_CAM_launch_is_mq = 1'b1;
+		expected_ldu_CAM_launch_mq_index = 'hd;
+	    // central queue info grab
+		expected_stamofu_cq_info_grab_cq_index = 2;
+	    // central queue info ret
+		expected_stamofu_cq_info_ret_valid = 1'b0;
+		expected_stamofu_cq_info_ret_cq_index = 2;
+		expected_stamofu_cq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_cq_info_ret_page_fault = 1'b0;
+		expected_stamofu_cq_info_ret_access_fault = 1'b0;
+		expected_stamofu_cq_info_ret_is_mem = 1'b0;
+		expected_stamofu_cq_info_ret_mem_aq = 1'b0;
+		expected_stamofu_cq_info_ret_io_aq = 1'b0;
+		expected_stamofu_cq_info_ret_mem_rl = 1'b0;
+		expected_stamofu_cq_info_ret_io_rl = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned = 1'b1;
+		expected_stamofu_cq_info_ret_misaligned_exception = 1'b0;
+		expected_stamofu_cq_info_ret_PA_word = {22'hdddddd, 10'hd2d};
+		expected_stamofu_cq_info_ret_byte_mask = 4'b0001;
+		expected_stamofu_cq_info_ret_data = 32'hd2d2d2d2;
+	    // misaligned queue info ret
+		expected_stamofu_mq_info_ret_valid = 1'b1;
+		expected_stamofu_mq_info_ret_mq_index = 'hd;
+		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_mq_info_ret_page_fault = 1'b0;
+		expected_stamofu_mq_info_ret_access_fault = 1'b0;
+		expected_stamofu_mq_info_ret_is_mem = 1'b0;
+		expected_stamofu_mq_info_ret_PA_word = {22'hdddddd, 10'hd2d};
+		expected_stamofu_mq_info_ret_byte_mask = 4'b0001;
+		expected_stamofu_mq_info_ret_data = 32'hd2d2d2d2;
+	    // aq update
+		expected_stamofu_aq_update_valid = 1'b0;
+		expected_stamofu_aq_update_mem_aq = 1'b0;
+		expected_stamofu_aq_update_io_aq = 1'b0;
+		expected_stamofu_aq_update_ROB_index = 7'hd2;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tREQ: 4: SB b4, 44444->bbbbbb,b4b,0001 mem, cq, no d$",
+			"\n\t\tRESP: 3: SW c3, 33333->cccccc,c3c3,1110 mem, cq, dtlb miss"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage info
+		tb_REQ_valid = 1'b1;
+		tb_REQ_is_store = 1'b1;
+		tb_REQ_is_amo = 1'b0;
+		tb_REQ_is_fence = 1'b0;
+		tb_REQ_op = 4'b1000;
+		tb_REQ_is_mq = 1'b0;
+		tb_REQ_misaligned = 1'b0;
+		tb_REQ_misaligned_exception = 1'b0;
+		tb_REQ_VPN = 20'h44444;
+		tb_REQ_PO_word = 10'hb4b;
+		tb_REQ_byte_mask = 4'b0001;
+		tb_REQ_write_data = 32'hb4b4b4b4;
+		tb_REQ_cq_index = 4;
+	    // REQ stage feedback
+	    // op enqueue to misaligned queue
+	    // misaligned queue enqueue feedback
+		tb_stamofu_mq_enq_ready = 1'b0;
+		tb_stamofu_mq_enq_index = 'h0;
+	    // dtlb req
+	    // dtlb req feedback
+		tb_dtlb_req_ready = 1'b1;
+	    // dtlb resp
+		tb_dtlb_resp_hit = 1'b0;
+		tb_dtlb_resp_PPN = 22'hcccccc;
+		tb_dtlb_resp_is_mem = 1'b1;
+		tb_dtlb_resp_page_fault = 1'b0;
+		tb_dtlb_resp_access_fault = 1'b0;
+	    // dcache req
+	    // dcache req feedback
+		tb_dcache_req_ready = 1'b0;
+	    // dcache resp
+		tb_dcache_resp_valid_by_way = 2'b11;
+		tb_dcache_resp_exclusive_by_way = 2'b10;
+		tb_dcache_resp_tag_by_way = {22'hcccccc, 22'hdddddd};
+	    // dcache resp feedback
+	    // CAM launch
+	    // central queue info grab
+		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
+		tb_stamofu_cq_info_grab_io_aq = 1'b0;
+		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
+		tb_stamofu_cq_info_grab_io_rl = 1'b0;
+		tb_stamofu_cq_info_grab_ROB_index = 7'hc3;
+	    // central queue info ret
+	    // misaligned queue info ret
+	    // aq update
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage info
+	    // REQ stage feedback
+		expected_REQ_ack = 1'b1;
+	    // op enqueue to misaligned queue
+		expected_stamofu_mq_enq_valid = 1'b0;
+	    // misaligned queue enqueue feedback
+	    // dtlb req
+		expected_dtlb_req_valid = 1'b1;
+		expected_dtlb_req_VPN = 20'h44444;
+	    // dtlb req feedback
+	    // dtlb resp
+	    // dcache req
+		expected_dcache_req_valid = 1'b1;
+		expected_dcache_req_block_offset = 'hb4b << 2;
+		expected_dcache_req_index = 'hb4b >> 4;
+	    // dcache req feedback
+	    // dcache resp
+	    // dcache resp feedback
+		expected_dcache_resp_hit_valid = 1'b0;
+		expected_dcache_resp_hit_exclusive = 1'b1;
+		expected_dcache_resp_hit_way = 1'b1;
+		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_exclusive = 1'b1;
+		expected_dcache_resp_miss_tag = 22'hcccccc;
+	    // CAM launch
+		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_PA_word = {22'hcccccc, 10'hc3c};
+		expected_ldu_CAM_launch_byte_mask = 4'b1110;
+		expected_ldu_CAM_launch_write_data = 32'hc3c3c3c3;
+		expected_ldu_CAM_launch_ROB_index = 7'hc3;
+		expected_ldu_CAM_launch_cq_index = 3;
+		expected_ldu_CAM_launch_is_mq = 1'b0;
+		expected_ldu_CAM_launch_mq_index = 'h0;
+	    // central queue info grab
+		expected_stamofu_cq_info_grab_cq_index = 3;
+	    // central queue info ret
+		expected_stamofu_cq_info_ret_valid = 1'b1;
+		expected_stamofu_cq_info_ret_cq_index = 3;
+		expected_stamofu_cq_info_ret_dtlb_hit = 1'b0;
+		expected_stamofu_cq_info_ret_page_fault = 1'b0;
+		expected_stamofu_cq_info_ret_access_fault = 1'b0;
+		expected_stamofu_cq_info_ret_is_mem = 1'b1;
+		expected_stamofu_cq_info_ret_mem_aq = 1'b0;
+		expected_stamofu_cq_info_ret_io_aq = 1'b0;
+		expected_stamofu_cq_info_ret_mem_rl = 1'b0;
+		expected_stamofu_cq_info_ret_io_rl = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned = 1'b1;
+		expected_stamofu_cq_info_ret_misaligned_exception = 1'b0;
+		expected_stamofu_cq_info_ret_PA_word = {22'hcccccc, 10'hc3c};
+		expected_stamofu_cq_info_ret_byte_mask = 4'b1110;
+		expected_stamofu_cq_info_ret_data = 32'hc3c3c3c3;
+	    // misaligned queue info ret
+		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_mq_index = 'h0;
+		expected_stamofu_mq_info_ret_dtlb_hit = 1'b0;
+		expected_stamofu_mq_info_ret_page_fault = 1'b0;
+		expected_stamofu_mq_info_ret_access_fault = 1'b0;
+		expected_stamofu_mq_info_ret_is_mem = 1'b1;
+		expected_stamofu_mq_info_ret_PA_word = {22'hcccccc, 10'hc3c};
+		expected_stamofu_mq_info_ret_byte_mask = 4'b1110;
+		expected_stamofu_mq_info_ret_data = 32'hc3c3c3c3;
+	    // aq update
+		expected_stamofu_aq_update_valid = 1'b0;
+		expected_stamofu_aq_update_mem_aq = 1'b0;
+		expected_stamofu_aq_update_io_aq = 1'b0;
+		expected_stamofu_aq_update_ROB_index = 7'hc3;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tREQ: 5: SH a5, 55555->aaaaaa,a5a,0110 io, cq, pf",
+			"\n\t\tRESP: 4: SB b4, 44444->bbbbbb,b4b,0001 mem, cq, no d$"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage info
+		tb_REQ_valid = 1'b1;
+		tb_REQ_is_store = 1'b1;
+		tb_REQ_is_amo = 1'b0;
+		tb_REQ_is_fence = 1'b0;
+		tb_REQ_op = 4'b0001;
+		tb_REQ_is_mq = 1'b0;
+		tb_REQ_misaligned = 1'b0;
+		tb_REQ_misaligned_exception = 1'b0;
+		tb_REQ_VPN = 20'h55555;
+		tb_REQ_PO_word = 10'ha5a;
+		tb_REQ_byte_mask = 4'b0110;
+		tb_REQ_write_data = 32'ha5a5a5a5;
+		tb_REQ_cq_index = 5;
+	    // REQ stage feedback
+	    // op enqueue to misaligned queue
+	    // misaligned queue enqueue feedback
+		tb_stamofu_mq_enq_ready = 1'b0;
+		tb_stamofu_mq_enq_index = 'h0;
+	    // dtlb req
+	    // dtlb req feedback
+		tb_dtlb_req_ready = 1'b1;
+	    // dtlb resp
+		tb_dtlb_resp_hit = 1'b1;
+		tb_dtlb_resp_PPN = 22'hbbbbbb;
+		tb_dtlb_resp_is_mem = 1'b1;
+		tb_dtlb_resp_page_fault = 1'b0;
+		tb_dtlb_resp_access_fault = 1'b0;
+	    // dcache req
+	    // dcache req feedback
+		tb_dcache_req_ready = 1'b1;
+	    // dcache resp
+		tb_dcache_resp_valid_by_way = 2'b11;
+		tb_dcache_resp_exclusive_by_way = 2'b01;
+		tb_dcache_resp_tag_by_way = {22'hcccccc, 22'hbbbbbb};
+	    // dcache resp feedback
+	    // CAM launch
+	    // central queue info grab
+		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
+		tb_stamofu_cq_info_grab_io_aq = 1'b0;
+		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
+		tb_stamofu_cq_info_grab_io_rl = 1'b0;
+		tb_stamofu_cq_info_grab_ROB_index = 7'hb4;
+	    // central queue info ret
+	    // misaligned queue info ret
+	    // aq update
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage info
+	    // REQ stage feedback
+		expected_REQ_ack = 1'b1;
+	    // op enqueue to misaligned queue
+		expected_stamofu_mq_enq_valid = 1'b0;
+	    // misaligned queue enqueue feedback
+	    // dtlb req
+		expected_dtlb_req_valid = 1'b1;
+		expected_dtlb_req_VPN = 20'h55555;
+	    // dtlb req feedback
+	    // dtlb resp
+	    // dcache req
+		expected_dcache_req_valid = 1'b1;
+		expected_dcache_req_block_offset = 'ha5a << 2;
+		expected_dcache_req_index = 'ha5a >> 4;
+	    // dcache req feedback
+	    // dcache resp
+	    // dcache resp feedback
+		expected_dcache_resp_hit_valid = 1'b0;
+		expected_dcache_resp_hit_exclusive = 1'b1;
+		expected_dcache_resp_hit_way = 1'b0;
+		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_exclusive = 1'b1;
+		expected_dcache_resp_miss_tag = 22'hbbbbbb;
+	    // CAM launch
+		expected_ldu_CAM_launch_valid = 1'b1;
+		expected_ldu_CAM_launch_PA_word = {22'hbbbbbb, 10'hb4b};
+		expected_ldu_CAM_launch_byte_mask = 4'b0001;
+		expected_ldu_CAM_launch_write_data = 32'hb4b4b4b4;
+		expected_ldu_CAM_launch_ROB_index = 7'hb4;
+		expected_ldu_CAM_launch_cq_index = 4;
+		expected_ldu_CAM_launch_is_mq = 1'b0;
+		expected_ldu_CAM_launch_mq_index = 'h0;
+	    // central queue info grab
+		expected_stamofu_cq_info_grab_cq_index = 4;
+	    // central queue info ret
+		expected_stamofu_cq_info_ret_valid = 1'b1;
+		expected_stamofu_cq_info_ret_cq_index = 4;
+		expected_stamofu_cq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_cq_info_ret_page_fault = 1'b0;
+		expected_stamofu_cq_info_ret_access_fault = 1'b0;
+		expected_stamofu_cq_info_ret_is_mem = 1'b1;
+		expected_stamofu_cq_info_ret_mem_aq = 1'b0;
+		expected_stamofu_cq_info_ret_io_aq = 1'b0;
+		expected_stamofu_cq_info_ret_mem_rl = 1'b0;
+		expected_stamofu_cq_info_ret_io_rl = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned_exception = 1'b0;
+		expected_stamofu_cq_info_ret_PA_word = {22'hbbbbbb, 10'hb4b};
+		expected_stamofu_cq_info_ret_byte_mask = 4'b0001;
+		expected_stamofu_cq_info_ret_data = 32'hb4b4b4b4;
+	    // misaligned queue info ret
+		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_mq_index = 'h0;
+		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_mq_info_ret_page_fault = 1'b0;
+		expected_stamofu_mq_info_ret_access_fault = 1'b0;
+		expected_stamofu_mq_info_ret_is_mem = 1'b1;
+		expected_stamofu_mq_info_ret_PA_word = {22'hbbbbbb, 10'hb4b};
+		expected_stamofu_mq_info_ret_byte_mask = 4'b0001;
+		expected_stamofu_mq_info_ret_data = 32'hb4b4b4b4;
+	    // aq update
+		expected_stamofu_aq_update_valid = 1'b0;
+		expected_stamofu_aq_update_mem_aq = 1'b0;
+		expected_stamofu_aq_update_io_aq = 1'b0;
+		expected_stamofu_aq_update_ROB_index = 7'hb4;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tREQ: 6: LR.W 96, 66666->999999,969,1111 mem, cq, d$ hit",
+			"\n\t\tRESP: 5: SH a5, 55555->aaaaaa,a5a,0110 io, cq, pf"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage info
+		tb_REQ_valid = 1'b1;
+		tb_REQ_is_store = 1'b0;
+		tb_REQ_is_amo = 1'b1;
+		tb_REQ_is_fence = 1'b0;
+		tb_REQ_op = 4'b0010;
+		tb_REQ_is_mq = 1'b0;
+		tb_REQ_misaligned = 1'b0;
+		tb_REQ_misaligned_exception = 1'b0;
+		tb_REQ_VPN = 20'h66666;
+		tb_REQ_PO_word = 10'h969;
+		tb_REQ_byte_mask = 4'b1111;
+		tb_REQ_write_data = 32'h96969696;
+		tb_REQ_cq_index = 6;
+	    // REQ stage feedback
+	    // op enqueue to misaligned queue
+	    // misaligned queue enqueue feedback
+		tb_stamofu_mq_enq_ready = 1'b0;
+		tb_stamofu_mq_enq_index = 'h0;
+	    // dtlb req
+	    // dtlb req feedback
+		tb_dtlb_req_ready = 1'b1;
+	    // dtlb resp
+		tb_dtlb_resp_hit = 1'b1;
+		tb_dtlb_resp_PPN = 22'haaaaaa;
+		tb_dtlb_resp_is_mem = 1'b0;
+		tb_dtlb_resp_page_fault = 1'b1;
+		tb_dtlb_resp_access_fault = 1'b0;
+	    // dcache req
+	    // dcache req feedback
+		tb_dcache_req_ready = 1'b1;
+	    // dcache resp
+		tb_dcache_resp_valid_by_way = 2'b10;
+		tb_dcache_resp_exclusive_by_way = 2'b01;
+		tb_dcache_resp_tag_by_way = {22'haaaaaa, 22'hbbbbbb};
+	    // dcache resp feedback
+	    // CAM launch
+	    // central queue info grab
+		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
+		tb_stamofu_cq_info_grab_io_aq = 1'b0;
+		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
+		tb_stamofu_cq_info_grab_io_rl = 1'b0;
+		tb_stamofu_cq_info_grab_ROB_index = 7'ha5;
+	    // central queue info ret
+	    // misaligned queue info ret
+	    // aq update
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage info
+	    // REQ stage feedback
+		expected_REQ_ack = 1'b1;
+	    // op enqueue to misaligned queue
+		expected_stamofu_mq_enq_valid = 1'b0;
+	    // misaligned queue enqueue feedback
+	    // dtlb req
+		expected_dtlb_req_valid = 1'b1;
+		expected_dtlb_req_VPN = 20'h66666;
+	    // dtlb req feedback
+	    // dtlb resp
+	    // dcache req
+		expected_dcache_req_valid = 1'b1;
+		expected_dcache_req_block_offset = 'h969 << 2;
+		expected_dcache_req_index = 'h969 >> 4;
+	    // dcache req feedback
+	    // dcache resp
+	    // dcache resp feedback
+		expected_dcache_resp_hit_valid = 1'b0;
+		expected_dcache_resp_hit_exclusive = 1'b1;
+		expected_dcache_resp_hit_way = 1'b0;
+		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_exclusive = 1'b1;
+		expected_dcache_resp_miss_tag = 22'haaaaaa;
+	    // CAM launch
+		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_PA_word = {22'h055555, 10'ha5a};
+		expected_ldu_CAM_launch_byte_mask = 4'b0110;
+		expected_ldu_CAM_launch_write_data = 32'ha5a5a5a5;
+		expected_ldu_CAM_launch_ROB_index = 7'ha5;
+		expected_ldu_CAM_launch_cq_index = 5;
+		expected_ldu_CAM_launch_is_mq = 1'b0;
+		expected_ldu_CAM_launch_mq_index = 'h0;
+	    // central queue info grab
+		expected_stamofu_cq_info_grab_cq_index = 5;
+	    // central queue info ret
+		expected_stamofu_cq_info_ret_valid = 1'b1;
+		expected_stamofu_cq_info_ret_cq_index = 5;
+		expected_stamofu_cq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_cq_info_ret_page_fault = 1'b1;
+		expected_stamofu_cq_info_ret_access_fault = 1'b0;
+		expected_stamofu_cq_info_ret_is_mem = 1'b0;
+		expected_stamofu_cq_info_ret_mem_aq = 1'b0;
+		expected_stamofu_cq_info_ret_io_aq = 1'b0;
+		expected_stamofu_cq_info_ret_mem_rl = 1'b0;
+		expected_stamofu_cq_info_ret_io_rl = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned_exception = 1'b0;
+		expected_stamofu_cq_info_ret_PA_word = {22'h055555, 10'ha5a};
+		expected_stamofu_cq_info_ret_byte_mask = 4'b0110;
+		expected_stamofu_cq_info_ret_data = 32'ha5a5a5a5;
+	    // misaligned queue info ret
+		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_mq_index = 'h0;
+		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_mq_info_ret_page_fault = 1'b1;
+		expected_stamofu_mq_info_ret_access_fault = 1'b0;
+		expected_stamofu_mq_info_ret_is_mem = 1'b0;
+		expected_stamofu_mq_info_ret_PA_word = {22'h055555, 10'ha5a};
+		expected_stamofu_mq_info_ret_byte_mask = 4'b0110;
+		expected_stamofu_mq_info_ret_data = 32'ha5a5a5a5;
+	    // aq update
+		expected_stamofu_aq_update_valid = 1'b0;
+		expected_stamofu_aq_update_mem_aq = 1'b0;
+		expected_stamofu_aq_update_io_aq = 1'b0;
+		expected_stamofu_aq_update_ROB_index = 7'ha5;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tREQ: 7: SC.W 87, 77777->888888,878,1111 io, cq, don't give d$ miss",
+			"\n\t\tRESP: 6: LR.W 96, 66666->999999,969,1111 mem, cq, d$ hit"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage info
+		tb_REQ_valid = 1'b1;
+		tb_REQ_is_store = 1'b0;
+		tb_REQ_is_amo = 1'b1;
+		tb_REQ_is_fence = 1'b0;
+		tb_REQ_op = 4'b0011;
+		tb_REQ_is_mq = 1'b0;
+		tb_REQ_misaligned = 1'b0;
+		tb_REQ_misaligned_exception = 1'b0;
+		tb_REQ_VPN = 20'h77777;
+		tb_REQ_PO_word = 10'h878;
+		tb_REQ_byte_mask = 4'b1111;
+		tb_REQ_write_data = 32'h87878787;
+		tb_REQ_cq_index = 'h7;
+	    // REQ stage feedback
+	    // op enqueue to misaligned queue
+	    // misaligned queue enqueue feedback
+		tb_stamofu_mq_enq_ready = 1'b0;
+		tb_stamofu_mq_enq_index = 'h0;
+	    // dtlb req
+	    // dtlb req feedback
+		tb_dtlb_req_ready = 1'b1;
+	    // dtlb resp
+		tb_dtlb_resp_hit = 1'b1;
+		tb_dtlb_resp_PPN = 22'h999999;
+		tb_dtlb_resp_is_mem = 1'b1;
+		tb_dtlb_resp_page_fault = 1'b0;
+		tb_dtlb_resp_access_fault = 1'b0;
+	    // dcache req
+	    // dcache req feedback
+		tb_dcache_req_ready = 1'b1;
+	    // dcache resp
+		tb_dcache_resp_valid_by_way = 2'b01;
+		tb_dcache_resp_exclusive_by_way = 2'b10;
+		tb_dcache_resp_tag_by_way = {22'haaaaaa, 22'h999999};
+	    // dcache resp feedback
+	    // CAM launch
+	    // central queue info grab
+		tb_stamofu_cq_info_grab_mem_aq = 1'b1;
+		tb_stamofu_cq_info_grab_io_aq = 1'b1;
+		tb_stamofu_cq_info_grab_mem_rl = 1'b1;
+		tb_stamofu_cq_info_grab_io_rl = 1'b1;
+		tb_stamofu_cq_info_grab_ROB_index = 7'h96;
+	    // central queue info ret
+	    // misaligned queue info ret
+	    // aq update
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage info
+	    // REQ stage feedback
+		expected_REQ_ack = 1'b1;
+	    // op enqueue to misaligned queue
+		expected_stamofu_mq_enq_valid = 1'b0;
+	    // misaligned queue enqueue feedback
+	    // dtlb req
+		expected_dtlb_req_valid = 1'b1;
+		expected_dtlb_req_VPN = 20'h77777;
+	    // dtlb req feedback
+	    // dtlb resp
+	    // dcache req
+		expected_dcache_req_valid = 1'b0;
+		expected_dcache_req_block_offset = 'h878 << 2;
+		expected_dcache_req_index = 'h878 >> 4;
+	    // dcache req feedback
+	    // dcache resp
+	    // dcache resp feedback
+		expected_dcache_resp_hit_valid = 1'b1;
+		expected_dcache_resp_hit_exclusive = 1'b0;
+		expected_dcache_resp_hit_way = 1'b0;
+		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_exclusive = 1'b0;
+		expected_dcache_resp_miss_tag = 22'h999999;
+	    // CAM launch
+		expected_ldu_CAM_launch_valid = 1'b1;
+		expected_ldu_CAM_launch_PA_word = {22'h999999, 10'h969};
+		expected_ldu_CAM_launch_byte_mask = 4'b1111;
+		expected_ldu_CAM_launch_write_data = 32'h96969696;
+		expected_ldu_CAM_launch_ROB_index = 7'h96;
+		expected_ldu_CAM_launch_cq_index = 'h6;
+		expected_ldu_CAM_launch_is_mq = 1'b0;
+		expected_ldu_CAM_launch_mq_index = 'h0;
+	    // central queue info grab
+		expected_stamofu_cq_info_grab_cq_index = 'h6;
+	    // central queue info ret
+		expected_stamofu_cq_info_ret_valid = 1'b1;
+		expected_stamofu_cq_info_ret_cq_index = 6;
+		expected_stamofu_cq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_cq_info_ret_page_fault = 1'b0;
+		expected_stamofu_cq_info_ret_access_fault = 1'b0;
+		expected_stamofu_cq_info_ret_is_mem = 1'b1;
+		expected_stamofu_cq_info_ret_mem_aq = 1'b1;
+		expected_stamofu_cq_info_ret_io_aq = 1'b0;
+		expected_stamofu_cq_info_ret_mem_rl = 1'b1;
+		expected_stamofu_cq_info_ret_io_rl = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned_exception = 1'b0;
+		expected_stamofu_cq_info_ret_PA_word = {22'h999999, 10'h969};
+		expected_stamofu_cq_info_ret_byte_mask = 4'b1111;
+		expected_stamofu_cq_info_ret_data = 32'h96969696;
+	    // misaligned queue info ret
+		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_mq_index = 'h0;
+		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_mq_info_ret_page_fault = 1'b0;
+		expected_stamofu_mq_info_ret_access_fault = 1'b0;
+		expected_stamofu_mq_info_ret_is_mem = 1'b1;
+		expected_stamofu_mq_info_ret_PA_word = {22'h999999, 10'h969};
+		expected_stamofu_mq_info_ret_byte_mask = 4'b1111;
+		expected_stamofu_mq_info_ret_data = 32'h96969696;
+	    // aq update
+		expected_stamofu_aq_update_valid = 1'b1;
+		expected_stamofu_aq_update_mem_aq = 1'b1;
+		expected_stamofu_aq_update_io_aq = 1'b0;
+		expected_stamofu_aq_update_ROB_index = 7'h96;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tREQ: 8: AMOMAX.W 78, 88888->7777777,787,1100 mem, cq, misaligned exception",
+			"\n\t\tRESP: 7: SC.W 87, 77777->888888,878,1111 io, cq, don't give d$ miss"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage info
+		tb_REQ_valid = 1'b1;
+		tb_REQ_is_store = 1'b0;
+		tb_REQ_is_amo = 1'b1;
+		tb_REQ_is_fence = 1'b0;
+		tb_REQ_op = 4'b1101;
+		tb_REQ_is_mq = 1'b0;
+		tb_REQ_misaligned = 1'b0;
+		tb_REQ_misaligned_exception = 1'b1;
+		tb_REQ_VPN = 20'h88888;
+		tb_REQ_PO_word = 10'h787;
+		tb_REQ_byte_mask = 4'b1100;
+		tb_REQ_write_data = 32'h78787878;
+		tb_REQ_cq_index = 'h8;
+	    // REQ stage feedback
+	    // op enqueue to misaligned queue
+	    // misaligned queue enqueue feedback
+		tb_stamofu_mq_enq_ready = 1'b0;
+		tb_stamofu_mq_enq_index = 'h0;
+	    // dtlb req
+	    // dtlb req feedback
+		tb_dtlb_req_ready = 1'b0;
+	    // dtlb resp
+		tb_dtlb_resp_hit = 1'b1;
+		tb_dtlb_resp_PPN = 22'h888888;
+		tb_dtlb_resp_is_mem = 1'b0;
+		tb_dtlb_resp_page_fault = 1'b0;
+		tb_dtlb_resp_access_fault = 1'b0;
+	    // dcache req
+	    // dcache req feedback
+		tb_dcache_req_ready = 1'b0;
+	    // dcache resp
+		tb_dcache_resp_valid_by_way = 2'b11;
+		tb_dcache_resp_exclusive_by_way = 2'b10;
+		tb_dcache_resp_tag_by_way = {22'h888888, 22'h999999};
+	    // dcache resp feedback
+	    // CAM launch
+	    // central queue info grab
+		tb_stamofu_cq_info_grab_mem_aq = 1'b1;
+		tb_stamofu_cq_info_grab_io_aq = 1'b1;
+		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
+		tb_stamofu_cq_info_grab_io_rl = 1'b0;
+		tb_stamofu_cq_info_grab_ROB_index = 7'h87;
+	    // central queue info ret
+	    // misaligned queue info ret
+	    // aq update
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage info
+	    // REQ stage feedback
+		expected_REQ_ack = 1'b1;
+	    // op enqueue to misaligned queue
+		expected_stamofu_mq_enq_valid = 1'b0;
+	    // misaligned queue enqueue feedback
+	    // dtlb req
+		expected_dtlb_req_valid = 1'b0;
+		expected_dtlb_req_VPN = 20'h88888;
+	    // dtlb req feedback
+	    // dtlb resp
+	    // dcache req
+		expected_dcache_req_valid = 1'b0;
+		expected_dcache_req_block_offset = 'h787 << 2;
+		expected_dcache_req_index = 'h787 >> 4;
+	    // dcache req feedback
+	    // dcache resp
+	    // dcache resp feedback
+		expected_dcache_resp_hit_valid = 1'b0;
+		expected_dcache_resp_hit_exclusive = 1'b1;
+		expected_dcache_resp_hit_way = 1'b1;
+		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_exclusive = 1'b1;
+		expected_dcache_resp_miss_tag = 22'h888888;
+	    // CAM launch
+		expected_ldu_CAM_launch_valid = 1'b1;
+		expected_ldu_CAM_launch_PA_word = {22'h888888, 10'h878};
+		expected_ldu_CAM_launch_byte_mask = 4'b1111;
+		expected_ldu_CAM_launch_write_data = 32'h87878787;
+		expected_ldu_CAM_launch_ROB_index = 7'h87;
+		expected_ldu_CAM_launch_cq_index = 'h7;
+		expected_ldu_CAM_launch_is_mq = 1'b0;
+		expected_ldu_CAM_launch_mq_index = 'h0;
+	    // central queue info grab
+		expected_stamofu_cq_info_grab_cq_index = 'h7;
+	    // central queue info ret
+		expected_stamofu_cq_info_ret_valid = 1'b1;
+		expected_stamofu_cq_info_ret_cq_index = 'h7;
+		expected_stamofu_cq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_cq_info_ret_page_fault = 1'b0;
+		expected_stamofu_cq_info_ret_access_fault = 1'b0;
+		expected_stamofu_cq_info_ret_is_mem = 1'b0;
+		expected_stamofu_cq_info_ret_mem_aq = 1'b0;
+		expected_stamofu_cq_info_ret_io_aq = 1'b1;
+		expected_stamofu_cq_info_ret_mem_rl = 1'b0;
+		expected_stamofu_cq_info_ret_io_rl = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned_exception = 1'b0;
+		expected_stamofu_cq_info_ret_PA_word = {22'h888888, 10'h878};
+		expected_stamofu_cq_info_ret_byte_mask = 4'b1111;
+		expected_stamofu_cq_info_ret_data = 32'h87878787;
+	    // misaligned queue info ret
+		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_mq_index = 'h0;
+		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_mq_info_ret_page_fault = 1'b0;
+		expected_stamofu_mq_info_ret_access_fault = 1'b0;
+		expected_stamofu_mq_info_ret_is_mem = 1'b0;
+		expected_stamofu_mq_info_ret_PA_word = {22'h888888, 10'h878};
+		expected_stamofu_mq_info_ret_byte_mask = 4'b1111;
+		expected_stamofu_mq_info_ret_data = 32'h87878787;
+	    // aq update
+		expected_stamofu_aq_update_valid = 1'b1;
+		expected_stamofu_aq_update_mem_aq = 1'b0;
+		expected_stamofu_aq_update_io_aq = 1'b1;
+		expected_stamofu_aq_update_ROB_index = 7'h87;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tREQ: 9: SFENCE.VMA 69, 99999->666666,696,1110 cq",
+			"\n\t\tRESP: 8: AMOMAX.W 78, 88888->7777777,787,1100 mem, cq, misaligned exception"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage info
+		tb_REQ_valid = 1'b1;
+		tb_REQ_is_store = 1'b0;
+		tb_REQ_is_amo = 1'b0;
+		tb_REQ_is_fence = 1'b1;
+		tb_REQ_op = 4'b1110;
+		tb_REQ_is_mq = 1'b0;
+		tb_REQ_misaligned = 1'b0;
+		tb_REQ_misaligned_exception = 1'b0;
+		tb_REQ_VPN = 20'h99999;
+		tb_REQ_PO_word = 10'h696;
+		tb_REQ_byte_mask = 4'b1110;
+		tb_REQ_write_data = 32'h69696969;
+		tb_REQ_cq_index = 'h9;
+	    // REQ stage feedback
+	    // op enqueue to misaligned queue
+	    // misaligned queue enqueue feedback
+		tb_stamofu_mq_enq_ready = 1'b0;
+		tb_stamofu_mq_enq_index = 'h0;
+	    // dtlb req
+	    // dtlb req feedback
+		tb_dtlb_req_ready = 1'b0;
+	    // dtlb resp
+		tb_dtlb_resp_hit = 1'b1;
+		tb_dtlb_resp_PPN = 22'h777777;
+		tb_dtlb_resp_is_mem = 1'b1;
+		tb_dtlb_resp_page_fault = 1'b0;
+		tb_dtlb_resp_access_fault = 1'b0;
+	    // dcache req
+	    // dcache req feedback
+		tb_dcache_req_ready = 1'b0;
+	    // dcache resp
+		tb_dcache_resp_valid_by_way = 2'b11;
+		tb_dcache_resp_exclusive_by_way = 2'b11;
+		tb_dcache_resp_tag_by_way = {22'h888888, 22'h777777};
+	    // dcache resp feedback
+	    // CAM launch
+	    // central queue info grab
+		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
+		tb_stamofu_cq_info_grab_io_aq = 1'b0;
+		tb_stamofu_cq_info_grab_mem_rl = 1'b1;
+		tb_stamofu_cq_info_grab_io_rl = 1'b1;
+		tb_stamofu_cq_info_grab_ROB_index = 7'h78;
+	    // central queue info ret
+	    // misaligned queue info ret
+	    // aq update
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage info
+	    // REQ stage feedback
+		expected_REQ_ack = 1'b1;
+	    // op enqueue to misaligned queue
+		expected_stamofu_mq_enq_valid = 1'b0;
+	    // misaligned queue enqueue feedback
+	    // dtlb req
+		expected_dtlb_req_valid = 1'b0;
+		expected_dtlb_req_VPN = 20'h99999;
+	    // dtlb req feedback
+	    // dtlb resp
+	    // dcache req
+		expected_dcache_req_valid = 1'b0;
+		expected_dcache_req_block_offset = 'h696 << 2;
+		expected_dcache_req_index = 'h696 >> 4;
+	    // dcache req feedback
+	    // dcache resp
+	    // dcache resp feedback
+		expected_dcache_resp_hit_valid = 1'b0;
+		expected_dcache_resp_hit_exclusive = 1'b1;
+		expected_dcache_resp_hit_way = 1'b0;
+		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_exclusive = 1'b1;
+		expected_dcache_resp_miss_tag = 22'h777777;
+	    // CAM launch
+		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_PA_word = {22'h088888, 10'h787};
+		expected_ldu_CAM_launch_byte_mask = 4'b1100;
+		expected_ldu_CAM_launch_write_data = 32'h78787878;
+		expected_ldu_CAM_launch_ROB_index = 7'h78;
+		expected_ldu_CAM_launch_cq_index = 'h8;
+		expected_ldu_CAM_launch_is_mq = 1'b0;
+		expected_ldu_CAM_launch_mq_index = 'h0;
+	    // central queue info grab
+		expected_stamofu_cq_info_grab_cq_index = 'h8;
+	    // central queue info ret
+		expected_stamofu_cq_info_ret_valid = 1'b1;
+		expected_stamofu_cq_info_ret_cq_index = 'h8;
+		expected_stamofu_cq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_cq_info_ret_page_fault = 1'b0;
+		expected_stamofu_cq_info_ret_access_fault = 1'b0;
+		expected_stamofu_cq_info_ret_is_mem = 1'b1;
+		expected_stamofu_cq_info_ret_mem_aq = 1'b0;
+		expected_stamofu_cq_info_ret_io_aq = 1'b0;
+		expected_stamofu_cq_info_ret_mem_rl = 1'b1;
+		expected_stamofu_cq_info_ret_io_rl = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned_exception = 1'b1;
+		expected_stamofu_cq_info_ret_PA_word = {22'h088888, 10'h787};
+		expected_stamofu_cq_info_ret_byte_mask = 4'b1100;
+		expected_stamofu_cq_info_ret_data = 32'h78787878;
+	    // misaligned queue info ret
+		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_mq_index = 'h0;
+		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_mq_info_ret_page_fault = 1'b0;
+		expected_stamofu_mq_info_ret_access_fault = 1'b0;
+		expected_stamofu_mq_info_ret_is_mem = 1'b1;
+		expected_stamofu_mq_info_ret_PA_word = {22'h088888, 10'h787};
+		expected_stamofu_mq_info_ret_byte_mask = 4'b1100;
+		expected_stamofu_mq_info_ret_data = 32'h78787878;
+	    // aq update
+		expected_stamofu_aq_update_valid = 1'b1;
+		expected_stamofu_aq_update_mem_aq = 1'b0;
+		expected_stamofu_aq_update_io_aq = 1'b0;
+		expected_stamofu_aq_update_ROB_index = 7'h78;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tREQ: i",
+			"\n\t\tRESP: 9: SFENCE.VMA 69, 99999->666666,696,1110 cq"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage info
+		tb_REQ_valid = 1'b0;
+		tb_REQ_is_store = 1'b0;
+		tb_REQ_is_amo = 1'b0;
+		tb_REQ_is_fence = 1'b1;
+		tb_REQ_op = 4'b1110;
+		tb_REQ_is_mq = 1'b0;
+		tb_REQ_misaligned = 1'b0;
+		tb_REQ_misaligned_exception = 1'b0;
+		tb_REQ_VPN = 20'h99999;
+		tb_REQ_PO_word = 10'h696;
+		tb_REQ_byte_mask = 4'b1110;
+		tb_REQ_write_data = 32'h69696969;
+		tb_REQ_cq_index = 'h9;
+	    // REQ stage feedback
+	    // op enqueue to misaligned queue
+	    // misaligned queue enqueue feedback
+		tb_stamofu_mq_enq_ready = 1'b0;
+		tb_stamofu_mq_enq_index = 'h0;
+	    // dtlb req
+	    // dtlb req feedback
+		tb_dtlb_req_ready = 1'b0;
+	    // dtlb resp
+		tb_dtlb_resp_hit = 1'b1;
+		tb_dtlb_resp_PPN = 22'h666666;
+		tb_dtlb_resp_is_mem = 1'b1;
+		tb_dtlb_resp_page_fault = 1'b0;
+		tb_dtlb_resp_access_fault = 1'b0;
+	    // dcache req
+	    // dcache req feedback
+		tb_dcache_req_ready = 1'b0;
+	    // dcache resp
+		tb_dcache_resp_valid_by_way = 2'b11;
+		tb_dcache_resp_exclusive_by_way = 2'b11;
+		tb_dcache_resp_tag_by_way = {22'h666666, 22'h099999};
+	    // dcache resp feedback
+	    // CAM launch
+	    // central queue info grab
+		tb_stamofu_cq_info_grab_mem_aq = 1'b1;
+		tb_stamofu_cq_info_grab_io_aq = 1'b0;
+		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
+		tb_stamofu_cq_info_grab_io_rl = 1'b1;
+		tb_stamofu_cq_info_grab_ROB_index = 7'h69;
+	    // central queue info ret
+	    // misaligned queue info ret
+	    // aq update
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage info
+	    // REQ stage feedback
+		expected_REQ_ack = 1'b0;
+	    // op enqueue to misaligned queue
+		expected_stamofu_mq_enq_valid = 1'b0;
+	    // misaligned queue enqueue feedback
+	    // dtlb req
+		expected_dtlb_req_valid = 1'b0;
+		expected_dtlb_req_VPN = 20'h99999;
+	    // dtlb req feedback
+	    // dtlb resp
+	    // dcache req
+		expected_dcache_req_valid = 1'b0;
+		expected_dcache_req_block_offset = 'h696 << 2;
+		expected_dcache_req_index = 'h696 >> 4;
+	    // dcache req feedback
+	    // dcache resp
+	    // dcache resp feedback
+		expected_dcache_resp_hit_valid = 1'b0;
+		expected_dcache_resp_hit_exclusive = 1'b1;
+		expected_dcache_resp_hit_way = 1'b1;
+		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_exclusive = 1'b1;
+		expected_dcache_resp_miss_tag = 22'h666666;
+	    // CAM launch
+		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_PA_word = {22'h099999, 10'h696};
+		expected_ldu_CAM_launch_byte_mask = 4'b1110;
+		expected_ldu_CAM_launch_write_data = 32'h69696969;
+		expected_ldu_CAM_launch_ROB_index = 7'h69;
+		expected_ldu_CAM_launch_cq_index = 'h9;
+		expected_ldu_CAM_launch_is_mq = 1'b0;
+		expected_ldu_CAM_launch_mq_index = 'h0;
+	    // central queue info grab
+		expected_stamofu_cq_info_grab_cq_index = 'h9;
+	    // central queue info ret
+		expected_stamofu_cq_info_ret_valid = 1'b1;
+		expected_stamofu_cq_info_ret_cq_index = 'h9;
+		expected_stamofu_cq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_cq_info_ret_page_fault = 1'b0;
+		expected_stamofu_cq_info_ret_access_fault = 1'b0;
+		expected_stamofu_cq_info_ret_is_mem = 1'b1;
+		expected_stamofu_cq_info_ret_mem_aq = 1'b1;
+		expected_stamofu_cq_info_ret_io_aq = 1'b0;
+		expected_stamofu_cq_info_ret_mem_rl = 1'b0;
+		expected_stamofu_cq_info_ret_io_rl = 1'b1;
+		expected_stamofu_cq_info_ret_misaligned = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned_exception = 1'b0;
+		expected_stamofu_cq_info_ret_PA_word = {22'h099999, 10'h696};
+		expected_stamofu_cq_info_ret_byte_mask = 4'b1110;
+		expected_stamofu_cq_info_ret_data = 32'h69696969;
+	    // misaligned queue info ret
+		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_mq_index = 'h0;
+		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_mq_info_ret_page_fault = 1'b0;
+		expected_stamofu_mq_info_ret_access_fault = 1'b0;
+		expected_stamofu_mq_info_ret_is_mem = 1'b1;
+		expected_stamofu_mq_info_ret_PA_word = {22'h099999, 10'h696};
+		expected_stamofu_mq_info_ret_byte_mask = 4'b1110;
+		expected_stamofu_mq_info_ret_data = 32'h69696969;
+	    // aq update
+		expected_stamofu_aq_update_valid = 1'b0;
+		expected_stamofu_aq_update_mem_aq = 1'b1;
+		expected_stamofu_aq_update_io_aq = 1'b0;
+		expected_stamofu_aq_update_ROB_index = 7'h69;
 
 		check_outputs();
 
