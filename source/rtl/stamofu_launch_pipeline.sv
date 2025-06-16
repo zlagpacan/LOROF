@@ -88,6 +88,7 @@ module stamofu_launch_pipeline (
     output logic [PA_WIDTH-2-1:0]               ldu_CAM_launch_PA_word,
     output logic [3:0]                          ldu_CAM_launch_byte_mask,
     output logic [31:0]                         ldu_CAM_launch_write_data,
+    output logic [MDPT_INFO_WIDTH-1:0]          ldu_CAM_launch_mdp_info,
     output logic [LOG_ROB_ENTRIES-1:0]          ldu_CAM_launch_ROB_index,
     output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   ldu_CAM_launch_cq_index,
     output logic                                ldu_CAM_launch_is_mq,
@@ -95,6 +96,7 @@ module stamofu_launch_pipeline (
 
     // central queue info grab
     output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   stamofu_cq_info_grab_cq_index,
+    input logic [MDPT_INFO_WIDTH-1:0]           stamofu_cq_info_grab_mdp_info,
     input logic                                 stamofu_cq_info_grab_mem_aq,
     input logic                                 stamofu_cq_info_grab_io_aq,
     input logic                                 stamofu_cq_info_grab_mem_rl,
@@ -372,6 +374,7 @@ module stamofu_launch_pipeline (
         ldu_CAM_launch_PA_word = RESP_stage_return_PA_word;
         ldu_CAM_launch_byte_mask = RESP_stage_byte_mask;
         ldu_CAM_launch_write_data = RESP_stage_write_data;
+        ldu_CAM_launch_mdp_info = stamofu_cq_info_grab_mdp_info;
         ldu_CAM_launch_ROB_index = stamofu_cq_info_grab_ROB_index;
         ldu_CAM_launch_cq_index = RESP_stage_cq_index;
         ldu_CAM_launch_is_mq = RESP_stage_is_mq;

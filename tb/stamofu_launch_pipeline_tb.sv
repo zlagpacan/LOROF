@@ -107,6 +107,7 @@ module stamofu_launch_pipeline_tb ();
 	logic [PA_WIDTH-2-1:0] DUT_ldu_CAM_launch_PA_word, expected_ldu_CAM_launch_PA_word;
 	logic [3:0] DUT_ldu_CAM_launch_byte_mask, expected_ldu_CAM_launch_byte_mask;
 	logic [31:0] DUT_ldu_CAM_launch_write_data, expected_ldu_CAM_launch_write_data;
+	logic [MDPT_INFO_WIDTH-1:0] DUT_ldu_CAM_launch_mdp_info, expected_ldu_CAM_launch_mdp_info;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_ldu_CAM_launch_ROB_index, expected_ldu_CAM_launch_ROB_index;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] DUT_ldu_CAM_launch_cq_index, expected_ldu_CAM_launch_cq_index;
 	logic DUT_ldu_CAM_launch_is_mq, expected_ldu_CAM_launch_is_mq;
@@ -114,6 +115,7 @@ module stamofu_launch_pipeline_tb ();
 
     // central queue info grab
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] DUT_stamofu_cq_info_grab_cq_index, expected_stamofu_cq_info_grab_cq_index;
+	logic [MDPT_INFO_WIDTH-1:0] tb_stamofu_cq_info_grab_mdp_info;
 	logic tb_stamofu_cq_info_grab_mem_aq;
 	logic tb_stamofu_cq_info_grab_io_aq;
 	logic tb_stamofu_cq_info_grab_mem_rl;
@@ -235,6 +237,7 @@ module stamofu_launch_pipeline_tb ();
 		.ldu_CAM_launch_PA_word(DUT_ldu_CAM_launch_PA_word),
 		.ldu_CAM_launch_byte_mask(DUT_ldu_CAM_launch_byte_mask),
 		.ldu_CAM_launch_write_data(DUT_ldu_CAM_launch_write_data),
+		.ldu_CAM_launch_mdp_info(DUT_ldu_CAM_launch_mdp_info),
 		.ldu_CAM_launch_ROB_index(DUT_ldu_CAM_launch_ROB_index),
 		.ldu_CAM_launch_cq_index(DUT_ldu_CAM_launch_cq_index),
 		.ldu_CAM_launch_is_mq(DUT_ldu_CAM_launch_is_mq),
@@ -242,6 +245,7 @@ module stamofu_launch_pipeline_tb ();
 
 	    // central queue info grab
 		.stamofu_cq_info_grab_cq_index(DUT_stamofu_cq_info_grab_cq_index),
+		.stamofu_cq_info_grab_mdp_info(tb_stamofu_cq_info_grab_mdp_info),
 		.stamofu_cq_info_grab_mem_aq(tb_stamofu_cq_info_grab_mem_aq),
 		.stamofu_cq_info_grab_io_aq(tb_stamofu_cq_info_grab_io_aq),
 		.stamofu_cq_info_grab_mem_rl(tb_stamofu_cq_info_grab_mem_rl),
@@ -445,6 +449,13 @@ module stamofu_launch_pipeline_tb ();
 		if (expected_ldu_CAM_launch_write_data !== DUT_ldu_CAM_launch_write_data) begin
 			$display("TB ERROR: expected_ldu_CAM_launch_write_data (%h) != DUT_ldu_CAM_launch_write_data (%h)",
 				expected_ldu_CAM_launch_write_data, DUT_ldu_CAM_launch_write_data);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_ldu_CAM_launch_mdp_info !== DUT_ldu_CAM_launch_mdp_info) begin
+			$display("TB ERROR: expected_ldu_CAM_launch_mdp_info (%h) != DUT_ldu_CAM_launch_mdp_info (%h)",
+				expected_ldu_CAM_launch_mdp_info, DUT_ldu_CAM_launch_mdp_info);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -740,6 +751,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp feedback
 	    // CAM launch
 	    // central queue info grab
+		tb_stamofu_cq_info_grab_mdp_info = 8'h00;
 		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
 		tb_stamofu_cq_info_grab_io_aq = 1'b0;
 		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
@@ -788,6 +800,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_ldu_CAM_launch_PA_word = {22'h000000, 10'h000};
 		expected_ldu_CAM_launch_byte_mask = 4'b0000;
 		expected_ldu_CAM_launch_write_data = 32'h00000000;
+		expected_ldu_CAM_launch_mdp_info = 8'h00;
 		expected_ldu_CAM_launch_ROB_index = 7'h00;
 		expected_ldu_CAM_launch_cq_index = 0;
 		expected_ldu_CAM_launch_is_mq = 1'b0;
@@ -872,6 +885,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp feedback
 	    // CAM launch
 	    // central queue info grab
+		tb_stamofu_cq_info_grab_mdp_info = 8'h00;
 		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
 		tb_stamofu_cq_info_grab_io_aq = 1'b0;
 		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
@@ -920,6 +934,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_ldu_CAM_launch_PA_word = {22'h000000, 10'h000};
 		expected_ldu_CAM_launch_byte_mask = 4'b0000;
 		expected_ldu_CAM_launch_write_data = 32'h00000000;
+		expected_ldu_CAM_launch_mdp_info = 8'h00;
 		expected_ldu_CAM_launch_ROB_index = 7'h00;
 		expected_ldu_CAM_launch_cq_index = 0;
 		expected_ldu_CAM_launch_is_mq = 1'b0;
@@ -1015,6 +1030,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp feedback
 	    // CAM launch
 	    // central queue info grab
+		tb_stamofu_cq_info_grab_mdp_info = 8'h00;
 		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
 		tb_stamofu_cq_info_grab_io_aq = 1'b0;
 		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
@@ -1063,6 +1079,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_ldu_CAM_launch_PA_word = {22'h000000, 10'h000};
 		expected_ldu_CAM_launch_byte_mask = 4'b0000;
 		expected_ldu_CAM_launch_write_data = 32'h00000000;
+		expected_ldu_CAM_launch_mdp_info = 8'h00;
 		expected_ldu_CAM_launch_ROB_index = 7'h00;
 		expected_ldu_CAM_launch_cq_index = 0;
 		expected_ldu_CAM_launch_is_mq = 1'b0;
@@ -1152,6 +1169,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp feedback
 	    // CAM launch
 	    // central queue info grab
+		tb_stamofu_cq_info_grab_mdp_info = 8'h00;
 		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
 		tb_stamofu_cq_info_grab_io_aq = 1'b0;
 		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
@@ -1200,6 +1218,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_ldu_CAM_launch_PA_word = {22'h000000, 10'h000};
 		expected_ldu_CAM_launch_byte_mask = 4'b0000;
 		expected_ldu_CAM_launch_write_data = 32'h00000000;
+		expected_ldu_CAM_launch_mdp_info = 8'h00;
 		expected_ldu_CAM_launch_ROB_index = 7'h00;
 		expected_ldu_CAM_launch_cq_index = 0;
 		expected_ldu_CAM_launch_is_mq = 1'b0;
@@ -1289,6 +1308,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp feedback
 	    // CAM launch
 	    // central queue info grab
+		tb_stamofu_cq_info_grab_mdp_info = 8'he1;
 		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
 		tb_stamofu_cq_info_grab_io_aq = 1'b0;
 		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
@@ -1337,6 +1357,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_ldu_CAM_launch_PA_word = {22'h011111, 10'he1e};
 		expected_ldu_CAM_launch_byte_mask = 4'b0100;
 		expected_ldu_CAM_launch_write_data = 32'he1e1e1e1;
+		expected_ldu_CAM_launch_mdp_info = 8'he1;
 		expected_ldu_CAM_launch_ROB_index = 7'he1;
 		expected_ldu_CAM_launch_cq_index = 1;
 		expected_ldu_CAM_launch_is_mq = 1'b0;
@@ -1426,6 +1447,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp feedback
 	    // CAM launch
 	    // central queue info grab
+		tb_stamofu_cq_info_grab_mdp_info = 8'he1;
 		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
 		tb_stamofu_cq_info_grab_io_aq = 1'b0;
 		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
@@ -1474,6 +1496,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_ldu_CAM_launch_PA_word = {22'heeeeee, 10'he1e};
 		expected_ldu_CAM_launch_byte_mask = 4'b0100;
 		expected_ldu_CAM_launch_write_data = 32'he1e1e1e1;
+		expected_ldu_CAM_launch_mdp_info = 8'he1;
 		expected_ldu_CAM_launch_ROB_index = 7'he1;
 		expected_ldu_CAM_launch_cq_index = 1;
 		expected_ldu_CAM_launch_is_mq = 1'b0;
@@ -1563,6 +1586,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp feedback
 	    // CAM launch
 	    // central queue info grab
+		tb_stamofu_cq_info_grab_mdp_info = 8'hd2;
 		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
 		tb_stamofu_cq_info_grab_io_aq = 1'b0;
 		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
@@ -1611,6 +1635,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_ldu_CAM_launch_PA_word = {22'heeeeee, 10'hd2d};
 		expected_ldu_CAM_launch_byte_mask = 4'b0001;
 		expected_ldu_CAM_launch_write_data = 32'hd2d2d2d2;
+		expected_ldu_CAM_launch_mdp_info = 8'hd2;
 		expected_ldu_CAM_launch_ROB_index = 7'hd2;
 		expected_ldu_CAM_launch_cq_index = 2;
 		expected_ldu_CAM_launch_is_mq = 1'b1;
@@ -1700,6 +1725,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp feedback
 	    // CAM launch
 	    // central queue info grab
+		tb_stamofu_cq_info_grab_mdp_info = 8'hd2;
 		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
 		tb_stamofu_cq_info_grab_io_aq = 1'b0;
 		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
@@ -1748,6 +1774,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_ldu_CAM_launch_PA_word = {22'hdddddd, 10'hd2d};
 		expected_ldu_CAM_launch_byte_mask = 4'b0001;
 		expected_ldu_CAM_launch_write_data = 32'hd2d2d2d2;
+		expected_ldu_CAM_launch_mdp_info = 8'hd2;
 		expected_ldu_CAM_launch_ROB_index = 7'hd2;
 		expected_ldu_CAM_launch_cq_index = 2;
 		expected_ldu_CAM_launch_is_mq = 1'b1;
@@ -1837,6 +1864,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp feedback
 	    // CAM launch
 	    // central queue info grab
+		tb_stamofu_cq_info_grab_mdp_info = 8'hc3;
 		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
 		tb_stamofu_cq_info_grab_io_aq = 1'b0;
 		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
@@ -1885,6 +1913,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_ldu_CAM_launch_PA_word = {22'hcccccc, 10'hc3c};
 		expected_ldu_CAM_launch_byte_mask = 4'b1110;
 		expected_ldu_CAM_launch_write_data = 32'hc3c3c3c3;
+		expected_ldu_CAM_launch_mdp_info = 8'hc3;
 		expected_ldu_CAM_launch_ROB_index = 7'hc3;
 		expected_ldu_CAM_launch_cq_index = 3;
 		expected_ldu_CAM_launch_is_mq = 1'b0;
@@ -1974,6 +2003,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp feedback
 	    // CAM launch
 	    // central queue info grab
+		tb_stamofu_cq_info_grab_mdp_info = 8'hb4;
 		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
 		tb_stamofu_cq_info_grab_io_aq = 1'b0;
 		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
@@ -2022,6 +2052,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_ldu_CAM_launch_PA_word = {22'hbbbbbb, 10'hb4b};
 		expected_ldu_CAM_launch_byte_mask = 4'b0001;
 		expected_ldu_CAM_launch_write_data = 32'hb4b4b4b4;
+		expected_ldu_CAM_launch_mdp_info = 8'hb4;
 		expected_ldu_CAM_launch_ROB_index = 7'hb4;
 		expected_ldu_CAM_launch_cq_index = 4;
 		expected_ldu_CAM_launch_is_mq = 1'b0;
@@ -2111,6 +2142,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp feedback
 	    // CAM launch
 	    // central queue info grab
+		tb_stamofu_cq_info_grab_mdp_info = 8'ha5;
 		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
 		tb_stamofu_cq_info_grab_io_aq = 1'b0;
 		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
@@ -2159,6 +2191,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_ldu_CAM_launch_PA_word = {22'h055555, 10'ha5a};
 		expected_ldu_CAM_launch_byte_mask = 4'b0110;
 		expected_ldu_CAM_launch_write_data = 32'ha5a5a5a5;
+		expected_ldu_CAM_launch_mdp_info = 8'ha5;
 		expected_ldu_CAM_launch_ROB_index = 7'ha5;
 		expected_ldu_CAM_launch_cq_index = 5;
 		expected_ldu_CAM_launch_is_mq = 1'b0;
@@ -2248,6 +2281,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp feedback
 	    // CAM launch
 	    // central queue info grab
+		tb_stamofu_cq_info_grab_mdp_info = 8'h96;
 		tb_stamofu_cq_info_grab_mem_aq = 1'b1;
 		tb_stamofu_cq_info_grab_io_aq = 1'b1;
 		tb_stamofu_cq_info_grab_mem_rl = 1'b1;
@@ -2296,6 +2330,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_ldu_CAM_launch_PA_word = {22'h999999, 10'h969};
 		expected_ldu_CAM_launch_byte_mask = 4'b1111;
 		expected_ldu_CAM_launch_write_data = 32'h96969696;
+		expected_ldu_CAM_launch_mdp_info = 8'h96;
 		expected_ldu_CAM_launch_ROB_index = 7'h96;
 		expected_ldu_CAM_launch_cq_index = 'h6;
 		expected_ldu_CAM_launch_is_mq = 1'b0;
@@ -2385,6 +2420,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp feedback
 	    // CAM launch
 	    // central queue info grab
+		tb_stamofu_cq_info_grab_mdp_info = 8'h87;
 		tb_stamofu_cq_info_grab_mem_aq = 1'b1;
 		tb_stamofu_cq_info_grab_io_aq = 1'b1;
 		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
@@ -2433,6 +2469,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_ldu_CAM_launch_PA_word = {22'h888888, 10'h878};
 		expected_ldu_CAM_launch_byte_mask = 4'b1111;
 		expected_ldu_CAM_launch_write_data = 32'h87878787;
+		expected_ldu_CAM_launch_mdp_info = 8'h87;
 		expected_ldu_CAM_launch_ROB_index = 7'h87;
 		expected_ldu_CAM_launch_cq_index = 'h7;
 		expected_ldu_CAM_launch_is_mq = 1'b0;
@@ -2522,6 +2559,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp feedback
 	    // CAM launch
 	    // central queue info grab
+		tb_stamofu_cq_info_grab_mdp_info = 8'h78;
 		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
 		tb_stamofu_cq_info_grab_io_aq = 1'b0;
 		tb_stamofu_cq_info_grab_mem_rl = 1'b1;
@@ -2570,6 +2608,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_ldu_CAM_launch_PA_word = {22'h088888, 10'h787};
 		expected_ldu_CAM_launch_byte_mask = 4'b1100;
 		expected_ldu_CAM_launch_write_data = 32'h78787878;
+		expected_ldu_CAM_launch_mdp_info = 8'h78;
 		expected_ldu_CAM_launch_ROB_index = 7'h78;
 		expected_ldu_CAM_launch_cq_index = 'h8;
 		expected_ldu_CAM_launch_is_mq = 1'b0;
@@ -2659,6 +2698,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp feedback
 	    // CAM launch
 	    // central queue info grab
+		tb_stamofu_cq_info_grab_mdp_info = 8'h69;
 		tb_stamofu_cq_info_grab_mem_aq = 1'b1;
 		tb_stamofu_cq_info_grab_io_aq = 1'b0;
 		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
@@ -2707,6 +2747,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_ldu_CAM_launch_PA_word = {22'h099999, 10'h696};
 		expected_ldu_CAM_launch_byte_mask = 4'b1110;
 		expected_ldu_CAM_launch_write_data = 32'h69696969;
+		expected_ldu_CAM_launch_mdp_info = 8'h69;
 		expected_ldu_CAM_launch_ROB_index = 7'h69;
 		expected_ldu_CAM_launch_cq_index = 'h9;
 		expected_ldu_CAM_launch_is_mq = 1'b0;
@@ -2715,6 +2756,145 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_grab_cq_index = 'h9;
 	    // central queue info ret
 		expected_stamofu_cq_info_ret_valid = 1'b1;
+		expected_stamofu_cq_info_ret_cq_index = 'h9;
+		expected_stamofu_cq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_cq_info_ret_page_fault = 1'b0;
+		expected_stamofu_cq_info_ret_access_fault = 1'b0;
+		expected_stamofu_cq_info_ret_is_mem = 1'b1;
+		expected_stamofu_cq_info_ret_mem_aq = 1'b1;
+		expected_stamofu_cq_info_ret_io_aq = 1'b0;
+		expected_stamofu_cq_info_ret_mem_rl = 1'b0;
+		expected_stamofu_cq_info_ret_io_rl = 1'b1;
+		expected_stamofu_cq_info_ret_misaligned = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned_exception = 1'b0;
+		expected_stamofu_cq_info_ret_PA_word = {22'h099999, 10'h696};
+		expected_stamofu_cq_info_ret_byte_mask = 4'b1110;
+		expected_stamofu_cq_info_ret_data = 32'h69696969;
+	    // misaligned queue info ret
+		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_mq_index = 'h0;
+		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_mq_info_ret_page_fault = 1'b0;
+		expected_stamofu_mq_info_ret_access_fault = 1'b0;
+		expected_stamofu_mq_info_ret_is_mem = 1'b1;
+		expected_stamofu_mq_info_ret_PA_word = {22'h099999, 10'h696};
+		expected_stamofu_mq_info_ret_byte_mask = 4'b1110;
+		expected_stamofu_mq_info_ret_data = 32'h69696969;
+	    // aq update
+		expected_stamofu_aq_update_valid = 1'b0;
+		expected_stamofu_aq_update_mem_aq = 1'b1;
+		expected_stamofu_aq_update_io_aq = 1'b0;
+		expected_stamofu_aq_update_ROB_index = 7'h69;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tREQ: i",
+			"\n\t\tRESP: 9: SFENCE.VMA 69, 99999->666666,696,1110 cq"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage info
+		tb_REQ_valid = 1'b0;
+		tb_REQ_is_store = 1'b0;
+		tb_REQ_is_amo = 1'b0;
+		tb_REQ_is_fence = 1'b1;
+		tb_REQ_op = 4'b1110;
+		tb_REQ_is_mq = 1'b0;
+		tb_REQ_misaligned = 1'b0;
+		tb_REQ_misaligned_exception = 1'b0;
+		tb_REQ_VPN = 20'h99999;
+		tb_REQ_PO_word = 10'h696;
+		tb_REQ_byte_mask = 4'b1110;
+		tb_REQ_write_data = 32'h69696969;
+		tb_REQ_cq_index = 'h9;
+	    // REQ stage feedback
+	    // op enqueue to misaligned queue
+	    // misaligned queue enqueue feedback
+		tb_stamofu_mq_enq_ready = 1'b0;
+		tb_stamofu_mq_enq_index = 'h0;
+	    // dtlb req
+	    // dtlb req feedback
+		tb_dtlb_req_ready = 1'b0;
+	    // dtlb resp
+		tb_dtlb_resp_hit = 1'b1;
+		tb_dtlb_resp_PPN = 22'h666666;
+		tb_dtlb_resp_is_mem = 1'b1;
+		tb_dtlb_resp_page_fault = 1'b0;
+		tb_dtlb_resp_access_fault = 1'b0;
+	    // dcache req
+	    // dcache req feedback
+		tb_dcache_req_ready = 1'b0;
+	    // dcache resp
+		tb_dcache_resp_valid_by_way = 2'b11;
+		tb_dcache_resp_exclusive_by_way = 2'b11;
+		tb_dcache_resp_tag_by_way = {22'h666666, 22'h099999};
+	    // dcache resp feedback
+	    // CAM launch
+	    // central queue info grab
+		tb_stamofu_cq_info_grab_mdp_info = 8'h69;
+		tb_stamofu_cq_info_grab_mem_aq = 1'b1;
+		tb_stamofu_cq_info_grab_io_aq = 1'b0;
+		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
+		tb_stamofu_cq_info_grab_io_rl = 1'b1;
+		tb_stamofu_cq_info_grab_ROB_index = 7'h69;
+	    // central queue info ret
+	    // misaligned queue info ret
+	    // aq update
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage info
+	    // REQ stage feedback
+		expected_REQ_ack = 1'b0;
+	    // op enqueue to misaligned queue
+		expected_stamofu_mq_enq_valid = 1'b0;
+	    // misaligned queue enqueue feedback
+	    // dtlb req
+		expected_dtlb_req_valid = 1'b0;
+		expected_dtlb_req_VPN = 20'h99999;
+		expected_dtlb_req_cq_index = 'h9;
+		expected_dtlb_req_is_mq = 1'b0;
+		expected_dtlb_req_mq_index = 'h0;
+	    // dtlb req feedback
+	    // dtlb resp
+	    // dcache req
+		expected_dcache_req_valid = 1'b0;
+		expected_dcache_req_block_offset = 'h696 << 2;
+		expected_dcache_req_index = 'h696 >> 4;
+		expected_dcache_req_cq_index = 'h9;
+		expected_dcache_req_is_mq = 1'b0;
+		expected_dcache_req_mq_index = 'h0;
+	    // dcache req feedback
+	    // dcache resp
+	    // dcache resp feedback
+		expected_dcache_resp_hit_valid = 1'b0;
+		expected_dcache_resp_hit_exclusive = 1'b1;
+		expected_dcache_resp_hit_way = 1'b1;
+		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_exclusive = 1'b1;
+		expected_dcache_resp_miss_tag = 22'h666666;
+	    // CAM launch
+		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_PA_word = {22'h099999, 10'h696};
+		expected_ldu_CAM_launch_byte_mask = 4'b1110;
+		expected_ldu_CAM_launch_write_data = 32'h69696969;
+		expected_ldu_CAM_launch_mdp_info = 8'h69;
+		expected_ldu_CAM_launch_ROB_index = 7'h69;
+		expected_ldu_CAM_launch_cq_index = 'h9;
+		expected_ldu_CAM_launch_is_mq = 1'b0;
+		expected_ldu_CAM_launch_mq_index = 'h0;
+	    // central queue info grab
+		expected_stamofu_cq_info_grab_cq_index = 'h9;
+	    // central queue info ret
+		expected_stamofu_cq_info_ret_valid = 1'b0;
 		expected_stamofu_cq_info_ret_cq_index = 'h9;
 		expected_stamofu_cq_info_ret_dtlb_hit = 1'b1;
 		expected_stamofu_cq_info_ret_page_fault = 1'b0;
