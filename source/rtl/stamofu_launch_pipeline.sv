@@ -43,8 +43,11 @@ module stamofu_launch_pipeline (
     input logic [LOG_STAMOFU_MQ_ENTRIES-1:0]    stamofu_mq_enq_index,
 
     // dtlb req
-    output logic                    dtlb_req_valid,
-    output logic [VPN_WIDTH-1:0]    dtlb_req_VPN,
+    output logic                            dtlb_req_valid,
+    output logic [VPN_WIDTH-1:0]            dtlb_req_VPN,
+    output logic [LOG_LDU_CQ_ENTRIES-1:0]   dtlb_req_cq_index,
+    output logic                            dtlb_req_is_mq,
+    output logic [LOG_LDU_MQ_ENTRIES-1:0]   dtlb_req_mq_index,
 
     // dtlb req feedback
     input logic                     dtlb_req_ready,
@@ -60,6 +63,9 @@ module stamofu_launch_pipeline (
     output logic                                    dcache_req_valid,
     output logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]    dcache_req_block_offset,
     output logic [DCACHE_INDEX_WIDTH-1:0]           dcache_req_index,
+    output logic [LOG_LDU_CQ_ENTRIES-1:0]           dcache_req_cq_index,
+    output logic                                    dcache_req_is_mq,
+    output logic [LOG_LDU_MQ_ENTRIES-1:0]           dcache_req_mq_index,
 
     // dcache req feedback
     input logic                                     dcache_req_ready,
@@ -252,6 +258,9 @@ module stamofu_launch_pipeline (
             & ~REQ_stage_is_fence
             & ~REQ_stage_misaligned_exception;
         dtlb_req_VPN = REQ_stage_VPN;
+        dtlb_req_cq_index = REQ_stage_cq_index;
+        dtlb_req_is_mq = REQ_stage_is_mq;
+        dtlb_req_mq_index = REQ_stage_mq_index;
 
         dcache_req_valid = 
             REQ_ack 
@@ -262,6 +271,9 @@ module stamofu_launch_pipeline (
         // bank will be statically determined for instantation
         dcache_req_index = REQ_stage_PO_word[DCACHE_INDEX_WIDTH + DCACHE_WORD_ADDR_BANK_BIT + 1 - 1 : DCACHE_WORD_ADDR_BANK_BIT + 1];
             // doesn't include bank bit
+        dcache_req_cq_index = REQ_stage_cq_index;
+        dcache_req_is_mq = REQ_stage_is_mq;
+        dcache_req_mq_index = REQ_stage_mq_index;
     end
 
     // ----------------------------------------------------------------

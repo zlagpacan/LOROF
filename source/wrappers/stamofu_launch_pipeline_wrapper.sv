@@ -48,6 +48,9 @@ module stamofu_launch_pipeline_wrapper (
     // dtlb req
 	output logic last_dtlb_req_valid,
 	output logic [VPN_WIDTH-1:0] last_dtlb_req_VPN,
+	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_dtlb_req_cq_index,
+	output logic last_dtlb_req_is_mq,
+	output logic [LOG_LDU_MQ_ENTRIES-1:0] last_dtlb_req_mq_index,
 
     // dtlb req feedback
 	input logic next_dtlb_req_ready,
@@ -63,6 +66,9 @@ module stamofu_launch_pipeline_wrapper (
 	output logic last_dcache_req_valid,
 	output logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0] last_dcache_req_block_offset,
 	output logic [DCACHE_INDEX_WIDTH-1:0] last_dcache_req_index,
+	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_dcache_req_cq_index,
+	output logic last_dcache_req_is_mq,
+	output logic [LOG_LDU_MQ_ENTRIES-1:0] last_dcache_req_mq_index,
 
     // dcache req feedback
 	input logic next_dcache_req_ready,
@@ -165,6 +171,9 @@ module stamofu_launch_pipeline_wrapper (
     // dtlb req
 	logic dtlb_req_valid;
 	logic [VPN_WIDTH-1:0] dtlb_req_VPN;
+	logic [LOG_LDU_CQ_ENTRIES-1:0] dtlb_req_cq_index;
+	logic dtlb_req_is_mq;
+	logic [LOG_LDU_MQ_ENTRIES-1:0] dtlb_req_mq_index;
 
     // dtlb req feedback
 	logic dtlb_req_ready;
@@ -180,6 +189,9 @@ module stamofu_launch_pipeline_wrapper (
 	logic dcache_req_valid;
 	logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0] dcache_req_block_offset;
 	logic [DCACHE_INDEX_WIDTH-1:0] dcache_req_index;
+	logic [LOG_LDU_CQ_ENTRIES-1:0] dcache_req_cq_index;
+	logic dcache_req_is_mq;
+	logic [LOG_LDU_MQ_ENTRIES-1:0] dcache_req_mq_index;
 
     // dcache req feedback
 	logic dcache_req_ready;
@@ -290,6 +302,9 @@ module stamofu_launch_pipeline_wrapper (
 		    // dtlb req
 			last_dtlb_req_valid <= '0;
 			last_dtlb_req_VPN <= '0;
+			last_dtlb_req_cq_index <= '0;
+			last_dtlb_req_is_mq <= '0;
+			last_dtlb_req_mq_index <= '0;
 
 		    // dtlb req feedback
 			dtlb_req_ready <= '0;
@@ -305,6 +320,9 @@ module stamofu_launch_pipeline_wrapper (
 			last_dcache_req_valid <= '0;
 			last_dcache_req_block_offset <= '0;
 			last_dcache_req_index <= '0;
+			last_dcache_req_cq_index <= '0;
+			last_dcache_req_is_mq <= '0;
+			last_dcache_req_mq_index <= '0;
 
 		    // dcache req feedback
 			dcache_req_ready <= '0;
@@ -405,6 +423,9 @@ module stamofu_launch_pipeline_wrapper (
 		    // dtlb req
 			last_dtlb_req_valid <= dtlb_req_valid;
 			last_dtlb_req_VPN <= dtlb_req_VPN;
+			last_dtlb_req_cq_index <= dtlb_req_cq_index;
+			last_dtlb_req_is_mq <= dtlb_req_is_mq;
+			last_dtlb_req_mq_index <= dtlb_req_mq_index;
 
 		    // dtlb req feedback
 			dtlb_req_ready <= next_dtlb_req_ready;
@@ -420,6 +441,9 @@ module stamofu_launch_pipeline_wrapper (
 			last_dcache_req_valid <= dcache_req_valid;
 			last_dcache_req_block_offset <= dcache_req_block_offset;
 			last_dcache_req_index <= dcache_req_index;
+			last_dcache_req_cq_index <= dcache_req_cq_index;
+			last_dcache_req_is_mq <= dcache_req_is_mq;
+			last_dcache_req_mq_index <= dcache_req_mq_index;
 
 		    // dcache req feedback
 			dcache_req_ready <= next_dcache_req_ready;

@@ -64,6 +64,9 @@ module stamofu_launch_pipeline_tb ();
     // dtlb req
 	logic DUT_dtlb_req_valid, expected_dtlb_req_valid;
 	logic [VPN_WIDTH-1:0] DUT_dtlb_req_VPN, expected_dtlb_req_VPN;
+	logic [LOG_LDU_CQ_ENTRIES-1:0] DUT_dtlb_req_cq_index, expected_dtlb_req_cq_index;
+	logic DUT_dtlb_req_is_mq, expected_dtlb_req_is_mq;
+	logic [LOG_LDU_MQ_ENTRIES-1:0] DUT_dtlb_req_mq_index, expected_dtlb_req_mq_index;
 
     // dtlb req feedback
 	logic tb_dtlb_req_ready;
@@ -79,6 +82,9 @@ module stamofu_launch_pipeline_tb ();
 	logic DUT_dcache_req_valid, expected_dcache_req_valid;
 	logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0] DUT_dcache_req_block_offset, expected_dcache_req_block_offset;
 	logic [DCACHE_INDEX_WIDTH-1:0] DUT_dcache_req_index, expected_dcache_req_index;
+	logic [LOG_LDU_CQ_ENTRIES-1:0] DUT_dcache_req_cq_index, expected_dcache_req_cq_index;
+	logic DUT_dcache_req_is_mq, expected_dcache_req_is_mq;
+	logic [LOG_LDU_MQ_ENTRIES-1:0] DUT_dcache_req_mq_index, expected_dcache_req_mq_index;
 
     // dcache req feedback
 	logic tb_dcache_req_ready;
@@ -186,6 +192,9 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		.dtlb_req_valid(DUT_dtlb_req_valid),
 		.dtlb_req_VPN(DUT_dtlb_req_VPN),
+		.dtlb_req_cq_index(DUT_dtlb_req_cq_index),
+		.dtlb_req_is_mq(DUT_dtlb_req_is_mq),
+		.dtlb_req_mq_index(DUT_dtlb_req_mq_index),
 
 	    // dtlb req feedback
 		.dtlb_req_ready(tb_dtlb_req_ready),
@@ -201,6 +210,9 @@ module stamofu_launch_pipeline_tb ();
 		.dcache_req_valid(DUT_dcache_req_valid),
 		.dcache_req_block_offset(DUT_dcache_req_block_offset),
 		.dcache_req_index(DUT_dcache_req_index),
+		.dcache_req_cq_index(DUT_dcache_req_cq_index),
+		.dcache_req_is_mq(DUT_dcache_req_is_mq),
+		.dcache_req_mq_index(DUT_dcache_req_mq_index),
 
 	    // dcache req feedback
 		.dcache_req_ready(tb_dcache_req_ready),
@@ -304,6 +316,27 @@ module stamofu_launch_pipeline_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_dtlb_req_cq_index !== DUT_dtlb_req_cq_index) begin
+			$display("TB ERROR: expected_dtlb_req_cq_index (%h) != DUT_dtlb_req_cq_index (%h)",
+				expected_dtlb_req_cq_index, DUT_dtlb_req_cq_index);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_dtlb_req_is_mq !== DUT_dtlb_req_is_mq) begin
+			$display("TB ERROR: expected_dtlb_req_is_mq (%h) != DUT_dtlb_req_is_mq (%h)",
+				expected_dtlb_req_is_mq, DUT_dtlb_req_is_mq);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_dtlb_req_mq_index !== DUT_dtlb_req_mq_index) begin
+			$display("TB ERROR: expected_dtlb_req_mq_index (%h) != DUT_dtlb_req_mq_index (%h)",
+				expected_dtlb_req_mq_index, DUT_dtlb_req_mq_index);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_dcache_req_valid !== DUT_dcache_req_valid) begin
 			$display("TB ERROR: expected_dcache_req_valid (%h) != DUT_dcache_req_valid (%h)",
 				expected_dcache_req_valid, DUT_dcache_req_valid);
@@ -321,6 +354,27 @@ module stamofu_launch_pipeline_tb ();
 		if (expected_dcache_req_index !== DUT_dcache_req_index) begin
 			$display("TB ERROR: expected_dcache_req_index (%h) != DUT_dcache_req_index (%h)",
 				expected_dcache_req_index, DUT_dcache_req_index);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_dcache_req_cq_index !== DUT_dcache_req_cq_index) begin
+			$display("TB ERROR: expected_dcache_req_cq_index (%h) != DUT_dcache_req_cq_index (%h)",
+				expected_dcache_req_cq_index, DUT_dcache_req_cq_index);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_dcache_req_is_mq !== DUT_dcache_req_is_mq) begin
+			$display("TB ERROR: expected_dcache_req_is_mq (%h) != DUT_dcache_req_is_mq (%h)",
+				expected_dcache_req_is_mq, DUT_dcache_req_is_mq);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_dcache_req_mq_index !== DUT_dcache_req_mq_index) begin
+			$display("TB ERROR: expected_dcache_req_mq_index (%h) != DUT_dcache_req_mq_index (%h)",
+				expected_dcache_req_mq_index, DUT_dcache_req_mq_index);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -708,12 +762,18 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h00000;
+		expected_dtlb_req_cq_index = 'h0;
+		expected_dtlb_req_is_mq = 1'b0;
+		expected_dtlb_req_mq_index = 'h0;
 	    // dtlb req feedback
 	    // dtlb resp
 	    // dcache req
 		expected_dcache_req_valid = 1'b0;
 		expected_dcache_req_block_offset = 'h000 << 2;
 		expected_dcache_req_index = 'h000 >> 4;
+		expected_dcache_req_cq_index = 'h0;
+		expected_dcache_req_is_mq = 1'b0;
+		expected_dcache_req_mq_index = 'h0;
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
@@ -834,12 +894,18 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h00000;
+		expected_dtlb_req_cq_index = 'h0;
+		expected_dtlb_req_is_mq = 1'b0;
+		expected_dtlb_req_mq_index = 'h0;
 	    // dtlb req feedback
 	    // dtlb resp
 	    // dcache req
 		expected_dcache_req_valid = 1'b0;
 		expected_dcache_req_block_offset = 'h000 << 2;
 		expected_dcache_req_index = 'h000 >> 4;
+		expected_dcache_req_cq_index = 'h0;
+		expected_dcache_req_is_mq = 1'b0;
+		expected_dcache_req_mq_index = 'h0;
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
@@ -971,12 +1037,18 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h00000;
+		expected_dtlb_req_cq_index = 'h0;
+		expected_dtlb_req_is_mq = 1'b0;
+		expected_dtlb_req_mq_index = 'h0;
 	    // dtlb req feedback
 	    // dtlb resp
 	    // dcache req
 		expected_dcache_req_valid = 1'b0;
 		expected_dcache_req_block_offset = 'h000 << 2;
 		expected_dcache_req_index = 'h000 >> 4;
+		expected_dcache_req_cq_index = 'h0;
+		expected_dcache_req_is_mq = 1'b0;
+		expected_dcache_req_mq_index = 'h0;
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
@@ -1102,12 +1174,18 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h11111;
+		expected_dtlb_req_cq_index = 'h1;
+		expected_dtlb_req_is_mq = 1'b0;
+		expected_dtlb_req_mq_index = 'h0;
 	    // dtlb req feedback
 	    // dtlb resp
 	    // dcache req
 		expected_dcache_req_valid = 1'b0;
 		expected_dcache_req_block_offset = 'he1e << 2;
 		expected_dcache_req_index = 'he1e >> 4;
+		expected_dcache_req_cq_index = 'h1;
+		expected_dcache_req_is_mq = 1'b0;
+		expected_dcache_req_mq_index = 'h0;
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
@@ -1233,12 +1311,18 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b1;
 		expected_dtlb_req_VPN = 20'h11111;
+		expected_dtlb_req_cq_index = 'h1;
+		expected_dtlb_req_is_mq = 1'b0;
+		expected_dtlb_req_mq_index = 'h0;
 	    // dtlb req feedback
 	    // dtlb resp
 	    // dcache req
 		expected_dcache_req_valid = 1'b1;
 		expected_dcache_req_block_offset = 'he1e << 2;
 		expected_dcache_req_index = 'he1e >> 4;
+		expected_dcache_req_cq_index = 'h1;
+		expected_dcache_req_is_mq = 1'b0;
+		expected_dcache_req_mq_index = 'h0;
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
@@ -1364,12 +1448,18 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h22222;
+		expected_dtlb_req_cq_index = 'h2;
+		expected_dtlb_req_is_mq = 1'b1;
+		expected_dtlb_req_mq_index = 'h0;
 	    // dtlb req feedback
 	    // dtlb resp
 	    // dcache req
 		expected_dcache_req_valid = 1'b0;
 		expected_dcache_req_block_offset = 'hd2d << 2;
 		expected_dcache_req_index = 'hd2d >> 4;
+		expected_dcache_req_cq_index = 'h2;
+		expected_dcache_req_is_mq = 1'b1;
+		expected_dcache_req_mq_index = 'h0;
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
@@ -1495,12 +1585,18 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b1;
 		expected_dtlb_req_VPN = 20'h22222;
+		expected_dtlb_req_cq_index = 'h2;
+		expected_dtlb_req_is_mq = 1'b1;
+		expected_dtlb_req_mq_index = 'h1;
 	    // dtlb req feedback
 	    // dtlb resp
 	    // dcache req
 		expected_dcache_req_valid = 1'b1;
 		expected_dcache_req_block_offset = 'hd2d << 2;
 		expected_dcache_req_index = 'hd2d >> 4;
+		expected_dcache_req_cq_index = 'h2;
+		expected_dcache_req_is_mq = 1'b1;
+		expected_dcache_req_mq_index = 'h1;
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
@@ -1626,12 +1722,18 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b1;
 		expected_dtlb_req_VPN = 20'h33333;
+		expected_dtlb_req_cq_index = 'h3;
+		expected_dtlb_req_is_mq = 1'b0;
+		expected_dtlb_req_mq_index = 'h0;
 	    // dtlb req feedback
 	    // dtlb resp
 	    // dcache req
 		expected_dcache_req_valid = 1'b1;
 		expected_dcache_req_block_offset = 'hc3c << 2;
 		expected_dcache_req_index = 'hc3c >> 4;
+		expected_dcache_req_cq_index = 'h3;
+		expected_dcache_req_is_mq = 1'b0;
+		expected_dcache_req_mq_index = 'h0;
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
@@ -1757,12 +1859,18 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b1;
 		expected_dtlb_req_VPN = 20'h44444;
+		expected_dtlb_req_cq_index = 'h4;
+		expected_dtlb_req_is_mq = 1'b0;
+		expected_dtlb_req_mq_index = 'h0;
 	    // dtlb req feedback
 	    // dtlb resp
 	    // dcache req
 		expected_dcache_req_valid = 1'b1;
 		expected_dcache_req_block_offset = 'hb4b << 2;
 		expected_dcache_req_index = 'hb4b >> 4;
+		expected_dcache_req_cq_index = 'h4;
+		expected_dcache_req_is_mq = 1'b0;
+		expected_dcache_req_mq_index = 'h0;
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
@@ -1888,12 +1996,18 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b1;
 		expected_dtlb_req_VPN = 20'h55555;
+		expected_dtlb_req_cq_index = 'h5;
+		expected_dtlb_req_is_mq = 1'b0;
+		expected_dtlb_req_mq_index = 'h0;
 	    // dtlb req feedback
 	    // dtlb resp
 	    // dcache req
 		expected_dcache_req_valid = 1'b1;
 		expected_dcache_req_block_offset = 'ha5a << 2;
 		expected_dcache_req_index = 'ha5a >> 4;
+		expected_dcache_req_cq_index = 'h5;
+		expected_dcache_req_is_mq = 1'b0;
+		expected_dcache_req_mq_index = 'h0;
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
@@ -2019,12 +2133,18 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b1;
 		expected_dtlb_req_VPN = 20'h66666;
+		expected_dtlb_req_cq_index = 'h6;
+		expected_dtlb_req_is_mq = 1'b0;
+		expected_dtlb_req_mq_index = 'h0;
 	    // dtlb req feedback
 	    // dtlb resp
 	    // dcache req
 		expected_dcache_req_valid = 1'b1;
 		expected_dcache_req_block_offset = 'h969 << 2;
 		expected_dcache_req_index = 'h969 >> 4;
+		expected_dcache_req_cq_index = 'h6;
+		expected_dcache_req_is_mq = 1'b0;
+		expected_dcache_req_mq_index = 'h0;
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
@@ -2150,12 +2270,18 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b1;
 		expected_dtlb_req_VPN = 20'h77777;
+		expected_dtlb_req_cq_index = 'h7;
+		expected_dtlb_req_is_mq = 1'b0;
+		expected_dtlb_req_mq_index = 'h0;
 	    // dtlb req feedback
 	    // dtlb resp
 	    // dcache req
 		expected_dcache_req_valid = 1'b0;
 		expected_dcache_req_block_offset = 'h878 << 2;
 		expected_dcache_req_index = 'h878 >> 4;
+		expected_dcache_req_cq_index = 'h7;
+		expected_dcache_req_is_mq = 1'b0;
+		expected_dcache_req_mq_index = 'h0;
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
@@ -2281,12 +2407,18 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h88888;
+		expected_dtlb_req_cq_index = 'h8;
+		expected_dtlb_req_is_mq = 1'b0;
+		expected_dtlb_req_mq_index = 'h0;
 	    // dtlb req feedback
 	    // dtlb resp
 	    // dcache req
 		expected_dcache_req_valid = 1'b0;
 		expected_dcache_req_block_offset = 'h787 << 2;
 		expected_dcache_req_index = 'h787 >> 4;
+		expected_dcache_req_cq_index = 'h8;
+		expected_dcache_req_is_mq = 1'b0;
+		expected_dcache_req_mq_index = 'h0;
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
@@ -2412,12 +2544,18 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h99999;
+		expected_dtlb_req_cq_index = 'h9;
+		expected_dtlb_req_is_mq = 1'b0;
+		expected_dtlb_req_mq_index = 'h0;
 	    // dtlb req feedback
 	    // dtlb resp
 	    // dcache req
 		expected_dcache_req_valid = 1'b0;
 		expected_dcache_req_block_offset = 'h696 << 2;
 		expected_dcache_req_index = 'h696 >> 4;
+		expected_dcache_req_cq_index = 'h9;
+		expected_dcache_req_is_mq = 1'b0;
+		expected_dcache_req_mq_index = 'h0;
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
@@ -2543,12 +2681,18 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h99999;
+		expected_dtlb_req_cq_index = 'h9;
+		expected_dtlb_req_is_mq = 1'b0;
+		expected_dtlb_req_mq_index = 'h0;
 	    // dtlb req feedback
 	    // dtlb resp
 	    // dcache req
 		expected_dcache_req_valid = 1'b0;
 		expected_dcache_req_block_offset = 'h696 << 2;
 		expected_dcache_req_index = 'h696 >> 4;
+		expected_dcache_req_cq_index = 'h9;
+		expected_dcache_req_is_mq = 1'b0;
+		expected_dcache_req_mq_index = 'h0;
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
