@@ -66,10 +66,12 @@ module stamofu_launch_pipeline (
 
     // dcache resp
     input logic [1:0]                               dcache_resp_valid_by_way,
+    input logic [1:0]                               dcache_resp_exclusive_by_way,
     input logic [1:0][DCACHE_TAG_WIDTH-1:0]         dcache_resp_tag_by_way,
     
     // dcache resp feedback
     output logic                                    dcache_resp_hit_valid,
+    output logic                                    dcache_resp_hit_exclusive,
     output logic                                    dcache_resp_hit_way,
     output logic                                    dcache_resp_miss_valid,
     output logic                                    dcache_resp_miss_exclusive,
@@ -152,6 +154,8 @@ module stamofu_launch_pipeline (
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  REQ_stage_cq_index;
     logic [LOG_STAMOFU_MQ_ENTRIES-1:0]  REQ_stage_mq_index;
 
+    logic                               REQ_stage_exclusive;
+
     logic                               REQ_stage_prefetch_dcache;
 
     logic [VPN_WIDTH-1:0]               REQ_stage_VPN;
@@ -173,11 +177,14 @@ module stamofu_launch_pipeline (
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  RESP_stage_cq_index;
     logic [LOG_STAMOFU_MQ_ENTRIES-1:0]  RESP_stage_mq_index;
 
+    logic                               RESP_stage_exclusive;
+
     logic                               RESP_stage_prefetch_dcache;
 
     logic [VPN_WIDTH-1:0]               RESP_stage_VPN;
 
     logic [PA_WIDTH-3:0]                RESP_stage_PA_word;
+    logic [PA_WIDTH-3:0]                RESP_stage_return_PA_word;
 
     logic                               RESP_stage_dtlb_hit;
     logic [DCACHE_TAG_WIDTH-1:0]        RESP_stage_dcache_tag;
@@ -191,10 +198,10 @@ module stamofu_launch_pipeline (
     always_comb begin
 
         // check for good REQ
-            // need dtlb ready (as long as not SFENCE.VMA), stamofu mq ready if applicable
+            // need dtlb ready (as long as not SFENCE.VMA or misaligned exception), stamofu mq ready if applicable
         if (
             REQ_valid
-            & (dtlb_req_ready | REQ_stage_is_fence)
+            & (dtlb_req_ready | REQ_stage_is_fence | REQ_misaligned_exception)
             & (~REQ_is_mq | stamofu_mq_enq_ready)
         ) begin
             REQ_stage_valid = 1'b1;
@@ -226,17 +233,30 @@ module stamofu_launch_pipeline (
         REQ_stage_cq_index = REQ_cq_index;
         REQ_stage_mq_index = stamofu_mq_enq_index;
 
-        REQ_stage_prefetch_dcache = dcache_req_ready & ~REQ_stage_is_fence;;
+        // everything except LR.W requires exclusive
+        REQ_stage_exclusive = ~(REQ_stage_is_amo & (REQ_stage_op == 4'b0010));
+
+        REQ_stage_prefetch_dcache = 
+            dcache_req_ready 
+            & ~REQ_stage_is_fence
+            & (~REQ_stage_is_amo | (REQ_stage_op == 4'b0010)) // only prefetch stores, LR.W
+            & ~REQ_stage_misaligned_exception;
 
         // for SFENCE.VMA
         REQ_stage_VPN = REQ_VPN;
 
         stamofu_mq_enq_valid = REQ_ack & REQ_stage_is_mq;
 
-        dtlb_req_valid = REQ_ack & ~REQ_stage_is_fence;
+        dtlb_req_valid = 
+            REQ_ack 
+            & ~REQ_stage_is_fence
+            & ~REQ_stage_misaligned_exception;
         dtlb_req_VPN = REQ_stage_VPN;
 
-        dcache_req_valid = REQ_ack & ~REQ_stage_is_fence;; // always try, may not be ready
+        dcache_req_valid = 
+            REQ_ack 
+            & ~REQ_stage_is_fence
+            & ~REQ_stage_misaligned_exception;
         dcache_req_block_offset = {REQ_stage_PO_word[DCACHE_WORD_ADDR_BANK_BIT-1 : 0], 2'b00};
         // bank will be statically determined for instantation
         dcache_req_index = REQ_stage_PO_word[DCACHE_INDEX_WIDTH + DCACHE_WORD_ADDR_BANK_BIT + 1 - 1 : DCACHE_WORD_ADDR_BANK_BIT + 1];
@@ -262,6 +282,7 @@ module stamofu_launch_pipeline (
             RESP_stage_write_data <= '0;
             RESP_stage_cq_index <= '0;
             RESP_stage_mq_index <= '0;
+            RESP_stage_exclusive <= 1'b1;
             RESP_stage_prefetch_dcache <= '0;
             RESP_stage_VPN <= '0;
         end
@@ -279,6 +300,7 @@ module stamofu_launch_pipeline (
             RESP_stage_write_data <= REQ_stage_write_data;
             RESP_stage_cq_index <= REQ_stage_cq_index;
             RESP_stage_mq_index <= REQ_stage_mq_index;
+            RESP_stage_exclusive <= REQ_stage_exclusive;
             RESP_stage_prefetch_dcache <= REQ_stage_prefetch_dcache;
             RESP_stage_VPN <= REQ_stage_VPN;
         end
@@ -291,10 +313,23 @@ module stamofu_launch_pipeline (
         stamofu_cq_info_grab_cq_index = RESP_stage_cq_index;
 
         // dcache hit and miss logic
+
+        // SFENCE.VMA and exceptions need VPN instead of PPN
         RESP_stage_PA_word = {dtlb_resp_PPN, RESP_stage_PO_word};
+        if (RESP_stage_is_fence | (dtlb_resp_page_fault | dtlb_resp_access_fault) | RESP_stage_misaligned_exception) begin
+            RESP_stage_return_PA_word = {2'b00, RESP_stage_VPN, RESP_stage_PO_word};
+        end else begin
+            RESP_stage_return_PA_word = RESP_stage_PA_word;
+        end
         RESP_stage_dcache_tag = RESP_stage_PA_word[PA_WIDTH-3:PA_WIDTH-DCACHE_TAG_WIDTH-2];
-        RESP_stage_dcache_vtm_by_way[0] = dcache_resp_valid_by_way[0] & (dcache_resp_tag_by_way[0] == RESP_stage_dcache_tag);
-        RESP_stage_dcache_vtm_by_way[1] = dcache_resp_valid_by_way[1] & (dcache_resp_tag_by_way[1] == RESP_stage_dcache_tag);
+        RESP_stage_dcache_vtm_by_way[0] = 
+            dcache_resp_valid_by_way[0]
+            & (dcache_resp_exclusive_by_way[0] | ~RESP_stage_exclusive)
+            & (dcache_resp_tag_by_way[0] == RESP_stage_dcache_tag);
+        RESP_stage_dcache_vtm_by_way[1] = 
+            dcache_resp_valid_by_way[1]
+            & (dcache_resp_exclusive_by_way[1] | ~RESP_stage_exclusive)
+            & (dcache_resp_tag_by_way[1] == RESP_stage_dcache_tag);
         RESP_stage_dcache_vtm = |RESP_stage_dcache_vtm_by_way;
 
         dcache_resp_hit_valid = 
@@ -302,20 +337,24 @@ module stamofu_launch_pipeline (
             & RESP_stage_prefetch_dcache
             & dtlb_resp_hit
             & RESP_stage_dcache_vtm;
+        dcache_resp_hit_exclusive = RESP_stage_exclusive;
         dcache_resp_hit_way = RESP_stage_dcache_vtm_by_way[1];
         dcache_resp_miss_valid = 
             RESP_stage_valid
             & RESP_stage_prefetch_dcache
             & dtlb_resp_hit
             & ~RESP_stage_dcache_vtm;
+        dcache_resp_miss_exclusive = RESP_stage_exclusive;
         dcache_resp_miss_tag = RESP_stage_dcache_tag;
 
-        // everything except LR.W gives exclusive miss
-        dcache_resp_miss_exclusive = ~(RESP_stage_is_amo & (RESP_stage_op == 4'b0010));
-
         // CAM
-        ldu_CAM_launch_valid = RESP_stage_valid & dtlb_resp_hit;
-        ldu_CAM_launch_PA_word = RESP_stage_PA_word;
+        ldu_CAM_launch_valid = 
+            RESP_stage_valid 
+            & dtlb_resp_hit
+            & ~RESP_stage_is_fence
+            & ~(dtlb_resp_page_fault | dtlb_resp_access_fault)
+            & ~RESP_stage_misaligned_exception;
+        ldu_CAM_launch_PA_word = RESP_stage_return_PA_word;
         ldu_CAM_launch_byte_mask = RESP_stage_byte_mask;
         ldu_CAM_launch_write_data = RESP_stage_write_data;
         ldu_CAM_launch_ROB_index = stamofu_cq_info_grab_ROB_index;
@@ -324,7 +363,7 @@ module stamofu_launch_pipeline (
         ldu_CAM_launch_mq_index = RESP_stage_mq_index;
 
         // cq ret
-        stamofu_cq_info_ret_valid = RESP_stage_valid;
+        stamofu_cq_info_ret_valid = RESP_stage_valid & ~RESP_stage_is_mq;
         stamofu_cq_info_ret_cq_index = RESP_stage_cq_index;
         stamofu_cq_info_ret_dtlb_hit = dtlb_resp_hit;
         stamofu_cq_info_ret_page_fault = dtlb_resp_page_fault;
@@ -345,24 +384,18 @@ module stamofu_launch_pipeline (
         end
         stamofu_cq_info_ret_misaligned = RESP_stage_misaligned;
         stamofu_cq_info_ret_misaligned_exception = RESP_stage_misaligned_exception;
-        // SFENCE.VMA needs VPN instead of PPN
-        if (RESP_stage_is_fence) begin
-            stamofu_cq_info_ret_PA_word = {2'b00, RESP_stage_VPN, RESP_stage_PO_word};
-        end
-        else begin
-            stamofu_cq_info_ret_PA_word = RESP_stage_PA_word;
-        end
+        stamofu_cq_info_ret_PA_word = RESP_stage_return_PA_word;
         stamofu_cq_info_ret_byte_mask = RESP_stage_byte_mask;
         stamofu_cq_info_ret_data = RESP_stage_write_data;
 
         // mq ret
-        stamofu_mq_info_ret_valid = RESP_stage_valid;
+        stamofu_mq_info_ret_valid = RESP_stage_valid & RESP_stage_is_mq;
         stamofu_mq_info_ret_mq_index = RESP_stage_mq_index;
         stamofu_mq_info_ret_dtlb_hit = dtlb_resp_hit;
         stamofu_mq_info_ret_page_fault = dtlb_resp_page_fault;
         stamofu_mq_info_ret_access_fault = dtlb_resp_access_fault;
         stamofu_mq_info_ret_is_mem = dtlb_resp_is_mem;
-        stamofu_mq_info_ret_PA_word = RESP_stage_PA_word;
+        stamofu_mq_info_ret_PA_word = RESP_stage_return_PA_word;
         stamofu_mq_info_ret_byte_mask = RESP_stage_byte_mask;
         stamofu_mq_info_ret_data = RESP_stage_write_data;
 

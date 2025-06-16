@@ -85,11 +85,13 @@ module stamofu_launch_pipeline_tb ();
 
     // dcache resp
 	logic [1:0] tb_dcache_resp_valid_by_way;
+	logic [1:0] tb_dcache_resp_exclusive_by_way;
 	logic [1:0][DCACHE_TAG_WIDTH-1:0] tb_dcache_resp_tag_by_way;
 
     // dcache resp feedback
 	logic DUT_dcache_resp_hit_valid, expected_dcache_resp_hit_valid;
 	logic DUT_dcache_resp_hit_way, expected_dcache_resp_hit_way;
+	logic DUT_dcache_resp_hit_exclusive, expected_dcache_resp_hit_exclusive;
 	logic DUT_dcache_resp_miss_valid, expected_dcache_resp_miss_valid;
 	logic DUT_dcache_resp_miss_exclusive, expected_dcache_resp_miss_exclusive;
 	logic [DCACHE_TAG_WIDTH-1:0] DUT_dcache_resp_miss_tag, expected_dcache_resp_miss_tag;
@@ -205,10 +207,12 @@ module stamofu_launch_pipeline_tb ();
 
 	    // dcache resp
 		.dcache_resp_valid_by_way(tb_dcache_resp_valid_by_way),
+		.dcache_resp_exclusive_by_way(tb_dcache_resp_exclusive_by_way),
 		.dcache_resp_tag_by_way(tb_dcache_resp_tag_by_way),
 
 	    // dcache resp feedback
 		.dcache_resp_hit_valid(DUT_dcache_resp_hit_valid),
+		.dcache_resp_hit_exclusive(DUT_dcache_resp_hit_exclusive),
 		.dcache_resp_hit_way(DUT_dcache_resp_hit_way),
 		.dcache_resp_miss_valid(DUT_dcache_resp_miss_valid),
 		.dcache_resp_miss_exclusive(DUT_dcache_resp_miss_exclusive),
@@ -324,6 +328,13 @@ module stamofu_launch_pipeline_tb ();
 		if (expected_dcache_resp_hit_valid !== DUT_dcache_resp_hit_valid) begin
 			$display("TB ERROR: expected_dcache_resp_hit_valid (%h) != DUT_dcache_resp_hit_valid (%h)",
 				expected_dcache_resp_hit_valid, DUT_dcache_resp_hit_valid);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_dcache_resp_hit_exclusive !== DUT_dcache_resp_hit_exclusive) begin
+			$display("TB ERROR: expected_dcache_resp_hit_exclusive (%h) != DUT_dcache_resp_hit_exclusive (%h)",
+				expected_dcache_resp_hit_exclusive, DUT_dcache_resp_hit_exclusive);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -670,6 +681,7 @@ module stamofu_launch_pipeline_tb ();
 		tb_dcache_req_ready = 1'b1;
 	    // dcache resp
 		tb_dcache_resp_valid_by_way = 2'b00;
+		tb_dcache_resp_exclusive_by_way = 2'b00;
 		tb_dcache_resp_tag_by_way = {22'h000000, 22'h000000};
 	    // dcache resp feedback
 	    // CAM launch
@@ -706,6 +718,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp
 	    // dcache resp feedback
 		expected_dcache_resp_hit_valid = 1'b0;
+		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
 		expected_dcache_resp_miss_exclusive = 1'b1;
@@ -794,6 +807,7 @@ module stamofu_launch_pipeline_tb ();
 		tb_dcache_req_ready = 1'b1;
 	    // dcache resp
 		tb_dcache_resp_valid_by_way = 2'b00;
+		tb_dcache_resp_exclusive_by_way = 2'b00;
 		tb_dcache_resp_tag_by_way = {22'h000000, 22'h000000};
 	    // dcache resp feedback
 	    // CAM launch
@@ -830,6 +844,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp
 	    // dcache resp feedback
 		expected_dcache_resp_hit_valid = 1'b0;
+		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
 		expected_dcache_resp_miss_exclusive = 1'b1;
@@ -929,6 +944,7 @@ module stamofu_launch_pipeline_tb ();
 		tb_dcache_req_ready = 1'b1;
 	    // dcache resp
 		tb_dcache_resp_valid_by_way = 2'b00;
+		tb_dcache_resp_exclusive_by_way = 2'b00;
 		tb_dcache_resp_tag_by_way = {22'h000000, 22'h000000};
 	    // dcache resp feedback
 	    // CAM launch
@@ -965,6 +981,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dcache resp
 	    // dcache resp feedback
 		expected_dcache_resp_hit_valid = 1'b0;
+		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
 		expected_dcache_resp_miss_exclusive = 1'b1;
@@ -1018,7 +1035,7 @@ module stamofu_launch_pipeline_tb ();
 
 		// inputs
 		sub_test_case = {
-			"\n\t\tREQ: i",
+			"\n\t\tREQ: 1: SB e1, 11111->eeeeee,e1e,0100 mem, cq, d$ hit (no dtlb ready)",
 			"\n\t\tRESP: i"
 		};
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1026,19 +1043,19 @@ module stamofu_launch_pipeline_tb ();
 		// reset
 		nRST = 1'b1;
 	    // REQ stage info
-		tb_REQ_valid = 1'b0;
-		tb_REQ_is_store = 1'b0;
+		tb_REQ_valid = 1'b1;
+		tb_REQ_is_store = 1'b1;
 		tb_REQ_is_amo = 1'b0;
 		tb_REQ_is_fence = 1'b0;
 		tb_REQ_op = 4'b0000;
 		tb_REQ_is_mq = 1'b0;
 		tb_REQ_misaligned = 1'b0;
 		tb_REQ_misaligned_exception = 1'b0;
-		tb_REQ_VPN = 20'h00000;
-		tb_REQ_PO_word = 10'h000;
-		tb_REQ_byte_mask = 4'b0000;
-		tb_REQ_write_data = 32'h00000000;
-		tb_REQ_cq_index = 0;
+		tb_REQ_VPN = 20'h11111;
+		tb_REQ_PO_word = 10'he1e;
+		tb_REQ_byte_mask = 4'b0100;
+		tb_REQ_write_data = 32'he1e1e1e1;
+		tb_REQ_cq_index = 1;
 	    // REQ stage feedback
 	    // op enqueue to misaligned queue
 	    // misaligned queue enqueue feedback
@@ -1046,7 +1063,7 @@ module stamofu_launch_pipeline_tb ();
 		tb_stamofu_mq_enq_index = 0;
 	    // dtlb req
 	    // dtlb req feedback
-		tb_dtlb_req_ready = 1'b1;
+		tb_dtlb_req_ready = 1'b0;
 	    // dtlb resp
 		tb_dtlb_resp_hit = 1'b0;
 		tb_dtlb_resp_PPN = 22'h000000;
@@ -1058,6 +1075,7 @@ module stamofu_launch_pipeline_tb ();
 		tb_dcache_req_ready = 1'b1;
 	    // dcache resp
 		tb_dcache_resp_valid_by_way = 2'b00;
+		tb_dcache_resp_exclusive_by_way = 2'b00;
 		tb_dcache_resp_tag_by_way = {22'h000000, 22'h000000};
 	    // dcache resp feedback
 	    // CAM launch
@@ -1083,17 +1101,18 @@ module stamofu_launch_pipeline_tb ();
 	    // misaligned queue enqueue feedback
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
-		expected_dtlb_req_VPN = 20'h00000;
+		expected_dtlb_req_VPN = 20'h11111;
 	    // dtlb req feedback
 	    // dtlb resp
 	    // dcache req
 		expected_dcache_req_valid = 1'b0;
-		expected_dcache_req_block_offset = 'h000 << 2;
-		expected_dcache_req_index = 'h000 >> 4;
+		expected_dcache_req_block_offset = 'he1e << 2;
+		expected_dcache_req_index = 'he1e >> 4;
 	    // dcache req feedback
 	    // dcache resp
 	    // dcache resp feedback
 		expected_dcache_resp_hit_valid = 1'b0;
+		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
 		expected_dcache_resp_miss_exclusive = 1'b1;
@@ -1140,6 +1159,399 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_aq_update_mem_aq = 1'b0;
 		expected_stamofu_aq_update_io_aq = 1'b0;
 		expected_stamofu_aq_update_ROB_index = 7'h00;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tREQ: 1: SB e1, 11111->eeeeee,e1e,0100 mem, cq, d$ hit (ack)",
+			"\n\t\tRESP: i"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage info
+		tb_REQ_valid = 1'b1;
+		tb_REQ_is_store = 1'b1;
+		tb_REQ_is_amo = 1'b0;
+		tb_REQ_is_fence = 1'b0;
+		tb_REQ_op = 4'b0000;
+		tb_REQ_is_mq = 1'b0;
+		tb_REQ_misaligned = 1'b0;
+		tb_REQ_misaligned_exception = 1'b0;
+		tb_REQ_VPN = 20'h11111;
+		tb_REQ_PO_word = 10'he1e;
+		tb_REQ_byte_mask = 4'b0100;
+		tb_REQ_write_data = 32'he1e1e1e1;
+		tb_REQ_cq_index = 1;
+	    // REQ stage feedback
+	    // op enqueue to misaligned queue
+	    // misaligned queue enqueue feedback
+		tb_stamofu_mq_enq_ready = 1'b0;
+		tb_stamofu_mq_enq_index = 0;
+	    // dtlb req
+	    // dtlb req feedback
+		tb_dtlb_req_ready = 1'b1;
+	    // dtlb resp
+		tb_dtlb_resp_hit = 1'b1;
+		tb_dtlb_resp_PPN = 22'hdeadbe;
+		tb_dtlb_resp_is_mem = 1'b0;
+		tb_dtlb_resp_page_fault = 1'b1;
+		tb_dtlb_resp_access_fault = 1'b1;
+	    // dcache req
+	    // dcache req feedback
+		tb_dcache_req_ready = 1'b1;
+	    // dcache resp
+		tb_dcache_resp_valid_by_way = 2'b00;
+		tb_dcache_resp_exclusive_by_way = 2'b00;
+		tb_dcache_resp_tag_by_way = {22'h000000, 22'h000000};
+	    // dcache resp feedback
+	    // CAM launch
+	    // central queue info grab
+		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
+		tb_stamofu_cq_info_grab_io_aq = 1'b0;
+		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
+		tb_stamofu_cq_info_grab_io_rl = 1'b0;
+		tb_stamofu_cq_info_grab_ROB_index = 7'he1;
+	    // central queue info ret
+	    // misaligned queue info ret
+	    // aq update
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage info
+	    // REQ stage feedback
+		expected_REQ_ack = 1'b1;
+	    // op enqueue to misaligned queue
+		expected_stamofu_mq_enq_valid = 1'b0;
+	    // misaligned queue enqueue feedback
+	    // dtlb req
+		expected_dtlb_req_valid = 1'b1;
+		expected_dtlb_req_VPN = 20'h11111;
+	    // dtlb req feedback
+	    // dtlb resp
+	    // dcache req
+		expected_dcache_req_valid = 1'b1;
+		expected_dcache_req_block_offset = 'he1e << 2;
+		expected_dcache_req_index = 'he1e >> 4;
+	    // dcache req feedback
+	    // dcache resp
+	    // dcache resp feedback
+		expected_dcache_resp_hit_valid = 1'b0;
+		expected_dcache_resp_hit_exclusive = 1'b1;
+		expected_dcache_resp_hit_way = 1'b0;
+		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_exclusive = 1'b1;
+		expected_dcache_resp_miss_tag = 22'hdeadbe;
+	    // CAM launch
+		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_PA_word = {22'h011111, 10'he1e};
+		expected_ldu_CAM_launch_byte_mask = 4'b0100;
+		expected_ldu_CAM_launch_write_data = 32'he1e1e1e1;
+		expected_ldu_CAM_launch_ROB_index = 7'he1;
+		expected_ldu_CAM_launch_cq_index = 1;
+		expected_ldu_CAM_launch_is_mq = 1'b0;
+		expected_ldu_CAM_launch_mq_index = 0;
+	    // central queue info grab
+		expected_stamofu_cq_info_grab_cq_index = 1;
+	    // central queue info ret
+		expected_stamofu_cq_info_ret_valid = 1'b0;
+		expected_stamofu_cq_info_ret_cq_index = 1;
+		expected_stamofu_cq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_cq_info_ret_page_fault = 1'b1;
+		expected_stamofu_cq_info_ret_access_fault = 1'b1;
+		expected_stamofu_cq_info_ret_is_mem = 1'b0;
+		expected_stamofu_cq_info_ret_mem_aq = 1'b0;
+		expected_stamofu_cq_info_ret_io_aq = 1'b0;
+		expected_stamofu_cq_info_ret_mem_rl = 1'b0;
+		expected_stamofu_cq_info_ret_io_rl = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned_exception = 1'b0;
+		expected_stamofu_cq_info_ret_PA_word = {22'h011111, 10'he1e};
+		expected_stamofu_cq_info_ret_byte_mask = 4'b0100;
+		expected_stamofu_cq_info_ret_data = 32'he1e1e1e1;
+	    // misaligned queue info ret
+		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_mq_index = 0;
+		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_mq_info_ret_page_fault = 1'b1;
+		expected_stamofu_mq_info_ret_access_fault = 1'b1;
+		expected_stamofu_mq_info_ret_is_mem = 1'b0;
+		expected_stamofu_mq_info_ret_PA_word = {22'h011111, 10'he1e};
+		expected_stamofu_mq_info_ret_byte_mask = 4'b0100;
+		expected_stamofu_mq_info_ret_data = 32'he1e1e1e1;
+	    // aq update
+		expected_stamofu_aq_update_valid = 1'b0;
+		expected_stamofu_aq_update_mem_aq = 1'b0;
+		expected_stamofu_aq_update_io_aq = 1'b0;
+		expected_stamofu_aq_update_ROB_index = 7'he1;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tREQ: 2: SH d2, 22222->dddddd,d2d,1100 io, mq, d$ miss (mq not ready)",
+			"\n\t\tRESP: 1: SB e1, 11111->eeeeee,e1e,0100 mem, cq, d$ hit"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage info
+		tb_REQ_valid = 1'b1;
+		tb_REQ_is_store = 1'b1;
+		tb_REQ_is_amo = 1'b0;
+		tb_REQ_is_fence = 1'b0;
+		tb_REQ_op = 4'b1001;
+		tb_REQ_is_mq = 1'b1;
+		tb_REQ_misaligned = 1'b1;
+		tb_REQ_misaligned_exception = 1'b0;
+		tb_REQ_VPN = 20'h22222;
+		tb_REQ_PO_word = 10'hd2d;
+		tb_REQ_byte_mask = 4'b1100;
+		tb_REQ_write_data = 32'hd2d2d2d2;
+		tb_REQ_cq_index = 2;
+	    // REQ stage feedback
+	    // op enqueue to misaligned queue
+	    // misaligned queue enqueue feedback
+		tb_stamofu_mq_enq_ready = 1'b0;
+		tb_stamofu_mq_enq_index = 0;
+	    // dtlb req
+	    // dtlb req feedback
+		tb_dtlb_req_ready = 1'b1;
+	    // dtlb resp
+		tb_dtlb_resp_hit = 1'b1;
+		tb_dtlb_resp_PPN = 22'heeeeee;
+		tb_dtlb_resp_is_mem = 1'b1;
+		tb_dtlb_resp_page_fault = 1'b0;
+		tb_dtlb_resp_access_fault = 1'b0;
+	    // dcache req
+	    // dcache req feedback
+		tb_dcache_req_ready = 1'b1;
+	    // dcache resp
+		tb_dcache_resp_valid_by_way = 2'b11;
+		tb_dcache_resp_exclusive_by_way = 2'b10;
+		tb_dcache_resp_tag_by_way = {22'heeeeee, 22'h011111};
+	    // dcache resp feedback
+	    // CAM launch
+	    // central queue info grab
+		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
+		tb_stamofu_cq_info_grab_io_aq = 1'b0;
+		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
+		tb_stamofu_cq_info_grab_io_rl = 1'b0;
+		tb_stamofu_cq_info_grab_ROB_index = 7'he1;
+	    // central queue info ret
+	    // misaligned queue info ret
+	    // aq update
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage info
+	    // REQ stage feedback
+		expected_REQ_ack = 1'b0;
+	    // op enqueue to misaligned queue
+		expected_stamofu_mq_enq_valid = 1'b0;
+	    // misaligned queue enqueue feedback
+	    // dtlb req
+		expected_dtlb_req_valid = 1'b0;
+		expected_dtlb_req_VPN = 20'h22222;
+	    // dtlb req feedback
+	    // dtlb resp
+	    // dcache req
+		expected_dcache_req_valid = 1'b0;
+		expected_dcache_req_block_offset = 'hd2d << 2;
+		expected_dcache_req_index = 'hd2d >> 4;
+	    // dcache req feedback
+	    // dcache resp
+	    // dcache resp feedback
+		expected_dcache_resp_hit_valid = 1'b1;
+		expected_dcache_resp_hit_exclusive = 1'b1;
+		expected_dcache_resp_hit_way = 1'b1;
+		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_exclusive = 1'b1;
+		expected_dcache_resp_miss_tag = 22'heeeeee;
+	    // CAM launch
+		expected_ldu_CAM_launch_valid = 1'b1;
+		expected_ldu_CAM_launch_PA_word = {22'heeeeee, 10'he1e};
+		expected_ldu_CAM_launch_byte_mask = 4'b0100;
+		expected_ldu_CAM_launch_write_data = 32'he1e1e1e1;
+		expected_ldu_CAM_launch_ROB_index = 7'he1;
+		expected_ldu_CAM_launch_cq_index = 1;
+		expected_ldu_CAM_launch_is_mq = 1'b0;
+		expected_ldu_CAM_launch_mq_index = 0;
+	    // central queue info grab
+		expected_stamofu_cq_info_grab_cq_index = 1;
+	    // central queue info ret
+		expected_stamofu_cq_info_ret_valid = 1'b1;
+		expected_stamofu_cq_info_ret_cq_index = 1;
+		expected_stamofu_cq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_cq_info_ret_page_fault = 1'b0;
+		expected_stamofu_cq_info_ret_access_fault = 1'b0;
+		expected_stamofu_cq_info_ret_is_mem = 1'b1;
+		expected_stamofu_cq_info_ret_mem_aq = 1'b0;
+		expected_stamofu_cq_info_ret_io_aq = 1'b0;
+		expected_stamofu_cq_info_ret_mem_rl = 1'b0;
+		expected_stamofu_cq_info_ret_io_rl = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned_exception = 1'b0;
+		expected_stamofu_cq_info_ret_PA_word = {22'heeeeee, 10'he1e};
+		expected_stamofu_cq_info_ret_byte_mask = 4'b0100;
+		expected_stamofu_cq_info_ret_data = 32'he1e1e1e1;
+	    // misaligned queue info ret
+		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_mq_index = 0;
+		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_mq_info_ret_page_fault = 1'b0;
+		expected_stamofu_mq_info_ret_access_fault = 1'b0;
+		expected_stamofu_mq_info_ret_is_mem = 1'b1;
+		expected_stamofu_mq_info_ret_PA_word = {22'heeeeee, 10'he1e};
+		expected_stamofu_mq_info_ret_byte_mask = 4'b0100;
+		expected_stamofu_mq_info_ret_data = 32'he1e1e1e1;
+	    // aq update
+		expected_stamofu_aq_update_valid = 1'b0;
+		expected_stamofu_aq_update_mem_aq = 1'b0;
+		expected_stamofu_aq_update_io_aq = 1'b0;
+		expected_stamofu_aq_update_ROB_index = 7'he1;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tREQ: 2: SH d2, 22222->dddddd,d2d,1100 io, mq, d$ miss",
+			"\n\t\tRESP: i"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage info
+		tb_REQ_valid = 1'b1;
+		tb_REQ_is_store = 1'b1;
+		tb_REQ_is_amo = 1'b0;
+		tb_REQ_is_fence = 1'b0;
+		tb_REQ_op = 4'b1001;
+		tb_REQ_is_mq = 1'b1;
+		tb_REQ_misaligned = 1'b1;
+		tb_REQ_misaligned_exception = 1'b0;
+		tb_REQ_VPN = 20'h22222;
+		tb_REQ_PO_word = 10'hd2d;
+		tb_REQ_byte_mask = 4'b1100;
+		tb_REQ_write_data = 32'hd2d2d2d2;
+		tb_REQ_cq_index = 2;
+	    // REQ stage feedback
+	    // op enqueue to misaligned queue
+	    // misaligned queue enqueue feedback
+		tb_stamofu_mq_enq_ready = 1'b1;
+		tb_stamofu_mq_enq_index = 'he;
+	    // dtlb req
+	    // dtlb req feedback
+		tb_dtlb_req_ready = 1'b1;
+	    // dtlb resp
+		tb_dtlb_resp_hit = 1'b1;
+		tb_dtlb_resp_PPN = 22'heeeeee;
+		tb_dtlb_resp_is_mem = 1'b1;
+		tb_dtlb_resp_page_fault = 1'b0;
+		tb_dtlb_resp_access_fault = 1'b0;
+	    // dcache req
+	    // dcache req feedback
+		tb_dcache_req_ready = 1'b1;
+	    // dcache resp
+		tb_dcache_resp_valid_by_way = 2'b11;
+		tb_dcache_resp_exclusive_by_way = 2'b10;
+		tb_dcache_resp_tag_by_way = {22'heeeeee, 22'h011111};
+	    // dcache resp feedback
+	    // CAM launch
+	    // central queue info grab
+		tb_stamofu_cq_info_grab_mem_aq = 1'b0;
+		tb_stamofu_cq_info_grab_io_aq = 1'b0;
+		tb_stamofu_cq_info_grab_mem_rl = 1'b0;
+		tb_stamofu_cq_info_grab_io_rl = 1'b0;
+		tb_stamofu_cq_info_grab_ROB_index = 7'he1;
+	    // central queue info ret
+	    // misaligned queue info ret
+	    // aq update
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage info
+	    // REQ stage feedback
+		expected_REQ_ack = 1'b1;
+	    // op enqueue to misaligned queue
+		expected_stamofu_mq_enq_valid = 1'b1;
+	    // misaligned queue enqueue feedback
+	    // dtlb req
+		expected_dtlb_req_valid = 1'b1;
+		expected_dtlb_req_VPN = 20'h22222;
+	    // dtlb req feedback
+	    // dtlb resp
+	    // dcache req
+		expected_dcache_req_valid = 1'b1;
+		expected_dcache_req_block_offset = 'hd2d << 2;
+		expected_dcache_req_index = 'hd2d >> 4;
+	    // dcache req feedback
+	    // dcache resp
+	    // dcache resp feedback
+		expected_dcache_resp_hit_valid = 1'b1;
+		expected_dcache_resp_hit_exclusive = 1'b1;
+		expected_dcache_resp_hit_way = 1'b1;
+		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_exclusive = 1'b1;
+		expected_dcache_resp_miss_tag = 22'heeeeee;
+	    // CAM launch
+		expected_ldu_CAM_launch_valid = 1'b1;
+		expected_ldu_CAM_launch_PA_word = {22'heeeeee, 10'he1e};
+		expected_ldu_CAM_launch_byte_mask = 4'b0100;
+		expected_ldu_CAM_launch_write_data = 32'he1e1e1e1;
+		expected_ldu_CAM_launch_ROB_index = 7'he1;
+		expected_ldu_CAM_launch_cq_index = 1;
+		expected_ldu_CAM_launch_is_mq = 1'b0;
+		expected_ldu_CAM_launch_mq_index = 0;
+	    // central queue info grab
+		expected_stamofu_cq_info_grab_cq_index = 1;
+	    // central queue info ret
+		expected_stamofu_cq_info_ret_valid = 1'b1;
+		expected_stamofu_cq_info_ret_cq_index = 1;
+		expected_stamofu_cq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_cq_info_ret_page_fault = 1'b0;
+		expected_stamofu_cq_info_ret_access_fault = 1'b0;
+		expected_stamofu_cq_info_ret_is_mem = 1'b1;
+		expected_stamofu_cq_info_ret_mem_aq = 1'b0;
+		expected_stamofu_cq_info_ret_io_aq = 1'b0;
+		expected_stamofu_cq_info_ret_mem_rl = 1'b0;
+		expected_stamofu_cq_info_ret_io_rl = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned = 1'b0;
+		expected_stamofu_cq_info_ret_misaligned_exception = 1'b0;
+		expected_stamofu_cq_info_ret_PA_word = {22'heeeeee, 10'he1e};
+		expected_stamofu_cq_info_ret_byte_mask = 4'b0100;
+		expected_stamofu_cq_info_ret_data = 32'he1e1e1e1;
+	    // misaligned queue info ret
+		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_mq_index = 0;
+		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
+		expected_stamofu_mq_info_ret_page_fault = 1'b0;
+		expected_stamofu_mq_info_ret_access_fault = 1'b0;
+		expected_stamofu_mq_info_ret_is_mem = 1'b1;
+		expected_stamofu_mq_info_ret_PA_word = {22'heeeeee, 10'he1e};
+		expected_stamofu_mq_info_ret_byte_mask = 4'b0100;
+		expected_stamofu_mq_info_ret_data = 32'he1e1e1e1;
+	    // aq update
+		expected_stamofu_aq_update_valid = 1'b0;
+		expected_stamofu_aq_update_mem_aq = 1'b0;
+		expected_stamofu_aq_update_io_aq = 1'b0;
+		expected_stamofu_aq_update_ROB_index = 7'he1;
 
 		check_outputs();
 

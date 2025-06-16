@@ -69,10 +69,12 @@ module stamofu_launch_pipeline_wrapper (
 
     // dcache resp
 	input logic [1:0] next_dcache_resp_valid_by_way,
+	input logic [1:0] next_dcache_resp_exclusive_by_way,
 	input logic [1:0][DCACHE_TAG_WIDTH-1:0] next_dcache_resp_tag_by_way,
 
     // dcache resp feedback
 	output logic last_dcache_resp_hit_valid,
+	output logic last_dcache_resp_hit_exclusive,
 	output logic last_dcache_resp_hit_way,
 	output logic last_dcache_resp_miss_valid,
 	output logic last_dcache_resp_miss_exclusive,
@@ -184,10 +186,12 @@ module stamofu_launch_pipeline_wrapper (
 
     // dcache resp
 	logic [1:0] dcache_resp_valid_by_way;
+	logic [1:0] dcache_resp_exclusive_by_way;
 	logic [1:0][DCACHE_TAG_WIDTH-1:0] dcache_resp_tag_by_way;
 
     // dcache resp feedback
 	logic dcache_resp_hit_valid;
+	logic dcache_resp_hit_exclusive;
 	logic dcache_resp_hit_way;
 	logic dcache_resp_miss_valid;
 	logic dcache_resp_miss_exclusive;
@@ -307,10 +311,12 @@ module stamofu_launch_pipeline_wrapper (
 
 		    // dcache resp
 			dcache_resp_valid_by_way <= '0;
+			dcache_resp_exclusive_by_way <= '0;
 			dcache_resp_tag_by_way <= '0;
 
 		    // dcache resp feedback
 			last_dcache_resp_hit_valid <= '0;
+			last_dcache_resp_hit_exclusive <= '0;
 			last_dcache_resp_hit_way <= '0;
 			last_dcache_resp_miss_valid <= '0;
 			last_dcache_resp_miss_exclusive <= '0;
@@ -420,10 +426,12 @@ module stamofu_launch_pipeline_wrapper (
 
 		    // dcache resp
 			dcache_resp_valid_by_way <= next_dcache_resp_valid_by_way;
+			dcache_resp_exclusive_by_way <= next_dcache_resp_exclusive_by_way;
 			dcache_resp_tag_by_way <= next_dcache_resp_tag_by_way;
 
 		    // dcache resp feedback
 			last_dcache_resp_hit_valid <= dcache_resp_hit_valid;
+			last_dcache_resp_hit_exclusive <= dcache_resp_hit_exclusive;
 			last_dcache_resp_hit_way <= dcache_resp_hit_way;
 			last_dcache_resp_miss_valid <= dcache_resp_miss_valid;
 			last_dcache_resp_miss_exclusive <= dcache_resp_miss_exclusive;
