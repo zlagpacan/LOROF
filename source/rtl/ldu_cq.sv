@@ -67,19 +67,54 @@ module ldu_cq #(
     input logic [LOG_LDU_MQ_ENTRIES-1:0]    dcache_miss_resp_mq_index,
 
     // ldu CAM launch
-    output logic                                ldu_CAM_launch_valid,
-    output logic [PA_WIDTH-2-1:0]               ldu_CAM_launch_PA_word,
-    output logic [3:0]                          ldu_CAM_launch_byte_mask,
-    output logic [31:0]                         ldu_CAM_launch_write_data,
-    output logic [MDPT_INFO_WIDTH-1:0]          ldu_CAM_launch_mdp_info,
-    output logic [LOG_ROB_ENTRIES-1:0]          ldu_CAM_launch_ROB_index,
-    output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   ldu_CAM_launch_cq_index,
-    output logic                                ldu_CAM_launch_is_mq,
-    output logic [LOG_STAMOFU_MQ_ENTRIES-1:0]   ldu_CAM_launch_mq_index,
+    input logic                                 ldu_CAM_launch_valid,
+    input logic [PA_WIDTH-2-1:0]                ldu_CAM_launch_PA_word,
+    input logic [3:0]                           ldu_CAM_launch_byte_mask,
+    input logic [31:0]                          ldu_CAM_launch_write_data,
+    input logic [MDPT_INFO_WIDTH-1:0]           ldu_CAM_launch_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]           ldu_CAM_launch_ROB_index,
+    input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    ldu_CAM_launch_cq_index, // stamofu_cq index
+    input logic                                 ldu_CAM_launch_is_mq,
+    input logic [LOG_STAMOFU_MQ_ENTRIES-1:0]    ldu_CAM_launch_mq_index, // stamofu_mq index
 
     // ldu CAM return
+    output logic                                ldu_CAM_return_valid,
+    output logic                                ldu_CAM_return_forward,
+    input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    ldu_CAM_return_cq_index, // stamofu_cq index
+    input logic                                 ldu_CAM_return_is_mq,
+    input logic [LOG_STAMOFU_MQ_ENTRIES-1:0]    ldu_CAM_return_mq_index, // stamofu_mq index
 
     // stamofu CAM return
+    input logic                                                         stamofu_CAM_return_valid,
+    input logic [MDPT_INFO_WIDTH-1:0]                                   stamofu_CAM_return_updated_mdp_info,
+    input logic [3:0]                                                   stamofu_CAM_return_forward_byte_mask,
+    input logic [31:0]                                                  stamofu_CAM_return_forward_data,
+    input logic                                                         stamofu_CAM_return_stall,
+    input logic [$clog2(STAMOFU_CQ_ENTRIES+STAMOFU_MQ_ENTRIES)-1:0]     stamofu_CAM_return_stall_count,
+        // need to prevent issue of stamofu dependent entry doing an ldu_CAM just before 
+        // this stamofu_CAM could update the stall count -> snoop active ldu_CAM's
+        // prolly good idea to also have failsafe launch based on e.g. rob head index
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]                                stamofu_CAM_return_cq_index, // ldu_cq index
+    input logic                                                         stamofu_CAM_return_is_mq,
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]                                stamofu_CAM_return_mq_index, // ldu_mq index
+
+    // store set CAM update
+        // implied dep
+    output logic                        ssu_CAM_update_valid,
+    output logic [MDPT_INFO_WIDTH-1:0]  ssu_CAM_update_ld_mdp_info,
+    output logic [LOG_ROB_ENTRIES-1:0]  ssu_CAM_update_ld_ROB_index,
+    output logic [MDPT_INFO_WIDTH-1:0]  ssu_CAM_update_stamo_mdp_info,
+    output logic [LOG_ROB_ENTRIES-1:0]  ssu_CAM_update_stamo_ROB_index,
+
+    // store set commit update
+        // implied no dep
+    output logic                        ssu_commit_update_valid,
+    output logic [MDPT_INFO_WIDTH-1:0]  ssu_commit_update_mdp_info,
+    output logic [LOG_ROB_ENTRIES-1:0]  ssu_commit_update_ROB_index,
+
+    // ROB commit
+    input logic [LOG_ROB_ENTRIES-3:0]   rob_commit_upper_index,
+    input logic [3:0]                   rob_commit_lower_index_valid_mask,
 
     // ROB kill
     input logic                         rob_kill_valid,
@@ -90,11 +125,13 @@ module ldu_cq #(
     // entry:
         // valid
         // killed
+        // committed
         // op
             // need for realignment of bytes and signed vs unsigned
         // mdp info
         // dest PR
-        // ROB index
+        // upper ROB index
+        // lower ROB index mask
         // WB sent
         // misaligned
         // mq index
@@ -102,6 +139,8 @@ module ldu_cq #(
         // mdp update req
         // forwarded
         // forwarded ROB index
+        // stalling
+        // stall count
         // nasty forward
         // PA word
         // byte mask
