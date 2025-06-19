@@ -159,6 +159,19 @@ def generate_tb(tb_base_lines, design_name, design_signals, design_params):
             num_found += 1
             continue
 
+        # check for <DUT params>
+        if line.lstrip().rstrip() == "<DUT params>":
+            print(f"found <DUT params> at line {line_index}") if PRINTS else None
+
+            # iterate through params adding param lines
+            for i, param in enumerate(design_params):
+                output_lines.extend([
+                    f"parameter {param.name} = {param.default_value};\n",
+                ])
+
+            num_found += 1
+            continue
+
         # check for <DUT signals>
         if line.lstrip().rstrip() == "<DUT signals>":
             print(f"found <DUT signals> at line {line_index}") if PRINTS else None
@@ -218,11 +231,11 @@ def generate_tb(tb_base_lines, design_name, design_signals, design_params):
                 # no comma on last
                 if i+1 == len(design_params):
                     DUT_instantiation_lines.extend([
-                        f"\t\t.{param.name}({param.default_value})\n",
+                        f"\t\t.{param.name}({param.name})\n",
                     ])
                 else:
                     DUT_instantiation_lines.extend([
-                        f"\t\t.{param.name}({param.default_value}),\n",
+                        f"\t\t.{param.name}({param.name}),\n",
                     ])
   
             # add middle of module instantiation
@@ -495,7 +508,7 @@ def generate_tb(tb_base_lines, design_name, design_signals, design_params):
         # otherwise, regular tb base line, add as-is
         output_lines.append(line)
 
-    assert num_found == 10, "did not find all entries to replace in tb_base.txt\n" + \
+    assert num_found == 11, "did not find all entries to replace in tb_base.txt\n" + \
         "(may have added more and not updated required num_found in this script)"
 
     return output_lines

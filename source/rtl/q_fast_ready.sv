@@ -5,12 +5,6 @@
     Spec: LOROF/spec/design/q_fast_ready.md
 */
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
-
-`include "system_types_pkg.vh"
-import system_types_pkg::*;
-
 module q_fast_ready #(
     parameter DATA_WIDTH = 32,
     parameter NUM_ENTRIES = 4,
@@ -39,14 +33,6 @@ module q_fast_ready #(
     // Signals: 
 
     logic [NUM_ENTRIES-1:0][DATA_WIDTH-1:0] q_entries;
-
-    // typedef struct packed {
-    //     logic                           msb;
-    //     logic [LOG_NUM_ENTRIES-1:0]     index;
-    // } q_ptr_t;
-    
-    // q_ptr_t enq_ptr, enq_ptr_plus_1;
-    // q_ptr_t deq_ptr, deq_ptr_plus_1;
 
     logic [LOG_NUM_ENTRIES-1:0] enq_ptr, enq_ptr_plus_1;
     logic [LOG_NUM_ENTRIES-1:0] deq_ptr, deq_ptr_plus_1;

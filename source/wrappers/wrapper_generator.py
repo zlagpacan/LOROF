@@ -159,6 +159,19 @@ def generate_wrapper(wrapper_base_lines, design_name, design_signals, design_par
             num_found += 1
             continue
 
+        # check for <DUT params>
+        if line.lstrip().rstrip() == "<DUT params>":
+            print(f"found <DUT params> at line {line_index}") if PRINTS else None
+
+            # iterate through params adding param lines
+            for i, param in enumerate(design_params):
+                output_lines.extend([
+                    f"parameter {param.name} = {param.default_value};\n",
+                ])
+
+            num_found += 1
+            continue
+
         # check for <wrapper io signals>
         if line.lstrip().rstrip() == "<wrapper io signals>":
             print(f"found <wrapper io signals> at line {line_index}") if PRINTS else None
@@ -260,11 +273,11 @@ def generate_wrapper(wrapper_base_lines, design_name, design_signals, design_par
                 # no comma on last
                 if i+1 == len(design_params):
                     output_lines.extend([
-                        f"\t\t.{param.name}({param.default_value})\n",
+                        f"\t\t.{param.name}({param.name})\n",
                     ])
                 else:
                     output_lines.extend([
-                        f"\t\t.{param.name}({param.default_value}),\n",
+                        f"\t\t.{param.name}({param.name}),\n",
                     ])
   
             # add end of module instantiation
@@ -360,7 +373,7 @@ def generate_wrapper(wrapper_base_lines, design_name, design_signals, design_par
         # otherwise, regular wrapper base line, add as-is
         output_lines.append(line)
 
-    assert num_found == 9, f"did not find all entries to replace in wrapper_base.txt. num_found = {num_found}\n" + \
+    assert num_found == 10, f"did not find all entries to replace in wrapper_base.txt. num_found = {num_found}\n" + \
         "(may have added more and not updated required num_found in this script)"
 
     return output_lines
