@@ -49,6 +49,26 @@ module ldu_cq #(
     // data try feedback
     input logic                             data_try_ack,
 
+    // central queue info ret
+    output logic                            ldu_cq_info_ret_valid,
+    output logic [LOG_LDU_CQ_ENTRIES-1:0]   ldu_cq_info_ret_cq_index,
+    output logic                            ldu_cq_info_ret_misaligned,
+    output logic                            ldu_cq_info_ret_dtlb_hit,
+    output logic                            ldu_cq_info_ret_page_fault,
+    output logic                            ldu_cq_info_ret_access_fault,
+    output logic                            ldu_cq_info_ret_dcache_hit,
+    output logic                            ldu_cq_info_ret_is_mem,
+    output logic                            ldu_cq_info_ret_aq_blocking,
+    output logic [PA_WIDTH-2-1:0]           ldu_cq_info_ret_PA_word,
+    output logic [3:0]                      ldu_cq_info_ret_byte_mask,
+    output logic [31:0]                     ldu_cq_info_ret_data,
+
+    // misaligned queue info ret
+        // need in order to tie cq entry to mq if misaligned
+        // use cq_index ^
+    output logic                            ldu_mq_info_ret_valid,
+    output logic [LOG_LDU_MQ_ENTRIES-1:0]   ldu_mq_info_ret_mq_index,
+
     // dtlb miss resp
     input logic                             dtlb_miss_resp_valid,
     input logic [PPN_WIDTH-1:0]             dtlb_miss_resp_PPN,
@@ -85,18 +105,18 @@ module ldu_cq #(
     input logic [LOG_STAMOFU_MQ_ENTRIES-1:0]    ldu_CAM_return_mq_index, // stamofu_mq index
 
     // stamofu CAM return
-    input logic                                                         stamofu_CAM_return_valid,
-    input logic [MDPT_INFO_WIDTH-1:0]                                   stamofu_CAM_return_updated_mdp_info,
-    input logic [3:0]                                                   stamofu_CAM_return_forward_byte_mask,
-    input logic [31:0]                                                  stamofu_CAM_return_forward_data,
-    input logic                                                         stamofu_CAM_return_stall,
-    input logic [$clog2(STAMOFU_CQ_ENTRIES+STAMOFU_MQ_ENTRIES)-1:0]     stamofu_CAM_return_stall_count,
+    input logic                                 stamofu_CAM_return_valid,
+    input logic [MDPT_INFO_WIDTH-1:0]           stamofu_CAM_return_updated_mdp_info,
+    input logic [3:0]                           stamofu_CAM_return_forward_byte_mask,
+    input logic [31:0]                          stamofu_CAM_return_forward_data,
+    input logic                                 stamofu_CAM_return_stall,
+    input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_CAM_return_stall_count,
         // need to prevent issue of stamofu dependent entry doing an ldu_CAM just before 
         // this stamofu_CAM could update the stall count -> snoop active ldu_CAM's
         // prolly good idea to also have failsafe launch based on e.g. rob head index
-    input logic [LOG_LDU_CQ_ENTRIES-1:0]                                stamofu_CAM_return_cq_index, // ldu_cq index
-    input logic                                                         stamofu_CAM_return_is_mq,
-    input logic [LOG_LDU_MQ_ENTRIES-1:0]                                stamofu_CAM_return_mq_index, // ldu_mq index
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_cq_index, // ldu_cq index
+    input logic                                 stamofu_CAM_return_is_mq,
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_return_mq_index, // ldu_mq index
 
     // store set CAM update
         // implied dep
@@ -131,14 +151,13 @@ module ldu_cq #(
         // mdp info
         // dest PR
         // upper ROB index
-        // lower ROB index mask
+        // lower ROB index one hot
         // WB sent
         // misaligned
         // mq index
-        // matching mdp count
         // mdp update req
         // forwarded
-        // forwarded ROB index
+        // forwarded youngest ROB index
         // stalling
         // stall count
         // nasty forward
@@ -149,5 +168,33 @@ module ldu_cq #(
         // restart request
         // page fault
         // access fault
+    typedef struct packed {
+        logic                               valid;
+        logic                               killed;
+        logic                               committed;
+        logic                               WB_sent;
+        logic                               mdp_update_req;
+        logic                               misaligned;
+        logic [LOG_LDU_MQ_ENTRIES-1:0]      mq_index;
+        logic                               stalling;
+        logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stall_count;
+        logic                               forwarded;
+        logic [LOG_ROB_ENTRIES-1:0]         forwarded_youngest_ROB_index;
+        logic                               nasty_forward;
+        logic                               return_req;
+        logic                               restart_req;
+        logic                               page_fault;
+        logic                               access_fault;
+        logic [3:0]                         op;
+        logic [MDPT_INFO_WIDTH-1:0]         mdp_info;
+        logic [LOG_PR_COUNT-1:0]            dest_PR;
+        logic [LOG_ROB_ENTRIES-3:0]         upper_ROB_index;
+        logic [3:0]                         lower_ROB_index_one_hot;
+        logic [PA_WIDTH-3:0]                PA_word;
+        logic [3:0]                         byte_mask;
+        logic [31:0]                        return_data;
+    } entry_t;
+
+    entry_t [LDU_CQ_ENTRIES-1:0] entry_array;
 
 endmodule

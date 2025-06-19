@@ -66,6 +66,8 @@ module rob (
                 // AMO's not fully complete until read returned, so head stalled
                 // multiple stores in 4-way and AMO's are rare case, just eat the (potential) perf hit
                     // only a perf hit if ejection rate of stores/amos/fences or ROB capacity are limiters for program
+                // compromise: ROB can broadcast completion of full 4-way per cycle
+                    // then up to stamofu to maintain avg bandwidth of 1/cycle commit to dcache
 
     // on restart
         // can treat early and late restart the same
