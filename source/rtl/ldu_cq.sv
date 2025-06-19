@@ -141,33 +141,10 @@ module ldu_cq #(
     input logic [LOG_ROB_ENTRIES-1:0]   rob_kill_abs_head_index,
     input logic [LOG_ROB_ENTRIES-1:0]   rob_kill_rel_kill_younger_index
 );
-    
-    // entry:
-        // valid
-        // killed
-        // committed
-        // op
-            // need for realignment of bytes and signed vs unsigned
-        // mdp info
-        // dest PR
-        // upper ROB index
-        // lower ROB index one hot
-        // WB sent
-        // misaligned
-        // mq index
-        // mdp update req
-        // forwarded
-        // forwarded youngest ROB index
-        // stalling
-        // stall count
-        // nasty forward
-        // PA word
-        // byte mask
-        // return data
-        // return request
-        // restart request
-        // page fault
-        // access fault
+
+    // ----------------------------------------------------------------
+    // Signals:
+
     typedef struct packed {
         logic                               valid;
         logic                               killed;
@@ -196,5 +173,14 @@ module ldu_cq #(
     } entry_t;
 
     entry_t [LDU_CQ_ENTRIES-1:0] entry_array;
+
+    logic [LOG_LDU_CQ_ENTRIES-1:0] enq_ptr, enq_ptr_plus_1;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] deq_ptr, deq_ptr_plus_1;
+
+    // ----------------------------------------------------------------
+    // Logic:
+
+    assign enq_ptr_plus_1 = (enq_ptr == LDU_CQ_ENTRIES-1) ? 0 : enq_ptr + 1;
+    assign deq_ptr_plus_1 = (deq_ptr == LDU_CQ_ENTRIES-1) ? 0 : deq_ptr + 1;
 
 endmodule
