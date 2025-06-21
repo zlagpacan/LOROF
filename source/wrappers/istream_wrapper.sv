@@ -13,7 +13,7 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter ISTREAM_SETS = 8;
+parameter ISTREAM_SETS = core_types_pkg::ISTREAM_SETS;
 parameter INIT_PC = 32'h0;
 
 module istream_wrapper (
