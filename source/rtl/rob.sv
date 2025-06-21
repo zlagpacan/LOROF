@@ -85,4 +85,14 @@ module rob (
                     // bad instr, rollback -> free new PR
                     // NO MAP TABLE CHANGES HERE
 
+    // AMOs
+        // dependent instructions can be naturally stalled, restarted as-needed as long as they remain in the ROB
+        // essentially just means need to delay freeing of AMO write PR
+            // can put in separate queue or other tracking structure which can free from when doing regular frees from ROB head 
+
+    // separately track load unit completes since rely on certain LSQ conditions before can guarantee complete
+        // i.e. can't use WB bus as complete
+            // 1 or more of these will come in for load
+        // already separately tracking stamofu, bru, sys, etc.
+
 endmodule

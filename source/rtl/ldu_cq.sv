@@ -145,6 +145,10 @@ module ldu_cq #(
     input logic                         stamofu_aq_io_aq_active,
     input logic [LOG_ROB_ENTRIES-1:0]   stamofu_aq_io_aq_oldest_abs_ROB_index,
 
+    // ROB complete notif
+    output logic                        ldu_complete_valid,
+    output logic [LOG_ROB_ENTRIES-1:0]  ldu_complete_ROB_index,
+
     // ROB commit
     input logic [LOG_ROB_ENTRIES-3:0]   rob_commit_upper_index,
     input logic [3:0]                   rob_commit_lower_index_valid_mask,
@@ -160,28 +164,28 @@ module ldu_cq #(
 
     typedef struct packed {
         logic                               valid;
+        logic                               misaligned;
+        logic [LOG_LDU_MQ_ENTRIES-1:0]      mq_index;
         logic                               killed;
-        logic                               committed;
         logic                               launched;
         logic                               dtlb_hit;
         logic                               dcache_hit;
         logic                               aq_blocking;
-        logic                               WB_sent;
-        logic                               complete;
-        logic                               mdp_update_req;
-        logic                               second_try_req;
-        logic                               data_try_req;
-        logic                               restart;
-        logic                               page_fault;
-        logic                               access_fault;
-        logic                               misaligned;
-        logic [LOG_LDU_MQ_ENTRIES-1:0]      mq_index;
         logic                               stalling;
         logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stall_count;
         logic                               forwarded;
         logic [LOG_ROB_ENTRIES-1:0]         forwarded_ROB_index;
         logic                               nasty_forward;
         logic [LOG_ROB_ENTRIES-1:0]         nasty_wait_ROB_index;
+        logic                               WB_sent;
+        logic                               complete;
+        logic                               committed;
+        logic                               mdp_update_req;
+        logic                               second_try_req;
+        logic                               data_try_req;
+        logic                               complete_req;
+        logic                               page_fault;
+        logic                               access_fault;
         logic [3:0]                         op;
         logic [MDPT_INFO_WIDTH-1:0]         mdp_info;
         logic [LOG_PR_COUNT-1:0]            dest_PR;
