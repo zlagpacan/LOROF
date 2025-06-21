@@ -50,44 +50,45 @@ module ldu_cq #(
     input logic                             data_try_ack,
 
     // central queue info ret
-    output logic                            ldu_cq_info_ret_valid,
-    output logic [LOG_LDU_CQ_ENTRIES-1:0]   ldu_cq_info_ret_cq_index,
-    output logic                            ldu_cq_info_ret_misaligned,
-    output logic                            ldu_cq_info_ret_dtlb_hit,
-    output logic                            ldu_cq_info_ret_page_fault,
-    output logic                            ldu_cq_info_ret_access_fault,
-    output logic                            ldu_cq_info_ret_dcache_hit,
-    output logic                            ldu_cq_info_ret_is_mem,
-    output logic                            ldu_cq_info_ret_aq_blocking,
-    output logic [PA_WIDTH-2-1:0]           ldu_cq_info_ret_PA_word,
-    output logic [3:0]                      ldu_cq_info_ret_byte_mask,
-    output logic [31:0]                     ldu_cq_info_ret_data,
+    input logic                             ldu_cq_info_ret_valid,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]    ldu_cq_info_ret_cq_index,
+    input logic                             ldu_cq_info_ret_misaligned,
+    input logic                             ldu_cq_info_ret_dtlb_hit,
+    input logic                             ldu_cq_info_ret_page_fault,
+    input logic                             ldu_cq_info_ret_access_fault,
+    input logic                             ldu_cq_info_ret_dcache_hit,
+    input logic                             ldu_cq_info_ret_is_mem,
+    input logic                             ldu_cq_info_ret_aq_blocking,
+    input logic [PA_WIDTH-2-1:0]            ldu_cq_info_ret_PA_word,
+    input logic [3:0]                       ldu_cq_info_ret_byte_mask,
+    input logic [31:0]                      ldu_cq_info_ret_data,
 
     // misaligned queue info ret
         // need in order to tie cq entry to mq if misaligned
         // use cq_index ^
-    output logic                            ldu_mq_info_ret_valid,
-    output logic [LOG_LDU_MQ_ENTRIES-1:0]   ldu_mq_info_ret_mq_index,
+    input logic                             ldu_mq_info_ret_valid,
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]    ldu_mq_info_ret_mq_index,
 
     // dtlb miss resp
     input logic                             dtlb_miss_resp_valid,
+    input logic                             dtlb_miss_resp_is_mq,
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]    dtlb_miss_resp_mq_index,
     input logic [PPN_WIDTH-1:0]             dtlb_miss_resp_PPN,
     input logic                             dtlb_miss_resp_is_mem,
     input logic                             dtlb_miss_resp_page_fault,
     input logic                             dtlb_miss_resp_access_fault,
     input logic [LOG_LDU_CQ_ENTRIES-1:0]    dtlb_miss_resp_cq_index,
-    input logic                             dtlb_miss_resp_is_mq,
-    input logic [LOG_LDU_MQ_ENTRIES-1:0]    dtlb_miss_resp_mq_index,
 
     // dcache miss resp
     input logic                             dcache_miss_resp_valid,
-    input logic [31:0]                      dcache_miss_resp_data,
-    input logic [LOG_LDU_CQ_ENTRIES-1:0]    dcache_miss_resp_cq_index,
     input logic                             dcache_miss_resp_is_mq,
     input logic [LOG_LDU_MQ_ENTRIES-1:0]    dcache_miss_resp_mq_index,
+    input logic [31:0]                      dcache_miss_resp_data,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]    dcache_miss_resp_cq_index,
 
     // ldu CAM launch
     input logic                                 ldu_CAM_launch_valid,
+    input logic                                 ldu_CAM_launch_is_amo,
     input logic [PA_WIDTH-2-1:0]                ldu_CAM_launch_PA_word,
     input logic [3:0]                           ldu_CAM_launch_byte_mask,
     input logic [31:0]                          ldu_CAM_launch_write_data,
@@ -114,6 +115,8 @@ module ldu_cq #(
         // need to prevent issue of stamofu dependent entry doing an ldu_CAM just before 
         // this stamofu_CAM could update the stall count -> snoop active ldu_CAM's
         // prolly good idea to also have failsafe launch based on e.g. rob head index
+    input logic                                 stamofu_CAM_return_nasty_forward,
+    input logic                                 stamofu_CAM_return_nasty_wait_ROB_index,
     input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_cq_index, // ldu_cq index
     input logic                                 stamofu_CAM_return_is_mq,
     input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_return_mq_index, // ldu_mq index
@@ -132,6 +135,16 @@ module ldu_cq #(
     output logic [MDPT_INFO_WIDTH-1:0]  ssu_commit_update_mdp_info,
     output logic [LOG_ROB_ENTRIES-1:0]  ssu_commit_update_ROB_index,
 
+    // oldest stamofu advertisement
+    input logic                         stamofu_active,
+    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_oldest_ROB_index,
+
+    // acquire advertisement
+    input logic                         stamofu_aq_mem_aq_active,
+    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_aq_mem_aq_oldest_abs_ROB_index,
+    input logic                         stamofu_aq_io_aq_active,
+    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_aq_io_aq_oldest_abs_ROB_index,
+
     // ROB commit
     input logic [LOG_ROB_ENTRIES-3:0]   rob_commit_upper_index,
     input logic [3:0]                   rob_commit_lower_index_valid_mask,
@@ -149,19 +162,26 @@ module ldu_cq #(
         logic                               valid;
         logic                               killed;
         logic                               committed;
+        logic                               launched;
+        logic                               dtlb_hit;
+        logic                               dcache_hit;
+        logic                               aq_blocking;
         logic                               WB_sent;
+        logic                               complete;
         logic                               mdp_update_req;
+        logic                               second_try_req;
+        logic                               data_try_req;
+        logic                               restart;
+        logic                               page_fault;
+        logic                               access_fault;
         logic                               misaligned;
         logic [LOG_LDU_MQ_ENTRIES-1:0]      mq_index;
         logic                               stalling;
         logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stall_count;
         logic                               forwarded;
-        logic [LOG_ROB_ENTRIES-1:0]         forwarded_youngest_ROB_index;
+        logic [LOG_ROB_ENTRIES-1:0]         forwarded_ROB_index;
         logic                               nasty_forward;
-        logic                               return_req;
-        logic                               restart_req;
-        logic                               page_fault;
-        logic                               access_fault;
+        logic [LOG_ROB_ENTRIES-1:0]         nasty_wait_ROB_index;
         logic [3:0]                         op;
         logic [MDPT_INFO_WIDTH-1:0]         mdp_info;
         logic [LOG_PR_COUNT-1:0]            dest_PR;
@@ -172,15 +192,50 @@ module ldu_cq #(
         logic [31:0]                        return_data;
     } entry_t;
 
-    entry_t [LDU_CQ_ENTRIES-1:0] entry_array;
+    entry_t [LDU_CQ_ENTRIES-1:0] entry_array, next_entry_array;
 
     logic [LOG_LDU_CQ_ENTRIES-1:0] enq_ptr, enq_ptr_plus_1;
     logic [LOG_LDU_CQ_ENTRIES-1:0] deq_ptr, deq_ptr_plus_1;
+
+    logic enq_perform;
+    logic deq_perform;
 
     // ----------------------------------------------------------------
     // Logic:
 
     assign enq_ptr_plus_1 = (enq_ptr == LDU_CQ_ENTRIES-1) ? 0 : enq_ptr + 1;
     assign deq_ptr_plus_1 = (deq_ptr == LDU_CQ_ENTRIES-1) ? 0 : deq_ptr + 1;
+
+    // per-entry state machine
+    always_comb begin
+
+
+    end
+
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            entry_array <= '0;
+
+            enq_ptr <= 0;
+            deq_ptr <= 0;
+        end
+        else begin
+            entry_array <= next_entry_array;
+
+            if (~entry_array[enq_ptr].valid & ldu_cq_enq_valid) begin
+                entry_array[enq_ptr].valid <= 1'b1;
+                TODO
+
+                enq_ptr <= enq_ptr_plus_1;
+            end
+            
+            if (entry_array[deq_ptr].valid & entry_array[deq_ptr].committed) begin
+                entry_array[deq_ptr].valid <= 1'b0;
+                TODO
+
+                deq_ptr <= deq_ptr_plus_1;
+            end
+        end
+    end
 
 endmodule
