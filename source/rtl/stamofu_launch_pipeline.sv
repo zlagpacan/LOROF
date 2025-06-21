@@ -85,6 +85,7 @@ module stamofu_launch_pipeline (
 
     // CAM launch
     output logic                                ldu_CAM_launch_valid,
+    output logic                                ldu_CAM_launch_is_amo,
     output logic [PA_WIDTH-2-1:0]               ldu_CAM_launch_PA_word,
     output logic [3:0]                          ldu_CAM_launch_byte_mask,
     output logic [31:0]                         ldu_CAM_launch_write_data,
@@ -371,6 +372,7 @@ module stamofu_launch_pipeline (
             & dtlb_resp_hit
             & ~(dtlb_resp_page_fault | dtlb_resp_access_fault)
             & ~RESP_stage_misaligned_exception;
+        ldu_CAM_launch_is_amo = RESP_stage_is_amo;
         ldu_CAM_launch_PA_word = RESP_stage_return_PA_word;
         ldu_CAM_launch_byte_mask = RESP_stage_byte_mask;
         ldu_CAM_launch_write_data = RESP_stage_write_data;

@@ -13,6 +13,7 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
+
 module stamofu_launch_pipeline_wrapper (
 
     // seq
@@ -88,6 +89,7 @@ module stamofu_launch_pipeline_wrapper (
 
     // CAM launch
 	output logic last_ldu_CAM_launch_valid,
+	output logic last_ldu_CAM_launch_is_amo,
 	output logic [PA_WIDTH-2-1:0] last_ldu_CAM_launch_PA_word,
 	output logic [3:0] last_ldu_CAM_launch_byte_mask,
 	output logic [31:0] last_ldu_CAM_launch_write_data,
@@ -213,6 +215,7 @@ module stamofu_launch_pipeline_wrapper (
 
     // CAM launch
 	logic ldu_CAM_launch_valid;
+	logic ldu_CAM_launch_is_amo;
 	logic [PA_WIDTH-2-1:0] ldu_CAM_launch_PA_word;
 	logic [3:0] ldu_CAM_launch_byte_mask;
 	logic [31:0] ldu_CAM_launch_write_data;
@@ -346,6 +349,7 @@ module stamofu_launch_pipeline_wrapper (
 
 		    // CAM launch
 			last_ldu_CAM_launch_valid <= '0;
+			last_ldu_CAM_launch_is_amo <= '0;
 			last_ldu_CAM_launch_PA_word <= '0;
 			last_ldu_CAM_launch_byte_mask <= '0;
 			last_ldu_CAM_launch_write_data <= '0;
@@ -469,6 +473,7 @@ module stamofu_launch_pipeline_wrapper (
 
 		    // CAM launch
 			last_ldu_CAM_launch_valid <= ldu_CAM_launch_valid;
+			last_ldu_CAM_launch_is_amo <= ldu_CAM_launch_is_amo;
 			last_ldu_CAM_launch_PA_word <= ldu_CAM_launch_PA_word;
 			last_ldu_CAM_launch_byte_mask <= ldu_CAM_launch_byte_mask;
 			last_ldu_CAM_launch_write_data <= ldu_CAM_launch_write_data;

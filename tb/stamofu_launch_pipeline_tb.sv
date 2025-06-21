@@ -104,6 +104,7 @@ module stamofu_launch_pipeline_tb ();
 
     // CAM launch
 	logic DUT_ldu_CAM_launch_valid, expected_ldu_CAM_launch_valid;
+	logic DUT_ldu_CAM_launch_is_amo, expected_ldu_CAM_launch_is_amo;
 	logic [PA_WIDTH-2-1:0] DUT_ldu_CAM_launch_PA_word, expected_ldu_CAM_launch_PA_word;
 	logic [3:0] DUT_ldu_CAM_launch_byte_mask, expected_ldu_CAM_launch_byte_mask;
 	logic [31:0] DUT_ldu_CAM_launch_write_data, expected_ldu_CAM_launch_write_data;
@@ -234,6 +235,7 @@ module stamofu_launch_pipeline_tb ();
 
 	    // CAM launch
 		.ldu_CAM_launch_valid(DUT_ldu_CAM_launch_valid),
+		.ldu_CAM_launch_is_amo(DUT_ldu_CAM_launch_is_amo),
 		.ldu_CAM_launch_PA_word(DUT_ldu_CAM_launch_PA_word),
 		.ldu_CAM_launch_byte_mask(DUT_ldu_CAM_launch_byte_mask),
 		.ldu_CAM_launch_write_data(DUT_ldu_CAM_launch_write_data),
@@ -428,6 +430,13 @@ module stamofu_launch_pipeline_tb ();
 		if (expected_ldu_CAM_launch_valid !== DUT_ldu_CAM_launch_valid) begin
 			$display("TB ERROR: expected_ldu_CAM_launch_valid (%h) != DUT_ldu_CAM_launch_valid (%h)",
 				expected_ldu_CAM_launch_valid, DUT_ldu_CAM_launch_valid);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_ldu_CAM_launch_is_amo !== DUT_ldu_CAM_launch_is_amo) begin
+			$display("TB ERROR: expected_ldu_CAM_launch_is_amo (%h) != DUT_ldu_CAM_launch_is_amo (%h)",
+				expected_ldu_CAM_launch_is_amo, DUT_ldu_CAM_launch_is_amo);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -797,6 +806,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_miss_tag = 22'h000000;
 	    // CAM launch
 		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_is_amo = 1'b0;
 		expected_ldu_CAM_launch_PA_word = {22'h000000, 10'h000};
 		expected_ldu_CAM_launch_byte_mask = 4'b0000;
 		expected_ldu_CAM_launch_write_data = 32'h00000000;
@@ -931,6 +941,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_miss_tag = 22'h000000;
 	    // CAM launch
 		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_is_amo = 1'b0;
 		expected_ldu_CAM_launch_PA_word = {22'h000000, 10'h000};
 		expected_ldu_CAM_launch_byte_mask = 4'b0000;
 		expected_ldu_CAM_launch_write_data = 32'h00000000;
@@ -1076,6 +1087,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_miss_tag = 22'h000000;
 	    // CAM launch
 		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_is_amo = 1'b0;
 		expected_ldu_CAM_launch_PA_word = {22'h000000, 10'h000};
 		expected_ldu_CAM_launch_byte_mask = 4'b0000;
 		expected_ldu_CAM_launch_write_data = 32'h00000000;
@@ -1215,6 +1227,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_miss_tag = 22'h000000;
 	    // CAM launch
 		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_is_amo = 1'b0;
 		expected_ldu_CAM_launch_PA_word = {22'h000000, 10'h000};
 		expected_ldu_CAM_launch_byte_mask = 4'b0000;
 		expected_ldu_CAM_launch_write_data = 32'h00000000;
@@ -1354,6 +1367,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_miss_tag = 22'hdeadbe;
 	    // CAM launch
 		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_is_amo = 1'b0;
 		expected_ldu_CAM_launch_PA_word = {22'h011111, 10'he1e};
 		expected_ldu_CAM_launch_byte_mask = 4'b0100;
 		expected_ldu_CAM_launch_write_data = 32'he1e1e1e1;
@@ -1493,6 +1507,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_miss_tag = 22'heeeeee;
 	    // CAM launch
 		expected_ldu_CAM_launch_valid = 1'b1;
+		expected_ldu_CAM_launch_is_amo = 1'b0;
 		expected_ldu_CAM_launch_PA_word = {22'heeeeee, 10'he1e};
 		expected_ldu_CAM_launch_byte_mask = 4'b0100;
 		expected_ldu_CAM_launch_write_data = 32'he1e1e1e1;
@@ -1632,6 +1647,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_miss_tag = 22'heeeeee;
 	    // CAM launch
 		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_is_amo = 1'b0;
 		expected_ldu_CAM_launch_PA_word = {22'heeeeee, 10'hd2d};
 		expected_ldu_CAM_launch_byte_mask = 4'b0001;
 		expected_ldu_CAM_launch_write_data = 32'hd2d2d2d2;
@@ -1771,6 +1787,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_miss_tag = 22'hdddddd;
 	    // CAM launch
 		expected_ldu_CAM_launch_valid = 1'b1;
+		expected_ldu_CAM_launch_is_amo = 1'b0;
 		expected_ldu_CAM_launch_PA_word = {22'hdddddd, 10'hd2d};
 		expected_ldu_CAM_launch_byte_mask = 4'b0001;
 		expected_ldu_CAM_launch_write_data = 32'hd2d2d2d2;
@@ -1910,6 +1927,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_miss_tag = 22'hcccccc;
 	    // CAM launch
 		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_is_amo = 1'b0;
 		expected_ldu_CAM_launch_PA_word = {22'hcccccc, 10'hc3c};
 		expected_ldu_CAM_launch_byte_mask = 4'b1110;
 		expected_ldu_CAM_launch_write_data = 32'hc3c3c3c3;
@@ -2049,6 +2067,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_miss_tag = 22'hbbbbbb;
 	    // CAM launch
 		expected_ldu_CAM_launch_valid = 1'b1;
+		expected_ldu_CAM_launch_is_amo = 1'b0;
 		expected_ldu_CAM_launch_PA_word = {22'hbbbbbb, 10'hb4b};
 		expected_ldu_CAM_launch_byte_mask = 4'b0001;
 		expected_ldu_CAM_launch_write_data = 32'hb4b4b4b4;
@@ -2188,6 +2207,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_miss_tag = 22'haaaaaa;
 	    // CAM launch
 		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_is_amo = 1'b0;
 		expected_ldu_CAM_launch_PA_word = {22'h055555, 10'ha5a};
 		expected_ldu_CAM_launch_byte_mask = 4'b0110;
 		expected_ldu_CAM_launch_write_data = 32'ha5a5a5a5;
@@ -2327,6 +2347,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_miss_tag = 22'h999999;
 	    // CAM launch
 		expected_ldu_CAM_launch_valid = 1'b1;
+		expected_ldu_CAM_launch_is_amo = 1'b1;
 		expected_ldu_CAM_launch_PA_word = {22'h999999, 10'h969};
 		expected_ldu_CAM_launch_byte_mask = 4'b1111;
 		expected_ldu_CAM_launch_write_data = 32'h96969696;
@@ -2466,6 +2487,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_miss_tag = 22'h888888;
 	    // CAM launch
 		expected_ldu_CAM_launch_valid = 1'b1;
+		expected_ldu_CAM_launch_is_amo = 1'b1;
 		expected_ldu_CAM_launch_PA_word = {22'h888888, 10'h878};
 		expected_ldu_CAM_launch_byte_mask = 4'b1111;
 		expected_ldu_CAM_launch_write_data = 32'h87878787;
@@ -2605,6 +2627,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_miss_tag = 22'h777777;
 	    // CAM launch
 		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_is_amo = 1'b1;
 		expected_ldu_CAM_launch_PA_word = {22'h088888, 10'h787};
 		expected_ldu_CAM_launch_byte_mask = 4'b1100;
 		expected_ldu_CAM_launch_write_data = 32'h78787878;
@@ -2744,6 +2767,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_miss_tag = 22'h666666;
 	    // CAM launch
 		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_is_amo = 1'b0;
 		expected_ldu_CAM_launch_PA_word = {22'h099999, 10'h696};
 		expected_ldu_CAM_launch_byte_mask = 4'b1110;
 		expected_ldu_CAM_launch_write_data = 32'h69696969;
@@ -2883,6 +2907,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_miss_tag = 22'h666666;
 	    // CAM launch
 		expected_ldu_CAM_launch_valid = 1'b0;
+		expected_ldu_CAM_launch_is_amo = 1'b0;
 		expected_ldu_CAM_launch_PA_word = {22'h099999, 10'h696};
 		expected_ldu_CAM_launch_byte_mask = 4'b1110;
 		expected_ldu_CAM_launch_write_data = 32'h69696969;
