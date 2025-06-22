@@ -176,7 +176,8 @@ module ldu_cq #(
         logic                               forwarded;
         logic [LOG_ROB_ENTRIES-1:0]         forwarded_ROB_index;
         logic                               nasty_forward;
-        logic [LOG_ROB_ENTRIES-1:0]         nasty_wait_ROB_index;
+        logic [LOG_ROB_ENTRIES-1:0]         nasty_forward_wait_upper_ROB_index;
+        logic [3:0]                         nasty_forward_wait_lower_ROB_index_one_hot;
         logic                               WB_sent;
         logic                               complete;
         logic                               committed;
@@ -201,9 +202,6 @@ module ldu_cq #(
     logic [LOG_LDU_CQ_ENTRIES-1:0] enq_ptr, enq_ptr_plus_1;
     logic [LOG_LDU_CQ_ENTRIES-1:0] deq_ptr, deq_ptr_plus_1;
 
-    logic enq_perform;
-    logic deq_perform;
-
     // ----------------------------------------------------------------
     // Logic:
 
@@ -212,8 +210,11 @@ module ldu_cq #(
 
     // per-entry state machine
     always_comb begin
+        next_entry_array = entry_array;
 
-
+        for (int i = 0; i < LDU_CQ_ENTRIES; i++) begin
+            
+        end
     end
 
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -226,16 +227,87 @@ module ldu_cq #(
         else begin
             entry_array <= next_entry_array;
 
+            //////////
+            // enq: //
+            //////////
             if (~entry_array[enq_ptr].valid & ldu_cq_enq_valid) begin
                 entry_array[enq_ptr].valid <= 1'b1;
-                TODO
+                // entry_array[enq_ptr].misaligned
+                // entry_array[enq_ptr].mq_index
+                entry_array[enq_ptr].killed <= ldu_cq_enq_killed;
+                entry_array[enq_ptr].launched <= 1'b0;
+                entry_array[enq_ptr].dtlb_hit <= 1'b0;
+                entry_array[enq_ptr].dcache_hit <= 1'b0;
+                entry_array[enq_ptr].aq_blocking <= 1'b0;
+                entry_array[enq_ptr].stalling <= 1'b0;
+                // entry_array[enq_ptr].stall_count
+                entry_array[enq_ptr].forwarded <= 1'b0;
+                // entry_array[enq_ptr].forwarded_ROB_index
+                entry_array[enq_ptr].nasty_forward <= 1'b0;
+                // entry_array[enq_ptr].nasty_forward_wait_upper_ROB_index
+                // entry_array[enq_ptr].nasty_forward_wait_lower_ROB_index_one_hot
+                entry_array[enq_ptr].WB_sent <= 1'b0;
+                entry_array[enq_ptr].complete <= 1'b0;
+                entry_array[enq_ptr].committed <= 1'b0;
+                entry_array[enq_ptr].mdp_update_req <= 1'b0;
+                entry_array[enq_ptr].second_try_req <= 1'b0;
+                entry_array[enq_ptr].data_try_req <= 1'b0;
+                entry_array[enq_ptr].complete_req <= 1'b0;
+                entry_array[enq_ptr].page_fault <= 1'b0;
+                entry_array[enq_ptr].access_fault <= 1'b0;
+                entry_array[enq_ptr].op <= ldu_cq_enq_op;
+                entry_array[enq_ptr].mdp_info <= ldu_cq_enq_mdp_info;
+                entry_array[enq_ptr].dest_PR <= ldu_cq_enq_dest_PR;
+                entry_array[enq_ptr].upper_ROB_index <= ldu_cq_enq_ROB_index[LOG_ROB_ENTRIES-1:2];
+                case (ldu_cq_enq_ROB_index[1:0])
+                    2'h0:   entry_array[enq_ptr].lower_ROB_index_one_hot <= 4'b0001;
+                    2'h1:   entry_array[enq_ptr].lower_ROB_index_one_hot <= 4'b0010;
+                    2'h2:   entry_array[enq_ptr].lower_ROB_index_one_hot <= 4'b0100;
+                    2'h3:   entry_array[enq_ptr].lower_ROB_index_one_hot <= 4'b1000;
+                endcase
+                // entry_array[enq_ptr].PA_word
+                // entry_array[enq_ptr].byte_mask
+                // entry_array[enq_ptr].return_data
 
                 enq_ptr <= enq_ptr_plus_1;
             end
-            
+
+            //////////
+            // deq: //
+            //////////
             if (entry_array[deq_ptr].valid & entry_array[deq_ptr].committed) begin
-                entry_array[deq_ptr].valid <= 1'b0;
-                TODO
+                entry_array[enq_ptr].valid <= 1'b0;
+                // entry_array[enq_ptr].misaligned
+                // entry_array[enq_ptr].mq_index
+                entry_array[enq_ptr].killed <= 1'b0;
+                entry_array[enq_ptr].launched <= 1'b0;
+                entry_array[enq_ptr].dtlb_hit <= 1'b0;
+                entry_array[enq_ptr].dcache_hit <= 1'b0;
+                entry_array[enq_ptr].aq_blocking <= 1'b0;
+                entry_array[enq_ptr].stalling <= 1'b0;
+                // entry_array[enq_ptr].stall_count
+                entry_array[enq_ptr].forwarded <= 1'b0;
+                // entry_array[enq_ptr].forwarded_ROB_index
+                entry_array[enq_ptr].nasty_forward <= 1'b0;
+                // entry_array[enq_ptr].nasty_forward_wait_upper_ROB_index
+                // entry_array[enq_ptr].nasty_forward_wait_lower_ROB_index_one_hot
+                entry_array[enq_ptr].WB_sent <= 1'b0;
+                entry_array[enq_ptr].complete <= 1'b0;
+                entry_array[enq_ptr].committed <= 1'b0;
+                entry_array[enq_ptr].mdp_update_req <= 1'b0;
+                entry_array[enq_ptr].second_try_req <= 1'b0;
+                entry_array[enq_ptr].data_try_req <= 1'b0;
+                entry_array[enq_ptr].complete_req <= 1'b0;
+                // entry_array[enq_ptr].page_fault
+                // entry_array[enq_ptr].access_fault;
+                // entry_array[enq_ptr].op
+                // entry_array[enq_ptr].mdp_info
+                // entry_array[enq_ptr].dest_PR
+                // entry_array[enq_ptr].upper_ROB_index
+                // entry_array[enq_ptr].lower_ROB_index_one_hot
+                // entry_array[enq_ptr].PA_word
+                // entry_array[enq_ptr].byte_mask
+                // entry_array[enq_ptr].return_data
 
                 deq_ptr <= deq_ptr_plus_1;
             end
