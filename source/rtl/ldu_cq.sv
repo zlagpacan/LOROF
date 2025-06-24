@@ -8,6 +8,9 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
 module ldu_cq #(
     parameter LDU_CQ_ENTRIES = 40,
     parameter LOG_LDU_CQ_ENTRIES = $clog2(LDU_CQ_ENTRIES)
@@ -51,6 +54,9 @@ module ldu_cq #(
 
     // misaligned queue info grab
     output logic [LOG_LDU_MQ_ENTRIES-1:0]   ldu_mq_info_grab_mq_index,
+    output logic [LOG_LDU_MQ_ENTRIES-1:0]   ldu_mq_info_grab_data_try_ack,
+    input logic                             ldu_mq_info_grab_data_try_req,
+    input logic [31:0]                      ldu_mq_info_grab_data,
 
     // central queue info grab
     input logic [LOG_LDU_CQ_ENTRIES-1:0]    ldu_cq_info_grab_cq_index,
@@ -176,7 +182,7 @@ module ldu_cq #(
             // on cq return, always try data return
                 // if all hits, mq return will come in next cycle, data will be there to collect
                     // after arbitration cycle for cq data return, so all good
-            // on mq return, only return if cq entry ready and not already returned
+            // on mq return, only return if cq entry ready and not already trying data return
 
     // ----------------------------------------------------------------
     // Signals:
@@ -213,7 +219,7 @@ module ldu_cq #(
         logic [3:0]                         lower_ROB_index_one_hot;
         logic [PA_WIDTH-3:0]                PA_word;
         logic [3:0]                         byte_mask;
-        logic [31:0]                        return_data;
+        logic [31:0]                        data;
     } entry_t;
 
     entry_t [LDU_CQ_ENTRIES-1:0] entry_array, next_entry_array;
@@ -394,7 +400,6 @@ module ldu_cq #(
         second_try_PPN = entry_array[second_try_cq_index].PA_word[PA_WIDTH-3:PA_WIDTH-2-PPN_WIDTH];
         second_try_PO_word = entry_array[second_try_cq_index].PA_word[PA_WIDTH-2-PPN_WIDTH-1:0];
         second_try_byte_mask = entry_array[second_try_cq_index].byte_mask;
-        second_try_cq_index = second_try_cq_index;
         second_try_mq_index = entry_array[second_try_cq_index].mq_index;
 
         second_try_req_not_accepted = second_try_valid & ~second_try_ack;
@@ -410,10 +415,64 @@ module ldu_cq #(
         end
     end
     always_comb begin
-        data_try_do_mispred = entry_array[second_try_cq_index].WB_sent;
-        data_try_data = entry_array[second_try_cq_index].
+        if (entry_array[data_try_cq_index].misaligned) begin
+            data_try_valid = potential_data_try_valid & ldu_mq_info_grab_data_try_req;
+            
+            // arrange misaligned data:
+            
+            // LW
+            if (entry_array[data_try_cq_index].op[1]) begin
+                // 4'b1110, 4'b0001
+                if (entry_array[data_try_cq_index].byte_mask[1]) begin
+                    data_try_data = {ldu_mq_info_grab_data[7:0], entry_array[data_try_cq_index].data[31:8]};
+                end
+                // 4'b1100, 4'b0011
+                else if (entry_array[data_try_cq_index].byte_mask[2]) begin
+                    data_try_data = {ldu_mq_info_grab_data[15:0], entry_array[data_try_cq_index].data[31:16]};
+                end
+                // 4'b1000, 4'b0111
+                else begin
+                    data_try_data = {ldu_mq_info_grab_data[23:0], entry_array[data_try_cq_index].data[31:24]};
+                end
+            end
+            // otherwise, LH, LHU
+                // 4'b1000, 4'b0001
+            else begin
+                // LHU: unsigned
+                if (entry_array[data_try_cq_index].op[2]) begin
+                    data_try_data = {16'h0000, ldu_mq_info_grab_data[7:0], entry_array[data_try_cq_index].data[31:24]};
+                end
+                // LH: signed
+                else begin
+                    data_try_data = {{16{ldu_mq_info_grab_data[7]}}, ldu_mq_info_grab_data[7:0], entry_array[data_try_cq_index].data[31:24]};
+                end
+            end
+
+            ldu_mq_info_grab_data_try_ack = ldu_mq_info_grab_data_try_req;
+        end else begin
+            data_try_valid = potential_data_try_valid;
+            data_try_data = entry_array[data_try_cq_index].data;
+
+            ldu_mq_info_grab_data_try_ack = 1'b0;
+        end
+        data_try_do_mispred = entry_array[data_try_cq_index].WB_sent;
+
+        ldu_mq_info_grab_mq_index = entry_array[data_try_cq_index].mq_index;
 
         data_try_req_not_accepted = data_try_valid & ~data_try_ack;
+    end
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            ldu_complete_valid <= 1'b0;
+            ldu_complete_cq_index <= 0;
+        end
+        else begin
+            ldu_complete_valid <= |complete_unmasked_req_by_entry;
+            ldu_complete_cq_index <= complete_req_ack_index_by_entry;
+        end
+    end
+    always_comb begin
+        ldu_complete_ROB_index = entry_array[ldu_complete_cq_index].ROB_index;
     end
 
     // per-entry state machine
@@ -476,7 +535,7 @@ module ldu_cq #(
     always_comb begin
         ssu_commit_update_valid = deq_perform & entry_array[deq_ptr].forwarded;
         ssu_commit_update_mdp_info = entry_array[deq_ptr].mdp_info;
-        ssu_commit_update_ROB_index = entry_array[deq_ptr]ROB_index;
+        ssu_commit_update_ROB_index = entry_array[deq_ptr].ROB_index;
     end
 
     // wraparound mask based on deq
@@ -550,7 +609,7 @@ module ldu_cq #(
                 endcase
                 // entry_array[enq_ptr].PA_word
                 // entry_array[enq_ptr].byte_mask
-                // entry_array[enq_ptr].return_data
+                // entry_array[enq_ptr].data
 
                 enq_ptr <= enq_ptr_plus_1;
             end
@@ -590,7 +649,7 @@ module ldu_cq #(
                 // entry_array[enq_ptr].lower_ROB_index_one_hot
                 // entry_array[enq_ptr].PA_word
                 // entry_array[enq_ptr].byte_mask
-                // entry_array[enq_ptr].return_data
+                // entry_array[enq_ptr].data
 
                 deq_ptr <= deq_ptr_plus_1;
             end
