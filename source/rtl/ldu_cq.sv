@@ -49,8 +49,19 @@ module ldu_cq #(
     // data try feedback
     input logic                             data_try_ack,
 
+    // misaligned queue info grab
+    output logic [LOG_LDU_MQ_ENTRIES-1:0]   ldu_mq_info_grab_mq_index,
+
+    // central queue info grab
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]    ldu_cq_info_grab_cq_index,
+    output logic [3:0]                      ldu_cq_info_grab_op,
+    output logic [MDPT_INFO_WIDTH-1:0]      ldu_cq_info_grab_mdp_info,
+    output logic [LOG_PR_COUNT-1:0]         ldu_cq_info_grab_dest_PR,
+    output logic [LOG_ROB_ENTRIES-1:0]      ldu_cq_info_grab_ROB_index,
+
     // central queue info ret
     input logic                             ldu_cq_info_ret_valid,
+    input logic                             ldu_cq_info_ret_WB_sent,
     input logic [LOG_LDU_CQ_ENTRIES-1:0]    ldu_cq_info_ret_cq_index,
     input logic                             ldu_cq_info_ret_misaligned,
     input logic                             ldu_cq_info_ret_dtlb_hit,
@@ -101,9 +112,9 @@ module ldu_cq #(
     // ldu CAM return
     output logic                                ldu_CAM_return_valid,
     output logic                                ldu_CAM_return_forward,
-    input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    ldu_CAM_return_cq_index, // stamofu_cq index
-    input logic                                 ldu_CAM_return_is_mq,
-    input logic [LOG_STAMOFU_MQ_ENTRIES-1:0]    ldu_CAM_return_mq_index, // stamofu_mq index
+    output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   ldu_CAM_return_cq_index, // stamofu_cq index
+    output logic                                ldu_CAM_return_is_mq,
+    output logic [LOG_STAMOFU_MQ_ENTRIES-1:0]   ldu_CAM_return_mq_index, // stamofu_mq index
 
     // stamofu CAM return
     input logic                                 stamofu_CAM_return_valid,
@@ -158,6 +169,14 @@ module ldu_cq #(
     input logic [LOG_ROB_ENTRIES-1:0]   rob_kill_abs_head_index,
     input logic [LOG_ROB_ENTRIES-1:0]   rob_kill_rel_kill_younger_index
 );
+    // if mq entry not ready but cq entry tries, will get cancelled when arbitrated for, 
+        // and this single arbitrated entry can mux into the mq entry when trying to
+        // arrange the data bytes
+        // essentially:
+            // on cq return, always try data return
+                // if all hits, mq return will come in next cycle, data will be there to collect
+                    // after arbitration cycle for cq data return, so all good
+            // on mq return, only return if cq entry ready and not already returned
 
     // ----------------------------------------------------------------
     // Signals:
@@ -167,7 +186,6 @@ module ldu_cq #(
         logic                               misaligned;
         logic [LOG_LDU_MQ_ENTRIES-1:0]      mq_index;
         logic                               killed;
-        logic                               launched;
         logic                               dtlb_hit;
         logic                               dcache_hit;
         logic                               aq_blocking;
@@ -181,16 +199,17 @@ module ldu_cq #(
         logic                               WB_sent;
         logic                               complete;
         logic                               committed;
-        logic                               mdp_update_req;
         logic                               second_try_req;
         logic                               data_try_req;
+        logic                               data_try_just_sent;
         logic                               complete_req;
         logic                               page_fault;
         logic                               access_fault;
+        logic                               is_mem;
         logic [3:0]                         op;
         logic [MDPT_INFO_WIDTH-1:0]         mdp_info;
         logic [LOG_PR_COUNT-1:0]            dest_PR;
-        logic [LOG_ROB_ENTRIES-3:0]         upper_ROB_index;
+        logic [LOG_ROB_ENTRIES-1:0]         ROB_index;
         logic [3:0]                         lower_ROB_index_one_hot;
         logic [PA_WIDTH-3:0]                PA_word;
         logic [3:0]                         byte_mask;
@@ -202,18 +221,282 @@ module ldu_cq #(
     logic [LOG_LDU_CQ_ENTRIES-1:0] enq_ptr, enq_ptr_plus_1;
     logic [LOG_LDU_CQ_ENTRIES-1:0] deq_ptr, deq_ptr_plus_1;
 
+    logic enq_perform;
+    logic deq_perform;
+
+    logic [LDU_CQ_ENTRIES-1:0] ldu_cq_info_ret_valid_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] ldu_mq_info_ret_valid_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] dtlb_miss_resp_valid_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] dcache_miss_resp_valid_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] stamofu_CAM_return_valid_by_entry;
+
+    logic [LDU_CQ_ENTRIES-1:0] wraparound_mask;
+
+    logic [LDU_CQ_ENTRIES-1:0] second_try_unmasked_req_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] data_try_unmasked_req_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] complete_unmasked_req_by_entry;
+
+    logic [LDU_CQ_ENTRIES-1:0] second_try_masked_req_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] data_try_masked_req_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] complete_masked_req_by_entry;
+
+    logic [LDU_CQ_ENTRIES-1:0] second_try_unmasked_req_ack_one_hot_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] data_try_unmasked_req_ack_one_hot_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] complete_unmasked_req_ack_one_hot_by_entry;
+
+    logic [LDU_CQ_ENTRIES-1:0] second_try_unmasked_req_ack_index_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] data_try_unmasked_req_ack_index_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] complete_unmasked_req_ack_index_by_entry;
+
+    logic [LDU_CQ_ENTRIES-1:0] second_try_masked_req_ack_one_hot_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] data_try_masked_req_ack_one_hot_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] complete_masked_req_ack_one_hot_by_entry;
+
+    logic [LDU_CQ_ENTRIES-1:0] second_try_masked_req_ack_index_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] data_try_masked_req_ack_index_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] complete_masked_req_ack_index_by_entry;
+
+    logic [LDU_CQ_ENTRIES-1:0] second_try_req_ack_one_hot_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] data_try_req_ack_one_hot_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] complete_req_ack_one_hot_by_entry;
+
+    logic [LDU_CQ_ENTRIES-1:0] second_try_req_ack_index_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] data_try_req_ack_index_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] complete_req_ack_index_by_entry;
+
+    logic second_try_req_not_accepted;
+    logic data_try_req_not_accepted;
+
+    logic potential_data_try_valid;
+
+    logic ldu_complete_cq_index;
+
+    logic [LDU_CQ_ENTRIES-1:0] rel_ROB_index_by_entry;
+
     // ----------------------------------------------------------------
     // Logic:
 
     assign enq_ptr_plus_1 = (enq_ptr == LDU_CQ_ENTRIES-1) ? 0 : enq_ptr + 1;
     assign deq_ptr_plus_1 = (deq_ptr == LDU_CQ_ENTRIES-1) ? 0 : deq_ptr + 1;
 
+    // event demux to entry
+        // ldu_cq return
+        // ldu_mq return
+        // dtlb miss resp
+        // dcache miss resp
+        // stamofu CAM return
+    always_comb begin
+        ldu_cq_info_ret_valid_by_entry = '0;
+        ldu_mq_info_ret_valid_by_entry = '0;
+        dtlb_miss_resp_valid_by_entry = '0;
+        dcache_miss_resp_valid_by_entry = '0;
+        stamofu_CAM_return_valid_by_entry = '0;
+
+        ldu_cq_info_ret_valid_by_entry[ldu_cq_info_ret_cq_index] = ldu_cq_info_ret_valid;
+        ldu_mq_info_ret_valid_by_entry[ldu_cq_info_ret_cq_index] = ldu_mq_info_ret_valid;
+        dtlb_miss_resp_valid_by_entry[dtlb_miss_resp_cq_index] = dtlb_miss_resp_valid;
+        dcache_miss_resp_valid_by_entry[dcache_miss_resp_cq_index] = dcache_miss_resp_valid;
+        stamofu_CAM_return_valid_by_entry[stamofu_CAM_return_cq_index] = stamofu_CAM_return_valid;
+    end
+
+    // request PE's
+    always_comb begin
+        for (int i = 0; i < LDU_CQ_ENTRIES; i++) begin
+            second_try_unmasked_req_by_entry[i] = entry_array[i].second_try_req;
+            data_try_unmasked_req_by_entry[i] = entry_array[i].data_try_req;
+            complete_unmasked_req_by_entry[i] = entry_array[i].complete_req;
+        end
+        second_try_masked_req_by_entry = second_try_unmasked_req_by_entry & wraparound_mask;
+        data_try_masked_req_by_entry = data_try_unmasked_req_by_entry & wraparound_mask;
+        complete_masked_req_by_entry = complete_unmasked_req_by_entry & wraparound_mask;
+    end
+    pe_lsb # (
+        .WIDTH(LDU_CQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
+    ) SECOND_TRY_UNMASKED_PE (
+        .req_vec(second_try_unmasked_req_by_entry),
+        .ack_one_hot(second_try_unmasked_req_ack_one_hot_by_entry),
+        .ack_index(second_try_unmasked_req_ack_index_by_entry)
+    );
+    pe_lsb # (
+        .WIDTH(LDU_CQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
+    ) SECOND_TRY_MASKED_PE (
+        .req_vec(second_try_masked_req_by_entry),
+        .ack_one_hot(second_try_masked_req_ack_one_hot_by_entry),
+        .ack_index(second_try_masked_req_ack_index_by_entry)
+    );
+    pe_lsb # (
+        .WIDTH(LDU_CQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
+    ) DATA_TRY_UNMASKED_PE (
+        .req_vec(data_try_unmasked_req_by_entry),
+        .ack_one_hot(data_try_unmasked_req_ack_one_hot_by_entry),
+        .ack_index(data_try_unmasked_req_ack_index_by_entry)
+    );
+    pe_lsb # (
+        .WIDTH(LDU_CQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
+    ) DATA_TRY_MASKED_PE (
+        .req_vec(data_try_masked_req_by_entry),
+        .ack_one_hot(data_try_masked_req_ack_one_hot_by_entry),
+        .ack_index(data_try_masked_req_ack_index_by_entry)
+    );
+    pe_lsb # (
+        .WIDTH(LDU_CQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
+    ) COMPLETE_UNMASKED_PE (
+        .req_vec(complete_unmasked_req_by_entry),
+        .ack_one_hot(complete_unmasked_req_ack_one_hot_by_entry),
+        .ack_index(complete_unmasked_req_ack_index_by_entry)
+    );
+    pe_lsb # (
+        .WIDTH(LDU_CQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
+    ) COMPLETE_MASKED_PE (
+        .req_vec(complete_masked_req_by_entry),
+        .ack_one_hot(complete_masked_req_ack_one_hot_by_entry),
+        .ack_index(complete_masked_req_ack_index_by_entry)
+    );
+    always_comb begin
+        if (|second_try_masked_req_by_entry) begin
+            second_try_req_ack_one_hot_by_entry = second_try_masked_req_ack_one_hot_by_entry;
+            second_try_req_ack_index_by_entry = second_try_masked_req_ack_index_by_entry;
+        end else begin
+            second_try_req_ack_one_hot_by_entry = second_try_unmasked_req_ack_one_hot_by_entry;
+            second_try_req_ack_index_by_entry = second_try_unmasked_req_ack_index_by_entry;
+        end
+        if (|data_try_masked_req_by_entry) begin
+            data_try_req_ack_one_hot_by_entry = data_try_masked_req_ack_one_hot_by_entry;
+            data_try_req_ack_index_by_entry = data_try_masked_req_ack_index_by_entry;
+        end else begin
+            data_try_req_ack_one_hot_by_entry = data_try_unmasked_req_ack_one_hot_by_entry;
+            data_try_req_ack_index_by_entry = data_try_unmasked_req_ack_index_by_entry;
+        end
+        if (|complete_masked_req_by_entry) begin
+            complete_req_ack_one_hot_by_entry = complete_masked_req_ack_one_hot_by_entry;
+            complete_req_ack_index_by_entry = complete_masked_req_ack_index_by_entry;
+        end else begin
+            complete_req_ack_one_hot_by_entry = complete_unmasked_req_ack_one_hot_by_entry;
+            complete_req_ack_index_by_entry = complete_unmasked_req_ack_index_by_entry;
+        end
+    end
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            second_try_valid <= 1'b0;
+            second_try_cq_index <= 0;
+        end
+        else if (~second_try_req_not_accepted) begin
+            second_try_valid <= |second_try_unmasked_req_by_entry;
+            second_try_cq_index <= second_try_req_ack_index_by_entry;
+        end
+    end
+    always_comb begin
+        second_try_is_mq = 1'b0;
+        second_try_misaligned = entry_array[second_try_cq_index].misaligned;
+        second_try_page_fault = entry_array[second_try_cq_index].page_fault;
+        second_try_access_fault = entry_array[second_try_cq_index].access_fault;
+        second_try_is_mem = entry_array[second_try_cq_index].is_mem;
+        second_try_PPN = entry_array[second_try_cq_index].PA_word[PA_WIDTH-3:PA_WIDTH-2-PPN_WIDTH];
+        second_try_PO_word = entry_array[second_try_cq_index].PA_word[PA_WIDTH-2-PPN_WIDTH-1:0];
+        second_try_byte_mask = entry_array[second_try_cq_index].byte_mask;
+        second_try_cq_index = second_try_cq_index;
+        second_try_mq_index = entry_array[second_try_cq_index].mq_index;
+
+        second_try_req_not_accepted = second_try_valid & ~second_try_ack;
+    end
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            potential_data_try_valid <= 1'b0;
+            data_try_cq_index <= 0;
+        end
+        else if (~data_try_req_not_accepted) begin
+            potential_data_try_valid <= |data_try_unmasked_req_by_entry;
+            data_try_cq_index <= data_try_req_ack_index_by_entry;
+        end
+    end
+    always_comb begin
+        data_try_do_mispred = entry_array[second_try_cq_index].WB_sent;
+        data_try_data = entry_array[second_try_cq_index].
+
+        data_try_req_not_accepted = data_try_valid & ~data_try_ack;
+    end
+
     // per-entry state machine
+        // events:
+            // ldu_cq return
+            // ldu_mq return
+            // dtlb miss resp
+            // dcache miss resp
+            // stamofu CAM return
+            // mdp update req ack
+            // second try req ack
+            // data try req ack
+            // complete req ack
     always_comb begin
         next_entry_array = entry_array;
 
         for (int i = 0; i < LDU_CQ_ENTRIES; i++) begin
-            
+            rel_ROB_index_by_entry[i] = entry_array[i].ROB_index;
+
+            // req ack's are independent of other behavior
+            if (second_try_req_ack_one_hot_by_entry[i] & ~second_try_req_not_accepted) begin
+                next_entry_array[i].second_try_req = 1'b0;
+            end
+            if (data_try_req_ack_one_hot_by_entry[i] & ~data_try_req_not_accepted) begin
+                next_entry_array[i].data_try_req = 1'b0;
+                next_entry_array[i].data_try_just_sent = 1'b1;
+            end
+            if (complete_req_ack_one_hot_by_entry[i]) begin
+                next_entry_array[i].complete_req = 1'b0;
+            end
+
+            // wait to set WB sent on data try's until after mispred determined for this one
+            if (entry_array[i].data_try_just_sent & ~data_try_req_not_accepted) begin
+                next_entry_array[i].WB_sent = data_try_valid;
+                next_entry_array[i].data_try_just_sent = data_try_req_ack_one_hot_by_entry[i];
+            end
+        end
+    end
+
+    // ldu CAM
+    always_comb begin
+
+    end
+
+    // central queue info grab
+    always_comb begin
+        ldu_cq_info_grab_op = entry_array[ldu_cq_info_grab_cq_index].op;
+        ldu_cq_info_grab_mdp_info = entry_array[ldu_cq_info_grab_cq_index].mdp_info;
+        ldu_cq_info_grab_dest_PR = entry_array[ldu_cq_info_grab_cq_index].dest_PR;
+        ldu_cq_info_grab_ROB_index = entry_array[ldu_cq_info_grab_cq_index].ROB_index;
+    end
+
+    // enq
+    assign enq_perform = ~entry_array[enq_ptr].valid & ldu_cq_enq_valid;
+
+    // deq
+    assign deq_perform = entry_array[deq_ptr].valid & entry_array[deq_ptr].committed;
+
+    // perform store set commit update on deq
+    always_comb begin
+        ssu_commit_update_valid = deq_perform & entry_array[deq_ptr].forwarded;
+        ssu_commit_update_mdp_info = entry_array[deq_ptr].mdp_info;
+        ssu_commit_update_ROB_index = entry_array[deq_ptr]ROB_index;
+    end
+
+    // wraparound mask based on deq
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            wraparound_mask <= '1;
+        end
+        else if (deq_perform) begin
+
+            // check for wraparound
+                // n'b100000
+                    // second msb == 1'b0
+            if (~wraparound_mask[LDU_CQ_ENTRIES-2]) begin
+                wraparound_mask <= '1;
+            end
+
+            // otherwise, shift 0 in leftward
+            else begin
+                wraparound_mask <= {wraparound_mask[LDU_CQ_ENTRIES-2], 1'b0};
+            end
         end
     end
 
@@ -230,12 +513,11 @@ module ldu_cq #(
             //////////
             // enq: //
             //////////
-            if (~entry_array[enq_ptr].valid & ldu_cq_enq_valid) begin
+            if (enq_perform) begin
                 entry_array[enq_ptr].valid <= 1'b1;
                 // entry_array[enq_ptr].misaligned
                 // entry_array[enq_ptr].mq_index
                 entry_array[enq_ptr].killed <= ldu_cq_enq_killed;
-                entry_array[enq_ptr].launched <= 1'b0;
                 entry_array[enq_ptr].dtlb_hit <= 1'b0;
                 entry_array[enq_ptr].dcache_hit <= 1'b0;
                 entry_array[enq_ptr].aq_blocking <= 1'b0;
@@ -249,16 +531,17 @@ module ldu_cq #(
                 entry_array[enq_ptr].WB_sent <= 1'b0;
                 entry_array[enq_ptr].complete <= 1'b0;
                 entry_array[enq_ptr].committed <= 1'b0;
-                entry_array[enq_ptr].mdp_update_req <= 1'b0;
                 entry_array[enq_ptr].second_try_req <= 1'b0;
                 entry_array[enq_ptr].data_try_req <= 1'b0;
+                entry_array[enq_ptr].data_try_just_sent <= 1'b0;
                 entry_array[enq_ptr].complete_req <= 1'b0;
                 entry_array[enq_ptr].page_fault <= 1'b0;
                 entry_array[enq_ptr].access_fault <= 1'b0;
+                entry_array[enq_ptr].is_mem <= 1'b0;
                 entry_array[enq_ptr].op <= ldu_cq_enq_op;
                 entry_array[enq_ptr].mdp_info <= ldu_cq_enq_mdp_info;
                 entry_array[enq_ptr].dest_PR <= ldu_cq_enq_dest_PR;
-                entry_array[enq_ptr].upper_ROB_index <= ldu_cq_enq_ROB_index[LOG_ROB_ENTRIES-1:2];
+                entry_array[enq_ptr].ROB_index <= ldu_cq_enq_ROB_index;
                 case (ldu_cq_enq_ROB_index[1:0])
                     2'h0:   entry_array[enq_ptr].lower_ROB_index_one_hot <= 4'b0001;
                     2'h1:   entry_array[enq_ptr].lower_ROB_index_one_hot <= 4'b0010;
@@ -275,12 +558,11 @@ module ldu_cq #(
             //////////
             // deq: //
             //////////
-            if (entry_array[deq_ptr].valid & entry_array[deq_ptr].committed) begin
+            if (deq_perform) begin
                 entry_array[enq_ptr].valid <= 1'b0;
                 // entry_array[enq_ptr].misaligned
                 // entry_array[enq_ptr].mq_index
                 entry_array[enq_ptr].killed <= 1'b0;
-                entry_array[enq_ptr].launched <= 1'b0;
                 entry_array[enq_ptr].dtlb_hit <= 1'b0;
                 entry_array[enq_ptr].dcache_hit <= 1'b0;
                 entry_array[enq_ptr].aq_blocking <= 1'b0;
@@ -294,16 +576,17 @@ module ldu_cq #(
                 entry_array[enq_ptr].WB_sent <= 1'b0;
                 entry_array[enq_ptr].complete <= 1'b0;
                 entry_array[enq_ptr].committed <= 1'b0;
-                entry_array[enq_ptr].mdp_update_req <= 1'b0;
                 entry_array[enq_ptr].second_try_req <= 1'b0;
                 entry_array[enq_ptr].data_try_req <= 1'b0;
+                entry_array[enq_ptr].data_try_just_sent <= 1'b0;
                 entry_array[enq_ptr].complete_req <= 1'b0;
                 // entry_array[enq_ptr].page_fault
                 // entry_array[enq_ptr].access_fault;
+                // entry_array[enq_ptr].is_mem;
                 // entry_array[enq_ptr].op
                 // entry_array[enq_ptr].mdp_info
                 // entry_array[enq_ptr].dest_PR
-                // entry_array[enq_ptr].upper_ROB_index
+                // entry_array[enq_ptr].ROB_index
                 // entry_array[enq_ptr].lower_ROB_index_one_hot
                 // entry_array[enq_ptr].PA_word
                 // entry_array[enq_ptr].byte_mask

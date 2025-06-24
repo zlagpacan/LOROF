@@ -844,7 +844,7 @@ module ldu_launch_pipeline #(
             4'b???1:    rob_exception_VA[1:0] = 2'h0;
             4'b??10:    rob_exception_VA[1:0] = 2'h1;
             4'b?100:    rob_exception_VA[1:0] = 2'h2;
-            default:    rob_exception_VA[1:0] = 2'h3;
+            4'b1000:    rob_exception_VA[1:0] = 2'h3;
         endcase
 
         // mispred
