@@ -28,7 +28,9 @@ module ldu_cq #(
     input logic [LOG_ROB_ENTRIES-1:0]   ldu_cq_enq_ROB_index,
     
     // second try
-    output logic                            second_try_valid,
+    output logic                            second_try_bank0_valid,
+    output logic                            second_try_bank1_valid,
+
     output logic                            second_try_is_mq,
     output logic                            second_try_misaligned,
     output logic                            second_try_page_fault,
@@ -41,50 +43,81 @@ module ldu_cq #(
     output logic [LOG_LDU_MQ_ENTRIES-1:0]   second_try_mq_index,
 
     // second try feedback
-    input logic                             second_try_ack,
+    input logic                             second_try_bank0_ack,
+    input logic                             second_try_bank1_ack,
     
     // data try
-    output logic                            data_try_valid,
+    output logic                            data_try_bank0_valid,
+    output logic                            data_try_bank1_valid,
+
     output logic                            data_try_do_mispred,
     output logic [31:0]                     data_try_data,
     output logic [LOG_LDU_CQ_ENTRIES-1:0]   data_try_cq_index,
 
     // data try feedback
-    input logic                             data_try_ack,
+    input logic                             data_try_bank0_ack,
+    input logic                             data_try_bank1_ack,
+
+    // misaligned queue data try req
+    input logic                             ldu_mq_data_try_req_valid,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]    ldu_mq_data_try_cq_index,
 
     // misaligned queue info grab
     output logic [LOG_LDU_MQ_ENTRIES-1:0]   ldu_mq_info_grab_mq_index,
-    output logic [LOG_LDU_MQ_ENTRIES-1:0]   ldu_mq_info_grab_data_try_ack,
-    input logic                             ldu_mq_info_grab_data_try_req,
     input logic [31:0]                      ldu_mq_info_grab_data,
+    
+    output logic [LOG_LDU_MQ_ENTRIES-1:0]   ldu_mq_info_grab_data_try_ack,
 
     // central queue info grab
-    input logic [LOG_LDU_CQ_ENTRIES-1:0]    ldu_cq_info_grab_cq_index,
-    output logic [3:0]                      ldu_cq_info_grab_op,
-    output logic [MDPT_INFO_WIDTH-1:0]      ldu_cq_info_grab_mdp_info,
-    output logic [LOG_PR_COUNT-1:0]         ldu_cq_info_grab_dest_PR,
-    output logic [LOG_ROB_ENTRIES-1:0]      ldu_cq_info_grab_ROB_index,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]    ldu_cq_info_grab_bank0_cq_index,
+    output logic [3:0]                      ldu_cq_info_grab_bank0_op,
+    output logic [MDPT_INFO_WIDTH-1:0]      ldu_cq_info_grab_bank0_mdp_info,
+    output logic [LOG_PR_COUNT-1:0]         ldu_cq_info_grab_bank0_dest_PR,
+    output logic [LOG_ROB_ENTRIES-1:0]      ldu_cq_info_grab_bank0_ROB_index,
+
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]    ldu_cq_info_grab_bank1_cq_index,
+    output logic [3:0]                      ldu_cq_info_grab_bank1_op,
+    output logic [MDPT_INFO_WIDTH-1:0]      ldu_cq_info_grab_bank1_mdp_info,
+    output logic [LOG_PR_COUNT-1:0]         ldu_cq_info_grab_bank1_dest_PR,
+    output logic [LOG_ROB_ENTRIES-1:0]      ldu_cq_info_grab_bank1_ROB_index,
 
     // central queue info ret
-    input logic                             ldu_cq_info_ret_valid,
-    input logic                             ldu_cq_info_ret_WB_sent,
-    input logic [LOG_LDU_CQ_ENTRIES-1:0]    ldu_cq_info_ret_cq_index,
-    input logic                             ldu_cq_info_ret_misaligned,
-    input logic                             ldu_cq_info_ret_dtlb_hit,
-    input logic                             ldu_cq_info_ret_page_fault,
-    input logic                             ldu_cq_info_ret_access_fault,
-    input logic                             ldu_cq_info_ret_dcache_hit,
-    input logic                             ldu_cq_info_ret_is_mem,
-    input logic                             ldu_cq_info_ret_aq_blocking,
-    input logic [PA_WIDTH-2-1:0]            ldu_cq_info_ret_PA_word,
-    input logic [3:0]                       ldu_cq_info_ret_byte_mask,
-    input logic [31:0]                      ldu_cq_info_ret_data,
+    input logic                             ldu_cq_info_ret_bank0_valid,
+    input logic                             ldu_cq_info_ret_bank0_WB_sent,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]    ldu_cq_info_ret_bank0_cq_index,
+    input logic                             ldu_cq_info_ret_bank0_misaligned,
+    input logic                             ldu_cq_info_ret_bank0_dtlb_hit,
+    input logic                             ldu_cq_info_ret_bank0_page_fault,
+    input logic                             ldu_cq_info_ret_bank0_access_fault,
+    input logic                             ldu_cq_info_ret_bank0_dcache_hit,
+    input logic                             ldu_cq_info_ret_bank0_is_mem,
+    input logic                             ldu_cq_info_ret_bank0_aq_blocking,
+    input logic [PA_WIDTH-2-1:0]            ldu_cq_info_ret_bank0_PA_word,
+    input logic [3:0]                       ldu_cq_info_ret_bank0_byte_mask,
+    input logic [31:0]                      ldu_cq_info_ret_bank0_data,
+    
+    input logic                             ldu_cq_info_ret_bank1_valid,
+    input logic                             ldu_cq_info_ret_bank1_WB_sent,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]    ldu_cq_info_ret_bank1_cq_index,
+    input logic                             ldu_cq_info_ret_bank1_misaligned,
+    input logic                             ldu_cq_info_ret_bank1_dtlb_hit,
+    input logic                             ldu_cq_info_ret_bank1_page_fault,
+    input logic                             ldu_cq_info_ret_bank1_access_fault,
+    input logic                             ldu_cq_info_ret_bank1_dcache_hit,
+    input logic                             ldu_cq_info_ret_bank1_is_mem,
+    input logic                             ldu_cq_info_ret_bank1_aq_blocking,
+    input logic [PA_WIDTH-2-1:0]            ldu_cq_info_ret_bank1_PA_word,
+    input logic [3:0]                       ldu_cq_info_ret_bank1_byte_mask,
+    input logic [31:0]                      ldu_cq_info_ret_bank1_data,
 
     // misaligned queue info ret
         // need in order to tie cq entry to mq if misaligned
         // use cq_index ^
-    input logic                             ldu_mq_info_ret_valid,
-    input logic [LOG_LDU_MQ_ENTRIES-1:0]    ldu_mq_info_ret_mq_index,
+    input logic                             ldu_mq_info_ret_bank0_valid,
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]    ldu_mq_info_ret_bank0_mq_index,
+    
+    input logic                             ldu_mq_info_ret_bank1_valid,
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]    ldu_mq_info_ret_bank1_mq_index,
 
     // dtlb miss resp
     input logic                             dtlb_miss_resp_valid,
@@ -123,20 +156,29 @@ module ldu_cq #(
     output logic [LOG_STAMOFU_MQ_ENTRIES-1:0]   ldu_CAM_return_mq_index, // stamofu_mq index
 
     // stamofu CAM return
-    input logic                                 stamofu_CAM_return_valid,
-    input logic [MDPT_INFO_WIDTH-1:0]           stamofu_CAM_return_updated_mdp_info,
-    input logic [3:0]                           stamofu_CAM_return_forward_byte_mask,
-    input logic [31:0]                          stamofu_CAM_return_forward_data,
-    input logic                                 stamofu_CAM_return_stall,
-    input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_CAM_return_stall_count,
-        // need to prevent issue of stamofu dependent entry doing an ldu_CAM just before 
-        // this stamofu_CAM could update the stall count -> snoop active ldu_CAM's
-        // prolly good idea to also have failsafe launch based on e.g. rob head index
-    input logic                                 stamofu_CAM_return_nasty_forward,
-    input logic                                 stamofu_CAM_return_nasty_wait_ROB_index,
-    input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_cq_index, // ldu_cq index
-    input logic                                 stamofu_CAM_return_is_mq,
-    input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_return_mq_index, // ldu_mq index
+    input logic                                 stamofu_CAM_return_bank0_valid,
+    input logic [MDPT_INFO_WIDTH-1:0]           stamofu_CAM_return_bank0_updated_mdp_info,
+    input logic [3:0]                           stamofu_CAM_return_bank0_forward_byte_mask,
+    input logic [31:0]                          stamofu_CAM_return_bank0_forward_data,
+    input logic                                 stamofu_CAM_return_bank0_stall,
+    input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_CAM_return_bank0_stall_count,
+    input logic                                 stamofu_CAM_return_bank0_nasty_forward,
+    input logic                                 stamofu_CAM_return_bank0_nasty_wait_ROB_index,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_bank0_cq_index, // ldu_cq index
+    input logic                                 stamofu_CAM_return_bank0_is_mq,
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_return_bank0_mq_index, // ldu_mq index
+    
+    input logic                                 stamofu_CAM_return_bank1_valid,
+    input logic [MDPT_INFO_WIDTH-1:0]           stamofu_CAM_return_bank1_updated_mdp_info,
+    input logic [3:0]                           stamofu_CAM_return_bank1_forward_byte_mask,
+    input logic [31:0]                          stamofu_CAM_return_bank1_forward_data,
+    input logic                                 stamofu_CAM_return_bank1_stall,
+    input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_CAM_return_bank1_stall_count,
+    input logic                                 stamofu_CAM_return_bank1_nasty_forward,
+    input logic                                 stamofu_CAM_return_bank1_nasty_wait_ROB_index,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_bank1_cq_index, // ldu_cq index
+    input logic                                 stamofu_CAM_return_bank1_is_mq,
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_return_bank1_mq_index, // ldu_mq index
 
     // store set CAM update
         // implied dep
@@ -175,6 +217,10 @@ module ldu_cq #(
     input logic [LOG_ROB_ENTRIES-1:0]   rob_kill_abs_head_index,
     input logic [LOG_ROB_ENTRIES-1:0]   rob_kill_rel_kill_younger_index
 );
+    // need to prevent issue of stamofu dependent entry doing an ldu_CAM just before 
+        // this stamofu_CAM could update the stall count -> snoop active ldu_CAM's
+        // prolly good idea to also have failsafe launch based on e.g. rob head index
+
     // if mq entry not ready but cq entry tries, will get cancelled when arbitrated for, 
         // and this single arbitrated entry can mux into the mq entry when trying to
         // arrange the data bytes
@@ -219,6 +265,7 @@ module ldu_cq #(
         logic [3:0]                         lower_ROB_index_one_hot;
         logic [PA_WIDTH-3:0]                PA_word;
         logic [3:0]                         byte_mask;
+        logic                               bank;
         logic [31:0]                        data;
     } entry_t;
 
@@ -230,11 +277,15 @@ module ldu_cq #(
     logic enq_perform;
     logic deq_perform;
 
-    logic [LDU_CQ_ENTRIES-1:0] ldu_cq_info_ret_valid_by_entry;
-    logic [LDU_CQ_ENTRIES-1:0] ldu_mq_info_ret_valid_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] ldu_cq_info_ret_bank0_valid_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] ldu_cq_info_ret_bank1_valid_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] ldu_mq_info_ret_bank0_valid_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] ldu_mq_info_ret_bank1_valid_by_entry;
     logic [LDU_CQ_ENTRIES-1:0] dtlb_miss_resp_valid_by_entry;
     logic [LDU_CQ_ENTRIES-1:0] dcache_miss_resp_valid_by_entry;
-    logic [LDU_CQ_ENTRIES-1:0] stamofu_CAM_return_valid_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] ldu_mq_data_try_req_valid_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank0_valid_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank1_valid_by_entry;
 
     logic [LDU_CQ_ENTRIES-1:0] wraparound_mask;
 
@@ -270,6 +321,9 @@ module ldu_cq #(
     logic [LDU_CQ_ENTRIES-1:0] data_try_req_ack_index_by_entry;
     logic [LDU_CQ_ENTRIES-1:0] complete_req_ack_index_by_entry;
 
+    logic second_try_valid;
+    logic data_try_valid;
+
     logic second_try_req_not_accepted;
     logic data_try_req_not_accepted;
 
@@ -287,22 +341,34 @@ module ldu_cq #(
 
     // event demux to entry
         // ldu_cq return
+            // 2x banks
         // ldu_mq return
+            // 2x banks
         // dtlb miss resp
         // dcache miss resp
         // stamofu CAM return
+            // 2x banks
+        // ldu_mq data try req
     always_comb begin
-        ldu_cq_info_ret_valid_by_entry = '0;
-        ldu_mq_info_ret_valid_by_entry = '0;
+        ldu_cq_info_ret_bank0_valid_by_entry = '0;
+        ldu_cq_info_ret_bank1_valid_by_entry = '0;
+        ldu_mq_info_ret_bank0_valid_by_entry = '0;
+        ldu_mq_info_ret_bank1_valid_by_entry = '0;
         dtlb_miss_resp_valid_by_entry = '0;
         dcache_miss_resp_valid_by_entry = '0;
-        stamofu_CAM_return_valid_by_entry = '0;
+        stamofu_CAM_return_bank0_valid_by_entry = '0;
+        stamofu_CAM_return_bank1_valid_by_entry = '0;
+        ldu_mq_data_try_req_valid_by_entry = '0;
 
-        ldu_cq_info_ret_valid_by_entry[ldu_cq_info_ret_cq_index] = ldu_cq_info_ret_valid;
-        ldu_mq_info_ret_valid_by_entry[ldu_cq_info_ret_cq_index] = ldu_mq_info_ret_valid;
+        ldu_cq_info_ret_bank0_valid_by_entry[ldu_cq_info_ret_bank0_cq_index] = ldu_cq_info_ret_bank0_valid;
+        ldu_cq_info_ret_bank1_valid_by_entry[ldu_cq_info_ret_bank1_cq_index] = ldu_cq_info_ret_bank1_valid;
+        ldu_mq_info_ret_bank0_valid_by_entry[ldu_cq_info_ret_bank0_cq_index] = ldu_mq_info_ret_bank0_valid;
+        ldu_mq_info_ret_bank1_valid_by_entry[ldu_cq_info_ret_bank1_cq_index] = ldu_mq_info_ret_bank1_valid;
         dtlb_miss_resp_valid_by_entry[dtlb_miss_resp_cq_index] = dtlb_miss_resp_valid;
         dcache_miss_resp_valid_by_entry[dcache_miss_resp_cq_index] = dcache_miss_resp_valid;
-        stamofu_CAM_return_valid_by_entry[stamofu_CAM_return_cq_index] = stamofu_CAM_return_valid;
+        stamofu_CAM_return_bank0_valid_by_entry[stamofu_CAM_return_bank0_cq_index] = stamofu_CAM_return_bank0_valid;
+        stamofu_CAM_return_bank1_valid_by_entry[stamofu_CAM_return_bank1_cq_index] = stamofu_CAM_return_bank1_valid;
+        ldu_mq_data_try_req_valid_by_entry[ldu_mq_data_try_cq_index] = ldu_mq_data_try_req_valid;
     end
 
     // request PE's
@@ -392,6 +458,9 @@ module ldu_cq #(
         end
     end
     always_comb begin
+        second_try_bank0_valid = second_try_valid & (entry_array[second_try_cq_index].bank == 1'b0);
+        second_try_bank1_valid = second_try_valid & (entry_array[second_try_cq_index].bank == 1'b1);
+
         second_try_is_mq = 1'b0;
         second_try_misaligned = entry_array[second_try_cq_index].misaligned;
         second_try_page_fault = entry_array[second_try_cq_index].page_fault;
@@ -402,7 +471,9 @@ module ldu_cq #(
         second_try_byte_mask = entry_array[second_try_cq_index].byte_mask;
         second_try_mq_index = entry_array[second_try_cq_index].mq_index;
 
-        second_try_req_not_accepted = second_try_valid & ~second_try_ack;
+        second_try_req_not_accepted = 
+            second_try_bank0_valid & ~second_try_bank0_ack
+            | second_try_bank1_valid & ~second_try_bank1_ack;
     end
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
@@ -416,7 +487,8 @@ module ldu_cq #(
     end
     always_comb begin
         if (entry_array[data_try_cq_index].misaligned) begin
-            data_try_valid = potential_data_try_valid & ldu_mq_info_grab_data_try_req;
+            data_try_bank0_valid = potential_data_try_valid & ldu_mq_info_grab_data_try_req & (entry_array[data_try_cq_index].bank == 1'b0);
+            data_try_bank1_valid = potential_data_try_valid & ldu_mq_info_grab_data_try_req & (entry_array[data_try_cq_index].bank == 1'b1);
             
             // arrange misaligned data:
             
@@ -448,9 +520,11 @@ module ldu_cq #(
                 end
             end
 
-            ldu_mq_info_grab_data_try_ack = ldu_mq_info_grab_data_try_req;
+            ldu_mq_info_grab_data_try_ack = 1'b1;
         end else begin
-            data_try_valid = potential_data_try_valid;
+            data_try_bank0_valid = potential_data_try_valid & (entry_array[data_try_cq_index].bank == 1'b0);
+            data_try_bank1_valid = potential_data_try_valid & (entry_array[data_try_cq_index].bank == 1'b1);
+
             data_try_data = entry_array[data_try_cq_index].data;
 
             ldu_mq_info_grab_data_try_ack = 1'b0;
@@ -459,7 +533,9 @@ module ldu_cq #(
 
         ldu_mq_info_grab_mq_index = entry_array[data_try_cq_index].mq_index;
 
-        data_try_req_not_accepted = data_try_valid & ~data_try_ack;
+        data_try_req_not_accepted = 
+            data_try_bank0_valid & ~data_try_bank0_ack
+            | data_try_bank0_valid & ~data_try_bank0_ack;
     end
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
@@ -478,21 +554,53 @@ module ldu_cq #(
     // per-entry state machine
         // events:
             // ldu_cq return
+                // 2x banks
             // ldu_mq return
+                // 2x banks
             // dtlb miss resp
             // dcache miss resp
             // stamofu CAM return
-            // mdp update req ack
+                // 2x banks
+            // ldu_mq data try req
             // second try req ack
             // data try req ack
             // complete req ack
+            // ROB commit
+            // ROB kill
     always_comb begin
         next_entry_array = entry_array;
 
         for (int i = 0; i < LDU_CQ_ENTRIES; i++) begin
             rel_ROB_index_by_entry[i] = entry_array[i].ROB_index;
 
-            // req ack's are independent of other behavior
+            // events with priority
+                // ldu_cq bank 0
+                // ldu_cq bank 1
+                // dtlb miss resp
+                // dcache miss resp
+                // stamofu CAM return bank 0
+                // stamofu CAM return bank 1
+
+            if (ldu_cq_info_ret_bank0_valid_by_entry) begin
+
+            end
+
+            // indep behavior:
+
+            // ldu_mq return (indep)
+            if (ldu_mq_info_ret_bank0_valid_by_entry[i]) begin
+                next_entry_array[i].mq_index = ldu_mq_info_ret_bank0_mq_index;
+            end
+            if (ldu_mq_info_ret_bank1_valid_by_entry[i]) begin
+                next_entry_array[i].mq_index = ldu_mq_info_ret_bank1_mq_index;
+            end
+
+            // ldu_mq data try (indep)
+            if (ldu_mq_data_try_req_valid_by_entry[i] & ~entry_array[i].data_try_req & ~entry_array[i].data_try_just_sent) begin
+                next_entry_array[i].data_try_req = 1'b1;
+            end
+
+            // req ack's (indep)
             if (second_try_req_ack_one_hot_by_entry[i] & ~second_try_req_not_accepted) begin
                 next_entry_array[i].second_try_req = 1'b0;
             end
@@ -509,12 +617,16 @@ module ldu_cq #(
                 next_entry_array[i].WB_sent = data_try_valid;
                 next_entry_array[i].data_try_just_sent = data_try_req_ack_one_hot_by_entry[i];
             end
+
+            // ROB commit (indep)
+            if ()
         end
     end
 
     // ldu CAM
     always_comb begin
 
+        TODO
     end
 
     // central queue info grab
@@ -546,13 +658,14 @@ module ldu_cq #(
         else if (deq_perform) begin
 
             // check for wraparound
-                // n'b100000
+                // n'b100000 -> n'b111111
                     // second msb == 1'b0
             if (~wraparound_mask[LDU_CQ_ENTRIES-2]) begin
                 wraparound_mask <= '1;
             end
 
             // otherwise, shift 0 in leftward
+                // n'b111100 -> n'b111000
             else begin
                 wraparound_mask <= {wraparound_mask[LDU_CQ_ENTRIES-2], 1'b0};
             end
@@ -609,6 +722,7 @@ module ldu_cq #(
                 endcase
                 // entry_array[enq_ptr].PA_word
                 // entry_array[enq_ptr].byte_mask
+                // entry_array[enq_ptr].bank
                 // entry_array[enq_ptr].data
 
                 enq_ptr <= enq_ptr_plus_1;
@@ -649,6 +763,7 @@ module ldu_cq #(
                 // entry_array[enq_ptr].lower_ROB_index_one_hot
                 // entry_array[enq_ptr].PA_word
                 // entry_array[enq_ptr].byte_mask
+                // entry_array[enq_ptr].bank
                 // entry_array[enq_ptr].data
 
                 deq_ptr <= deq_ptr_plus_1;
