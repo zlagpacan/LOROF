@@ -194,15 +194,15 @@ module ldu_cq #(
     output logic [MDPT_INFO_WIDTH-1:0]  ssu_commit_update_mdp_info,
     output logic [LOG_ROB_ENTRIES-1:0]  ssu_commit_update_ROB_index,
 
-    // oldest stamofu advertisement
-    input logic                         stamofu_active,
-    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_oldest_ROB_index,
-
     // acquire advertisement
     input logic                         stamofu_aq_mem_aq_active,
     input logic [LOG_ROB_ENTRIES-1:0]   stamofu_aq_mem_aq_oldest_abs_ROB_index,
     input logic                         stamofu_aq_io_aq_active,
     input logic [LOG_ROB_ENTRIES-1:0]   stamofu_aq_io_aq_oldest_abs_ROB_index,
+
+    // oldest stamofu advertisement
+    input logic                         stamofu_active,
+    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_oldest_ROB_index,
 
     // ROB complete notif
     output logic                        ldu_complete_valid,
@@ -239,6 +239,7 @@ module ldu_cq #(
         logic [LOG_LDU_MQ_ENTRIES-1:0]      mq_index;
         logic                               killed;
         logic                               dtlb_hit;
+        logic                               dcache_launched;
         logic                               dcache_hit;
         logic                               aq_blocking;
         logic                               stalling;
@@ -552,7 +553,7 @@ module ldu_cq #(
     end
 
     // per-entry state machine
-        // events:
+        // external events:
             // ldu_cq return
                 // 2x banks
             // ldu_mq return
@@ -565,6 +566,8 @@ module ldu_cq #(
             // second try req ack
             // data try req ack
             // complete req ack
+            // aq age
+            // oldest store age
             // ROB commit
             // ROB kill
     always_comb begin
@@ -580,7 +583,19 @@ module ldu_cq #(
                 // dcache miss resp
                 // stamofu CAM return bank 0
                 // stamofu CAM return bank 1
+                // ready for second try
+                    // dtlb hit
+                    // no aq blocking
+                    // not dcache_launched
 
+                // ready for data try
+                    // dtlb hit
+                    // stall_count == 0 OR not stalling OR older than oldest store
+                    // forwarded OR dcache_hit
+
+                // ready for complete
+                    // dcache hit OR 
+                    
             if (ldu_cq_info_ret_bank0_valid_by_entry) begin
 
             end
@@ -611,7 +626,6 @@ module ldu_cq #(
             if (complete_req_ack_one_hot_by_entry[i]) begin
                 next_entry_array[i].complete_req = 1'b0;
             end
-
             // wait to set WB sent on data try's until after mispred determined for this one
             if (entry_array[i].data_try_just_sent & ~data_try_req_not_accepted) begin
                 next_entry_array[i].WB_sent = data_try_valid;
@@ -619,7 +633,14 @@ module ldu_cq #(
             end
 
             // ROB commit (indep)
-            if ()
+            if () begin
+
+            end
+
+            // ROB kill (indep)
+            if () begin
+
+            end
         end
     end
 
