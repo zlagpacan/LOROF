@@ -240,15 +240,16 @@ module ldu_cq #(
         logic                               killed;
         logic                               dtlb_hit;
         logic                               dcache_launched;
+        logic                               stamofu_CAM_returned;
         logic                               dcache_hit;
         logic                               aq_blocking;
+        logic                               older_stamofu_active;
         logic                               stalling;
         logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stall_count;
         logic                               forwarded;
         logic [LOG_ROB_ENTRIES-1:0]         forwarded_ROB_index;
         logic                               nasty_forward;
-        logic [LOG_ROB_ENTRIES-1:0]         nasty_forward_wait_upper_ROB_index;
-        logic [3:0]                         nasty_forward_wait_lower_ROB_index_one_hot;
+        logic [LOG_ROB_ENTRIES-1:0]         nasty_forward_wait_ROB_index;
         logic                               WB_sent;
         logic                               complete;
         logic                               committed;
@@ -332,7 +333,9 @@ module ldu_cq #(
 
     logic ldu_complete_cq_index;
 
-    logic [LDU_CQ_ENTRIES-1:0] rel_ROB_index_by_entry;
+    logic [LDU_CQ_ENTRIES-1:0][LOG_ROB_ENTRIES-1:0] rel_ROB_index_by_entry;
+
+    logic [LDU_CQ_ENTRIES-1:0] stall_count_subtract_by_entry;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -567,14 +570,15 @@ module ldu_cq #(
             // data try req ack
             // complete req ack
             // aq age
-            // oldest store age
+            // oldest stamofu age
+            // nasty forward stamofu age
             // ROB commit
             // ROB kill
     always_comb begin
         next_entry_array = entry_array;
 
         for (int i = 0; i < LDU_CQ_ENTRIES; i++) begin
-            rel_ROB_index_by_entry[i] = entry_array[i].ROB_index;
+            rel_ROB_index_by_entry[i] = entry_array[i].ROB_index - rob_kill_abs_head_index;
 
             // events with priority
                 // ldu_cq bank 0
@@ -583,19 +587,17 @@ module ldu_cq #(
                 // dcache miss resp
                 // stamofu CAM return bank 0
                 // stamofu CAM return bank 1
-                // ready for second try
+                // ready for second try req
                     // dtlb hit
                     // no aq blocking
                     // not dcache_launched
-
-                // ready for data try
+                // ready for data try req
                     // dtlb hit
-                    // stall_count == 0 OR not stalling OR older than oldest store
                     // forwarded OR dcache_hit
-
-                // ready for complete
-                    // dcache hit OR 
-                    
+                    // no mem dep pred OR stamofu_CAM_returned
+                    // not stalling OR stall_count == 0 OR stamofu inactive OR no older stamofu active
+                // ready for complete req
+                    // WB_sent OR (dcache_launched & (page_fault | access_fault))
             if (ldu_cq_info_ret_bank0_valid_by_entry) begin
 
             end
@@ -625,6 +627,7 @@ module ldu_cq #(
             end
             if (complete_req_ack_one_hot_by_entry[i]) begin
                 next_entry_array[i].complete_req = 1'b0;
+                next_entry_array[i].complete = 1'b1;
             end
             // wait to set WB sent on data try's until after mispred determined for this one
             if (entry_array[i].data_try_just_sent & ~data_try_req_not_accepted) begin
@@ -632,14 +635,82 @@ module ldu_cq #(
                 next_entry_array[i].data_try_just_sent = data_try_req_ack_one_hot_by_entry[i];
             end
 
-            // ROB commit (indep)
-            if () begin
+            // aq blocking (indep)
+                // condition to clear:
+                    // dtlb hit
+                    // not mem OR no mem aq active OR older than mem aq
+                    // not io OR no io aq active OR older than io aq
+            if (
+                entry_array[i].dtlb_hit
+                & (
+                    ~entry_array[i].is_mem
+                    | ~stamofu_aq_mem_aq_active
+                    | (rel_ROB_index_by_entry[i] < (stamofu_aq_mem_aq_oldest_abs_ROB_index - rob_kill_abs_head_index)))
+                & (
+                    entry_array[i].is_mem
+                    | ~stamofu_aq_io_aq_active
+                    | (rel_ROB_index_by_entry[i] < (stamofu_aq_io_aq_oldest_abs_ROB_index - rob_kill_abs_head_index)))
+            ) begin
+                next_entry_array[i].aq_blocking = 1'b0;
+            end
 
+            // older stamofu active (indep)
+                // before dtlb hit, try to set if older active
+                // after dtlb hit, try to clear if no older active
+                // condition to clear:
+                    // dtlb hit -> do this so less likely to accidentally clear it due to late aq arriving at stamofu_aq 
+                    // no stamofu active OR younger than oldest stamofu
+            if (
+                ~entry_array[i].dtlb_hit
+                & ~(
+                    ~stamofu_active
+                    | (rel_ROB_index_by_entry[i] > (stamofu_oldest_ROB_index - rob_kill_abs_head_index)))
+            ) begin
+                next_entry_array[i].older_stamofu_active = 1'b1;
+            end
+            if (
+                entry_array[i].dtlb_hit
+                & (
+                    ~stamofu_active
+                    | (rel_ROB_index_by_entry[i] > (stamofu_oldest_ROB_index - rob_kill_abs_head_index)))
+            ) begin
+                next_entry_array[i].older_stamofu_active = 1'b0;
+            end
+
+            // past nasty forward (indep)
+                // no stamofu active
+                // oldest stamofu index younger than nasty forward index
+            if (
+                entry_array[i].nasty_forward
+                & (
+                    ~stamofu_active
+                    | (entry_array[i].nasty_forward_wait_ROB_index - rob_kill_abs_head_index) 
+                        > (stamofu_oldest_ROB_index - rob_kill_abs_head_index))
+            ) begin
+                next_entry_array[i].nasty_forward = 1'b0;
+            end
+
+            // stall count subtract (indep)
+            if (stall_count_subtract_by_entry[i]) begin
+                next_entry_array[i].stall_count = entry_array[i].stall_count - 1;
+            end
+
+            // ROB commit (indep)
+                // check within commit mask
+            if (
+                rob_commit_upper_index == entry_array[i].ROB_index[LOG_ROB_ENTRIES-1:2]
+                & |(rob_commit_lower_index_valid_mask & entry_array[i].lower_ROB_index_one_hot)
+            ) begin
+                next_entry_array[i].committed = 1'b1;
             end
 
             // ROB kill (indep)
-            if () begin
-
+                // check younger than kill index
+            if (
+                rob_kill_valid
+                & (rel_ROB_index_by_entry[i] > rob_kill_rel_kill_younger_index)
+            ) begin
+                next_entry_array[i].killed = 1'b1;
             end
         end
     end
@@ -648,6 +719,8 @@ module ldu_cq #(
     always_comb begin
 
         TODO
+
+        stall_count_subtract_by_entry = '0;
     end
 
     // central queue info grab
@@ -712,15 +785,16 @@ module ldu_cq #(
                 // entry_array[enq_ptr].mq_index
                 entry_array[enq_ptr].killed <= ldu_cq_enq_killed;
                 entry_array[enq_ptr].dtlb_hit <= 1'b0;
+                entry_array[enq_ptr].dcache_launched <= 1'b0;
                 entry_array[enq_ptr].dcache_hit <= 1'b0;
                 entry_array[enq_ptr].aq_blocking <= 1'b0;
+                entry_array[enq_ptr].older_stamofu_active <= 1'b0;
                 entry_array[enq_ptr].stalling <= 1'b0;
                 // entry_array[enq_ptr].stall_count
                 entry_array[enq_ptr].forwarded <= 1'b0;
                 // entry_array[enq_ptr].forwarded_ROB_index
                 entry_array[enq_ptr].nasty_forward <= 1'b0;
-                // entry_array[enq_ptr].nasty_forward_wait_upper_ROB_index
-                // entry_array[enq_ptr].nasty_forward_wait_lower_ROB_index_one_hot
+                // entry_array[enq_ptr].nasty_forward_wait_ROB_index
                 entry_array[enq_ptr].WB_sent <= 1'b0;
                 entry_array[enq_ptr].complete <= 1'b0;
                 entry_array[enq_ptr].committed <= 1'b0;
@@ -758,15 +832,16 @@ module ldu_cq #(
                 // entry_array[enq_ptr].mq_index
                 entry_array[enq_ptr].killed <= 1'b0;
                 entry_array[enq_ptr].dtlb_hit <= 1'b0;
+                entry_array[enq_ptr].dcache_launched <= 1'b0;
                 entry_array[enq_ptr].dcache_hit <= 1'b0;
                 entry_array[enq_ptr].aq_blocking <= 1'b0;
+                entry_array[enq_ptr].older_stamofu_active <= 1'b0;
                 entry_array[enq_ptr].stalling <= 1'b0;
                 // entry_array[enq_ptr].stall_count
                 entry_array[enq_ptr].forwarded <= 1'b0;
                 // entry_array[enq_ptr].forwarded_ROB_index
                 entry_array[enq_ptr].nasty_forward <= 1'b0;
-                // entry_array[enq_ptr].nasty_forward_wait_upper_ROB_index
-                // entry_array[enq_ptr].nasty_forward_wait_lower_ROB_index_one_hot
+                // entry_array[enq_ptr].nasty_forward_wait_ROB_index
                 entry_array[enq_ptr].WB_sent <= 1'b0;
                 entry_array[enq_ptr].complete <= 1'b0;
                 entry_array[enq_ptr].committed <= 1'b0;
