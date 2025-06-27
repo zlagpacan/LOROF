@@ -3063,7 +3063,7 @@ module ldu_launch_pipeline_tb ();
 	    // central queue info grab
 		expected_ldu_cq_info_grab_cq_index = 'h9;
 	    // central queue info ret
-		expected_ldu_cq_info_ret_valid = 1'b1;
+		expected_ldu_cq_info_ret_valid = 1'b0;
 		expected_ldu_cq_info_ret_WB_sent = 1'b1;
 		expected_ldu_cq_info_ret_cq_index = 'h8;
 		expected_ldu_cq_info_ret_misaligned = 1'b0;
@@ -3857,7 +3857,7 @@ module ldu_launch_pipeline_tb ();
 		expected_ldu_cq_info_ret_byte_mask = 4'b0111;
 		expected_ldu_cq_info_ret_data = 32'hffffffff;
 	    // misaligned queue info ret
-		expected_ldu_mq_info_ret_valid = 1'b1;
+		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b1;
 		expected_ldu_mq_info_ret_mq_index = 'h2;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b0;

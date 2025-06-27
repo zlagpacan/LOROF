@@ -647,8 +647,8 @@ module ldu_launch_pipeline #(
             RESP_stage_dtlb_hit 
             & (RESP_stage_selected_page_fault | RESP_stage_selected_access_fault);
         // RESP_stage_do_mispred handled in FF logic ^
-        RESP_stage_do_cq_ret = ~RESP_stage_is_mq;
-        RESP_stage_do_mq_ret = RESP_stage_is_mq;
+        RESP_stage_do_cq_ret = ~RESP_stage_is_mq & ~RESP_stage_is_data;
+        RESP_stage_do_mq_ret = RESP_stage_is_mq & ~RESP_stage_is_data;
     end
 
     // ----------------------------------------------------------------

@@ -598,8 +598,42 @@ module ldu_cq #(
                     // not stalling OR stall_count == 0 OR stamofu inactive OR no older stamofu active
                 // ready for complete req
                     // WB_sent OR (dcache_launched & (page_fault | access_fault))
-            if (ldu_cq_info_ret_bank0_valid_by_entry) begin
-
+            if (ldu_cq_info_ret_bank0_valid_by_entry[i]) begin
+                // next_entry_array[i].valid = 
+                // next_entry_array[i].misaligned = 
+                // next_entry_array[i].mq_index = 
+                // next_entry_array[i].killed = 
+                next_entry_array[i].dtlb_hit = ldu_cq_info_ret_bank0_dtlb_hit;
+                next_entry_array[i].dcache_launched = ldu_cq_info_ret_bank0_dtlb_hit;
+                // next_entry_array[i].stamofu_CAM_returned = 
+                next_entry_array[i].dcache_hit = ldu_cq_info_ret_bank0_dcache_hit;
+                next_entry_array[i].aq_blocking = ldu_cq_info_ret_bank0_aq_blocking;
+                // next_entry_array[i].older_stamofu_active = 
+                // next_entry_array[i].stalling = 
+                // next_entry_array[i].stall_count = 
+                // next_entry_array[i].forwarded = 
+                // next_entry_array[i].forwarded_ROB_index = 
+                // next_entry_array[i].nasty_forward = 
+                // next_entry_array[i].nasty_forward_wait_ROB_index = 
+                next_entry_array[i].WB_sent |= ldu_cq_info_ret_bank0_WB_sent;
+                // next_entry_array[i].complete = 
+                // next_entry_array[i].committed = 
+                // next_entry_array[i].second_try_req = 
+                // next_entry_array[i].data_try_req = 
+                // next_entry_array[i].data_try_just_sent = 
+                // next_entry_array[i].complete_req = 
+                next_entry_array[i].page_fault = ldu_cq_info_ret_bank0_page_fault;
+                next_entry_array[i].access_fault = ldu_cq_info_ret_bank0_access_fault;
+                next_entry_array[i].is_mem = ldu_cq_info_ret_bank0_is_mem;
+                // next_entry_array[i].op = 
+                // next_entry_array[i].mdp_info = 
+                // next_entry_array[i].dest_PR = 
+                // next_entry_array[i].ROB_index = 
+                // next_entry_array[i].lower_ROB_index_one_hot = 
+                next_entry_array[i].PA_word = ldu_cq_info_ret_bank0_PA_word;
+                next_entry_array[i].byte_mask = ldu_cq_info_ret_bank0_byte_mask;
+                next_entry_array[i].bank = ldu_cq_info_ret_bank0_PA_word[DCACHE_WORD_ADDR_BANK_BIT];
+                next_entry_array[i].data = ldu_cq_info_ret_bank0_data;
             end
 
             // indep behavior:
@@ -631,7 +665,7 @@ module ldu_cq #(
             end
             // wait to set WB sent on data try's until after mispred determined for this one
             if (entry_array[i].data_try_just_sent & ~data_try_req_not_accepted) begin
-                next_entry_array[i].WB_sent = data_try_valid;
+                next_entry_array[i].WB_sent |= data_try_valid;
                 next_entry_array[i].data_try_just_sent = data_try_req_ack_one_hot_by_entry[i];
             end
 
