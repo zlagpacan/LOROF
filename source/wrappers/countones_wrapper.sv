@@ -11,7 +11,7 @@
 import core_types_pkg::*;
 
 module countones_wrapper #(
-    parameter WIDTH = 8
+    parameter WIDTH = 28
 ) (
 
     // seq
