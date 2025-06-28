@@ -644,7 +644,12 @@ module ldu_launch_pipeline #(
                 & ~RESP_stage_aq_blocking 
                 & RESP_stage_dcache_vtm 
                 & ~RESP_stage_mdp_present 
-                & ~RESP_stage_misaligned);
+                & ~RESP_stage_misaligned)
+            | (
+                RESP_stage_dtlb_hit
+                & (RESP_stage_selected_page_fault | RESP_stage_selected_access_fault)
+                    // excepting loads still need to return so dependent killed instr's can be cleared
+            );
         RESP_stage_do_CAM = 
             RESP_stage_dtlb_hit 
             & ~RESP_stage_aq_blocking
@@ -691,7 +696,7 @@ module ldu_launch_pipeline #(
             RET_stage_do_cq_ret <= '0;
             RET_stage_do_mq_ret <= '0;
         end
-        else if (~stall_RESP) begin
+        else if (~stall_RET) begin
             RET_stage_valid <= RESP_stage_valid;
             RET_stage_is_first <= RESP_stage_is_first;
             RET_stage_is_second <= RESP_stage_is_second;
