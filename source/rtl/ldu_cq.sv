@@ -244,7 +244,6 @@ module ldu_cq #(
         logic [LOG_LDU_MQ_ENTRIES-1:0]      mq_index;
         logic                               killed;
         logic                               dtlb_hit;
-        logic                               dcache_launched; // really means first try dtlb or second try launched. for telling if page fault handled
         logic                               stamofu_CAM_returned;
         logic                               dcache_hit;
         logic                               aq_blocking;
@@ -260,6 +259,7 @@ module ldu_cq #(
         logic                               complete;
         logic                               committed;
         logic                               second_try_req;
+        logic                               check_data_try_req;
         logic                               data_try_req;
         logic                               data_try_just_sent;
         logic                               complete_req;
@@ -547,7 +547,7 @@ module ldu_cq #(
 
         data_try_req_not_accepted = 
             data_try_bank0_valid & ~data_try_bank0_ack
-            | data_try_bank0_valid & ~data_try_bank0_ack;
+            | data_try_bank1_valid & ~data_try_bank1_ack;
     end
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
@@ -589,6 +589,8 @@ module ldu_cq #(
         for (int i = 0; i < LDU_CQ_ENTRIES; i++) begin
             rel_ROB_index_by_entry[i] = entry_array[i].ROB_index - rob_kill_abs_head_index;
 
+            next_entry_array[i].check_data_try_req = 1'b0;
+
             // events with priority
                 // ldu_cq bank 0
                 // ldu_cq bank 1
@@ -600,11 +602,10 @@ module ldu_cq #(
             // ldu_cq bank 0
             if (ldu_cq_info_ret_bank0_valid_by_entry[i]) begin
                 // next_entry_array[i].valid = 
-                // next_entry_array[i].misaligned = 
+                next_entry_array[i].misaligned = ldu_cq_info_ret_bank0_misaligned;
                 // next_entry_array[i].mq_index = 
                 // next_entry_array[i].killed = 
                 next_entry_array[i].dtlb_hit = ldu_cq_info_ret_bank0_dtlb_hit;
-                next_entry_array[i].dcache_launched = ldu_cq_info_ret_bank0_dtlb_hit;
                 // next_entry_array[i].stamofu_CAM_returned = 
                 next_entry_array[i].dcache_hit = ldu_cq_info_ret_bank0_dcache_hit;
                 next_entry_array[i].aq_blocking = ldu_cq_info_ret_bank0_aq_blocking;
@@ -635,15 +636,17 @@ module ldu_cq #(
                 next_entry_array[i].byte_mask = ldu_cq_info_ret_bank0_byte_mask;
                 next_entry_array[i].bank = ldu_cq_info_ret_bank0_PA_word[DCACHE_WORD_ADDR_BANK_BIT];
                 next_entry_array[i].data = ldu_cq_info_ret_bank0_data;
+
+                // trigger check data try req if misaligned
+                next_entry_array[i].check_data_try_req |= ldu_cq_info_ret_bank0_misaligned;
             end
             // ldu_cq bank 1
             else if (ldu_cq_info_ret_bank1_valid_by_entry[i]) begin
                 // next_entry_array[i].valid = 
-                // next_entry_array[i].misaligned = 
+                next_entry_array[i].misaligned = ldu_cq_info_ret_bank1_misaligned;
                 // next_entry_array[i].mq_index = 
                 // next_entry_array[i].killed = 
                 next_entry_array[i].dtlb_hit = ldu_cq_info_ret_bank1_dtlb_hit;
-                next_entry_array[i].dcache_launched = ldu_cq_info_ret_bank1_dtlb_hit;
                 // next_entry_array[i].stamofu_CAM_returned = 
                 next_entry_array[i].dcache_hit = ldu_cq_info_ret_bank1_dcache_hit;
                 next_entry_array[i].aq_blocking = ldu_cq_info_ret_bank1_aq_blocking;
@@ -659,6 +662,7 @@ module ldu_cq #(
                 // next_entry_array[i].complete = 
                 // next_entry_array[i].committed = 
                 // next_entry_array[i].second_try_req = 
+                // next_entry_array[i].check_data_try_req = 
                 // next_entry_array[i].data_try_req = 
                 // next_entry_array[i].data_try_just_sent = 
                 // next_entry_array[i].complete_req = 
@@ -674,6 +678,9 @@ module ldu_cq #(
                 next_entry_array[i].byte_mask = ldu_cq_info_ret_bank1_byte_mask;
                 next_entry_array[i].bank = ldu_cq_info_ret_bank1_PA_word[DCACHE_WORD_ADDR_BANK_BIT];
                 next_entry_array[i].data = ldu_cq_info_ret_bank1_data;
+
+                // trigger check data try req if misaligned
+                next_entry_array[i].check_data_try_req |= ldu_cq_info_ret_bank1_misaligned;
             end
             // stamofu CAM return bank 0
             else if (stamofu_CAM_return_bank0_valid_by_entry[i]) begin
@@ -693,7 +700,8 @@ module ldu_cq #(
                     next_entry_array[i].data = dcache_miss_resp_data;
                 end
 
-                TODO
+                // trigger check data try req
+                next_entry_array[i].check_data_try_req = 1'b1;
             end
             // stamofu CAM return bank 1
             else if (stamofu_CAM_return_bank1_valid_by_entry[i]) begin
@@ -713,7 +721,8 @@ module ldu_cq #(
                     next_entry_array[i].data = dcache_miss_resp_data;
                 end
 
-                TODO
+                // trigger check data try req
+                next_entry_array[i].check_data_try_req = 1'b1;
             end
             // ldu CAM forward
                 // subset of stamofu CAM return
@@ -724,7 +733,8 @@ module ldu_cq #(
 
                 next_entry_array[i].data = ldu_CAM_launch_write_data;
 
-                TODO
+                // trigger check data try req
+                next_entry_array[i].check_data_try_req = 1'b1;
             end
             // ldu CAM nasty forward
                 // subset of stamofu CAM return
@@ -733,50 +743,51 @@ module ldu_cq #(
                 next_entry_array[i].nasty_forward = 1'b1;
                 next_entry_array[i].forward_ROB_index = ldu_CAM_launch_ROB_index;
 
-                TODO
+                // trigger check data try req
+                next_entry_array[i].check_data_try_req = 1'b1;
             end
             // dcache miss resp
                 // this is only case where take dcache miss resp data
             else if (dcache_miss_resp_valid_by_entry[i] & ~entry_array[i].forward & ~entry_array[i].nasty_forward) begin
                 next_entry_array[i].data = dcache_miss_resp_data;
 
-                TODO
+                // trigger check data try req
+                next_entry_array[i].check_data_try_req = 1'b1;
             end
 
             // indep behavior:
 
-            // ready for second try req
-                // dtlb hit
-                // no aq blocking
-                // no second_try_req
-                // not dcache_launched
-                // OR: set second try req with event logic above and below
-            TODO
-
             // ready for data try req
+                // check data try req triggered
                 // dtlb hit
                 // forward OR dcache_hit
+                // no nasty forward
                 // no mem dep pred OR stamofu_CAM_returned
                 // not stalling OR stamofu inactive OR no older stamofu active
-                // TODO: some condition saying want new data try
-                    // new relevant ldu_CAM
-                    // dcache miss resp arrived
-                    // stall count hit 0
-                    // OR: condition saying already did last data try
-                // OR: set data try req with event logic above and below
-            TODO
+                    // this is short circuit in case never escape stall count
+            if (
+                entry_array[i].check_data_try_req
+                & entry_array[i].dtlb_hit
+                & (entry_array[i].forward | entry_array[i].dcache_hit)
+                & ~entry_array[i].nasty_forward
+                & (~entry_array[i].mdp_present | entry_array[i].stamofu_cam_returned)
+                & (~entry_array[i].stalling | ~stamofu_active | ~entry_array[i].older_stamofu_active)
+            ) begin
+                next_entry_array[i].data_try_req = 1'b1;
+            end
 
             // ready for complete req
                 // not complete
                 // no complete req
-                // (WB_sent & ~older_stamofu_active) | (dcache_launched & (page_fault | access_fault))
+                // ~older_stamofu_active
+                // WB_sent
+                    // WB_sent also performed for excepting load's in launch pipeline
+                        // upon first try if got dtlb hit, or on second try if got dtlb miss
             if (
                 ~entry_array[i].complete
                 & ~entry_array[i].complete_req
-                & (
-                    entry_array[i].WB_sent & ~entry_array[i].older_stamofu_active
-                    | entry_array[i].dcache_launched & (entry_array[i].page_fault | entry_array[i].access_fault)
-                )
+                & ~entry_array[i].older_stamofu_active
+                & entry_array[i].WB_sent
             ) begin
                 next_entry_array[i].complete_req = 1'b1;
             end
@@ -794,6 +805,9 @@ module ldu_cq #(
                 next_entry_array[i].is_mem = dtlb_miss_resp_is_mem;
                 next_entry_array[i].page_fault = dtlb_miss_resp_page_fault;
                 next_entry_array[i].access_fault = dtlb_miss_resp_access_fault;
+
+                // second try req
+                next_entry_array[i].second_try_req = 1'b1;
             end
 
             // ldu_mq return (indep)
@@ -805,38 +819,22 @@ module ldu_cq #(
             end
 
             // ldu_mq data try (indep)
+                // special data try req set here which is trigger for data try if not already doing it
+                    // if already triggered recently, mq data will be present in time to provide for data try retrieval
+                // don't want to treat as check data try req as don't want to double-send req for misaligned
             if (ldu_mq_data_try_req_valid_by_entry[i] & ~entry_array[i].data_try_req & ~entry_array[i].data_try_just_sent) begin
                 next_entry_array[i].data_try_req = 1'b1;
-            end
-
-            // req ack's (indep)
-            if (second_try_req_ack_one_hot_by_entry[i] & ~second_try_req_not_accepted) begin
-                next_entry_array[i].second_try_req = 1'b0;
-                // next_entry_array[i].dcache_launched = 1'b1;
-                    // dcache_launched will be set when second try is returned
-                        // this better so that don't try to be complete before exception restart handled if needed
-            end
-            if (data_try_req_ack_one_hot_by_entry[i] & ~data_try_req_not_accepted) begin
-                next_entry_array[i].data_try_req = 1'b0;
-                next_entry_array[i].data_try_just_sent = 1'b1;
-            end
-            if (complete_req_ack_one_hot_by_entry[i]) begin
-                next_entry_array[i].complete_req = 1'b0;
-                next_entry_array[i].complete = 1'b1;
-            end
-            // wait to set WB sent on data try's until after mispred determined for this one
-            if (entry_array[i].data_try_just_sent & ~data_try_req_not_accepted) begin
-                next_entry_array[i].WB_sent |= data_try_valid;
-                next_entry_array[i].data_try_just_sent = data_try_req_ack_one_hot_by_entry[i];
             end
 
             // aq blocking (indep)
                 // condition to clear:
                     // dtlb hit
+                    // currently aq blocking
                     // not mem OR no mem aq active OR older than mem aq
                     // not io OR no io aq active OR older than io aq
             if (
                 entry_array[i].dtlb_hit
+                & entry_array[i].aq_blocking
                 & (
                     ~entry_array[i].is_mem
                     | ~stamofu_aq_mem_aq_active
@@ -848,7 +846,8 @@ module ldu_cq #(
             ) begin
                 next_entry_array[i].aq_blocking = 1'b0;
 
-                TODO
+                // second try req
+                next_entry_array[i].second_try_req = 1'b1;
             end
 
             // older stamofu active (indep)
@@ -856,12 +855,12 @@ module ldu_cq #(
                 // after dtlb hit, try to clear if no older active
                 // condition to clear:
                     // dtlb hit -> do this so less likely to accidentally clear it due to late aq arriving at stamofu_aq 
-                    // no stamofu active OR younger than oldest stamofu
+                    // no stamofu active OR older than oldest stamofu
             if (
                 ~entry_array[i].dtlb_hit
                 & ~(
                     ~stamofu_active
-                    | (rel_ROB_index_by_entry[i] > (stamofu_oldest_ROB_index - rob_kill_abs_head_index)))
+                    | (rel_ROB_index_by_entry[i] < (stamofu_oldest_ROB_index - rob_kill_abs_head_index)))
             ) begin
                 next_entry_array[i].older_stamofu_active = 1'b1;
             end
@@ -869,27 +868,29 @@ module ldu_cq #(
                 entry_array[i].dtlb_hit
                 & (
                     ~stamofu_active
-                    | (rel_ROB_index_by_entry[i] > (stamofu_oldest_ROB_index - rob_kill_abs_head_index)))
+                    | (rel_ROB_index_by_entry[i] < (stamofu_oldest_ROB_index - rob_kill_abs_head_index)))
             ) begin
                 next_entry_array[i].older_stamofu_active = 1'b0;
 
-                TODO
+                // trigger check data try req
+                next_entry_array[i].check_data_try_req = 1'b1;
             end
 
             // past nasty forward (indep)
                 // no stamofu active
-                // oldest stamofu index younger than nasty forward index
+                // nasty forward index older than oldest stamofu
             if (
                 entry_array[i].nasty_forward
                 & (
                     ~stamofu_active
                     | (entry_array[i].forward_ROB_index - rob_kill_abs_head_index) 
-                        > (stamofu_oldest_ROB_index - rob_kill_abs_head_index))
+                        < (stamofu_oldest_ROB_index - rob_kill_abs_head_index))
             ) begin
                 next_entry_array[i].nasty_forward = 1'b0;
                 next_entry_array[i].previous_nasty_forward = 1'b1;
 
-                TODO
+                // second try req
+                next_entry_array[i].second_try_req = 1'b1;
             end
 
             // stalling count subtract (indep)
@@ -900,7 +901,8 @@ module ldu_cq #(
                 if (entry_array[i].stalling_count == 1) begin
                     next_entry_array[i].stalling = 1'b0;
 
-                    TODO
+                    // trigger check data try req
+                    next_entry_array[i].check_data_try_req = 1'b1;
                 end
             end
 
@@ -921,6 +923,24 @@ module ldu_cq #(
             ) begin
                 next_entry_array[i].killed = 1'b1;
             end
+
+            // req ack's (indep)
+            if (second_try_req_ack_one_hot_by_entry[i] & ~second_try_req_not_accepted) begin
+                next_entry_array[i].second_try_req = 1'b0;
+            end
+            if (data_try_req_ack_one_hot_by_entry[i] & ~data_try_req_not_accepted) begin
+                next_entry_array[i].data_try_req = 1'b0;
+                next_entry_array[i].data_try_just_sent = 1'b1;
+            end
+            if (complete_req_ack_one_hot_by_entry[i]) begin
+                next_entry_array[i].complete_req = 1'b0;
+                next_entry_array[i].complete = 1'b1;
+            end
+            // wait to set WB sent on data try's until after mispred determined for this one
+            if (entry_array[i].data_try_just_sent & ~data_try_req_not_accepted) begin
+                next_entry_array[i].WB_sent |= data_try_valid;
+                next_entry_array[i].data_try_just_sent = data_try_req_ack_one_hot_by_entry[i];
+            end
         end
     end
 
@@ -936,10 +956,15 @@ module ldu_cq #(
 
     // central queue info grab
     always_comb begin
-        ldu_cq_info_grab_op = entry_array[ldu_cq_info_grab_cq_index].op;
-        ldu_cq_info_grab_mdp_info = entry_array[ldu_cq_info_grab_cq_index].mdp_info;
-        ldu_cq_info_grab_dest_PR = entry_array[ldu_cq_info_grab_cq_index].dest_PR;
-        ldu_cq_info_grab_ROB_index = entry_array[ldu_cq_info_grab_cq_index].ROB_index;
+        ldu_cq_info_grab_bank0_op = entry_array[ldu_cq_info_grab_bank0_cq_index].op;
+        ldu_cq_info_grab_bank0_mdp_info = entry_array[ldu_cq_info_grab_bank0_cq_index].mdp_info;
+        ldu_cq_info_grab_bank0_dest_PR = entry_array[ldu_cq_info_grab_bank0_cq_index].dest_PR;
+        ldu_cq_info_grab_bank0_ROB_index = entry_array[ldu_cq_info_grab_bank0_cq_index].ROB_index;
+        
+        ldu_cq_info_grab_bank1_op = entry_array[ldu_cq_info_grab_bank1_cq_index].op;
+        ldu_cq_info_grab_bank1_mdp_info = entry_array[ldu_cq_info_grab_bank1_cq_index].mdp_info;
+        ldu_cq_info_grab_bank1_dest_PR = entry_array[ldu_cq_info_grab_bank1_cq_index].dest_PR;
+        ldu_cq_info_grab_bank1_ROB_index = entry_array[ldu_cq_info_grab_bank1_cq_index].ROB_index;
     end
 
     // enq
@@ -1002,7 +1027,6 @@ module ldu_cq #(
                 // entry_array[enq_ptr].mq_index
                 entry_array[enq_ptr].killed <= ldu_cq_enq_killed;
                 entry_array[enq_ptr].dtlb_hit <= 1'b0;
-                entry_array[enq_ptr].dcache_launched <= 1'b0;
                 entry_array[enq_ptr].stamofu_CAM_returned <= 1'b0;
                 entry_array[enq_ptr].dcache_hit <= 1'b0;
                 entry_array[enq_ptr].aq_blocking <= 1'b0;
@@ -1018,6 +1042,7 @@ module ldu_cq #(
                 entry_array[enq_ptr].complete <= 1'b0;
                 entry_array[enq_ptr].committed <= 1'b0;
                 entry_array[enq_ptr].second_try_req <= 1'b0;
+                entry_array[enq_ptr].check_data_try_req <= 1'b0;
                 entry_array[enq_ptr].data_try_req <= 1'b0;
                 entry_array[enq_ptr].data_try_just_sent <= 1'b0;
                 entry_array[enq_ptr].complete_req <= 1'b0;
@@ -1051,7 +1076,6 @@ module ldu_cq #(
                 // entry_array[enq_ptr].mq_index
                 entry_array[enq_ptr].killed <= 1'b0;
                 entry_array[enq_ptr].dtlb_hit <= 1'b0;
-                entry_array[enq_ptr].dcache_launched <= 1'b0;
                 entry_array[enq_ptr].stamofu_CAM_returned <= 1'b0;
                 entry_array[enq_ptr].dcache_hit <= 1'b0;
                 entry_array[enq_ptr].aq_blocking <= 1'b0;
@@ -1060,13 +1084,14 @@ module ldu_cq #(
                 // entry_array[enq_ptr].stalling_count
                 entry_array[enq_ptr].forward <= 1'b0;
                 entry_array[enq_ptr].nasty_forward <= 1'b0;
-                entry_array[enq_ptr].previous_nasty_forward = 1'b0;
+                entry_array[enq_ptr].previous_nasty_forward <= 1'b0;
                 // entry_array[enq_ptr].forward_ROB_index
                 entry_array[enq_ptr].mdp_present <= 1'b0;
                 entry_array[enq_ptr].WB_sent <= 1'b0;
                 entry_array[enq_ptr].complete <= 1'b0;
                 entry_array[enq_ptr].committed <= 1'b0;
                 entry_array[enq_ptr].second_try_req <= 1'b0;
+                entry_array[enq_ptr].check_data_try_req <= 1'b0;
                 entry_array[enq_ptr].data_try_req <= 1'b0;
                 entry_array[enq_ptr].data_try_just_sent <= 1'b0;
                 entry_array[enq_ptr].complete_req <= 1'b0;
