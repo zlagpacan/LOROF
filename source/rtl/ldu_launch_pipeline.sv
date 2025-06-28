@@ -609,12 +609,17 @@ module ldu_launch_pipeline #(
         RESP_stage_dcache_vtm_by_way[0] = selected_dcache_resp_valid_by_way[0] & (selected_dcache_resp_tag_by_way[0] == RESP_stage_dcache_tag);
         RESP_stage_dcache_vtm_by_way[1] = selected_dcache_resp_valid_by_way[1] & (selected_dcache_resp_tag_by_way[1] == RESP_stage_dcache_tag);
         RESP_stage_dcache_vtm = |RESP_stage_dcache_vtm_by_way;
-        RESP_stage_dcache_hit = RESP_stage_dtlb_hit & RESP_stage_dcache_vtm;
+        RESP_stage_dcache_hit = 
+            RESP_stage_dtlb_hit 
+            & ~RESP_stage_aq_blocking // don't tell that hit yet
+            & ~(RESP_stage_selected_page_fault | RESP_stage_selected_access_fault)
+            & RESP_stage_dcache_vtm;
 
         dcache_resp_hit_valid = 
             RESP_stage_valid
             & RESP_first_cycle
             & RESP_stage_dtlb_hit
+            // & ~RESP_stage_aq_blocking // still want to prefetch
             & ~(RESP_stage_selected_page_fault | RESP_stage_selected_access_fault)
             & RESP_stage_dcache_vtm;
         dcache_resp_hit_way = RESP_stage_dcache_vtm_by_way[1];
@@ -622,6 +627,7 @@ module ldu_launch_pipeline #(
             RESP_stage_valid
             & RESP_first_cycle
             & RESP_stage_dtlb_hit
+            // & ~RESP_stage_aq_blocking // still want to prefetch
             & ~(RESP_stage_selected_page_fault | RESP_stage_selected_access_fault)
             & ~RESP_stage_dcache_vtm;
         dcache_resp_miss_tag = RESP_stage_dcache_tag;
@@ -641,8 +647,8 @@ module ldu_launch_pipeline #(
                 & ~RESP_stage_misaligned);
         RESP_stage_do_CAM = 
             RESP_stage_dtlb_hit 
-            & ~(RESP_stage_selected_page_fault | RESP_stage_selected_access_fault)
-            & ~RESP_stage_aq_blocking;
+            & ~RESP_stage_aq_blocking
+            & ~(RESP_stage_selected_page_fault | RESP_stage_selected_access_fault);
         RESP_stage_do_exception = 
             RESP_stage_dtlb_hit 
             & (RESP_stage_selected_page_fault | RESP_stage_selected_access_fault);
