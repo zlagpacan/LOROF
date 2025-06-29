@@ -345,6 +345,11 @@ module ldu_cq #(
     logic [LDU_CQ_ENTRIES-1:0] ldu_CAM_launch_nasty_forward_by_entry;
     logic [LDU_CQ_ENTRIES-1:0] stalling_count_subtract_by_entry;
 
+    logic [LDU_CQ_ENTRIES-1:0]      ssu_CAM_update_unmasked_valid_by_entry;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]  ssu_CAM_update_unmasked_index;
+    logic [LDU_CQ_ENTRIES-1:0]      ssu_CAM_update_masked_valid_by_entry;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]  ssu_CAM_update_masked_index;
+
     // ----------------------------------------------------------------
     // Logic:
 
@@ -1007,7 +1012,7 @@ module ldu_cq #(
 
         for (int i = 0; i < LDU_CQ_ENTRIES; i++) begin
 
-            // forward if not amo AND ({no curr, younger than curr} and older than this) AND superset
+            // forward if youngest older AND superset AND not amo
             if (
                 ldu_CAM_launch_valid & ~ldu_CAM_launch_is_mq
                 & entry_array[i].dtlb_hit
@@ -1019,17 +1024,19 @@ module ldu_cq #(
                     // entry byte -> CAM byte
                 & &{~entry_array[i].byte_mask | ldu_CAM_launch_byte_mask}
                 // older than this
-                & ldu_CAM_launch_ROB_index < entry_array[i].ROB_index
+                & (ldu_CAM_launch_ROB_index - rob_kill_abs_head_index 
+                    < rel_ROB_index_by_entry[i])
                 // no curr OR younger than curr
                 & (
                     (~entry_array[i].forward & ~entry_array[i].nasty_forward)
-                    | ldu_CAM_launch_ROB_index > entry_array[i].forward_ROB_index
+                    | (ldu_CAM_launch_ROB_index - rob_kill_abs_head_index
+                        > entry_array[i].forward_ROB_index - rob_kill_abs_head_index)
                 )
             ) begin
                 ldu_CAM_launch_forward_by_entry[i] = 1'b1;
             end
 
-            // nasty forward if older AND (not superset OR amo)
+            // nasty forward if youngest older AND (not superset OR amo)
             if (
                 ldu_CAM_launch_valid & ~ldu_CAM_launch_is_mq
                 & entry_array[i].dtlb_hit
@@ -1043,11 +1050,13 @@ module ldu_cq #(
                             // any valid entry byte has invalid CAM byte
                 )
                 // older than this
-                & ldu_CAM_launch_ROB_index < entry_array[i].ROB_index
+                & (ldu_CAM_launch_ROB_index - rob_kill_abs_head_index 
+                    < rel_ROB_index_by_entry[i])
                 // no curr OR younger than curr
                 & (
                     (~entry_array[i].forward & ~entry_array[i].nasty_forward)
-                    | ldu_CAM_launch_ROB_index > entry_array[i].forward_ROB_index
+                    | (ldu_CAM_launch_ROB_index - rob_kill_abs_head_index
+                        > entry_array[i].forward_ROB_index - rob_kill_abs_head_index)
                 )
             ) begin
                 ldu_CAM_launch_nasty_forward_by_entry[i] = 1'b1;
@@ -1063,7 +1072,8 @@ module ldu_cq #(
                 & |entry_array[i].mdp_info[7:6]
                 & ldu_CAM_launch_mdp_info[5:0] == entry_array[i].mdp_info[5:0]
                 // older than this
-                & ldu_CAM_launch_ROB_index < entry_array[i].ROB_index
+                & (ldu_CAM_launch_ROB_index - rob_kill_abs_head_index 
+                    < rel_ROB_index_by_entry[i])
             ) begin
                 stalling_count_subtract_by_entry[i] = 1'b1;
             end
@@ -1084,6 +1094,52 @@ module ldu_cq #(
             ldu_CAM_return_is_mq <= ldu_CAM_launch_is_mq;
             ldu_CAM_return_mq_index <= ldu_CAM_launch_mq_index;
         end
+    end
+
+    // store set CAM update
+        // can only perform for single CAM forward -> choose oldest
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            ssu_CAM_update_unmasked_valid_by_entry <= '0;
+
+            ssu_CAM_update_stamo_mdp_info <= '0;
+            ssu_CAM_update_stamo_ROB_index <= '0;
+        end
+        else begin
+            ssu_CAM_update_unmasked_valid_by_entry <= ldu_CAM_launch_forward_by_entry | ldu_CAM_launch_nasty_forward_by_entry;
+            
+            ssu_CAM_update_stamo_mdp_info <= ldu_CAM_launch_mdp_info;
+            ssu_CAM_update_stamo_ROB_index <= ldu_CAM_launch_ROB_index;
+        end
+    end
+    always_comb begin
+        ssu_CAM_update_masked_valid_by_entry = ssu_CAM_update_unmasked_valid_by_entry & wraparound_mask;
+    end
+    pe_lsb # (
+        .WIDTH(LDU_CQ_ENTRIES), .USE_ONE_HOT(0), .USE_INDEX(1)
+    ) SSU_CAM_MASKED_PE (
+        .req_vec(ssu_CAM_update_masked_valid_by_entry),
+        .ack_index(ssu_CAM_update_masked_index)
+    );
+    pe_lsb # (
+        .WIDTH(LDU_CQ_ENTRIES), .USE_ONE_HOT(0), .USE_INDEX(1)
+    ) SSU_CAM_UNMASKED_PE (
+        .req_vec(ssu_CAM_update_unmasked_valid_by_entry),
+        .ack_index(ssu_CAM_update_unmasked_index)
+    );
+    always_comb begin
+
+        // may need to latch these:
+
+        ssu_CAM_update_valid = |ssu_CAM_update_unmasked_valid_by_entry;
+
+        if (|ssu_CAM_update_masked_valid_by_entry) begin
+            ssu_CAM_update_ld_mdp_info = entry_array[ssu_CAM_update_masked_index].mdp_info;
+            ssu_CAM_update_ld_ROB_index = entry_array[ssu_CAM_update_masked_index].ROB_index;
+        end else begin
+            ssu_CAM_update_ld_mdp_info = entry_array[ssu_CAM_update_unmasked_index].mdp_info;
+            ssu_CAM_update_ld_ROB_index = entry_array[ssu_CAM_update_unmasked_index].ROB_index;
+        end 
     end
 
     // central queue info grab
