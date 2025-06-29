@@ -332,12 +332,10 @@ module ldu_cq #(
     logic [LDU_CQ_ENTRIES-1:0] complete_req_ack_index_by_entry;
 
     logic second_try_valid;
-    logic data_try_valid;
+    logic potential_data_try_valid;
 
     logic second_try_req_not_accepted;
     logic data_try_req_not_accepted;
-
-    logic potential_data_try_valid;
 
     logic ldu_complete_cq_index;
 
@@ -995,7 +993,7 @@ module ldu_cq #(
             end
             // wait to set WB sent on data try's until after mispred determined for this one
             if (entry_array[i].data_try_just_sent & ~data_try_req_not_accepted) begin
-                next_entry_array[i].WB_sent |= data_try_valid;
+                next_entry_array[i].WB_sent |= data_try_bank0_valid | data_try_bank1_valid;
                 next_entry_array[i].data_try_just_sent = data_try_req_ack_one_hot_by_entry[i];
             end
         end
