@@ -31,6 +31,7 @@ module ldu_cq #(
     output logic                            second_try_bank0_valid,
     output logic                            second_try_bank1_valid,
 
+    output logic                            second_try_do_mispred,
     output logic                            second_try_is_mq,
     output logic                            second_try_misaligned,
     output logic                            second_try_page_fault,
@@ -64,9 +65,9 @@ module ldu_cq #(
 
     // misaligned queue info grab
     output logic [LOG_LDU_MQ_ENTRIES-1:0]   ldu_mq_info_grab_mq_index,
+    output logic                            ldu_mq_info_grab_data_try_ack,
+    input logic                             ldu_mq_info_grab_data_try_req,
     input logic [31:0]                      ldu_mq_info_grab_data,
-    
-    output logic [LOG_LDU_MQ_ENTRIES-1:0]   ldu_mq_info_grab_data_try_ack,
 
     // central queue info grab
     input logic [LOG_LDU_CQ_ENTRIES-1:0]    ldu_cq_info_grab_bank0_cq_index,
@@ -474,6 +475,7 @@ module ldu_cq #(
         second_try_bank0_valid = second_try_valid & (entry_array[second_try_cq_index].bank == 1'b0);
         second_try_bank1_valid = second_try_valid & (entry_array[second_try_cq_index].bank == 1'b1);
 
+        second_try_do_mispred = entry_array[second_try_cq_index].WB_sent;
         second_try_is_mq = 1'b0;
         second_try_misaligned = entry_array[second_try_cq_index].misaligned;
         second_try_page_fault = entry_array[second_try_cq_index].page_fault;
@@ -620,6 +622,10 @@ module ldu_cq #(
                 // next_entry_array[i].forward_ROB_index = 
                 // next_entry_array[i].mdp_present = 
                 next_entry_array[i].WB_sent |= ldu_cq_info_ret_bank0_WB_sent;
+                    // OR this so that can maintain WB_sent info even after:
+                    // late second_try which turns into dcache miss which turns into data_try which must restart
+                        // late second_try -> e.g. nasty_forward found late, notably after WB already sent
+                        // simpler case is late second_try then dcache hit, send mispred during this run through pipe 
                 // next_entry_array[i].complete = 
                 // next_entry_array[i].committed = 
                 // next_entry_array[i].second_try_req = 
@@ -667,6 +673,10 @@ module ldu_cq #(
                 // next_entry_array[i].forward_ROB_index = 
                 // next_entry_array[i].mdp_present = 
                 next_entry_array[i].WB_sent |= ldu_cq_info_ret_bank1_WB_sent;
+                    // OR this so that can maintain WB_sent info even after:
+                    // late second_try which turns into dcache miss which turns into data_try which must restart
+                        // late second_try -> e.g. nasty_forward found late, notably after WB already sent
+                        // simpler case is late second_try then dcache hit, send mispred during this run through pipe 
                 // next_entry_array[i].complete = 
                 // next_entry_array[i].committed = 
                 // next_entry_array[i].second_try_req = 
@@ -735,10 +745,10 @@ module ldu_cq #(
                 end
 
                 // trigger new data try req if forward or dcache miss resp
-                next_entry_array[i].new_data_try_req = |= stamofu_CAM_return_bank1_forward | dcache_miss_resp_valid_by_entry[i];
+                next_entry_array[i].new_data_try_req |= stamofu_CAM_return_bank1_forward | dcache_miss_resp_valid_by_entry[i];
             end
             // ldu CAM forward
-                // subset of stamofu CAM return
+                // subset of stamofu CAM return if comes first
             else if (ldu_CAM_launch_forward_by_entry[i]) begin
                 next_entry_array[i].forward = 1'b1;
                 next_entry_array[i].nasty_forward = 1'b0;
@@ -750,14 +760,11 @@ module ldu_cq #(
                 next_entry_array[i].new_data_try_req = 1'b1;
             end
             // ldu CAM nasty forward
-                // subset of stamofu CAM return
+                // subset of stamofu CAM return if comes first
             else if (ldu_CAM_launch_nasty_forward_by_entry[i]) begin
                 next_entry_array[i].forward = 1'b0;
                 next_entry_array[i].nasty_forward = 1'b1;
                 next_entry_array[i].forward_ROB_index = ldu_CAM_launch_ROB_index;
-
-                // trigger new data try req
-                next_entry_array[i].new_data_try_req = 1'b1;
             end
             // dcache miss resp
                 // this is only case where take dcache miss resp data
@@ -769,6 +776,12 @@ module ldu_cq #(
             end
 
             // indep behavior:
+
+            // dcache miss return (indep)
+                // only setting of dcache hit is indep
+            if (dcache_miss_resp_valid_by_entry[i]) begin
+                next_entry_array[i].dcache_hit = 1'b1;
+            end
 
             // ready for data try req
                 // check data try req triggered and haven't already sent data OR have new data
@@ -786,7 +799,7 @@ module ldu_cq #(
                 (
                     (   
                         entry_array[i].unblock_data_try_req 
-                        & ~entry_array.data_try_req 
+                        & ~entry_array[i].data_try_req 
                         & ~entry_array[i].data_try_just_sent 
                         & ~entry_array[i].WB_sent
                     )
@@ -794,13 +807,13 @@ module ldu_cq #(
                 )
                 & (
                     ~entry_array[i].killed
-                    | (~entry_array.data_try_req & ~entry_array[i].data_try_just_sent & ~entry_array[i].WB_sent)
+                    | (~entry_array[i].data_try_req & ~entry_array[i].data_try_just_sent & ~entry_array[i].WB_sent)
                 )
                 & entry_array[i].dtlb_hit
                 & ~entry_array[i].aq_blocking
                 & (entry_array[i].forward | entry_array[i].dcache_hit)
                 & ~entry_array[i].nasty_forward
-                & (~entry_array[i].mdp_present | entry_array[i].stamofu_cam_returned)
+                & (~entry_array[i].mdp_present | entry_array[i].stamofu_CAM_returned)
                 & (~entry_array[i].stalling | ~stamofu_active | ~entry_array[i].older_stamofu_active)
             ) begin
                 next_entry_array[i].data_try_req = 1'b1;
@@ -809,6 +822,8 @@ module ldu_cq #(
             // ready for complete req
                 // not complete
                 // no complete req
+                // dcache hit
+                    // needed so all dcache miss resp's are accounted for
                 // ~older_stamofu_active OR killed
                     // faster complete if killed
                 // WB_sent
@@ -818,6 +833,7 @@ module ldu_cq #(
             if (
                 ~entry_array[i].complete
                 & ~entry_array[i].complete_req
+                & entry_array[i].dcache_hit
                 & (~entry_array[i].older_stamofu_active | entry_array[i].killed)
                 & entry_array[i].WB_sent
 
@@ -831,16 +847,10 @@ module ldu_cq #(
                 next_entry_array[i].complete_req = 1'b1;
             end
 
-            // dcache miss return (indep)
-                // only setting of dcache hit is indep
-            if (dcache_miss_resp_valid_by_entry[i]) begin
-                next_entry_array[i].dcache_hit = 1'b1;
-            end
-
             // dtlb miss return (indep)
             if (dtlb_miss_resp_valid_by_entry[i]) begin
                 next_entry_array[i].dtlb_hit = 1'b1;
-                next_entry_array[i].PA_word = dtlb_miss_resp_PPN[PA_WIDTH-3:PA_WIDTH-2-PPN_WIDTH];
+                next_entry_array[i].PA_word[PA_WIDTH-3:PA_WIDTH-2-PPN_WIDTH] = dtlb_miss_resp_PPN;
                 next_entry_array[i].is_mem = dtlb_miss_resp_is_mem;
                 next_entry_array[i].page_fault = dtlb_miss_resp_page_fault;
                 next_entry_array[i].access_fault = dtlb_miss_resp_access_fault;
@@ -920,12 +930,19 @@ module ldu_cq #(
                 // no stamofu active
                 // nasty forward index older than oldest stamofu
             if (
-                entry_array[i].nasty_forward
+                entry_array[i].nasty_forward 
+                & entry_array[i].dcache_hit
+                    // old dcache hit must be resolved before starting the next
+                    // this also prevents data try returns while nasty forward resolving
+                    // naturally, perf hit since can't layer both dcache accesses
+                        // uncommon case and nasty if try to
+                            // hard to make guarantees
                 & (
                     ~stamofu_active
                     | (entry_array[i].forward_ROB_index - rob_kill_abs_head_index) 
                         < (stamofu_oldest_ROB_index - rob_kill_abs_head_index))
             ) begin
+                next_entry_array[i].dcache_hit = 1'b0;
                 next_entry_array[i].nasty_forward = 1'b0;
                 next_entry_array[i].previous_nasty_forward = 1'b1;
 
@@ -986,12 +1003,89 @@ module ldu_cq #(
 
     // ldu CAM
     always_comb begin
-
-        TODO
-
         ldu_CAM_launch_forward_by_entry = '0;
         ldu_CAM_launch_nasty_forward_by_entry = '0;
         stalling_count_subtract_by_entry = '0;
+
+        for (int i = 0; i < LDU_CQ_ENTRIES; i++) begin
+
+            // forward if not amo AND ({no curr, younger than curr} and older than this) AND superset
+            if (
+                ldu_CAM_launch_valid & ~ldu_CAM_launch_is_mq
+                & entry_array[i].dtlb_hit
+                & entry_array[i].stamofu_CAM_returned
+                    // might as well get full stamofu CAM info. only forward here if after already got CAM info
+                & ldu_CAM_launch_PA_word == entry_array[i].PA_word
+                & ~ldu_CAM_launch_is_amo
+                // superset
+                    // entry byte -> CAM byte
+                & &{~entry_array[i].byte_mask | ldu_CAM_launch_byte_mask}
+                // older than this
+                & ldu_CAM_launch_ROB_index < entry_array[i].ROB_index
+                // no curr OR younger than curr
+                & (
+                    (~entry_array[i].forward & ~entry_array[i].nasty_forward)
+                    | ldu_CAM_launch_ROB_index > entry_array[i].forward_ROB_index
+                )
+            ) begin
+                ldu_CAM_launch_forward_by_entry[i] = 1'b1;
+            end
+
+            // nasty forward if older AND (not superset OR amo)
+            if (
+                ldu_CAM_launch_valid & ~ldu_CAM_launch_is_mq
+                & entry_array[i].dtlb_hit
+                & entry_array[i].stamofu_CAM_returned
+                & ldu_CAM_launch_PA_word == entry_array[i].PA_word
+                    // might as well get full stamofu CAM info. only forward here if after already got CAM info
+                & (
+                    ldu_CAM_launch_is_amo
+                    | ~&{~entry_array[i].byte_mask | ldu_CAM_launch_byte_mask}
+                        // strict subset
+                            // any valid entry byte has invalid CAM byte
+                )
+                // older than this
+                & ldu_CAM_launch_ROB_index < entry_array[i].ROB_index
+                // no curr OR younger than curr
+                & (
+                    (~entry_array[i].forward & ~entry_array[i].nasty_forward)
+                    | ldu_CAM_launch_ROB_index > entry_array[i].forward_ROB_index
+                )
+            ) begin
+                ldu_CAM_launch_nasty_forward_by_entry[i] = 1'b1;
+            end
+
+            // stall count subtract if older AND mdp info match AND mdp present for CAM AND mdp present for entry
+            if (
+                ldu_CAM_launch_valid & ~ldu_CAM_launch_is_mq
+                & entry_array[i].dtlb_hit
+                & entry_array[i].stamofu_CAM_returned
+                    // ignore any ldu CAMs which would be double counted by incoming stamofu CAM
+                & |ldu_CAM_launch_mdp_info[7:6]
+                & |entry_array[i].mdp_info[7:6]
+                & ldu_CAM_launch_mdp_info[5:0] == entry_array[i].mdp_info[5:0]
+                // older than this
+                & ldu_CAM_launch_ROB_index < entry_array[i].ROB_index
+            ) begin
+                stalling_count_subtract_by_entry[i] = 1'b1;
+            end
+        end
+    end
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            ldu_CAM_return_valid <= 1'b0;
+            ldu_CAM_return_forward <= 1'b0;
+            ldu_CAM_return_cq_index <= 0;
+            ldu_CAM_return_is_mq <= 1'b0;
+            ldu_CAM_return_mq_index <= 0;
+        end
+        else begin
+            ldu_CAM_return_valid <= ldu_CAM_launch_valid;
+            ldu_CAM_return_forward <= |ldu_CAM_launch_forward_by_entry | |ldu_CAM_launch_nasty_forward_by_entry;
+            ldu_CAM_return_cq_index <= ldu_CAM_launch_cq_index;
+            ldu_CAM_return_is_mq <= ldu_CAM_launch_is_mq;
+            ldu_CAM_return_mq_index <= ldu_CAM_launch_mq_index;
+        end
     end
 
     // central queue info grab
