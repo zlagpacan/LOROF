@@ -66,6 +66,7 @@ module ldu_launch_pipeline_tb ();
 
     // second try
 	logic tb_second_try_valid;
+	logic tb_second_try_do_mispred;
 	logic tb_second_try_is_mq;
 	logic tb_second_try_misaligned;
 	logic tb_second_try_page_fault;
@@ -258,6 +259,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // second try
 		.second_try_valid(tb_second_try_valid),
+		.second_try_do_mispred(tb_second_try_do_mispred),
 		.second_try_is_mq(tb_second_try_is_mq),
 		.second_try_misaligned(tb_second_try_misaligned),
 		.second_try_page_fault(tb_second_try_page_fault),
@@ -938,6 +940,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b0;
+		tb_second_try_do_mispred = 1'b0;
 		tb_second_try_is_mq = 1'b0;
 		tb_second_try_misaligned = 1'b0;
 		tb_second_try_page_fault = 1'b0;
@@ -1129,6 +1132,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b0;
+		tb_second_try_do_mispred = 1'b0;
 		tb_second_try_is_mq = 1'b0;
 		tb_second_try_misaligned = 1'b0;
 		tb_second_try_page_fault = 1'b0;
@@ -1335,6 +1339,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b0;
+		tb_second_try_do_mispred = 1'b0;
 		tb_second_try_is_mq = 1'b0;
 		tb_second_try_misaligned = 1'b0;
 		tb_second_try_page_fault = 1'b0;
@@ -1535,6 +1540,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b0;
+		tb_second_try_do_mispred = 1'b0;
 		tb_second_try_is_mq = 1'b0;
 		tb_second_try_misaligned = 1'b0;
 		tb_second_try_page_fault = 1'b0;
@@ -1735,6 +1741,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b0;
+		tb_second_try_do_mispred = 1'b0;
 		tb_second_try_is_mq = 1'b0;
 		tb_second_try_misaligned = 1'b0;
 		tb_second_try_page_fault = 1'b0;
@@ -1936,6 +1943,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b0;
+		tb_second_try_do_mispred = 1'b0;
 		tb_second_try_is_mq = 1'b0;
 		tb_second_try_misaligned = 1'b0;
 		tb_second_try_page_fault = 1'b0;
@@ -2137,6 +2145,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b1;
+		tb_second_try_do_mispred = 1'b0;
 		tb_second_try_is_mq = 1'b0;
 		tb_second_try_misaligned = 1'b0;
 		tb_second_try_page_fault = 1'b0;
@@ -2338,6 +2347,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b1;
+		tb_second_try_do_mispred = 1'b0;
 		tb_second_try_is_mq = 1'b0;
 		tb_second_try_misaligned = 1'b0;
 		tb_second_try_page_fault = 1'b0;
@@ -2539,6 +2549,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b1;
+		tb_second_try_do_mispred = 1'b0;
 		tb_second_try_is_mq = 1'b0;
 		tb_second_try_misaligned = 1'b0;
 		tb_second_try_page_fault = 1'b0;
@@ -2740,6 +2751,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b1;
+		tb_second_try_do_mispred = 1'b1;
 		tb_second_try_is_mq = 1'b1;
 		tb_second_try_misaligned = 1'b1;
 		tb_second_try_page_fault = 1'b0;
@@ -2941,6 +2953,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b1;
+		tb_second_try_do_mispred = 1'b1;
 		tb_second_try_is_mq = 1'b1;
 		tb_second_try_misaligned = 1'b1;
 		tb_second_try_page_fault = 1'b0;
@@ -3134,6 +3147,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b1;
+		tb_second_try_do_mispred = 1'b1;
 		tb_second_try_is_mq = 1'b1;
 		tb_second_try_misaligned = 1'b1;
 		tb_second_try_page_fault = 1'b0;
@@ -3327,6 +3341,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b1;
+		tb_second_try_do_mispred = 1'b1;
 		tb_second_try_is_mq = 1'b1;
 		tb_second_try_misaligned = 1'b1;
 		tb_second_try_page_fault = 1'b0;
@@ -3524,6 +3539,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b1;
+		tb_second_try_do_mispred = 1'b1;
 		tb_second_try_is_mq = 1'b1;
 		tb_second_try_misaligned = 1'b1;
 		tb_second_try_page_fault = 1'b0;
@@ -3721,6 +3737,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b0;
+		tb_second_try_do_mispred = 1'b0;
 		tb_second_try_is_mq = 1'b1;
 		tb_second_try_misaligned = 1'b1;
 		tb_second_try_page_fault = 1'b0;
@@ -3922,6 +3939,202 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b0;
+		tb_second_try_do_mispred = 1'b0;
+		tb_second_try_is_mq = 1'b1;
+		tb_second_try_misaligned = 1'b1;
+		tb_second_try_page_fault = 1'b0;
+		tb_second_try_access_fault = 1'b1;
+		tb_second_try_is_mem = 1'b0;
+		tb_second_try_PPN = 22'h111111;
+		tb_second_try_PO_word = 10'h777;
+		tb_second_try_byte_mask = 4'b1110;
+		tb_second_try_cq_index = 'he;
+		tb_second_try_mq_index = 'he;
+	    // second try feedback
+	    // data try
+		tb_data_try_valid = 1'b0;
+		tb_data_try_do_mispred = 1'b0;
+		tb_data_try_data = 32'hffffffff;
+		tb_data_try_cq_index = 'hb;
+	    // data try feedback
+	    // dtlb req
+	    // dtlb req feedback
+		tb_dtlb_req_ready = 1'b0;
+	    // dtlb resp
+		tb_dtlb_resp_hit = 1'b1;
+		tb_dtlb_resp_PPN = 22'hdeadbe;
+		tb_dtlb_resp_is_mem = 1'b1;
+		tb_dtlb_resp_page_fault = 1'b1;
+		tb_dtlb_resp_access_fault = 1'b0;
+	    // dcache req
+	    // dcache req feedback
+		tb_dcache_req_ready = 1'b0;
+	    // dcache resp
+		tb_dcache_resp_valid_by_way = 2'b01;
+		tb_dcache_resp_tag_by_way = {22'h000000, 22'hdeadbe};
+		tb_dcache_resp_data_by_way = {32'h00000000, 32'hbeefbeef};
+	    // dcache resp feedback
+	    // writeback data to PRF
+	    // writeback backpressure from PRF
+		tb_WB_ready = 1'b1;
+	    // CAM launch
+	    // central queue info grab
+		tb_ldu_cq_info_grab_op = 4'b0001;
+		tb_ldu_cq_info_grab_mdp_info = 8'b11000000;
+		tb_ldu_cq_info_grab_dest_PR = 7'h1;
+		tb_ldu_cq_info_grab_ROB_index = 7'hf;
+	    // central queue info ret
+	    // misaligned queue info ret
+	    // misprediction notification to ROB
+	    // misprediction notification backpressure from ROB
+		tb_mispred_notif_ready = 1'b1;
+	    // exception to ROB
+	    // exception backpressure from ROB
+		tb_rob_exception_ready = 1'b0;
+	    // restart from ROB
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_ASID = 9'h0;
+		tb_rob_restart_exec_mode = M_MODE;
+		tb_rob_restart_virtual_mode = 1'b0;
+		tb_rob_restart_MXR = 1'b0;
+		tb_rob_restart_SUM = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // first try
+	    // first try feedback
+		expected_first_try_ack = 1'b0;
+	    // op enqueue to misaligned queue
+		expected_ldu_mq_enq_valid = 1'b0;
+	    // misaligned queue enqueue feedback
+	    // ROB info
+	    // acquire advertisement
+	    // second try
+	    // second try feedback
+		expected_second_try_ack = 1'b0;
+	    // data try
+	    // data try feedback
+		expected_data_try_ack = 1'b0;
+	    // dtlb req
+		expected_dtlb_req_valid = 1'b0;
+		expected_dtlb_req_exec_mode = M_MODE;
+		expected_dtlb_req_virtual_mode = 1'b0;
+		expected_dtlb_req_ASID = 9'h0;
+		expected_dtlb_req_MXR = 1'b0;
+		expected_dtlb_req_SUM = 1'b0;
+		expected_dtlb_req_VPN = 20'h1f05d;
+		expected_dtlb_req_cq_index = 'hf;
+		expected_dtlb_req_is_mq = 1'b0;
+		expected_dtlb_req_mq_index = 'h1;
+	    // dtlb req feedback
+	    // dtlb resp
+	    // dcache req
+		expected_dcache_req_valid = 1'b0;
+		expected_dcache_req_block_offset = 'h777 << 2;
+		expected_dcache_req_index = 'h777 >> 4;
+		expected_dcache_req_cq_index = 'he;
+		expected_dcache_req_is_mq = 1'b1;
+		expected_dcache_req_mq_index = 'h2;
+	    // dcache req feedback
+	    // dcache resp
+	    // dcache resp feedback
+		expected_dcache_resp_hit_valid = 1'b0;
+		expected_dcache_resp_hit_way = 1'b0;
+		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_tag = 22'h1f05d;
+	    // writeback data to PRF
+		expected_WB_valid = 1'b0;
+		expected_WB_data = 32'hbeefdead;
+		expected_WB_PR = 7'h77;
+		expected_WB_ROB_index = 7'he;
+	    // writeback backpressure from PRF
+	    // CAM launch
+		expected_stamofu_CAM_launch_valid = 1'b0;
+		expected_stamofu_CAM_launch_PA_word = {22'h111111, 10'h777};
+		expected_stamofu_CAM_launch_byte_mask = 4'b0111;
+		expected_stamofu_CAM_launch_ROB_index = 7'he;
+		expected_stamofu_CAM_launch_mdp_info = 8'b00000000;
+		expected_stamofu_CAM_launch_cq_index = 'he;
+		expected_stamofu_CAM_launch_is_mq = 1'b1;
+		expected_stamofu_CAM_launch_mq_index = 'he;
+	    // central queue info grab
+		expected_ldu_cq_info_grab_cq_index = 'hf;
+	    // central queue info ret
+		expected_ldu_cq_info_ret_valid = 1'b0;
+		expected_ldu_cq_info_ret_WB_sent = 1'b1;
+		expected_ldu_cq_info_ret_cq_index = 'he;
+		expected_ldu_cq_info_ret_misaligned = 1'b1;
+		expected_ldu_cq_info_ret_dtlb_hit = 1'b1;
+		expected_ldu_cq_info_ret_dcache_hit = 1'b0;
+		expected_ldu_cq_info_ret_is_mem = 1'b0;
+		expected_ldu_cq_info_ret_aq_blocking = 1'b0;
+		expected_ldu_cq_info_ret_data = 32'hbeefdead;
+	    // misaligned queue info ret
+		expected_ldu_mq_info_ret_valid = 1'b0;
+		expected_ldu_mq_info_ret_WB_sent = 1'b1;
+		expected_ldu_mq_info_ret_mq_index = 'he;
+		expected_ldu_mq_info_ret_dtlb_hit = 1'b1;
+		expected_ldu_mq_info_ret_dcache_hit = 1'b0;
+		expected_ldu_mq_info_ret_is_mem = 1'b0;
+		expected_ldu_mq_info_ret_aq_blocking = 1'b0;
+		expected_ldu_mq_info_ret_PA_word = {22'h111111, 10'h777};
+		expected_ldu_mq_info_ret_data = 32'hbeefdead;
+	    // misprediction notification to ROB
+		expected_mispred_notif_valid = 1'b0;
+		expected_mispred_notif_ROB_index = 7'he;
+	    // misprediction notification backpressure from ROB
+	    // exception to ROB
+		expected_rob_exception_valid = 1'b0;
+		expected_rob_exception_VA = {20'h111111, 10'h777, 2'h0};
+		expected_rob_exception_page_fault = 1'b0;
+		expected_rob_exception_access_fault = 1'b1;
+		expected_rob_exception_ROB_index = 7'he;
+	    // exception backpressure from ROB
+	    // restart from ROB
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tREQ:",
+				"\n\t\t\tfirst: i",
+				"\n\t\t\tsecond: i",
+				"\n\t\t\tdata: i",
+			"\n\t\tRESP: f,f: LH p1 1f05d,abe,1000 -> deadbe,abe,1000 mem,pf,cq (dtlb hit pf, stall)",
+			"\n\t\tRET: e,s: LW p77 77777,777,0111 -> 111111,777,0111 io,af,mq (mispred not ready)",
+			"\n\t\taq: mem 6, io i"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // first try
+		tb_first_try_valid = 1'b0;
+		tb_first_try_is_mq = 1'b0;
+		tb_first_try_misaligned = 1'b1;
+		tb_first_try_VPN = 20'h1f05d;
+		tb_first_try_PO_word = 10'habe;
+		tb_first_try_byte_mask = 4'b1000;
+		tb_first_try_cq_index = 'hf;
+	    // first try feedback
+	    // op enqueue to misaligned queue
+	    // misaligned queue enqueue feedback
+		tb_ldu_mq_enq_ready = 1'b0;
+		tb_ldu_mq_enq_index = 'h1;
+	    // ROB info
+		tb_rob_abs_head_index = 7'h3f;
+	    // acquire advertisement
+		tb_stamofu_aq_mem_aq_active = 1'b1;
+		tb_stamofu_aq_mem_aq_oldest_abs_ROB_index = 7'h6;
+		tb_stamofu_aq_io_aq_active = 1'b0;
+		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
+	    // second try
+		tb_second_try_valid = 1'b0;
+		tb_second_try_do_mispred = 1'b0;
 		tb_second_try_is_mq = 1'b1;
 		tb_second_try_misaligned = 1'b1;
 		tb_second_try_page_fault = 1'b0;
@@ -3972,7 +4185,7 @@ module ldu_launch_pipeline_tb ();
 		tb_mispred_notif_ready = 1'b0;
 	    // exception to ROB
 	    // exception backpressure from ROB
-		tb_rob_exception_ready = 1'b0;
+		tb_rob_exception_ready = 1'b1;
 	    // restart from ROB
 		tb_rob_restart_valid = 1'b0;
 		tb_rob_restart_ASID = 9'h0;
@@ -4116,6 +4329,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b0;
+		tb_second_try_do_mispred = 1'b0;
 		tb_second_try_is_mq = 1'b1;
 		tb_second_try_misaligned = 1'b1;
 		tb_second_try_page_fault = 1'b0;
@@ -4163,7 +4377,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 	    // misprediction notification to ROB
 	    // misprediction notification backpressure from ROB
-		tb_mispred_notif_ready = 1'b0;
+		tb_mispred_notif_ready = 1'b1;
 	    // exception to ROB
 	    // exception backpressure from ROB
 		tb_rob_exception_ready = 1'b1;
@@ -4258,7 +4472,7 @@ module ldu_launch_pipeline_tb ();
 		expected_ldu_mq_info_ret_PA_word = {22'h111111, 10'h777};
 		expected_ldu_mq_info_ret_data = 32'hbeefdead;
 	    // misprediction notification to ROB
-		expected_mispred_notif_valid = 1'b0;
+		expected_mispred_notif_valid = 1'b1;
 		expected_mispred_notif_ROB_index = 7'he;
 	    // misprediction notification backpressure from ROB
 	    // exception to ROB
@@ -4310,6 +4524,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b0;
+		tb_second_try_do_mispred = 1'b0;
 		tb_second_try_is_mq = 1'b1;
 		tb_second_try_misaligned = 1'b1;
 		tb_second_try_page_fault = 1'b0;
@@ -4511,6 +4726,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b0;
+		tb_second_try_do_mispred = 1'b0;
 		tb_second_try_is_mq = 1'b1;
 		tb_second_try_misaligned = 1'b1;
 		tb_second_try_page_fault = 1'b0;
@@ -4712,6 +4928,7 @@ module ldu_launch_pipeline_tb ();
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // second try
 		tb_second_try_valid = 1'b0;
+		tb_second_try_do_mispred = 1'b0;
 		tb_second_try_is_mq = 1'b1;
 		tb_second_try_misaligned = 1'b1;
 		tb_second_try_page_fault = 1'b0;

@@ -53,6 +53,7 @@ module ldu_launch_pipeline #(
     
     // second try
     input logic                             second_try_valid,
+    input logic                             second_try_do_mispred,
     input logic                             second_try_is_mq,
     input logic                             second_try_misaligned,
     input logic                             second_try_page_fault,
@@ -222,7 +223,7 @@ module ldu_launch_pipeline #(
     logic                           REQ_stage_given_page_fault;
     logic                           REQ_stage_given_access_fault;
     logic                           REQ_stage_given_is_mem;
-    logic                           REQ_stage_do_mispred;
+    logic                           REQ_stage_given_mispred;
     logic [PPN_WIDTH-1:0]           REQ_stage_given_PPN;
     logic [PO_WIDTH-3:0]            REQ_stage_PO_word;
     logic [3:0]                     REQ_stage_byte_mask;
@@ -242,6 +243,7 @@ module ldu_launch_pipeline #(
     logic                           RESP_stage_given_page_fault;
     logic                           RESP_stage_given_access_fault;
     logic                           RESP_stage_given_is_mem;
+    logic                           RESP_stage_given_mispred;
     logic [PPN_WIDTH-1:0]           RESP_stage_given_PPN;
     logic [PO_WIDTH-3:0]            RESP_stage_PO_word;
     logic [3:0]                     RESP_stage_byte_mask;
@@ -423,7 +425,7 @@ module ldu_launch_pipeline #(
         REQ_stage_given_page_fault = second_try_page_fault;
         REQ_stage_given_access_fault = second_try_access_fault;
         REQ_stage_given_is_mem = second_try_is_mem;
-        REQ_stage_do_mispred = data_try_ack & data_try_do_mispred;
+        REQ_stage_given_mispred = second_try_ack & second_try_do_mispred | data_try_ack & data_try_do_mispred;
         REQ_stage_given_PPN = first_try_ack ? {2'b00, first_try_VPN} : second_try_PPN;
         REQ_stage_PO_word = first_try_ack ? first_try_PO_word : second_try_PO_word;
         REQ_stage_byte_mask = first_try_ack ? first_try_byte_mask : second_try_byte_mask;
@@ -464,7 +466,7 @@ module ldu_launch_pipeline #(
             RESP_stage_given_page_fault <= '0;
             RESP_stage_given_access_fault <= '0;
             RESP_stage_given_is_mem <= '0;
-            RESP_stage_do_mispred <= '0;
+            RESP_stage_given_mispred <= '0;
             RESP_stage_given_PPN <= '0;
             RESP_stage_PO_word <= '0;
             RESP_stage_byte_mask <= '0;
@@ -482,7 +484,7 @@ module ldu_launch_pipeline #(
             RESP_stage_given_page_fault <= REQ_stage_given_page_fault;
             RESP_stage_given_access_fault <= REQ_stage_given_access_fault;
             RESP_stage_given_is_mem <= REQ_stage_given_is_mem;
-            RESP_stage_do_mispred <= REQ_stage_do_mispred;
+            RESP_stage_given_mispred <= REQ_stage_given_mispred;
             RESP_stage_given_PPN <= REQ_stage_given_PPN;
             RESP_stage_PO_word <= REQ_stage_PO_word;
             RESP_stage_byte_mask <= REQ_stage_byte_mask;
@@ -657,7 +659,12 @@ module ldu_launch_pipeline #(
         RESP_stage_do_exception = 
             RESP_stage_dtlb_hit 
             & (RESP_stage_selected_page_fault | RESP_stage_selected_access_fault);
-        // RESP_stage_do_mispred handled in FF logic ^
+        RESP_stage_do_mispred = 
+            RESP_stage_given_mispred
+            & (
+                RESP_stage_is_data 
+                | RESP_stage_do_WB);
+            // this handles case where second try wants mispred, but should only give it if doing WB now 
         RESP_stage_do_cq_ret = ~RESP_stage_is_mq & ~RESP_stage_is_data;
         RESP_stage_do_mq_ret = RESP_stage_is_mq & ~RESP_stage_is_data;
     end
