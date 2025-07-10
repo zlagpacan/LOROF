@@ -1014,7 +1014,7 @@ module ldu_cq #(
 
             // forward if youngest older AND superset AND not amo
             if (
-                ldu_CAM_launch_valid & ~ldu_CAM_launch_is_mq
+                ldu_CAM_launch_valid
                 & entry_array[i].dtlb_hit
                 & entry_array[i].stamofu_CAM_returned
                     // might as well get full stamofu CAM info. only forward here if after already got CAM info
@@ -1038,11 +1038,11 @@ module ldu_cq #(
 
             // nasty forward if youngest older AND (not superset OR amo)
             if (
-                ldu_CAM_launch_valid & ~ldu_CAM_launch_is_mq
+                ldu_CAM_launch_valid
                 & entry_array[i].dtlb_hit
                 & entry_array[i].stamofu_CAM_returned
-                & ldu_CAM_launch_PA_word == entry_array[i].PA_word
                     // might as well get full stamofu CAM info. only forward here if after already got CAM info
+                & ldu_CAM_launch_PA_word == entry_array[i].PA_word
                 & (
                     ldu_CAM_launch_is_amo
                     | ~&{~entry_array[i].byte_mask | ldu_CAM_launch_byte_mask}
@@ -1064,7 +1064,7 @@ module ldu_cq #(
 
             // stall count subtract if older AND mdp info match AND mdp present for CAM AND mdp present for entry
             if (
-                ldu_CAM_launch_valid & ~ldu_CAM_launch_is_mq
+                ldu_CAM_launch_valid
                 & entry_array[i].dtlb_hit
                 & entry_array[i].stamofu_CAM_returned
                     // ignore any ldu CAMs which would be double counted by incoming stamofu CAM

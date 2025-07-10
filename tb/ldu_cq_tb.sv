@@ -2029,7 +2029,254 @@ module ldu_cq_tb ();
 		tb_ldu_cq_info_ret_bank1_dtlb_hit = 1'b1;
 		tb_ldu_cq_info_ret_bank1_page_fault = 1'b0;
 		tb_ldu_cq_info_ret_bank1_access_fault = 1'b0;
-		tb_ldu_cq_info_ret_bank1_dcache_hit = 1'b0;
+		tb_ldu_cq_info_ret_bank1_dcache_hit = 1'b1;
+		tb_ldu_cq_info_ret_bank1_is_mem = 1'b1;
+		tb_ldu_cq_info_ret_bank1_aq_blocking = 1'b0;
+		tb_ldu_cq_info_ret_bank1_PA_word = 32'heeee1111;
+		tb_ldu_cq_info_ret_bank1_byte_mask = 4'b0110;
+		tb_ldu_cq_info_ret_bank1_data = 32'he1e1e1e1;
+	    // misaligned queue info ret
+		tb_ldu_mq_info_ret_bank0_valid = 1'b0;
+		tb_ldu_mq_info_ret_bank0_mq_index = 0;
+
+		tb_ldu_mq_info_ret_bank1_valid = 1'b0;
+		tb_ldu_mq_info_ret_bank1_mq_index = 0;
+	    // dtlb miss resp
+		tb_dtlb_miss_resp_valid = 1'b0;
+		tb_dtlb_miss_resp_is_mq = 1'b0;
+		tb_dtlb_miss_resp_mq_index = 0;
+		tb_dtlb_miss_resp_PPN = 22'h000000;
+		tb_dtlb_miss_resp_is_mem = 1'b0;
+		tb_dtlb_miss_resp_page_fault = 1'b0;
+		tb_dtlb_miss_resp_access_fault = 1'b0;
+		tb_dtlb_miss_resp_cq_index = 0;
+	    // dcache miss resp
+		tb_dcache_miss_resp_valid = 1'b0;
+		tb_dcache_miss_resp_is_mq = 1'b0;
+		tb_dcache_miss_resp_mq_index = 0;
+		tb_dcache_miss_resp_data = 32'h00000000;
+		tb_dcache_miss_resp_cq_index = 0;
+	    // stamofu CAM return
+		tb_stamofu_CAM_return_bank0_valid = 1'b0;
+		tb_stamofu_CAM_return_bank0_updated_mdp_info = 8'b00000000;
+		tb_stamofu_CAM_return_bank0_stall = 1'b0;
+		tb_stamofu_CAM_return_bank0_stall_count = 0;
+		tb_stamofu_CAM_return_bank0_forward = 1'b0;
+		tb_stamofu_CAM_return_bank0_nasty_forward = 1'b0;
+		tb_stamofu_CAM_return_bank0_forward_ROB_index = 7'h00;
+		tb_stamofu_CAM_return_bank0_forward_data = 32'h00000000;
+		tb_stamofu_CAM_return_bank0_cq_index = 0;
+		tb_stamofu_CAM_return_bank0_is_mq = 1'b0;
+		tb_stamofu_CAM_return_bank0_mq_index = 0;
+
+		tb_stamofu_CAM_return_bank1_valid = 1'b0;
+		tb_stamofu_CAM_return_bank1_updated_mdp_info = 8'b00000000;
+		tb_stamofu_CAM_return_bank1_stall = 1'b0;
+		tb_stamofu_CAM_return_bank1_stall_count = 0;
+		tb_stamofu_CAM_return_bank1_forward = 1'b0;
+		tb_stamofu_CAM_return_bank1_nasty_forward = 1'b0;
+		tb_stamofu_CAM_return_bank1_forward_ROB_index = 7'h00;
+		tb_stamofu_CAM_return_bank1_forward_data = 32'h00000000;
+		tb_stamofu_CAM_return_bank1_cq_index = 0;
+		tb_stamofu_CAM_return_bank1_is_mq = 1'b0;
+		tb_stamofu_CAM_return_bank1_mq_index = 0;
+	    // ldu CAM launch
+		tb_ldu_CAM_launch_valid = 1'b0;
+		tb_ldu_CAM_launch_is_amo = 1'b0;
+		tb_ldu_CAM_launch_PA_word = 32'h00000000;
+		tb_ldu_CAM_launch_byte_mask = 4'b0000;
+		tb_ldu_CAM_launch_write_data = 32'h00000000;
+		tb_ldu_CAM_launch_mdp_info = 8'b00000000;
+		tb_ldu_CAM_launch_ROB_index = 7'h00;
+		tb_ldu_CAM_launch_cq_index = 0;
+		tb_ldu_CAM_launch_is_mq = 1'b0;
+		tb_ldu_CAM_launch_mq_index = 0;
+	    // ldu CAM return
+	    // store set CAM update
+	    // store set commit update
+	    // acquire advertisement
+		tb_stamofu_aq_mem_aq_active = 1'b1;
+		tb_stamofu_aq_mem_aq_oldest_abs_ROB_index = 7'h01;
+		tb_stamofu_aq_io_aq_active = 1'b1;
+		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h08;
+	    // oldest stamofu advertisement
+		tb_stamofu_active = 1'b0;
+		tb_stamofu_oldest_ROB_index = 7'h00;
+	    // ROB complete notif
+	    // ROB commit
+		tb_rob_commit_upper_index = 5'h00;
+		tb_rob_commit_lower_index_valid_mask = 4'b0000;
+	    // ROB kill
+		tb_rob_kill_valid = 1'b0;
+		tb_rob_kill_abs_head_index = 7'h00;
+		tb_rob_kill_rel_kill_younger_index = 7'h00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // op enqueue to central queue
+	    // second try
+		expected_second_try_bank0_valid = 1'b0;
+		expected_second_try_bank1_valid = 1'b0;
+		expected_second_try_do_mispred = 1'b1;
+		expected_second_try_is_mq = 1'b0;
+		expected_second_try_misaligned = 1'b0;
+		expected_second_try_page_fault = 1'b0;
+		expected_second_try_access_fault = 1'b0;
+		expected_second_try_is_mem = 1'b1;
+		expected_second_try_PPN = 22'hffff0 << 2;
+		expected_second_try_PO_word = 10'h000;
+		expected_second_try_byte_mask = 4'b0001;
+		expected_second_try_cq_index = 0;
+		expected_second_try_mq_index = 0;
+	    // second try feedback
+	    // data try
+		expected_data_try_bank0_valid = 1'b0;
+		expected_data_try_bank1_valid = 1'b0;
+		expected_data_try_do_mispred = 1'b1;
+		expected_data_try_data = 32'hf0f0f0f0;
+		expected_data_try_cq_index = 0;
+	    // data try feedback
+	    // misaligned queue data try req
+	    // misaligned queue info grab
+		expected_ldu_mq_info_grab_mq_index = 0;
+		expected_ldu_mq_info_grab_data_try_ack = 1'b0;
+	    // central queue info grab
+		expected_ldu_cq_info_grab_bank0_op = 4'b0000;
+		expected_ldu_cq_info_grab_bank0_mdp_info = 8'b00000000;
+		expected_ldu_cq_info_grab_bank0_dest_PR = 7'hf0;
+		expected_ldu_cq_info_grab_bank0_ROB_index = 7'h00;
+
+		expected_ldu_cq_info_grab_bank1_op = 4'b0000;
+		expected_ldu_cq_info_grab_bank1_mdp_info = 8'b00000000;
+		expected_ldu_cq_info_grab_bank1_dest_PR = 7'hf0;
+		expected_ldu_cq_info_grab_bank1_ROB_index = 7'h00;
+	    // central queue info ret
+	    // misaligned queue info ret
+	    // dtlb miss resp
+	    // dcache miss resp
+	    // stamofu CAM return
+	    // ldu CAM launch
+	    // ldu CAM return
+		expected_ldu_CAM_return_valid = 1'b0;
+		expected_ldu_CAM_return_forward = 1'b0;
+		expected_ldu_CAM_return_cq_index = 0;
+		expected_ldu_CAM_return_is_mq = 1'b0;
+		expected_ldu_CAM_return_mq_index = 0;
+	    // store set CAM update
+		expected_ssu_CAM_update_valid = 1'b0;
+		expected_ssu_CAM_update_ld_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_ld_ROB_index = 7'h00;
+		expected_ssu_CAM_update_stamo_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_stamo_ROB_index = 7'h00;
+	    // store set commit update
+		expected_ssu_commit_update_valid = 1'b0;
+		expected_ssu_commit_update_mdp_info = 8'b00000000;
+		expected_ssu_commit_update_ROB_index = 7'h00;
+	    // acquire advertisement
+	    // oldest stamofu advertisement
+	    // ROB complete notif
+		expected_ldu_complete_valid = 1'b0;
+		expected_ldu_complete_ROB_index = 7'h00;
+	    // ROB commit
+	    // ROB kill
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+			"\n\t\tcq enq: v 3: LB dtlb hit, d$ miss",
+			"\n\t\tmq data try: i",
+			"\n\t\tmq info grab: i",
+			"\n\t\tcq info grab bank0: i",
+			"\n\t\tcq info grab bank1: i",
+			"\n\t\tcq info ret bank0: v 2: LW dtlb hit, d$ hit, aq_blocking",
+			"\n\t\tcq info ret bank1: i",
+			"\n\t\tmq info ret bank0: i",
+			"\n\t\tmq info ret bank1: i",
+			"\n\t\tdtlb miss resp: i",
+			"\n\t\tdcache miss resp: i",
+			"\n\t\tstamofu CAM ret: i",
+			"\n\t\tldu CAM launch: i",
+			"\n\t\taq adv: mem aq >1, io aq >8",
+			"\n\t\tstamofu adv: i",
+			"\n\t\tROB commit: i",
+			"\n\t\tROB kill: i",
+			"\n\t\tEntries:",
+			"\n\t\t\t", "9: i",
+			"\n\t\t\t", "8: i",
+			"\n\t\t\t", "7: i",
+			"\n\t\t\t", "6: i",
+			"\n\t\t\t", "5: i",
+			"\n\t\t\t", "4: i",
+			"\n\t\t\t", "3: i",
+			"\n\t\t\t", "2: v 2: LW dtlb hit, d$ hit, aq_blocking",
+			"\n\t\t\t", "1: v 1: LH dtlb hit, d$ hit, mdp",
+			"\n\t\t\t", "0: v 0: LB dtlb hit, d$ hit",
+			"\n\t\tsecond try: i",
+			"\n\t\tdata try: i",
+			"\n\t\tldu CAM ret: i",
+			"\n\t\tssu CAM update: i",
+			"\n\t\tssu commit update: i",
+			"\n\t\tROB complete: i"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // op enqueue to central queue
+		tb_ldu_cq_enq_valid = 1'b1;
+		tb_ldu_cq_enq_killed = 1'b0;
+		tb_ldu_cq_enq_op = 4'b0010;
+		tb_ldu_cq_enq_mdp_info = 8'b00111100;
+		tb_ldu_cq_enq_dest_PR = 7'hc3;
+		tb_ldu_cq_enq_ROB_index = 7'h03;
+	    // second try
+	    // second try feedback
+		tb_second_try_bank0_ack = 1'b0;
+
+		tb_second_try_bank1_ack = 1'b0;
+	    // data try
+	    // data try feedback
+		tb_data_try_bank0_ack = 1'b0;
+
+		tb_data_try_bank1_ack = 1'b0;
+	    // misaligned queue data try req
+		tb_ldu_mq_data_try_req_valid = 1'b0;
+		tb_ldu_mq_data_try_cq_index = 0;
+	    // misaligned queue info grab
+		tb_ldu_mq_info_grab_data_try_req = 1'b0;
+		tb_ldu_mq_info_grab_data = 32'h00000000;
+	    // central queue info grab
+		tb_ldu_cq_info_grab_bank0_cq_index = 0;
+
+		tb_ldu_cq_info_grab_bank1_cq_index = 0;
+	    // central queue info ret
+		tb_ldu_cq_info_ret_bank0_valid = 1'b1;
+		tb_ldu_cq_info_ret_bank0_WB_sent = 1'b0;
+		tb_ldu_cq_info_ret_bank0_cq_index = 0;
+		tb_ldu_cq_info_ret_bank0_misaligned = 1'b0;
+		tb_ldu_cq_info_ret_bank0_dtlb_hit = 1'b1;
+		tb_ldu_cq_info_ret_bank0_page_fault = 1'b0;
+		tb_ldu_cq_info_ret_bank0_access_fault = 1'b0;
+		tb_ldu_cq_info_ret_bank0_dcache_hit = 1'b1;
+		tb_ldu_cq_info_ret_bank0_is_mem = 1'b0;
+		tb_ldu_cq_info_ret_bank0_aq_blocking = 1'b1;
+		tb_ldu_cq_info_ret_bank0_PA_word = 32'hdddd2222;
+		tb_ldu_cq_info_ret_bank0_byte_mask = 4'b1111;
+		tb_ldu_cq_info_ret_bank0_data = 32'hd2d2d2d2;
+
+		tb_ldu_cq_info_ret_bank1_valid = 1'b0;
+		tb_ldu_cq_info_ret_bank1_WB_sent = 1'b0;
+		tb_ldu_cq_info_ret_bank1_cq_index = 1;
+		tb_ldu_cq_info_ret_bank1_misaligned = 1'b0;
+		tb_ldu_cq_info_ret_bank1_dtlb_hit = 1'b1;
+		tb_ldu_cq_info_ret_bank1_page_fault = 1'b0;
+		tb_ldu_cq_info_ret_bank1_access_fault = 1'b0;
+		tb_ldu_cq_info_ret_bank1_dcache_hit = 1'b1;
 		tb_ldu_cq_info_ret_bank1_is_mem = 1'b1;
 		tb_ldu_cq_info_ret_bank1_aq_blocking = 1'b0;
 		tb_ldu_cq_info_ret_bank1_PA_word = 32'heeee1111;
