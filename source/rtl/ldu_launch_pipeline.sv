@@ -149,8 +149,8 @@ module ldu_launch_pipeline #(
 
     // central queue info ret
     output logic                            ldu_cq_info_ret_valid,
-    output logic                            ldu_cq_info_ret_WB_sent,
     output logic [LOG_LDU_CQ_ENTRIES-1:0]   ldu_cq_info_ret_cq_index,
+    output logic                            ldu_cq_info_ret_WB_sent,
     output logic                            ldu_cq_info_ret_misaligned,
     output logic                            ldu_cq_info_ret_dtlb_hit,
     output logic                            ldu_cq_info_ret_page_fault,
@@ -164,8 +164,9 @@ module ldu_launch_pipeline #(
 
     // misaligned queue info ret
     output logic                            ldu_mq_info_ret_valid,
-    output logic                            ldu_mq_info_ret_WB_sent,
     output logic [LOG_LDU_MQ_ENTRIES-1:0]   ldu_mq_info_ret_mq_index,
+    output logic [LOG_ROB_ENTRIES-1:0]      ldu_mq_info_ret_ROB_index,
+    output logic                            ldu_mq_info_ret_WB_sent,
     output logic                            ldu_mq_info_ret_dtlb_hit,
     output logic                            ldu_mq_info_ret_page_fault,
     output logic                            ldu_mq_info_ret_access_fault,
@@ -871,8 +872,8 @@ module ldu_launch_pipeline #(
 
         // cq ret
         ldu_cq_info_ret_valid = RET_stage_do_cq_ret & RET_stage_perform;
-        ldu_cq_info_ret_WB_sent = RET_stage_do_WB;
         ldu_cq_info_ret_cq_index = RET_stage_cq_index;
+        ldu_cq_info_ret_WB_sent = RET_stage_do_WB;
         ldu_cq_info_ret_misaligned = RET_stage_misaligned;
         ldu_cq_info_ret_dtlb_hit = RET_stage_dtlb_hit;
         ldu_cq_info_ret_page_fault = RET_stage_page_fault;
@@ -886,8 +887,9 @@ module ldu_launch_pipeline #(
 
         // mq ret
         ldu_mq_info_ret_valid = RET_stage_do_mq_ret & RET_stage_perform;
-        ldu_mq_info_ret_WB_sent = RET_stage_do_WB;
         ldu_mq_info_ret_mq_index = RET_stage_mq_index;
+        ldu_mq_info_ret_ROB_index = RET_stage_ROB_index;
+        ldu_mq_info_ret_WB_sent = RET_stage_do_WB;
         ldu_mq_info_ret_dtlb_hit = RET_stage_dtlb_hit;
         ldu_mq_info_ret_page_fault = RET_stage_page_fault;
         ldu_mq_info_ret_access_fault = RET_stage_access_fault;
