@@ -167,6 +167,7 @@ module ldu_launch_pipeline_wrapper (
 
     // misaligned queue info ret
 	output logic last_ldu_mq_info_ret_valid,
+	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_ldu_mq_info_ret_cq_index,
 	output logic [LOG_LDU_MQ_ENTRIES-1:0] last_ldu_mq_info_ret_mq_index,
 	output logic [LOG_ROB_ENTRIES-1:0] last_ldu_mq_info_ret_ROB_index,
 	output logic last_ldu_mq_info_ret_WB_sent,
@@ -351,6 +352,7 @@ module ldu_launch_pipeline_wrapper (
 
     // misaligned queue info ret
 	logic ldu_mq_info_ret_valid;
+	logic [LOG_LDU_CQ_ENTRIES-1:0] ldu_mq_info_ret_cq_index;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] ldu_mq_info_ret_mq_index;
 	logic [LOG_ROB_ENTRIES-1:0] ldu_mq_info_ret_ROB_index;
 	logic ldu_mq_info_ret_WB_sent;
@@ -548,6 +550,7 @@ module ldu_launch_pipeline_wrapper (
 
 		    // misaligned queue info ret
 			last_ldu_mq_info_ret_valid <= '0;
+			last_ldu_mq_info_ret_cq_index <= '0;
 			last_ldu_mq_info_ret_mq_index <= '0;
 			last_ldu_mq_info_ret_ROB_index <= '0;
 			last_ldu_mq_info_ret_WB_sent <= '0;
@@ -730,6 +733,7 @@ module ldu_launch_pipeline_wrapper (
 
 		    // misaligned queue info ret
 			last_ldu_mq_info_ret_valid <= ldu_mq_info_ret_valid;
+			last_ldu_mq_info_ret_cq_index <= ldu_mq_info_ret_cq_index;
 			last_ldu_mq_info_ret_mq_index <= ldu_mq_info_ret_mq_index;
 			last_ldu_mq_info_ret_ROB_index <= ldu_mq_info_ret_ROB_index;
 			last_ldu_mq_info_ret_WB_sent <= ldu_mq_info_ret_WB_sent;

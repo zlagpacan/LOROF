@@ -164,6 +164,7 @@ module ldu_launch_pipeline #(
 
     // misaligned queue info ret
     output logic                            ldu_mq_info_ret_valid,
+    output logic [LOG_LDU_CQ_ENTRIES-1:0]   ldu_mq_info_ret_cq_index,
     output logic [LOG_LDU_MQ_ENTRIES-1:0]   ldu_mq_info_ret_mq_index,
     output logic [LOG_ROB_ENTRIES-1:0]      ldu_mq_info_ret_ROB_index,
     output logic                            ldu_mq_info_ret_WB_sent,
@@ -887,6 +888,7 @@ module ldu_launch_pipeline #(
 
         // mq ret
         ldu_mq_info_ret_valid = RET_stage_do_mq_ret & RET_stage_perform;
+        ldu_mq_info_ret_cq_index = RET_stage_cq_index;
         ldu_mq_info_ret_mq_index = RET_stage_mq_index;
         ldu_mq_info_ret_ROB_index = RET_stage_ROB_index;
         ldu_mq_info_ret_WB_sent = RET_stage_do_WB;

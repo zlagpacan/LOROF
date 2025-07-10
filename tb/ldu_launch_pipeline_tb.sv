@@ -178,6 +178,7 @@ module ldu_launch_pipeline_tb ();
     // misaligned queue info ret
 	logic DUT_ldu_mq_info_ret_valid, expected_ldu_mq_info_ret_valid;
 	logic DUT_ldu_mq_info_ret_WB_sent, expected_ldu_mq_info_ret_WB_sent;
+	logic [LOG_LDU_CQ_ENTRIES-1:0] DUT_ldu_mq_info_ret_cq_index, expected_ldu_mq_info_ret_cq_index;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] DUT_ldu_mq_info_ret_mq_index, expected_ldu_mq_info_ret_mq_index;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_ldu_mq_info_ret_ROB_index, expected_ldu_mq_info_ret_ROB_index;
 	logic DUT_ldu_mq_info_ret_dtlb_hit, expected_ldu_mq_info_ret_dtlb_hit;
@@ -372,6 +373,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		.ldu_mq_info_ret_valid(DUT_ldu_mq_info_ret_valid),
 		.ldu_mq_info_ret_WB_sent(DUT_ldu_mq_info_ret_WB_sent),
+		.ldu_mq_info_ret_cq_index(DUT_ldu_mq_info_ret_cq_index),
 		.ldu_mq_info_ret_mq_index(DUT_ldu_mq_info_ret_mq_index),
 		.ldu_mq_info_ret_ROB_index(DUT_ldu_mq_info_ret_ROB_index),
 		.ldu_mq_info_ret_dtlb_hit(DUT_ldu_mq_info_ret_dtlb_hit),
@@ -779,6 +781,13 @@ module ldu_launch_pipeline_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_ldu_mq_info_ret_cq_index !== DUT_ldu_mq_info_ret_cq_index) begin
+			$display("TB ERROR: expected_ldu_mq_info_ret_cq_index (%h) != DUT_ldu_mq_info_ret_cq_index (%h)",
+				expected_ldu_mq_info_ret_cq_index, DUT_ldu_mq_info_ret_cq_index);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_ldu_mq_info_ret_mq_index !== DUT_ldu_mq_info_ret_mq_index) begin
 			$display("TB ERROR: expected_ldu_mq_info_ret_mq_index (%h) != DUT_ldu_mq_info_ret_mq_index (%h)",
 				expected_ldu_mq_info_ret_mq_index, DUT_ldu_mq_info_ret_mq_index);
@@ -1088,6 +1097,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b0;
+		expected_ldu_mq_info_ret_cq_index = 'h0;
 		expected_ldu_mq_info_ret_mq_index = 'h0;
 		expected_ldu_mq_info_ret_ROB_index = 7'h0;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b0;
@@ -1281,6 +1291,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b0;
+		expected_ldu_mq_info_ret_cq_index = 'h0;
 		expected_ldu_mq_info_ret_mq_index = 'h0;
 		expected_ldu_mq_info_ret_ROB_index = 7'h0;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b0;
@@ -1489,6 +1500,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b0;
+		expected_ldu_mq_info_ret_cq_index = 'h0;
 		expected_ldu_mq_info_ret_mq_index = 'h0;
 		expected_ldu_mq_info_ret_ROB_index = 7'h0;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b0;
@@ -1691,6 +1703,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b0;
+		expected_ldu_mq_info_ret_cq_index = 'h0;
 		expected_ldu_mq_info_ret_mq_index = 'h0;
 		expected_ldu_mq_info_ret_ROB_index = 7'h0;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b0;
@@ -1893,6 +1906,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b0;
+		expected_ldu_mq_info_ret_cq_index = 'h0;
 		expected_ldu_mq_info_ret_mq_index = 'h0;
 		expected_ldu_mq_info_ret_ROB_index = 7'h0;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b0;
@@ -2096,6 +2110,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b0;
+		expected_ldu_mq_info_ret_cq_index = 'h0;
 		expected_ldu_mq_info_ret_mq_index = 'h0;
 		expected_ldu_mq_info_ret_ROB_index = 7'h0;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b0;
@@ -2299,6 +2314,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b0;
+		expected_ldu_mq_info_ret_cq_index = 'h0;
 		expected_ldu_mq_info_ret_mq_index = 'h0;
 		expected_ldu_mq_info_ret_ROB_index = 7'h0;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b0;
@@ -2502,6 +2518,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b1;
+		expected_ldu_mq_info_ret_cq_index = 'h1;
 		expected_ldu_mq_info_ret_mq_index = 'h0;
 		expected_ldu_mq_info_ret_ROB_index = 7'h1;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b1;
@@ -2705,6 +2722,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b0;
+		expected_ldu_mq_info_ret_cq_index = 'h3;
 		expected_ldu_mq_info_ret_mq_index = 'h0;
 		expected_ldu_mq_info_ret_ROB_index = 7'h3;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b1;
@@ -2908,6 +2926,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b1;
+		expected_ldu_mq_info_ret_cq_index = 'h8;
 		expected_ldu_mq_info_ret_mq_index = 'h8;
 		expected_ldu_mq_info_ret_ROB_index = 7'h8;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b0;
@@ -3107,6 +3126,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b1;
+		expected_ldu_mq_info_ret_cq_index = 'h8;
 		expected_ldu_mq_info_ret_mq_index = 'h8;
 		expected_ldu_mq_info_ret_ROB_index = 7'h8;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b0;
@@ -3302,6 +3322,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b0;
+		expected_ldu_mq_info_ret_cq_index = 'h9;
 		expected_ldu_mq_info_ret_mq_index = 'h0;
 		expected_ldu_mq_info_ret_ROB_index = 7'h9;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b1;
@@ -3499,6 +3520,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b1;
 		expected_ldu_mq_info_ret_WB_sent = 1'b0;
+		expected_ldu_mq_info_ret_cq_index = 'h7;
 		expected_ldu_mq_info_ret_mq_index = 'h0;
 		expected_ldu_mq_info_ret_ROB_index = 7'h7;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b1;
@@ -3698,6 +3720,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b0;
+		expected_ldu_mq_info_ret_cq_index = 'h4;
 		expected_ldu_mq_info_ret_mq_index = 'h1;
 		expected_ldu_mq_info_ret_ROB_index = 7'h4;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b1;
@@ -3899,6 +3922,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b1;
+		expected_ldu_mq_info_ret_cq_index = 'hb;
 		expected_ldu_mq_info_ret_mq_index = 'h2;
 		expected_ldu_mq_info_ret_ROB_index = 7'hb;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b0;
@@ -4098,6 +4122,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b1;
+		expected_ldu_mq_info_ret_cq_index = 'he;
 		expected_ldu_mq_info_ret_mq_index = 'he;
 		expected_ldu_mq_info_ret_ROB_index = 7'he;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b1;
@@ -4294,6 +4319,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b1;
+		expected_ldu_mq_info_ret_cq_index = 'he;
 		expected_ldu_mq_info_ret_mq_index = 'he;
 		expected_ldu_mq_info_ret_ROB_index = 7'he;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b1;
@@ -4490,6 +4516,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b1;
 		expected_ldu_mq_info_ret_WB_sent = 1'b1;
+		expected_ldu_mq_info_ret_cq_index = 'he;
 		expected_ldu_mq_info_ret_mq_index = 'he;
 		expected_ldu_mq_info_ret_ROB_index = 7'he;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b1;
@@ -4690,6 +4717,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b1;
+		expected_ldu_mq_info_ret_cq_index = 'hf;
 		expected_ldu_mq_info_ret_mq_index = 'h1;
 		expected_ldu_mq_info_ret_ROB_index = 7'hf;
 		expected_ldu_mq_info_ret_page_fault = 1'b1;
@@ -4893,6 +4921,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b1;
+		expected_ldu_mq_info_ret_cq_index = 'hf;
 		expected_ldu_mq_info_ret_mq_index = 'h1;
 		expected_ldu_mq_info_ret_ROB_index = 7'hf;
 		expected_ldu_mq_info_ret_page_fault = 1'b1;
@@ -5096,6 +5125,7 @@ module ldu_launch_pipeline_tb ();
 	    // misaligned queue info ret
 		expected_ldu_mq_info_ret_valid = 1'b0;
 		expected_ldu_mq_info_ret_WB_sent = 1'b0;
+		expected_ldu_mq_info_ret_cq_index = 'hb;
 		expected_ldu_mq_info_ret_mq_index = 'h2;
 		expected_ldu_mq_info_ret_ROB_index = 7'hf;
 		expected_ldu_mq_info_ret_dtlb_hit = 1'b0;
