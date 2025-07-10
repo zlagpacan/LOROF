@@ -113,17 +113,18 @@ module ldu_cq #(
 
     // misaligned queue info ret
         // need in order to tie cq entry to mq if misaligned
-        // use cq_index ^
     input logic                             ldu_mq_info_ret_bank0_valid,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]    ldu_mq_info_ret_bank0_cq_index,
     input logic [LOG_LDU_MQ_ENTRIES-1:0]    ldu_mq_info_ret_bank0_mq_index,
     
     input logic                             ldu_mq_info_ret_bank1_valid,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]    ldu_mq_info_ret_bank1_cq_index,
     input logic [LOG_LDU_MQ_ENTRIES-1:0]    ldu_mq_info_ret_bank1_mq_index,
 
     // dtlb miss resp
     input logic                             dtlb_miss_resp_valid,
     input logic                             dtlb_miss_resp_is_mq,
-    input logic [LOG_LDU_MQ_ENTRIES-1:0]    dtlb_miss_resp_mq_index,
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]    dtlb_miss_resp_mq_index, // unused
     input logic [PPN_WIDTH-1:0]             dtlb_miss_resp_PPN,
     input logic                             dtlb_miss_resp_is_mem,
     input logic                             dtlb_miss_resp_page_fault,
@@ -133,12 +134,15 @@ module ldu_cq #(
     // dcache miss resp
     input logic                             dcache_miss_resp_valid,
     input logic                             dcache_miss_resp_is_mq,
-    input logic [LOG_LDU_MQ_ENTRIES-1:0]    dcache_miss_resp_mq_index,
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]    dcache_miss_resp_mq_index, // unused
     input logic [31:0]                      dcache_miss_resp_data,
     input logic [LOG_LDU_CQ_ENTRIES-1:0]    dcache_miss_resp_cq_index,
 
     // stamofu CAM return
     input logic                                 stamofu_CAM_return_bank0_valid,
+    input logic                                 stamofu_CAM_return_bank0_is_mq,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_bank0_cq_index, // ldu_cq index
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_return_bank0_mq_index, // ldu_mq index
     input logic [MDPT_INFO_WIDTH-1:0]           stamofu_CAM_return_bank0_updated_mdp_info,
     input logic                                 stamofu_CAM_return_bank0_stall,
     input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_CAM_return_bank0_stall_count,
@@ -146,11 +150,11 @@ module ldu_cq #(
     input logic                                 stamofu_CAM_return_bank0_nasty_forward,
     input logic                                 stamofu_CAM_return_bank0_forward_ROB_index,
     input logic [31:0]                          stamofu_CAM_return_bank0_forward_data,
-    input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_bank0_cq_index, // ldu_cq index
-    input logic                                 stamofu_CAM_return_bank0_is_mq,
-    input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_return_bank0_mq_index, // ldu_mq index
     
     input logic                                 stamofu_CAM_return_bank1_valid,
+    input logic                                 stamofu_CAM_return_bank1_is_mq,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_bank1_cq_index, // ldu_cq index
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_return_bank1_mq_index, // ldu_mq index
     input logic [MDPT_INFO_WIDTH-1:0]           stamofu_CAM_return_bank1_updated_mdp_info,
     input logic                                 stamofu_CAM_return_bank1_stall,
     input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_CAM_return_bank1_stall_count,
@@ -158,9 +162,6 @@ module ldu_cq #(
     input logic                                 stamofu_CAM_return_bank1_nasty_forward,
     input logic                                 stamofu_CAM_return_bank1_forward_ROB_index,
     input logic [31:0]                          stamofu_CAM_return_bank1_forward_data,
-    input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_bank1_cq_index, // ldu_cq index
-    input logic                                 stamofu_CAM_return_bank1_is_mq,
-    input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_return_bank1_mq_index, // ldu_mq index
 
     // ldu CAM launch
     input logic                                 ldu_CAM_launch_valid,
@@ -379,8 +380,8 @@ module ldu_cq #(
 
         ldu_cq_info_ret_bank0_valid_by_entry[ldu_cq_info_ret_bank0_cq_index] = ldu_cq_info_ret_bank0_valid;
         ldu_cq_info_ret_bank1_valid_by_entry[ldu_cq_info_ret_bank1_cq_index] = ldu_cq_info_ret_bank1_valid;
-        ldu_mq_info_ret_bank0_valid_by_entry[ldu_cq_info_ret_bank0_cq_index] = ldu_mq_info_ret_bank0_valid;
-        ldu_mq_info_ret_bank1_valid_by_entry[ldu_cq_info_ret_bank1_cq_index] = ldu_mq_info_ret_bank1_valid;
+        ldu_mq_info_ret_bank0_valid_by_entry[ldu_mq_info_ret_bank0_cq_index] = ldu_mq_info_ret_bank0_valid;
+        ldu_mq_info_ret_bank1_valid_by_entry[ldu_mq_info_ret_bank1_cq_index] = ldu_mq_info_ret_bank1_valid;
         dtlb_miss_resp_valid_by_entry[dtlb_miss_resp_cq_index] = dtlb_miss_resp_valid & ~dtlb_miss_resp_is_mq;
         dcache_miss_resp_valid_by_entry[dcache_miss_resp_cq_index] = dcache_miss_resp_valid & ~dcache_miss_resp_is_mq;
         ldu_mq_data_try_req_valid_by_entry[ldu_mq_data_try_cq_index] = ldu_mq_data_try_req_valid;

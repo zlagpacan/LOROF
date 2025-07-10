@@ -132,11 +132,12 @@ module ldu_cq_tb ();
 
     // misaligned queue info ret
         // need in order to tie cq entry to mq if misaligned
-        // use cq_index ^
 	logic tb_ldu_mq_info_ret_bank0_valid;
+	logic [LOG_LDU_CQ_ENTRIES-1:0] tb_ldu_mq_info_ret_bank0_cq_index;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] tb_ldu_mq_info_ret_bank0_mq_index;
 
 	logic tb_ldu_mq_info_ret_bank1_valid;
+	logic [LOG_LDU_CQ_ENTRIES-1:0] tb_ldu_mq_info_ret_bank1_cq_index;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] tb_ldu_mq_info_ret_bank1_mq_index;
 
     // dtlb miss resp
@@ -344,9 +345,11 @@ module ldu_cq_tb ();
 	        // need in order to tie cq entry to mq if misaligned
 	        // use cq_index ^
 		.ldu_mq_info_ret_bank0_valid(tb_ldu_mq_info_ret_bank0_valid),
+		.ldu_mq_info_ret_bank0_cq_index(tb_ldu_mq_info_ret_bank0_cq_index),
 		.ldu_mq_info_ret_bank0_mq_index(tb_ldu_mq_info_ret_bank0_mq_index),
 
 		.ldu_mq_info_ret_bank1_valid(tb_ldu_mq_info_ret_bank1_valid),
+		.ldu_mq_info_ret_bank1_cq_index(tb_ldu_mq_info_ret_bank1_cq_index),
 		.ldu_mq_info_ret_bank1_mq_index(tb_ldu_mq_info_ret_bank1_mq_index),
 
 	    // dtlb miss resp
@@ -833,9 +836,11 @@ module ldu_cq_tb ();
 		tb_ldu_cq_info_ret_bank1_data = 32'h00000000;
 	    // misaligned queue info ret
 		tb_ldu_mq_info_ret_bank0_valid = 1'b0;
+		tb_ldu_mq_info_ret_bank0_cq_index = 0;
 		tb_ldu_mq_info_ret_bank0_mq_index = 0;
 
 		tb_ldu_mq_info_ret_bank1_valid = 1'b0;
+		tb_ldu_mq_info_ret_bank1_cq_index = 0;
 		tb_ldu_mq_info_ret_bank1_mq_index = 0;
 	    // dtlb miss resp
 		tb_dtlb_miss_resp_valid = 1'b0;
@@ -1043,9 +1048,11 @@ module ldu_cq_tb ();
 		tb_ldu_cq_info_ret_bank1_data = 32'h00000000;
 	    // misaligned queue info ret
 		tb_ldu_mq_info_ret_bank0_valid = 1'b0;
+		tb_ldu_mq_info_ret_bank0_cq_index = 0;
 		tb_ldu_mq_info_ret_bank0_mq_index = 0;
 
 		tb_ldu_mq_info_ret_bank1_valid = 1'b0;
+		tb_ldu_mq_info_ret_bank1_cq_index = 0;
 		tb_ldu_mq_info_ret_bank1_mq_index = 0;
 	    // dtlb miss resp
 		tb_dtlb_miss_resp_valid = 1'b0;
@@ -1296,9 +1303,11 @@ module ldu_cq_tb ();
 		tb_ldu_cq_info_ret_bank1_data = 32'h00000000;
 	    // misaligned queue info ret
 		tb_ldu_mq_info_ret_bank0_valid = 1'b0;
+		tb_ldu_mq_info_ret_bank0_cq_index = 0;
 		tb_ldu_mq_info_ret_bank0_mq_index = 0;
 
 		tb_ldu_mq_info_ret_bank1_valid = 1'b0;
+		tb_ldu_mq_info_ret_bank1_cq_index = 0;
 		tb_ldu_mq_info_ret_bank1_mq_index = 0;
 	    // dtlb miss resp
 		tb_dtlb_miss_resp_valid = 1'b0;
@@ -1543,9 +1552,11 @@ module ldu_cq_tb ();
 		tb_ldu_cq_info_ret_bank1_data = 32'h00000000;
 	    // misaligned queue info ret
 		tb_ldu_mq_info_ret_bank0_valid = 1'b0;
+		tb_ldu_mq_info_ret_bank0_cq_index = 0;
 		tb_ldu_mq_info_ret_bank0_mq_index = 0;
 
 		tb_ldu_mq_info_ret_bank1_valid = 1'b0;
+		tb_ldu_mq_info_ret_bank1_cq_index = 0;
 		tb_ldu_mq_info_ret_bank1_mq_index = 0;
 	    // dtlb miss resp
 		tb_dtlb_miss_resp_valid = 1'b0;
@@ -1790,9 +1801,11 @@ module ldu_cq_tb ();
 		tb_ldu_cq_info_ret_bank1_data = 32'h00000000;
 	    // misaligned queue info ret
 		tb_ldu_mq_info_ret_bank0_valid = 1'b0;
+		tb_ldu_mq_info_ret_bank0_cq_index = 0;
 		tb_ldu_mq_info_ret_bank0_mq_index = 0;
 
 		tb_ldu_mq_info_ret_bank1_valid = 1'b0;
+		tb_ldu_mq_info_ret_bank1_cq_index = 0;
 		tb_ldu_mq_info_ret_bank1_mq_index = 0;
 	    // dtlb miss resp
 		tb_dtlb_miss_resp_valid = 1'b0;
@@ -2037,9 +2050,11 @@ module ldu_cq_tb ();
 		tb_ldu_cq_info_ret_bank1_data = 32'he1e1e1e1;
 	    // misaligned queue info ret
 		tb_ldu_mq_info_ret_bank0_valid = 1'b0;
+		tb_ldu_mq_info_ret_bank0_cq_index = 0;
 		tb_ldu_mq_info_ret_bank0_mq_index = 0;
 
 		tb_ldu_mq_info_ret_bank1_valid = 1'b0;
+		tb_ldu_mq_info_ret_bank1_cq_index = 0;
 		tb_ldu_mq_info_ret_bank1_mq_index = 0;
 	    // dtlb miss resp
 		tb_dtlb_miss_resp_valid = 1'b0;
@@ -2284,9 +2299,11 @@ module ldu_cq_tb ();
 		tb_ldu_cq_info_ret_bank1_data = 32'he1e1e1e1;
 	    // misaligned queue info ret
 		tb_ldu_mq_info_ret_bank0_valid = 1'b0;
+		tb_ldu_mq_info_ret_bank0_cq_index = 0;
 		tb_ldu_mq_info_ret_bank0_mq_index = 0;
 
 		tb_ldu_mq_info_ret_bank1_valid = 1'b0;
+		tb_ldu_mq_info_ret_bank1_cq_index = 0;
 		tb_ldu_mq_info_ret_bank1_mq_index = 0;
 	    // dtlb miss resp
 		tb_dtlb_miss_resp_valid = 1'b0;
