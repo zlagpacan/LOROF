@@ -205,14 +205,12 @@ module ldu_mq #(
         logic                               mdp_present;
         logic                               committed;
         logic                               second_try_req;
-        logic                               data_ready;
         logic                               data_try_req;
+        logic                               data_try_waiting;
         logic                               page_fault;
         logic                               access_fault;
         logic                               is_mem;
-        logic [3:0]                         op;
         logic [MDPT_INFO_WIDTH-1:0]         mdp_info;
-        logic [LOG_PR_COUNT-1:0]            dest_PR;
         logic [LOG_ROB_ENTRIES-1:0]         ROB_index;
         logic [3:0]                         lower_ROB_index_one_hot;
         logic [PA_WIDTH-3:0]                PA_word;
@@ -229,6 +227,7 @@ module ldu_mq #(
     
     logic [LDU_MQ_ENTRIES-1:0] ldu_mq_info_ret_bank0_valid_by_entry;
     logic [LDU_MQ_ENTRIES-1:0] ldu_mq_info_ret_bank1_valid_by_entry;
+    logic [LDU_MQ_ENTRIES-1:0] ldu_mq_info_grab_data_try_ack_by_entry;
     logic [LDU_MQ_ENTRIES-1:0] dtlb_miss_resp_valid_by_entry;
     logic [LDU_MQ_ENTRIES-1:0] dcache_miss_resp_valid_by_entry;
     logic [LDU_MQ_ENTRIES-1:0] stamofu_CAM_return_bank0_valid_by_entry;
@@ -274,6 +273,7 @@ module ldu_mq #(
     always_comb begin
         ldu_mq_info_ret_bank0_valid_by_entry = '0;
         ldu_mq_info_ret_bank1_valid_by_entry = '0;
+        ldu_mq_info_grab_data_try_ack_by_entry = '0;
         dtlb_miss_resp_valid_by_entry = '0;
         dcache_miss_resp_valid_by_entry = '0;
         stamofu_CAM_return_bank0_valid_by_entry = '0;
@@ -281,6 +281,7 @@ module ldu_mq #(
         
         ldu_mq_info_ret_bank0_valid_by_entry[ldu_mq_info_ret_bank0_mq_index] = ldu_mq_info_ret_bank0_valid;
         ldu_mq_info_ret_bank1_valid_by_entry[ldu_mq_info_ret_bank1_mq_index] = ldu_mq_info_ret_bank1_valid;
+        ldu_mq_info_grab_data_try_ack_by_entry[ldu_mq_info_grab_mq_index] = ldu_mq_info_grab_data_try_ack;
         dtlb_miss_resp_valid_by_entry[dtlb_miss_resp_mq_index] = dtlb_miss_resp_valid & dtlb_miss_resp_is_mq;
         dcache_miss_resp_valid_by_entry[dcache_miss_resp_mq_index] = dcache_miss_resp_valid & dcache_miss_resp_is_mq;
         stamofu_CAM_return_bank0_valid_by_entry[stamofu_CAM_return_bank0_mq_index] = stamofu_CAM_return_bank0_valid & stamofu_CAM_return_bank0_is_mq;
@@ -362,6 +363,7 @@ module ldu_mq #(
             // ldu CAM
             // second try req ack
             // data try req ack
+            // ldu mq info grab data try ack
             // aq age
             // oldest stamofu age
             // nasty forward stamofu age
@@ -381,7 +383,149 @@ module ldu_mq #(
                 // ldu CAM
                 // dcache miss resp
 
-            
+            // ldu_mq bank 0
+            if (ldu_mq_info_ret_bank0_valid_by_entry[i]) begin
+                // next_entry_array[i].valid = 
+                // next_entry_array[i].killed = 
+                next_entry_array[i].dtlb_hit = ldu_mq_info_ret_bank0_dtlb_hit;
+                // next_entry_array[i].stamofu_CAM_returned = 
+                next_entry_array[i].dcache_hit = ldu_mq_info_ret_bank0_dcache_hit;
+                next_entry_array[i].aq_blocking = ldu_mq_info_ret_bank0_aq_blocking;
+                // next_entry_array[i].older_stamofu_active = 
+                // next_entry_array[i].stalling = 
+                // next_entry_array[i].stalling_count = 
+                // next_entry_array[i].forward = 
+                // next_entry_array[i].nasty_forward = 
+                // next_entry_array[i].previous_nasty_forward = 
+                // next_entry_array[i].forward_ROB_index = 
+                // next_entry_array[i].mdp_present = 
+                // next_entry_array[i].committed = 
+                // next_entry_array[i].second_try_req = 
+                // next_entry_array[i].data_try_req = 
+                // next_entry_array[i].data_try_waiting = 
+                next_entry_array[i].page_fault = ldu_mq_info_ret_bank0_page_fault;
+                next_entry_array[i].access_fault = ldu_mq_info_ret_bank0_access_fault;
+                next_entry_array[i].is_mem = ldu_mq_info_ret_bank0_is_mem;
+                // next_entry_array[i].mdp_info = 
+                next_entry_array[i].ROB_index = ldu_mq_info_ret_bank0_ROB_index;
+                case (ldu_mq_info_ret_bank0_ROB_index[1:0])
+                    2'h0:   next_entry_array[i].lower_ROB_index_one_hot = 4'b0001;
+                    2'h1:   next_entry_array[i].lower_ROB_index_one_hot = 4'b0010;
+                    2'h2:   next_entry_array[i].lower_ROB_index_one_hot = 4'b0100;
+                    2'h3:   next_entry_array[i].lower_ROB_index_one_hot = 4'b1000;
+                endcase
+                next_entry_array[i].PA_word = ldu_mq_info_ret_bank0_PA_word;
+                next_entry_array[i].byte_mask = ldu_mq_info_ret_bank0_byte_mask;
+                next_entry_array[i].bank = ldu_mq_info_ret_bank0_PA_word[DCACHE_WORD_ADDR_BANK_BIT];
+                next_entry_array[i].data = ldu_mq_info_ret_bank0_data;
+                next_entry_array[i].cq_index = ldu_mq_info_ret_bank0_cq_index;
+            end
+            // ldu_mq bank 1
+            if (ldu_mq_info_ret_bank1_valid_by_entry[i]) begin
+                // next_entry_array[i].valid = 
+                // next_entry_array[i].killed = 
+                next_entry_array[i].dtlb_hit = ldu_mq_info_ret_bank1_dtlb_hit;
+                // next_entry_array[i].stamofu_CAM_returned = 
+                next_entry_array[i].dcache_hit = ldu_mq_info_ret_bank1_dcache_hit;
+                next_entry_array[i].aq_blocking = ldu_mq_info_ret_bank1_aq_blocking;
+                // next_entry_array[i].older_stamofu_active = 
+                // next_entry_array[i].stalling = 
+                // next_entry_array[i].stalling_count = 
+                // next_entry_array[i].forward = 
+                // next_entry_array[i].nasty_forward = 
+                // next_entry_array[i].previous_nasty_forward = 
+                // next_entry_array[i].forward_ROB_index = 
+                // next_entry_array[i].mdp_present = 
+                // next_entry_array[i].committed = 
+                // next_entry_array[i].second_try_req = 
+                // next_entry_array[i].data_try_req = 
+                // next_entry_array[i].data_try_waiting = 
+                next_entry_array[i].page_fault = ldu_mq_info_ret_bank1_page_fault;
+                next_entry_array[i].access_fault = ldu_mq_info_ret_bank1_access_fault;
+                next_entry_array[i].is_mem = ldu_mq_info_ret_bank1_is_mem;
+                // next_entry_array[i].mdp_info = 
+                next_entry_array[i].ROB_index = ldu_mq_info_ret_bank1_ROB_index;
+                case (ldu_mq_info_ret_bank1_ROB_index[1:0])
+                    2'h0:   next_entry_array[i].lower_ROB_index_one_hot = 4'b0001;
+                    2'h1:   next_entry_array[i].lower_ROB_index_one_hot = 4'b0010;
+                    2'h2:   next_entry_array[i].lower_ROB_index_one_hot = 4'b0100;
+                    2'h3:   next_entry_array[i].lower_ROB_index_one_hot = 4'b1000;
+                endcase
+                next_entry_array[i].PA_word = ldu_mq_info_ret_bank1_PA_word;
+                next_entry_array[i].byte_mask = ldu_mq_info_ret_bank1_byte_mask;
+                next_entry_array[i].bank = ldu_mq_info_ret_bank1_PA_word[DCACHE_WORD_ADDR_BANK_BIT];
+                next_entry_array[i].data = ldu_mq_info_ret_bank1_data;
+                next_entry_array[i].cq_index = ldu_mq_info_ret_bank1_cq_index;
+            end
+            // stamofu CAM return bank 0
+            else if (stamofu_CAM_return_bank0_valid_by_entry[i]) begin
+                next_entry_array[i].stamofu_CAM_returned = 1'b1;
+                next_entry_array[i].mdp_info = stamofu_CAM_return_bank0_updated_mdp_info;
+                next_entry_array[i].stalling = stamofu_CAM_return_bank0_stall;
+                next_entry_array[i].stalling_count = stamofu_CAM_return_bank0_stall_count;
+                next_entry_array[i].forward = stamofu_CAM_return_bank0_forward;
+                next_entry_array[i].nasty_forward = stamofu_CAM_return_bank0_nasty_forward;
+                next_entry_array[i].forward_ROB_index = stamofu_CAM_return_bank0_forward_ROB_index;
+                
+                // only update data if miss resp or CAM forward
+                if (stamofu_CAM_return_bank0_forward) begin
+                    next_entry_array[i].data = stamofu_CAM_return_bank0_forward_data;
+                end
+                else if (dcache_miss_resp_valid_by_entry[i]) begin
+                    next_entry_array[i].data = dcache_miss_resp_data;
+                end
+
+                // trigger new data try req if forward or dcache miss resp
+                next_entry_array[i].data_try_req |= stamofu_CAM_return_bank0_forward | dcache_miss_resp_valid_by_entry[i];
+            end
+            // stamofu CAM return bank 1
+            else if (stamofu_CAM_return_bank1_valid_by_entry[i]) begin
+                next_entry_array[i].stamofu_CAM_returned = 1'b1;
+                next_entry_array[i].mdp_info = stamofu_CAM_return_bank1_updated_mdp_info;
+                next_entry_array[i].stalling = stamofu_CAM_return_bank1_stall;
+                next_entry_array[i].stalling_count = stamofu_CAM_return_bank1_stall_count;
+                next_entry_array[i].forward = stamofu_CAM_return_bank1_forward;
+                next_entry_array[i].nasty_forward = stamofu_CAM_return_bank1_nasty_forward;
+                next_entry_array[i].forward_ROB_index = stamofu_CAM_return_bank1_forward_ROB_index;
+                
+                // only update data if miss resp or CAM forward
+                if (stamofu_CAM_return_bank1_forward) begin
+                    next_entry_array[i].data = stamofu_CAM_return_bank1_forward_data;
+                end
+                else if (dcache_miss_resp_valid_by_entry[i]) begin
+                    next_entry_array[i].data = dcache_miss_resp_data;
+                end
+
+                // trigger new data try req if forward or dcache miss resp
+                next_entry_array[i].data_try_req |= stamofu_CAM_return_bank1_forward | dcache_miss_resp_valid_by_entry[i];
+            end
+            // ldu CAM forward
+                // subset of stamofu CAM return if comes first
+            else if (ldu_CAM_launch_forward_by_entry[i]) begin
+                next_entry_array[i].forward = 1'b1;
+                next_entry_array[i].nasty_forward = 1'b0;
+                next_entry_array[i].forward_ROB_index = ldu_CAM_launch_ROB_index;
+
+                next_entry_array[i].data = ldu_CAM_launch_write_data;
+
+                // trigger new data try req
+                next_entry_array[i].data_try_req = 1'b1;
+            end
+            // ldu CAM nasty forward
+                // subset of stamofu CAM return if comes first
+            else if (ldu_CAM_launch_nasty_forward_by_entry[i]) begin
+                next_entry_array[i].forward = 1'b0;
+                next_entry_array[i].nasty_forward = 1'b1;
+                next_entry_array[i].forward_ROB_index = ldu_CAM_launch_ROB_index;
+            end
+            // dcache miss resp
+                // this is only case where take dcache miss resp data
+            else if (dcache_miss_resp_valid_by_entry[i] & ~entry_array[i].forward & ~entry_array[i].nasty_forward) begin
+                next_entry_array[i].data = dcache_miss_resp_data;
+
+                // trigger new data try req
+                next_entry_array[i].data_try_req = 1'b1;
+            end
         end
     end
 

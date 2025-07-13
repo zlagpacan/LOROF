@@ -312,25 +312,25 @@ module ldu_cq #(
     logic [LDU_CQ_ENTRIES-1:0] data_try_unmasked_req_ack_one_hot_by_entry;
     logic [LDU_CQ_ENTRIES-1:0] complete_unmasked_req_ack_one_hot_by_entry;
 
-    logic [LDU_CQ_ENTRIES-1:0] second_try_unmasked_req_ack_index_by_entry;
-    logic [LDU_CQ_ENTRIES-1:0] data_try_unmasked_req_ack_index_by_entry;
-    logic [LDU_CQ_ENTRIES-1:0] complete_unmasked_req_ack_index_by_entry;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] second_try_unmasked_req_ack_index_by_entry;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] data_try_unmasked_req_ack_index_by_entry;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] complete_unmasked_req_ack_index_by_entry;
 
     logic [LDU_CQ_ENTRIES-1:0] second_try_masked_req_ack_one_hot_by_entry;
     logic [LDU_CQ_ENTRIES-1:0] data_try_masked_req_ack_one_hot_by_entry;
     logic [LDU_CQ_ENTRIES-1:0] complete_masked_req_ack_one_hot_by_entry;
 
-    logic [LDU_CQ_ENTRIES-1:0] second_try_masked_req_ack_index_by_entry;
-    logic [LDU_CQ_ENTRIES-1:0] data_try_masked_req_ack_index_by_entry;
-    logic [LDU_CQ_ENTRIES-1:0] complete_masked_req_ack_index_by_entry;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] second_try_masked_req_ack_index_by_entry;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] data_try_masked_req_ack_index_by_entry;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] complete_masked_req_ack_index_by_entry;
 
     logic [LDU_CQ_ENTRIES-1:0] second_try_req_ack_one_hot_by_entry;
     logic [LDU_CQ_ENTRIES-1:0] data_try_req_ack_one_hot_by_entry;
     logic [LDU_CQ_ENTRIES-1:0] complete_req_ack_one_hot_by_entry;
 
-    logic [LDU_CQ_ENTRIES-1:0] second_try_req_ack_index_by_entry;
-    logic [LDU_CQ_ENTRIES-1:0] data_try_req_ack_index_by_entry;
-    logic [LDU_CQ_ENTRIES-1:0] complete_req_ack_index_by_entry;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] second_try_req_ack_index_by_entry;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] data_try_req_ack_index_by_entry;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] complete_req_ack_index_by_entry;
 
     logic second_try_valid;
     logic potential_data_try_valid;
