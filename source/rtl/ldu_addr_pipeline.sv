@@ -376,5 +376,9 @@ module ldu_addr_pipeline (
     assign REQ_bank1_valid = REQ_valid & (REQ_PO_word[DCACHE_WORD_ADDR_BANK_BIT] == 1'b1);
 
     assign REQ_ack = REQ_bank0_early_ready & REQ_bank1_early_ready;
+        // be careful for perf hit here, where can't move around a slow bank since both banks must be ready
+        // actually this prolly fine since on MSHR fill-up, both banks will be stalled
+        // only source of specific bank stall is on WB, exception, or mispred stall
+            // WB stalls may be common 
 
 endmodule

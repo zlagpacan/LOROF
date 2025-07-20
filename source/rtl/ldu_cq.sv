@@ -20,12 +20,12 @@ module ldu_cq #(
     input logic nRST,
 
     // op enqueue to central queue
-    input logic                         ldu_cq_enq_valid,
-    input logic                         ldu_cq_enq_killed,
-    input logic [3:0]                   ldu_cq_enq_op,
-    input logic [MDPT_INFO_WIDTH-1:0]   ldu_cq_enq_mdp_info,
-    input logic [LOG_PR_COUNT-1:0]      ldu_cq_enq_dest_PR,
-    input logic [LOG_ROB_ENTRIES-1:0]   ldu_cq_enq_ROB_index,
+    input logic                             ldu_cq_enq_valid,
+    input logic                             ldu_cq_enq_killed,
+    input logic [3:0]                       ldu_cq_enq_op,
+    input logic [MDPT_INFO_WIDTH-1:0]       ldu_cq_enq_mdp_info,
+    input logic [LOG_PR_COUNT-1:0]          ldu_cq_enq_dest_PR,
+    input logic [LOG_ROB_ENTRIES-1:0]       ldu_cq_enq_ROB_index,
     
     // central queue enqueue feedback
     output logic                            ldu_cq_enq_ready,
