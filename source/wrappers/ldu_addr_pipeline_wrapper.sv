@@ -13,6 +13,7 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
+
 module ldu_addr_pipeline_wrapper (
 
     // seq
@@ -41,7 +42,9 @@ module ldu_addr_pipeline_wrapper (
 	input logic [PRF_BANK_COUNT-1:0][31:0] next_forward_data_by_bank,
 
     // REQ stage info
-	output logic last_REQ_valid,
+	output logic last_REQ_bank0_valid,
+	output logic last_REQ_bank1_valid,
+
 	output logic last_REQ_is_mq,
 	output logic last_REQ_misaligned,
 	output logic [VPN_WIDTH-1:0] last_REQ_VPN,
@@ -50,7 +53,8 @@ module ldu_addr_pipeline_wrapper (
 	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_REQ_cq_index,
 
     // REQ stage feedback
-	input logic next_REQ_ack
+	input logic next_REQ_bank0_early_ready,
+	input logic next_REQ_bank1_early_ready
 );
 
     // ----------------------------------------------------------------
@@ -78,7 +82,9 @@ module ldu_addr_pipeline_wrapper (
 	logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank;
 
     // REQ stage info
-	logic REQ_valid;
+	logic REQ_bank0_valid;
+	logic REQ_bank1_valid;
+
 	logic REQ_is_mq;
 	logic REQ_misaligned;
 	logic [VPN_WIDTH-1:0] REQ_VPN;
@@ -87,12 +93,14 @@ module ldu_addr_pipeline_wrapper (
 	logic [LOG_LDU_CQ_ENTRIES-1:0] REQ_cq_index;
 
     // REQ stage feedback
-	logic REQ_ack;
+	logic REQ_bank0_early_ready;
+	logic REQ_bank1_early_ready;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    ldu_addr_pipeline WRAPPED_MODULE (.*);
+	ldu_addr_pipeline #(
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -122,7 +130,9 @@ module ldu_addr_pipeline_wrapper (
 			forward_data_by_bank <= '0;
 
 		    // REQ stage info
-			last_REQ_valid <= '0;
+			last_REQ_bank0_valid <= '0;
+			last_REQ_bank1_valid <= '0;
+
 			last_REQ_is_mq <= '0;
 			last_REQ_misaligned <= '0;
 			last_REQ_VPN <= '0;
@@ -131,7 +141,8 @@ module ldu_addr_pipeline_wrapper (
 			last_REQ_cq_index <= '0;
 
 		    // REQ stage feedback
-			REQ_ack <= '0;
+			REQ_bank0_early_ready <= '0;
+			REQ_bank1_early_ready <= '0;
         end
         else begin
 
@@ -157,7 +168,9 @@ module ldu_addr_pipeline_wrapper (
 			forward_data_by_bank <= next_forward_data_by_bank;
 
 		    // REQ stage info
-			last_REQ_valid <= REQ_valid;
+			last_REQ_bank0_valid <= REQ_bank0_valid;
+			last_REQ_bank1_valid <= REQ_bank1_valid;
+
 			last_REQ_is_mq <= REQ_is_mq;
 			last_REQ_misaligned <= REQ_misaligned;
 			last_REQ_VPN <= REQ_VPN;
@@ -166,7 +179,8 @@ module ldu_addr_pipeline_wrapper (
 			last_REQ_cq_index <= REQ_cq_index;
 
 		    // REQ stage feedback
-			REQ_ack <= next_REQ_ack;
+			REQ_bank0_early_ready <= next_REQ_bank0_early_ready;
+			REQ_bank1_early_ready <= next_REQ_bank1_early_ready;
         end
     end
 

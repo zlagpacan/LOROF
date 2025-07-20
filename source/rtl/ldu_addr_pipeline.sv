@@ -38,7 +38,9 @@ module ldu_addr_pipeline (
     input logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank,
     
     // REQ stage info
-    output logic                            REQ_valid,
+    output logic                            REQ_bank0_valid,
+    output logic                            REQ_bank1_valid,
+
     output logic                            REQ_is_mq,
     output logic                            REQ_misaligned,
     output logic [VPN_WIDTH-1:0]            REQ_VPN,
@@ -47,7 +49,8 @@ module ldu_addr_pipeline (
     output logic [LOG_LDU_CQ_ENTRIES-1:0]   REQ_cq_index,
 
     // REQ stage feedback
-    input logic                             REQ_ack
+    input logic                             REQ_bank0_early_ready,
+    input logic                             REQ_bank1_early_ready
 );
 
     // ----------------------------------------------------------------
@@ -83,9 +86,13 @@ module ldu_addr_pipeline (
     // REQ Stage Signals:
         // Request
 
+    logic           REQ_valid;
+
     logic [3:0]     REQ_op;
     logic [11:0]    REQ_imm12;
     logic [31:0]    REQ_A;
+
+    logic           REQ_ack;
 
     typedef enum logic [1:0] {
         REQ_IDLE,
@@ -364,5 +371,10 @@ module ldu_addr_pipeline (
 
         endcase
     end
+
+    assign REQ_bank0_valid = REQ_valid & (REQ_PO_word[DCACHE_WORD_ADDR_BANK_BIT] == 1'b0);
+    assign REQ_bank1_valid = REQ_valid & (REQ_PO_word[DCACHE_WORD_ADDR_BANK_BIT] == 1'b1);
+
+    assign REQ_ack = REQ_bank0_early_ready & REQ_bank1_early_ready;
 
 endmodule

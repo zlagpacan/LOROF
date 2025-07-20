@@ -57,7 +57,8 @@ module ldu_addr_pipeline_tb ();
 	logic [PRF_BANK_COUNT-1:0][31:0] tb_forward_data_by_bank;
 
     // REQ stage info
-	logic DUT_REQ_valid, expected_REQ_valid;
+	logic DUT_REQ_bank0_valid, expected_REQ_bank0_valid;
+	logic DUT_REQ_bank1_valid, expected_REQ_bank1_valid;
 	logic DUT_REQ_is_mq, expected_REQ_is_mq;
 	logic DUT_REQ_misaligned, expected_REQ_misaligned;
 	logic [VPN_WIDTH-1:0] DUT_REQ_VPN, expected_REQ_VPN;
@@ -66,7 +67,8 @@ module ldu_addr_pipeline_tb ();
 	logic [LOG_LDU_CQ_ENTRIES-1:0] DUT_REQ_cq_index, expected_REQ_cq_index;
 
     // REQ stage feedback
-	logic tb_REQ_ack;
+	logic tb_REQ_bank0_early_ready;
+	logic tb_REQ_bank1_early_ready;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -98,7 +100,8 @@ module ldu_addr_pipeline_tb ();
 		.forward_data_by_bank(tb_forward_data_by_bank),
 
 	    // REQ stage info
-		.REQ_valid(DUT_REQ_valid),
+		.REQ_bank0_valid(DUT_REQ_bank0_valid),
+		.REQ_bank1_valid(DUT_REQ_bank1_valid),
 		.REQ_is_mq(DUT_REQ_is_mq),
 		.REQ_misaligned(DUT_REQ_misaligned),
 		.REQ_VPN(DUT_REQ_VPN),
@@ -107,7 +110,8 @@ module ldu_addr_pipeline_tb ();
 		.REQ_cq_index(DUT_REQ_cq_index),
 
 	    // REQ stage feedback
-		.REQ_ack(tb_REQ_ack)
+		.REQ_bank0_early_ready(tb_REQ_bank0_early_ready),
+		.REQ_bank1_early_ready(tb_REQ_bank1_early_ready)
 	);
 
     // ----------------------------------------------------------------
@@ -122,9 +126,16 @@ module ldu_addr_pipeline_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_REQ_valid !== DUT_REQ_valid) begin
-			$display("TB ERROR: expected_REQ_valid (%h) != DUT_REQ_valid (%h)",
-				expected_REQ_valid, DUT_REQ_valid);
+		if (expected_REQ_bank0_valid !== DUT_REQ_bank0_valid) begin
+			$display("TB ERROR: expected_REQ_bank0_valid (%h) != DUT_REQ_bank0_valid (%h)",
+				expected_REQ_bank0_valid, DUT_REQ_bank0_valid);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_REQ_bank1_valid !== DUT_REQ_bank1_valid) begin
+			$display("TB ERROR: expected_REQ_bank1_valid (%h) != DUT_REQ_bank1_valid (%h)",
+				expected_REQ_bank1_valid, DUT_REQ_bank1_valid);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -220,7 +231,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b0;
+		tb_REQ_bank0_early_ready = 1'b0;
+		tb_REQ_bank1_early_ready = 1'b0;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -232,7 +244,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
+		expected_REQ_bank0_valid = 1'b0;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h0;
@@ -276,7 +289,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b0;
+		tb_REQ_bank0_early_ready = 1'b0;
+		tb_REQ_bank1_early_ready = 1'b0;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -288,7 +302,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
+		expected_REQ_bank0_valid = 1'b0;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h0;
@@ -344,7 +359,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b0;
+		tb_REQ_bank0_early_ready = 1'b0;
+		tb_REQ_bank1_early_ready = 1'b0;
 
 		@(negedge CLK);
 
@@ -356,7 +372,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
+		expected_REQ_bank0_valid = 1'b0;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h0;
@@ -406,7 +423,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b0;
+		tb_REQ_bank0_early_ready = 1'b0;
+		tb_REQ_bank1_early_ready = 1'b0;
 
 		@(negedge CLK);
 
@@ -418,7 +436,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
+		expected_REQ_bank0_valid = 1'b0;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h0;
@@ -468,7 +487,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b0;
+		tb_REQ_bank0_early_ready = 1'b0;
+		tb_REQ_bank1_early_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -480,7 +500,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
+		expected_REQ_bank0_valid = 1'b0;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h0;
@@ -530,7 +551,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b1;
+		tb_REQ_bank0_early_ready = 1'b1;
+		tb_REQ_bank1_early_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -542,7 +564,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_bank0_valid = 1'b1;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h0;
@@ -592,7 +615,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b0;
+		tb_REQ_bank0_early_ready = 1'b1;
+		tb_REQ_bank1_early_ready = 1'b0;
 
 		@(negedge CLK);
 
@@ -604,7 +628,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_bank0_valid = 1'b1;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h12345;
@@ -654,7 +679,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b1;
+		tb_REQ_bank0_early_ready = 1'b1;
+		tb_REQ_bank1_early_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -666,7 +692,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_bank0_valid = 1'b1;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h12345;
@@ -716,7 +743,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b1;
+		tb_REQ_bank0_early_ready = 1'b1;
+		tb_REQ_bank1_early_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -728,7 +756,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_bank0_valid = 1'b0;
+		expected_REQ_bank1_valid = 1'b1;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h77777;
@@ -778,7 +807,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b1;
+		tb_REQ_bank0_early_ready = 1'b1;
+		tb_REQ_bank1_early_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -790,7 +820,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_bank0_valid = 1'b0;
+		expected_REQ_bank1_valid = 1'b1;
 		expected_REQ_is_mq = 1'b1;
 		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h77777;
@@ -840,7 +871,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b1;
+		tb_REQ_bank0_early_ready = 1'b1;
+		tb_REQ_bank1_early_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -852,7 +884,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_bank0_valid = 1'b1;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h00000;
@@ -902,7 +935,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b1;
+		tb_REQ_bank0_early_ready = 1'b1;
+		tb_REQ_bank1_early_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -914,7 +948,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_bank0_valid = 1'b0;
+		expected_REQ_bank1_valid = 1'b1;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h0000A;
@@ -964,7 +999,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b1;
+		tb_REQ_bank0_early_ready = 1'b1;
+		tb_REQ_bank1_early_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -976,7 +1012,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_bank0_valid = 1'b0;
+		expected_REQ_bank1_valid = 1'b1;
 		expected_REQ_is_mq = 1'b1;
 		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h0000A;
@@ -1026,7 +1063,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b1;
+		tb_REQ_bank0_early_ready = 1'b1;
+		tb_REQ_bank1_early_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -1038,7 +1076,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
+		expected_REQ_bank0_valid = 1'b0;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h00000;
@@ -1088,7 +1127,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b0;
+		tb_REQ_bank0_early_ready = 1'b0;
+		tb_REQ_bank1_early_ready = 1'b0;
 
 		@(negedge CLK);
 
@@ -1100,7 +1140,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_bank0_valid = 1'b1;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h00010;
@@ -1150,7 +1191,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b1;
+		tb_REQ_bank0_early_ready = 1'b1;
+		tb_REQ_bank1_early_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -1162,7 +1204,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_bank0_valid = 1'b1;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b0;
 		expected_REQ_VPN = 20'h00010;
@@ -1212,7 +1255,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b0;
+		tb_REQ_bank0_early_ready = 1'b0;
+		tb_REQ_bank1_early_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -1224,7 +1268,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_bank0_valid = 1'b1;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h0F0F0;
@@ -1274,7 +1319,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b0;
+		tb_REQ_bank0_early_ready = 1'b1;
+		tb_REQ_bank1_early_ready = 1'b0;
 
 		@(negedge CLK);
 
@@ -1286,7 +1332,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_bank0_valid = 1'b1;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h0F0F0;
@@ -1336,7 +1383,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b1;
+		tb_REQ_bank0_early_ready = 1'b1;
+		tb_REQ_bank1_early_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -1348,7 +1396,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_bank0_valid = 1'b1;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h0F0F0;
@@ -1398,7 +1447,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b0;
+		tb_REQ_bank0_early_ready = 1'b0;
+		tb_REQ_bank1_early_ready = 1'b0;
 
 		@(negedge CLK);
 
@@ -1410,7 +1460,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_bank0_valid = 1'b1;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b1;
 		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h0F0F0;
@@ -1460,7 +1511,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b1;
+		tb_REQ_bank0_early_ready = 1'b1;
+		tb_REQ_bank1_early_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -1472,7 +1524,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b1;
+		expected_REQ_bank0_valid = 1'b1;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b1;
 		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h0F0F0;
@@ -1522,7 +1575,8 @@ module ldu_addr_pipeline_tb ();
 		};
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b1;
+		tb_REQ_bank0_early_ready = 1'b1;
+		tb_REQ_bank1_early_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -1534,7 +1588,8 @@ module ldu_addr_pipeline_tb ();
 	    // reg read info and data from PRF
 	    // forward data from PRF
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
+		expected_REQ_bank0_valid = 1'b0;
+		expected_REQ_bank1_valid = 1'b0;
 		expected_REQ_is_mq = 1'b0;
 		expected_REQ_misaligned = 1'b1;
 		expected_REQ_VPN = 20'h00000;
