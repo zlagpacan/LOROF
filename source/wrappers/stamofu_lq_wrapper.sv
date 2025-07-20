@@ -13,6 +13,8 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
+parameter STAMOFU_LQ_ENTRIES = 4;
+
 module stamofu_lq_wrapper (
 
     // seq
@@ -38,7 +40,9 @@ module stamofu_lq_wrapper (
 	output logic last_REQ_enq_ack,
 
     // REQ stage deq info
-	output logic last_REQ_deq_valid,
+	output logic last_REQ_deq_bank0_valid,
+	output logic last_REQ_deq_bank1_valid,
+
 	output logic last_REQ_deq_is_store,
 	output logic last_REQ_deq_is_amo,
 	output logic last_REQ_deq_is_fence,
@@ -53,7 +57,8 @@ module stamofu_lq_wrapper (
 	output logic [LOG_STAMOFU_CQ_ENTRIES-1:0] last_REQ_deq_cq_index,
 
     // REQ stage deq feedback
-	input logic next_REQ_deq_ack
+	input logic next_REQ_deq_bank0_ack,
+	input logic next_REQ_deq_bank1_ack
 );
 
     // ----------------------------------------------------------------
@@ -78,7 +83,9 @@ module stamofu_lq_wrapper (
 	logic REQ_enq_ack;
 
     // REQ stage deq info
-	logic REQ_deq_valid;
+	logic REQ_deq_bank0_valid;
+	logic REQ_deq_bank1_valid;
+
 	logic REQ_deq_is_store;
 	logic REQ_deq_is_amo;
 	logic REQ_deq_is_fence;
@@ -93,13 +100,14 @@ module stamofu_lq_wrapper (
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] REQ_deq_cq_index;
 
     // REQ stage deq feedback
-	logic REQ_deq_ack;
+	logic REQ_deq_bank0_ack;
+	logic REQ_deq_bank1_ack;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
 
 	stamofu_lq #(
-		.STAMOFU_LQ_ENTRIES(4)
+		.STAMOFU_LQ_ENTRIES(STAMOFU_LQ_ENTRIES)
 	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
@@ -127,7 +135,9 @@ module stamofu_lq_wrapper (
 			last_REQ_enq_ack <= '0;
 
 		    // REQ stage deq info
-			last_REQ_deq_valid <= '0;
+			last_REQ_deq_bank0_valid <= '0;
+			last_REQ_deq_bank1_valid <= '0;
+
 			last_REQ_deq_is_store <= '0;
 			last_REQ_deq_is_amo <= '0;
 			last_REQ_deq_is_fence <= '0;
@@ -142,7 +152,8 @@ module stamofu_lq_wrapper (
 			last_REQ_deq_cq_index <= '0;
 
 		    // REQ stage deq feedback
-			REQ_deq_ack <= '0;
+			REQ_deq_bank0_ack <= '0;
+			REQ_deq_bank1_ack <= '0;
         end
         else begin
 
@@ -165,7 +176,9 @@ module stamofu_lq_wrapper (
 			last_REQ_enq_ack <= REQ_enq_ack;
 
 		    // REQ stage deq info
-			last_REQ_deq_valid <= REQ_deq_valid;
+			last_REQ_deq_bank0_valid <= REQ_deq_bank0_valid;
+			last_REQ_deq_bank1_valid <= REQ_deq_bank1_valid;
+
 			last_REQ_deq_is_store <= REQ_deq_is_store;
 			last_REQ_deq_is_amo <= REQ_deq_is_amo;
 			last_REQ_deq_is_fence <= REQ_deq_is_fence;
@@ -180,7 +193,8 @@ module stamofu_lq_wrapper (
 			last_REQ_deq_cq_index <= REQ_deq_cq_index;
 
 		    // REQ stage deq feedback
-			REQ_deq_ack <= next_REQ_deq_ack;
+			REQ_deq_bank0_ack <= next_REQ_deq_bank0_ack;
+			REQ_deq_bank1_ack <= next_REQ_deq_bank1_ack;
         end
     end
 

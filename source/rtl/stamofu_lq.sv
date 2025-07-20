@@ -37,7 +37,9 @@ module stamofu_lq #(
     output logic                                REQ_enq_ack,
 
     // REQ stage deq info
-    output logic                                REQ_deq_valid,
+    output logic                                REQ_deq_bank0_valid,
+    output logic                                REQ_deq_bank1_valid,
+
     output logic                                REQ_deq_is_store,
     output logic                                REQ_deq_is_amo,
     output logic                                REQ_deq_is_fence,
@@ -52,13 +54,28 @@ module stamofu_lq #(
     output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   REQ_deq_cq_index,
 
     // REQ stage deq feedback
-    input logic                                 REQ_deq_ack
+    input logic                                 REQ_deq_bank0_ack,
+    input logic                                 REQ_deq_bank1_ack
 );
+    // wrapper around simple queue module + a little extra bank logic
 
-    // just a wrapper around simple queue module
+    logic REQ_enq_bank;
+
+    logic REQ_deq_valid;
+    logic REQ_deq_bank;
+    logic REQ_deq_ack;
+
+    assign REQ_enq_bank = REQ_enq_PO_word[DCACHE_WORD_ADDR_BANK_BIT];
+
+    assign REQ_deq_bank0_valid = REQ_deq_valid & (REQ_deq_bank == 1'b0);
+    assign REQ_deq_bank1_valid = REQ_deq_valid & (REQ_deq_bank == 1'b1);
+
+    assign REQ_deq_ack = REQ_deq_bank0_ack | REQ_deq_bank1_ack;
+        // won't get accidently ack since depends on true ack, where asserted valid based on bank bit 
+        // this part slow which is fine since crit path ends in this queue 
 
     q_fast_ready #(
-        .DATA_WIDTH(1+1+1+4+1+1+1+VPN_WIDTH+PO_WIDTH+4+32+LOG_STAMOFU_CQ_ENTRIES),
+        .DATA_WIDTH(1+1+1+4+1+1+1+VPN_WIDTH+PO_WIDTH-2+1+4+32+LOG_STAMOFU_CQ_ENTRIES),
         .NUM_ENTRIES(STAMOFU_LQ_ENTRIES)
     ) REQ_Q (
         .CLK(CLK),
@@ -75,6 +92,7 @@ module stamofu_lq #(
             REQ_enq_misaligned_exception,
             REQ_enq_VPN,
             REQ_enq_PO_word,
+            REQ_enq_bank,
             REQ_enq_byte_mask,
             REQ_enq_write_data,
             REQ_enq_cq_index
@@ -92,6 +110,7 @@ module stamofu_lq #(
             REQ_deq_misaligned_exception,
             REQ_deq_VPN,
             REQ_deq_PO_word,
+            REQ_deq_bank,
             REQ_deq_byte_mask,
             REQ_deq_write_data,
             REQ_deq_cq_index

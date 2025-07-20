@@ -54,7 +54,8 @@ module stamofu_lq_tb ();
 	logic DUT_REQ_enq_ack, expected_REQ_enq_ack;
 
     // REQ stage deq info
-	logic DUT_REQ_deq_valid, expected_REQ_deq_valid;
+	logic DUT_REQ_deq_bank0_valid, expected_REQ_deq_bank0_valid;
+	logic DUT_REQ_deq_bank1_valid, expected_REQ_deq_bank1_valid;
 	logic DUT_REQ_deq_is_store, expected_REQ_deq_is_store;
 	logic DUT_REQ_deq_is_amo, expected_REQ_deq_is_amo;
 	logic DUT_REQ_deq_is_fence, expected_REQ_deq_is_fence;
@@ -69,7 +70,8 @@ module stamofu_lq_tb ();
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] DUT_REQ_deq_cq_index, expected_REQ_deq_cq_index;
 
     // REQ stage deq feedback
-	logic tb_REQ_deq_ack;
+	logic tb_REQ_deq_bank0_ack;
+	logic tb_REQ_deq_bank1_ack;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -100,7 +102,8 @@ module stamofu_lq_tb ();
 		.REQ_enq_ack(DUT_REQ_enq_ack),
 
 	    // REQ stage deq info
-		.REQ_deq_valid(DUT_REQ_deq_valid),
+		.REQ_deq_bank0_valid(DUT_REQ_deq_bank0_valid),
+		.REQ_deq_bank1_valid(DUT_REQ_deq_bank1_valid),
 		.REQ_deq_is_store(DUT_REQ_deq_is_store),
 		.REQ_deq_is_amo(DUT_REQ_deq_is_amo),
 		.REQ_deq_is_fence(DUT_REQ_deq_is_fence),
@@ -115,7 +118,8 @@ module stamofu_lq_tb ();
 		.REQ_deq_cq_index(DUT_REQ_deq_cq_index),
 
 	    // REQ stage deq feedback
-		.REQ_deq_ack(tb_REQ_deq_ack)
+		.REQ_deq_bank0_ack(tb_REQ_deq_bank0_ack),
+		.REQ_deq_bank1_ack(tb_REQ_deq_bank1_ack)
 	);
 
     // ----------------------------------------------------------------
@@ -130,9 +134,16 @@ module stamofu_lq_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_REQ_deq_valid !== DUT_REQ_deq_valid) begin
-			$display("TB ERROR: expected_REQ_deq_valid (%h) != DUT_REQ_deq_valid (%h)",
-				expected_REQ_deq_valid, DUT_REQ_deq_valid);
+		if (expected_REQ_deq_bank0_valid !== DUT_REQ_deq_bank0_valid) begin
+			$display("TB ERROR: expected_REQ_deq_bank0_valid (%h) != DUT_REQ_deq_bank0_valid (%h)",
+				expected_REQ_deq_bank0_valid, DUT_REQ_deq_bank0_valid);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_REQ_deq_bank1_valid !== DUT_REQ_deq_bank1_valid) begin
+			$display("TB ERROR: expected_REQ_deq_bank1_valid (%h) != DUT_REQ_deq_bank1_valid (%h)",
+				expected_REQ_deq_bank1_valid, DUT_REQ_deq_bank1_valid);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -256,11 +267,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h000;
 		tb_REQ_enq_byte_mask = 4'b0000;
 		tb_REQ_enq_write_data = 32'h00000000;
-		tb_REQ_enq_cq_index = 0;
+		tb_REQ_enq_cq_index = 'h0;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b1;
+		tb_REQ_deq_bank0_ack = 1'b1;
+		tb_REQ_deq_bank1_ack = 1'b1;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -270,7 +282,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b1;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b0;
+		expected_REQ_deq_bank0_valid = 1'b0;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b0;
 		expected_REQ_deq_is_amo = 1'b0;
 		expected_REQ_deq_is_fence = 1'b0;
@@ -282,7 +295,7 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h000;
 		expected_REQ_deq_byte_mask = 4'b0000;
 		expected_REQ_deq_write_data = 32'h00000000;
-		expected_REQ_deq_cq_index = 0;
+		expected_REQ_deq_cq_index = 'h0;
 	    // REQ stage deq feedback
 
 		check_outputs();
@@ -306,11 +319,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h000;
 		tb_REQ_enq_byte_mask = 4'b0000;
 		tb_REQ_enq_write_data = 32'h00000000;
-		tb_REQ_enq_cq_index = 0;
+		tb_REQ_enq_cq_index = 'h0;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b1;
+		tb_REQ_deq_bank0_ack = 1'b1;
+		tb_REQ_deq_bank1_ack = 1'b1;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -320,7 +334,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b1;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b0;
+		expected_REQ_deq_bank0_valid = 1'b0;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b0;
 		expected_REQ_deq_is_amo = 1'b0;
 		expected_REQ_deq_is_fence = 1'b0;
@@ -332,7 +347,7 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h000;
 		expected_REQ_deq_byte_mask = 4'b0000;
 		expected_REQ_deq_write_data = 32'h00000000;
-		expected_REQ_deq_cq_index = 0;
+		expected_REQ_deq_cq_index = 'h0;
 	    // REQ stage deq feedback
 
 		check_outputs();
@@ -364,11 +379,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h0f0;
 		tb_REQ_enq_byte_mask = 4'b0000;
 		tb_REQ_enq_write_data = 32'hf0f0f0f0;
-		tb_REQ_enq_cq_index = 0;
+		tb_REQ_enq_cq_index = 'h0;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b1;
+		tb_REQ_deq_bank0_ack = 1'b1;
+		tb_REQ_deq_bank1_ack = 1'b1;
 
 		@(negedge CLK);
 
@@ -378,7 +394,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b1;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b0;
+		expected_REQ_deq_bank0_valid = 1'b0;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b0;
 		expected_REQ_deq_is_amo = 1'b0;
 		expected_REQ_deq_is_fence = 1'b0;
@@ -390,7 +407,7 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h000;
 		expected_REQ_deq_byte_mask = 4'b0000;
 		expected_REQ_deq_write_data = 32'h00000000;
-		expected_REQ_deq_cq_index = 0;
+		expected_REQ_deq_cq_index = 'h0;
 	    // REQ stage deq feedback
 
 		check_outputs();
@@ -398,7 +415,7 @@ module stamofu_lq_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "{0, i, i, i} - enq 1";
+		sub_test_case = "{0, i, i, i} - enq 1, failed deq 0";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -416,11 +433,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h1e1;
 		tb_REQ_enq_byte_mask = 4'b0001;
 		tb_REQ_enq_write_data = 32'he1e1e1e1;
-		tb_REQ_enq_cq_index = 1;
+		tb_REQ_enq_cq_index = 'h1;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b0;
+		tb_REQ_deq_bank0_ack = 1'b0;
+		tb_REQ_deq_bank1_ack = 1'b0;
 
 		@(negedge CLK);
 
@@ -430,7 +448,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b1;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b1;
+		expected_REQ_deq_bank0_valid = 1'b1;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b0;
 		expected_REQ_deq_is_amo = 1'b0;
 		expected_REQ_deq_is_fence = 1'b0;
@@ -442,7 +461,7 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h0f0;
 		expected_REQ_deq_byte_mask = 4'b0000;
 		expected_REQ_deq_write_data = 32'hf0f0f0f0;
-		expected_REQ_deq_cq_index = 0;
+		expected_REQ_deq_cq_index = 'h0;
 	    // REQ stage deq feedback
 
 		check_outputs();
@@ -450,7 +469,7 @@ module stamofu_lq_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "{0, 1, i, i} - enq 2";
+		sub_test_case = "{0, 1, i, i} - enq 2, failed deq 0";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -468,11 +487,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h2d2;
 		tb_REQ_enq_byte_mask = 4'b0010;
 		tb_REQ_enq_write_data = 32'hd2d2d2d2;
-		tb_REQ_enq_cq_index = 2;
+		tb_REQ_enq_cq_index = 'h2;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b0;
+		tb_REQ_deq_bank0_ack = 1'b0;
+		tb_REQ_deq_bank1_ack = 1'b0;
 
 		@(negedge CLK);
 
@@ -482,7 +502,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b1;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b1;
+		expected_REQ_deq_bank0_valid = 1'b1;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b0;
 		expected_REQ_deq_is_amo = 1'b0;
 		expected_REQ_deq_is_fence = 1'b0;
@@ -494,7 +515,7 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h0f0;
 		expected_REQ_deq_byte_mask = 4'b0000;
 		expected_REQ_deq_write_data = 32'hf0f0f0f0;
-		expected_REQ_deq_cq_index = 0;
+		expected_REQ_deq_cq_index = 'h0;
 	    // REQ stage deq feedback
 
 		check_outputs();
@@ -502,7 +523,7 @@ module stamofu_lq_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "{0, 1, 2, i} - enq 3";
+		sub_test_case = "{0, 1, 2, i} - enq 3, failed deq 0";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -520,11 +541,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h3c3;
 		tb_REQ_enq_byte_mask = 4'b0011;
 		tb_REQ_enq_write_data = 32'hc3c3c3c3;
-		tb_REQ_enq_cq_index = 3;
+		tb_REQ_enq_cq_index = 'h3;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b0;
+		tb_REQ_deq_bank0_ack = 1'b0;
+		tb_REQ_deq_bank1_ack = 1'b0;
 
 		@(negedge CLK);
 
@@ -534,7 +556,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b1;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b1;
+		expected_REQ_deq_bank0_valid = 1'b1;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b0;
 		expected_REQ_deq_is_amo = 1'b0;
 		expected_REQ_deq_is_fence = 1'b0;
@@ -546,7 +569,7 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h0f0;
 		expected_REQ_deq_byte_mask = 4'b0000;
 		expected_REQ_deq_write_data = 32'hf0f0f0f0;
-		expected_REQ_deq_cq_index = 0;
+		expected_REQ_deq_cq_index = 'h0;
 	    // REQ stage deq feedback
 
 		check_outputs();
@@ -554,7 +577,7 @@ module stamofu_lq_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "{0, 1, 2, 3} - failed enq 4";
+		sub_test_case = "{0, 1, 2, 3} - failed enq 4, failed deq 0";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -572,11 +595,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h4b4;
 		tb_REQ_enq_byte_mask = 4'b0100;
 		tb_REQ_enq_write_data = 32'hb4b4b4b4;
-		tb_REQ_enq_cq_index = 4;
+		tb_REQ_enq_cq_index = 'h4;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b0;
+		tb_REQ_deq_bank0_ack = 1'b0;
+		tb_REQ_deq_bank1_ack = 1'b0;
 
 		@(negedge CLK);
 
@@ -586,7 +610,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b0;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b1;
+		expected_REQ_deq_bank0_valid = 1'b1;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b0;
 		expected_REQ_deq_is_amo = 1'b0;
 		expected_REQ_deq_is_fence = 1'b0;
@@ -598,7 +623,7 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h0f0;
 		expected_REQ_deq_byte_mask = 4'b0000;
 		expected_REQ_deq_write_data = 32'hf0f0f0f0;
-		expected_REQ_deq_cq_index = 0;
+		expected_REQ_deq_cq_index = 'h0;
 	    // REQ stage deq feedback
 
 		check_outputs();
@@ -624,11 +649,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h4b4;
 		tb_REQ_enq_byte_mask = 4'b0100;
 		tb_REQ_enq_write_data = 32'hb4b4b4b4;
-		tb_REQ_enq_cq_index = 4;
+		tb_REQ_enq_cq_index = 'h4;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b1;
+		tb_REQ_deq_bank0_ack = 1'b1;
+		tb_REQ_deq_bank1_ack = 1'b0;
 
 		@(negedge CLK);
 
@@ -638,7 +664,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b0;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b1;
+		expected_REQ_deq_bank0_valid = 1'b1;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b0;
 		expected_REQ_deq_is_amo = 1'b0;
 		expected_REQ_deq_is_fence = 1'b0;
@@ -650,7 +677,7 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h0f0;
 		expected_REQ_deq_byte_mask = 4'b0000;
 		expected_REQ_deq_write_data = 32'hf0f0f0f0;
-		expected_REQ_deq_cq_index = 0;
+		expected_REQ_deq_cq_index = 'h0;
 	    // REQ stage deq feedback
 
 		check_outputs();
@@ -676,11 +703,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h4b4;
 		tb_REQ_enq_byte_mask = 4'b0100;
 		tb_REQ_enq_write_data = 32'hb4b4b4b4;
-		tb_REQ_enq_cq_index = 4;
+		tb_REQ_enq_cq_index = 'h4;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b1;
+		tb_REQ_deq_bank0_ack = 1'b0;
+		tb_REQ_deq_bank1_ack = 1'b1;
 
 		@(negedge CLK);
 
@@ -690,7 +718,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b1;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b1;
+		expected_REQ_deq_bank0_valid = 1'b1;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b1;
 		expected_REQ_deq_is_amo = 1'b1;
 		expected_REQ_deq_is_fence = 1'b1;
@@ -702,7 +731,7 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h1e1;
 		expected_REQ_deq_byte_mask = 4'b0001;
 		expected_REQ_deq_write_data = 32'he1e1e1e1;
-		expected_REQ_deq_cq_index = 1;
+		expected_REQ_deq_cq_index = 'h1;
 	    // REQ stage deq feedback
 
 		check_outputs();
@@ -728,11 +757,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h5a5;
 		tb_REQ_enq_byte_mask = 4'b0101;
 		tb_REQ_enq_write_data = 32'ha5a5a5a5;
-		tb_REQ_enq_cq_index = 5;
+		tb_REQ_enq_cq_index = 'h5;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b1;
+		tb_REQ_deq_bank0_ack = 1'b1;
+		tb_REQ_deq_bank1_ack = 1'b1;
 
 		@(negedge CLK);
 
@@ -742,7 +772,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b1;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b1;
+		expected_REQ_deq_bank0_valid = 1'b1;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b0;
 		expected_REQ_deq_is_amo = 1'b0;
 		expected_REQ_deq_is_fence = 1'b0;
@@ -754,7 +785,7 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h2d2;
 		expected_REQ_deq_byte_mask = 4'b0010;
 		expected_REQ_deq_write_data = 32'hd2d2d2d2;
-		expected_REQ_deq_cq_index = 2;
+		expected_REQ_deq_cq_index = 'h2;
 	    // REQ stage deq feedback
 
 		check_outputs();
@@ -762,7 +793,7 @@ module stamofu_lq_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "{4, 5, i, 3} - deq 3";
+		sub_test_case = "{4, 5, i, 3} - failed enq 6, deq 3";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -780,11 +811,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h696;
 		tb_REQ_enq_byte_mask = 4'b0110;
 		tb_REQ_enq_write_data = 32'h96969696;
-		tb_REQ_enq_cq_index = 6;
+		tb_REQ_enq_cq_index = 'h6;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b1;
+		tb_REQ_deq_bank0_ack = 1'b0;
+		tb_REQ_deq_bank1_ack = 1'b1;
 
 		@(negedge CLK);
 
@@ -794,7 +826,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b1;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b1;
+		expected_REQ_deq_bank0_valid = 1'b1;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b1;
 		expected_REQ_deq_is_amo = 1'b1;
 		expected_REQ_deq_is_fence = 1'b1;
@@ -806,7 +839,7 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h3c3;
 		expected_REQ_deq_byte_mask = 4'b0011;
 		expected_REQ_deq_write_data = 32'hc3c3c3c3;
-		expected_REQ_deq_cq_index = 3;
+		expected_REQ_deq_cq_index = 'h3;
 	    // REQ stage deq feedback
 
 		check_outputs();
@@ -814,7 +847,7 @@ module stamofu_lq_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "{4, 5, i, i} - deq 4";
+		sub_test_case = "{4, 5, i, i} - failed enq 6, deq 4";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -832,11 +865,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h696;
 		tb_REQ_enq_byte_mask = 4'b0110;
 		tb_REQ_enq_write_data = 32'h96969696;
-		tb_REQ_enq_cq_index = 6;
+		tb_REQ_enq_cq_index = 'h6;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b1;
+		tb_REQ_deq_bank0_ack = 1'b1;
+		tb_REQ_deq_bank1_ack = 1'b0;
 
 		@(negedge CLK);
 
@@ -846,7 +880,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b1;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b1;
+		expected_REQ_deq_bank0_valid = 1'b1;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b0;
 		expected_REQ_deq_is_amo = 1'b0;
 		expected_REQ_deq_is_fence = 1'b0;
@@ -858,7 +893,7 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h4b4;
 		expected_REQ_deq_byte_mask = 4'b0100;
 		expected_REQ_deq_write_data = 32'hb4b4b4b4;
-		expected_REQ_deq_cq_index = 4;
+		expected_REQ_deq_cq_index = 'h4;
 	    // REQ stage deq feedback
 
 		check_outputs();
@@ -866,7 +901,7 @@ module stamofu_lq_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "{i, 5, i, i} - deq 5";
+		sub_test_case = "{i, 5, i, i} - failed enq 6, deq 5";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -884,11 +919,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h696;
 		tb_REQ_enq_byte_mask = 4'b0110;
 		tb_REQ_enq_write_data = 32'h96969696;
-		tb_REQ_enq_cq_index = 6;
+		tb_REQ_enq_cq_index = 'h6;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b1;
+		tb_REQ_deq_bank0_ack = 1'b1;
+		tb_REQ_deq_bank1_ack = 1'b1;
 
 		@(negedge CLK);
 
@@ -898,7 +934,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b1;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b1;
+		expected_REQ_deq_bank0_valid = 1'b1;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b1;
 		expected_REQ_deq_is_amo = 1'b1;
 		expected_REQ_deq_is_fence = 1'b1;
@@ -910,7 +947,7 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h5a5;
 		expected_REQ_deq_byte_mask = 4'b0101;
 		expected_REQ_deq_write_data = 32'ha5a5a5a5;
-		expected_REQ_deq_cq_index = 5;
+		expected_REQ_deq_cq_index = 'h5;
 	    // REQ stage deq feedback
 
 		check_outputs();
@@ -936,11 +973,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h696;
 		tb_REQ_enq_byte_mask = 4'b0110;
 		tb_REQ_enq_write_data = 32'h96969696;
-		tb_REQ_enq_cq_index = 6;
+		tb_REQ_enq_cq_index = 'h6;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b1;
+		tb_REQ_deq_bank0_ack = 1'b0;
+		tb_REQ_deq_bank1_ack = 1'b1;
 
 		@(negedge CLK);
 
@@ -950,7 +988,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b1;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b0;
+		expected_REQ_deq_bank0_valid = 1'b0;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b0;
 		expected_REQ_deq_is_amo = 1'b0;
 		expected_REQ_deq_is_fence = 1'b0;
@@ -962,7 +1001,7 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h2d2;
 		expected_REQ_deq_byte_mask = 4'b0010;
 		expected_REQ_deq_write_data = 32'hd2d2d2d2;
-		expected_REQ_deq_cq_index = 2;
+		expected_REQ_deq_cq_index = 'h2;
 	    // REQ stage deq feedback
 
 		check_outputs();
@@ -988,11 +1027,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h696;
 		tb_REQ_enq_byte_mask = 4'b0110;
 		tb_REQ_enq_write_data = 32'h96969696;
-		tb_REQ_enq_cq_index = 6;
+		tb_REQ_enq_cq_index = 'h6;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b1;
+		tb_REQ_deq_bank0_ack = 1'b1;
+		tb_REQ_deq_bank1_ack = 1'b0;
 
 		@(negedge CLK);
 
@@ -1002,7 +1042,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b1;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b0;
+		expected_REQ_deq_bank0_valid = 1'b0;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b0;
 		expected_REQ_deq_is_amo = 1'b0;
 		expected_REQ_deq_is_fence = 1'b0;
@@ -1014,7 +1055,7 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h2d2;
 		expected_REQ_deq_byte_mask = 4'b0010;
 		expected_REQ_deq_write_data = 32'hd2d2d2d2;
-		expected_REQ_deq_cq_index = 2;
+		expected_REQ_deq_cq_index = 'h2;
 	    // REQ stage deq feedback
 
 		check_outputs();
@@ -1022,7 +1063,7 @@ module stamofu_lq_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "{i, i, 6, i} - deq 6";
+		sub_test_case = "{i, i, 6, i} - failed enq 7, deq 6";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -1040,11 +1081,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h787;
 		tb_REQ_enq_byte_mask = 4'b0111;
 		tb_REQ_enq_write_data = 32'h87878787;
-		tb_REQ_enq_cq_index = 7;
+		tb_REQ_enq_cq_index = 'h7;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b1;
+		tb_REQ_deq_bank0_ack = 1'b1;
+		tb_REQ_deq_bank1_ack = 1'b1;
 
 		@(negedge CLK);
 
@@ -1054,7 +1096,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b1;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b1;
+		expected_REQ_deq_bank0_valid = 1'b1;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b0;
 		expected_REQ_deq_is_amo = 1'b0;
 		expected_REQ_deq_is_fence = 1'b0;
@@ -1066,7 +1109,7 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h696;
 		expected_REQ_deq_byte_mask = 4'b0110;
 		expected_REQ_deq_write_data = 32'h96969696;
-		expected_REQ_deq_cq_index = 6;
+		expected_REQ_deq_cq_index = 'h6;
 	    // REQ stage deq feedback
 
 		check_outputs();
@@ -1074,7 +1117,7 @@ module stamofu_lq_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "{i, i, i, i} - failed deq 7/3";
+		sub_test_case = "{i, i, i, i} - failed enq 7, failed deq 7/3";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -1092,11 +1135,12 @@ module stamofu_lq_tb ();
 		tb_REQ_enq_PO_word = 10'h787;
 		tb_REQ_enq_byte_mask = 4'b0111;
 		tb_REQ_enq_write_data = 32'h87878787;
-		tb_REQ_enq_cq_index = 7;
+		tb_REQ_enq_cq_index = 'h7;
 	    // REQ stage enq feedback
 	    // REQ stage deq info
 	    // REQ stage deq feedback
-		tb_REQ_deq_ack = 1'b1;
+		tb_REQ_deq_bank0_ack = 1'b1;
+		tb_REQ_deq_bank1_ack = 1'b0;
 
 		@(negedge CLK);
 
@@ -1106,7 +1150,8 @@ module stamofu_lq_tb ();
 	    // REQ stage enq feedback
 		expected_REQ_enq_ack = 1'b1;
 	    // REQ stage deq info
-		expected_REQ_deq_valid = 1'b0;
+		expected_REQ_deq_bank0_valid = 1'b0;
+		expected_REQ_deq_bank1_valid = 1'b0;
 		expected_REQ_deq_is_store = 1'b1;
 		expected_REQ_deq_is_amo = 1'b1;
 		expected_REQ_deq_is_fence = 1'b1;
@@ -1118,7 +1163,439 @@ module stamofu_lq_tb ();
 		expected_REQ_deq_PO_word = 10'h3c3;
 		expected_REQ_deq_byte_mask = 4'b0011;
 		expected_REQ_deq_write_data = 32'hc3c3c3c3;
-		expected_REQ_deq_cq_index = 3;
+		expected_REQ_deq_cq_index = 'h3;
+	    // REQ stage deq feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "{i, i, i, i} - enq 7, failed deq 7/3";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage enq info
+		tb_REQ_enq_valid = 1'b1;
+		tb_REQ_enq_is_store = 1'b1;
+		tb_REQ_enq_is_amo = 1'b1;
+		tb_REQ_enq_is_fence = 1'b1;
+		tb_REQ_enq_op = 4'b0111;
+		tb_REQ_enq_is_mq = 1'b1;
+		tb_REQ_enq_misaligned = 1'b1;
+		tb_REQ_enq_misaligned_exception = 1'b1;
+		tb_REQ_enq_VPN = 20'h78787;
+		tb_REQ_enq_PO_word = 10'h787;
+		tb_REQ_enq_byte_mask = 4'b0111;
+		tb_REQ_enq_write_data = 32'h87878787;
+		tb_REQ_enq_cq_index = 'h7;
+	    // REQ stage enq feedback
+	    // REQ stage deq info
+	    // REQ stage deq feedback
+		tb_REQ_deq_bank0_ack = 1'b1;
+		tb_REQ_deq_bank1_ack = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage enq info
+	    // REQ stage enq feedback
+		expected_REQ_enq_ack = 1'b1;
+	    // REQ stage deq info
+		expected_REQ_deq_bank0_valid = 1'b0;
+		expected_REQ_deq_bank1_valid = 1'b0;
+		expected_REQ_deq_is_store = 1'b1;
+		expected_REQ_deq_is_amo = 1'b1;
+		expected_REQ_deq_is_fence = 1'b1;
+		expected_REQ_deq_op = 4'b0011;
+		expected_REQ_deq_is_mq = 1'b1;
+		expected_REQ_deq_misaligned = 1'b1;
+		expected_REQ_deq_misaligned_exception = 1'b1;
+		expected_REQ_deq_VPN = 20'h3c3c3;
+		expected_REQ_deq_PO_word = 10'h3c3;
+		expected_REQ_deq_byte_mask = 4'b0011;
+		expected_REQ_deq_write_data = 32'hc3c3c3c3;
+		expected_REQ_deq_cq_index = 'h3;
+	    // REQ stage deq feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "{i, i, i, i} - enq 8, failed deq 7";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage enq info
+		tb_REQ_enq_valid = 1'b1;
+		tb_REQ_enq_is_store = 1'b0;
+		tb_REQ_enq_is_amo = 1'b0;
+		tb_REQ_enq_is_fence = 1'b0;
+		tb_REQ_enq_op = 4'b1000;
+		tb_REQ_enq_is_mq = 1'b0;
+		tb_REQ_enq_misaligned = 1'b0;
+		tb_REQ_enq_misaligned_exception = 1'b0;
+		tb_REQ_enq_VPN = 20'h87878;
+		tb_REQ_enq_PO_word = 10'h878;
+		tb_REQ_enq_byte_mask = 4'b1000;
+		tb_REQ_enq_write_data = 32'h78787878;
+		tb_REQ_enq_cq_index = 'h8;
+	    // REQ stage enq feedback
+	    // REQ stage deq info
+	    // REQ stage deq feedback
+		tb_REQ_deq_bank0_ack = 1'b0;
+		tb_REQ_deq_bank1_ack = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage enq info
+	    // REQ stage enq feedback
+		expected_REQ_enq_ack = 1'b1;
+	    // REQ stage deq info
+		expected_REQ_deq_bank0_valid = 1'b1;
+		expected_REQ_deq_bank1_valid = 1'b0;
+		expected_REQ_deq_is_store = 1'b1;
+		expected_REQ_deq_is_amo = 1'b1;
+		expected_REQ_deq_is_fence = 1'b1;
+		expected_REQ_deq_op = 4'b0111;
+		expected_REQ_deq_is_mq = 1'b1;
+		expected_REQ_deq_misaligned = 1'b1;
+		expected_REQ_deq_misaligned_exception = 1'b1;
+		expected_REQ_deq_VPN = 20'h78787;
+		expected_REQ_deq_PO_word = 10'h787;
+		expected_REQ_deq_byte_mask = 4'b0111;
+		expected_REQ_deq_write_data = 32'h87878787;
+		expected_REQ_deq_cq_index = 'h7;
+	    // REQ stage deq feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "{i, i, i, i} - enq 9, failed deq 7";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage enq info
+		tb_REQ_enq_valid = 1'b1;
+		tb_REQ_enq_is_store = 1'b1;
+		tb_REQ_enq_is_amo = 1'b1;
+		tb_REQ_enq_is_fence = 1'b1;
+		tb_REQ_enq_op = 4'b1001;
+		tb_REQ_enq_is_mq = 1'b1;
+		tb_REQ_enq_misaligned = 1'b1;
+		tb_REQ_enq_misaligned_exception = 1'b1;
+		tb_REQ_enq_VPN = 20'h96969;
+		tb_REQ_enq_PO_word = 10'h969;
+		tb_REQ_enq_byte_mask = 4'b1001;
+		tb_REQ_enq_write_data = 32'h69696969;
+		tb_REQ_enq_cq_index = 'h9;
+	    // REQ stage enq feedback
+	    // REQ stage deq info
+	    // REQ stage deq feedback
+		tb_REQ_deq_bank0_ack = 1'b0;
+		tb_REQ_deq_bank1_ack = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage enq info
+	    // REQ stage enq feedback
+		expected_REQ_enq_ack = 1'b1;
+	    // REQ stage deq info
+		expected_REQ_deq_bank0_valid = 1'b1;
+		expected_REQ_deq_bank1_valid = 1'b0;
+		expected_REQ_deq_is_store = 1'b1;
+		expected_REQ_deq_is_amo = 1'b1;
+		expected_REQ_deq_is_fence = 1'b1;
+		expected_REQ_deq_op = 4'b0111;
+		expected_REQ_deq_is_mq = 1'b1;
+		expected_REQ_deq_misaligned = 1'b1;
+		expected_REQ_deq_misaligned_exception = 1'b1;
+		expected_REQ_deq_VPN = 20'h78787;
+		expected_REQ_deq_PO_word = 10'h787;
+		expected_REQ_deq_byte_mask = 4'b0111;
+		expected_REQ_deq_write_data = 32'h87878787;
+		expected_REQ_deq_cq_index = 'h7;
+	    // REQ stage deq feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "{i, i, i, i} - failed enq A, deq 7";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage enq info
+		tb_REQ_enq_valid = 1'b0;
+		tb_REQ_enq_is_store = 1'b0;
+		tb_REQ_enq_is_amo = 1'b0;
+		tb_REQ_enq_is_fence = 1'b0;
+		tb_REQ_enq_op = 4'b1010;
+		tb_REQ_enq_is_mq = 1'b0;
+		tb_REQ_enq_misaligned = 1'b0;
+		tb_REQ_enq_misaligned_exception = 1'b0;
+		tb_REQ_enq_VPN = 20'ha5a5a;
+		tb_REQ_enq_PO_word = 10'ha5a;
+		tb_REQ_enq_byte_mask = 4'b1010;
+		tb_REQ_enq_write_data = 32'h5a5a5a5a;
+		tb_REQ_enq_cq_index = 'ha;
+	    // REQ stage enq feedback
+	    // REQ stage deq info
+	    // REQ stage deq feedback
+		tb_REQ_deq_bank0_ack = 1'b1;
+		tb_REQ_deq_bank1_ack = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage enq info
+	    // REQ stage enq feedback
+		expected_REQ_enq_ack = 1'b1;
+	    // REQ stage deq info
+		expected_REQ_deq_bank0_valid = 1'b1;
+		expected_REQ_deq_bank1_valid = 1'b0;
+		expected_REQ_deq_is_store = 1'b1;
+		expected_REQ_deq_is_amo = 1'b1;
+		expected_REQ_deq_is_fence = 1'b1;
+		expected_REQ_deq_op = 4'b0111;
+		expected_REQ_deq_is_mq = 1'b1;
+		expected_REQ_deq_misaligned = 1'b1;
+		expected_REQ_deq_misaligned_exception = 1'b1;
+		expected_REQ_deq_VPN = 20'h78787;
+		expected_REQ_deq_PO_word = 10'h787;
+		expected_REQ_deq_byte_mask = 4'b0111;
+		expected_REQ_deq_write_data = 32'h87878787;
+		expected_REQ_deq_cq_index = 'h7;
+	    // REQ stage deq feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "{i, i, i, i} - failed enq A, deq 8";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage enq info
+		tb_REQ_enq_valid = 1'b0;
+		tb_REQ_enq_is_store = 1'b0;
+		tb_REQ_enq_is_amo = 1'b0;
+		tb_REQ_enq_is_fence = 1'b0;
+		tb_REQ_enq_op = 4'b1010;
+		tb_REQ_enq_is_mq = 1'b0;
+		tb_REQ_enq_misaligned = 1'b0;
+		tb_REQ_enq_misaligned_exception = 1'b0;
+		tb_REQ_enq_VPN = 20'ha5a5a;
+		tb_REQ_enq_PO_word = 10'ha5a;
+		tb_REQ_enq_byte_mask = 4'b1010;
+		tb_REQ_enq_write_data = 32'h5a5a5a5a;
+		tb_REQ_enq_cq_index = 'ha;
+	    // REQ stage enq feedback
+	    // REQ stage deq info
+	    // REQ stage deq feedback
+		tb_REQ_deq_bank0_ack = 1'b0;
+		tb_REQ_deq_bank1_ack = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage enq info
+	    // REQ stage enq feedback
+		expected_REQ_enq_ack = 1'b1;
+	    // REQ stage deq info
+		expected_REQ_deq_bank0_valid = 1'b0;
+		expected_REQ_deq_bank1_valid = 1'b1;
+		expected_REQ_deq_is_store = 1'b0;
+		expected_REQ_deq_is_amo = 1'b0;
+		expected_REQ_deq_is_fence = 1'b0;
+		expected_REQ_deq_op = 4'b1000;
+		expected_REQ_deq_is_mq = 1'b0;
+		expected_REQ_deq_misaligned = 1'b0;
+		expected_REQ_deq_misaligned_exception = 1'b0;
+		expected_REQ_deq_VPN = 20'h87878;
+		expected_REQ_deq_PO_word = 10'h878;
+		expected_REQ_deq_byte_mask = 4'b1000;
+		expected_REQ_deq_write_data = 32'h78787878;
+		expected_REQ_deq_cq_index = 'h8;
+	    // REQ stage deq feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "{i, i, i, i} - failed enq A, failed deq 9";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage enq info
+		tb_REQ_enq_valid = 1'b0;
+		tb_REQ_enq_is_store = 1'b0;
+		tb_REQ_enq_is_amo = 1'b0;
+		tb_REQ_enq_is_fence = 1'b0;
+		tb_REQ_enq_op = 4'b1010;
+		tb_REQ_enq_is_mq = 1'b0;
+		tb_REQ_enq_misaligned = 1'b0;
+		tb_REQ_enq_misaligned_exception = 1'b0;
+		tb_REQ_enq_VPN = 20'ha5a5a;
+		tb_REQ_enq_PO_word = 10'ha5a;
+		tb_REQ_enq_byte_mask = 4'b1010;
+		tb_REQ_enq_write_data = 32'h5a5a5a5a;
+		tb_REQ_enq_cq_index = 'ha;
+	    // REQ stage enq feedback
+	    // REQ stage deq info
+	    // REQ stage deq feedback
+		tb_REQ_deq_bank0_ack = 1'b0;
+		tb_REQ_deq_bank1_ack = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage enq info
+	    // REQ stage enq feedback
+		expected_REQ_enq_ack = 1'b1;
+	    // REQ stage deq info
+		expected_REQ_deq_bank0_valid = 1'b0;
+		expected_REQ_deq_bank1_valid = 1'b1;
+		expected_REQ_deq_is_store = 1'b1;
+		expected_REQ_deq_is_amo = 1'b1;
+		expected_REQ_deq_is_fence = 1'b1;
+		expected_REQ_deq_op = 4'b1001;
+		expected_REQ_deq_is_mq = 1'b1;
+		expected_REQ_deq_misaligned = 1'b1;
+		expected_REQ_deq_misaligned_exception = 1'b1;
+		expected_REQ_deq_VPN = 20'h96969;
+		expected_REQ_deq_PO_word = 10'h969;
+		expected_REQ_deq_byte_mask = 4'b1001;
+		expected_REQ_deq_write_data = 32'h69696969;
+		expected_REQ_deq_cq_index = 'h9;
+	    // REQ stage deq feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "{i, i, i, i} - failed enq A, deq 9";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage enq info
+		tb_REQ_enq_valid = 1'b0;
+		tb_REQ_enq_is_store = 1'b0;
+		tb_REQ_enq_is_amo = 1'b0;
+		tb_REQ_enq_is_fence = 1'b0;
+		tb_REQ_enq_op = 4'b1010;
+		tb_REQ_enq_is_mq = 1'b0;
+		tb_REQ_enq_misaligned = 1'b0;
+		tb_REQ_enq_misaligned_exception = 1'b0;
+		tb_REQ_enq_VPN = 20'ha5a5a;
+		tb_REQ_enq_PO_word = 10'ha5a;
+		tb_REQ_enq_byte_mask = 4'b1010;
+		tb_REQ_enq_write_data = 32'h5a5a5a5a;
+		tb_REQ_enq_cq_index = 'ha;
+	    // REQ stage enq feedback
+	    // REQ stage deq info
+	    // REQ stage deq feedback
+		tb_REQ_deq_bank0_ack = 1'b0;
+		tb_REQ_deq_bank1_ack = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage enq info
+	    // REQ stage enq feedback
+		expected_REQ_enq_ack = 1'b1;
+	    // REQ stage deq info
+		expected_REQ_deq_bank0_valid = 1'b0;
+		expected_REQ_deq_bank1_valid = 1'b1;
+		expected_REQ_deq_is_store = 1'b1;
+		expected_REQ_deq_is_amo = 1'b1;
+		expected_REQ_deq_is_fence = 1'b1;
+		expected_REQ_deq_op = 4'b1001;
+		expected_REQ_deq_is_mq = 1'b1;
+		expected_REQ_deq_misaligned = 1'b1;
+		expected_REQ_deq_misaligned_exception = 1'b1;
+		expected_REQ_deq_VPN = 20'h96969;
+		expected_REQ_deq_PO_word = 10'h969;
+		expected_REQ_deq_byte_mask = 4'b1001;
+		expected_REQ_deq_write_data = 32'h69696969;
+		expected_REQ_deq_cq_index = 'h9;
+	    // REQ stage deq feedback
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "{i, i, i, i} - failed enq A, failed deq A/6";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // REQ stage enq info
+		tb_REQ_enq_valid = 1'b0;
+		tb_REQ_enq_is_store = 1'b0;
+		tb_REQ_enq_is_amo = 1'b0;
+		tb_REQ_enq_is_fence = 1'b0;
+		tb_REQ_enq_op = 4'b1010;
+		tb_REQ_enq_is_mq = 1'b0;
+		tb_REQ_enq_misaligned = 1'b0;
+		tb_REQ_enq_misaligned_exception = 1'b0;
+		tb_REQ_enq_VPN = 20'ha5a5a;
+		tb_REQ_enq_PO_word = 10'ha5a;
+		tb_REQ_enq_byte_mask = 4'b1010;
+		tb_REQ_enq_write_data = 32'h5a5a5a5a;
+		tb_REQ_enq_cq_index = 'ha;
+	    // REQ stage enq feedback
+	    // REQ stage deq info
+	    // REQ stage deq feedback
+		tb_REQ_deq_bank0_ack = 1'b0;
+		tb_REQ_deq_bank1_ack = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // REQ stage enq info
+	    // REQ stage enq feedback
+		expected_REQ_enq_ack = 1'b1;
+	    // REQ stage deq info
+		expected_REQ_deq_bank0_valid = 1'b0;
+		expected_REQ_deq_bank1_valid = 1'b0;
+		expected_REQ_deq_is_store = 1'b0;
+		expected_REQ_deq_is_amo = 1'b0;
+		expected_REQ_deq_is_fence = 1'b0;
+		expected_REQ_deq_op = 4'b0110;
+		expected_REQ_deq_is_mq = 1'b0;
+		expected_REQ_deq_misaligned = 1'b0;
+		expected_REQ_deq_misaligned_exception = 1'b0;
+		expected_REQ_deq_VPN = 20'h69696;
+		expected_REQ_deq_PO_word = 10'h696;
+		expected_REQ_deq_byte_mask = 4'b0110;
+		expected_REQ_deq_write_data = 32'h96969696;
+		expected_REQ_deq_cq_index = 'h6;
 	    // REQ stage deq feedback
 
 		check_outputs();
