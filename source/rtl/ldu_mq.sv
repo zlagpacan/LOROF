@@ -12,7 +12,7 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 module ldu_mq #(
-    parameter LDU_MQ_ENTRIES = 40,
+    parameter LDU_MQ_ENTRIES = 4,
     parameter LOG_LDU_MQ_ENTRIES = $clog2(LDU_MQ_ENTRIES)
 ) (
     // seq
