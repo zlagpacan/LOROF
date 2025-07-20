@@ -62,7 +62,7 @@ module ldu_mq #(
     input logic [LOG_LDU_CQ_ENTRIES-1:0]    ldu_mq_info_ret_bank0_cq_index,
     input logic [LOG_LDU_MQ_ENTRIES-1:0]    ldu_mq_info_ret_bank0_mq_index,
     input logic [LOG_ROB_ENTRIES-1:0]       ldu_mq_info_ret_bank0_ROB_index,
-    input logic                             ldu_mq_info_ret_bank0_WB_sent,
+    input logic                             ldu_mq_info_ret_bank0_WB_sent, // unused
     input logic                             ldu_mq_info_ret_bank0_dtlb_hit,
     input logic                             ldu_mq_info_ret_bank0_page_fault,
     input logic                             ldu_mq_info_ret_bank0_access_fault,
@@ -77,7 +77,7 @@ module ldu_mq #(
     input logic [LOG_LDU_CQ_ENTRIES-1:0]    ldu_mq_info_ret_bank1_cq_index,
     input logic [LOG_LDU_MQ_ENTRIES-1:0]    ldu_mq_info_ret_bank1_mq_index,
     input logic [LOG_ROB_ENTRIES-1:0]       ldu_mq_info_ret_bank1_ROB_index,
-    input logic                             ldu_mq_info_ret_bank1_WB_sent,
+    input logic                             ldu_mq_info_ret_bank1_WB_sent, // unused
     input logic                             ldu_mq_info_ret_bank1_dtlb_hit,
     input logic                             ldu_mq_info_ret_bank1_page_fault,
     input logic                             ldu_mq_info_ret_bank1_access_fault,
@@ -108,7 +108,7 @@ module ldu_mq #(
     // stamofu CAM return
     input logic                                 stamofu_CAM_return_bank0_valid,
     input logic                                 stamofu_CAM_return_bank0_is_mq,
-    input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_bank0_cq_index, // ldu_cq index
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_bank0_cq_index, // ldu_cq index, unused
     input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_return_bank0_mq_index, // ldu_mq index
     input logic [MDPT_INFO_WIDTH-1:0]           stamofu_CAM_return_bank0_updated_mdp_info,
     input logic                                 stamofu_CAM_return_bank0_stall,
@@ -120,7 +120,7 @@ module ldu_mq #(
     
     input logic                                 stamofu_CAM_return_bank1_valid,
     input logic                                 stamofu_CAM_return_bank1_is_mq,
-    input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_bank1_cq_index, // ldu_cq index
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_bank1_cq_index, // ldu_cq index, unused
     input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_return_bank1_mq_index, // ldu_mq index
     input logic [MDPT_INFO_WIDTH-1:0]           stamofu_CAM_return_bank1_updated_mdp_info,
     input logic                                 stamofu_CAM_return_bank1_stall,
@@ -138,9 +138,9 @@ module ldu_mq #(
     input logic [31:0]                          ldu_CAM_launch_write_data,
     input logic [MDPT_INFO_WIDTH-1:0]           ldu_CAM_launch_mdp_info,
     input logic [LOG_ROB_ENTRIES-1:0]           ldu_CAM_launch_ROB_index,
-    input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    ldu_CAM_launch_cq_index, // stamofu_cq index
-    input logic                                 ldu_CAM_launch_is_mq,
-    input logic [LOG_STAMOFU_MQ_ENTRIES-1:0]    ldu_CAM_launch_mq_index, // stamofu_mq index
+    input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    ldu_CAM_launch_cq_index, // stamofu_cq index, unused
+    input logic                                 ldu_CAM_launch_is_mq, // unused
+    input logic [LOG_STAMOFU_MQ_ENTRIES-1:0]    ldu_CAM_launch_mq_index, // stamofu_mq index, unused
 
     // ldu CAM return
     output logic                                ldu_CAM_return_forward, // other info comes from ldu_cq
@@ -227,6 +227,9 @@ module ldu_mq #(
 
     logic [LOG_LDU_MQ_ENTRIES-1:0] enq_ptr, enq_ptr_plus_1;
     logic [LOG_LDU_MQ_ENTRIES-1:0] deq_ptr, deq_ptr_plus_1;
+
+    logic enq_perform;
+    logic deq_perform;
     
     logic [LDU_MQ_ENTRIES-1:0] ldu_mq_info_ret_bank0_valid_by_entry;
     logic [LDU_MQ_ENTRIES-1:0] ldu_mq_info_ret_bank1_valid_by_entry;
@@ -318,7 +321,7 @@ module ldu_mq #(
             second_try_mq_index <= 0;
         end
         else begin
-            second_try_valid <= |second_try_unmasked_req_by_entry;
+            second_try_valid <= |second_try_req_by_entry;
             second_try_mq_index <= second_try_req_ack_index_by_entry;
         end
     end
@@ -326,7 +329,11 @@ module ldu_mq #(
         second_try_bank0_valid = second_try_valid & (entry_array[second_try_mq_index].bank == 1'b0);
         second_try_bank1_valid = second_try_valid & (entry_array[second_try_mq_index].bank == 1'b1);
 
-        second_try_do_mispred = entry_array[second_try_mq_index].WB_sent;
+        second_try_do_mispred = 1'b0; 
+            // mispred will be handled on eventual data_try_do_mispred anyway since 
+                // data try guaranteed for misaligned
+            // don't care to do mispred here since
+                // cq entry may not have sent in first place so may not be mispred 
         second_try_is_mq = 1'b1;
         second_try_misaligned = 1'b1;
         second_try_page_fault = entry_array[second_try_mq_index].page_fault;
@@ -678,6 +685,15 @@ module ldu_mq #(
                 end
             end
 
+            // ROB commit (indep)
+                // check within commit mask
+            if (
+                rob_commit_upper_index == entry_array[i].ROB_index[LOG_ROB_ENTRIES-1:2]
+                & |(rob_commit_lower_index_valid_mask & entry_array[i].lower_ROB_index_one_hot)
+            ) begin
+                next_entry_array[i].committed = 1'b1;
+            end
+
             // ROB kill (indep)
                 // check younger than kill index
             if (
@@ -691,7 +707,7 @@ module ldu_mq #(
             if (second_try_req_ack_one_hot_by_entry[i] & ~second_try_req_not_accepted) begin
                 next_entry_array[i].second_try_req = 1'b0;
             end
-            if (data_try_req_ack_one_hot_by_entry[i] & ~data_try_req_not_accepted) begin
+            if (data_try_req_ack_one_hot_by_entry[i]) begin
                 next_entry_array[i].data_try_req = 1'b0;
                 next_entry_array[i].data_try_waiting = 1'b1;
             end
@@ -786,6 +802,14 @@ module ldu_mq #(
         end
     end
 
+    // misaligned queue info grab
+    always_comb begin
+        ldu_mq_info_grab_data_try_req = 
+            entry_array[ldu_mq_info_grab_mq_index].data_try_req 
+            | entry_array[ldu_mq_info_grab_mq_index].data_try_waiting;
+        ldu_mq_info_grab_data = entry_array[ldu_mq_info_grab_mq_index].data;
+    end
+
     // store set CAM update
         // can only perform for single CAM forward -> simply choose lowest
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -804,13 +828,13 @@ module ldu_mq #(
     end
     pe_lsb # (
         .WIDTH(LDU_MQ_ENTRIES), .USE_ONE_HOT(0), .USE_INDEX(1)
-    ) SSU_CAM_MASKED_PE (
+    ) SSU_CAM_PE (
         .req_vec(ssu_CAM_update_valid_by_entry),
         .ack_index(ssu_CAM_update_index)
     );
     always_comb begin
 
-        // may needd to latch these:
+        // may need to latch these:
 
         ssu_CAM_update_valid = |ssu_CAM_update_valid_by_entry;
 
