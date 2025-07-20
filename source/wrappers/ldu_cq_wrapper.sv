@@ -13,7 +13,7 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter LDU_CQ_ENTRIES = core_types_pkg::LDU_CQ_ENTRIES;
+parameter LDU_CQ_ENTRIES = 40;
 parameter LOG_LDU_CQ_ENTRIES = $clog2(LDU_CQ_ENTRIES);
 
 module ldu_cq_wrapper (
@@ -29,6 +29,10 @@ module ldu_cq_wrapper (
 	input logic [MDPT_INFO_WIDTH-1:0] next_ldu_cq_enq_mdp_info,
 	input logic [LOG_PR_COUNT-1:0] next_ldu_cq_enq_dest_PR,
 	input logic [LOG_ROB_ENTRIES-1:0] next_ldu_cq_enq_ROB_index,
+
+    // central queue enqueue feedback
+	output logic last_ldu_cq_enq_ready,
+	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_ldu_cq_enq_index,
 
     // second try
 	output logic last_second_try_bank0_valid,
@@ -116,11 +120,12 @@ module ldu_cq_wrapper (
 
     // misaligned queue info ret
         // need in order to tie cq entry to mq if misaligned
-        // use cq_index ^
 	input logic next_ldu_mq_info_ret_bank0_valid,
+	input logic [LOG_LDU_CQ_ENTRIES-1:0] next_ldu_mq_info_ret_bank0_cq_index,
 	input logic [LOG_LDU_MQ_ENTRIES-1:0] next_ldu_mq_info_ret_bank0_mq_index,
 
 	input logic next_ldu_mq_info_ret_bank1_valid,
+	input logic [LOG_LDU_CQ_ENTRIES-1:0] next_ldu_mq_info_ret_bank1_cq_index,
 	input logic [LOG_LDU_MQ_ENTRIES-1:0] next_ldu_mq_info_ret_bank1_mq_index,
 
     // dtlb miss resp
@@ -142,6 +147,9 @@ module ldu_cq_wrapper (
 
     // stamofu CAM return
 	input logic next_stamofu_CAM_return_bank0_valid,
+	input logic next_stamofu_CAM_return_bank0_is_mq,
+	input logic [LOG_LDU_CQ_ENTRIES-1:0] next_stamofu_CAM_return_bank0_cq_index,
+	input logic [LOG_LDU_MQ_ENTRIES-1:0] next_stamofu_CAM_return_bank0_mq_index,
 	input logic [MDPT_INFO_WIDTH-1:0] next_stamofu_CAM_return_bank0_updated_mdp_info,
 	input logic next_stamofu_CAM_return_bank0_stall,
 	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_CAM_return_bank0_stall_count,
@@ -149,11 +157,11 @@ module ldu_cq_wrapper (
 	input logic next_stamofu_CAM_return_bank0_nasty_forward,
 	input logic next_stamofu_CAM_return_bank0_forward_ROB_index,
 	input logic [31:0] next_stamofu_CAM_return_bank0_forward_data,
-	input logic [LOG_LDU_CQ_ENTRIES-1:0] next_stamofu_CAM_return_bank0_cq_index,
-	input logic next_stamofu_CAM_return_bank0_is_mq,
-	input logic [LOG_LDU_MQ_ENTRIES-1:0] next_stamofu_CAM_return_bank0_mq_index,
 
 	input logic next_stamofu_CAM_return_bank1_valid,
+	input logic next_stamofu_CAM_return_bank1_is_mq,
+	input logic [LOG_LDU_CQ_ENTRIES-1:0] next_stamofu_CAM_return_bank1_cq_index,
+	input logic [LOG_LDU_MQ_ENTRIES-1:0] next_stamofu_CAM_return_bank1_mq_index,
 	input logic [MDPT_INFO_WIDTH-1:0] next_stamofu_CAM_return_bank1_updated_mdp_info,
 	input logic next_stamofu_CAM_return_bank1_stall,
 	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_CAM_return_bank1_stall_count,
@@ -161,9 +169,6 @@ module ldu_cq_wrapper (
 	input logic next_stamofu_CAM_return_bank1_nasty_forward,
 	input logic next_stamofu_CAM_return_bank1_forward_ROB_index,
 	input logic [31:0] next_stamofu_CAM_return_bank1_forward_data,
-	input logic [LOG_LDU_CQ_ENTRIES-1:0] next_stamofu_CAM_return_bank1_cq_index,
-	input logic next_stamofu_CAM_return_bank1_is_mq,
-	input logic [LOG_LDU_MQ_ENTRIES-1:0] next_stamofu_CAM_return_bank1_mq_index,
 
     // ldu CAM launch
 	input logic next_ldu_CAM_launch_valid,
@@ -232,6 +237,10 @@ module ldu_cq_wrapper (
 	logic [MDPT_INFO_WIDTH-1:0] ldu_cq_enq_mdp_info;
 	logic [LOG_PR_COUNT-1:0] ldu_cq_enq_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] ldu_cq_enq_ROB_index;
+
+    // central queue enqueue feedback
+	logic ldu_cq_enq_ready;
+	logic [LOG_LDU_CQ_ENTRIES-1:0] ldu_cq_enq_index;
 
     // second try
 	logic second_try_bank0_valid;
@@ -319,11 +328,12 @@ module ldu_cq_wrapper (
 
     // misaligned queue info ret
         // need in order to tie cq entry to mq if misaligned
-        // use cq_index ^
 	logic ldu_mq_info_ret_bank0_valid;
+	logic [LOG_LDU_CQ_ENTRIES-1:0] ldu_mq_info_ret_bank0_cq_index;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] ldu_mq_info_ret_bank0_mq_index;
 
 	logic ldu_mq_info_ret_bank1_valid;
+	logic [LOG_LDU_CQ_ENTRIES-1:0] ldu_mq_info_ret_bank1_cq_index;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] ldu_mq_info_ret_bank1_mq_index;
 
     // dtlb miss resp
@@ -345,6 +355,9 @@ module ldu_cq_wrapper (
 
     // stamofu CAM return
 	logic stamofu_CAM_return_bank0_valid;
+	logic stamofu_CAM_return_bank0_is_mq;
+	logic [LOG_LDU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank0_cq_index;
+	logic [LOG_LDU_MQ_ENTRIES-1:0] stamofu_CAM_return_bank0_mq_index;
 	logic [MDPT_INFO_WIDTH-1:0] stamofu_CAM_return_bank0_updated_mdp_info;
 	logic stamofu_CAM_return_bank0_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank0_stall_count;
@@ -352,11 +365,11 @@ module ldu_cq_wrapper (
 	logic stamofu_CAM_return_bank0_nasty_forward;
 	logic stamofu_CAM_return_bank0_forward_ROB_index;
 	logic [31:0] stamofu_CAM_return_bank0_forward_data;
-	logic [LOG_LDU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank0_cq_index;
-	logic stamofu_CAM_return_bank0_is_mq;
-	logic [LOG_LDU_MQ_ENTRIES-1:0] stamofu_CAM_return_bank0_mq_index;
 
 	logic stamofu_CAM_return_bank1_valid;
+	logic stamofu_CAM_return_bank1_is_mq;
+	logic [LOG_LDU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank1_cq_index;
+	logic [LOG_LDU_MQ_ENTRIES-1:0] stamofu_CAM_return_bank1_mq_index;
 	logic [MDPT_INFO_WIDTH-1:0] stamofu_CAM_return_bank1_updated_mdp_info;
 	logic stamofu_CAM_return_bank1_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank1_stall_count;
@@ -364,9 +377,6 @@ module ldu_cq_wrapper (
 	logic stamofu_CAM_return_bank1_nasty_forward;
 	logic stamofu_CAM_return_bank1_forward_ROB_index;
 	logic [31:0] stamofu_CAM_return_bank1_forward_data;
-	logic [LOG_LDU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank1_cq_index;
-	logic stamofu_CAM_return_bank1_is_mq;
-	logic [LOG_LDU_MQ_ENTRIES-1:0] stamofu_CAM_return_bank1_mq_index;
 
     // ldu CAM launch
 	logic ldu_CAM_launch_valid;
@@ -445,6 +455,10 @@ module ldu_cq_wrapper (
 			ldu_cq_enq_mdp_info <= '0;
 			ldu_cq_enq_dest_PR <= '0;
 			ldu_cq_enq_ROB_index <= '0;
+
+		    // central queue enqueue feedback
+			last_ldu_cq_enq_ready <= '0;
+			last_ldu_cq_enq_index <= '0;
 
 		    // second try
 			last_second_try_bank0_valid <= '0;
@@ -532,11 +546,12 @@ module ldu_cq_wrapper (
 
 		    // misaligned queue info ret
 		        // need in order to tie cq entry to mq if misaligned
-		        // use cq_index ^
 			ldu_mq_info_ret_bank0_valid <= '0;
+			ldu_mq_info_ret_bank0_cq_index <= '0;
 			ldu_mq_info_ret_bank0_mq_index <= '0;
 
 			ldu_mq_info_ret_bank1_valid <= '0;
+			ldu_mq_info_ret_bank1_cq_index <= '0;
 			ldu_mq_info_ret_bank1_mq_index <= '0;
 
 		    // dtlb miss resp
@@ -558,6 +573,9 @@ module ldu_cq_wrapper (
 
 		    // stamofu CAM return
 			stamofu_CAM_return_bank0_valid <= '0;
+			stamofu_CAM_return_bank0_is_mq <= '0;
+			stamofu_CAM_return_bank0_cq_index <= '0;
+			stamofu_CAM_return_bank0_mq_index <= '0;
 			stamofu_CAM_return_bank0_updated_mdp_info <= '0;
 			stamofu_CAM_return_bank0_stall <= '0;
 			stamofu_CAM_return_bank0_stall_count <= '0;
@@ -565,11 +583,11 @@ module ldu_cq_wrapper (
 			stamofu_CAM_return_bank0_nasty_forward <= '0;
 			stamofu_CAM_return_bank0_forward_ROB_index <= '0;
 			stamofu_CAM_return_bank0_forward_data <= '0;
-			stamofu_CAM_return_bank0_cq_index <= '0;
-			stamofu_CAM_return_bank0_is_mq <= '0;
-			stamofu_CAM_return_bank0_mq_index <= '0;
 
 			stamofu_CAM_return_bank1_valid <= '0;
+			stamofu_CAM_return_bank1_is_mq <= '0;
+			stamofu_CAM_return_bank1_cq_index <= '0;
+			stamofu_CAM_return_bank1_mq_index <= '0;
 			stamofu_CAM_return_bank1_updated_mdp_info <= '0;
 			stamofu_CAM_return_bank1_stall <= '0;
 			stamofu_CAM_return_bank1_stall_count <= '0;
@@ -577,9 +595,6 @@ module ldu_cq_wrapper (
 			stamofu_CAM_return_bank1_nasty_forward <= '0;
 			stamofu_CAM_return_bank1_forward_ROB_index <= '0;
 			stamofu_CAM_return_bank1_forward_data <= '0;
-			stamofu_CAM_return_bank1_cq_index <= '0;
-			stamofu_CAM_return_bank1_is_mq <= '0;
-			stamofu_CAM_return_bank1_mq_index <= '0;
 
 		    // ldu CAM launch
 			ldu_CAM_launch_valid <= '0;
@@ -646,6 +661,10 @@ module ldu_cq_wrapper (
 			ldu_cq_enq_mdp_info <= next_ldu_cq_enq_mdp_info;
 			ldu_cq_enq_dest_PR <= next_ldu_cq_enq_dest_PR;
 			ldu_cq_enq_ROB_index <= next_ldu_cq_enq_ROB_index;
+
+		    // central queue enqueue feedback
+			last_ldu_cq_enq_ready <= ldu_cq_enq_ready;
+			last_ldu_cq_enq_index <= ldu_cq_enq_index;
 
 		    // second try
 			last_second_try_bank0_valid <= second_try_bank0_valid;
@@ -733,11 +752,12 @@ module ldu_cq_wrapper (
 
 		    // misaligned queue info ret
 		        // need in order to tie cq entry to mq if misaligned
-		        // use cq_index ^
 			ldu_mq_info_ret_bank0_valid <= next_ldu_mq_info_ret_bank0_valid;
+			ldu_mq_info_ret_bank0_cq_index <= next_ldu_mq_info_ret_bank0_cq_index;
 			ldu_mq_info_ret_bank0_mq_index <= next_ldu_mq_info_ret_bank0_mq_index;
 
 			ldu_mq_info_ret_bank1_valid <= next_ldu_mq_info_ret_bank1_valid;
+			ldu_mq_info_ret_bank1_cq_index <= next_ldu_mq_info_ret_bank1_cq_index;
 			ldu_mq_info_ret_bank1_mq_index <= next_ldu_mq_info_ret_bank1_mq_index;
 
 		    // dtlb miss resp
@@ -759,6 +779,9 @@ module ldu_cq_wrapper (
 
 		    // stamofu CAM return
 			stamofu_CAM_return_bank0_valid <= next_stamofu_CAM_return_bank0_valid;
+			stamofu_CAM_return_bank0_is_mq <= next_stamofu_CAM_return_bank0_is_mq;
+			stamofu_CAM_return_bank0_cq_index <= next_stamofu_CAM_return_bank0_cq_index;
+			stamofu_CAM_return_bank0_mq_index <= next_stamofu_CAM_return_bank0_mq_index;
 			stamofu_CAM_return_bank0_updated_mdp_info <= next_stamofu_CAM_return_bank0_updated_mdp_info;
 			stamofu_CAM_return_bank0_stall <= next_stamofu_CAM_return_bank0_stall;
 			stamofu_CAM_return_bank0_stall_count <= next_stamofu_CAM_return_bank0_stall_count;
@@ -766,11 +789,11 @@ module ldu_cq_wrapper (
 			stamofu_CAM_return_bank0_nasty_forward <= next_stamofu_CAM_return_bank0_nasty_forward;
 			stamofu_CAM_return_bank0_forward_ROB_index <= next_stamofu_CAM_return_bank0_forward_ROB_index;
 			stamofu_CAM_return_bank0_forward_data <= next_stamofu_CAM_return_bank0_forward_data;
-			stamofu_CAM_return_bank0_cq_index <= next_stamofu_CAM_return_bank0_cq_index;
-			stamofu_CAM_return_bank0_is_mq <= next_stamofu_CAM_return_bank0_is_mq;
-			stamofu_CAM_return_bank0_mq_index <= next_stamofu_CAM_return_bank0_mq_index;
 
 			stamofu_CAM_return_bank1_valid <= next_stamofu_CAM_return_bank1_valid;
+			stamofu_CAM_return_bank1_is_mq <= next_stamofu_CAM_return_bank1_is_mq;
+			stamofu_CAM_return_bank1_cq_index <= next_stamofu_CAM_return_bank1_cq_index;
+			stamofu_CAM_return_bank1_mq_index <= next_stamofu_CAM_return_bank1_mq_index;
 			stamofu_CAM_return_bank1_updated_mdp_info <= next_stamofu_CAM_return_bank1_updated_mdp_info;
 			stamofu_CAM_return_bank1_stall <= next_stamofu_CAM_return_bank1_stall;
 			stamofu_CAM_return_bank1_stall_count <= next_stamofu_CAM_return_bank1_stall_count;
@@ -778,9 +801,6 @@ module ldu_cq_wrapper (
 			stamofu_CAM_return_bank1_nasty_forward <= next_stamofu_CAM_return_bank1_nasty_forward;
 			stamofu_CAM_return_bank1_forward_ROB_index <= next_stamofu_CAM_return_bank1_forward_ROB_index;
 			stamofu_CAM_return_bank1_forward_data <= next_stamofu_CAM_return_bank1_forward_data;
-			stamofu_CAM_return_bank1_cq_index <= next_stamofu_CAM_return_bank1_cq_index;
-			stamofu_CAM_return_bank1_is_mq <= next_stamofu_CAM_return_bank1_is_mq;
-			stamofu_CAM_return_bank1_mq_index <= next_stamofu_CAM_return_bank1_mq_index;
 
 		    // ldu CAM launch
 			ldu_CAM_launch_valid <= next_ldu_CAM_launch_valid;
