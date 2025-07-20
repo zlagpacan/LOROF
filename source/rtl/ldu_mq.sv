@@ -687,7 +687,251 @@ module ldu_mq #(
                 next_entry_array[i].killed = 1'b1;
             end
 
+            // req ack's (indep)
+            if (second_try_req_ack_one_hot_by_entry[i] & ~second_try_req_not_accepted) begin
+                next_entry_array[i].second_try_req = 1'b0;
+            end
+            if (data_try_req_ack_one_hot_by_entry[i] & ~data_try_req_not_accepted) begin
+                next_entry_array[i].data_try_req = 1'b0;
+                next_entry_array[i].data_try_waiting = 1'b1;
+            end
+            if (ldu_mq_info_grab_data_try_ack_by_entry[i]) begin
+                next_entry_array[i].data_try_waiting = 1'b0;
+                next_entry_array[i].data_try_sent = 1'b1;
+            end
+        end
+    end
+
+    // ldu CAM
+    always_comb begin
+        ldu_CAM_launch_forward_by_entry = '0;
+        ldu_CAM_launch_nasty_forward_by_entry = '0;
+        stalling_count_subtract_by_entry = '0;
+
+        for (int i = 0; i < LDU_MQ_ENTRIES; i++) begin
+
+            // forward if youngest older AND superset AND not amo
+            if (
+                ldu_CAM_launch_valid
+                & entry_array[i].dtlb_hit
+                & entry_array[i].stamofu_CAM_returned
+                    // might as well get full stamofu CAM info. only forward here if after already got CAM info
+                & ldu_CAM_launch_PA_word == entry_array[i].PA_word
+                & ~ldu_CAM_launch_is_amo
+                // superset
+                    // entry byte -> CAM byte
+                & &{~entry_array[i].byte_mask | ldu_CAM_launch_byte_mask}
+                // older than this
+                & (ldu_CAM_launch_ROB_index - rob_kill_abs_head_index 
+                    < rel_ROB_index_by_entry[i])
+                // no curr OR younger than curr
+                & (
+                    (~entry_array[i].forward & ~entry_array[i].nasty_forward)
+                    | (ldu_CAM_launch_ROB_index - rob_kill_abs_head_index
+                        > entry_array[i].forward_ROB_index - rob_kill_abs_head_index)
+                )
+            ) begin
+                ldu_CAM_launch_forward_by_entry[i] = 1'b1;
+            end
+
+            // nasty forward if youngest older AND (not superset OR amo)
+            if (
+                ldu_CAM_launch_valid
+                & entry_array[i].dtlb_hit
+                & entry_array[i].stamofu_CAM_returned
+                    // might as well get full stamofu CAM info. only forward here if after already got CAM info
+                & ldu_CAM_launch_PA_word == entry_array[i].PA_word
+                & (
+                    ldu_CAM_launch_is_amo
+                    | ~&{~entry_array[i].byte_mask | ldu_CAM_launch_byte_mask}
+                        // strict subset
+                            // any valid entry byte has invalid CAM byte
+                )
+                // older than this
+                & (ldu_CAM_launch_ROB_index - rob_kill_abs_head_index 
+                    < rel_ROB_index_by_entry[i])
+                // no curr OR younger than curr
+                & (
+                    (~entry_array[i].forward & ~entry_array[i].nasty_forward)
+                    | (ldu_CAM_launch_ROB_index - rob_kill_abs_head_index
+                        > entry_array[i].forward_ROB_index - rob_kill_abs_head_index)
+                )
+            ) begin
+                ldu_CAM_launch_nasty_forward_by_entry[i] = 1'b1;
+            end
+
+            // stall count subtract if older AND mdp info match AND mdp present for CAM AND mdp present for entry
+            if (
+                ldu_CAM_launch_valid
+                & entry_array[i].dtlb_hit
+                & entry_array[i].stamofu_CAM_returned
+                    // ignore any ldu CAMs which would be double counted by incoming stamofu CAM
+                & |ldu_CAM_launch_mdp_info[7:6]
+                & |entry_array[i].mdp_info[7:6]
+                & ldu_CAM_launch_mdp_info[5:0] == entry_array[i].mdp_info[5:0]
+                // older than this
+                & (ldu_CAM_launch_ROB_index - rob_kill_abs_head_index 
+                    < rel_ROB_index_by_entry[i])
+            ) begin
+                stalling_count_subtract_by_entry[i] = 1'b1;
+            end
+        end
+    end
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            ldu_CAM_return_forward <= 1'b0;
+        end
+        else begin
+            ldu_CAM_return_forward <= |ldu_CAM_launch_forward_by_entry | |ldu_CAM_launch_nasty_forward_by_entry;
+        end
+    end
+
+    // store set CAM update
+        // can only perform for single CAM forward -> simply choose lowest
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            ssu_CAM_update_valid_by_entry <= '0;
+
+            ssu_CAM_update_stamo_mdp_info <= '0;
+            ssu_CAM_update_stamo_ROB_index <= '0;
+        end
+        else begin
+            ssu_CAM_update_valid_by_entry <= ldu_CAM_launch_forward_by_entry | ldu_CAM_launch_nasty_forward_by_entry;
             
+            ssu_CAM_update_stamo_mdp_info <= ldu_CAM_launch_mdp_info;
+            ssu_CAM_update_stamo_ROB_index <= ldu_CAM_launch_ROB_index;
+        end
+    end
+    pe_lsb # (
+        .WIDTH(LDU_MQ_ENTRIES), .USE_ONE_HOT(0), .USE_INDEX(1)
+    ) SSU_CAM_MASKED_PE (
+        .req_vec(ssu_CAM_update_valid_by_entry),
+        .ack_index(ssu_CAM_update_index)
+    );
+    always_comb begin
+
+        // may needd to latch these:
+
+        ssu_CAM_update_valid = |ssu_CAM_update_valid_by_entry;
+
+        ssu_CAM_update_ld_mdp_info = entry_array[ssu_CAM_update_index].mdp_info;
+        ssu_CAM_update_ld_ROB_index = entry_array[ssu_CAM_update_index].ROB_index;
+    end
+
+    // enq
+    assign enq_perform = ~entry_array[enq_ptr].valid & ldu_mq_enq_valid;
+
+    // enq feedback
+    always_comb begin
+        ldu_mq_enq_ready = ~entry_array[enq_ptr].valid;
+        ldu_mq_enq_index = enq_ptr;
+    end
+
+    // deq
+    assign deq_perform = entry_array[deq_ptr].valid & entry_array[deq_ptr].committed;
+
+    // perform store set commit update on deq
+        // update already occurred if there was a forward
+        // essentially, only do decrement update
+    always_comb begin
+        ssu_commit_update_valid = 
+            deq_perform 
+            & ~(
+                entry_array[deq_ptr].forward
+                | entry_array[deq_ptr].previous_nasty_forward);
+        ssu_commit_update_mdp_info = entry_array[deq_ptr].mdp_info;
+        ssu_commit_update_ROB_index = entry_array[deq_ptr].ROB_index;
+    end
+
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            entry_array <= '0;
+
+            enq_ptr <= 0;
+            deq_ptr <= 0;
+        end
+        else begin
+            entry_array <= next_entry_array;
+
+            //////////
+            // enq: //
+            //////////
+            if (enq_perform) begin
+                entry_array[enq_ptr].valid <= 1'b1;
+                entry_array[enq_ptr].killed <= 1'b0;
+                entry_array[enq_ptr].dtlb_hit <= 1'b0;
+                entry_array[enq_ptr].stamofu_CAM_returned <= 1'b0;
+                entry_array[enq_ptr].dcache_hit <= 1'b0;
+                entry_array[enq_ptr].aq_blocking <= 1'b0;
+                entry_array[enq_ptr].older_stamofu_active <= 1'b0;
+                entry_array[enq_ptr].stalling <= 1'b0;
+                // entry_array[enq_ptr].stalling_count <= 
+                entry_array[enq_ptr].forward <= 1'b0;
+                entry_array[enq_ptr].nasty_forward <= 1'b0;
+                entry_array[enq_ptr].previous_nasty_forward <= 1'b0;
+                // entry_array[enq_ptr].forward_ROB_index <= 
+                entry_array[enq_ptr].mdp_present <= 1'b0;
+                entry_array[enq_ptr].committed <= 1'b0;
+                entry_array[enq_ptr].second_try_req <= 1'b0;
+                entry_array[enq_ptr].unblock_data_try_req <= 1'b0;
+                entry_array[enq_ptr].new_data_try_req <= 1'b0;
+                entry_array[enq_ptr].data_try_req <= 1'b0;
+                entry_array[enq_ptr].data_try_waiting <= 1'b0;
+                entry_array[enq_ptr].data_try_sent <= 1'b0;
+                entry_array[enq_ptr].page_fault <= 1'b0;
+                entry_array[enq_ptr].access_fault <= 1'b0;
+                entry_array[enq_ptr].is_mem <= 1'b0;
+                // entry_array[enq_ptr].mdp_info <= 
+                // entry_array[enq_ptr].ROB_index <= 
+                // entry_array[enq_ptr].lower_ROB_index_one_hot <= 
+                // entry_array[enq_ptr].PA_word <= 
+                // entry_array[enq_ptr].byte_mask <= 
+                // entry_array[enq_ptr].bank <= 
+                // entry_array[enq_ptr].data <= 
+                // entry_array[enq_ptr].cq_index <= 
+
+                enq_ptr <= enq_ptr_plus_1;
+            end
+
+            //////////
+            // deq: //
+            //////////
+            if (deq_perform) begin
+                entry_array[deq_ptr].valid <= 1'b0;
+                entry_array[deq_ptr].killed <= 1'b0;
+                entry_array[deq_ptr].dtlb_hit <= 1'b0;
+                entry_array[deq_ptr].stamofu_CAM_returned <= 1'b0;
+                entry_array[deq_ptr].dcache_hit <= 1'b0;
+                entry_array[deq_ptr].aq_blocking <= 1'b0;
+                entry_array[deq_ptr].older_stamofu_active <= 1'b0;
+                entry_array[deq_ptr].stalling <= 1'b0;
+                // entry_array[deq_ptr].stalling_count <= 
+                entry_array[deq_ptr].forward <= 1'b0;
+                entry_array[deq_ptr].nasty_forward <= 1'b0;
+                entry_array[deq_ptr].previous_nasty_forward <= 1'b0;
+                // entry_array[deq_ptr].forward_ROB_index <= 
+                entry_array[deq_ptr].mdp_present <= 1'b0;
+                entry_array[deq_ptr].committed <= 1'b0;
+                entry_array[deq_ptr].second_try_req <= 1'b0;
+                entry_array[deq_ptr].unblock_data_try_req <= 1'b0;
+                entry_array[deq_ptr].new_data_try_req <= 1'b0;
+                entry_array[deq_ptr].data_try_req <= 1'b0;
+                entry_array[deq_ptr].data_try_waiting <= 1'b0;
+                entry_array[deq_ptr].data_try_sent <= 1'b0;
+                entry_array[deq_ptr].page_fault <= 1'b0;
+                entry_array[deq_ptr].access_fault <= 1'b0;
+                entry_array[deq_ptr].is_mem <= 1'b0;
+                // entry_array[deq_ptr].mdp_info <= 
+                // entry_array[deq_ptr].ROB_index <= 
+                // entry_array[deq_ptr].lower_ROB_index_one_hot <= 
+                // entry_array[deq_ptr].PA_word <= 
+                // entry_array[deq_ptr].byte_mask <= 
+                // entry_array[deq_ptr].bank <= 
+                // entry_array[deq_ptr].data <= 
+                // entry_array[deq_ptr].cq_index <= 
+
+                deq_ptr <= deq_ptr_plus_1;
+            end
         end
     end
 

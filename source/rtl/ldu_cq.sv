@@ -27,6 +27,10 @@ module ldu_cq #(
     input logic [LOG_PR_COUNT-1:0]      ldu_cq_enq_dest_PR,
     input logic [LOG_ROB_ENTRIES-1:0]   ldu_cq_enq_ROB_index,
     
+    // central queue enqueue feedback
+    output logic                            ldu_cq_enq_ready,
+    output logic [LOG_LDU_CQ_ENTRIES-1:0]   ldu_cq_enq_index,
+    
     // second try
     output logic                            second_try_bank0_valid,
     output logic                            second_try_bank1_valid,
@@ -1159,6 +1163,12 @@ module ldu_cq #(
     // enq
     assign enq_perform = ~entry_array[enq_ptr].valid & ldu_cq_enq_valid;
 
+    // enq feedback
+    always_comb begin
+        ldu_cq_enq_ready = ~entry_array[enq_ptr].valid;
+        ldu_cq_enq_index = enq_ptr;
+    end
+
     // deq
     assign deq_perform = entry_array[deq_ptr].valid & entry_array[deq_ptr].committed;
 
@@ -1261,43 +1271,43 @@ module ldu_cq #(
             // deq: //
             //////////
             if (deq_perform) begin
-                entry_array[enq_ptr].valid <= 1'b0;
-                // entry_array[enq_ptr].misaligned
-                // entry_array[enq_ptr].mq_index
-                entry_array[enq_ptr].killed <= 1'b0;
-                entry_array[enq_ptr].dtlb_hit <= 1'b0;
-                entry_array[enq_ptr].stamofu_CAM_returned <= 1'b0;
-                entry_array[enq_ptr].dcache_hit <= 1'b0;
-                entry_array[enq_ptr].aq_blocking <= 1'b0;
-                entry_array[enq_ptr].older_stamofu_active <= 1'b0;
-                entry_array[enq_ptr].stalling <= 1'b0;
-                // entry_array[enq_ptr].stalling_count
-                entry_array[enq_ptr].forward <= 1'b0;
-                entry_array[enq_ptr].nasty_forward <= 1'b0;
-                entry_array[enq_ptr].previous_nasty_forward <= 1'b0;
-                // entry_array[enq_ptr].forward_ROB_index
-                entry_array[enq_ptr].mdp_present <= 1'b0;
-                entry_array[enq_ptr].WB_sent <= 1'b0;
-                entry_array[enq_ptr].complete <= 1'b0;
-                entry_array[enq_ptr].committed <= 1'b0;
-                entry_array[enq_ptr].second_try_req <= 1'b0;
-                entry_array[enq_ptr].unblock_data_try_req <= 1'b0;
-                entry_array[enq_ptr].new_data_try_req <= 1'b0;
-                entry_array[enq_ptr].data_try_req <= 1'b0;
-                entry_array[enq_ptr].data_try_just_sent <= 1'b0;
-                entry_array[enq_ptr].complete_req <= 1'b0;
-                // entry_array[enq_ptr].page_fault
-                // entry_array[enq_ptr].access_fault
-                // entry_array[enq_ptr].is_mem
-                // entry_array[enq_ptr].op
-                // entry_array[enq_ptr].mdp_info
-                // entry_array[enq_ptr].dest_PR
-                // entry_array[enq_ptr].ROB_index
-                // entry_array[enq_ptr].lower_ROB_index_one_hot
-                // entry_array[enq_ptr].PA_word
-                // entry_array[enq_ptr].byte_mask
-                // entry_array[enq_ptr].bank
-                // entry_array[enq_ptr].data
+                entry_array[deq_ptr].valid <= 1'b0;
+                // entry_array[deq_ptr].misaligned
+                // entry_array[deq_ptr].mq_index
+                entry_array[deq_ptr].killed <= 1'b0;
+                entry_array[deq_ptr].dtlb_hit <= 1'b0;
+                entry_array[deq_ptr].stamofu_CAM_returned <= 1'b0;
+                entry_array[deq_ptr].dcache_hit <= 1'b0;
+                entry_array[deq_ptr].aq_blocking <= 1'b0;
+                entry_array[deq_ptr].older_stamofu_active <= 1'b0;
+                entry_array[deq_ptr].stalling <= 1'b0;
+                // entry_array[deq_ptr].stalling_count
+                entry_array[deq_ptr].forward <= 1'b0;
+                entry_array[deq_ptr].nasty_forward <= 1'b0;
+                entry_array[deq_ptr].previous_nasty_forward <= 1'b0;
+                // entry_array[deq_ptr].forward_ROB_index
+                entry_array[deq_ptr].mdp_present <= 1'b0;
+                entry_array[deq_ptr].WB_sent <= 1'b0;
+                entry_array[deq_ptr].complete <= 1'b0;
+                entry_array[deq_ptr].committed <= 1'b0;
+                entry_array[deq_ptr].second_try_req <= 1'b0;
+                entry_array[deq_ptr].unblock_data_try_req <= 1'b0;
+                entry_array[deq_ptr].new_data_try_req <= 1'b0;
+                entry_array[deq_ptr].data_try_req <= 1'b0;
+                entry_array[deq_ptr].data_try_just_sent <= 1'b0;
+                entry_array[deq_ptr].complete_req <= 1'b0;
+                // entry_array[deq_ptr].page_fault
+                // entry_array[deq_ptr].access_fault
+                // entry_array[deq_ptr].is_mem
+                // entry_array[deq_ptr].op
+                // entry_array[deq_ptr].mdp_info
+                // entry_array[deq_ptr].dest_PR
+                // entry_array[deq_ptr].ROB_index
+                // entry_array[deq_ptr].lower_ROB_index_one_hot
+                // entry_array[deq_ptr].PA_word
+                // entry_array[deq_ptr].byte_mask
+                // entry_array[deq_ptr].bank
+                // entry_array[deq_ptr].data
 
                 deq_ptr <= deq_ptr_plus_1;
             end

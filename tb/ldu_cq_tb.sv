@@ -45,6 +45,10 @@ module ldu_cq_tb ();
 	logic [MDPT_INFO_WIDTH-1:0] tb_ldu_cq_enq_mdp_info;
 	logic [LOG_PR_COUNT-1:0] tb_ldu_cq_enq_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] tb_ldu_cq_enq_ROB_index;
+    
+    // central queue enqueue feedback
+    logic                          	DUT_ldu_cq_enq_ready, expected_ldu_cq_enq_ready;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] 	DUT_ldu_cq_enq_index, expected_ldu_cq_enq_index;
 
     // second try
 	logic DUT_second_try_bank0_valid, expected_second_try_bank0_valid;
@@ -256,6 +260,10 @@ module ldu_cq_tb ();
 		.ldu_cq_enq_mdp_info(tb_ldu_cq_enq_mdp_info),
 		.ldu_cq_enq_dest_PR(tb_ldu_cq_enq_dest_PR),
 		.ldu_cq_enq_ROB_index(tb_ldu_cq_enq_ROB_index),
+    
+		// central queue enqueue feedback
+		.ldu_cq_enq_ready(DUT_ldu_cq_enq_ready),
+		.ldu_cq_enq_index(DUT_ldu_cq_enq_index),
 
 	    // second try
 		.second_try_bank0_valid(DUT_second_try_bank0_valid),
@@ -456,6 +464,20 @@ module ldu_cq_tb ();
 
     task check_outputs();
     begin
+		if (expected_ldu_cq_enq_ready !== DUT_ldu_cq_enq_ready) begin
+			$display("TB ERROR: expected_ldu_cq_enq_ready (%h) != DUT_ldu_cq_enq_ready (%h)",
+				expected_ldu_cq_enq_ready, DUT_ldu_cq_enq_ready);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+		
+		if (expected_ldu_cq_enq_index !== DUT_ldu_cq_enq_index) begin
+			$display("TB ERROR: expected_ldu_cq_enq_index (%h) != DUT_ldu_cq_enq_index (%h)",
+				expected_ldu_cq_enq_index, DUT_ldu_cq_enq_index);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_second_try_bank0_valid !== DUT_second_try_bank0_valid) begin
 			$display("TB ERROR: expected_second_try_bank0_valid (%h) != DUT_second_try_bank0_valid (%h)",
 				expected_second_try_bank0_valid, DUT_second_try_bank0_valid);
@@ -917,6 +939,9 @@ module ldu_cq_tb ();
 		// outputs:
 
 	    // op enqueue to central queue
+		// central queue enqueue feedback
+		expected_ldu_cq_enq_ready = 1'b1;
+		expected_ldu_cq_enq_index = 'h0;
 	    // second try
 		expected_second_try_bank0_valid = 1'b0;
 		expected_second_try_bank1_valid = 1'b0;
@@ -1129,6 +1154,9 @@ module ldu_cq_tb ();
 		// outputs:
 
 	    // op enqueue to central queue
+		// central queue enqueue feedback
+		expected_ldu_cq_enq_ready = 1'b1;
+		expected_ldu_cq_enq_index = 'h0;
 	    // second try
 		expected_second_try_bank0_valid = 1'b0;
 		expected_second_try_bank1_valid = 1'b0;
@@ -1384,6 +1412,9 @@ module ldu_cq_tb ();
 		// outputs:
 
 	    // op enqueue to central queue
+		// central queue enqueue feedback
+		expected_ldu_cq_enq_ready = 1'b1;
+		expected_ldu_cq_enq_index = 'h0;
 	    // second try
 		expected_second_try_bank0_valid = 1'b0;
 		expected_second_try_bank1_valid = 1'b0;
@@ -1633,6 +1664,9 @@ module ldu_cq_tb ();
 		// outputs:
 
 	    // op enqueue to central queue
+		// central queue enqueue feedback
+		expected_ldu_cq_enq_ready = 1'b1;
+		expected_ldu_cq_enq_index = 'h0;
 	    // second try
 		expected_second_try_bank0_valid = 1'b0;
 		expected_second_try_bank1_valid = 1'b0;
@@ -1882,6 +1916,9 @@ module ldu_cq_tb ();
 		// outputs:
 
 	    // op enqueue to central queue
+		// central queue enqueue feedback
+		expected_ldu_cq_enq_ready = 1'b1;
+		expected_ldu_cq_enq_index = 'h1;
 	    // second try
 		expected_second_try_bank0_valid = 1'b0;
 		expected_second_try_bank1_valid = 1'b0;
@@ -2131,6 +2168,9 @@ module ldu_cq_tb ();
 		// outputs:
 
 	    // op enqueue to central queue
+		// central queue enqueue feedback
+		expected_ldu_cq_enq_ready = 1'b1;
+		expected_ldu_cq_enq_index = 'h2;
 	    // second try
 		expected_second_try_bank0_valid = 1'b0;
 		expected_second_try_bank1_valid = 1'b0;
@@ -2380,6 +2420,9 @@ module ldu_cq_tb ();
 		// outputs:
 
 	    // op enqueue to central queue
+		// central queue enqueue feedback
+		expected_ldu_cq_enq_ready = 1'b1;
+		expected_ldu_cq_enq_index = 'h3;
 	    // second try
 		expected_second_try_bank0_valid = 1'b0;
 		expected_second_try_bank1_valid = 1'b0;
