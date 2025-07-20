@@ -123,6 +123,7 @@ module stamofu_launch_pipeline (
 
     // misaligned queue info ret
     output logic                                stamofu_mq_info_ret_valid,
+    output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   stamofu_mq_info_ret_cq_index,
     output logic [LOG_STAMOFU_MQ_ENTRIES-1:0]   stamofu_mq_info_ret_mq_index,
     output logic                                stamofu_mq_info_ret_dtlb_hit,
     output logic                                stamofu_mq_info_ret_page_fault,
@@ -410,6 +411,7 @@ module stamofu_launch_pipeline (
 
         // mq ret
         stamofu_mq_info_ret_valid = RESP_stage_valid & RESP_stage_is_mq;
+        stamofu_mq_info_ret_cq_index = RESP_stage_cq_index;
         stamofu_mq_info_ret_mq_index = RESP_stage_mq_index;
         stamofu_mq_info_ret_dtlb_hit = dtlb_resp_hit;
         stamofu_mq_info_ret_page_fault = dtlb_resp_page_fault;

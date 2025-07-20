@@ -142,6 +142,7 @@ module stamofu_launch_pipeline_tb ();
 
     // misaligned queue info ret
 	logic DUT_stamofu_mq_info_ret_valid, expected_stamofu_mq_info_ret_valid;
+	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] DUT_stamofu_mq_info_ret_cq_index, expected_stamofu_mq_info_ret_cq_index;
 	logic [LOG_STAMOFU_MQ_ENTRIES-1:0] DUT_stamofu_mq_info_ret_mq_index, expected_stamofu_mq_info_ret_mq_index;
 	logic DUT_stamofu_mq_info_ret_dtlb_hit, expected_stamofu_mq_info_ret_dtlb_hit;
 	logic DUT_stamofu_mq_info_ret_page_fault, expected_stamofu_mq_info_ret_page_fault;
@@ -273,6 +274,7 @@ module stamofu_launch_pipeline_tb ();
 
 	    // misaligned queue info ret
 		.stamofu_mq_info_ret_valid(DUT_stamofu_mq_info_ret_valid),
+		.stamofu_mq_info_ret_cq_index(DUT_stamofu_mq_info_ret_cq_index),
 		.stamofu_mq_info_ret_mq_index(DUT_stamofu_mq_info_ret_mq_index),
 		.stamofu_mq_info_ret_dtlb_hit(DUT_stamofu_mq_info_ret_dtlb_hit),
 		.stamofu_mq_info_ret_page_fault(DUT_stamofu_mq_info_ret_page_fault),
@@ -616,6 +618,13 @@ module stamofu_launch_pipeline_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_stamofu_mq_info_ret_cq_index !== DUT_stamofu_mq_info_ret_cq_index) begin
+			$display("TB ERROR: expected_stamofu_mq_info_ret_cq_index (%h) != DUT_stamofu_mq_info_ret_cq_index (%h)",
+				expected_stamofu_mq_info_ret_cq_index, DUT_stamofu_mq_info_ret_cq_index);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_stamofu_mq_info_ret_mq_index !== DUT_stamofu_mq_info_ret_mq_index) begin
 			$display("TB ERROR: expected_stamofu_mq_info_ret_mq_index (%h) != DUT_stamofu_mq_info_ret_mq_index (%h)",
 				expected_stamofu_mq_info_ret_mq_index, DUT_stamofu_mq_info_ret_mq_index);
@@ -835,6 +844,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_ret_data = 32'h00000000;
 	    // misaligned queue info ret
 		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_cq_index = 'h0;
 		expected_stamofu_mq_info_ret_mq_index = 0;
 		expected_stamofu_mq_info_ret_dtlb_hit = 1'b0;
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
@@ -970,6 +980,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_ret_data = 32'h00000000;
 	    // misaligned queue info ret
 		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_cq_index = 'h0;
 		expected_stamofu_mq_info_ret_mq_index = 0;
 		expected_stamofu_mq_info_ret_dtlb_hit = 1'b0;
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
@@ -1116,6 +1127,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_ret_data = 32'h00000000;
 	    // misaligned queue info ret
 		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_cq_index = 'h0;
 		expected_stamofu_mq_info_ret_mq_index = 0;
 		expected_stamofu_mq_info_ret_dtlb_hit = 1'b0;
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
@@ -1256,6 +1268,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_ret_data = 32'h00000000;
 	    // misaligned queue info ret
 		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_cq_index = 'h0;
 		expected_stamofu_mq_info_ret_mq_index = 0;
 		expected_stamofu_mq_info_ret_dtlb_hit = 1'b0;
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
@@ -1396,6 +1409,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_ret_data = 32'he1e1e1e1;
 	    // misaligned queue info ret
 		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_cq_index = 'h1;
 		expected_stamofu_mq_info_ret_mq_index = 0;
 		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
 		expected_stamofu_mq_info_ret_page_fault = 1'b1;
@@ -1536,6 +1550,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_ret_data = 32'he1e1e1e1;
 	    // misaligned queue info ret
 		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_cq_index = 'h1;
 		expected_stamofu_mq_info_ret_mq_index = 0;
 		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
@@ -1676,6 +1691,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_ret_data = 32'hd2d2d2d2;
 	    // misaligned queue info ret
 		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_cq_index = 'h2;
 		expected_stamofu_mq_info_ret_mq_index = 0;
 		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
@@ -1816,6 +1832,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_ret_data = 32'hd2d2d2d2;
 	    // misaligned queue info ret
 		expected_stamofu_mq_info_ret_valid = 1'b1;
+		expected_stamofu_mq_info_ret_cq_index = 'h2;
 		expected_stamofu_mq_info_ret_mq_index = 'hd;
 		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
@@ -1956,6 +1973,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_ret_data = 32'hc3c3c3c3;
 	    // misaligned queue info ret
 		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_cq_index = 'h3;
 		expected_stamofu_mq_info_ret_mq_index = 'h0;
 		expected_stamofu_mq_info_ret_dtlb_hit = 1'b0;
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
@@ -2096,6 +2114,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_ret_data = 32'hb4b4b4b4;
 	    // misaligned queue info ret
 		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_cq_index = 'h4;
 		expected_stamofu_mq_info_ret_mq_index = 'h0;
 		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
@@ -2236,6 +2255,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_ret_data = 32'ha5a5a5a5;
 	    // misaligned queue info ret
 		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_cq_index = 'h5;
 		expected_stamofu_mq_info_ret_mq_index = 'h0;
 		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
 		expected_stamofu_mq_info_ret_page_fault = 1'b1;
@@ -2376,6 +2396,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_ret_data = 32'h96969696;
 	    // misaligned queue info ret
 		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_cq_index = 'h6;
 		expected_stamofu_mq_info_ret_mq_index = 'h0;
 		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
@@ -2516,6 +2537,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_ret_data = 32'h87878787;
 	    // misaligned queue info ret
 		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_cq_index = 'h7;
 		expected_stamofu_mq_info_ret_mq_index = 'h0;
 		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
@@ -2656,6 +2678,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_ret_data = 32'h78787878;
 	    // misaligned queue info ret
 		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_cq_index = 'h8;
 		expected_stamofu_mq_info_ret_mq_index = 'h0;
 		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
@@ -2796,6 +2819,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_ret_data = 32'h69696969;
 	    // misaligned queue info ret
 		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_cq_index = 'h9;
 		expected_stamofu_mq_info_ret_mq_index = 'h0;
 		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
@@ -2936,6 +2960,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_cq_info_ret_data = 32'h69696969;
 	    // misaligned queue info ret
 		expected_stamofu_mq_info_ret_valid = 1'b0;
+		expected_stamofu_mq_info_ret_cq_index = 'h9;
 		expected_stamofu_mq_info_ret_mq_index = 'h0;
 		expected_stamofu_mq_info_ret_dtlb_hit = 1'b1;
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;

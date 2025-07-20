@@ -127,6 +127,7 @@ module stamofu_launch_pipeline_wrapper (
 
     // misaligned queue info ret
 	output logic last_stamofu_mq_info_ret_valid,
+	output logic [LOG_STAMOFU_CQ_ENTRIES-1:0] last_stamofu_mq_info_ret_cq_index,
 	output logic [LOG_STAMOFU_MQ_ENTRIES-1:0] last_stamofu_mq_info_ret_mq_index,
 	output logic last_stamofu_mq_info_ret_dtlb_hit,
 	output logic last_stamofu_mq_info_ret_page_fault,
@@ -253,6 +254,7 @@ module stamofu_launch_pipeline_wrapper (
 
     // misaligned queue info ret
 	logic stamofu_mq_info_ret_valid;
+	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_info_ret_cq_index;
 	logic [LOG_STAMOFU_MQ_ENTRIES-1:0] stamofu_mq_info_ret_mq_index;
 	logic stamofu_mq_info_ret_dtlb_hit;
 	logic stamofu_mq_info_ret_page_fault;
@@ -387,6 +389,7 @@ module stamofu_launch_pipeline_wrapper (
 
 		    // misaligned queue info ret
 			last_stamofu_mq_info_ret_valid <= '0;
+			last_stamofu_mq_info_ret_cq_index <= '0;
 			last_stamofu_mq_info_ret_mq_index <= '0;
 			last_stamofu_mq_info_ret_dtlb_hit <= '0;
 			last_stamofu_mq_info_ret_page_fault <= '0;
@@ -511,6 +514,7 @@ module stamofu_launch_pipeline_wrapper (
 
 		    // misaligned queue info ret
 			last_stamofu_mq_info_ret_valid <= stamofu_mq_info_ret_valid;
+			last_stamofu_mq_info_ret_cq_index <= stamofu_mq_info_ret_cq_index;
 			last_stamofu_mq_info_ret_mq_index <= stamofu_mq_info_ret_mq_index;
 			last_stamofu_mq_info_ret_dtlb_hit <= stamofu_mq_info_ret_dtlb_hit;
 			last_stamofu_mq_info_ret_page_fault <= stamofu_mq_info_ret_page_fault;
