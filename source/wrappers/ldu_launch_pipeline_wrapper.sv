@@ -36,7 +36,7 @@ module ldu_launch_pipeline_wrapper (
 	input logic [LOG_LDU_CQ_ENTRIES-1:0] next_first_try_cq_index,
 
     // first try feedback
-	output logic last_first_try_ack,
+	output logic last_first_try_early_ready,
 
     // op enqueue to misaligned queue
 	output logic last_ldu_mq_enq_valid,
@@ -221,7 +221,7 @@ module ldu_launch_pipeline_wrapper (
 	logic [LOG_LDU_CQ_ENTRIES-1:0] first_try_cq_index;
 
     // first try feedback
-	logic first_try_ack;
+	logic first_try_early_ready;
 
     // op enqueue to misaligned queue
 	logic ldu_mq_enq_valid;
@@ -419,7 +419,7 @@ module ldu_launch_pipeline_wrapper (
 			first_try_cq_index <= '0;
 
 		    // first try feedback
-			last_first_try_ack <= '0;
+			last_first_try_early_ready <= '0;
 
 		    // op enqueue to misaligned queue
 			last_ldu_mq_enq_valid <= '0;
@@ -602,7 +602,7 @@ module ldu_launch_pipeline_wrapper (
 			first_try_cq_index <= next_first_try_cq_index;
 
 		    // first try feedback
-			last_first_try_ack <= first_try_ack;
+			last_first_try_early_ready <= first_try_early_ready;
 
 		    // op enqueue to misaligned queue
 			last_ldu_mq_enq_valid <= ldu_mq_enq_valid;

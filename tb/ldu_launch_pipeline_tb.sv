@@ -46,7 +46,7 @@ module ldu_launch_pipeline_tb ();
 	logic [LOG_LDU_CQ_ENTRIES-1:0] tb_first_try_cq_index;
 
     // first try feedback
-	logic DUT_first_try_ack, expected_first_try_ack;
+	logic DUT_first_try_early_ready, expected_first_try_early_ready;
 
     // op enqueue to misaligned queue
 	logic DUT_ldu_mq_enq_valid, expected_ldu_mq_enq_valid;
@@ -241,7 +241,7 @@ module ldu_launch_pipeline_tb ();
 		.first_try_cq_index(tb_first_try_cq_index),
 
 	    // first try feedback
-		.first_try_ack(DUT_first_try_ack),
+		.first_try_early_ready(DUT_first_try_early_ready),
 
 	    // op enqueue to misaligned queue
 		.ldu_mq_enq_valid(DUT_ldu_mq_enq_valid),
@@ -417,9 +417,9 @@ module ldu_launch_pipeline_tb ();
 
     task check_outputs();
     begin
-		if (expected_first_try_ack !== DUT_first_try_ack) begin
-			$display("TB ERROR: expected_first_try_ack (%h) != DUT_first_try_ack (%h)",
-				expected_first_try_ack, DUT_first_try_ack);
+		if (expected_first_try_early_ready !== DUT_first_try_early_ready) begin
+			$display("TB ERROR: expected_first_try_early_ready (%h) != DUT_first_try_early_ready (%h)",
+				expected_first_try_early_ready, DUT_first_try_early_ready);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -1024,7 +1024,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b1;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -1218,7 +1218,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b1;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -1427,7 +1427,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b1;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -1630,7 +1630,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b0;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -1833,7 +1833,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b0;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -2037,7 +2037,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b1;
+		expected_first_try_early_ready = 1'b1;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -2241,7 +2241,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b0;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -2445,7 +2445,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b0;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -2649,7 +2649,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b0;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -2853,7 +2853,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b0;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -3057,7 +3057,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b1;
+		expected_first_try_early_ready = 1'b1;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b1;
 	    // misaligned queue enqueue feedback
@@ -3253,7 +3253,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b1;
+		expected_first_try_early_ready = 1'b1;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -3449,7 +3449,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b0;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -3649,7 +3649,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b0;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -3849,7 +3849,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b1;
+		expected_first_try_early_ready = 1'b1;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -4053,7 +4053,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b0;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -4250,7 +4250,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b0;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -4447,7 +4447,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b0;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -4644,7 +4644,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b0;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -4848,7 +4848,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b0;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback
@@ -5052,7 +5052,7 @@ module ldu_launch_pipeline_tb ();
 
 	    // first try
 	    // first try feedback
-		expected_first_try_ack = 1'b0;
+		expected_first_try_early_ready = 1'b0;
 	    // op enqueue to misaligned queue
 		expected_ldu_mq_enq_valid = 1'b0;
 	    // misaligned queue enqueue feedback

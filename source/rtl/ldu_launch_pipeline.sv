@@ -33,7 +33,7 @@ module ldu_launch_pipeline #(
     input logic [LOG_LDU_CQ_ENTRIES-1:0]    first_try_cq_index,
 
     // first try feedback
-    output logic                            first_try_ack,
+    output logic                            first_try_early_ready,
 
     // op enqueue to misaligned queue
     output logic                            ldu_mq_enq_valid,
@@ -216,6 +216,8 @@ module ldu_launch_pipeline #(
     // ----------------------------------------------------------------
     // REQ stage signals:
 
+    logic first_try_ack;
+
     logic                           REQ_stage_valid;
     logic                           REQ_stage_is_first;
     logic                           REQ_stage_is_second;
@@ -360,6 +362,13 @@ module ldu_launch_pipeline #(
             end
         end
     end
+
+    // give early ready to ldu_addr_pipeline so can accumulate ack's by bank early in clock
+    assign first_try_early_ready = 
+        ~stall_RESP
+        & dtlb_req_ready 
+        & dcache_req_ready
+        & (~first_try_is_mq | ldu_mq_enq_ready);
 
     // stall, control, and ack logic
     always_comb begin
