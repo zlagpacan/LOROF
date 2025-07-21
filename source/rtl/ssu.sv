@@ -18,31 +18,31 @@ module ssu #(
 
     // ldu CAM update
         // implied dep
-    output logic                        ldu_CAM_update_valid,
-    output logic [MDPT_INFO_WIDTH-1:0]  ldu_CAM_update_ld_mdp_info,
-    output logic [LOG_ROB_ENTRIES-1:0]  ldu_CAM_update_ld_ROB_index,
-    output logic [MDPT_INFO_WIDTH-1:0]  ldu_CAM_update_stamo_mdp_info,
-    output logic [LOG_ROB_ENTRIES-1:0]  ldu_CAM_update_stamo_ROB_index,
+    input logic                         ldu_CAM_update_valid,
+    input logic [MDPT_INFO_WIDTH-1:0]   ldu_CAM_update_ld_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]   ldu_CAM_update_ld_ROB_index,
+    input logic [MDPT_INFO_WIDTH-1:0]   ldu_CAM_update_stamo_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]   ldu_CAM_update_stamo_ROB_index,
 
     // ldu commit update
         // implied no dep
-    output logic                        ldu_commit_update_valid,
-    output logic [MDPT_INFO_WIDTH-1:0]  ldu_commit_update_mdp_info,
-    output logic [LOG_ROB_ENTRIES-1:0]  ldu_commit_update_ROB_index,
+    input logic                         ldu_commit_update_valid,
+    input logic [MDPT_INFO_WIDTH-1:0]   ldu_commit_update_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]   ldu_commit_update_ROB_index,
 
     // stamofu CAM update
         // implied dep
-    output logic                        stamofu_CAM_update_valid,
-    output logic [MDPT_INFO_WIDTH-1:0]  stamofu_CAM_update_ld_mdp_info,
-    output logic [LOG_ROB_ENTRIES-1:0]  stamofu_CAM_update_ld_ROB_index,
-    output logic [MDPT_INFO_WIDTH-1:0]  stamofu_CAM_update_stamo_mdp_info,
-    output logic [LOG_ROB_ENTRIES-1:0]  stamofu_CAM_update_stamo_ROB_index,
+    input logic                         stamofu_CAM_update_valid,
+    input logic [MDPT_INFO_WIDTH-1:0]   stamofu_CAM_update_ld_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_CAM_update_ld_ROB_index,
+    input logic [MDPT_INFO_WIDTH-1:0]   stamofu_CAM_update_stamo_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_CAM_update_stamo_ROB_index,
 
     // stamofu commit update
         // implied no dep
-    output logic                        stamofu_commit_update_valid,
-    output logic [MDPT_INFO_WIDTH-1:0]  stamofu_commit_update_mdp_info,
-    output logic [LOG_ROB_ENTRIES-1:0]  stamofu_commit_update_ROB_index,
+    input logic                         stamofu_commit_update_valid,
+    input logic [MDPT_INFO_WIDTH-1:0]   stamofu_commit_update_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_commit_update_ROB_index,
 
     // update to rob
     output logic                        rob_mdp_update_valid,
