@@ -84,6 +84,7 @@ module stamofu_launch_pipeline_wrapper (
 	output logic last_dcache_resp_hit_exclusive,
 	output logic last_dcache_resp_hit_way,
 	output logic last_dcache_resp_miss_valid,
+	output logic last_dcache_resp_miss_prefetch,
 	output logic last_dcache_resp_miss_exclusive,
 	output logic [DCACHE_TAG_WIDTH-1:0] last_dcache_resp_miss_tag,
 
@@ -211,6 +212,7 @@ module stamofu_launch_pipeline_wrapper (
 	logic dcache_resp_hit_exclusive;
 	logic dcache_resp_hit_way;
 	logic dcache_resp_miss_valid;
+	logic dcache_resp_miss_prefetch;
 	logic dcache_resp_miss_exclusive;
 	logic [DCACHE_TAG_WIDTH-1:0] dcache_resp_miss_tag;
 
@@ -346,6 +348,7 @@ module stamofu_launch_pipeline_wrapper (
 			last_dcache_resp_hit_exclusive <= '0;
 			last_dcache_resp_hit_way <= '0;
 			last_dcache_resp_miss_valid <= '0;
+			last_dcache_resp_miss_prefetch <= '0;
 			last_dcache_resp_miss_exclusive <= '0;
 			last_dcache_resp_miss_tag <= '0;
 
@@ -471,6 +474,7 @@ module stamofu_launch_pipeline_wrapper (
 			last_dcache_resp_hit_exclusive <= dcache_resp_hit_exclusive;
 			last_dcache_resp_hit_way <= dcache_resp_hit_way;
 			last_dcache_resp_miss_valid <= dcache_resp_miss_valid;
+			last_dcache_resp_miss_prefetch <= dcache_resp_miss_prefetch;
 			last_dcache_resp_miss_exclusive <= dcache_resp_miss_exclusive;
 			last_dcache_resp_miss_tag <= dcache_resp_miss_tag;
 

@@ -80,6 +80,7 @@ module stamofu_launch_pipeline (
     output logic                                    dcache_resp_hit_exclusive,
     output logic                                    dcache_resp_hit_way,
     output logic                                    dcache_resp_miss_valid,
+    output logic                                    dcache_resp_miss_prefetch,
     output logic                                    dcache_resp_miss_exclusive,
     output logic [DCACHE_TAG_WIDTH-1:0]             dcache_resp_miss_tag,
 
@@ -363,6 +364,7 @@ module stamofu_launch_pipeline (
             & dtlb_resp_hit
             & ~(dtlb_resp_page_fault | dtlb_resp_access_fault)
             & ~RESP_stage_dcache_vtm;
+        dcache_resp_miss_prefetch = 1'b1;
         dcache_resp_miss_exclusive = RESP_stage_exclusive;
         dcache_resp_miss_tag = RESP_stage_dcache_tag;
 

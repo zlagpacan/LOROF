@@ -99,6 +99,7 @@ module stamofu_launch_pipeline_tb ();
 	logic DUT_dcache_resp_hit_way, expected_dcache_resp_hit_way;
 	logic DUT_dcache_resp_hit_exclusive, expected_dcache_resp_hit_exclusive;
 	logic DUT_dcache_resp_miss_valid, expected_dcache_resp_miss_valid;
+	logic DUT_dcache_resp_miss_prefetch, expected_dcache_resp_miss_prefetch;
 	logic DUT_dcache_resp_miss_exclusive, expected_dcache_resp_miss_exclusive;
 	logic [DCACHE_TAG_WIDTH-1:0] DUT_dcache_resp_miss_tag, expected_dcache_resp_miss_tag;
 
@@ -231,6 +232,7 @@ module stamofu_launch_pipeline_tb ();
 		.dcache_resp_hit_exclusive(DUT_dcache_resp_hit_exclusive),
 		.dcache_resp_hit_way(DUT_dcache_resp_hit_way),
 		.dcache_resp_miss_valid(DUT_dcache_resp_miss_valid),
+		.dcache_resp_miss_prefetch(DUT_dcache_resp_miss_prefetch),
 		.dcache_resp_miss_exclusive(DUT_dcache_resp_miss_exclusive),
 		.dcache_resp_miss_tag(DUT_dcache_resp_miss_tag),
 
@@ -411,6 +413,13 @@ module stamofu_launch_pipeline_tb ();
 		if (expected_dcache_resp_miss_valid !== DUT_dcache_resp_miss_valid) begin
 			$display("TB ERROR: expected_dcache_resp_miss_valid (%h) != DUT_dcache_resp_miss_valid (%h)",
 				expected_dcache_resp_miss_valid, DUT_dcache_resp_miss_valid);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_dcache_resp_miss_prefetch !== DUT_dcache_resp_miss_prefetch) begin
+			$display("TB ERROR: expected_dcache_resp_miss_prefetch (%h) != DUT_dcache_resp_miss_prefetch (%h)",
+				expected_dcache_resp_miss_prefetch, DUT_dcache_resp_miss_prefetch);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -811,6 +820,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_prefetch = 1'b1;
 		expected_dcache_resp_miss_exclusive = 1'b1;
 		expected_dcache_resp_miss_tag = 22'h000000;
 	    // // CAM launch
@@ -947,6 +957,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_prefetch = 1'b1;
 		expected_dcache_resp_miss_exclusive = 1'b1;
 		expected_dcache_resp_miss_tag = 22'h000000;
 	    // // CAM launch
@@ -1094,6 +1105,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_prefetch = 1'b1;
 		expected_dcache_resp_miss_exclusive = 1'b1;
 		expected_dcache_resp_miss_tag = 22'h000000;
 	    // // CAM launch
@@ -1235,6 +1247,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_prefetch = 1'b1;
 		expected_dcache_resp_miss_exclusive = 1'b1;
 		expected_dcache_resp_miss_tag = 22'h000000;
 	    // // CAM launch
@@ -1376,6 +1389,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_prefetch = 1'b1;
 		expected_dcache_resp_miss_exclusive = 1'b1;
 		expected_dcache_resp_miss_tag = 22'hdeadbe;
 	    // // CAM launch
@@ -1517,6 +1531,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b1;
 		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_prefetch = 1'b1;
 		expected_dcache_resp_miss_exclusive = 1'b1;
 		expected_dcache_resp_miss_tag = 22'heeeeee;
 	    // // CAM launch
@@ -1658,6 +1673,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b1;
 		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_prefetch = 1'b1;
 		expected_dcache_resp_miss_exclusive = 1'b1;
 		expected_dcache_resp_miss_tag = 22'heeeeee;
 	    // // CAM launch
@@ -1799,6 +1815,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b1;
+		expected_dcache_resp_miss_prefetch = 1'b1;
 		expected_dcache_resp_miss_exclusive = 1'b1;
 		expected_dcache_resp_miss_tag = 22'hdddddd;
 	    // // CAM launch
@@ -1940,6 +1957,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b1;
 		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_prefetch = 1'b1;
 		expected_dcache_resp_miss_exclusive = 1'b1;
 		expected_dcache_resp_miss_tag = 22'hcccccc;
 	    // // CAM launch
@@ -2081,6 +2099,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_prefetch = 1'b1;
 		expected_dcache_resp_miss_exclusive = 1'b1;
 		expected_dcache_resp_miss_tag = 22'hbbbbbb;
 	    // // CAM launch
@@ -2222,6 +2241,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_prefetch = 1'b1;
 		expected_dcache_resp_miss_exclusive = 1'b1;
 		expected_dcache_resp_miss_tag = 22'haaaaaa;
 	    // // CAM launch
@@ -2363,6 +2383,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_exclusive = 1'b0;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_prefetch = 1'b1;
 		expected_dcache_resp_miss_exclusive = 1'b0;
 		expected_dcache_resp_miss_tag = 22'h999999;
 	    // // CAM launch
@@ -2504,6 +2525,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b1;
 		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_prefetch = 1'b1;
 		expected_dcache_resp_miss_exclusive = 1'b1;
 		expected_dcache_resp_miss_tag = 22'h888888;
 	    // // CAM launch
@@ -2645,6 +2667,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b0;
 		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_prefetch = 1'b1;
 		expected_dcache_resp_miss_exclusive = 1'b1;
 		expected_dcache_resp_miss_tag = 22'h777777;
 	    // // CAM launch
@@ -2786,6 +2809,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b1;
 		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_prefetch = 1'b1;
 		expected_dcache_resp_miss_exclusive = 1'b1;
 		expected_dcache_resp_miss_tag = 22'h666666;
 	    // // CAM launch
@@ -2927,6 +2951,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_dcache_resp_hit_exclusive = 1'b1;
 		expected_dcache_resp_hit_way = 1'b1;
 		expected_dcache_resp_miss_valid = 1'b0;
+		expected_dcache_resp_miss_prefetch = 1'b1;
 		expected_dcache_resp_miss_exclusive = 1'b1;
 		expected_dcache_resp_miss_tag = 22'h666666;
 	    // // CAM launch
