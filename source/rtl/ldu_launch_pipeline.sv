@@ -132,13 +132,13 @@ module ldu_launch_pipeline #(
 
     // CAM launch
     output logic                            stamofu_CAM_launch_valid,
+    output logic [LOG_LDU_CQ_ENTRIES-1:0]   stamofu_CAM_launch_cq_index,
+    output logic                            stamofu_CAM_launch_is_mq,
+    output logic [LOG_LDU_MQ_ENTRIES-1:0]   stamofu_CAM_launch_mq_index,
     output logic [PA_WIDTH-2-1:0]           stamofu_CAM_launch_PA_word,
     output logic [3:0]                      stamofu_CAM_launch_byte_mask,
     output logic [LOG_ROB_ENTRIES-1:0]      stamofu_CAM_launch_ROB_index,
     output logic [MDPT_INFO_WIDTH-1:0]      stamofu_CAM_launch_mdp_info,
-    output logic [LOG_LDU_CQ_ENTRIES-1:0]   stamofu_CAM_launch_cq_index,
-    output logic                            stamofu_CAM_launch_is_mq,
-    output logic [LOG_LDU_MQ_ENTRIES-1:0]   stamofu_CAM_launch_mq_index,
 
     // central queue info grab
     output logic [LOG_LDU_CQ_ENTRIES-1:0]   ldu_cq_info_grab_cq_index,

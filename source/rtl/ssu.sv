@@ -54,5 +54,7 @@ module ssu #(
 
     // simple circular buffers for incoming updates to prioritize younger updates
         // fine since not all updates have to be kept
+            // just a prediction mechanism
+            // not worth it to put backpressure on upstream
 
 endmodule

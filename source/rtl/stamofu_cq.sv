@@ -99,14 +99,14 @@ module stamofu_cq #(
     input logic [LOG_STAMOFU_MQ_ENTRIES-1:0]    stamofu_mq_info_ret_bank1_mq_index,
 
     // dtlb miss resp
-    input logic                             dtlb_miss_resp_valid,
-    input logic [LOG_LDU_CQ_ENTRIES-1:0]    dtlb_miss_resp_cq_index,
-    input logic                             dtlb_miss_resp_is_mq,
-    input logic [LOG_LDU_MQ_ENTRIES-1:0]    dtlb_miss_resp_mq_index, // unused
-    input logic [PPN_WIDTH-1:0]             dtlb_miss_resp_PPN,
-    input logic                             dtlb_miss_resp_is_mem,
-    input logic                             dtlb_miss_resp_page_fault,
-    input logic                             dtlb_miss_resp_access_fault,
+    input logic                                 dtlb_miss_resp_valid,
+    input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    dtlb_miss_resp_cq_index,
+    input logic                                 dtlb_miss_resp_is_mq,
+    input logic [LOG_STAMOFU_MQ_ENTRIES-1:0]    dtlb_miss_resp_mq_index, // unused
+    input logic [PPN_WIDTH-1:0]                 dtlb_miss_resp_PPN,
+    input logic                                 dtlb_miss_resp_is_mem,
+    input logic                                 dtlb_miss_resp_page_fault,
+    input logic                                 dtlb_miss_resp_access_fault,
 
     // ldu CAM launch
     output logic                                ldu_CAM_launch_valid,
@@ -129,22 +129,22 @@ module stamofu_cq #(
 
     // stamofu CAM launch
     input logic                                 stamofu_CAM_launch_bank0_valid,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_launch_bank0_cq_index,  // ldu_cq index
+    input logic                                 stamofu_CAM_launch_bank0_is_mq,
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_launch_bank0_mq_index,  // ldu_mq index
     input logic [PA_WIDTH-2-1:0]                stamofu_CAM_launch_bank0_PA_word,
     input logic [3:0]                           stamofu_CAM_launch_bank0_byte_mask,
     input logic [LOG_ROB_ENTRIES-1:0]           stamofu_CAM_launch_bank0_ROB_index,
     input logic [MDPT_INFO_WIDTH-1:0]           stamofu_CAM_launch_bank0_mdp_info,
-    input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_launch_bank0_cq_index,
-    input logic                                 stamofu_CAM_launch_bank0_is_mq,
-    input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_launch_bank0_mq_index,
 
     input logic                                 stamofu_CAM_launch_bank1_valid,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_launch_bank1_cq_index,  // ldu_cq index
+    input logic                                 stamofu_CAM_launch_bank1_is_mq,
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_launch_bank1_mq_index,  // ldu_mq index
     input logic [PA_WIDTH-2-1:0]                stamofu_CAM_launch_bank1_PA_word,
     input logic [3:0]                           stamofu_CAM_launch_bank1_byte_mask,
     input logic [LOG_ROB_ENTRIES-1:0]           stamofu_CAM_launch_bank1_ROB_index,
     input logic [MDPT_INFO_WIDTH-1:0]           stamofu_CAM_launch_bank1_mdp_info,
-    input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_launch_bank1_cq_index,
-    input logic                                 stamofu_CAM_launch_bank1_is_mq,
-    input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_launch_bank1_mq_index,
 
     // stamofu CAM return
     output logic                                stamofu_CAM_return_bank0_valid,
@@ -198,6 +198,7 @@ module stamofu_cq #(
     // exception to ROB
     output logic                        rob_exception_valid,
     output logic [VA_WIDTH-1:0]         rob_exception_VA,
+    output logic                        rob_exception_is_lr,
     output logic                        rob_exception_page_fault,
     output logic                        rob_exception_access_fault,
     output logic                        rob_exception_misaligned_exception,
@@ -230,5 +231,14 @@ module stamofu_cq #(
     input logic [LOG_ROB_ENTRIES-1:0]   rob_kill_abs_head_index,
     input logic [LOG_ROB_ENTRIES-1:0]   rob_kill_rel_kill_younger_index
 );
+
+    // ----------------------------------------------------------------
+    // Signals:
+
+    typedef struct packed {
+        logic valid;
+        logic misaligned;
+        logic [LOG_STAMOFU_MQ_ENTRIES-1:0]
+    }
 
 endmodule
