@@ -172,10 +172,10 @@ module stamofu_cq #(
     output logic [31:0]                         stamofu_CAM_return_bank1_forward_data,
 
     // misaligned queue info grab
-    output logic [LOG_LDU_MQ_ENTRIES-1:0]   stamofu_mq_info_grab_mq_index,
-    input logic [PA_WIDTH-2-1:0]            stamofu_mq_info_grab_PA_word,
-    input logic [3:0]                       stamofu_mq_info_grab_byte_mask,
-    input logic [31:0]                      stamofu_mq_info_ret_data,
+    output logic [LOG_STAMOFU_MQ_ENTRIES-1:0]   stamofu_mq_info_grab_mq_index,
+    input logic [PA_WIDTH-2-1:0]                stamofu_mq_info_grab_PA_word,
+    input logic [3:0]                           stamofu_mq_info_grab_byte_mask,
+    input logic [31:0]                          stamofu_mq_info_ret_data,
 
     // write buffer enq
     output logic                    wr_buf_enq_valid,
@@ -203,6 +203,9 @@ module stamofu_cq #(
     output logic                        rob_exception_access_fault,
     output logic                        rob_exception_misaligned_exception,
     output logic [LOG_ROB_ENTRIES-1:0]  rob_exception_ROB_index,
+
+    // exception backpressure from ROB
+    input logic                         rob_exception_ready,
 
     // store set commit update
         // implied no dep
@@ -232,13 +235,60 @@ module stamofu_cq #(
     input logic [LOG_ROB_ENTRIES-1:0]   rob_kill_rel_kill_younger_index
 );
 
+    // cq needs to be nosey if mq gets page fault or access fault so knows to raise exception
+
     // ----------------------------------------------------------------
     // Signals:
 
     typedef struct packed {
-        logic valid;
-        logic misaligned;
-        logic [LOG_STAMOFU_MQ_ENTRIES-1:0]
-    }
+        logic                               valid;
+        logic                               misaligned;
+        logic [LOG_STAMOFU_MQ_ENTRIES-1:0]  mq_index;
+        logic                               killed;
+        logic                               dtlb_hit;
+        logic                               forward;
+        logic                               committed;
+
+        logic                               second_try_req;
+
+        logic                               ldu_CAM_launch_req;
+        logic                               ldu_CAM_launch_sent;
+
+        logic                               complete_req;
+        logic                               complete;
+
+        logic                               exception_req;
+        logic                               exception_sent;
+
+        logic                               mem_aq;
+        logic                               io_aq;
+        logic                               mem_rl;
+        logic                               io_rl;
+        logic                               page_fault;
+        logic                               access_fault;
+        logic                               misaligned_exception;
+        logic                               is_store;
+        logic                               is_amo;
+        logic                               is_fence;
+        logic [3:0]                         op;
+        logic                               mdp_present;
+        logic [MDPT_INFO_WIDTH-1:0]         mdp_info;
+        logic [LOG_PR_COUNT-1:0]            dest_PR;
+        logic [LOG_ROB_ENTRIES-1:0]         ROB_index;
+        logic [3:0]                         lower_ROB_index_one_hot;
+        logic [PA_WIDTH-3:0]                PA_word;
+        logic [3:0]                         byte_mask;
+        logic [31:0]                        data;
+    } entry_t;
+
+    entry_t [STAMOFU_CQ_ENTRIES-1:0] entry_array, next_entry_array;
+
+    logic [LOG_LDU_CQ_ENTRIES-1:0] enq_ptr, enq_ptr_plus_1;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] deq_ptr, deq_ptr_plus_1;
+
+    logic enq_perform;
+    logic deq_perform;
+
+    
 
 endmodule

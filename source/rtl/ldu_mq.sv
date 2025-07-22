@@ -219,7 +219,7 @@ module ldu_mq #(
         logic [PA_WIDTH-3:0]                PA_word;
         logic [3:0]                         byte_mask;
         logic                               bank;
-        logic [31:0]                        data;
+        logic [23:0]                        data;
         logic [LOG_LDU_CQ_ENTRIES-1:0]      cq_index;
     } entry_t;
 
@@ -481,6 +481,7 @@ module ldu_mq #(
             // stamofu CAM return bank 0
             else if (stamofu_CAM_return_bank0_valid_by_entry[i]) begin
                 next_entry_array[i].stamofu_CAM_returned = 1'b1;
+                next_entry_array[i].mdp_present = |stamofu_CAM_return_bank0_updated_mdp_info[7:6];
                 next_entry_array[i].mdp_info = stamofu_CAM_return_bank0_updated_mdp_info;
                 next_entry_array[i].stalling = stamofu_CAM_return_bank0_stall;
                 next_entry_array[i].stalling_count = stamofu_CAM_return_bank0_stall_count;
@@ -502,6 +503,7 @@ module ldu_mq #(
             // stamofu CAM return bank 1
             else if (stamofu_CAM_return_bank1_valid_by_entry[i]) begin
                 next_entry_array[i].stamofu_CAM_returned = 1'b1;
+                next_entry_array[i].mdp_present = |stamofu_CAM_return_bank1_updated_mdp_info[7:6];
                 next_entry_array[i].mdp_info = stamofu_CAM_return_bank1_updated_mdp_info;
                 next_entry_array[i].stalling = stamofu_CAM_return_bank1_stall;
                 next_entry_array[i].stalling_count = stamofu_CAM_return_bank1_stall_count;
@@ -783,7 +785,7 @@ module ldu_mq #(
                 & entry_array[i].stamofu_CAM_returned
                     // ignore any ldu CAMs which would be double counted by incoming stamofu CAM
                 & |ldu_CAM_launch_mdp_info[7:6]
-                & |entry_array[i].mdp_info[7:6]
+                & entry_array[i].mdp_present
                 & ldu_CAM_launch_mdp_info[5:0] == entry_array[i].mdp_info[5:0]
                 // older than this
                 & (ldu_CAM_launch_ROB_index - rob_kill_abs_head_index 
@@ -807,7 +809,7 @@ module ldu_mq #(
         ldu_mq_info_grab_data_try_req = 
             entry_array[ldu_mq_info_grab_mq_index].data_try_req 
             | entry_array[ldu_mq_info_grab_mq_index].data_try_waiting;
-        ldu_mq_info_grab_data = entry_array[ldu_mq_info_grab_mq_index].data;
+        ldu_mq_info_grab_data = {8'h00, entry_array[ldu_mq_info_grab_mq_index].data};
     end
 
     // store set CAM update
