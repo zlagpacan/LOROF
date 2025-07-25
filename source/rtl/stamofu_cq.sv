@@ -175,7 +175,7 @@ module stamofu_cq #(
     output logic [LOG_STAMOFU_MQ_ENTRIES-1:0]   stamofu_mq_info_grab_mq_index,
     input logic [PA_WIDTH-2-1:0]                stamofu_mq_info_grab_PA_word,
     input logic [3:0]                           stamofu_mq_info_grab_byte_mask,
-    input logic [31:0]                          stamofu_mq_info_ret_data,
+    input logic [31:0]                          stamofu_mq_info_grab_data,
 
     // write buffer enq
     output logic                    wr_buf_enq_valid,
@@ -222,8 +222,8 @@ module stamofu_cq #(
     output logic [LOG_ROB_ENTRIES-1:0]  stamofu_complete_ROB_index,
 
     // op dequeue from acquire queue
-    input logic                         stamofu_aq_deq_valid,
-    output logic [LOG_ROB_ENTRIES-1:0]  stamofu_aq_deq_ROB_index,
+    output logic                        stamofu_aq_deq_valid,
+    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_aq_deq_ROB_index,
 
     // ROB commit
     input logic [LOG_ROB_ENTRIES-3:0]   rob_commit_upper_index,
@@ -248,8 +248,6 @@ module stamofu_cq #(
         logic                               dtlb_hit;
         logic                               forward;
         logic                               committed;
-
-        logic                               second_try_req;
 
         logic                               ldu_CAM_launch_req;
         logic                               ldu_CAM_launch_sent;
@@ -283,12 +281,66 @@ module stamofu_cq #(
 
     entry_t [STAMOFU_CQ_ENTRIES-1:0] entry_array, next_entry_array;
 
-    logic [LOG_LDU_CQ_ENTRIES-1:0] enq_ptr, enq_ptr_plus_1;
-    logic [LOG_LDU_CQ_ENTRIES-1:0] deq_ptr, deq_ptr_plus_1;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0] enq_ptr, enq_ptr_plus_1;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0] deq_ptr, deq_ptr_plus_1;
 
     logic enq_perform;
     logic deq_perform;
 
+    // pe's
+    logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_cq_info_ret_bank0_valid_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_cq_info_ret_bank1_valid_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_info_ret_bank0_valid_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_info_ret_bank1_valid_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] dtlb_miss_resp_valid_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] ldu_CAM_return_valid_by_entry;
+
+    // req's
+    logic [STAMOFU_CQ_ENTRIES-1:0] ldu_CAM_launch_unmasked_req_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] rob_exception_unmasked_req_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_complete_unmasked_req_by_entry;
     
+    logic [STAMOFU_CQ_ENTRIES-1:0] ldu_CAM_launch_unmasked_req_ack_one_hot_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] rob_exception_unmasked_req_ack_one_hot_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_complete_unmasked_req_ack_one_hot_by_entry;
+    
+    logic [STAMOFU_CQ_ENTRIES-1:0] ldu_CAM_launch_unmasked_req_ack_index_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] rob_exception_unmasked_req_ack_index_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_complete_unmasked_req_ack_index_by_entry;
+    
+    logic [STAMOFU_CQ_ENTRIES-1:0] ldu_CAM_launch_masked_req_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] rob_exception_masked_req_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_complete_masked_req_by_entry;
+    
+    logic [STAMOFU_CQ_ENTRIES-1:0] ldu_CAM_launch_masked_req_ack_one_hot_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] rob_exception_masked_req_ack_one_hot_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_complete_masked_req_ack_one_hot_by_entry;
+    
+    logic [STAMOFU_CQ_ENTRIES-1:0] ldu_CAM_launch_masked_req_ack_index_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] rob_exception_masked_req_ack_index_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_complete_masked_req_ack_index_by_entry;
+    
+    logic [STAMOFU_CQ_ENTRIES-1:0] ldu_CAM_launch_final_req_ack_one_hot_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] rob_exception_final_req_ack_one_hot_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_complete_final_req_ack_one_hot_by_entry;
+    
+    logic [STAMOFU_CQ_ENTRIES-1:0] ldu_CAM_launch_final_req_ack_index_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] rob_exception_final_req_ack_index_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_complete_final_req_ack_index_by_entry;
+
+    logic stamofu_complete_cq_index;
+
+    logic [STAMOFU_CQ_ENTRIES-1:0] rel_ROB_index_by_entry;
+
+    // stamofu CAM pipeline
+    logic [STAMOFU_CQ_ENTRIES-1:0] CAM_load_is_overlapping_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] CAM_load_is_subset_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] CAM_load_is_older_by_entry;
+
+    // ----------------------------------------------------------------
+    // Logic:
+
+    assign enq_ptr_plus_1 = (enq_ptr == STAMOFU_CQ_ENTRIES-1) ? 0 : enq_ptr + 1;
+    assign deq_ptr_plus_1 = (deq_ptr == STAMOFU_CQ_ENTRIES-1) ? 0 : deq_ptr + 1;
 
 endmodule
