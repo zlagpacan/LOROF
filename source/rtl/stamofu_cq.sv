@@ -279,6 +279,7 @@ module stamofu_cq #(
         logic                               committed;
         logic                               ldu_CAM_launch_req;
         logic                               ldu_CAM_launch_sent;
+        logic                               ldu_CAM_launch_returned;
         logic                               complete_req;
         logic                               complete;
         logic                               exception_req;
@@ -638,18 +639,27 @@ module stamofu_cq #(
                 next_entry_array[i].dtlb_hit = stamofu_cq_info_ret_bank0_dtlb_hit;
                 // next_entry_array[i].forward = 
                 // next_entry_array[i].committed = 
-                next_entry_array[i].ldu_CAM_launch_req = stamofu_cq_info_ret_bank0_dtlb_hit;
+                // next_entry_array[i].ldu_CAM_launch_req = 
                 // next_entry_array[i].ldu_CAM_launch_sent = 
+                // next_entry_array[i].ldu_CAM_launch_returned = 
                 // next_entry_array[i].complete_req = 
                 // next_entry_array[i].complete = 
-                next_entry_array[i].exception_req = 
-                    stamofu_cq_info_ret_bank0_dtlb_hit 
-                    & (
-                        stamofu_cq_info_ret_bank0_page_fault 
-                        | stamofu_cq_info_ret_bank0_access_fault 
-                        | stamofu_cq_info_ret_bank0_misaligned_exception
-                    );
+                // next_entry_array[i].exception_req = 
                 // next_entry_array[i].exception_sent = 
+                if (
+                    stamofu_cq_info_ret_bank0_dtlb_hit
+                    & (
+                        stamofu_cq_info_ret_bank0_page_fault
+                        | stamofu_cq_info_ret_bank0_access_fault
+                        | stamofu_cq_info_ret_bank0_misaligned_exception)
+                ) begin
+                    next_entry_array[i].ldu_CAM_launch_req = 1'b0;
+                    next_entry_array[i].exception_req = 1'b1;
+                end
+                else if (stamofu_cq_info_ret_bank0_dtlb_hit) begin
+                    next_entry_array[i].ldu_CAM_launch_req = 1'b1;
+                    next_entry_array[i].exception_req = 1'b0;
+                end
                 next_entry_array[i].is_mem = stamofu_cq_info_ret_bank0_is_mem;
                 next_entry_array[i].mem_aq = stamofu_cq_info_ret_bank0_mem_aq;
                 next_entry_array[i].io_aq = stamofu_cq_info_ret_bank0_io_aq;
@@ -683,6 +693,7 @@ module stamofu_cq #(
                 // next_entry_array[i].committed = 
                 // next_entry_array[i].ldu_CAM_launch_req = 
                 // next_entry_array[i].ldu_CAM_launch_sent = 
+                // next_entry_array[i].ldu_CAM_launch_returned = 
                 // next_entry_array[i].complete_req = 
                 // next_entry_array[i].complete = 
                 // next_entry_array[i].exception_req = 
@@ -741,7 +752,30 @@ module stamofu_cq #(
             end
             // ldu CAM return
             else if (ldu_CAM_return_valid_by_entry[i]) begin
+                next_entry_array[i].ldu_CAM_launch_returned = 1'b1;
+                next_entry_array[i].forward |= ldu_CAM_return_forward;
+            end
 
+            // indep behavior:
+
+            // stamofu_mq info ret bank 0 (indep)
+            if (stamofu_mq_info_ret_bank0_valid_by_entry[i]) begin
+                next_entry_array[i].mq_index = stamofu_mq_info_ret_bank0_mq_index;
+            end
+
+            // stamofu_mq info ret bank 1 (indep)
+            if (stamofu_mq_info_ret_bank1_valid_by_entry[i]) begin
+                next_entry_array[i].mq_index = stamofu_mq_info_ret_bank1_mq_index;
+            end
+
+            // stamofu_mq complete (indep)
+            if (stamofu_mq_complete_valid_by_entry) begin
+                next_entry_array[i].misaligned_complete = 1'b1;
+            end
+
+            // ROB complete (indep)
+            if () begin
+                 
             end
         end
     end
