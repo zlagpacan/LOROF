@@ -681,18 +681,26 @@ module stamofu_cq #(
                 next_entry_array[i].dtlb_hit = stamofu_cq_info_ret_bank1_dtlb_hit;
                 // next_entry_array[i].forward = 
                 // next_entry_array[i].committed = 
-                next_entry_array[i].ldu_CAM_launch_req = stamofu_cq_info_ret_bank1_dtlb_hit;
+                // next_entry_array[i].ldu_CAM_launch_req = 
                 // next_entry_array[i].ldu_CAM_launch_sent = 
                 // next_entry_array[i].complete_req = 
                 // next_entry_array[i].complete = 
-                next_entry_array[i].exception_req = 
-                    stamofu_cq_info_ret_bank1_dtlb_hit 
-                    & (
-                        stamofu_cq_info_ret_bank1_page_fault 
-                        | stamofu_cq_info_ret_bank1_access_fault 
-                        | stamofu_cq_info_ret_bank1_misaligned_exception
-                    );
+                // next_entry_array[i].exception_req = 
                 // next_entry_array[i].exception_sent = 
+                if (
+                    stamofu_cq_info_ret_bank1_dtlb_hit
+                    & (
+                        stamofu_cq_info_ret_bank1_page_fault
+                        | stamofu_cq_info_ret_bank1_access_fault
+                        | stamofu_cq_info_ret_bank1_misaligned_exception)
+                ) begin
+                    next_entry_array[i].ldu_CAM_launch_req = 1'b0;
+                    next_entry_array[i].exception_req = 1'b1;
+                end
+                else if (stamofu_cq_info_ret_bank1_dtlb_hit) begin
+                    next_entry_array[i].ldu_CAM_launch_req = 1'b1;
+                    next_entry_array[i].exception_req = 1'b0;
+                end
                 next_entry_array[i].is_mem = stamofu_cq_info_ret_bank1_is_mem;
                 next_entry_array[i].mem_aq = stamofu_cq_info_ret_bank1_mem_aq;
                 next_entry_array[i].io_aq = stamofu_cq_info_ret_bank1_io_aq;
@@ -720,12 +728,19 @@ module stamofu_cq #(
                 // only update PA if not exception so can give VA on exception
                 if (~dtlb_miss_resp_page_fault & ~dtlb_miss_resp_access_fault & ~entry_array[i].misaligned_exception) begin
                     next_entry_array[i].PA_word[PA_WIDTH-3:PA_WIDTH-2-PPN_WIDTH] = dtlb_miss_resp_PPN;
+                    next_entry_array[i].ldu_CAM_launch_req = 1'b1;
+                    next_entry_array[i].exception_req = 1'b0;
+                end
+                else begin
+                    next_entry_array[i].ldu_CAM_launch_req = 1'b0;
+                    next_entry_array[i].exception_req = 1'b1;
                 end
                 next_entry_array[i].is_mem = dtlb_miss_resp_is_mem;
                 next_entry_array[i].page_fault = dtlb_miss_resp_page_fault;
+                next_entry_array[i].access_fault = dtlb_miss_resp_access_fault;
             end
             // ldu CAM return
-            else if () begin
+            else if (ldu_CAM_return_valid_by_entry[i]) begin
 
             end
         end
