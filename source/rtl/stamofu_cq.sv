@@ -196,7 +196,8 @@ module stamofu_cq #(
     // misaligned queue info grab
     output logic [LOG_STAMOFU_MQ_ENTRIES-1:0]   stamofu_mq_info_grab_mq_index,
     output logic                                stamofu_mq_info_grab_clear_entry,
-        // this is mechanism to clear mq entry (commit doesn't have to be tracked)   
+        // this is mechanism to clear mq entry (commit doesn't have to be tracked)
+    input logic                                 stamofu_mq_info_grab_is_mem,
     input logic [PA_WIDTH-2-1:0]                stamofu_mq_info_grab_PA_word,
     input logic [3:0]                           stamofu_mq_info_grab_byte_mask,
     input logic [31:0]                          stamofu_mq_info_grab_data,
@@ -218,6 +219,9 @@ module stamofu_cq #(
     // fence restart notification to ROB
     output logic                        fence_restart_notif_valid,
     output logic [LOG_ROB_ENTRIES-1:0]  fence_restart_notif_ROB_index,
+
+    // fence restart notification backpressure from ROB
+    input logic                         fence_restart_notif_ready,
 
     // exception to ROB
     output logic                        rob_exception_valid,
@@ -322,6 +326,7 @@ module stamofu_cq #(
     logic [STAMOFU_CQ_ENTRIES-1:0] dtlb_miss_resp_valid_by_entry;
     logic [STAMOFU_CQ_ENTRIES-1:0] ldu_CAM_return_valid_by_entry;
     logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_complete_valid_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] clear_misaligned_by_entry;
 
     logic [STAMOFU_CQ_ENTRIES-1:0] wraparound_mask;
 
@@ -600,7 +605,8 @@ module stamofu_cq #(
     end
     always_comb begin
         rob_exception_VA[31:2] = entry_array[rob_exception_cq_index].PA_word[29:0];
-        case (entry_array[rob_exception_cq_index].byte_mask)
+        casez (entry_array[rob_exception_cq_index].byte_mask)
+            4'b0000:    rob_exception_VA[1:0] = 2'h0;
             4'b???1:    rob_exception_VA[1:0] = 2'h0;
             4'b??10:    rob_exception_VA[1:0] = 2'h1;
             4'b?100:    rob_exception_VA[1:0] = 2'h2;
@@ -766,6 +772,10 @@ module stamofu_cq #(
             else if (ldu_CAM_return_valid_by_entry[i]) begin
                 next_entry_array[i].ldu_CAM_launch_returned = 1'b1;
                 next_entry_array[i].forward |= ldu_CAM_return_forward;
+            end
+            // clear misaligned
+            else if (clear_misaligned_by_entry[i]) begin
+                next_entry_array[i].misaligned = 1'b0;
             end
 
             // indep behavior:
@@ -1226,10 +1236,133 @@ module stamofu_cq #(
 
     // deq logic
     always_comb begin
-        
-        // check for misaligned
-        if (entry_array[deq_ptr].misaligned) begin
 
+        // hardwired connections
+        stamofu_mq_info_grab_mq_index = entry_array[deq_ptr].mq_index;
+
+        wr_buf_enq_is_amo = entry_array[deq_ptr].is_amo;
+        wr_buf_enq_op = entry_array[deq_ptr].op;
+
+        fence_restart_notif_ROB_index = entry_array[deq_ptr].ROB_index;
+
+        // check for killed or exception deq
+        if (
+            entry_array[deq_ptr].valid
+            & (entry_array[deq_ptr].killed | entry_array[deq_ptr].exception_sent)
+        ) begin
+            // can perform deq
+            deq_perform = 1'b1;
+
+            // no misaligned clear
+            clear_misaligned_by_entry = '0;
+            
+            // clear mq entry if present
+            stamofu_mq_info_grab_clear_entry = entry_array[deq_ptr].misaligned;
+
+            // skip write buffer enq
+            wr_buf_enq_valid = 1'b0;
+            wr_buf_enq_is_mem = entry_array[deq_ptr].is_mem;
+            wr_buf_enq_PA_word = entry_array[deq_ptr].PA_word;
+            wr_buf_enq_byte_mask = entry_array[deq_ptr].byte_mask;
+            wr_buf_enq_data = entry_array[deq_ptr].data;
+
+            // no fence restart notif
+            fence_restart_notif_valid = 1'b0;
+
+            // clear aq entry if present
+            stamofu_aq_deq_valid = entry_array[deq_ptr].mem_aq | entry_array[deq_ptr].io_aq;
+        end
+        
+        // check for misaligned component
+            // guaranteed is_store, no fencing
+            // need write buffer ready
+        else if (
+            entry_array[deq_ptr].valid
+            & entry_array[deq_ptr].misaligned
+            & wr_buf_ready
+            & (~entry_array[deq_ptr].is_fence | entry_array[deq_ptr])
+        ) begin
+            // don't perform deq yet
+            deq_perform = 1'b0;
+
+            // clear misaligned
+            clear_misaligned_by_entry= '0;
+            clear_misaligned_by_entry[deq_ptr] = 1'b1;
+
+            // clear mq entry
+            stamofu_mq_info_grab_clear_entry = 1'b1;
+
+            // write buffer enq from stamofu_mq
+            wr_buf_enq_valid = 1'b1;
+            wr_buf_enq_is_mem = stamofu_mq_info_grab_is_mem;
+            wr_buf_enq_PA_word = stamofu_mq_info_grab_PA_word;
+            wr_buf_enq_byte_mask = stamofu_mq_info_grab_byte_mask;
+            wr_buf_enq_data = stamofu_mq_info_grab_data;
+
+            // no fence restart notif
+            fence_restart_notif_valid = 1'b0;
+            
+            // no clear aq
+            stamofu_aq_deq_valid = 1'b0;
+        end
+
+        // otherwise, aligned component
+            // need write buffer ready if store or amo
+            // need fence restart notif ready if SFENCE.VMA or FENCE.I
+            // need no mem present if mem_rl
+            // need no io present if io_rl
+        else if (
+            entry_array[deq_ptr].valid
+            & ~entry_array[deq_ptr].misaligned
+            & (
+                ~(entry_array[deq_ptr].is_store | entry_array[deq_ptr].is_amo)
+                | wr_buf_ready
+            )
+            & (
+                ~(
+                    entry_array[deq_ptr].is_fence
+                    & |entry_array[deq_ptr].op[1:0]
+                ) 
+                | fence_restart_notif_ready
+            )
+            & (~entry_array[deq_ptr].mem_rl | ~wr_buf_mem_present)
+            & (~entry_array[deq_ptr].io_rl | ~wr_buf_io_present)
+        ) begin
+            // can perform deq
+            deq_perform = 1'b1;
+
+            // no misaligned clear
+            clear_misaligned_by_entry = '0;
+
+            // no clear mq entry
+            stamofu_mq_info_grab_clear_entry = 1'b0;
+
+            // write buffer enq if store or amo from cq
+            wr_buf_enq_valid = entry_array[deq_ptr].is_store | entry_array[deq_ptr].is_amo;
+            wr_buf_enq_is_mem = entry_array[deq_ptr].is_mem;
+            wr_buf_enq_PA_word = entry_array[deq_ptr].PA_word;
+            wr_buf_enq_byte_mask = entry_array[deq_ptr].byte_mask;
+            wr_buf_enq_data = entry_array[deq_ptr].data;
+
+            // fence restart notif if SFENCE.VMA or FENCE.I
+            fence_restart_notif_valid = entry_array[deq_ptr].is_fence & |entry_array[deq_ptr].op[1:0];
+
+            // clear aq entry if present
+            stamofu_aq_deq_valid = entry_array[deq_ptr].mem_aq | entry_array[deq_ptr].io_aq;
+        end
+
+        // otherwise, stall
+        else begin
+            deq_perform = 1'b0;
+            clear_misaligned_by_entry= '0;
+            stamofu_mq_info_grab_clear_entry = 1'b0;
+            wr_buf_enq_valid = 1'b0;
+            wr_buf_enq_is_mem = entry_array[deq_ptr].is_mem;
+            wr_buf_enq_PA_word = entry_array[deq_ptr].PA_word;
+            wr_buf_enq_byte_mask = entry_array[deq_ptr].byte_mask;
+            wr_buf_enq_data = entry_array[deq_ptr].data;
+            fence_restart_notif_valid = 1'b0;
+            stamofu_aq_deq_valid = 1'b0;
         end
     end
 
@@ -1265,6 +1398,14 @@ module stamofu_cq #(
                 wraparound_mask <= {wraparound_mask[STAMOFU_CQ_ENTRIES-2], 1'b0};
             end
         end
+    end
+
+    always_comb begin
+        stamofu_active = 1'b0;
+        for (int i = 0; i < STAMOFU_CQ_ENTRIES; i++) begin
+            stamofu_active |= entry_array[i].valid;
+        end
+        stamofu_oldest_ROB_index = entry_array[deq_perform].ROB_index;
     end
 
     always_ff @ (posedge CLK, negedge nRST) begin
