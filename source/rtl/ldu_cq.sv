@@ -1225,7 +1225,7 @@ module ldu_cq #(
             //////////
             if (enq_perform) begin
                 entry_array[enq_ptr].valid <= 1'b1;
-                // entry_array[enq_ptr].misaligned
+                entry_array[enq_ptr].misaligned <= 1'b0;
                 // entry_array[enq_ptr].mq_index
                 entry_array[enq_ptr].killed <= ldu_cq_enq_killed;
                 entry_array[enq_ptr].dtlb_hit <= 1'b0;
@@ -1275,7 +1275,7 @@ module ldu_cq #(
             //////////
             if (deq_perform) begin
                 entry_array[deq_ptr].valid <= 1'b0;
-                // entry_array[deq_ptr].misaligned
+                entry_array[deq_ptr].misaligned <= 1'b0;
                 // entry_array[deq_ptr].mq_index
                 entry_array[deq_ptr].killed <= 1'b0;
                 entry_array[deq_ptr].dtlb_hit <= 1'b0;
