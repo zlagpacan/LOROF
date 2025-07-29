@@ -184,6 +184,11 @@ module ldu_cq #(
     output logic [LOG_STAMOFU_MQ_ENTRIES-1:0]   ldu_CAM_return_mq_index, // stamofu_mq index
     output logic                                ldu_CAM_return_forward,
 
+    // ldu_mq commit
+    output logic                            ldu_cq_commit_mq_valid,
+    output logic [LOG_LDU_MQ_ENTRIES-1:0]   ldu_cq_commit_mq_index,
+    input logic                             ldu_cq_commit_mq_has_forward,
+
     // store set CAM update
         // implied dep
     output logic                        ssu_CAM_update_valid,
@@ -1168,15 +1173,23 @@ module ldu_cq #(
     // deq
     assign deq_perform = entry_array[deq_ptr].valid & entry_array[deq_ptr].committed;
 
+    // ldu_mq commit
+    always_comb begin
+        ldu_cq_commit_mq_valid = deq_perform & entry_array[deq_ptr].misaligned;
+        ldu_cq_commit_mq_index = entry_array[deq_ptr].mq_index;
+    end
+
     // perform store set commit update on deq
-        // update already occurred if there was a forward
-        // essentially, only do decrement update
+        // only perform store set commit update if there was no forward
+            // including for ldu_mq entry
     always_comb begin
         ssu_commit_update_valid = 
-            deq_perform 
+            deq_perform
             & ~(
                 entry_array[deq_ptr].forward
-                | entry_array[deq_ptr].previous_nasty_forward);
+                | entry_array[deq_ptr].previous_nasty_forward)
+            & (~entry_array[deq_ptr].misaligned | ~ldu_cq_commit_mq_has_forward)
+        ;
         ssu_commit_update_mdp_info = entry_array[deq_ptr].mdp_info;
         ssu_commit_update_ROB_index = entry_array[deq_ptr].ROB_index;
     end

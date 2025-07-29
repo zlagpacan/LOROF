@@ -203,6 +203,11 @@ module ldu_cq_tb ();
 	logic DUT_ldu_CAM_return_is_mq, expected_ldu_CAM_return_is_mq;
 	logic [LOG_STAMOFU_MQ_ENTRIES-1:0] DUT_ldu_CAM_return_mq_index, expected_ldu_CAM_return_mq_index;
 
+	// ldu_mq commit
+	logic DUT_ldu_cq_commit_mq_valid, expected_ldu_cq_commit_mq_valid;
+	logic [LOG_LDU_MQ_ENTRIES-1:0] DUT_ldu_cq_commit_mq_index, expected_ldu_cq_commit_mq_index;
+	logic tb_ldu_cq_commit_mq_has_forward;
+
     // store set CAM update
         // implied dep
 	logic DUT_ssu_CAM_update_valid, expected_ssu_CAM_update_valid;
@@ -416,6 +421,11 @@ module ldu_cq_tb ();
 		.ldu_CAM_return_cq_index(DUT_ldu_CAM_return_cq_index),
 		.ldu_CAM_return_is_mq(DUT_ldu_CAM_return_is_mq),
 		.ldu_CAM_return_mq_index(DUT_ldu_CAM_return_mq_index),
+
+		// ldu_mq commit
+		.ldu_cq_commit_mq_valid(DUT_ldu_cq_commit_mq_valid),
+		.ldu_cq_commit_mq_index(DUT_ldu_cq_commit_mq_index),
+		.ldu_cq_commit_mq_has_forward(tb_ldu_cq_commit_mq_has_forward),
 
 	    // store set CAM update
 	        // implied dep
@@ -705,6 +715,20 @@ module ldu_cq_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_ldu_cq_commit_mq_valid !== DUT_ldu_cq_commit_mq_valid) begin
+			$display("TB ERROR: expected_ldu_cq_commit_mq_valid (%h) != DUT_ldu_cq_commit_mq_valid (%h)",
+				expected_ldu_cq_commit_mq_valid, DUT_ldu_cq_commit_mq_valid);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_ldu_cq_commit_mq_index !== DUT_ldu_cq_commit_mq_index) begin
+			$display("TB ERROR: expected_ldu_cq_commit_mq_index (%h) != DUT_ldu_cq_commit_mq_index (%h)",
+				expected_ldu_cq_commit_mq_index, DUT_ldu_cq_commit_mq_index);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_ssu_CAM_update_valid !== DUT_ssu_CAM_update_valid) begin
 			$display("TB ERROR: expected_ssu_CAM_update_valid (%h) != DUT_ssu_CAM_update_valid (%h)",
 				expected_ssu_CAM_update_valid, DUT_ssu_CAM_update_valid);
@@ -909,6 +933,8 @@ module ldu_cq_tb ();
 		tb_ldu_CAM_launch_is_mq = 1'b0;
 		tb_ldu_CAM_launch_mq_index = 0;
 	    // ldu CAM return
+		// ldu_mq commit
+		tb_ldu_cq_commit_mq_has_forward = 1'b0;
 	    // store set CAM update
 	    // store set commit update
 	    // acquire advertisement
@@ -984,6 +1010,9 @@ module ldu_cq_tb ();
 		expected_ldu_CAM_return_cq_index = 0;
 		expected_ldu_CAM_return_is_mq = 1'b0;
 		expected_ldu_CAM_return_mq_index = 0;
+		// ldu_mq commit
+		expected_ldu_cq_commit_mq_valid = 1'b0;
+		expected_ldu_cq_commit_mq_index = 'h0;
 	    // store set CAM update
 		expected_ssu_CAM_update_valid = 1'b0;
 		expected_ssu_CAM_update_ld_mdp_info = 8'b00000000;
@@ -1122,6 +1151,8 @@ module ldu_cq_tb ();
 		tb_ldu_CAM_launch_is_mq = 1'b0;
 		tb_ldu_CAM_launch_mq_index = 0;
 	    // ldu CAM return
+		// ldu_mq commit
+		tb_ldu_cq_commit_mq_has_forward = 1'b0;
 	    // store set CAM update
 	    // store set commit update
 	    // acquire advertisement
@@ -1197,6 +1228,9 @@ module ldu_cq_tb ();
 		expected_ldu_CAM_return_cq_index = 0;
 		expected_ldu_CAM_return_is_mq = 1'b0;
 		expected_ldu_CAM_return_mq_index = 0;
+		// ldu_mq commit
+		expected_ldu_cq_commit_mq_valid = 1'b0;
+		expected_ldu_cq_commit_mq_index = 'h0;
 	    // store set CAM update
 		expected_ssu_CAM_update_valid = 1'b0;
 		expected_ssu_CAM_update_ld_mdp_info = 8'b00000000;
@@ -1378,6 +1412,8 @@ module ldu_cq_tb ();
 		tb_ldu_CAM_launch_is_mq = 1'b0;
 		tb_ldu_CAM_launch_mq_index = 0;
 	    // ldu CAM return
+		// ldu_mq commit
+		tb_ldu_cq_commit_mq_has_forward = 1'b0;
 	    // store set CAM update
 	    // store set commit update
 	    // acquire advertisement
@@ -1453,6 +1489,9 @@ module ldu_cq_tb ();
 		expected_ldu_CAM_return_cq_index = 0;
 		expected_ldu_CAM_return_is_mq = 1'b0;
 		expected_ldu_CAM_return_mq_index = 0;
+		// ldu_mq commit
+		expected_ldu_cq_commit_mq_valid = 1'b0;
+		expected_ldu_cq_commit_mq_index = 'h0;
 	    // store set CAM update
 		expected_ssu_CAM_update_valid = 1'b0;
 		expected_ssu_CAM_update_ld_mdp_info = 8'b00000000;
@@ -1628,6 +1667,8 @@ module ldu_cq_tb ();
 		tb_ldu_CAM_launch_is_mq = 1'b0;
 		tb_ldu_CAM_launch_mq_index = 0;
 	    // ldu CAM return
+		// ldu_mq commit
+		tb_ldu_cq_commit_mq_has_forward = 1'b0;
 	    // store set CAM update
 	    // store set commit update
 	    // acquire advertisement
@@ -1703,6 +1744,9 @@ module ldu_cq_tb ();
 		expected_ldu_CAM_return_cq_index = 0;
 		expected_ldu_CAM_return_is_mq = 1'b0;
 		expected_ldu_CAM_return_mq_index = 0;
+		// ldu_mq commit
+		expected_ldu_cq_commit_mq_valid = 1'b0;
+		expected_ldu_cq_commit_mq_index = 'h0;
 	    // store set CAM update
 		expected_ssu_CAM_update_valid = 1'b0;
 		expected_ssu_CAM_update_ld_mdp_info = 8'b00000000;
@@ -1878,6 +1922,8 @@ module ldu_cq_tb ();
 		tb_ldu_CAM_launch_is_mq = 1'b0;
 		tb_ldu_CAM_launch_mq_index = 0;
 	    // ldu CAM return
+		// ldu_mq commit
+		tb_ldu_cq_commit_mq_has_forward = 1'b0;
 	    // store set CAM update
 	    // store set commit update
 	    // acquire advertisement
@@ -1953,6 +1999,9 @@ module ldu_cq_tb ();
 		expected_ldu_CAM_return_cq_index = 0;
 		expected_ldu_CAM_return_is_mq = 1'b0;
 		expected_ldu_CAM_return_mq_index = 0;
+		// ldu_mq commit
+		expected_ldu_cq_commit_mq_valid = 1'b0;
+		expected_ldu_cq_commit_mq_index = 'h0;
 	    // store set CAM update
 		expected_ssu_CAM_update_valid = 1'b0;
 		expected_ssu_CAM_update_ld_mdp_info = 8'b00000000;
@@ -2128,6 +2177,8 @@ module ldu_cq_tb ();
 		tb_ldu_CAM_launch_is_mq = 1'b0;
 		tb_ldu_CAM_launch_mq_index = 0;
 	    // ldu CAM return
+		// ldu_mq commit
+		tb_ldu_cq_commit_mq_has_forward = 1'b0;
 	    // store set CAM update
 	    // store set commit update
 	    // acquire advertisement
@@ -2203,6 +2254,9 @@ module ldu_cq_tb ();
 		expected_ldu_CAM_return_cq_index = 0;
 		expected_ldu_CAM_return_is_mq = 1'b0;
 		expected_ldu_CAM_return_mq_index = 0;
+		// ldu_mq commit
+		expected_ldu_cq_commit_mq_valid = 1'b0;
+		expected_ldu_cq_commit_mq_index = 'h0;
 	    // store set CAM update
 		expected_ssu_CAM_update_valid = 1'b0;
 		expected_ssu_CAM_update_ld_mdp_info = 8'b00000000;
@@ -2378,6 +2432,8 @@ module ldu_cq_tb ();
 		tb_ldu_CAM_launch_is_mq = 1'b0;
 		tb_ldu_CAM_launch_mq_index = 0;
 	    // ldu CAM return
+		// ldu_mq commit
+		tb_ldu_cq_commit_mq_has_forward = 1'b0;
 	    // store set CAM update
 	    // store set commit update
 	    // acquire advertisement
@@ -2453,6 +2509,9 @@ module ldu_cq_tb ();
 		expected_ldu_CAM_return_cq_index = 0;
 		expected_ldu_CAM_return_is_mq = 1'b0;
 		expected_ldu_CAM_return_mq_index = 0;
+		// ldu_mq commit
+		expected_ldu_cq_commit_mq_valid = 1'b0;
+		expected_ldu_cq_commit_mq_index = 'h0;
 	    // store set CAM update
 		expected_ssu_CAM_update_valid = 1'b0;
 		expected_ssu_CAM_update_ld_mdp_info = 8'b00000000;

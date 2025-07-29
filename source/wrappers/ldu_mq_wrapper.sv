@@ -146,6 +146,11 @@ module ldu_mq_wrapper (
     // ldu CAM return
 	output logic last_ldu_CAM_return_forward,
 
+    // ldu_cq commit
+	input logic next_ldu_cq_commit_mq_valid,
+	input logic [LOG_LDU_MQ_ENTRIES-1:0] next_ldu_cq_commit_mq_index,
+	output logic last_ldu_cq_commit_mq_has_forward,
+
     // store set CAM update
         // implied dep
 	output logic last_ssu_CAM_update_valid,
@@ -153,12 +158,6 @@ module ldu_mq_wrapper (
 	output logic [LOG_ROB_ENTRIES-1:0] last_ssu_CAM_update_ld_ROB_index,
 	output logic [MDPT_INFO_WIDTH-1:0] last_ssu_CAM_update_stamo_mdp_info,
 	output logic [LOG_ROB_ENTRIES-1:0] last_ssu_CAM_update_stamo_ROB_index,
-
-    // store set commit update
-        // implied no dep
-	output logic last_ssu_commit_update_valid,
-	output logic [MDPT_INFO_WIDTH-1:0] last_ssu_commit_update_mdp_info,
-	output logic [LOG_ROB_ENTRIES-1:0] last_ssu_commit_update_ROB_index,
 
     // acquire advertisement
 	input logic next_stamofu_aq_mem_aq_active,
@@ -169,10 +168,6 @@ module ldu_mq_wrapper (
     // oldest stamofu advertisement
 	input logic next_stamofu_active,
 	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_oldest_ROB_index,
-
-    // ROB commit
-	input logic [LOG_ROB_ENTRIES-3:0] next_rob_commit_upper_index,
-	input logic [3:0] next_rob_commit_lower_index_valid_mask,
 
     // ROB kill
 	input logic next_rob_kill_valid,
@@ -307,6 +302,11 @@ module ldu_mq_wrapper (
     // ldu CAM return
 	logic ldu_CAM_return_forward;
 
+    // ldu_cq commit
+	logic ldu_cq_commit_mq_valid;
+	logic [LOG_LDU_MQ_ENTRIES-1:0] ldu_cq_commit_mq_index;
+	logic ldu_cq_commit_mq_has_forward;
+
     // store set CAM update
         // implied dep
 	logic ssu_CAM_update_valid;
@@ -314,12 +314,6 @@ module ldu_mq_wrapper (
 	logic [LOG_ROB_ENTRIES-1:0] ssu_CAM_update_ld_ROB_index;
 	logic [MDPT_INFO_WIDTH-1:0] ssu_CAM_update_stamo_mdp_info;
 	logic [LOG_ROB_ENTRIES-1:0] ssu_CAM_update_stamo_ROB_index;
-
-    // store set commit update
-        // implied no dep
-	logic ssu_commit_update_valid;
-	logic [MDPT_INFO_WIDTH-1:0] ssu_commit_update_mdp_info;
-	logic [LOG_ROB_ENTRIES-1:0] ssu_commit_update_ROB_index;
 
     // acquire advertisement
 	logic stamofu_aq_mem_aq_active;
@@ -330,10 +324,6 @@ module ldu_mq_wrapper (
     // oldest stamofu advertisement
 	logic stamofu_active;
 	logic [LOG_ROB_ENTRIES-1:0] stamofu_oldest_ROB_index;
-
-    // ROB commit
-	logic [LOG_ROB_ENTRIES-3:0] rob_commit_upper_index;
-	logic [3:0] rob_commit_lower_index_valid_mask;
 
     // ROB kill
 	logic rob_kill_valid;
@@ -478,6 +468,11 @@ module ldu_mq_wrapper (
 		    // ldu CAM return
 			last_ldu_CAM_return_forward <= '0;
 
+		    // ldu_cq commit
+			ldu_cq_commit_mq_valid <= '0;
+			ldu_cq_commit_mq_index <= '0;
+			last_ldu_cq_commit_mq_has_forward <= '0;
+
 		    // store set CAM update
 		        // implied dep
 			last_ssu_CAM_update_valid <= '0;
@@ -485,12 +480,6 @@ module ldu_mq_wrapper (
 			last_ssu_CAM_update_ld_ROB_index <= '0;
 			last_ssu_CAM_update_stamo_mdp_info <= '0;
 			last_ssu_CAM_update_stamo_ROB_index <= '0;
-
-		    // store set commit update
-		        // implied no dep
-			last_ssu_commit_update_valid <= '0;
-			last_ssu_commit_update_mdp_info <= '0;
-			last_ssu_commit_update_ROB_index <= '0;
 
 		    // acquire advertisement
 			stamofu_aq_mem_aq_active <= '0;
@@ -501,10 +490,6 @@ module ldu_mq_wrapper (
 		    // oldest stamofu advertisement
 			stamofu_active <= '0;
 			stamofu_oldest_ROB_index <= '0;
-
-		    // ROB commit
-			rob_commit_upper_index <= '0;
-			rob_commit_lower_index_valid_mask <= '0;
 
 		    // ROB kill
 			rob_kill_valid <= '0;
@@ -637,6 +622,11 @@ module ldu_mq_wrapper (
 		    // ldu CAM return
 			last_ldu_CAM_return_forward <= ldu_CAM_return_forward;
 
+		    // ldu_cq commit
+			ldu_cq_commit_mq_valid <= next_ldu_cq_commit_mq_valid;
+			ldu_cq_commit_mq_index <= next_ldu_cq_commit_mq_index;
+			last_ldu_cq_commit_mq_has_forward <= ldu_cq_commit_mq_has_forward;
+
 		    // store set CAM update
 		        // implied dep
 			last_ssu_CAM_update_valid <= ssu_CAM_update_valid;
@@ -644,12 +634,6 @@ module ldu_mq_wrapper (
 			last_ssu_CAM_update_ld_ROB_index <= ssu_CAM_update_ld_ROB_index;
 			last_ssu_CAM_update_stamo_mdp_info <= ssu_CAM_update_stamo_mdp_info;
 			last_ssu_CAM_update_stamo_ROB_index <= ssu_CAM_update_stamo_ROB_index;
-
-		    // store set commit update
-		        // implied no dep
-			last_ssu_commit_update_valid <= ssu_commit_update_valid;
-			last_ssu_commit_update_mdp_info <= ssu_commit_update_mdp_info;
-			last_ssu_commit_update_ROB_index <= ssu_commit_update_ROB_index;
 
 		    // acquire advertisement
 			stamofu_aq_mem_aq_active <= next_stamofu_aq_mem_aq_active;
@@ -660,10 +644,6 @@ module ldu_mq_wrapper (
 		    // oldest stamofu advertisement
 			stamofu_active <= next_stamofu_active;
 			stamofu_oldest_ROB_index <= next_stamofu_oldest_ROB_index;
-
-		    // ROB commit
-			rob_commit_upper_index <= next_rob_commit_upper_index;
-			rob_commit_lower_index_valid_mask <= next_rob_commit_lower_index_valid_mask;
 
 		    // ROB kill
 			rob_kill_valid <= next_rob_kill_valid;

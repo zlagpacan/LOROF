@@ -143,6 +143,11 @@ module ldu_mq #(
     // ldu CAM return
     output logic                                ldu_CAM_return_forward, // other info comes from ldu_cq
 
+    // ldu_mq commit
+    input logic                             ldu_cq_commit_mq_valid,
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]    ldu_cq_commit_mq_index,
+    output logic                            ldu_cq_commit_mq_has_forward,
+
     // store set CAM update
         // implied dep
     output logic                        ssu_CAM_update_valid,
@@ -150,12 +155,6 @@ module ldu_mq #(
     output logic [LOG_ROB_ENTRIES-1:0]  ssu_CAM_update_ld_ROB_index,
     output logic [MDPT_INFO_WIDTH-1:0]  ssu_CAM_update_stamo_mdp_info,
     output logic [LOG_ROB_ENTRIES-1:0]  ssu_CAM_update_stamo_ROB_index,
-
-    // store set commit update
-        // implied no dep
-    output logic                        ssu_commit_update_valid,
-    output logic [MDPT_INFO_WIDTH-1:0]  ssu_commit_update_mdp_info,
-    output logic [LOG_ROB_ENTRIES-1:0]  ssu_commit_update_ROB_index,
 
     // acquire advertisement
     input logic                         stamofu_aq_mem_aq_active,
@@ -166,10 +165,6 @@ module ldu_mq #(
     // oldest stamofu advertisement
     input logic                         stamofu_active,
     input logic [LOG_ROB_ENTRIES-1:0]   stamofu_oldest_ROB_index,
-
-    // ROB commit
-    input logic [LOG_ROB_ENTRIES-3:0]   rob_commit_upper_index,
-    input logic [3:0]                   rob_commit_lower_index_valid_mask,
 
     // ROB kill
     input logic                         rob_kill_valid,
@@ -210,7 +205,6 @@ module ldu_mq #(
         logic                               is_mem;
         logic [MDPT_INFO_WIDTH-1:0]         mdp_info;
         logic [LOG_ROB_ENTRIES-1:0]         ROB_index;
-        logic [3:0]                         lower_ROB_index_one_hot;
         logic [PA_WIDTH-3:0]                PA_word;
         logic [3:0]                         byte_mask;
         logic                               bank;
@@ -233,6 +227,7 @@ module ldu_mq #(
     logic [LDU_MQ_ENTRIES-1:0] dcache_miss_resp_valid_by_entry;
     logic [LDU_MQ_ENTRIES-1:0] stamofu_CAM_return_bank0_valid_by_entry;
     logic [LDU_MQ_ENTRIES-1:0] stamofu_CAM_return_bank1_valid_by_entry;
+    logic [LDU_MQ_ENTRIES-1:0] commit_valid_by_entry;
     
     logic [LDU_MQ_ENTRIES-1:0] second_try_req_by_entry;
     logic [LDU_MQ_ENTRIES-1:0] data_try_req_by_entry;
@@ -279,6 +274,7 @@ module ldu_mq #(
         dcache_miss_resp_valid_by_entry = '0;
         stamofu_CAM_return_bank0_valid_by_entry = '0;
         stamofu_CAM_return_bank1_valid_by_entry = '0;
+        commit_valid_by_entry = '0;
         
         ldu_mq_info_ret_bank0_valid_by_entry[ldu_mq_info_ret_bank0_mq_index] = ldu_mq_info_ret_bank0_valid;
         ldu_mq_info_ret_bank1_valid_by_entry[ldu_mq_info_ret_bank1_mq_index] = ldu_mq_info_ret_bank1_valid;
@@ -287,6 +283,7 @@ module ldu_mq #(
         dcache_miss_resp_valid_by_entry[dcache_miss_resp_mq_index] = dcache_miss_resp_valid & dcache_miss_resp_is_mq;
         stamofu_CAM_return_bank0_valid_by_entry[stamofu_CAM_return_bank0_mq_index] = stamofu_CAM_return_bank0_valid & stamofu_CAM_return_bank0_is_mq;
         stamofu_CAM_return_bank1_valid_by_entry[stamofu_CAM_return_bank1_mq_index] = stamofu_CAM_return_bank1_valid & stamofu_CAM_return_bank1_is_mq;
+        commit_valid_by_entry[ldu_cq_commit_mq_index] = ldu_cq_commit_mq_valid;
     end
 
     // request PE's
@@ -417,12 +414,6 @@ module ldu_mq #(
                 next_entry_array[i].is_mem = ldu_mq_info_ret_bank0_is_mem;
                 // next_entry_array[i].mdp_info = 
                 next_entry_array[i].ROB_index = ldu_mq_info_ret_bank0_ROB_index;
-                case (ldu_mq_info_ret_bank0_ROB_index[1:0])
-                    2'h0:   next_entry_array[i].lower_ROB_index_one_hot = 4'b0001;
-                    2'h1:   next_entry_array[i].lower_ROB_index_one_hot = 4'b0010;
-                    2'h2:   next_entry_array[i].lower_ROB_index_one_hot = 4'b0100;
-                    2'h3:   next_entry_array[i].lower_ROB_index_one_hot = 4'b1000;
-                endcase
                 next_entry_array[i].PA_word = ldu_mq_info_ret_bank0_PA_word;
                 next_entry_array[i].byte_mask = ldu_mq_info_ret_bank0_byte_mask;
                 next_entry_array[i].bank = ldu_mq_info_ret_bank0_PA_word[DCACHE_WORD_ADDR_BANK_BIT];
@@ -457,12 +448,6 @@ module ldu_mq #(
                 next_entry_array[i].is_mem = ldu_mq_info_ret_bank1_is_mem;
                 // next_entry_array[i].mdp_info = 
                 next_entry_array[i].ROB_index = ldu_mq_info_ret_bank1_ROB_index;
-                case (ldu_mq_info_ret_bank1_ROB_index[1:0])
-                    2'h0:   next_entry_array[i].lower_ROB_index_one_hot = 4'b0001;
-                    2'h1:   next_entry_array[i].lower_ROB_index_one_hot = 4'b0010;
-                    2'h2:   next_entry_array[i].lower_ROB_index_one_hot = 4'b0100;
-                    2'h3:   next_entry_array[i].lower_ROB_index_one_hot = 4'b1000;
-                endcase
                 next_entry_array[i].PA_word = ldu_mq_info_ret_bank1_PA_word;
                 next_entry_array[i].byte_mask = ldu_mq_info_ret_bank1_byte_mask;
                 next_entry_array[i].bank = ldu_mq_info_ret_bank1_PA_word[DCACHE_WORD_ADDR_BANK_BIT];
@@ -676,12 +661,8 @@ module ldu_mq #(
                 end
             end
 
-            // ROB commit (indep)
-                // check within commit mask
-            if (
-                rob_commit_upper_index == entry_array[i].ROB_index[LOG_ROB_ENTRIES-1:2]
-                & |(rob_commit_lower_index_valid_mask & entry_array[i].lower_ROB_index_one_hot)
-            ) begin
+            // mq commit (indep)
+            if (commit_valid_by_entry[i]) begin
                 next_entry_array[i].committed = 1'b1;
             end
 
@@ -845,18 +826,10 @@ module ldu_mq #(
     // deq
     assign deq_perform = entry_array[deq_ptr].valid & entry_array[deq_ptr].committed;
 
-    // perform store set commit update on deq
-        // update already occurred if there was a forward
-        // essentially, only do decrement update
-    always_comb begin
-        ssu_commit_update_valid = 
-            deq_perform 
-            & ~(
-                entry_array[deq_ptr].forward
-                | entry_array[deq_ptr].previous_nasty_forward);
-        ssu_commit_update_mdp_info = entry_array[deq_ptr].mdp_info;
-        ssu_commit_update_ROB_index = entry_array[deq_ptr].ROB_index;
-    end
+    // ldu commit
+    assign ldu_cq_commit_mq_has_forward = 
+        entry_array[ldu_cq_commit_mq_index].forward
+        | entry_array[ldu_cq_commit_mq_index].previous_nasty_forward;
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
@@ -897,7 +870,6 @@ module ldu_mq #(
                 entry_array[enq_ptr].is_mem <= 1'b0;
                 // entry_array[enq_ptr].mdp_info <= 
                 // entry_array[enq_ptr].ROB_index <= 
-                // entry_array[enq_ptr].lower_ROB_index_one_hot <= 
                 // entry_array[enq_ptr].PA_word <= 
                 // entry_array[enq_ptr].byte_mask <= 
                 // entry_array[enq_ptr].bank <= 
@@ -936,7 +908,6 @@ module ldu_mq #(
                 entry_array[deq_ptr].is_mem <= 1'b0;
                 // entry_array[deq_ptr].mdp_info <= 
                 // entry_array[deq_ptr].ROB_index <= 
-                // entry_array[deq_ptr].lower_ROB_index_one_hot <= 
                 // entry_array[deq_ptr].PA_word <= 
                 // entry_array[deq_ptr].byte_mask <= 
                 // entry_array[deq_ptr].bank <= 

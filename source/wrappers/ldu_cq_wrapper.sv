@@ -187,6 +187,11 @@ module ldu_cq_wrapper (
 	output logic [LOG_STAMOFU_MQ_ENTRIES-1:0] last_ldu_CAM_return_mq_index,
 	output logic last_ldu_CAM_return_forward,
 
+    // ldu_cq commit
+	output logic last_ldu_cq_commit_mq_valid,
+	output logic [LOG_LDU_MQ_ENTRIES-1:0] last_ldu_cq_commit_mq_index,
+	input logic next_ldu_cq_commit_mq_has_forward,
+
     // store set CAM update
         // implied dep
 	output logic last_ssu_CAM_update_valid,
@@ -392,6 +397,11 @@ module ldu_cq_wrapper (
 	logic ldu_CAM_return_is_mq;
 	logic [LOG_STAMOFU_MQ_ENTRIES-1:0] ldu_CAM_return_mq_index;
 	logic ldu_CAM_return_forward;
+
+    // ldu_cq commit
+	logic ldu_cq_commit_mq_valid;
+	logic [LOG_LDU_MQ_ENTRIES-1:0] ldu_cq_commit_mq_index;
+	logic ldu_cq_commit_mq_has_forward;
 
     // store set CAM update
         // implied dep
@@ -609,6 +619,11 @@ module ldu_cq_wrapper (
 			last_ldu_CAM_return_mq_index <= '0;
 			last_ldu_CAM_return_forward <= '0;
 
+		    // ldu_cq commit
+			last_ldu_cq_commit_mq_valid <= '0;
+			last_ldu_cq_commit_mq_index <= '0;
+			ldu_cq_commit_mq_has_forward <= '0;
+
 		    // store set CAM update
 		        // implied dep
 			last_ssu_CAM_update_valid <= '0;
@@ -812,6 +827,11 @@ module ldu_cq_wrapper (
 			last_ldu_CAM_return_is_mq <= ldu_CAM_return_is_mq;
 			last_ldu_CAM_return_mq_index <= ldu_CAM_return_mq_index;
 			last_ldu_CAM_return_forward <= ldu_CAM_return_forward;
+
+		    // ldu_cq commit
+			last_ldu_cq_commit_mq_valid <= ldu_cq_commit_mq_valid;
+			last_ldu_cq_commit_mq_index <= ldu_cq_commit_mq_index;
+			ldu_cq_commit_mq_has_forward <= next_ldu_cq_commit_mq_has_forward;
 
 		    // store set CAM update
 		        // implied dep

@@ -162,6 +162,11 @@ module ldu_mq_tb ();
     // ldu CAM return
 	logic DUT_ldu_CAM_return_forward, expected_ldu_CAM_return_forward;
 
+    // ldu_mq commit
+	logic tb_ldu_cq_commit_mq_valid;
+	logic [LOG_LDU_MQ_ENTRIES-1:0] tb_ldu_cq_commit_mq_index;
+	logic DUT_ldu_cq_commit_mq_has_forward, expected_ldu_cq_commit_mq_has_forward;
+
     // store set CAM update
         // implied dep
         // prioritize this one from mq over cq's
@@ -170,13 +175,6 @@ module ldu_mq_tb ();
 	logic [LOG_ROB_ENTRIES-1:0] DUT_ssu_CAM_update_ld_ROB_index, expected_ssu_CAM_update_ld_ROB_index;
 	logic [MDPT_INFO_WIDTH-1:0] DUT_ssu_CAM_update_stamo_mdp_info, expected_ssu_CAM_update_stamo_mdp_info;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_ssu_CAM_update_stamo_ROB_index, expected_ssu_CAM_update_stamo_ROB_index;
-
-    // store set commit update
-        // implied no dep
-        // prioritize this one from mq over cq's
-	logic DUT_ssu_commit_update_valid, expected_ssu_commit_update_valid;
-	logic [MDPT_INFO_WIDTH-1:0] DUT_ssu_commit_update_mdp_info, expected_ssu_commit_update_mdp_info;
-	logic [LOG_ROB_ENTRIES-1:0] DUT_ssu_commit_update_ROB_index, expected_ssu_commit_update_ROB_index;
 
     // acquire advertisement
 	logic tb_stamofu_aq_mem_aq_active;
@@ -187,10 +185,6 @@ module ldu_mq_tb ();
     // oldest stamofu advertisement
 	logic tb_stamofu_active;
 	logic [LOG_ROB_ENTRIES-1:0] tb_stamofu_oldest_ROB_index;
-
-    // ROB commit
-	logic [LOG_ROB_ENTRIES-3:0] tb_rob_commit_upper_index;
-	logic [3:0] tb_rob_commit_lower_index_valid_mask;
 
     // ROB kill
 	logic tb_rob_kill_valid;
@@ -296,8 +290,8 @@ module ldu_mq_tb ();
 
 	    // stamofu CAM return
 		.stamofu_CAM_return_bank0_valid(tb_stamofu_CAM_return_bank0_valid),
-		.stamofu_CAM_return_bank0_is_mq(tb_stamofu_CAM_return_bank0_is_mq),
 		.stamofu_CAM_return_bank0_cq_index(tb_stamofu_CAM_return_bank0_cq_index),
+		.stamofu_CAM_return_bank0_is_mq(tb_stamofu_CAM_return_bank0_is_mq),
 		.stamofu_CAM_return_bank0_mq_index(tb_stamofu_CAM_return_bank0_mq_index),
 		.stamofu_CAM_return_bank0_stall(tb_stamofu_CAM_return_bank0_stall),
 		.stamofu_CAM_return_bank0_stall_count(tb_stamofu_CAM_return_bank0_stall_count),
@@ -307,8 +301,8 @@ module ldu_mq_tb ();
 		.stamofu_CAM_return_bank0_forward_data(tb_stamofu_CAM_return_bank0_forward_data),
 
 		.stamofu_CAM_return_bank1_valid(tb_stamofu_CAM_return_bank1_valid),
-		.stamofu_CAM_return_bank1_is_mq(tb_stamofu_CAM_return_bank1_is_mq),
 		.stamofu_CAM_return_bank1_cq_index(tb_stamofu_CAM_return_bank1_cq_index),
+		.stamofu_CAM_return_bank1_is_mq(tb_stamofu_CAM_return_bank1_is_mq),
 		.stamofu_CAM_return_bank1_mq_index(tb_stamofu_CAM_return_bank1_mq_index),
 		.stamofu_CAM_return_bank1_stall(tb_stamofu_CAM_return_bank1_stall),
 		.stamofu_CAM_return_bank1_stall_count(tb_stamofu_CAM_return_bank1_stall_count),
@@ -332,21 +326,18 @@ module ldu_mq_tb ();
 	    // ldu CAM return
 		.ldu_CAM_return_forward(DUT_ldu_CAM_return_forward),
 
+	    // ldu_mq commit
+		.ldu_cq_commit_mq_valid(tb_ldu_cq_commit_mq_valid),
+		.ldu_cq_commit_mq_index(tb_ldu_cq_commit_mq_index),
+		.ldu_cq_commit_mq_has_forward(DUT_ldu_cq_commit_mq_has_forward),
+
 	    // store set CAM update
 	        // implied dep
-	        // prioritize this one from mq over cq's
 		.ssu_CAM_update_valid(DUT_ssu_CAM_update_valid),
 		.ssu_CAM_update_ld_mdp_info(DUT_ssu_CAM_update_ld_mdp_info),
 		.ssu_CAM_update_ld_ROB_index(DUT_ssu_CAM_update_ld_ROB_index),
 		.ssu_CAM_update_stamo_mdp_info(DUT_ssu_CAM_update_stamo_mdp_info),
 		.ssu_CAM_update_stamo_ROB_index(DUT_ssu_CAM_update_stamo_ROB_index),
-
-	    // store set commit update
-	        // implied no dep
-	        // prioritize this one from mq over cq's
-		.ssu_commit_update_valid(DUT_ssu_commit_update_valid),
-		.ssu_commit_update_mdp_info(DUT_ssu_commit_update_mdp_info),
-		.ssu_commit_update_ROB_index(DUT_ssu_commit_update_ROB_index),
 
 	    // acquire advertisement
 		.stamofu_aq_mem_aq_active(tb_stamofu_aq_mem_aq_active),
@@ -357,10 +348,6 @@ module ldu_mq_tb ();
 	    // oldest stamofu advertisement
 		.stamofu_active(tb_stamofu_active),
 		.stamofu_oldest_ROB_index(tb_stamofu_oldest_ROB_index),
-
-	    // ROB commit
-		.rob_commit_upper_index(tb_rob_commit_upper_index),
-		.rob_commit_lower_index_valid_mask(tb_rob_commit_lower_index_valid_mask),
 
 	    // ROB kill
 		.rob_kill_valid(tb_rob_kill_valid),
@@ -513,6 +500,13 @@ module ldu_mq_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_ldu_cq_commit_mq_has_forward !== DUT_ldu_cq_commit_mq_has_forward) begin
+			$display("TB ERROR: expected_ldu_cq_commit_mq_has_forward (%h) != DUT_ldu_cq_commit_mq_has_forward (%h)",
+				expected_ldu_cq_commit_mq_has_forward, DUT_ldu_cq_commit_mq_has_forward);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_ssu_CAM_update_valid !== DUT_ssu_CAM_update_valid) begin
 			$display("TB ERROR: expected_ssu_CAM_update_valid (%h) != DUT_ssu_CAM_update_valid (%h)",
 				expected_ssu_CAM_update_valid, DUT_ssu_CAM_update_valid);
@@ -544,27 +538,6 @@ module ldu_mq_tb ();
 		if (expected_ssu_CAM_update_stamo_ROB_index !== DUT_ssu_CAM_update_stamo_ROB_index) begin
 			$display("TB ERROR: expected_ssu_CAM_update_stamo_ROB_index (%h) != DUT_ssu_CAM_update_stamo_ROB_index (%h)",
 				expected_ssu_CAM_update_stamo_ROB_index, DUT_ssu_CAM_update_stamo_ROB_index);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_ssu_commit_update_valid !== DUT_ssu_commit_update_valid) begin
-			$display("TB ERROR: expected_ssu_commit_update_valid (%h) != DUT_ssu_commit_update_valid (%h)",
-				expected_ssu_commit_update_valid, DUT_ssu_commit_update_valid);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_ssu_commit_update_mdp_info !== DUT_ssu_commit_update_mdp_info) begin
-			$display("TB ERROR: expected_ssu_commit_update_mdp_info (%h) != DUT_ssu_commit_update_mdp_info (%h)",
-				expected_ssu_commit_update_mdp_info, DUT_ssu_commit_update_mdp_info);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_ssu_commit_update_ROB_index !== DUT_ssu_commit_update_ROB_index) begin
-			$display("TB ERROR: expected_ssu_commit_update_ROB_index (%h) != DUT_ssu_commit_update_ROB_index (%h)",
-				expected_ssu_commit_update_ROB_index, DUT_ssu_commit_update_ROB_index);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -679,8 +652,10 @@ module ldu_mq_tb ();
 		tb_ldu_CAM_launch_is_mq = 1'b0;
 		tb_ldu_CAM_launch_mq_index = 2'h0;
 	    // ldu CAM return
+	    // ldu_mq commit
+		tb_ldu_cq_commit_mq_valid = 1'b0;
+		tb_ldu_cq_commit_mq_index = 'h0;
 	    // store set CAM update
-	    // store set commit update
 	    // acquire advertisement
 		tb_stamofu_aq_mem_aq_active = 1'b0;
 		tb_stamofu_aq_mem_aq_oldest_abs_ROB_index = 7'h0;
@@ -689,9 +664,6 @@ module ldu_mq_tb ();
 	    // oldest stamofu advertisement
 		tb_stamofu_active = 1'b0;
 		tb_stamofu_oldest_ROB_index = 7'h0;
-	    // ROB commit
-		tb_rob_commit_upper_index = 5'h0;
-		tb_rob_commit_lower_index_valid_mask = 4'b0000;
 	    // ROB kill
 		tb_rob_kill_valid = 1'b0;
 		tb_rob_kill_abs_head_index = 7'h0;
@@ -733,19 +705,16 @@ module ldu_mq_tb ();
 	    // ldu CAM launch
 	    // ldu CAM return
 		expected_ldu_CAM_return_forward = 1'b0;
+	    // ldu_mq commit
+		expected_ldu_cq_commit_mq_has_forward = 1'b0;
 	    // store set CAM update
 		expected_ssu_CAM_update_valid = 1'b0;
 		expected_ssu_CAM_update_ld_mdp_info = 8'b00000000;
 		expected_ssu_CAM_update_ld_ROB_index = 7'h0;
 		expected_ssu_CAM_update_stamo_mdp_info = 8'b00000000;
 		expected_ssu_CAM_update_stamo_ROB_index = 7'h0;
-	    // store set commit update
-		expected_ssu_commit_update_valid = 1'b0;
-		expected_ssu_commit_update_mdp_info = 8'b00000000;
-		expected_ssu_commit_update_ROB_index = 7'h0;
 	    // acquire advertisement
 	    // oldest stamofu advertisement
-	    // ROB commit
 	    // ROB kill
 
 		check_outputs();
@@ -844,8 +813,10 @@ module ldu_mq_tb ();
 		tb_ldu_CAM_launch_is_mq = 1'b0;
 		tb_ldu_CAM_launch_mq_index = 2'h0;
 	    // ldu CAM return
+	    // ldu_mq commit
+		tb_ldu_cq_commit_mq_valid = 1'b0;
+		tb_ldu_cq_commit_mq_index = 'h0;
 	    // store set CAM update
-	    // store set commit update
 	    // acquire advertisement
 		tb_stamofu_aq_mem_aq_active = 1'b0;
 		tb_stamofu_aq_mem_aq_oldest_abs_ROB_index = 7'h0;
@@ -854,9 +825,6 @@ module ldu_mq_tb ();
 	    // oldest stamofu advertisement
 		tb_stamofu_active = 1'b0;
 		tb_stamofu_oldest_ROB_index = 7'h0;
-	    // ROB commit
-		tb_rob_commit_upper_index = 5'h0;
-		tb_rob_commit_lower_index_valid_mask = 4'b0000;
 	    // ROB kill
 		tb_rob_kill_valid = 1'b0;
 		tb_rob_kill_abs_head_index = 7'h0;
@@ -898,19 +866,16 @@ module ldu_mq_tb ();
 	    // ldu CAM launch
 	    // ldu CAM return
 		expected_ldu_CAM_return_forward = 1'b0;
+	    // ldu_mq commit
+		expected_ldu_cq_commit_mq_has_forward = 1'b0;
 	    // store set CAM update
 		expected_ssu_CAM_update_valid = 1'b0;
 		expected_ssu_CAM_update_ld_mdp_info = 8'b00000000;
 		expected_ssu_CAM_update_ld_ROB_index = 7'h0;
 		expected_ssu_CAM_update_stamo_mdp_info = 8'b00000000;
 		expected_ssu_CAM_update_stamo_ROB_index = 7'h0;
-	    // store set commit update
-		expected_ssu_commit_update_valid = 1'b0;
-		expected_ssu_commit_update_mdp_info = 8'b00000000;
-		expected_ssu_commit_update_ROB_index = 7'h0;
 	    // acquire advertisement
 	    // oldest stamofu advertisement
-	    // ROB commit
 	    // ROB kill
 
 		check_outputs();
@@ -1017,8 +982,10 @@ module ldu_mq_tb ();
 		tb_ldu_CAM_launch_is_mq = 1'b0;
 		tb_ldu_CAM_launch_mq_index = 2'h0;
 	    // ldu CAM return
+	    // ldu_mq commit
+		tb_ldu_cq_commit_mq_valid = 1'b0;
+		tb_ldu_cq_commit_mq_index = 'h0;
 	    // store set CAM update
-	    // store set commit update
 	    // acquire advertisement
 		tb_stamofu_aq_mem_aq_active = 1'b0;
 		tb_stamofu_aq_mem_aq_oldest_abs_ROB_index = 7'h0;
@@ -1027,9 +994,6 @@ module ldu_mq_tb ();
 	    // oldest stamofu advertisement
 		tb_stamofu_active = 1'b0;
 		tb_stamofu_oldest_ROB_index = 7'h0;
-	    // ROB commit
-		tb_rob_commit_upper_index = 5'h0;
-		tb_rob_commit_lower_index_valid_mask = 4'b0000;
 	    // ROB kill
 		tb_rob_kill_valid = 1'b0;
 		tb_rob_kill_abs_head_index = 7'h0;
@@ -1071,19 +1035,16 @@ module ldu_mq_tb ();
 	    // ldu CAM launch
 	    // ldu CAM return
 		expected_ldu_CAM_return_forward = 1'b0;
+	    // ldu_mq commit
+		expected_ldu_cq_commit_mq_has_forward = 1'b0;
 	    // store set CAM update
 		expected_ssu_CAM_update_valid = 1'b0;
 		expected_ssu_CAM_update_ld_mdp_info = 8'b00000000;
 		expected_ssu_CAM_update_ld_ROB_index = 7'h0;
 		expected_ssu_CAM_update_stamo_mdp_info = 8'b00000000;
 		expected_ssu_CAM_update_stamo_ROB_index = 7'h0;
-	    // store set commit update
-		expected_ssu_commit_update_valid = 1'b0;
-		expected_ssu_commit_update_mdp_info = 8'b00000000;
-		expected_ssu_commit_update_ROB_index = 7'h0;
 	    // acquire advertisement
 	    // oldest stamofu advertisement
-	    // ROB commit
 	    // ROB kill
 
 		check_outputs();
