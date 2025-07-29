@@ -108,6 +108,15 @@ module stamofu_cq #(
     input logic                                 dtlb_miss_resp_page_fault,
     input logic                                 dtlb_miss_resp_access_fault,
 
+    // ldu CAM launch from stamofu_mq
+    input logic                                 stamofu_mq_ldu_CAM_launch_valid,
+    input logic [LOG_STAMOFU_MQ_ENTRIES-1:0]    stamofu_mq_ldu_CAM_launch_mq_index, // stamofu_mq index
+    input logic [PA_WIDTH-2-1:0]                stamofu_mq_ldu_CAM_launch_PA_word,
+    input logic [3:0]                           stamofu_mq_ldu_CAM_launch_byte_mask,
+    input logic [31:0]                          stamofu_mq_ldu_CAM_launch_write_data,
+    input logic [MDPT_INFO_WIDTH-1:0]           stamofu_mq_ldu_CAM_launch_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]           stamofu_mq_ldu_CAM_launch_ROB_index,
+
     // ldu CAM launch
     output logic                                ldu_CAM_launch_valid,
     output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   ldu_CAM_launch_cq_index, // stamofu_cq index
@@ -119,11 +128,6 @@ module stamofu_cq #(
     output logic [31:0]                         ldu_CAM_launch_write_data,
     output logic [MDPT_INFO_WIDTH-1:0]          ldu_CAM_launch_mdp_info,
     output logic [LOG_ROB_ENTRIES-1:0]          ldu_CAM_launch_ROB_index,
-
-    // ldu CAM launch feedback
-        // externally select stamofu_cq vs. stamofu_mq launch this cycle
-        // not ready if doing mq this cycle
-    input logic                                 ldu_CAM_launch_ready,
 
     // ldu CAM return
     input logic                                 ldu_CAM_return_valid,
@@ -234,6 +238,14 @@ module stamofu_cq #(
 
     // exception backpressure from ROB
     input logic                         rob_exception_ready,
+
+    // store set CAM update
+        // implied dep
+    output logic                        ssu_CAM_update_valid,
+    output logic [MDPT_INFO_WIDTH-1:0]  ssu_CAM_update_ld_mdp_info,
+    output logic [LOG_ROB_ENTRIES-1:0]  ssu_CAM_update_ld_ROB_index,
+    output logic [MDPT_INFO_WIDTH-1:0]  ssu_CAM_update_stamo_mdp_info,
+    output logic [LOG_ROB_ENTRIES-1:0]  ssu_CAM_update_stamo_ROB_index,
 
     // store set commit update
         // implied no dep
@@ -367,6 +379,8 @@ module stamofu_cq #(
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_complete_cq_index;
 
     logic [STAMOFU_CQ_ENTRIES-1:0] rel_ROB_index_by_entry;
+
+    logic stamofu_cq_ldu_CAM_launch;
 
     // stamofu CAM pipeline bank 0
     logic                               CAM_stage0_bank0_valid;
@@ -584,6 +598,27 @@ module stamofu_cq #(
         end
     end
     always_comb begin
+
+        // hardwired
+        ldu_CAM_launch_mq_index = stamofu_mq_ldu_CAM_launch_mq_index;
+
+        // muxed
+        if (stamofu_mq_ldu_CAM_launch_valid) begin
+            stamofu_cq_ldu_CAM_launch = 1'b0;
+
+            ldu_CAM_launch_valid = 1'b1;
+            ldu_CAM_launch_is_mq = 1'b1;
+            ldu_CAM_launch_is_amo = 1'b0;
+            ldu_CAM_launch_PA_word = stamofu_mq_ldu_CAM_launch_PA_word;
+            ldu_CAM_launch_byte_mask = stamofu_mq_ldu_CAM_launch_byte_mask;
+            ldu_CAM_launch_write_data = stamofu_mq_ldu_CAM_launch_write_data;
+            ldu_CAM_launch_mdp_info = stamofu_mq_ldu_CAM_launch_mdp_info;
+            ldu_CAM_launch_ROB_index = stamofu_mq_ldu_CAM_launch_ROB_index;
+        end
+        else begin
+            stamofu_cq_ldu_CAM_launch = 1'b1;
+
+        end
         ldu_CAM_launch_is_mq = 1'b0;
         ldu_CAM_launch_mq_index = '0;
         ldu_CAM_launch_is_amo = entry_array[ldu_CAM_launch_cq_index].is_amo;
@@ -838,7 +873,7 @@ module stamofu_cq #(
             end
 
             // req ack's (indep)
-            if (ldu_CAM_launch_final_req_ack_one_hot_by_entry[i] & ldu_CAM_launch_ready) begin
+            if (ldu_CAM_launch_final_req_ack_one_hot_by_entry[i] & stamofu_cq_ldu_CAM_launch) begin
                 next_entry_array[i].ldu_CAM_launch_req = 1'b0;
                 next_entry_array[i].ldu_CAM_launch_sent = 1'b1;
             end

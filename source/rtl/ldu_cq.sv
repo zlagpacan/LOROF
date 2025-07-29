@@ -260,7 +260,6 @@ module ldu_cq #(
         logic                               nasty_forward;
         logic                               previous_nasty_forward;
         logic [LOG_ROB_ENTRIES-1:0]         forward_ROB_index;
-        logic                               mdp_present;
         logic                               WB_sent;
         logic                               complete;
         logic                               committed;
@@ -628,7 +627,6 @@ module ldu_cq #(
                 // next_entry_array[i].nasty_forward = 
                 // next_entry_array[i].previous_nasty_forward = 
                 // next_entry_array[i].forward_ROB_index = 
-                // next_entry_array[i].mdp_present = 
                 next_entry_array[i].WB_sent |= ldu_cq_info_ret_bank0_WB_sent;
                     // OR this so that can maintain WB_sent info even after:
                     // late second_try which turns into dcache miss which turns into data_try which must restart
@@ -679,7 +677,6 @@ module ldu_cq #(
                 // next_entry_array[i].nasty_forward = 
                 // next_entry_array[i].previous_nasty_forward = 
                 // next_entry_array[i].forward_ROB_index = 
-                // next_entry_array[i].mdp_present = 
                 next_entry_array[i].WB_sent |= ldu_cq_info_ret_bank1_WB_sent;
                     // OR this so that can maintain WB_sent info even after:
                     // late second_try which turns into dcache miss which turns into data_try which must restart
@@ -821,7 +818,7 @@ module ldu_cq #(
                 & ~entry_array[i].aq_blocking
                 & (entry_array[i].forward | entry_array[i].dcache_hit)
                 & ~entry_array[i].nasty_forward
-                & (~entry_array[i].mdp_present | entry_array[i].stamofu_CAM_returned)
+                & (!entry_array[i].mdp_info[7:6] | entry_array[i].stamofu_CAM_returned)
                 & (~entry_array[i].stalling | ~stamofu_active | ~entry_array[i].older_stamofu_active)
             ) begin
                 next_entry_array[i].data_try_req = 1'b1;
@@ -1239,7 +1236,6 @@ module ldu_cq #(
                 entry_array[enq_ptr].nasty_forward <= 1'b0;
                 entry_array[enq_ptr].previous_nasty_forward <= 1'b0;
                 // entry_array[enq_ptr].forward_ROB_index
-                entry_array[enq_ptr].mdp_present <= |ldu_cq_enq_mdp_info[7:6];
                 entry_array[enq_ptr].WB_sent <= 1'b0;
                 entry_array[enq_ptr].complete <= 1'b0;
                 entry_array[enq_ptr].committed <= 1'b0;
@@ -1289,7 +1285,6 @@ module ldu_cq #(
                 entry_array[deq_ptr].nasty_forward <= 1'b0;
                 entry_array[deq_ptr].previous_nasty_forward <= 1'b0;
                 // entry_array[deq_ptr].forward_ROB_index
-                entry_array[deq_ptr].mdp_present <= 1'b0;
                 entry_array[deq_ptr].WB_sent <= 1'b0;
                 entry_array[deq_ptr].complete <= 1'b0;
                 entry_array[deq_ptr].committed <= 1'b0;

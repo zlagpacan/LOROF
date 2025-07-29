@@ -202,7 +202,6 @@ module ldu_mq #(
         logic                               nasty_forward;
         logic                               previous_nasty_forward;
         logic [LOG_ROB_ENTRIES-1:0]         forward_ROB_index;
-        logic                               mdp_present;
         logic                               committed;
         logic                               second_try_req;
         logic                               unblock_data_try_req;
@@ -411,7 +410,6 @@ module ldu_mq #(
                 // next_entry_array[i].nasty_forward = 
                 // next_entry_array[i].previous_nasty_forward = 
                 // next_entry_array[i].forward_ROB_index = 
-                // next_entry_array[i].mdp_present = 
                 // next_entry_array[i].committed = 
                 // next_entry_array[i].second_try_req = 
                 // next_entry_array[i].unblock_data_try_req = 
@@ -452,7 +450,6 @@ module ldu_mq #(
                 // next_entry_array[i].nasty_forward = 
                 // next_entry_array[i].previous_nasty_forward = 
                 // next_entry_array[i].forward_ROB_index = 
-                // next_entry_array[i].mdp_present = 
                 // next_entry_array[i].committed = 
                 // next_entry_array[i].second_try_req = 
                 // next_entry_array[i].unblock_data_try_req = 
@@ -481,7 +478,6 @@ module ldu_mq #(
             // stamofu CAM return bank 0
             else if (stamofu_CAM_return_bank0_valid_by_entry[i]) begin
                 next_entry_array[i].stamofu_CAM_returned = 1'b1;
-                next_entry_array[i].mdp_present = |stamofu_CAM_return_bank0_updated_mdp_info[7:6];
                 next_entry_array[i].mdp_info = stamofu_CAM_return_bank0_updated_mdp_info;
                 next_entry_array[i].stalling = stamofu_CAM_return_bank0_stall;
                 next_entry_array[i].stalling_count = stamofu_CAM_return_bank0_stall_count;
@@ -503,7 +499,6 @@ module ldu_mq #(
             // stamofu CAM return bank 1
             else if (stamofu_CAM_return_bank1_valid_by_entry[i]) begin
                 next_entry_array[i].stamofu_CAM_returned = 1'b1;
-                next_entry_array[i].mdp_present = |stamofu_CAM_return_bank1_updated_mdp_info[7:6];
                 next_entry_array[i].mdp_info = stamofu_CAM_return_bank1_updated_mdp_info;
                 next_entry_array[i].stalling = stamofu_CAM_return_bank1_stall;
                 next_entry_array[i].stalling_count = stamofu_CAM_return_bank1_stall_count;
@@ -581,7 +576,7 @@ module ldu_mq #(
                 & ~entry_array[i].aq_blocking
                 & (entry_array[i].forward | entry_array[i].dcache_hit)
                 & ~entry_array[i].nasty_forward
-                & (~entry_array[i].mdp_present | entry_array[i].stamofu_CAM_returned)
+                & (!entry_array[i].mdp_info[7:6] | entry_array[i].stamofu_CAM_returned)
                 & (~entry_array[i].stalling | ~stamofu_active | ~entry_array[i].older_stamofu_active)
             ) begin
                 next_entry_array[i].data_try_req = 1'b1;
@@ -785,7 +780,7 @@ module ldu_mq #(
                 & entry_array[i].stamofu_CAM_returned
                     // ignore any ldu CAMs which would be double counted by incoming stamofu CAM
                 & |ldu_CAM_launch_mdp_info[7:6]
-                & entry_array[i].mdp_present
+                & |entry_array[i].mdp_info[7:6]
                 & ldu_CAM_launch_mdp_info[5:0] == entry_array[i].mdp_info[5:0]
                 // older than this
                 & (ldu_CAM_launch_ROB_index - rob_kill_abs_head_index 
@@ -896,7 +891,6 @@ module ldu_mq #(
                 entry_array[enq_ptr].nasty_forward <= 1'b0;
                 entry_array[enq_ptr].previous_nasty_forward <= 1'b0;
                 // entry_array[enq_ptr].forward_ROB_index <= 
-                entry_array[enq_ptr].mdp_present <= 1'b0;
                 entry_array[enq_ptr].committed <= 1'b0;
                 entry_array[enq_ptr].second_try_req <= 1'b0;
                 entry_array[enq_ptr].unblock_data_try_req <= 1'b0;
@@ -936,7 +930,6 @@ module ldu_mq #(
                 entry_array[deq_ptr].nasty_forward <= 1'b0;
                 entry_array[deq_ptr].previous_nasty_forward <= 1'b0;
                 // entry_array[deq_ptr].forward_ROB_index <= 
-                entry_array[deq_ptr].mdp_present <= 1'b0;
                 entry_array[deq_ptr].committed <= 1'b0;
                 entry_array[deq_ptr].second_try_req <= 1'b0;
                 entry_array[deq_ptr].unblock_data_try_req <= 1'b0;
