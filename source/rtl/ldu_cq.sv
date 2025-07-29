@@ -147,7 +147,6 @@ module ldu_cq #(
     input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_bank0_cq_index, // ldu_cq index
     input logic                                 stamofu_CAM_return_bank0_is_mq,
     input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_return_bank0_mq_index, // ldu_mq index, unused
-    input logic [MDPT_INFO_WIDTH-1:0]           stamofu_CAM_return_bank0_updated_mdp_info,
     input logic                                 stamofu_CAM_return_bank0_stall,
     input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_CAM_return_bank0_stall_count,
     input logic [3:0]                           stamofu_CAM_return_bank0_forward,
@@ -159,7 +158,6 @@ module ldu_cq #(
     input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_bank1_cq_index, // ldu_cq index
     input logic                                 stamofu_CAM_return_bank1_is_mq,
     input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_return_bank1_mq_index, // ldu_mq index, unused
-    input logic [MDPT_INFO_WIDTH-1:0]           stamofu_CAM_return_bank1_updated_mdp_info,
     input logic                                 stamofu_CAM_return_bank1_stall,
     input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_CAM_return_bank1_stall_count,
     input logic [3:0]                           stamofu_CAM_return_bank1_forward,
@@ -713,7 +711,6 @@ module ldu_cq #(
             // stamofu CAM return bank 0
             else if (stamofu_CAM_return_bank0_valid_by_entry[i]) begin
                 next_entry_array[i].stamofu_CAM_returned = 1'b1;
-                next_entry_array[i].mdp_info = stamofu_CAM_return_bank0_updated_mdp_info;
                 next_entry_array[i].stalling = stamofu_CAM_return_bank0_stall;
                 next_entry_array[i].stalling_count = stamofu_CAM_return_bank0_stall_count;
                 next_entry_array[i].forward = stamofu_CAM_return_bank0_forward;
@@ -734,7 +731,6 @@ module ldu_cq #(
             // stamofu CAM return bank 1
             else if (stamofu_CAM_return_bank1_valid_by_entry[i]) begin
                 next_entry_array[i].stamofu_CAM_returned = 1'b1;
-                next_entry_array[i].mdp_info = stamofu_CAM_return_bank1_updated_mdp_info;
                 next_entry_array[i].stalling = stamofu_CAM_return_bank1_stall;
                 next_entry_array[i].stalling_count = stamofu_CAM_return_bank1_stall_count;
                 next_entry_array[i].forward = stamofu_CAM_return_bank1_forward;

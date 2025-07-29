@@ -113,7 +113,6 @@ module ldu_mq_wrapper (
 	input logic next_stamofu_CAM_return_bank0_is_mq,
 	input logic [LOG_LDU_CQ_ENTRIES-1:0] next_stamofu_CAM_return_bank0_cq_index,
 	input logic [LOG_LDU_MQ_ENTRIES-1:0] next_stamofu_CAM_return_bank0_mq_index,
-	input logic [MDPT_INFO_WIDTH-1:0] next_stamofu_CAM_return_bank0_updated_mdp_info,
 	input logic next_stamofu_CAM_return_bank0_stall,
 	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_CAM_return_bank0_stall_count,
 	input logic [3:0] next_stamofu_CAM_return_bank0_forward,
@@ -125,7 +124,6 @@ module ldu_mq_wrapper (
 	input logic next_stamofu_CAM_return_bank1_is_mq,
 	input logic [LOG_LDU_CQ_ENTRIES-1:0] next_stamofu_CAM_return_bank1_cq_index,
 	input logic [LOG_LDU_MQ_ENTRIES-1:0] next_stamofu_CAM_return_bank1_mq_index,
-	input logic [MDPT_INFO_WIDTH-1:0] next_stamofu_CAM_return_bank1_updated_mdp_info,
 	input logic next_stamofu_CAM_return_bank1_stall,
 	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_CAM_return_bank1_stall_count,
 	input logic [3:0] next_stamofu_CAM_return_bank1_forward,
@@ -278,7 +276,6 @@ module ldu_mq_wrapper (
 	logic stamofu_CAM_return_bank0_is_mq;
 	logic [LOG_LDU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank0_cq_index;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] stamofu_CAM_return_bank0_mq_index;
-	logic [MDPT_INFO_WIDTH-1:0] stamofu_CAM_return_bank0_updated_mdp_info;
 	logic stamofu_CAM_return_bank0_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank0_stall_count;
 	logic [3:0] stamofu_CAM_return_bank0_forward;
@@ -290,7 +287,6 @@ module ldu_mq_wrapper (
 	logic stamofu_CAM_return_bank1_is_mq;
 	logic [LOG_LDU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank1_cq_index;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] stamofu_CAM_return_bank1_mq_index;
-	logic [MDPT_INFO_WIDTH-1:0] stamofu_CAM_return_bank1_updated_mdp_info;
 	logic stamofu_CAM_return_bank1_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank1_stall_count;
 	logic [3:0] stamofu_CAM_return_bank1_forward;
@@ -453,7 +449,6 @@ module ldu_mq_wrapper (
 			stamofu_CAM_return_bank0_is_mq <= '0;
 			stamofu_CAM_return_bank0_cq_index <= '0;
 			stamofu_CAM_return_bank0_mq_index <= '0;
-			stamofu_CAM_return_bank0_updated_mdp_info <= '0;
 			stamofu_CAM_return_bank0_stall <= '0;
 			stamofu_CAM_return_bank0_stall_count <= '0;
 			stamofu_CAM_return_bank0_forward <= '0;
@@ -465,7 +460,6 @@ module ldu_mq_wrapper (
 			stamofu_CAM_return_bank1_is_mq <= '0;
 			stamofu_CAM_return_bank1_cq_index <= '0;
 			stamofu_CAM_return_bank1_mq_index <= '0;
-			stamofu_CAM_return_bank1_updated_mdp_info <= '0;
 			stamofu_CAM_return_bank1_stall <= '0;
 			stamofu_CAM_return_bank1_stall_count <= '0;
 			stamofu_CAM_return_bank1_forward <= '0;
@@ -616,7 +610,6 @@ module ldu_mq_wrapper (
 			stamofu_CAM_return_bank0_is_mq <= next_stamofu_CAM_return_bank0_is_mq;
 			stamofu_CAM_return_bank0_cq_index <= next_stamofu_CAM_return_bank0_cq_index;
 			stamofu_CAM_return_bank0_mq_index <= next_stamofu_CAM_return_bank0_mq_index;
-			stamofu_CAM_return_bank0_updated_mdp_info <= next_stamofu_CAM_return_bank0_updated_mdp_info;
 			stamofu_CAM_return_bank0_stall <= next_stamofu_CAM_return_bank0_stall;
 			stamofu_CAM_return_bank0_stall_count <= next_stamofu_CAM_return_bank0_stall_count;
 			stamofu_CAM_return_bank0_forward <= next_stamofu_CAM_return_bank0_forward;
@@ -628,7 +621,6 @@ module ldu_mq_wrapper (
 			stamofu_CAM_return_bank1_is_mq <= next_stamofu_CAM_return_bank1_is_mq;
 			stamofu_CAM_return_bank1_cq_index <= next_stamofu_CAM_return_bank1_cq_index;
 			stamofu_CAM_return_bank1_mq_index <= next_stamofu_CAM_return_bank1_mq_index;
-			stamofu_CAM_return_bank1_updated_mdp_info <= next_stamofu_CAM_return_bank1_updated_mdp_info;
 			stamofu_CAM_return_bank1_stall <= next_stamofu_CAM_return_bank1_stall;
 			stamofu_CAM_return_bank1_stall_count <= next_stamofu_CAM_return_bank1_stall_count;
 			stamofu_CAM_return_bank1_forward <= next_stamofu_CAM_return_bank1_forward;

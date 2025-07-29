@@ -163,7 +163,6 @@ module ldu_cq_tb ();
 
     // stamofu CAM return
 	logic tb_stamofu_CAM_return_bank0_valid;
-	logic [MDPT_INFO_WIDTH-1:0] tb_stamofu_CAM_return_bank0_updated_mdp_info;
 	logic tb_stamofu_CAM_return_bank0_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] tb_stamofu_CAM_return_bank0_stall_count;
 	logic [3:0] tb_stamofu_CAM_return_bank0_forward;
@@ -175,7 +174,6 @@ module ldu_cq_tb ();
 	logic [LOG_LDU_MQ_ENTRIES-1:0] tb_stamofu_CAM_return_bank0_mq_index;
 
 	logic tb_stamofu_CAM_return_bank1_valid;
-	logic [MDPT_INFO_WIDTH-1:0] tb_stamofu_CAM_return_bank1_updated_mdp_info;
 	logic tb_stamofu_CAM_return_bank1_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] tb_stamofu_CAM_return_bank1_stall_count;
 	logic [3:0] tb_stamofu_CAM_return_bank1_forward;
@@ -379,7 +377,6 @@ module ldu_cq_tb ();
 
 	    // stamofu CAM return
 		.stamofu_CAM_return_bank0_valid(tb_stamofu_CAM_return_bank0_valid),
-		.stamofu_CAM_return_bank0_updated_mdp_info(tb_stamofu_CAM_return_bank0_updated_mdp_info),
 		.stamofu_CAM_return_bank0_stall(tb_stamofu_CAM_return_bank0_stall),
 		.stamofu_CAM_return_bank0_stall_count(tb_stamofu_CAM_return_bank0_stall_count),
 		.stamofu_CAM_return_bank0_forward(tb_stamofu_CAM_return_bank0_forward),
@@ -391,7 +388,6 @@ module ldu_cq_tb ();
 		.stamofu_CAM_return_bank0_mq_index(tb_stamofu_CAM_return_bank0_mq_index),
 
 		.stamofu_CAM_return_bank1_valid(tb_stamofu_CAM_return_bank1_valid),
-		.stamofu_CAM_return_bank1_updated_mdp_info(tb_stamofu_CAM_return_bank1_updated_mdp_info),
 		.stamofu_CAM_return_bank1_stall(tb_stamofu_CAM_return_bank1_stall),
 		.stamofu_CAM_return_bank1_stall_count(tb_stamofu_CAM_return_bank1_stall_count),
 		.stamofu_CAM_return_bank1_forward(tb_stamofu_CAM_return_bank1_forward),
@@ -881,7 +877,6 @@ module ldu_cq_tb ();
 		tb_dcache_miss_resp_cq_index = 0;
 	    // stamofu CAM return
 		tb_stamofu_CAM_return_bank0_valid = 1'b0;
-		tb_stamofu_CAM_return_bank0_updated_mdp_info = 8'b00000000;
 		tb_stamofu_CAM_return_bank0_stall = 1'b0;
 		tb_stamofu_CAM_return_bank0_stall_count = 0;
 		tb_stamofu_CAM_return_bank0_forward = 1'b0;
@@ -893,7 +888,6 @@ module ldu_cq_tb ();
 		tb_stamofu_CAM_return_bank0_mq_index = 0;
 
 		tb_stamofu_CAM_return_bank1_valid = 1'b0;
-		tb_stamofu_CAM_return_bank1_updated_mdp_info = 8'b00000000;
 		tb_stamofu_CAM_return_bank1_stall = 1'b0;
 		tb_stamofu_CAM_return_bank1_stall_count = 0;
 		tb_stamofu_CAM_return_bank1_forward = 1'b0;
@@ -1096,7 +1090,6 @@ module ldu_cq_tb ();
 		tb_dcache_miss_resp_cq_index = 0;
 	    // stamofu CAM return
 		tb_stamofu_CAM_return_bank0_valid = 1'b0;
-		tb_stamofu_CAM_return_bank0_updated_mdp_info = 8'b00000000;
 		tb_stamofu_CAM_return_bank0_stall = 1'b0;
 		tb_stamofu_CAM_return_bank0_stall_count = 0;
 		tb_stamofu_CAM_return_bank0_forward = 1'b0;
@@ -1108,7 +1101,6 @@ module ldu_cq_tb ();
 		tb_stamofu_CAM_return_bank0_mq_index = 0;
 
 		tb_stamofu_CAM_return_bank1_valid = 1'b0;
-		tb_stamofu_CAM_return_bank1_updated_mdp_info = 8'b00000000;
 		tb_stamofu_CAM_return_bank1_stall = 1'b0;
 		tb_stamofu_CAM_return_bank1_stall_count = 0;
 		tb_stamofu_CAM_return_bank1_forward = 1'b0;
@@ -1354,7 +1346,6 @@ module ldu_cq_tb ();
 		tb_dcache_miss_resp_cq_index = 0;
 	    // stamofu CAM return
 		tb_stamofu_CAM_return_bank0_valid = 1'b0;
-		tb_stamofu_CAM_return_bank0_updated_mdp_info = 8'b00000000;
 		tb_stamofu_CAM_return_bank0_stall = 1'b0;
 		tb_stamofu_CAM_return_bank0_stall_count = 0;
 		tb_stamofu_CAM_return_bank0_forward = 1'b0;
@@ -1366,7 +1357,6 @@ module ldu_cq_tb ();
 		tb_stamofu_CAM_return_bank0_mq_index = 0;
 
 		tb_stamofu_CAM_return_bank1_valid = 1'b0;
-		tb_stamofu_CAM_return_bank1_updated_mdp_info = 8'b00000000;
 		tb_stamofu_CAM_return_bank1_stall = 1'b0;
 		tb_stamofu_CAM_return_bank1_stall_count = 0;
 		tb_stamofu_CAM_return_bank1_forward = 1'b0;
@@ -1606,7 +1596,6 @@ module ldu_cq_tb ();
 		tb_dcache_miss_resp_cq_index = 0;
 	    // stamofu CAM return
 		tb_stamofu_CAM_return_bank0_valid = 1'b0;
-		tb_stamofu_CAM_return_bank0_updated_mdp_info = 8'b00000000;
 		tb_stamofu_CAM_return_bank0_stall = 1'b0;
 		tb_stamofu_CAM_return_bank0_stall_count = 0;
 		tb_stamofu_CAM_return_bank0_forward = 1'b0;
@@ -1618,7 +1607,6 @@ module ldu_cq_tb ();
 		tb_stamofu_CAM_return_bank0_mq_index = 0;
 
 		tb_stamofu_CAM_return_bank1_valid = 1'b0;
-		tb_stamofu_CAM_return_bank1_updated_mdp_info = 8'b00000000;
 		tb_stamofu_CAM_return_bank1_stall = 1'b0;
 		tb_stamofu_CAM_return_bank1_stall_count = 0;
 		tb_stamofu_CAM_return_bank1_forward = 1'b0;
@@ -1858,7 +1846,6 @@ module ldu_cq_tb ();
 		tb_dcache_miss_resp_cq_index = 0;
 	    // stamofu CAM return
 		tb_stamofu_CAM_return_bank0_valid = 1'b0;
-		tb_stamofu_CAM_return_bank0_updated_mdp_info = 8'b00000000;
 		tb_stamofu_CAM_return_bank0_stall = 1'b0;
 		tb_stamofu_CAM_return_bank0_stall_count = 0;
 		tb_stamofu_CAM_return_bank0_forward = 1'b0;
@@ -1870,7 +1857,6 @@ module ldu_cq_tb ();
 		tb_stamofu_CAM_return_bank0_mq_index = 0;
 
 		tb_stamofu_CAM_return_bank1_valid = 1'b0;
-		tb_stamofu_CAM_return_bank1_updated_mdp_info = 8'b00000000;
 		tb_stamofu_CAM_return_bank1_stall = 1'b0;
 		tb_stamofu_CAM_return_bank1_stall_count = 0;
 		tb_stamofu_CAM_return_bank1_forward = 1'b0;
@@ -2110,7 +2096,6 @@ module ldu_cq_tb ();
 		tb_dcache_miss_resp_cq_index = 0;
 	    // stamofu CAM return
 		tb_stamofu_CAM_return_bank0_valid = 1'b0;
-		tb_stamofu_CAM_return_bank0_updated_mdp_info = 8'b00000000;
 		tb_stamofu_CAM_return_bank0_stall = 1'b0;
 		tb_stamofu_CAM_return_bank0_stall_count = 0;
 		tb_stamofu_CAM_return_bank0_forward = 1'b0;
@@ -2122,7 +2107,6 @@ module ldu_cq_tb ();
 		tb_stamofu_CAM_return_bank0_mq_index = 0;
 
 		tb_stamofu_CAM_return_bank1_valid = 1'b0;
-		tb_stamofu_CAM_return_bank1_updated_mdp_info = 8'b00000000;
 		tb_stamofu_CAM_return_bank1_stall = 1'b0;
 		tb_stamofu_CAM_return_bank1_stall_count = 0;
 		tb_stamofu_CAM_return_bank1_forward = 1'b0;
@@ -2362,7 +2346,6 @@ module ldu_cq_tb ();
 		tb_dcache_miss_resp_cq_index = 0;
 	    // stamofu CAM return
 		tb_stamofu_CAM_return_bank0_valid = 1'b0;
-		tb_stamofu_CAM_return_bank0_updated_mdp_info = 8'b00000000;
 		tb_stamofu_CAM_return_bank0_stall = 1'b0;
 		tb_stamofu_CAM_return_bank0_stall_count = 0;
 		tb_stamofu_CAM_return_bank0_forward = 1'b0;
@@ -2374,7 +2357,6 @@ module ldu_cq_tb ();
 		tb_stamofu_CAM_return_bank0_mq_index = 0;
 
 		tb_stamofu_CAM_return_bank1_valid = 1'b0;
-		tb_stamofu_CAM_return_bank1_updated_mdp_info = 8'b00000000;
 		tb_stamofu_CAM_return_bank1_stall = 1'b0;
 		tb_stamofu_CAM_return_bank1_stall_count = 0;
 		tb_stamofu_CAM_return_bank1_forward = 1'b0;
