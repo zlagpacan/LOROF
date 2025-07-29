@@ -16,30 +16,48 @@ module ssu #(
     input logic CLK,
     input logic nRST,
 
-    // ldu CAM update
+    // ldu_cq CAM update
         // implied dep
-    input logic                         ldu_CAM_update_valid,
-    input logic [MDPT_INFO_WIDTH-1:0]   ldu_CAM_update_ld_mdp_info,
-    input logic [LOG_ROB_ENTRIES-1:0]   ldu_CAM_update_ld_ROB_index,
-    input logic [MDPT_INFO_WIDTH-1:0]   ldu_CAM_update_stamo_mdp_info,
-    input logic [LOG_ROB_ENTRIES-1:0]   ldu_CAM_update_stamo_ROB_index,
+    input logic                         ldu_cq_CAM_update_valid,
+    input logic [MDPT_INFO_WIDTH-1:0]   ldu_cq_CAM_update_ld_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]   ldu_cq_CAM_update_ld_ROB_index,
+    input logic [MDPT_INFO_WIDTH-1:0]   ldu_cq_CAM_update_stamo_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]   ldu_cq_CAM_update_stamo_ROB_index,
 
-    // ldu commit update
-        // implied no dep
-    input logic                         ldu_commit_update_valid,
-    input logic [MDPT_INFO_WIDTH-1:0]   ldu_commit_update_mdp_info,
-    input logic [LOG_ROB_ENTRIES-1:0]   ldu_commit_update_ROB_index,
-
-    // stamofu CAM update
+    // ldu_mq CAM update
         // implied dep
-    input logic                         stamofu_CAM_update_valid,
-    input logic [MDPT_INFO_WIDTH-1:0]   stamofu_CAM_update_ld_mdp_info,
-    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_CAM_update_ld_ROB_index,
-    input logic [MDPT_INFO_WIDTH-1:0]   stamofu_CAM_update_stamo_mdp_info,
-    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_CAM_update_stamo_ROB_index,
+    input logic                         ldu_mq_CAM_update_valid,
+    input logic [MDPT_INFO_WIDTH-1:0]   ldu_mq_CAM_update_ld_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]   ldu_mq_CAM_update_ld_ROB_index,
+    input logic [MDPT_INFO_WIDTH-1:0]   ldu_mq_CAM_update_stamo_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]   ldu_mq_CAM_update_stamo_ROB_index,
 
-    // stamofu commit update
+    // ldu_cq commit update
         // implied no dep
+        // incorporates ldu_mq commit update
+    input logic                         ldu_cq_commit_update_valid,
+    input logic [MDPT_INFO_WIDTH-1:0]   ldu_cq_commit_update_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]   ldu_cq_commit_update_ROB_index,
+
+    // stamofu CAM update bank 0
+        // implied dep
+    input logic                         stamofu_CAM_update_bank0_valid,
+    input logic [MDPT_INFO_WIDTH-1:0]   stamofu_CAM_update_bank0_ld_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_CAM_update_bank0_ld_ROB_index,
+    input logic [MDPT_INFO_WIDTH-1:0]   stamofu_CAM_update_bank0_stamo_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_CAM_update_bank0_stamo_ROB_index,
+
+    // stamofu CAM update bank 1
+        // implied dep
+    input logic                         stamofu_CAM_update_bank1_valid,
+    input logic [MDPT_INFO_WIDTH-1:0]   stamofu_CAM_update_bank1_ld_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_CAM_update_bank1_ld_ROB_index,
+    input logic [MDPT_INFO_WIDTH-1:0]   stamofu_CAM_update_bank1_stamo_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_CAM_update_bank1_stamo_ROB_index,
+
+    // stamofu_cq commit update
+        // implied no dep
+        // incorporates ldu_mq commit update
     input logic                         stamofu_commit_update_valid,
     input logic [MDPT_INFO_WIDTH-1:0]   stamofu_commit_update_mdp_info,
     input logic [LOG_ROB_ENTRIES-1:0]   stamofu_commit_update_ROB_index,
