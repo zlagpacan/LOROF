@@ -120,6 +120,15 @@ module stamofu_mq #(
     output logic [PA_WIDTH-2-1:0]               stamofu_mq_info_grab_PA_word,
     output logic [3:0]                          stamofu_mq_info_grab_byte_mask,
     output logic [31:0]                         stamofu_mq_info_grab_data,
+
+    // stamofu mq complete notif
+    output logic                                stamofu_mq_complete_valid,
+    output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   stamofu_mq_complete_cq_index,
+
+    // ROB kill
+    input logic                         rob_kill_valid,
+    input logic [LOG_ROB_ENTRIES-1:0]   rob_kill_abs_head_index,
+    input logic [LOG_ROB_ENTRIES-1:0]   rob_kill_rel_kill_younger_index
 );
 
 endmodule

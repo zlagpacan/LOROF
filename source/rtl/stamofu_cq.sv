@@ -707,12 +707,6 @@ module stamofu_cq #(
 
         for (int i = 0; i < STAMOFU_CQ_ENTRIES; i++) begin
             rel_ROB_index_by_entry[i] = entry_array[i].ROB_index - rob_kill_abs_head_index;
-
-            // events with priority
-                // stamofu_cq ret bank 0
-                // stamofu_cq ret bank 1
-                // dtlb miss resp
-                // ldu CAM return
             
             // stamofu_cq ret bank 0
             if (stamofu_cq_info_ret_bank0_valid_by_entry[i]) begin
@@ -853,6 +847,7 @@ module stamofu_cq #(
                 if (
                     (dtlb_miss_resp_page_fault | dtlb_miss_resp_access_fault)
                     & ~(entry_array[i].exception_req | entry_array[i].exception_sent)
+                    & ~next_entry_array[i].exception_req
                 ) begin
                     next_entry_array[i].exception_req = 1'b1;
                     next_entry_array[i].page_fault = dtlb_miss_resp_page_fault;
@@ -864,11 +859,12 @@ module stamofu_cq #(
             if (stamofu_mq_info_ret_bank0_valid_by_entry[i]) begin
                 next_entry_array[i].mq_index = stamofu_mq_info_ret_bank0_mq_index;
 
-                // check lower word hasn't generated exception and upper word is
+                // check lower word hasn't generated exception and upper word is excepting
                 if (
                     stamofu_mq_info_ret_bank0_dtlb_hit
                     & (stamofu_mq_info_ret_bank0_page_fault | stamofu_mq_info_ret_bank0_access_fault)
                     & ~(entry_array[i].exception_req | entry_array[i].exception_sent)
+                    & ~next_entry_array[i].exception_req
                 ) begin
                     next_entry_array[i].exception_req = 1'b1;
                     next_entry_array[i].page_fault = stamofu_mq_info_ret_bank0_page_fault;
@@ -880,11 +876,12 @@ module stamofu_cq #(
             if (stamofu_mq_info_ret_bank1_valid_by_entry[i]) begin
                 next_entry_array[i].mq_index = stamofu_mq_info_ret_bank1_mq_index;
 
-                // check lower word hasn't generated exception and upper word is
+                // check lower word hasn't generated exception and upper word is excepting
                 if (
                     stamofu_mq_info_ret_bank1_dtlb_hit
                     & (stamofu_mq_info_ret_bank1_page_fault | stamofu_mq_info_ret_bank1_access_fault)
                     & ~(entry_array[i].exception_req | entry_array[i].exception_sent)
+                    & ~next_entry_array[i].exception_req
                 ) begin
                     next_entry_array[i].exception_req = 1'b1;
                     next_entry_array[i].page_fault = stamofu_mq_info_ret_bank1_page_fault;

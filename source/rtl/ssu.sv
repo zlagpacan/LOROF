@@ -39,16 +39,18 @@ module ssu #(
     input logic [MDPT_INFO_WIDTH-1:0]   ldu_cq_commit_update_mdp_info,
     input logic [LOG_ROB_ENTRIES-1:0]   ldu_cq_commit_update_ROB_index,
 
-    // stamofu CAM update bank 0
+    // stamofu_cq CAM update bank 0
         // implied dep
+        // incorporates stamofu_mq CAM update
     input logic                         stamofu_CAM_update_bank0_valid,
     input logic [MDPT_INFO_WIDTH-1:0]   stamofu_CAM_update_bank0_ld_mdp_info,
     input logic [LOG_ROB_ENTRIES-1:0]   stamofu_CAM_update_bank0_ld_ROB_index,
     input logic [MDPT_INFO_WIDTH-1:0]   stamofu_CAM_update_bank0_stamo_mdp_info,
     input logic [LOG_ROB_ENTRIES-1:0]   stamofu_CAM_update_bank0_stamo_ROB_index,
 
-    // stamofu CAM update bank 1
+    // stamofu_cq CAM update bank 1
         // implied dep
+        // incorporates stamofu_mq CAM update
     input logic                         stamofu_CAM_update_bank1_valid,
     input logic [MDPT_INFO_WIDTH-1:0]   stamofu_CAM_update_bank1_ld_mdp_info,
     input logic [LOG_ROB_ENTRIES-1:0]   stamofu_CAM_update_bank1_ld_ROB_index,
@@ -57,7 +59,7 @@ module ssu #(
 
     // stamofu_cq commit update
         // implied no dep
-        // incorporates ldu_mq commit update
+        // incorporates stamofu_mq commit update
     input logic                         stamofu_commit_update_valid,
     input logic [MDPT_INFO_WIDTH-1:0]   stamofu_commit_update_mdp_info,
     input logic [LOG_ROB_ENTRIES-1:0]   stamofu_commit_update_ROB_index,
