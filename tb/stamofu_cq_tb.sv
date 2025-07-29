@@ -127,6 +127,16 @@ module stamofu_cq_tb ();
 	logic tb_dtlb_miss_resp_page_fault;
 	logic tb_dtlb_miss_resp_access_fault;
 
+    // ldu CAM launch from stamofu_mq
+	logic tb_stamofu_mq_ldu_CAM_launch_valid;
+	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] tb_stamofu_mq_ldu_CAM_launch_cq_index;
+	logic [LOG_STAMOFU_MQ_ENTRIES-1:0] tb_stamofu_mq_ldu_CAM_launch_mq_index;
+	logic [PA_WIDTH-2-1:0] tb_stamofu_mq_ldu_CAM_launch_PA_word;
+	logic [3:0] tb_stamofu_mq_ldu_CAM_launch_byte_mask;
+	logic [31:0] tb_stamofu_mq_ldu_CAM_launch_write_data;
+	logic [MDPT_INFO_WIDTH-1:0] tb_stamofu_mq_ldu_CAM_launch_mdp_info;
+	logic [LOG_ROB_ENTRIES-1:0] tb_stamofu_mq_ldu_CAM_launch_ROB_index;
+
     // ldu CAM launch
 	logic DUT_ldu_CAM_launch_valid, expected_ldu_CAM_launch_valid;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] DUT_ldu_CAM_launch_cq_index, expected_ldu_CAM_launch_cq_index;
@@ -138,11 +148,6 @@ module stamofu_cq_tb ();
 	logic [31:0] DUT_ldu_CAM_launch_write_data, expected_ldu_CAM_launch_write_data;
 	logic [MDPT_INFO_WIDTH-1:0] DUT_ldu_CAM_launch_mdp_info, expected_ldu_CAM_launch_mdp_info;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_ldu_CAM_launch_ROB_index, expected_ldu_CAM_launch_ROB_index;
-
-    // ldu CAM launch feedback
-        // externally select stamofu_cq vs. stamofu_mq launch this cycle
-        // not ready if doing mq this cycle
-	logic tb_ldu_CAM_launch_ready;
 
     // ldu CAM return
 	logic tb_ldu_CAM_return_valid;
@@ -171,7 +176,7 @@ module stamofu_cq_tb ();
 	logic [MDPT_INFO_WIDTH-1:0] tb_stamofu_CAM_launch_bank1_mdp_info;
 
     // stamofu_mq CAM stage 2 info
-	logic [MDPT_INFO_WIDTH-1:0] tb_stamofu_mq_CAM_return_bank0_updated_mdp_info;
+	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] tb_stamofu_mq_CAM_return_bank0_cq_index;
 	logic tb_stamofu_mq_CAM_return_bank0_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] tb_stamofu_mq_CAM_return_bank0_stall_count;
 	logic [3:0] tb_stamofu_mq_CAM_return_bank0_forward;
@@ -179,7 +184,7 @@ module stamofu_cq_tb ();
 	logic tb_stamofu_mq_CAM_return_bank0_forward_ROB_index;
 	logic [31:0] tb_stamofu_mq_CAM_return_bank0_forward_data;
 
-	logic [MDPT_INFO_WIDTH-1:0] tb_stamofu_mq_CAM_return_bank1_updated_mdp_info;
+	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] tb_stamofu_mq_CAM_return_bank1_cq_index;
 	logic tb_stamofu_mq_CAM_return_bank1_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] tb_stamofu_mq_CAM_return_bank1_stall_count;
 	logic [3:0] tb_stamofu_mq_CAM_return_bank1_forward;
@@ -192,7 +197,6 @@ module stamofu_cq_tb ();
 	logic [LOG_LDU_CQ_ENTRIES-1:0] DUT_stamofu_CAM_return_bank0_cq_index, expected_stamofu_CAM_return_bank0_cq_index;
 	logic DUT_stamofu_CAM_return_bank0_is_mq, expected_stamofu_CAM_return_bank0_is_mq;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] DUT_stamofu_CAM_return_bank0_mq_index, expected_stamofu_CAM_return_bank0_mq_index;
-	logic [MDPT_INFO_WIDTH-1:0] DUT_stamofu_CAM_return_bank0_updated_mdp_info, expected_stamofu_CAM_return_bank0_updated_mdp_info;
 	logic DUT_stamofu_CAM_return_bank0_stall, expected_stamofu_CAM_return_bank0_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] DUT_stamofu_CAM_return_bank0_stall_count, expected_stamofu_CAM_return_bank0_stall_count;
 	logic [3:0] DUT_stamofu_CAM_return_bank0_forward, expected_stamofu_CAM_return_bank0_forward;
@@ -204,7 +208,6 @@ module stamofu_cq_tb ();
 	logic [LOG_LDU_CQ_ENTRIES-1:0] DUT_stamofu_CAM_return_bank1_cq_index, expected_stamofu_CAM_return_bank1_cq_index;
 	logic DUT_stamofu_CAM_return_bank1_is_mq, expected_stamofu_CAM_return_bank1_is_mq;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] DUT_stamofu_CAM_return_bank1_mq_index, expected_stamofu_CAM_return_bank1_mq_index;
-	logic [MDPT_INFO_WIDTH-1:0] DUT_stamofu_CAM_return_bank1_updated_mdp_info, expected_stamofu_CAM_return_bank1_updated_mdp_info;
 	logic DUT_stamofu_CAM_return_bank1_stall, expected_stamofu_CAM_return_bank1_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] DUT_stamofu_CAM_return_bank1_stall_count, expected_stamofu_CAM_return_bank1_stall_count;
 	logic [3:0] DUT_stamofu_CAM_return_bank1_forward, expected_stamofu_CAM_return_bank1_forward;
@@ -253,6 +256,22 @@ module stamofu_cq_tb ();
 
     // exception backpressure from ROB
 	logic tb_rob_exception_ready;
+
+    // store set CAM update bank 0
+        // implied dep
+	logic DUT_ssu_CAM_update_bank0_valid, expected_ssu_CAM_update_bank0_valid;
+	logic [MDPT_INFO_WIDTH-1:0] DUT_ssu_CAM_update_bank0_ld_mdp_info, expected_ssu_CAM_update_bank0_ld_mdp_info;
+	logic [LOG_ROB_ENTRIES-1:0] DUT_ssu_CAM_update_bank0_ld_ROB_index, expected_ssu_CAM_update_bank0_ld_ROB_index;
+	logic [MDPT_INFO_WIDTH-1:0] DUT_ssu_CAM_update_bank0_stamo_mdp_info, expected_ssu_CAM_update_bank0_stamo_mdp_info;
+	logic [LOG_ROB_ENTRIES-1:0] DUT_ssu_CAM_update_bank0_stamo_ROB_index, expected_ssu_CAM_update_bank0_stamo_ROB_index;
+
+    // store set CAM update bank 1
+        // implied dep
+	logic DUT_ssu_CAM_update_bank1_valid, expected_ssu_CAM_update_bank1_valid;
+	logic [MDPT_INFO_WIDTH-1:0] DUT_ssu_CAM_update_bank1_ld_mdp_info, expected_ssu_CAM_update_bank1_ld_mdp_info;
+	logic [LOG_ROB_ENTRIES-1:0] DUT_ssu_CAM_update_bank1_ld_ROB_index, expected_ssu_CAM_update_bank1_ld_ROB_index;
+	logic [MDPT_INFO_WIDTH-1:0] DUT_ssu_CAM_update_bank1_stamo_mdp_info, expected_ssu_CAM_update_bank1_stamo_mdp_info;
+	logic [LOG_ROB_ENTRIES-1:0] DUT_ssu_CAM_update_bank1_stamo_ROB_index, expected_ssu_CAM_update_bank1_stamo_ROB_index;
 
     // store set commit update
         // implied no dep
@@ -385,6 +404,16 @@ module stamofu_cq_tb ();
 		.dtlb_miss_resp_page_fault(tb_dtlb_miss_resp_page_fault),
 		.dtlb_miss_resp_access_fault(tb_dtlb_miss_resp_access_fault),
 
+	    // ldu CAM launch from stamofu_mq
+		.stamofu_mq_ldu_CAM_launch_valid(tb_stamofu_mq_ldu_CAM_launch_valid),
+		.stamofu_mq_ldu_CAM_launch_cq_index(tb_stamofu_mq_ldu_CAM_launch_cq_index),
+		.stamofu_mq_ldu_CAM_launch_mq_index(tb_stamofu_mq_ldu_CAM_launch_mq_index),
+		.stamofu_mq_ldu_CAM_launch_PA_word(tb_stamofu_mq_ldu_CAM_launch_PA_word),
+		.stamofu_mq_ldu_CAM_launch_byte_mask(tb_stamofu_mq_ldu_CAM_launch_byte_mask),
+		.stamofu_mq_ldu_CAM_launch_write_data(tb_stamofu_mq_ldu_CAM_launch_write_data),
+		.stamofu_mq_ldu_CAM_launch_mdp_info(tb_stamofu_mq_ldu_CAM_launch_mdp_info),
+		.stamofu_mq_ldu_CAM_launch_ROB_index(tb_stamofu_mq_ldu_CAM_launch_ROB_index),
+
 	    // ldu CAM launch
 		.ldu_CAM_launch_valid(DUT_ldu_CAM_launch_valid),
 		.ldu_CAM_launch_cq_index(DUT_ldu_CAM_launch_cq_index),
@@ -396,11 +425,6 @@ module stamofu_cq_tb ();
 		.ldu_CAM_launch_write_data(DUT_ldu_CAM_launch_write_data),
 		.ldu_CAM_launch_mdp_info(DUT_ldu_CAM_launch_mdp_info),
 		.ldu_CAM_launch_ROB_index(DUT_ldu_CAM_launch_ROB_index),
-
-	    // ldu CAM launch feedback
-	        // externally select stamofu_cq vs. stamofu_mq launch this cycle
-	        // not ready if doing mq this cycle
-		.ldu_CAM_launch_ready(tb_ldu_CAM_launch_ready),
 
 	    // ldu CAM return
 		.ldu_CAM_return_valid(tb_ldu_CAM_return_valid),
@@ -429,7 +453,7 @@ module stamofu_cq_tb ();
 		.stamofu_CAM_launch_bank1_mdp_info(tb_stamofu_CAM_launch_bank1_mdp_info),
 
 	    // stamofu_mq CAM stage 2 info
-		.stamofu_mq_CAM_return_bank0_updated_mdp_info(tb_stamofu_mq_CAM_return_bank0_updated_mdp_info),
+		.stamofu_mq_CAM_return_bank0_cq_index(tb_stamofu_mq_CAM_return_bank0_cq_index),
 		.stamofu_mq_CAM_return_bank0_stall(tb_stamofu_mq_CAM_return_bank0_stall),
 		.stamofu_mq_CAM_return_bank0_stall_count(tb_stamofu_mq_CAM_return_bank0_stall_count),
 		.stamofu_mq_CAM_return_bank0_forward(tb_stamofu_mq_CAM_return_bank0_forward),
@@ -437,7 +461,7 @@ module stamofu_cq_tb ();
 		.stamofu_mq_CAM_return_bank0_forward_ROB_index(tb_stamofu_mq_CAM_return_bank0_forward_ROB_index),
 		.stamofu_mq_CAM_return_bank0_forward_data(tb_stamofu_mq_CAM_return_bank0_forward_data),
 
-		.stamofu_mq_CAM_return_bank1_updated_mdp_info(tb_stamofu_mq_CAM_return_bank1_updated_mdp_info),
+		.stamofu_mq_CAM_return_bank1_cq_index(tb_stamofu_mq_CAM_return_bank1_cq_index),
 		.stamofu_mq_CAM_return_bank1_stall(tb_stamofu_mq_CAM_return_bank1_stall),
 		.stamofu_mq_CAM_return_bank1_stall_count(tb_stamofu_mq_CAM_return_bank1_stall_count),
 		.stamofu_mq_CAM_return_bank1_forward(tb_stamofu_mq_CAM_return_bank1_forward),
@@ -450,7 +474,6 @@ module stamofu_cq_tb ();
 		.stamofu_CAM_return_bank0_cq_index(DUT_stamofu_CAM_return_bank0_cq_index),
 		.stamofu_CAM_return_bank0_is_mq(DUT_stamofu_CAM_return_bank0_is_mq),
 		.stamofu_CAM_return_bank0_mq_index(DUT_stamofu_CAM_return_bank0_mq_index),
-		.stamofu_CAM_return_bank0_updated_mdp_info(DUT_stamofu_CAM_return_bank0_updated_mdp_info),
 		.stamofu_CAM_return_bank0_stall(DUT_stamofu_CAM_return_bank0_stall),
 		.stamofu_CAM_return_bank0_stall_count(DUT_stamofu_CAM_return_bank0_stall_count),
 		.stamofu_CAM_return_bank0_forward(DUT_stamofu_CAM_return_bank0_forward),
@@ -462,7 +485,6 @@ module stamofu_cq_tb ();
 		.stamofu_CAM_return_bank1_cq_index(DUT_stamofu_CAM_return_bank1_cq_index),
 		.stamofu_CAM_return_bank1_is_mq(DUT_stamofu_CAM_return_bank1_is_mq),
 		.stamofu_CAM_return_bank1_mq_index(DUT_stamofu_CAM_return_bank1_mq_index),
-		.stamofu_CAM_return_bank1_updated_mdp_info(DUT_stamofu_CAM_return_bank1_updated_mdp_info),
 		.stamofu_CAM_return_bank1_stall(DUT_stamofu_CAM_return_bank1_stall),
 		.stamofu_CAM_return_bank1_stall_count(DUT_stamofu_CAM_return_bank1_stall_count),
 		.stamofu_CAM_return_bank1_forward(DUT_stamofu_CAM_return_bank1_forward),
@@ -511,6 +533,22 @@ module stamofu_cq_tb ();
 
 	    // exception backpressure from ROB
 		.rob_exception_ready(tb_rob_exception_ready),
+
+	    // store set CAM update bank 0
+	        // implied dep
+		.ssu_CAM_update_bank0_valid(DUT_ssu_CAM_update_bank0_valid),
+		.ssu_CAM_update_bank0_ld_mdp_info(DUT_ssu_CAM_update_bank0_ld_mdp_info),
+		.ssu_CAM_update_bank0_ld_ROB_index(DUT_ssu_CAM_update_bank0_ld_ROB_index),
+		.ssu_CAM_update_bank0_stamo_mdp_info(DUT_ssu_CAM_update_bank0_stamo_mdp_info),
+		.ssu_CAM_update_bank0_stamo_ROB_index(DUT_ssu_CAM_update_bank0_stamo_ROB_index),
+
+	    // store set CAM update bank 1
+	        // implied dep
+		.ssu_CAM_update_bank1_valid(DUT_ssu_CAM_update_bank1_valid),
+		.ssu_CAM_update_bank1_ld_mdp_info(DUT_ssu_CAM_update_bank1_ld_mdp_info),
+		.ssu_CAM_update_bank1_ld_ROB_index(DUT_ssu_CAM_update_bank1_ld_ROB_index),
+		.ssu_CAM_update_bank1_stamo_mdp_info(DUT_ssu_CAM_update_bank1_stamo_mdp_info),
+		.ssu_CAM_update_bank1_stamo_ROB_index(DUT_ssu_CAM_update_bank1_stamo_ROB_index),
 
 	    // store set commit update
 	        // implied no dep
@@ -745,13 +783,6 @@ module stamofu_cq_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_stamofu_CAM_return_bank0_updated_mdp_info !== DUT_stamofu_CAM_return_bank0_updated_mdp_info) begin
-			$display("TB ERROR: expected_stamofu_CAM_return_bank0_updated_mdp_info (%h) != DUT_stamofu_CAM_return_bank0_updated_mdp_info (%h)",
-				expected_stamofu_CAM_return_bank0_updated_mdp_info, DUT_stamofu_CAM_return_bank0_updated_mdp_info);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
 		if (expected_stamofu_CAM_return_bank0_stall !== DUT_stamofu_CAM_return_bank0_stall) begin
 			$display("TB ERROR: expected_stamofu_CAM_return_bank0_stall (%h) != DUT_stamofu_CAM_return_bank0_stall (%h)",
 				expected_stamofu_CAM_return_bank0_stall, DUT_stamofu_CAM_return_bank0_stall);
@@ -818,13 +849,6 @@ module stamofu_cq_tb ();
 		if (expected_stamofu_CAM_return_bank1_mq_index !== DUT_stamofu_CAM_return_bank1_mq_index) begin
 			$display("TB ERROR: expected_stamofu_CAM_return_bank1_mq_index (%h) != DUT_stamofu_CAM_return_bank1_mq_index (%h)",
 				expected_stamofu_CAM_return_bank1_mq_index, DUT_stamofu_CAM_return_bank1_mq_index);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_stamofu_CAM_return_bank1_updated_mdp_info !== DUT_stamofu_CAM_return_bank1_updated_mdp_info) begin
-			$display("TB ERROR: expected_stamofu_CAM_return_bank1_updated_mdp_info (%h) != DUT_stamofu_CAM_return_bank1_updated_mdp_info (%h)",
-				expected_stamofu_CAM_return_bank1_updated_mdp_info, DUT_stamofu_CAM_return_bank1_updated_mdp_info);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -997,6 +1021,76 @@ module stamofu_cq_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_ssu_CAM_update_bank0_valid !== DUT_ssu_CAM_update_bank0_valid) begin
+			$display("TB ERROR: expected_ssu_CAM_update_bank0_valid (%h) != DUT_ssu_CAM_update_bank0_valid (%h)",
+				expected_ssu_CAM_update_bank0_valid, DUT_ssu_CAM_update_bank0_valid);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_ssu_CAM_update_bank0_ld_mdp_info !== DUT_ssu_CAM_update_bank0_ld_mdp_info) begin
+			$display("TB ERROR: expected_ssu_CAM_update_bank0_ld_mdp_info (%h) != DUT_ssu_CAM_update_bank0_ld_mdp_info (%h)",
+				expected_ssu_CAM_update_bank0_ld_mdp_info, DUT_ssu_CAM_update_bank0_ld_mdp_info);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_ssu_CAM_update_bank0_ld_ROB_index !== DUT_ssu_CAM_update_bank0_ld_ROB_index) begin
+			$display("TB ERROR: expected_ssu_CAM_update_bank0_ld_ROB_index (%h) != DUT_ssu_CAM_update_bank0_ld_ROB_index (%h)",
+				expected_ssu_CAM_update_bank0_ld_ROB_index, DUT_ssu_CAM_update_bank0_ld_ROB_index);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_ssu_CAM_update_bank0_stamo_mdp_info !== DUT_ssu_CAM_update_bank0_stamo_mdp_info) begin
+			$display("TB ERROR: expected_ssu_CAM_update_bank0_stamo_mdp_info (%h) != DUT_ssu_CAM_update_bank0_stamo_mdp_info (%h)",
+				expected_ssu_CAM_update_bank0_stamo_mdp_info, DUT_ssu_CAM_update_bank0_stamo_mdp_info);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_ssu_CAM_update_bank0_stamo_ROB_index !== DUT_ssu_CAM_update_bank0_stamo_ROB_index) begin
+			$display("TB ERROR: expected_ssu_CAM_update_bank0_stamo_ROB_index (%h) != DUT_ssu_CAM_update_bank0_stamo_ROB_index (%h)",
+				expected_ssu_CAM_update_bank0_stamo_ROB_index, DUT_ssu_CAM_update_bank0_stamo_ROB_index);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_ssu_CAM_update_bank1_valid !== DUT_ssu_CAM_update_bank1_valid) begin
+			$display("TB ERROR: expected_ssu_CAM_update_bank1_valid (%h) != DUT_ssu_CAM_update_bank1_valid (%h)",
+				expected_ssu_CAM_update_bank1_valid, DUT_ssu_CAM_update_bank1_valid);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_ssu_CAM_update_bank1_ld_mdp_info !== DUT_ssu_CAM_update_bank1_ld_mdp_info) begin
+			$display("TB ERROR: expected_ssu_CAM_update_bank1_ld_mdp_info (%h) != DUT_ssu_CAM_update_bank1_ld_mdp_info (%h)",
+				expected_ssu_CAM_update_bank1_ld_mdp_info, DUT_ssu_CAM_update_bank1_ld_mdp_info);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_ssu_CAM_update_bank1_ld_ROB_index !== DUT_ssu_CAM_update_bank1_ld_ROB_index) begin
+			$display("TB ERROR: expected_ssu_CAM_update_bank1_ld_ROB_index (%h) != DUT_ssu_CAM_update_bank1_ld_ROB_index (%h)",
+				expected_ssu_CAM_update_bank1_ld_ROB_index, DUT_ssu_CAM_update_bank1_ld_ROB_index);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_ssu_CAM_update_bank1_stamo_mdp_info !== DUT_ssu_CAM_update_bank1_stamo_mdp_info) begin
+			$display("TB ERROR: expected_ssu_CAM_update_bank1_stamo_mdp_info (%h) != DUT_ssu_CAM_update_bank1_stamo_mdp_info (%h)",
+				expected_ssu_CAM_update_bank1_stamo_mdp_info, DUT_ssu_CAM_update_bank1_stamo_mdp_info);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_ssu_CAM_update_bank1_stamo_ROB_index !== DUT_ssu_CAM_update_bank1_stamo_ROB_index) begin
+			$display("TB ERROR: expected_ssu_CAM_update_bank1_stamo_ROB_index (%h) != DUT_ssu_CAM_update_bank1_stamo_ROB_index (%h)",
+				expected_ssu_CAM_update_bank1_stamo_ROB_index, DUT_ssu_CAM_update_bank1_stamo_ROB_index);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_ssu_commit_update_valid !== DUT_ssu_commit_update_valid) begin
 			$display("TB ERROR: expected_ssu_commit_update_valid (%h) != DUT_ssu_commit_update_valid (%h)",
 				expected_ssu_commit_update_valid, DUT_ssu_commit_update_valid);
@@ -1140,9 +1234,16 @@ module stamofu_cq_tb ();
 		tb_dtlb_miss_resp_is_mem = 1'b0;
 		tb_dtlb_miss_resp_page_fault = 1'b0;
 		tb_dtlb_miss_resp_access_fault = 1'b0;
+		// ldu CAM launch from stamofu_mq
+		tb_stamofu_mq_ldu_CAM_launch_valid = 1'b0;
+		tb_stamofu_mq_ldu_CAM_launch_cq_index = 'h0;
+		tb_stamofu_mq_ldu_CAM_launch_mq_index = 'h0;
+		tb_stamofu_mq_ldu_CAM_launch_PA_word = 32'h00000000;
+		tb_stamofu_mq_ldu_CAM_launch_byte_mask = 4'b0000;
+		tb_stamofu_mq_ldu_CAM_launch_write_data = 32'h0;
+		tb_stamofu_mq_ldu_CAM_launch_mdp_info = 8'b00000000;
+		tb_stamofu_mq_ldu_CAM_launch_ROB_index = 7'h00;
 	    // ldu CAM launch
-	    // ldu CAM launch feedback
-		tb_ldu_CAM_launch_ready = 1'b0;
 	    // ldu CAM return
 		tb_ldu_CAM_return_valid = 1'b0;
 		tb_ldu_CAM_return_cq_index = 'h0;
@@ -1167,14 +1268,14 @@ module stamofu_cq_tb ();
 		tb_stamofu_CAM_launch_bank1_ROB_index = 7'h00;
 		tb_stamofu_CAM_launch_bank1_mdp_info = 8'b00000000;
 	    // stamofu_mq CAM stage 2 info
-		tb_stamofu_mq_CAM_return_bank0_updated_mdp_info = 8'b00000000;
+		tb_stamofu_mq_CAM_return_bank0_cq_index = 'h0;
 		tb_stamofu_mq_CAM_return_bank0_stall = 1'b0;
 		tb_stamofu_mq_CAM_return_bank0_stall_count = 'h0;
 		tb_stamofu_mq_CAM_return_bank0_forward = 1'b0;
 		tb_stamofu_mq_CAM_return_bank0_nasty_forward = 1'b0;
 		tb_stamofu_mq_CAM_return_bank0_forward_ROB_index = 7'h00;
 		tb_stamofu_mq_CAM_return_bank0_forward_data = 32'h00000000;
-		tb_stamofu_mq_CAM_return_bank1_updated_mdp_info = 8'b00000000;
+		tb_stamofu_mq_CAM_return_bank1_cq_index = 'h0;
 		tb_stamofu_mq_CAM_return_bank1_stall = 1'b0;
 		tb_stamofu_mq_CAM_return_bank1_stall_count = 'h0;
 		tb_stamofu_mq_CAM_return_bank1_forward = 1'b0;
@@ -1258,7 +1359,6 @@ module stamofu_cq_tb ();
 		expected_stamofu_CAM_return_bank0_cq_index = 'h0;
 		expected_stamofu_CAM_return_bank0_is_mq = 1'b0;
 		expected_stamofu_CAM_return_bank0_mq_index = 'h0;
-		expected_stamofu_CAM_return_bank0_updated_mdp_info = 8'b00000000;
 		expected_stamofu_CAM_return_bank0_stall = 1'b0;
 		expected_stamofu_CAM_return_bank0_stall_count = 'h0;
 		expected_stamofu_CAM_return_bank0_forward = 1'b0;
@@ -1269,7 +1369,6 @@ module stamofu_cq_tb ();
 		expected_stamofu_CAM_return_bank1_cq_index = 'h0;
 		expected_stamofu_CAM_return_bank1_is_mq = 1'b0;
 		expected_stamofu_CAM_return_bank1_mq_index = 'h0;
-		expected_stamofu_CAM_return_bank1_updated_mdp_info = 8'b00000000;
 		expected_stamofu_CAM_return_bank1_stall = 1'b0;
 		expected_stamofu_CAM_return_bank1_stall_count = 'h0;
 		expected_stamofu_CAM_return_bank1_forward = 1'b0;
@@ -1301,6 +1400,18 @@ module stamofu_cq_tb ();
 		expected_rob_exception_misaligned_exception = 1'b0;
 		expected_rob_exception_ROB_index = 7'h00;
 	    // exception backpressure from ROB
+		// store set CAM update bank 0
+		expected_ssu_CAM_update_bank0_valid = 1'b0;
+		expected_ssu_CAM_update_bank0_ld_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_bank0_ld_ROB_index = 7'h00;
+		expected_ssu_CAM_update_bank0_stamo_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_bank0_stamo_ROB_index = 7'h00;
+		// store set CAM update bank 1
+		expected_ssu_CAM_update_bank1_valid = 1'b0;
+		expected_ssu_CAM_update_bank1_ld_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_bank1_ld_ROB_index = 7'h00;
+		expected_ssu_CAM_update_bank1_stamo_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_bank1_stamo_ROB_index = 7'h00;
 	    // store set commit update
 		expected_ssu_commit_update_valid = 1'b0;
 		expected_ssu_commit_update_mdp_info = 8'b00000000;
@@ -1390,9 +1501,16 @@ module stamofu_cq_tb ();
 		tb_dtlb_miss_resp_is_mem = 1'b0;
 		tb_dtlb_miss_resp_page_fault = 1'b0;
 		tb_dtlb_miss_resp_access_fault = 1'b0;
+		// ldu CAM launch from stamofu_mq
+		tb_stamofu_mq_ldu_CAM_launch_valid = 1'b0;
+		tb_stamofu_mq_ldu_CAM_launch_cq_index = 'h0;
+		tb_stamofu_mq_ldu_CAM_launch_mq_index = 'h0;
+		tb_stamofu_mq_ldu_CAM_launch_PA_word = 32'h00000000;
+		tb_stamofu_mq_ldu_CAM_launch_byte_mask = 4'b0000;
+		tb_stamofu_mq_ldu_CAM_launch_write_data = 32'h0;
+		tb_stamofu_mq_ldu_CAM_launch_mdp_info = 8'b00000000;
+		tb_stamofu_mq_ldu_CAM_launch_ROB_index = 7'h00;
 	    // ldu CAM launch
-	    // ldu CAM launch feedback
-		tb_ldu_CAM_launch_ready = 1'b0;
 	    // ldu CAM return
 		tb_ldu_CAM_return_valid = 1'b0;
 		tb_ldu_CAM_return_cq_index = 'h0;
@@ -1417,14 +1535,14 @@ module stamofu_cq_tb ();
 		tb_stamofu_CAM_launch_bank1_ROB_index = 7'h00;
 		tb_stamofu_CAM_launch_bank1_mdp_info = 8'b00000000;
 	    // stamofu_mq CAM stage 2 info
-		tb_stamofu_mq_CAM_return_bank0_updated_mdp_info = 8'b00000000;
+		tb_stamofu_mq_CAM_return_bank0_cq_index = 'h0;
 		tb_stamofu_mq_CAM_return_bank0_stall = 1'b0;
 		tb_stamofu_mq_CAM_return_bank0_stall_count = 'h0;
 		tb_stamofu_mq_CAM_return_bank0_forward = 1'b0;
 		tb_stamofu_mq_CAM_return_bank0_nasty_forward = 1'b0;
 		tb_stamofu_mq_CAM_return_bank0_forward_ROB_index = 7'h00;
 		tb_stamofu_mq_CAM_return_bank0_forward_data = 32'h00000000;
-		tb_stamofu_mq_CAM_return_bank1_updated_mdp_info = 8'b00000000;
+		tb_stamofu_mq_CAM_return_bank1_cq_index = 'h0;
 		tb_stamofu_mq_CAM_return_bank1_stall = 1'b0;
 		tb_stamofu_mq_CAM_return_bank1_stall_count = 'h0;
 		tb_stamofu_mq_CAM_return_bank1_forward = 1'b0;
@@ -1508,7 +1626,6 @@ module stamofu_cq_tb ();
 		expected_stamofu_CAM_return_bank0_cq_index = 'h0;
 		expected_stamofu_CAM_return_bank0_is_mq = 1'b0;
 		expected_stamofu_CAM_return_bank0_mq_index = 'h0;
-		expected_stamofu_CAM_return_bank0_updated_mdp_info = 8'b00000000;
 		expected_stamofu_CAM_return_bank0_stall = 1'b0;
 		expected_stamofu_CAM_return_bank0_stall_count = 'h0;
 		expected_stamofu_CAM_return_bank0_forward = 1'b0;
@@ -1519,7 +1636,6 @@ module stamofu_cq_tb ();
 		expected_stamofu_CAM_return_bank1_cq_index = 'h0;
 		expected_stamofu_CAM_return_bank1_is_mq = 1'b0;
 		expected_stamofu_CAM_return_bank1_mq_index = 'h0;
-		expected_stamofu_CAM_return_bank1_updated_mdp_info = 8'b00000000;
 		expected_stamofu_CAM_return_bank1_stall = 1'b0;
 		expected_stamofu_CAM_return_bank1_stall_count = 'h0;
 		expected_stamofu_CAM_return_bank1_forward = 1'b0;
@@ -1551,6 +1667,18 @@ module stamofu_cq_tb ();
 		expected_rob_exception_misaligned_exception = 1'b0;
 		expected_rob_exception_ROB_index = 7'h00;
 	    // exception backpressure from ROB
+		// store set CAM update bank 0
+		expected_ssu_CAM_update_bank0_valid = 1'b0;
+		expected_ssu_CAM_update_bank0_ld_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_bank0_ld_ROB_index = 7'h00;
+		expected_ssu_CAM_update_bank0_stamo_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_bank0_stamo_ROB_index = 7'h00;
+		// store set CAM update bank 1
+		expected_ssu_CAM_update_bank1_valid = 1'b0;
+		expected_ssu_CAM_update_bank1_ld_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_bank1_ld_ROB_index = 7'h00;
+		expected_ssu_CAM_update_bank1_stamo_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_bank1_stamo_ROB_index = 7'h00;
 	    // store set commit update
 		expected_ssu_commit_update_valid = 1'b0;
 		expected_ssu_commit_update_mdp_info = 8'b00000000;
@@ -1648,9 +1776,16 @@ module stamofu_cq_tb ();
 		tb_dtlb_miss_resp_is_mem = 1'b0;
 		tb_dtlb_miss_resp_page_fault = 1'b0;
 		tb_dtlb_miss_resp_access_fault = 1'b0;
+		// ldu CAM launch from stamofu_mq
+		tb_stamofu_mq_ldu_CAM_launch_valid = 1'b0;
+		tb_stamofu_mq_ldu_CAM_launch_cq_index = 'h0;
+		tb_stamofu_mq_ldu_CAM_launch_mq_index = 'h0;
+		tb_stamofu_mq_ldu_CAM_launch_PA_word = 32'h00000000;
+		tb_stamofu_mq_ldu_CAM_launch_byte_mask = 4'b0000;
+		tb_stamofu_mq_ldu_CAM_launch_write_data = 32'h0;
+		tb_stamofu_mq_ldu_CAM_launch_mdp_info = 8'b00000000;
+		tb_stamofu_mq_ldu_CAM_launch_ROB_index = 7'h00;
 	    // ldu CAM launch
-	    // ldu CAM launch feedback
-		tb_ldu_CAM_launch_ready = 1'b0;
 	    // ldu CAM return
 		tb_ldu_CAM_return_valid = 1'b0;
 		tb_ldu_CAM_return_cq_index = 'h0;
@@ -1675,14 +1810,14 @@ module stamofu_cq_tb ();
 		tb_stamofu_CAM_launch_bank1_ROB_index = 7'h00;
 		tb_stamofu_CAM_launch_bank1_mdp_info = 8'b00000000;
 	    // stamofu_mq CAM stage 2 info
-		tb_stamofu_mq_CAM_return_bank0_updated_mdp_info = 8'b00000000;
+		tb_stamofu_mq_CAM_return_bank0_cq_index = 'h0;
 		tb_stamofu_mq_CAM_return_bank0_stall = 1'b0;
 		tb_stamofu_mq_CAM_return_bank0_stall_count = 'h0;
 		tb_stamofu_mq_CAM_return_bank0_forward = 1'b0;
 		tb_stamofu_mq_CAM_return_bank0_nasty_forward = 1'b0;
 		tb_stamofu_mq_CAM_return_bank0_forward_ROB_index = 7'h00;
 		tb_stamofu_mq_CAM_return_bank0_forward_data = 32'h00000000;
-		tb_stamofu_mq_CAM_return_bank1_updated_mdp_info = 8'b00000000;
+		tb_stamofu_mq_CAM_return_bank1_cq_index = 'h0;
 		tb_stamofu_mq_CAM_return_bank1_stall = 1'b0;
 		tb_stamofu_mq_CAM_return_bank1_stall_count = 'h0;
 		tb_stamofu_mq_CAM_return_bank1_forward = 1'b0;
@@ -1706,6 +1841,18 @@ module stamofu_cq_tb ();
 	    // exception to ROB
 	    // exception backpressure from ROB
 		tb_rob_exception_ready = 1'b1;
+		// store set CAM update bank 0
+		expected_ssu_CAM_update_bank0_valid = 1'b0;
+		expected_ssu_CAM_update_bank0_ld_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_bank0_ld_ROB_index = 7'h00;
+		expected_ssu_CAM_update_bank0_stamo_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_bank0_stamo_ROB_index = 7'h00;
+		// store set CAM update bank 1
+		expected_ssu_CAM_update_bank1_valid = 1'b0;
+		expected_ssu_CAM_update_bank1_ld_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_bank1_ld_ROB_index = 7'h00;
+		expected_ssu_CAM_update_bank1_stamo_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_bank1_stamo_ROB_index = 7'h00;
 	    // store set commit update
 	    // oldest stamofu advertisement
 	    // stamofu mq complete notif
@@ -1766,7 +1913,6 @@ module stamofu_cq_tb ();
 		expected_stamofu_CAM_return_bank0_cq_index = 'h0;
 		expected_stamofu_CAM_return_bank0_is_mq = 1'b0;
 		expected_stamofu_CAM_return_bank0_mq_index = 'h0;
-		expected_stamofu_CAM_return_bank0_updated_mdp_info = 8'b00000000;
 		expected_stamofu_CAM_return_bank0_stall = 1'b0;
 		expected_stamofu_CAM_return_bank0_stall_count = 'h0;
 		expected_stamofu_CAM_return_bank0_forward = 1'b0;
@@ -1777,7 +1923,6 @@ module stamofu_cq_tb ();
 		expected_stamofu_CAM_return_bank1_cq_index = 'h0;
 		expected_stamofu_CAM_return_bank1_is_mq = 1'b0;
 		expected_stamofu_CAM_return_bank1_mq_index = 'h0;
-		expected_stamofu_CAM_return_bank1_updated_mdp_info = 8'b00000000;
 		expected_stamofu_CAM_return_bank1_stall = 1'b0;
 		expected_stamofu_CAM_return_bank1_stall_count = 'h0;
 		expected_stamofu_CAM_return_bank1_forward = 1'b0;
@@ -1809,6 +1954,18 @@ module stamofu_cq_tb ();
 		expected_rob_exception_misaligned_exception = 1'b0;
 		expected_rob_exception_ROB_index = 7'h00;
 	    // exception backpressure from ROB
+		// store set CAM update bank 0
+		expected_ssu_CAM_update_bank0_valid = 1'b0;
+		expected_ssu_CAM_update_bank0_ld_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_bank0_ld_ROB_index = 7'h00;
+		expected_ssu_CAM_update_bank0_stamo_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_bank0_stamo_ROB_index = 7'h00;
+		// store set CAM update bank 1
+		expected_ssu_CAM_update_bank1_valid = 1'b0;
+		expected_ssu_CAM_update_bank1_ld_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_bank1_ld_ROB_index = 7'h00;
+		expected_ssu_CAM_update_bank1_stamo_mdp_info = 8'b00000000;
+		expected_ssu_CAM_update_bank1_stamo_ROB_index = 7'h00;
 	    // store set commit update
 		expected_ssu_commit_update_valid = 1'b0;
 		expected_ssu_commit_update_mdp_info = 8'b00000000;

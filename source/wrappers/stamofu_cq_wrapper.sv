@@ -13,7 +13,7 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter STAMOFU_CQ_ENTRIES = core_types_pkg::STAMOFU_CQ_ENTRIES;
+parameter STAMOFU_CQ_ENTRIES = 24;
 parameter LOG_STAMOFU_CQ_ENTRIES = $clog2(STAMOFU_CQ_ENTRIES);
 
 module stamofu_cq_wrapper (
@@ -111,6 +111,16 @@ module stamofu_cq_wrapper (
 	input logic next_dtlb_miss_resp_page_fault,
 	input logic next_dtlb_miss_resp_access_fault,
 
+    // ldu CAM launch from stamofu_mq
+	input logic next_stamofu_mq_ldu_CAM_launch_valid,
+	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_mq_ldu_CAM_launch_cq_index,
+	input logic [LOG_STAMOFU_MQ_ENTRIES-1:0] next_stamofu_mq_ldu_CAM_launch_mq_index,
+	input logic [PA_WIDTH-2-1:0] next_stamofu_mq_ldu_CAM_launch_PA_word,
+	input logic [3:0] next_stamofu_mq_ldu_CAM_launch_byte_mask,
+	input logic [31:0] next_stamofu_mq_ldu_CAM_launch_write_data,
+	input logic [MDPT_INFO_WIDTH-1:0] next_stamofu_mq_ldu_CAM_launch_mdp_info,
+	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_mq_ldu_CAM_launch_ROB_index,
+
     // ldu CAM launch
 	output logic last_ldu_CAM_launch_valid,
 	output logic [LOG_STAMOFU_CQ_ENTRIES-1:0] last_ldu_CAM_launch_cq_index,
@@ -122,11 +132,6 @@ module stamofu_cq_wrapper (
 	output logic [31:0] last_ldu_CAM_launch_write_data,
 	output logic [MDPT_INFO_WIDTH-1:0] last_ldu_CAM_launch_mdp_info,
 	output logic [LOG_ROB_ENTRIES-1:0] last_ldu_CAM_launch_ROB_index,
-
-    // ldu CAM launch feedback
-        // externally select stamofu_cq vs. stamofu_mq launch this cycle
-        // not ready if doing mq this cycle
-	input logic next_ldu_CAM_launch_ready,
 
     // ldu CAM return
 	input logic next_ldu_CAM_return_valid,
@@ -155,7 +160,7 @@ module stamofu_cq_wrapper (
 	input logic [MDPT_INFO_WIDTH-1:0] next_stamofu_CAM_launch_bank1_mdp_info,
 
     // stamofu_mq CAM stage 2 info
-	input logic [MDPT_INFO_WIDTH-1:0] next_stamofu_mq_CAM_return_bank0_updated_mdp_info,
+	input logic next_stamofu_mq_CAM_return_bank0_cq_index,
 	input logic next_stamofu_mq_CAM_return_bank0_stall,
 	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_mq_CAM_return_bank0_stall_count,
 	input logic [3:0] next_stamofu_mq_CAM_return_bank0_forward,
@@ -163,7 +168,7 @@ module stamofu_cq_wrapper (
 	input logic next_stamofu_mq_CAM_return_bank0_forward_ROB_index,
 	input logic [31:0] next_stamofu_mq_CAM_return_bank0_forward_data,
 
-	input logic [MDPT_INFO_WIDTH-1:0] next_stamofu_mq_CAM_return_bank1_updated_mdp_info,
+	input logic next_stamofu_mq_CAM_return_bank1_cq_index,
 	input logic next_stamofu_mq_CAM_return_bank1_stall,
 	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_mq_CAM_return_bank1_stall_count,
 	input logic [3:0] next_stamofu_mq_CAM_return_bank1_forward,
@@ -176,7 +181,6 @@ module stamofu_cq_wrapper (
 	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_stamofu_CAM_return_bank0_cq_index,
 	output logic last_stamofu_CAM_return_bank0_is_mq,
 	output logic [LOG_LDU_MQ_ENTRIES-1:0] last_stamofu_CAM_return_bank0_mq_index,
-	output logic [MDPT_INFO_WIDTH-1:0] last_stamofu_CAM_return_bank0_updated_mdp_info,
 	output logic last_stamofu_CAM_return_bank0_stall,
 	output logic [LOG_STAMOFU_CQ_ENTRIES-1:0] last_stamofu_CAM_return_bank0_stall_count,
 	output logic [3:0] last_stamofu_CAM_return_bank0_forward,
@@ -188,7 +192,6 @@ module stamofu_cq_wrapper (
 	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_stamofu_CAM_return_bank1_cq_index,
 	output logic last_stamofu_CAM_return_bank1_is_mq,
 	output logic [LOG_LDU_MQ_ENTRIES-1:0] last_stamofu_CAM_return_bank1_mq_index,
-	output logic [MDPT_INFO_WIDTH-1:0] last_stamofu_CAM_return_bank1_updated_mdp_info,
 	output logic last_stamofu_CAM_return_bank1_stall,
 	output logic [LOG_STAMOFU_CQ_ENTRIES-1:0] last_stamofu_CAM_return_bank1_stall_count,
 	output logic [3:0] last_stamofu_CAM_return_bank1_forward,
@@ -237,6 +240,22 @@ module stamofu_cq_wrapper (
 
     // exception backpressure from ROB
 	input logic next_rob_exception_ready,
+
+    // store set CAM update bank 0
+        // implied dep
+	output logic last_ssu_CAM_update_bank0_valid,
+	output logic [MDPT_INFO_WIDTH-1:0] last_ssu_CAM_update_bank0_ld_mdp_info,
+	output logic [LOG_ROB_ENTRIES-1:0] last_ssu_CAM_update_bank0_ld_ROB_index,
+	output logic [MDPT_INFO_WIDTH-1:0] last_ssu_CAM_update_bank0_stamo_mdp_info,
+	output logic [LOG_ROB_ENTRIES-1:0] last_ssu_CAM_update_bank0_stamo_ROB_index,
+
+    // store set CAM update bank 1
+        // implied dep
+	output logic last_ssu_CAM_update_bank1_valid,
+	output logic [MDPT_INFO_WIDTH-1:0] last_ssu_CAM_update_bank1_ld_mdp_info,
+	output logic [LOG_ROB_ENTRIES-1:0] last_ssu_CAM_update_bank1_ld_ROB_index,
+	output logic [MDPT_INFO_WIDTH-1:0] last_ssu_CAM_update_bank1_stamo_mdp_info,
+	output logic [LOG_ROB_ENTRIES-1:0] last_ssu_CAM_update_bank1_stamo_ROB_index,
 
     // store set commit update
         // implied no dep
@@ -362,6 +381,16 @@ module stamofu_cq_wrapper (
 	logic dtlb_miss_resp_page_fault;
 	logic dtlb_miss_resp_access_fault;
 
+    // ldu CAM launch from stamofu_mq
+	logic stamofu_mq_ldu_CAM_launch_valid;
+	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_ldu_CAM_launch_cq_index;
+	logic [LOG_STAMOFU_MQ_ENTRIES-1:0] stamofu_mq_ldu_CAM_launch_mq_index;
+	logic [PA_WIDTH-2-1:0] stamofu_mq_ldu_CAM_launch_PA_word;
+	logic [3:0] stamofu_mq_ldu_CAM_launch_byte_mask;
+	logic [31:0] stamofu_mq_ldu_CAM_launch_write_data;
+	logic [MDPT_INFO_WIDTH-1:0] stamofu_mq_ldu_CAM_launch_mdp_info;
+	logic [LOG_ROB_ENTRIES-1:0] stamofu_mq_ldu_CAM_launch_ROB_index;
+
     // ldu CAM launch
 	logic ldu_CAM_launch_valid;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] ldu_CAM_launch_cq_index;
@@ -373,11 +402,6 @@ module stamofu_cq_wrapper (
 	logic [31:0] ldu_CAM_launch_write_data;
 	logic [MDPT_INFO_WIDTH-1:0] ldu_CAM_launch_mdp_info;
 	logic [LOG_ROB_ENTRIES-1:0] ldu_CAM_launch_ROB_index;
-
-    // ldu CAM launch feedback
-        // externally select stamofu_cq vs. stamofu_mq launch this cycle
-        // not ready if doing mq this cycle
-	logic ldu_CAM_launch_ready;
 
     // ldu CAM return
 	logic ldu_CAM_return_valid;
@@ -406,7 +430,7 @@ module stamofu_cq_wrapper (
 	logic [MDPT_INFO_WIDTH-1:0] stamofu_CAM_launch_bank1_mdp_info;
 
     // stamofu_mq CAM stage 2 info
-	logic [MDPT_INFO_WIDTH-1:0] stamofu_mq_CAM_return_bank0_updated_mdp_info;
+	logic stamofu_mq_CAM_return_bank0_cq_index;
 	logic stamofu_mq_CAM_return_bank0_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_CAM_return_bank0_stall_count;
 	logic [3:0] stamofu_mq_CAM_return_bank0_forward;
@@ -414,7 +438,7 @@ module stamofu_cq_wrapper (
 	logic stamofu_mq_CAM_return_bank0_forward_ROB_index;
 	logic [31:0] stamofu_mq_CAM_return_bank0_forward_data;
 
-	logic [MDPT_INFO_WIDTH-1:0] stamofu_mq_CAM_return_bank1_updated_mdp_info;
+	logic stamofu_mq_CAM_return_bank1_cq_index;
 	logic stamofu_mq_CAM_return_bank1_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_CAM_return_bank1_stall_count;
 	logic [3:0] stamofu_mq_CAM_return_bank1_forward;
@@ -427,7 +451,6 @@ module stamofu_cq_wrapper (
 	logic [LOG_LDU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank0_cq_index;
 	logic stamofu_CAM_return_bank0_is_mq;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] stamofu_CAM_return_bank0_mq_index;
-	logic [MDPT_INFO_WIDTH-1:0] stamofu_CAM_return_bank0_updated_mdp_info;
 	logic stamofu_CAM_return_bank0_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank0_stall_count;
 	logic [3:0] stamofu_CAM_return_bank0_forward;
@@ -439,7 +462,6 @@ module stamofu_cq_wrapper (
 	logic [LOG_LDU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank1_cq_index;
 	logic stamofu_CAM_return_bank1_is_mq;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] stamofu_CAM_return_bank1_mq_index;
-	logic [MDPT_INFO_WIDTH-1:0] stamofu_CAM_return_bank1_updated_mdp_info;
 	logic stamofu_CAM_return_bank1_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank1_stall_count;
 	logic [3:0] stamofu_CAM_return_bank1_forward;
@@ -488,6 +510,22 @@ module stamofu_cq_wrapper (
 
     // exception backpressure from ROB
 	logic rob_exception_ready;
+
+    // store set CAM update bank 0
+        // implied dep
+	logic ssu_CAM_update_bank0_valid;
+	logic [MDPT_INFO_WIDTH-1:0] ssu_CAM_update_bank0_ld_mdp_info;
+	logic [LOG_ROB_ENTRIES-1:0] ssu_CAM_update_bank0_ld_ROB_index;
+	logic [MDPT_INFO_WIDTH-1:0] ssu_CAM_update_bank0_stamo_mdp_info;
+	logic [LOG_ROB_ENTRIES-1:0] ssu_CAM_update_bank0_stamo_ROB_index;
+
+    // store set CAM update bank 1
+        // implied dep
+	logic ssu_CAM_update_bank1_valid;
+	logic [MDPT_INFO_WIDTH-1:0] ssu_CAM_update_bank1_ld_mdp_info;
+	logic [LOG_ROB_ENTRIES-1:0] ssu_CAM_update_bank1_ld_ROB_index;
+	logic [MDPT_INFO_WIDTH-1:0] ssu_CAM_update_bank1_stamo_mdp_info;
+	logic [LOG_ROB_ENTRIES-1:0] ssu_CAM_update_bank1_stamo_ROB_index;
 
     // store set commit update
         // implied no dep
@@ -623,6 +661,16 @@ module stamofu_cq_wrapper (
 			dtlb_miss_resp_page_fault <= '0;
 			dtlb_miss_resp_access_fault <= '0;
 
+		    // ldu CAM launch from stamofu_mq
+			stamofu_mq_ldu_CAM_launch_valid <= '0;
+			stamofu_mq_ldu_CAM_launch_cq_index <= '0;
+			stamofu_mq_ldu_CAM_launch_mq_index <= '0;
+			stamofu_mq_ldu_CAM_launch_PA_word <= '0;
+			stamofu_mq_ldu_CAM_launch_byte_mask <= '0;
+			stamofu_mq_ldu_CAM_launch_write_data <= '0;
+			stamofu_mq_ldu_CAM_launch_mdp_info <= '0;
+			stamofu_mq_ldu_CAM_launch_ROB_index <= '0;
+
 		    // ldu CAM launch
 			last_ldu_CAM_launch_valid <= '0;
 			last_ldu_CAM_launch_cq_index <= '0;
@@ -634,11 +682,6 @@ module stamofu_cq_wrapper (
 			last_ldu_CAM_launch_write_data <= '0;
 			last_ldu_CAM_launch_mdp_info <= '0;
 			last_ldu_CAM_launch_ROB_index <= '0;
-
-		    // ldu CAM launch feedback
-		        // externally select stamofu_cq vs. stamofu_mq launch this cycle
-		        // not ready if doing mq this cycle
-			ldu_CAM_launch_ready <= '0;
 
 		    // ldu CAM return
 			ldu_CAM_return_valid <= '0;
@@ -667,7 +710,7 @@ module stamofu_cq_wrapper (
 			stamofu_CAM_launch_bank1_mdp_info <= '0;
 
 		    // stamofu_mq CAM stage 2 info
-			stamofu_mq_CAM_return_bank0_updated_mdp_info <= '0;
+			stamofu_mq_CAM_return_bank0_cq_index <= '0;
 			stamofu_mq_CAM_return_bank0_stall <= '0;
 			stamofu_mq_CAM_return_bank0_stall_count <= '0;
 			stamofu_mq_CAM_return_bank0_forward <= '0;
@@ -675,7 +718,7 @@ module stamofu_cq_wrapper (
 			stamofu_mq_CAM_return_bank0_forward_ROB_index <= '0;
 			stamofu_mq_CAM_return_bank0_forward_data <= '0;
 
-			stamofu_mq_CAM_return_bank1_updated_mdp_info <= '0;
+			stamofu_mq_CAM_return_bank1_cq_index <= '0;
 			stamofu_mq_CAM_return_bank1_stall <= '0;
 			stamofu_mq_CAM_return_bank1_stall_count <= '0;
 			stamofu_mq_CAM_return_bank1_forward <= '0;
@@ -688,7 +731,6 @@ module stamofu_cq_wrapper (
 			last_stamofu_CAM_return_bank0_cq_index <= '0;
 			last_stamofu_CAM_return_bank0_is_mq <= '0;
 			last_stamofu_CAM_return_bank0_mq_index <= '0;
-			last_stamofu_CAM_return_bank0_updated_mdp_info <= '0;
 			last_stamofu_CAM_return_bank0_stall <= '0;
 			last_stamofu_CAM_return_bank0_stall_count <= '0;
 			last_stamofu_CAM_return_bank0_forward <= '0;
@@ -700,7 +742,6 @@ module stamofu_cq_wrapper (
 			last_stamofu_CAM_return_bank1_cq_index <= '0;
 			last_stamofu_CAM_return_bank1_is_mq <= '0;
 			last_stamofu_CAM_return_bank1_mq_index <= '0;
-			last_stamofu_CAM_return_bank1_updated_mdp_info <= '0;
 			last_stamofu_CAM_return_bank1_stall <= '0;
 			last_stamofu_CAM_return_bank1_stall_count <= '0;
 			last_stamofu_CAM_return_bank1_forward <= '0;
@@ -749,6 +790,22 @@ module stamofu_cq_wrapper (
 
 		    // exception backpressure from ROB
 			rob_exception_ready <= '0;
+
+		    // store set CAM update bank 0
+		        // implied dep
+			last_ssu_CAM_update_bank0_valid <= '0;
+			last_ssu_CAM_update_bank0_ld_mdp_info <= '0;
+			last_ssu_CAM_update_bank0_ld_ROB_index <= '0;
+			last_ssu_CAM_update_bank0_stamo_mdp_info <= '0;
+			last_ssu_CAM_update_bank0_stamo_ROB_index <= '0;
+
+		    // store set CAM update bank 1
+		        // implied dep
+			last_ssu_CAM_update_bank1_valid <= '0;
+			last_ssu_CAM_update_bank1_ld_mdp_info <= '0;
+			last_ssu_CAM_update_bank1_ld_ROB_index <= '0;
+			last_ssu_CAM_update_bank1_stamo_mdp_info <= '0;
+			last_ssu_CAM_update_bank1_stamo_ROB_index <= '0;
 
 		    // store set commit update
 		        // implied no dep
@@ -872,6 +929,16 @@ module stamofu_cq_wrapper (
 			dtlb_miss_resp_page_fault <= next_dtlb_miss_resp_page_fault;
 			dtlb_miss_resp_access_fault <= next_dtlb_miss_resp_access_fault;
 
+		    // ldu CAM launch from stamofu_mq
+			stamofu_mq_ldu_CAM_launch_valid <= next_stamofu_mq_ldu_CAM_launch_valid;
+			stamofu_mq_ldu_CAM_launch_cq_index <= next_stamofu_mq_ldu_CAM_launch_cq_index;
+			stamofu_mq_ldu_CAM_launch_mq_index <= next_stamofu_mq_ldu_CAM_launch_mq_index;
+			stamofu_mq_ldu_CAM_launch_PA_word <= next_stamofu_mq_ldu_CAM_launch_PA_word;
+			stamofu_mq_ldu_CAM_launch_byte_mask <= next_stamofu_mq_ldu_CAM_launch_byte_mask;
+			stamofu_mq_ldu_CAM_launch_write_data <= next_stamofu_mq_ldu_CAM_launch_write_data;
+			stamofu_mq_ldu_CAM_launch_mdp_info <= next_stamofu_mq_ldu_CAM_launch_mdp_info;
+			stamofu_mq_ldu_CAM_launch_ROB_index <= next_stamofu_mq_ldu_CAM_launch_ROB_index;
+
 		    // ldu CAM launch
 			last_ldu_CAM_launch_valid <= ldu_CAM_launch_valid;
 			last_ldu_CAM_launch_cq_index <= ldu_CAM_launch_cq_index;
@@ -883,11 +950,6 @@ module stamofu_cq_wrapper (
 			last_ldu_CAM_launch_write_data <= ldu_CAM_launch_write_data;
 			last_ldu_CAM_launch_mdp_info <= ldu_CAM_launch_mdp_info;
 			last_ldu_CAM_launch_ROB_index <= ldu_CAM_launch_ROB_index;
-
-		    // ldu CAM launch feedback
-		        // externally select stamofu_cq vs. stamofu_mq launch this cycle
-		        // not ready if doing mq this cycle
-			ldu_CAM_launch_ready <= next_ldu_CAM_launch_ready;
 
 		    // ldu CAM return
 			ldu_CAM_return_valid <= next_ldu_CAM_return_valid;
@@ -916,7 +978,7 @@ module stamofu_cq_wrapper (
 			stamofu_CAM_launch_bank1_mdp_info <= next_stamofu_CAM_launch_bank1_mdp_info;
 
 		    // stamofu_mq CAM stage 2 info
-			stamofu_mq_CAM_return_bank0_updated_mdp_info <= next_stamofu_mq_CAM_return_bank0_updated_mdp_info;
+			stamofu_mq_CAM_return_bank0_cq_index <= next_stamofu_mq_CAM_return_bank0_cq_index;
 			stamofu_mq_CAM_return_bank0_stall <= next_stamofu_mq_CAM_return_bank0_stall;
 			stamofu_mq_CAM_return_bank0_stall_count <= next_stamofu_mq_CAM_return_bank0_stall_count;
 			stamofu_mq_CAM_return_bank0_forward <= next_stamofu_mq_CAM_return_bank0_forward;
@@ -924,7 +986,7 @@ module stamofu_cq_wrapper (
 			stamofu_mq_CAM_return_bank0_forward_ROB_index <= next_stamofu_mq_CAM_return_bank0_forward_ROB_index;
 			stamofu_mq_CAM_return_bank0_forward_data <= next_stamofu_mq_CAM_return_bank0_forward_data;
 
-			stamofu_mq_CAM_return_bank1_updated_mdp_info <= next_stamofu_mq_CAM_return_bank1_updated_mdp_info;
+			stamofu_mq_CAM_return_bank1_cq_index <= next_stamofu_mq_CAM_return_bank1_cq_index;
 			stamofu_mq_CAM_return_bank1_stall <= next_stamofu_mq_CAM_return_bank1_stall;
 			stamofu_mq_CAM_return_bank1_stall_count <= next_stamofu_mq_CAM_return_bank1_stall_count;
 			stamofu_mq_CAM_return_bank1_forward <= next_stamofu_mq_CAM_return_bank1_forward;
@@ -937,7 +999,6 @@ module stamofu_cq_wrapper (
 			last_stamofu_CAM_return_bank0_cq_index <= stamofu_CAM_return_bank0_cq_index;
 			last_stamofu_CAM_return_bank0_is_mq <= stamofu_CAM_return_bank0_is_mq;
 			last_stamofu_CAM_return_bank0_mq_index <= stamofu_CAM_return_bank0_mq_index;
-			last_stamofu_CAM_return_bank0_updated_mdp_info <= stamofu_CAM_return_bank0_updated_mdp_info;
 			last_stamofu_CAM_return_bank0_stall <= stamofu_CAM_return_bank0_stall;
 			last_stamofu_CAM_return_bank0_stall_count <= stamofu_CAM_return_bank0_stall_count;
 			last_stamofu_CAM_return_bank0_forward <= stamofu_CAM_return_bank0_forward;
@@ -949,7 +1010,6 @@ module stamofu_cq_wrapper (
 			last_stamofu_CAM_return_bank1_cq_index <= stamofu_CAM_return_bank1_cq_index;
 			last_stamofu_CAM_return_bank1_is_mq <= stamofu_CAM_return_bank1_is_mq;
 			last_stamofu_CAM_return_bank1_mq_index <= stamofu_CAM_return_bank1_mq_index;
-			last_stamofu_CAM_return_bank1_updated_mdp_info <= stamofu_CAM_return_bank1_updated_mdp_info;
 			last_stamofu_CAM_return_bank1_stall <= stamofu_CAM_return_bank1_stall;
 			last_stamofu_CAM_return_bank1_stall_count <= stamofu_CAM_return_bank1_stall_count;
 			last_stamofu_CAM_return_bank1_forward <= stamofu_CAM_return_bank1_forward;
@@ -998,6 +1058,22 @@ module stamofu_cq_wrapper (
 
 		    // exception backpressure from ROB
 			rob_exception_ready <= next_rob_exception_ready;
+
+		    // store set CAM update bank 0
+		        // implied dep
+			last_ssu_CAM_update_bank0_valid <= ssu_CAM_update_bank0_valid;
+			last_ssu_CAM_update_bank0_ld_mdp_info <= ssu_CAM_update_bank0_ld_mdp_info;
+			last_ssu_CAM_update_bank0_ld_ROB_index <= ssu_CAM_update_bank0_ld_ROB_index;
+			last_ssu_CAM_update_bank0_stamo_mdp_info <= ssu_CAM_update_bank0_stamo_mdp_info;
+			last_ssu_CAM_update_bank0_stamo_ROB_index <= ssu_CAM_update_bank0_stamo_ROB_index;
+
+		    // store set CAM update bank 1
+		        // implied dep
+			last_ssu_CAM_update_bank1_valid <= ssu_CAM_update_bank1_valid;
+			last_ssu_CAM_update_bank1_ld_mdp_info <= ssu_CAM_update_bank1_ld_mdp_info;
+			last_ssu_CAM_update_bank1_ld_ROB_index <= ssu_CAM_update_bank1_ld_ROB_index;
+			last_ssu_CAM_update_bank1_stamo_mdp_info <= ssu_CAM_update_bank1_stamo_mdp_info;
+			last_ssu_CAM_update_bank1_stamo_ROB_index <= ssu_CAM_update_bank1_stamo_ROB_index;
 
 		    // store set commit update
 		        // implied no dep

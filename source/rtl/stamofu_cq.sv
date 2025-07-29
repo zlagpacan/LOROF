@@ -108,6 +108,16 @@ module stamofu_cq #(
     input logic                                 dtlb_miss_resp_page_fault,
     input logic                                 dtlb_miss_resp_access_fault,
 
+    // ldu CAM launch from stamofu_mq
+    input logic                                 stamofu_mq_ldu_CAM_launch_valid,
+    input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_mq_ldu_CAM_launch_cq_index, // stamofu_cq index
+    input logic [LOG_STAMOFU_MQ_ENTRIES-1:0]    stamofu_mq_ldu_CAM_launch_mq_index, // stamofu_mq index
+    input logic [PA_WIDTH-2-1:0]                stamofu_mq_ldu_CAM_launch_PA_word,
+    input logic [3:0]                           stamofu_mq_ldu_CAM_launch_byte_mask,
+    input logic [31:0]                          stamofu_mq_ldu_CAM_launch_write_data,
+    input logic [MDPT_INFO_WIDTH-1:0]           stamofu_mq_ldu_CAM_launch_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]           stamofu_mq_ldu_CAM_launch_ROB_index,
+
     // ldu CAM launch
     output logic                                ldu_CAM_launch_valid,
     output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   ldu_CAM_launch_cq_index, // stamofu_cq index
@@ -119,11 +129,6 @@ module stamofu_cq #(
     output logic [31:0]                         ldu_CAM_launch_write_data,
     output logic [MDPT_INFO_WIDTH-1:0]          ldu_CAM_launch_mdp_info,
     output logic [LOG_ROB_ENTRIES-1:0]          ldu_CAM_launch_ROB_index,
-
-    // ldu CAM launch feedback
-        // externally select stamofu_cq vs. stamofu_mq launch this cycle
-        // not ready if doing mq this cycle
-    input logic                                 ldu_CAM_launch_ready,
 
     // ldu CAM return
     input logic                                 ldu_CAM_return_valid,
@@ -152,7 +157,7 @@ module stamofu_cq #(
     input logic [MDPT_INFO_WIDTH-1:0]           stamofu_CAM_launch_bank1_mdp_info,
 
     // stamofu_mq CAM stage 2 info
-    input logic [MDPT_INFO_WIDTH-1:0]           stamofu_mq_CAM_return_bank0_updated_mdp_info,
+    input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_mq_CAM_return_bank0_cq_index,
     input logic                                 stamofu_mq_CAM_return_bank0_stall,
     input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_mq_CAM_return_bank0_stall_count,
     input logic [3:0]                           stamofu_mq_CAM_return_bank0_forward,
@@ -160,7 +165,7 @@ module stamofu_cq #(
     input logic                                 stamofu_mq_CAM_return_bank0_forward_ROB_index,
     input logic [31:0]                          stamofu_mq_CAM_return_bank0_forward_data,
     
-    input logic [MDPT_INFO_WIDTH-1:0]           stamofu_mq_CAM_return_bank1_updated_mdp_info,
+    input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_mq_CAM_return_bank1_cq_index,
     input logic                                 stamofu_mq_CAM_return_bank1_stall,
     input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_mq_CAM_return_bank1_stall_count,
     input logic [3:0]                           stamofu_mq_CAM_return_bank1_forward,
@@ -173,7 +178,6 @@ module stamofu_cq #(
     output logic [LOG_LDU_CQ_ENTRIES-1:0]       stamofu_CAM_return_bank0_cq_index, // ldu_cq index
     output logic                                stamofu_CAM_return_bank0_is_mq,
     output logic [LOG_LDU_MQ_ENTRIES-1:0]       stamofu_CAM_return_bank0_mq_index, // ldu_mq index, unused
-    output logic [MDPT_INFO_WIDTH-1:0]          stamofu_CAM_return_bank0_updated_mdp_info,
     output logic                                stamofu_CAM_return_bank0_stall,
     output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   stamofu_CAM_return_bank0_stall_count,
     output logic [3:0]                          stamofu_CAM_return_bank0_forward,
@@ -185,7 +189,6 @@ module stamofu_cq #(
     output logic [LOG_LDU_CQ_ENTRIES-1:0]       stamofu_CAM_return_bank1_cq_index, // ldu_cq index
     output logic                                stamofu_CAM_return_bank1_is_mq,
     output logic [LOG_LDU_MQ_ENTRIES-1:0]       stamofu_CAM_return_bank1_mq_index, // ldu_mq index, unused
-    output logic [MDPT_INFO_WIDTH-1:0]          stamofu_CAM_return_bank1_updated_mdp_info,
     output logic                                stamofu_CAM_return_bank1_stall,
     output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   stamofu_CAM_return_bank1_stall_count,
     output logic [3:0]                          stamofu_CAM_return_bank1_forward,
@@ -234,6 +237,22 @@ module stamofu_cq #(
 
     // exception backpressure from ROB
     input logic                         rob_exception_ready,
+
+    // store set CAM update bank 0
+        // implied dep
+    output logic                        ssu_CAM_update_bank0_valid,
+    output logic [MDPT_INFO_WIDTH-1:0]  ssu_CAM_update_bank0_ld_mdp_info,
+    output logic [LOG_ROB_ENTRIES-1:0]  ssu_CAM_update_bank0_ld_ROB_index,
+    output logic [MDPT_INFO_WIDTH-1:0]  ssu_CAM_update_bank0_stamo_mdp_info,
+    output logic [LOG_ROB_ENTRIES-1:0]  ssu_CAM_update_bank0_stamo_ROB_index,
+
+    // store set CAM update bank 1
+        // implied dep
+    output logic                        ssu_CAM_update_bank1_valid,
+    output logic [MDPT_INFO_WIDTH-1:0]  ssu_CAM_update_bank1_ld_mdp_info,
+    output logic [LOG_ROB_ENTRIES-1:0]  ssu_CAM_update_bank1_ld_ROB_index,
+    output logic [MDPT_INFO_WIDTH-1:0]  ssu_CAM_update_bank1_stamo_mdp_info,
+    output logic [LOG_ROB_ENTRIES-1:0]  ssu_CAM_update_bank1_stamo_ROB_index,
 
     // store set commit update
         // implied no dep
@@ -368,6 +387,13 @@ module stamofu_cq #(
 
     logic [STAMOFU_CQ_ENTRIES-1:0] rel_ROB_index_by_entry;
 
+    logic                               stamofu_cq_ldu_CAM_launch_valid;
+    logic                               stamofu_cq_ldu_CAM_launch_ready;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_cq_ldu_CAM_launch_cq_index;
+
+    logic                           next_stamofu_active;
+    logic [LOG_ROB_ENTRIES-1:0]     next_stamofu_oldest_ROB_index;
+
     // stamofu CAM pipeline bank 0
     logic                               CAM_stage0_bank0_valid;
     
@@ -384,6 +410,7 @@ module stamofu_cq #(
     logic                               CAM_stage1_bank0_return_is_mq;
     logic [LOG_LDU_MQ_ENTRIES-1:0]      CAM_stage1_bank0_return_mq_index; // ldu_mq index, unused
     logic [MDPT_INFO_WIDTH-1:0]         CAM_stage1_bank0_load_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]         CAM_stage1_bank0_load_ROB_index;
 
     logic [STAMOFU_CQ_ENTRIES-1:0]      CAM_stage1_bank0_load_is_subset_by_entry;
     logic [STAMOFU_CQ_ENTRIES-1:0]      CAM_stage1_bank0_load_is_mdp_match_by_entry;
@@ -395,7 +422,7 @@ module stamofu_cq #(
     logic [STAMOFU_CQ_ENTRIES-1:0]      CAM_stage1_bank0_load_is_candidate_masked_one_hot;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  CAM_stage1_bank0_load_is_candidate_masked_index;
     logic                               CAM_stage1_bank0_found_forward;
-    logic [STAMOFU_CQ_ENTRIES-1:0]      CAM_stage1_bank0_load_selected_one_hot_by_entry;
+    // logic [STAMOFU_CQ_ENTRIES-1:0]      CAM_stage1_bank0_load_selected_one_hot_by_entry;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  CAM_stage1_bank0_load_selected_index;
     logic                               CAM_stage1_bank0_load_is_subset;
     logic                               CAM_stage1_bank0_stall;
@@ -407,6 +434,7 @@ module stamofu_cq #(
     logic                               CAM_stage2_bank0_return_is_mq;
     logic [LOG_LDU_MQ_ENTRIES-1:0]      CAM_stage2_bank0_return_mq_index; // ldu_mq index, unused
     logic [MDPT_INFO_WIDTH-1:0]         CAM_stage2_bank0_load_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]         CAM_stage2_bank0_load_ROB_index;
 
     logic                               CAM_stage2_bank0_found_forward;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  CAM_stage2_bank0_load_selected_index;
@@ -414,7 +442,6 @@ module stamofu_cq #(
     logic                               CAM_stage2_bank0_stall;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  CAM_stage2_bank0_stall_count;
 
-    logic [MDPT_INFO_WIDTH-1:0]         CAM_stage2_bank0_updated_mdp_info;
     logic                               CAM_stage2_bank0_forward;
     logic                               CAM_stage2_bank0_nasty_forward;
     logic [LOG_ROB_ENTRIES-1:0]         CAM_stage2_bank0_forward_ROB_index;
@@ -436,6 +463,7 @@ module stamofu_cq #(
     logic                               CAM_stage1_bank1_return_is_mq;
     logic [LOG_LDU_MQ_ENTRIES-1:0]      CAM_stage1_bank1_return_mq_index; // ldu_mq index, unused
     logic [MDPT_INFO_WIDTH-1:0]         CAM_stage1_bank1_load_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]         CAM_stage1_bank1_load_ROB_index;
 
     logic [STAMOFU_CQ_ENTRIES-1:0]      CAM_stage1_bank1_load_is_subset_by_entry;
     logic [STAMOFU_CQ_ENTRIES-1:0]      CAM_stage1_bank1_load_is_mdp_match_by_entry;
@@ -447,7 +475,7 @@ module stamofu_cq #(
     logic [STAMOFU_CQ_ENTRIES-1:0]      CAM_stage1_bank1_load_is_candidate_masked_one_hot;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  CAM_stage1_bank1_load_is_candidate_masked_index;
     logic                               CAM_stage1_bank1_found_forward;
-    logic [STAMOFU_CQ_ENTRIES-1:0]      CAM_stage1_bank1_load_selected_one_hot_by_entry;
+    // logic [STAMOFU_CQ_ENTRIES-1:0]      CAM_stage1_bank1_load_selected_one_hot_by_entry;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  CAM_stage1_bank1_load_selected_index;
     logic                               CAM_stage1_bank1_load_is_subset;
     logic                               CAM_stage1_bank1_stall;
@@ -459,6 +487,7 @@ module stamofu_cq #(
     logic                               CAM_stage2_bank1_return_is_mq;
     logic [LOG_LDU_MQ_ENTRIES-1:0]      CAM_stage2_bank1_return_mq_index; // ldu_mq index, unused
     logic [MDPT_INFO_WIDTH-1:0]         CAM_stage2_bank1_load_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]         CAM_stage2_bank1_load_ROB_index;
 
     logic                               CAM_stage2_bank1_found_forward;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  CAM_stage2_bank1_load_selected_index;
@@ -466,11 +495,17 @@ module stamofu_cq #(
     logic                               CAM_stage2_bank1_stall;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  CAM_stage2_bank1_stall_count;
 
-    logic [MDPT_INFO_WIDTH-1:0]         CAM_stage2_bank1_updated_mdp_info;
     logic                               CAM_stage2_bank1_forward;
     logic                               CAM_stage2_bank1_nasty_forward;
     logic [LOG_ROB_ENTRIES-1:0]         CAM_stage2_bank1_forward_ROB_index;
     logic [31:0]                        CAM_stage2_bank1_forward_data;
+
+    // ssu CAM update
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  ssu_CAM_update_bank0_cq_index;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  ssu_CAM_update_bank1_cq_index;
+
+    logic [STAMOFU_CQ_ENTRIES-1:0]  ssu_CAM_update_bank0_valid_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0]  ssu_CAM_update_bank1_valid_by_entry;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -575,23 +610,45 @@ module stamofu_cq #(
     end
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            ldu_CAM_launch_valid <= 1'b0;
-            ldu_CAM_launch_cq_index <= '0;
+            stamofu_cq_ldu_CAM_launch_valid <= 1'b0;
+            stamofu_cq_ldu_CAM_launch_cq_index <= '0;
         end
-        else if (ldu_CAM_launch_ready) begin
-            ldu_CAM_launch_valid <= |ldu_CAM_launch_unmasked_req_by_entry;
-            ldu_CAM_launch_cq_index <= ldu_CAM_launch_final_req_ack_index;
+        else if (stamofu_cq_ldu_CAM_launch_ready) begin
+            stamofu_cq_ldu_CAM_launch_valid <= |ldu_CAM_launch_unmasked_req_by_entry;
+            stamofu_cq_ldu_CAM_launch_cq_index <= ldu_CAM_launch_final_req_ack_index;
         end
     end
     always_comb begin
-        ldu_CAM_launch_is_mq = 1'b0;
-        ldu_CAM_launch_mq_index = '0;
-        ldu_CAM_launch_is_amo = entry_array[ldu_CAM_launch_cq_index].is_amo;
-        ldu_CAM_launch_PA_word = entry_array[ldu_CAM_launch_cq_index].PA_word;
-        ldu_CAM_launch_byte_mask = entry_array[ldu_CAM_launch_cq_index].byte_mask;
-        ldu_CAM_launch_write_data = entry_array[ldu_CAM_launch_cq_index].data;
-        ldu_CAM_launch_mdp_info = entry_array[ldu_CAM_launch_cq_index].mdp_info;
-        ldu_CAM_launch_ROB_index = entry_array[ldu_CAM_launch_cq_index].ROB_index;
+
+        // hardwired
+        ldu_CAM_launch_valid = stamofu_cq_ldu_CAM_launch_valid | stamofu_mq_ldu_CAM_launch_valid;
+        ldu_CAM_launch_mq_index = stamofu_mq_ldu_CAM_launch_mq_index;
+
+        // muxed
+        if (stamofu_mq_ldu_CAM_launch_valid) begin
+            stamofu_cq_ldu_CAM_launch_ready = 1'b0;
+
+            ldu_CAM_launch_cq_index = stamofu_mq_ldu_CAM_launch_cq_index;
+            ldu_CAM_launch_is_mq = 1'b1;
+            ldu_CAM_launch_is_amo = 1'b0;
+            ldu_CAM_launch_PA_word = stamofu_mq_ldu_CAM_launch_PA_word;
+            ldu_CAM_launch_byte_mask = stamofu_mq_ldu_CAM_launch_byte_mask;
+            ldu_CAM_launch_write_data = stamofu_mq_ldu_CAM_launch_write_data;
+            ldu_CAM_launch_mdp_info = stamofu_mq_ldu_CAM_launch_mdp_info;
+            ldu_CAM_launch_ROB_index = stamofu_mq_ldu_CAM_launch_ROB_index;
+        end
+        else begin
+            stamofu_cq_ldu_CAM_launch_ready = 1'b1;
+
+            ldu_CAM_launch_cq_index = stamofu_cq_ldu_CAM_launch_cq_index;
+            ldu_CAM_launch_is_mq = 1'b0;
+            ldu_CAM_launch_is_amo = entry_array[stamofu_cq_ldu_CAM_launch_cq_index].is_amo;
+            ldu_CAM_launch_PA_word = entry_array[stamofu_cq_ldu_CAM_launch_cq_index].PA_word;
+            ldu_CAM_launch_byte_mask = entry_array[stamofu_cq_ldu_CAM_launch_cq_index].byte_mask;
+            ldu_CAM_launch_write_data = entry_array[stamofu_cq_ldu_CAM_launch_cq_index].data;
+            ldu_CAM_launch_mdp_info = entry_array[stamofu_cq_ldu_CAM_launch_cq_index].mdp_info;
+            ldu_CAM_launch_ROB_index = entry_array[stamofu_cq_ldu_CAM_launch_cq_index].ROB_index;
+        end
     end
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
@@ -796,12 +853,12 @@ module stamofu_cq #(
             end
 
             // selected forward bank 0 (indep)
-            if (CAM_stage1_bank0_load_selected_one_hot_by_entry[i]) begin
+            if (ssu_CAM_update_bank0_valid_by_entry[i]) begin
                 next_entry_array[i].forward = 1'b1;
             end
 
             // selected forward bank 1 (indep)
-            if (CAM_stage1_bank1_load_selected_one_hot_by_entry[i]) begin
+            if (ssu_CAM_update_bank1_valid_by_entry[i]) begin
                 next_entry_array[i].forward = 1'b1;
             end
 
@@ -838,7 +895,7 @@ module stamofu_cq #(
             end
 
             // req ack's (indep)
-            if (ldu_CAM_launch_final_req_ack_one_hot_by_entry[i] & ldu_CAM_launch_ready) begin
+            if (ldu_CAM_launch_final_req_ack_one_hot_by_entry[i] & stamofu_cq_ldu_CAM_launch_ready) begin
                 next_entry_array[i].ldu_CAM_launch_req = 1'b0;
                 next_entry_array[i].ldu_CAM_launch_sent = 1'b1;
             end
@@ -865,16 +922,19 @@ module stamofu_cq #(
             CAM_stage0_bank0_load_is_byte_overlap_by_entry[i] = 
                 |(entry_array[i].byte_mask & stamofu_CAM_launch_bank0_byte_mask)
             ;
+            // subset: CAM load byte -> entry byte
             CAM_stage0_bank0_load_is_subset_by_entry[i] = 
-                ((entry_array[i].byte_mask & stamofu_CAM_launch_bank0_byte_mask) == stamofu_CAM_launch_bank0_byte_mask)
+                &(~stamofu_CAM_launch_bank0_byte_mask | entry_array[i].byte_mask)
             ;
             CAM_stage0_bank0_load_is_valid_older_by_entry[i] = 
                 entry_array[i].dtlb_hit
+                & (entry_array[i].is_amo | entry_array[i].is_store)
                 & (rel_ROB_index_by_entry[i] < CAM_stage0_bank0_load_rel_age)
             ;
             CAM_stage0_bank0_load_is_mdp_match_by_entry[i] = 
                 entry_array[i].valid
                 & ~entry_array[i].dtlb_hit
+                & (entry_array[i].is_amo | entry_array[i].is_store)
                 & |entry_array[i].mdp_info[7:6]
                 & |stamofu_CAM_launch_bank0_mdp_info[7:6]
                 & (entry_array[i].mdp_info[5:0] == stamofu_CAM_launch_bank0_mdp_info[5:0])
@@ -889,6 +949,7 @@ module stamofu_cq #(
             CAM_stage1_bank0_return_is_mq <= 0;
             CAM_stage1_bank0_return_mq_index <= 0;
             CAM_stage1_bank0_load_mdp_info <= 8'b00000000;
+            CAM_stage1_bank0_load_ROB_index <= 7'h00;
             CAM_stage1_bank0_load_is_candidate_unmasked_by_entry <= '0;
             CAM_stage1_bank0_load_is_subset_by_entry <= '0;
             CAM_stage1_bank0_load_is_mdp_match_by_entry <= '0;
@@ -899,6 +960,7 @@ module stamofu_cq #(
             CAM_stage1_bank0_return_is_mq <= stamofu_CAM_launch_bank0_is_mq;
             CAM_stage1_bank0_return_mq_index <= stamofu_CAM_launch_bank0_mq_index;
             CAM_stage1_bank0_load_mdp_info <= stamofu_CAM_launch_bank0_mdp_info;
+            CAM_stage1_bank0_load_ROB_index <= stamofu_CAM_launch_bank0_ROB_index;
             CAM_stage1_bank0_load_is_candidate_unmasked_by_entry <= 
                 CAM_stage0_bank0_load_is_addr_match_by_entry
                 & CAM_stage0_bank0_load_is_byte_overlap_by_entry
@@ -934,11 +996,9 @@ module stamofu_cq #(
     );
     always_comb begin
         if (|CAM_stage1_bank0_load_is_candidate_masked_by_entry) begin
-            CAM_stage1_bank0_load_selected_one_hot_by_entry = CAM_stage1_bank0_load_is_candidate_masked_one_hot;
             CAM_stage1_bank0_load_selected_index = CAM_stage1_bank0_load_is_candidate_masked_index;
             CAM_stage1_bank0_load_is_subset = |(CAM_stage1_bank0_load_is_candidate_masked_one_hot & CAM_stage1_bank0_load_is_subset_by_entry);
         end else begin
-            CAM_stage1_bank0_load_selected_one_hot_by_entry = CAM_stage1_bank0_load_is_candidate_unmasked_one_hot;
             CAM_stage1_bank0_load_selected_index = CAM_stage1_bank0_load_is_candidate_unmasked_index;
             CAM_stage1_bank0_load_is_subset = |(CAM_stage1_bank0_load_is_candidate_unmasked_one_hot & CAM_stage1_bank0_load_is_subset_by_entry);
         end
@@ -951,6 +1011,7 @@ module stamofu_cq #(
             CAM_stage2_bank0_return_is_mq <= 1'b0;
             CAM_stage2_bank0_return_mq_index <= 0;
             CAM_stage2_bank0_load_mdp_info <= 8'b00000000;
+            CAM_stage2_bank0_load_ROB_index <= 7'h00;
             CAM_stage2_bank0_found_forward <= 1'b0;
             CAM_stage2_bank0_load_selected_index <= 0;
             CAM_stage2_bank0_load_is_subset <= 1'b0;
@@ -963,6 +1024,7 @@ module stamofu_cq #(
             CAM_stage2_bank0_return_is_mq <= CAM_stage1_bank0_return_is_mq;
             CAM_stage2_bank0_return_mq_index <= CAM_stage1_bank0_return_mq_index;
             CAM_stage2_bank0_load_mdp_info <= CAM_stage1_bank0_load_mdp_info;
+            CAM_stage2_bank0_load_ROB_index <= CAM_stage1_bank0_load_ROB_index;
             CAM_stage2_bank0_found_forward <= CAM_stage1_bank0_found_forward;
             CAM_stage2_bank0_load_selected_index <= CAM_stage1_bank0_load_selected_index;
             CAM_stage2_bank0_load_is_subset <= CAM_stage1_bank0_load_is_subset;
@@ -971,13 +1033,6 @@ module stamofu_cq #(
         end
     end
     always_comb begin
-        // take store's mdp info if valid, else use load's
-        if (|entry_array[CAM_stage2_bank0_load_selected_index].mdp_info[7:6]) begin
-            CAM_stage2_bank0_updated_mdp_info = {2'b11, entry_array[CAM_stage2_bank0_load_selected_index].mdp_info[5:0]};
-        end else begin
-            CAM_stage2_bank0_updated_mdp_info = CAM_stage2_bank0_load_mdp_info;
-        end
-
         // nasty forward if not subset or amo
         CAM_stage2_bank0_forward = 
             CAM_stage2_bank0_found_forward
@@ -1009,23 +1064,40 @@ module stamofu_cq #(
                     (stamofu_mq_CAM_return_bank0_forward_ROB_index - rob_kill_abs_head_index)
             ))
         ) begin
-            stamofu_CAM_return_bank0_updated_mdp_info = stamofu_mq_CAM_return_bank0_updated_mdp_info;
             stamofu_CAM_return_bank0_forward = stamofu_mq_CAM_return_bank0_forward;
             stamofu_CAM_return_bank0_nasty_forward = stamofu_mq_CAM_return_bank0_nasty_forward;
             stamofu_CAM_return_bank0_forward_ROB_index = stamofu_mq_CAM_return_bank0_forward_ROB_index;
             stamofu_CAM_return_bank0_forward_data = stamofu_mq_CAM_return_bank0_forward_data;
+
+            // ssu CAM update from mq
+            ssu_CAM_update_bank0_cq_index = stamofu_mq_CAM_return_bank0_cq_index;
         end
         else begin
-            stamofu_CAM_return_bank0_updated_mdp_info = CAM_stage2_bank0_updated_mdp_info;
             stamofu_CAM_return_bank0_forward = CAM_stage2_bank0_forward;
             stamofu_CAM_return_bank0_nasty_forward = CAM_stage2_bank0_nasty_forward;
             stamofu_CAM_return_bank0_forward_ROB_index = CAM_stage2_bank0_forward_ROB_index;
             stamofu_CAM_return_bank0_forward_data = CAM_stage2_bank0_forward_data;
+
+            // ssu CAM update from cq
+            ssu_CAM_update_bank0_cq_index = CAM_stage2_bank0_load_selected_index;
         end
 
         // accumulate stalls
         stamofu_CAM_return_bank0_stall = stamofu_mq_CAM_return_bank0_stall | CAM_stage2_bank0_stall;
         stamofu_CAM_return_bank0_stall_count = stamofu_mq_CAM_return_bank0_stall_count + CAM_stage2_bank0_stall_count;
+        
+        // ssu CAM update
+        ssu_CAM_update_bank0_valid = 
+            stamofu_CAM_return_bank0_valid 
+            & (stamofu_CAM_return_bank0_forward | stamofu_CAM_return_bank0_nasty_forward)
+        ;
+        ssu_CAM_update_bank0_ld_mdp_info = CAM_stage2_bank0_load_mdp_info;
+        ssu_CAM_update_bank0_ld_ROB_index = CAM_stage2_bank0_load_ROB_index;
+        ssu_CAM_update_bank0_stamo_mdp_info = entry_array[ssu_CAM_update_bank0_cq_index].mdp_info;
+        ssu_CAM_update_bank0_stamo_ROB_index = entry_array[ssu_CAM_update_bank0_cq_index].ROB_index;
+
+        ssu_CAM_update_bank0_valid_by_entry = '0;
+        ssu_CAM_update_bank0_valid_by_entry[ssu_CAM_update_bank0_cq_index] = ssu_CAM_update_bank0_valid;
     end
 
     // stamofu CAM stage 0 bank 1
@@ -1040,8 +1112,9 @@ module stamofu_cq #(
             CAM_stage0_bank1_load_is_byte_overlap_by_entry[i] = 
                 |(entry_array[i].byte_mask & stamofu_CAM_launch_bank1_byte_mask)
             ;
+            // subset: CAM load byte -> entry byte
             CAM_stage0_bank1_load_is_subset_by_entry[i] = 
-                ((entry_array[i].byte_mask & stamofu_CAM_launch_bank1_byte_mask) == stamofu_CAM_launch_bank1_byte_mask)
+                &(~stamofu_CAM_launch_bank1_byte_mask | entry_array[i].byte_mask)
             ;
             CAM_stage0_bank1_load_is_valid_older_by_entry[i] = 
                 entry_array[i].dtlb_hit
@@ -1066,6 +1139,7 @@ module stamofu_cq #(
             CAM_stage1_bank1_return_is_mq <= 0;
             CAM_stage1_bank1_return_mq_index <= 0;
             CAM_stage1_bank1_load_mdp_info <= 8'b00000000;
+            CAM_stage1_bank1_load_ROB_index <= 7'h00;
             CAM_stage1_bank1_load_is_candidate_unmasked_by_entry <= '0;
             CAM_stage1_bank1_load_is_subset_by_entry <= '0;
             CAM_stage1_bank1_load_is_mdp_match_by_entry <= '0;
@@ -1076,6 +1150,7 @@ module stamofu_cq #(
             CAM_stage1_bank1_return_is_mq <= stamofu_CAM_launch_bank1_is_mq;
             CAM_stage1_bank1_return_mq_index <= stamofu_CAM_launch_bank1_mq_index;
             CAM_stage1_bank1_load_mdp_info <= stamofu_CAM_launch_bank1_mdp_info;
+            CAM_stage1_bank1_load_ROB_index <= stamofu_CAM_launch_bank1_ROB_index;
             CAM_stage1_bank1_load_is_candidate_unmasked_by_entry <= 
                 CAM_stage0_bank1_load_is_addr_match_by_entry
                 & CAM_stage0_bank1_load_is_byte_overlap_by_entry
@@ -1111,11 +1186,9 @@ module stamofu_cq #(
     );
     always_comb begin
         if (|CAM_stage1_bank1_load_is_candidate_masked_by_entry) begin
-            CAM_stage1_bank1_load_selected_one_hot_by_entry = CAM_stage1_bank1_load_is_candidate_masked_one_hot;
             CAM_stage1_bank1_load_selected_index = CAM_stage1_bank1_load_is_candidate_masked_index;
             CAM_stage1_bank1_load_is_subset = |(CAM_stage1_bank1_load_is_candidate_masked_one_hot & CAM_stage1_bank1_load_is_subset_by_entry);
         end else begin
-            CAM_stage1_bank1_load_selected_one_hot_by_entry = CAM_stage1_bank1_load_is_candidate_unmasked_one_hot;
             CAM_stage1_bank1_load_selected_index = CAM_stage1_bank1_load_is_candidate_unmasked_index;
             CAM_stage1_bank1_load_is_subset = |(CAM_stage1_bank1_load_is_candidate_unmasked_one_hot & CAM_stage1_bank1_load_is_subset_by_entry);
         end
@@ -1128,6 +1201,7 @@ module stamofu_cq #(
             CAM_stage2_bank1_return_is_mq <= 1'b0;
             CAM_stage2_bank1_return_mq_index <= 0;
             CAM_stage2_bank1_load_mdp_info <= 8'b00000000;
+            CAM_stage2_bank1_load_ROB_index <= 7'h00;
             CAM_stage2_bank1_found_forward <= 1'b0;
             CAM_stage2_bank1_load_selected_index <= 0;
             CAM_stage2_bank1_load_is_subset <= 1'b0;
@@ -1140,6 +1214,7 @@ module stamofu_cq #(
             CAM_stage2_bank1_return_is_mq <= CAM_stage1_bank1_return_is_mq;
             CAM_stage2_bank1_return_mq_index <= CAM_stage1_bank1_return_mq_index;
             CAM_stage2_bank1_load_mdp_info <= CAM_stage1_bank1_load_mdp_info;
+            CAM_stage2_bank1_load_ROB_index <= CAM_stage1_bank1_load_ROB_index;
             CAM_stage2_bank1_found_forward <= CAM_stage1_bank1_found_forward;
             CAM_stage2_bank1_load_selected_index <= CAM_stage1_bank1_load_selected_index;
             CAM_stage2_bank1_load_is_subset <= CAM_stage1_bank1_load_is_subset;
@@ -1148,13 +1223,6 @@ module stamofu_cq #(
         end
     end
     always_comb begin
-        // take store's mdp info if valid, else use load's
-        if (|entry_array[CAM_stage2_bank1_load_selected_index].mdp_info[7:6]) begin
-            CAM_stage2_bank1_updated_mdp_info = {2'b11, entry_array[CAM_stage2_bank1_load_selected_index].mdp_info[5:0]};
-        end else begin
-            CAM_stage2_bank1_updated_mdp_info = CAM_stage2_bank1_load_mdp_info;
-        end
-
         // nasty forward if not subset or amo
         CAM_stage2_bank1_forward = 
             CAM_stage2_bank1_found_forward
@@ -1186,23 +1254,40 @@ module stamofu_cq #(
                     (stamofu_mq_CAM_return_bank1_forward_ROB_index - rob_kill_abs_head_index)
             ))
         ) begin
-            stamofu_CAM_return_bank1_updated_mdp_info = stamofu_mq_CAM_return_bank1_updated_mdp_info;
             stamofu_CAM_return_bank1_forward = stamofu_mq_CAM_return_bank1_forward;
             stamofu_CAM_return_bank1_nasty_forward = stamofu_mq_CAM_return_bank1_nasty_forward;
             stamofu_CAM_return_bank1_forward_ROB_index = stamofu_mq_CAM_return_bank1_forward_ROB_index;
             stamofu_CAM_return_bank1_forward_data = stamofu_mq_CAM_return_bank1_forward_data;
+
+            // ssu CAM update from mq
+            ssu_CAM_update_bank1_cq_index = stamofu_mq_CAM_return_bank1_cq_index;
         end
         else begin
-            stamofu_CAM_return_bank1_updated_mdp_info = CAM_stage2_bank1_updated_mdp_info;
             stamofu_CAM_return_bank1_forward = CAM_stage2_bank1_forward;
             stamofu_CAM_return_bank1_nasty_forward = CAM_stage2_bank1_nasty_forward;
             stamofu_CAM_return_bank1_forward_ROB_index = CAM_stage2_bank1_forward_ROB_index;
             stamofu_CAM_return_bank1_forward_data = CAM_stage2_bank1_forward_data;
+
+            // ssu CAM update from cq
+            ssu_CAM_update_bank1_cq_index = CAM_stage2_bank1_load_selected_index;
         end
 
         // accumulate stalls
         stamofu_CAM_return_bank1_stall = stamofu_mq_CAM_return_bank1_stall | CAM_stage2_bank1_stall;
         stamofu_CAM_return_bank1_stall_count = stamofu_mq_CAM_return_bank1_stall_count + CAM_stage2_bank1_stall_count;
+        
+        // ssu CAM update
+        ssu_CAM_update_bank1_valid = 
+            stamofu_CAM_return_bank1_valid 
+            & (stamofu_CAM_return_bank1_forward | stamofu_CAM_return_bank1_nasty_forward)
+        ;
+        ssu_CAM_update_bank1_ld_mdp_info = CAM_stage2_bank1_load_mdp_info;
+        ssu_CAM_update_bank1_ld_ROB_index = CAM_stage2_bank1_load_ROB_index;
+        ssu_CAM_update_bank1_stamo_mdp_info = entry_array[ssu_CAM_update_bank1_cq_index].mdp_info;
+        ssu_CAM_update_bank1_stamo_ROB_index = entry_array[ssu_CAM_update_bank1_cq_index].ROB_index;
+
+        ssu_CAM_update_bank1_valid_by_entry = '0;
+        ssu_CAM_update_bank1_valid_by_entry[ssu_CAM_update_bank1_cq_index] = ssu_CAM_update_bank1_valid;
     end
 
     // central queue info grab
@@ -1400,12 +1485,22 @@ module stamofu_cq #(
         end
     end
 
-    always_comb begin
-        stamofu_active = 1'b0;
-        for (int i = 0; i < STAMOFU_CQ_ENTRIES; i++) begin
-            stamofu_active |= entry_array[i].valid;
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            stamofu_active <= 1'b0;
+            stamofu_oldest_ROB_index <= 7'h00;
         end
-        stamofu_oldest_ROB_index = entry_array[deq_perform].ROB_index;
+        else begin
+            stamofu_active <= next_stamofu_active;
+            stamofu_oldest_ROB_index <= next_stamofu_oldest_ROB_index;
+        end
+    end
+    always_comb begin
+        next_stamofu_active = 1'b0;
+        for (int i = 0; i < STAMOFU_CQ_ENTRIES; i++) begin
+            next_stamofu_active |= entry_array[i].valid;
+        end
+        next_stamofu_oldest_ROB_index = entry_array[deq_perform].ROB_index;
     end
 
     always_ff @ (posedge CLK, negedge nRST) begin
