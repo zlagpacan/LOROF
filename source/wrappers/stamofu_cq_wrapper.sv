@@ -93,13 +93,20 @@ module stamofu_cq_wrapper (
 
     // misaligned queue info ret
         // need in order to tie cq entry to mq if misaligned
+        // also interested in exceptions
 	input logic next_stamofu_mq_info_ret_bank0_valid,
 	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_mq_info_ret_bank0_cq_index,
 	input logic [LOG_STAMOFU_MQ_ENTRIES-1:0] next_stamofu_mq_info_ret_bank0_mq_index,
+	input logic next_stamofu_mq_info_ret_bank0_dtlb_hit,
+	input logic next_stamofu_mq_info_ret_bank0_page_fault,
+	input logic next_stamofu_mq_info_ret_bank0_access_fault,
 
 	input logic next_stamofu_mq_info_ret_bank1_valid,
 	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_mq_info_ret_bank1_cq_index,
 	input logic [LOG_STAMOFU_MQ_ENTRIES-1:0] next_stamofu_mq_info_ret_bank1_mq_index,
+	input logic next_stamofu_mq_info_ret_bank1_dtlb_hit,
+	input logic next_stamofu_mq_info_ret_bank1_page_fault,
+	input logic next_stamofu_mq_info_ret_bank1_access_fault,
 
     // dtlb miss resp
 	input logic next_dtlb_miss_resp_valid,
@@ -160,7 +167,7 @@ module stamofu_cq_wrapper (
 	input logic [MDPT_INFO_WIDTH-1:0] next_stamofu_CAM_launch_bank1_mdp_info,
 
     // stamofu_mq CAM stage 2 info
-	input logic next_stamofu_mq_CAM_return_bank0_cq_index,
+	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_mq_CAM_return_bank0_cq_index,
 	input logic next_stamofu_mq_CAM_return_bank0_stall,
 	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_mq_CAM_return_bank0_stall_count,
 	input logic [3:0] next_stamofu_mq_CAM_return_bank0_forward,
@@ -168,7 +175,7 @@ module stamofu_cq_wrapper (
 	input logic next_stamofu_mq_CAM_return_bank0_forward_ROB_index,
 	input logic [31:0] next_stamofu_mq_CAM_return_bank0_forward_data,
 
-	input logic next_stamofu_mq_CAM_return_bank1_cq_index,
+	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_mq_CAM_return_bank1_cq_index,
 	input logic next_stamofu_mq_CAM_return_bank1_stall,
 	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_mq_CAM_return_bank1_stall_count,
 	input logic [3:0] next_stamofu_mq_CAM_return_bank1_forward,
@@ -363,13 +370,20 @@ module stamofu_cq_wrapper (
 
     // misaligned queue info ret
         // need in order to tie cq entry to mq if misaligned
+        // also interested in exceptions
 	logic stamofu_mq_info_ret_bank0_valid;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_info_ret_bank0_cq_index;
 	logic [LOG_STAMOFU_MQ_ENTRIES-1:0] stamofu_mq_info_ret_bank0_mq_index;
+	logic stamofu_mq_info_ret_bank0_dtlb_hit;
+	logic stamofu_mq_info_ret_bank0_page_fault;
+	logic stamofu_mq_info_ret_bank0_access_fault;
 
 	logic stamofu_mq_info_ret_bank1_valid;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_info_ret_bank1_cq_index;
 	logic [LOG_STAMOFU_MQ_ENTRIES-1:0] stamofu_mq_info_ret_bank1_mq_index;
+	logic stamofu_mq_info_ret_bank1_dtlb_hit;
+	logic stamofu_mq_info_ret_bank1_page_fault;
+	logic stamofu_mq_info_ret_bank1_access_fault;
 
     // dtlb miss resp
 	logic dtlb_miss_resp_valid;
@@ -430,7 +444,7 @@ module stamofu_cq_wrapper (
 	logic [MDPT_INFO_WIDTH-1:0] stamofu_CAM_launch_bank1_mdp_info;
 
     // stamofu_mq CAM stage 2 info
-	logic stamofu_mq_CAM_return_bank0_cq_index;
+	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_CAM_return_bank0_cq_index;
 	logic stamofu_mq_CAM_return_bank0_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_CAM_return_bank0_stall_count;
 	logic [3:0] stamofu_mq_CAM_return_bank0_forward;
@@ -438,7 +452,7 @@ module stamofu_cq_wrapper (
 	logic stamofu_mq_CAM_return_bank0_forward_ROB_index;
 	logic [31:0] stamofu_mq_CAM_return_bank0_forward_data;
 
-	logic stamofu_mq_CAM_return_bank1_cq_index;
+	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_CAM_return_bank1_cq_index;
 	logic stamofu_mq_CAM_return_bank1_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_CAM_return_bank1_stall_count;
 	logic [3:0] stamofu_mq_CAM_return_bank1_forward;
@@ -643,13 +657,20 @@ module stamofu_cq_wrapper (
 
 		    // misaligned queue info ret
 		        // need in order to tie cq entry to mq if misaligned
+		        // also interested in exceptions
 			stamofu_mq_info_ret_bank0_valid <= '0;
 			stamofu_mq_info_ret_bank0_cq_index <= '0;
 			stamofu_mq_info_ret_bank0_mq_index <= '0;
+			stamofu_mq_info_ret_bank0_dtlb_hit <= '0;
+			stamofu_mq_info_ret_bank0_page_fault <= '0;
+			stamofu_mq_info_ret_bank0_access_fault <= '0;
 
 			stamofu_mq_info_ret_bank1_valid <= '0;
 			stamofu_mq_info_ret_bank1_cq_index <= '0;
 			stamofu_mq_info_ret_bank1_mq_index <= '0;
+			stamofu_mq_info_ret_bank1_dtlb_hit <= '0;
+			stamofu_mq_info_ret_bank1_page_fault <= '0;
+			stamofu_mq_info_ret_bank1_access_fault <= '0;
 
 		    // dtlb miss resp
 			dtlb_miss_resp_valid <= '0;
@@ -911,13 +932,20 @@ module stamofu_cq_wrapper (
 
 		    // misaligned queue info ret
 		        // need in order to tie cq entry to mq if misaligned
+		        // also interested in exceptions
 			stamofu_mq_info_ret_bank0_valid <= next_stamofu_mq_info_ret_bank0_valid;
 			stamofu_mq_info_ret_bank0_cq_index <= next_stamofu_mq_info_ret_bank0_cq_index;
 			stamofu_mq_info_ret_bank0_mq_index <= next_stamofu_mq_info_ret_bank0_mq_index;
+			stamofu_mq_info_ret_bank0_dtlb_hit <= next_stamofu_mq_info_ret_bank0_dtlb_hit;
+			stamofu_mq_info_ret_bank0_page_fault <= next_stamofu_mq_info_ret_bank0_page_fault;
+			stamofu_mq_info_ret_bank0_access_fault <= next_stamofu_mq_info_ret_bank0_access_fault;
 
 			stamofu_mq_info_ret_bank1_valid <= next_stamofu_mq_info_ret_bank1_valid;
 			stamofu_mq_info_ret_bank1_cq_index <= next_stamofu_mq_info_ret_bank1_cq_index;
 			stamofu_mq_info_ret_bank1_mq_index <= next_stamofu_mq_info_ret_bank1_mq_index;
+			stamofu_mq_info_ret_bank1_dtlb_hit <= next_stamofu_mq_info_ret_bank1_dtlb_hit;
+			stamofu_mq_info_ret_bank1_page_fault <= next_stamofu_mq_info_ret_bank1_page_fault;
+			stamofu_mq_info_ret_bank1_access_fault <= next_stamofu_mq_info_ret_bank1_access_fault;
 
 		    // dtlb miss resp
 			dtlb_miss_resp_valid <= next_dtlb_miss_resp_valid;

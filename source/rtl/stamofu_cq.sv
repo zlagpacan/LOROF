@@ -90,13 +90,20 @@ module stamofu_cq #(
 
     // misaligned queue info ret
         // need in order to tie cq entry to mq if misaligned
+        // also interested in exceptions
     input logic                                 stamofu_mq_info_ret_bank0_valid,
     input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_mq_info_ret_bank0_cq_index,
     input logic [LOG_STAMOFU_MQ_ENTRIES-1:0]    stamofu_mq_info_ret_bank0_mq_index,
+    input logic                                 stamofu_mq_info_ret_bank0_dtlb_hit,
+    input logic                                 stamofu_mq_info_ret_bank0_page_fault,
+    input logic                                 stamofu_mq_info_ret_bank0_access_fault,
     
     input logic                                 stamofu_mq_info_ret_bank1_valid,
     input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_mq_info_ret_bank1_cq_index,
     input logic [LOG_STAMOFU_MQ_ENTRIES-1:0]    stamofu_mq_info_ret_bank1_mq_index,
+    input logic                                 stamofu_mq_info_ret_bank1_dtlb_hit,
+    input logic                                 stamofu_mq_info_ret_bank1_page_fault,
+    input logic                                 stamofu_mq_info_ret_bank1_access_fault,
 
     // dtlb miss resp
     input logic                                 dtlb_miss_resp_valid,
@@ -343,6 +350,7 @@ module stamofu_cq #(
     logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_info_ret_bank0_valid_by_entry;
     logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_info_ret_bank1_valid_by_entry;
     logic [STAMOFU_CQ_ENTRIES-1:0] dtlb_miss_resp_valid_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0] dtlb_mq_miss_resp_valid_by_entry;
     logic [STAMOFU_CQ_ENTRIES-1:0] ldu_CAM_return_valid_by_entry;
     logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_complete_valid_by_entry;
     logic [STAMOFU_CQ_ENTRIES-1:0] clear_misaligned_by_entry;
@@ -520,6 +528,7 @@ module stamofu_cq #(
         stamofu_mq_info_ret_bank0_valid_by_entry = '0;
         stamofu_mq_info_ret_bank1_valid_by_entry = '0;
         dtlb_miss_resp_valid_by_entry = '0;
+        dtlb_mq_miss_resp_valid_by_entry = '0;
         ldu_CAM_return_valid_by_entry = '0;
         stamofu_mq_complete_valid_by_entry = '0;
 
@@ -528,6 +537,7 @@ module stamofu_cq #(
         stamofu_mq_info_ret_bank0_valid_by_entry[stamofu_mq_info_ret_bank0_cq_index] = stamofu_mq_info_ret_bank0_valid;
         stamofu_mq_info_ret_bank1_valid_by_entry[stamofu_mq_info_ret_bank1_cq_index] = stamofu_mq_info_ret_bank1_valid;
         dtlb_miss_resp_valid_by_entry[dtlb_miss_resp_cq_index] = dtlb_miss_resp_valid & ~dtlb_miss_resp_is_mq;
+        dtlb_mq_miss_resp_valid_by_entry[dtlb_miss_resp_cq_index] = dtlb_miss_resp_valid & dtlb_miss_resp_is_mq;
         ldu_CAM_return_valid_by_entry[ldu_CAM_return_cq_index] = ldu_CAM_return_valid & ~ldu_CAM_return_is_mq;
         stamofu_mq_complete_valid_by_entry[stamofu_mq_complete_cq_index] = stamofu_mq_complete_valid;
     end
@@ -837,14 +847,49 @@ module stamofu_cq #(
 
             // indep behavior:
 
+            // dtlb mq miss resp (indep)
+            if (dtlb_mq_miss_resp_valid_by_entry[i]) begin
+                // check lower word hasn't generated exception and upper word is
+                if (
+                    (dtlb_miss_resp_page_fault | dtlb_miss_resp_access_fault)
+                    & ~(entry_array[i].exception_req | entry_array[i].exception_sent)
+                ) begin
+                    next_entry_array[i].exception_req = 1'b1;
+                    next_entry_array[i].page_fault = dtlb_miss_resp_page_fault;
+                    next_entry_array[i].access_fault = dtlb_miss_resp_access_fault;
+                end
+            end
+
             // stamofu_mq info ret bank 0 (indep)
             if (stamofu_mq_info_ret_bank0_valid_by_entry[i]) begin
                 next_entry_array[i].mq_index = stamofu_mq_info_ret_bank0_mq_index;
+
+                // check lower word hasn't generated exception and upper word is
+                if (
+                    stamofu_mq_info_ret_bank0_dtlb_hit
+                    & (stamofu_mq_info_ret_bank0_page_fault | stamofu_mq_info_ret_bank0_access_fault)
+                    & ~(entry_array[i].exception_req | entry_array[i].exception_sent)
+                ) begin
+                    next_entry_array[i].exception_req = 1'b1;
+                    next_entry_array[i].page_fault = stamofu_mq_info_ret_bank0_page_fault;
+                    next_entry_array[i].access_fault = stamofu_mq_info_ret_bank0_access_fault;
+                end
             end
 
             // stamofu_mq info ret bank 1 (indep)
             if (stamofu_mq_info_ret_bank1_valid_by_entry[i]) begin
                 next_entry_array[i].mq_index = stamofu_mq_info_ret_bank1_mq_index;
+
+                // check lower word hasn't generated exception and upper word is
+                if (
+                    stamofu_mq_info_ret_bank1_dtlb_hit
+                    & (stamofu_mq_info_ret_bank1_page_fault | stamofu_mq_info_ret_bank1_access_fault)
+                    & ~(entry_array[i].exception_req | entry_array[i].exception_sent)
+                ) begin
+                    next_entry_array[i].exception_req = 1'b1;
+                    next_entry_array[i].page_fault = stamofu_mq_info_ret_bank1_page_fault;
+                    next_entry_array[i].access_fault = stamofu_mq_info_ret_bank1_access_fault;
+                end
             end
 
             // stamofu_mq complete (indep)

@@ -112,10 +112,16 @@ module stamofu_cq_tb ();
 	logic tb_stamofu_mq_info_ret_bank0_valid;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] tb_stamofu_mq_info_ret_bank0_cq_index;
 	logic [LOG_STAMOFU_MQ_ENTRIES-1:0] tb_stamofu_mq_info_ret_bank0_mq_index;
+	logic tb_stamofu_mq_info_ret_bank0_dtlb_hit;
+	logic tb_stamofu_mq_info_ret_bank0_page_fault;
+	logic tb_stamofu_mq_info_ret_bank0_access_fault;
 
 	logic tb_stamofu_mq_info_ret_bank1_valid;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] tb_stamofu_mq_info_ret_bank1_cq_index;
 	logic [LOG_STAMOFU_MQ_ENTRIES-1:0] tb_stamofu_mq_info_ret_bank1_mq_index;
+	logic tb_stamofu_mq_info_ret_bank1_dtlb_hit;
+	logic tb_stamofu_mq_info_ret_bank1_page_fault;
+	logic tb_stamofu_mq_info_ret_bank1_access_fault;
 
     // dtlb miss resp
 	logic tb_dtlb_miss_resp_valid;
@@ -389,10 +395,16 @@ module stamofu_cq_tb ();
 		.stamofu_mq_info_ret_bank0_valid(tb_stamofu_mq_info_ret_bank0_valid),
 		.stamofu_mq_info_ret_bank0_cq_index(tb_stamofu_mq_info_ret_bank0_cq_index),
 		.stamofu_mq_info_ret_bank0_mq_index(tb_stamofu_mq_info_ret_bank0_mq_index),
+		.stamofu_mq_info_ret_bank0_dtlb_hit(tb_stamofu_mq_info_ret_bank0_dtlb_hit),
+		.stamofu_mq_info_ret_bank0_page_fault(tb_stamofu_mq_info_ret_bank0_page_fault),
+		.stamofu_mq_info_ret_bank0_access_fault(tb_stamofu_mq_info_ret_bank0_access_fault),
 
 		.stamofu_mq_info_ret_bank1_valid(tb_stamofu_mq_info_ret_bank1_valid),
 		.stamofu_mq_info_ret_bank1_cq_index(tb_stamofu_mq_info_ret_bank1_cq_index),
 		.stamofu_mq_info_ret_bank1_mq_index(tb_stamofu_mq_info_ret_bank1_mq_index),
+		.stamofu_mq_info_ret_bank1_dtlb_hit(tb_stamofu_mq_info_ret_bank1_dtlb_hit),
+		.stamofu_mq_info_ret_bank1_page_fault(tb_stamofu_mq_info_ret_bank1_page_fault),
+		.stamofu_mq_info_ret_bank1_access_fault(tb_stamofu_mq_info_ret_bank1_access_fault),
 
 	    // dtlb miss resp
 		.dtlb_miss_resp_valid(tb_dtlb_miss_resp_valid),
@@ -1222,9 +1234,15 @@ module stamofu_cq_tb ();
 		tb_stamofu_mq_info_ret_bank0_valid = 1'b0;
 		tb_stamofu_mq_info_ret_bank0_cq_index = 'h0;
 		tb_stamofu_mq_info_ret_bank0_mq_index = 'h0;
+		tb_stamofu_mq_info_ret_bank0_dtlb_hit = 1'b0;
+		tb_stamofu_mq_info_ret_bank0_page_fault = 1'b0;
+		tb_stamofu_mq_info_ret_bank0_access_fault = 1'b0;
 		tb_stamofu_mq_info_ret_bank1_valid = 1'b0;
 		tb_stamofu_mq_info_ret_bank1_cq_index = 'h0;
 		tb_stamofu_mq_info_ret_bank1_mq_index = 'h0;
+		tb_stamofu_mq_info_ret_bank1_dtlb_hit = 1'b0;
+		tb_stamofu_mq_info_ret_bank1_page_fault = 1'b0;
+		tb_stamofu_mq_info_ret_bank1_access_fault = 1'b0;
 	    // dtlb miss resp
 		tb_dtlb_miss_resp_valid = 1'b0;
 		tb_dtlb_miss_resp_cq_index = 'h0;
@@ -1489,9 +1507,15 @@ module stamofu_cq_tb ();
 		tb_stamofu_mq_info_ret_bank0_valid = 1'b0;
 		tb_stamofu_mq_info_ret_bank0_cq_index = 'h0;
 		tb_stamofu_mq_info_ret_bank0_mq_index = 'h0;
+		tb_stamofu_mq_info_ret_bank0_dtlb_hit = 1'b0;
+		tb_stamofu_mq_info_ret_bank0_page_fault = 1'b0;
+		tb_stamofu_mq_info_ret_bank0_access_fault = 1'b0;
 		tb_stamofu_mq_info_ret_bank1_valid = 1'b0;
 		tb_stamofu_mq_info_ret_bank1_cq_index = 'h0;
 		tb_stamofu_mq_info_ret_bank1_mq_index = 'h0;
+		tb_stamofu_mq_info_ret_bank1_dtlb_hit = 1'b0;
+		tb_stamofu_mq_info_ret_bank1_page_fault = 1'b0;
+		tb_stamofu_mq_info_ret_bank1_access_fault = 1'b0;
 	    // dtlb miss resp
 		tb_dtlb_miss_resp_valid = 1'b0;
 		tb_dtlb_miss_resp_cq_index = 'h0;
@@ -1764,9 +1788,15 @@ module stamofu_cq_tb ();
 		tb_stamofu_mq_info_ret_bank0_valid = 1'b0;
 		tb_stamofu_mq_info_ret_bank0_cq_index = 'h0;
 		tb_stamofu_mq_info_ret_bank0_mq_index = 'h0;
+		tb_stamofu_mq_info_ret_bank0_dtlb_hit = 1'b0;
+		tb_stamofu_mq_info_ret_bank0_page_fault = 1'b0;
+		tb_stamofu_mq_info_ret_bank0_access_fault = 1'b0;
 		tb_stamofu_mq_info_ret_bank1_valid = 1'b0;
 		tb_stamofu_mq_info_ret_bank1_cq_index = 'h0;
 		tb_stamofu_mq_info_ret_bank1_mq_index = 'h0;
+		tb_stamofu_mq_info_ret_bank1_dtlb_hit = 1'b0;
+		tb_stamofu_mq_info_ret_bank1_page_fault = 1'b0;
+		tb_stamofu_mq_info_ret_bank1_access_fault = 1'b0;
 	    // dtlb miss resp
 		tb_dtlb_miss_resp_valid = 1'b0;
 		tb_dtlb_miss_resp_cq_index = 'h0;
