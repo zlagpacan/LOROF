@@ -151,7 +151,7 @@ module ldu_cq #(
     input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_CAM_return_bank0_stall_count,
     input logic [3:0]                           stamofu_CAM_return_bank0_forward,
     input logic                                 stamofu_CAM_return_bank0_nasty_forward,
-    input logic                                 stamofu_CAM_return_bank0_forward_ROB_index,
+    input logic [LOG_ROB_ENTRIES-1:0]           stamofu_CAM_return_bank0_forward_ROB_index,
     input logic [31:0]                          stamofu_CAM_return_bank0_forward_data,
     
     input logic                                 stamofu_CAM_return_bank1_valid,
@@ -162,7 +162,7 @@ module ldu_cq #(
     input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_CAM_return_bank1_stall_count,
     input logic [3:0]                           stamofu_CAM_return_bank1_forward,
     input logic                                 stamofu_CAM_return_bank1_nasty_forward,
-    input logic                                 stamofu_CAM_return_bank1_forward_ROB_index,
+    input logic [LOG_ROB_ENTRIES-1:0]           stamofu_CAM_return_bank1_forward_ROB_index,
     input logic [31:0]                          stamofu_CAM_return_bank1_forward_data,
 
     // ldu CAM launch
@@ -1022,8 +1022,8 @@ module ldu_cq #(
                 & ldu_CAM_launch_PA_word == entry_array[i].PA_word
                 & ~ldu_CAM_launch_is_amo
                 // superset
-                    // entry byte -> CAM byte
-                & &{~entry_array[i].byte_mask | ldu_CAM_launch_byte_mask}
+                    // entry byte -> CAM store byte
+                & &(~entry_array[i].byte_mask | ldu_CAM_launch_byte_mask)
                 // older than this
                 & (ldu_CAM_launch_ROB_index - rob_kill_abs_head_index 
                     < rel_ROB_index_by_entry[i])

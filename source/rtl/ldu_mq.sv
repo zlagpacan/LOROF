@@ -107,25 +107,25 @@ module ldu_mq #(
 
     // stamofu CAM return
     input logic                                 stamofu_CAM_return_bank0_valid,
-    input logic                                 stamofu_CAM_return_bank0_is_mq,
     input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_bank0_cq_index, // ldu_cq index, unused
+    input logic                                 stamofu_CAM_return_bank0_is_mq,
     input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_return_bank0_mq_index, // ldu_mq index
     input logic                                 stamofu_CAM_return_bank0_stall,
     input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_CAM_return_bank0_stall_count,
     input logic [3:0]                           stamofu_CAM_return_bank0_forward,
     input logic                                 stamofu_CAM_return_bank0_nasty_forward,
-    input logic                                 stamofu_CAM_return_bank0_forward_ROB_index,
+    input logic [LOG_ROB_ENTRIES-1:0]           stamofu_CAM_return_bank0_forward_ROB_index,
     input logic [31:0]                          stamofu_CAM_return_bank0_forward_data,
     
     input logic                                 stamofu_CAM_return_bank1_valid,
-    input logic                                 stamofu_CAM_return_bank1_is_mq,
     input logic [LOG_LDU_CQ_ENTRIES-1:0]        stamofu_CAM_return_bank1_cq_index, // ldu_cq index, unused
+    input logic                                 stamofu_CAM_return_bank1_is_mq,
     input logic [LOG_LDU_MQ_ENTRIES-1:0]        stamofu_CAM_return_bank1_mq_index, // ldu_mq index
     input logic                                 stamofu_CAM_return_bank1_stall,
     input logic [LOG_STAMOFU_CQ_ENTRIES-1:0]    stamofu_CAM_return_bank1_stall_count,
     input logic [3:0]                           stamofu_CAM_return_bank1_forward,
     input logic                                 stamofu_CAM_return_bank1_nasty_forward,
-    input logic                                 stamofu_CAM_return_bank1_forward_ROB_index,
+    input logic [LOG_ROB_ENTRIES-1:0]           stamofu_CAM_return_bank1_forward_ROB_index,
     input logic [31:0]                          stamofu_CAM_return_bank1_forward_data,
 
     // ldu CAM launch
@@ -145,7 +145,6 @@ module ldu_mq #(
 
     // store set CAM update
         // implied dep
-        // prioritize this one from mq over cq's
     output logic                        ssu_CAM_update_valid,
     output logic [MDPT_INFO_WIDTH-1:0]  ssu_CAM_update_ld_mdp_info,
     output logic [LOG_ROB_ENTRIES-1:0]  ssu_CAM_update_ld_ROB_index,
@@ -154,7 +153,6 @@ module ldu_mq #(
 
     // store set commit update
         // implied no dep
-        // prioritize this one from mq over cq's
     output logic                        ssu_commit_update_valid,
     output logic [MDPT_INFO_WIDTH-1:0]  ssu_commit_update_mdp_info,
     output logic [LOG_ROB_ENTRIES-1:0]  ssu_commit_update_ROB_index,

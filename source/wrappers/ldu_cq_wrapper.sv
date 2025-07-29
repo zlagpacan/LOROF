@@ -154,7 +154,7 @@ module ldu_cq_wrapper (
 	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_CAM_return_bank0_stall_count,
 	input logic [3:0] next_stamofu_CAM_return_bank0_forward,
 	input logic next_stamofu_CAM_return_bank0_nasty_forward,
-	input logic next_stamofu_CAM_return_bank0_forward_ROB_index,
+	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_CAM_return_bank0_forward_ROB_index,
 	input logic [31:0] next_stamofu_CAM_return_bank0_forward_data,
 
 	input logic next_stamofu_CAM_return_bank1_valid,
@@ -165,7 +165,7 @@ module ldu_cq_wrapper (
 	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_CAM_return_bank1_stall_count,
 	input logic [3:0] next_stamofu_CAM_return_bank1_forward,
 	input logic next_stamofu_CAM_return_bank1_nasty_forward,
-	input logic next_stamofu_CAM_return_bank1_forward_ROB_index,
+	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_CAM_return_bank1_forward_ROB_index,
 	input logic [31:0] next_stamofu_CAM_return_bank1_forward_data,
 
     // ldu CAM launch
@@ -360,7 +360,7 @@ module ldu_cq_wrapper (
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank0_stall_count;
 	logic [3:0] stamofu_CAM_return_bank0_forward;
 	logic stamofu_CAM_return_bank0_nasty_forward;
-	logic stamofu_CAM_return_bank0_forward_ROB_index;
+	logic [LOG_ROB_ENTRIES-1:0] stamofu_CAM_return_bank0_forward_ROB_index;
 	logic [31:0] stamofu_CAM_return_bank0_forward_data;
 
 	logic stamofu_CAM_return_bank1_valid;
@@ -371,7 +371,7 @@ module ldu_cq_wrapper (
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank1_stall_count;
 	logic [3:0] stamofu_CAM_return_bank1_forward;
 	logic stamofu_CAM_return_bank1_nasty_forward;
-	logic stamofu_CAM_return_bank1_forward_ROB_index;
+	logic [LOG_ROB_ENTRIES-1:0] stamofu_CAM_return_bank1_forward_ROB_index;
 	logic [31:0] stamofu_CAM_return_bank1_forward_data;
 
     // ldu CAM launch

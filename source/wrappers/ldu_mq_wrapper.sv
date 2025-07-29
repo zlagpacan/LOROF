@@ -110,25 +110,25 @@ module ldu_mq_wrapper (
 
     // stamofu CAM return
 	input logic next_stamofu_CAM_return_bank0_valid,
-	input logic next_stamofu_CAM_return_bank0_is_mq,
 	input logic [LOG_LDU_CQ_ENTRIES-1:0] next_stamofu_CAM_return_bank0_cq_index,
+	input logic next_stamofu_CAM_return_bank0_is_mq,
 	input logic [LOG_LDU_MQ_ENTRIES-1:0] next_stamofu_CAM_return_bank0_mq_index,
 	input logic next_stamofu_CAM_return_bank0_stall,
 	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_CAM_return_bank0_stall_count,
 	input logic [3:0] next_stamofu_CAM_return_bank0_forward,
 	input logic next_stamofu_CAM_return_bank0_nasty_forward,
-	input logic next_stamofu_CAM_return_bank0_forward_ROB_index,
+	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_CAM_return_bank0_forward_ROB_index,
 	input logic [31:0] next_stamofu_CAM_return_bank0_forward_data,
 
 	input logic next_stamofu_CAM_return_bank1_valid,
-	input logic next_stamofu_CAM_return_bank1_is_mq,
 	input logic [LOG_LDU_CQ_ENTRIES-1:0] next_stamofu_CAM_return_bank1_cq_index,
+	input logic next_stamofu_CAM_return_bank1_is_mq,
 	input logic [LOG_LDU_MQ_ENTRIES-1:0] next_stamofu_CAM_return_bank1_mq_index,
 	input logic next_stamofu_CAM_return_bank1_stall,
 	input logic [LOG_STAMOFU_CQ_ENTRIES-1:0] next_stamofu_CAM_return_bank1_stall_count,
 	input logic [3:0] next_stamofu_CAM_return_bank1_forward,
 	input logic next_stamofu_CAM_return_bank1_nasty_forward,
-	input logic next_stamofu_CAM_return_bank1_forward_ROB_index,
+	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_CAM_return_bank1_forward_ROB_index,
 	input logic [31:0] next_stamofu_CAM_return_bank1_forward_data,
 
     // ldu CAM launch
@@ -148,7 +148,6 @@ module ldu_mq_wrapper (
 
     // store set CAM update
         // implied dep
-        // prioritize this one from mq over cq's
 	output logic last_ssu_CAM_update_valid,
 	output logic [MDPT_INFO_WIDTH-1:0] last_ssu_CAM_update_ld_mdp_info,
 	output logic [LOG_ROB_ENTRIES-1:0] last_ssu_CAM_update_ld_ROB_index,
@@ -157,7 +156,6 @@ module ldu_mq_wrapper (
 
     // store set commit update
         // implied no dep
-        // prioritize this one from mq over cq's
 	output logic last_ssu_commit_update_valid,
 	output logic [MDPT_INFO_WIDTH-1:0] last_ssu_commit_update_mdp_info,
 	output logic [LOG_ROB_ENTRIES-1:0] last_ssu_commit_update_ROB_index,
@@ -273,25 +271,25 @@ module ldu_mq_wrapper (
 
     // stamofu CAM return
 	logic stamofu_CAM_return_bank0_valid;
-	logic stamofu_CAM_return_bank0_is_mq;
 	logic [LOG_LDU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank0_cq_index;
+	logic stamofu_CAM_return_bank0_is_mq;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] stamofu_CAM_return_bank0_mq_index;
 	logic stamofu_CAM_return_bank0_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank0_stall_count;
 	logic [3:0] stamofu_CAM_return_bank0_forward;
 	logic stamofu_CAM_return_bank0_nasty_forward;
-	logic stamofu_CAM_return_bank0_forward_ROB_index;
+	logic [LOG_ROB_ENTRIES-1:0] stamofu_CAM_return_bank0_forward_ROB_index;
 	logic [31:0] stamofu_CAM_return_bank0_forward_data;
 
 	logic stamofu_CAM_return_bank1_valid;
-	logic stamofu_CAM_return_bank1_is_mq;
 	logic [LOG_LDU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank1_cq_index;
+	logic stamofu_CAM_return_bank1_is_mq;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] stamofu_CAM_return_bank1_mq_index;
 	logic stamofu_CAM_return_bank1_stall;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank1_stall_count;
 	logic [3:0] stamofu_CAM_return_bank1_forward;
 	logic stamofu_CAM_return_bank1_nasty_forward;
-	logic stamofu_CAM_return_bank1_forward_ROB_index;
+	logic [LOG_ROB_ENTRIES-1:0] stamofu_CAM_return_bank1_forward_ROB_index;
 	logic [31:0] stamofu_CAM_return_bank1_forward_data;
 
     // ldu CAM launch
@@ -311,7 +309,6 @@ module ldu_mq_wrapper (
 
     // store set CAM update
         // implied dep
-        // prioritize this one from mq over cq's
 	logic ssu_CAM_update_valid;
 	logic [MDPT_INFO_WIDTH-1:0] ssu_CAM_update_ld_mdp_info;
 	logic [LOG_ROB_ENTRIES-1:0] ssu_CAM_update_ld_ROB_index;
@@ -320,7 +317,6 @@ module ldu_mq_wrapper (
 
     // store set commit update
         // implied no dep
-        // prioritize this one from mq over cq's
 	logic ssu_commit_update_valid;
 	logic [MDPT_INFO_WIDTH-1:0] ssu_commit_update_mdp_info;
 	logic [LOG_ROB_ENTRIES-1:0] ssu_commit_update_ROB_index;
@@ -446,8 +442,8 @@ module ldu_mq_wrapper (
 
 		    // stamofu CAM return
 			stamofu_CAM_return_bank0_valid <= '0;
-			stamofu_CAM_return_bank0_is_mq <= '0;
 			stamofu_CAM_return_bank0_cq_index <= '0;
+			stamofu_CAM_return_bank0_is_mq <= '0;
 			stamofu_CAM_return_bank0_mq_index <= '0;
 			stamofu_CAM_return_bank0_stall <= '0;
 			stamofu_CAM_return_bank0_stall_count <= '0;
@@ -457,8 +453,8 @@ module ldu_mq_wrapper (
 			stamofu_CAM_return_bank0_forward_data <= '0;
 
 			stamofu_CAM_return_bank1_valid <= '0;
-			stamofu_CAM_return_bank1_is_mq <= '0;
 			stamofu_CAM_return_bank1_cq_index <= '0;
+			stamofu_CAM_return_bank1_is_mq <= '0;
 			stamofu_CAM_return_bank1_mq_index <= '0;
 			stamofu_CAM_return_bank1_stall <= '0;
 			stamofu_CAM_return_bank1_stall_count <= '0;
@@ -484,7 +480,6 @@ module ldu_mq_wrapper (
 
 		    // store set CAM update
 		        // implied dep
-		        // prioritize this one from mq over cq's
 			last_ssu_CAM_update_valid <= '0;
 			last_ssu_CAM_update_ld_mdp_info <= '0;
 			last_ssu_CAM_update_ld_ROB_index <= '0;
@@ -493,7 +488,6 @@ module ldu_mq_wrapper (
 
 		    // store set commit update
 		        // implied no dep
-		        // prioritize this one from mq over cq's
 			last_ssu_commit_update_valid <= '0;
 			last_ssu_commit_update_mdp_info <= '0;
 			last_ssu_commit_update_ROB_index <= '0;
@@ -607,8 +601,8 @@ module ldu_mq_wrapper (
 
 		    // stamofu CAM return
 			stamofu_CAM_return_bank0_valid <= next_stamofu_CAM_return_bank0_valid;
-			stamofu_CAM_return_bank0_is_mq <= next_stamofu_CAM_return_bank0_is_mq;
 			stamofu_CAM_return_bank0_cq_index <= next_stamofu_CAM_return_bank0_cq_index;
+			stamofu_CAM_return_bank0_is_mq <= next_stamofu_CAM_return_bank0_is_mq;
 			stamofu_CAM_return_bank0_mq_index <= next_stamofu_CAM_return_bank0_mq_index;
 			stamofu_CAM_return_bank0_stall <= next_stamofu_CAM_return_bank0_stall;
 			stamofu_CAM_return_bank0_stall_count <= next_stamofu_CAM_return_bank0_stall_count;
@@ -618,8 +612,8 @@ module ldu_mq_wrapper (
 			stamofu_CAM_return_bank0_forward_data <= next_stamofu_CAM_return_bank0_forward_data;
 
 			stamofu_CAM_return_bank1_valid <= next_stamofu_CAM_return_bank1_valid;
-			stamofu_CAM_return_bank1_is_mq <= next_stamofu_CAM_return_bank1_is_mq;
 			stamofu_CAM_return_bank1_cq_index <= next_stamofu_CAM_return_bank1_cq_index;
+			stamofu_CAM_return_bank1_is_mq <= next_stamofu_CAM_return_bank1_is_mq;
 			stamofu_CAM_return_bank1_mq_index <= next_stamofu_CAM_return_bank1_mq_index;
 			stamofu_CAM_return_bank1_stall <= next_stamofu_CAM_return_bank1_stall;
 			stamofu_CAM_return_bank1_stall_count <= next_stamofu_CAM_return_bank1_stall_count;
@@ -645,7 +639,6 @@ module ldu_mq_wrapper (
 
 		    // store set CAM update
 		        // implied dep
-		        // prioritize this one from mq over cq's
 			last_ssu_CAM_update_valid <= ssu_CAM_update_valid;
 			last_ssu_CAM_update_ld_mdp_info <= ssu_CAM_update_ld_mdp_info;
 			last_ssu_CAM_update_ld_ROB_index <= ssu_CAM_update_ld_ROB_index;
@@ -654,7 +647,6 @@ module ldu_mq_wrapper (
 
 		    // store set commit update
 		        // implied no dep
-		        // prioritize this one from mq over cq's
 			last_ssu_commit_update_valid <= ssu_commit_update_valid;
 			last_ssu_commit_update_mdp_info <= ssu_commit_update_mdp_info;
 			last_ssu_commit_update_ROB_index <= ssu_commit_update_ROB_index;
