@@ -544,8 +544,8 @@ module stamofu_cq #(
         stamofu_cq_info_ret_bank1_valid_by_entry[stamofu_cq_info_ret_bank1_cq_index] = stamofu_cq_info_ret_bank1_valid;
         stamofu_mq_info_ret_bank0_valid_by_entry[stamofu_mq_info_ret_bank0_cq_index] = stamofu_mq_info_ret_bank0_valid;
         stamofu_mq_info_ret_bank1_valid_by_entry[stamofu_mq_info_ret_bank1_cq_index] = stamofu_mq_info_ret_bank1_valid;
-        dtlb_miss_resp_valid_by_entry[dtlb_miss_resp_cq_index] = dtlb_miss_resp_valid;
-        ldu_CAM_return_valid_by_entry[ldu_CAM_return_cq_index] = ldu_CAM_return_valid & ~ldu_CAM_return_is_mq;
+        dtlb_miss_resp_valid_by_entry[dtlb_miss_resp_cq_index] = dtlb_miss_resp_valid; // dtlb cq vs. mq handled in per-entry state machine
+        ldu_CAM_return_valid_by_entry[ldu_CAM_return_cq_index] = ldu_CAM_return_valid; // track forwardness of lower and upper word in cq
         stamofu_mq_complete_valid_by_entry[stamofu_mq_complete_cq_index] = stamofu_mq_complete_valid;
     end
 
@@ -961,6 +961,10 @@ module stamofu_cq #(
         end
     end
 
+    /////////////////////////
+    // stamofu CAM bank 0: //
+    /////////////////////////
+
     // stamofu CAM stage 0 bank 0
     always_comb begin
         CAM_stage0_bank0_valid = stamofu_CAM_launch_bank0_valid;
@@ -1151,6 +1155,10 @@ module stamofu_cq #(
         ssu_CAM_update_bank0_valid_by_entry = '0;
         ssu_CAM_update_bank0_valid_by_entry[ssu_CAM_update_bank0_cq_index] = ssu_CAM_update_bank0_valid;
     end
+
+    /////////////////////////
+    // stamofu CAM bank 1: //
+    /////////////////////////
 
     // stamofu CAM stage 0 bank 1
     always_comb begin
@@ -1652,7 +1660,7 @@ module stamofu_cq #(
             // deq: //
             //////////
             if (deq_perform) begin
-                entry_array[deq_ptr].valid <= 1'b1;
+                entry_array[deq_ptr].valid <= 1'b0;
                 entry_array[deq_ptr].misaligned <= 1'b0;
                 entry_array[deq_ptr].misaligned_complete <= 1'b0;
                 // entry_array[deq_ptr].mq_index <= 
