@@ -172,9 +172,11 @@ module ldu_mq #(
     input logic [LOG_ROB_ENTRIES-1:0]   rob_kill_rel_kill_younger_index
 );
 
-    // mq enq race condition: all mq entries younger than old mq entry trying to enq now
-        // can keep timer in mq checking for too many cycles where
-        // input enq ROB index older than all mq ROB index's
+    // known theoretical bugs:
+
+        // mq enq race condition: all mq entries younger than old mq entry trying to enq now
+            // can keep timer in mq checking for too many cycles where
+            // input enq ROB index older than all mq ROB index's
 
     // ----------------------------------------------------------------
     // Signals:

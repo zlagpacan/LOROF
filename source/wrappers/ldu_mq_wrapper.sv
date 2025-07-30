@@ -13,7 +13,7 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter LDU_MQ_ENTRIES = 4;
+parameter LDU_MQ_ENTRIES = core_types_pkg::LDU_MQ_ENTRIES;
 parameter LOG_LDU_MQ_ENTRIES = $clog2(LDU_MQ_ENTRIES);
 
 module ldu_mq_wrapper (
