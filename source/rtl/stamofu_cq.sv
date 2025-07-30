@@ -441,7 +441,6 @@ module stamofu_cq #(
     logic [STAMOFU_CQ_ENTRIES-1:0]      CAM_stage1_bank0_load_is_candidate_masked_one_hot;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  CAM_stage1_bank0_load_is_candidate_masked_index;
     logic                               CAM_stage1_bank0_found_forward;
-    // logic [STAMOFU_CQ_ENTRIES-1:0]      CAM_stage1_bank0_load_selected_one_hot_by_entry;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  CAM_stage1_bank0_load_selected_index;
     logic                               CAM_stage1_bank0_load_is_subset;
     logic                               CAM_stage1_bank0_stall;
@@ -494,7 +493,6 @@ module stamofu_cq #(
     logic [STAMOFU_CQ_ENTRIES-1:0]      CAM_stage1_bank1_load_is_candidate_masked_one_hot;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  CAM_stage1_bank1_load_is_candidate_masked_index;
     logic                               CAM_stage1_bank1_found_forward;
-    // logic [STAMOFU_CQ_ENTRIES-1:0]      CAM_stage1_bank1_load_selected_one_hot_by_entry;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  CAM_stage1_bank1_load_selected_index;
     logic                               CAM_stage1_bank1_load_is_subset;
     logic                               CAM_stage1_bank1_stall;
