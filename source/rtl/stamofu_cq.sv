@@ -404,7 +404,7 @@ module stamofu_cq #(
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0] rob_exception_cq_index;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_complete_cq_index;
 
-    logic [STAMOFU_CQ_ENTRIES-1:0] rel_ROB_index_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0][LOG_ROB_ENTRIES-1:0] rel_ROB_index_by_entry;
 
     logic                               stamofu_cq_ldu_CAM_launch_valid;
     logic                               stamofu_cq_ldu_CAM_launch_ready;
@@ -1033,14 +1033,15 @@ module stamofu_cq #(
             CAM_stage1_bank0_stall_count += CAM_stage1_bank0_load_is_mdp_match_by_entry[i];
         end
     end
-    pe_lsb # (
+    // want youngest older -> greater index -> msb first
+    pe_msb # (
         .WIDTH(STAMOFU_CQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
     ) CAM_SELECT_UNMASKED_PE_BANK0 (
         .req_vec(CAM_stage1_bank0_load_is_candidate_unmasked_by_entry),
         .ack_one_hot(CAM_stage1_bank0_load_is_candidate_unmasked_one_hot),
         .ack_index(CAM_stage1_bank0_load_is_candidate_unmasked_index)
     );
-    pe_lsb # (
+    pe_msb # (
         .WIDTH(STAMOFU_CQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
     ) CAM_SELECT_MASKED_PE_BANK0 (
         .req_vec(CAM_stage1_bank0_load_is_candidate_masked_by_entry),
@@ -1223,14 +1224,15 @@ module stamofu_cq #(
             CAM_stage1_bank1_stall_count += CAM_stage1_bank1_load_is_mdp_match_by_entry[i];
         end
     end
-    pe_lsb # (
+    // want youngest older -> greater index -> msb first
+    pe_msb # (
         .WIDTH(STAMOFU_CQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
     ) CAM_SELECT_UNMASKED_PE_BANK1 (
         .req_vec(CAM_stage1_bank1_load_is_candidate_unmasked_by_entry),
         .ack_one_hot(CAM_stage1_bank1_load_is_candidate_unmasked_one_hot),
         .ack_index(CAM_stage1_bank1_load_is_candidate_unmasked_index)
     );
-    pe_lsb # (
+    pe_msb # (
         .WIDTH(STAMOFU_CQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
     ) CAM_SELECT_MASKED_PE_BANK1 (
         .req_vec(CAM_stage1_bank1_load_is_candidate_masked_by_entry),
