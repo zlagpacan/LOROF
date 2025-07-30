@@ -282,7 +282,6 @@ module ldu_cq #(
         logic [3:0]                         lower_ROB_index_one_hot;
         logic [PA_WIDTH-3:0]                PA_word;
         logic [3:0]                         byte_mask;
-        logic                               bank;
         logic [31:0]                        data;
     } entry_t;
 
@@ -482,8 +481,8 @@ module ldu_cq #(
         end
     end
     always_comb begin
-        second_try_bank0_valid = second_try_valid & (entry_array[second_try_cq_index].bank == 1'b0);
-        second_try_bank1_valid = second_try_valid & (entry_array[second_try_cq_index].bank == 1'b1);
+        second_try_bank0_valid = second_try_valid & (entry_array[second_try_cq_index].PA_word[DCACHE_WORD_ADDR_BANK_BIT] == 1'b0);
+        second_try_bank1_valid = second_try_valid & (entry_array[second_try_cq_index].PA_word[DCACHE_WORD_ADDR_BANK_BIT] == 1'b1);
 
         second_try_do_mispred = entry_array[second_try_cq_index].WB_sent;
         second_try_is_mq = 1'b0;
@@ -512,8 +511,8 @@ module ldu_cq #(
     end
     always_comb begin
         if (entry_array[data_try_cq_index].misaligned) begin
-            data_try_bank0_valid = potential_data_try_valid & ldu_mq_info_grab_data_try_req & (entry_array[data_try_cq_index].bank == 1'b0);
-            data_try_bank1_valid = potential_data_try_valid & ldu_mq_info_grab_data_try_req & (entry_array[data_try_cq_index].bank == 1'b1);
+            data_try_bank0_valid = potential_data_try_valid & ldu_mq_info_grab_data_try_req & (entry_array[data_try_cq_index].PA_word[DCACHE_WORD_ADDR_BANK_BIT] == 1'b0);
+            data_try_bank1_valid = potential_data_try_valid & ldu_mq_info_grab_data_try_req & (entry_array[data_try_cq_index].PA_word[DCACHE_WORD_ADDR_BANK_BIT] == 1'b1);
             
             // arrange misaligned data:
             
@@ -547,8 +546,8 @@ module ldu_cq #(
 
             ldu_mq_info_grab_data_try_ack = 1'b1;
         end else begin
-            data_try_bank0_valid = potential_data_try_valid & (entry_array[data_try_cq_index].bank == 1'b0);
-            data_try_bank1_valid = potential_data_try_valid & (entry_array[data_try_cq_index].bank == 1'b1);
+            data_try_bank0_valid = potential_data_try_valid & (entry_array[data_try_cq_index].PA_word[DCACHE_WORD_ADDR_BANK_BIT] == 1'b0);
+            data_try_bank1_valid = potential_data_try_valid & (entry_array[data_try_cq_index].PA_word[DCACHE_WORD_ADDR_BANK_BIT] == 1'b1);
 
             data_try_data = entry_array[data_try_cq_index].data;
 
@@ -653,7 +652,6 @@ module ldu_cq #(
                 // next_entry_array[i].lower_ROB_index_one_hot = 
                 next_entry_array[i].PA_word = ldu_cq_info_ret_bank0_PA_word;
                 next_entry_array[i].byte_mask = ldu_cq_info_ret_bank0_byte_mask;
-                next_entry_array[i].bank = ldu_cq_info_ret_bank0_PA_word[DCACHE_WORD_ADDR_BANK_BIT];
                 next_entry_array[i].data = ldu_cq_info_ret_bank0_data;
 
                 // trigger unblock data try req
@@ -703,7 +701,6 @@ module ldu_cq #(
                 // next_entry_array[i].lower_ROB_index_one_hot = 
                 next_entry_array[i].PA_word = ldu_cq_info_ret_bank1_PA_word;
                 next_entry_array[i].byte_mask = ldu_cq_info_ret_bank1_byte_mask;
-                next_entry_array[i].bank = ldu_cq_info_ret_bank1_PA_word[DCACHE_WORD_ADDR_BANK_BIT];
                 next_entry_array[i].data = ldu_cq_info_ret_bank1_data;
 
                 // trigger unblock data try req
@@ -1269,7 +1266,6 @@ module ldu_cq #(
                 endcase
                 // entry_array[enq_ptr].PA_word
                 // entry_array[enq_ptr].byte_mask
-                // entry_array[enq_ptr].bank
                 // entry_array[enq_ptr].data
 
                 enq_ptr <= enq_ptr_plus_1;
@@ -1313,7 +1309,6 @@ module ldu_cq #(
                 // entry_array[deq_ptr].lower_ROB_index_one_hot
                 // entry_array[deq_ptr].PA_word
                 // entry_array[deq_ptr].byte_mask
-                // entry_array[deq_ptr].bank
                 // entry_array[deq_ptr].data
 
                 deq_ptr <= deq_ptr_plus_1;

@@ -318,8 +318,8 @@ module ldu_mq #(
         end
     end
     always_comb begin
-        second_try_bank0_valid = second_try_valid & (entry_array[second_try_mq_index].bank == 1'b0);
-        second_try_bank1_valid = second_try_valid & (entry_array[second_try_mq_index].bank == 1'b1);
+        second_try_bank0_valid = second_try_valid & (entry_array[second_try_mq_index].PA_word[DCACHE_WORD_ADDR_BANK_BIT] == 1'b0);
+        second_try_bank1_valid = second_try_valid & (entry_array[second_try_mq_index].PA_word[DCACHE_WORD_ADDR_BANK_BIT] == 1'b1);
 
         second_try_do_mispred = 1'b0; 
             // mispred will be handled on eventual data_try_do_mispred anyway since 
@@ -416,7 +416,6 @@ module ldu_mq #(
                 next_entry_array[i].ROB_index = ldu_mq_info_ret_bank0_ROB_index;
                 next_entry_array[i].PA_word = ldu_mq_info_ret_bank0_PA_word;
                 next_entry_array[i].byte_mask = ldu_mq_info_ret_bank0_byte_mask;
-                next_entry_array[i].bank = ldu_mq_info_ret_bank0_PA_word[DCACHE_WORD_ADDR_BANK_BIT];
                 next_entry_array[i].data = ldu_mq_info_ret_bank0_data;
                 next_entry_array[i].cq_index = ldu_mq_info_ret_bank0_cq_index;
 
@@ -450,7 +449,6 @@ module ldu_mq #(
                 next_entry_array[i].ROB_index = ldu_mq_info_ret_bank1_ROB_index;
                 next_entry_array[i].PA_word = ldu_mq_info_ret_bank1_PA_word;
                 next_entry_array[i].byte_mask = ldu_mq_info_ret_bank1_byte_mask;
-                next_entry_array[i].bank = ldu_mq_info_ret_bank1_PA_word[DCACHE_WORD_ADDR_BANK_BIT];
                 next_entry_array[i].data = ldu_mq_info_ret_bank1_data;
                 next_entry_array[i].cq_index = ldu_mq_info_ret_bank1_cq_index;
                 
@@ -872,7 +870,6 @@ module ldu_mq #(
                 // entry_array[enq_ptr].ROB_index <= 
                 // entry_array[enq_ptr].PA_word <= 
                 // entry_array[enq_ptr].byte_mask <= 
-                // entry_array[enq_ptr].bank <= 
                 // entry_array[enq_ptr].data <= 
                 // entry_array[enq_ptr].cq_index <= 
 
@@ -910,7 +907,6 @@ module ldu_mq #(
                 // entry_array[deq_ptr].ROB_index <= 
                 // entry_array[deq_ptr].PA_word <= 
                 // entry_array[deq_ptr].byte_mask <= 
-                // entry_array[deq_ptr].bank <= 
                 // entry_array[deq_ptr].data <= 
                 // entry_array[deq_ptr].cq_index <= 
 
