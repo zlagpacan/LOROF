@@ -131,6 +131,7 @@ module stamofu_launch_pipeline (
     output logic                                stamofu_mq_info_ret_page_fault,
     output logic                                stamofu_mq_info_ret_access_fault,
     output logic                                stamofu_mq_info_ret_is_mem,
+    output logic [MDPT_INFO_WIDTH-1:0]          stamofu_mq_info_ret_mdp_info,
     output logic [PA_WIDTH-2-1:0]               stamofu_mq_info_ret_PA_word,
     output logic [3:0]                          stamofu_mq_info_ret_byte_mask,
     output logic [31:0]                         stamofu_mq_info_ret_data,
@@ -421,6 +422,7 @@ module stamofu_launch_pipeline (
         stamofu_mq_info_ret_page_fault = dtlb_resp_page_fault;
         stamofu_mq_info_ret_access_fault = dtlb_resp_access_fault;
         stamofu_mq_info_ret_is_mem = dtlb_resp_is_mem;
+        stamofu_mq_info_ret_mdp_info = stamofu_cq_info_grab_mdp_info;
         stamofu_mq_info_ret_PA_word = RESP_stage_return_PA_word;
         stamofu_mq_info_ret_byte_mask = RESP_stage_byte_mask;
         stamofu_mq_info_ret_data = RESP_stage_write_data;

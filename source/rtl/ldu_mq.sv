@@ -207,7 +207,6 @@ module ldu_mq #(
         logic [LOG_ROB_ENTRIES-1:0]         ROB_index;
         logic [PA_WIDTH-3:0]                PA_word;
         logic [3:0]                         byte_mask;
-        logic                               bank;
         logic [23:0]                        data;
         logic [LOG_LDU_CQ_ENTRIES-1:0]      cq_index;
     } entry_t;

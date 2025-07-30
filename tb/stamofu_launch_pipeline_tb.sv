@@ -150,6 +150,7 @@ module stamofu_launch_pipeline_tb ();
 	logic DUT_stamofu_mq_info_ret_page_fault, expected_stamofu_mq_info_ret_page_fault;
 	logic DUT_stamofu_mq_info_ret_access_fault, expected_stamofu_mq_info_ret_access_fault;
 	logic DUT_stamofu_mq_info_ret_is_mem, expected_stamofu_mq_info_ret_is_mem;
+	logic [MDPT_INFO_WIDTH-1:0] DUT_stamofu_mq_info_ret_mdp_info, expected_stamofu_mq_info_ret_mdp_info;
 	logic [PA_WIDTH-2-1:0] DUT_stamofu_mq_info_ret_PA_word, expected_stamofu_mq_info_ret_PA_word;
 	logic [3:0] DUT_stamofu_mq_info_ret_byte_mask, expected_stamofu_mq_info_ret_byte_mask;
 	logic [31:0] DUT_stamofu_mq_info_ret_data, expected_stamofu_mq_info_ret_data;
@@ -284,6 +285,7 @@ module stamofu_launch_pipeline_tb ();
 		.stamofu_mq_info_ret_page_fault(DUT_stamofu_mq_info_ret_page_fault),
 		.stamofu_mq_info_ret_access_fault(DUT_stamofu_mq_info_ret_access_fault),
 		.stamofu_mq_info_ret_is_mem(DUT_stamofu_mq_info_ret_is_mem),
+		.stamofu_mq_info_ret_mdp_info(DUT_stamofu_mq_info_ret_mdp_info),
 		.stamofu_mq_info_ret_PA_word(DUT_stamofu_mq_info_ret_PA_word),
 		.stamofu_mq_info_ret_byte_mask(DUT_stamofu_mq_info_ret_byte_mask),
 		.stamofu_mq_info_ret_data(DUT_stamofu_mq_info_ret_data),
@@ -678,6 +680,13 @@ module stamofu_launch_pipeline_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_stamofu_mq_info_ret_mdp_info !== DUT_stamofu_mq_info_ret_mdp_info) begin
+			$display("TB ERROR: expected_stamofu_mq_info_ret_mdp_info (%h) != DUT_stamofu_mq_info_ret_mdp_info (%h)",
+				expected_stamofu_mq_info_ret_mdp_info, DUT_stamofu_mq_info_ret_mdp_info);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_stamofu_mq_info_ret_PA_word !== DUT_stamofu_mq_info_ret_PA_word) begin
 			$display("TB ERROR: expected_stamofu_mq_info_ret_PA_word (%h) != DUT_stamofu_mq_info_ret_PA_word (%h)",
 				expected_stamofu_mq_info_ret_PA_word, DUT_stamofu_mq_info_ret_PA_word);
@@ -870,6 +879,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
 		expected_stamofu_mq_info_ret_access_fault = 1'b0;
 		expected_stamofu_mq_info_ret_is_mem = 1'b0;
+		expected_stamofu_mq_info_ret_mdp_info = 8'b00000000;
 		expected_stamofu_mq_info_ret_PA_word = {22'h000000, 10'h000};
 		expected_stamofu_mq_info_ret_byte_mask = 4'b0000;
 		expected_stamofu_mq_info_ret_data = 32'h00000000;
@@ -1008,6 +1018,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
 		expected_stamofu_mq_info_ret_access_fault = 1'b0;
 		expected_stamofu_mq_info_ret_is_mem = 1'b0;
+		expected_stamofu_mq_info_ret_mdp_info = 8'b00000000;
 		expected_stamofu_mq_info_ret_PA_word = {22'h000000, 10'h000};
 		expected_stamofu_mq_info_ret_byte_mask = 4'b0000;
 		expected_stamofu_mq_info_ret_data = 32'h00000000;
@@ -1157,6 +1168,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
 		expected_stamofu_mq_info_ret_access_fault = 1'b0;
 		expected_stamofu_mq_info_ret_is_mem = 1'b0;
+		expected_stamofu_mq_info_ret_mdp_info = 8'b00000000;
 		expected_stamofu_mq_info_ret_PA_word = {22'h000000, 10'h000};
 		expected_stamofu_mq_info_ret_byte_mask = 4'b0000;
 		expected_stamofu_mq_info_ret_data = 32'h00000000;
@@ -1300,6 +1312,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
 		expected_stamofu_mq_info_ret_access_fault = 1'b0;
 		expected_stamofu_mq_info_ret_is_mem = 1'b0;
+		expected_stamofu_mq_info_ret_mdp_info = 8'b00000000;
 		expected_stamofu_mq_info_ret_PA_word = {22'h000000, 10'h000};
 		expected_stamofu_mq_info_ret_byte_mask = 4'b0000;
 		expected_stamofu_mq_info_ret_data = 32'h00000000;
@@ -1443,6 +1456,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_mq_info_ret_page_fault = 1'b1;
 		expected_stamofu_mq_info_ret_access_fault = 1'b1;
 		expected_stamofu_mq_info_ret_is_mem = 1'b0;
+		expected_stamofu_mq_info_ret_mdp_info = 8'he1;
 		expected_stamofu_mq_info_ret_PA_word = {22'h011111, 10'he1e};
 		expected_stamofu_mq_info_ret_byte_mask = 4'b0100;
 		expected_stamofu_mq_info_ret_data = 32'he1e1e1e1;
@@ -1586,6 +1600,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
 		expected_stamofu_mq_info_ret_access_fault = 1'b0;
 		expected_stamofu_mq_info_ret_is_mem = 1'b1;
+		expected_stamofu_mq_info_ret_mdp_info = 8'he1;
 		expected_stamofu_mq_info_ret_PA_word = {22'heeeeee, 10'he1e};
 		expected_stamofu_mq_info_ret_byte_mask = 4'b0100;
 		expected_stamofu_mq_info_ret_data = 32'he1e1e1e1;
@@ -1729,6 +1744,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
 		expected_stamofu_mq_info_ret_access_fault = 1'b0;
 		expected_stamofu_mq_info_ret_is_mem = 1'b1;
+		expected_stamofu_mq_info_ret_mdp_info = 8'hd2;
 		expected_stamofu_mq_info_ret_PA_word = {22'heeeeee, 10'hd2d};
 		expected_stamofu_mq_info_ret_byte_mask = 4'b0001;
 		expected_stamofu_mq_info_ret_data = 32'hd2d2d2d2;
@@ -1872,6 +1888,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
 		expected_stamofu_mq_info_ret_access_fault = 1'b0;
 		expected_stamofu_mq_info_ret_is_mem = 1'b0;
+		expected_stamofu_mq_info_ret_mdp_info = 8'hd2;
 		expected_stamofu_mq_info_ret_PA_word = {22'hdddddd, 10'hd2d};
 		expected_stamofu_mq_info_ret_byte_mask = 4'b0001;
 		expected_stamofu_mq_info_ret_data = 32'hd2d2d2d2;
@@ -2015,6 +2032,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
 		expected_stamofu_mq_info_ret_access_fault = 1'b0;
 		expected_stamofu_mq_info_ret_is_mem = 1'b1;
+		expected_stamofu_mq_info_ret_mdp_info = 8'hc3;
 		expected_stamofu_mq_info_ret_PA_word = {22'hcccccc, 10'hc3c};
 		expected_stamofu_mq_info_ret_byte_mask = 4'b1110;
 		expected_stamofu_mq_info_ret_data = 32'hc3c3c3c3;
@@ -2158,6 +2176,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
 		expected_stamofu_mq_info_ret_access_fault = 1'b0;
 		expected_stamofu_mq_info_ret_is_mem = 1'b1;
+		expected_stamofu_mq_info_ret_mdp_info = 8'hb4;
 		expected_stamofu_mq_info_ret_PA_word = {22'hbbbbbb, 10'hb4b};
 		expected_stamofu_mq_info_ret_byte_mask = 4'b0001;
 		expected_stamofu_mq_info_ret_data = 32'hb4b4b4b4;
@@ -2301,6 +2320,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_mq_info_ret_page_fault = 1'b1;
 		expected_stamofu_mq_info_ret_access_fault = 1'b0;
 		expected_stamofu_mq_info_ret_is_mem = 1'b0;
+		expected_stamofu_mq_info_ret_mdp_info = 8'ha5;
 		expected_stamofu_mq_info_ret_PA_word = {22'h055555, 10'ha5a};
 		expected_stamofu_mq_info_ret_byte_mask = 4'b0110;
 		expected_stamofu_mq_info_ret_data = 32'ha5a5a5a5;
@@ -2444,6 +2464,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
 		expected_stamofu_mq_info_ret_access_fault = 1'b0;
 		expected_stamofu_mq_info_ret_is_mem = 1'b1;
+		expected_stamofu_mq_info_ret_mdp_info = 8'h96;
 		expected_stamofu_mq_info_ret_PA_word = {22'h999999, 10'h969};
 		expected_stamofu_mq_info_ret_byte_mask = 4'b1111;
 		expected_stamofu_mq_info_ret_data = 32'h96969696;
@@ -2587,6 +2608,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
 		expected_stamofu_mq_info_ret_access_fault = 1'b0;
 		expected_stamofu_mq_info_ret_is_mem = 1'b0;
+		expected_stamofu_mq_info_ret_mdp_info = 8'h87;
 		expected_stamofu_mq_info_ret_PA_word = {22'h888888, 10'h878};
 		expected_stamofu_mq_info_ret_byte_mask = 4'b1111;
 		expected_stamofu_mq_info_ret_data = 32'h87878787;
@@ -2730,6 +2752,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
 		expected_stamofu_mq_info_ret_access_fault = 1'b0;
 		expected_stamofu_mq_info_ret_is_mem = 1'b1;
+		expected_stamofu_mq_info_ret_mdp_info = 8'h78;
 		expected_stamofu_mq_info_ret_PA_word = {22'h088888, 10'h787};
 		expected_stamofu_mq_info_ret_byte_mask = 4'b1100;
 		expected_stamofu_mq_info_ret_data = 32'h78787878;
@@ -2873,6 +2896,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
 		expected_stamofu_mq_info_ret_access_fault = 1'b0;
 		expected_stamofu_mq_info_ret_is_mem = 1'b1;
+		expected_stamofu_mq_info_ret_mdp_info = 8'h69;
 		expected_stamofu_mq_info_ret_PA_word = {22'h099999, 10'h696};
 		expected_stamofu_mq_info_ret_byte_mask = 4'b1110;
 		expected_stamofu_mq_info_ret_data = 32'h69696969;
@@ -3016,6 +3040,7 @@ module stamofu_launch_pipeline_tb ();
 		expected_stamofu_mq_info_ret_page_fault = 1'b0;
 		expected_stamofu_mq_info_ret_access_fault = 1'b0;
 		expected_stamofu_mq_info_ret_is_mem = 1'b1;
+		expected_stamofu_mq_info_ret_mdp_info = 8'h69;
 		expected_stamofu_mq_info_ret_PA_word = {22'h099999, 10'h696};
 		expected_stamofu_mq_info_ret_byte_mask = 4'b1110;
 		expected_stamofu_mq_info_ret_data = 32'h69696969;
