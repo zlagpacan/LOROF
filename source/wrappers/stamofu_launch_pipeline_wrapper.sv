@@ -136,6 +136,7 @@ module stamofu_launch_pipeline_wrapper (
 	output logic last_stamofu_mq_info_ret_access_fault,
 	output logic last_stamofu_mq_info_ret_is_mem,
 	output logic [MDPT_INFO_WIDTH-1:0] last_stamofu_mq_info_ret_mdp_info,
+	output logic [LOG_ROB_ENTRIES-1:0] last_stamofu_mq_info_ret_ROB_index,
 	output logic [PA_WIDTH-2-1:0] last_stamofu_mq_info_ret_PA_word,
 	output logic [3:0] last_stamofu_mq_info_ret_byte_mask,
 	output logic [31:0] last_stamofu_mq_info_ret_data,
@@ -266,6 +267,7 @@ module stamofu_launch_pipeline_wrapper (
 	logic stamofu_mq_info_ret_access_fault;
 	logic stamofu_mq_info_ret_is_mem;
 	logic [MDPT_INFO_WIDTH-1:0] stamofu_mq_info_ret_mdp_info;
+	logic [LOG_ROB_ENTRIES-1:0] stamofu_mq_info_ret_ROB_index;
 	logic [PA_WIDTH-2-1:0] stamofu_mq_info_ret_PA_word;
 	logic [3:0] stamofu_mq_info_ret_byte_mask;
 	logic [31:0] stamofu_mq_info_ret_data;
@@ -404,6 +406,7 @@ module stamofu_launch_pipeline_wrapper (
 			last_stamofu_mq_info_ret_access_fault <= '0;
 			last_stamofu_mq_info_ret_is_mem <= '0;
 			last_stamofu_mq_info_ret_mdp_info <= '0;
+			last_stamofu_mq_info_ret_ROB_index <= '0;
 			last_stamofu_mq_info_ret_PA_word <= '0;
 			last_stamofu_mq_info_ret_byte_mask <= '0;
 			last_stamofu_mq_info_ret_data <= '0;
@@ -532,6 +535,7 @@ module stamofu_launch_pipeline_wrapper (
 			last_stamofu_mq_info_ret_access_fault <= stamofu_mq_info_ret_access_fault;
 			last_stamofu_mq_info_ret_is_mem <= stamofu_mq_info_ret_is_mem;
 			last_stamofu_mq_info_ret_mdp_info <= stamofu_mq_info_ret_mdp_info;
+			last_stamofu_mq_info_ret_ROB_index <= stamofu_mq_info_ret_ROB_index;
 			last_stamofu_mq_info_ret_PA_word <= stamofu_mq_info_ret_PA_word;
 			last_stamofu_mq_info_ret_byte_mask <= stamofu_mq_info_ret_byte_mask;
 			last_stamofu_mq_info_ret_data <= stamofu_mq_info_ret_data;
