@@ -362,7 +362,6 @@ module stamofu_cq #(
     logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_info_ret_bank0_valid_by_entry;
     logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_info_ret_bank1_valid_by_entry;
     logic [STAMOFU_CQ_ENTRIES-1:0] dtlb_miss_resp_valid_by_entry;
-    logic [STAMOFU_CQ_ENTRIES-1:0] dtlb_mq_miss_resp_valid_by_entry;
     logic [STAMOFU_CQ_ENTRIES-1:0] ldu_CAM_return_valid_by_entry;
     logic [STAMOFU_CQ_ENTRIES-1:0] stamofu_mq_complete_valid_by_entry;
     logic [STAMOFU_CQ_ENTRIES-1:0] clear_misaligned_by_entry;
@@ -540,7 +539,6 @@ module stamofu_cq #(
         stamofu_mq_info_ret_bank0_valid_by_entry = '0;
         stamofu_mq_info_ret_bank1_valid_by_entry = '0;
         dtlb_miss_resp_valid_by_entry = '0;
-        dtlb_mq_miss_resp_valid_by_entry = '0;
         ldu_CAM_return_valid_by_entry = '0;
         stamofu_mq_complete_valid_by_entry = '0;
 
@@ -549,7 +547,6 @@ module stamofu_cq #(
         stamofu_mq_info_ret_bank0_valid_by_entry[stamofu_mq_info_ret_bank0_cq_index] = stamofu_mq_info_ret_bank0_valid;
         stamofu_mq_info_ret_bank1_valid_by_entry[stamofu_mq_info_ret_bank1_cq_index] = stamofu_mq_info_ret_bank1_valid;
         dtlb_miss_resp_valid_by_entry[dtlb_miss_resp_cq_index] = dtlb_miss_resp_valid & ~dtlb_miss_resp_is_mq;
-        dtlb_mq_miss_resp_valid_by_entry[dtlb_miss_resp_cq_index] = dtlb_miss_resp_valid & dtlb_miss_resp_is_mq;
         ldu_CAM_return_valid_by_entry[ldu_CAM_return_cq_index] = ldu_CAM_return_valid & ~ldu_CAM_return_is_mq;
         stamofu_mq_complete_valid_by_entry[stamofu_mq_complete_cq_index] = stamofu_mq_complete_valid;
     end
@@ -826,20 +823,36 @@ module stamofu_cq #(
             end
             // dtlb miss resp
             else if (dtlb_miss_resp_valid_by_entry[i]) begin
-                next_entry_array[i].dtlb_hit = 1'b1;
-                // only update PA if not exception so can give VA on exception
-                if (~dtlb_miss_resp_page_fault & ~dtlb_miss_resp_access_fault & ~entry_array[i].misaligned_exception) begin
-                    next_entry_array[i].PA_word[PA_WIDTH-3:PA_WIDTH-2-PPN_WIDTH] = dtlb_miss_resp_PPN;
-                    next_entry_array[i].ldu_CAM_launch_req = 1'b1;
-                    next_entry_array[i].exception_req = 1'b0;
+                // check mq return
+                if (dtlb_miss_resp_is_mq) begin
+                    // check lower word hasn't generated exception and upper word is
+                    if (
+                        (dtlb_miss_resp_page_fault | dtlb_miss_resp_access_fault)
+                        & ~(entry_array[i].exception_req | entry_array[i].exception_sent)
+                        & ~next_entry_array[i].exception_req
+                    ) begin
+                        next_entry_array[i].exception_req = 1'b1;
+                        next_entry_array[i].page_fault = dtlb_miss_resp_page_fault;
+                        next_entry_array[i].access_fault = dtlb_miss_resp_access_fault;
+                    end
                 end
+                // otherwise, cq return
                 else begin
-                    next_entry_array[i].ldu_CAM_launch_req = 1'b0;
-                    next_entry_array[i].exception_req = 1'b1;
+                    next_entry_array[i].dtlb_hit = 1'b1;
+                    // only update PA if not exception so can give VA on exception
+                    if (~dtlb_miss_resp_page_fault & ~dtlb_miss_resp_access_fault & ~entry_array[i].misaligned_exception) begin
+                        next_entry_array[i].PA_word[PA_WIDTH-3:PA_WIDTH-2-PPN_WIDTH] = dtlb_miss_resp_PPN;
+                        next_entry_array[i].ldu_CAM_launch_req = 1'b1;
+                        next_entry_array[i].exception_req = 1'b0;
+                    end
+                    else begin
+                        next_entry_array[i].ldu_CAM_launch_req = 1'b0;
+                        next_entry_array[i].exception_req = 1'b1;
+                    end
+                    next_entry_array[i].is_mem = dtlb_miss_resp_is_mem;
+                    next_entry_array[i].page_fault = dtlb_miss_resp_page_fault;
+                    next_entry_array[i].access_fault = dtlb_miss_resp_access_fault;
                 end
-                next_entry_array[i].is_mem = dtlb_miss_resp_is_mem;
-                next_entry_array[i].page_fault = dtlb_miss_resp_page_fault;
-                next_entry_array[i].access_fault = dtlb_miss_resp_access_fault;
             end
             // ldu CAM return
             else if (ldu_CAM_return_valid_by_entry[i]) begin
@@ -852,20 +865,6 @@ module stamofu_cq #(
             end
 
             // indep behavior:
-
-            // dtlb mq miss resp (indep)
-            if (dtlb_mq_miss_resp_valid_by_entry[i]) begin
-                // check lower word hasn't generated exception and upper word is
-                if (
-                    (dtlb_miss_resp_page_fault | dtlb_miss_resp_access_fault)
-                    & ~(entry_array[i].exception_req | entry_array[i].exception_sent)
-                    & ~next_entry_array[i].exception_req
-                ) begin
-                    next_entry_array[i].exception_req = 1'b1;
-                    next_entry_array[i].page_fault = dtlb_miss_resp_page_fault;
-                    next_entry_array[i].access_fault = dtlb_miss_resp_access_fault;
-                end
-            end
 
             // stamofu_mq info ret bank 0 (indep)
             if (stamofu_mq_info_ret_bank0_valid_by_entry[i]) begin
