@@ -215,19 +215,33 @@ module stamofu_cq_wrapper (
 	input logic [3:0] next_stamofu_mq_info_grab_byte_mask,
 	input logic [31:0] next_stamofu_mq_info_grab_data,
 
-    // write buffer enq
-	output logic last_wr_buf_enq_valid,
-	output logic last_wr_buf_enq_is_amo,
-	output logic [3:0] last_wr_buf_enq_op,
-	output logic last_wr_buf_enq_is_mem,
-	output logic [PA_WIDTH-2-1:0] last_wr_buf_enq_PA_word,
-	output logic [3:0] last_wr_buf_enq_byte_mask,
-	output logic [31:0] last_wr_buf_enq_data,
+    // write buffer enq bank 0
+	output logic last_wr_buf_enq_bank0_valid,
+	output logic last_wr_buf_enq_bank0_is_amo,
+	output logic [3:0] last_wr_buf_enq_bank0_op,
+	output logic last_wr_buf_enq_bank0_is_mem,
+	output logic [PA_WIDTH-2-1:0] last_wr_buf_enq_bank0_PA_word,
+	output logic [3:0] last_wr_buf_enq_bank0_byte_mask,
+	output logic [31:0] last_wr_buf_enq_bank0_data,
 
-    // write buffer enq feedback
-	input logic next_wr_buf_ready,
-	input logic next_wr_buf_mem_present,
-	input logic next_wr_buf_io_present,
+    // write buffer enq feedback bank 0
+	input logic next_wr_buf_enq_bank0_ready,
+	input logic next_wr_buf_enq_bank0_mem_present,
+	input logic next_wr_buf_enq_bank0_io_present,
+
+    // write buffer enq bank 1
+	output logic last_wr_buf_enq_bank1_valid,
+	output logic last_wr_buf_enq_bank1_is_amo,
+	output logic [3:0] last_wr_buf_enq_bank1_op,
+	output logic last_wr_buf_enq_bank1_is_mem,
+	output logic [PA_WIDTH-2-1:0] last_wr_buf_enq_bank1_PA_word,
+	output logic [3:0] last_wr_buf_enq_bank1_byte_mask,
+	output logic [31:0] last_wr_buf_enq_bank1_data,
+
+    // write buffer enq feedback bank 1
+	input logic next_wr_buf_enq_bank1_ready,
+	input logic next_wr_buf_enq_bank1_mem_present,
+	input logic next_wr_buf_enq_bank1_io_present,
 
     // fence restart notification to ROB
 	output logic last_fence_restart_notif_valid,
@@ -492,19 +506,33 @@ module stamofu_cq_wrapper (
 	logic [3:0] stamofu_mq_info_grab_byte_mask;
 	logic [31:0] stamofu_mq_info_grab_data;
 
-    // write buffer enq
-	logic wr_buf_enq_valid;
-	logic wr_buf_enq_is_amo;
-	logic [3:0] wr_buf_enq_op;
-	logic wr_buf_enq_is_mem;
-	logic [PA_WIDTH-2-1:0] wr_buf_enq_PA_word;
-	logic [3:0] wr_buf_enq_byte_mask;
-	logic [31:0] wr_buf_enq_data;
+    // write buffer enq bank 0
+	logic wr_buf_enq_bank0_valid;
+	logic wr_buf_enq_bank0_is_amo;
+	logic [3:0] wr_buf_enq_bank0_op;
+	logic wr_buf_enq_bank0_is_mem;
+	logic [PA_WIDTH-2-1:0] wr_buf_enq_bank0_PA_word;
+	logic [3:0] wr_buf_enq_bank0_byte_mask;
+	logic [31:0] wr_buf_enq_bank0_data;
 
-    // write buffer enq feedback
-	logic wr_buf_ready;
-	logic wr_buf_mem_present;
-	logic wr_buf_io_present;
+    // write buffer enq feedback bank 0
+	logic wr_buf_enq_bank0_ready;
+	logic wr_buf_enq_bank0_mem_present;
+	logic wr_buf_enq_bank0_io_present;
+
+    // write buffer enq bank 1
+	logic wr_buf_enq_bank1_valid;
+	logic wr_buf_enq_bank1_is_amo;
+	logic [3:0] wr_buf_enq_bank1_op;
+	logic wr_buf_enq_bank1_is_mem;
+	logic [PA_WIDTH-2-1:0] wr_buf_enq_bank1_PA_word;
+	logic [3:0] wr_buf_enq_bank1_byte_mask;
+	logic [31:0] wr_buf_enq_bank1_data;
+
+    // write buffer enq feedback bank 1
+	logic wr_buf_enq_bank1_ready;
+	logic wr_buf_enq_bank1_mem_present;
+	logic wr_buf_enq_bank1_io_present;
 
     // fence restart notification to ROB
 	logic fence_restart_notif_valid;
@@ -779,19 +807,33 @@ module stamofu_cq_wrapper (
 			stamofu_mq_info_grab_byte_mask <= '0;
 			stamofu_mq_info_grab_data <= '0;
 
-		    // write buffer enq
-			last_wr_buf_enq_valid <= '0;
-			last_wr_buf_enq_is_amo <= '0;
-			last_wr_buf_enq_op <= '0;
-			last_wr_buf_enq_is_mem <= '0;
-			last_wr_buf_enq_PA_word <= '0;
-			last_wr_buf_enq_byte_mask <= '0;
-			last_wr_buf_enq_data <= '0;
+		    // write buffer enq bank 0
+			last_wr_buf_enq_bank0_valid <= '0;
+			last_wr_buf_enq_bank0_is_amo <= '0;
+			last_wr_buf_enq_bank0_op <= '0;
+			last_wr_buf_enq_bank0_is_mem <= '0;
+			last_wr_buf_enq_bank0_PA_word <= '0;
+			last_wr_buf_enq_bank0_byte_mask <= '0;
+			last_wr_buf_enq_bank0_data <= '0;
 
-		    // write buffer enq feedback
-			wr_buf_ready <= '0;
-			wr_buf_mem_present <= '0;
-			wr_buf_io_present <= '0;
+		    // write buffer enq feedback bank 0
+			wr_buf_enq_bank0_ready <= '0;
+			wr_buf_enq_bank0_mem_present <= '0;
+			wr_buf_enq_bank0_io_present <= '0;
+
+		    // write buffer enq bank 1
+			last_wr_buf_enq_bank1_valid <= '0;
+			last_wr_buf_enq_bank1_is_amo <= '0;
+			last_wr_buf_enq_bank1_op <= '0;
+			last_wr_buf_enq_bank1_is_mem <= '0;
+			last_wr_buf_enq_bank1_PA_word <= '0;
+			last_wr_buf_enq_bank1_byte_mask <= '0;
+			last_wr_buf_enq_bank1_data <= '0;
+
+		    // write buffer enq feedback bank 1
+			wr_buf_enq_bank1_ready <= '0;
+			wr_buf_enq_bank1_mem_present <= '0;
+			wr_buf_enq_bank1_io_present <= '0;
 
 		    // fence restart notification to ROB
 			last_fence_restart_notif_valid <= '0;
@@ -1054,19 +1096,33 @@ module stamofu_cq_wrapper (
 			stamofu_mq_info_grab_byte_mask <= next_stamofu_mq_info_grab_byte_mask;
 			stamofu_mq_info_grab_data <= next_stamofu_mq_info_grab_data;
 
-		    // write buffer enq
-			last_wr_buf_enq_valid <= wr_buf_enq_valid;
-			last_wr_buf_enq_is_amo <= wr_buf_enq_is_amo;
-			last_wr_buf_enq_op <= wr_buf_enq_op;
-			last_wr_buf_enq_is_mem <= wr_buf_enq_is_mem;
-			last_wr_buf_enq_PA_word <= wr_buf_enq_PA_word;
-			last_wr_buf_enq_byte_mask <= wr_buf_enq_byte_mask;
-			last_wr_buf_enq_data <= wr_buf_enq_data;
+		    // write buffer enq bank 0
+			last_wr_buf_enq_bank0_valid <= wr_buf_enq_bank0_valid;
+			last_wr_buf_enq_bank0_is_amo <= wr_buf_enq_bank0_is_amo;
+			last_wr_buf_enq_bank0_op <= wr_buf_enq_bank0_op;
+			last_wr_buf_enq_bank0_is_mem <= wr_buf_enq_bank0_is_mem;
+			last_wr_buf_enq_bank0_PA_word <= wr_buf_enq_bank0_PA_word;
+			last_wr_buf_enq_bank0_byte_mask <= wr_buf_enq_bank0_byte_mask;
+			last_wr_buf_enq_bank0_data <= wr_buf_enq_bank0_data;
 
-		    // write buffer enq feedback
-			wr_buf_ready <= next_wr_buf_ready;
-			wr_buf_mem_present <= next_wr_buf_mem_present;
-			wr_buf_io_present <= next_wr_buf_io_present;
+		    // write buffer enq feedback bank 0
+			wr_buf_enq_bank0_ready <= next_wr_buf_enq_bank0_ready;
+			wr_buf_enq_bank0_mem_present <= next_wr_buf_enq_bank0_mem_present;
+			wr_buf_enq_bank0_io_present <= next_wr_buf_enq_bank0_io_present;
+
+		    // write buffer enq bank 1
+			last_wr_buf_enq_bank1_valid <= wr_buf_enq_bank1_valid;
+			last_wr_buf_enq_bank1_is_amo <= wr_buf_enq_bank1_is_amo;
+			last_wr_buf_enq_bank1_op <= wr_buf_enq_bank1_op;
+			last_wr_buf_enq_bank1_is_mem <= wr_buf_enq_bank1_is_mem;
+			last_wr_buf_enq_bank1_PA_word <= wr_buf_enq_bank1_PA_word;
+			last_wr_buf_enq_bank1_byte_mask <= wr_buf_enq_bank1_byte_mask;
+			last_wr_buf_enq_bank1_data <= wr_buf_enq_bank1_data;
+
+		    // write buffer enq feedback bank 1
+			wr_buf_enq_bank1_ready <= next_wr_buf_enq_bank1_ready;
+			wr_buf_enq_bank1_mem_present <= next_wr_buf_enq_bank1_mem_present;
+			wr_buf_enq_bank1_io_present <= next_wr_buf_enq_bank1_io_present;
 
 		    // fence restart notification to ROB
 			last_fence_restart_notif_valid <= fence_restart_notif_valid;

@@ -230,19 +230,33 @@ module stamofu_cq_tb ();
 	logic [3:0] tb_stamofu_mq_info_grab_byte_mask;
 	logic [31:0] tb_stamofu_mq_info_grab_data;
 
-    // write buffer enq
-	logic DUT_wr_buf_enq_valid, expected_wr_buf_enq_valid;
-	logic DUT_wr_buf_enq_is_amo, expected_wr_buf_enq_is_amo;
-	logic [3:0] DUT_wr_buf_enq_op, expected_wr_buf_enq_op;
-	logic DUT_wr_buf_enq_is_mem, expected_wr_buf_enq_is_mem;
-	logic [PA_WIDTH-2-1:0] DUT_wr_buf_enq_PA_word, expected_wr_buf_enq_PA_word;
-	logic [3:0] DUT_wr_buf_enq_byte_mask, expected_wr_buf_enq_byte_mask;
-	logic [31:0] DUT_wr_buf_enq_data, expected_wr_buf_enq_data;
+    // write buffer enq bank 0
+	logic DUT_wr_buf_enq_bank0_valid, expected_wr_buf_enq_bank0_valid;
+	logic DUT_wr_buf_enq_bank0_is_amo, expected_wr_buf_enq_bank0_is_amo;
+	logic [3:0] DUT_wr_buf_enq_bank0_op, expected_wr_buf_enq_bank0_op;
+	logic DUT_wr_buf_enq_bank0_is_mem, expected_wr_buf_enq_bank0_is_mem;
+	logic [PA_WIDTH-2-1:0] DUT_wr_buf_enq_bank0_PA_word, expected_wr_buf_enq_bank0_PA_word;
+	logic [3:0] DUT_wr_buf_enq_bank0_byte_mask, expected_wr_buf_enq_bank0_byte_mask;
+	logic [31:0] DUT_wr_buf_enq_bank0_data, expected_wr_buf_enq_bank0_data;
 
-    // write buffer enq feedback
-	logic tb_wr_buf_ready;
-	logic tb_wr_buf_mem_present;
-	logic tb_wr_buf_io_present;
+    // write buffer enq feedback bank 0
+	logic tb_wr_buf_enq_bank0_ready;
+	logic tb_wr_buf_enq_bank0_mem_present;
+	logic tb_wr_buf_enq_bank0_io_present;
+
+    // write buffer enq bank 1
+	logic DUT_wr_buf_enq_bank1_valid, expected_wr_buf_enq_bank1_valid;
+	logic DUT_wr_buf_enq_bank1_is_amo, expected_wr_buf_enq_bank1_is_amo;
+	logic [3:0] DUT_wr_buf_enq_bank1_op, expected_wr_buf_enq_bank1_op;
+	logic DUT_wr_buf_enq_bank1_is_mem, expected_wr_buf_enq_bank1_is_mem;
+	logic [PA_WIDTH-2-1:0] DUT_wr_buf_enq_bank1_PA_word, expected_wr_buf_enq_bank1_PA_word;
+	logic [3:0] DUT_wr_buf_enq_bank1_byte_mask, expected_wr_buf_enq_bank1_byte_mask;
+	logic [31:0] DUT_wr_buf_enq_bank1_data, expected_wr_buf_enq_bank1_data;
+
+    // write buffer enq feedback bank 1
+	logic tb_wr_buf_enq_bank1_ready;
+	logic tb_wr_buf_enq_bank1_mem_present;
+	logic tb_wr_buf_enq_bank1_io_present;
 
     // fence restart notification to ROB
 	logic DUT_fence_restart_notif_valid, expected_fence_restart_notif_valid;
@@ -513,19 +527,33 @@ module stamofu_cq_tb ();
 		.stamofu_mq_info_grab_byte_mask(tb_stamofu_mq_info_grab_byte_mask),
 		.stamofu_mq_info_grab_data(tb_stamofu_mq_info_grab_data),
 
-	    // write buffer enq
-		.wr_buf_enq_valid(DUT_wr_buf_enq_valid),
-		.wr_buf_enq_is_amo(DUT_wr_buf_enq_is_amo),
-		.wr_buf_enq_op(DUT_wr_buf_enq_op),
-		.wr_buf_enq_is_mem(DUT_wr_buf_enq_is_mem),
-		.wr_buf_enq_PA_word(DUT_wr_buf_enq_PA_word),
-		.wr_buf_enq_byte_mask(DUT_wr_buf_enq_byte_mask),
-		.wr_buf_enq_data(DUT_wr_buf_enq_data),
+	    // write buffer enq bank 0
+		.wr_buf_enq_bank0_valid(DUT_wr_buf_enq_bank0_valid),
+		.wr_buf_enq_bank0_is_amo(DUT_wr_buf_enq_bank0_is_amo),
+		.wr_buf_enq_bank0_op(DUT_wr_buf_enq_bank0_op),
+		.wr_buf_enq_bank0_is_mem(DUT_wr_buf_enq_bank0_is_mem),
+		.wr_buf_enq_bank0_PA_word(DUT_wr_buf_enq_bank0_PA_word),
+		.wr_buf_enq_bank0_byte_mask(DUT_wr_buf_enq_bank0_byte_mask),
+		.wr_buf_enq_bank0_data(DUT_wr_buf_enq_bank0_data),
 
-	    // write buffer enq feedback
-		.wr_buf_ready(tb_wr_buf_ready),
-		.wr_buf_mem_present(tb_wr_buf_mem_present),
-		.wr_buf_io_present(tb_wr_buf_io_present),
+	    // write buffer enq feedback bank 0
+		.wr_buf_enq_bank0_ready(tb_wr_buf_enq_bank0_ready),
+		.wr_buf_enq_bank0_mem_present(tb_wr_buf_enq_bank0_mem_present),
+		.wr_buf_enq_bank0_io_present(tb_wr_buf_enq_bank0_io_present),
+
+	    // write buffer enq bank 1
+		.wr_buf_enq_bank1_valid(DUT_wr_buf_enq_bank1_valid),
+		.wr_buf_enq_bank1_is_amo(DUT_wr_buf_enq_bank1_is_amo),
+		.wr_buf_enq_bank1_op(DUT_wr_buf_enq_bank1_op),
+		.wr_buf_enq_bank1_is_mem(DUT_wr_buf_enq_bank1_is_mem),
+		.wr_buf_enq_bank1_PA_word(DUT_wr_buf_enq_bank1_PA_word),
+		.wr_buf_enq_bank1_byte_mask(DUT_wr_buf_enq_bank1_byte_mask),
+		.wr_buf_enq_bank1_data(DUT_wr_buf_enq_bank1_data),
+
+	    // write buffer enq feedback bank 1
+		.wr_buf_enq_bank1_ready(tb_wr_buf_enq_bank1_ready),
+		.wr_buf_enq_bank1_mem_present(tb_wr_buf_enq_bank1_mem_present),
+		.wr_buf_enq_bank1_io_present(tb_wr_buf_enq_bank1_io_present),
 
 	    // fence restart notification to ROB
 		.fence_restart_notif_valid(DUT_fence_restart_notif_valid),
@@ -921,51 +949,100 @@ module stamofu_cq_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_wr_buf_enq_valid !== DUT_wr_buf_enq_valid) begin
-			$display("TB ERROR: expected_wr_buf_enq_valid (%h) != DUT_wr_buf_enq_valid (%h)",
-				expected_wr_buf_enq_valid, DUT_wr_buf_enq_valid);
+		if (expected_wr_buf_enq_bank0_valid !== DUT_wr_buf_enq_bank0_valid) begin
+			$display("TB ERROR: expected_wr_buf_enq_bank0_valid (%h) != DUT_wr_buf_enq_bank0_valid (%h)",
+				expected_wr_buf_enq_bank0_valid, DUT_wr_buf_enq_bank0_valid);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_wr_buf_enq_is_amo !== DUT_wr_buf_enq_is_amo) begin
-			$display("TB ERROR: expected_wr_buf_enq_is_amo (%h) != DUT_wr_buf_enq_is_amo (%h)",
-				expected_wr_buf_enq_is_amo, DUT_wr_buf_enq_is_amo);
+		if (expected_wr_buf_enq_bank0_is_amo !== DUT_wr_buf_enq_bank0_is_amo) begin
+			$display("TB ERROR: expected_wr_buf_enq_bank0_is_amo (%h) != DUT_wr_buf_enq_bank0_is_amo (%h)",
+				expected_wr_buf_enq_bank0_is_amo, DUT_wr_buf_enq_bank0_is_amo);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_wr_buf_enq_op !== DUT_wr_buf_enq_op) begin
-			$display("TB ERROR: expected_wr_buf_enq_op (%h) != DUT_wr_buf_enq_op (%h)",
-				expected_wr_buf_enq_op, DUT_wr_buf_enq_op);
+		if (expected_wr_buf_enq_bank0_op !== DUT_wr_buf_enq_bank0_op) begin
+			$display("TB ERROR: expected_wr_buf_enq_bank0_op (%h) != DUT_wr_buf_enq_bank0_op (%h)",
+				expected_wr_buf_enq_bank0_op, DUT_wr_buf_enq_bank0_op);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_wr_buf_enq_is_mem !== DUT_wr_buf_enq_is_mem) begin
-			$display("TB ERROR: expected_wr_buf_enq_is_mem (%h) != DUT_wr_buf_enq_is_mem (%h)",
-				expected_wr_buf_enq_is_mem, DUT_wr_buf_enq_is_mem);
+		if (expected_wr_buf_enq_bank0_is_mem !== DUT_wr_buf_enq_bank0_is_mem) begin
+			$display("TB ERROR: expected_wr_buf_enq_bank0_is_mem (%h) != DUT_wr_buf_enq_bank0_is_mem (%h)",
+				expected_wr_buf_enq_bank0_is_mem, DUT_wr_buf_enq_bank0_is_mem);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_wr_buf_enq_PA_word !== DUT_wr_buf_enq_PA_word) begin
-			$display("TB ERROR: expected_wr_buf_enq_PA_word (%h) != DUT_wr_buf_enq_PA_word (%h)",
-				expected_wr_buf_enq_PA_word, DUT_wr_buf_enq_PA_word);
+		if (expected_wr_buf_enq_bank0_PA_word !== DUT_wr_buf_enq_bank0_PA_word) begin
+			$display("TB ERROR: expected_wr_buf_enq_bank0_PA_word (%h) != DUT_wr_buf_enq_bank0_PA_word (%h)",
+				expected_wr_buf_enq_bank0_PA_word, DUT_wr_buf_enq_bank0_PA_word);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_wr_buf_enq_byte_mask !== DUT_wr_buf_enq_byte_mask) begin
-			$display("TB ERROR: expected_wr_buf_enq_byte_mask (%h) != DUT_wr_buf_enq_byte_mask (%h)",
-				expected_wr_buf_enq_byte_mask, DUT_wr_buf_enq_byte_mask);
+		if (expected_wr_buf_enq_bank0_byte_mask !== DUT_wr_buf_enq_bank0_byte_mask) begin
+			$display("TB ERROR: expected_wr_buf_enq_bank0_byte_mask (%h) != DUT_wr_buf_enq_bank0_byte_mask (%h)",
+				expected_wr_buf_enq_bank0_byte_mask, DUT_wr_buf_enq_bank0_byte_mask);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_wr_buf_enq_data !== DUT_wr_buf_enq_data) begin
-			$display("TB ERROR: expected_wr_buf_enq_data (%h) != DUT_wr_buf_enq_data (%h)",
-				expected_wr_buf_enq_data, DUT_wr_buf_enq_data);
+		if (expected_wr_buf_enq_bank0_data !== DUT_wr_buf_enq_bank0_data) begin
+			$display("TB ERROR: expected_wr_buf_enq_bank0_data (%h) != DUT_wr_buf_enq_bank0_data (%h)",
+				expected_wr_buf_enq_bank0_data, DUT_wr_buf_enq_bank0_data);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_wr_buf_enq_bank1_valid !== DUT_wr_buf_enq_bank1_valid) begin
+			$display("TB ERROR: expected_wr_buf_enq_bank1_valid (%h) != DUT_wr_buf_enq_bank1_valid (%h)",
+				expected_wr_buf_enq_bank1_valid, DUT_wr_buf_enq_bank1_valid);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_wr_buf_enq_bank1_is_amo !== DUT_wr_buf_enq_bank1_is_amo) begin
+			$display("TB ERROR: expected_wr_buf_enq_bank1_is_amo (%h) != DUT_wr_buf_enq_bank1_is_amo (%h)",
+				expected_wr_buf_enq_bank1_is_amo, DUT_wr_buf_enq_bank1_is_amo);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_wr_buf_enq_bank1_op !== DUT_wr_buf_enq_bank1_op) begin
+			$display("TB ERROR: expected_wr_buf_enq_bank1_op (%h) != DUT_wr_buf_enq_bank1_op (%h)",
+				expected_wr_buf_enq_bank1_op, DUT_wr_buf_enq_bank1_op);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_wr_buf_enq_bank1_is_mem !== DUT_wr_buf_enq_bank1_is_mem) begin
+			$display("TB ERROR: expected_wr_buf_enq_bank1_is_mem (%h) != DUT_wr_buf_enq_bank1_is_mem (%h)",
+				expected_wr_buf_enq_bank1_is_mem, DUT_wr_buf_enq_bank1_is_mem);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_wr_buf_enq_bank1_PA_word !== DUT_wr_buf_enq_bank1_PA_word) begin
+			$display("TB ERROR: expected_wr_buf_enq_bank1_PA_word (%h) != DUT_wr_buf_enq_bank1_PA_word (%h)",
+				expected_wr_buf_enq_bank1_PA_word, DUT_wr_buf_enq_bank1_PA_word);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_wr_buf_enq_bank1_byte_mask !== DUT_wr_buf_enq_bank1_byte_mask) begin
+			$display("TB ERROR: expected_wr_buf_enq_bank1_byte_mask (%h) != DUT_wr_buf_enq_bank1_byte_mask (%h)",
+				expected_wr_buf_enq_bank1_byte_mask, DUT_wr_buf_enq_bank1_byte_mask);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_wr_buf_enq_bank1_data !== DUT_wr_buf_enq_bank1_data) begin
+			$display("TB ERROR: expected_wr_buf_enq_bank1_data (%h) != DUT_wr_buf_enq_bank1_data (%h)",
+				expected_wr_buf_enq_bank1_data, DUT_wr_buf_enq_bank1_data);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -1306,11 +1383,16 @@ module stamofu_cq_tb ();
 		tb_stamofu_mq_info_grab_PA_word = 32'h00000000;
 		tb_stamofu_mq_info_grab_byte_mask = 4'b0000;
 		tb_stamofu_mq_info_grab_data = 32'h00000000;
-	    // write buffer enq
-	    // write buffer enq feedback
-		tb_wr_buf_ready = 1'b1;
-		tb_wr_buf_mem_present = 1'b0;
-		tb_wr_buf_io_present = 1'b0;
+	    // write buffer enq bank 0
+	    // write buffer enq feedback bank 0
+		tb_wr_buf_enq_bank0_ready = 1'b1;
+		tb_wr_buf_enq_bank0_mem_present = 1'b0;
+		tb_wr_buf_enq_bank0_io_present = 1'b0;
+	    // write buffer enq bank 1
+	    // write buffer enq feedback bank 1
+		tb_wr_buf_enq_bank1_ready = 1'b1;
+		tb_wr_buf_enq_bank1_mem_present = 1'b0;
+		tb_wr_buf_enq_bank1_io_present = 1'b0;
 	    // fence restart notification to ROB
 	    // fence restart notification backpressure from ROB
 		tb_fence_restart_notif_ready = 1'b1;
@@ -1396,15 +1478,24 @@ module stamofu_cq_tb ();
 	    // misaligned queue info grab
 		expected_stamofu_mq_info_grab_mq_index = 'h0;
 		expected_stamofu_mq_info_grab_clear_entry = 1'b0;
-	    // write buffer enq
-		expected_wr_buf_enq_valid = 1'b0;
-		expected_wr_buf_enq_is_amo = 1'b0;
-		expected_wr_buf_enq_op = 4'b0000;
-		expected_wr_buf_enq_is_mem = 1'b0;
-		expected_wr_buf_enq_PA_word = 32'h00000000;
-		expected_wr_buf_enq_byte_mask = 4'b0000;
-		expected_wr_buf_enq_data = 32'h00000000;
-	    // write buffer enq feedback
+	    // write buffer enq bank 0
+		expected_wr_buf_enq_bank0_valid = 1'b0;
+		expected_wr_buf_enq_bank0_is_amo = 1'b0;
+		expected_wr_buf_enq_bank0_op = 4'b0000;
+		expected_wr_buf_enq_bank0_is_mem = 1'b0;
+		expected_wr_buf_enq_bank0_PA_word = 32'h00000000;
+		expected_wr_buf_enq_bank0_byte_mask = 4'b0000;
+		expected_wr_buf_enq_bank0_data = 32'h00000000;
+	    // write buffer enq feedback bank 0
+	    // write buffer enq bank 1
+		expected_wr_buf_enq_bank1_valid = 1'b0;
+		expected_wr_buf_enq_bank1_is_amo = 1'b0;
+		expected_wr_buf_enq_bank1_op = 4'b0000;
+		expected_wr_buf_enq_bank1_is_mem = 1'b0;
+		expected_wr_buf_enq_bank1_PA_word = 32'h00000000;
+		expected_wr_buf_enq_bank1_byte_mask = 4'b0000;
+		expected_wr_buf_enq_bank1_data = 32'h00000000;
+	    // write buffer enq feedback bank 1
 	    // fence restart notification to ROB
 		expected_fence_restart_notif_valid = 1'b0;
 		expected_fence_restart_notif_ROB_index = 7'h00;
@@ -1579,11 +1670,16 @@ module stamofu_cq_tb ();
 		tb_stamofu_mq_info_grab_PA_word = 32'h00000000;
 		tb_stamofu_mq_info_grab_byte_mask = 4'b0000;
 		tb_stamofu_mq_info_grab_data = 32'h00000000;
-	    // write buffer enq
-	    // write buffer enq feedback
-		tb_wr_buf_ready = 1'b1;
-		tb_wr_buf_mem_present = 1'b0;
-		tb_wr_buf_io_present = 1'b0;
+	    // write buffer enq bank 0
+	    // write buffer enq feedback bank 0
+		tb_wr_buf_enq_bank0_ready = 1'b1;
+		tb_wr_buf_enq_bank0_mem_present = 1'b0;
+		tb_wr_buf_enq_bank0_io_present = 1'b0;
+	    // write buffer enq bank 1
+	    // write buffer enq feedback bank 1
+		tb_wr_buf_enq_bank1_ready = 1'b1;
+		tb_wr_buf_enq_bank1_mem_present = 1'b0;
+		tb_wr_buf_enq_bank1_io_present = 1'b0;
 	    // fence restart notification to ROB
 	    // fence restart notification backpressure from ROB
 		tb_fence_restart_notif_ready = 1'b1;
@@ -1669,15 +1765,24 @@ module stamofu_cq_tb ();
 	    // misaligned queue info grab
 		expected_stamofu_mq_info_grab_mq_index = 'h0;
 		expected_stamofu_mq_info_grab_clear_entry = 1'b0;
-	    // write buffer enq
-		expected_wr_buf_enq_valid = 1'b0;
-		expected_wr_buf_enq_is_amo = 1'b0;
-		expected_wr_buf_enq_op = 4'b0000;
-		expected_wr_buf_enq_is_mem = 1'b0;
-		expected_wr_buf_enq_PA_word = 32'h00000000;
-		expected_wr_buf_enq_byte_mask = 4'b0000;
-		expected_wr_buf_enq_data = 32'h00000000;
-	    // write buffer enq feedback
+	    // write buffer enq bank 0
+		expected_wr_buf_enq_bank0_valid = 1'b0;
+		expected_wr_buf_enq_bank0_is_amo = 1'b0;
+		expected_wr_buf_enq_bank0_op = 4'b0000;
+		expected_wr_buf_enq_bank0_is_mem = 1'b0;
+		expected_wr_buf_enq_bank0_PA_word = 32'h00000000;
+		expected_wr_buf_enq_bank0_byte_mask = 4'b0000;
+		expected_wr_buf_enq_bank0_data = 32'h00000000;
+	    // write buffer enq feedback bank 0
+	    // write buffer enq bank 1
+		expected_wr_buf_enq_bank1_valid = 1'b0;
+		expected_wr_buf_enq_bank1_is_amo = 1'b0;
+		expected_wr_buf_enq_bank1_op = 4'b0000;
+		expected_wr_buf_enq_bank1_is_mem = 1'b0;
+		expected_wr_buf_enq_bank1_PA_word = 32'h00000000;
+		expected_wr_buf_enq_bank1_byte_mask = 4'b0000;
+		expected_wr_buf_enq_bank1_data = 32'h00000000;
+	    // write buffer enq feedback bank 1
 	    // fence restart notification to ROB
 		expected_fence_restart_notif_valid = 1'b0;
 		expected_fence_restart_notif_ROB_index = 7'h00;
@@ -1860,11 +1965,16 @@ module stamofu_cq_tb ();
 		tb_stamofu_mq_info_grab_PA_word = 32'h00000000;
 		tb_stamofu_mq_info_grab_byte_mask = 4'b0000;
 		tb_stamofu_mq_info_grab_data = 32'h00000000;
-	    // write buffer enq
-	    // write buffer enq feedback
-		tb_wr_buf_ready = 1'b1;
-		tb_wr_buf_mem_present = 1'b0;
-		tb_wr_buf_io_present = 1'b0;
+	    // write buffer enq bank 0
+	    // write buffer enq feedback bank 0
+		tb_wr_buf_enq_bank0_ready = 1'b1;
+		tb_wr_buf_enq_bank0_mem_present = 1'b0;
+		tb_wr_buf_enq_bank0_io_present = 1'b0;
+	    // write buffer enq bank 1
+	    // write buffer enq feedback bank 1
+		tb_wr_buf_enq_bank1_ready = 1'b1;
+		tb_wr_buf_enq_bank1_mem_present = 1'b0;
+		tb_wr_buf_enq_bank1_io_present = 1'b0;
 	    // fence restart notification to ROB
 	    // fence restart notification backpressure from ROB
 		tb_fence_restart_notif_ready = 1'b1;
@@ -1962,15 +2072,24 @@ module stamofu_cq_tb ();
 	    // misaligned queue info grab
 		expected_stamofu_mq_info_grab_mq_index = 'h0;
 		expected_stamofu_mq_info_grab_clear_entry = 1'b0;
-	    // write buffer enq
-		expected_wr_buf_enq_valid = 1'b0;
-		expected_wr_buf_enq_is_amo = 1'b0;
-		expected_wr_buf_enq_op = 4'b0000;
-		expected_wr_buf_enq_is_mem = 1'b0;
-		expected_wr_buf_enq_PA_word = 32'h00000000;
-		expected_wr_buf_enq_byte_mask = 4'b0000;
-		expected_wr_buf_enq_data = 32'h00000000;
-	    // write buffer enq feedback
+	    // write buffer enq bank 0
+		expected_wr_buf_enq_bank0_valid = 1'b0;
+		expected_wr_buf_enq_bank0_is_amo = 1'b0;
+		expected_wr_buf_enq_bank0_op = 4'b0000;
+		expected_wr_buf_enq_bank0_is_mem = 1'b0;
+		expected_wr_buf_enq_bank0_PA_word = 32'h00000000;
+		expected_wr_buf_enq_bank0_byte_mask = 4'b0000;
+		expected_wr_buf_enq_bank0_data = 32'h00000000;
+	    // write buffer enq feedback bank 0
+	    // write buffer enq bank 1
+		expected_wr_buf_enq_bank1_valid = 1'b0;
+		expected_wr_buf_enq_bank1_is_amo = 1'b0;
+		expected_wr_buf_enq_bank1_op = 4'b0000;
+		expected_wr_buf_enq_bank1_is_mem = 1'b0;
+		expected_wr_buf_enq_bank1_PA_word = 32'h00000000;
+		expected_wr_buf_enq_bank1_byte_mask = 4'b0000;
+		expected_wr_buf_enq_bank1_data = 32'h00000000;
+	    // write buffer enq feedback bank 1
 	    // fence restart notification to ROB
 		expected_fence_restart_notif_valid = 1'b0;
 		expected_fence_restart_notif_ROB_index = 7'h00;

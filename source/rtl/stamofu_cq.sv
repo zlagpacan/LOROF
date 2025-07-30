@@ -212,19 +212,33 @@ module stamofu_cq #(
     input logic [3:0]                           stamofu_mq_info_grab_byte_mask,
     input logic [31:0]                          stamofu_mq_info_grab_data,
 
-    // write buffer enq
-    output logic                    wr_buf_enq_valid,
-    output logic                    wr_buf_enq_is_amo,
-    output logic [3:0]              wr_buf_enq_op,
-    output logic                    wr_buf_enq_is_mem,
-    output logic [PA_WIDTH-2-1:0]   wr_buf_enq_PA_word,
-    output logic [3:0]              wr_buf_enq_byte_mask,
-    output logic [31:0]             wr_buf_enq_data,
+    // write buffer enq bank 0
+    output logic                    wr_buf_enq_bank0_valid,
+    output logic                    wr_buf_enq_bank0_is_amo,
+    output logic [3:0]              wr_buf_enq_bank0_op,
+    output logic                    wr_buf_enq_bank0_is_mem,
+    output logic [PA_WIDTH-2-1:0]   wr_buf_enq_bank0_PA_word,
+    output logic [3:0]              wr_buf_enq_bank0_byte_mask,
+    output logic [31:0]             wr_buf_enq_bank0_data,
 
-    // write buffer enq feedback
-    input logic                     wr_buf_ready,
-    input logic                     wr_buf_mem_present,
-    input logic                     wr_buf_io_present,
+    // write buffer enq feedback bank 0
+    input logic                     wr_buf_enq_bank0_ready,
+    input logic                     wr_buf_enq_bank0_mem_present,
+    input logic                     wr_buf_enq_bank0_io_present,
+
+    // write buffer enq bank 1
+    output logic                    wr_buf_enq_bank1_valid,
+    output logic                    wr_buf_enq_bank1_is_amo,
+    output logic [3:0]              wr_buf_enq_bank1_op,
+    output logic                    wr_buf_enq_bank1_is_mem,
+    output logic [PA_WIDTH-2-1:0]   wr_buf_enq_bank1_PA_word,
+    output logic [3:0]              wr_buf_enq_bank1_byte_mask,
+    output logic [31:0]             wr_buf_enq_bank1_data,
+
+    // write buffer enq feedback bank 1
+    input logic                     wr_buf_enq_bank1_ready,
+    input logic                     wr_buf_enq_bank1_mem_present,
+    input logic                     wr_buf_enq_bank1_io_present,
 
     // fence restart notification to ROB
     output logic                        fence_restart_notif_valid,
@@ -292,8 +306,6 @@ module stamofu_cq #(
     input logic [LOG_ROB_ENTRIES-1:0]   rob_kill_abs_head_index,
     input logic [LOG_ROB_ENTRIES-1:0]   rob_kill_rel_kill_younger_index
 );
-
-    // cq needs to be nosey if mq gets page fault or access fault so knows to raise exception
 
     // ----------------------------------------------------------------
     // Signals:
@@ -1367,8 +1379,11 @@ module stamofu_cq #(
         // hardwired connections
         stamofu_mq_info_grab_mq_index = entry_array[deq_ptr].mq_index;
 
-        wr_buf_enq_is_amo = entry_array[deq_ptr].is_amo;
-        wr_buf_enq_op = entry_array[deq_ptr].op;
+        wr_buf_enq_bank0_is_amo = entry_array[deq_ptr].is_amo;
+        wr_buf_enq_bank0_op = entry_array[deq_ptr].op;
+
+        wr_buf_enq_bank1_is_amo = entry_array[deq_ptr].is_amo;
+        wr_buf_enq_bank1_op = entry_array[deq_ptr].op;
 
         fence_restart_notif_ROB_index = entry_array[deq_ptr].ROB_index;
 
@@ -1387,11 +1402,17 @@ module stamofu_cq #(
             stamofu_mq_info_grab_clear_entry = entry_array[deq_ptr].misaligned;
 
             // skip write buffer enq
-            wr_buf_enq_valid = 1'b0;
-            wr_buf_enq_is_mem = entry_array[deq_ptr].is_mem;
-            wr_buf_enq_PA_word = entry_array[deq_ptr].PA_word;
-            wr_buf_enq_byte_mask = entry_array[deq_ptr].byte_mask;
-            wr_buf_enq_data = entry_array[deq_ptr].data;
+            wr_buf_enq_bank0_valid = 1'b0;
+            wr_buf_enq_bank0_is_mem = entry_array[deq_ptr].is_mem;
+            wr_buf_enq_bank0_PA_word = entry_array[deq_ptr].PA_word;
+            wr_buf_enq_bank0_byte_mask = entry_array[deq_ptr].byte_mask;
+            wr_buf_enq_bank0_data = entry_array[deq_ptr].data;
+            
+            wr_buf_enq_bank1_valid = 1'b0;
+            wr_buf_enq_bank1_is_mem = entry_array[deq_ptr].is_mem;
+            wr_buf_enq_bank1_PA_word = entry_array[deq_ptr].PA_word;
+            wr_buf_enq_bank1_byte_mask = entry_array[deq_ptr].byte_mask;
+            wr_buf_enq_bank1_data = entry_array[deq_ptr].data;
 
             // no fence restart notif
             fence_restart_notif_valid = 1'b0;
@@ -1406,7 +1427,7 @@ module stamofu_cq #(
         else if (
             entry_array[deq_ptr].valid
             & entry_array[deq_ptr].misaligned
-            & wr_buf_ready
+            & (stamofu_mq_info_grab_PA_word[DCACHE_WORD_ADDR_BANK_BIT] ? wr_buf_enq_bank1_ready : wr_buf_enq_bank0_ready)
             & (~entry_array[deq_ptr].is_fence | entry_array[deq_ptr])
         ) begin
             // don't perform deq yet
@@ -1420,11 +1441,17 @@ module stamofu_cq #(
             stamofu_mq_info_grab_clear_entry = 1'b1;
 
             // write buffer enq from stamofu_mq
-            wr_buf_enq_valid = 1'b1;
-            wr_buf_enq_is_mem = stamofu_mq_info_grab_is_mem;
-            wr_buf_enq_PA_word = stamofu_mq_info_grab_PA_word;
-            wr_buf_enq_byte_mask = stamofu_mq_info_grab_byte_mask;
-            wr_buf_enq_data = stamofu_mq_info_grab_data;
+            wr_buf_enq_bank0_valid = ~stamofu_mq_info_grab_PA_word[DCACHE_WORD_ADDR_BANK_BIT];
+            wr_buf_enq_bank0_is_mem = stamofu_mq_info_grab_is_mem;
+            wr_buf_enq_bank0_PA_word = stamofu_mq_info_grab_PA_word;
+            wr_buf_enq_bank0_byte_mask = stamofu_mq_info_grab_byte_mask;
+            wr_buf_enq_bank0_data = stamofu_mq_info_grab_data;
+            
+            wr_buf_enq_bank1_valid = stamofu_mq_info_grab_PA_word[DCACHE_WORD_ADDR_BANK_BIT];
+            wr_buf_enq_bank1_is_mem = stamofu_mq_info_grab_is_mem;
+            wr_buf_enq_bank1_PA_word = stamofu_mq_info_grab_PA_word;
+            wr_buf_enq_bank1_byte_mask = stamofu_mq_info_grab_byte_mask;
+            wr_buf_enq_bank1_data = stamofu_mq_info_grab_data;
 
             // no fence restart notif
             fence_restart_notif_valid = 1'b0;
@@ -1443,7 +1470,7 @@ module stamofu_cq #(
             & ~entry_array[deq_ptr].misaligned
             & (
                 ~(entry_array[deq_ptr].is_store | entry_array[deq_ptr].is_amo)
-                | wr_buf_ready
+                | (entry_array[deq_ptr].PA_word[DCACHE_WORD_ADDR_BANK_BIT] ? wr_buf_enq_bank1_ready : wr_buf_enq_bank0_ready)
             )
             & (
                 ~(
@@ -1452,8 +1479,12 @@ module stamofu_cq #(
                 ) 
                 | fence_restart_notif_ready
             )
-            & (~entry_array[deq_ptr].mem_rl | ~wr_buf_mem_present)
-            & (~entry_array[deq_ptr].io_rl | ~wr_buf_io_present)
+            & (
+                ~entry_array[deq_ptr].mem_rl
+                | ~(wr_buf_enq_bank1_mem_present | wr_buf_enq_bank0_mem_present))
+            & (
+                ~entry_array[deq_ptr].io_rl
+                | ~(wr_buf_enq_bank1_io_present | wr_buf_enq_bank0_io_present))
         ) begin
             // can perform deq
             deq_perform = 1'b1;
@@ -1465,11 +1496,21 @@ module stamofu_cq #(
             stamofu_mq_info_grab_clear_entry = 1'b0;
 
             // write buffer enq if store or amo from cq
-            wr_buf_enq_valid = entry_array[deq_ptr].is_store | entry_array[deq_ptr].is_amo;
-            wr_buf_enq_is_mem = entry_array[deq_ptr].is_mem;
-            wr_buf_enq_PA_word = entry_array[deq_ptr].PA_word;
-            wr_buf_enq_byte_mask = entry_array[deq_ptr].byte_mask;
-            wr_buf_enq_data = entry_array[deq_ptr].data;
+            wr_buf_enq_bank0_valid = 
+                ~entry_array[deq_ptr].PA_word[DCACHE_WORD_ADDR_BANK_BIT]
+                & (entry_array[deq_ptr].is_store | entry_array[deq_ptr].is_amo);
+            wr_buf_enq_bank0_is_mem = entry_array[deq_ptr].is_mem;
+            wr_buf_enq_bank0_PA_word = entry_array[deq_ptr].PA_word;
+            wr_buf_enq_bank0_byte_mask = entry_array[deq_ptr].byte_mask;
+            wr_buf_enq_bank0_data = entry_array[deq_ptr].data;
+            
+            wr_buf_enq_bank1_valid = 
+                entry_array[deq_ptr].PA_word[DCACHE_WORD_ADDR_BANK_BIT]
+                & (entry_array[deq_ptr].is_store | entry_array[deq_ptr].is_amo);
+            wr_buf_enq_bank1_is_mem = entry_array[deq_ptr].is_mem;
+            wr_buf_enq_bank1_PA_word = entry_array[deq_ptr].PA_word;
+            wr_buf_enq_bank1_byte_mask = entry_array[deq_ptr].byte_mask;
+            wr_buf_enq_bank1_data = entry_array[deq_ptr].data;
 
             // fence restart notif if SFENCE.VMA or FENCE.I
             fence_restart_notif_valid = entry_array[deq_ptr].is_fence & |entry_array[deq_ptr].op[1:0];
@@ -1483,11 +1524,16 @@ module stamofu_cq #(
             deq_perform = 1'b0;
             clear_misaligned_by_entry= '0;
             stamofu_mq_info_grab_clear_entry = 1'b0;
-            wr_buf_enq_valid = 1'b0;
-            wr_buf_enq_is_mem = entry_array[deq_ptr].is_mem;
-            wr_buf_enq_PA_word = entry_array[deq_ptr].PA_word;
-            wr_buf_enq_byte_mask = entry_array[deq_ptr].byte_mask;
-            wr_buf_enq_data = entry_array[deq_ptr].data;
+            wr_buf_enq_bank0_valid = 1'b0;
+            wr_buf_enq_bank0_is_mem = entry_array[deq_ptr].is_mem;
+            wr_buf_enq_bank0_PA_word = entry_array[deq_ptr].PA_word;
+            wr_buf_enq_bank0_byte_mask = entry_array[deq_ptr].byte_mask;
+            wr_buf_enq_bank0_data = entry_array[deq_ptr].data;
+            wr_buf_enq_bank1_valid = 1'b0;
+            wr_buf_enq_bank1_is_mem = entry_array[deq_ptr].is_mem;
+            wr_buf_enq_bank1_PA_word = entry_array[deq_ptr].PA_word;
+            wr_buf_enq_bank1_byte_mask = entry_array[deq_ptr].byte_mask;
+            wr_buf_enq_bank1_data = entry_array[deq_ptr].data;
             fence_restart_notif_valid = 1'b0;
             stamofu_aq_deq_valid = 1'b0;
         end
