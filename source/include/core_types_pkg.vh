@@ -201,6 +201,10 @@ package core_types_pkg;
     parameter STORE_SET_COUNT = 64; // hardwired in sst
     parameter SSID_WIDTH = $clog2(STORE_SET_COUNT); // hardwired in sst
 
+    // ssu
+    parameter SSU_INNER_BUFFER_ENTRIES = 2;
+    parameter SSU_FUNNEL_BUFFER_ENTRIES = 2;
+
 endpackage
 
 `endif // CORE_TYPES_VH
