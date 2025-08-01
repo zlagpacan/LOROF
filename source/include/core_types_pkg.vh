@@ -46,7 +46,7 @@ package core_types_pkg;
         // LDU A
         // STAMOFU A
         // STAMOFU B
-        // SYS A
+        // SYSU A
     parameter PRF_WR_COUNT = 8;
         // ALU Reg-Reg
         // MDU
@@ -55,7 +55,7 @@ package core_types_pkg;
         // LDU bank 0
         // LDU bank 1
         // STAMOFU
-        // SYS
+        // SYSU
 
     // rob
     parameter ROB_ENTRIES = 128;
@@ -73,7 +73,7 @@ package core_types_pkg;
     parameter BRU_DQ_ENTRIES = 4;
     parameter BRU_IQ_ENTRIES = 4;
 
-    parameter SYS_DQ_ENTRIES = 4;
+    parameter SYSU_DQ_ENTRIES = 4;
 
     // ----------------------------------------------------------------
     // Fetch Predictors:
