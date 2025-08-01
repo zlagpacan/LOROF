@@ -12,8 +12,8 @@ module ssu #(
     parameter STORE_SET_COUNT = 64,
     parameter SSID_WIDTH = $clog2(STORE_SET_COUNT),
 
-    parameter INPUT_BUFFER_DEPTH = 4,
-    parameter FUNNEL_BUFFER_DEPTH = 4
+    parameter SSU_INPUT_BUFFER_ENTRIES = 2,
+    parameter SSU_FUNNEL_BUFFER_ENTRIES = 2
 ) (
     // seq
     input logic CLK,
@@ -179,7 +179,7 @@ module ssu #(
     // ldu_cq CAM
     cb #(
         .DATA_WIDTH(2*(MDPT_INFO_WIDTH+LOG_ROB_ENTRIES)),
-        .NUM_ENTRIES(INPUT_BUFFER_DEPTH)
+        .NUM_ENTRIES(SSU_INPUT_BUFFER_ENTRIES)
     ) LDU_CQ_CAM_CB (
         .CLK(CLK),
         .nRST(nRST),
@@ -210,7 +210,7 @@ module ssu #(
     // ldu_mq CAM
     cb #(
         .DATA_WIDTH(2*(MDPT_INFO_WIDTH+LOG_ROB_ENTRIES)),
-        .NUM_ENTRIES(INPUT_BUFFER_DEPTH)
+        .NUM_ENTRIES(SSU_INPUT_BUFFER_ENTRIES)
     ) LDU_MQ_CAM_CB (
         .CLK(CLK),
         .nRST(nRST),
@@ -241,7 +241,7 @@ module ssu #(
     // ldu_cq commit
     cb #(
         .DATA_WIDTH(MDPT_INFO_WIDTH+LOG_ROB_ENTRIES),
-        .NUM_ENTRIES(INPUT_BUFFER_DEPTH)
+        .NUM_ENTRIES(SSU_INPUT_BUFFER_ENTRIES)
     ) LDU_CQ_COMMIT_CB (
         .CLK(CLK),
         .nRST(nRST),
@@ -265,7 +265,7 @@ module ssu #(
     // stamofu_cq CAM bank 0
     cb #(
         .DATA_WIDTH(2*(MDPT_INFO_WIDTH+LOG_ROB_ENTRIES)),
-        .NUM_ENTRIES(INPUT_BUFFER_DEPTH)
+        .NUM_ENTRIES(SSU_INPUT_BUFFER_ENTRIES)
     ) STAMOFU_CQ_CAM_BANK0_CB (
         .CLK(CLK),
         .nRST(nRST),
@@ -296,7 +296,7 @@ module ssu #(
     // stamofu_cq CAM bank 1
     cb #(
         .DATA_WIDTH(2*(MDPT_INFO_WIDTH+LOG_ROB_ENTRIES)),
-        .NUM_ENTRIES(INPUT_BUFFER_DEPTH)
+        .NUM_ENTRIES(SSU_INPUT_BUFFER_ENTRIES)
     ) STAMOFU_CQ_CAM_BANK1_CB (
         .CLK(CLK),
         .nRST(nRST),
@@ -327,7 +327,7 @@ module ssu #(
     // stamofu_cq commit
     cb #(
         .DATA_WIDTH(MDPT_INFO_WIDTH+LOG_ROB_ENTRIES),
-        .NUM_ENTRIES(INPUT_BUFFER_DEPTH)
+        .NUM_ENTRIES(SSU_INPUT_BUFFER_ENTRIES)
     ) STAMOFU_CQ_COMMIT_CB (
         .CLK(CLK),
         .nRST(nRST),
@@ -440,7 +440,7 @@ module ssu #(
     // funnel buffer
     q_fast_ready #(
         .DATA_WIDTH(1+2*(1+MDPT_INFO_WIDTH+LOG_ROB_ENTRIES)),
-        .NUM_ENTRIES(FUNNEL_BUFFER_DEPTH)
+        .NUM_ENTRIES(SSU_FUNNEL_BUFFER_ENTRIES)
     ) FUNNEL_BUFFER (
         .CLK(CLK),
         .nRST(nRST),
