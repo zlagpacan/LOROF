@@ -4,43 +4,43 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 ## RV32I
 - LUI
     - {imm[31:12], rd[4:0], 5'b01101, 2'b11}
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b0110
 - AUIPC
     - {imm[31:12], rd[4:0], 5'b00101, 2'b11}
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b0111
 - JAL
     - {imm[20|10:1|11|19:12], rd[4:0], 5'b11011, 2'b11}
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b0010
 - JALR
     - {imm[11:0], rs1[4:0], 3'b000, rd[4:0], 5'b11001, 2'b11}
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b0000
 - BEQ
     - {imm[12|10:5], rs2[4:0], rs1[4:0], 3'b000, imm[4:1|11], 5'b11000, 2'b11}
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b1000
 - BNE
     - {imm[12|10:5], rs2[4:0], rs1[4:0], 3'b001, imm[4:1|11], 5'b11000, 2'b11}
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b1001
 - BLT
     - {imm[12|10:5], rs2[4:0], rs1[4:0], 3'b100, imm[4:1|11], 5'b11000, 2'b11}
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b1100
 - BGE
     - {imm[12|10:5], rs2[4:0], rs1[4:0], 3'b101, imm[4:1|11], 5'b11000, 2'b11}
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b1101
 - BLTU
     - {imm[12|10:5], rs2[4:0], rs1[4:0], 3'b110, imm[4:1|11], 5'b11000, 2'b11}
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b1110
 - BGEU
     - {imm[12|10:5], rs2[4:0], rs1[4:0], 3'b111, imm[4:1|11], 5'b11000, 2'b11}
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b1111
 - LB
     - {imm[11:0], rs1[4:0], 3'b000, rd[4:0], 5'b00000, 2'b11}
@@ -76,79 +76,79 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - op: 4'bxx10
 - ADDI
     - {imm[11:0], rs1[4:0], 3'b000, rd[4:0], 5'b00100, 2'b11}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'b0000
 - SLLI
     - {7'b0000000, shamt[4:0], rs1[4:0], 3'b001, rd[4:0], 5'b00100, 2'b11}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'bx001
 - SLTI
     - {imm[11:0], rs1[4:0], 3'b010, rd[4:0], 5'b00100, 2'b11}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'bx010
 - SLTIU
     - {imm[11:0], rs1[4:0], 3'b011, rd[4:0], 5'b00100, 2'b11}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'bx011
 - XORI
     - {imm[11:0], rs1[4:0], 3'b100, rd[4:0], 5'b00100, 2'b11}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'bx100
 - SRLI
     - {7'b0<mark>0</mark>00000, shamt[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b00100, 2'b11}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'b0101
 - SRAI
     - {7'b0<mark>1</mark>00000, shamt[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b00100, 2'b11}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'b1101
 - ORI
     - {imm[11:0], rs1[4:0], 3'b110, rd[4:0], 5'b00100, 2'b11}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'bx110
 - ANDI
     - {imm[11:0], rs1[4:0], 3'b111, rd[4:0], 5'b00100, 2'b11}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'bx111
 - ADD
     - {7'b0<mark>0</mark>00000, rs2[4:0], rs1[4:0], 3'b000, rd[4:0], 5'b01100, 2'b11}
-    - FU: alu_reg_pipeline
+    - FU: alu_reg
     - op: 4'b0000
 - SUB
     - {7'b0<mark>1</mark>00000, rs2[4:0], rs1[4:0], 3'b000, rd[4:0], 5'b01100, 2'b11}
-    - FU: alu_reg_pipeline
+    - FU: alu_reg
     - op: 4'b1000
 - SLL
     - {7'b0000000, rs2[4:0], rs1[4:0], 3'b001, rd[4:0], 5'b01100, 2'b11}
-    - FU: alu_reg_pipeline
+    - FU: alu_reg
     - op: 4'bx001
 - SLT
     - {7'b0000000, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01100, 2'b11}
-    - FU: alu_reg_pipeline
+    - FU: alu_reg
     - op: 4'bx010
 - SLTU
     - {7'b0000000, rs2[4:0], rs1[4:0], 3'b011, rd[4:0], 5'b01100, 2'b11}
-    - FU: alu_reg_pipeline
+    - FU: alu_reg
     - op: 4'bx011
 - XOR
     - {7'b0000000, rs2[4:0], rs1[4:0], 3'b100, rd[4:0], 5'b01100, 2'b11}
-    - FU: alu_reg_pipeline
+    - FU: alu_reg
     - op: 4'bx100
 - SRL
     - {7'b0<mark>0</mark>00000, rs2[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b01100, 2'b11}
-    - FU: alu_reg_pipeline
+    - FU: alu_reg
     - op: 4'b0101
 - SRA
     - {7'b0<mark>1</mark>00000, rs2[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b01100, 2'b11}
-    - FU: alu_reg_pipeline
+    - FU: alu_reg
     - op: 4'b1101
 - OR
     - {7'b0000000, rs2[4:0], rs1[4:0], 3'b110, rd[4:0], 5'b01100, 2'b11}
-    - FU: alu_reg_pipeline
+    - FU: alu_reg
     - op: 4'bx110
 - AND
     - {7'b0000000, rs2[4:0], rs1[4:0], 3'b111, rd[4:0], 5'b01100, 2'b11}
-    - FU: alu_reg_pipeline
+    - FU: alu_reg
     - op: 4'bx111
 - FENCE
     - {fm[3:0], pred[3:0], succ[3:0], rs1[4:0], 3'b000, rd[4:0], 5'b00011, 2'b11}
@@ -164,11 +164,11 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - op: 4'bxx00
 - ECALL
     - {7'b0000000, 5'b0000<mark>0</mark>, 5'b00000, 3'b000, 5'b00000, 5'b11100, 2'b11}
-    - FU: sys_pipeline
+    - FU: sysu
     - op: 4'bx000
 - EBREAK
     - {7'b0000000, 5'b0000<mark>1</mark>, 5'b00000, 3'b000, 5'b00000, 5'b11100, 2'b11}
-    - FU: sys_pipeline
+    - FU: sysu
     - op: 4'bx000
 
 ## Zifencei Extension
@@ -181,61 +181,61 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 ## Zicsr Extension
 - CSRRW
     - {csr[11:0], rs1[4:0], 3'b001, rd[4:0], 5'b11100, 2'b11}
-    - FU: sys_pipeline
+    - FU: sysu
     - op: 4'bx001
 - CSRRS
     - {csr[11:0], rs1[4:0], 3'b010, rd[4:0], 5'b11100, 2'b11}
-    - FU: sys_pipeline
+    - FU: sysu
     - op: 4'bx010
 - CSRRC
     - {csr[11:0], rs1[4:0], 3'b011, rd[4:0], 5'b11100, 2'b11}
-    - FU: sys_pipeline
+    - FU: sysu
     - op: 4'bx011
 - CSRRWI
     - {csr[11:0], uimm[4:0], 3'b101, rd[4:0], 5'b11100, 2'b11}
-    - FU: sys_pipeline
+    - FU: sysu
     - op: 4'bx101
 - CSRRSI
     - {csr[11:0], uimm[4:0], 3'b110, rd[4:0], 5'b11100, 2'b11}
-    - FU: sys_pipeline
+    - FU: sysu
     - op: 4'bx110
 - CSRRCI
     - {csr[11:0], uimm[4:0], 3'b111, rd[4:0], 5'b11100, 2'b11}
-    - FU: sys_pipeline
+    - FU: sysu
     - op: 4'bx111
 
 ## M Extension
 - MUL
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b000, rd[4:0], 5'b01100, 2'b11}
-    - FU: mdu_pipeline
+    - FU: mdu
     - op: 4'bx000
 - MULH
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b001, rd[4:0], 5'b01100, 2'b11}
-    - FU: mdu_pipeline
+    - FU: mdu
     - op: 4'bx001
 - MULHSU
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01100, 2'b11}
-    - FU: mdu_pipeline
+    - FU: mdu
     - op: 4'bx010
 - MULHU
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b011, rd[4:0], 5'b01100, 2'b11}
-    - FU: mdu_pipeline
+    - FU: mdu
     - op: 4'bx011
 - DIV
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b100, rd[4:0], 5'b01100, 2'b11}
-    - FU: mdu_pipeline
+    - FU: mdu
     - op: 4'bx100
 - DIVU
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b01100, 2'b11}
-    - FU: mdu_pipeline
+    - FU: mdu
     - op: 4'bx101
 - REM
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b110, rd[4:0], 5'b01100, 2'b11}
-    - FU: mdu_pipeline
+    - FU: mdu
     - op: 4'bx110
 - REMU
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b111, rd[4:0], 5'b01100, 2'b11}
-    - FU: mdu_pipeline
+    - FU: mdu
     - op: 4'bx111
 
 ## A Extension
@@ -314,7 +314,7 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
 - C.ADDI4SPN
     - ADDI rd', sp/x2, uimm
     - {3'b000, uimm[5:4|9:6|2|3], rd'[2:0], 2'b00}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'b0000
 - C.LW
     - LW rd', uimm(rs1')
@@ -330,88 +330,88 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
     - ADDI x0, x0, imm
     - {3'b000, imm[5], 5'b00000, imm[4:0], 2'b01}
         - same as C.ADDI
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'b0000
 - C.ADDI
     - ADDI rd, rd, imm
     - {3'b000, imm[5], rs1/rd[4:0], imm[4:0], 2'b01}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'b0000
 - C.JAL
     - JAL ra/x1, imm
     - {3'b001, imm[11|4|9:8|10|6|7|3:1|5], 2'b01}
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b0011
 - C.LI
     - ADDI rd, x0, imm
     - {3'b010, imm[5], rd[4:0], imm[4:0], 2'b01}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'b0000
 - C.ADDI16SP
     - ADDI sp/x2, sp/x2, imm
     - {3'b011, imm[9], 5'b00010, imm[4|6|8:7|5], 2'b01}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'b0000
 - C.LUI
     - LUI rd, imm
     - {3'b011, imm[17], rd[4:0], imm[16:12], 2'b01}
         - (rd == 2) -> C.ADDI16SP
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b0110
 - C.SRLI
     - SRLI rd', rd', uimm
     - {3'b100, uimm[5], 2'b00, rs1'/rd'[2:0], uimm[4:0], 2'b01}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'b0101
 - C.SRAI
     - SRAI rd', rd', uimm
     - {3'b100, uimm[5], 2'b01, rs1'/rd'[2:0], uimm[4:0], 2'b01}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'b1101
 - C.ANDI
     - ANDI rd', rd', imm
     - {3'b100, imm[5], 2'b10, rs1'/rd'[2:0], imm[4:0], 2'b01}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'bx111
 - C.SUB
     - SUB rd', rd', rs2'
     - {3'b100, 1'b0, 2'b11, rs1'/rd'[2:0], 2'b00, rs2'[2:0], 2'b01}
-    - FU: alu_reg_pipeline
+    - FU: alu_reg
     - op: 4'b1000
 - C.XOR
     - XOR rd', rd', rs2'
     - {3'b100, 1'b0, 2'b11, rs1'/rd'[2:0], 2'b01, rs2'[2:0], 2'b01}
-    - FU: alu_reg_pipeline
+    - FU: alu_reg
     - op: 4'bx100
 - C.OR
     - OR rd', rd', rs2'
     - {3'b100, 1'b0, 2'b11, rs1'/rd'[2:0], 2'b10, rs2'[2:0], 2'b01}
-    - FU: alu_reg_pipeline
+    - FU: alu_reg
     - op: 4'bx110
 - C.AND
     - AND rd', rd', rs2'
     - {3'b100, 1'b0, 2'b11, rs1'/rd'[2:0], 2'b11, rs2'[2:0], 2'b01}
-    - FU: alu_reg_pipeline
+    - FU: alu_reg
     - op: 4'bx111
 - C.J
     - JAL x0, imm
     - {3'b101, imm[11|4|9:8|10|6|7|3:1|5], 2'b01}
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b0100
 - C.BEQZ
     - BEQ rs1', x0, imm
     - {3'b110, imm[8|4:3], rs1'[2:0], imm[7:6|2:1|5], 2'b01}
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b1010
 - C.BNEZ
     - BNE rs1', x0, imm
     - {3'b111, imm[8|4:3], rs1'[2:0], imm[7:6|2:1|5], 2'b01}
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b1011
 - C.SLLI
     - SLLI rd, rd, uimm
     - {3'b000, uimm[5], rs1/rd[4:0], uimm[4:0], 2'b10}
-    - FU: alu_imm_pipeline
+    - FU: alu_imm
     - op: 4'bx001
 - C.LWSP
     - LW rd, uimm(sp/x2)
@@ -421,31 +421,31 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
 - C.JR
     - JALR x0, 0(rs1)
     - {3'b100, 1'b0, rs1[4:0], 5'b00000, 2'b10}
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b0101
 - C.MV
     - ADD rd, x0, rs2
     - {3'b100, 1'b0, rd[4:0], rs2[4:0], 2'b10}
         - (rs2 == 0) -> C.JR
-    - FU: alu_reg_pipeline
+    - FU: alu_reg
     - op: 4'b0000
 - C.EBREAK
     - EBREAK
     - {3'b100, 1'b1, 5'b00000, 5'b00000, 2'b10}
-    - FU: sys_pipeline
+    - FU: sysu
     - op: 4'bx000
 - C.JALR
     - JALR ra/x1, 0(rs1)
     - {3'b100, 1'b1, rs1[4:0], 5'b00000, 2'b10}
         - (rs1 == 0) -> C.EBREAK
-    - FU: bru_pipeline
+    - FU: bru
     - op: 4'b0001
 - C.ADD
     - ADD rd, rd, rs2
     - {3'b100, 1'b1, rs1/rd[4:0], rs2[4:0], 2'b10}
         - (rs1/rd == 0 & rs2 == 0) -> C.EBREAK
         - (rs2 == 0) -> C.JALR
-    - FU: alu_reg_pipeline
+    - FU: alu_reg
     - op: 4'b0000
 - C.SWSP
     - SW rs2, uimm(sp/x2)
@@ -456,17 +456,17 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
 ## Machine-Mode Privileged Instructions
 - MRET
     - {7'b0011000, 5'b00010, 5'b00000, 3'b000, 5'b00000, 5'b11100, 2'b11}
-    - FU: sys_pipeline
+    - FU: sysu
     - op: 4'bx000
 - WFI
     - {7'b0001000, 5'b00101, 5'b00000, 3'b000, 5'b00000, 5'b11100, 2'b11}
-    - FU: sys_pipeline
+    - FU: sysu
     - op: 4'bx000
 
 ## Supervisor Privileged Instructions
 - SRET
     - {7'b0001000, 5'b00010, 5'b00000, 3'b000, 5'b00000, 5'b11100, 2'b11}
-    - FU: sys_pipeline
+    - FU: sysu
     - op: 4'bx000
 - SFENCE.VMA
     - {7'b0001001, rs2[4:0], rs1[4:0], 3'b000, 5'b00000, 5'b11100, 2'b11}
