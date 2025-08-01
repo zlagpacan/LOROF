@@ -78,7 +78,7 @@ module decode_unit_wrapper (
 	output logic [3:0] last_dispatch_attempt_bru_iq_by_way,
 	output logic [3:0] last_dispatch_attempt_ldu_iq_by_way,
 	output logic [3:0] last_dispatch_attempt_stamofu_iq_by_way,
-	output logic [3:0] last_dispatch_attempt_sys_iq_by_way,
+	output logic [3:0] last_dispatch_attempt_sysu_iq_by_way,
 
     // instr FU valids
 	output logic [3:0] last_dispatch_valid_alu_reg_by_way,
@@ -89,7 +89,7 @@ module decode_unit_wrapper (
 	output logic [3:0] last_dispatch_valid_store_by_way,
 	output logic [3:0] last_dispatch_valid_amo_by_way,
 	output logic [3:0] last_dispatch_valid_fence_by_way,
-	output logic [3:0] last_dispatch_valid_sys_by_way,
+	output logic [3:0] last_dispatch_valid_sysu_by_way,
 
     // operand A
 	output logic [3:0][LOG_PR_COUNT-1:0] last_dispatch_A_PR_by_way,
@@ -116,7 +116,7 @@ module decode_unit_wrapper (
 	input logic [3:0] next_dispatch_ack_bru_iq_by_way,
 	input logic [3:0] next_dispatch_ack_ldu_iq_by_way,
 	input logic [3:0] next_dispatch_ack_stamofu_iq_by_way,
-	input logic [3:0] next_dispatch_ack_sys_iq_by_way,
+	input logic [3:0] next_dispatch_ack_sysu_iq_by_way,
 
     // writeback bus by bank
 	input logic [PRF_BANK_COUNT-1:0] next_WB_bus_valid_by_bank,
@@ -244,7 +244,7 @@ module decode_unit_wrapper (
 	logic [3:0] dispatch_attempt_bru_iq_by_way;
 	logic [3:0] dispatch_attempt_ldu_iq_by_way;
 	logic [3:0] dispatch_attempt_stamofu_iq_by_way;
-	logic [3:0] dispatch_attempt_sys_iq_by_way;
+	logic [3:0] dispatch_attempt_sysu_iq_by_way;
 
     // instr FU valids
 	logic [3:0] dispatch_valid_alu_reg_by_way;
@@ -255,7 +255,7 @@ module decode_unit_wrapper (
 	logic [3:0] dispatch_valid_store_by_way;
 	logic [3:0] dispatch_valid_amo_by_way;
 	logic [3:0] dispatch_valid_fence_by_way;
-	logic [3:0] dispatch_valid_sys_by_way;
+	logic [3:0] dispatch_valid_sysu_by_way;
 
     // operand A
 	logic [3:0][LOG_PR_COUNT-1:0] dispatch_A_PR_by_way;
@@ -282,7 +282,7 @@ module decode_unit_wrapper (
 	logic [3:0] dispatch_ack_bru_iq_by_way;
 	logic [3:0] dispatch_ack_ldu_iq_by_way;
 	logic [3:0] dispatch_ack_stamofu_iq_by_way;
-	logic [3:0] dispatch_ack_sys_iq_by_way;
+	logic [3:0] dispatch_ack_sysu_iq_by_way;
 
     // writeback bus by bank
 	logic [PRF_BANK_COUNT-1:0] WB_bus_valid_by_bank;
@@ -422,7 +422,7 @@ module decode_unit_wrapper (
 			last_dispatch_attempt_bru_iq_by_way <= '0;
 			last_dispatch_attempt_ldu_iq_by_way <= '0;
 			last_dispatch_attempt_stamofu_iq_by_way <= '0;
-			last_dispatch_attempt_sys_iq_by_way <= '0;
+			last_dispatch_attempt_sysu_iq_by_way <= '0;
 
 		    // instr FU valids
 			last_dispatch_valid_alu_reg_by_way <= '0;
@@ -433,7 +433,7 @@ module decode_unit_wrapper (
 			last_dispatch_valid_store_by_way <= '0;
 			last_dispatch_valid_amo_by_way <= '0;
 			last_dispatch_valid_fence_by_way <= '0;
-			last_dispatch_valid_sys_by_way <= '0;
+			last_dispatch_valid_sysu_by_way <= '0;
 
 		    // operand A
 			last_dispatch_A_PR_by_way <= '0;
@@ -460,7 +460,7 @@ module decode_unit_wrapper (
 			dispatch_ack_bru_iq_by_way <= '0;
 			dispatch_ack_ldu_iq_by_way <= '0;
 			dispatch_ack_stamofu_iq_by_way <= '0;
-			dispatch_ack_sys_iq_by_way <= '0;
+			dispatch_ack_sysu_iq_by_way <= '0;
 
 		    // writeback bus by bank
 			WB_bus_valid_by_bank <= '0;
@@ -586,7 +586,7 @@ module decode_unit_wrapper (
 			last_dispatch_attempt_bru_iq_by_way <= dispatch_attempt_bru_iq_by_way;
 			last_dispatch_attempt_ldu_iq_by_way <= dispatch_attempt_ldu_iq_by_way;
 			last_dispatch_attempt_stamofu_iq_by_way <= dispatch_attempt_stamofu_iq_by_way;
-			last_dispatch_attempt_sys_iq_by_way <= dispatch_attempt_sys_iq_by_way;
+			last_dispatch_attempt_sysu_iq_by_way <= dispatch_attempt_sysu_iq_by_way;
 
 		    // instr FU valids
 			last_dispatch_valid_alu_reg_by_way <= dispatch_valid_alu_reg_by_way;
@@ -597,7 +597,7 @@ module decode_unit_wrapper (
 			last_dispatch_valid_store_by_way <= dispatch_valid_store_by_way;
 			last_dispatch_valid_amo_by_way <= dispatch_valid_amo_by_way;
 			last_dispatch_valid_fence_by_way <= dispatch_valid_fence_by_way;
-			last_dispatch_valid_sys_by_way <= dispatch_valid_sys_by_way;
+			last_dispatch_valid_sysu_by_way <= dispatch_valid_sysu_by_way;
 
 		    // operand A
 			last_dispatch_A_PR_by_way <= dispatch_A_PR_by_way;
@@ -624,7 +624,7 @@ module decode_unit_wrapper (
 			dispatch_ack_bru_iq_by_way <= next_dispatch_ack_bru_iq_by_way;
 			dispatch_ack_ldu_iq_by_way <= next_dispatch_ack_ldu_iq_by_way;
 			dispatch_ack_stamofu_iq_by_way <= next_dispatch_ack_stamofu_iq_by_way;
-			dispatch_ack_sys_iq_by_way <= next_dispatch_ack_sys_iq_by_way;
+			dispatch_ack_sysu_iq_by_way <= next_dispatch_ack_sysu_iq_by_way;
 
 		    // writeback bus by bank
 			WB_bus_valid_by_bank <= next_WB_bus_valid_by_bank;

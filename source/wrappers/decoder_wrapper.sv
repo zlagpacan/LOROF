@@ -31,7 +31,7 @@ module decoder_wrapper (
 	output logic last_is_store,
 	output logic last_is_amo,
 	output logic last_is_fence,
-	output logic last_is_sys,
+	output logic last_is_sysu,
 	output logic last_is_illegal_instr,
 
     // op
@@ -95,7 +95,7 @@ module decoder_wrapper (
 	logic is_store;
 	logic is_amo;
 	logic is_fence;
-	logic is_sys;
+	logic is_sysu;
 	logic is_illegal_instr;
 
     // op
@@ -166,7 +166,7 @@ module decoder_wrapper (
 			last_is_store <= '0;
 			last_is_amo <= '0;
 			last_is_fence <= '0;
-			last_is_sys <= '0;
+			last_is_sysu <= '0;
 			last_is_illegal_instr <= '0;
 
 		    // op
@@ -228,7 +228,7 @@ module decoder_wrapper (
 			last_is_store <= is_store;
 			last_is_amo <= is_amo;
 			last_is_fence <= is_fence;
-			last_is_sys <= is_sys;
+			last_is_sysu <= is_sysu;
 			last_is_illegal_instr <= is_illegal_instr;
 
 		    // op

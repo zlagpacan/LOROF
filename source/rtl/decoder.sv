@@ -31,7 +31,7 @@ module decoder (
     output logic is_store,
     output logic is_amo,
     output logic is_fence,
-    output logic is_sys,
+    output logic is_sysu,
     output logic is_illegal_instr,
 
     // op
@@ -331,7 +331,7 @@ module decoder (
         is_store = 1'b0;
         is_amo = 1'b0;
         is_fence = 1'b0;
-        is_sys = 1'b0;
+        is_sysu = 1'b0;
         is_illegal_instr = 1'b0;
 
         op[3] = uncfunct7_is_0bx1xxxxx;
@@ -640,7 +640,7 @@ module decoder (
                             if (cinstr_rhigh == 5'h0 & cinstr_rlow == 5'h0) begin
                                 // C.EBREAK
                                     // EBREAK
-                                is_sys = 1'b1;
+                                is_sysu = 1'b1;
                                 op[2:0] = 3'b000;
                                 wait_for_restart = 1'b1;
                                 cimm20 = {8'b00000000, 7'b0000000, 5'b00001};
@@ -1055,7 +1055,7 @@ module decoder (
 
                     5'b11100:
                     begin
-                        // SYS + SFENCE.VMA
+                        // sysu + SFENCE.VMA
 
                         case (uncinstr_funct3)
                         
@@ -1068,13 +1068,13 @@ module decoder (
                                     begin
                                         if (uncinstr_rs2 == 5'b00000) begin
                                             // ECALL
-                                            is_sys = 1'b1;
+                                            is_sysu = 1'b1;
                                             op[2:0] = uncinstr_funct3;
                                             wait_for_restart = 1'b1;
                                         end
                                         else if (uncinstr_rs2 == 5'b00001) begin
                                             // EBREAK
-                                            is_sys = 1'b1;
+                                            is_sysu = 1'b1;
                                             op[2:0] = uncinstr_funct3;
                                             wait_for_restart = 1'b1;
                                         end
@@ -1095,7 +1095,7 @@ module decoder (
                                                 is_illegal_instr = 1'b1;
                                             end 
                                             else begin
-                                                is_sys = 1'b1;
+                                                is_sysu = 1'b1;
                                                 op[2:0] = uncinstr_funct3;
                                                 wait_for_restart = 1'b1; 
                                             end
@@ -1112,7 +1112,7 @@ module decoder (
                                             else begin
                                                 // flush fetch to be resumed after interrupt
                                                 // rob takes care of WFI stall state
-                                                is_sys = 1'b1;
+                                                is_sysu = 1'b1;
                                                 op[2:0] = uncinstr_funct3;
                                                 wait_for_restart = 1'b1;
                                             end
@@ -1155,7 +1155,7 @@ module decoder (
                                                 is_illegal_instr = 1'b1;
                                             end
                                             else begin
-                                                is_sys = 1'b1;
+                                                is_sysu = 1'b1;
                                                 op[2:0] = uncinstr_funct3;
                                                 wait_for_restart = 1'b1;
                                             end
@@ -1175,7 +1175,7 @@ module decoder (
                             3'b001, 3'b010, 3'b011, 3'b101, 3'b110, 3'b111:
                             begin
                                 // CSRRW, CSRRS, CSRRC, CSRRWI, CSRRSI, CSRRCI
-                                is_sys = 1'b1;
+                                is_sysu = 1'b1;
                                 op[2:0] = uncinstr_funct3;
                                 is_reg_write = 1'b1;
                             end

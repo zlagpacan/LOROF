@@ -80,7 +80,7 @@ module decode_unit #(
     output logic [3:0]                              dispatch_attempt_bru_iq_by_way,
 	output logic [3:0]								dispatch_attempt_ldu_iq_by_way,
     output logic [3:0]                              dispatch_attempt_stamofu_iq_by_way,
-    output logic [3:0]                              dispatch_attempt_sys_iq_by_way,
+    output logic [3:0]                              dispatch_attempt_sysu_iq_by_way,
 
     // instr FU valids
     output logic [3:0]                              dispatch_valid_alu_reg_by_way,
@@ -91,7 +91,7 @@ module decode_unit #(
     output logic [3:0]                              dispatch_valid_store_by_way,
     output logic [3:0]                              dispatch_valid_amo_by_way,
     output logic [3:0]                              dispatch_valid_fence_by_way,
-    output logic [3:0]                              dispatch_valid_sys_by_way,
+    output logic [3:0]                              dispatch_valid_sysu_by_way,
 
     // operand A
     output logic [3:0][LOG_PR_COUNT-1:0]            dispatch_A_PR_by_way,
@@ -118,7 +118,7 @@ module decode_unit #(
     input logic [3:0] dispatch_ack_bru_iq_by_way,
     input logic [3:0] dispatch_ack_ldu_iq_by_way,
     input logic [3:0] dispatch_ack_stamofu_iq_by_way,
-    input logic [3:0] dispatch_ack_sys_iq_by_way,
+    input logic [3:0] dispatch_ack_sysu_iq_by_way,
 
     // writeback bus by bank
     input logic [PRF_BANK_COUNT-1:0]                                        WB_bus_valid_by_bank,
@@ -291,7 +291,7 @@ module decode_unit #(
 	logic [3:0] is_store_by_way_RNM, next_is_store_by_way_RNM;
 	logic [3:0] is_amo_by_way_RNM, next_is_amo_by_way_RNM;
 	logic [3:0] is_fence_by_way_RNM, next_is_fence_by_way_RNM;
-	logic [3:0] is_sys_by_way_RNM, next_is_sys_by_way_RNM;
+	logic [3:0] is_sysu_by_way_RNM, next_is_sysu_by_way_RNM;
 	// op
 	logic [3:0][3:0]	op_by_way_RNM, next_op_by_way_RNM;
 	logic [3:0]     	is_reg_write_by_way_RNM, next_is_reg_write_by_way_RNM;
@@ -343,7 +343,7 @@ module decode_unit #(
 		logic [3:0] decoder_is_store_by_way;
 		logic [3:0] decoder_is_amo_by_way;
 		logic [3:0] decoder_is_fence_by_way;
-		logic [3:0] decoder_is_sys_by_way;
+		logic [3:0] decoder_is_sysu_by_way;
 		logic [3:0] decoder_is_illegal_instr_by_way;
 
 		// op
@@ -430,7 +430,7 @@ module decode_unit #(
 	logic [3:0] is_store_by_way_DISP, next_is_store_by_way_DISP;
 	logic [3:0] is_amo_by_way_DISP, next_is_amo_by_way_DISP;
 	logic [3:0] is_fence_by_way_DISP, next_is_fence_by_way_DISP;
-	logic [3:0] is_sys_by_way_DISP, next_is_sys_by_way_DISP;
+	logic [3:0] is_sysu_by_way_DISP, next_is_sysu_by_way_DISP;
 
 	logic [3:0][3:0]	op_by_way_DISP, next_op_by_way_DISP;
 	logic [3:0]     	is_reg_write_by_way_DISP, next_is_reg_write_by_way_DISP;
@@ -961,7 +961,7 @@ module decode_unit #(
 				.is_store(decoder_is_store_by_way[decoder_i]),
 				.is_amo(decoder_is_amo_by_way[decoder_i]),
 				.is_fence(decoder_is_fence_by_way[decoder_i]),
-				.is_sys(decoder_is_sys_by_way[decoder_i]),
+				.is_sysu(decoder_is_sysu_by_way[decoder_i]),
 				.is_illegal_instr(decoder_is_illegal_instr_by_way[decoder_i]),
 				// op
 				.op(decoder_op_by_way[decoder_i]),
@@ -1105,7 +1105,7 @@ module decode_unit #(
 		next_is_fence_by_way_RNM = decoder_is_fence_by_way
 			& valid_by_way_DEC
 			& ~(access_fault_by_way_DEC | page_fault_by_way_DEC | decoder_is_illegal_instr_by_way);
-		next_is_sys_by_way_RNM = decoder_is_sys_by_way
+		next_is_sysu_by_way_RNM = decoder_is_sysu_by_way
 			& valid_by_way_DEC
 			& ~(access_fault_by_way_DEC | page_fault_by_way_DEC | decoder_is_illegal_instr_by_way);
 
@@ -1173,7 +1173,7 @@ module decode_unit #(
 			is_store_by_way_RNM <= '0;
 			is_amo_by_way_RNM <= '0;
 			is_fence_by_way_RNM <= '0;
-			is_sys_by_way_RNM <= '0;
+			is_sysu_by_way_RNM <= '0;
 
 			op_by_way_RNM <= '0;
 			is_reg_write_by_way_RNM <= '0;
@@ -1231,7 +1231,7 @@ module decode_unit #(
 			is_store_by_way_RNM <= is_store_by_way_RNM;
 			is_amo_by_way_RNM <= is_amo_by_way_RNM;
 			is_fence_by_way_RNM <= is_fence_by_way_RNM;
-			is_sys_by_way_RNM <= is_sys_by_way_RNM;
+			is_sysu_by_way_RNM <= is_sysu_by_way_RNM;
 
 			op_by_way_RNM <= op_by_way_RNM;
 			is_reg_write_by_way_RNM <= is_reg_write_by_way_RNM;
@@ -1289,7 +1289,7 @@ module decode_unit #(
 			is_store_by_way_RNM <= next_is_store_by_way_RNM;
 			is_amo_by_way_RNM <= next_is_amo_by_way_RNM;
 			is_fence_by_way_RNM <= next_is_fence_by_way_RNM;
-			is_sys_by_way_RNM <= next_is_sys_by_way_RNM;
+			is_sysu_by_way_RNM <= next_is_sysu_by_way_RNM;
 
 			op_by_way_RNM <= next_op_by_way_RNM;
 			is_reg_write_by_way_RNM <= next_is_reg_write_by_way_RNM;
@@ -1604,7 +1604,7 @@ module decode_unit #(
 		next_is_store_by_way_DISP = is_store_by_way_RNM;
 		next_is_amo_by_way_DISP = is_amo_by_way_RNM;
 		next_is_fence_by_way_DISP = is_fence_by_way_RNM;
-		next_is_sys_by_way_DISP = is_sys_by_way_RNM;
+		next_is_sysu_by_way_DISP = is_sysu_by_way_RNM;
 
 		next_op_by_way_DISP = op_by_way_RNM;
 		next_is_reg_write_by_way_DISP = is_reg_write_by_way_RNM;
@@ -1689,7 +1689,7 @@ module decode_unit #(
 			is_store_by_way_DISP <= '0;
 			is_amo_by_way_DISP <= '0;
 			is_fence_by_way_DISP <= '0;
-			is_sys_by_way_DISP <= '0;
+			is_sysu_by_way_DISP <= '0;
 			
 			op_by_way_DISP <= '0;
 			is_reg_write_by_way_DISP <= '0;
@@ -1743,7 +1743,7 @@ module decode_unit #(
 			is_store_by_way_DISP <= is_store_by_way_DISP;
 			is_amo_by_way_DISP <= is_amo_by_way_DISP;
 			is_fence_by_way_DISP <= is_fence_by_way_DISP;
-			is_sys_by_way_DISP <= is_sys_by_way_DISP;
+			is_sysu_by_way_DISP <= is_sysu_by_way_DISP;
 			
 			op_by_way_DISP <= op_by_way_DISP;
 			is_reg_write_by_way_DISP <= is_reg_write_by_way_DISP;
@@ -1797,7 +1797,7 @@ module decode_unit #(
 			is_store_by_way_DISP <= next_is_store_by_way_DISP;
 			is_amo_by_way_DISP <= next_is_amo_by_way_DISP;
 			is_fence_by_way_DISP <= next_is_fence_by_way_DISP;
-			is_sys_by_way_DISP <= next_is_sys_by_way_DISP;
+			is_sysu_by_way_DISP <= next_is_sysu_by_way_DISP;
 			
 			op_by_way_DISP <= next_op_by_way_DISP;
 			is_reg_write_by_way_DISP <= next_is_reg_write_by_way_DISP;
@@ -1855,7 +1855,7 @@ module decode_unit #(
 					| dispatch_ack_bru_iq_by_way
 					| dispatch_ack_ldu_iq_by_way
 					| dispatch_ack_stamofu_iq_by_way
-					| dispatch_ack_sys_iq_by_way)
+					| dispatch_ack_sysu_iq_by_way)
 			) begin
 				perform_DISP = 1'b1;
 				stall_DISP = 1'b0;
@@ -1967,7 +1967,7 @@ module decode_unit #(
 		dispatch_attempt_bru_iq_by_way = is_bru_by_way_DISP;
 		dispatch_attempt_ldu_iq_by_way = is_ldu_by_way_DISP;
 		dispatch_attempt_stamofu_iq_by_way = is_store_by_way_DISP | is_amo_by_way_DISP | is_fence_by_way_DISP;
-		dispatch_attempt_sys_iq_by_way = is_sys_by_way_DISP;
+		dispatch_attempt_sysu_iq_by_way = is_sysu_by_way_DISP;
 
 		// instr FU valids
 		dispatch_valid_alu_reg_by_way = is_alu_reg_by_way_DISP & {4{perform_DISP}};
@@ -1978,7 +1978,7 @@ module decode_unit #(
 		dispatch_valid_store_by_way = is_store_by_way_DISP & {4{perform_DISP}};
 		dispatch_valid_amo_by_way = is_amo_by_way_DISP & {4{perform_DISP}};
 		dispatch_valid_fence_by_way = is_fence_by_way_DISP & {4{perform_DISP}};
-		dispatch_valid_sys_by_way = is_sys_by_way_DISP & {4{perform_DISP}};
+		dispatch_valid_sysu_by_way = is_sysu_by_way_DISP & {4{perform_DISP}};
 
 		// operand A
 		dispatch_A_PR_by_way = A_PR_by_way_DISP;

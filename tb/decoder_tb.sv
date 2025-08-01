@@ -53,7 +53,7 @@ module decoder_tb ();
 	logic DUT_is_store, expected_is_store;
 	logic DUT_is_amo, expected_is_amo;
 	logic DUT_is_fence, expected_is_fence;
-	logic DUT_is_sys, expected_is_sys;
+	logic DUT_is_sysu, expected_is_sysu;
 	logic DUT_is_illegal_instr, expected_is_illegal_instr;
 
     // op
@@ -125,7 +125,7 @@ module decoder_tb ();
 		.is_store(DUT_is_store),
 		.is_amo(DUT_is_amo),
 		.is_fence(DUT_is_fence),
-		.is_sys(DUT_is_sys),
+		.is_sysu(DUT_is_sysu),
 		.is_illegal_instr(DUT_is_illegal_instr),
 
 	    // op
@@ -233,9 +233,9 @@ module decoder_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_is_sys !== DUT_is_sys) begin
-			$display("TB ERROR: expected_is_sys (%h) != DUT_is_sys (%h)",
-				expected_is_sys, DUT_is_sys);
+		if (expected_is_sysu !== DUT_is_sysu) begin
+			$display("TB ERROR: expected_is_sysu (%h) != DUT_is_sysu (%h)",
+				expected_is_sysu, DUT_is_sysu);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -492,7 +492,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'h0;
@@ -572,7 +572,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'h0;
@@ -660,7 +660,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b1111;
@@ -742,7 +742,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0110;
@@ -824,7 +824,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0111;
@@ -906,7 +906,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0111;
@@ -988,7 +988,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0010;
@@ -1070,7 +1070,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0010;
@@ -1152,7 +1152,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -1234,7 +1234,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b1101;
@@ -1316,7 +1316,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1000;
@@ -1398,7 +1398,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1001;
@@ -1480,7 +1480,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b1010;
@@ -1562,7 +1562,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1100;
@@ -1644,7 +1644,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1101;
@@ -1726,7 +1726,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1110;
@@ -1808,7 +1808,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1111;
@@ -1890,7 +1890,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -1972,7 +1972,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -2054,7 +2054,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1001;
@@ -2136,7 +2136,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1001;
@@ -2218,7 +2218,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1010;
@@ -2300,7 +2300,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b1011;
@@ -2382,7 +2382,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0100;
@@ -2464,7 +2464,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0101;
@@ -2546,7 +2546,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b1110;
@@ -2628,7 +2628,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0111;
@@ -2710,7 +2710,7 @@ module decoder_tb ();
 		expected_is_store = 1'b1;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1000;
@@ -2792,7 +2792,7 @@ module decoder_tb ();
 		expected_is_store = 1'b1;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0001;
@@ -2874,7 +2874,7 @@ module decoder_tb ();
 		expected_is_store = 1'b1;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1010;
@@ -2956,7 +2956,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0011;
@@ -3038,7 +3038,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0100;
@@ -3120,7 +3120,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0101;
@@ -3202,7 +3202,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0110;
@@ -3284,7 +3284,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0111;
@@ -3366,7 +3366,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -3448,7 +3448,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0001;
@@ -3530,7 +3530,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0001;
@@ -3612,7 +3612,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0010;
@@ -3694,7 +3694,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0011;
@@ -3776,7 +3776,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1100;
@@ -3858,7 +3858,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0101;
@@ -3940,7 +3940,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1101;
@@ -4022,7 +4022,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0101;
@@ -4104,7 +4104,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1110;
@@ -4186,7 +4186,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0111;
@@ -4268,7 +4268,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -4350,7 +4350,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1000;
@@ -4432,7 +4432,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b1000;
@@ -4514,7 +4514,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0001;
@@ -4596,7 +4596,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0010;
@@ -4678,7 +4678,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0011;
@@ -4760,7 +4760,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0100;
@@ -4842,7 +4842,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0101;
@@ -4924,7 +4924,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1101;
@@ -5006,7 +5006,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0110;
@@ -5088,7 +5088,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0111;
@@ -5170,7 +5170,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b1;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -5252,7 +5252,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b1;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -5334,7 +5334,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b1000;
@@ -5416,7 +5416,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b1;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -5498,7 +5498,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b1;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -5580,7 +5580,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b1;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -5662,7 +5662,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b1;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -5744,7 +5744,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b1;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -5826,7 +5826,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b1;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -5908,7 +5908,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b1;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -5990,7 +5990,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b1;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -6072,7 +6072,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b1;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -6154,7 +6154,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b1;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -6236,7 +6236,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b1;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1001;
@@ -6318,7 +6318,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b1110;
@@ -6400,7 +6400,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b1;
+		expected_is_sysu = 1'b1;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -6482,7 +6482,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b1;
+		expected_is_sysu = 1'b1;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -6564,7 +6564,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0000;
@@ -6646,7 +6646,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0000;
@@ -6728,7 +6728,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b1;
+		expected_is_sysu = 1'b1;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -6810,7 +6810,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0000;
@@ -6892,7 +6892,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b1;
+		expected_is_sysu = 1'b1;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -6974,7 +6974,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0000;
@@ -7056,7 +7056,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b1;
+		expected_is_sysu = 1'b1;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -7138,7 +7138,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0000;
@@ -7220,7 +7220,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b1;
+		expected_is_sysu = 1'b1;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -7302,7 +7302,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0000;
@@ -7384,7 +7384,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0000;
@@ -7466,7 +7466,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b1;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0010;
@@ -7548,7 +7548,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0000;
@@ -7630,7 +7630,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b1;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0010;
@@ -7712,7 +7712,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0000;
@@ -7794,7 +7794,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0000;
@@ -7876,7 +7876,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b1;
+		expected_is_sysu = 1'b1;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -7958,7 +7958,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0000;
@@ -8001,7 +8001,7 @@ module decoder_tb ();
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "bad SYS 000";
+		sub_test_case = "bad sysu 000";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -8040,7 +8040,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0000;
@@ -8122,7 +8122,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b1;
+		expected_is_sysu = 1'b1;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0001;
@@ -8204,7 +8204,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b1;
+		expected_is_sysu = 1'b1;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0010;
@@ -8286,7 +8286,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b1;
+		expected_is_sysu = 1'b1;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1011;
@@ -8368,7 +8368,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b1100;
@@ -8450,7 +8450,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b1;
+		expected_is_sysu = 1'b1;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0101;
@@ -8532,7 +8532,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b1;
+		expected_is_sysu = 1'b1;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1110;
@@ -8614,7 +8614,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b1;
+		expected_is_sysu = 1'b1;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1111;
@@ -8696,7 +8696,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -8778,7 +8778,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0001;
@@ -8860,7 +8860,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0010;
@@ -8942,7 +8942,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0011;
@@ -9024,7 +9024,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0100;
@@ -9106,7 +9106,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0101;
@@ -9188,7 +9188,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0110;
@@ -9270,7 +9270,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0111;
@@ -9352,7 +9352,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b1;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0010;
@@ -9434,7 +9434,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0111;
@@ -9516,7 +9516,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0010;
@@ -9598,7 +9598,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b1;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0011;
@@ -9680,7 +9680,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b1;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0111;
@@ -9762,7 +9762,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b1;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -9844,7 +9844,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b1;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0100;
@@ -9926,7 +9926,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b1;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1100;
@@ -10008,7 +10008,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b1;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1000;
@@ -10090,7 +10090,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b1;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1001;
@@ -10172,7 +10172,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b1;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1101;
@@ -10254,7 +10254,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b1;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0001;
@@ -10336,7 +10336,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b1;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0101;
@@ -10424,7 +10424,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -10506,7 +10506,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -10588,7 +10588,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0010;
@@ -10670,7 +10670,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1010;
@@ -10752,7 +10752,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1010;
@@ -10834,7 +10834,7 @@ module decoder_tb ();
 		expected_is_store = 1'b1;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0110;
@@ -10916,7 +10916,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -10998,7 +10998,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -11080,7 +11080,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0011;
@@ -11162,7 +11162,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0011;
@@ -11244,7 +11244,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -11326,7 +11326,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -11408,7 +11408,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -11490,7 +11490,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0110;
@@ -11572,7 +11572,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0101;
@@ -11654,7 +11654,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1101;
@@ -11736,7 +11736,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0111;
@@ -11818,7 +11818,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1000;
@@ -11900,7 +11900,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0100;
@@ -11982,7 +11982,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0110;
@@ -12064,7 +12064,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0111;
@@ -12146,7 +12146,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0100;
@@ -12228,7 +12228,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0100;
@@ -12310,7 +12310,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1010;
@@ -12392,7 +12392,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1010;
@@ -12474,7 +12474,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1011;
@@ -12556,7 +12556,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b1011;
@@ -12638,7 +12638,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0001;
@@ -12722,7 +12722,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0010;
@@ -12804,7 +12804,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0010;
@@ -12886,7 +12886,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0101;
@@ -12968,7 +12968,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0101;
@@ -13050,7 +13050,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -13132,7 +13132,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b1;
+		expected_is_sysu = 1'b1;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -13214,7 +13214,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0001;
@@ -13296,7 +13296,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0001;
@@ -13378,7 +13378,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0000;
@@ -13460,7 +13460,7 @@ module decoder_tb ();
 		expected_is_store = 1'b0;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b1;
 	    // op
 		expected_op = 4'b0011;
@@ -13542,7 +13542,7 @@ module decoder_tb ();
 		expected_is_store = 1'b1;
 		expected_is_amo = 1'b0;
 		expected_is_fence = 1'b0;
-		expected_is_sys = 1'b0;
+		expected_is_sysu = 1'b0;
 		expected_is_illegal_instr = 1'b0;
 	    // op
 		expected_op = 4'b0110;
