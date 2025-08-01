@@ -421,7 +421,7 @@ module stamofu_dq #(
 
             // --------------------------------------------------------
             // remaining lower entries can take self or above
-            for (int i = 0; i <= LDU_DQ_ENTRIES-2; i++) begin
+            for (int i = 0; i <= STAMOFU_DQ_ENTRIES-2; i++) begin
 
                 // check launch -> take above
                 if (launching) begin
