@@ -72,6 +72,12 @@ package core_types_pkg;
 
     parameter BRU_DQ_ENTRIES = 4;
     parameter BRU_IQ_ENTRIES = 4;
+    
+    parameter LDU_DQ_ENTRIES = 4;
+    parameter LDU_IQ_ENTRIES = 8;
+
+    parameter STAMOFU_DQ_ENTRIES = 4;
+    parameter STAMOFU_IQ_ENTRIES = 8;
 
     parameter SYSU_DQ_ENTRIES = 4;
 
@@ -180,16 +186,12 @@ package core_types_pkg;
     // LSQ:
 
     // ldu
-    parameter LDU_DQ_ENTRIES = 4;
-    parameter LDU_IQ_ENTRIES = 8;
     parameter LDU_CQ_ENTRIES = 40;
     parameter LOG_LDU_CQ_ENTRIES = $clog2(LDU_CQ_ENTRIES);
     parameter LDU_MQ_ENTRIES = 4;
     parameter LOG_LDU_MQ_ENTRIES = $clog2(LDU_MQ_ENTRIES);
 
     // stamofu
-    parameter STAMOFU_DQ_ENTRIES = 4;
-    parameter STAMOFU_IQ_ENTRIES = 8;
     parameter STAMOFU_CQ_ENTRIES = 24;
     parameter LOG_STAMOFU_CQ_ENTRIES = $clog2(STAMOFU_CQ_ENTRIES);
     parameter STAMOFU_AQ_ENTRIES = 4;
@@ -204,6 +206,9 @@ package core_types_pkg;
     // ssu
     parameter SSU_INNER_BUFFER_ENTRIES = 2;
     parameter SSU_FUNNEL_BUFFER_ENTRIES = 2;
+
+    // ----------------------------------------------------------------
+    // SYSU:
 
 endpackage
 

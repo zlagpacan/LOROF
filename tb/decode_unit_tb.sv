@@ -88,12 +88,12 @@ module decode_unit_tb ();
 	logic [CHECKPOINT_INDEX_WIDTH-1:0] DUT_dispatch_checkpoint_index, expected_dispatch_checkpoint_index;
 
     // instr IQ attempts
-	logic [3:0] DUT_dispatch_attempt_alu_reg_mdu_iq_by_way, expected_dispatch_attempt_alu_reg_mdu_iq_by_way;
-	logic [3:0] DUT_dispatch_attempt_alu_imm_iq_by_way, expected_dispatch_attempt_alu_imm_iq_by_way;
-	logic [3:0] DUT_dispatch_attempt_bru_iq_by_way, expected_dispatch_attempt_bru_iq_by_way;
-	logic [3:0] DUT_dispatch_attempt_ldu_iq_by_way, expected_dispatch_attempt_ldu_iq_by_way;
-	logic [3:0] DUT_dispatch_attempt_stamofu_iq_by_way, expected_dispatch_attempt_stamofu_iq_by_way;
-	logic [3:0] DUT_dispatch_attempt_sysu_iq_by_way, expected_dispatch_attempt_sysu_iq_by_way;
+	logic [3:0] DUT_dispatch_attempt_alu_reg_mdu_dq_by_way, expected_dispatch_attempt_alu_reg_mdu_dq_by_way;
+	logic [3:0] DUT_dispatch_attempt_alu_imm_dq_by_way, expected_dispatch_attempt_alu_imm_dq_by_way;
+	logic [3:0] DUT_dispatch_attempt_bru_dq_by_way, expected_dispatch_attempt_bru_dq_by_way;
+	logic [3:0] DUT_dispatch_attempt_ldu_dq_by_way, expected_dispatch_attempt_ldu_dq_by_way;
+	logic [3:0] DUT_dispatch_attempt_stamofu_dq_by_way, expected_dispatch_attempt_stamofu_dq_by_way;
+	logic [3:0] DUT_dispatch_attempt_sysu_dq_by_way, expected_dispatch_attempt_sysu_dq_by_way;
 
     // instr FU valids
 	logic [3:0] DUT_dispatch_valid_alu_reg_by_way, expected_dispatch_valid_alu_reg_by_way;
@@ -126,12 +126,12 @@ module decode_unit_tb ();
 	logic [3:0] DUT_dispatch_dest_is_link_ra, expected_dispatch_dest_is_link_ra;
 
     // instr IQ acks
-	logic [3:0] tb_dispatch_ack_alu_reg_mdu_iq_by_way;
-	logic [3:0] tb_dispatch_ack_alu_imm_iq_by_way;
-	logic [3:0] tb_dispatch_ack_bru_iq_by_way;
-	logic [3:0] tb_dispatch_ack_ldu_iq_by_way;
-	logic [3:0] tb_dispatch_ack_stamofu_iq_by_way;
-	logic [3:0] tb_dispatch_ack_sysu_iq_by_way;
+	logic [3:0] tb_dispatch_ack_alu_reg_mdu_dq_by_way;
+	logic [3:0] tb_dispatch_ack_alu_imm_dq_by_way;
+	logic [3:0] tb_dispatch_ack_bru_dq_by_way;
+	logic [3:0] tb_dispatch_ack_ldu_dq_by_way;
+	logic [3:0] tb_dispatch_ack_stamofu_dq_by_way;
+	logic [3:0] tb_dispatch_ack_sysu_dq_by_way;
 
     // writeback bus by bank
 	logic [PRF_BANK_COUNT-1:0] tb_WB_bus_valid_by_bank;
@@ -262,12 +262,12 @@ module decode_unit_tb ();
 		.dispatch_checkpoint_index(DUT_dispatch_checkpoint_index),
 
 	    // instr IQ attempts
-		.dispatch_attempt_alu_reg_mdu_iq_by_way(DUT_dispatch_attempt_alu_reg_mdu_iq_by_way),
-		.dispatch_attempt_alu_imm_iq_by_way(DUT_dispatch_attempt_alu_imm_iq_by_way),
-		.dispatch_attempt_bru_iq_by_way(DUT_dispatch_attempt_bru_iq_by_way),
-		.dispatch_attempt_ldu_iq_by_way(DUT_dispatch_attempt_ldu_iq_by_way),
-		.dispatch_attempt_stamofu_iq_by_way(DUT_dispatch_attempt_stamofu_iq_by_way),
-		.dispatch_attempt_sysu_iq_by_way(DUT_dispatch_attempt_sysu_iq_by_way),
+		.dispatch_attempt_alu_reg_mdu_dq_by_way(DUT_dispatch_attempt_alu_reg_mdu_dq_by_way),
+		.dispatch_attempt_alu_imm_dq_by_way(DUT_dispatch_attempt_alu_imm_dq_by_way),
+		.dispatch_attempt_bru_dq_by_way(DUT_dispatch_attempt_bru_dq_by_way),
+		.dispatch_attempt_ldu_dq_by_way(DUT_dispatch_attempt_ldu_dq_by_way),
+		.dispatch_attempt_stamofu_dq_by_way(DUT_dispatch_attempt_stamofu_dq_by_way),
+		.dispatch_attempt_sysu_dq_by_way(DUT_dispatch_attempt_sysu_dq_by_way),
 
 	    // instr FU valids
 		.dispatch_valid_alu_reg_by_way(DUT_dispatch_valid_alu_reg_by_way),
@@ -300,12 +300,12 @@ module decode_unit_tb ();
 		.dispatch_dest_is_link_ra(DUT_dispatch_dest_is_link_ra),
 
 	    // instr IQ acks
-		.dispatch_ack_alu_reg_mdu_iq_by_way(tb_dispatch_ack_alu_reg_mdu_iq_by_way),
-		.dispatch_ack_alu_imm_iq_by_way(tb_dispatch_ack_alu_imm_iq_by_way),
-		.dispatch_ack_bru_iq_by_way(tb_dispatch_ack_bru_iq_by_way),
-		.dispatch_ack_ldu_iq_by_way(tb_dispatch_ack_ldu_iq_by_way),
-		.dispatch_ack_stamofu_iq_by_way(tb_dispatch_ack_stamofu_iq_by_way),
-		.dispatch_ack_sysu_iq_by_way(tb_dispatch_ack_sysu_iq_by_way),
+		.dispatch_ack_alu_reg_mdu_dq_by_way(tb_dispatch_ack_alu_reg_mdu_dq_by_way),
+		.dispatch_ack_alu_imm_dq_by_way(tb_dispatch_ack_alu_imm_dq_by_way),
+		.dispatch_ack_bru_dq_by_way(tb_dispatch_ack_bru_dq_by_way),
+		.dispatch_ack_ldu_dq_by_way(tb_dispatch_ack_ldu_dq_by_way),
+		.dispatch_ack_stamofu_dq_by_way(tb_dispatch_ack_stamofu_dq_by_way),
+		.dispatch_ack_sysu_dq_by_way(tb_dispatch_ack_sysu_dq_by_way),
 
 	    // writeback bus by bank
 		.WB_bus_valid_by_bank(tb_WB_bus_valid_by_bank),
@@ -534,44 +534,44 @@ module decode_unit_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_dispatch_attempt_alu_reg_mdu_iq_by_way !== DUT_dispatch_attempt_alu_reg_mdu_iq_by_way) begin
-			$display("TB ERROR: expected_dispatch_attempt_alu_reg_mdu_iq_by_way (%h) != DUT_dispatch_attempt_alu_reg_mdu_iq_by_way (%h)",
-				expected_dispatch_attempt_alu_reg_mdu_iq_by_way, DUT_dispatch_attempt_alu_reg_mdu_iq_by_way);
+		if (expected_dispatch_attempt_alu_reg_mdu_dq_by_way !== DUT_dispatch_attempt_alu_reg_mdu_dq_by_way) begin
+			$display("TB ERROR: expected_dispatch_attempt_alu_reg_mdu_dq_by_way (%h) != DUT_dispatch_attempt_alu_reg_mdu_dq_by_way (%h)",
+				expected_dispatch_attempt_alu_reg_mdu_dq_by_way, DUT_dispatch_attempt_alu_reg_mdu_dq_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_dispatch_attempt_alu_imm_iq_by_way !== DUT_dispatch_attempt_alu_imm_iq_by_way) begin
-			$display("TB ERROR: expected_dispatch_attempt_alu_imm_iq_by_way (%h) != DUT_dispatch_attempt_alu_imm_iq_by_way (%h)",
-				expected_dispatch_attempt_alu_imm_iq_by_way, DUT_dispatch_attempt_alu_imm_iq_by_way);
+		if (expected_dispatch_attempt_alu_imm_dq_by_way !== DUT_dispatch_attempt_alu_imm_dq_by_way) begin
+			$display("TB ERROR: expected_dispatch_attempt_alu_imm_dq_by_way (%h) != DUT_dispatch_attempt_alu_imm_dq_by_way (%h)",
+				expected_dispatch_attempt_alu_imm_dq_by_way, DUT_dispatch_attempt_alu_imm_dq_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_dispatch_attempt_bru_iq_by_way !== DUT_dispatch_attempt_bru_iq_by_way) begin
-			$display("TB ERROR: expected_dispatch_attempt_bru_iq_by_way (%h) != DUT_dispatch_attempt_bru_iq_by_way (%h)",
-				expected_dispatch_attempt_bru_iq_by_way, DUT_dispatch_attempt_bru_iq_by_way);
+		if (expected_dispatch_attempt_bru_dq_by_way !== DUT_dispatch_attempt_bru_dq_by_way) begin
+			$display("TB ERROR: expected_dispatch_attempt_bru_dq_by_way (%h) != DUT_dispatch_attempt_bru_dq_by_way (%h)",
+				expected_dispatch_attempt_bru_dq_by_way, DUT_dispatch_attempt_bru_dq_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_dispatch_attempt_ldu_iq_by_way !== DUT_dispatch_attempt_ldu_iq_by_way) begin
-			$display("TB ERROR: expected_dispatch_attempt_ldu_iq_by_way (%h) != DUT_dispatch_attempt_ldu_iq_by_way (%h)",
-				expected_dispatch_attempt_ldu_iq_by_way, DUT_dispatch_attempt_ldu_iq_by_way);
+		if (expected_dispatch_attempt_ldu_dq_by_way !== DUT_dispatch_attempt_ldu_dq_by_way) begin
+			$display("TB ERROR: expected_dispatch_attempt_ldu_dq_by_way (%h) != DUT_dispatch_attempt_ldu_dq_by_way (%h)",
+				expected_dispatch_attempt_ldu_dq_by_way, DUT_dispatch_attempt_ldu_dq_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_dispatch_attempt_stamofu_iq_by_way !== DUT_dispatch_attempt_stamofu_iq_by_way) begin
-			$display("TB ERROR: expected_dispatch_attempt_stamofu_iq_by_way (%h) != DUT_dispatch_attempt_stamofu_iq_by_way (%h)",
-				expected_dispatch_attempt_stamofu_iq_by_way, DUT_dispatch_attempt_stamofu_iq_by_way);
+		if (expected_dispatch_attempt_stamofu_dq_by_way !== DUT_dispatch_attempt_stamofu_dq_by_way) begin
+			$display("TB ERROR: expected_dispatch_attempt_stamofu_dq_by_way (%h) != DUT_dispatch_attempt_stamofu_dq_by_way (%h)",
+				expected_dispatch_attempt_stamofu_dq_by_way, DUT_dispatch_attempt_stamofu_dq_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_dispatch_attempt_sysu_iq_by_way !== DUT_dispatch_attempt_sysu_iq_by_way) begin
-			$display("TB ERROR: expected_dispatch_attempt_sysu_iq_by_way (%h) != DUT_dispatch_attempt_sysu_iq_by_way (%h)",
-				expected_dispatch_attempt_sysu_iq_by_way, DUT_dispatch_attempt_sysu_iq_by_way);
+		if (expected_dispatch_attempt_sysu_dq_by_way !== DUT_dispatch_attempt_sysu_dq_by_way) begin
+			$display("TB ERROR: expected_dispatch_attempt_sysu_dq_by_way (%h) != DUT_dispatch_attempt_sysu_dq_by_way (%h)",
+				expected_dispatch_attempt_sysu_dq_by_way, DUT_dispatch_attempt_sysu_dq_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -947,12 +947,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -1023,12 +1023,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -1120,12 +1120,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -1196,12 +1196,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -1301,12 +1301,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -1377,12 +1377,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -1476,12 +1476,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -1552,12 +1552,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -1701,12 +1701,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -1777,12 +1777,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -1929,12 +1929,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -2005,12 +2005,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -2161,12 +2161,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -2237,12 +2237,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -2397,12 +2397,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0011;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0100;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b1000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0011;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0100;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b1000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -2493,12 +2493,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b1;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0011;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0100;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b1000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0011;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0100;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b1000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -2649,12 +2649,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0011;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0100;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b1000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0011;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0100;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b1000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -2745,12 +2745,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0011;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0100;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b1000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0011;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0100;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b1000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -2897,12 +2897,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0001;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0100;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0001;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0100;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -2993,12 +2993,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0010;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0100;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b1000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0010;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0100;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b1000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -3145,12 +3145,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0010;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0001;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0100;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b1000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0010;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0001;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0100;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b1000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -3241,12 +3241,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0010;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0100;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b1000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0010;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0100;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b1000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0010;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -3389,12 +3389,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0001;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0010;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0100;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0001;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0010;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0100;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -3485,12 +3485,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0010;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0100;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0010;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0100;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -3633,12 +3633,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0001;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0010;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0100;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0001;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0010;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0100;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -3729,12 +3729,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0010;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0100;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0010;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0100;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0001;
@@ -3873,12 +3873,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -3969,12 +3969,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0010;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b1100;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0010;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b1100;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -4123,12 +4123,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -4219,12 +4219,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0010;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b1100;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0010;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b1100;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -4371,12 +4371,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -4467,12 +4467,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0010;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b1100;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0010;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b1100;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -4623,12 +4623,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -4719,12 +4719,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0010;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b1100;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0010;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b1100;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -4875,12 +4875,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0010;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b1000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0001;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0010;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b1000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0001;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -4971,12 +4971,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0010;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0100;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0010;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0100;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -5127,12 +5127,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0010;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0100;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0001;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0010;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0100;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0001;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -5223,12 +5223,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0010;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0100;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0010;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0100;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0010;
@@ -5375,12 +5375,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0001;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0010;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0100;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0001;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0010;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0100;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -5471,12 +5471,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0010;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0100;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0010;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0100;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -5627,12 +5627,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0001;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0010;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0100;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0001;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0010;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0100;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -5723,12 +5723,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0010;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0100;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0010;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0100;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -5879,12 +5879,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0001;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0010;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0100;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0001;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0010;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0100;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -5975,12 +5975,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0010;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0100;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0010;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0100;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -6127,12 +6127,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0100;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0010;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0001;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0100;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0010;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0001;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -6223,12 +6223,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0100;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0010;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0100;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0010;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -6375,12 +6375,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0100;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0010;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0001;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0100;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0010;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0001;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -6471,12 +6471,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0100;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0010;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0100;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0010;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -6619,12 +6619,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0001;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0010;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0001;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0010;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -6715,12 +6715,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0010;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0010;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -6863,12 +6863,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0001;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0010;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0001;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0010;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -6959,12 +6959,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0010;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0010;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -7103,12 +7103,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0001;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0010;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0001;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0010;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -7199,12 +7199,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0010;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0010;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -7347,12 +7347,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0001;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0010;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0001;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0010;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -7443,12 +7443,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0010;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0010;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -7591,12 +7591,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0001;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0010;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0001;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0010;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -7687,12 +7687,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0010;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0010;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -7835,12 +7835,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0001;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0010;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0001;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0010;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -7931,12 +7931,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0010;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0010;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;
@@ -8079,12 +8079,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0001;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0001;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -8175,12 +8175,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0001;
@@ -8319,12 +8319,12 @@ module decode_unit_tb ();
 	    // operand B
 	    // dest operand
 	    // instr IQ acks
-		tb_dispatch_ack_alu_reg_mdu_iq_by_way = 4'b0001;
-		tb_dispatch_ack_alu_imm_iq_by_way = 4'b0000;
-		tb_dispatch_ack_bru_iq_by_way = 4'b0000;
-		tb_dispatch_ack_ldu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_stamofu_iq_by_way = 4'b0000;
-		tb_dispatch_ack_sysu_iq_by_way = 4'b0000;
+		tb_dispatch_ack_alu_reg_mdu_dq_by_way = 4'b0001;
+		tb_dispatch_ack_alu_imm_dq_by_way = 4'b0000;
+		tb_dispatch_ack_bru_dq_by_way = 4'b0000;
+		tb_dispatch_ack_ldu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_stamofu_dq_by_way = 4'b0000;
+		tb_dispatch_ack_sysu_dq_by_way = 4'b0000;
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = 4'b0000;
 		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
@@ -8415,12 +8415,12 @@ module decode_unit_tb ();
 		expected_dispatch_has_checkpoint = 1'b0;
 		expected_dispatch_checkpoint_index = 3'h0;
 	    // instr IQ attempts
-		expected_dispatch_attempt_alu_reg_mdu_iq_by_way = 4'b0001;
-		expected_dispatch_attempt_alu_imm_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_bru_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_ldu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_stamofu_iq_by_way = 4'b0000;
-		expected_dispatch_attempt_sysu_iq_by_way = 4'b0000;
+		expected_dispatch_attempt_alu_reg_mdu_dq_by_way = 4'b0001;
+		expected_dispatch_attempt_alu_imm_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_bru_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_ldu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_stamofu_dq_by_way = 4'b0000;
+		expected_dispatch_attempt_sysu_dq_by_way = 4'b0000;
 	    // instr FU valids
 		expected_dispatch_valid_alu_reg_by_way = 4'b0000;
 		expected_dispatch_valid_mdu_by_way = 4'b0000;

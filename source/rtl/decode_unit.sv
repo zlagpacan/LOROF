@@ -75,12 +75,12 @@ module decode_unit #(
 	output logic [CHECKPOINT_INDEX_WIDTH-1:0]		dispatch_checkpoint_index,
 
     // instr IQ attempts
-    output logic [3:0]                              dispatch_attempt_alu_reg_mdu_iq_by_way,
-    output logic [3:0]                              dispatch_attempt_alu_imm_iq_by_way,
-    output logic [3:0]                              dispatch_attempt_bru_iq_by_way,
-	output logic [3:0]								dispatch_attempt_ldu_iq_by_way,
-    output logic [3:0]                              dispatch_attempt_stamofu_iq_by_way,
-    output logic [3:0]                              dispatch_attempt_sysu_iq_by_way,
+    output logic [3:0]                              dispatch_attempt_alu_reg_mdu_dq_by_way,
+    output logic [3:0]                              dispatch_attempt_alu_imm_dq_by_way,
+    output logic [3:0]                              dispatch_attempt_bru_dq_by_way,
+	output logic [3:0]								dispatch_attempt_ldu_dq_by_way,
+    output logic [3:0]                              dispatch_attempt_stamofu_dq_by_way,
+    output logic [3:0]                              dispatch_attempt_sysu_dq_by_way,
 
     // instr FU valids
     output logic [3:0]                              dispatch_valid_alu_reg_by_way,
@@ -113,12 +113,12 @@ module decode_unit #(
     output logic [3:0]                              dispatch_dest_is_link_ra,
 
     // instr IQ acks
-    input logic [3:0] dispatch_ack_alu_reg_mdu_iq_by_way,
-    input logic [3:0] dispatch_ack_alu_imm_iq_by_way,
-    input logic [3:0] dispatch_ack_bru_iq_by_way,
-    input logic [3:0] dispatch_ack_ldu_iq_by_way,
-    input logic [3:0] dispatch_ack_stamofu_iq_by_way,
-    input logic [3:0] dispatch_ack_sysu_iq_by_way,
+    input logic [3:0] dispatch_ack_alu_reg_mdu_dq_by_way,
+    input logic [3:0] dispatch_ack_alu_imm_dq_by_way,
+    input logic [3:0] dispatch_ack_bru_dq_by_way,
+    input logic [3:0] dispatch_ack_ldu_dq_by_way,
+    input logic [3:0] dispatch_ack_stamofu_dq_by_way,
+    input logic [3:0] dispatch_ack_sysu_dq_by_way,
 
     // writeback bus by bank
     input logic [PRF_BANK_COUNT-1:0]                                        WB_bus_valid_by_bank,
@@ -1850,12 +1850,12 @@ module decode_unit #(
 				& &(
 					~valid_by_way_DISP
 					| is_exception_by_way_DISP
-					| dispatch_ack_alu_reg_mdu_iq_by_way
-					| dispatch_ack_alu_imm_iq_by_way
-					| dispatch_ack_bru_iq_by_way
-					| dispatch_ack_ldu_iq_by_way
-					| dispatch_ack_stamofu_iq_by_way
-					| dispatch_ack_sysu_iq_by_way)
+					| dispatch_ack_alu_reg_mdu_dq_by_way
+					| dispatch_ack_alu_imm_dq_by_way
+					| dispatch_ack_bru_dq_by_way
+					| dispatch_ack_ldu_dq_by_way
+					| dispatch_ack_stamofu_dq_by_way
+					| dispatch_ack_sysu_dq_by_way)
 			) begin
 				perform_DISP = 1'b1;
 				stall_DISP = 1'b0;
@@ -1962,12 +1962,12 @@ module decode_unit #(
 		dispatch_checkpoint_index = checkpoint_saved_index_DISP;
 
 		// instr IQ attempts
-		dispatch_attempt_alu_reg_mdu_iq_by_way = is_alu_reg_by_way_DISP | is_mdu_by_way_DISP;
-		dispatch_attempt_alu_imm_iq_by_way = is_alu_imm_by_way_DISP;
-		dispatch_attempt_bru_iq_by_way = is_bru_by_way_DISP;
-		dispatch_attempt_ldu_iq_by_way = is_ldu_by_way_DISP;
-		dispatch_attempt_stamofu_iq_by_way = is_store_by_way_DISP | is_amo_by_way_DISP | is_fence_by_way_DISP;
-		dispatch_attempt_sysu_iq_by_way = is_sysu_by_way_DISP;
+		dispatch_attempt_alu_reg_mdu_dq_by_way = is_alu_reg_by_way_DISP | is_mdu_by_way_DISP;
+		dispatch_attempt_alu_imm_dq_by_way = is_alu_imm_by_way_DISP;
+		dispatch_attempt_bru_dq_by_way = is_bru_by_way_DISP;
+		dispatch_attempt_ldu_dq_by_way = is_ldu_by_way_DISP;
+		dispatch_attempt_stamofu_dq_by_way = is_store_by_way_DISP | is_amo_by_way_DISP | is_fence_by_way_DISP;
+		dispatch_attempt_sysu_dq_by_way = is_sysu_by_way_DISP;
 
 		// instr FU valids
 		dispatch_valid_alu_reg_by_way = is_alu_reg_by_way_DISP & {4{perform_DISP}};
