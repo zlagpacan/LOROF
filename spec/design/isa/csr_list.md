@@ -446,10 +446,11 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
                 - [3]: breakpoint
                     - EBREAK
                 - [4]: load addr misaligned
-                    - TBD if will support
+                    - will only be for misaligned LR.W
                 - [5]: load access fault = 1'b0
                     - PMA (supported) or PMP (unsupported)
                 - [6]: store/amo addr misaligned
+                    - will only be for misaligned SC.W, AMO*
                 - [7]: store/amo access fault = 1'b0
                     - PMA (supported) or PMP (unsupported)
                 - [8]: ECALL from U-mode
