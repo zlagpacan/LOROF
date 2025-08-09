@@ -15,7 +15,7 @@ module rob (
     input logic nRST,
     
     // 4-way ROB dispatch:
-    input logic                                 dispatch_rob_enqueue_valid,
+    input logic                                 dispatch_enqueue_valid,
     // general instr info
     input logic [3:0]                           dispatch_valid_by_way,
     input logic [3:0]                           dispatch_uncompressed_by_way,
@@ -32,20 +32,15 @@ module rob (
 	input logic									dispatch_has_checkpoint,
 	input logic [CHECKPOINT_INDEX_WIDTH-1:0]    dispatch_checkpoint_index,
     // instr FU valids
-        TODO: review which ones need
-    input logic [3:0]                           dispatch_attempt_alu_reg_mdu_dq_by_way,
-    input logic [3:0]                           dispatch_attempt_alu_imm_dq_by_way,
-    input logic [3:0]                           dispatch_attempt_bru_dq_by_way,
 	input logic [3:0]                           dispatch_attempt_ldu_dq_by_way,
-    input logic [3:0]                           dispatch_attempt_stamofu_dq_by_way,
-    input logic [3:0]                           dispatch_attempt_sysu_dq_by_way,
     // dest operand
     input logic [3:0][4:0]                      dispatch_dest_AR_by_way,
     input logic [3:0][LOG_PR_COUNT-1:0]         dispatch_dest_old_PR_by_way,
     input logic [3:0][LOG_PR_COUNT-1:0]         dispatch_dest_new_PR_by_way,
 
     // ROB dispatch feedback
-    output logic                                dispatch_rob_enqueue_ready,
+    output logic                                dispatch_enqueue_ready,
+    output logic [3:0][LOG_ROB_ENTRIES-1:0]     dispatch_ROB_index_by_way,
 
     // writeback bus complete notif by bank
     input logic [PRF_BANK_COUNT-1:0]                        complete_bus_valid_by_bank,
@@ -251,33 +246,47 @@ module rob (
     // TODO: no sysu functionality for now
         // will need various notif controls to deal with exec env changes
         // will need more exception support
+        // will need CSR interfaces
+            // need to update CSR's for e.g. exception
+            // need to read CSR's or from sysu source for relevant exec env info
 
     // independent processes
         // deq/rollback
         // restart
-        // exception
+        // exception req
         // mdp update
 
     // ----------------------------------------------------------------
     // Signals:
 
     // FF arrays
-    logic [ROB_ENTRIES/4-1:0] valid_by_4way;
-    logic [ROB_ENTRIES-1:0] has_checkpoint_by_4way;
+        // need to PE over or multiple referenced simultaneously
+    logic [ROB_ENTRIES/4-1:0]   valid_by_4way;
+    logic [ROB_ENTRIES-1:0]     has_checkpoint_by_4way;
 
+    logic [ROB_ENTRIES-1:0] complete_by_entry;
     logic [ROB_ENTRIES-1:0] killed_by_entry;
 
     // bram array
-    logic [3:0] bram_read_valid_by_way; // need for deq/rollback
-    logic [3:0] bram_read_uncompressed_by_way; // need for deq/rollback
-    logic [3:0] bram_read_is_rename_by_way; // need for deq/rollback
+    logic [3:0]                                 bram_read_valid_by_way; // need for deq/rollback
+    logic [3:0]                                 bram_read_uncompressed_by_way; // need for deq/rollback
+    logic [3:0]                                 bram_read_is_rename_by_way; // need for deq/rollback
+    logic [3:0][CHECKPOINT_INDEX_WIDTH-1:0]     bram_read_checkpoint_index; // need for deq/rollback, restart
+    logic [3:0]                                 bram_read_is_ldu_by_way; // need for deq/rollback
+    logic [3:0][4:0]                            bram_read_dest_AR_by_way; // need for deq/rollback
+    logic [3:0][LOG_PR_COUNT-1:0]               bram_read_dest_old_PR_by_way; // need for deq/rollback
+    logic [3:0][LOG_PR_COUNT-1:0]               bram_read_dest_new_PR_by_way; // need for deq/rollback
 
     // PC distram array
     logic [3:0][31:0] distram_read_PC_by_way; // need for restart, mdp update
 
     // exception reg
+        // need for exception req, deq/rollback
     logic                           exception_reg_valid;
     logic [LOG_ROB_ENTRIES-1:0]     exception_reg_index;
     logic [31:0]                    exception_reg_cause;
+
+    // mispred FSM
+    logic 
 
 endmodule
