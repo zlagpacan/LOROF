@@ -72,10 +72,13 @@ module ssu_wrapper (
 	input logic [MDPT_INFO_WIDTH-1:0] next_stamofu_cq_commit_update_mdp_info,
 	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_cq_commit_update_ROB_index,
 
-    // mdp update to rob
+    // mdp update to ROB
 	output logic last_rob_mdp_update_valid,
 	output logic [MDPT_INFO_WIDTH-1:0] last_rob_mdp_update_mdp_info,
-	output logic [LOG_ROB_ENTRIES-1:0] last_rob_mdp_update_ROB_index
+	output logic [LOG_ROB_ENTRIES-1:0] last_rob_mdp_update_ROB_index,
+
+    // mdp update feedback from ROB
+	input logic next_rob_mdp_update_ready
 );
 
     // ----------------------------------------------------------------
@@ -129,10 +132,13 @@ module ssu_wrapper (
 	logic [MDPT_INFO_WIDTH-1:0] stamofu_cq_commit_update_mdp_info;
 	logic [LOG_ROB_ENTRIES-1:0] stamofu_cq_commit_update_ROB_index;
 
-    // mdp update to rob
+    // mdp update to ROB
 	logic rob_mdp_update_valid;
 	logic [MDPT_INFO_WIDTH-1:0] rob_mdp_update_mdp_info;
 	logic [LOG_ROB_ENTRIES-1:0] rob_mdp_update_ROB_index;
+
+    // mdp update feedback from ROB
+	logic rob_mdp_update_ready;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -198,10 +204,13 @@ module ssu_wrapper (
 			stamofu_cq_commit_update_mdp_info <= '0;
 			stamofu_cq_commit_update_ROB_index <= '0;
 
-		    // mdp update to rob
+		    // mdp update to ROB
 			last_rob_mdp_update_valid <= '0;
 			last_rob_mdp_update_mdp_info <= '0;
 			last_rob_mdp_update_ROB_index <= '0;
+
+		    // mdp update feedback from ROB
+			rob_mdp_update_ready <= '0;
         end
         else begin
 
@@ -253,10 +262,13 @@ module ssu_wrapper (
 			stamofu_cq_commit_update_mdp_info <= next_stamofu_cq_commit_update_mdp_info;
 			stamofu_cq_commit_update_ROB_index <= next_stamofu_cq_commit_update_ROB_index;
 
-		    // mdp update to rob
+		    // mdp update to ROB
 			last_rob_mdp_update_valid <= rob_mdp_update_valid;
 			last_rob_mdp_update_mdp_info <= rob_mdp_update_mdp_info;
 			last_rob_mdp_update_ROB_index <= rob_mdp_update_ROB_index;
+
+		    // mdp update feedback from ROB
+			rob_mdp_update_ready <= next_rob_mdp_update_ready;
         end
     end
 

@@ -67,10 +67,13 @@ module ssu #(
     input logic [MDPT_INFO_WIDTH-1:0]   stamofu_cq_commit_update_mdp_info,
     input logic [LOG_ROB_ENTRIES-1:0]   stamofu_cq_commit_update_ROB_index,
 
-    // mdp update to rob
+    // mdp update to ROB
     output logic                        rob_mdp_update_valid,
     output logic [MDPT_INFO_WIDTH-1:0]  rob_mdp_update_mdp_info,
-    output logic [LOG_ROB_ENTRIES-1:0]  rob_mdp_update_ROB_index
+    output logic [LOG_ROB_ENTRIES-1:0]  rob_mdp_update_ROB_index,
+
+    // mdp update feedback from ROB
+    input logic                         rob_mdp_update_ready
 );
 
     // instantiate sst
@@ -491,10 +494,11 @@ module ssu #(
         rob_mdp_update_mdp_info = {2'b11, funnel_deq_B_mdp_info[5:0]};
         rob_mdp_update_ROB_index = funnel_deq_A_ROB_index;
 
-        if (funnel_deq_valid) begin
-            
-            // definitely update if have entry to deq
-            rob_mdp_update_valid = 1'b1;
+        // try update if have entry to deq
+        rob_mdp_update_valid = funnel_deq_valid;
+
+        // check for actual update and deq
+        if (funnel_deq_valid & rob_mdp_update_ready) begin
 
             // CAM
             if (funnel_deq_is_CAM) begin

@@ -88,10 +88,13 @@ module ssu_tb ();
 	logic [MDPT_INFO_WIDTH-1:0] tb_stamofu_cq_commit_update_mdp_info;
 	logic [LOG_ROB_ENTRIES-1:0] tb_stamofu_cq_commit_update_ROB_index;
 
-    // mdp update to rob
+    // mdp update to ROB
 	logic DUT_rob_mdp_update_valid, expected_rob_mdp_update_valid;
 	logic [MDPT_INFO_WIDTH-1:0] DUT_rob_mdp_update_mdp_info, expected_rob_mdp_update_mdp_info;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_rob_mdp_update_ROB_index, expected_rob_mdp_update_ROB_index;
+
+	// mdp update feedback from ROB
+	logic tb_rob_mdp_update_ready;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -154,10 +157,13 @@ module ssu_tb ();
 		.stamofu_cq_commit_update_mdp_info(tb_stamofu_cq_commit_update_mdp_info),
 		.stamofu_cq_commit_update_ROB_index(tb_stamofu_cq_commit_update_ROB_index),
 
-	    // mdp update to rob
+	    // mdp update to ROB
 		.rob_mdp_update_valid(DUT_rob_mdp_update_valid),
 		.rob_mdp_update_mdp_info(DUT_rob_mdp_update_mdp_info),
-		.rob_mdp_update_ROB_index(DUT_rob_mdp_update_ROB_index)
+		.rob_mdp_update_ROB_index(DUT_rob_mdp_update_ROB_index),
+
+		// mdp update feedback from ROB
+		.rob_mdp_update_ready(tb_rob_mdp_update_ready)
 	);
 
     // ----------------------------------------------------------------
@@ -240,7 +246,9 @@ module ssu_tb ();
 		tb_stamofu_cq_commit_update_valid = 1'b0;
 		tb_stamofu_cq_commit_update_mdp_info = 8'h00;
 		tb_stamofu_cq_commit_update_ROB_index = 7'h00;
-	    // mdp update to rob
+	    // mdp update to ROB
+		// mdp update feedback from ROB
+		tb_rob_mdp_update_ready = 1'b1;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -252,7 +260,7 @@ module ssu_tb ();
 	    // stamofu_cq CAM update bank 0
 	    // stamofu_cq CAM update bank 1
 	    // stamofu_cq commit update
-	    // mdp update to rob
+	    // mdp update to ROB
 		expected_rob_mdp_update_valid = 1'b0;
 		expected_rob_mdp_update_mdp_info = 8'b11000000;
 		expected_rob_mdp_update_ROB_index = 7'h00;
@@ -297,7 +305,9 @@ module ssu_tb ();
 		tb_stamofu_cq_commit_update_valid = 1'b0;
 		tb_stamofu_cq_commit_update_mdp_info = 8'h00;
 		tb_stamofu_cq_commit_update_ROB_index = 7'h00;
-	    // mdp update to rob
+	    // mdp update to ROB
+		// mdp update feedback from ROB
+		tb_rob_mdp_update_ready = 1'b1;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -309,7 +319,7 @@ module ssu_tb ();
 	    // stamofu_cq CAM update bank 0
 	    // stamofu_cq CAM update bank 1
 	    // stamofu_cq commit update
-	    // mdp update to rob
+	    // mdp update to ROB
 		expected_rob_mdp_update_valid = 1'b0;
 		expected_rob_mdp_update_mdp_info = 8'b11000000;
 		expected_rob_mdp_update_ROB_index = 7'h00;
@@ -362,7 +372,9 @@ module ssu_tb ();
 		tb_stamofu_cq_commit_update_valid = 1'b0;
 		tb_stamofu_cq_commit_update_mdp_info = 8'h00;
 		tb_stamofu_cq_commit_update_ROB_index = 7'h00;
-	    // mdp update to rob
+	    // mdp update to ROB
+		// mdp update feedback from ROB
+		tb_rob_mdp_update_ready = 1'b1;
 
 		@(negedge CLK);
 
@@ -374,7 +386,7 @@ module ssu_tb ();
 	    // stamofu_cq CAM update bank 0
 	    // stamofu_cq CAM update bank 1
 	    // stamofu_cq commit update
-	    // mdp update to rob
+	    // mdp update to ROB
 		expected_rob_mdp_update_valid = 1'b0;
 		expected_rob_mdp_update_mdp_info = 8'b11000000;
 		expected_rob_mdp_update_ROB_index = 7'h00;
