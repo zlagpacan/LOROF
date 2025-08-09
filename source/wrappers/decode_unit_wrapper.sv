@@ -10,6 +10,14 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
+parameter INIT_EXEC_MODE = M_MODE;
+parameter INIT_TRAP_SFENCE = 1'b0;
+parameter INIT_TRAP_WFI = 1'b0;
+parameter INIT_TRAP_SRET = 1'b0;
+
 module decode_unit_wrapper (
 
     // seq
@@ -40,8 +48,9 @@ module decode_unit_wrapper (
     // op dispatch by way:
 
     // 4-way ROB entry
-	output logic last_dispatch_rob_enqueue_valid,
-	input logic next_dispatch_rob_enqueue_ready,
+	output logic last_dispatch_rob_enq_valid,
+	output logic last_dispatch_rob_enq_killed,
+	input logic next_dispatch_rob_enq_ready,
 
     // general instr info
 	output logic [3:0] last_dispatch_valid_by_way,
@@ -129,6 +138,9 @@ module decode_unit_wrapper (
 	input logic next_rob_restart_trap_wfi,
 	input logic next_rob_restart_trap_sret,
 
+	// kill from ROB
+	input logic next_rob_kill_valid,
+
     // branch update from ROB
 	input logic next_rob_branch_update_valid,
 	input logic next_rob_branch_update_has_checkpoint,
@@ -206,8 +218,9 @@ module decode_unit_wrapper (
     // op dispatch by way:
 
     // 4-way ROB entry
-	logic dispatch_rob_enqueue_valid;
-	logic dispatch_rob_enqueue_ready;
+	logic dispatch_rob_enq_valid;
+	logic dispatch_rob_enq_killed;
+	logic dispatch_rob_enq_ready;
 
     // general instr info
 	logic [3:0] dispatch_valid_by_way;
@@ -295,6 +308,9 @@ module decode_unit_wrapper (
 	logic rob_restart_trap_wfi;
 	logic rob_restart_trap_sret;
 
+	// kill from ROB
+	logic rob_kill_valid;
+
     // branch update from ROB
 	logic rob_branch_update_valid;
 	logic rob_branch_update_has_checkpoint;
@@ -347,11 +363,11 @@ module decode_unit_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    decode_unit #(
-		.INIT_EXEC_MODE(M_MODE),
-		.INIT_TRAP_SFENCE(1'b0),
-		.INIT_TRAP_WFI(1'b0),
-		.INIT_TRAP_SRET(1'b0)
+	decode_unit #(
+		.INIT_EXEC_MODE(INIT_EXEC_MODE),
+		.INIT_TRAP_SFENCE(INIT_TRAP_SFENCE),
+		.INIT_TRAP_WFI(INIT_TRAP_WFI),
+		.INIT_TRAP_SRET(INIT_TRAP_SRET)
 	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
@@ -384,8 +400,9 @@ module decode_unit_wrapper (
 		    // op dispatch by way:
 
 		    // 4-way ROB entry
-			last_dispatch_rob_enqueue_valid <= '0;
-			dispatch_rob_enqueue_ready <= '0;
+			last_dispatch_rob_enq_valid <= '0;
+			last_dispatch_rob_enq_killed <= '0;
+			dispatch_rob_enq_ready <= '0;
 
 		    // general instr info
 			last_dispatch_valid_by_way <= '0;
@@ -473,6 +490,9 @@ module decode_unit_wrapper (
 			rob_restart_trap_wfi <= '0;
 			rob_restart_trap_sret <= '0;
 
+			// kill from ROB
+			rob_kill_valid <= '0;
+
 		    // branch update from ROB
 			rob_branch_update_valid <= '0;
 			rob_branch_update_has_checkpoint <= '0;
@@ -548,8 +568,9 @@ module decode_unit_wrapper (
 		    // op dispatch by way:
 
 		    // 4-way ROB entry
-			last_dispatch_rob_enqueue_valid <= dispatch_rob_enqueue_valid;
-			dispatch_rob_enqueue_ready <= next_dispatch_rob_enqueue_ready;
+			last_dispatch_rob_enq_valid <= dispatch_rob_enq_valid;
+			last_dispatch_rob_enq_killed <= dispatch_rob_enq_killed;
+			dispatch_rob_enq_ready <= next_dispatch_rob_enq_ready;
 
 		    // general instr info
 			last_dispatch_valid_by_way <= dispatch_valid_by_way;
@@ -636,6 +657,9 @@ module decode_unit_wrapper (
 			rob_restart_trap_sfence <= next_rob_restart_trap_sfence;
 			rob_restart_trap_wfi <= next_rob_restart_trap_wfi;
 			rob_restart_trap_sret <= next_rob_restart_trap_sret;
+
+			// kill from ROB
+			rob_kill_valid <= next_rob_kill_valid;
 
 		    // branch update from ROB
 			rob_branch_update_valid <= next_rob_branch_update_valid;

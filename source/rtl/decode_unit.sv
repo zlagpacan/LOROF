@@ -42,8 +42,9 @@ module decode_unit #(
     // op dispatch by way:
 
     // 4-way ROB entry
-    output logic                                  	dispatch_rob_enqueue_valid,
-    input logic 									dispatch_rob_enqueue_ready,
+    output logic                                  	dispatch_rob_enq_valid,
+	output logic									dispatch_rob_enq_killed,
+    input logic 									dispatch_rob_enq_ready,
 
     // general instr info
     output logic [3:0]                              dispatch_valid_by_way,
@@ -130,6 +131,9 @@ module decode_unit #(
     input logic      	rob_restart_trap_sfence,
     input logic      	rob_restart_trap_wfi,
     input logic      	rob_restart_trap_sret,
+
+	// kill from ROB
+	input logic rob_kill_valid,
 
     // branch update from ROB
     input logic                             rob_branch_update_valid,
@@ -540,6 +544,7 @@ module decode_unit #(
 	// state:
 	logic active_DISP, next_active_DISP;
 	logic perform_DISP;
+	logic killed_DISP, next_killed_DISP;
 
 	// control:
 	logic stall_DISP;
@@ -1829,9 +1834,11 @@ module decode_unit #(
 	always_ff @ (posedge CLK, negedge nRST) begin
 		if (~nRST) begin
 			active_DISP <= 1'b0;
+			killed_DISP <= 1'b0;
 		end
 		else begin
 			active_DISP <= next_active_DISP;
+			killed_DISP <= next_killed_DISP;
 		end
 	end
 
@@ -1846,7 +1853,7 @@ module decode_unit #(
 				// rob ready
 				// way not valid or way excepting or way got ack
 			if (
-				dispatch_rob_enqueue_ready
+				dispatch_rob_enq_ready
 				& &(
 					~valid_by_way_DISP
 					| is_exception_by_way_DISP
@@ -1875,12 +1882,15 @@ module decode_unit #(
 		// check active next cycle
 		if (active_DISP & stall_DISP) begin
 			next_active_DISP = 1'b1;
+			next_killed_DISP = killed_DISP | rob_kill_valid;
 		end
 		else if (~stall_DISP & valid_DISP_from_RNM) begin
 			next_active_DISP = 1'b1;
+			next_killed_DISP = 1'b0;
 		end
 		else begin
 			next_active_DISP = 1'b0;
+			next_killed_DISP = 1'b0;
 		end
 	end
 
@@ -1930,7 +1940,8 @@ module decode_unit #(
 	always_comb begin
 
 		// 4-way ROB entry
-		dispatch_rob_enqueue_valid = perform_DISP;
+		dispatch_rob_enq_valid = perform_DISP;
+		dispatch_rob_enq_killed = killed_DISP | rob_kill_valid;
 
 		// general instr info
 		dispatch_valid_by_way = valid_by_way_DISP;

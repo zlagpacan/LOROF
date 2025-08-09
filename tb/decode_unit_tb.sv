@@ -55,8 +55,9 @@ module decode_unit_tb ();
     // op dispatch by way:
 
     // 4-way ROB entry
-	logic DUT_dispatch_rob_enqueue_valid, expected_dispatch_rob_enqueue_valid;
-	logic tb_dispatch_rob_enqueue_ready;
+	logic DUT_dispatch_rob_enq_valid, expected_dispatch_rob_enq_valid;
+	logic DUT_dispatch_rob_enq_killed, expected_dispatch_rob_enq_killed;
+	logic tb_dispatch_rob_enq_ready;
 
     // general instr info
 	logic [3:0] DUT_dispatch_valid_by_way, expected_dispatch_valid_by_way;
@@ -144,6 +145,9 @@ module decode_unit_tb ();
 	logic tb_rob_restart_trap_wfi;
 	logic tb_rob_restart_trap_sret;
 
+	// kill from ROB
+	logic tb_rob_kill_valid;
+
     // branch update from ROB
 	logic tb_rob_branch_update_valid;
 	logic tb_rob_branch_update_has_checkpoint;
@@ -229,8 +233,9 @@ module decode_unit_tb ();
 	    // op dispatch by way:
 
 	    // 4-way ROB entry
-		.dispatch_rob_enqueue_valid(DUT_dispatch_rob_enqueue_valid),
-		.dispatch_rob_enqueue_ready(tb_dispatch_rob_enqueue_ready),
+		.dispatch_rob_enq_valid(DUT_dispatch_rob_enq_valid),
+		.dispatch_rob_enq_killed(DUT_dispatch_rob_enq_killed),
+		.dispatch_rob_enq_ready(tb_dispatch_rob_enq_ready),
 
 	    // general instr info
 		.dispatch_valid_by_way(DUT_dispatch_valid_by_way),
@@ -318,6 +323,9 @@ module decode_unit_tb ();
 		.rob_restart_trap_wfi(tb_rob_restart_trap_wfi),
 		.rob_restart_trap_sret(tb_rob_restart_trap_sret),
 
+		// kill from ROB
+		.rob_kill_valid(tb_rob_kill_valid),
+
 	    // branch update from ROB
 		.rob_branch_update_valid(tb_rob_branch_update_valid),
 		.rob_branch_update_has_checkpoint(tb_rob_branch_update_has_checkpoint),
@@ -380,9 +388,16 @@ module decode_unit_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_dispatch_rob_enqueue_valid !== DUT_dispatch_rob_enqueue_valid) begin
-			$display("TB ERROR: expected_dispatch_rob_enqueue_valid (%h) != DUT_dispatch_rob_enqueue_valid (%h)",
-				expected_dispatch_rob_enqueue_valid, DUT_dispatch_rob_enqueue_valid);
+		if (expected_dispatch_rob_enq_valid !== DUT_dispatch_rob_enq_valid) begin
+			$display("TB ERROR: expected_dispatch_rob_enq_valid (%h) != DUT_dispatch_rob_enq_valid (%h)",
+				expected_dispatch_rob_enq_valid, DUT_dispatch_rob_enq_valid);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_dispatch_rob_enq_killed !== DUT_dispatch_rob_enq_killed) begin
+			$display("TB ERROR: expected_dispatch_rob_enq_killed (%h) != DUT_dispatch_rob_enq_killed (%h)",
+				expected_dispatch_rob_enq_killed, DUT_dispatch_rob_enq_killed);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -936,7 +951,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -962,6 +977,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -996,7 +1013,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0000;
 		expected_dispatch_uncompressed_by_way = 4'b0000;
@@ -1109,7 +1127,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -1135,6 +1153,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -1169,7 +1189,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0000;
 		expected_dispatch_uncompressed_by_way = 4'b0000;
@@ -1290,7 +1311,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -1316,6 +1337,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -1350,7 +1373,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0000;
 		expected_dispatch_uncompressed_by_way = 4'b0000;
@@ -1465,7 +1489,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -1491,6 +1515,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -1525,7 +1551,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0000;
 		expected_dispatch_uncompressed_by_way = 4'b0000;
@@ -1690,7 +1717,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -1716,6 +1743,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -1750,7 +1779,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0000;
 		expected_dispatch_uncompressed_by_way = 4'b0000;
@@ -1918,7 +1948,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -1944,6 +1974,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -1978,7 +2010,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0000;
 		expected_dispatch_uncompressed_by_way = 4'b0000;
@@ -2150,7 +2183,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -2176,6 +2209,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -2210,7 +2245,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0000;
 		expected_dispatch_uncompressed_by_way = 4'b0000;
@@ -2386,7 +2422,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -2412,6 +2448,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -2446,7 +2484,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b1;
+		expected_dispatch_rob_enq_valid = 1'b1;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b1111;
 		expected_dispatch_uncompressed_by_way = 4'b1111;
@@ -2638,7 +2677,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -2664,6 +2703,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b1;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -2698,7 +2739,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b1;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b1;
+		expected_dispatch_rob_enq_valid = 1'b1;
+		expected_dispatch_rob_enq_killed = 1'b1;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b1111;
 		expected_dispatch_uncompressed_by_way = 4'b1111;
@@ -2886,7 +2928,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -2912,6 +2954,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b1;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -2946,7 +2990,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b1;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b1111;
 		expected_dispatch_uncompressed_by_way = 4'b1111;
@@ -3134,7 +3179,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -3160,6 +3205,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -3194,7 +3241,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b1;
+		expected_dispatch_rob_enq_valid = 1'b1;
+		expected_dispatch_rob_enq_killed = 1'b1;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b1111;
 		expected_dispatch_uncompressed_by_way = 4'b1111;
@@ -3378,7 +3426,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b0;
+		tb_dispatch_rob_enq_ready = 1'b0;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -3404,6 +3452,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -3438,7 +3488,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0111;
 		expected_dispatch_uncompressed_by_way = 4'b1111;
@@ -3622,7 +3673,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -3648,6 +3699,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -3682,7 +3735,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b1;
+		expected_dispatch_rob_enq_valid = 1'b1;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0111;
 		expected_dispatch_uncompressed_by_way = 4'b1111;
@@ -3862,7 +3916,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -3888,6 +3942,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -3922,7 +3978,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b1111;
 		expected_dispatch_uncompressed_by_way = 4'b1111;
@@ -4112,7 +4169,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -4138,6 +4195,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -4172,7 +4231,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b1111;
 		expected_dispatch_uncompressed_by_way = 4'b1111;
@@ -4360,7 +4420,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -4386,6 +4446,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -4420,7 +4482,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b1111;
 		expected_dispatch_uncompressed_by_way = 4'b1111;
@@ -4612,7 +4675,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -4638,6 +4701,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -4672,7 +4737,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b1;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b1111;
 		expected_dispatch_uncompressed_by_way = 4'b1111;
@@ -4864,7 +4930,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -4890,6 +4956,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -4924,7 +4992,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b1;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0111;
 		expected_dispatch_uncompressed_by_way = 4'b1010;
@@ -5116,7 +5185,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -5142,6 +5211,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -5176,7 +5247,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b1;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b1;
+		expected_dispatch_rob_enq_valid = 1'b1;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0111;
 		expected_dispatch_uncompressed_by_way = 4'b1010;
@@ -5364,7 +5436,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -5390,6 +5462,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -5424,7 +5498,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0111;
 		expected_dispatch_uncompressed_by_way = 4'b1100;
@@ -5616,7 +5691,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -5642,6 +5717,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -5676,7 +5753,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b1;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0111;
 		expected_dispatch_uncompressed_by_way = 4'b1100;
@@ -5868,7 +5946,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -5894,6 +5972,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -5928,7 +6008,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b1;
+		expected_dispatch_rob_enq_valid = 1'b1;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0111;
 		expected_dispatch_uncompressed_by_way = 4'b1100;
@@ -6116,7 +6197,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -6142,6 +6223,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -6176,7 +6259,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b1;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b1111;
 		expected_dispatch_uncompressed_by_way = 4'b0101;
@@ -6364,7 +6448,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -6390,6 +6474,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -6424,7 +6510,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b1;
+		expected_dispatch_rob_enq_valid = 1'b1;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b1111;
 		expected_dispatch_uncompressed_by_way = 4'b0101;
@@ -6608,7 +6695,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -6634,6 +6721,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -6668,7 +6757,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b1111;
 		expected_dispatch_uncompressed_by_way = 4'b0010;
@@ -6852,7 +6942,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -6878,6 +6968,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b1;
 		tb_rob_branch_update_has_checkpoint = 1'b1;
@@ -6912,7 +7004,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b1;
+		expected_dispatch_rob_enq_valid = 1'b1;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0011;
 		expected_dispatch_uncompressed_by_way = 4'b0010;
@@ -7092,7 +7185,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -7118,6 +7211,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -7152,7 +7247,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b1111;
 		expected_dispatch_uncompressed_by_way = 4'b0010;
@@ -7336,7 +7432,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -7362,6 +7458,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -7396,7 +7494,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b1111;
 		expected_dispatch_uncompressed_by_way = 4'b0010;
@@ -7580,7 +7679,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -7606,6 +7705,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -7640,7 +7741,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b1111;
 		expected_dispatch_uncompressed_by_way = 4'b0010;
@@ -7824,7 +7926,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -7850,6 +7952,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -7884,7 +7988,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b1111;
 		expected_dispatch_uncompressed_by_way = 4'b0010;
@@ -8068,7 +8173,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -8094,6 +8199,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -8128,7 +8235,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b1;
+		expected_dispatch_rob_enq_valid = 1'b1;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0001;
 		expected_dispatch_uncompressed_by_way = 4'b0001;
@@ -8308,7 +8416,7 @@ module decode_unit_tb ();
 	    // feedback to istream
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		tb_dispatch_rob_enqueue_ready = 1'b1;
+		tb_dispatch_rob_enq_ready = 1'b1;
 	    // general instr info
 	    // ordering
 	    // exception info
@@ -8334,6 +8442,8 @@ module decode_unit_tb ();
 		tb_rob_restart_trap_sfence = 1'b0;
 		tb_rob_restart_trap_wfi = 1'b0;
 		tb_rob_restart_trap_sret = 1'b0;
+		// kill from ROB
+		tb_rob_kill_valid = 1'b0;
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
@@ -8368,7 +8478,8 @@ module decode_unit_tb ();
 		expected_istream_stall_SDEQ = 1'b0;
 	    // op dispatch by way:
 	    // 4-way ROB entry
-		expected_dispatch_rob_enqueue_valid = 1'b0;
+		expected_dispatch_rob_enq_valid = 1'b0;
+		expected_dispatch_rob_enq_killed = 1'b0;
 	    // general instr info
 		expected_dispatch_valid_by_way = 4'b0001;
 		expected_dispatch_uncompressed_by_way = 4'b0001;

@@ -8,6 +8,9 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
 module rob (
 
     // seq
@@ -15,7 +18,8 @@ module rob (
     input logic nRST,
     
     // 4-way ROB dispatch:
-    input logic                                 dispatch_enqueue_valid,
+    input logic                                 dispatch_enq_valid,
+    input logic                                 dispatch_enq_killed,
     // general instr info
     input logic [3:0]                           dispatch_valid_by_way,
     input logic [3:0]                           dispatch_uncompressed_by_way,
@@ -39,7 +43,7 @@ module rob (
     input logic [3:0][LOG_PR_COUNT-1:0]         dispatch_dest_new_PR_by_way,
 
     // ROB dispatch feedback
-    output logic                                dispatch_enqueue_ready,
+    output logic                                dispatch_enq_ready,
     output logic [3:0][LOG_ROB_ENTRIES-1:0]     dispatch_ROB_index_by_way,
 
     // writeback bus complete notif by bank
@@ -259,26 +263,49 @@ module rob (
     // ----------------------------------------------------------------
     // Signals:
 
+    logic [LOG_ROB_ENTRIES-2-1:0] tail_ptr, next_tail_ptr;
+    logic [LOG_ROB_ENTRIES-2-1:0] head_ptr, next_head_ptr;
+
+    logic enq_perform;
+    logic deq_perform;
+
     // FF arrays
         // need to PE over or multiple referenced simultaneously
-    logic [ROB_ENTRIES/4-1:0]   valid_by_4way;
-    logic [ROB_ENTRIES-1:0]     has_checkpoint_by_4way;
+    logic [ROB_ENTRIES/4-1:0] valid_by_4way;
+    logic [ROB_ENTRIES/4-1:0] has_checkpoint_by_4way;
 
     logic [ROB_ENTRIES-1:0] complete_by_entry;
     logic [ROB_ENTRIES-1:0] killed_by_entry;
 
-    // bram array
-    logic [3:0]                                 bram_read_valid_by_way; // need for deq/rollback
-    logic [3:0]                                 bram_read_uncompressed_by_way; // need for deq/rollback
-    logic [3:0]                                 bram_read_is_rename_by_way; // need for deq/rollback
-    logic [3:0][CHECKPOINT_INDEX_WIDTH-1:0]     bram_read_checkpoint_index; // need for deq/rollback, restart
-    logic [3:0]                                 bram_read_is_ldu_by_way; // need for deq/rollback
-    logic [3:0][4:0]                            bram_read_dest_AR_by_way; // need for deq/rollback
-    logic [3:0][LOG_PR_COUNT-1:0]               bram_read_dest_old_PR_by_way; // need for deq/rollback
-    logic [3:0][LOG_PR_COUNT-1:0]               bram_read_dest_new_PR_by_way; // need for deq/rollback
+    // bulk bram array
+    typedef struct packed {
+        logic [3:0]                         valid_by_way; // need for deq/rollback
+        logic [3:0]                         uncompressed_by_way; // need for deq/rollback
+        logic [3:0]                         is_rename_by_way; // need for deq/rollback
+        logic [3:0]                         is_ldu_by_way; // need for deq/rollback
+        logic [3:0][4:0]                    dest_AR_by_way; // need for deq/rollback
+        logic [3:0][LOG_PR_COUNT-1:0]       dest_old_PR_by_way; // need for deq/rollback
+        logic [3:0][LOG_PR_COUNT-1:0]       dest_new_PR_by_way; // need for deq/rollback
+        logic [CHECKPOINT_INDEX_WIDTH-1:0]  checkpoint_index; // need for deq/rollback, restart
+    } bram_entry_t;
 
-    // PC distram array
-    logic [3:0][31:0] distram_read_PC_by_way; // need for restart, mdp update
+    logic                           bulk_bram_read_valid;
+    logic [LOG_ROB_ENTRIES-2-1:0]   bulk_bram_read_index;
+    bram_entry_t                    bulk_bram_read_entry;
+
+    logic                           bulk_bram_write_valid;
+    logic [LOG_ROB_ENTRIES-2-1:0]   bulk_bram_write_index;
+    bram_entry_t                    bulk_bram_write_entry;
+
+    // PC bram array
+        // need for restart, mdp update
+        // diff read index than bulk bram array due to mdp udpate
+    logic [LOG_ROB_ENTRIES-2-1:0]   PC_bram_read_index;
+    logic [3:0][31:0]               PC_bram_read_PC_by_way;
+
+    logic                           PC_bram_write_valid;
+    logic [LOG_ROB_ENTRIES-2-1:0]   PC_bram_write_index;
+    logic [3:0][31:0]               PC_bram_write_PC_by_way;
 
     // exception reg
         // need for exception req, deq/rollback
@@ -286,7 +313,101 @@ module rob (
     logic [LOG_ROB_ENTRIES-1:0]     exception_reg_index;
     logic [31:0]                    exception_reg_cause;
 
-    // mispred FSM
-    logic 
+    // ----------------------------------------------------------------
+    // Logic:
+
+    // FF state
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            valid_by_4way <= '0;
+            has_checkpoint_by_4way <= '0;
+            complete_by_entry <= '0;
+            killed_by_entry <= '0;
+
+            kill_next_enq <= 1'b0;
+        end
+        else begin
+            if (enq_perform) begin
+                valid_by_4way[tail_ptr] <= 1'b1;
+                has_checkpoint_by_4way[tail_ptr] <= dispatch_has_checkpoint;
+                complete_by_entry[4*tail_ptr+3] <= 1'b0;
+                complete_by_entry[4*tail_ptr+2] <= 1'b0;
+                complete_by_entry[4*tail_ptr+1] <= 1'b0;
+                complete_by_entry[4*tail_ptr+0] <= 1'b0;
+                killed_by_entry[4*head_ptr+3] <= dispatch_rob_enq_killed;
+                killed_by_entry[4*head_ptr+2] <= dispatch_rob_enq_killed;
+                killed_by_entry[4*head_ptr+1] <= dispatch_rob_enq_killed;
+                killed_by_entry[4*head_ptr+0] <= dispatch_rob_enq_killed;
+
+                kill_next_enq <= 1'b0;
+            end
+            else if () begin
+                kill_next_enq <= 1'b1;
+            end
+
+            if (deq_perform) begin
+                valid_by_4way[head_ptr] <= 1'b0;
+                has_checkpoint_by_4way[head_ptr] <= 1'b0;
+                complete_by_entry[4*head_ptr+3] <= 1'b0;
+                complete_by_entry[4*head_ptr+2] <= 1'b0;
+                complete_by_entry[4*head_ptr+1] <= 1'b0;
+                complete_by_entry[4*head_ptr+0] <= 1'b0;
+                killed_by_entry[4*head_ptr+3] <= 1'b0;
+                killed_by_entry[4*head_ptr+2] <= 1'b0;
+                killed_by_entry[4*head_ptr+1] <= 1'b0;
+                killed_by_entry[4*head_ptr+0] <= 1'b0;
+            end
+
+            if (rob_kill_valid) begin
+                for (int entry = 0; entry < ROB_ENTRIES; entry++) begin
+                    if (
+                        valid_by_4way[entry[LOG_ROB_ENTRIES-1:2]]
+                        & (
+                            (entry - rob_kill_abs_head_index) 
+                            > rob_kill_rel_kill_younger_index)
+                    ) begin
+                        killed_by_entry[entry] <= 1'b1;
+                    end
+                end
+            end
+
+            if (ldu_complete_valid) begin
+                complete_by_entry[ldu_complete_ROB_index] <= 1'b1;
+            end
+            if (stamofu_complete_valid) begin
+                complete_by_entry[stamofu_complete_ROB_index] <= 1'b1;
+            end
+            if (branch_notif_valid) begin
+
+            end
+        end
+    end
+
+    // enq logic:
+    always_comb begin
+        dispatch_enq_ready = valid_by_4way[tail_ptr];
+
+        enq_perform = dispatch_enq_valid & dispatch_enq_ready;
+        
+        bulk_bram_write_valid = enq_perform;
+        bulk_bram_write_index = tail_ptr;
+        bulk_bram_write_entry.valid_by_way = dispatch_valid_by_way;
+        bulk_bram_write_entry.uncompressed_by_way = dispatch_uncompressed_by_way;
+        bulk_bram_write_entry.is_rename_by_way = dispatch_is_rename_by_way;
+        bulk_bram_write_entry.is_ldu_by_way = dispatch_attempt_ldu_dq_by_way;
+        bulk_bram_write_entry.dest_AR_by_way = dispatch_dest_AR_by_way;
+        bulk_bram_write_entry.dest_old_PR_by_way = dispatch_dest_old_PR_by_way;
+        bulk_bram_write_entry.dest_new_PR_by_way = dispatch_dest_new_PR_by_way;
+        bulk_bram_write_entry.checkpoint_index = dispatch_checkpoint_index;
+
+        PC_bram_write_valid = enq_perform;
+        PC_bram_write_index = tail_ptr;
+        PC_bram_write_PC_by_way = dispatch_PC_by_way;
+    end
+
+    // deq logic:
+    always_comb begin
+
+    end
 
 endmodule
