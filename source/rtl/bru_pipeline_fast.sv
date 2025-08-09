@@ -177,8 +177,8 @@ module bru_pipeline_fast (
     logic [LOG_PR_COUNT-1:0]            WB_stage_dest_PR;
     logic [LOG_ROB_ENTRIES-1:0]         WB_stage_ROB_index;
 
-    logic WB_stage_WB_acked;
-    logic WB_stage_branch_notif_acked;
+    logic WB_stage_need_WB;
+    logic WB_stage_need_branch_notif;
 
     logic                       WB_stage_start_neq_target_upper_PC;
     logic [UPPER_PC_WIDTH-1:0]  WB_stage_delta_start_target_upper_PC;
@@ -191,7 +191,7 @@ module bru_pipeline_fast (
     // Control Logic: 
 
     // propagate stalls backwards
-    assign stall_WB = (WB_valid & ~WB_ready) | (branch_notif_valid & ~branch_notif_ready);
+    assign stall_WB = (WB_stage_need_WB & ~WB_ready) | (WB_stage_need_branch_notif & ~branch_notif_ready);
     assign stall_EX = valid_EX & stall_WB;
     assign stall_OC = valid_OC & stall_EX;
 
@@ -652,9 +652,6 @@ module bru_pipeline_fast (
             WB_stage_write_data <= 32'h4;
             WB_stage_dest_PR <= 7'h0;
             WB_stage_ROB_index <= 7'h0;
-
-            WB_stage_WB_acked <= 1'b0;
-            WB_stage_branch_notif_acked <= 1'b0;
         end
         else if (stall_WB) begin
             WB_stage_valid <= WB_stage_valid;
@@ -670,9 +667,6 @@ module bru_pipeline_fast (
             WB_stage_write_data <= WB_stage_write_data;
             WB_stage_dest_PR <= WB_stage_dest_PR;
             WB_stage_ROB_index <= WB_stage_ROB_index;
-
-            WB_stage_WB_acked <= WB_stage_WB_acked | WB_ready;
-            WB_stage_branch_notif_acked <= WB_stage_branch_notif_acked | branch_notif_ready;
         end
         else begin
             WB_stage_valid <= next_WB_stage_valid;
@@ -688,9 +682,6 @@ module bru_pipeline_fast (
             WB_stage_write_data <= next_WB_stage_write_data;
             WB_stage_dest_PR <= next_WB_stage_dest_PR;
             WB_stage_ROB_index <= next_WB_stage_ROB_index;
-
-            WB_stage_WB_acked <= 1'b0;
-            WB_stage_branch_notif_acked <= 1'b0;
         end
     end
 
@@ -737,70 +728,71 @@ module bru_pipeline_fast (
     );
 
     // op-wise behavior
-        // WB_valid
-        // branch_notif_valid
+        // WB_stage_need_WB
+        // WB_stage_need_branch_notif
     always_comb begin
         
         casez (WB_stage_op)
 
             4'b0000: // JALR
             begin
-                WB_valid = WB_stage_valid;
-                branch_notif_valid = WB_stage_valid;
+                WB_stage_need_WB = WB_stage_valid;
+                WB_stage_need_branch_notif = WB_stage_valid;
             end
 
             4'b0001: // C.JALR
             begin
-                WB_valid = WB_stage_valid;
-                branch_notif_valid = WB_stage_valid;
+                WB_stage_need_WB = WB_stage_valid;
+                WB_stage_need_branch_notif = WB_stage_valid;
             end
 
             4'b0010: // JAL
             begin
-                WB_valid = WB_stage_valid;
-                branch_notif_valid = WB_stage_valid;
+                WB_stage_need_WB = WB_stage_valid;
+                WB_stage_need_branch_notif = WB_stage_valid;
             end
 
             4'b0011: // C.JAL
             begin
-                WB_valid = WB_stage_valid;
-                branch_notif_valid = WB_stage_valid;
+                WB_stage_need_WB = WB_stage_valid;
+                WB_stage_need_branch_notif = WB_stage_valid;
             end
 
             4'b0100: // C.J
             begin
-                WB_valid = 1'b0;
-                branch_notif_valid = WB_stage_valid;
+                WB_stage_need_WB = 1'b0;
+                WB_stage_need_branch_notif = WB_stage_valid;
             end
 
             4'b0101: // C.JR
             begin
-                WB_valid = 1'b0;
-                branch_notif_valid = WB_stage_valid;
+                WB_stage_need_WB = 1'b0;
+                WB_stage_need_branch_notif = WB_stage_valid;
             end
 
             4'b0110: // LUI
             begin
-                WB_valid = WB_stage_valid;
-                branch_notif_valid = 1'b0;
+                WB_stage_need_WB = WB_stage_valid;
+                WB_stage_need_branch_notif = 1'b0;
             end
 
             4'b0111: // AUIPC
             begin
-                WB_valid = WB_stage_valid;
-                branch_notif_valid = 1'b0;
+                WB_stage_need_WB = WB_stage_valid;
+                WB_stage_need_branch_notif = 1'b0;
             end
 
             4'b1???: // BEQ, BNE, C.BEQZ, C.BNEZ, BLT, BGE, BLTU, BGEU
             begin
-                WB_valid = 1'b0;
-                branch_notif_valid = WB_stage_valid;
+                WB_stage_need_WB = 1'b0;
+                WB_stage_need_branch_notif = WB_stage_valid;
             end
 
         endcase
 
-        WB_valid &= ~WB_stage_WB_acked;
-        branch_notif_valid &= ~WB_stage_branch_notif_acked;
+        // don't assert valid's until both ready
+        WB_valid = WB_stage_need_WB & ~stall_WB;
+        branch_notif_valid = WB_stage_need_branch_notif & ~stall_WB;
     end
 
 endmodule
