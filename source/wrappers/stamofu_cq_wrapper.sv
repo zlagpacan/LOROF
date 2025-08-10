@@ -285,8 +285,8 @@ module stamofu_cq_wrapper (
 	output logic [LOG_ROB_ENTRIES-1:0] last_ssu_commit_update_ROB_index,
 
     // oldest stamofu advertisement
-	output logic last_stamofu_active,
-	output logic [LOG_ROB_ENTRIES-1:0] last_stamofu_oldest_ROB_index,
+	output logic last_stamofu_incomplete_active,
+	output logic [LOG_ROB_ENTRIES-1:0] last_stamofu_oldest_incomplete_ROB_index,
 
     // stamofu mq complete notif
 	input logic next_stamofu_mq_complete_valid,
@@ -576,8 +576,8 @@ module stamofu_cq_wrapper (
 	logic [LOG_ROB_ENTRIES-1:0] ssu_commit_update_ROB_index;
 
     // oldest stamofu advertisement
-	logic stamofu_active;
-	logic [LOG_ROB_ENTRIES-1:0] stamofu_oldest_ROB_index;
+	logic stamofu_incomplete_active;
+	logic [LOG_ROB_ENTRIES-1:0] stamofu_oldest_incomplete_ROB_index;
 
     // stamofu mq complete notif
 	logic stamofu_mq_complete_valid;
@@ -877,8 +877,8 @@ module stamofu_cq_wrapper (
 			last_ssu_commit_update_ROB_index <= '0;
 
 		    // oldest stamofu advertisement
-			last_stamofu_active <= '0;
-			last_stamofu_oldest_ROB_index <= '0;
+			last_stamofu_incomplete_active <= '0;
+			last_stamofu_oldest_incomplete_ROB_index <= '0;
 
 		    // stamofu mq complete notif
 			stamofu_mq_complete_valid <= '0;
@@ -1166,8 +1166,8 @@ module stamofu_cq_wrapper (
 			last_ssu_commit_update_ROB_index <= ssu_commit_update_ROB_index;
 
 		    // oldest stamofu advertisement
-			last_stamofu_active <= stamofu_active;
-			last_stamofu_oldest_ROB_index <= stamofu_oldest_ROB_index;
+			last_stamofu_incomplete_active <= stamofu_incomplete_active;
+			last_stamofu_oldest_incomplete_ROB_index <= stamofu_oldest_incomplete_ROB_index;
 
 		    // stamofu mq complete notif
 			stamofu_mq_complete_valid <= next_stamofu_mq_complete_valid;

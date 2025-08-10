@@ -146,7 +146,7 @@ module ldu_mq_wrapper (
     // ldu CAM return
 	output logic last_ldu_CAM_return_forward,
 
-    // ldu_cq commit
+    // ldu_mq commit
 	input logic next_ldu_cq_commit_mq_valid,
 	input logic [LOG_LDU_MQ_ENTRIES-1:0] next_ldu_cq_commit_mq_index,
 	output logic last_ldu_cq_commit_mq_has_forward,
@@ -166,8 +166,8 @@ module ldu_mq_wrapper (
 	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_aq_io_aq_oldest_abs_ROB_index,
 
     // oldest stamofu advertisement
-	input logic next_stamofu_active,
-	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_oldest_ROB_index,
+	input logic next_stamofu_incomplete_active,
+	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_oldest_incomplete_ROB_index,
 
     // ROB kill
 	input logic next_rob_kill_valid,
@@ -302,7 +302,7 @@ module ldu_mq_wrapper (
     // ldu CAM return
 	logic ldu_CAM_return_forward;
 
-    // ldu_cq commit
+    // ldu_mq commit
 	logic ldu_cq_commit_mq_valid;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] ldu_cq_commit_mq_index;
 	logic ldu_cq_commit_mq_has_forward;
@@ -322,8 +322,8 @@ module ldu_mq_wrapper (
 	logic [LOG_ROB_ENTRIES-1:0] stamofu_aq_io_aq_oldest_abs_ROB_index;
 
     // oldest stamofu advertisement
-	logic stamofu_active;
-	logic [LOG_ROB_ENTRIES-1:0] stamofu_oldest_ROB_index;
+	logic stamofu_incomplete_active;
+	logic [LOG_ROB_ENTRIES-1:0] stamofu_oldest_incomplete_ROB_index;
 
     // ROB kill
 	logic rob_kill_valid;
@@ -468,7 +468,7 @@ module ldu_mq_wrapper (
 		    // ldu CAM return
 			last_ldu_CAM_return_forward <= '0;
 
-		    // ldu_cq commit
+		    // ldu_mq commit
 			ldu_cq_commit_mq_valid <= '0;
 			ldu_cq_commit_mq_index <= '0;
 			last_ldu_cq_commit_mq_has_forward <= '0;
@@ -488,8 +488,8 @@ module ldu_mq_wrapper (
 			stamofu_aq_io_aq_oldest_abs_ROB_index <= '0;
 
 		    // oldest stamofu advertisement
-			stamofu_active <= '0;
-			stamofu_oldest_ROB_index <= '0;
+			stamofu_incomplete_active <= '0;
+			stamofu_oldest_incomplete_ROB_index <= '0;
 
 		    // ROB kill
 			rob_kill_valid <= '0;
@@ -622,7 +622,7 @@ module ldu_mq_wrapper (
 		    // ldu CAM return
 			last_ldu_CAM_return_forward <= ldu_CAM_return_forward;
 
-		    // ldu_cq commit
+		    // ldu_mq commit
 			ldu_cq_commit_mq_valid <= next_ldu_cq_commit_mq_valid;
 			ldu_cq_commit_mq_index <= next_ldu_cq_commit_mq_index;
 			last_ldu_cq_commit_mq_has_forward <= ldu_cq_commit_mq_has_forward;
@@ -642,8 +642,8 @@ module ldu_mq_wrapper (
 			stamofu_aq_io_aq_oldest_abs_ROB_index <= next_stamofu_aq_io_aq_oldest_abs_ROB_index;
 
 		    // oldest stamofu advertisement
-			stamofu_active <= next_stamofu_active;
-			stamofu_oldest_ROB_index <= next_stamofu_oldest_ROB_index;
+			stamofu_incomplete_active <= next_stamofu_incomplete_active;
+			stamofu_oldest_incomplete_ROB_index <= next_stamofu_oldest_incomplete_ROB_index;
 
 		    // ROB kill
 			rob_kill_valid <= next_rob_kill_valid;

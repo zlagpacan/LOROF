@@ -300,8 +300,8 @@ module stamofu_cq_tb ();
 	logic [LOG_ROB_ENTRIES-1:0] DUT_ssu_commit_update_ROB_index, expected_ssu_commit_update_ROB_index;
 
     // oldest stamofu advertisement
-	logic DUT_stamofu_active, expected_stamofu_active;
-	logic [LOG_ROB_ENTRIES-1:0] DUT_stamofu_oldest_ROB_index, expected_stamofu_oldest_ROB_index;
+	logic DUT_stamofu_incomplete_active, expected_stamofu_incomplete_active;
+	logic [LOG_ROB_ENTRIES-1:0] DUT_stamofu_oldest_incomplete_ROB_index, expected_stamofu_oldest_incomplete_ROB_index;
 
     // stamofu mq complete notif
 	logic tb_stamofu_mq_complete_valid;
@@ -597,8 +597,8 @@ module stamofu_cq_tb ();
 		.ssu_commit_update_ROB_index(DUT_ssu_commit_update_ROB_index),
 
 	    // oldest stamofu advertisement
-		.stamofu_active(DUT_stamofu_active),
-		.stamofu_oldest_ROB_index(DUT_stamofu_oldest_ROB_index),
+		.stamofu_incomplete_active(DUT_stamofu_incomplete_active),
+		.stamofu_oldest_incomplete_ROB_index(DUT_stamofu_oldest_incomplete_ROB_index),
 
 	    // stamofu mq complete notif
 		.stamofu_mq_complete_valid(tb_stamofu_mq_complete_valid),
@@ -1201,16 +1201,16 @@ module stamofu_cq_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_stamofu_active !== DUT_stamofu_active) begin
-			$display("TB ERROR: expected_stamofu_active (%h) != DUT_stamofu_active (%h)",
-				expected_stamofu_active, DUT_stamofu_active);
+		if (expected_stamofu_incomplete_active !== DUT_stamofu_incomplete_active) begin
+			$display("TB ERROR: expected_stamofu_incomplete_active (%h) != DUT_stamofu_incomplete_active (%h)",
+				expected_stamofu_incomplete_active, DUT_stamofu_incomplete_active);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_stamofu_oldest_ROB_index !== DUT_stamofu_oldest_ROB_index) begin
-			$display("TB ERROR: expected_stamofu_oldest_ROB_index (%h) != DUT_stamofu_oldest_ROB_index (%h)",
-				expected_stamofu_oldest_ROB_index, DUT_stamofu_oldest_ROB_index);
+		if (expected_stamofu_oldest_incomplete_ROB_index !== DUT_stamofu_oldest_incomplete_ROB_index) begin
+			$display("TB ERROR: expected_stamofu_oldest_incomplete_ROB_index (%h) != DUT_stamofu_oldest_incomplete_ROB_index (%h)",
+				expected_stamofu_oldest_incomplete_ROB_index, DUT_stamofu_oldest_incomplete_ROB_index);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -1526,8 +1526,8 @@ module stamofu_cq_tb ();
 		expected_ssu_commit_update_mdp_info = 8'b00000000;
 		expected_ssu_commit_update_ROB_index = 7'h00;
 	    // oldest stamofu advertisement
-		expected_stamofu_active = 1'b0;
-		expected_stamofu_oldest_ROB_index = 7'h00;
+		expected_stamofu_incomplete_active = 1'b0;
+		expected_stamofu_oldest_incomplete_ROB_index = 7'h00;
 	    // stamofu mq complete notif
 	    // ROB complete notif
 		expected_stamofu_complete_valid = 1'b0;
@@ -1813,8 +1813,8 @@ module stamofu_cq_tb ();
 		expected_ssu_commit_update_mdp_info = 8'b00000000;
 		expected_ssu_commit_update_ROB_index = 7'h00;
 	    // oldest stamofu advertisement
-		expected_stamofu_active = 1'b0;
-		expected_stamofu_oldest_ROB_index = 7'h00;
+		expected_stamofu_incomplete_active = 1'b0;
+		expected_stamofu_oldest_incomplete_ROB_index = 7'h00;
 	    // stamofu mq complete notif
 	    // ROB complete notif
 		expected_stamofu_complete_valid = 1'b0;
@@ -2120,8 +2120,8 @@ module stamofu_cq_tb ();
 		expected_ssu_commit_update_mdp_info = 8'b00000000;
 		expected_ssu_commit_update_ROB_index = 7'h00;
 	    // oldest stamofu advertisement
-		expected_stamofu_active = 1'b0;
-		expected_stamofu_oldest_ROB_index = 7'h00;
+		expected_stamofu_incomplete_active = 1'b0;
+		expected_stamofu_oldest_incomplete_ROB_index = 7'h00;
 	    // stamofu mq complete notif
 	    // ROB complete notif
 		expected_stamofu_complete_valid = 1'b0;

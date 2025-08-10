@@ -229,8 +229,8 @@ module ldu_cq_tb ();
 	logic [LOG_ROB_ENTRIES-1:0] tb_stamofu_aq_io_aq_oldest_abs_ROB_index;
 
     // oldest stamofu advertisement
-	logic tb_stamofu_active;
-	logic [LOG_ROB_ENTRIES-1:0] tb_stamofu_oldest_ROB_index;
+	logic tb_stamofu_incomplete_active;
+	logic [LOG_ROB_ENTRIES-1:0] tb_stamofu_oldest_incomplete_ROB_index;
 
     // ROB complete notif
 	logic DUT_ldu_complete_valid, expected_ldu_complete_valid;
@@ -448,8 +448,8 @@ module ldu_cq_tb ();
 		.stamofu_aq_io_aq_oldest_abs_ROB_index(tb_stamofu_aq_io_aq_oldest_abs_ROB_index),
 
 	    // oldest stamofu advertisement
-		.stamofu_active(tb_stamofu_active),
-		.stamofu_oldest_ROB_index(tb_stamofu_oldest_ROB_index),
+		.stamofu_incomplete_active(tb_stamofu_incomplete_active),
+		.stamofu_oldest_incomplete_ROB_index(tb_stamofu_oldest_incomplete_ROB_index),
 
 	    // ROB complete notif
 		.ldu_complete_valid(DUT_ldu_complete_valid),
@@ -943,8 +943,8 @@ module ldu_cq_tb ();
 		tb_stamofu_aq_io_aq_active = 1'b0;
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h00;
 	    // oldest stamofu advertisement
-		tb_stamofu_active = 1'b0;
-		tb_stamofu_oldest_ROB_index = 7'h00;
+		tb_stamofu_incomplete_active = 1'b0;
+		tb_stamofu_oldest_incomplete_ROB_index = 7'h00;
 	    // ROB complete notif
 	    // ROB commit
 		tb_rob_commit_upper_index = 5'h00;
@@ -1161,8 +1161,8 @@ module ldu_cq_tb ();
 		tb_stamofu_aq_io_aq_active = 1'b0;
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h00;
 	    // oldest stamofu advertisement
-		tb_stamofu_active = 1'b0;
-		tb_stamofu_oldest_ROB_index = 7'h00;
+		tb_stamofu_incomplete_active = 1'b0;
+		tb_stamofu_oldest_incomplete_ROB_index = 7'h00;
 	    // ROB complete notif
 	    // ROB commit
 		tb_rob_commit_upper_index = 5'h00;
@@ -1422,8 +1422,8 @@ module ldu_cq_tb ();
 		tb_stamofu_aq_io_aq_active = 1'b0;
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h00;
 	    // oldest stamofu advertisement
-		tb_stamofu_active = 1'b0;
-		tb_stamofu_oldest_ROB_index = 7'h00;
+		tb_stamofu_incomplete_active = 1'b0;
+		tb_stamofu_oldest_incomplete_ROB_index = 7'h00;
 	    // ROB complete notif
 	    // ROB commit
 		tb_rob_commit_upper_index = 5'h00;
@@ -1677,8 +1677,8 @@ module ldu_cq_tb ();
 		tb_stamofu_aq_io_aq_active = 1'b0;
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h00;
 	    // oldest stamofu advertisement
-		tb_stamofu_active = 1'b0;
-		tb_stamofu_oldest_ROB_index = 7'h00;
+		tb_stamofu_incomplete_active = 1'b0;
+		tb_stamofu_oldest_incomplete_ROB_index = 7'h00;
 	    // ROB complete notif
 	    // ROB commit
 		tb_rob_commit_upper_index = 5'h00;
@@ -1932,8 +1932,8 @@ module ldu_cq_tb ();
 		tb_stamofu_aq_io_aq_active = 1'b0;
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h00;
 	    // oldest stamofu advertisement
-		tb_stamofu_active = 1'b0;
-		tb_stamofu_oldest_ROB_index = 7'h00;
+		tb_stamofu_incomplete_active = 1'b0;
+		tb_stamofu_oldest_incomplete_ROB_index = 7'h00;
 	    // ROB complete notif
 	    // ROB commit
 		tb_rob_commit_upper_index = 5'h00;
@@ -2187,8 +2187,8 @@ module ldu_cq_tb ();
 		tb_stamofu_aq_io_aq_active = 1'b1;
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h08;
 	    // oldest stamofu advertisement
-		tb_stamofu_active = 1'b0;
-		tb_stamofu_oldest_ROB_index = 7'h00;
+		tb_stamofu_incomplete_active = 1'b0;
+		tb_stamofu_oldest_incomplete_ROB_index = 7'h00;
 	    // ROB complete notif
 	    // ROB commit
 		tb_rob_commit_upper_index = 5'h00;
@@ -2442,8 +2442,8 @@ module ldu_cq_tb ();
 		tb_stamofu_aq_io_aq_active = 1'b1;
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h08;
 	    // oldest stamofu advertisement
-		tb_stamofu_active = 1'b0;
-		tb_stamofu_oldest_ROB_index = 7'h00;
+		tb_stamofu_incomplete_active = 1'b0;
+		tb_stamofu_oldest_incomplete_ROB_index = 7'h00;
 	    // ROB complete notif
 	    // ROB commit
 		tb_rob_commit_upper_index = 5'h00;

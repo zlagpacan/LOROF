@@ -210,8 +210,8 @@ module ldu_cq #(
     input logic [LOG_ROB_ENTRIES-1:0]   stamofu_aq_io_aq_oldest_abs_ROB_index,
 
     // oldest stamofu advertisement
-    input logic                         stamofu_active,
-    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_oldest_ROB_index,
+    input logic                         stamofu_incomplete_active,
+    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_oldest_incomplete_ROB_index,
 
     // ROB complete notif
     output logic                        ldu_complete_valid,
@@ -256,7 +256,7 @@ module ldu_cq #(
         logic                               stamofu_CAM_returned;
         logic                               dcache_hit;
         logic                               aq_blocking;
-        logic                               older_stamofu_active;
+        logic                               older_stamofu_incomplete_active;
         logic                               stalling;
         logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stalling_count;
         logic                               forward;
@@ -622,7 +622,7 @@ module ldu_cq #(
                 // next_entry_array[i].stamofu_CAM_returned = 
                 next_entry_array[i].dcache_hit = ldu_cq_info_ret_bank0_dcache_hit;
                 next_entry_array[i].aq_blocking = ldu_cq_info_ret_bank0_aq_blocking;
-                // next_entry_array[i].older_stamofu_active = 
+                // next_entry_array[i].older_stamofu_incomplete_active = 
                 // next_entry_array[i].stalling = 
                 // next_entry_array[i].stalling_count = 
                 // next_entry_array[i].forward = 
@@ -671,7 +671,7 @@ module ldu_cq #(
                 // next_entry_array[i].stamofu_CAM_returned = 
                 next_entry_array[i].dcache_hit = ldu_cq_info_ret_bank1_dcache_hit;
                 next_entry_array[i].aq_blocking = ldu_cq_info_ret_bank1_aq_blocking;
-                // next_entry_array[i].older_stamofu_active = 
+                // next_entry_array[i].older_stamofu_incomplete_active = 
                 // next_entry_array[i].stalling = 
                 // next_entry_array[i].stalling_count = 
                 // next_entry_array[i].forward = 
@@ -817,7 +817,7 @@ module ldu_cq #(
                 & (entry_array[i].forward | entry_array[i].dcache_hit)
                 & ~entry_array[i].nasty_forward
                 & (!entry_array[i].mdp_info[7:6] | entry_array[i].stamofu_CAM_returned)
-                & (~entry_array[i].stalling | ~stamofu_active | ~entry_array[i].older_stamofu_active)
+                & (~entry_array[i].stalling | ~stamofu_incomplete_active | ~entry_array[i].older_stamofu_incomplete_active)
             ) begin
                 next_entry_array[i].data_try_req = 1'b1;
             end
@@ -827,7 +827,7 @@ module ldu_cq #(
                 // no complete req
                 // dcache hit
                     // needed so all dcache miss resp's are accounted for
-                // ~older_stamofu_active OR killed
+                // ~older_stamofu_incomplete_active OR killed
                     // faster complete if killed
                 // WB_sent
                     // WB_sent also performed for excepting load's in launch pipeline
@@ -837,7 +837,7 @@ module ldu_cq #(
                 ~entry_array[i].complete
                 & ~entry_array[i].complete_req
                 & entry_array[i].dcache_hit
-                & (~entry_array[i].older_stamofu_active | entry_array[i].killed)
+                & (~entry_array[i].older_stamofu_incomplete_active | entry_array[i].killed)
                 & entry_array[i].WB_sent
 
                 // also can't be in any part of data try process
@@ -914,19 +914,19 @@ module ldu_cq #(
             if (
                 ~entry_array[i].dtlb_hit
                 & ~(
-                    ~stamofu_active
-                    | (rel_ROB_index_by_entry[i] < (stamofu_oldest_ROB_index - rob_kill_abs_head_index)))
+                    ~stamofu_incomplete_active
+                    | (rel_ROB_index_by_entry[i] < (stamofu_oldest_incomplete_ROB_index - rob_kill_abs_head_index)))
             ) begin
-                next_entry_array[i].older_stamofu_active = 1'b1;
+                next_entry_array[i].older_stamofu_incomplete_active = 1'b1;
             end
             if (
                 entry_array[i].dtlb_hit
-                & entry_array[i].older_stamofu_active
+                & entry_array[i].older_stamofu_incomplete_active
                 & (
-                    ~stamofu_active
-                    | (rel_ROB_index_by_entry[i] < (stamofu_oldest_ROB_index - rob_kill_abs_head_index)))
+                    ~stamofu_incomplete_active
+                    | (rel_ROB_index_by_entry[i] < (stamofu_oldest_incomplete_ROB_index - rob_kill_abs_head_index)))
             ) begin
-                next_entry_array[i].older_stamofu_active = 1'b0;
+                next_entry_array[i].older_stamofu_incomplete_active = 1'b0;
 
                 // trigger check data try req
                 next_entry_array[i].unblock_data_try_req = 1'b1;
@@ -944,9 +944,9 @@ module ldu_cq #(
                         // uncommon case and nasty if try to
                             // hard to make guarantees
                 & (
-                    ~stamofu_active
+                    ~stamofu_incomplete_active
                     | (entry_array[i].forward_ROB_index - rob_kill_abs_head_index) 
-                        < (stamofu_oldest_ROB_index - rob_kill_abs_head_index))
+                        < (stamofu_oldest_incomplete_ROB_index - rob_kill_abs_head_index))
             ) begin
                 next_entry_array[i].dcache_hit = 1'b0;
                 next_entry_array[i].nasty_forward = 1'b0;
@@ -1235,7 +1235,7 @@ module ldu_cq #(
                 entry_array[enq_ptr].stamofu_CAM_returned <= 1'b0;
                 entry_array[enq_ptr].dcache_hit <= 1'b0;
                 entry_array[enq_ptr].aq_blocking <= 1'b0;
-                entry_array[enq_ptr].older_stamofu_active <= 1'b0;
+                entry_array[enq_ptr].older_stamofu_incomplete_active <= 1'b0;
                 entry_array[enq_ptr].stalling <= 1'b0;
                 // entry_array[enq_ptr].stalling_count
                 entry_array[enq_ptr].forward <= 1'b0;
@@ -1283,7 +1283,7 @@ module ldu_cq #(
                 entry_array[deq_ptr].stamofu_CAM_returned <= 1'b0;
                 entry_array[deq_ptr].dcache_hit <= 1'b0;
                 entry_array[deq_ptr].aq_blocking <= 1'b0;
-                entry_array[deq_ptr].older_stamofu_active <= 1'b0;
+                entry_array[deq_ptr].older_stamofu_incomplete_active <= 1'b0;
                 entry_array[deq_ptr].stalling <= 1'b0;
                 // entry_array[deq_ptr].stalling_count
                 entry_array[deq_ptr].forward <= 1'b0;

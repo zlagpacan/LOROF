@@ -282,8 +282,8 @@ module stamofu_cq #(
     output logic [LOG_ROB_ENTRIES-1:0]  ssu_commit_update_ROB_index,
 
     // oldest stamofu advertisement
-    output logic                        stamofu_active,
-    output logic [LOG_ROB_ENTRIES-1:0]  stamofu_oldest_ROB_index,
+    output logic                        stamofu_incomplete_active,
+    output logic [LOG_ROB_ENTRIES-1:0]  stamofu_oldest_incomplete_ROB_index,
 
     // stamofu mq complete notif
     input logic                                 stamofu_mq_complete_valid,
@@ -410,8 +410,14 @@ module stamofu_cq #(
     logic                               stamofu_cq_ldu_CAM_launch_ready;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_cq_ldu_CAM_launch_cq_index;
 
-    logic                           next_stamofu_active;
-    logic [LOG_ROB_ENTRIES-1:0]     next_stamofu_oldest_ROB_index;
+    logic                           next_stamofu_incomplete_active;
+    logic [LOG_ROB_ENTRIES-1:0]     next_stamofu_oldest_incomplete_ROB_index;
+
+    logic                               unmasked_incomplete_vec;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  unmasked_incomplete_index;
+
+    logic                               masked_incomplete_vec;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  masked_incomplete_index;
 
     // stamofu CAM pipeline bank 0
     logic                               CAM_stage0_bank0_valid;
@@ -1582,20 +1588,41 @@ module stamofu_cq #(
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            stamofu_active <= 1'b0;
-            stamofu_oldest_ROB_index <= 7'h00;
+            stamofu_incomplete_active <= 1'b0;
+            stamofu_oldest_incomplete_ROB_index <= 7'h00;
         end
         else begin
-            stamofu_active <= next_stamofu_active;
-            stamofu_oldest_ROB_index <= next_stamofu_oldest_ROB_index;
+            stamofu_incomplete_active <= next_stamofu_incomplete_active;
+            stamofu_oldest_incomplete_ROB_index <= next_stamofu_oldest_incomplete_ROB_index;
         end
     end
     always_comb begin
-        next_stamofu_active = 1'b0;
         for (int i = 0; i < STAMOFU_CQ_ENTRIES; i++) begin
-            next_stamofu_active |= entry_array[i].valid;
+            unmasked_incomplete_vec = (entry_array[i].valid & ~entry_array[i].complete);
         end
-        next_stamofu_oldest_ROB_index = entry_array[deq_perform].ROB_index;
+        masked_incomplete_vec = unmasked_incomplete_vec & wraparound_mask;
+    end
+    pe_lsb #(
+        .WIDTH(STAMOFU_CQ_ENTRIES), .USE_ONE_HOT(0), .USE_INDEX(1)
+    ) UNMASKED_INCOMPLETE_ACTIVE_PE (
+        .req_vec(unmasked_incomplete_vec),
+        .ack_index(unmasked_incomplete_index)
+    );
+    pe_lsb #(
+        .WIDTH(STAMOFU_CQ_ENTRIES), .USE_ONE_HOT(0), .USE_INDEX(1)
+    ) MASKED_INCOMPLETE_ACTIVE_PE (
+        .req_vec(masked_incomplete_vec),
+        .ack_index(masked_incomplete_index)
+    );
+    always_comb begin
+        next_stamofu_incomplete_active = |unmasked_incomplete_vec;
+
+        if (|masked_incomplete_vec) begin
+            next_stamofu_oldest_incomplete_ROB_index = masked_incomplete_index;
+        end
+        else begin
+            next_stamofu_oldest_incomplete_ROB_index = unmasked_incomplete_index;
+        end
     end
 
     always_ff @ (posedge CLK, negedge nRST) begin

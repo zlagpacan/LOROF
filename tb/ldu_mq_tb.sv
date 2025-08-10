@@ -183,8 +183,8 @@ module ldu_mq_tb ();
 	logic [LOG_ROB_ENTRIES-1:0] tb_stamofu_aq_io_aq_oldest_abs_ROB_index;
 
     // oldest stamofu advertisement
-	logic tb_stamofu_active;
-	logic [LOG_ROB_ENTRIES-1:0] tb_stamofu_oldest_ROB_index;
+	logic tb_stamofu_incomplete_active;
+	logic [LOG_ROB_ENTRIES-1:0] tb_stamofu_oldest_incomplete_ROB_index;
 
     // ROB kill
 	logic tb_rob_kill_valid;
@@ -346,8 +346,8 @@ module ldu_mq_tb ();
 		.stamofu_aq_io_aq_oldest_abs_ROB_index(tb_stamofu_aq_io_aq_oldest_abs_ROB_index),
 
 	    // oldest stamofu advertisement
-		.stamofu_active(tb_stamofu_active),
-		.stamofu_oldest_ROB_index(tb_stamofu_oldest_ROB_index),
+		.stamofu_incomplete_active(tb_stamofu_incomplete_active),
+		.stamofu_oldest_incomplete_ROB_index(tb_stamofu_oldest_incomplete_ROB_index),
 
 	    // ROB kill
 		.rob_kill_valid(tb_rob_kill_valid),
@@ -662,8 +662,8 @@ module ldu_mq_tb ();
 		tb_stamofu_aq_io_aq_active = 1'b0;
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // oldest stamofu advertisement
-		tb_stamofu_active = 1'b0;
-		tb_stamofu_oldest_ROB_index = 7'h0;
+		tb_stamofu_incomplete_active = 1'b0;
+		tb_stamofu_oldest_incomplete_ROB_index = 7'h0;
 	    // ROB kill
 		tb_rob_kill_valid = 1'b0;
 		tb_rob_kill_abs_head_index = 7'h0;
@@ -823,8 +823,8 @@ module ldu_mq_tb ();
 		tb_stamofu_aq_io_aq_active = 1'b0;
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // oldest stamofu advertisement
-		tb_stamofu_active = 1'b0;
-		tb_stamofu_oldest_ROB_index = 7'h0;
+		tb_stamofu_incomplete_active = 1'b0;
+		tb_stamofu_oldest_incomplete_ROB_index = 7'h0;
 	    // ROB kill
 		tb_rob_kill_valid = 1'b0;
 		tb_rob_kill_abs_head_index = 7'h0;
@@ -992,8 +992,8 @@ module ldu_mq_tb ();
 		tb_stamofu_aq_io_aq_active = 1'b0;
 		tb_stamofu_aq_io_aq_oldest_abs_ROB_index = 7'h0;
 	    // oldest stamofu advertisement
-		tb_stamofu_active = 1'b0;
-		tb_stamofu_oldest_ROB_index = 7'h0;
+		tb_stamofu_incomplete_active = 1'b0;
+		tb_stamofu_oldest_incomplete_ROB_index = 7'h0;
 	    // ROB kill
 		tb_rob_kill_valid = 1'b0;
 		tb_rob_kill_abs_head_index = 7'h0;

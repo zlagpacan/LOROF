@@ -263,18 +263,13 @@ module rob (
     // ----------------------------------------------------------------
     // Signals:
 
-    logic [LOG_ROB_ENTRIES-2-1:0] tail_ptr, next_tail_ptr;
-    logic [LOG_ROB_ENTRIES-2-1:0] head_ptr, next_head_ptr;
-
-    logic enq_perform;
-    logic deq_perform;
-
     // FF arrays
         // need to PE over or multiple referenced simultaneously
     logic [ROB_ENTRIES/4-1:0] valid_by_4way;
     logic [ROB_ENTRIES/4-1:0] has_checkpoint_by_4way;
 
-    logic [ROB_ENTRIES-1:0] complete_by_entry;
+    logic [ROB_ENTRIES-1:0] WB_complete_by_entry;
+    logic [ROB_ENTRIES-1:0] unit_complete_by_entry;
     logic [ROB_ENTRIES-1:0] killed_by_entry;
 
     // bulk bram array
@@ -313,6 +308,24 @@ module rob (
     logic [LOG_ROB_ENTRIES-1:0]     exception_reg_index;
     logic [31:0]                    exception_reg_cause;
 
+    // FIFO pointers
+    logic [LOG_ROB_ENTRIES-2-1:0] tail_ptr, next_tail_ptr;
+    logic [LOG_ROB_ENTRIES-2-1:0] head_ptr, next_head_ptr;
+
+    logic enq_perform;
+    logic deq_perform;
+
+    // deq/rollback
+    typedef enum logic [1:0] {
+        DEQ,
+        CHECKPOINT_CHECK,
+        CHECKPOINT_RESTORE,
+        ROLLBACK
+    } rob_state_t;
+    
+    rob_state_t                     rob_state;
+    logic [LOG_ROB_ENTRIES-1:0]     rollback_target_index;
+
     // ----------------------------------------------------------------
     // Logic:
 
@@ -321,37 +334,39 @@ module rob (
         if (~nRST) begin
             valid_by_4way <= '0;
             has_checkpoint_by_4way <= '0;
-            complete_by_entry <= '0;
+            WB_complete_by_entry <= '0;
+            unit_complete_by_entry <= '0;
             killed_by_entry <= '0;
-
-            kill_next_enq <= 1'b0;
         end
         else begin
             if (enq_perform) begin
                 valid_by_4way[tail_ptr] <= 1'b1;
                 has_checkpoint_by_4way[tail_ptr] <= dispatch_has_checkpoint;
-                complete_by_entry[4*tail_ptr+3] <= 1'b0;
-                complete_by_entry[4*tail_ptr+2] <= 1'b0;
-                complete_by_entry[4*tail_ptr+1] <= 1'b0;
-                complete_by_entry[4*tail_ptr+0] <= 1'b0;
-                killed_by_entry[4*head_ptr+3] <= dispatch_rob_enq_killed;
-                killed_by_entry[4*head_ptr+2] <= dispatch_rob_enq_killed;
-                killed_by_entry[4*head_ptr+1] <= dispatch_rob_enq_killed;
-                killed_by_entry[4*head_ptr+0] <= dispatch_rob_enq_killed;
-
-                kill_next_enq <= 1'b0;
-            end
-            else if () begin
-                kill_next_enq <= 1'b1;
+                WB_complete_by_entry[4*tail_ptr+3] <= 1'b0;
+                WB_complete_by_entry[4*tail_ptr+2] <= 1'b0;
+                WB_complete_by_entry[4*tail_ptr+1] <= 1'b0;
+                WB_complete_by_entry[4*tail_ptr+0] <= 1'b0;
+                unit_complete_by_entry[4*tail_ptr+3] <= 1'b0;
+                unit_complete_by_entry[4*tail_ptr+2] <= 1'b0;
+                unit_complete_by_entry[4*tail_ptr+1] <= 1'b0;
+                unit_complete_by_entry[4*tail_ptr+0] <= 1'b0;
+                killed_by_entry[4*head_ptr+3] <= dispatch_enq_killed;
+                killed_by_entry[4*head_ptr+2] <= dispatch_enq_killed;
+                killed_by_entry[4*head_ptr+1] <= dispatch_enq_killed;
+                killed_by_entry[4*head_ptr+0] <= dispatch_enq_killed;
             end
 
             if (deq_perform) begin
                 valid_by_4way[head_ptr] <= 1'b0;
                 has_checkpoint_by_4way[head_ptr] <= 1'b0;
-                complete_by_entry[4*head_ptr+3] <= 1'b0;
-                complete_by_entry[4*head_ptr+2] <= 1'b0;
-                complete_by_entry[4*head_ptr+1] <= 1'b0;
-                complete_by_entry[4*head_ptr+0] <= 1'b0;
+                WB_complete_by_entry[4*head_ptr+3] <= 1'b0;
+                WB_complete_by_entry[4*head_ptr+2] <= 1'b0;
+                WB_complete_by_entry[4*head_ptr+1] <= 1'b0;
+                WB_complete_by_entry[4*head_ptr+0] <= 1'b0;
+                unit_complete_by_entry[4*head_ptr+3] <= 1'b0;
+                unit_complete_by_entry[4*head_ptr+2] <= 1'b0;
+                unit_complete_by_entry[4*head_ptr+1] <= 1'b0;
+                unit_complete_by_entry[4*head_ptr+0] <= 1'b0;
                 killed_by_entry[4*head_ptr+3] <= 1'b0;
                 killed_by_entry[4*head_ptr+2] <= 1'b0;
                 killed_by_entry[4*head_ptr+1] <= 1'b0;
@@ -371,14 +386,20 @@ module rob (
                 end
             end
 
+            for (int i = 0; i < PRF_BANK_COUNT; i++) begin
+                if (complete_bus_valid_by_bank[i]) begin
+                    WB_complete_by_entry[complete_bus_ROB_index_by_bank[i]] <= 1'b1;
+                end
+            end
+
             if (ldu_complete_valid) begin
-                complete_by_entry[ldu_complete_ROB_index] <= 1'b1;
+                unit_complete_by_entry[ldu_complete_ROB_index] <= 1'b1;
             end
             if (stamofu_complete_valid) begin
-                complete_by_entry[stamofu_complete_ROB_index] <= 1'b1;
+                unit_complete_by_entry[stamofu_complete_ROB_index] <= 1'b1;
             end
             if (branch_notif_valid) begin
-
+                unit_complete_by_entry[branch_notif_ROB_index] <= 1'b1;
             end
         end
     end
@@ -405,9 +426,37 @@ module rob (
         PC_bram_write_PC_by_way = dispatch_PC_by_way;
     end
 
-    // deq logic:
+    // deq/rollback logic:
     always_comb begin
-
+        // deq_complete_by_way = 
     end
+    always_comb begin
+        
+        case (rob_state)
+
+            CHECKPOINT_CHECK:
+            begin
+
+            end
+
+            CHECKPOINT_RESTORE:
+            begin
+
+            end
+
+            ROLLBACK:
+            begin
+
+            end
+            
+            default: // DEQ
+            begin
+
+            end
+        endcase
+    end
+
+    // bram arrays
+
 
 endmodule

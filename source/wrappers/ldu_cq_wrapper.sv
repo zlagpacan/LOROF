@@ -187,7 +187,7 @@ module ldu_cq_wrapper (
 	output logic [LOG_STAMOFU_MQ_ENTRIES-1:0] last_ldu_CAM_return_mq_index,
 	output logic last_ldu_CAM_return_forward,
 
-    // ldu_cq commit
+    // ldu_mq commit
 	output logic last_ldu_cq_commit_mq_valid,
 	output logic [LOG_LDU_MQ_ENTRIES-1:0] last_ldu_cq_commit_mq_index,
 	input logic next_ldu_cq_commit_mq_has_forward,
@@ -213,8 +213,8 @@ module ldu_cq_wrapper (
 	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_aq_io_aq_oldest_abs_ROB_index,
 
     // oldest stamofu advertisement
-	input logic next_stamofu_active,
-	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_oldest_ROB_index,
+	input logic next_stamofu_incomplete_active,
+	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_oldest_incomplete_ROB_index,
 
     // ROB complete notif
 	output logic last_ldu_complete_valid,
@@ -398,7 +398,7 @@ module ldu_cq_wrapper (
 	logic [LOG_STAMOFU_MQ_ENTRIES-1:0] ldu_CAM_return_mq_index;
 	logic ldu_CAM_return_forward;
 
-    // ldu_cq commit
+    // ldu_mq commit
 	logic ldu_cq_commit_mq_valid;
 	logic [LOG_LDU_MQ_ENTRIES-1:0] ldu_cq_commit_mq_index;
 	logic ldu_cq_commit_mq_has_forward;
@@ -424,8 +424,8 @@ module ldu_cq_wrapper (
 	logic [LOG_ROB_ENTRIES-1:0] stamofu_aq_io_aq_oldest_abs_ROB_index;
 
     // oldest stamofu advertisement
-	logic stamofu_active;
-	logic [LOG_ROB_ENTRIES-1:0] stamofu_oldest_ROB_index;
+	logic stamofu_incomplete_active;
+	logic [LOG_ROB_ENTRIES-1:0] stamofu_oldest_incomplete_ROB_index;
 
     // ROB complete notif
 	logic ldu_complete_valid;
@@ -619,7 +619,7 @@ module ldu_cq_wrapper (
 			last_ldu_CAM_return_mq_index <= '0;
 			last_ldu_CAM_return_forward <= '0;
 
-		    // ldu_cq commit
+		    // ldu_mq commit
 			last_ldu_cq_commit_mq_valid <= '0;
 			last_ldu_cq_commit_mq_index <= '0;
 			ldu_cq_commit_mq_has_forward <= '0;
@@ -645,8 +645,8 @@ module ldu_cq_wrapper (
 			stamofu_aq_io_aq_oldest_abs_ROB_index <= '0;
 
 		    // oldest stamofu advertisement
-			stamofu_active <= '0;
-			stamofu_oldest_ROB_index <= '0;
+			stamofu_incomplete_active <= '0;
+			stamofu_oldest_incomplete_ROB_index <= '0;
 
 		    // ROB complete notif
 			last_ldu_complete_valid <= '0;
@@ -828,7 +828,7 @@ module ldu_cq_wrapper (
 			last_ldu_CAM_return_mq_index <= ldu_CAM_return_mq_index;
 			last_ldu_CAM_return_forward <= ldu_CAM_return_forward;
 
-		    // ldu_cq commit
+		    // ldu_mq commit
 			last_ldu_cq_commit_mq_valid <= ldu_cq_commit_mq_valid;
 			last_ldu_cq_commit_mq_index <= ldu_cq_commit_mq_index;
 			ldu_cq_commit_mq_has_forward <= next_ldu_cq_commit_mq_has_forward;
@@ -854,8 +854,8 @@ module ldu_cq_wrapper (
 			stamofu_aq_io_aq_oldest_abs_ROB_index <= next_stamofu_aq_io_aq_oldest_abs_ROB_index;
 
 		    // oldest stamofu advertisement
-			stamofu_active <= next_stamofu_active;
-			stamofu_oldest_ROB_index <= next_stamofu_oldest_ROB_index;
+			stamofu_incomplete_active <= next_stamofu_incomplete_active;
+			stamofu_oldest_incomplete_ROB_index <= next_stamofu_oldest_incomplete_ROB_index;
 
 		    // ROB complete notif
 			last_ldu_complete_valid <= ldu_complete_valid;
