@@ -284,8 +284,8 @@ module rob (
         logic [CHECKPOINT_INDEX_WIDTH-1:0]  checkpoint_index; // need for deq/rollback, restart
     } bram_entry_t;
 
-    logic                           bulk_bram_read_valid;
-    logic [LOG_ROB_ENTRIES-2-1:0]   bulk_bram_read_index;
+    logic                           bulk_bram_read_next_valid;
+    logic [LOG_ROB_ENTRIES-2-1:0]   bulk_bram_read_next_index;
     bram_entry_t                    bulk_bram_read_entry;
 
     logic                           bulk_bram_write_valid;
@@ -295,12 +295,15 @@ module rob (
     // PC bram array
         // need for restart, mdp update
         // diff read index than bulk bram array due to mdp udpate
-    logic [LOG_ROB_ENTRIES-2-1:0]   PC_bram_read_index;
+    logic [LOG_ROB_ENTRIES-2-1:0]   PC_bram_read_next_valid;
+    logic [LOG_ROB_ENTRIES-2-1:0]   PC_bram_read_next_index;
     logic [3:0][31:0]               PC_bram_read_PC_by_way;
 
     logic                           PC_bram_write_valid;
     logic [LOG_ROB_ENTRIES-2-1:0]   PC_bram_write_index;
     logic [3:0][31:0]               PC_bram_write_PC_by_way;
+
+    logic PC_bram_restart_control;
 
     // exception reg
         // need for exception req, deq/rollback
@@ -316,15 +319,27 @@ module rob (
     logic deq_perform;
 
     // deq/rollback
-    typedef enum logic [1:0] {
+    typedef enum logic [2:0] {
         DEQ,
-        CHECKPOINT_CHECK,
         CHECKPOINT_RESTORE,
-        ROLLBACK
-    } rob_state_t;
+        ROLLBACK,
+        EXCEPTION_SEND
+    } restart_state_t;
     
-    rob_state_t                     rob_state;
-    logic [LOG_ROB_ENTRIES-1:0]     rollback_target_index;
+    restart_state_t                 restart_state, next_restart_state;
+
+    logic                           restart_info_valid, next_restart_info_valid;
+    logic [LOG_ROB_ENTRIES-1:0]     restart_info_target_index, next_restart_info_target_index;
+    logic                           restart_info_is_exception, next_restart_info_is_exception;
+
+    logic                           new_restart_valid, next_new_restart_valid;
+    
+
+    logic [3:0] deq_launched_by_way, next_deq_launched_by_way;
+
+    logic [3:0] deq_complete_by_way;
+    logic [3:0] deq_launching_by_way;
+
 
     // ----------------------------------------------------------------
     // Logic:
@@ -342,35 +357,23 @@ module rob (
             if (enq_perform) begin
                 valid_by_4way[tail_ptr] <= 1'b1;
                 has_checkpoint_by_4way[tail_ptr] <= dispatch_has_checkpoint;
-                WB_complete_by_entry[4*tail_ptr+3] <= 1'b0;
-                WB_complete_by_entry[4*tail_ptr+2] <= 1'b0;
-                WB_complete_by_entry[4*tail_ptr+1] <= 1'b0;
-                WB_complete_by_entry[4*tail_ptr+0] <= 1'b0;
-                unit_complete_by_entry[4*tail_ptr+3] <= 1'b0;
-                unit_complete_by_entry[4*tail_ptr+2] <= 1'b0;
-                unit_complete_by_entry[4*tail_ptr+1] <= 1'b0;
-                unit_complete_by_entry[4*tail_ptr+0] <= 1'b0;
-                killed_by_entry[4*head_ptr+3] <= dispatch_enq_killed;
-                killed_by_entry[4*head_ptr+2] <= dispatch_enq_killed;
-                killed_by_entry[4*head_ptr+1] <= dispatch_enq_killed;
-                killed_by_entry[4*head_ptr+0] <= dispatch_enq_killed;
+                
+                for (int i = 0; i < 4; i++) begin
+                    WB_complete_by_entry[4*tail_ptr+i] <= 1'b0;
+                    unit_complete_by_entry[4*tail_ptr+i] <= 1'b0;
+                    killed_by_entry[4*head_ptr+i] <= dispatch_enq_killed;
+                end
             end
 
             if (deq_perform) begin
                 valid_by_4way[head_ptr] <= 1'b0;
                 has_checkpoint_by_4way[head_ptr] <= 1'b0;
-                WB_complete_by_entry[4*head_ptr+3] <= 1'b0;
-                WB_complete_by_entry[4*head_ptr+2] <= 1'b0;
-                WB_complete_by_entry[4*head_ptr+1] <= 1'b0;
-                WB_complete_by_entry[4*head_ptr+0] <= 1'b0;
-                unit_complete_by_entry[4*head_ptr+3] <= 1'b0;
-                unit_complete_by_entry[4*head_ptr+2] <= 1'b0;
-                unit_complete_by_entry[4*head_ptr+1] <= 1'b0;
-                unit_complete_by_entry[4*head_ptr+0] <= 1'b0;
-                killed_by_entry[4*head_ptr+3] <= 1'b0;
-                killed_by_entry[4*head_ptr+2] <= 1'b0;
-                killed_by_entry[4*head_ptr+1] <= 1'b0;
-                killed_by_entry[4*head_ptr+0] <= 1'b0;
+
+                for (int i = 0; i < 4; i++) begin
+                    WB_complete_by_entry[4*head_ptr+i] <= 1'b0;
+                    unit_complete_by_entry[4*head_ptr+i] <= 1'b0;
+                    killed_by_entry[4*head_ptr+i] <= 1'b0;
+                end
             end
 
             if (rob_kill_valid) begin
@@ -427,36 +430,95 @@ module rob (
     end
 
     // deq/rollback logic:
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            restart_state <= DEQ;
+            restart_target_index <= 0;
+            deq_launched_by_way <= 4'b0000;
+        end
+        else begin
+            restart_state <= next_restart_state;
+            restart_target_index <= next_restart_target_index;
+            deq_launched_by_way <= next_deq_launched_by_way;
+        end
+    end
     always_comb begin
-        // deq_complete_by_way = 
+        for (int i = 0; i < 4; i++) begin
+            deq_complete_by_way[i] = 
+                (~bulk_bram_read_entry.is_ldu_by_way[i] & WB_complete_by_entry[4*head_ptr+i])
+                | unit_complete_by_entry[4*head_ptr+i];
+        end
     end
     always_comb begin
         
-        case (rob_state)
-
-            CHECKPOINT_CHECK:
-            begin
-
-            end
+        case (restart_state)
 
             CHECKPOINT_RESTORE:
             begin
-
+                // check for new restart
+                // otherwise, continue rollback
             end
 
             ROLLBACK:
             begin
+                // check for new restart
+                // check for rollback arrival
+                // otherwise, continue rollback
+            end
 
+            EXCEPTION_SEND:
+            begin
+                // exception functionality
             end
             
             default: // DEQ
             begin
-
+                // check for new restart
+                // check for deq
+                // otherwise, idle
             end
         endcase
     end
 
-    // bram arrays
+    // PC bram logic:
+    always_comb begin
+        if (PC_bram_restart_control) begin
+            
+        end
+        else begin
 
+        end
+    end
+
+    // ----------------------------------------------------------------
+    // Memory Arrays:
+
+    bram_1rport_1wport #(
+        .INNER_WIDTH((($bits(bram_entry_t)-1)/8 + 1) * 8),
+        .OUTER_WIDTH(ROB_ENTRIES/4)
+    ) BULK_BRAM (
+        .CLK(CLK),
+        .nRST(nRST),
+        .ren(bulk_bram_read_next_valid),
+        .rindex(bulk_bram_read_next_index),
+        .rdata(bulk_bram_read_entry),
+        .wen_byte({(($bits(bram_entry_t)-1)/8 + 1){bulk_bram_write_valid}}),
+        .windex(bulk_bram_write_index),
+        .wdata(bulk_bram_write_entry)        
+    );
+    
+    bram_1rport_1wport #(
+        .INNER_WIDTH(4 * 32),
+        .OUTER_WIDTH(ROB_ENTRIES/4)
+    ) PC_BRAM (
+        .CLK(CLK),
+        .nRST(nRST),
+        .ren(PC_bram_read_next_valid),
+        .rindex(PC_bram_read_next_index),
+        .rdata(PC_bram_read_PC_by_way),
+        .wen_byte({(4*32/8){PC_bram_write_valid}}),
+        .windex(bulk_bram_write_index),
+        .wdata(bulk_bram_write_entry)        
+    );
 
 endmodule
