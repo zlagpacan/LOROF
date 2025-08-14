@@ -39,8 +39,9 @@ module arbiter_rr_tb ();
     // DUT signals:
 
 	logic [REQUESTER_COUNT-1:0] tb_req_vec;
+	logic DUT_req_present, expected_req_present;
 
-	logic DUT_ack_valid, expected_ack_valid;
+	logic tb_ack_ready;
 	logic [REQUESTER_COUNT-1:0] DUT_ack_one_hot, expected_ack_one_hot;
 	logic [LOG_REQUESTER_COUNT-1:0] DUT_ack_index, expected_ack_index;
 
@@ -56,8 +57,9 @@ module arbiter_rr_tb ();
 		.nRST(nRST),
 
 		.req_vec(tb_req_vec),
+		.req_present(DUT_req_present),
 
-		.ack_valid(DUT_ack_valid),
+		.ack_ready(tb_ack_ready),
 		.ack_one_hot(DUT_ack_one_hot),
 		.ack_index(DUT_ack_index)
 	);
@@ -67,9 +69,9 @@ module arbiter_rr_tb ();
 
     task check_outputs();
     begin
-		if (expected_ack_valid !== DUT_ack_valid) begin
-			$display("TB ERROR: expected_ack_valid (%h) != DUT_ack_valid (%h)",
-				expected_ack_valid, DUT_ack_valid);
+		if (expected_req_present !== DUT_req_present) begin
+			$display("TB ERROR: expected_req_present (%h) != DUT_req_present (%h)",
+				expected_req_present, DUT_req_present);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -111,12 +113,13 @@ module arbiter_rr_tb ();
 		// reset
 		nRST = 1'b0;
 		tb_req_vec = 4'b0000;
+		tb_ack_ready = 1'b0;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-		expected_ack_valid = 1'b0;
+		expected_req_present = 1'b0;
 		expected_ack_one_hot = 4'b0000;
 		expected_ack_index = 2'h0;
 
@@ -129,12 +132,13 @@ module arbiter_rr_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_req_vec = 4'b0000;
+		tb_ack_ready = 1'b0;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-		expected_ack_valid = 1'b0;
+		expected_req_present = 1'b0;
 		expected_ack_one_hot = 4'b0000;
 		expected_ack_index = 2'h0;
 
@@ -155,14 +159,36 @@ module arbiter_rr_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_req_vec = 4'b1111;
+		tb_ack_ready = 1'b1;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_ack_valid = 1'b1;
+		expected_req_present = 1'b1;
 		expected_ack_one_hot = 4'b0001;
 		expected_ack_index = 2'h0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1111 -> 1 (stall)";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_req_vec = 4'b1111;
+		tb_ack_ready = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_req_present = 1'b1;
+		expected_ack_one_hot = 4'b0000;
+		expected_ack_index = 2'h1;
 
 		check_outputs();
 
@@ -175,12 +201,13 @@ module arbiter_rr_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_req_vec = 4'b1111;
+		tb_ack_ready = 1'b1;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_ack_valid = 1'b1;
+		expected_req_present = 1'b1;
 		expected_ack_one_hot = 4'b0010;
 		expected_ack_index = 2'h1;
 
@@ -195,14 +222,36 @@ module arbiter_rr_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_req_vec = 4'b1111;
+		tb_ack_ready = 1'b1;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_ack_valid = 1'b1;
+		expected_req_present = 1'b1;
 		expected_ack_one_hot = 4'b0100;
 		expected_ack_index = 2'h2;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1111 -> 3 (stall)";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_req_vec = 4'b1111;
+		tb_ack_ready = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_req_present = 1'b1;
+		expected_ack_one_hot = 4'b0000;
+		expected_ack_index = 2'h3;
 
 		check_outputs();
 
@@ -215,12 +264,13 @@ module arbiter_rr_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_req_vec = 4'b1111;
+		tb_ack_ready = 1'b1;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_ack_valid = 1'b1;
+		expected_req_present = 1'b1;
 		expected_ack_one_hot = 4'b1000;
 		expected_ack_index = 2'h3;
 
@@ -235,12 +285,13 @@ module arbiter_rr_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_req_vec = 4'b1111;
+		tb_ack_ready = 1'b1;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_ack_valid = 1'b1;
+		expected_req_present = 1'b1;
 		expected_ack_one_hot = 4'b0001;
 		expected_ack_index = 2'h0;
 
@@ -255,12 +306,13 @@ module arbiter_rr_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_req_vec = 4'b1110;
+		tb_ack_ready = 1'b1;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_ack_valid = 1'b1;
+		expected_req_present = 1'b1;
 		expected_ack_one_hot = 4'b0010;
 		expected_ack_index = 2'h1;
 
@@ -275,12 +327,13 @@ module arbiter_rr_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_req_vec = 4'b1110;
+		tb_ack_ready = 1'b1;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_ack_valid = 1'b1;
+		expected_req_present = 1'b1;
 		expected_ack_one_hot = 4'b0100;
 		expected_ack_index = 2'h2;
 
@@ -295,12 +348,13 @@ module arbiter_rr_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_req_vec = 4'b1010;
+		tb_ack_ready = 1'b1;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_ack_valid = 1'b1;
+		expected_req_present = 1'b1;
 		expected_ack_one_hot = 4'b1000;
 		expected_ack_index = 2'h3;
 
@@ -315,14 +369,57 @@ module arbiter_rr_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_req_vec = 4'b1010;
+		tb_ack_ready = 1'b1;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_ack_valid = 1'b1;
+		expected_req_present = 1'b1;
 		expected_ack_one_hot = 4'b0010;
 		expected_ack_index = 2'h1;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1001 -> 3 (stall 0)";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_req_vec = 4'b1001;
+		tb_ack_ready = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_req_present = 1'b1;
+		expected_ack_one_hot = 4'b0000;
+		expected_ack_index = 2'h3;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "1001 -> 3 (stall 1)";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_req_vec = 4'b1001;
+		tb_ack_ready = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_req_present = 1'b1;
+		expected_ack_one_hot = 4'b0000;
+		expected_ack_index = 2'h3;
 
 		check_outputs();
 
@@ -335,12 +432,13 @@ module arbiter_rr_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_req_vec = 4'b1001;
+		tb_ack_ready = 1'b1;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_ack_valid = 1'b1;
+		expected_req_present = 1'b1;
 		expected_ack_one_hot = 4'b1000;
 		expected_ack_index = 2'h3;
 
@@ -355,12 +453,13 @@ module arbiter_rr_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_req_vec = 4'b0101;
+		tb_ack_ready = 1'b1;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_ack_valid = 1'b1;
+		expected_req_present = 1'b1;
 		expected_ack_one_hot = 4'b0001;
 		expected_ack_index = 2'h0;
 
@@ -375,12 +474,13 @@ module arbiter_rr_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_req_vec = 4'b0110;
+		tb_ack_ready = 1'b1;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_ack_valid = 1'b1;
+		expected_req_present = 1'b1;
 		expected_ack_one_hot = 4'b0010;
 		expected_ack_index = 2'h1;
 
@@ -395,12 +495,13 @@ module arbiter_rr_tb ();
 		// reset
 		nRST = 1'b1;
 		tb_req_vec = 4'b0000;
+		tb_ack_ready = 1'b1;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_ack_valid = 1'b0;
+		expected_req_present = 1'b0;
 		expected_ack_one_hot = 4'b0000;
 		expected_ack_index = 2'h0;
 

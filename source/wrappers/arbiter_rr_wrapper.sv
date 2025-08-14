@@ -23,8 +23,9 @@ module arbiter_rr_wrapper (
     input logic nRST,
 
 	input logic [REQUESTER_COUNT-1:0] next_req_vec,
+	output logic last_req_present,
 
-	output logic last_ack_valid,
+	input logic next_ack_ready,
 	output logic [REQUESTER_COUNT-1:0] last_ack_one_hot,
 	output logic [LOG_REQUESTER_COUNT-1:0] last_ack_index
 );
@@ -33,8 +34,9 @@ module arbiter_rr_wrapper (
     // Direct Module Connections:
 
 	logic [REQUESTER_COUNT-1:0] req_vec;
+	logic req_present;
 
-	logic ack_valid;
+	logic ack_ready;
 	logic [REQUESTER_COUNT-1:0] ack_one_hot;
 	logic [LOG_REQUESTER_COUNT-1:0] ack_index;
 
@@ -53,16 +55,18 @@ module arbiter_rr_wrapper (
         if (~nRST) begin
 
 			req_vec <= '0;
+			last_req_present <= '0;
 
-			last_ack_valid <= '0;
+			ack_ready <= '0;
 			last_ack_one_hot <= '0;
 			last_ack_index <= '0;
         end
         else begin
 
 			req_vec <= next_req_vec;
+			last_req_present <= req_present;
 
-			last_ack_valid <= ack_valid;
+			ack_ready <= next_ack_ready;
 			last_ack_one_hot <= ack_one_hot;
 			last_ack_index <= ack_index;
         end

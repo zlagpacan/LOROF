@@ -17,8 +17,9 @@ module arbiter_rr #(
     input logic nRST,
  
     input logic [REQUESTER_COUNT-1:0]       req_vec,
-    
-    output logic                            ack_valid,
+    output logic                            req_present,
+
+    input logic                             ack_ready,
     output logic [REQUESTER_COUNT-1:0]      ack_one_hot,
     output logic [LOG_REQUESTER_COUNT-1:0]  ack_index
 );
@@ -39,7 +40,7 @@ module arbiter_rr #(
         if (~nRST) begin
             last_mask <= '0;
         end
-        else begin
+        else if (ack_ready) begin
             last_mask <= cold_ack_mask;
         end
     end
@@ -73,8 +74,13 @@ module arbiter_rr #(
     );
 
     always_comb begin
-        ack_valid = |req_vec;
-        ack_one_hot = masked_ack_one_hot| (unmasked_ack_one_hot & {REQUESTER_COUNT{~|masked_req_vec}});
+        req_present = |req_vec;
+
+        ack_one_hot = 
+            {REQUESTER_COUNT{ack_ready}}
+            & (
+                masked_ack_one_hot
+                | (unmasked_ack_one_hot & {REQUESTER_COUNT{~|masked_req_vec}}));
 
         if (|masked_req_vec) begin
             cold_ack_mask = masked_cold_ack_mask;
