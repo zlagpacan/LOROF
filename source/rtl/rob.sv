@@ -326,23 +326,141 @@ module rob (
         EXCEPTION_SEND
     } restart_state_t;
     
-    restart_state_t                 restart_state, next_restart_state;
+    restart_state_t restart_state, next_restart_state;
 
     logic                           restart_info_valid, next_restart_info_valid;
     logic [LOG_ROB_ENTRIES-1:0]     restart_info_target_index, next_restart_info_target_index;
     logic                           restart_info_is_exception, next_restart_info_is_exception;
 
     logic                           new_restart_valid, next_new_restart_valid;
-    
+    logic [LOG_ROB_ENTRIES-1:0]     new_restart_target_index, next_new_restart_target_index;
 
     logic [3:0] deq_launched_by_way, next_deq_launched_by_way;
 
     logic [3:0] deq_complete_by_way;
     logic [3:0] deq_launching_by_way;
 
+    logic                           branch_mispred_enq_valid;
+    logic [LOG_ROB_ENTRIES-1:0]     branch_mispred_enq_ROB_index;
+    logic                           branch_mispred_enq_ready;
+
+    logic                           branch_mispred_deq_valid;
+    logic [LOG_ROB_ENTRIES-1:0]     branch_mispred_deq_ROB_index;
+    logic                           branch_mispred_deq_ready;
+
+    logic                           ldu_mispred_enq_valid;
+    logic [LOG_ROB_ENTRIES-1:0]     ldu_mispred_enq_ROB_index;
+    logic                           ldu_mispred_enq_ready;
+
+    logic                           ldu_mispred_deq_valid;
+    logic [LOG_ROB_ENTRIES-1:0]     ldu_mispred_deq_ROB_index;
+    logic                           ldu_mispred_deq_ready;
+
+    logic                           fence_mispred_enq_valid;
+    logic [LOG_ROB_ENTRIES-1:0]     fence_mispred_enq_ROB_index;
+    logic                           fence_mispred_enq_ready;
+
+    logic                           fence_mispred_deq_valid;
+    logic [LOG_ROB_ENTRIES-1:0]     fence_mispred_deq_ROB_index;
+    logic                           fence_mispred_deq_ready;
+
+    logic                           ldu_exception_enq_valid;
+    logic [VA_WIDTH-1:0]            ldu_exception_enq_VA;
+    logic                           ldu_exception_enq_page_fault;
+    logic                           ldu_exception_enq_access_fault;
+    logic [LOG_ROB_ENTRIES-1:0]     ldu_exception_enq_ROB_index;
+    logic                           ldu_exception_enq_ready;
 
     // ----------------------------------------------------------------
     // Logic:
+
+    // branch notif consumer
+    always_comb begin
+        rob_branch_update_valid = branch_notif_valid & killed_by_entry[branch_notif_ROB_index];
+        rob_branch_update_has_checkpoint = has_checkpoint_by_4way[branch_notif_ROB_index[LOG_ROB_ENTRIES-1:2]];
+        rob_branch_update_is_mispredict = branch_notif_is_mispredict;
+        rob_branch_update_is_taken = branch_notif_is_taken;
+        rob_branch_update_use_upct = branch_notif_use_upct;
+        rob_branch_update_intermediate_pred_info = branch_notif_updated_pred_info;
+        rob_branch_update_pred_lru = branch_notif_pred_lru;
+        rob_branch_update_start_PC = branch_notif_start_PC;
+        rob_branch_update_target_PC = branch_notif_target_PC;
+
+        branch_mispred_enq_valid = branch_notif_valid & killed_by_entry[branch_notif_ROB_index];
+        branch_mispred_enq_ROB_index = branch_notif_ROB_index;
+
+        branch_notif_ready = branch_mispred_enq_ready;
+    end
+    q_fast_ready #(
+        .DATA_WIDTH(LOG_ROB_ENTRIES),
+        .NUM_ENTRIES(ROB_MISPRED_Q_ENTRIES)
+    ) BRANCH_MISPRED_Q (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(branch_mispred_enq_valid),
+        .enq_data(branch_mispred_enq_ROB_index),
+        .enq_ready(branch_mispred_enq_ready),
+        .deq_valid(branch_mispred_deq_valid),
+        .deq_data(branch_mispred_deq_ROB_index),
+        .deq_ready(branch_mispred_deq_ready)
+    );
+
+    // ldu mispred notif consumer
+    always_comb begin
+        ldu_mispred_enq_valid = ldu_mispred_notif_valid & killed_by_entry[branch_notif_ROB_index];
+        ldu_mispred_enq_ROB_index = ldu_mispred_notif_ROB_index;
+
+        ldu_mispred_notif_ready = ldu_mispred_enq_ready;
+    end
+    q_fast_ready #(
+        .DATA_WIDTH(LOG_ROB_ENTRIES),
+        .NUM_ENTRIES(ROB_MISPRED_Q_ENTRIES)
+    ) LDU_MISPRED_Q (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(ldu_mispred_enq_valid),
+        .enq_data(ldu_mispred_enq_ROB_index),
+        .enq_ready(ldu_mispred_notif_ready),
+        .deq_valid(ldu_mispred_deq_valid),
+        .deq_data(ldu_mispred_deq_ROB_index),
+        .deq_ready(ldu_mispred_deq_ready)
+    );
+
+    // fence mispred notif consumer
+    always_comb begin
+        fence_mispred_enq_valid = fence_restart_notif_valid & killed_by_entry[branch_notif_ROB_index];
+        fence_mispred_enq_ROB_index = fence_restart_notif_ROB_index;
+
+        fence_restart_notif_ready = fence_mispred_enq_ready;
+    end
+    q_fast_ready #(
+        .DATA_WIDTH(LOG_ROB_ENTRIES),
+        .NUM_ENTRIES(ROB_MISPRED_Q_ENTRIES)
+    ) FENCE_MISPRED_Q (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(fence_mispred_enq_valid),
+        .enq_data(fence_mispred_enq_ROB_index),
+        .enq_ready(fence_mispred_enq_ready),
+        .deq_valid(fence_mispred_deq_valid),
+        .deq_data(fence_mispred_deq_ROB_index),
+        .deq_ready(fence_mispred_deq_ready)
+    );
+
+    // mispred restart controller
+    always_comb begin
+        TODO
+    end
+
+    // exception controller
+    always_comb begin
+        
+        // static priority of stamofu > ldu > dispatch
+            // doesn't really matter, uncommon case
+        stamofu_exception_enq_ready = 1'b1;
+        ldu_exception_ready = ~stamofu_exception_enq_valid;
+
+    end
 
     // FF state
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -409,7 +527,13 @@ module rob (
 
     // enq logic:
     always_comb begin
-        dispatch_enq_ready = valid_by_4way[tail_ptr];
+        // can't accept if has exception and stamofu or ldu trying to except this cycle
+        dispatch_enq_ready = 
+            valid_by_4way[tail_ptr]
+            & ~(
+                (dispatch_is_page_fault | dispatch_is_access_fault | dispatch_is_illegal_instr)
+                & (stamofu_exception_valid | ldu_exception_valid)
+            );
 
         enq_perform = dispatch_enq_valid & dispatch_enq_ready;
         
@@ -433,12 +557,12 @@ module rob (
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             restart_state <= DEQ;
-            restart_target_index <= 0;
+
             deq_launched_by_way <= 4'b0000;
         end
         else begin
             restart_state <= next_restart_state;
-            restart_target_index <= next_restart_target_index;
+
             deq_launched_by_way <= next_deq_launched_by_way;
         end
     end
@@ -474,6 +598,7 @@ module rob (
             default: // DEQ
             begin
                 // check for new restart
+                // check for exception
                 // check for deq
                 // otherwise, idle
             end
