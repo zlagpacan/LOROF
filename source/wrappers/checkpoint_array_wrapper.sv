@@ -10,6 +10,13 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
+parameter CHECKPOINT_COUNT = core_types_pkg::CHECKPOINT_COUNT;
+parameter CHECKPOINT_INDEX_WIDTH = core_types_pkg::CHECKPOINT_INDEX_WIDTH;
+parameter CHECKPOINT_THRESHOLD = core_types_pkg::CHECKPOINT_THRESHOLD;
+
 module checkpoint_array_wrapper (
 
     // seq
@@ -26,14 +33,19 @@ module checkpoint_array_wrapper (
 	output logic last_save_ready,
 	output logic [CHECKPOINT_INDEX_WIDTH-1:0] last_save_index,
 
-    // checkpoint restore
-	input logic [CHECKPOINT_INDEX_WIDTH-1:0] next_restore_index,
-	input logic next_restore_clear,
+    // map table restore
+	input logic [CHECKPOINT_INDEX_WIDTH-1:0] next_map_table_restore_index,
+	output logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] last_map_table_restore_map_table,
 
-	output logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] last_restore_map_table,
-	output logic [LH_LENGTH-1:0] last_restore_LH,
-	output logic [GH_LENGTH-1:0] last_restore_GH,
-	output logic [RAS_INDEX_WIDTH-1:0] last_restore_ras_index,
+    // branch info restore
+	input logic [CHECKPOINT_INDEX_WIDTH-1:0] next_branch_info_restore_index,
+	output logic [LH_LENGTH-1:0] last_branch_info_restore_LH,
+	output logic [GH_LENGTH-1:0] last_branch_info_restore_GH,
+	output logic [RAS_INDEX_WIDTH-1:0] last_branch_info_restore_ras_index,
+
+    // checkpoint clear
+	input logic next_clear_valid,
+	input logic [CHECKPOINT_INDEX_WIDTH-1:0] next_clear_index,
 
     // advertized threshold
 	output logic last_above_threshold
@@ -52,14 +64,19 @@ module checkpoint_array_wrapper (
 	logic save_ready;
 	logic [CHECKPOINT_INDEX_WIDTH-1:0] save_index;
 
-    // checkpoint restore
-	logic [CHECKPOINT_INDEX_WIDTH-1:0] restore_index;
-	logic restore_clear;
+    // map table restore
+	logic [CHECKPOINT_INDEX_WIDTH-1:0] map_table_restore_index;
+	logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] map_table_restore_map_table;
 
-	logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] restore_map_table;
-	logic [LH_LENGTH-1:0] restore_LH;
-	logic [GH_LENGTH-1:0] restore_GH;
-	logic [RAS_INDEX_WIDTH-1:0] restore_ras_index;
+    // branch info restore
+	logic [CHECKPOINT_INDEX_WIDTH-1:0] branch_info_restore_index;
+	logic [LH_LENGTH-1:0] branch_info_restore_LH;
+	logic [GH_LENGTH-1:0] branch_info_restore_GH;
+	logic [RAS_INDEX_WIDTH-1:0] branch_info_restore_ras_index;
+
+    // checkpoint clear
+	logic clear_valid;
+	logic [CHECKPOINT_INDEX_WIDTH-1:0] clear_index;
 
     // advertized threshold
 	logic above_threshold;
@@ -67,7 +84,7 @@ module checkpoint_array_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    checkpoint_array #(
+	checkpoint_array #(
 		.CHECKPOINT_COUNT(CHECKPOINT_COUNT),
 		.CHECKPOINT_INDEX_WIDTH(CHECKPOINT_INDEX_WIDTH),
 		.CHECKPOINT_THRESHOLD(CHECKPOINT_THRESHOLD)
@@ -89,14 +106,19 @@ module checkpoint_array_wrapper (
 			last_save_ready <= '0;
 			last_save_index <= '0;
 
-		    // checkpoint restore
-			restore_index <= '0;
-			restore_clear <= '0;
+		    // map table restore
+			map_table_restore_index <= '0;
+			last_map_table_restore_map_table <= '0;
 
-			last_restore_map_table <= '0;
-			last_restore_LH <= '0;
-			last_restore_GH <= '0;
-			last_restore_ras_index <= '0;
+		    // branch info restore
+			branch_info_restore_index <= '0;
+			last_branch_info_restore_LH <= '0;
+			last_branch_info_restore_GH <= '0;
+			last_branch_info_restore_ras_index <= '0;
+
+		    // checkpoint clear
+			clear_valid <= '0;
+			clear_index <= '0;
 
 		    // advertized threshold
 			last_above_threshold <= '0;
@@ -113,14 +135,19 @@ module checkpoint_array_wrapper (
 			last_save_ready <= save_ready;
 			last_save_index <= save_index;
 
-		    // checkpoint restore
-			restore_index <= next_restore_index;
-			restore_clear <= next_restore_clear;
+		    // map table restore
+			map_table_restore_index <= next_map_table_restore_index;
+			last_map_table_restore_map_table <= map_table_restore_map_table;
 
-			last_restore_map_table <= restore_map_table;
-			last_restore_LH <= restore_LH;
-			last_restore_GH <= restore_GH;
-			last_restore_ras_index <= restore_ras_index;
+		    // branch info restore
+			branch_info_restore_index <= next_branch_info_restore_index;
+			last_branch_info_restore_LH <= branch_info_restore_LH;
+			last_branch_info_restore_GH <= branch_info_restore_GH;
+			last_branch_info_restore_ras_index <= branch_info_restore_ras_index;
+
+		    // checkpoint clear
+			clear_valid <= next_clear_valid;
+			clear_index <= next_clear_index;
 
 		    // advertized threshold
 			last_above_threshold <= above_threshold;

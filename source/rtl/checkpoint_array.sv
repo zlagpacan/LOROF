@@ -27,14 +27,19 @@ module checkpoint_array #(
     output logic                                    save_ready,
     output logic [CHECKPOINT_INDEX_WIDTH-1:0]       save_index,
 
-    // checkpoint restore
-    input logic [CHECKPOINT_INDEX_WIDTH-1:0]        restore_index,
-    input logic                                     restore_clear,
+    // map table restore
+    input logic [CHECKPOINT_INDEX_WIDTH-1:0]        map_table_restore_index,
+    output logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0]   map_table_restore_map_table,
 
-    output logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0]   restore_map_table,
-    output logic [LH_LENGTH-1:0]                    restore_LH,
-    output logic [GH_LENGTH-1:0]                    restore_GH,
-    output logic [RAS_INDEX_WIDTH-1:0]              restore_ras_index,
+    // branch info restore
+    input logic [CHECKPOINT_INDEX_WIDTH-1:0]    branch_info_restore_index,
+    output logic [LH_LENGTH-1:0]                branch_info_restore_LH,
+    output logic [GH_LENGTH-1:0]                branch_info_restore_GH,
+    output logic [RAS_INDEX_WIDTH-1:0]          branch_info_restore_ras_index,
+
+    // checkpoint clear
+    input logic                                 clear_valid,
+    input logic [CHECKPOINT_INDEX_WIDTH-1:0]    clear_index,
 
     // advertized threshold
     output logic above_threshold
@@ -76,8 +81,8 @@ module checkpoint_array #(
 
     always_comb begin
         keep_valid_array = '1;
-        if (restore_clear) begin
-            keep_valid_array[restore_index] = 1'b0;
+        if (clear_valid) begin
+            keep_valid_array[clear_index] = 1'b0;
         end
     end
 
@@ -96,20 +101,35 @@ module checkpoint_array #(
     distram_1rport_1wport #(
         .INNER_WIDTH(
             AR_COUNT*LOG_PR_COUNT
-            + LH_LENGTH
+        ),
+        .OUTER_WIDTH(CHECKPOINT_COUNT)
+    ) CHECKPOINT_MAP_TABLE_ARRAY (
+        .CLK(CLK),
+
+        .rindex(map_table_restore_index),
+        .rdata(map_table_restore_map_table),
+
+        .wen(save_success),
+        .windex(save_index),
+        .wdata(save_map_table)
+    );
+
+    distram_1rport_1wport #(
+        .INNER_WIDTH(
+            LH_LENGTH
             + GH_LENGTH
             + RAS_INDEX_WIDTH
         ),
         .OUTER_WIDTH(CHECKPOINT_COUNT)
-    ) CHECKPOINT_ARRAY (
+    ) CHECKPOINT_BRANCH_INFO_ARRAY (
         .CLK(CLK),
 
-        .rindex(restore_index),
-        .rdata({restore_map_table, restore_LH, restore_GH, restore_ras_index}),
+        .rindex(branch_info_restore_index),
+        .rdata({branch_info_restore_LH, branch_info_restore_GH, branch_info_restore_ras_index}),
 
         .wen(save_success),
         .windex(save_index),
-        .wdata({save_map_table, save_LH, save_GH, save_ras_index})
+        .wdata({save_LH, save_GH, save_ras_index})
     );
 
 endmodule

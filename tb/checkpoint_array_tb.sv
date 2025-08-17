@@ -10,6 +10,13 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
+parameter CHECKPOINT_COUNT = 8;
+parameter CHECKPOINT_INDEX_WIDTH = $clog2(CHECKPOINT_COUNT);
+parameter CHECKPOINT_THRESHOLD = 4;
+
 module checkpoint_array_tb ();
 
     // ----------------------------------------------------------------
@@ -42,14 +49,19 @@ module checkpoint_array_tb ();
 	logic DUT_save_ready, expected_save_ready;
 	logic [CHECKPOINT_INDEX_WIDTH-1:0] DUT_save_index, expected_save_index;
 
-    // checkpoint restore
-	logic tb_restore_clear;
-	logic [CHECKPOINT_INDEX_WIDTH-1:0] tb_restore_index;
+    // map table restore
+	logic [CHECKPOINT_INDEX_WIDTH-1:0] tb_map_table_restore_index;
+	logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] DUT_map_table_restore_map_table, expected_map_table_restore_map_table;
 
-	logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] DUT_restore_map_table, expected_restore_map_table;
-	logic [LH_LENGTH-1:0] DUT_restore_LH, expected_restore_LH;
-	logic [GH_LENGTH-1:0] DUT_restore_GH, expected_restore_GH;
-	logic [RAS_INDEX_WIDTH-1:0] DUT_restore_ras_index, expected_restore_ras_index;
+    // branch info restore
+	logic [CHECKPOINT_INDEX_WIDTH-1:0] tb_branch_info_restore_index;
+	logic [LH_LENGTH-1:0] DUT_branch_info_restore_LH, expected_branch_info_restore_LH;
+	logic [GH_LENGTH-1:0] DUT_branch_info_restore_GH, expected_branch_info_restore_GH;
+	logic [RAS_INDEX_WIDTH-1:0] DUT_branch_info_restore_ras_index, expected_branch_info_restore_ras_index;
+
+    // checkpoint clear
+	logic tb_clear_valid;
+	logic [CHECKPOINT_INDEX_WIDTH-1:0] tb_clear_index;
 
     // advertized threshold
 	logic DUT_above_threshold, expected_above_threshold;
@@ -58,9 +70,9 @@ module checkpoint_array_tb ();
     // DUT instantiation:
 
 	checkpoint_array #(
-		.CHECKPOINT_COUNT(8),
-		.CHECKPOINT_INDEX_WIDTH($clog2(8)),
-		.CHECKPOINT_THRESHOLD(4)
+		.CHECKPOINT_COUNT(CHECKPOINT_COUNT),
+		.CHECKPOINT_INDEX_WIDTH(CHECKPOINT_INDEX_WIDTH),
+		.CHECKPOINT_THRESHOLD(CHECKPOINT_THRESHOLD)
 	) DUT (
 		// seq
 		.CLK(CLK),
@@ -76,14 +88,19 @@ module checkpoint_array_tb ();
 		.save_ready(DUT_save_ready),
 		.save_index(DUT_save_index),
 
-	    // checkpoint restore
-		.restore_index(tb_restore_index),
-		.restore_clear(tb_restore_clear),
+	    // map table restore
+		.map_table_restore_index(tb_map_table_restore_index),
+		.map_table_restore_map_table(DUT_map_table_restore_map_table),
 
-		.restore_map_table(DUT_restore_map_table),
-		.restore_LH(DUT_restore_LH),
-		.restore_GH(DUT_restore_GH),
-		.restore_ras_index(DUT_restore_ras_index),
+	    // branch info restore
+		.branch_info_restore_index(tb_branch_info_restore_index),
+		.branch_info_restore_LH(DUT_branch_info_restore_LH),
+		.branch_info_restore_GH(DUT_branch_info_restore_GH),
+		.branch_info_restore_ras_index(DUT_branch_info_restore_ras_index),
+
+	    // checkpoint clear
+		.clear_valid(tb_clear_valid),
+		.clear_index(tb_clear_index),
 
 	    // advertized threshold
 		.above_threshold(DUT_above_threshold)
@@ -108,30 +125,30 @@ module checkpoint_array_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_restore_map_table !== DUT_restore_map_table) begin
-			$display("TB ERROR: expected_restore_map_table (%h) != DUT_restore_map_table (%h)",
-				expected_restore_map_table, DUT_restore_map_table);
+		if (expected_map_table_restore_map_table !== DUT_map_table_restore_map_table) begin
+			$display("TB ERROR: expected_map_table_restore_map_table (%h) != DUT_map_table_restore_map_table (%h)",
+				expected_map_table_restore_map_table, DUT_map_table_restore_map_table);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_restore_LH !== DUT_restore_LH) begin
-			$display("TB ERROR: expected_restore_LH (%h) != DUT_restore_LH (%h)",
-				expected_restore_LH, DUT_restore_LH);
+		if (expected_branch_info_restore_LH !== DUT_branch_info_restore_LH) begin
+			$display("TB ERROR: expected_branch_info_restore_LH (%h) != DUT_branch_info_restore_LH (%h)",
+				expected_branch_info_restore_LH, DUT_branch_info_restore_LH);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_restore_GH !== DUT_restore_GH) begin
-			$display("TB ERROR: expected_restore_GH (%h) != DUT_restore_GH (%h)",
-				expected_restore_GH, DUT_restore_GH);
+		if (expected_branch_info_restore_GH !== DUT_branch_info_restore_GH) begin
+			$display("TB ERROR: expected_branch_info_restore_GH (%h) != DUT_branch_info_restore_GH (%h)",
+				expected_branch_info_restore_GH, DUT_branch_info_restore_GH);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_restore_ras_index !== DUT_restore_ras_index) begin
-			$display("TB ERROR: expected_restore_ras_index (%h) != DUT_restore_ras_index (%h)",
-				expected_restore_ras_index, DUT_restore_ras_index);
+		if (expected_branch_info_restore_ras_index !== DUT_branch_info_restore_ras_index) begin
+			$display("TB ERROR: expected_branch_info_restore_ras_index (%h) != DUT_branch_info_restore_ras_index (%h)",
+				expected_branch_info_restore_ras_index, DUT_branch_info_restore_ras_index);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -171,9 +188,13 @@ module checkpoint_array_tb ();
 		tb_save_LH = '0;
 		tb_save_GH = '0;
 		tb_save_ras_index = '0;
-	    // checkpoint restore
-		tb_restore_clear = 1'b0;
-		tb_restore_index = '0;
+	    // map table restore
+		tb_map_table_restore_index = 0;
+	    // branch info restore
+		tb_branch_info_restore_index = 0;
+	    // checkpoint clear
+		tb_clear_valid = 1'b0;
+		tb_clear_index = 0;
 	    // advertized threshold
 
 		@(posedge CLK); #(PERIOD/10);
@@ -182,12 +203,14 @@ module checkpoint_array_tb ();
 
 	    // checkpoint save
 		expected_save_ready = 1'b1;
-		expected_save_index = '0;
-	    // checkpoint restore
-		expected_restore_map_table = '0;
-		expected_restore_LH = '0;
-		expected_restore_GH = '0;
-		expected_restore_ras_index = '0;
+		expected_save_index = 0;
+	    // map table restore
+		expected_map_table_restore_map_table = '0;
+	    // branch info restore
+		expected_branch_info_restore_LH = 8'h000;
+		expected_branch_info_restore_GH = 12'h000;
+		expected_branch_info_restore_ras_index = 3'h0;
+	    // checkpoint clear
 	    // advertized threshold
 		expected_above_threshold = 1'b1;
 
@@ -205,9 +228,13 @@ module checkpoint_array_tb ();
 		tb_save_LH = '0;
 		tb_save_GH = '0;
 		tb_save_ras_index = '0;
-	    // checkpoint restore
-		tb_restore_clear = 1'b0;
-		tb_restore_index = '0;
+	    // map table restore
+		tb_map_table_restore_index = 0;
+	    // branch info restore
+		tb_branch_info_restore_index = 0;
+	    // checkpoint clear
+		tb_clear_valid = 1'b0;
+		tb_clear_index = 0;
 	    // advertized threshold
 
 		@(posedge CLK); #(PERIOD/10);
@@ -216,16 +243,16 @@ module checkpoint_array_tb ();
 
 	    // checkpoint save
 		expected_save_ready = 1'b1;
-		expected_save_index = '0;
-	    // checkpoint restore
-		expected_restore_map_table = '0;
-		expected_restore_LH = '0;
-		expected_restore_GH = '0;
-		expected_restore_ras_index = '0;
+		expected_save_index = 0;
+	    // map table restore
+		expected_map_table_restore_map_table = '0;
+	    // branch info restore
+		expected_branch_info_restore_LH = 8'h000;
+		expected_branch_info_restore_GH = 12'h000;
+		expected_branch_info_restore_ras_index = 3'h0;
+	    // checkpoint clear
 	    // advertized threshold
 		expected_above_threshold = 1'b1;
-
-		check_outputs();
 
         // ------------------------------------------------------------
         // save chain:
@@ -249,9 +276,13 @@ module checkpoint_array_tb ();
 		tb_save_LH = 8'h00;
 		tb_save_GH = 12'h000;
 		tb_save_ras_index = 3'h0;
-	    // checkpoint restore
-		tb_restore_clear = 1'b0;
-		tb_restore_index = '0;
+	    // map table restore
+		tb_map_table_restore_index = 0;
+	    // branch info restore
+		tb_branch_info_restore_index = 0;
+	    // checkpoint clear
+		tb_clear_valid = 1'b0;
+		tb_clear_index = 0;
 	    // advertized threshold
 
 		@(negedge CLK);
@@ -261,11 +292,13 @@ module checkpoint_array_tb ();
 	    // checkpoint save
 		expected_save_ready = 1'b1;
 		expected_save_index = '0;
-	    // checkpoint restore
-		expected_restore_map_table = '0;
-		expected_restore_LH = '0;
-		expected_restore_GH = '0;
-		expected_restore_ras_index = '0;
+	    // map table restore
+		expected_map_table_restore_map_table = '0;
+	    // branch info restore
+		expected_branch_info_restore_LH = 8'h000;
+		expected_branch_info_restore_GH = 12'h000;
+		expected_branch_info_restore_ras_index = 3'h0;
+	    // checkpoint clear
 	    // advertized threshold
 		expected_above_threshold = 1'b1;
 
@@ -287,9 +320,13 @@ module checkpoint_array_tb ();
 		tb_save_LH = 8'h11;
 		tb_save_GH = 12'h111;
 		tb_save_ras_index = 3'h1;
-	    // checkpoint restore
-		tb_restore_clear = 1'b0;
-		tb_restore_index = '0;
+	    // map table restore
+		tb_map_table_restore_index = 0;
+	    // branch info restore
+		tb_branch_info_restore_index = 0;
+	    // checkpoint clear
+		tb_clear_valid = 1'b0;
+		tb_clear_index = 0;
 	    // advertized threshold
 
 		@(negedge CLK);
@@ -299,13 +336,15 @@ module checkpoint_array_tb ();
 	    // checkpoint save
 		expected_save_ready = 1'b1;
 		expected_save_index = 3'h1;
-	    // checkpoint restore
+	    // map table restore
 		for (int i = 0; i < 32; i++) begin
-			expected_restore_map_table[i] = i;
+			expected_map_table_restore_map_table[i] = i;
 		end
-		expected_restore_LH = 8'h00;
-		expected_restore_GH = 12'h000;
-		expected_restore_ras_index = 3'h0;
+	    // branch info restore
+		expected_branch_info_restore_LH = 8'h000;
+		expected_branch_info_restore_GH = 12'h000;
+		expected_branch_info_restore_ras_index = 3'h0;
+	    // checkpoint clear
 	    // advertized threshold
 		expected_above_threshold = 1'b1;
 
@@ -327,9 +366,13 @@ module checkpoint_array_tb ();
 		tb_save_LH = 8'h22;
 		tb_save_GH = 12'h222;
 		tb_save_ras_index = 3'h2;
-	    // checkpoint restore
-		tb_restore_clear = 1'b0;
-		tb_restore_index = '0;
+	    // map table restore
+		tb_map_table_restore_index = 0;
+	    // branch info restore
+		tb_branch_info_restore_index = 0;
+	    // checkpoint clear
+		tb_clear_valid = 1'b0;
+		tb_clear_index = 0;
 	    // advertized threshold
 
 		@(negedge CLK);
@@ -339,13 +382,15 @@ module checkpoint_array_tb ();
 	    // checkpoint save
 		expected_save_ready = 1'b1;
 		expected_save_index = 3'h2;
-	    // checkpoint restore
+	    // map table restore
 		for (int i = 0; i < 32; i++) begin
-			expected_restore_map_table[i] = i;
+			expected_map_table_restore_map_table[i] = i;
 		end
-		expected_restore_LH = 8'h00;
-		expected_restore_GH = 12'h000;
-		expected_restore_ras_index = 3'h0;
+	    // branch info restore
+		expected_branch_info_restore_LH = 8'h000;
+		expected_branch_info_restore_GH = 12'h000;
+		expected_branch_info_restore_ras_index = 3'h0;
+	    // checkpoint clear
 	    // advertized threshold
 		expected_above_threshold = 1'b1;
 
@@ -367,9 +412,13 @@ module checkpoint_array_tb ();
 		tb_save_LH = 8'h33;
 		tb_save_GH = 12'h333;
 		tb_save_ras_index = 3'h3;
-	    // checkpoint restore
-		tb_restore_clear = 1'b0;
-		tb_restore_index = '0;
+	    // map table restore
+		tb_map_table_restore_index = 0;
+	    // branch info restore
+		tb_branch_info_restore_index = 0;
+	    // checkpoint clear
+		tb_clear_valid = 1'b0;
+		tb_clear_index = 0;
 	    // advertized threshold
 
 		@(negedge CLK);
@@ -379,13 +428,15 @@ module checkpoint_array_tb ();
 	    // checkpoint save
 		expected_save_ready = 1'b1;
 		expected_save_index = 3'h3;
-	    // checkpoint restore
+	    // map table restore
 		for (int i = 0; i < 32; i++) begin
-			expected_restore_map_table[i] = i;
+			expected_map_table_restore_map_table[i] = i;
 		end
-		expected_restore_LH = 8'h00;
-		expected_restore_GH = 12'h000;
-		expected_restore_ras_index = 3'h0;
+	    // branch info restore
+		expected_branch_info_restore_LH = 8'h000;
+		expected_branch_info_restore_GH = 12'h000;
+		expected_branch_info_restore_ras_index = 3'h0;
+	    // checkpoint clear
 	    // advertized threshold
 		expected_above_threshold = 1'b1;
 
@@ -407,9 +458,13 @@ module checkpoint_array_tb ();
 		tb_save_LH = 8'h44;
 		tb_save_GH = 12'h444;
 		tb_save_ras_index = 3'h4;
-	    // checkpoint restore
-		tb_restore_clear = 1'b0;
-		tb_restore_index = '0;
+	    // map table restore
+		tb_map_table_restore_index = 0;
+	    // branch info restore
+		tb_branch_info_restore_index = 0;
+	    // checkpoint clear
+		tb_clear_valid = 1'b0;
+		tb_clear_index = 0;
 	    // advertized threshold
 
 		@(negedge CLK);
@@ -419,13 +474,15 @@ module checkpoint_array_tb ();
 	    // checkpoint save
 		expected_save_ready = 1'b1;
 		expected_save_index = 3'h4;
-	    // checkpoint restore
+	    // map table restore
 		for (int i = 0; i < 32; i++) begin
-			expected_restore_map_table[i] = i;
+			expected_map_table_restore_map_table[i] = i;
 		end
-		expected_restore_LH = 8'h00;
-		expected_restore_GH = 12'h000;
-		expected_restore_ras_index = 3'h0;
+	    // branch info restore
+		expected_branch_info_restore_LH = 8'h000;
+		expected_branch_info_restore_GH = 12'h000;
+		expected_branch_info_restore_ras_index = 3'h0;
+	    // checkpoint clear
 	    // advertized threshold
 		expected_above_threshold = 1'b1;
 
@@ -447,9 +504,13 @@ module checkpoint_array_tb ();
 		tb_save_LH = 8'h55;
 		tb_save_GH = 12'h555;
 		tb_save_ras_index = 3'h5;
-	    // checkpoint restore
-		tb_restore_clear = 1'b0;
-		tb_restore_index = '0;
+	    // map table restore
+		tb_map_table_restore_index = 0;
+	    // branch info restore
+		tb_branch_info_restore_index = 0;
+	    // checkpoint clear
+		tb_clear_valid = 1'b0;
+		tb_clear_index = 0;
 	    // advertized threshold
 
 		@(negedge CLK);
@@ -459,13 +520,15 @@ module checkpoint_array_tb ();
 	    // checkpoint save
 		expected_save_ready = 1'b1;
 		expected_save_index = 3'h5;
-	    // checkpoint restore
+	    // map table restore
 		for (int i = 0; i < 32; i++) begin
-			expected_restore_map_table[i] = i;
+			expected_map_table_restore_map_table[i] = i;
 		end
-		expected_restore_LH = 8'h00;
-		expected_restore_GH = 12'h000;
-		expected_restore_ras_index = 3'h0;
+	    // branch info restore
+		expected_branch_info_restore_LH = 8'h000;
+		expected_branch_info_restore_GH = 12'h000;
+		expected_branch_info_restore_ras_index = 3'h0;
+	    // checkpoint clear
 	    // advertized threshold
 		expected_above_threshold = 1'b0;
 
@@ -487,9 +550,13 @@ module checkpoint_array_tb ();
 		tb_save_LH = 8'h66;
 		tb_save_GH = 12'h666;
 		tb_save_ras_index = 3'h6;
-	    // checkpoint restore
-		tb_restore_clear = 1'b0;
-		tb_restore_index = '0;
+	    // map table restore
+		tb_map_table_restore_index = 0;
+	    // branch info restore
+		tb_branch_info_restore_index = 0;
+	    // checkpoint clear
+		tb_clear_valid = 1'b0;
+		tb_clear_index = 0;
 	    // advertized threshold
 
 		@(negedge CLK);
@@ -499,13 +566,15 @@ module checkpoint_array_tb ();
 	    // checkpoint save
 		expected_save_ready = 1'b1;
 		expected_save_index = 3'h6;
-	    // checkpoint restore
+	    // map table restore
 		for (int i = 0; i < 32; i++) begin
-			expected_restore_map_table[i] = i;
+			expected_map_table_restore_map_table[i] = i;
 		end
-		expected_restore_LH = 8'h00;
-		expected_restore_GH = 12'h000;
-		expected_restore_ras_index = 3'h0;
+	    // branch info restore
+		expected_branch_info_restore_LH = 8'h000;
+		expected_branch_info_restore_GH = 12'h000;
+		expected_branch_info_restore_ras_index = 3'h0;
+	    // checkpoint clear
 	    // advertized threshold
 		expected_above_threshold = 1'b0;
 
@@ -527,9 +596,13 @@ module checkpoint_array_tb ();
 		tb_save_LH = 8'h77;
 		tb_save_GH = 12'h777;
 		tb_save_ras_index = 3'h7;
-	    // checkpoint restore
-		tb_restore_clear = 1'b0;
-		tb_restore_index = '0;
+	    // map table restore
+		tb_map_table_restore_index = 0;
+	    // branch info restore
+		tb_branch_info_restore_index = 0;
+	    // checkpoint clear
+		tb_clear_valid = 1'b0;
+		tb_clear_index = 0;
 	    // advertized threshold
 
 		@(negedge CLK);
@@ -539,13 +612,15 @@ module checkpoint_array_tb ();
 	    // checkpoint save
 		expected_save_ready = 1'b1;
 		expected_save_index = 3'h7;
-	    // checkpoint restore
+	    // map table restore
 		for (int i = 0; i < 32; i++) begin
-			expected_restore_map_table[i] = i;
+			expected_map_table_restore_map_table[i] = i;
 		end
-		expected_restore_LH = 8'h00;
-		expected_restore_GH = 12'h000;
-		expected_restore_ras_index = 3'h0;
+	    // branch info restore
+		expected_branch_info_restore_LH = 8'h000;
+		expected_branch_info_restore_GH = 12'h000;
+		expected_branch_info_restore_ras_index = 3'h0;
+	    // checkpoint clear
 	    // advertized threshold
 		expected_above_threshold = 1'b0;
 
@@ -567,9 +642,13 @@ module checkpoint_array_tb ();
 		tb_save_LH = 8'h88;
 		tb_save_GH = 12'h888;
 		tb_save_ras_index = 3'h8;
-	    // checkpoint restore
-		tb_restore_clear = 1'b0;
-		tb_restore_index = '0;
+	    // map table restore
+		tb_map_table_restore_index = 0;
+	    // branch info restore
+		tb_branch_info_restore_index = 0;
+	    // checkpoint clear
+		tb_clear_valid = 1'b0;
+		tb_clear_index = 0;
 	    // advertized threshold
 
 		@(negedge CLK);
@@ -579,13 +658,15 @@ module checkpoint_array_tb ();
 	    // checkpoint save
 		expected_save_ready = 1'b0;
 		expected_save_index = 3'h0;
-	    // checkpoint restore
+	    // map table restore
 		for (int i = 0; i < 32; i++) begin
-			expected_restore_map_table[i] = i;
+			expected_map_table_restore_map_table[i] = i;
 		end
-		expected_restore_LH = 8'h00;
-		expected_restore_GH = 12'h000;
-		expected_restore_ras_index = 3'h0;
+	    // branch info restore
+		expected_branch_info_restore_LH = 8'h000;
+		expected_branch_info_restore_GH = 12'h000;
+		expected_branch_info_restore_ras_index = 3'h0;
+	    // checkpoint clear
 	    // advertized threshold
 		expected_above_threshold = 1'b0;
 
@@ -613,9 +694,13 @@ module checkpoint_array_tb ();
 		tb_save_LH = 8'h77;
 		tb_save_GH = 12'h777;
 		tb_save_ras_index = 3'h7;
-	    // checkpoint restore
-		tb_restore_clear = 1'b1;
-		tb_restore_index = 3'h1;
+	    // map table restore
+		tb_map_table_restore_index = 1;
+	    // branch info restore
+		tb_branch_info_restore_index = 1;
+	    // checkpoint clear
+		tb_clear_valid = 1'b1;
+		tb_clear_index = 4;
 	    // advertized threshold
 
 		@(negedge CLK);
@@ -625,13 +710,13 @@ module checkpoint_array_tb ();
 	    // checkpoint save
 		expected_save_ready = 1'b0;
 		expected_save_index = 3'h0;
-	    // checkpoint restore
+	    // map table restore
 		for (int i = 0; i < 32; i++) begin
-			expected_restore_map_table[i] = i + 1;
+			expected_map_table_restore_map_table[i] = i + 1;
 		end
-		expected_restore_LH = 8'h11;
-		expected_restore_GH = 12'h111;
-		expected_restore_ras_index = 3'h1;
+		expected_branch_info_restore_LH = 8'h11;
+		expected_branch_info_restore_GH = 12'h111;
+		expected_branch_info_restore_ras_index = 3'h1;
 	    // advertized threshold
 		expected_above_threshold = 1'b0;
 
@@ -653,9 +738,13 @@ module checkpoint_array_tb ();
 		tb_save_LH = 8'h77;
 		tb_save_GH = 12'h777;
 		tb_save_ras_index = 3'h7;
-	    // checkpoint restore
-		tb_restore_clear = 1'b1;
-		tb_restore_index = 3'h4;
+	    // map table restore
+		tb_map_table_restore_index = 4;
+	    // branch info restore
+		tb_branch_info_restore_index = 4;
+	    // checkpoint clear
+		tb_clear_valid = 1'b1;
+		tb_clear_index = 1;
 	    // advertized threshold
 
 		@(negedge CLK);
@@ -665,13 +754,13 @@ module checkpoint_array_tb ();
 	    // checkpoint save
 		expected_save_ready = 1'b1;
 		expected_save_index = 3'h0;
-	    // checkpoint restore
+	    // map table restore
 		for (int i = 0; i < 32; i++) begin
-			expected_restore_map_table[i] = i * 4;
+			expected_map_table_restore_map_table[i] = i * 4;
 		end
-		expected_restore_LH = 8'h44;
-		expected_restore_GH = 12'h444;
-		expected_restore_ras_index = 3'h4;
+		expected_branch_info_restore_LH = 8'h44;
+		expected_branch_info_restore_GH = 12'h444;
+		expected_branch_info_restore_ras_index = 3'h4;
 	    // advertized threshold
 		expected_above_threshold = 1'b0;
 
@@ -693,9 +782,13 @@ module checkpoint_array_tb ();
 		tb_save_LH = 8'h77;
 		tb_save_GH = 12'h777;
 		tb_save_ras_index = 3'h7;
-	    // checkpoint restore
-		tb_restore_clear = 1'b1;
-		tb_restore_index = 3'h2;
+	    // map table restore
+		tb_map_table_restore_index = 2;
+	    // branch info restore
+		tb_branch_info_restore_index = 2;
+	    // checkpoint clear
+		tb_clear_valid = 1'b1;
+		tb_clear_index = 2;
 	    // advertized threshold
 
 		@(negedge CLK);
@@ -705,13 +798,13 @@ module checkpoint_array_tb ();
 	    // checkpoint save
 		expected_save_ready = 1'b1;
 		expected_save_index = 3'h0;
-	    // checkpoint restore
+	    // map table restore
 		for (int i = 0; i < 32; i++) begin
-			expected_restore_map_table[i] = i * 2;
+			expected_map_table_restore_map_table[i] = i * 2;
 		end
-		expected_restore_LH = 8'h22;
-		expected_restore_GH = 12'h222;
-		expected_restore_ras_index = 3'h2;
+		expected_branch_info_restore_LH = 8'h22;
+		expected_branch_info_restore_GH = 12'h222;
+		expected_branch_info_restore_ras_index = 3'h2;
 	    // advertized threshold
 		expected_above_threshold = 1'b0;
 
@@ -733,9 +826,13 @@ module checkpoint_array_tb ();
 		tb_save_LH = 8'hbb;
 		tb_save_GH = 12'hbbb;
 		tb_save_ras_index = 3'hb;
-	    // checkpoint restore
-		tb_restore_clear = 1'b1;
-		tb_restore_index = 3'h5;
+	    // map table restore
+		tb_map_table_restore_index = 5;
+	    // branch info restore
+		tb_branch_info_restore_index = 7;
+	    // checkpoint clear
+		tb_clear_valid = 1'b1;
+		tb_clear_index = 5;
 	    // advertized threshold
 
 		@(negedge CLK);
@@ -745,13 +842,13 @@ module checkpoint_array_tb ();
 	    // checkpoint save
 		expected_save_ready = 1'b1;
 		expected_save_index = 3'h1;
-	    // checkpoint restore
+	    // map table restore
 		for (int i = 0; i < 32; i++) begin
-			expected_restore_map_table[i] = i + 5;
+			expected_map_table_restore_map_table[i] = i + 5;
 		end
-		expected_restore_LH = 8'h55;
-		expected_restore_GH = 12'h555;
-		expected_restore_ras_index = 3'h5;
+		expected_branch_info_restore_LH = 8'h77;
+		expected_branch_info_restore_GH = 12'h777;
+		expected_branch_info_restore_ras_index = 3'h7;
 	    // advertized threshold
 		expected_above_threshold = 1'b0;
 
@@ -773,9 +870,13 @@ module checkpoint_array_tb ();
 		tb_save_LH = 8'hcc;
 		tb_save_GH = 12'hccc;
 		tb_save_ras_index = 3'hc;
-	    // checkpoint restore
-		tb_restore_clear = 1'b1;
-		tb_restore_index = 3'h7;
+	    // map table restore
+		tb_map_table_restore_index = 7;
+	    // branch info restore
+		tb_branch_info_restore_index = 5;
+	    // checkpoint clear
+		tb_clear_valid = 1'b1;
+		tb_clear_index = 7;
 	    // advertized threshold
 
 		@(negedge CLK);
@@ -785,13 +886,13 @@ module checkpoint_array_tb ();
 	    // checkpoint save
 		expected_save_ready = 1'b1;
 		expected_save_index = 3'h2;
-	    // checkpoint restore
+	    // map table restore
 		for (int i = 0; i < 32; i++) begin
-			expected_restore_map_table[i] = i + 7;
+			expected_map_table_restore_map_table[i] = i + 7;
 		end
-		expected_restore_LH = 8'h77;
-		expected_restore_GH = 12'h777;
-		expected_restore_ras_index = 3'h7;
+		expected_branch_info_restore_LH = 8'h55;
+		expected_branch_info_restore_GH = 12'h555;
+		expected_branch_info_restore_ras_index = 3'h5;
 	    // advertized threshold
 		expected_above_threshold = 1'b0;
 
