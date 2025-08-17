@@ -11,8 +11,17 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-module rob (
-
+module rob #(
+    parameter INIT_PC = 32'h0,
+    parameter INIT_ASID = 9'h0,
+    parameter INIT_EXEC_MODE = M_MODE,
+    parameter INIT_VIRTUAL_MODE = 1'b0,
+    parameter INIT_MXR = 1'b0,
+    parameter INIT_SUM = 1'b0,
+	parameter INIT_TRAP_SFENCE = 1'b0,
+	parameter INIT_TRAP_WFI = 1'b0,
+	parameter INIT_TRAP_SRET = 1'b0
+) (
     // seq
     input logic CLK,
     input logic nRST,
@@ -108,21 +117,35 @@ module rob (
     // STAMOFU exception backpressure from ROB
     output logic                        stamofu_exception_ready,
 
+    // mdp update to ROB
+    input logic                         ssu_mdp_update_valid,
+    input logic [MDPT_INFO_WIDTH-1:0]   ssu_mdp_update_mdp_info,
+    input logic [LOG_ROB_ENTRIES-1:0]   ssu_mdp_update_ROB_index,
+
+    // mdp update feedback from ROB
+    output logic                        ssu_mdp_update_ready,
+
+    // mdpt update to fetch unit
+    output logic                        fetch_unit_mdpt_update_valid,
+    output logic [31:0]                 fetch_unit_mdpt_update_start_full_PC,
+    output logic [ASID_WIDTH-1:0]       fetch_unit_mdpt_update_ASID,
+    output logic [MDPT_INFO_WIDTH-1:0]  fetch_unit_mdpt_update_mdp_info,
+
     // ROB commit
     output logic [LOG_ROB_ENTRIES-3:0]  rob_commit_upper_index,
     output logic [3:0]                  rob_commit_lower_index_valid_mask,
 
     // restart from ROB
-    output logic            rob_restart_valid,
-    output logic [31:0]     rob_restart_PC,
-    output logic [1:0]      rob_restart_exec_mode,
-    output logic            rob_restart_virtual_mode,
-    output logic [8:0]      rob_restart_ASID,
-    output logic            rob_restart_MXR,
-    output logic            rob_restart_SUM,
-    output logic            rob_restart_trap_sfence,
-    output logic            rob_restart_trap_wfi,
-    output logic            rob_restart_trap_sret,
+    output logic                    rob_restart_valid,
+    output logic [31:0]             rob_restart_PC,
+    output logic [ASID_WIDTH-1:0]   rob_restart_ASID,
+    output logic [1:0]              rob_restart_exec_mode,
+    output logic                    rob_restart_virtual_mode,
+    output logic                    rob_restart_MXR,
+    output logic                    rob_restart_SUM,
+    output logic                    rob_restart_trap_sfence,
+    output logic                    rob_restart_trap_wfi,
+    output logic                    rob_restart_trap_sret,
 
     // ROB kill
     output logic                        rob_kill_valid,
@@ -157,12 +180,7 @@ module rob (
 	// ROB physical register freeing
 	output logic [3:0]						rob_PR_free_req_valid_by_bank,
 	output logic [3:0][LOG_PR_COUNT-1:0]	rob_PR_free_req_PR_by_bank,
-	input logic [3:0]                       rob_PR_free_resp_ack_by_bank,
-
-    // mdp update to ROB
-    input logic                         rob_mdp_update_valid,
-    input logic [MDPT_INFO_WIDTH-1:0]   rob_mdp_update_mdp_info,
-    input logic [LOG_ROB_ENTRIES-1:0]   rob_mdp_update_ROB_index
+	input logic [3:0]                       rob_PR_free_resp_ack_by_bank
 );
 
     // unexceptable head and true head
@@ -200,7 +218,7 @@ module rob (
                     // wait no it's fine because loads have commit broadcasted, just delay dequeue from LQ until also have returned value
                 // this is solid reason not to do this
         // "unexceptable" for this purpose then requires that operands have been read
-        // since doing no instr kills in non-mem and non-sys pipelines, seems like forced to just wait for non-mem and non-sys to be fully complete before move on unexceptable head
+        // since doing no instr kills in non-mem and non-sysu pipelines, seems like forced to just wait for non-mem and non-sysu to be fully complete before move on unexceptable head
             // maybe not since guaranteed reg write happens
     
     // solid plan for now: use true head
@@ -250,7 +268,7 @@ module rob (
     // separately track load unit completes since rely on certain LSQ conditions before can guarantee complete
         // i.e. can't use WB bus as complete
             // 1 or more of these will come in for load
-        // already separately tracking stamofu, bru, sys, etc.
+        // already separately tracking completes for stamofu, bru, sysu, etc.
 
     // TODO: no sysu functionality for now
         // will need various notif controls to deal with exec env changes
@@ -279,6 +297,7 @@ module rob (
     logic [ROB_ENTRIES-1:0] killed_by_entry;
 
     // bulk bram array
+        // need for restart, deq/rollback
     typedef struct packed {
         logic [3:0]                         valid_by_way; // need for deq/rollback
         logic [3:0]                         uncompressed_by_way; // need for deq/rollback
@@ -309,6 +328,8 @@ module rob (
     logic [3:0][31:0]               PC_bram_write_PC_by_way;
 
     logic PC_bram_restart_control;
+    
+    logic [1:0] ssu_mdp_update_saved_lower_ROB_index;
 
     // exception reg
         // need for exception req, deq/rollback
@@ -317,11 +338,13 @@ module rob (
     logic [31:0]                    exception_reg_cause, next_exception_reg_cause;
     logic [31:0]                    exception_reg_tval, next_exception_reg_tval;
 
-    logic                           exception_sent;
+    logic exception_sent;
 
     // FIFO pointers
     logic [LOG_ROB_ENTRIES-2-1:0] tail_ptr, next_tail_ptr;
     logic [LOG_ROB_ENTRIES-2-1:0] head_ptr, next_head_ptr;
+
+    logic [LOG_ROB_ENTRIES-2-1:0] restart_ptr, next_restart_ptr;
 
     logic enq_perform;
     logic deq_perform;
@@ -338,10 +361,14 @@ module rob (
 
     logic                           restart_info_valid, next_restart_info_valid;
     logic [LOG_ROB_ENTRIES-1:0]     restart_info_target_index, next_restart_info_target_index;
+    logic                           restart_info_use_rob_PC, next_restart_info_use_rob_PC;
+    logic [31:0]                    restart_info_branch_target_PC, next_restart_info_branch_target_PC;
     logic                           restart_info_is_exception, next_restart_info_is_exception;
 
     logic                           new_restart_valid, next_new_restart_valid;
     logic [LOG_ROB_ENTRIES-1:0]     new_restart_target_index, next_new_restart_target_index;
+    logic                           new_restart_use_rob_PC, next_new_restart_use_rob_PC;
+    logic [31:0]                    new_restart_branch_target_PC, next_new_restart_branch_target_PC;
 
     logic [3:0] deq_launched_by_way, next_deq_launched_by_way;
 
@@ -350,11 +377,15 @@ module rob (
 
     logic                           branch_mispred_enq_valid;
     logic [LOG_ROB_ENTRIES-1:0]     branch_mispred_enq_ROB_index;
+    logic [31:0]                    branch_mispred_enq_target_PC;
     logic                           branch_mispred_enq_ready;
 
     logic                           branch_mispred_deq_valid;
     logic [LOG_ROB_ENTRIES-1:0]     branch_mispred_deq_ROB_index;
+    logic [31:0]                    branch_mispred_deq_target_PC;
     logic                           branch_mispred_deq_ready;
+
+    logic branch_mispred_restarting;
 
     logic                           ldu_mispred_enq_valid;
     logic [LOG_ROB_ENTRIES-1:0]     ldu_mispred_enq_ROB_index;
@@ -364,6 +395,8 @@ module rob (
     logic [LOG_ROB_ENTRIES-1:0]     ldu_mispred_deq_ROB_index;
     logic                           ldu_mispred_deq_ready;
 
+    logic ldu_mispred_restarting;
+
     logic                           fence_mispred_enq_valid;
     logic [LOG_ROB_ENTRIES-1:0]     fence_mispred_enq_ROB_index;
     logic                           fence_mispred_enq_ready;
@@ -372,43 +405,64 @@ module rob (
     logic [LOG_ROB_ENTRIES-1:0]     fence_mispred_deq_ROB_index;
     logic                           fence_mispred_deq_ready;
 
+    logic fence_mispred_restarting;
+
     // ----------------------------------------------------------------
     // Logic:
 
     // branch notif consumer
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            rob_branch_update_valid <= 1'b0;
+            rob_branch_update_has_checkpoint <= 1'b0;
+            rob_branch_update_checkpoint_index <= 0;
+            rob_branch_update_is_mispredict <= 1'b0;
+            rob_branch_update_is_taken <= 1'b0;
+            rob_branch_update_use_upct <= 1'b0;
+            rob_branch_update_intermediate_pred_info <= 8'b00000000;
+            rob_branch_update_pred_lru <= 1'b0;
+            rob_branch_update_start_PC <= 32'h0;
+            rob_branch_update_target_PC <= 32'h0;
+        end
+        else begin
+            // want to delay this 1 cycle so it is closer to real restart if mispred
+            rob_branch_update_valid <= 
+                branch_notif_valid
+                & branch_notif_ready
+                & ~killed_by_entry[branch_notif_ROB_index];
+            rob_branch_update_has_checkpoint <= has_checkpoint_by_4way[branch_notif_ROB_index[LOG_ROB_ENTRIES-1:2]];
+            rob_branch_update_checkpoint_index <= checkpoint_index_by_4way[branch_notif_ROB_index[LOG_ROB_ENTRIES-1:2]];
+            rob_branch_update_is_mispredict <= branch_notif_is_mispredict;
+            rob_branch_update_is_taken <= branch_notif_is_taken;
+            rob_branch_update_use_upct <= branch_notif_use_upct;
+            rob_branch_update_intermediate_pred_info <= branch_notif_updated_pred_info;
+            rob_branch_update_pred_lru <= branch_notif_pred_lru;
+            rob_branch_update_start_PC <= branch_notif_start_PC;
+            rob_branch_update_target_PC <= branch_notif_target_PC;
+        end
+    end
     always_comb begin
-        rob_branch_update_valid = 
-            branch_notif_valid
-            & ~killed_by_entry[branch_notif_ROB_index];
-        rob_branch_update_has_checkpoint = has_checkpoint_by_4way[branch_notif_ROB_index[LOG_ROB_ENTRIES-1:2]];
-        rob_branch_update_checkpoint_index = checkpoint_index_by_4way[branch_notif_ROB_index[LOG_ROB_ENTRIES-1:2]];
-        rob_branch_update_is_mispredict = branch_notif_is_mispredict;
-        rob_branch_update_is_taken = branch_notif_is_taken;
-        rob_branch_update_use_upct = branch_notif_use_upct;
-        rob_branch_update_intermediate_pred_info = branch_notif_updated_pred_info;
-        rob_branch_update_pred_lru = branch_notif_pred_lru;
-        rob_branch_update_start_PC = branch_notif_start_PC;
-        rob_branch_update_target_PC = branch_notif_target_PC;
-
         branch_mispred_enq_valid = 
             branch_notif_valid
+            & branch_notif_ready
             & branch_notif_is_mispredict
             & ~killed_by_entry[branch_notif_ROB_index];
         branch_mispred_enq_ROB_index = branch_notif_ROB_index;
+        branch_mispred_enq_target_PC = branch_notif_target_PC;
 
         branch_notif_ready = branch_mispred_enq_ready;
     end
     q_fast_ready #(
-        .DATA_WIDTH(LOG_ROB_ENTRIES),
+        .DATA_WIDTH(LOG_ROB_ENTRIES + 32),
         .NUM_ENTRIES(ROB_MISPRED_Q_ENTRIES)
     ) BRANCH_MISPRED_Q (
         .CLK(CLK),
         .nRST(nRST),
         .enq_valid(branch_mispred_enq_valid),
-        .enq_data(branch_mispred_enq_ROB_index),
+        .enq_data({branch_mispred_enq_ROB_index, branch_mispred_enq_target_PC}),
         .enq_ready(branch_mispred_enq_ready),
         .deq_valid(branch_mispred_deq_valid),
-        .deq_data(branch_mispred_deq_ROB_index),
+        .deq_data({branch_mispred_deq_ROB_index, branch_mispred_deq_target_PC}),
         .deq_ready(branch_mispred_deq_ready)
     );
 
@@ -454,9 +508,77 @@ module rob (
         .deq_ready(fence_mispred_deq_ready)
     );
 
-    // mispred restart controller
+    // restart controller
     always_comb begin
-        // TODO
+
+        // static priority: fence > ldu > branch
+
+        // fence check
+        if (fence_mispred_deq_valid) begin
+            if (killed_by_entry[branch_mispred_deq_ROB_index]) begin
+                // ack and ignore fence
+                fence_mispred_deq_ready = 1'b1;
+                fence_mispred_restarting = 1'b0;
+            end else begin
+                // use fence for restart
+                fence_mispred_deq_ready = 1'b0;
+                fence_mispred_restarting = 1'b1;
+            end
+        end else begin
+            fence_mispred_deq_ready = 1'b0;
+            fence_mispred_restarting = 1'b0;
+        end
+
+        // ldu check
+        if (ldu_mispred_deq_valid) begin
+            if (killed_by_entry[branch_mispred_deq_ROB_index]) begin
+                // ack and ignore ldu
+                ldu_mispred_deq_ready = 1'b1;
+                ldu_mispred_restarting = 1'b0;
+            end else if (~fence_mispred_restarting) begin
+                // use ldu for restart
+                ldu_mispred_deq_ready = 1'b1;
+                ldu_mispred_restarting = 1'b1;
+            end else begin
+                // stall ldu
+                ldu_mispred_deq_ready = 1'b0;
+                ldu_mispred_restarting = 1'b0;
+            end
+        end else begin
+            ldu_mispred_deq_ready = 1'b0;
+            ldu_mispred_restarting = 1'b0;
+        end
+
+        // branch check
+        if (branch_mispred_deq_valid) begin
+            if (killed_by_entry[branch_mispred_deq_ROB_index]) begin
+                // ack and ignore branch
+                branch_mispred_deq_ready = 1'b1;
+                branch_mispred_restarting = 1'b0;
+            end else if (~fence_mispred_restarting & ~ldu_mispred_restarting) begin
+                // use branch for restart
+                branch_mispred_deq_ready = 1'b1;
+                branch_mispred_restarting = 1'b1;
+            end else begin
+                // stall branch
+                branch_mispred_deq_ready = 1'b0;
+                branch_mispred_restarting = 1'b0;
+            end
+        end else begin
+            branch_mispred_deq_ready = 1'b0;
+            branch_mispred_restarting = 1'b0;
+        end
+
+        next_new_restart_valid = fence_mispred_restarting | ldu_mispred_restarting | branch_mispred_restarting;
+        if (fence_mispred_restarting) begin
+            next_new_restart_target_index = fence_mispred_deq_ROB_index;
+        end else if (ldu_mispred_restarting) begin
+            next_new_restart_target_index = ldu_mispred_deq_ROB_index;
+        end else begin
+            next_new_restart_target_index = branch_mispred_deq_ROB_index;
+        end
+        next_new_restart_use_rob_PC = branch_mispred_restarting;
+        next_new_restart_branch_target_PC = branch_mispred_deq_target_PC;
     end
 
     // exception controller
@@ -687,12 +809,13 @@ module rob (
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             restart_state <= DEQ;
+            restart_ptr <= 0;
 
             deq_launched_by_way <= 4'b0000;
         end
         else begin
             restart_state <= next_restart_state;
-
+            restart_ptr <= next_restart_ptr;
             deq_launched_by_way <= next_deq_launched_by_way;
         end
     end
@@ -704,10 +827,26 @@ module rob (
         end
     end
     always_comb begin
-        next_deq_launched_by_way <= deq_launched_by_way;
-
         rob_controlling_rename = 1'b0;
+
+        bulk_bram_read_next_valid = 1'b0;
+        bulk_bram_read_next_index = head_ptr + 1;
+
+        PC_bram_restart_control = 1'b0;
+
         exception_sent = 1'b0;
+
+        next_restart_ptr = restart_ptr + 1;
+
+        next_restart_state = restart_state;
+
+        next_restart_info_valid = restart_info_valid;
+        next_restart_info_target_index = restart_info_target_index;
+        next_restart_info_use_rob_PC = restart_info_use_rob_PC;
+        next_restart_info_branch_target_PC = restart_info_branch_target_PC;
+        next_restart_info_is_exception = restart_info_is_exception;
+
+        next_deq_launched_by_way = deq_launched_by_way;
 
         rob_kill_valid = 1'b0;
         rob_kill_rel_kill_younger_index = restart_info_target_index - rob_kill_abs_head_index;
@@ -716,17 +855,20 @@ module rob (
 
             RESTART_SEND:
             begin
+                // check for new exception
                 // check for new restart
+                    // current restart younger and exception younger
                 // otherwise, check for checkpoint
 
                 rob_controlling_rename = 1'b1;
-                // exception_sent = 
+                exception_sent = restart_info_is_exception;
 
                 rob_kill_valid = 1'b1;
             end
 
             CHECKPOINT_RESTORE:
             begin
+                // check for new exception
                 // check for new restart
                 // otherwise, continue rollback
 
@@ -735,16 +877,10 @@ module rob (
 
             ROLLBACK:
             begin
+                // check for new exception
                 // check for new restart
                 // check for rollback arrival
                 // otherwise, continue rollback
-
-                rob_controlling_rename = 1'b1;
-            end
-
-            EXCEPTION_SEND:
-            begin
-                // exception functionality
 
                 rob_controlling_rename = 1'b1;
             end
@@ -761,15 +897,39 @@ module rob (
 
     // PC bram logic:
     always_comb begin
+        ssu_mdp_update_ready = ~PC_bram_restart_control;
 
-        PC_bram_read_next_valid = PC_bram_restart_control | deq_perform;
+        PC_bram_read_next_valid = PC_bram_restart_control | ssu_mdp_update_valid;
 
         if (PC_bram_restart_control) begin
-
+            // rob state machine control
+            PC_bram_read_next_index = new_restart_target_index[LOG_ROB_ENTRIES-1:2];
         end
         else begin
-            
+            // ssu control
+            PC_bram_read_next_index = ssu_mdp_update_ROB_index[LOG_ROB_ENTRIES-1:2];
         end
+    end
+
+    // ssu mdp update
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            fetch_unit_mdpt_update_valid <= 1'b0;
+            fetch_unit_mdpt_update_ASID <= 'h0;
+            fetch_unit_mdpt_update_mdp_info <= 'h0;
+
+            ssu_mdp_update_saved_lower_ROB_index <= 2'h0;
+        end
+        else begin
+            fetch_unit_mdpt_update_valid <= ssu_mdp_update_valid & ssu_mdp_update_ready;
+            fetch_unit_mdpt_update_ASID <= TODO;
+            fetch_unit_mdpt_update_mdp_info <= ssu_mdp_update_mdp_info;
+
+            ssu_mdp_update_saved_lower_ROB_index <= ssu_mdp_update_ROB_index[1:0];
+        end
+    end
+    always_comb begin
+        fetch_unit_mdpt_update_start_full_PC = PC_bram_read_PC_by_way[ssu_mdp_update_saved_lower_ROB_index];
     end
 
     // ----------------------------------------------------------------
@@ -799,8 +959,8 @@ module rob (
         .rindex(PC_bram_read_next_index),
         .rdata(PC_bram_read_PC_by_way),
         .wen_byte({(4*32/8){PC_bram_write_valid}}),
-        .windex(bulk_bram_write_index),
-        .wdata(bulk_bram_write_entry)        
+        .windex(PC_bram_write_index),
+        .wdata(PC_bram_write_PC_by_way)
     );
 
 endmodule
