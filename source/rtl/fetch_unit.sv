@@ -71,11 +71,11 @@ module fetch_unit #(
     input logic istream_stall_SENQ,
 
     // fetch + decode restart from ROB
-    input logic         rob_restart_valid,
-    input logic [31:0]  rob_restart_PC,
-    input logic [8:0]   rob_restart_ASID,
-    input logic [1:0]   rob_restart_exec_mode,
-    input logic         rob_restart_virtual_mode,
+    input logic                     rob_restart_valid,
+    input logic [31:0]              rob_restart_PC,
+    input logic [ASID_WIDTH-1:0]    rob_restart_ASID,
+    input logic [1:0]               rob_restart_exec_mode,
+    input logic                     rob_restart_virtual_mode,
 
     // decode unit control
     input logic         decode_unit_restart_valid,

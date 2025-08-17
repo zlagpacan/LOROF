@@ -70,7 +70,7 @@ module fetch_unit_wrapper (
     // fetch + decode restart from ROB
 	input logic next_rob_restart_valid,
 	input logic [31:0] next_rob_restart_PC,
-	input logic [8:0] next_rob_restart_ASID,
+	input logic [ASID_WIDTH-1:0] next_rob_restart_ASID,
 	input logic [1:0] next_rob_restart_exec_mode,
 	input logic next_rob_restart_virtual_mode,
 
@@ -155,7 +155,7 @@ module fetch_unit_wrapper (
     // fetch + decode restart from ROB
 	logic rob_restart_valid;
 	logic [31:0] rob_restart_PC;
-	logic [8:0] rob_restart_ASID;
+	logic [ASID_WIDTH-1:0] rob_restart_ASID;
 	logic [1:0] rob_restart_exec_mode;
 	logic rob_restart_virtual_mode;
 

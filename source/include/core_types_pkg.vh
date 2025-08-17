@@ -17,9 +17,6 @@ package core_types_pkg;
     parameter LOG_AR_COUNT = 5;
     parameter ASID_WIDTH = 9;
 
-    parameter INIT_PC = 32'h0;
-    parameter INIT_ASID = 9'h0;
-
     // ----------------------------------------------------------------
     // Environment:
 
@@ -27,7 +24,18 @@ package core_types_pkg;
     parameter S_MODE = 2'b01;
     parameter M_MODE = 2'b11;
 
+    parameter INIT_PC = 32'h0;
+    parameter INIT_ASID = 9'h0;
     parameter INIT_EXEC_MODE = M_MODE;
+    parameter INIT_VIRTUAL_MODE = 1'b0;
+    parameter INIT_MXR = 1'b0;
+    parameter INIT_SUM = 1'b0;
+	parameter INIT_TRAP_SFENCE = 1'b0;
+	parameter INIT_TRAP_WFI = 1'b0;
+	parameter INIT_TRAP_SRET = 1'b0;
+
+    // parameter INIT_WAIT_FOR_RESTART_STATE = 1'b0;
+        // depends on core
 
     // ----------------------------------------------------------------
     // Central:

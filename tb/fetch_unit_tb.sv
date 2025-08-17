@@ -86,7 +86,7 @@ module fetch_unit_tb ();
     // fetch + decode restart from ROB
 	logic tb_rob_restart_valid;
 	logic [31:0] tb_rob_restart_PC;
-	logic [8:0] tb_rob_restart_ASID;
+	logic [ASID_WIDTH-1:0] tb_rob_restart_ASID;
 	logic [1:0] tb_rob_restart_exec_mode;
 	logic tb_rob_restart_virtual_mode;
 
