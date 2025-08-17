@@ -130,21 +130,26 @@ module rob (
     output logic [LOG_ROB_ENTRIES-1:0]  rob_kill_rel_kill_younger_index,
 
     // branch update from ROB
-    output logic                            rob_branch_update_valid,
-    output logic                            rob_branch_update_has_checkpoint,
-    output logic                            rob_branch_update_is_mispredict,
-    output logic                            rob_branch_update_is_taken,
-    output logic                            rob_branch_update_use_upct,
-    output logic [BTB_PRED_INFO_WIDTH-1:0]  rob_branch_update_intermediate_pred_info,
-    output logic                            rob_branch_update_pred_lru,
-    output logic [31:0]                     rob_branch_update_start_PC,
-    output logic [31:0]                     rob_branch_update_target_PC,
+    output logic                                rob_branch_update_valid,
+    output logic                                rob_branch_update_has_checkpoint,
+	output logic [CHECKPOINT_INDEX_WIDTH-1:0]   rob_branch_update_checkpoint_index,
+    output logic                                rob_branch_update_is_mispredict,
+    output logic                                rob_branch_update_is_taken,
+    output logic                                rob_branch_update_use_upct,
+    output logic [BTB_PRED_INFO_WIDTH-1:0]      rob_branch_update_intermediate_pred_info,
+    output logic                                rob_branch_update_pred_lru,
+    output logic [31:0]                         rob_branch_update_start_PC,
+    output logic [31:0]                         rob_branch_update_target_PC,
 
     // ROB control of rename
-    output logic                                rob_controlling_rename,
-    output logic                                rob_checkpoint_restore_valid,
-    output logic                                rob_checkpoint_restore_clear,
-    output logic [CHECKPOINT_INDEX_WIDTH-1:0]   rob_checkpoint_restore_index,
+    output logic                             	rob_controlling_rename,
+
+    output logic                                rob_checkpoint_map_table_restore_valid,
+    output logic [CHECKPOINT_INDEX_WIDTH-1:0]   rob_checkpoint_map_table_restore_index,
+
+    output logic                                rob_checkpoint_clear_valid,
+    output logic [CHECKPOINT_INDEX_WIDTH-1:0]   rob_checkpoint_clear_index,
+
     output logic [3:0]                          rob_map_table_write_valid_by_port,
     output logic [3:0][LOG_AR_COUNT-1:0]        rob_map_table_write_AR_by_port,
     output logic [3:0][LOG_PR_COUNT-1:0]        rob_map_table_write_PR_by_port,
@@ -265,8 +270,9 @@ module rob (
 
     // FF arrays
         // need to PE over or multiple referenced simultaneously
-    logic [ROB_ENTRIES/4-1:0] valid_by_4way;
-    logic [ROB_ENTRIES/4-1:0] has_checkpoint_by_4way;
+    logic [ROB_ENTRIES/4-1:0]                               valid_by_4way;
+    logic [ROB_ENTRIES/4-1:0]                               has_checkpoint_by_4way;
+    logic [ROB_ENTRIES/4-1:0][CHECKPOINT_INDEX_WIDTH-1:0]   checkpoint_index_by_4way;
 
     logic [ROB_ENTRIES-1:0] WB_complete_by_entry;
     logic [ROB_ENTRIES-1:0] unit_complete_by_entry;
@@ -281,7 +287,6 @@ module rob (
         logic [3:0][4:0]                    dest_AR_by_way; // need for deq/rollback
         logic [3:0][LOG_PR_COUNT-1:0]       dest_old_PR_by_way; // need for deq/rollback
         logic [3:0][LOG_PR_COUNT-1:0]       dest_new_PR_by_way; // need for deq/rollback
-        logic [CHECKPOINT_INDEX_WIDTH-1:0]  checkpoint_index; // need for deq/rollback, restart
     } bram_entry_t;
 
     logic                           bulk_bram_read_next_valid;
@@ -307,9 +312,12 @@ module rob (
 
     // exception reg
         // need for exception req, deq/rollback
-    logic                           exception_reg_valid;
-    logic [LOG_ROB_ENTRIES-1:0]     exception_reg_index;
-    logic [31:0]                    exception_reg_cause;
+    logic                           exception_reg_valid, next_exception_reg_valid;
+    logic [LOG_ROB_ENTRIES-1:0]     exception_reg_index, next_exception_reg_index;
+    logic [31:0]                    exception_reg_cause, next_exception_reg_cause;
+    logic [31:0]                    exception_reg_tval, next_exception_reg_tval;
+
+    logic                           exception_sent;
 
     // FIFO pointers
     logic [LOG_ROB_ENTRIES-2-1:0] tail_ptr, next_tail_ptr;
@@ -364,19 +372,14 @@ module rob (
     logic [LOG_ROB_ENTRIES-1:0]     fence_mispred_deq_ROB_index;
     logic                           fence_mispred_deq_ready;
 
-    logic                           ldu_exception_enq_valid;
-    logic [VA_WIDTH-1:0]            ldu_exception_enq_VA;
-    logic                           ldu_exception_enq_page_fault;
-    logic                           ldu_exception_enq_access_fault;
-    logic [LOG_ROB_ENTRIES-1:0]     ldu_exception_enq_ROB_index;
-    logic                           ldu_exception_enq_ready;
-
     // ----------------------------------------------------------------
     // Logic:
 
     // branch notif consumer
     always_comb begin
-        rob_branch_update_valid = branch_notif_valid & killed_by_entry[branch_notif_ROB_index];
+        rob_branch_update_valid = 
+            branch_notif_valid
+            & ~killed_by_entry[branch_notif_ROB_index];
         rob_branch_update_has_checkpoint = has_checkpoint_by_4way[branch_notif_ROB_index[LOG_ROB_ENTRIES-1:2]];
         rob_branch_update_is_mispredict = branch_notif_is_mispredict;
         rob_branch_update_is_taken = branch_notif_is_taken;
@@ -386,7 +389,10 @@ module rob (
         rob_branch_update_start_PC = branch_notif_start_PC;
         rob_branch_update_target_PC = branch_notif_target_PC;
 
-        branch_mispred_enq_valid = branch_notif_valid & killed_by_entry[branch_notif_ROB_index];
+        branch_mispred_enq_valid = 
+            branch_notif_valid
+            & branch_notif_is_mispredict
+            & ~killed_by_entry[branch_notif_ROB_index];
         branch_mispred_enq_ROB_index = branch_notif_ROB_index;
 
         branch_notif_ready = branch_mispred_enq_ready;
@@ -449,17 +455,123 @@ module rob (
 
     // mispred restart controller
     always_comb begin
-        TODO
+        // TODO
     end
 
     // exception controller
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            exception_reg_valid <= 1'b0;
+            exception_reg_index <= 2'h0;
+            exception_reg_cause <= 32'h0;
+            exception_reg_tval <= 32'h0;
+        end
+        else begin
+            exception_reg_valid <= next_exception_reg_valid;
+            exception_reg_index <= next_exception_reg_index;
+            exception_reg_cause <= next_exception_reg_cause;
+            exception_reg_tval <= next_exception_reg_tval;
+        end
+    end
     always_comb begin
+        next_exception_reg_valid = exception_reg_valid;
+        next_exception_reg_index = exception_reg_index;
+        next_exception_reg_cause = exception_reg_cause;
+        next_exception_reg_tval = exception_reg_tval;
         
         // static priority of stamofu > ldu > dispatch
             // doesn't really matter, uncommon case
-        stamofu_exception_enq_ready = 1'b1;
-        ldu_exception_ready = ~stamofu_exception_enq_valid;
+        stamofu_exception_ready = 1'b1;
+        ldu_exception_ready = ~stamofu_exception_valid;
 
+        if (exception_sent) begin
+            // clear exception
+            next_exception_reg_valid = 1'b0;
+        end
+        else if (stamofu_exception_valid) begin
+            // take new exception if this one older than curr
+            if (
+                ~exception_reg_valid
+                | (
+                    (stamofu_exception_ROB_index - rob_kill_abs_head_index)
+                    < (exception_reg_index - rob_kill_abs_head_index))
+            ) begin
+                next_exception_reg_valid = 1'b1;
+                next_exception_reg_index = stamofu_exception_ROB_index;
+                if (stamofu_exception_is_lr) begin
+                    if (stamofu_exception_page_fault) begin
+                        // load page fault -> [13]
+                        next_exception_reg_cause = 32'h00002000;
+                    end
+                    else if (stamofu_exception_access_fault) begin
+                        // load access fault -> [5]
+                        next_exception_reg_cause = 32'h00000020;
+                    end
+                    else begin
+                        // load addr misaligned -> [4]
+                        next_exception_reg_cause = 32'h00000010;
+                    end
+                end
+                else begin
+                    if (stamofu_exception_page_fault) begin
+                        // store/amo page fault -> [15]
+                        next_exception_reg_cause = 32'h00008000;
+                    end
+                    else if (stamofu_exception_access_fault) begin
+                        // store/amo access fault -> [7]
+                        next_exception_reg_cause = 32'h00000080;
+                    end
+                    else begin
+                        // store/amo addr misaligned -> [6]
+                        next_exception_reg_cause = 32'h00000040;
+                    end
+                end
+                next_exception_reg_tval = stamofu_exception_VA;
+            end
+        end
+        else if (ldu_exception_valid) begin
+            // take new exception if this one older than curr
+            if (
+                ~exception_reg_valid
+                | (
+                    (ldu_exception_ROB_index - rob_kill_abs_head_index)
+                    < (exception_reg_index - rob_kill_abs_head_index))
+            ) begin
+                next_exception_reg_valid = 1'b1;
+                next_exception_reg_index = ldu_exception_ROB_index;
+                if (ldu_exception_page_fault) begin
+                    // load page fault -> [13]
+                    next_exception_reg_cause = 32'h00002000;
+                end
+                else begin
+                    // load access fault -> [5]
+                    next_exception_reg_cause = 32'h00000020;
+                end
+                next_exception_reg_tval = ldu_exception_VA;
+            end
+        end
+        else if (enq_perform & dispatch_exception_present) begin
+            // take new exception if no curr
+            if (~exception_reg_valid) begin
+                next_exception_reg_valid = 1'b1;
+                next_exception_reg_index = {tail_ptr, dispatch_exception_index};
+                if (dispatch_is_page_fault) begin
+                    // instr page fault -> [12]
+                    next_exception_reg_cause = 32'h00001000;
+                    next_exception_reg_tval = dispatch_PC_by_way[dispatch_exception_index];
+                end
+                else if (dispatch_is_access_fault) begin
+                    // instr access fault -> [1]
+                    next_exception_reg_cause = 32'h00000002;
+                    next_exception_reg_tval = dispatch_PC_by_way[dispatch_exception_index];
+                end
+                else begin
+                    // illegal instr -> [2]
+                    next_exception_reg_cause = 32'h00000004;
+                    next_exception_reg_tval = dispatch_illegal_instr32;
+                end
+            end
+        end
     end
 
     // FF state
@@ -470,6 +582,9 @@ module rob (
             WB_complete_by_entry <= '0;
             unit_complete_by_entry <= '0;
             killed_by_entry <= '0;
+
+            head_ptr <= 0;
+            tail_ptr <= 0;
         end
         else begin
             if (enq_perform) begin
@@ -522,7 +637,22 @@ module rob (
             if (branch_notif_valid) begin
                 unit_complete_by_entry[branch_notif_ROB_index] <= 1'b1;
             end
+
+            if (deq_perform) begin
+                head_ptr <= head_ptr + 1;
+            end
+            if (enq_perform) begin
+                tail_ptr <= tail_ptr + 1;
+            end
         end
+    end
+    always_comb begin
+        dispatch_ROB_index_by_way[0] = {tail_ptr, 2'h0};
+        dispatch_ROB_index_by_way[1] = {tail_ptr, 2'h1};
+        dispatch_ROB_index_by_way[2] = {tail_ptr, 2'h2};
+        dispatch_ROB_index_by_way[3] = {tail_ptr, 2'h3};
+
+        rob_kill_abs_head_index = {head_ptr, 2'h0};
     end
 
     // enq logic:
@@ -531,7 +661,7 @@ module rob (
         dispatch_enq_ready = 
             valid_by_4way[tail_ptr]
             & ~(
-                (dispatch_is_page_fault | dispatch_is_access_fault | dispatch_is_illegal_instr)
+                dispatch_exception_present
                 & (stamofu_exception_valid | ldu_exception_valid)
             );
 
@@ -546,7 +676,6 @@ module rob (
         bulk_bram_write_entry.dest_AR_by_way = dispatch_dest_AR_by_way;
         bulk_bram_write_entry.dest_old_PR_by_way = dispatch_dest_old_PR_by_way;
         bulk_bram_write_entry.dest_new_PR_by_way = dispatch_dest_new_PR_by_way;
-        bulk_bram_write_entry.checkpoint_index = dispatch_checkpoint_index;
 
         PC_bram_write_valid = enq_perform;
         PC_bram_write_index = tail_ptr;
@@ -574,13 +703,23 @@ module rob (
         end
     end
     always_comb begin
-        
+        next_deq_launched_by_way <= deq_launched_by_way;
+
+        exception_sent = 1'b0;
+
+        rob_controlling_rename = 1'b0;
+
+        rob_kill_valid = 1'b0;
+        rob_kill_rel_kill_younger_index = 0;
+
         case (restart_state)
 
             CHECKPOINT_RESTORE:
             begin
                 // check for new restart
                 // otherwise, continue rollback
+
+                rob_controlling_rename = 1'b1;
             end
 
             ROLLBACK:
@@ -588,11 +727,15 @@ module rob (
                 // check for new restart
                 // check for rollback arrival
                 // otherwise, continue rollback
+
+                rob_controlling_rename = 1'b1;
             end
 
             EXCEPTION_SEND:
             begin
                 // exception functionality
+
+                rob_controlling_rename = 1'b1;
             end
             
             default: // DEQ

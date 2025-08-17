@@ -26,7 +26,6 @@ module decode_unit #(
     input logic [3:0][1:0][15:0]                   		istream_instr_2B_by_way_by_chunk_SDEQ,
     input logic [3:0][1:0][BTB_PRED_INFO_WIDTH-1:0]		istream_pred_info_by_way_by_chunk_SDEQ,
     input logic [3:0][1:0]                         		istream_pred_lru_by_way_by_chunk_SDEQ,
-    // input logic [3:0][1:0]                           	istream_redirect_by_way_by_chunk_SDEQ, // unused
     input logic [3:0][1:0][31:0]                   		istream_pred_PC_by_way_by_chunk_SDEQ,
     input logic [3:0][1:0]                         		istream_page_fault_by_way_by_chunk_SDEQ,
     input logic [3:0][1:0]                         		istream_access_fault_by_way_by_chunk_SDEQ,
@@ -136,21 +135,26 @@ module decode_unit #(
 	input logic rob_kill_valid,
 
     // branch update from ROB
-    input logic                             rob_branch_update_valid,
-    input logic                             rob_branch_update_has_checkpoint,
-    input logic                             rob_branch_update_is_mispredict,
-    input logic                             rob_branch_update_is_taken,
-    input logic                             rob_branch_update_use_upct,
-    input logic [BTB_PRED_INFO_WIDTH-1:0]   rob_branch_update_intermediate_pred_info,
-    input logic                             rob_branch_update_pred_lru,
-    input logic [31:0]                      rob_branch_update_start_PC,
-    input logic [31:0]                      rob_branch_update_target_PC,
+    input logic                             	rob_branch_update_valid,
+    input logic                             	rob_branch_update_has_checkpoint,
+	input logic [CHECKPOINT_INDEX_WIDTH-1:0]	rob_branch_update_checkpoint_index,
+    input logic                             	rob_branch_update_is_mispredict,
+    input logic                             	rob_branch_update_is_taken,
+    input logic                             	rob_branch_update_use_upct,
+    input logic [BTB_PRED_INFO_WIDTH-1:0]   	rob_branch_update_intermediate_pred_info,
+    input logic                             	rob_branch_update_pred_lru,
+    input logic [31:0]                      	rob_branch_update_start_PC,
+    input logic [31:0]                      	rob_branch_update_target_PC,
 
     // ROB control of rename
     input logic                             	rob_controlling_rename,
-    input logic                                 rob_checkpoint_restore_valid,
-    input logic                                 rob_checkpoint_restore_clear,
-    input logic [CHECKPOINT_INDEX_WIDTH-1:0]    rob_checkpoint_restore_index,
+
+    input logic                                 rob_checkpoint_map_table_restore_valid,
+    input logic [CHECKPOINT_INDEX_WIDTH-1:0]    rob_checkpoint_map_table_restore_index,
+
+    input logic                                 rob_checkpoint_clear_valid,
+    input logic [CHECKPOINT_INDEX_WIDTH-1:0]    rob_checkpoint_clear_index,
+
     input logic [3:0]                       	rob_map_table_write_valid_by_port,
     input logic [3:0][LOG_AR_COUNT-1:0]     	rob_map_table_write_AR_by_port,
     input logic [3:0][LOG_PR_COUNT-1:0]     	rob_map_table_write_PR_by_port,
@@ -508,14 +512,28 @@ module decode_unit #(
 		logic                              		checkpoint_array_save_ready;
 		logic [CHECKPOINT_INDEX_WIDTH-1:0] 		checkpoint_array_save_index;
 
-		// checkpoint restore
-		logic [CHECKPOINT_INDEX_WIDTH-1:0]    	checkpoint_array_restore_index;
-		logic                                 	checkpoint_array_restore_clear;
+		// map table restore
+		logic [CHECKPOINT_INDEX_WIDTH-1:0]    	checkpoint_array_map_table_restore_index;
+		logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0]  checkpoint_array_map_table_restore_map_table;
 
-		logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] 	checkpoint_array_restore_map_table;
-		logic [LH_LENGTH-1:0]                  	checkpoint_array_restore_LH;
-		logic [GH_LENGTH-1:0]                  	checkpoint_array_restore_GH;
-		logic [RAS_INDEX_WIDTH-1:0]            	checkpoint_array_restore_ras_index;
+		// branch info restore
+		logic [CHECKPOINT_INDEX_WIDTH-1:0]	checkpoint_array_branch_info_restore_index;
+		logic [LH_LENGTH-1:0]              	checkpoint_array_branch_info_restore_LH;
+		logic [GH_LENGTH-1:0]           	checkpoint_array_branch_info_restore_GH;
+		logic [RAS_INDEX_WIDTH-1:0]        	checkpoint_array_branch_info_restore_ras_index;
+
+		// checkpoint clear
+		logic                             	checkpoint_array_clear_valid;
+    	logic [CHECKPOINT_INDEX_WIDTH-1:0]	checkpoint_array_clear_index;
+
+		// // checkpoint restore
+		// logic [CHECKPOINT_INDEX_WIDTH-1:0]    	checkpoint_array_restore_index;
+		// logic                                 	checkpoint_array_restore_clear;
+
+		// logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] 	checkpoint_array_restore_map_table;
+		// logic [LH_LENGTH-1:0]                  	checkpoint_array_restore_LH;
+		// logic [GH_LENGTH-1:0]                  	checkpoint_array_restore_GH;
+		// logic [RAS_INDEX_WIDTH-1:0]            	checkpoint_array_restore_ras_index;
 
 		// advertized threshold
 		logic checkpoint_array_above_threshold; // unused for now
@@ -1416,8 +1434,8 @@ module decode_unit #(
 			map_table_write_PR_by_port = free_list_deq_req_PR_by_bank;
 		end
 
-		map_table_restore_valid = rob_controlling_rename & rob_checkpoint_restore_valid;
-		map_table_restore_map_table = checkpoint_array_restore_map_table;
+		map_table_restore_valid = rob_checkpoint_map_table_restore_valid;
+		map_table_restore_map_table = checkpoint_array_map_table_restore_map_table;
 
 		// checkpoint_array:
 		checkpoint_array_save_valid = 
@@ -1429,8 +1447,12 @@ module decode_unit #(
 		checkpoint_array_save_GH = GH_RNM;
 		checkpoint_array_save_ras_index = ras_index_RNM;
 
-		checkpoint_array_restore_index = rob_checkpoint_restore_index;
-		checkpoint_array_restore_clear = rob_controlling_rename & rob_checkpoint_restore_clear;
+		checkpoint_array_map_table_restore_index = rob_checkpoint_map_table_restore_index;
+
+		checkpoint_array_branch_info_restore_index = rob_branch_update_checkpoint_index;
+
+		checkpoint_array_clear_valid = rob_checkpoint_clear_valid;
+		checkpoint_array_clear_index = rob_checkpoint_clear_index;
 
 		// ar_dep_check:
 		ar_dep_check_A_AR_by_way = A_AR_by_way_RNM;
@@ -1450,9 +1472,9 @@ module decode_unit #(
 		decode_unit_branch_update_is_mispredict = rob_branch_update_is_mispredict;
 		decode_unit_branch_update_is_taken = rob_branch_update_is_taken;
 		decode_unit_branch_update_target_PC = rob_branch_update_target_PC;
-		decode_unit_branch_update_LH = checkpoint_array_restore_LH;
-		decode_unit_branch_update_GH = checkpoint_array_restore_GH;
-		decode_unit_branch_update_ras_index = checkpoint_array_restore_ras_index;
+		decode_unit_branch_update_LH = checkpoint_array_branch_info_restore_LH;
+		decode_unit_branch_update_GH = checkpoint_array_branch_info_restore_GH;
+		decode_unit_branch_update_ras_index = checkpoint_array_branch_info_restore_ras_index;
 
 		// rob branch update
 		if (rob_branch_update_valid) begin
@@ -1549,14 +1571,19 @@ module decode_unit #(
 		.save_ready(checkpoint_array_save_ready),
 		.save_index(checkpoint_array_save_index),
 
-	    // checkpoint restore
-		.restore_index(checkpoint_array_restore_index),
-		.restore_clear(checkpoint_array_restore_clear),
+	    // map table restore
+		.map_table_restore_index(checkpoint_array_map_table_restore_index),
+		.map_table_restore_map_table(checkpoint_array_map_table_restore_map_table),
 
-		.restore_map_table(checkpoint_array_restore_map_table),
-		.restore_LH(checkpoint_array_restore_LH),
-		.restore_GH(checkpoint_array_restore_GH),
-		.restore_ras_index(checkpoint_array_restore_ras_index),
+		// branch info restore
+		.branch_info_restore_index(checkpoint_array_branch_info_restore_index),
+		.branch_info_restore_LH(checkpoint_array_branch_info_restore_LH),
+		.branch_info_restore_GH(checkpoint_array_branch_info_restore_GH),
+		.branch_info_restore_ras_index(checkpoint_array_branch_info_restore_ras_index),
+
+		// checkpoint clear
+		.clear_valid(checkpoint_array_clear_valid),
+		.clear_index(checkpoint_array_clear_index),
 
 	    // advertized threshold
 		.above_threshold(checkpoint_array_above_threshold)

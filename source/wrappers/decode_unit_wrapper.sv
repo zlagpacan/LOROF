@@ -32,7 +32,6 @@ module decode_unit_wrapper (
 	input logic [3:0][1:0][15:0] next_istream_instr_2B_by_way_by_chunk_SDEQ,
 	input logic [3:0][1:0][BTB_PRED_INFO_WIDTH-1:0] next_istream_pred_info_by_way_by_chunk_SDEQ,
 	input logic [3:0][1:0] next_istream_pred_lru_by_way_by_chunk_SDEQ,
-    // input logic [3:0][1:0]                           	istream_redirect_by_way_by_chunk_SDEQ, // unused
 	input logic [3:0][1:0][31:0] next_istream_pred_PC_by_way_by_chunk_SDEQ,
 	input logic [3:0][1:0] next_istream_page_fault_by_way_by_chunk_SDEQ,
 	input logic [3:0][1:0] next_istream_access_fault_by_way_by_chunk_SDEQ,
@@ -144,6 +143,7 @@ module decode_unit_wrapper (
     // branch update from ROB
 	input logic next_rob_branch_update_valid,
 	input logic next_rob_branch_update_has_checkpoint,
+	input logic [CHECKPOINT_INDEX_WIDTH-1:0] next_rob_branch_update_checkpoint_index,
 	input logic next_rob_branch_update_is_mispredict,
 	input logic next_rob_branch_update_is_taken,
 	input logic next_rob_branch_update_use_upct,
@@ -154,9 +154,13 @@ module decode_unit_wrapper (
 
     // ROB control of rename
 	input logic next_rob_controlling_rename,
-	input logic next_rob_checkpoint_restore_valid,
-	input logic next_rob_checkpoint_restore_clear,
-	input logic [CHECKPOINT_INDEX_WIDTH-1:0] next_rob_checkpoint_restore_index,
+
+	input logic next_rob_checkpoint_map_table_restore_valid,
+	input logic [CHECKPOINT_INDEX_WIDTH-1:0] next_rob_checkpoint_map_table_restore_index,
+
+	input logic next_rob_checkpoint_clear_valid,
+	input logic [CHECKPOINT_INDEX_WIDTH-1:0] next_rob_checkpoint_clear_index,
+
 	input logic [3:0] next_rob_map_table_write_valid_by_port,
 	input logic [3:0][LOG_AR_COUNT-1:0] next_rob_map_table_write_AR_by_port,
 	input logic [3:0][LOG_PR_COUNT-1:0] next_rob_map_table_write_PR_by_port,
@@ -202,7 +206,6 @@ module decode_unit_wrapper (
 	logic [3:0][1:0][15:0] istream_instr_2B_by_way_by_chunk_SDEQ;
 	logic [3:0][1:0][BTB_PRED_INFO_WIDTH-1:0] istream_pred_info_by_way_by_chunk_SDEQ;
 	logic [3:0][1:0] istream_pred_lru_by_way_by_chunk_SDEQ;
-    // input logic [3:0][1:0]                           	istream_redirect_by_way_by_chunk_SDEQ, // unused
 	logic [3:0][1:0][31:0] istream_pred_PC_by_way_by_chunk_SDEQ;
 	logic [3:0][1:0] istream_page_fault_by_way_by_chunk_SDEQ;
 	logic [3:0][1:0] istream_access_fault_by_way_by_chunk_SDEQ;
@@ -314,6 +317,7 @@ module decode_unit_wrapper (
     // branch update from ROB
 	logic rob_branch_update_valid;
 	logic rob_branch_update_has_checkpoint;
+	logic [CHECKPOINT_INDEX_WIDTH-1:0] rob_branch_update_checkpoint_index;
 	logic rob_branch_update_is_mispredict;
 	logic rob_branch_update_is_taken;
 	logic rob_branch_update_use_upct;
@@ -324,9 +328,13 @@ module decode_unit_wrapper (
 
     // ROB control of rename
 	logic rob_controlling_rename;
-	logic rob_checkpoint_restore_valid;
-	logic rob_checkpoint_restore_clear;
-	logic [CHECKPOINT_INDEX_WIDTH-1:0] rob_checkpoint_restore_index;
+
+	logic rob_checkpoint_map_table_restore_valid;
+	logic [CHECKPOINT_INDEX_WIDTH-1:0] rob_checkpoint_map_table_restore_index;
+
+	logic rob_checkpoint_clear_valid;
+	logic [CHECKPOINT_INDEX_WIDTH-1:0] rob_checkpoint_clear_index;
+
 	logic [3:0] rob_map_table_write_valid_by_port;
 	logic [3:0][LOG_AR_COUNT-1:0] rob_map_table_write_AR_by_port;
 	logic [3:0][LOG_PR_COUNT-1:0] rob_map_table_write_PR_by_port;
@@ -384,7 +392,6 @@ module decode_unit_wrapper (
 			istream_instr_2B_by_way_by_chunk_SDEQ <= '0;
 			istream_pred_info_by_way_by_chunk_SDEQ <= '0;
 			istream_pred_lru_by_way_by_chunk_SDEQ <= '0;
-		    // input logic [3:0][1:0]                           	istream_redirect_by_way_by_chunk_SDEQ, // unused
 			istream_pred_PC_by_way_by_chunk_SDEQ <= '0;
 			istream_page_fault_by_way_by_chunk_SDEQ <= '0;
 			istream_access_fault_by_way_by_chunk_SDEQ <= '0;
@@ -496,6 +503,7 @@ module decode_unit_wrapper (
 		    // branch update from ROB
 			rob_branch_update_valid <= '0;
 			rob_branch_update_has_checkpoint <= '0;
+			rob_branch_update_checkpoint_index <= '0;
 			rob_branch_update_is_mispredict <= '0;
 			rob_branch_update_is_taken <= '0;
 			rob_branch_update_use_upct <= '0;
@@ -506,9 +514,13 @@ module decode_unit_wrapper (
 
 		    // ROB control of rename
 			rob_controlling_rename <= '0;
-			rob_checkpoint_restore_valid <= '0;
-			rob_checkpoint_restore_clear <= '0;
-			rob_checkpoint_restore_index <= '0;
+
+			rob_checkpoint_map_table_restore_valid <= '0;
+			rob_checkpoint_map_table_restore_index <= '0;
+
+			rob_checkpoint_clear_valid <= '0;
+			rob_checkpoint_clear_index <= '0;
+
 			rob_map_table_write_valid_by_port <= '0;
 			rob_map_table_write_AR_by_port <= '0;
 			rob_map_table_write_PR_by_port <= '0;
@@ -552,7 +564,6 @@ module decode_unit_wrapper (
 			istream_instr_2B_by_way_by_chunk_SDEQ <= next_istream_instr_2B_by_way_by_chunk_SDEQ;
 			istream_pred_info_by_way_by_chunk_SDEQ <= next_istream_pred_info_by_way_by_chunk_SDEQ;
 			istream_pred_lru_by_way_by_chunk_SDEQ <= next_istream_pred_lru_by_way_by_chunk_SDEQ;
-		    // input logic [3:0][1:0]                           	istream_redirect_by_way_by_chunk_SDEQ, // unused
 			istream_pred_PC_by_way_by_chunk_SDEQ <= next_istream_pred_PC_by_way_by_chunk_SDEQ;
 			istream_page_fault_by_way_by_chunk_SDEQ <= next_istream_page_fault_by_way_by_chunk_SDEQ;
 			istream_access_fault_by_way_by_chunk_SDEQ <= next_istream_access_fault_by_way_by_chunk_SDEQ;
@@ -664,6 +675,7 @@ module decode_unit_wrapper (
 		    // branch update from ROB
 			rob_branch_update_valid <= next_rob_branch_update_valid;
 			rob_branch_update_has_checkpoint <= next_rob_branch_update_has_checkpoint;
+			rob_branch_update_checkpoint_index <= next_rob_branch_update_checkpoint_index;
 			rob_branch_update_is_mispredict <= next_rob_branch_update_is_mispredict;
 			rob_branch_update_is_taken <= next_rob_branch_update_is_taken;
 			rob_branch_update_use_upct <= next_rob_branch_update_use_upct;
@@ -674,9 +686,13 @@ module decode_unit_wrapper (
 
 		    // ROB control of rename
 			rob_controlling_rename <= next_rob_controlling_rename;
-			rob_checkpoint_restore_valid <= next_rob_checkpoint_restore_valid;
-			rob_checkpoint_restore_clear <= next_rob_checkpoint_restore_clear;
-			rob_checkpoint_restore_index <= next_rob_checkpoint_restore_index;
+
+			rob_checkpoint_map_table_restore_valid <= next_rob_checkpoint_map_table_restore_valid;
+			rob_checkpoint_map_table_restore_index <= next_rob_checkpoint_map_table_restore_index;
+
+			rob_checkpoint_clear_valid <= next_rob_checkpoint_clear_valid;
+			rob_checkpoint_clear_index <= next_rob_checkpoint_clear_index;
+
 			rob_map_table_write_valid_by_port <= next_rob_map_table_write_valid_by_port;
 			rob_map_table_write_AR_by_port <= next_rob_map_table_write_AR_by_port;
 			rob_map_table_write_PR_by_port <= next_rob_map_table_write_PR_by_port;

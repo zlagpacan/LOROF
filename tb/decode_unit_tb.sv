@@ -10,6 +10,14 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
+parameter INIT_EXEC_MODE = M_MODE;
+parameter INIT_TRAP_SFENCE = 1'b0;
+parameter INIT_TRAP_WFI = 1'b0;
+parameter INIT_TRAP_SRET = 1'b0;
+
 module decode_unit_tb ();
 
     // ----------------------------------------------------------------
@@ -151,6 +159,7 @@ module decode_unit_tb ();
     // branch update from ROB
 	logic tb_rob_branch_update_valid;
 	logic tb_rob_branch_update_has_checkpoint;
+	logic [CHECKPOINT_INDEX_WIDTH-1:0] tb_rob_branch_update_checkpoint_index;
 	logic tb_rob_branch_update_is_mispredict;
 	logic tb_rob_branch_update_is_taken;
 	logic tb_rob_branch_update_use_upct;
@@ -161,9 +170,13 @@ module decode_unit_tb ();
 
     // ROB control of rename
 	logic tb_rob_controlling_rename;
-	logic tb_rob_checkpoint_restore_valid;
-	logic tb_rob_checkpoint_restore_clear;
-	logic [CHECKPOINT_INDEX_WIDTH-1:0] tb_rob_checkpoint_restore_index;
+
+	logic tb_rob_checkpoint_map_table_restore_valid;
+	logic [CHECKPOINT_INDEX_WIDTH-1:0] tb_rob_checkpoint_map_table_restore_index;
+
+	logic tb_rob_checkpoint_clear_valid;
+	logic [CHECKPOINT_INDEX_WIDTH-1:0] tb_rob_checkpoint_clear_index;
+
 	logic [3:0] tb_rob_map_table_write_valid_by_port;
 	logic [3:0][LOG_AR_COUNT-1:0] tb_rob_map_table_write_AR_by_port;
 	logic [3:0][LOG_PR_COUNT-1:0] tb_rob_map_table_write_PR_by_port;
@@ -201,10 +214,10 @@ module decode_unit_tb ();
     // DUT instantiation:
 
 	decode_unit #(
-		.INIT_EXEC_MODE(M_MODE),
-		.INIT_TRAP_SFENCE(1'b0),
-		.INIT_TRAP_WFI(1'b0),
-		.INIT_TRAP_SRET(1'b0)
+		.INIT_EXEC_MODE(INIT_EXEC_MODE),
+		.INIT_TRAP_SFENCE(INIT_TRAP_SFENCE),
+		.INIT_TRAP_WFI(INIT_TRAP_WFI),
+		.INIT_TRAP_SRET(INIT_TRAP_SRET)
 	) DUT (
 		// seq
 		.CLK(CLK),
@@ -329,6 +342,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		.rob_branch_update_valid(tb_rob_branch_update_valid),
 		.rob_branch_update_has_checkpoint(tb_rob_branch_update_has_checkpoint),
+		.rob_branch_update_checkpoint_index(tb_rob_branch_update_checkpoint_index),
 		.rob_branch_update_is_mispredict(tb_rob_branch_update_is_mispredict),
 		.rob_branch_update_is_taken(tb_rob_branch_update_is_taken),
 		.rob_branch_update_use_upct(tb_rob_branch_update_use_upct),
@@ -339,9 +353,13 @@ module decode_unit_tb ();
 
 	    // ROB control of rename
 		.rob_controlling_rename(tb_rob_controlling_rename),
-		.rob_checkpoint_restore_valid(tb_rob_checkpoint_restore_valid),
-		.rob_checkpoint_restore_clear(tb_rob_checkpoint_restore_clear),
-		.rob_checkpoint_restore_index(tb_rob_checkpoint_restore_index),
+
+		.rob_checkpoint_map_table_restore_valid(tb_rob_checkpoint_map_table_restore_valid),
+		.rob_checkpoint_map_table_restore_index(tb_rob_checkpoint_map_table_restore_index),
+
+		.rob_checkpoint_clear_valid(tb_rob_checkpoint_clear_valid),
+		.rob_checkpoint_clear_index(tb_rob_checkpoint_clear_index),
+
 		.rob_map_table_write_valid_by_port(tb_rob_map_table_write_valid_by_port),
 		.rob_map_table_write_AR_by_port(tb_rob_map_table_write_AR_by_port),
 		.rob_map_table_write_PR_by_port(tb_rob_map_table_write_PR_by_port),
@@ -657,14 +675,6 @@ module decode_unit_tb ();
 		if (expected_dispatch_A_PR_by_way !== DUT_dispatch_A_PR_by_way) begin
 			$display("TB ERROR: expected_dispatch_A_PR_by_way (%h) != DUT_dispatch_A_PR_by_way (%h)",
 				expected_dispatch_A_PR_by_way, DUT_dispatch_A_PR_by_way);
-			$display("\texpected_dispatch_A_PR_by_way[3] (%h), DUT_dispatch_A_PR_by_way[3] (%h)",
-				expected_dispatch_A_PR_by_way[3], DUT_dispatch_A_PR_by_way[3]);
-			$display("\texpected_dispatch_A_PR_by_way[2] (%h), DUT_dispatch_A_PR_by_way[2] (%h)",
-				expected_dispatch_A_PR_by_way[2], DUT_dispatch_A_PR_by_way[2]);
-			$display("\texpected_dispatch_A_PR_by_way[1] (%h), DUT_dispatch_A_PR_by_way[1] (%h)",
-				expected_dispatch_A_PR_by_way[1], DUT_dispatch_A_PR_by_way[1]);
-			$display("\texpected_dispatch_A_PR_by_way[0] (%h), DUT_dispatch_A_PR_by_way[0] (%h)",
-				expected_dispatch_A_PR_by_way[0], DUT_dispatch_A_PR_by_way[0]);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -700,14 +710,6 @@ module decode_unit_tb ();
 		if (expected_dispatch_B_PR_by_way !== DUT_dispatch_B_PR_by_way) begin
 			$display("TB ERROR: expected_dispatch_B_PR_by_way (%h) != DUT_dispatch_B_PR_by_way (%h)",
 				expected_dispatch_B_PR_by_way, DUT_dispatch_B_PR_by_way);
-			$display("\texpected_dispatch_B_PR_by_way[3] (%h), DUT_dispatch_B_PR_by_way[3] (%h)",
-				expected_dispatch_B_PR_by_way[3], DUT_dispatch_B_PR_by_way[3]);
-			$display("\texpected_dispatch_B_PR_by_way[2] (%h), DUT_dispatch_B_PR_by_way[2] (%h)",
-				expected_dispatch_B_PR_by_way[2], DUT_dispatch_B_PR_by_way[2]);
-			$display("\texpected_dispatch_B_PR_by_way[1] (%h), DUT_dispatch_B_PR_by_way[1] (%h)",
-				expected_dispatch_B_PR_by_way[1], DUT_dispatch_B_PR_by_way[1]);
-			$display("\texpected_dispatch_B_PR_by_way[0] (%h), DUT_dispatch_B_PR_by_way[0] (%h)",
-				expected_dispatch_B_PR_by_way[0], DUT_dispatch_B_PR_by_way[0]);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -736,14 +738,6 @@ module decode_unit_tb ();
 		if (expected_dispatch_dest_AR_by_way !== DUT_dispatch_dest_AR_by_way) begin
 			$display("TB ERROR: expected_dispatch_dest_AR_by_way (%h) != DUT_dispatch_dest_AR_by_way (%h)",
 				expected_dispatch_dest_AR_by_way, DUT_dispatch_dest_AR_by_way);
-			$display("\texpected_dispatch_dest_AR_by_way[3] (%h), DUT_dispatch_dest_AR_by_way[3] (%h)",
-				expected_dispatch_dest_AR_by_way[3], DUT_dispatch_dest_AR_by_way[3]);
-			$display("\texpected_dispatch_dest_AR_by_way[2] (%h), DUT_dispatch_dest_AR_by_way[2] (%h)",
-				expected_dispatch_dest_AR_by_way[2], DUT_dispatch_dest_AR_by_way[2]);
-			$display("\texpected_dispatch_dest_AR_by_way[1] (%h), DUT_dispatch_dest_AR_by_way[1] (%h)",
-				expected_dispatch_dest_AR_by_way[1], DUT_dispatch_dest_AR_by_way[1]);
-			$display("\texpected_dispatch_dest_AR_by_way[0] (%h), DUT_dispatch_dest_AR_by_way[0] (%h)",
-				expected_dispatch_dest_AR_by_way[0], DUT_dispatch_dest_AR_by_way[0]);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -751,14 +745,6 @@ module decode_unit_tb ();
 		if (expected_dispatch_dest_old_PR_by_way !== DUT_dispatch_dest_old_PR_by_way) begin
 			$display("TB ERROR: expected_dispatch_dest_old_PR_by_way (%h) != DUT_dispatch_dest_old_PR_by_way (%h)",
 				expected_dispatch_dest_old_PR_by_way, DUT_dispatch_dest_old_PR_by_way);
-			$display("\texpected_dispatch_dest_old_PR_by_way[3] (%h), DUT_dispatch_dest_old_PR_by_way[3] (%h)",
-				expected_dispatch_dest_old_PR_by_way[3], DUT_dispatch_dest_old_PR_by_way[3]);
-			$display("\texpected_dispatch_dest_old_PR_by_way[2] (%h), DUT_dispatch_dest_old_PR_by_way[2] (%h)",
-				expected_dispatch_dest_old_PR_by_way[2], DUT_dispatch_dest_old_PR_by_way[2]);
-			$display("\texpected_dispatch_dest_old_PR_by_way[1] (%h), DUT_dispatch_dest_old_PR_by_way[1] (%h)",
-				expected_dispatch_dest_old_PR_by_way[1], DUT_dispatch_dest_old_PR_by_way[1]);
-			$display("\texpected_dispatch_dest_old_PR_by_way[0] (%h), DUT_dispatch_dest_old_PR_by_way[0] (%h)",
-				expected_dispatch_dest_old_PR_by_way[0], DUT_dispatch_dest_old_PR_by_way[0]);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -766,14 +752,6 @@ module decode_unit_tb ();
 		if (expected_dispatch_dest_new_PR_by_way !== DUT_dispatch_dest_new_PR_by_way) begin
 			$display("TB ERROR: expected_dispatch_dest_new_PR_by_way (%h) != DUT_dispatch_dest_new_PR_by_way (%h)",
 				expected_dispatch_dest_new_PR_by_way, DUT_dispatch_dest_new_PR_by_way);
-			$display("\texpected_dispatch_dest_new_PR_by_way[3] (%h), DUT_dispatch_dest_new_PR_by_way[3] (%h)",
-				expected_dispatch_dest_new_PR_by_way[3], DUT_dispatch_dest_new_PR_by_way[3]);
-			$display("\texpected_dispatch_dest_new_PR_by_way[2] (%h), DUT_dispatch_dest_new_PR_by_way[2] (%h)",
-				expected_dispatch_dest_new_PR_by_way[2], DUT_dispatch_dest_new_PR_by_way[2]);
-			$display("\texpected_dispatch_dest_new_PR_by_way[1] (%h), DUT_dispatch_dest_new_PR_by_way[1] (%h)",
-				expected_dispatch_dest_new_PR_by_way[1], DUT_dispatch_dest_new_PR_by_way[1]);
-			$display("\texpected_dispatch_dest_new_PR_by_way[0] (%h), DUT_dispatch_dest_new_PR_by_way[0] (%h)",
-				expected_dispatch_dest_new_PR_by_way[0], DUT_dispatch_dest_new_PR_by_way[0]);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -982,6 +960,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -991,9 +970,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -1158,6 +1138,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -1167,9 +1148,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -1342,6 +1324,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -1351,9 +1334,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -1520,6 +1504,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -1529,9 +1514,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -1748,6 +1734,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -1757,9 +1744,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -1979,6 +1967,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -1988,9 +1977,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -2214,6 +2204,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -2223,9 +2214,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -2453,6 +2445,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -2462,9 +2455,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -2708,6 +2702,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -2717,9 +2712,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -2959,6 +2955,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -2968,9 +2965,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -3210,6 +3208,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -3219,9 +3218,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -3457,6 +3457,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -3466,9 +3467,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -3704,6 +3706,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -3713,9 +3716,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -3947,6 +3951,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -3956,9 +3961,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -4200,6 +4206,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -4209,9 +4216,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -4451,6 +4459,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -4460,9 +4469,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -4706,6 +4716,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -4715,9 +4726,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -4961,6 +4973,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -4970,9 +4983,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -5216,6 +5230,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -5225,9 +5240,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b1;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -5467,6 +5483,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -5476,9 +5493,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b1;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -5722,6 +5740,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -5731,9 +5750,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b1;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -5977,6 +5997,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -5986,9 +6007,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b1;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -6228,6 +6250,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -6237,9 +6260,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b1;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -6479,6 +6503,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -6488,9 +6513,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b1;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -6726,6 +6752,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -6735,9 +6762,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b1;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -6973,6 +7001,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b1;
 		tb_rob_branch_update_has_checkpoint = 1'b1;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b1;
 		tb_rob_branch_update_is_taken = 1'b1;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -6982,9 +7011,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h9abcdef0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b1;
-		tb_rob_checkpoint_restore_valid = 1'b1;
-		tb_rob_checkpoint_restore_clear = 1'b1;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b1;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b1;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0000;
 		tb_rob_map_table_write_AR_by_port = {5'h0, 5'h0, 5'h0, 5'h0};
 		tb_rob_map_table_write_PR_by_port = {7'h0, 7'h0, 7'h0, 7'h0};
@@ -7216,6 +7246,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -7225,9 +7256,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b1;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b1111;
 		tb_rob_map_table_write_AR_by_port = {5'h7, 5'h6, 5'h5, 5'h4};
 		tb_rob_map_table_write_PR_by_port = {7'h77, 7'h76, 7'h75, 7'h74};
@@ -7463,6 +7495,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -7472,9 +7505,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0100;
 		tb_rob_map_table_write_AR_by_port = {5'h7, 5'h6, 5'h5, 5'h4};
 		tb_rob_map_table_write_PR_by_port = {7'h77, 7'h76, 7'h75, 7'h74};
@@ -7710,6 +7744,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -7719,9 +7754,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0100;
 		tb_rob_map_table_write_AR_by_port = {5'h7, 5'h6, 5'h5, 5'h4};
 		tb_rob_map_table_write_PR_by_port = {7'h77, 7'h76, 7'h75, 7'h74};
@@ -7957,6 +7993,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -7966,9 +8003,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0100;
 		tb_rob_map_table_write_AR_by_port = {5'h7, 5'h6, 5'h5, 5'h4};
 		tb_rob_map_table_write_PR_by_port = {7'h77, 7'h76, 7'h75, 7'h74};
@@ -8204,6 +8242,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -8213,9 +8252,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0100;
 		tb_rob_map_table_write_AR_by_port = {5'h7, 5'h6, 5'h5, 5'h4};
 		tb_rob_map_table_write_PR_by_port = {7'h77, 7'h76, 7'h75, 7'h74};
@@ -8447,6 +8487,7 @@ module decode_unit_tb ();
 	    // branch update from ROB
 		tb_rob_branch_update_valid = 1'b0;
 		tb_rob_branch_update_has_checkpoint = 1'b0;
+		tb_rob_branch_update_checkpoint_index = 3'h0;
 		tb_rob_branch_update_is_mispredict = 1'b0;
 		tb_rob_branch_update_is_taken = 1'b0;
 		tb_rob_branch_update_use_upct = 1'b0;
@@ -8456,9 +8497,10 @@ module decode_unit_tb ();
 		tb_rob_branch_update_target_PC = 32'h0;
 	    // ROB control of rename
 		tb_rob_controlling_rename = 1'b0;
-		tb_rob_checkpoint_restore_valid = 1'b0;
-		tb_rob_checkpoint_restore_clear = 1'b0;
-		tb_rob_checkpoint_restore_index = 3'h0;
+		tb_rob_checkpoint_map_table_restore_valid = 1'b0;
+		tb_rob_checkpoint_map_table_restore_index = 3'h0;
+		tb_rob_checkpoint_clear_valid = 1'b0;
+		tb_rob_checkpoint_clear_index = 3'h0;
 		tb_rob_map_table_write_valid_by_port = 4'b0100;
 		tb_rob_map_table_write_AR_by_port = {5'h7, 5'h6, 5'h5, 5'h4};
 		tb_rob_map_table_write_PR_by_port = {7'h77, 7'h76, 7'h75, 7'h74};
