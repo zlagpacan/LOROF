@@ -327,11 +327,11 @@ module rob (
     logic deq_perform;
 
     // deq/rollback
-    typedef enum logic [2:0] {
+    typedef enum logic [1:0] {
         DEQ,
+        RESTART_SEND,
         CHECKPOINT_RESTORE,
-        ROLLBACK,
-        EXCEPTION_SEND
+        ROLLBACK
     } restart_state_t;
     
     restart_state_t restart_state, next_restart_state;
@@ -381,6 +381,7 @@ module rob (
             branch_notif_valid
             & ~killed_by_entry[branch_notif_ROB_index];
         rob_branch_update_has_checkpoint = has_checkpoint_by_4way[branch_notif_ROB_index[LOG_ROB_ENTRIES-1:2]];
+        rob_branch_update_checkpoint_index = checkpoint_index_by_4way[branch_notif_ROB_index[LOG_ROB_ENTRIES-1:2]];
         rob_branch_update_is_mispredict = branch_notif_is_mispredict;
         rob_branch_update_is_taken = branch_notif_is_taken;
         rob_branch_update_use_upct = branch_notif_use_upct;
@@ -705,14 +706,24 @@ module rob (
     always_comb begin
         next_deq_launched_by_way <= deq_launched_by_way;
 
+        rob_controlling_rename = 1'b0;
         exception_sent = 1'b0;
 
-        rob_controlling_rename = 1'b0;
-
         rob_kill_valid = 1'b0;
-        rob_kill_rel_kill_younger_index = 0;
+        rob_kill_rel_kill_younger_index = restart_info_target_index - rob_kill_abs_head_index;
 
         case (restart_state)
+
+            RESTART_SEND:
+            begin
+                // check for new restart
+                // otherwise, check for checkpoint
+
+                rob_controlling_rename = 1'b1;
+                // exception_sent = 
+
+                rob_kill_valid = 1'b1;
+            end
 
             CHECKPOINT_RESTORE:
             begin
@@ -750,11 +761,14 @@ module rob (
 
     // PC bram logic:
     always_comb begin
+
+        PC_bram_read_next_valid = PC_bram_restart_control | deq_perform;
+
         if (PC_bram_restart_control) begin
-            
+
         end
         else begin
-
+            
         end
     end
 
