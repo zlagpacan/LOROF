@@ -250,6 +250,14 @@ module stamofu_cq_wrapper (
     // fence restart notification backpressure from ROB
 	input logic next_fence_restart_notif_ready,
 
+    // sfence invalidation to MMU
+	output logic last_sfence_inv_valid,
+	output logic [VA_WIDTH-1:0] last_sfence_inv_VA,
+	output logic [ASID_WIDTH-1:0] last_sfence_inv_ASID,
+
+    // sfence invalidation backpressure from MMU
+	input logic next_sfence_inv_ready,
+
     // exception to ROB
 	output logic last_rob_exception_valid,
 	output logic [VA_WIDTH-1:0] last_rob_exception_VA,
@@ -540,6 +548,14 @@ module stamofu_cq_wrapper (
 
     // fence restart notification backpressure from ROB
 	logic fence_restart_notif_ready;
+
+    // sfence invalidation to MMU
+	logic sfence_inv_valid;
+	logic [VA_WIDTH-1:0] sfence_inv_VA;
+	logic [ASID_WIDTH-1:0] sfence_inv_ASID;
+
+    // sfence invalidation backpressure from MMU
+	logic sfence_inv_ready;
 
     // exception to ROB
 	logic rob_exception_valid;
@@ -842,6 +858,14 @@ module stamofu_cq_wrapper (
 		    // fence restart notification backpressure from ROB
 			fence_restart_notif_ready <= '0;
 
+		    // sfence invalidation to MMU
+			last_sfence_inv_valid <= '0;
+			last_sfence_inv_VA <= '0;
+			last_sfence_inv_ASID <= '0;
+
+		    // sfence invalidation backpressure from MMU
+			sfence_inv_ready <= '0;
+
 		    // exception to ROB
 			last_rob_exception_valid <= '0;
 			last_rob_exception_VA <= '0;
@@ -1130,6 +1154,14 @@ module stamofu_cq_wrapper (
 
 		    // fence restart notification backpressure from ROB
 			fence_restart_notif_ready <= next_fence_restart_notif_ready;
+
+		    // sfence invalidation to MMU
+			last_sfence_inv_valid <= sfence_inv_valid;
+			last_sfence_inv_VA <= sfence_inv_VA;
+			last_sfence_inv_ASID <= sfence_inv_ASID;
+
+		    // sfence invalidation backpressure from MMU
+			sfence_inv_ready <= next_sfence_inv_ready;
 
 		    // exception to ROB
 			last_rob_exception_valid <= rob_exception_valid;

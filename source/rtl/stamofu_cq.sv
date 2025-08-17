@@ -247,6 +247,14 @@ module stamofu_cq #(
     // fence restart notification backpressure from ROB
     input logic                         fence_restart_notif_ready,
 
+    // sfence invalidation to MMU
+    output logic                    sfence_inv_valid,
+    output logic [VA_WIDTH-1:0]     sfence_inv_VA,
+    output logic [ASID_WIDTH-1:0]   sfence_inv_ASID,
+
+    // sfence invalidation backpressure from MMU
+    input logic                     sfence_inv_ready,
+
     // exception to ROB
     output logic                        rob_exception_valid,
     output logic [VA_WIDTH-1:0]         rob_exception_VA,
@@ -343,7 +351,7 @@ module stamofu_cq #(
         logic [LOG_PR_COUNT-1:0]            dest_PR;
         logic [LOG_ROB_ENTRIES-1:0]         ROB_index;
         logic [3:0]                         lower_ROB_index_one_hot;
-        logic [PA_WIDTH-3:0]                PA_word;
+        logic [PA_WIDTH-2-1:0]              PA_word;
         logic [3:0]                         byte_mask;
         logic [31:0]                        data;
     } entry_t;
@@ -624,10 +632,14 @@ module stamofu_cq #(
             rob_exception_final_req_ack_index = rob_exception_unmasked_req_ack_index;
         end
         if (|stamofu_complete_masked_req_by_entry) begin
-            stamofu_complete_final_req_ack_one_hot_by_entry = stamofu_complete_masked_req_ack_one_hot_by_entry;
+            stamofu_complete_final_req_ack_one_hot_by_entry = 
+                stamofu_complete_masked_req_ack_one_hot_by_entry
+                & {STAMOFU_CQ_ENTRIES{fence_restart_notif_ready}};
             stamofu_complete_final_req_ack_index = stamofu_complete_masked_req_ack_index;
         end else begin
-            stamofu_complete_final_req_ack_one_hot_by_entry = stamofu_complete_unmasked_req_ack_one_hot_by_entry;
+            stamofu_complete_final_req_ack_one_hot_by_entry = 
+                stamofu_complete_unmasked_req_ack_one_hot_by_entry
+                & {STAMOFU_CQ_ENTRIES{fence_restart_notif_ready}};
             stamofu_complete_final_req_ack_index = stamofu_complete_unmasked_req_ack_index;
         end
     end
@@ -712,6 +724,13 @@ module stamofu_cq #(
     end
     always_comb begin
         stamofu_complete_ROB_index = entry_array[stamofu_complete_cq_index].ROB_index;
+
+        // also send fence restart notif if SFENCE.VMA or FENCE.I
+        fence_restart_notif_valid = 
+            |stamofu_complete_unmasked_req_by_entry
+            & entry_array[stamofu_complete_cq_index].is_fence
+            & |entry_array[stamofu_complete_cq_index].op[1:0];
+        fence_restart_notif_ROB_index = entry_array[stamofu_complete_cq_index].ROB_index;
     end
 
     // per-entry state machine
@@ -929,6 +948,12 @@ module stamofu_cq #(
                     | entry_array[i].is_fence
                     | entry_array[i].ldu_CAM_launch_returned
                     | entry_array[i].exception_sent)
+                & (
+                    ~entry_array[i].mem_rl
+                    | ~(wr_buf_enq_bank1_mem_present | wr_buf_enq_bank0_mem_present))
+                & (
+                    ~entry_array[i].io_rl
+                    | ~(wr_buf_enq_bank1_io_present | wr_buf_enq_bank0_io_present))
             ) begin
                 next_entry_array[i].complete_req = 1'b1;
             end
@@ -1398,11 +1423,20 @@ module stamofu_cq #(
         wr_buf_enq_bank1_is_amo = entry_array[deq_ptr].is_amo;
         wr_buf_enq_bank1_op = entry_array[deq_ptr].op;
 
-        fence_restart_notif_ROB_index = entry_array[deq_ptr].ROB_index;
+        sfence_inv_VA[31:2] = entry_array[deq_ptr].PA_word[PA_WIDTH-2-2-1:0];
+        casez (entry_array[deq_ptr].byte_mask)
+            4'b0000:    sfence_inv_VA[1:0] = 2'h0;
+            4'b???1:    sfence_inv_VA[1:0] = 2'h0;
+            4'b??10:    sfence_inv_VA[1:0] = 2'h1;
+            4'b?100:    sfence_inv_VA[1:0] = 2'h2;
+            4'b1000:    sfence_inv_VA[1:0] = 2'h3;
+        endcase
+        sfence_inv_ASID = entry_array[deq_ptr].data[ASID_WIDTH-1:0];
 
         // check for killed or exception deq
         if (
             entry_array[deq_ptr].valid
+            & entry_array[deq_ptr].committed
             & (entry_array[deq_ptr].killed | entry_array[deq_ptr].exception_sent)
         ) begin
             // can perform deq
@@ -1427,8 +1461,8 @@ module stamofu_cq #(
             wr_buf_enq_bank1_byte_mask = entry_array[deq_ptr].byte_mask;
             wr_buf_enq_bank1_data = entry_array[deq_ptr].data;
 
-            // no fence restart notif
-            fence_restart_notif_valid = 1'b0;
+            // no sfence inv
+            sfence_inv_valid = 1'b0;
 
             // clear aq entry if present
             stamofu_aq_deq_valid = entry_array[deq_ptr].mem_aq | entry_array[deq_ptr].io_aq;
@@ -1439,9 +1473,9 @@ module stamofu_cq #(
             // need write buffer ready
         else if (
             entry_array[deq_ptr].valid
+            & entry_array[deq_ptr].committed
             & entry_array[deq_ptr].misaligned
             & (stamofu_mq_info_grab_PA_word[DCACHE_WORD_ADDR_BANK_BIT] ? wr_buf_enq_bank1_ready : wr_buf_enq_bank0_ready)
-            & (~entry_array[deq_ptr].is_fence | entry_array[deq_ptr])
         ) begin
             // don't perform deq yet
             deq_perform = 1'b0;
@@ -1466,8 +1500,8 @@ module stamofu_cq #(
             wr_buf_enq_bank1_byte_mask = stamofu_mq_info_grab_byte_mask;
             wr_buf_enq_bank1_data = stamofu_mq_info_grab_data;
 
-            // no fence restart notif
-            fence_restart_notif_valid = 1'b0;
+            // no sfence inv
+            sfence_inv_valid = 1'b0;
             
             // no clear aq
             stamofu_aq_deq_valid = 1'b0;
@@ -1475,29 +1509,21 @@ module stamofu_cq #(
 
         // otherwise, aligned component
             // need write buffer ready if store or amo
-            // need fence restart notif ready if SFENCE.VMA or FENCE.I
             // need no mem present if mem_rl
             // need no io present if io_rl
+            // need sfence inv ready if sfence
         else if (
             entry_array[deq_ptr].valid
+            & entry_array[deq_ptr].committed
             & ~entry_array[deq_ptr].misaligned
             & (
-                ~(entry_array[deq_ptr].is_store | entry_array[deq_ptr].is_amo)
+                entry_array[deq_ptr].is_fence
                 | (entry_array[deq_ptr].PA_word[DCACHE_WORD_ADDR_BANK_BIT] ? wr_buf_enq_bank1_ready : wr_buf_enq_bank0_ready)
             )
             & (
-                ~(
-                    entry_array[deq_ptr].is_fence
-                    & |entry_array[deq_ptr].op[1:0]
-                ) 
-                | fence_restart_notif_ready
+                ~(entry_array[deq_ptr].is_fence & entry_array[deq_ptr].op[1])
+                | sfence_inv_ready
             )
-            & (
-                ~entry_array[deq_ptr].mem_rl
-                | ~(wr_buf_enq_bank1_mem_present | wr_buf_enq_bank0_mem_present))
-            & (
-                ~entry_array[deq_ptr].io_rl
-                | ~(wr_buf_enq_bank1_io_present | wr_buf_enq_bank0_io_present))
         ) begin
             // can perform deq
             deq_perform = 1'b1;
@@ -1525,8 +1551,8 @@ module stamofu_cq #(
             wr_buf_enq_bank1_byte_mask = entry_array[deq_ptr].byte_mask;
             wr_buf_enq_bank1_data = entry_array[deq_ptr].data;
 
-            // fence restart notif if SFENCE.VMA or FENCE.I
-            fence_restart_notif_valid = entry_array[deq_ptr].is_fence & |entry_array[deq_ptr].op[1:0];
+            // no sfence inv
+            sfence_inv_valid = 1'b0;
 
             // clear aq entry if present
             stamofu_aq_deq_valid = entry_array[deq_ptr].mem_aq | entry_array[deq_ptr].io_aq;
@@ -1547,7 +1573,7 @@ module stamofu_cq #(
             wr_buf_enq_bank1_PA_word = entry_array[deq_ptr].PA_word;
             wr_buf_enq_bank1_byte_mask = entry_array[deq_ptr].byte_mask;
             wr_buf_enq_bank1_data = entry_array[deq_ptr].data;
-            fence_restart_notif_valid = 1'b0;
+            sfence_inv_valid = 1'b0;
             stamofu_aq_deq_valid = 1'b0;
         end
     end

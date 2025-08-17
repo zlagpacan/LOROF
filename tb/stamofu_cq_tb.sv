@@ -109,6 +109,7 @@ module stamofu_cq_tb ();
 
     // misaligned queue info ret
         // need in order to tie cq entry to mq if misaligned
+        // also interested in exceptions
 	logic tb_stamofu_mq_info_ret_bank0_valid;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] tb_stamofu_mq_info_ret_bank0_cq_index;
 	logic [LOG_STAMOFU_MQ_ENTRIES-1:0] tb_stamofu_mq_info_ret_bank0_mq_index;
@@ -265,6 +266,14 @@ module stamofu_cq_tb ();
     // fence restart notification backpressure from ROB
 	logic tb_fence_restart_notif_ready;
 
+    // sfence invalidation
+	logic DUT_sfence_inv_valid, expected_sfence_inv_valid;
+	logic [VA_WIDTH-1:0] DUT_sfence_inv_VA, expected_sfence_inv_VA;
+	logic [ASID_WIDTH-1:0] DUT_sfence_inv_ASID, expected_sfence_inv_ASID;
+
+    // sfence invalidation backpressure from MMU
+	logic tb_sfence_inv_ready;
+
     // exception to ROB
 	logic DUT_rob_exception_valid, expected_rob_exception_valid;
 	logic [VA_WIDTH-1:0] DUT_rob_exception_VA, expected_rob_exception_VA;
@@ -406,6 +415,7 @@ module stamofu_cq_tb ();
 
 	    // misaligned queue info ret
 	        // need in order to tie cq entry to mq if misaligned
+	        // also interested in exceptions
 		.stamofu_mq_info_ret_bank0_valid(tb_stamofu_mq_info_ret_bank0_valid),
 		.stamofu_mq_info_ret_bank0_cq_index(tb_stamofu_mq_info_ret_bank0_cq_index),
 		.stamofu_mq_info_ret_bank0_mq_index(tb_stamofu_mq_info_ret_bank0_mq_index),
@@ -561,6 +571,14 @@ module stamofu_cq_tb ();
 
 	    // fence restart notification backpressure from ROB
 		.fence_restart_notif_ready(tb_fence_restart_notif_ready),
+
+	    // sfence invalidation
+		.sfence_inv_valid(DUT_sfence_inv_valid),
+		.sfence_inv_VA(DUT_sfence_inv_VA),
+		.sfence_inv_ASID(DUT_sfence_inv_ASID),
+
+	    // sfence invalidation backpressure from MMU
+		.sfence_inv_ready(tb_sfence_inv_ready),
 
 	    // exception to ROB
 		.rob_exception_valid(DUT_rob_exception_valid),
@@ -1061,6 +1079,27 @@ module stamofu_cq_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_sfence_inv_valid !== DUT_sfence_inv_valid) begin
+			$display("TB ERROR: expected_sfence_inv_valid (%h) != DUT_sfence_inv_valid (%h)",
+				expected_sfence_inv_valid, DUT_sfence_inv_valid);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_sfence_inv_VA !== DUT_sfence_inv_VA) begin
+			$display("TB ERROR: expected_sfence_inv_VA (%h) != DUT_sfence_inv_VA (%h)",
+				expected_sfence_inv_VA, DUT_sfence_inv_VA);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_sfence_inv_ASID !== DUT_sfence_inv_ASID) begin
+			$display("TB ERROR: expected_sfence_inv_ASID (%h) != DUT_sfence_inv_ASID (%h)",
+				expected_sfence_inv_ASID, DUT_sfence_inv_ASID);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_rob_exception_valid !== DUT_rob_exception_valid) begin
 			$display("TB ERROR: expected_rob_exception_valid (%h) != DUT_rob_exception_valid (%h)",
 				expected_rob_exception_valid, DUT_rob_exception_valid);
@@ -1396,6 +1435,9 @@ module stamofu_cq_tb ();
 	    // fence restart notification to ROB
 	    // fence restart notification backpressure from ROB
 		tb_fence_restart_notif_ready = 1'b1;
+	    // sfence invalidation to MMU
+	    // sfence invalidation backpressure from MMU
+		tb_sfence_inv_ready = 1'b1;
 	    // exception to ROB
 	    // exception backpressure from ROB
 		tb_rob_exception_ready = 1'b1;
@@ -1500,6 +1542,10 @@ module stamofu_cq_tb ();
 		expected_fence_restart_notif_valid = 1'b0;
 		expected_fence_restart_notif_ROB_index = 7'h00;
 	    // fence restart notification backpressure from ROB
+	    // sfence invalidation to MMU
+		expected_sfence_inv_valid = 1'b0;
+		expected_sfence_inv_VA = 32'h0;
+		expected_sfence_inv_ASID = 9'h0;
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
 		expected_rob_exception_VA = 32'h00000000;
@@ -1683,6 +1729,9 @@ module stamofu_cq_tb ();
 	    // fence restart notification to ROB
 	    // fence restart notification backpressure from ROB
 		tb_fence_restart_notif_ready = 1'b1;
+	    // sfence invalidation to MMU
+	    // sfence invalidation backpressure from MMU
+		tb_sfence_inv_ready = 1'b1;
 	    // exception to ROB
 	    // exception backpressure from ROB
 		tb_rob_exception_ready = 1'b1;
@@ -1787,6 +1836,10 @@ module stamofu_cq_tb ();
 		expected_fence_restart_notif_valid = 1'b0;
 		expected_fence_restart_notif_ROB_index = 7'h00;
 	    // fence restart notification backpressure from ROB
+	    // sfence invalidation to MMU
+		expected_sfence_inv_valid = 1'b0;
+		expected_sfence_inv_VA = 32'h0;
+		expected_sfence_inv_ASID = 9'h0;
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
 		expected_rob_exception_VA = 32'h00000000;
@@ -1978,6 +2031,9 @@ module stamofu_cq_tb ();
 	    // fence restart notification to ROB
 	    // fence restart notification backpressure from ROB
 		tb_fence_restart_notif_ready = 1'b1;
+	    // sfence invalidation to MMU
+	    // sfence invalidation backpressure from MMU
+		tb_sfence_inv_ready = 1'b1;
 	    // exception to ROB
 	    // exception backpressure from ROB
 		tb_rob_exception_ready = 1'b1;
@@ -2094,6 +2150,10 @@ module stamofu_cq_tb ();
 		expected_fence_restart_notif_valid = 1'b0;
 		expected_fence_restart_notif_ROB_index = 7'h00;
 	    // fence restart notification backpressure from ROB
+	    // sfence invalidation to MMU
+		expected_sfence_inv_valid = 1'b0;
+		expected_sfence_inv_VA = 32'h0;
+		expected_sfence_inv_ASID = 9'h0;
 	    // exception to ROB
 		expected_rob_exception_valid = 1'b0;
 		expected_rob_exception_VA = 32'h00000000;
