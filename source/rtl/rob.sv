@@ -12,6 +12,8 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 module rob #(
+    parameter ROB_RESTART_ON_RESET = 1'b1,
+
     parameter INIT_PC = 32'h0,
     parameter INIT_ASID = 9'h0,
     parameter INIT_EXEC_MODE = M_MODE,
@@ -407,6 +409,23 @@ module rob #(
 
     logic fence_mispred_restarting;
 
+    // env vars
+    logic [31:0]            env_restart_PC;
+    logic [ASID_WIDTH-1:0]  env_ASID;
+    logic [1:0]             env_exec_mode;
+    logic                   env_virtual_mode;
+    logic                   env_MXR;
+    logic                   env_SUM;
+    logic                   env_trap_sfence;
+    logic                   env_trap_wfi;
+    logic                   env_trap_sret;
+
+    // reset sequence
+    logic reset_rob_restart_valid;
+
+    logic           central_rob_restart_valid;
+    logic [31:0]    central_rob_restart_PC;
+
     // ----------------------------------------------------------------
     // Logic:
 
@@ -603,7 +622,7 @@ module rob #(
         next_exception_reg_tval = exception_reg_tval;
         
         // static priority of stamofu > ldu > dispatch
-            // doesn't really matter, uncommon case
+            // doesn't really matter, uncommon cases
         stamofu_exception_ready = 1'b1;
         ldu_exception_ready = ~stamofu_exception_valid;
 
@@ -651,6 +670,10 @@ module rob #(
                 end
                 next_exception_reg_tval = stamofu_exception_VA;
             end
+            // clear exception if killed
+            else if (exception_reg_valid & killed_by_entry[exception_reg_index]) begin
+                next_exception_reg_valid = 1'b0;
+            end
         end
         else if (ldu_exception_valid) begin
             // take new exception if this one older than curr
@@ -671,6 +694,10 @@ module rob #(
                     next_exception_reg_cause = 32'h00000020;
                 end
                 next_exception_reg_tval = ldu_exception_VA;
+            end
+            // clear exception if killed
+            else if (exception_reg_valid & killed_by_entry[exception_reg_index]) begin
+                next_exception_reg_valid = 1'b0;
             end
         end
         else if (enq_perform & dispatch_exception_present) begin
@@ -693,6 +720,10 @@ module rob #(
                     next_exception_reg_cause = 32'h00000004;
                     next_exception_reg_tval = dispatch_illegal_instr32;
                 end
+            end
+            // clear exception if killed
+            else if (exception_reg_valid & killed_by_entry[exception_reg_index]) begin
+                next_exception_reg_valid = 1'b0;
             end
         end
     end
@@ -774,8 +805,6 @@ module rob #(
         dispatch_ROB_index_by_way[1] = {tail_ptr, 2'h1};
         dispatch_ROB_index_by_way[2] = {tail_ptr, 2'h2};
         dispatch_ROB_index_by_way[3] = {tail_ptr, 2'h3};
-
-        rob_kill_abs_head_index = {head_ptr, 2'h0};
     end
 
     // enq logic:
@@ -812,11 +841,15 @@ module rob #(
             restart_ptr <= 0;
 
             deq_launched_by_way <= 4'b0000;
+
+            reset_rob_restart_valid <= ROB_RESTART_ON_RESET;
         end
         else begin
             restart_state <= next_restart_state;
             restart_ptr <= next_restart_ptr;
             deq_launched_by_way <= next_deq_launched_by_way;
+
+            reset_rob_restart_valid <= 1'b0;
         end
     end
     always_comb begin
@@ -824,6 +857,57 @@ module rob #(
             deq_complete_by_way[i] = 
                 (~bulk_bram_read_entry.is_ldu_by_way[i] & WB_complete_by_entry[4*head_ptr+i])
                 | unit_complete_by_entry[4*head_ptr+i];
+        end
+    end
+    always_comb begin
+        rob_commit_upper_index = head_ptr;
+        rob_commit_lower_index_valid_mask = deq_launching_by_way;
+
+        rob_restart_valid = reset_rob_restart_valid | central_rob_restart_valid;
+        if (reset_rob_restart_valid) begin
+            rob_restart_PC = env_restart_PC;
+        end else begin
+            rob_restart_PC = central_rob_restart_PC;
+        end
+        // mess with these when add csrf
+        rob_restart_ASID = env_ASID;
+        rob_restart_exec_mode = env_exec_mode;
+        rob_restart_virtual_mode = env_virtual_mode;
+        rob_restart_MXR = env_MXR;
+        rob_restart_SUM = env_SUM;
+        rob_restart_trap_sfence = env_trap_sfence;
+        rob_restart_trap_wfi = env_trap_wfi;
+        rob_restart_trap_sret = env_trap_sret;
+
+        rob_kill_abs_head_index = {head_ptr, 2'h0};
+
+        rob_map_table_write_AR_by_port = {
+            bulk_bram_read_entry.dest_AR_by_way[3],
+            bulk_bram_read_entry.dest_AR_by_way[2],
+            bulk_bram_read_entry.dest_AR_by_way[1],
+            bulk_bram_read_entry.dest_AR_by_way[0]
+        };
+        // always for undo -> old PR
+        rob_map_table_write_PR_by_port = {
+            bulk_bram_read_entry.dest_old_PR_by_way[3],
+            bulk_bram_read_entry.dest_old_PR_by_way[2],
+            bulk_bram_read_entry.dest_old_PR_by_way[1],
+            bulk_bram_read_entry.dest_old_PR_by_way[0]
+        };
+
+        // free logic
+        for (int way = 0; way < 4; way++) begin
+            rob_PR_free_req_valid_by_bank[way] = 
+                deq_launching_by_way[way]
+                & bulk_bram_read_entry.valid_by_way[way]
+                & bulk_bram_read_entry.is_rename_by_way[way];
+            if (killed_by_entry[{head_ptr, way}]) begin
+                // if killed, free new
+                rob_PR_free_req_PR_by_bank[way] = bulk_bram_read_entry.dest_new_PR_by_way[way];
+            end else begin
+                // if not killed, free old
+                rob_PR_free_req_PR_by_bank[way] = bulk_bram_read_entry.dest_old_PR_by_way[way];
+            end
         end
     end
     always_comb begin
@@ -837,7 +921,6 @@ module rob #(
         exception_sent = 1'b0;
 
         next_restart_ptr = restart_ptr + 1;
-
         next_restart_state = restart_state;
 
         next_restart_info_valid = restart_info_valid;
@@ -847,9 +930,21 @@ module rob #(
         next_restart_info_is_exception = restart_info_is_exception;
 
         next_deq_launched_by_way = deq_launched_by_way;
+        deq_launching_by_way = 4'b0000;
+
+        central_rob_restart_valid = 1'b0;
+        central_rob_restart_PC = TODO;
 
         rob_kill_valid = 1'b0;
         rob_kill_rel_kill_younger_index = restart_info_target_index - rob_kill_abs_head_index;
+
+        rob_checkpoint_map_table_restore_valid = 1'b0;
+        rob_checkpoint_map_table_restore_index = TODO;
+
+        rob_checkpoint_clear_valid = 1'b0;
+        rob_checkpoint_clear_index = TODO;
+
+        rob_map_table_write_valid_by_port = 4'b0000;
 
         case (restart_state)
 
@@ -862,7 +957,7 @@ module rob #(
 
                 rob_controlling_rename = 1'b1;
                 exception_sent = restart_info_is_exception;
-
+                central_rob_restart_valid = 1'b1;
                 rob_kill_valid = 1'b1;
             end
 
@@ -931,6 +1026,25 @@ module rob #(
     always_comb begin
         fetch_unit_mdpt_update_start_full_PC = PC_bram_read_PC_by_way[ssu_mdp_update_saved_lower_ROB_index];
     end
+
+    // env vars
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            env_restart_PC <= INIT_PC; // can mess with this for trap handling
+            env_ASID <= INIT_ASID;
+            env_exec_mode <= INIT_EXEC_MODE;
+            env_virtual_mode <= INIT_VIRTUAL_MODE;
+            env_MXR <= INIT_MXR;
+            env_SUM <= INIT_SUM;
+            env_trap_sfence <= INIT_TRAP_SFENCE;
+            env_trap_wfi <= INIT_TRAP_WFI;
+            env_trap_sret <= INIT_TRAP_SRET;
+        end
+        else begin
+            // for now, since no csrf, these are hardwired
+        end
+    end
+
 
     // ----------------------------------------------------------------
     // Memory Arrays:
