@@ -346,7 +346,7 @@ module rob #(
     logic [LOG_ROB_ENTRIES-2-1:0] tail_ptr, next_tail_ptr;
     logic [LOG_ROB_ENTRIES-2-1:0] head_ptr, next_head_ptr;
 
-    logic [LOG_ROB_ENTRIES-2-1:0] restart_ptr, next_restart_ptr;
+    logic [LOG_ROB_ENTRIES-2-1:0] arch_state_ptr, next_arch_state_ptr;
 
     logic enq_perform;
     logic deq_perform;
@@ -363,6 +363,7 @@ module rob #(
 
     logic                           restart_info_valid, next_restart_info_valid;
     logic [LOG_ROB_ENTRIES-1:0]     restart_info_target_index, next_restart_info_target_index;
+    logic [ROB_ENTRIES/4-1:0]       restart_info_target_mask_by_4way, next_restart_info_target_mask_by_4way;
     logic                           restart_info_use_rob_PC, next_restart_info_use_rob_PC;
     logic [31:0]                    restart_info_branch_target_PC, next_restart_info_branch_target_PC;
     logic                           restart_info_is_exception, next_restart_info_is_exception;
@@ -371,6 +372,8 @@ module rob #(
     logic [LOG_ROB_ENTRIES-1:0]     new_restart_target_index, next_new_restart_target_index;
     logic                           new_restart_use_rob_PC, next_new_restart_use_rob_PC;
     logic [31:0]                    new_restart_branch_target_PC, next_new_restart_branch_target_PC;
+
+    logic [ROB_ENTRIES/4-1:0]   has_checkpoint_by_4way;
 
     logic [3:0] deq_launched_by_way, next_deq_launched_by_way;
 
@@ -834,21 +837,23 @@ module rob #(
         PC_bram_write_PC_by_way = dispatch_PC_by_way;
     end
 
+    // checkpoint PE
+    always_comb begin
+
+    end
+
     // deq/rollback logic:
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
+            arch_state_ptr <= 0;
             restart_state <= DEQ;
-            restart_ptr <= 0;
-
             deq_launched_by_way <= 4'b0000;
-
             reset_rob_restart_valid <= ROB_RESTART_ON_RESET;
         end
         else begin
+            arch_state_ptr <= next_arch_state_ptr;
             restart_state <= next_restart_state;
-            restart_ptr <= next_restart_ptr;
             deq_launched_by_way <= next_deq_launched_by_way;
-
             reset_rob_restart_valid <= 1'b0;
         end
     end
@@ -920,7 +925,8 @@ module rob #(
 
         exception_sent = 1'b0;
 
-        next_restart_ptr = restart_ptr + 1;
+        next_arch_state_ptr = arch_state_ptr + 1;
+
         next_restart_state = restart_state;
 
         next_restart_info_valid = restart_info_valid;
