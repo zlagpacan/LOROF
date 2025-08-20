@@ -64,6 +64,7 @@ module stamofu_launch_pipeline_tb ();
     // dtlb req
 	logic DUT_dtlb_req_valid, expected_dtlb_req_valid;
 	logic [VPN_WIDTH-1:0] DUT_dtlb_req_VPN, expected_dtlb_req_VPN;
+	logic DUT_dtlb_req_is_read, expected_dtlb_req_is_read;
 	logic DUT_dtlb_req_is_write, expected_dtlb_req_is_write;
 	logic [LOG_LDU_CQ_ENTRIES-1:0] DUT_dtlb_req_cq_index, expected_dtlb_req_cq_index;
 	logic DUT_dtlb_req_is_mq, expected_dtlb_req_is_mq;
@@ -200,6 +201,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		.dtlb_req_valid(DUT_dtlb_req_valid),
 		.dtlb_req_VPN(DUT_dtlb_req_VPN),
+		.dtlb_req_is_read(DUT_dtlb_req_is_read),
 		.dtlb_req_is_write(DUT_dtlb_req_is_write),
 		.dtlb_req_cq_index(DUT_dtlb_req_cq_index),
 		.dtlb_req_is_mq(DUT_dtlb_req_is_mq),
@@ -328,6 +330,13 @@ module stamofu_launch_pipeline_tb ();
 		if (expected_dtlb_req_VPN !== DUT_dtlb_req_VPN) begin
 			$display("TB ERROR: expected_dtlb_req_VPN (%h) != DUT_dtlb_req_VPN (%h)",
 				expected_dtlb_req_VPN, DUT_dtlb_req_VPN);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_dtlb_req_is_read !== DUT_dtlb_req_is_read) begin
+			$display("TB ERROR: expected_dtlb_req_is_read (%h) != DUT_dtlb_req_is_read (%h)",
+				expected_dtlb_req_is_read, DUT_dtlb_req_is_read);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -828,6 +837,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h00000;
+		expected_dtlb_req_is_read = 1'b0;
 		expected_dtlb_req_is_write = 1'b1;
 		expected_dtlb_req_cq_index = 'h0;
 		expected_dtlb_req_is_mq = 1'b0;
@@ -968,6 +978,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h00000;
+		expected_dtlb_req_is_read = 1'b0;
 		expected_dtlb_req_is_write = 1'b1;
 		expected_dtlb_req_cq_index = 'h0;
 		expected_dtlb_req_is_mq = 1'b0;
@@ -1119,6 +1130,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h00000;
+		expected_dtlb_req_is_read = 1'b0;
 		expected_dtlb_req_is_write = 1'b1;
 		expected_dtlb_req_cq_index = 'h0;
 		expected_dtlb_req_is_mq = 1'b0;
@@ -1264,6 +1276,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h11111;
+		expected_dtlb_req_is_read = 1'b0;
 		expected_dtlb_req_is_write = 1'b1;
 		expected_dtlb_req_cq_index = 'h1;
 		expected_dtlb_req_is_mq = 1'b0;
@@ -1409,6 +1422,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b1;
 		expected_dtlb_req_VPN = 20'h11111;
+		expected_dtlb_req_is_read = 1'b0;
 		expected_dtlb_req_is_write = 1'b1;
 		expected_dtlb_req_cq_index = 'h1;
 		expected_dtlb_req_is_mq = 1'b0;
@@ -1554,6 +1568,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h22222;
+		expected_dtlb_req_is_read = 1'b0;
 		expected_dtlb_req_is_write = 1'b1;
 		expected_dtlb_req_cq_index = 'h2;
 		expected_dtlb_req_is_mq = 1'b1;
@@ -1699,6 +1714,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b1;
 		expected_dtlb_req_VPN = 20'h22222;
+		expected_dtlb_req_is_read = 1'b0;
 		expected_dtlb_req_is_write = 1'b1;
 		expected_dtlb_req_cq_index = 'h2;
 		expected_dtlb_req_is_mq = 1'b1;
@@ -1844,6 +1860,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b1;
 		expected_dtlb_req_VPN = 20'h33333;
+		expected_dtlb_req_is_read = 1'b0;
 		expected_dtlb_req_is_write = 1'b1;
 		expected_dtlb_req_cq_index = 'h3;
 		expected_dtlb_req_is_mq = 1'b0;
@@ -1989,6 +2006,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b1;
 		expected_dtlb_req_VPN = 20'h44444;
+		expected_dtlb_req_is_read = 1'b0;
 		expected_dtlb_req_is_write = 1'b1;
 		expected_dtlb_req_cq_index = 'h4;
 		expected_dtlb_req_is_mq = 1'b0;
@@ -2134,6 +2152,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b1;
 		expected_dtlb_req_VPN = 20'h55555;
+		expected_dtlb_req_is_read = 1'b0;
 		expected_dtlb_req_is_write = 1'b1;
 		expected_dtlb_req_cq_index = 'h5;
 		expected_dtlb_req_is_mq = 1'b0;
@@ -2279,6 +2298,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b1;
 		expected_dtlb_req_VPN = 20'h66666;
+		expected_dtlb_req_is_read = 1'b1;
 		expected_dtlb_req_is_write = 1'b0;
 		expected_dtlb_req_cq_index = 'h6;
 		expected_dtlb_req_is_mq = 1'b0;
@@ -2424,6 +2444,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b1;
 		expected_dtlb_req_VPN = 20'h77777;
+		expected_dtlb_req_is_read = 1'b0;
 		expected_dtlb_req_is_write = 1'b1;
 		expected_dtlb_req_cq_index = 'h7;
 		expected_dtlb_req_is_mq = 1'b0;
@@ -2569,6 +2590,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h88888;
+		expected_dtlb_req_is_read = 1'b1;
 		expected_dtlb_req_is_write = 1'b1;
 		expected_dtlb_req_cq_index = 'h8;
 		expected_dtlb_req_is_mq = 1'b0;
@@ -2714,6 +2736,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h99999;
+		expected_dtlb_req_is_read = 1'b0;
 		expected_dtlb_req_is_write = 1'b1;
 		expected_dtlb_req_cq_index = 'h9;
 		expected_dtlb_req_is_mq = 1'b0;
@@ -2859,6 +2882,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h99999;
+		expected_dtlb_req_is_read = 1'b0;
 		expected_dtlb_req_is_write = 1'b1;
 		expected_dtlb_req_cq_index = 'h9;
 		expected_dtlb_req_is_mq = 1'b0;
@@ -3004,6 +3028,7 @@ module stamofu_launch_pipeline_tb ();
 	    // dtlb req
 		expected_dtlb_req_valid = 1'b0;
 		expected_dtlb_req_VPN = 20'h99999;
+		expected_dtlb_req_is_read = 1'b0;
 		expected_dtlb_req_is_write = 1'b1;
 		expected_dtlb_req_cq_index = 'h9;
 		expected_dtlb_req_is_mq = 1'b0;

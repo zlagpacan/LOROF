@@ -45,6 +45,7 @@ module stamofu_launch_pipeline (
     // dtlb req
     output logic                            dtlb_req_valid,
     output logic [VPN_WIDTH-1:0]            dtlb_req_VPN,
+    output logic                            dtlb_req_is_read,
     output logic                            dtlb_req_is_write,
     output logic [LOG_LDU_CQ_ENTRIES-1:0]   dtlb_req_cq_index,
     output logic                            dtlb_req_is_mq,
@@ -266,7 +267,8 @@ module stamofu_launch_pipeline (
             & ~REQ_stage_is_fence
             & ~REQ_stage_misaligned_exception;
         dtlb_req_VPN = REQ_stage_VPN;
-        dtlb_req_is_write = REQ_stage_exclusive;
+        dtlb_req_is_read = REQ_stage_is_amo & (REQ_stage_op != 4'b0011); // LR.W, AMO*
+        dtlb_req_is_write = REQ_stage_exclusive; // SC.W, AMO*, S*
         dtlb_req_cq_index = REQ_stage_cq_index;
         dtlb_req_is_mq = REQ_stage_is_mq;
         dtlb_req_mq_index = REQ_stage_mq_index;

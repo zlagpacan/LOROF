@@ -49,6 +49,7 @@ module stamofu_launch_pipeline_wrapper (
     // dtlb req
 	output logic last_dtlb_req_valid,
 	output logic [VPN_WIDTH-1:0] last_dtlb_req_VPN,
+	output logic last_dtlb_req_is_read,
 	output logic last_dtlb_req_is_write,
 	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_dtlb_req_cq_index,
 	output logic last_dtlb_req_is_mq,
@@ -180,6 +181,7 @@ module stamofu_launch_pipeline_wrapper (
     // dtlb req
 	logic dtlb_req_valid;
 	logic [VPN_WIDTH-1:0] dtlb_req_VPN;
+	logic dtlb_req_is_read;
 	logic dtlb_req_is_write;
 	logic [LOG_LDU_CQ_ENTRIES-1:0] dtlb_req_cq_index;
 	logic dtlb_req_is_mq;
@@ -319,6 +321,7 @@ module stamofu_launch_pipeline_wrapper (
 		    // dtlb req
 			last_dtlb_req_valid <= '0;
 			last_dtlb_req_VPN <= '0;
+			last_dtlb_req_is_read <= '0;
 			last_dtlb_req_is_write <= '0;
 			last_dtlb_req_cq_index <= '0;
 			last_dtlb_req_is_mq <= '0;
@@ -448,6 +451,7 @@ module stamofu_launch_pipeline_wrapper (
 		    // dtlb req
 			last_dtlb_req_valid <= dtlb_req_valid;
 			last_dtlb_req_VPN <= dtlb_req_VPN;
+			last_dtlb_req_is_read <= dtlb_req_is_read;
 			last_dtlb_req_is_write <= dtlb_req_is_write;
 			last_dtlb_req_cq_index <= dtlb_req_cq_index;
 			last_dtlb_req_is_mq <= dtlb_req_is_mq;
