@@ -40,7 +40,6 @@ module nearest_index_tb ();
 	logic [VECTOR_WIDTH-1:0] tb_bit_vector;
 	logic [INDEX_WIDTH-1:0] tb_target_index;
 
-	logic DUT_bit_present, expected_bit_present;
 	logic [INDEX_WIDTH-1:0] DUT_nearest_index, expected_nearest_index;
 
     // ----------------------------------------------------------------
@@ -53,7 +52,6 @@ module nearest_index_tb ();
 		.bit_vector(tb_bit_vector),
 		.target_index(tb_target_index),
 
-		.bit_present(DUT_bit_present),
 		.nearest_index(DUT_nearest_index)
 	);
 
@@ -62,13 +60,6 @@ module nearest_index_tb ();
 
     task check_outputs();
     begin
-		if (expected_bit_present !== DUT_bit_present) begin
-			$display("TB ERROR: expected_bit_present (%h) != DUT_bit_present (%h)",
-				expected_bit_present, DUT_bit_present);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
 		if (expected_nearest_index !== DUT_nearest_index) begin
 			$display("TB ERROR: expected_nearest_index (%h) != DUT_nearest_index (%h)",
 				expected_nearest_index, DUT_nearest_index);
@@ -105,7 +96,6 @@ module nearest_index_tb ();
 
 		// outputs:
 
-		expected_bit_present = 1'b0;
 		expected_nearest_index = 3'h0;
 
 		check_outputs();
@@ -123,7 +113,6 @@ module nearest_index_tb ();
 
 		// outputs:
 
-		expected_bit_present = 1'b0;
 		expected_nearest_index = 3'h0;
 
 		check_outputs();
@@ -152,7 +141,6 @@ module nearest_index_tb ();
 
             // outputs:
 
-            expected_bit_present = i > 0;
             // expected_nearest_index = 0;
             expected_nearest_index = 
                 i == 0 ? 0
@@ -192,7 +180,6 @@ module nearest_index_tb ();
 
             // outputs:
 
-            expected_bit_present = i > 0;
             // expected_nearest_index = 0;
             expected_nearest_index = 
                 i == 0 ? 0
@@ -204,6 +191,45 @@ module nearest_index_tb ();
                 : i[7] ? 7
                 : i[1] ? 1
                 : 0;
+
+            check_outputs();
+        end
+
+        // ------------------------------------------------------------
+        // enumerate for target 6:
+        test_case = "enumerate for target 6";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+        for (int i = 0; i < 256; i++) begin
+
+            @(posedge CLK); #(PERIOD/10);
+
+            // inputs
+            sub_test_case = $sformatf("tb_bit_vector = %8b, tb_target_index = %h", 
+                i, 0);
+            $display("\t- sub_test: %s", sub_test_case);
+
+            // reset
+            nRST = 1'b1;
+            tb_bit_vector = i;
+            tb_target_index = 3'h6;
+
+            @(negedge CLK);
+
+            // outputs:
+
+            // expected_nearest_index = 0;
+            expected_nearest_index = 
+                i == 0 ? 0
+                : i[6] ? 6
+                : i[7] ? 7
+                : i[5] ? 5
+                : i[0] ? 0
+                : i[4] ? 4
+                : i[1] ? 1
+                : i[3] ? 3
+                : 2;
 
             check_outputs();
         end

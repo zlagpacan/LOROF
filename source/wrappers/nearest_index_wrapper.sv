@@ -24,7 +24,6 @@ module nearest_index_wrapper (
 	input logic [VECTOR_WIDTH-1:0] next_bit_vector,
 	input logic [INDEX_WIDTH-1:0] next_target_index,
 
-	output logic last_bit_present,
 	output logic [INDEX_WIDTH-1:0] last_nearest_index
 );
 
@@ -33,7 +32,6 @@ module nearest_index_wrapper (
 	logic [VECTOR_WIDTH-1:0] bit_vector;
 	logic [INDEX_WIDTH-1:0] target_index;
 
-	logic bit_present;
 	logic [INDEX_WIDTH-1:0] nearest_index;
 
     // ----------------------------------------------------------------
@@ -52,14 +50,12 @@ module nearest_index_wrapper (
 			bit_vector <= '0;
 			target_index <= '0;
 
-			last_bit_present <= '0;
 			last_nearest_index <= '0;
         end
         else begin
 			bit_vector <= next_bit_vector;
 			target_index <= next_target_index;
 
-			last_bit_present <= bit_present;
 			last_nearest_index <= nearest_index;
         end
     end
