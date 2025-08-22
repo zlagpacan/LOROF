@@ -376,7 +376,13 @@ module rob #(
     logic [31:0]                    new_restart_branch_target_PC, next_new_restart_branch_target_PC;
 
     logic                           checkpoint_present;
-    logic [LOG_ROB_ENTRIES-2-1:0]   checkpoint_nearest_index;
+
+    logic                           younger_checkpoint_present, next_younger_checkpoint_present;
+    logic [LOG_ROB_ENTRIES-2-1:0]   oldest_younger_checkpoint_4way_index, next_oldest_younger_checkpoint_4way_index;
+    logic                           older_checkpoint_present, next_older_checkpoint_present;
+    logic [LOG_ROB_ENTRIES-2-1:0]   youngest_older_checkpoint_4way_index, next_youngest_older_checkpoint_4way_index;
+
+    logic [LOG_ROB_ENTRIES-2-1:0]   selected_checkpoint_nearest_4way_index;
 
     logic [3:0] deq_launched_by_way, next_deq_launched_by_way;
 
@@ -755,7 +761,7 @@ module rob #(
                 for (int i = 0; i < 4; i++) begin
                     WB_complete_by_entry[4*tail_ptr+i] <= 1'b0;
                     unit_complete_by_entry[4*tail_ptr+i] <= 1'b0;
-                    killed_by_entry[4*head_ptr+i] <= dispatch_enq_killed;
+                    killed_by_entry[4*tail_ptr+i] <= dispatch_enq_killed;
                 end
 
                 tail_ptr <= tail_ptr + 1;
@@ -849,14 +855,52 @@ module rob #(
     always_comb begin
         checkpoint_present = |has_checkpoint_by_4way;
     end
-    nearest_index #(
-        .VECTOR_WIDTH(ROB_ENTRIES/4),
-        .INDEX_WIDTH(LOG_ROB_ENTRIES-2)
-    ) CHECKPOINT_NEAREST_INDEX (
-        .bit_vector(has_checkpoint_by_4way),
+    oldest_younger #(
+        .VECTOR_WIDTH(ROB_ENTRIES/4)
+    ) OLDEST_YOUNGER_CHECKPOINT (
+        .req_vec(has_checkpoint_by_4way),
+        .head_index(head_ptr),
+        .head_mask(wraparound_mask),
         .target_index(restart_info_target_index[LOG_ROB_ENTRIES-1:2]),
-        .nearest_index(checkpoint_nearest_index)
+        .target_mask(restart_info_target_mask_by_4way),
+        .younger_present(next_younger_checkpoint_present),
+        .oldest_younger_index(next_oldest_younger_checkpoint_4way_index)
     );
+    youngest_older #(
+        .VECTOR_WIDTH(ROB_ENTRIES/4)
+    ) YOUNGEST_OLDER_CHECKPOINT (
+        .req_vec(has_checkpoint_by_4way),
+        .head_index(head_ptr),
+        .head_mask(wraparound_mask),
+        .target_index(restart_info_target_index[LOG_ROB_ENTRIES-1:2]),
+        .target_mask(restart_info_target_mask_by_4way),
+        .older_present(next_older_checkpoint_present),
+        .youngest_older_index(next_youngest_older_checkpoint_4way_index)
+    );
+    always_comb begin
+        // if have younger and older, pick closest
+        if (younger_checkpoint_present & older_checkpoint_present) begin
+            if (
+                (oldest_younger_checkpoint_4way_index - restart_info_target_index[LOG_ROB_ENTRIES-1:2])
+                <
+                (youngest_older_checkpoint_4way_index - restart_info_target_index[LOG_ROB_ENTRIES-1:2])
+            ) begin
+                // younger closer
+                selected_checkpoint_nearest_4way_index = oldest_younger_checkpoint_4way_index;
+            end
+            else begin
+                // older closer
+                selected_checkpoint_nearest_4way_index = youngest_older_checkpoint_4way_index;
+            end
+        end
+        else if (younger_checkpoint_present) begin
+            selected_checkpoint_nearest_4way_index = oldest_younger_checkpoint_4way_index;
+        end
+        // inferred that older checkpoint present
+        else begin
+            selected_checkpoint_nearest_4way_index = youngest_older_checkpoint_4way_index;
+        end
+    end
 
     // deq/rollback logic:
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -944,6 +988,8 @@ module rob #(
         next_arch_state_ptr = arch_state_ptr + 1;
 
         next_restart_state = restart_state;
+
+        deq_perform = 1'b0;
 
         next_restart_info_valid = restart_info_valid;
         next_restart_info_target_index = restart_info_target_index;
