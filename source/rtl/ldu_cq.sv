@@ -1208,7 +1208,7 @@ module ldu_cq #(
             // otherwise, shift 0 in leftward
                 // n'b111100 -> n'b111000
             else begin
-                wraparound_mask <= {wraparound_mask[LDU_CQ_ENTRIES-2], 1'b0};
+                wraparound_mask <= {wraparound_mask[LDU_CQ_ENTRIES-2:0], 1'b0};
             end
         end
     end

@@ -298,6 +298,8 @@ module rob #(
     logic [ROB_ENTRIES-1:0] unit_complete_by_entry;
     logic [ROB_ENTRIES-1:0] killed_by_entry;
 
+    logic [ROB_ENTRIES/4-1:0] wraparound_mask;
+
     // bulk bram array
         // need for restart, deq/rollback
     typedef struct packed {
@@ -373,7 +375,8 @@ module rob #(
     logic                           new_restart_use_rob_PC, next_new_restart_use_rob_PC;
     logic [31:0]                    new_restart_branch_target_PC, next_new_restart_branch_target_PC;
 
-    logic [ROB_ENTRIES/4-1:0]   has_checkpoint_by_4way;
+    logic                           checkpoint_present;
+    logic [LOG_ROB_ENTRIES-2-1:0]   checkpoint_nearest_index;
 
     logic [3:0] deq_launched_by_way, next_deq_launched_by_way;
 
@@ -739,6 +742,7 @@ module rob #(
             WB_complete_by_entry <= '0;
             unit_complete_by_entry <= '0;
             killed_by_entry <= '0;
+            wraparound_mask <= '1;
 
             head_ptr <= 0;
             tail_ptr <= 0;
@@ -753,6 +757,8 @@ module rob #(
                     unit_complete_by_entry[4*tail_ptr+i] <= 1'b0;
                     killed_by_entry[4*head_ptr+i] <= dispatch_enq_killed;
                 end
+
+                tail_ptr <= tail_ptr + 1;
             end
 
             if (deq_perform) begin
@@ -764,6 +770,15 @@ module rob #(
                     unit_complete_by_entry[4*head_ptr+i] <= 1'b0;
                     killed_by_entry[4*head_ptr+i] <= 1'b0;
                 end
+
+                if (~wraparound_mask[ROB_ENTRIES/4-2]) begin
+                    wraparound_mask <= '1;
+                end
+                else begin
+                    wraparound_mask <= {wraparound_mask[ROB_ENTRIES/4-2:0], 1'b0};
+                end
+                
+                head_ptr <= head_ptr + 1;
             end
 
             if (rob_kill_valid) begin
@@ -793,13 +808,6 @@ module rob #(
             end
             if (branch_notif_valid) begin
                 unit_complete_by_entry[branch_notif_ROB_index] <= 1'b1;
-            end
-
-            if (deq_perform) begin
-                head_ptr <= head_ptr + 1;
-            end
-            if (enq_perform) begin
-                tail_ptr <= tail_ptr + 1;
             end
         end
     end
@@ -837,10 +845,18 @@ module rob #(
         PC_bram_write_PC_by_way = dispatch_PC_by_way;
     end
 
-    // checkpoint PE
+    // checkpoint selector
     always_comb begin
-
+        checkpoint_present = |has_checkpoint_by_4way;
     end
+    nearest_index #(
+        .VECTOR_WIDTH(ROB_ENTRIES/4),
+        .INDEX_WIDTH(LOG_ROB_ENTRIES-2)
+    ) CHECKPOINT_NEAREST_INDEX (
+        .bit_vector(has_checkpoint_by_4way),
+        .target_index(restart_info_target_index[LOG_ROB_ENTRIES-1:2]),
+        .nearest_index(checkpoint_nearest_index)
+    );
 
     // deq/rollback logic:
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -956,9 +972,7 @@ module rob #(
 
             RESTART_SEND:
             begin
-                // check for new exception
-                // check for new restart
-                    // current restart younger and exception younger
+                // check for new older restart (if not doing exception)
                 // otherwise, check for checkpoint
 
                 rob_controlling_rename = 1'b1;
@@ -969,8 +983,7 @@ module rob #(
 
             CHECKPOINT_RESTORE:
             begin
-                // check for new exception
-                // check for new restart
+                // check for new older restart (if not doing exception)
                 // otherwise, continue rollback
 
                 rob_controlling_rename = 1'b1;
@@ -978,8 +991,7 @@ module rob #(
 
             ROLLBACK:
             begin
-                // check for new exception
-                // check for new restart
+                // check for new older restart (if not doing exception)
                 // check for rollback arrival
                 // otherwise, continue rollback
 
@@ -988,8 +1000,8 @@ module rob #(
             
             default: // DEQ
             begin
-                // check for new restart
                 // check for exception
+                // check for new restart
                 // check for deq
                 // otherwise, idle
             end
@@ -1050,7 +1062,6 @@ module rob #(
             // for now, since no csrf, these are hardwired
         end
     end
-
 
     // ----------------------------------------------------------------
     // Memory Arrays:
