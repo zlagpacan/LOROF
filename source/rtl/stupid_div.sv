@@ -7,7 +7,13 @@ module stupid_div (
 
     output logic signed [31:0] out
 );
-
-    assign out = A / B;
+    always_comb begin
+        if (B == 0) begin
+            out = '1;
+        end
+        else begin
+            out = A / B;
+        end
+    end
 
 endmodule
