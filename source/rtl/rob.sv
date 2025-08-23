@@ -292,7 +292,7 @@ module rob #(
     // FF arrays
         // need to PE over or multiple referenced simultaneously
     logic [ROB_ENTRIES/4-1:0]                               valid_by_4way;
-    logic [ROB_ENTRIES/4-1:0]                               has_checkpoint_by_4way;
+    logic [ROB_ENTRIES/4-1:0]                               checkpoint_present_by_4way;
     logic [ROB_ENTRIES/4-1:0][CHECKPOINT_INDEX_WIDTH-1:0]   checkpoint_index_by_4way;
 
     logic [ROB_ENTRIES-1:0] WB_complete_by_entry;
@@ -350,6 +350,8 @@ module rob #(
     logic [LOG_ROB_ENTRIES-2-1:0] head_ptr, next_head_ptr;
 
     logic [LOG_ROB_ENTRIES-2-1:0]   map_table_state_ptr, next_map_table_state_ptr;
+    logic                           map_table_state_rolling_back;
+    logic                           map_table_state_reversing, next_map_table_state_reversing;
     logic                           map_table_state_ptr_incr;
     logic                           map_table_state_ptr_decr;
 
@@ -388,6 +390,7 @@ module rob #(
     logic [LOG_ROB_ENTRIES-2-1:0]   youngest_older_checkpoint_4way_index, next_youngest_older_checkpoint_4way_index;
 
     logic [LOG_ROB_ENTRIES-2-1:0]   selected_checkpoint_nearest_4way_index;
+    logic                           selected_checkpoint_younger;
 
     logic [3:0] deq_launched_by_way, next_deq_launched_by_way;
 
@@ -467,7 +470,7 @@ module rob #(
                 branch_notif_valid
                 & branch_notif_ready
                 & ~killed_by_entry[branch_notif_ROB_index];
-            rob_branch_update_has_checkpoint <= has_checkpoint_by_4way[branch_notif_ROB_index[LOG_ROB_ENTRIES-1:2]];
+            rob_branch_update_has_checkpoint <= checkpoint_present_by_4way[branch_notif_ROB_index[LOG_ROB_ENTRIES-1:2]];
             rob_branch_update_checkpoint_index <= checkpoint_index_by_4way[branch_notif_ROB_index[LOG_ROB_ENTRIES-1:2]];
             rob_branch_update_is_mispredict <= branch_notif_is_mispredict;
             rob_branch_update_is_taken <= branch_notif_is_taken;
@@ -752,7 +755,7 @@ module rob #(
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             valid_by_4way <= '0;
-            has_checkpoint_by_4way <= '0;
+            checkpoint_present_by_4way <= '0;
             WB_complete_by_entry <= '0;
             unit_complete_by_entry <= '0;
             killed_by_entry <= '0;
@@ -764,7 +767,7 @@ module rob #(
         else begin
             if (enq_perform) begin
                 valid_by_4way[tail_ptr] <= 1'b1;
-                has_checkpoint_by_4way[tail_ptr] <= dispatch_has_checkpoint;
+                checkpoint_present_by_4way[tail_ptr] <= dispatch_has_checkpoint;
                 
                 for (int i = 0; i < 4; i++) begin
                     WB_complete_by_entry[4*tail_ptr+i] <= 1'b0;
@@ -777,7 +780,7 @@ module rob #(
 
             if (deq_perform) begin
                 valid_by_4way[head_ptr] <= 1'b0;
-                has_checkpoint_by_4way[head_ptr] <= 1'b0;
+                checkpoint_present_by_4way[head_ptr] <= 1'b0;
 
                 for (int i = 0; i < 4; i++) begin
                     WB_complete_by_entry[4*head_ptr+i] <= 1'b0;
@@ -861,12 +864,12 @@ module rob #(
 
     // checkpoint selector
     always_comb begin
-        checkpoint_present = |has_checkpoint_by_4way;
+        checkpoint_present = |checkpoint_present_by_4way;
     end
     oldest_younger #(
         .VECTOR_WIDTH(ROB_ENTRIES/4)
     ) OLDEST_YOUNGER_CHECKPOINT (
-        .req_vec(has_checkpoint_by_4way),
+        .req_vec(checkpoint_present_by_4way),
         .head_index(head_ptr),
         .head_mask(wraparound_mask),
         .target_index(restart_info_target_index[LOG_ROB_ENTRIES-1:2]),
@@ -877,7 +880,7 @@ module rob #(
     youngest_older #(
         .VECTOR_WIDTH(ROB_ENTRIES/4)
     ) YOUNGEST_OLDER_CHECKPOINT (
-        .req_vec(has_checkpoint_by_4way),
+        .req_vec(checkpoint_present_by_4way),
         .head_index(head_ptr),
         .head_mask(wraparound_mask),
         .target_index(restart_info_target_index[LOG_ROB_ENTRIES-1:2]),
@@ -895,18 +898,24 @@ module rob #(
             ) begin
                 // younger closer
                 selected_checkpoint_nearest_4way_index = oldest_younger_checkpoint_4way_index;
+                // mark younger only if not exactly target (map table needs to redo mapping if exactly target)
+                selected_checkpoint_younger = oldest_younger_checkpoint_4way_index != restart_info_target_index[LOG_ROB_ENTRIES-1:2];
             end
             else begin
                 // older closer
                 selected_checkpoint_nearest_4way_index = youngest_older_checkpoint_4way_index;
+                selected_checkpoint_younger = 1'b0;
             end
         end
         else if (younger_checkpoint_present) begin
             selected_checkpoint_nearest_4way_index = oldest_younger_checkpoint_4way_index;
+            // mark younger only if not exactly target (map table needs to redo mapping if exactly target)
+            selected_checkpoint_younger = oldest_younger_checkpoint_4way_index != restart_info_target_index[LOG_ROB_ENTRIES-1:2];
         end
         // inferred that older checkpoint present
         else begin
             selected_checkpoint_nearest_4way_index = youngest_older_checkpoint_4way_index;
+            selected_checkpoint_younger = 1'b0;
         end
     end
 
@@ -914,12 +923,14 @@ module rob #(
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             map_table_state_ptr <= 0;
+            map_table_state_reversing <= 1'b0;
             restart_state <= DEQ;
             deq_launched_by_way <= 4'b0000;
             reset_rob_restart_valid <= ROB_RESTART_ON_RESET;
         end
         else begin
             map_table_state_ptr <= next_map_table_state_ptr;
+            map_table_state_reversing <= next_map_table_state_reversing;
             restart_state <= next_restart_state;
             deq_launched_by_way <= next_deq_launched_by_way;
             reset_rob_restart_valid <= 1'b0;
@@ -927,6 +938,8 @@ module rob #(
     end
     always_comb begin
         for (int i = 0; i < 4; i++) begin
+            // ldu needs unit complete
+            // else, WB complete or unit complete
             deq_complete_by_way[i] = 
                 (~bulk_bram_read_entry.is_ldu_by_way[i] & WB_complete_by_entry[4*head_ptr+i])
                 | unit_complete_by_entry[4*head_ptr+i];
@@ -935,18 +948,23 @@ module rob #(
     always_comb begin
         if (checkpoint_perform) begin
             next_map_table_state_ptr = selected_checkpoint_nearest_4way_index;
+            next_map_table_state_reversing = selected_checkpoint_younger; // reverse if checkpoint younger
         end
         else if (enq_perform) begin
             next_map_table_state_ptr = tail_ptr + 1;
+            next_map_table_state_reversing = 1'b1; // reverse from late enq
         end
         else if (map_table_state_ptr_incr) begin
             next_map_table_state_ptr = map_table_state_ptr + 1;
+            next_map_table_state_reversing = 1'b0; // maintain reversing
         end
         else if (map_table_state_ptr_decr) begin
             next_map_table_state_ptr = map_table_state_ptr - 1;
+            next_map_table_state_reversing = 1'b1; // maintain not reversing
         end
         else begin
             next_map_table_state_ptr = map_table_state_ptr;
+            next_map_table_state_reversing = 1'b1; // reverse on no checkpoint
         end
     end
     always_comb begin
@@ -977,13 +995,64 @@ module rob #(
             bulk_bram_read_entry.dest_AR_by_way[1],
             bulk_bram_read_entry.dest_AR_by_way[0]
         };
-        // always for undo -> old PR
-        rob_map_table_write_PR_by_port = {
-            bulk_bram_read_entry.dest_old_PR_by_way[3],
-            bulk_bram_read_entry.dest_old_PR_by_way[2],
-            bulk_bram_read_entry.dest_old_PR_by_way[1],
-            bulk_bram_read_entry.dest_old_PR_by_way[0]
-        };
+        // map table writes:
+            // undo mapping for target if exception, else don't undo target index
+            // need to know if reversing to know which sub-entry mappings to undo vs. redo
+        if (map_table_state_rolling_back) begin
+            rob_map_table_write_valid_by_port = bulk_bram_read_entry.valid_by_way & bulk_bram_read_entry.is_rename_by_way;
+        end
+        else begin
+            rob_map_table_write_valid_by_port = 4'b0000;
+        end
+        if (map_table_state_ptr == restart_info_target_index[LOG_ROB_ENTRIES-1:2]) begin
+            if (map_table_state_reversing) begin
+                if (restart_info_is_exception) begin
+                    // undo all younger and self
+                    case (restart_info_target_index[1:0])
+                        2'h0:   rob_map_table_write_valid_by_port &= 4'b1111;
+                        2'h1:   rob_map_table_write_valid_by_port &= 4'b1110;
+                        2'h2:   rob_map_table_write_valid_by_port &= 4'b1100;
+                        2'h3:   rob_map_table_write_valid_by_port &= 4'b1000;
+                    endcase
+                end
+                else begin
+                    // undo all younger
+                    case (restart_info_target_index[1:0])
+                        2'h0:   rob_map_table_write_valid_by_port &= 4'b1110;
+                        2'h1:   rob_map_table_write_valid_by_port &= 4'b1100;
+                        2'h2:   rob_map_table_write_valid_by_port &= 4'b1000;
+                        2'h3:   rob_map_table_write_valid_by_port &= 4'b0000;
+                    endcase
+                end
+            end
+            else begin
+                if (restart_info_is_exception) begin
+                    // redo all older
+                    case (restart_info_target_index[1:0])
+                        2'h0:   rob_map_table_write_valid_by_port &= 4'b0000;
+                        2'h1:   rob_map_table_write_valid_by_port &= 4'b0001;
+                        2'h2:   rob_map_table_write_valid_by_port &= 4'b0011;
+                        2'h3:   rob_map_table_write_valid_by_port &= 4'b0111;
+                    endcase
+                end
+                else begin
+                    // redo all older and self
+                    case (restart_info_target_index[1:0])
+                        2'h0:   rob_map_table_write_valid_by_port &= 4'b0001;
+                        2'h1:   rob_map_table_write_valid_by_port &= 4'b0011;
+                        2'h2:   rob_map_table_write_valid_by_port &= 4'b0111;
+                        2'h3:   rob_map_table_write_valid_by_port &= 4'b1111;
+                    endcase
+                end
+            end
+        end
+        // map table old vs new PR based on if reversing
+        if (map_table_state_reversing) begin
+            rob_map_table_write_PR_by_port = bulk_bram_read_entry.dest_old_PR_by_way;
+        end
+        else begin
+            rob_map_table_write_PR_by_port = bulk_bram_read_entry.dest_new_PR_by_way;
+        end
 
         // free logic
         for (int way = 0; way < 4; way++) begin
@@ -1012,6 +1081,7 @@ module rob #(
 
         map_table_state_ptr_incr = 1'b0;
         map_table_state_ptr_decr = 1'b0;
+        map_table_state_rolling_back = 1'b0;
 
         next_restart_state = restart_state;
 
@@ -1034,12 +1104,10 @@ module rob #(
         rob_kill_rel_kill_younger_index = restart_info_target_index - rob_kill_abs_head_index;
 
         rob_checkpoint_map_table_restore_valid = 1'b0;
-        rob_checkpoint_map_table_restore_index = DEFAULT;
+        rob_checkpoint_map_table_restore_index = checkpoint_index_by_4way[selected_checkpoint_nearest_4way_index];
 
         rob_checkpoint_clear_valid = 1'b0;
-        rob_checkpoint_clear_index = DEFAULT;
-
-        rob_map_table_write_valid_by_port = 4'b0000;
+        rob_checkpoint_clear_index = checkpoint_index_by_4way[head_ptr];
 
         // state machine
             // read bulk @ head ptr on transitions to DEQ for AR, PR info
@@ -1052,6 +1120,7 @@ module rob #(
                 // send restart no matter what
                 rob_controlling_rename = 1'b1;
                 exception_sent = 1'b0; // send this when done rollback
+                map_table_state_rolling_back = 1'b0; // send on rollback's
                 map_table_state_ptr_incr = 1'b0; // send on rollback's
                 map_table_state_ptr_decr = 1'b0; // send on rollback's
                 deq_perform = 1'b0;
@@ -1084,10 +1153,9 @@ module rob #(
                 rob_kill_valid = 1'b1;
                 rob_kill_rel_kill_younger_index = restart_info_target_index - rob_kill_abs_head_index;
                 rob_checkpoint_map_table_restore_valid = 1'b0;
-                rob_checkpoint_map_table_restore_index = DEFAULT;
+                rob_checkpoint_map_table_restore_index = checkpoint_index_by_4way[selected_checkpoint_nearest_4way_index];
                 rob_checkpoint_clear_valid = 1'b0;
-                rob_checkpoint_clear_index = DEFAULT;
-                rob_map_table_write_valid_by_port = 4'b0000;
+                rob_checkpoint_clear_index = checkpoint_index_by_4way[head_ptr];
 
                 // check for new older restart if not doing exception and no older exception
                 if (
@@ -1117,27 +1185,25 @@ module rob #(
                     next_restart_info_branch_target_PC = new_restart_branch_target_PC;
                     next_restart_info_is_exception = 1'b0;
                 end
-
                 // otherwise, check for checkpoint:
                 else if (checkpoint_present) begin
                     bulk_bram_read_next_valid = 1'b0; // start read next cycle
                     bulk_bram_read_next_index = DEFAULT;
                     PC_bram_read_restart_control = 1'b0;
                     next_restart_state = CHECKPOINT_RESTORE;
-                    next_restart_info_valid = restart_info_valid;
+                    next_restart_info_valid = 1'b1;
                     next_restart_info_target_index = restart_info_target_index;
                     next_restart_info_use_rob_PC = restart_info_use_rob_PC;
                     next_restart_info_branch_target_PC = restart_info_branch_target_PC;
                     next_restart_info_is_exception = restart_info_is_exception;
                 end
-
                 // otherwise, continue to rollback
                 else begin
                     bulk_bram_read_next_valid = 1'b1;
                     bulk_bram_read_next_index = next_map_table_state_ptr;
                     PC_bram_read_restart_control = 1'b0;
                     next_restart_state = CHECKPOINT_RESTORE;
-                    next_restart_info_valid = restart_info_valid;
+                    next_restart_info_valid = 1'b1;
                     next_restart_info_target_index = restart_info_target_index;
                     next_restart_info_use_rob_PC = restart_info_use_rob_PC;
                     next_restart_info_branch_target_PC = restart_info_branch_target_PC;
@@ -1150,6 +1216,7 @@ module rob #(
                 // perform checkpoint restore no matter what
                 rob_controlling_rename = 1'b1;
                 exception_sent = 1'b0; // send this when done rollback
+                map_table_state_rolling_back = 1'b0; // send on rollback's
                 map_table_state_ptr_incr = 1'b0; // send on rollback's
                 map_table_state_ptr_decr = 1'b0; // send on rollback's
                 deq_perform = 1'b0;
@@ -1163,8 +1230,7 @@ module rob #(
                 rob_checkpoint_map_table_restore_valid = 1'b1;
                 rob_checkpoint_map_table_restore_index = checkpoint_index_by_4way[selected_checkpoint_nearest_4way_index];
                 rob_checkpoint_clear_valid = 1'b0;
-                rob_checkpoint_clear_index = DEFAULT;
-                rob_map_table_write_valid_by_port = 4'b0000;
+                rob_checkpoint_clear_index = checkpoint_index_by_4way[head_ptr];
 
                 // check for new older restart if not doing exception and no older exception
                 if (
@@ -1194,14 +1260,13 @@ module rob #(
                     next_restart_info_branch_target_PC = new_restart_branch_target_PC;
                     next_restart_info_is_exception = 1'b0;
                 end
-
                 // otherwise, continue rollback
                 else begin
                     bulk_bram_read_next_valid = 1'b1;
-                    bulk_bram_read_next_index = checkpoint_index_by_4way;
+                    bulk_bram_read_next_index = next_map_table_state_ptr;
                     PC_bram_read_restart_control = 1'b0;
                     next_restart_state = ROLLBACK;
-                    next_restart_info_valid = restart_info_valid;
+                    next_restart_info_valid = 1'b1;
                     next_restart_info_target_index = restart_info_target_index;
                     next_restart_info_use_rob_PC = restart_info_use_rob_PC;
                     next_restart_info_branch_target_PC = restart_info_branch_target_PC;
@@ -1213,6 +1278,9 @@ module rob #(
             begin
                 // perform rollback no matter what
                 rob_controlling_rename = 1'b1;
+                map_table_state_rolling_back = 1'b1;
+                map_table_state_ptr_incr = ~map_table_state_reversing;
+                map_table_state_ptr_decr = map_table_state_reversing;
                 deq_perform = 1'b0;
                 checkpoint_perform = 1'b0;
                 next_deq_launched_by_way = deq_launched_by_way; // save DEQ progress
@@ -1223,9 +1291,7 @@ module rob #(
                 rob_kill_rel_kill_younger_index = restart_info_target_index - rob_kill_abs_head_index;
                 rob_checkpoint_map_table_restore_valid = 1'b0;
                 rob_checkpoint_map_table_restore_index = checkpoint_index_by_4way[selected_checkpoint_nearest_4way_index];
-                rob_checkpoint_clear_valid = 1'b1;
-                rob_checkpoint_clear_index = DEFAULT;
-                rob_map_table_write_valid_by_port = bulk_bram_read_entry.is_rename_by_way;
+                rob_checkpoint_clear_index = checkpoint_index_by_4way[head_ptr];
 
                 // check for new older restart if not doing exception and no older exception
                 if (
@@ -1249,8 +1315,6 @@ module rob #(
                     bulk_bram_read_next_index = new_restart_target_index[LOG_ROB_ENTRIES-1:2];
                     PC_bram_read_restart_control = 1'b1;
                     exception_sent = 1'b0;
-                    map_table_state_ptr_incr = 1'b0;
-                    map_table_state_ptr_decr = 1'b0;
                     next_restart_state = RESTART_SEND;
                     next_restart_info_valid = 1'b1;
                     next_restart_info_target_index = new_restart_target_index;
@@ -1258,23 +1322,143 @@ module rob #(
                     next_restart_info_branch_target_PC = new_restart_branch_target_PC;
                     next_restart_info_is_exception = 1'b0;
                 end
-                // check for rollback arrival
+                // otherwise, check for rollback arrival
                     // double check no enq, which will mess up map table state
-                if (
+                    // automatically arrived if matching ptr and target 4way index
+                else if (
                     ~enq_perform
-                    & 
+                    & map_table_state_ptr == restart_info_target_index[LOG_ROB_ENTRIES-1:2]
                 ) begin
-                    
+                    bulk_bram_read_next_valid = 1'b1;
+                    bulk_bram_read_next_index = next_head_ptr;
+                    PC_bram_read_restart_control = 1'b0;
+                    exception_sent = restart_info_is_exception;
+                    next_restart_state = DEQ;
+                    next_restart_info_valid = 1'b0;
+                    next_restart_info_target_index = restart_info_target_index;
+                    next_restart_info_use_rob_PC = restart_info_use_rob_PC;
+                    next_restart_info_branch_target_PC = restart_info_branch_target_PC;
+                    next_restart_info_is_exception = restart_info_is_exception;
                 end
                 // otherwise, continue rollback
+                else begin
+                    bulk_bram_read_next_valid = 1'b1;
+                    bulk_bram_read_next_index = next_map_table_state_ptr;
+                    PC_bram_read_restart_control = 1'b0;
+                    exception_sent = 1'b0;
+                    next_restart_state = ROLLBACK;
+                    next_restart_info_valid = 1'b1;
+                    next_restart_info_target_index = restart_info_target_index;
+                    next_restart_info_use_rob_PC = restart_info_use_rob_PC;
+                    next_restart_info_branch_target_PC = restart_info_branch_target_PC;
+                    next_restart_info_is_exception = restart_info_is_exception;
+                end
             end
             
             default: // DEQ
             begin
-                // check for exception
-                // check for new restart
-                // check for deq
-                // otherwise, idle
+                rob_controlling_rename = 1'b0;
+                exception_sent = 1'b0; // send this when done rollback
+                map_table_state_rolling_back = 1'b0; // send on rollback's
+                map_table_state_ptr_incr = 1'b0; // send on rollback's
+                map_table_state_ptr_decr = 1'b0; // send on rollback's
+                checkpoint_perform = 1'b0;
+                central_rob_restart_valid = 1'b1;
+                central_rob_restart_PC = restart_info_branch_target_PC;
+                rob_kill_valid = 1'b0;
+                rob_kill_rel_kill_younger_index = restart_info_target_index - rob_kill_abs_head_index;
+                rob_checkpoint_map_table_restore_valid = 1'b0;
+                rob_checkpoint_map_table_restore_index = checkpoint_index_by_4way[selected_checkpoint_nearest_4way_index];
+                rob_checkpoint_clear_index = checkpoint_index_by_4way[head_ptr];
+
+                // check for exception to take now
+                    // deq'd everything older than excepting instr
+                if (
+                    exception_reg_valid
+                    & (exception_reg_index[LOG_ROB_ENTRIES-1:2] == head_ptr)
+                    & (
+                        ((exception_reg_index[1:0] == 2'h0) & (deq_launched_by_way == 4'b0000))
+                        | ((exception_reg_index[1:0] == 2'h1) & (deq_launched_by_way == 4'b0001))
+                        | ((exception_reg_index[1:0] == 2'h2) & (deq_launched_by_way == 4'b0011))
+                        | ((exception_reg_index[1:0] == 2'h3) & (deq_launched_by_way == 4'b0111))
+                    )
+                ) begin
+                    bulk_bram_read_next_valid = 1'b0;
+                    bulk_bram_read_next_index = exception_reg_index[LOG_ROB_ENTRIES-1:2];
+                    PC_bram_read_restart_control = 1'b1;
+                    next_restart_state = RESTART_SEND;
+                    deq_perform = 1'b0;
+                    next_restart_info_valid = 1'b1;
+                    next_restart_info_target_index = exception_reg_index;
+                    next_restart_info_use_rob_PC = 1'b1;
+                    next_restart_info_branch_target_PC = restart_info_branch_target_PC;
+                    next_restart_info_is_exception = 1'b1;
+                    next_deq_launched_by_way = deq_launched_by_way;
+                    deq_launching_by_way = 4'b0000;
+                    rob_checkpoint_clear_valid = 1'b0;
+                end
+                // otherwise, check for new restart if no older exception
+                else if (
+                    new_restart_valid
+                    & (
+                        ~exception_reg_valid
+                        | (
+                            (new_restart_target_index - rob_kill_abs_head_index)
+                            <
+                            (exception_reg_index - rob_kill_abs_head_index)
+                        )
+                    )
+                ) begin
+                    bulk_bram_read_next_valid = 1'b1;
+                    bulk_bram_read_next_index = new_restart_target_index[LOG_ROB_ENTRIES-1:2];
+                    PC_bram_read_restart_control = 1'b1;
+                    next_restart_state = RESTART_SEND;
+                    deq_perform = 1'b0;
+                    next_restart_info_valid = 1'b1;
+                    next_restart_info_target_index = new_restart_target_index;
+                    next_restart_info_use_rob_PC = new_restart_use_rob_PC;
+                    next_restart_info_branch_target_PC = new_restart_branch_target_PC;
+                    next_restart_info_is_exception = 1'b0;
+                    next_deq_launched_by_way = deq_launched_by_way;
+                    deq_launching_by_way = 4'b0000;
+                    rob_checkpoint_clear_valid = 1'b0;
+                end
+                // otherwise, check for full deq
+                    // 4way entry valid
+                    // all sub-entries invalid or complete
+                else if (
+                    valid_by_4way[head_ptr]
+                    & &(~bulk_bram_read_entry.valid_by_way | deq_complete_by_way)
+                ) begin
+                    bulk_bram_read_next_valid = 1'b1;
+                    bulk_bram_read_next_index = next_head_ptr;
+                    PC_bram_read_restart_control = 1'b0;
+                    next_restart_state = DEQ;
+                    deq_perform = 1'b1;
+                    next_restart_info_valid = 1'b0;
+                    next_restart_info_target_index = restart_info_target_index;
+                    next_restart_info_use_rob_PC = restart_info_use_rob_PC;
+                    next_restart_info_branch_target_PC = restart_info_branch_target_PC;
+                    next_restart_info_is_exception = restart_info_is_exception;
+                    next_deq_launched_by_way = 4'b0000; // reset sub-entry launch state
+                    deq_launching_by_way = ~deq_launched_by_way & bulk_bram_read_entry.valid_by_way; // launch remaining sub-entries
+                    rob_checkpoint_clear_valid = checkpoint_present_by_4way[head_ptr];
+                end
+                // otherwise, check for partial/no deq
+                else begin
+                    bulk_bram_read_next_valid = 1'b1;
+                    bulk_bram_read_next_index = next_head_ptr;
+                    PC_bram_read_restart_control = 1'b0;
+                    next_restart_state = DEQ;
+                    deq_perform = 1'b0;
+                    next_restart_info_valid = 1'b0;
+                    next_restart_info_target_index = restart_info_target_index;
+                    next_restart_info_use_rob_PC = restart_info_use_rob_PC;
+                    next_restart_info_branch_target_PC = restart_info_branch_target_PC;
+                    next_restart_info_is_exception = restart_info_is_exception;
+
+                    TODO
+                end
             end
         endcase
     end
