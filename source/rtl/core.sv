@@ -24,7 +24,7 @@ module core #(
 	parameter INIT_TRAP_SFENCE = 1'b0,
 	parameter INIT_TRAP_WFI = 1'b0,
 	parameter INIT_TRAP_SRET = 1'b0,
-    parameter INIT_TVEC_BASE_PC = 32'h0000F000,
+    parameter INIT_TVEC_BASE_PC = 32'h0000F000
 ) (
     // seq
     input logic CLK,
@@ -58,6 +58,9 @@ module core #(
     output logic                            icache_resp_hit_way,
     output logic                            icache_resp_miss_valid,
     output logic [ICACHE_TAG_WIDTH-1:0]     icache_resp_miss_tag,
+
+    // hardware failure
+    output logic unrecoverable_fault
 );
     // Modules:
         // Front End
@@ -81,7 +84,7 @@ module core #(
                 // bru_dq
                 // bru_iq
                 // bru_pipeline_fast
-            // lsq
+            // lsu
                 // ldu
                     // ldu_dq
                     // ldu_iq
@@ -101,7 +104,7 @@ module core #(
                 // ssu
             // sysu
                 // sysu_dq
-                // sysu
+                // sysu_pipeline
                 // csrf
 
     // ----------------------------------------------------------------
@@ -112,7 +115,7 @@ module core #(
     logic [7:0]                             istream_valid_by_fetch_2B_SENQ;
     logic [7:0]                             istream_one_hot_redirect_by_fetch_2B_SENQ;
     logic [7:0][15:0]                       istream_instr_2B_by_fetch_2B_SENQ;
-    logic [7:0][BTB_PRED_INFO_WIDTH-1:0]       istream_pred_info_by_fetch_2B_SENQ;
+    logic [7:0][BTB_PRED_INFO_WIDTH-1:0]    istream_pred_info_by_fetch_2B_SENQ;
     logic [7:0]                             istream_pred_lru_by_fetch_2B_SENQ;
     logic [7:0][MDPT_INFO_WIDTH-1:0]        istream_mdp_info_by_fetch_2B_SENQ;
     logic [31:0]                            istream_after_PC_SENQ;
@@ -125,12 +128,17 @@ module core #(
     // istream feedback
     logic istream_stall_SENQ;
 
-    // fetch + decode restart from ROB
+    // restart from ROB
     logic                   rob_restart_valid;
     logic [31:0]            rob_restart_PC;
     logic [ASID_WIDTH-1:0]  rob_restart_ASID;
     logic [1:0]             rob_restart_exec_mode;
     logic                   rob_restart_virtual_mode;
+    logic                   rob_restart_MXR;
+    logic                   rob_restart_SUM;
+    logic                   rob_restart_trap_sfence;
+    logic                   rob_restart_trap_wfi;
+    logic                   rob_restart_trap_sret;
 
     // decode unit control
     logic           decode_unit_restart_valid;
@@ -159,15 +167,156 @@ module core #(
     logic [ASID_WIDTH-1:0]          mdpt_update_ASID;
     logic [MDPT_INFO_WIDTH-1:0]     mdpt_update_mdp_info;
 
-    // ----------------------------------------------------------------
-    // Modules:
+    // input from istream
+    logic                                       istream_valid_SDEQ;
+    logic [3:0]                                 istream_valid_by_way_SDEQ;
+    logic [3:0]                                 istream_uncompressed_by_way_SDEQ;
+    logic [3:0][1:0][15:0]                      istream_instr_2B_by_way_by_chunk_SDEQ;
+    logic [3:0][1:0][BTB_PRED_INFO_WIDTH-1:0]   istream_pred_info_by_way_by_chunk_SDEQ;
+    logic [3:0][1:0]                            istream_pred_lru_by_way_by_chunk_SDEQ;
+    logic [3:0][1:0][31:0]                      istream_pred_PC_by_way_by_chunk_SDEQ;
+    logic [3:0][1:0]                            istream_page_fault_by_way_by_chunk_SDEQ;
+    logic [3:0][1:0]                            istream_access_fault_by_way_by_chunk_SDEQ;
+    logic [3:0][MDPT_INFO_WIDTH-1:0]            istream_mdp_info_by_way_SDEQ;
+    logic [3:0][31:0]                           istream_PC_by_way_SDEQ;
+    logic [3:0][LH_LENGTH-1:0]                  istream_LH_by_way_SDEQ;
+    logic [3:0][GH_LENGTH-1:0]                  istream_GH_by_way_SDEQ;
+    logic [3:0][RAS_INDEX_WIDTH-1:0]            istream_ras_index_by_way_SDEQ;
 
+    // feedback to istream
+    logic istream_stall_SDEQ;
+
+    // op dispatch by way:
+
+    // 4-way ROB entry
+    logic dispatch_rob_enq_valid;
+	logic dispatch_rob_enq_killed;
+    logic dispatch_rob_enq_ready;
+
+    // general instr info
+    logic [3:0]                             dispatch_valid_by_way;
+    logic [3:0]                             dispatch_uncompressed_by_way;
+    logic [3:0][31:0]                       dispatch_PC_by_way;
+    logic [3:0][31:0]                       dispatch_pred_PC_by_way;
+    logic [3:0]                             dispatch_is_rename_by_way;
+    logic [3:0][BTB_PRED_INFO_WIDTH-1:0]    dispatch_pred_info_by_way;
+    logic [3:0][MDPT_INFO_WIDTH-1:0]        dispatch_mdp_info_by_way;
+    logic [3:0][3:0]                        dispatch_op_by_way;
+    logic [3:0][19:0]                       dispatch_imm20_by_way;
+
+    // ordering
+    logic [3:0]                             dispatch_mem_aq_by_way;
+    logic [3:0]                             dispatch_io_aq_by_way;
+    logic [3:0]                             dispatch_mem_rl_by_way;
+    logic [3:0]                             dispatch_io_rl_by_way;
+
+    // exception info
+    logic                                   dispatch_is_page_fault;
+    logic                                   dispatch_is_access_fault;
+    logic                                   dispatch_is_illegal_instr;
+	logic 							        dispatch_exception_present;
+	logic [1:0]						        dispatch_exception_index;
+    logic [31:0]                            dispatch_illegal_instr32;
+
+	// checkpoint info
+	logic								    dispatch_has_checkpoint;
+	logic [CHECKPOINT_INDEX_WIDTH-1:0]	    dispatch_checkpoint_index;
+
+    // instr IQ attempts
+    logic [3:0]                             dispatch_attempt_alu_reg_mdu_dq_by_way;
+    logic [3:0]                             dispatch_attempt_alu_imm_dq_by_way;
+    logic [3:0]                             dispatch_attempt_bru_dq_by_way;
+	logic [3:0]					            dispatch_attempt_ldu_dq_by_way;
+    logic [3:0]                             dispatch_attempt_stamofu_dq_by_way;
+    logic [3:0]                             dispatch_attempt_sysu_dq_by_way;
+
+    // instr FU valids
+    logic [3:0]                             dispatch_valid_alu_reg_by_way;
+    logic [3:0]                             dispatch_valid_mdu_by_way;
+    logic [3:0]                             dispatch_valid_alu_imm_by_way;
+    logic [3:0]                             dispatch_valid_bru_by_way;
+    logic [3:0]                             dispatch_valid_ldu_by_way;
+    logic [3:0]                             dispatch_valid_store_by_way;
+    logic [3:0]                             dispatch_valid_amo_by_way;
+    logic [3:0]                             dispatch_valid_fence_by_way;
+    logic [3:0]                             dispatch_valid_sysu_by_way;
+
+    // operand A
+    logic [3:0][LOG_PR_COUNT-1:0]           dispatch_A_PR_by_way;
+    logic [3:0]                             dispatch_A_ready_by_way;
+	logic [3:0]						        dispatch_A_is_zero_by_way;
+    logic [3:0]                             dispatch_A_unneeded_or_is_zero_by_way;
+    logic [3:0]                             dispatch_A_is_ret_ra_by_way;
+
+    // operand B
+    logic [3:0][LOG_PR_COUNT-1:0]           dispatch_B_PR_by_way;
+    logic [3:0]                             dispatch_B_ready_by_way;
+	logic [3:0]						        dispatch_B_is_zero_by_way;
+    logic [3:0]                             dispatch_B_unneeded_or_is_zero_by_way;
+
+    // dest operand
+    logic [3:0][4:0]            		    dispatch_dest_AR_by_way;
+    logic [3:0][LOG_PR_COUNT-1:0]           dispatch_dest_old_PR_by_way;
+    logic [3:0][LOG_PR_COUNT-1:0]           dispatch_dest_new_PR_by_way;
+    logic [3:0]                             dispatch_dest_is_link_ra;
+
+    // instr IQ acks
+    logic [3:0] dispatch_ack_alu_reg_mdu_dq_by_way;
+    logic [3:0] dispatch_ack_alu_imm_dq_by_way;
+    logic [3:0] dispatch_ack_bru_dq_by_way;
+    logic [3:0] dispatch_ack_ldu_dq_by_way;
+    logic [3:0] dispatch_ack_stamofu_dq_by_way;
+    logic [3:0] dispatch_ack_sysu_dq_by_way;
+
+    // writeback bus by bank
+    logic [PRF_BANK_COUNT-1:0]                                          WB_bus_valid_by_bank;
+    logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     WB_bus_upper_PR_by_bank;
+
+    // ROB kill
+    logic                           rob_kill_valid;
+    logic [LOG_ROB_ENTRIES-1:0]     rob_kill_abs_head_index;
+    logic [LOG_ROB_ENTRIES-1:0]     rob_kill_rel_kill_younger_index;
+
+    // branch update from ROB
+    logic                               rob_branch_update_valid;
+    logic                               rob_branch_update_has_checkpoint;
+	logic [CHECKPOINT_INDEX_WIDTH-1:0]  rob_branch_update_checkpoint_index;
+    logic                               rob_branch_update_is_mispredict;
+    logic                               rob_branch_update_is_taken;
+    logic                               rob_branch_update_use_upct;
+    logic [BTB_PRED_INFO_WIDTH-1:0]     rob_branch_update_intermediate_pred_info;
+    logic                               rob_branch_update_pred_lru;
+    logic [31:0]                        rob_branch_update_start_PC;
+    logic [31:0]                        rob_branch_update_target_PC;
+
+    // ROB control of rename
+    logic                             	rob_controlling_rename;
+
+    logic                               rob_checkpoint_map_table_restore_valid;
+    logic [CHECKPOINT_INDEX_WIDTH-1:0]  rob_checkpoint_map_table_restore_index;
+
+    logic                               rob_checkpoint_clear_valid;
+    logic [CHECKPOINT_INDEX_WIDTH-1:0]  rob_checkpoint_clear_index;
+
+    logic [3:0]                       	rob_map_table_write_valid_by_port;
+    logic [3:0][LOG_AR_COUNT-1:0]     	rob_map_table_write_AR_by_port;
+    logic [3:0][LOG_PR_COUNT-1:0]     	rob_map_table_write_PR_by_port;
+
+	// ROB physical register freeing
+	logic [3:0]                     rob_PR_free_req_valid_by_bank;
+	logic [3:0][LOG_PR_COUNT-1:0]   rob_PR_free_req_PR_by_bank;
+	logic [3:0]						rob_PR_free_resp_ack_by_bank;
+
+    // ----------------------------------------------------------------
+    // Front End Modules:
+
+    // fetch unit
     fetch_unit #(
         .INIT_PC(INIT_PC),
         .INIT_ASID(INIT_ASID),
         .INIT_EXEC_MODE(INIT_EXEC_MODE),
         .INIT_VIRTUAL_MODE(INIT_VIRTUAL_MODE),
-        .INIT_WAIT_FOR_RESTART_STATE(INIT_WAIT_FOR_RESTART_STATE) 
+        .FETCH_UNIT_WAIT_FOR_RESTART_STATE(FETCH_UNIT_WAIT_FOR_RESTART_STATE) 
     ) FETCH_UNIT (
         // seq
         .CLK(CLK),
@@ -253,6 +402,307 @@ module core #(
 		.mdpt_update_ASID(mdpt_update_ASID),
 		.mdpt_update_mdp_info(mdpt_update_mdp_info)
     );
+
+    // istream
+	istream #(
+		.ISTREAM_SETS(ISTREAM_SETS),
+		.INIT_PC(INIT_PC)
+	) ISTREAM (
+		// seq
+		.CLK(CLK),
+		.nRST(nRST),
+
+	    // SENQ stage
+		.valid_SENQ(istream_valid_SENQ),
+		.valid_by_fetch_2B_SENQ(istream_valid_by_fetch_2B_SENQ),
+		.one_hot_redirect_by_fetch_2B_SENQ(istream_one_hot_redirect_by_fetch_2B_SENQ),
+		.instr_2B_by_fetch_2B_SENQ(istream_instr_2B_by_fetch_2B_SENQ),
+		.pred_info_by_fetch_2B_SENQ(istream_pred_info_by_fetch_2B_SENQ),
+		.pred_lru_by_fetch_2B_SENQ(istream_pred_lru_by_fetch_2B_SENQ),
+		.mdp_info_by_fetch_2B_SENQ(istream_mdp_info_by_fetch_2B_SENQ),
+		.after_PC_SENQ(istream_after_PC_SENQ),
+		.LH_SENQ(istream_LH_SENQ),
+		.GH_SENQ(istream_GH_SENQ),
+		.ras_index_SENQ(istream_ras_index_SENQ),
+		.page_fault_SENQ(istream_page_fault_SENQ),
+		.access_fault_SENQ(istream_access_fault_SENQ),
+
+	    // SENQ feedback
+		.stall_SENQ(istream_stall_SENQ),
+
+	    // SDEQ stage
+		.valid_SDEQ(istream_valid_SDEQ),
+		.valid_by_way_SDEQ(istream_valid_by_way_SDEQ),
+		.uncompressed_by_way_SDEQ(istream_uncompressed_by_way_SDEQ),
+		.instr_2B_by_way_by_chunk_SDEQ(istream_instr_2B_by_way_by_chunk_SDEQ),
+		.pred_info_by_way_by_chunk_SDEQ(istream_pred_info_by_way_by_chunk_SDEQ),
+		.pred_lru_by_way_by_chunk_SDEQ(istream_pred_lru_by_way_by_chunk_SDEQ),
+		// .redirect_by_way_by_chunk_SDEQ(), // unused
+		.pred_PC_by_way_by_chunk_SDEQ(istream_pred_PC_by_way_by_chunk_SDEQ),
+		.page_fault_by_way_by_chunk_SDEQ(istream_page_fault_by_way_by_chunk_SDEQ),
+		.access_fault_by_way_by_chunk_SDEQ(istream_access_fault_by_way_by_chunk_SDEQ),
+		.mdp_info_by_way_SDEQ(istream_mdp_info_by_way_SDEQ),
+		.PC_by_way_SDEQ(istream_PC_by_way_SDEQ),
+		.LH_by_way_SDEQ(istream_LH_by_way_SDEQ),
+		.GH_by_way_SDEQ(istream_GH_by_way_SDEQ),
+		.ras_index_by_way_SDEQ(istream_ras_index_by_way_SDEQ),
+
+	    // SDEQ feedback
+		.stall_SDEQ(istream_stall_SDEQ),
+
+	    // control
+		.restart(rob_restart_valid),
+		.restart_PC(rob_restart_PC)
+	);
+
+    // decode_unit
+    decode_unit #(
+		.INIT_EXEC_MODE(INIT_EXEC_MODE),
+		.INIT_TRAP_SFENCE(INIT_TRAP_SFENCE),
+		.INIT_TRAP_WFI(INIT_TRAP_WFI),
+		.INIT_TRAP_SRET(INIT_TRAP_SRET)
+	) DECODE_UNIT (
+		// seq
+		.CLK(CLK),
+		.nRST(nRST),
+
+	    // input from istream
+		.istream_valid_SDEQ(istream_valid_SDEQ),
+		.istream_valid_by_way_SDEQ(istream_valid_by_way_SDEQ),
+		.istream_uncompressed_by_way_SDEQ(istream_uncompressed_by_way_SDEQ),
+		.istream_instr_2B_by_way_by_chunk_SDEQ(istream_instr_2B_by_way_by_chunk_SDEQ),
+		.istream_pred_info_by_way_by_chunk_SDEQ(istream_pred_info_by_way_by_chunk_SDEQ),
+		.istream_pred_lru_by_way_by_chunk_SDEQ(istream_pred_lru_by_way_by_chunk_SDEQ),
+		.istream_pred_PC_by_way_by_chunk_SDEQ(istream_pred_PC_by_way_by_chunk_SDEQ),
+		.istream_page_fault_by_way_by_chunk_SDEQ(istream_page_fault_by_way_by_chunk_SDEQ),
+		.istream_access_fault_by_way_by_chunk_SDEQ(istream_access_fault_by_way_by_chunk_SDEQ),
+		.istream_mdp_info_by_way_SDEQ(istream_mdp_info_by_way_SDEQ),
+		.istream_PC_by_way_SDEQ(istream_PC_by_way_SDEQ),
+		.istream_LH_by_way_SDEQ(istream_LH_by_way_SDEQ),
+		.istream_GH_by_way_SDEQ(istream_GH_by_way_SDEQ),
+		.istream_ras_index_by_way_SDEQ(istream_ras_index_by_way_SDEQ),
+
+	    // feedback to istream
+		.istream_stall_SDEQ(istream_stall_SDEQ),
+
+	    // op dispatch by way:
+
+	    // 4-way ROB entry
+		.dispatch_rob_enq_valid(dispatch_rob_enq_valid),
+		.dispatch_rob_enq_killed(dispatch_rob_enq_killed),
+		.dispatch_rob_enq_ready(dispatch_rob_enq_ready),
+
+	    // general instr info
+		.dispatch_valid_by_way(dispatch_valid_by_way),
+		.dispatch_uncompressed_by_way(dispatch_uncompressed_by_way),
+		.dispatch_PC_by_way(dispatch_PC_by_way),
+		.dispatch_pred_PC_by_way(dispatch_pred_PC_by_way),
+		.dispatch_is_rename_by_way(dispatch_is_rename_by_way),
+		.dispatch_pred_info_by_way(dispatch_pred_info_by_way),
+		.dispatch_mdp_info_by_way(dispatch_mdp_info_by_way),
+		.dispatch_op_by_way(dispatch_op_by_way),
+		.dispatch_imm20_by_way(dispatch_imm20_by_way),
+
+	    // ordering
+		.dispatch_mem_aq_by_way(dispatch_mem_aq_by_way),
+		.dispatch_io_aq_by_way(dispatch_io_aq_by_way),
+		.dispatch_mem_rl_by_way(dispatch_mem_rl_by_way),
+		.dispatch_io_rl_by_way(dispatch_io_rl_by_way),
+
+	    // exception info
+		.dispatch_is_page_fault(dispatch_is_page_fault),
+		.dispatch_is_access_fault(dispatch_is_access_fault),
+		.dispatch_is_illegal_instr(dispatch_is_illegal_instr),
+		.dispatch_exception_present(dispatch_exception_present),
+		.dispatch_exception_index(dispatch_exception_index),
+		.dispatch_illegal_instr32(dispatch_illegal_instr32),
+
+		// checkpoint info
+		.dispatch_has_checkpoint(dispatch_has_checkpoint),
+		.dispatch_checkpoint_index(dispatch_checkpoint_index),
+
+	    // instr IQ attempts
+		.dispatch_attempt_alu_reg_mdu_dq_by_way(dispatch_attempt_alu_reg_mdu_dq_by_way),
+		.dispatch_attempt_alu_imm_dq_by_way(dispatch_attempt_alu_imm_dq_by_way),
+		.dispatch_attempt_bru_dq_by_way(dispatch_attempt_bru_dq_by_way),
+		.dispatch_attempt_ldu_dq_by_way(dispatch_attempt_ldu_dq_by_way),
+		.dispatch_attempt_stamofu_dq_by_way(dispatch_attempt_stamofu_dq_by_way),
+		.dispatch_attempt_sysu_dq_by_way(dispatch_attempt_sysu_dq_by_way),
+
+	    // instr FU valids
+		.dispatch_valid_alu_reg_by_way(dispatch_valid_alu_reg_by_way),
+		.dispatch_valid_mdu_by_way(dispatch_valid_mdu_by_way),
+		.dispatch_valid_alu_imm_by_way(dispatch_valid_alu_imm_by_way),
+		.dispatch_valid_bru_by_way(dispatch_valid_bru_by_way),
+		.dispatch_valid_ldu_by_way(dispatch_valid_ldu_by_way),
+		.dispatch_valid_store_by_way(dispatch_valid_store_by_way),
+		.dispatch_valid_amo_by_way(dispatch_valid_amo_by_way),
+		.dispatch_valid_fence_by_way(dispatch_valid_fence_by_way),
+		.dispatch_valid_sysu_by_way(dispatch_valid_sysu_by_way),
+
+	    // operand A
+		.dispatch_A_PR_by_way(dispatch_A_PR_by_way),
+		.dispatch_A_ready_by_way(dispatch_A_ready_by_way),
+		.dispatch_A_is_zero_by_way(dispatch_A_is_zero_by_way),
+		.dispatch_A_unneeded_or_is_zero_by_way(dispatch_A_unneeded_or_is_zero_by_way),
+		.dispatch_A_is_ret_ra_by_way(dispatch_A_is_ret_ra_by_way),
+
+	    // operand B
+		.dispatch_B_PR_by_way(dispatch_B_PR_by_way),
+		.dispatch_B_ready_by_way(dispatch_B_ready_by_way),
+		.dispatch_B_is_zero_by_way(dispatch_B_is_zero_by_way),
+		.dispatch_B_unneeded_or_is_zero_by_way(dispatch_B_unneeded_or_is_zero_by_way),
+
+	    // dest operand
+		.dispatch_dest_AR_by_way(dispatch_dest_AR_by_way),
+		.dispatch_dest_old_PR_by_way(dispatch_dest_old_PR_by_way),
+		.dispatch_dest_new_PR_by_way(dispatch_dest_new_PR_by_way),
+		.dispatch_dest_is_link_ra(dispatch_dest_is_link_ra),
+
+	    // instr IQ acks
+		.dispatch_ack_alu_reg_mdu_dq_by_way(dispatch_ack_alu_reg_mdu_dq_by_way),
+		.dispatch_ack_alu_imm_dq_by_way(dispatch_ack_alu_imm_dq_by_way),
+		.dispatch_ack_bru_dq_by_way(dispatch_ack_bru_dq_by_way),
+		.dispatch_ack_ldu_dq_by_way(dispatch_ack_ldu_dq_by_way),
+		.dispatch_ack_stamofu_dq_by_way(dispatch_ack_stamofu_dq_by_way),
+		.dispatch_ack_sysu_dq_by_way(dispatch_ack_sysu_dq_by_way),
+
+	    // writeback bus by bank
+		.WB_bus_valid_by_bank(WB_bus_valid_by_bank),
+		.WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
+
+	    // fetch + decode restart from ROB
+		.rob_restart_valid(rob_restart_valid),
+		.rob_restart_exec_mode(rob_restart_exec_mode),
+		.rob_restart_trap_sfence(rob_restart_trap_sfence),
+		.rob_restart_trap_wfi(rob_restart_trap_wfi),
+		.rob_restart_trap_sret(rob_restart_trap_sret),
+
+		// kill from ROB
+		.rob_kill_valid(rob_kill_valid),
+
+	    // branch update from ROB
+		.rob_branch_update_valid(rob_branch_update_valid),
+		.rob_branch_update_has_checkpoint(rob_branch_update_has_checkpoint),
+		.rob_branch_update_checkpoint_index(rob_branch_update_checkpoint_index),
+		.rob_branch_update_is_mispredict(rob_branch_update_is_mispredict),
+		.rob_branch_update_is_taken(rob_branch_update_is_taken),
+		.rob_branch_update_use_upct(rob_branch_update_use_upct),
+		.rob_branch_update_intermediate_pred_info(rob_branch_update_intermediate_pred_info),
+		.rob_branch_update_pred_lru(rob_branch_update_pred_lru),
+		.rob_branch_update_start_PC(rob_branch_update_start_PC),
+		.rob_branch_update_target_PC(rob_branch_update_target_PC),
+
+	    // ROB control of rename
+		.rob_controlling_rename(rob_controlling_rename),
+
+		.rob_checkpoint_map_table_restore_valid(rob_checkpoint_map_table_restore_valid),
+		.rob_checkpoint_map_table_restore_index(rob_checkpoint_map_table_restore_index),
+
+		.rob_checkpoint_clear_valid(rob_checkpoint_clear_valid),
+		.rob_checkpoint_clear_index(rob_checkpoint_clear_index),
+
+		.rob_map_table_write_valid_by_port(rob_map_table_write_valid_by_port),
+		.rob_map_table_write_AR_by_port(rob_map_table_write_AR_by_port),
+		.rob_map_table_write_PR_by_port(rob_map_table_write_PR_by_port),
+
+		// ROB physical register freeing
+		.rob_PR_free_req_valid_by_bank(rob_PR_free_req_valid_by_bank),
+		.rob_PR_free_req_PR_by_bank(rob_PR_free_req_PR_by_bank),
+		.rob_PR_free_resp_ack_by_bank(rob_PR_free_resp_ack_by_bank),
+
+	    // branch update to fetch unit
+		.decode_unit_branch_update_valid(decode_unit_branch_update_valid),
+		.decode_unit_branch_update_has_checkpoint(decode_unit_branch_update_has_checkpoint),
+		.decode_unit_branch_update_is_mispredict(decode_unit_branch_update_is_mispredict),
+		.decode_unit_branch_update_is_taken(decode_unit_branch_update_is_taken),
+		.decode_unit_branch_update_is_complex(decode_unit_branch_update_is_complex),
+		.decode_unit_branch_update_use_upct(decode_unit_branch_update_use_upct),
+		.decode_unit_branch_update_intermediate_pred_info(decode_unit_branch_update_intermediate_pred_info),
+		.decode_unit_branch_update_pred_lru(decode_unit_branch_update_pred_lru),
+		.decode_unit_branch_update_start_PC(decode_unit_branch_update_start_PC),
+		.decode_unit_branch_update_target_PC(decode_unit_branch_update_target_PC),
+		.decode_unit_branch_update_LH(decode_unit_branch_update_LH),
+		.decode_unit_branch_update_GH(decode_unit_branch_update_GH),
+		.decode_unit_branch_update_ras_index(decode_unit_branch_update_ras_index),
+
+	    // decode unit control
+		.decode_unit_restart_valid(decode_unit_restart_valid),
+		.decode_unit_restart_PC(decode_unit_restart_PC),
+
+		.decode_unit_trigger_wait_for_restart(decode_unit_trigger_wait_for_restart),
+
+		// hardware failure
+		.unrecoverable_fault(unrecoverable_fault)
+	);
+
+    // ----------------------------------------------------------------
+    // Central Modules:
+
+    // prf
+    // rob
+
+    // ----------------------------------------------------------------
+    // Backend Modules:
+
+    // ----------------------------------------------------------------
+    // alu_reg_mdu:
+
+    // alu_reg_mdu_dq
+    // alu_reg_mdu_iq_single
+    // alu_reg_pipeline_fast
+    // mdu_pipeline
+
+    // ----------------------------------------------------------------
+    // alu_imm:
+
+    // alu_imm_dq
+    // alu_imm_iq
+    // alu_imm_pipeline_fast
+
+    // ----------------------------------------------------------------
+    // bru:
+
+    // bru_dq
+    // bru_iq
+    // bru_pipeline_fast
+
+    // ----------------------------------------------------------------
+    // lsu:
+
+    // ----------------------------------------------------------------
+    // ldu:
+
+    // ldu_dq
+    // ldu_iq
+    // ldu_addr_pipeline
+    // ldu_launch_pipeline bank 0
+    // ldu_launch_pipeline bank 1
+    // ldu_cq
+    // ldu_mq
+
+    // ----------------------------------------------------------------
+    // stamofu:
+
+    // stamofu_dq
+    // stamofu_iq
+    // stamofu_aq
+    // stamofu_addr_pipeline
+    // stamofu_lq bank 0
+    // stamofu_lq bank 1
+    // stamofu_launch_pipeline bank 0
+    // stamofu_launch_pipeline bank 1
+    // stamofu_cq
+    // stamofu_mq
+
+    // ssu
+
+    // ----------------------------------------------------------------
+    // sysu:
+    
+    // sysu_dq
+    // sysu_pipeline
+    // csrf
 
 
 endmodule
