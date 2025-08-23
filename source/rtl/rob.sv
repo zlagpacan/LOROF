@@ -14,7 +14,7 @@ import system_types_pkg::*;
 module rob #(
     parameter ROB_RESTART_ON_RESET = 1'b1,
 
-    parameter INIT_PC = 32'h0,
+    parameter INIT_PC = 32'h00000000,
     parameter INIT_ASID = 9'h0,
     parameter INIT_EXEC_MODE = M_MODE,
     parameter INIT_VIRTUAL_MODE = 1'b0,
@@ -22,7 +22,8 @@ module rob #(
     parameter INIT_SUM = 1'b0,
 	parameter INIT_TRAP_SFENCE = 1'b0,
 	parameter INIT_TRAP_WFI = 1'b0,
-	parameter INIT_TRAP_SRET = 1'b0
+	parameter INIT_TRAP_SRET = 1'b0,
+    parameter INIT_TVEC_BASE_PC = 32'h0000F000
 ) (
     // seq
     input logic CLK,
@@ -310,15 +311,15 @@ module rob #(
         logic [3:0][4:0]                    dest_AR_by_way; // need for deq/rollback
         logic [3:0][LOG_PR_COUNT-1:0]       dest_old_PR_by_way; // need for deq/rollback
         logic [3:0][LOG_PR_COUNT-1:0]       dest_new_PR_by_way; // need for deq/rollback
-    } bram_entry_t;
+    } bulk_bram_entry_t;
 
     logic                           bulk_bram_read_next_valid;
     logic [LOG_ROB_ENTRIES-2-1:0]   bulk_bram_read_next_index;
-    bram_entry_t                    bulk_bram_read_entry;
+    bulk_bram_entry_t               bulk_bram_read_entry;
 
     logic                           bulk_bram_write_valid;
     logic [LOG_ROB_ENTRIES-2-1:0]   bulk_bram_write_index;
-    bram_entry_t                    bulk_bram_write_entry;
+    bulk_bram_entry_t               bulk_bram_write_entry;
 
     // PC bram array
         // need for restart, mdp update
@@ -331,7 +332,7 @@ module rob #(
     logic [LOG_ROB_ENTRIES-2-1:0]   PC_bram_write_index;
     logic [3:0][31:0]               PC_bram_write_PC_by_way;
 
-    logic PC_bram_restart_control;
+    logic PC_bram_read_restart_control;
     
     logic [1:0] ssu_mdp_update_saved_lower_ROB_index;
 
@@ -348,10 +349,14 @@ module rob #(
     logic [LOG_ROB_ENTRIES-2-1:0] tail_ptr, next_tail_ptr;
     logic [LOG_ROB_ENTRIES-2-1:0] head_ptr, next_head_ptr;
 
-    logic [LOG_ROB_ENTRIES-2-1:0] arch_state_ptr, next_arch_state_ptr;
+    logic [LOG_ROB_ENTRIES-2-1:0]   map_table_state_ptr, next_map_table_state_ptr;
+    logic                           map_table_state_ptr_incr;
+    logic                           map_table_state_ptr_decr;
 
     logic enq_perform;
     logic deq_perform;
+    
+    logic checkpoint_perform;
 
     // deq/rollback
     typedef enum logic [1:0] {
@@ -431,6 +436,7 @@ module rob #(
     logic                   env_trap_sfence;
     logic                   env_trap_wfi;
     logic                   env_trap_sret;
+    logic [31:0]            env_tvec_BASE_PC;
 
     // reset sequence
     logic reset_rob_restart_valid;
@@ -603,12 +609,14 @@ module rob #(
         next_new_restart_valid = fence_mispred_restarting | ldu_mispred_restarting | branch_mispred_restarting;
         if (fence_mispred_restarting) begin
             next_new_restart_target_index = fence_mispred_deq_ROB_index;
+            next_new_restart_use_rob_PC = 1'b1;
         end else if (ldu_mispred_restarting) begin
             next_new_restart_target_index = ldu_mispred_deq_ROB_index;
+            next_new_restart_use_rob_PC = 1'b1;
         end else begin
             next_new_restart_target_index = branch_mispred_deq_ROB_index;
+            next_new_restart_use_rob_PC = 1'b0;
         end
-        next_new_restart_use_rob_PC = branch_mispred_restarting;
         next_new_restart_branch_target_PC = branch_mispred_deq_target_PC;
     end
 
@@ -682,7 +690,7 @@ module rob #(
                 end
                 next_exception_reg_tval = stamofu_exception_VA;
             end
-            // clear exception if killed
+            // clear current exception if killed
             else if (exception_reg_valid & killed_by_entry[exception_reg_index]) begin
                 next_exception_reg_valid = 1'b0;
             end
@@ -707,7 +715,7 @@ module rob #(
                 end
                 next_exception_reg_tval = ldu_exception_VA;
             end
-            // clear exception if killed
+            // clear current exception if killed
             else if (exception_reg_valid & killed_by_entry[exception_reg_index]) begin
                 next_exception_reg_valid = 1'b0;
             end
@@ -733,7 +741,7 @@ module rob #(
                     next_exception_reg_tval = dispatch_illegal_instr32;
                 end
             end
-            // clear exception if killed
+            // clear current exception if killed
             else if (exception_reg_valid & killed_by_entry[exception_reg_index]) begin
                 next_exception_reg_valid = 1'b0;
             end
@@ -905,13 +913,13 @@ module rob #(
     // deq/rollback logic:
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            arch_state_ptr <= 0;
+            map_table_state_ptr <= 0;
             restart_state <= DEQ;
             deq_launched_by_way <= 4'b0000;
             reset_rob_restart_valid <= ROB_RESTART_ON_RESET;
         end
         else begin
-            arch_state_ptr <= next_arch_state_ptr;
+            map_table_state_ptr <= next_map_table_state_ptr;
             restart_state <= next_restart_state;
             deq_launched_by_way <= next_deq_launched_by_way;
             reset_rob_restart_valid <= 1'b0;
@@ -922,6 +930,23 @@ module rob #(
             deq_complete_by_way[i] = 
                 (~bulk_bram_read_entry.is_ldu_by_way[i] & WB_complete_by_entry[4*head_ptr+i])
                 | unit_complete_by_entry[4*head_ptr+i];
+        end
+    end
+    always_comb begin
+        if (checkpoint_perform) begin
+            next_map_table_state_ptr = selected_checkpoint_nearest_4way_index;
+        end
+        else if (enq_perform) begin
+            next_map_table_state_ptr = tail_ptr + 1;
+        end
+        else if (map_table_state_ptr_incr) begin
+            next_map_table_state_ptr = map_table_state_ptr + 1;
+        end
+        else if (map_table_state_ptr_decr) begin
+            next_map_table_state_ptr = map_table_state_ptr - 1;
+        end
+        else begin
+            next_map_table_state_ptr = map_table_state_ptr;
         end
     end
     always_comb begin
@@ -979,17 +1004,19 @@ module rob #(
         rob_controlling_rename = 1'b0;
 
         bulk_bram_read_next_valid = 1'b0;
-        bulk_bram_read_next_index = head_ptr + 1;
+        bulk_bram_read_next_index = DEFAULT;
 
-        PC_bram_restart_control = 1'b0;
+        PC_bram_read_restart_control = 1'b0;
 
         exception_sent = 1'b0;
 
-        next_arch_state_ptr = arch_state_ptr + 1;
+        map_table_state_ptr_incr = 1'b0;
+        map_table_state_ptr_decr = 1'b0;
 
         next_restart_state = restart_state;
 
         deq_perform = 1'b0;
+        checkpoint_perform = 1'b0;
 
         next_restart_info_valid = restart_info_valid;
         next_restart_info_target_index = restart_info_target_index;
@@ -1001,47 +1028,245 @@ module rob #(
         deq_launching_by_way = 4'b0000;
 
         central_rob_restart_valid = 1'b0;
-        central_rob_restart_PC = TODO;
+        central_rob_restart_PC = restart_info_branch_target_PC;
 
         rob_kill_valid = 1'b0;
         rob_kill_rel_kill_younger_index = restart_info_target_index - rob_kill_abs_head_index;
 
         rob_checkpoint_map_table_restore_valid = 1'b0;
-        rob_checkpoint_map_table_restore_index = TODO;
+        rob_checkpoint_map_table_restore_index = DEFAULT;
 
         rob_checkpoint_clear_valid = 1'b0;
-        rob_checkpoint_clear_index = TODO;
+        rob_checkpoint_clear_index = DEFAULT;
 
         rob_map_table_write_valid_by_port = 4'b0000;
 
+        // state machine
+            // read bulk @ head ptr on transitions to DEQ for AR, PR info
+            // read bulk and PC @ restart index on transition to RESTART_SEND for restart PC info
+            // read bulk @ arch state ptr on transitions to ROLLBACK for AR, PR info
         case (restart_state)
 
             RESTART_SEND:
             begin
-                // check for new older restart (if not doing exception)
-                // otherwise, check for checkpoint
-
+                // send restart no matter what
                 rob_controlling_rename = 1'b1;
-                exception_sent = restart_info_is_exception;
+                exception_sent = 1'b0; // send this when done rollback
+                map_table_state_ptr_incr = 1'b0; // send on rollback's
+                map_table_state_ptr_decr = 1'b0; // send on rollback's
+                deq_perform = 1'b0;
+                checkpoint_perform = 1'b0;
+                next_deq_launched_by_way = deq_launched_by_way; // save DEQ progress
+                deq_launching_by_way = 4'b0000;
                 central_rob_restart_valid = 1'b1;
+                // restart PC selection
+                // exception restart -> handler addr
+                    // TODO: switch to mtvec/stvec functionality
+                if (restart_info_is_exception) begin
+                    central_rob_restart_PC = env_tvec_BASE_PC;
+                end
+                // general restart -> next PC
+                // fence, ldu restart -> rob PC + 4/2
+                else if (restart_info_use_rob_PC) begin
+                    // uncompressed -> PC + 4
+                    if (bulk_bram_read_entry.uncompressed_by_way[restart_info_target_index[1:0]]) begin
+                        central_rob_restart_PC = PC_bram_read_PC_by_way[restart_info_target_index[1:0]] + 32'h4;
+                    end
+                    // compressed -> PC + 2
+                    else begin
+                        central_rob_restart_PC = PC_bram_read_PC_by_way[restart_info_target_index[1:0]] + 32'h2;
+                    end
+                end
+                // branch restart -> given branch target PC
+                else begin
+                    central_rob_restart_PC = restart_info_branch_target_PC;
+                end
                 rob_kill_valid = 1'b1;
+                rob_kill_rel_kill_younger_index = restart_info_target_index - rob_kill_abs_head_index;
+                rob_checkpoint_map_table_restore_valid = 1'b0;
+                rob_checkpoint_map_table_restore_index = DEFAULT;
+                rob_checkpoint_clear_valid = 1'b0;
+                rob_checkpoint_clear_index = DEFAULT;
+                rob_map_table_write_valid_by_port = 4'b0000;
+
+                // check for new older restart if not doing exception and no older exception
+                if (
+                    ~restart_info_is_exception
+                    & new_restart_valid
+                    & (
+                        (new_restart_target_index - rob_kill_abs_head_index)
+                        <
+                        (restart_info_target_index - rob_kill_abs_head_index)
+                    )
+                    & (
+                        ~exception_reg_valid
+                        | (
+                            (new_restart_target_index - rob_kill_abs_head_index)
+                            <
+                            (exception_reg_index - rob_kill_abs_head_index)
+                        )
+                    )
+                ) begin
+                    bulk_bram_read_next_valid = 1'b1;
+                    bulk_bram_read_next_index = new_restart_target_index[LOG_ROB_ENTRIES-1:2];
+                    PC_bram_read_restart_control = 1'b1;
+                    next_restart_state = RESTART_SEND;
+                    next_restart_info_valid = 1'b1;
+                    next_restart_info_target_index = new_restart_target_index;
+                    next_restart_info_use_rob_PC = new_restart_use_rob_PC;
+                    next_restart_info_branch_target_PC = new_restart_branch_target_PC;
+                    next_restart_info_is_exception = 1'b0;
+                end
+
+                // otherwise, check for checkpoint:
+                else if (checkpoint_present) begin
+                    bulk_bram_read_next_valid = 1'b0; // start read next cycle
+                    bulk_bram_read_next_index = DEFAULT;
+                    PC_bram_read_restart_control = 1'b0;
+                    next_restart_state = CHECKPOINT_RESTORE;
+                    next_restart_info_valid = restart_info_valid;
+                    next_restart_info_target_index = restart_info_target_index;
+                    next_restart_info_use_rob_PC = restart_info_use_rob_PC;
+                    next_restart_info_branch_target_PC = restart_info_branch_target_PC;
+                    next_restart_info_is_exception = restart_info_is_exception;
+                end
+
+                // otherwise, continue to rollback
+                else begin
+                    bulk_bram_read_next_valid = 1'b1;
+                    bulk_bram_read_next_index = next_map_table_state_ptr;
+                    PC_bram_read_restart_control = 1'b0;
+                    next_restart_state = CHECKPOINT_RESTORE;
+                    next_restart_info_valid = restart_info_valid;
+                    next_restart_info_target_index = restart_info_target_index;
+                    next_restart_info_use_rob_PC = restart_info_use_rob_PC;
+                    next_restart_info_branch_target_PC = restart_info_branch_target_PC;
+                    next_restart_info_is_exception = restart_info_is_exception;
+                end
             end
 
             CHECKPOINT_RESTORE:
             begin
-                // check for new older restart (if not doing exception)
-                // otherwise, continue rollback
-
+                // perform checkpoint restore no matter what
                 rob_controlling_rename = 1'b1;
+                exception_sent = 1'b0; // send this when done rollback
+                map_table_state_ptr_incr = 1'b0; // send on rollback's
+                map_table_state_ptr_decr = 1'b0; // send on rollback's
+                deq_perform = 1'b0;
+                checkpoint_perform = 1'b1;
+                next_deq_launched_by_way = deq_launched_by_way; // save DEQ progress
+                deq_launching_by_way = 4'b0000;
+                central_rob_restart_valid = 1'b0;
+                central_rob_restart_PC = restart_info_branch_target_PC;
+                rob_kill_valid = 1'b0;
+                rob_kill_rel_kill_younger_index = restart_info_target_index - rob_kill_abs_head_index;
+                rob_checkpoint_map_table_restore_valid = 1'b1;
+                rob_checkpoint_map_table_restore_index = checkpoint_index_by_4way[selected_checkpoint_nearest_4way_index];
+                rob_checkpoint_clear_valid = 1'b0;
+                rob_checkpoint_clear_index = DEFAULT;
+                rob_map_table_write_valid_by_port = 4'b0000;
+
+                // check for new older restart if not doing exception and no older exception
+                if (
+                    ~restart_info_is_exception
+                    & new_restart_valid
+                    & (
+                        (new_restart_target_index - rob_kill_abs_head_index)
+                        <
+                        (restart_info_target_index - rob_kill_abs_head_index)
+                    )
+                    & (
+                        ~exception_reg_valid
+                        | (
+                            (new_restart_target_index - rob_kill_abs_head_index)
+                            <
+                            (exception_reg_index - rob_kill_abs_head_index)
+                        )
+                    )
+                ) begin
+                    bulk_bram_read_next_valid = 1'b1;
+                    bulk_bram_read_next_index = new_restart_target_index[LOG_ROB_ENTRIES-1:2];
+                    PC_bram_read_restart_control = 1'b1;
+                    next_restart_state = RESTART_SEND;
+                    next_restart_info_valid = 1'b1;
+                    next_restart_info_target_index = new_restart_target_index;
+                    next_restart_info_use_rob_PC = new_restart_use_rob_PC;
+                    next_restart_info_branch_target_PC = new_restart_branch_target_PC;
+                    next_restart_info_is_exception = 1'b0;
+                end
+
+                // otherwise, continue rollback
+                else begin
+                    bulk_bram_read_next_valid = 1'b1;
+                    bulk_bram_read_next_index = checkpoint_index_by_4way;
+                    PC_bram_read_restart_control = 1'b0;
+                    next_restart_state = ROLLBACK;
+                    next_restart_info_valid = restart_info_valid;
+                    next_restart_info_target_index = restart_info_target_index;
+                    next_restart_info_use_rob_PC = restart_info_use_rob_PC;
+                    next_restart_info_branch_target_PC = restart_info_branch_target_PC;
+                    next_restart_info_is_exception = restart_info_is_exception;
+                end
             end
 
             ROLLBACK:
             begin
-                // check for new older restart (if not doing exception)
-                // check for rollback arrival
-                // otherwise, continue rollback
-
+                // perform rollback no matter what
                 rob_controlling_rename = 1'b1;
+                deq_perform = 1'b0;
+                checkpoint_perform = 1'b0;
+                next_deq_launched_by_way = deq_launched_by_way; // save DEQ progress
+                deq_launching_by_way = 4'b0000;
+                central_rob_restart_valid = 1'b0;
+                central_rob_restart_PC = restart_info_branch_target_PC;
+                rob_kill_valid = 1'b0;
+                rob_kill_rel_kill_younger_index = restart_info_target_index - rob_kill_abs_head_index;
+                rob_checkpoint_map_table_restore_valid = 1'b0;
+                rob_checkpoint_map_table_restore_index = checkpoint_index_by_4way[selected_checkpoint_nearest_4way_index];
+                rob_checkpoint_clear_valid = 1'b1;
+                rob_checkpoint_clear_index = DEFAULT;
+                rob_map_table_write_valid_by_port = bulk_bram_read_entry.is_rename_by_way;
+
+                // check for new older restart if not doing exception and no older exception
+                if (
+                    ~restart_info_is_exception
+                    & new_restart_valid
+                    & (
+                        (new_restart_target_index - rob_kill_abs_head_index)
+                        <
+                        (restart_info_target_index - rob_kill_abs_head_index)
+                    )
+                    & (
+                        ~exception_reg_valid
+                        | (
+                            (new_restart_target_index - rob_kill_abs_head_index)
+                            <
+                            (exception_reg_index - rob_kill_abs_head_index)
+                        )
+                    )
+                ) begin
+                    bulk_bram_read_next_valid = 1'b1;
+                    bulk_bram_read_next_index = new_restart_target_index[LOG_ROB_ENTRIES-1:2];
+                    PC_bram_read_restart_control = 1'b1;
+                    exception_sent = 1'b0;
+                    map_table_state_ptr_incr = 1'b0;
+                    map_table_state_ptr_decr = 1'b0;
+                    next_restart_state = RESTART_SEND;
+                    next_restart_info_valid = 1'b1;
+                    next_restart_info_target_index = new_restart_target_index;
+                    next_restart_info_use_rob_PC = new_restart_use_rob_PC;
+                    next_restart_info_branch_target_PC = new_restart_branch_target_PC;
+                    next_restart_info_is_exception = 1'b0;
+                end
+                // check for rollback arrival
+                    // double check no enq, which will mess up map table state
+                if (
+                    ~enq_perform
+                    & 
+                ) begin
+                    
+                end
+                // otherwise, continue rollback
             end
             
             default: // DEQ
@@ -1056,11 +1281,11 @@ module rob #(
 
     // PC bram logic:
     always_comb begin
-        ssu_mdp_update_ready = ~PC_bram_restart_control;
+        ssu_mdp_update_ready = ~PC_bram_read_restart_control;
 
-        PC_bram_read_next_valid = PC_bram_restart_control | ssu_mdp_update_valid;
+        PC_bram_read_next_valid = PC_bram_read_restart_control | ssu_mdp_update_valid;
 
-        if (PC_bram_restart_control) begin
+        if (PC_bram_read_restart_control) begin
             // rob state machine control
             PC_bram_read_next_index = new_restart_target_index[LOG_ROB_ENTRIES-1:2];
         end
@@ -1103,6 +1328,7 @@ module rob #(
             env_trap_sfence <= INIT_TRAP_SFENCE;
             env_trap_wfi <= INIT_TRAP_WFI;
             env_trap_sret <= INIT_TRAP_SRET;
+            env_tvec_BASE_PC <= INIT_TVEC_BASE_PC;
         end
         else begin
             // for now, since no csrf, these are hardwired
@@ -1113,7 +1339,7 @@ module rob #(
     // Memory Arrays:
 
     bram_1rport_1wport #(
-        .INNER_WIDTH((($bits(bram_entry_t)-1)/8 + 1) * 8),
+        .INNER_WIDTH((($bits(bulk_bram_entry_t)-1)/8 + 1) * 8),
         .OUTER_WIDTH(ROB_ENTRIES/4)
     ) BULK_BRAM (
         .CLK(CLK),
@@ -1121,7 +1347,7 @@ module rob #(
         .ren(bulk_bram_read_next_valid),
         .rindex(bulk_bram_read_next_index),
         .rdata(bulk_bram_read_entry),
-        .wen_byte({(($bits(bram_entry_t)-1)/8 + 1){bulk_bram_write_valid}}),
+        .wen_byte({(($bits(bulk_bram_entry_t)-1)/8 + 1){bulk_bram_write_valid}}),
         .windex(bulk_bram_write_index),
         .wdata(bulk_bram_write_entry)        
     );
