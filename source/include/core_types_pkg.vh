@@ -70,6 +70,7 @@ package core_types_pkg;
     parameter LOG_ROB_ENTRIES = $clog2(ROB_ENTRIES);
 
     parameter ROB_MISPRED_Q_ENTRIES = 2;
+    parameter ROB_PR_FREE_Q_ENTRIES = 2;
 
     // ----------------------------------------------------------------
     // DQ's and IQ's:

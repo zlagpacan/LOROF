@@ -12,10 +12,14 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 module rob #(
+    parameter ROB_ENTRIES = 128,
+    parameter LOG_ROB_ENTRIES = $clog2(ROB_ENTRIES),
+    parameter ROB_MISPRED_Q_ENTRIES = 2,
+    parameter ROB_PR_FREE_Q_ENTRIES = 2,
     parameter ROB_RESTART_ON_RESET = 1'b1,
 
     parameter INIT_PC = 32'h00000000,
-    parameter INIT_ASID = 9'h0,
+    parameter INIT_ASID = 9'h000,
     parameter INIT_EXEC_MODE = M_MODE,
     parameter INIT_VIRTUAL_MODE = 1'b0,
     parameter INIT_MXR = 1'b0,
@@ -186,62 +190,6 @@ module rob #(
 	input logic [3:0]                       rob_PR_free_resp_ack_by_bank
 );
 
-    // unexceptable head and true head
-        // unexceptable head used to launch stores and AMO's
-        // true head used to free registers and verify instruction completion
-            // also safe to roll back architecture state with since know garbage value done being written
-        // true head must wait for all instr's to be complete
-        // unexceptable head just waits until no exception or misprediction possible for instr
-            // ALU: technically don't need to wait as none are ever exceptable
-            // BRU: when resolved
-            // LDU: unexceptable once get dTLB resp
-                // unless strict with when load marked as complete, (e.g. when no earlier stores are ambigious,
-                // which means need another SQ CAM -> NO) then all loads are exceptable until the stores
-                // older than them are all complete
-                    // this functionality relies on stores only being marked as complete
-            // STAMOFU: 
-                // stores: once get dTLB resp
-                    // need to make sure loads behind are restarted
-                    // dTLB resp implies ldu_cq + ldu_mq CAM
-                // AMO's: once get reg write
-                    // dependent loads behind must wait until AMO returns so that can read updated value in dcache 
-                    // heavy stall here
-                // fence's: 
-            // SYS: when CSR resolved
-
-    // pretty sure just need unexceptable head, which can then be the true head
-        // potential consequences
-            // registers are freed earlier
-                // this is good if possible
-                // ALL INSTR'S MUST BE DONE WITH OLD VALUES
-                    // this can be guaranteed since no isntr's older than amo which could use the old reg value are complete
-            // ROB commit from head no longer means can check expected processor state for instr
-                // e.g. load may eventually come in after dcache miss but value isn't there yet, may have to wait fairly arbitrary time
-                // actually I don't think this will work then because loads must wait stay in LQ until value comes back
-                    // wait no it's fine because loads have commit broadcasted, just delay dequeue from LQ until also have returned value
-                // this is solid reason not to do this
-        // "unexceptable" for this purpose then requires that operands have been read
-        // since doing no instr kills in non-mem and non-sysu pipelines, seems like forced to just wait for non-mem and non-sysu to be fully complete before move on unexceptable head
-            // maybe not since guaranteed reg write happens
-    
-    // solid plan for now: use true head
-        // perform commit when 4-way @ head complete
-            // perform free's if exist
-            // clear checkpoint if exists
-            // launch stamofu
-                // can only do 1 per cycle
-                    // repeat as needed
-                        // prolly invalidating entries as go anyway so will naturally move onto the next store on the next cycle
-                // AMO's not fully complete until read returned, so head stalled
-                // multiple stores in 4-way and AMO's are rare case, just eat the (potential) perf hit
-                    // only a perf hit if ejection rate of stores/amos/fences or ROB capacity are limiters for program
-                // compromise: ROB can broadcast completion of full 4-way per cycle
-                    // then up to stamofu to maintain avg bandwidth of 1/cycle commit to dcache
-                // ended up being simplified in stamofu design
-                    // send 4-way commits
-                    // stamofu can apply all commits to associated entries at once
-                    // with at least 1-cycle delay, stamofu independently launches one store/amo per cycle 
-
     // on restart
         // can treat early and late restart the same
         // restore oldest checkpoint younger than restart if exists
@@ -339,15 +287,17 @@ module rob #(
     // exception reg
         // need for exception req, deq/rollback
     logic                           exception_reg_valid, next_exception_reg_valid;
-    logic [LOG_ROB_ENTRIES-1:0]     exception_reg_index, next_exception_reg_index;
+    logic [LOG_ROB_ENTRIES-1:0]     exception_reg_target_index, next_exception_reg_target_index;
     logic [31:0]                    exception_reg_cause, next_exception_reg_cause;
     logic [31:0]                    exception_reg_tval, next_exception_reg_tval;
+
+    logic [ROB_ENTRIES/4-1:0]       exception_reg_target_mask_by_4way;
 
     logic exception_sent;
 
     // FIFO pointers
-    logic [LOG_ROB_ENTRIES-2-1:0] tail_ptr, next_tail_ptr;
-    logic [LOG_ROB_ENTRIES-2-1:0] head_ptr, next_head_ptr;
+    logic [LOG_ROB_ENTRIES-2-1:0] tail_ptr;
+    logic [LOG_ROB_ENTRIES-2-1:0] head_ptr;
 
     logic [LOG_ROB_ENTRIES-2-1:0]   map_table_state_ptr, next_map_table_state_ptr;
     logic                           map_table_state_rolling_back;
@@ -381,6 +331,8 @@ module rob #(
     logic [LOG_ROB_ENTRIES-1:0]     new_restart_target_index, next_new_restart_target_index;
     logic                           new_restart_use_rob_PC, next_new_restart_use_rob_PC;
     logic [31:0]                    new_restart_branch_target_PC, next_new_restart_branch_target_PC;
+
+    logic [ROB_ENTRIES/4-1:0]       new_restart_target_mask_by_4way;
 
     logic                           checkpoint_present;
 
@@ -446,6 +398,19 @@ module rob #(
 
     logic           central_rob_restart_valid;
     logic [31:0]    central_rob_restart_PC;
+
+    // PR free queue
+    logic                           PR_free_q_enq_valid;
+    logic [3:0]                     PR_free_q_enq_valid_by_way;
+    logic [3:0][LOG_PR_COUNT-1:0]   PR_free_q_enq_PR_by_way;
+    logic                           PR_free_q_enq_ready;
+    
+    logic                           PR_free_q_deq_valid;
+    logic [3:0]                     PR_free_q_deq_valid_by_way;
+    logic [3:0][LOG_PR_COUNT-1:0]   PR_free_q_deq_PR_by_way;
+    logic                           PR_free_q_deq_ready;
+
+    logic [3:0]                     PR_free_q_deq_invalid_mask, next_PR_free_q_deq_invalid_mask;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -521,7 +486,7 @@ module rob #(
         .nRST(nRST),
         .enq_valid(ldu_mispred_enq_valid),
         .enq_data(ldu_mispred_enq_ROB_index),
-        .enq_ready(ldu_mispred_notif_ready),
+        .enq_ready(ldu_mispred_enq_ready),
         .deq_valid(ldu_mispred_deq_valid),
         .deq_data(ldu_mispred_deq_ROB_index),
         .deq_ready(ldu_mispred_deq_ready)
@@ -549,6 +514,20 @@ module rob #(
     );
 
     // restart controller
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            new_restart_valid <= 1'b0;
+            new_restart_target_index <= 0;
+            new_restart_use_rob_PC <= 1'b0;
+            new_restart_branch_target_PC <= 32'h00000000;
+        end
+        else begin
+            new_restart_valid <= next_new_restart_valid;
+            new_restart_target_index <= next_new_restart_target_index;
+            new_restart_use_rob_PC <= next_new_restart_use_rob_PC;
+            new_restart_branch_target_PC <= next_new_restart_branch_target_PC;
+        end
+    end
     always_comb begin
 
         // static priority: fence > ldu > branch
@@ -622,25 +601,28 @@ module rob #(
         end
         next_new_restart_branch_target_PC = branch_mispred_deq_target_PC;
     end
+    always_comb begin
+        new_restart_target_mask_by_4way = {(ROB_ENTRIES/4){1'b1}} << new_restart_target_index[LOG_ROB_ENTRIES-1:2];
+    end
 
     // exception controller
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             exception_reg_valid <= 1'b0;
-            exception_reg_index <= 2'h0;
+            exception_reg_target_index <= 2'h0;
             exception_reg_cause <= 32'h0;
             exception_reg_tval <= 32'h0;
         end
         else begin
             exception_reg_valid <= next_exception_reg_valid;
-            exception_reg_index <= next_exception_reg_index;
+            exception_reg_target_index <= next_exception_reg_target_index;
             exception_reg_cause <= next_exception_reg_cause;
             exception_reg_tval <= next_exception_reg_tval;
         end
     end
     always_comb begin
         next_exception_reg_valid = exception_reg_valid;
-        next_exception_reg_index = exception_reg_index;
+        next_exception_reg_target_index = exception_reg_target_index;
         next_exception_reg_cause = exception_reg_cause;
         next_exception_reg_tval = exception_reg_tval;
         
@@ -659,11 +641,12 @@ module rob #(
                 ~exception_reg_valid
                 | (
                     (stamofu_exception_ROB_index - rob_kill_abs_head_index)
-                    < (exception_reg_index - rob_kill_abs_head_index))
+                    < (exception_reg_target_index - rob_kill_abs_head_index))
             ) begin
                 next_exception_reg_valid = 1'b1;
-                next_exception_reg_index = stamofu_exception_ROB_index;
+                next_exception_reg_target_index = stamofu_exception_ROB_index;
                 if (stamofu_exception_is_lr) begin
+                    // LR.W
                     if (stamofu_exception_page_fault) begin
                         // load page fault -> [13]
                         next_exception_reg_cause = 32'h00002000;
@@ -678,6 +661,7 @@ module rob #(
                     end
                 end
                 else begin
+                    // S*, AMO*, SC.W
                     if (stamofu_exception_page_fault) begin
                         // store/amo page fault -> [15]
                         next_exception_reg_cause = 32'h00008000;
@@ -694,7 +678,7 @@ module rob #(
                 next_exception_reg_tval = stamofu_exception_VA;
             end
             // clear current exception if killed
-            else if (exception_reg_valid & killed_by_entry[exception_reg_index]) begin
+            else if (exception_reg_valid & killed_by_entry[exception_reg_target_index]) begin
                 next_exception_reg_valid = 1'b0;
             end
         end
@@ -704,10 +688,10 @@ module rob #(
                 ~exception_reg_valid
                 | (
                     (ldu_exception_ROB_index - rob_kill_abs_head_index)
-                    < (exception_reg_index - rob_kill_abs_head_index))
+                    < (exception_reg_target_index - rob_kill_abs_head_index))
             ) begin
                 next_exception_reg_valid = 1'b1;
-                next_exception_reg_index = ldu_exception_ROB_index;
+                next_exception_reg_target_index = ldu_exception_ROB_index;
                 if (ldu_exception_page_fault) begin
                     // load page fault -> [13]
                     next_exception_reg_cause = 32'h00002000;
@@ -719,7 +703,7 @@ module rob #(
                 next_exception_reg_tval = ldu_exception_VA;
             end
             // clear current exception if killed
-            else if (exception_reg_valid & killed_by_entry[exception_reg_index]) begin
+            else if (exception_reg_valid & killed_by_entry[exception_reg_target_index]) begin
                 next_exception_reg_valid = 1'b0;
             end
         end
@@ -727,7 +711,7 @@ module rob #(
             // take new exception if no curr
             if (~exception_reg_valid) begin
                 next_exception_reg_valid = 1'b1;
-                next_exception_reg_index = {tail_ptr, dispatch_exception_index};
+                next_exception_reg_target_index = {tail_ptr, dispatch_exception_index};
                 if (dispatch_is_page_fault) begin
                     // instr page fault -> [12]
                     next_exception_reg_cause = 32'h00001000;
@@ -745,10 +729,13 @@ module rob #(
                 end
             end
             // clear current exception if killed
-            else if (exception_reg_valid & killed_by_entry[exception_reg_index]) begin
+            else if (exception_reg_valid & killed_by_entry[exception_reg_target_index]) begin
                 next_exception_reg_valid = 1'b0;
             end
         end
+    end
+    always_comb begin
+        exception_reg_target_mask_by_4way = {(ROB_ENTRIES/4){1'b1}} << exception_reg_target_index[LOG_ROB_ENTRIES-1:2];
     end
 
     // FF state
@@ -756,6 +743,7 @@ module rob #(
         if (~nRST) begin
             valid_by_4way <= '0;
             checkpoint_present_by_4way <= '0;
+            checkpoint_index_by_4way <= '0;
             WB_complete_by_entry <= '0;
             unit_complete_by_entry <= '0;
             killed_by_entry <= '0;
@@ -768,6 +756,7 @@ module rob #(
             if (enq_perform) begin
                 valid_by_4way[tail_ptr] <= 1'b1;
                 checkpoint_present_by_4way[tail_ptr] <= dispatch_has_checkpoint;
+                checkpoint_index_by_4way[tail_ptr] <= dispatch_checkpoint_index;
                 
                 for (int i = 0; i < 4; i++) begin
                     WB_complete_by_entry[4*tail_ptr+i] <= 1'b0;
@@ -839,7 +828,7 @@ module rob #(
     always_comb begin
         // can't accept if has exception and stamofu or ldu trying to except this cycle
         dispatch_enq_ready = 
-            valid_by_4way[tail_ptr]
+            ~valid_by_4way[tail_ptr]
             & ~(
                 dispatch_exception_present
                 & (stamofu_exception_valid | ldu_exception_valid)
@@ -888,6 +877,20 @@ module rob #(
         .older_present(next_older_checkpoint_present),
         .youngest_older_index(next_youngest_older_checkpoint_4way_index)
     );
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            younger_checkpoint_present <= 1'b0;
+            oldest_younger_checkpoint_4way_index <= 0;
+            older_checkpoint_present <= 1'b0;
+            youngest_older_checkpoint_4way_index <= 0;
+        end
+        else begin
+            younger_checkpoint_present <= next_younger_checkpoint_present;
+            oldest_younger_checkpoint_4way_index <= next_oldest_younger_checkpoint_4way_index;
+            older_checkpoint_present <= next_older_checkpoint_present;
+            youngest_older_checkpoint_4way_index <= next_youngest_older_checkpoint_4way_index;
+        end
+    end
     always_comb begin
         // if have younger and older, pick closest
         if (younger_checkpoint_present & older_checkpoint_present) begin
@@ -924,14 +927,32 @@ module rob #(
         if (~nRST) begin
             map_table_state_ptr <= 0;
             map_table_state_reversing <= 1'b0;
+
             restart_state <= DEQ;
+
+            restart_info_valid <= 1'b0;
+            restart_info_target_index <= 0;
+            restart_info_target_mask_by_4way <= '1;
+            restart_info_use_rob_PC <= 1'b1;
+            restart_info_branch_target_PC <= 32'h00000000;
+            restart_info_is_exception <= 1'b0;
+
             deq_launched_by_way <= 4'b0000;
             reset_rob_restart_valid <= ROB_RESTART_ON_RESET;
         end
         else begin
             map_table_state_ptr <= next_map_table_state_ptr;
             map_table_state_reversing <= next_map_table_state_reversing;
+
             restart_state <= next_restart_state;
+
+            restart_info_valid <= next_restart_info_valid;
+            restart_info_target_index <= next_restart_info_target_index;
+            restart_info_target_mask_by_4way <= next_restart_info_target_mask_by_4way;
+            restart_info_use_rob_PC <= next_restart_info_use_rob_PC;
+            restart_info_branch_target_PC <= next_restart_info_branch_target_PC;
+            restart_info_is_exception <= next_restart_info_is_exception;
+
             deq_launched_by_way <= next_deq_launched_by_way;
             reset_rob_restart_valid <= 1'b0;
         end
@@ -1053,62 +1074,8 @@ module rob #(
         else begin
             rob_map_table_write_PR_by_port = bulk_bram_read_entry.dest_new_PR_by_way;
         end
-
-        // free logic
-        for (int way = 0; way < 4; way++) begin
-            rob_PR_free_req_valid_by_bank[way] = 
-                deq_launching_by_way[way]
-                & bulk_bram_read_entry.valid_by_way[way]
-                & bulk_bram_read_entry.is_rename_by_way[way];
-            if (killed_by_entry[{head_ptr, way}]) begin
-                // if killed, free new
-                rob_PR_free_req_PR_by_bank[way] = bulk_bram_read_entry.dest_new_PR_by_way[way];
-            end else begin
-                // if not killed, free old
-                rob_PR_free_req_PR_by_bank[way] = bulk_bram_read_entry.dest_old_PR_by_way[way];
-            end
-        end
     end
     always_comb begin
-        rob_controlling_rename = 1'b0;
-
-        bulk_bram_read_next_valid = 1'b0;
-        bulk_bram_read_next_index = DEFAULT;
-
-        PC_bram_read_restart_control = 1'b0;
-
-        exception_sent = 1'b0;
-
-        map_table_state_ptr_incr = 1'b0;
-        map_table_state_ptr_decr = 1'b0;
-        map_table_state_rolling_back = 1'b0;
-
-        next_restart_state = restart_state;
-
-        deq_perform = 1'b0;
-        checkpoint_perform = 1'b0;
-
-        next_restart_info_valid = restart_info_valid;
-        next_restart_info_target_index = restart_info_target_index;
-        next_restart_info_use_rob_PC = restart_info_use_rob_PC;
-        next_restart_info_branch_target_PC = restart_info_branch_target_PC;
-        next_restart_info_is_exception = restart_info_is_exception;
-
-        next_deq_launched_by_way = deq_launched_by_way;
-        deq_launching_by_way = 4'b0000;
-
-        central_rob_restart_valid = 1'b0;
-        central_rob_restart_PC = restart_info_branch_target_PC;
-
-        rob_kill_valid = 1'b0;
-        rob_kill_rel_kill_younger_index = restart_info_target_index - rob_kill_abs_head_index;
-
-        rob_checkpoint_map_table_restore_valid = 1'b0;
-        rob_checkpoint_map_table_restore_index = checkpoint_index_by_4way[selected_checkpoint_nearest_4way_index];
-
-        rob_checkpoint_clear_valid = 1'b0;
-        rob_checkpoint_clear_index = checkpoint_index_by_4way[head_ptr];
-
         // state machine
             // read bulk @ head ptr on transitions to DEQ for AR, PR info
             // read bulk and PC @ restart index on transition to RESTART_SEND for restart PC info
@@ -1171,7 +1138,7 @@ module rob #(
                         | (
                             (new_restart_target_index - rob_kill_abs_head_index)
                             <
-                            (exception_reg_index - rob_kill_abs_head_index)
+                            (exception_reg_target_index - rob_kill_abs_head_index)
                         )
                     )
                 ) begin
@@ -1181,6 +1148,7 @@ module rob #(
                     next_restart_state = RESTART_SEND;
                     next_restart_info_valid = 1'b1;
                     next_restart_info_target_index = new_restart_target_index;
+                    next_restart_info_target_mask_by_4way = new_restart_target_mask_by_4way;
                     next_restart_info_use_rob_PC = new_restart_use_rob_PC;
                     next_restart_info_branch_target_PC = new_restart_branch_target_PC;
                     next_restart_info_is_exception = 1'b0;
@@ -1188,11 +1156,12 @@ module rob #(
                 // otherwise, check for checkpoint:
                 else if (checkpoint_present) begin
                     bulk_bram_read_next_valid = 1'b0; // start read next cycle
-                    bulk_bram_read_next_index = DEFAULT;
+                    bulk_bram_read_next_index = new_restart_target_index[LOG_ROB_ENTRIES-1:2];;
                     PC_bram_read_restart_control = 1'b0;
                     next_restart_state = CHECKPOINT_RESTORE;
                     next_restart_info_valid = 1'b1;
                     next_restart_info_target_index = restart_info_target_index;
+                    next_restart_info_target_mask_by_4way = restart_info_target_mask_by_4way;
                     next_restart_info_use_rob_PC = restart_info_use_rob_PC;
                     next_restart_info_branch_target_PC = restart_info_branch_target_PC;
                     next_restart_info_is_exception = restart_info_is_exception;
@@ -1205,6 +1174,7 @@ module rob #(
                     next_restart_state = CHECKPOINT_RESTORE;
                     next_restart_info_valid = 1'b1;
                     next_restart_info_target_index = restart_info_target_index;
+                    next_restart_info_target_mask_by_4way = restart_info_target_mask_by_4way;
                     next_restart_info_use_rob_PC = restart_info_use_rob_PC;
                     next_restart_info_branch_target_PC = restart_info_branch_target_PC;
                     next_restart_info_is_exception = restart_info_is_exception;
@@ -1246,7 +1216,7 @@ module rob #(
                         | (
                             (new_restart_target_index - rob_kill_abs_head_index)
                             <
-                            (exception_reg_index - rob_kill_abs_head_index)
+                            (exception_reg_target_index - rob_kill_abs_head_index)
                         )
                     )
                 ) begin
@@ -1256,6 +1226,7 @@ module rob #(
                     next_restart_state = RESTART_SEND;
                     next_restart_info_valid = 1'b1;
                     next_restart_info_target_index = new_restart_target_index;
+                    next_restart_info_target_mask_by_4way = new_restart_target_mask_by_4way;
                     next_restart_info_use_rob_PC = new_restart_use_rob_PC;
                     next_restart_info_branch_target_PC = new_restart_branch_target_PC;
                     next_restart_info_is_exception = 1'b0;
@@ -1268,6 +1239,7 @@ module rob #(
                     next_restart_state = ROLLBACK;
                     next_restart_info_valid = 1'b1;
                     next_restart_info_target_index = restart_info_target_index;
+                    next_restart_info_target_mask_by_4way = restart_info_target_mask_by_4way;
                     next_restart_info_use_rob_PC = restart_info_use_rob_PC;
                     next_restart_info_branch_target_PC = restart_info_branch_target_PC;
                     next_restart_info_is_exception = restart_info_is_exception;
@@ -1291,6 +1263,7 @@ module rob #(
                 rob_kill_rel_kill_younger_index = restart_info_target_index - rob_kill_abs_head_index;
                 rob_checkpoint_map_table_restore_valid = 1'b0;
                 rob_checkpoint_map_table_restore_index = checkpoint_index_by_4way[selected_checkpoint_nearest_4way_index];
+                rob_checkpoint_clear_valid = 1'b0;
                 rob_checkpoint_clear_index = checkpoint_index_by_4way[head_ptr];
 
                 // check for new older restart if not doing exception and no older exception
@@ -1307,7 +1280,7 @@ module rob #(
                         | (
                             (new_restart_target_index - rob_kill_abs_head_index)
                             <
-                            (exception_reg_index - rob_kill_abs_head_index)
+                            (exception_reg_target_index - rob_kill_abs_head_index)
                         )
                     )
                 ) begin
@@ -1318,6 +1291,7 @@ module rob #(
                     next_restart_state = RESTART_SEND;
                     next_restart_info_valid = 1'b1;
                     next_restart_info_target_index = new_restart_target_index;
+                    next_restart_info_target_mask_by_4way = new_restart_target_mask_by_4way;
                     next_restart_info_use_rob_PC = new_restart_use_rob_PC;
                     next_restart_info_branch_target_PC = new_restart_branch_target_PC;
                     next_restart_info_is_exception = 1'b0;
@@ -1330,12 +1304,13 @@ module rob #(
                     & map_table_state_ptr == restart_info_target_index[LOG_ROB_ENTRIES-1:2]
                 ) begin
                     bulk_bram_read_next_valid = 1'b1;
-                    bulk_bram_read_next_index = next_head_ptr;
+                    bulk_bram_read_next_index = head_ptr + 1;
                     PC_bram_read_restart_control = 1'b0;
                     exception_sent = restart_info_is_exception;
                     next_restart_state = DEQ;
                     next_restart_info_valid = 1'b0;
                     next_restart_info_target_index = restart_info_target_index;
+                    next_restart_info_target_mask_by_4way = restart_info_target_mask_by_4way;
                     next_restart_info_use_rob_PC = restart_info_use_rob_PC;
                     next_restart_info_branch_target_PC = restart_info_branch_target_PC;
                     next_restart_info_is_exception = restart_info_is_exception;
@@ -1349,6 +1324,7 @@ module rob #(
                     next_restart_state = ROLLBACK;
                     next_restart_info_valid = 1'b1;
                     next_restart_info_target_index = restart_info_target_index;
+                    next_restart_info_target_mask_by_4way = restart_info_target_mask_by_4way;
                     next_restart_info_use_rob_PC = restart_info_use_rob_PC;
                     next_restart_info_branch_target_PC = restart_info_branch_target_PC;
                     next_restart_info_is_exception = restart_info_is_exception;
@@ -1363,7 +1339,7 @@ module rob #(
                 map_table_state_ptr_incr = 1'b0; // send on rollback's
                 map_table_state_ptr_decr = 1'b0; // send on rollback's
                 checkpoint_perform = 1'b0;
-                central_rob_restart_valid = 1'b1;
+                central_rob_restart_valid = 1'b0;
                 central_rob_restart_PC = restart_info_branch_target_PC;
                 rob_kill_valid = 1'b0;
                 rob_kill_rel_kill_younger_index = restart_info_target_index - rob_kill_abs_head_index;
@@ -1375,21 +1351,22 @@ module rob #(
                     // deq'd everything older than excepting instr
                 if (
                     exception_reg_valid
-                    & (exception_reg_index[LOG_ROB_ENTRIES-1:2] == head_ptr)
+                    & (exception_reg_target_index[LOG_ROB_ENTRIES-1:2] == head_ptr)
                     & (
-                        ((exception_reg_index[1:0] == 2'h0) & (deq_launched_by_way == 4'b0000))
-                        | ((exception_reg_index[1:0] == 2'h1) & (deq_launched_by_way == 4'b0001))
-                        | ((exception_reg_index[1:0] == 2'h2) & (deq_launched_by_way == 4'b0011))
-                        | ((exception_reg_index[1:0] == 2'h3) & (deq_launched_by_way == 4'b0111))
+                        ((exception_reg_target_index[1:0] == 2'h0) & (deq_launched_by_way == 4'b0000))
+                        | ((exception_reg_target_index[1:0] == 2'h1) & (deq_launched_by_way == 4'b0001))
+                        | ((exception_reg_target_index[1:0] == 2'h2) & (deq_launched_by_way == 4'b0011))
+                        | ((exception_reg_target_index[1:0] == 2'h3) & (deq_launched_by_way == 4'b0111))
                     )
                 ) begin
                     bulk_bram_read_next_valid = 1'b0;
-                    bulk_bram_read_next_index = exception_reg_index[LOG_ROB_ENTRIES-1:2];
+                    bulk_bram_read_next_index = exception_reg_target_index[LOG_ROB_ENTRIES-1:2];
                     PC_bram_read_restart_control = 1'b1;
                     next_restart_state = RESTART_SEND;
                     deq_perform = 1'b0;
                     next_restart_info_valid = 1'b1;
-                    next_restart_info_target_index = exception_reg_index;
+                    next_restart_info_target_index = exception_reg_target_index;
+                    next_restart_info_target_mask_by_4way = exception_reg_target_mask_by_4way;
                     next_restart_info_use_rob_PC = 1'b1;
                     next_restart_info_branch_target_PC = restart_info_branch_target_PC;
                     next_restart_info_is_exception = 1'b1;
@@ -1405,7 +1382,7 @@ module rob #(
                         | (
                             (new_restart_target_index - rob_kill_abs_head_index)
                             <
-                            (exception_reg_index - rob_kill_abs_head_index)
+                            (exception_reg_target_index - rob_kill_abs_head_index)
                         )
                     )
                 ) begin
@@ -1416,6 +1393,7 @@ module rob #(
                     deq_perform = 1'b0;
                     next_restart_info_valid = 1'b1;
                     next_restart_info_target_index = new_restart_target_index;
+                    next_restart_info_target_mask_by_4way = new_restart_target_mask_by_4way;
                     next_restart_info_use_rob_PC = new_restart_use_rob_PC;
                     next_restart_info_branch_target_PC = new_restart_branch_target_PC;
                     next_restart_info_is_exception = 1'b0;
@@ -1429,14 +1407,16 @@ module rob #(
                 else if (
                     valid_by_4way[head_ptr]
                     & &(~bulk_bram_read_entry.valid_by_way | deq_complete_by_way)
+                    & PR_free_q_enq_ready
                 ) begin
                     bulk_bram_read_next_valid = 1'b1;
-                    bulk_bram_read_next_index = next_head_ptr;
+                    bulk_bram_read_next_index = head_ptr + 1; // incr with head
                     PC_bram_read_restart_control = 1'b0;
                     next_restart_state = DEQ;
                     deq_perform = 1'b1;
                     next_restart_info_valid = 1'b0;
                     next_restart_info_target_index = restart_info_target_index;
+                    next_restart_info_target_mask_by_4way = restart_info_target_mask_by_4way;
                     next_restart_info_use_rob_PC = restart_info_use_rob_PC;
                     next_restart_info_branch_target_PC = restart_info_branch_target_PC;
                     next_restart_info_is_exception = restart_info_is_exception;
@@ -1447,17 +1427,45 @@ module rob #(
                 // otherwise, check for partial/no deq
                 else begin
                     bulk_bram_read_next_valid = 1'b1;
-                    bulk_bram_read_next_index = next_head_ptr;
+                    bulk_bram_read_next_index = head_ptr; // stay at head
                     PC_bram_read_restart_control = 1'b0;
                     next_restart_state = DEQ;
                     deq_perform = 1'b0;
                     next_restart_info_valid = 1'b0;
                     next_restart_info_target_index = restart_info_target_index;
+                    next_restart_info_target_mask_by_4way = restart_info_target_mask_by_4way;
                     next_restart_info_use_rob_PC = restart_info_use_rob_PC;
                     next_restart_info_branch_target_PC = restart_info_branch_target_PC;
                     next_restart_info_is_exception = restart_info_is_exception;
-
-                    TODO
+                    // lowest 3 invalid or complete
+                    if (
+                        valid_by_4way[head_ptr]
+                        & &(~bulk_bram_read_entry.valid_by_way[2:0] | deq_complete_by_way[2:0])
+                    ) begin
+                        deq_launching_by_way[3] = 1'b0;
+                        deq_launching_by_way[2:0] = deq_complete_by_way[2:0] & ~deq_launched_by_way[2:0];
+                    end
+                    // lowest 2 invalid or complete
+                    else if (
+                        valid_by_4way[head_ptr]
+                        & &(~bulk_bram_read_entry.valid_by_way[1:0] | deq_complete_by_way[1:0])
+                    ) begin
+                        deq_launching_by_way[3:2] = 2'b00;
+                        deq_launching_by_way[1:0] = deq_complete_by_way[1:0] & ~deq_launched_by_way[1:0];
+                    end
+                    // lowest 1 invalid or complete
+                    else if (
+                        valid_by_4way[head_ptr]
+                        & (~bulk_bram_read_entry.valid_by_way[0] | deq_complete_by_way[0])
+                    ) begin
+                        deq_launching_by_way[3:1] = 3'b000;
+                        deq_launching_by_way[0] = deq_complete_by_way[0] & ~deq_launched_by_way[0];
+                    end
+                    else begin
+                        deq_launching_by_way = 4'b0000;
+                    end
+                    next_deq_launched_by_way = deq_launched_by_way | deq_launching_by_way;
+                    rob_checkpoint_clear_valid = 1'b0;
                 end
             end
         endcase
@@ -1490,7 +1498,7 @@ module rob #(
         end
         else begin
             fetch_unit_mdpt_update_valid <= ssu_mdp_update_valid & ssu_mdp_update_ready;
-            fetch_unit_mdpt_update_ASID <= TODO;
+            fetch_unit_mdpt_update_ASID <= env_ASID;
             fetch_unit_mdpt_update_mdp_info <= ssu_mdp_update_mdp_info;
 
             ssu_mdp_update_saved_lower_ROB_index <= ssu_mdp_update_ROB_index[1:0];
@@ -1499,6 +1507,62 @@ module rob #(
     always_comb begin
         fetch_unit_mdpt_update_start_full_PC = PC_bram_read_PC_by_way[ssu_mdp_update_saved_lower_ROB_index];
     end
+
+    // PR free queue
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            PR_free_q_deq_invalid_mask <= 4'b0000;
+        end
+        else begin
+            PR_free_q_deq_invalid_mask <= next_PR_free_q_deq_invalid_mask;
+        end
+    end
+    always_comb begin
+        PR_free_q_enq_valid = deq_perform;
+        PR_free_q_enq_valid_by_way = bulk_bram_read_entry.valid_by_way & bulk_bram_read_entry.is_rename_by_way;
+        for (int way = 0; way < 4; way++) begin
+            if (killed_by_entry[{head_ptr, way}]) begin
+                // if killed, free new
+                PR_free_q_enq_PR_by_way[way] = bulk_bram_read_entry.dest_new_PR_by_way[way];
+            end else begin
+                // if not killed, free old
+                PR_free_q_enq_PR_by_way[way] = bulk_bram_read_entry.dest_old_PR_by_way[way];
+            end
+        end
+
+        rob_PR_free_req_valid_by_bank = 
+            {4{PR_free_q_deq_valid}}
+            & PR_free_q_deq_valid_by_way
+            & ~PR_free_q_deq_invalid_mask;
+        rob_PR_free_req_PR_by_bank = PR_free_q_deq_PR_by_way;
+        PR_free_q_deq_ready = &(
+            ~PR_free_q_deq_valid_by_way
+            | PR_free_q_deq_invalid_mask
+            | rob_PR_free_resp_ack_by_bank
+        );
+
+        if (PR_free_q_deq_valid & PR_free_q_deq_ready) begin
+            // reset invalid mask on successful deq
+            next_PR_free_q_deq_invalid_mask = 4'b0000; 
+        end
+        else begin
+            // accumulate freed PR's into invalid mask
+            next_PR_free_q_deq_invalid_mask = PR_free_q_deq_invalid_mask | rob_PR_free_resp_ack_by_bank;
+        end
+    end
+    q_fast_ready #(
+        .DATA_WIDTH(4*(1+LOG_PR_COUNT)),
+        .NUM_ENTRIES(ROB_PR_FREE_Q_ENTRIES)
+    ) PR_FREE_Q (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(PR_free_q_enq_valid),
+        .enq_data({PR_free_q_enq_valid_by_way, PR_free_q_enq_PR_by_way}),
+        .enq_ready(PR_free_q_enq_ready),
+        .deq_valid(PR_free_q_deq_valid),
+        .deq_data({PR_free_q_deq_valid_by_way, PR_free_q_deq_PR_by_way}),
+        .deq_ready(PR_free_q_deq_ready)
+    );
 
     // env vars
     always_ff @ (posedge CLK, negedge nRST) begin
