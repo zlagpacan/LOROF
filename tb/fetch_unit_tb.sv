@@ -124,7 +124,7 @@ module fetch_unit_tb ();
 		.INIT_ASID(9'h0),
 		.INIT_EXEC_MODE(M_MODE),
 		.INIT_VIRTUAL_MODE(1'b0),
-		.INIT_WAIT_FOR_RESTART_STATE(1'b1)
+		.FETCH_UNIT_WAIT_FOR_RESTART_STATE(1'b1)
 	) DUT (
 		// seq
 		.CLK(CLK),

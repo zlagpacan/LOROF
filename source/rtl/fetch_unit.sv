@@ -12,11 +12,12 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 module fetch_unit #(
+    parameter FETCH_UNIT_WAIT_FOR_RESTART_STATE = 1'b1,
+
     parameter INIT_PC = 32'h0,
     parameter INIT_ASID = 9'h0,
     parameter INIT_EXEC_MODE = M_MODE,
-    parameter INIT_VIRTUAL_MODE = 1'b0,
-    parameter INIT_WAIT_FOR_RESTART_STATE = 1'b1
+    parameter INIT_VIRTUAL_MODE = 1'b0
 ) (
 
     // seq
@@ -407,7 +408,7 @@ module fetch_unit #(
             fetch_req_ASID <= INIT_ASID;
             fetch_req_exec_mode <= INIT_EXEC_MODE;
             fetch_req_virtual_mode <= INIT_VIRTUAL_MODE;
-            fetch_req_wait_for_restart_state <= INIT_WAIT_FOR_RESTART_STATE;
+            fetch_req_wait_for_restart_state <= FETCH_UNIT_WAIT_FOR_RESTART_STATE;
         end
         else begin
             fetch_req_PC_VA <= next_fetch_req_PC_VA;

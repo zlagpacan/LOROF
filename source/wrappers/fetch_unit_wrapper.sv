@@ -13,6 +13,12 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
+parameter FETCH_UNIT_WAIT_FOR_RESTART_STATE = 1'b1;
+parameter INIT_PC = 32'h0;
+parameter INIT_ASID = 9'h0;
+parameter INIT_EXEC_MODE = M_MODE;
+parameter INIT_VIRTUAL_MODE = 1'b0;
+
 module fetch_unit_wrapper (
 
     // seq
@@ -24,8 +30,8 @@ module fetch_unit_wrapper (
 	output logic last_itlb_req_valid,
 	output logic [1:0] last_itlb_req_exec_mode,
 	output logic last_itlb_req_virtual_mode,
-	output logic [VPN_WIDTH-1:0] last_itlb_req_VPN,
 	output logic [ASID_WIDTH-1:0] last_itlb_req_ASID,
+	output logic [VPN_WIDTH-1:0] last_itlb_req_VPN,
 
     // itlb resp
 	input logic next_itlb_resp_valid,
@@ -77,6 +83,7 @@ module fetch_unit_wrapper (
     // decode unit control
 	input logic next_decode_unit_restart_valid,
 	input logic [31:0] next_decode_unit_restart_PC,
+
 	input logic next_decode_unit_trigger_wait_for_restart,
 
     // branch update from decode unit
@@ -109,8 +116,8 @@ module fetch_unit_wrapper (
 	logic itlb_req_valid;
 	logic [1:0] itlb_req_exec_mode;
 	logic itlb_req_virtual_mode;
-	logic [VPN_WIDTH-1:0] itlb_req_VPN;
 	logic [ASID_WIDTH-1:0] itlb_req_ASID;
+	logic [VPN_WIDTH-1:0] itlb_req_VPN;
 
     // itlb resp
 	logic itlb_resp_valid;
@@ -162,6 +169,7 @@ module fetch_unit_wrapper (
     // decode unit control
 	logic decode_unit_restart_valid;
 	logic [31:0] decode_unit_restart_PC;
+
 	logic decode_unit_trigger_wait_for_restart;
 
     // branch update from decode unit
@@ -188,7 +196,13 @@ module fetch_unit_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    fetch_unit WRAPPED_MODULE (.*);
+	fetch_unit #(
+		.FETCH_UNIT_WAIT_FOR_RESTART_STATE(FETCH_UNIT_WAIT_FOR_RESTART_STATE),
+		.INIT_PC(INIT_PC),
+		.INIT_ASID(INIT_ASID),
+		.INIT_EXEC_MODE(INIT_EXEC_MODE),
+		.INIT_VIRTUAL_MODE(INIT_VIRTUAL_MODE)
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -201,8 +215,8 @@ module fetch_unit_wrapper (
 			last_itlb_req_valid <= '0;
 			last_itlb_req_exec_mode <= '0;
 			last_itlb_req_virtual_mode <= '0;
-			last_itlb_req_VPN <= '0;
 			last_itlb_req_ASID <= '0;
+			last_itlb_req_VPN <= '0;
 
 		    // itlb resp
 			itlb_resp_valid <= '0;
@@ -254,6 +268,7 @@ module fetch_unit_wrapper (
 		    // decode unit control
 			decode_unit_restart_valid <= '0;
 			decode_unit_restart_PC <= '0;
+
 			decode_unit_trigger_wait_for_restart <= '0;
 
 		    // branch update from decode unit
@@ -284,8 +299,8 @@ module fetch_unit_wrapper (
 			last_itlb_req_valid <= itlb_req_valid;
 			last_itlb_req_exec_mode <= itlb_req_exec_mode;
 			last_itlb_req_virtual_mode <= itlb_req_virtual_mode;
-			last_itlb_req_VPN <= itlb_req_VPN;
 			last_itlb_req_ASID <= itlb_req_ASID;
+			last_itlb_req_VPN <= itlb_req_VPN;
 
 		    // itlb resp
 			itlb_resp_valid <= next_itlb_resp_valid;
@@ -337,6 +352,7 @@ module fetch_unit_wrapper (
 		    // decode unit control
 			decode_unit_restart_valid <= next_decode_unit_restart_valid;
 			decode_unit_restart_PC <= next_decode_unit_restart_PC;
+
 			decode_unit_trigger_wait_for_restart <= next_decode_unit_trigger_wait_for_restart;
 
 		    // branch update from decode unit
