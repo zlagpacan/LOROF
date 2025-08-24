@@ -67,9 +67,8 @@ module core #(
     output logic                            dtlb_req_bank0_MXR,
     output logic                            dtlb_req_bank0_SUM,
     output logic [VPN_WIDTH-1:0]            dtlb_req_bank0_VPN,
-    output logic [LOG_LDU_CQ_ENTRIES-1:0]   dtlb_req_bank0_cq_index,
-    output logic                            dtlb_req_bank0_is_mq,
-    output logic [LOG_LDU_MQ_ENTRIES-1:0]   dtlb_req_bank0_mq_index,
+    output logic                            dtlb_req_bank0_is_read,
+    output logic                            dtlb_req_bank0_is_write,
     
     output logic                            dtlb_req_bank1_valid,
     output logic [1:0]                      dtlb_req_bank1_exec_mode,
@@ -78,9 +77,8 @@ module core #(
     output logic                            dtlb_req_bank1_MXR,
     output logic                            dtlb_req_bank1_SUM,
     output logic [VPN_WIDTH-1:0]            dtlb_req_bank1_VPN,
-    output logic [LOG_LDU_CQ_ENTRIES-1:0]   dtlb_req_bank1_cq_index,
-    output logic                            dtlb_req_bank1_is_mq,
-    output logic [LOG_LDU_MQ_ENTRIES-1:0]   dtlb_req_bank1_mq_index,
+    output logic                            dtlb_req_bank1_is_read,
+    output logic                            dtlb_req_bank1_is_write,
 
     // dtlb req feedback
     input logic                             dtlb_req_bank0_ready,
@@ -104,6 +102,7 @@ module core #(
     output logic                                    dcache_req_bank0_valid,
     output logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]    dcache_req_bank0_block_offset,
     output logic [DCACHE_INDEX_WIDTH-1:0]           dcache_req_bank0_index,
+    output logic                                    dcache_req_bank0_is_ldu,
     output logic [LOG_LDU_CQ_ENTRIES-1:0]           dcache_req_bank0_cq_index,
     output logic                                    dcache_req_bank0_is_mq,
     output logic [LOG_LDU_MQ_ENTRIES-1:0]           dcache_req_bank0_mq_index,
@@ -111,6 +110,7 @@ module core #(
     output logic                                    dcache_req_bank1_valid,
     output logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]    dcache_req_bank1_block_offset,
     output logic [DCACHE_INDEX_WIDTH-1:0]           dcache_req_bank1_index,
+    output logic                                    dcache_req_bank1_is_ldu,
     output logic [LOG_LDU_CQ_ENTRIES-1:0]           dcache_req_bank1_cq_index,
     output logic                                    dcache_req_bank1_is_mq,
     output logic [LOG_LDU_MQ_ENTRIES-1:0]           dcache_req_bank1_mq_index,
@@ -122,22 +122,30 @@ module core #(
 
     // dcache resp
     input logic [1:0]                               dcache_resp_bank0_valid_by_way,
+    input logic [1:0]                               dcache_resp_bank0_exclusive_by_way,
     input logic [1:0][DCACHE_TAG_WIDTH-1:0]         dcache_resp_bank0_tag_by_way,
     input logic [1:0][31:0]                         dcache_resp_bank0_data_by_way,
     
     input logic [1:0]                               dcache_resp_bank1_valid_by_way,
+    input logic [1:0]                               dcache_resp_bank1_exclusive_by_way,
     input logic [1:0][DCACHE_TAG_WIDTH-1:0]         dcache_resp_bank1_tag_by_way,
     input logic [1:0][31:0]                         dcache_resp_bank1_data_by_way,
     
     // dcache resp feedback
     output logic                                    dcache_resp_bank0_hit_valid,
+    output logic                                    dcache_resp_bank0_hit_exclusive,
     output logic                                    dcache_resp_bank0_hit_way,
     output logic                                    dcache_resp_bank0_miss_valid,
+    output logic                                    dcache_resp_bank0_miss_prefetch,
+    output logic                                    dcache_resp_bank0_miss_exclusive,
     output logic [DCACHE_TAG_WIDTH-1:0]             dcache_resp_bank0_miss_tag,
     
     output logic                                    dcache_resp_bank1_hit_valid,
+    output logic                                    dcache_resp_bank1_hit_exclusive,
     output logic                                    dcache_resp_bank1_hit_way,
     output logic                                    dcache_resp_bank1_miss_valid,
+    output logic                                    dcache_resp_bank1_miss_prefetch,
+    output logic                                    dcache_resp_bank1_miss_exclusive,
     output logic [DCACHE_TAG_WIDTH-1:0]             dcache_resp_bank1_miss_tag,
 
     // write buffer WB data to PRF
@@ -210,6 +218,91 @@ module core #(
 
     // ----------------------------------------------------------------
     // Signals:
+
+    // dtlb req
+    logic                           ldu_launch_pipeline_dtlb_req_bank0_valid;
+    logic [VPN_WIDTH-1:0]           ldu_launch_pipeline_dtlb_req_bank0_VPN;
+
+    logic                           ldu_launch_pipeline_dtlb_req_bank1_valid;
+    logic [VPN_WIDTH-1:0]           ldu_launch_pipeline_dtlb_req_bank1_VPN;
+    
+    logic                           stamofu_launch_pipeline_dtlb_req_bank0_valid;
+    logic [VPN_WIDTH-1:0]           stamofu_launch_pipeline_dtlb_req_bank0_VPN;
+    logic                           stamofu_launch_pipeline_dtlb_req_bank0_is_read;
+    logic                           stamofu_launch_pipeline_dtlb_req_bank0_is_write;
+
+    logic                           stamofu_launch_pipeline_dtlb_req_bank1_valid;
+    logic [VPN_WIDTH-1:0]           stamofu_launch_pipeline_dtlb_req_bank1_VPN;
+    logic                           stamofu_launch_pipeline_dtlb_req_bank1_is_read;
+    logic                           stamofu_launch_pipeline_dtlb_req_bank1_is_write;
+
+    // dtlb req feedback
+    logic                           ldu_launch_pipeline_dtlb_req_bank0_ready;
+
+    logic                           ldu_launch_pipeline_dtlb_req_bank1_ready;
+    
+    logic                           stamofu_launch_pipeline_dtlb_req_bank0_ready;
+
+    logic                           stamofu_launch_pipeline_dtlb_req_bank1_ready;
+    
+    // dcache req
+    logic                                   ldu_launch_pipeline_dcache_req_bank0_valid,
+    logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]   ldu_launch_pipeline_dcache_req_bank0_block_offset,
+    logic [DCACHE_INDEX_WIDTH-1:0]          ldu_launch_pipeline_dcache_req_bank0_index,
+    logic [LOG_LDU_CQ_ENTRIES-1:0]          ldu_launch_pipeline_dcache_req_bank0_cq_index,
+    logic                                   ldu_launch_pipeline_dcache_req_bank0_is_mq,
+    logic [LOG_LDU_MQ_ENTRIES-1:0]          ldu_launch_pipeline_dcache_req_bank0_mq_index,
+
+    logic                                   ldu_launch_pipeline_dcache_req_bank1_valid,
+    logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]   ldu_launch_pipeline_dcache_req_bank1_block_offset,
+    logic [DCACHE_INDEX_WIDTH-1:0]          ldu_launch_pipeline_dcache_req_bank1_index,
+    logic [LOG_LDU_CQ_ENTRIES-1:0]          ldu_launch_pipeline_dcache_req_bank1_cq_index,
+    logic                                   ldu_launch_pipeline_dcache_req_bank1_is_mq,
+    logic [LOG_LDU_MQ_ENTRIES-1:0]          ldu_launch_pipeline_dcache_req_bank1_mq_index,
+    
+    logic                                   stamofu_launch_pipeline_dcache_req_bank0_valid,
+    logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]   stamofu_launch_pipeline_dcache_req_bank0_block_offset,
+    logic [DCACHE_INDEX_WIDTH-1:0]          stamofu_launch_pipeline_dcache_req_bank0_index,
+    logic [LOG_LDU_CQ_ENTRIES-1:0]          stamofu_launch_pipeline_dcache_req_bank0_cq_index,
+    logic                                   stamofu_launch_pipeline_dcache_req_bank0_is_mq,
+    logic [LOG_LDU_MQ_ENTRIES-1:0]          stamofu_launch_pipeline_dcache_req_bank0_mq_index,
+
+    logic                                   stamofu_launch_pipeline_dcache_req_bank1_valid,
+    logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]   stamofu_launch_pipeline_dcache_req_bank1_block_offset,
+    logic [DCACHE_INDEX_WIDTH-1:0]          stamofu_launch_pipeline_dcache_req_bank1_index,
+    logic [LOG_LDU_CQ_ENTRIES-1:0]          stamofu_launch_pipeline_dcache_req_bank1_cq_index,
+    logic                                   stamofu_launch_pipeline_dcache_req_bank1_is_mq,
+    logic [LOG_LDU_MQ_ENTRIES-1:0]          stamofu_launch_pipeline_dcache_req_bank1_mq_index,
+
+    // dcache req feedback
+    logic                                   ldu_launch_pipeline_dcache_req_bank0_ready;
+
+    logic                                   ldu_launch_pipeline_dcache_req_bank1_ready;
+
+    logic                                   stamofu_launch_pipeline_dcache_req_bank0_ready;
+
+    logic                                   stamofu_launch_pipeline_dcache_req_bank1_ready;
+
+    // dcache resp feedback
+    logic                                   ldu_launch_pipeline_dcache_resp_bank0_hit_valid;
+    logic                                   ldu_launch_pipeline_dcache_resp_bank0_hit_way;
+    logic                                   ldu_launch_pipeline_dcache_resp_bank0_miss_valid;
+    logic [DCACHE_TAG_WIDTH-1:0]            ldu_launch_pipeline_dcache_resp_bank0_miss_tag;
+
+    logic                                   ldu_launch_pipeline_dcache_resp_bank1_hit_valid;
+    logic                                   ldu_launch_pipeline_dcache_resp_bank1_hit_way;
+    logic                                   ldu_launch_pipeline_dcache_resp_bank1_miss_valid;
+    logic [DCACHE_TAG_WIDTH-1:0]            ldu_launch_pipeline_dcache_resp_bank1_miss_tag;
+    
+    logic                                   stamofu_launch_pipeline_dcache_resp_bank0_hit_valid;
+    logic                                   stamofu_launch_pipeline_dcache_resp_bank0_hit_way;
+    logic                                   stamofu_launch_pipeline_dcache_resp_bank0_miss_valid;
+    logic [DCACHE_TAG_WIDTH-1:0]            stamofu_launch_pipeline_dcache_resp_bank0_miss_tag;
+
+    logic                                   stamofu_launch_pipeline_dcache_resp_bank1_hit_valid;
+    logic                                   stamofu_launch_pipeline_dcache_resp_bank1_hit_way;
+    logic                                   stamofu_launch_pipeline_dcache_resp_bank1_miss_valid;
+    logic [DCACHE_TAG_WIDTH-1:0]            stamofu_launch_pipeline_dcache_resp_bank1_miss_tag;
 
     // output to istream
     logic                                   istream_valid_SENQ;
@@ -828,7 +921,7 @@ module core #(
     logic                           ldu_launch_pipeline_data_try_bank0_ack;
     logic                           ldu_launch_pipeline_data_try_bank1_ack;
 
-    // CAM launch
+    // stamofu CAM launch
     logic                           stamofu_CAM_launch_bank0_valid;
     logic [LOG_LDU_CQ_ENTRIES-1:0]  stamofu_CAM_launch_bank0_cq_index;
     logic                           stamofu_CAM_launch_bank0_is_mq;
@@ -846,6 +939,48 @@ module core #(
     logic [3:0]                     stamofu_CAM_launch_bank1_byte_mask;
     logic [LOG_ROB_ENTRIES-1:0]     stamofu_CAM_launch_bank1_ROB_index;
     logic [MDPT_INFO_WIDTH-1:0]     stamofu_CAM_launch_bank1_mdp_info;
+
+    // stamofu CAM return
+    logic                               stamofu_CAM_return_bank0_valid;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]      stamofu_CAM_return_bank0_cq_index;
+    logic                               stamofu_CAM_return_bank0_is_mq;
+    logic [LOG_LDU_MQ_ENTRIES-1:0]      stamofu_CAM_return_bank0_mq_index;
+    logic                               stamofu_CAM_return_bank0_stall;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_CAM_return_bank0_stall_count;
+    logic [3:0]                         stamofu_CAM_return_bank0_forward;
+    logic                               stamofu_CAM_return_bank0_nasty_forward;
+    logic [LOG_ROB_ENTRIES-1:0]         stamofu_CAM_return_bank0_forward_ROB_index;
+    logic [31:0]                        stamofu_CAM_return_bank0_forward_data;
+
+    logic                               stamofu_CAM_return_bank1_valid;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]      stamofu_CAM_return_bank1_cq_index;
+    logic                               stamofu_CAM_return_bank1_is_mq;
+    logic [LOG_LDU_MQ_ENTRIES-1:0]      stamofu_CAM_return_bank1_mq_index;
+    logic                               stamofu_CAM_return_bank1_stall;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_CAM_return_bank1_stall_count;
+    logic [3:0]                         stamofu_CAM_return_bank1_forward;
+    logic                               stamofu_CAM_return_bank1_nasty_forward;
+    logic [LOG_ROB_ENTRIES-1:0]         stamofu_CAM_return_bank1_forward_ROB_index;
+    logic [31:0]                        stamofu_CAM_return_bank1_forward_data;
+
+    // ldu CAM launch
+    logic                               ldu_CAM_launch_valid;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  ldu_CAM_launch_cq_index;
+    logic                               ldu_CAM_launch_is_mq;
+    logic [LOG_STAMOFU_MQ_ENTRIES-1:0]  ldu_CAM_launch_mq_index;
+    logic                               ldu_CAM_launch_is_amo;
+    logic [PA_WIDTH-2-1:0]              ldu_CAM_launch_PA_word;
+    logic [3:0]                         ldu_CAM_launch_byte_mask;
+    logic [31:0]                        ldu_CAM_launch_write_data;
+    logic [MDPT_INFO_WIDTH-1:0]         ldu_CAM_launch_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]         ldu_CAM_launch_ROB_index;
+
+    // ldu CAM return
+    logic                               ldu_CAM_return_valid;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  ldu_CAM_return_cq_index;
+    logic                               ldu_CAM_return_is_mq;
+    logic [LOG_STAMOFU_MQ_ENTRIES-1:0]  ldu_CAM_return_mq_index;
+    logic                               ldu_CAM_return_forward;
 
     // central queue info grab
     logic [LOG_LDU_CQ_ENTRIES-1:0]  ldu_cq_info_grab_bank0_cq_index;
@@ -2323,9 +2458,6 @@ module core #(
         .dtlb_req_MXR(dtlb_req_bank0_MXR),
         .dtlb_req_SUM(dtlb_req_bank0_SUM),
         .dtlb_req_VPN(dtlb_req_bank0_VPN),
-        .dtlb_req_cq_index(dtlb_req_bank0_cq_index),
-        .dtlb_req_is_mq(dtlb_req_bank0_is_mq),
-        .dtlb_req_mq_index(dtlb_req_bank0_mq_index),
 
         // dtlb req feedback
         .dtlb_req_ready(dtlb_req_bank0_ready),
@@ -2443,10 +2575,235 @@ module core #(
     );
 
     // ldu_launch_pipeline bank 1
+    ldu_launch_pipeline #(
+        .INIT_ASID(INIT_ASID),
+        .INIT_EXEC_MODE(INIT_EXEC_MODE),
+        .INIT_VIRTUAL_MODE(INIT_VIRTUAL_MODE),
+        .INIT_MXR(INIT_MXR),
+        .INIT_SUM(INIT_SUM)
+    ) LDU_LAUNCH_PIPELINE_BANK1 (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
 
+        // first try
+        .first_try_valid(ldu_launch_pipeline_first_try_bank1_valid),
+        .first_try_is_mq(ldu_launch_pipeline_first_try_is_mq),
+        .first_try_misaligned(ldu_launch_pipeline_first_try_misaligned),
+        .first_try_VPN(ldu_launch_pipeline_first_try_VPN),
+        .first_try_PO_word(ldu_launch_pipeline_first_try_PO_word),
+        .first_try_byte_mask(ldu_launch_pipeline_first_try_byte_mask),
+        .first_try_cq_index(ldu_launch_pipeline_first_try_cq_index),
+
+        // first try feedback
+        .first_try_early_ready(ldu_launch_pipeline_first_try_bank1_early_ready),
+
+        // op enqueue to misaligned queue
+        .ldu_mq_enq_valid(ldu_launch_pipeline_bank1_ldu_mq_enq_valid),
+
+        // misaligned queue enqueue feedback
+        .ldu_mq_enq_ready(ldu_launch_pipeline_bank1_ldu_mq_enq_ready),
+        .ldu_mq_enq_index(ldu_mq_enq_index),
+
+        // ROB info
+        .rob_abs_head_index(rob_kill_abs_head_index),
+
+        // acquire advertisement
+        .stamofu_aq_mem_aq_active(stamofu_aq_mem_aq_active),
+        .stamofu_aq_mem_aq_oldest_abs_ROB_index(stamofu_aq_mem_aq_oldest_abs_ROB_index),
+        .stamofu_aq_io_aq_active(stamofu_aq_io_aq_active),
+        .stamofu_aq_io_aq_oldest_abs_ROB_index(stamofu_aq_io_aq_oldest_abs_ROB_index),
+
+        // second try
+        .second_try_valid(ldu_launch_pipeline_second_try_bank1_valid),
+        .second_try_do_mispred(ldu_launch_pipeline_second_try_do_mispred),
+        .second_try_is_mq(ldu_launch_pipeline_second_try_is_mq),
+        .second_try_misaligned(ldu_launch_pipeline_second_try_misaligned),
+        .second_try_page_fault(ldu_launch_pipeline_second_try_page_fault),
+        .second_try_access_fault(ldu_launch_pipeline_second_try_access_fault),
+        .second_try_is_mem(ldu_launch_pipeline_second_try_is_mem),
+        .second_try_PPN(ldu_launch_pipeline_second_try_PPN),
+        .second_try_PO_word(ldu_launch_pipeline_second_try_PO_word),
+        .second_try_byte_mask(ldu_launch_pipeline_second_try_byte_mask),
+        .second_try_cq_index(ldu_launch_pipeline_second_try_cq_index),
+        .second_try_mq_index(ldu_launch_pipeline_second_try_mq_index),
+
+        // second try feedback
+        .second_try_ack(ldu_launch_pipeline_second_try_bank1_ack),
+
+        // data try
+        .data_try_valid(ldu_launch_pipeline_data_try_bank1_valid),
+        .data_try_do_mispred(ldu_launch_pipeline_data_try_do_mispred),
+        .data_try_data(ldu_launch_pipeline_data_try_data),
+        .data_try_cq_index(ldu_launch_pipeline_data_try_cq_index),
+
+        // data try feedback
+        .data_try_ack(ldu_launch_pipeline_data_try_bank1_ack),
+
+        // dtlb req
+        .dtlb_req_valid(dtlb_req_bank1_valid),
+        .dtlb_req_exec_mode(dtlb_req_bank1_exec_mode),
+        .dtlb_req_virtual_mode(dtlb_req_bank1_virtual_mode),
+        .dtlb_req_ASID(dtlb_req_bank1_ASID),
+        .dtlb_req_MXR(dtlb_req_bank1_MXR),
+        .dtlb_req_SUM(dtlb_req_bank1_SUM),
+        .dtlb_req_VPN(dtlb_req_bank1_VPN),
+
+        // dtlb req feedback
+        .dtlb_req_ready(dtlb_req_bank1_ready),
+
+        // dtlb resp
+        .dtlb_resp_hit(dtlb_resp_bank1_hit),
+        .dtlb_resp_PPN(dtlb_resp_bank1_PPN),
+        .dtlb_resp_is_mem(dtlb_resp_bank1_is_mem),
+        .dtlb_resp_page_fault(dtlb_resp_bank1_page_fault),
+        .dtlb_resp_access_fault(dtlb_resp_bank1_access_fault),
+
+        // dcache req
+        .dcache_req_valid(dcache_req_bank1_valid),
+        .dcache_req_block_offset(dcache_req_bank1_block_offset),
+        .dcache_req_index(dcache_req_bank1_index),
+        .dcache_req_cq_index(dcache_req_bank1_cq_index),
+        .dcache_req_is_mq(dcache_req_bank1_is_mq),
+        .dcache_req_mq_index(dcache_req_bank1_mq_index),
+
+        // dcache req feedback
+        .dcache_req_ready(dcache_req_bank1_ready),
+
+        // dcache resp
+        .dcache_resp_valid_by_way(dcache_resp_bank1_valid_by_way),
+        .dcache_resp_tag_by_way(dcache_resp_bank1_tag_by_way),
+        .dcache_resp_data_by_way(dcache_resp_bank1_data_by_way),
+
+        // dcache resp feedback
+        .dcache_resp_hit_valid(dcache_resp_bank1_hit_valid),
+        .dcache_resp_hit_way(dcache_resp_bank1_hit_way),
+        .dcache_resp_miss_valid(dcache_resp_bank1_miss_valid),
+        .dcache_resp_miss_tag(dcache_resp_bank1_miss_tag),
+
+        // writeback data to PRF
+        .WB_valid(ldu_bank1_WB_valid),
+        .WB_data(ldu_bank1_WB_data),
+        .WB_PR(ldu_bank1_WB_PR),
+        .WB_ROB_index(ldu_bank1_WB_ROB_index),
+
+        // writeback backpressure from PRF
+        .WB_ready(ldu_bank1_WB_ready),
+
+        // CAM launch
+        .stamofu_CAM_launch_valid(stamofu_CAM_launch_bank1_valid),
+        .stamofu_CAM_launch_cq_index(stamofu_CAM_launch_bank1_cq_index),
+        .stamofu_CAM_launch_is_mq(stamofu_CAM_launch_bank1_is_mq),
+        .stamofu_CAM_launch_mq_index(stamofu_CAM_launch_bank1_mq_index),
+        .stamofu_CAM_launch_PA_word(stamofu_CAM_launch_bank1_PA_word),
+        .stamofu_CAM_launch_byte_mask(stamofu_CAM_launch_bank1_byte_mask),
+        .stamofu_CAM_launch_ROB_index(stamofu_CAM_launch_bank1_ROB_index),
+        .stamofu_CAM_launch_mdp_info(stamofu_CAM_launch_bank1_mdp_info),
+
+        // central queue info grab
+        .ldu_cq_info_grab_cq_index(ldu_cq_info_grab_bank1_cq_index),
+        .ldu_cq_info_grab_op(ldu_cq_info_grab_bank1_op),
+        .ldu_cq_info_grab_mdp_info(ldu_cq_info_grab_bank1_mdp_info),
+        .ldu_cq_info_grab_dest_PR(ldu_cq_info_grab_bank1_dest_PR),
+        .ldu_cq_info_grab_ROB_index(ldu_cq_info_grab_bank1_ROB_index),
+
+        // central queue info ret
+        .ldu_cq_info_ret_valid(ldu_cq_info_ret_bank1_valid),
+        .ldu_cq_info_ret_cq_index(ldu_cq_info_ret_bank1_WB_sent),
+        .ldu_cq_info_ret_WB_sent(ldu_cq_info_ret_bank1_cq_index),
+        .ldu_cq_info_ret_misaligned(ldu_cq_info_ret_bank1_misaligned),
+        .ldu_cq_info_ret_dtlb_hit(ldu_cq_info_ret_bank1_dtlb_hit),
+        .ldu_cq_info_ret_page_fault(ldu_cq_info_ret_bank1_page_fault),
+        .ldu_cq_info_ret_access_fault(ldu_cq_info_ret_bank1_access_fault),
+        .ldu_cq_info_ret_dcache_hit(ldu_cq_info_ret_bank1_dcache_hit),
+        .ldu_cq_info_ret_is_mem(ldu_cq_info_ret_bank1_is_mem),
+        .ldu_cq_info_ret_aq_blocking(ldu_cq_info_ret_bank1_aq_blocking),
+        .ldu_cq_info_ret_PA_word(ldu_cq_info_ret_bank1_PA_word),
+        .ldu_cq_info_ret_byte_mask(ldu_cq_info_ret_bank1_byte_mask),
+        .ldu_cq_info_ret_data(ldu_cq_info_ret_bank1_data),
+
+        // misaligned queue info ret
+        .ldu_mq_info_ret_valid(ldu_mq_info_ret_bank1_valid),
+        .ldu_mq_info_ret_cq_index(ldu_mq_info_ret_bank1_cq_index),
+        .ldu_mq_info_ret_mq_index(ldu_mq_info_ret_bank1_mq_index),
+        .ldu_mq_info_ret_ROB_index(ldu_mq_info_ret_bank1_ROB_index),
+        .ldu_mq_info_ret_WB_sent(ldu_mq_info_ret_bank1_WB_sent),
+        .ldu_mq_info_ret_dtlb_hit(ldu_mq_info_ret_bank1_dtlb_hit),
+        .ldu_mq_info_ret_page_fault(ldu_mq_info_ret_bank1_page_fault),
+        .ldu_mq_info_ret_access_fault(ldu_mq_info_ret_bank1_access_fault),
+        .ldu_mq_info_ret_dcache_hit(ldu_mq_info_ret_bank1_dcache_hit),
+        .ldu_mq_info_ret_is_mem(ldu_mq_info_ret_bank1_is_mem),
+        .ldu_mq_info_ret_aq_blocking(ldu_mq_info_ret_bank1_aq_blocking),
+        .ldu_mq_info_ret_PA_word(ldu_mq_info_ret_bank1_PA_word),
+        .ldu_mq_info_ret_byte_mask(ldu_mq_info_ret_bank1_byte_mask),
+        .ldu_mq_info_ret_data(ldu_mq_info_ret_bank1_data),
+
+        // misprediction notification to ROB
+        .mispred_notif_valid(ldu_mispred_notif_bank1_valid),
+        .mispred_notif_ROB_index(ldu_mispred_notif_bank1_ROB_index),
+
+        // misprediction notification backpressure from ROB
+        .mispred_notif_ready(ldu_mispred_notif_bank1_ready),
+
+        // excpetion to ROB
+        .rob_exception_valid(ldu_exception_valid),
+        .rob_exception_VA(ldu_exception_VA),
+        .rob_exception_page_fault(ldu_exception_page_fault),
+        .rob_exception_access_fault(ldu_exception_access_fault),
+        .rob_exception_ROB_index(ldu_exception_ROB_index),
+
+        // exception backpressure from ROB
+        .rob_exception_ready(ldu_exception_ready),
+
+        // restart from ROB
+        .rob_restart_valid(rob_restart_valid),
+        .rob_restart_ASID(rob_restart_ASID),
+        .rob_restart_exec_mode(rob_restart_exec_mode),
+        .rob_restart_virtual_mode(rob_restart_virtual_mode),
+        .rob_restart_MXR(rob_restart_MXR),
+        .rob_restart_SUM(rob_restart_SUM)
+    );
 
     // ldu_cq
+    ldu_cq #(
+        .LDU_CQ_ENTRIES(LDU_CQ_ENTRIES)
+    ) LDU_CQ (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // op enqueue to central queue
+        .ldu_cq_enq_valid(ldu_cq_enq_valid),
+        .ldu_cq_enq_killed(ldu_cq_enq_killed),
+        .ldu_cq_enq_op(ldu_cq_enq_op),
+        .ldu_cq_enq_mdp_info(ldu_cq_enq_mdp_info),
+        .ldu_cq_enq_dest_PR(ldu_cq_enq_dest_PR),
+        .ldu_cq_enq_ROB_index(ldu_cq_enq_ROB_index),
     
+        // central queue enqueue feedback
+        .ldu_cq_enq_ready(ldu_cq_enq_ready),
+        .ldu_cq_enq_index(ldu_cq_enq_index),
+
+        // second try
+        .second_try_bank0_valid(ldu_launch_pipeline_second_try_bank0_valid),
+        .second_try_bank1_valid(ldu_launch_pipeline_second_try_bank1_valid),
+
+        .second_try_do_mispred(ldu_launch_pipeline_second_try_do_mispred),
+        .second_try_is_mq(ldu_launch_pipeline_second_try_is_mq),
+        .second_try_misaligned(ldu_launch_pipeline_second_try_misaligned),
+        .second_try_page_fault(ldu_launch_pipeline_second_try_page_fault),
+        .second_try_access_fault(ldu_launch_pipeline_second_try_access_fault),
+        .second_try_is_mem(ldu_launch_pipeline_second_try_is_mem),
+        .second_try_PPN(ldu_launch_pipeline_second_try_PPN),
+        .second_try_PO_word(ldu_launch_pipeline_second_try_PO_word),
+        .second_try_byte_mask(ldu_launch_pipeline_second_try_byte_mask),
+        .second_try_cq_index(ldu_launch_pipeline_second_try_cq_index),
+        .second_try_mq_index(ldu_launch_pipeline_second_try_mq_index),
+
+        // second try feedback
+        .second_try_bank0_ack(ldu_launch_pipeline_second_try_bank0_ack),
+        .second_try_bank1_ack(ldu_launch_pipeline_second_try_bank1_ack),
+    );
     
     // ldu_mq
 
@@ -2487,6 +2844,81 @@ module core #(
     // stamofu_mq
 
     // ssu
+
+    always_comb begin
+        // static priority ldu launch pipeline > stamofu launch pipeline
+            // d$ can internally choose what dcache_req_ready looks like at core based on write buffer
+
+        dtlb_req_bank0_valid = ldu_launch_pipeline_dtlb_req_bank0_valid | stamofu_launch_pipeline_dtlb_req_bank0_valid;
+        if (ldu_launch_pipeline_dtlb_req_bank0_valid) begin
+            dtlb_req_bank0_VPN = ldu_launch_pipeline_dtlb_req_bank0_VPN;
+            dtlb_req_bank0_is_read = 1'b1;
+            dtlb_req_bank0_is_write = 1'b0;
+        end
+        else begin
+            dtlb_req_bank0_VPN = stamofu_launch_pipeline_dtlb_req_bank0_VPN;
+            dtlb_req_bank0_is_read = stamofu_launch_pipeline_dtlb_req_bank0_is_read;
+            dtlb_req_bank0_is_write = stamofu_launch_pipeline_dtlb_req_bank0_is_write;
+        end
+
+        dtlb_req_bank1_valid = ldu_launch_pipeline_dtlb_req_bank1_valid | stamofu_launch_pipeline_dtlb_req_bank1_valid;
+        if (ldu_launch_pipeline_dtlb_req_bank1_valid) begin
+            dtlb_req_bank1_VPN = ldu_launch_pipeline_dtlb_req_bank1_VPN;
+            dtlb_req_bank1_is_read = 1'b1;
+            dtlb_req_bank1_is_write = 1'b0;
+        end
+        else begin
+            dtlb_req_bank1_VPN = stamofu_launch_pipeline_dtlb_req_bank1_VPN;
+            dtlb_req_bank1_is_read = stamofu_launch_pipeline_dtlb_req_bank1_is_read;
+            dtlb_req_bank1_is_write = stamofu_launch_pipeline_dtlb_req_bank1_is_write;
+        end
+
+        ldu_launch_pipeline_dtlb_req_bank0_ready = dtlb_req_bank0_ready;
+        stamofu_launch_pipelinee_dtlb_req_bank0_ready = dtlb_req_bank0_ready & ~ldu_launch_pipeline_dtlb_req_bank0_valid;
+
+        ldu_launch_pipeline_dtlb_req_bank1_ready = dtlb_req_bank1_ready;
+        stamofu_launch_pipelinee_dtlb_req_bank1_ready = dtlb_req_bank1_ready & ~ldu_launch_pipeline_dtlb_req_bank1_valid;
+
+        dcache_req_bank0_valid = ldu_launch_pipeline_dcache_req_bank0_valid | stamofu_launch_pipeline_dcache_req_bank0_valid;
+        if (ldu_launch_pipeline_dcache_req_bank0_valid) begin
+            dcache_req_bank0_block_offset = ldu_launch_pipeline_dcache_req_bank0_block_offset;
+            dcache_req_bank0_index = ldu_launch_pipeline_dcache_req_bank0_index;
+            dcache_req_bank0_cq_index = ldu_launch_pipeline_dcache_req_bank0_cq_index;
+            dcache_req_bank0_is_mq = ldu_launch_pipeline_dcache_req_bank0_is_mq;
+            dcache_req_bank0_mq_index = ldu_launch_pipeline_dcache_req_bank0_mq_index;
+        end
+        else begin
+            dcache_req_bank0_block_offset = stamofu_launch_pipeline_dcache_req_bank0_block_offset;
+            dcache_req_bank0_index = stamofu_launch_pipeline_dcache_req_bank0_index;
+            dcache_req_bank0_cq_index = stamofu_launch_pipeline_dcache_req_bank0_cq_index;
+            dcache_req_bank0_is_mq = stamofu_launch_pipeline_dcache_req_bank0_is_mq;
+            dcache_req_bank0_mq_index = stamofu_launch_pipeline_dcache_req_bank0_mq_index;
+        end
+
+        dcache_req_bank1_valid = ldu_launch_pipeline_dcache_req_bank1_valid | stamofu_launch_pipeline_dcache_req_bank1_valid;
+        if (ldu_launch_pipeline_dcache_req_bank1_valid) begin
+            dcache_req_bank1_block_offset = ldu_launch_pipeline_dcache_req_bank1_block_offset;
+            dcache_req_bank1_index = ldu_launch_pipeline_dcache_req_bank1_index;
+            dcache_req_bank1_cq_index = ldu_launch_pipeline_dcache_req_bank1_cq_index;
+            dcache_req_bank1_is_mq = ldu_launch_pipeline_dcache_req_bank1_is_mq;
+            dcache_req_bank1_mq_index = ldu_launch_pipeline_dcache_req_bank1_mq_index;
+        end
+        else begin
+            dcache_req_bank1_block_offset = stamofu_launch_pipeline_dcache_req_bank1_block_offset;
+            dcache_req_bank1_index = stamofu_launch_pipeline_dcache_req_bank1_index;
+            dcache_req_bank1_cq_index = stamofu_launch_pipeline_dcache_req_bank1_cq_index;
+            dcache_req_bank1_is_mq = stamofu_launch_pipeline_dcache_req_bank1_is_mq;
+            dcache_req_bank1_mq_index = stamofu_launch_pipeline_dcache_req_bank1_mq_index;
+        end
+
+        ldu_launch_pipeline_dcache_req_bank0_ready = dcache_req_bank0_ready;
+        stamofu_launch_pipelinee_dcache_req_bank0_ready = dcache_req_bank0_ready & ~ldu_launch_pipeline_dcache_req_bank0_valid;
+
+        ldu_launch_pipeline_dcache_req_bank1_ready = dcache_req_bank1_ready;
+        stamofu_launch_pipelinee_dcache_req_bank1_ready = dcache_req_bank1_ready & ~ldu_launch_pipeline_dcache_req_bank1_valid;
+
+        
+    end
 
     // ----------------------------------------------------------------
     // sysu:

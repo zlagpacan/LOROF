@@ -85,9 +85,6 @@ module ldu_launch_pipeline #(
     output logic                            dtlb_req_MXR,
     output logic                            dtlb_req_SUM,
     output logic [VPN_WIDTH-1:0]            dtlb_req_VPN,
-    output logic [LOG_LDU_CQ_ENTRIES-1:0]   dtlb_req_cq_index,
-    output logic                            dtlb_req_is_mq,
-    output logic [LOG_LDU_MQ_ENTRIES-1:0]   dtlb_req_mq_index,
 
     // dtlb req feedback
     input logic                             dtlb_req_ready,
@@ -448,9 +445,6 @@ module ldu_launch_pipeline #(
 
         dtlb_req_valid = first_try_ack;
         dtlb_req_VPN = first_try_VPN;
-        dtlb_req_cq_index = first_try_cq_index;
-        dtlb_req_is_mq = first_try_is_mq;
-        dtlb_req_mq_index = ldu_mq_enq_index;
 
         dcache_req_valid = (first_try_ack | second_try_ack);
         dcache_req_block_offset = {REQ_stage_PO_word[DCACHE_WORD_ADDR_BANK_BIT-1 : 0], 2'b00};

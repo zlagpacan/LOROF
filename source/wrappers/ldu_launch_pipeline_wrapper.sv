@@ -88,9 +88,6 @@ module ldu_launch_pipeline_wrapper (
 	output logic last_dtlb_req_MXR,
 	output logic last_dtlb_req_SUM,
 	output logic [VPN_WIDTH-1:0] last_dtlb_req_VPN,
-	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_dtlb_req_cq_index,
-	output logic last_dtlb_req_is_mq,
-	output logic [LOG_LDU_MQ_ENTRIES-1:0] last_dtlb_req_mq_index,
 
     // dtlb req feedback
 	input logic next_dtlb_req_ready,
@@ -135,13 +132,13 @@ module ldu_launch_pipeline_wrapper (
 
     // CAM launch
 	output logic last_stamofu_CAM_launch_valid,
+	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_stamofu_CAM_launch_cq_index,
+	output logic last_stamofu_CAM_launch_is_mq,
+	output logic [LOG_LDU_MQ_ENTRIES-1:0] last_stamofu_CAM_launch_mq_index,
 	output logic [PA_WIDTH-2-1:0] last_stamofu_CAM_launch_PA_word,
 	output logic [3:0] last_stamofu_CAM_launch_byte_mask,
 	output logic [LOG_ROB_ENTRIES-1:0] last_stamofu_CAM_launch_ROB_index,
 	output logic [MDPT_INFO_WIDTH-1:0] last_stamofu_CAM_launch_mdp_info,
-	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_stamofu_CAM_launch_cq_index,
-	output logic last_stamofu_CAM_launch_is_mq,
-	output logic [LOG_LDU_MQ_ENTRIES-1:0] last_stamofu_CAM_launch_mq_index,
 
     // central queue info grab
 	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_ldu_cq_info_grab_cq_index,
@@ -273,9 +270,6 @@ module ldu_launch_pipeline_wrapper (
 	logic dtlb_req_MXR;
 	logic dtlb_req_SUM;
 	logic [VPN_WIDTH-1:0] dtlb_req_VPN;
-	logic [LOG_LDU_CQ_ENTRIES-1:0] dtlb_req_cq_index;
-	logic dtlb_req_is_mq;
-	logic [LOG_LDU_MQ_ENTRIES-1:0] dtlb_req_mq_index;
 
     // dtlb req feedback
 	logic dtlb_req_ready;
@@ -320,13 +314,13 @@ module ldu_launch_pipeline_wrapper (
 
     // CAM launch
 	logic stamofu_CAM_launch_valid;
+	logic [LOG_LDU_CQ_ENTRIES-1:0] stamofu_CAM_launch_cq_index;
+	logic stamofu_CAM_launch_is_mq;
+	logic [LOG_LDU_MQ_ENTRIES-1:0] stamofu_CAM_launch_mq_index;
 	logic [PA_WIDTH-2-1:0] stamofu_CAM_launch_PA_word;
 	logic [3:0] stamofu_CAM_launch_byte_mask;
 	logic [LOG_ROB_ENTRIES-1:0] stamofu_CAM_launch_ROB_index;
 	logic [MDPT_INFO_WIDTH-1:0] stamofu_CAM_launch_mdp_info;
-	logic [LOG_LDU_CQ_ENTRIES-1:0] stamofu_CAM_launch_cq_index;
-	logic stamofu_CAM_launch_is_mq;
-	logic [LOG_LDU_MQ_ENTRIES-1:0] stamofu_CAM_launch_mq_index;
 
     // central queue info grab
 	logic [LOG_LDU_CQ_ENTRIES-1:0] ldu_cq_info_grab_cq_index;
@@ -471,9 +465,6 @@ module ldu_launch_pipeline_wrapper (
 			last_dtlb_req_MXR <= '0;
 			last_dtlb_req_SUM <= '0;
 			last_dtlb_req_VPN <= '0;
-			last_dtlb_req_cq_index <= '0;
-			last_dtlb_req_is_mq <= '0;
-			last_dtlb_req_mq_index <= '0;
 
 		    // dtlb req feedback
 			dtlb_req_ready <= '0;
@@ -518,13 +509,13 @@ module ldu_launch_pipeline_wrapper (
 
 		    // CAM launch
 			last_stamofu_CAM_launch_valid <= '0;
+			last_stamofu_CAM_launch_cq_index <= '0;
+			last_stamofu_CAM_launch_is_mq <= '0;
+			last_stamofu_CAM_launch_mq_index <= '0;
 			last_stamofu_CAM_launch_PA_word <= '0;
 			last_stamofu_CAM_launch_byte_mask <= '0;
 			last_stamofu_CAM_launch_ROB_index <= '0;
 			last_stamofu_CAM_launch_mdp_info <= '0;
-			last_stamofu_CAM_launch_cq_index <= '0;
-			last_stamofu_CAM_launch_is_mq <= '0;
-			last_stamofu_CAM_launch_mq_index <= '0;
 
 		    // central queue info grab
 			last_ldu_cq_info_grab_cq_index <= '0;
@@ -654,9 +645,6 @@ module ldu_launch_pipeline_wrapper (
 			last_dtlb_req_MXR <= dtlb_req_MXR;
 			last_dtlb_req_SUM <= dtlb_req_SUM;
 			last_dtlb_req_VPN <= dtlb_req_VPN;
-			last_dtlb_req_cq_index <= dtlb_req_cq_index;
-			last_dtlb_req_is_mq <= dtlb_req_is_mq;
-			last_dtlb_req_mq_index <= dtlb_req_mq_index;
 
 		    // dtlb req feedback
 			dtlb_req_ready <= next_dtlb_req_ready;
@@ -701,13 +689,13 @@ module ldu_launch_pipeline_wrapper (
 
 		    // CAM launch
 			last_stamofu_CAM_launch_valid <= stamofu_CAM_launch_valid;
+			last_stamofu_CAM_launch_cq_index <= stamofu_CAM_launch_cq_index;
+			last_stamofu_CAM_launch_is_mq <= stamofu_CAM_launch_is_mq;
+			last_stamofu_CAM_launch_mq_index <= stamofu_CAM_launch_mq_index;
 			last_stamofu_CAM_launch_PA_word <= stamofu_CAM_launch_PA_word;
 			last_stamofu_CAM_launch_byte_mask <= stamofu_CAM_launch_byte_mask;
 			last_stamofu_CAM_launch_ROB_index <= stamofu_CAM_launch_ROB_index;
 			last_stamofu_CAM_launch_mdp_info <= stamofu_CAM_launch_mdp_info;
-			last_stamofu_CAM_launch_cq_index <= stamofu_CAM_launch_cq_index;
-			last_stamofu_CAM_launch_is_mq <= stamofu_CAM_launch_is_mq;
-			last_stamofu_CAM_launch_mq_index <= stamofu_CAM_launch_mq_index;
 
 		    // central queue info grab
 			last_ldu_cq_info_grab_cq_index <= ldu_cq_info_grab_cq_index;

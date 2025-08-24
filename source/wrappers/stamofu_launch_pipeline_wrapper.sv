@@ -51,9 +51,6 @@ module stamofu_launch_pipeline_wrapper (
 	output logic [VPN_WIDTH-1:0] last_dtlb_req_VPN,
 	output logic last_dtlb_req_is_read,
 	output logic last_dtlb_req_is_write,
-	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_dtlb_req_cq_index,
-	output logic last_dtlb_req_is_mq,
-	output logic [LOG_LDU_MQ_ENTRIES-1:0] last_dtlb_req_mq_index,
 
     // dtlb req feedback
 	input logic next_dtlb_req_ready,
@@ -89,18 +86,6 @@ module stamofu_launch_pipeline_wrapper (
 	output logic last_dcache_resp_miss_prefetch,
 	output logic last_dcache_resp_miss_exclusive,
 	output logic [DCACHE_TAG_WIDTH-1:0] last_dcache_resp_miss_tag,
-
-    // // CAM launch
-    // output logic                                ldu_CAM_launch_valid,
-    // output logic                                ldu_CAM_launch_is_amo,
-    // output logic [PA_WIDTH-2-1:0]               ldu_CAM_launch_PA_word,
-    // output logic [3:0]                          ldu_CAM_launch_byte_mask,
-    // output logic [31:0]                         ldu_CAM_launch_write_data,
-    // output logic [MDPT_INFO_WIDTH-1:0]          ldu_CAM_launch_mdp_info,
-    // output logic [LOG_ROB_ENTRIES-1:0]          ldu_CAM_launch_ROB_index,
-    // output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   ldu_CAM_launch_cq_index,
-    // output logic                                ldu_CAM_launch_is_mq,
-    // output logic [LOG_STAMOFU_MQ_ENTRIES-1:0]   ldu_CAM_launch_mq_index,
 
     // central queue info grab
 	output logic [LOG_STAMOFU_CQ_ENTRIES-1:0] last_stamofu_cq_info_grab_cq_index,
@@ -183,9 +168,6 @@ module stamofu_launch_pipeline_wrapper (
 	logic [VPN_WIDTH-1:0] dtlb_req_VPN;
 	logic dtlb_req_is_read;
 	logic dtlb_req_is_write;
-	logic [LOG_LDU_CQ_ENTRIES-1:0] dtlb_req_cq_index;
-	logic dtlb_req_is_mq;
-	logic [LOG_LDU_MQ_ENTRIES-1:0] dtlb_req_mq_index;
 
     // dtlb req feedback
 	logic dtlb_req_ready;
@@ -221,18 +203,6 @@ module stamofu_launch_pipeline_wrapper (
 	logic dcache_resp_miss_prefetch;
 	logic dcache_resp_miss_exclusive;
 	logic [DCACHE_TAG_WIDTH-1:0] dcache_resp_miss_tag;
-
-    // // CAM launch
-    // output logic                                ldu_CAM_launch_valid,
-    // output logic                                ldu_CAM_launch_is_amo,
-    // output logic [PA_WIDTH-2-1:0]               ldu_CAM_launch_PA_word,
-    // output logic [3:0]                          ldu_CAM_launch_byte_mask,
-    // output logic [31:0]                         ldu_CAM_launch_write_data,
-    // output logic [MDPT_INFO_WIDTH-1:0]          ldu_CAM_launch_mdp_info,
-    // output logic [LOG_ROB_ENTRIES-1:0]          ldu_CAM_launch_ROB_index,
-    // output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   ldu_CAM_launch_cq_index,
-    // output logic                                ldu_CAM_launch_is_mq,
-    // output logic [LOG_STAMOFU_MQ_ENTRIES-1:0]   ldu_CAM_launch_mq_index,
 
     // central queue info grab
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_cq_info_grab_cq_index;
@@ -323,9 +293,6 @@ module stamofu_launch_pipeline_wrapper (
 			last_dtlb_req_VPN <= '0;
 			last_dtlb_req_is_read <= '0;
 			last_dtlb_req_is_write <= '0;
-			last_dtlb_req_cq_index <= '0;
-			last_dtlb_req_is_mq <= '0;
-			last_dtlb_req_mq_index <= '0;
 
 		    // dtlb req feedback
 			dtlb_req_ready <= '0;
@@ -361,18 +328,6 @@ module stamofu_launch_pipeline_wrapper (
 			last_dcache_resp_miss_prefetch <= '0;
 			last_dcache_resp_miss_exclusive <= '0;
 			last_dcache_resp_miss_tag <= '0;
-
-		    // // CAM launch
-		    // output logic                                ldu_CAM_launch_valid,
-		    // output logic                                ldu_CAM_launch_is_amo,
-		    // output logic [PA_WIDTH-2-1:0]               ldu_CAM_launch_PA_word,
-		    // output logic [3:0]                          ldu_CAM_launch_byte_mask,
-		    // output logic [31:0]                         ldu_CAM_launch_write_data,
-		    // output logic [MDPT_INFO_WIDTH-1:0]          ldu_CAM_launch_mdp_info,
-		    // output logic [LOG_ROB_ENTRIES-1:0]          ldu_CAM_launch_ROB_index,
-		    // output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   ldu_CAM_launch_cq_index,
-		    // output logic                                ldu_CAM_launch_is_mq,
-		    // output logic [LOG_STAMOFU_MQ_ENTRIES-1:0]   ldu_CAM_launch_mq_index,
 
 		    // central queue info grab
 			last_stamofu_cq_info_grab_cq_index <= '0;
@@ -453,9 +408,6 @@ module stamofu_launch_pipeline_wrapper (
 			last_dtlb_req_VPN <= dtlb_req_VPN;
 			last_dtlb_req_is_read <= dtlb_req_is_read;
 			last_dtlb_req_is_write <= dtlb_req_is_write;
-			last_dtlb_req_cq_index <= dtlb_req_cq_index;
-			last_dtlb_req_is_mq <= dtlb_req_is_mq;
-			last_dtlb_req_mq_index <= dtlb_req_mq_index;
 
 		    // dtlb req feedback
 			dtlb_req_ready <= next_dtlb_req_ready;
@@ -491,18 +443,6 @@ module stamofu_launch_pipeline_wrapper (
 			last_dcache_resp_miss_prefetch <= dcache_resp_miss_prefetch;
 			last_dcache_resp_miss_exclusive <= dcache_resp_miss_exclusive;
 			last_dcache_resp_miss_tag <= dcache_resp_miss_tag;
-
-		    // // CAM launch
-		    // output logic                                ldu_CAM_launch_valid,
-		    // output logic                                ldu_CAM_launch_is_amo,
-		    // output logic [PA_WIDTH-2-1:0]               ldu_CAM_launch_PA_word,
-		    // output logic [3:0]                          ldu_CAM_launch_byte_mask,
-		    // output logic [31:0]                         ldu_CAM_launch_write_data,
-		    // output logic [MDPT_INFO_WIDTH-1:0]          ldu_CAM_launch_mdp_info,
-		    // output logic [LOG_ROB_ENTRIES-1:0]          ldu_CAM_launch_ROB_index,
-		    // output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   ldu_CAM_launch_cq_index,
-		    // output logic                                ldu_CAM_launch_is_mq,
-		    // output logic [LOG_STAMOFU_MQ_ENTRIES-1:0]   ldu_CAM_launch_mq_index,
 
 		    // central queue info grab
 			last_stamofu_cq_info_grab_cq_index <= stamofu_cq_info_grab_cq_index;
