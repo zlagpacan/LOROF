@@ -83,7 +83,7 @@ package core_types_pkg;
 
     parameter BRU_DQ_ENTRIES = 4;
     parameter BRU_IQ_ENTRIES = 4;
-    
+
     parameter LDU_DQ_ENTRIES = 4;
     parameter LDU_IQ_ENTRIES = 8;
 
@@ -215,7 +215,7 @@ package core_types_pkg;
     parameter SSID_WIDTH = $clog2(STORE_SET_COUNT); // hardwired in sst
 
     // ssu
-    parameter SSU_INNER_BUFFER_ENTRIES = 2;
+    parameter SSU_INPUT_BUFFER_ENTRIES = 2;
     parameter SSU_FUNNEL_BUFFER_ENTRIES = 2;
 
     // ----------------------------------------------------------------

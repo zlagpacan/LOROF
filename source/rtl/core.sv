@@ -98,6 +98,17 @@ module core #(
     input logic                     dtlb_resp_bank1_page_fault,
     input logic                     dtlb_resp_bank1_access_fault,
 
+    // dtlb miss resp
+    input logic                             dtlb_miss_resp_valid,
+    input logic                             dtlb_miss_resp_is_ldu,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]    dtlb_miss_resp_cq_index,
+    input logic                             dtlb_miss_resp_is_mq,
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]    dtlb_miss_resp_mq_index,
+    input logic [PPN_WIDTH-1:0]             dtlb_miss_resp_PPN,
+    input logic                             dtlb_miss_resp_is_mem,
+    input logic                             dtlb_miss_resp_page_fault,
+    input logic                             dtlb_miss_resp_access_fault,
+
     // dcache req
     output logic                                    dcache_req_bank0_valid,
     output logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]    dcache_req_bank0_block_offset,
@@ -121,32 +132,40 @@ module core #(
     input logic                                     dcache_req_bank1_ready,
 
     // dcache resp
-    input logic [1:0]                               dcache_resp_bank0_valid_by_way,
-    input logic [1:0]                               dcache_resp_bank0_exclusive_by_way,
-    input logic [1:0][DCACHE_TAG_WIDTH-1:0]         dcache_resp_bank0_tag_by_way,
-    input logic [1:0][31:0]                         dcache_resp_bank0_data_by_way,
+    input logic [1:0]                           dcache_resp_bank0_valid_by_way,
+    input logic [1:0]                           dcache_resp_bank0_exclusive_by_way,
+    input logic [1:0][DCACHE_TAG_WIDTH-1:0]     dcache_resp_bank0_tag_by_way,
+    input logic [1:0][31:0]                     dcache_resp_bank0_data_by_way,
     
-    input logic [1:0]                               dcache_resp_bank1_valid_by_way,
-    input logic [1:0]                               dcache_resp_bank1_exclusive_by_way,
-    input logic [1:0][DCACHE_TAG_WIDTH-1:0]         dcache_resp_bank1_tag_by_way,
-    input logic [1:0][31:0]                         dcache_resp_bank1_data_by_way,
+    input logic [1:0]                           dcache_resp_bank1_valid_by_way,
+    input logic [1:0]                           dcache_resp_bank1_exclusive_by_way,
+    input logic [1:0][DCACHE_TAG_WIDTH-1:0]     dcache_resp_bank1_tag_by_way,
+    input logic [1:0][31:0]                     dcache_resp_bank1_data_by_way,
     
     // dcache resp feedback
-    output logic                            dcache_resp_bank0_hit_valid,
-    output logic                            dcache_resp_bank0_hit_exclusive,
-    output logic                            dcache_resp_bank0_hit_way,
-    output logic                            dcache_resp_bank0_miss_valid,
-    output logic                            dcache_resp_bank0_miss_prefetch,
-    output logic                            dcache_resp_bank0_miss_exclusive,
-    output logic [DCACHE_TAG_WIDTH-1:0]     dcache_resp_bank0_miss_tag,
+    output logic                                dcache_resp_bank0_hit_valid,
+    output logic                                dcache_resp_bank0_hit_exclusive,
+    output logic                                dcache_resp_bank0_hit_way,
+    output logic                                dcache_resp_bank0_miss_valid,
+    output logic                                dcache_resp_bank0_miss_prefetch,
+    output logic                                dcache_resp_bank0_miss_exclusive,
+    output logic [DCACHE_TAG_WIDTH-1:0]         dcache_resp_bank0_miss_tag,
     
-    output logic                            dcache_resp_bank1_hit_valid,
-    output logic                            dcache_resp_bank1_hit_exclusive,
-    output logic                            dcache_resp_bank1_hit_way,
-    output logic                            dcache_resp_bank1_miss_valid,
-    output logic                            dcache_resp_bank1_miss_prefetch,
-    output logic                            dcache_resp_bank1_miss_exclusive,
-    output logic [DCACHE_TAG_WIDTH-1:0]     dcache_resp_bank1_miss_tag,
+    output logic                                dcache_resp_bank1_hit_valid,
+    output logic                                dcache_resp_bank1_hit_exclusive,
+    output logic                                dcache_resp_bank1_hit_way,
+    output logic                                dcache_resp_bank1_miss_valid,
+    output logic                                dcache_resp_bank1_miss_prefetch,
+    output logic                                dcache_resp_bank1_miss_exclusive,
+    output logic [DCACHE_TAG_WIDTH-1:0]         dcache_resp_bank1_miss_tag,
+
+    // dcache miss resp
+    input logic                             dcache_miss_resp_valid,
+    input logic                             dcache_miss_resp_is_ldu,
+    input logic [LOG_LDU_CQ_ENTRIES-1:0]    dcache_miss_resp_cq_index,
+    input logic                             dcache_miss_resp_is_mq,
+    input logic [LOG_LDU_MQ_ENTRIES-1:0]    dcache_miss_resp_mq_index,
+    input logic [31:0]                      dcache_miss_resp_data,
 
     // write buffer WB data to PRF
     input logic                         wr_buf_WB_valid,
@@ -244,6 +263,11 @@ module core #(
     logic                           stamofu_launch_pipeline_dtlb_req_bank0_ready;
 
     logic                           stamofu_launch_pipeline_dtlb_req_bank1_ready;
+
+    // dtlb miss resp
+    logic ldu_dtlb_miss_resp_valid;
+
+    logic stamofu_dtlb_miss_resp_valid;
     
     // dcache req
     logic                                   ldu_launch_pipeline_dcache_req_bank0_valid;
@@ -309,6 +333,11 @@ module core #(
     logic                           stamofu_launch_pipeline_dcache_resp_bank1_miss_prefetch;
     logic                           stamofu_launch_pipeline_dcache_resp_bank1_miss_exclusive;
     logic [DCACHE_TAG_WIDTH-1:0]    stamofu_launch_pipeline_dcache_resp_bank1_miss_tag;
+
+    // dcache miss resp
+    logic ldu_dcache_miss_resp_valid;
+    
+    logic stamofu_dcache_miss_resp_valid;
 
     // output to istream
     logic                                   istream_valid_SENQ;
@@ -895,25 +924,79 @@ module core #(
     logic                           stamofu_aq_io_aq_active;
     logic [LOG_ROB_ENTRIES-1:0]     stamofu_aq_io_aq_oldest_abs_ROB_index;
 
+    // oldest stamofu advertisement
+    logic                           stamofu_incomplete_active;
+    logic [LOG_ROB_ENTRIES-1:0]     stamofu_oldest_incomplete_ROB_index;
+
     // second try
+        // spit out single second try per mq, cq
+        // banks choose between mq vs. cq independently
     logic                           ldu_launch_pipeline_second_try_bank0_valid;
     logic                           ldu_launch_pipeline_second_try_bank1_valid;
 
-    logic                           ldu_launch_pipeline_second_try_do_mispred;
-    logic                           ldu_launch_pipeline_second_try_is_mq;
-    logic                           ldu_launch_pipeline_second_try_misaligned;
-    logic                           ldu_launch_pipeline_second_try_page_fault;
-    logic                           ldu_launch_pipeline_second_try_access_fault;
-    logic                           ldu_launch_pipeline_second_try_is_mem;
-    logic [PPN_WIDTH-1:0]           ldu_launch_pipeline_second_try_PPN;
-    logic [PO_WIDTH-3:0]            ldu_launch_pipeline_second_try_PO_word;
-    logic [3:0]                     ldu_launch_pipeline_second_try_byte_mask;
-    logic [LOG_LDU_CQ_ENTRIES-1:0]  ldu_launch_pipeline_second_try_cq_index;
-    logic [LOG_LDU_MQ_ENTRIES-1:0]  ldu_launch_pipeline_second_try_mq_index;
+    logic                           ldu_launch_pipeline_second_try_bank0_do_mispred;
+    logic                           ldu_launch_pipeline_second_try_bank0_is_mq;
+    logic                           ldu_launch_pipeline_second_try_bank0_misaligned;
+    logic                           ldu_launch_pipeline_second_try_bank0_page_fault;
+    logic                           ldu_launch_pipeline_second_try_bank0_access_fault;
+    logic                           ldu_launch_pipeline_second_try_bank0_is_mem;
+    logic [PPN_WIDTH-1:0]           ldu_launch_pipeline_second_try_bank0_PPN;
+    logic [PO_WIDTH-3:0]            ldu_launch_pipeline_second_try_bank0_PO_word;
+    logic [3:0]                     ldu_launch_pipeline_second_try_bank0_byte_mask;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]  ldu_launch_pipeline_second_try_bank0_cq_index;
+    logic [LOG_LDU_MQ_ENTRIES-1:0]  ldu_launch_pipeline_second_try_bank0_mq_index;
+
+    logic                           ldu_launch_pipeline_second_try_bank1_do_mispred;
+    logic                           ldu_launch_pipeline_second_try_bank1_is_mq;
+    logic                           ldu_launch_pipeline_second_try_bank1_misaligned;
+    logic                           ldu_launch_pipeline_second_try_bank1_page_fault;
+    logic                           ldu_launch_pipeline_second_try_bank1_access_fault;
+    logic                           ldu_launch_pipeline_second_try_bank1_is_mem;
+    logic [PPN_WIDTH-1:0]           ldu_launch_pipeline_second_try_bank1_PPN;
+    logic [PO_WIDTH-3:0]            ldu_launch_pipeline_second_try_bank1_PO_word;
+    logic [3:0]                     ldu_launch_pipeline_second_try_bank1_byte_mask;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]  ldu_launch_pipeline_second_try_bank1_cq_index;
+    logic [LOG_LDU_MQ_ENTRIES-1:0]  ldu_launch_pipeline_second_try_bank1_mq_index;
+    
+    logic                           ldu_mq_second_try_bank0_valid;
+    logic                           ldu_mq_second_try_bank1_valid;
+
+    logic                           ldu_mq_second_try_do_mispred;
+    logic                           ldu_mq_second_try_is_mq;
+    logic                           ldu_mq_second_try_misaligned;
+    logic                           ldu_mq_second_try_page_fault;
+    logic                           ldu_mq_second_try_access_fault;
+    logic                           ldu_mq_second_try_is_mem;
+    logic [PPN_WIDTH-1:0]           ldu_mq_second_try_PPN;
+    logic [PO_WIDTH-3:0]            ldu_mq_second_try_PO_word;
+    logic [3:0]                     ldu_mq_second_try_byte_mask;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]  ldu_mq_second_try_cq_index;
+    logic [LOG_LDU_MQ_ENTRIES-1:0]  ldu_mq_second_try_mq_index;
+    
+    logic                           ldu_cq_second_try_bank0_valid;
+    logic                           ldu_cq_second_try_bank1_valid;
+
+    logic                           ldu_cq_second_try_do_mispred;
+    logic                           ldu_cq_second_try_is_mq;
+    logic                           ldu_cq_second_try_misaligned;
+    logic                           ldu_cq_second_try_page_fault;
+    logic                           ldu_cq_second_try_access_fault;
+    logic                           ldu_cq_second_try_is_mem;
+    logic [PPN_WIDTH-1:0]           ldu_cq_second_try_PPN;
+    logic [PO_WIDTH-3:0]            ldu_cq_second_try_PO_word;
+    logic [3:0]                     ldu_cq_second_try_byte_mask;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]  ldu_cq_second_try_cq_index;
+    logic [LOG_LDU_MQ_ENTRIES-1:0]  ldu_cq_second_try_mq_index;
 
     // second try feedback
     logic                           ldu_launch_pipeline_second_try_bank0_ack;
     logic                           ldu_launch_pipeline_second_try_bank1_ack;
+    
+    logic                           ldu_mq_second_try_bank0_ack;
+    logic                           ldu_mq_second_try_bank1_ack;
+    
+    logic                           ldu_cq_second_try_bank0_ack;
+    logic                           ldu_cq_second_try_bank1_ack;
 
     // data try
     logic                           ldu_launch_pipeline_data_try_bank0_valid;    
@@ -988,6 +1071,9 @@ module core #(
     logic [LOG_STAMOFU_MQ_ENTRIES-1:0]  ldu_CAM_return_mq_index;
     logic                               ldu_CAM_return_forward;
 
+    logic                               ldu_mq_CAM_return_forward;
+    logic                               ldu_cq_CAM_return_forward;
+
     // central queue info grab
     logic [LOG_LDU_CQ_ENTRIES-1:0]  ldu_cq_info_grab_bank0_cq_index;
     logic [3:0]                     ldu_cq_info_grab_bank0_op;
@@ -1060,6 +1146,59 @@ module core #(
     logic [PA_WIDTH-2-1:0]          ldu_mq_info_ret_bank1_PA_word;
     logic [3:0]                     ldu_mq_info_ret_bank1_byte_mask;
     logic [31:0]                    ldu_mq_info_ret_bank1_data;
+
+    // misaligned queue data try req
+    logic                           ldu_mq_data_try_req_valid;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]  ldu_mq_data_try_cq_index;
+    
+    // misaligned queue info grab
+    logic [LOG_LDU_MQ_ENTRIES-1:0]  ldu_mq_info_grab_mq_index;
+    logic                           ldu_mq_info_grab_data_try_ack;
+    logic                           ldu_mq_info_grab_data_try_req;
+    logic [31:0]                    ldu_mq_info_grab_data;
+
+    // ldu_mq commit
+    logic                           ldu_cq_commit_mq_valid;
+    logic [LOG_LDU_MQ_ENTRIES-1:0]  ldu_cq_commit_mq_index;
+    logic                           ldu_cq_commit_mq_has_forward;
+
+    // ldu_cq CAM update
+    logic                           ldu_cq_CAM_update_valid;
+    logic [MDPT_INFO_WIDTH-1:0]     ldu_cq_CAM_update_ld_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]     ldu_cq_CAM_update_ld_ROB_index;
+    logic [MDPT_INFO_WIDTH-1:0]     ldu_cq_CAM_update_stamo_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]     ldu_cq_CAM_update_stamo_ROB_index;
+
+    // ldu_mq CAM update
+    logic                           ldu_mq_CAM_update_valid;
+    logic [MDPT_INFO_WIDTH-1:0]     ldu_mq_CAM_update_ld_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]     ldu_mq_CAM_update_ld_ROB_index;
+    logic [MDPT_INFO_WIDTH-1:0]     ldu_mq_CAM_update_stamo_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]     ldu_mq_CAM_update_stamo_ROB_index;
+
+    // ldu_cq commit update
+    logic                           ldu_cq_commit_update_valid;
+    logic [MDPT_INFO_WIDTH-1:0]     ldu_cq_commit_update_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]     ldu_cq_commit_update_ROB_index;
+
+    // stamofu_cq CAM update bank 0
+    logic                           stamofu_cq_CAM_bank0_update_valid;
+    logic [MDPT_INFO_WIDTH-1:0]     stamofu_cq_CAM_bank0_update_ld_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]     stamofu_cq_CAM_bank0_update_ld_ROB_index;
+    logic [MDPT_INFO_WIDTH-1:0]     stamofu_cq_CAM_bank0_update_stamo_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]     stamofu_cq_CAM_bank0_update_stamo_ROB_index;
+
+    // stamofu_cq CAM update bank 1
+    logic                           stamofu_cq_CAM_bank1_update_valid;
+    logic [MDPT_INFO_WIDTH-1:0]     stamofu_cq_CAM_bank1_update_ld_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]     stamofu_cq_CAM_bank1_update_ld_ROB_index;
+    logic [MDPT_INFO_WIDTH-1:0]     stamofu_cq_CAM_bank1_update_stamo_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]     stamofu_cq_CAM_bank1_update_stamo_ROB_index;
+
+    // stamofu_cq commit update
+    logic                           stamofu_cq_commit_update_valid;
+    logic [MDPT_INFO_WIDTH-1:0]     stamofu_cq_commit_update_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]     stamofu_cq_commit_update_ROB_index;
 
     // ----------------------------------------------------------------
     // Front End Modules:
@@ -2432,17 +2571,17 @@ module core #(
 
         // second try
         .second_try_valid(ldu_launch_pipeline_second_try_bank0_valid),
-        .second_try_do_mispred(ldu_launch_pipeline_second_try_do_mispred),
-        .second_try_is_mq(ldu_launch_pipeline_second_try_is_mq),
-        .second_try_misaligned(ldu_launch_pipeline_second_try_misaligned),
-        .second_try_page_fault(ldu_launch_pipeline_second_try_page_fault),
-        .second_try_access_fault(ldu_launch_pipeline_second_try_access_fault),
-        .second_try_is_mem(ldu_launch_pipeline_second_try_is_mem),
-        .second_try_PPN(ldu_launch_pipeline_second_try_PPN),
-        .second_try_PO_word(ldu_launch_pipeline_second_try_PO_word),
-        .second_try_byte_mask(ldu_launch_pipeline_second_try_byte_mask),
-        .second_try_cq_index(ldu_launch_pipeline_second_try_cq_index),
-        .second_try_mq_index(ldu_launch_pipeline_second_try_mq_index),
+        .second_try_do_mispred(ldu_launch_pipeline_second_try_bank0_do_mispred),
+        .second_try_is_mq(ldu_launch_pipeline_second_try_bank0_is_mq),
+        .second_try_misaligned(ldu_launch_pipeline_second_try_bank0_misaligned),
+        .second_try_page_fault(ldu_launch_pipeline_second_try_bank0_page_fault),
+        .second_try_access_fault(ldu_launch_pipeline_second_try_bank0_access_fault),
+        .second_try_is_mem(ldu_launch_pipeline_second_try_bank0_is_mem),
+        .second_try_PPN(ldu_launch_pipeline_second_try_bank0_PPN),
+        .second_try_PO_word(ldu_launch_pipeline_second_try_bank0_PO_word),
+        .second_try_byte_mask(ldu_launch_pipeline_second_try_bank0_byte_mask),
+        .second_try_cq_index(ldu_launch_pipeline_second_try_bank0_cq_index),
+        .second_try_mq_index(ldu_launch_pipeline_second_try_bank0_mq_index),
 
         // second try feedback
         .second_try_ack(ldu_launch_pipeline_second_try_bank0_ack),
@@ -2622,17 +2761,17 @@ module core #(
 
         // second try
         .second_try_valid(ldu_launch_pipeline_second_try_bank1_valid),
-        .second_try_do_mispred(ldu_launch_pipeline_second_try_do_mispred),
-        .second_try_is_mq(ldu_launch_pipeline_second_try_is_mq),
-        .second_try_misaligned(ldu_launch_pipeline_second_try_misaligned),
-        .second_try_page_fault(ldu_launch_pipeline_second_try_page_fault),
-        .second_try_access_fault(ldu_launch_pipeline_second_try_access_fault),
-        .second_try_is_mem(ldu_launch_pipeline_second_try_is_mem),
-        .second_try_PPN(ldu_launch_pipeline_second_try_PPN),
-        .second_try_PO_word(ldu_launch_pipeline_second_try_PO_word),
-        .second_try_byte_mask(ldu_launch_pipeline_second_try_byte_mask),
-        .second_try_cq_index(ldu_launch_pipeline_second_try_cq_index),
-        .second_try_mq_index(ldu_launch_pipeline_second_try_mq_index),
+        .second_try_do_mispred(ldu_launch_pipeline_second_try_bank1_do_mispred),
+        .second_try_is_mq(ldu_launch_pipeline_second_try_bank1_is_mq),
+        .second_try_misaligned(ldu_launch_pipeline_second_try_bank1_misaligned),
+        .second_try_page_fault(ldu_launch_pipeline_second_try_bank1_page_fault),
+        .second_try_access_fault(ldu_launch_pipeline_second_try_bank1_access_fault),
+        .second_try_is_mem(ldu_launch_pipeline_second_try_bank1_is_mem),
+        .second_try_PPN(ldu_launch_pipeline_second_try_bank1_PPN),
+        .second_try_PO_word(ldu_launch_pipeline_second_try_bank1_PO_word),
+        .second_try_byte_mask(ldu_launch_pipeline_second_try_bank1_byte_mask),
+        .second_try_cq_index(ldu_launch_pipeline_second_try_bank1_cq_index),
+        .second_try_mq_index(ldu_launch_pipeline_second_try_bank1_mq_index),
 
         // second try feedback
         .second_try_ack(ldu_launch_pipeline_second_try_bank1_ack),
@@ -2791,28 +2930,356 @@ module core #(
         .ldu_cq_enq_index(ldu_cq_enq_index),
 
         // second try
-        .second_try_bank0_valid(ldu_launch_pipeline_second_try_bank0_valid),
-        .second_try_bank1_valid(ldu_launch_pipeline_second_try_bank1_valid),
+        .second_try_bank0_valid(ldu_cq_second_try_bank0_valid),
+        .second_try_bank1_valid(ldu_cq_second_try_bank1_valid),
 
-        .second_try_do_mispred(ldu_launch_pipeline_second_try_do_mispred),
-        .second_try_is_mq(ldu_launch_pipeline_second_try_is_mq),
-        .second_try_misaligned(ldu_launch_pipeline_second_try_misaligned),
-        .second_try_page_fault(ldu_launch_pipeline_second_try_page_fault),
-        .second_try_access_fault(ldu_launch_pipeline_second_try_access_fault),
-        .second_try_is_mem(ldu_launch_pipeline_second_try_is_mem),
-        .second_try_PPN(ldu_launch_pipeline_second_try_PPN),
-        .second_try_PO_word(ldu_launch_pipeline_second_try_PO_word),
-        .second_try_byte_mask(ldu_launch_pipeline_second_try_byte_mask),
-        .second_try_cq_index(ldu_launch_pipeline_second_try_cq_index),
-        .second_try_mq_index(ldu_launch_pipeline_second_try_mq_index),
+        .second_try_do_mispred(ldu_cq_second_try_do_mispred),
+        .second_try_is_mq(ldu_cq_second_try_is_mq),
+        .second_try_misaligned(ldu_cq_second_try_misaligned),
+        .second_try_page_fault(ldu_cq_second_try_page_fault),
+        .second_try_access_fault(ldu_cq_second_try_access_fault),
+        .second_try_is_mem(ldu_cq_second_try_is_mem),
+        .second_try_PPN(ldu_cq_second_try_PPN),
+        .second_try_PO_word(ldu_cq_second_try_PO_word),
+        .second_try_byte_mask(ldu_cq_second_try_byte_mask),
+        .second_try_cq_index(ldu_cq_second_try_cq_index),
+        .second_try_mq_index(ldu_cq_second_try_mq_index),
 
         // second try feedback
-        .second_try_bank0_ack(ldu_launch_pipeline_second_try_bank0_ack),
-        .second_try_bank1_ack(ldu_launch_pipeline_second_try_bank1_ack)
+        .second_try_bank0_ack(ldu_cq_second_try_bank0_ack),
+        .second_try_bank1_ack(ldu_cq_second_try_bank1_ack),
+
+        // data try
+        .data_try_bank0_valid(ldu_launch_pipeline_data_try_bank0_valid),
+        .data_try_bank1_valid(ldu_launch_pipeline_data_try_bank1_valid),
+
+        .data_try_do_mispred(ldu_launch_pipeline_data_try_do_mispred),
+        .data_try_data(ldu_launch_pipeline_data_try_data),
+        .data_try_cq_index(ldu_launch_pipeline_data_try_cq_index),
+
+        // data try feedback
+        .data_try_bank0_ack(ldu_launch_pipeline_data_try_bank0_ack),
+        .data_try_bank1_ack(ldu_launch_pipeline_data_try_bank1_ack),
+
+        // misaligned queue data try req
+        .ldu_mq_data_try_req_valid(ldu_mq_data_try_req_valid),
+        .ldu_mq_data_try_cq_index(ldu_mq_data_try_cq_index),
+
+        // misaligned queue info grab
+        .ldu_mq_info_grab_mq_index(ldu_mq_info_grab_mq_index),
+        .ldu_mq_info_grab_data_try_ack(ldu_mq_info_grab_data_try_ack),
+        .ldu_mq_info_grab_data_try_req(ldu_mq_info_grab_data_try_req),
+        .ldu_mq_info_grab_data(ldu_mq_info_grab_data),
+
+        // central queue info grab
+        .ldu_cq_info_grab_bank0_cq_index(ldu_cq_info_grab_bank0_cq_index),
+        .ldu_cq_info_grab_bank0_op(ldu_cq_info_grab_bank0_op),
+        .ldu_cq_info_grab_bank0_mdp_info(ldu_cq_info_grab_bank0_mdp_info),
+        .ldu_cq_info_grab_bank0_dest_PR(ldu_cq_info_grab_bank0_dest_PR),
+        .ldu_cq_info_grab_bank0_ROB_index(ldu_cq_info_grab_bank0_ROB_index),
+
+        .ldu_cq_info_grab_bank1_cq_index(ldu_cq_info_grab_bank1_cq_index),
+        .ldu_cq_info_grab_bank1_op(ldu_cq_info_grab_bank1_op),
+        .ldu_cq_info_grab_bank1_mdp_info(ldu_cq_info_grab_bank1_mdp_info),
+        .ldu_cq_info_grab_bank1_dest_PR(ldu_cq_info_grab_bank1_dest_PR),
+        .ldu_cq_info_grab_bank1_ROB_index(ldu_cq_info_grab_bank1_ROB_index),
+
+        // central queue info ret
+        .ldu_cq_info_ret_bank0_valid(ldu_cq_info_ret_bank0_valid),
+        .ldu_cq_info_ret_bank0_cq_index(ldu_cq_info_ret_bank0_WB_sent),
+        .ldu_cq_info_ret_bank0_WB_sent(ldu_cq_info_ret_bank0_cq_index),
+        .ldu_cq_info_ret_bank0_misaligned(ldu_cq_info_ret_bank0_misaligned),
+        .ldu_cq_info_ret_bank0_dtlb_hit(ldu_cq_info_ret_bank0_dtlb_hit),
+        .ldu_cq_info_ret_bank0_page_fault(ldu_cq_info_ret_bank0_page_fault),
+        .ldu_cq_info_ret_bank0_access_fault(ldu_cq_info_ret_bank0_access_fault),
+        .ldu_cq_info_ret_bank0_dcache_hit(ldu_cq_info_ret_bank0_dcache_hit),
+        .ldu_cq_info_ret_bank0_is_mem(ldu_cq_info_ret_bank0_is_mem),
+        .ldu_cq_info_ret_bank0_aq_blocking(ldu_cq_info_ret_bank0_aq_blocking),
+        .ldu_cq_info_ret_bank0_PA_word(ldu_cq_info_ret_bank0_PA_word),
+        .ldu_cq_info_ret_bank0_byte_mask(ldu_cq_info_ret_bank0_byte_mask),
+        .ldu_cq_info_ret_bank0_data(ldu_cq_info_ret_bank0_data),
+
+        .ldu_cq_info_ret_bank1_valid(ldu_cq_info_ret_bank1_valid),
+        .ldu_cq_info_ret_bank1_cq_index(ldu_cq_info_ret_bank1_WB_sent),
+        .ldu_cq_info_ret_bank1_WB_sent(ldu_cq_info_ret_bank1_cq_index),
+        .ldu_cq_info_ret_bank1_misaligned(ldu_cq_info_ret_bank1_misaligned),
+        .ldu_cq_info_ret_bank1_dtlb_hit(ldu_cq_info_ret_bank1_dtlb_hit),
+        .ldu_cq_info_ret_bank1_page_fault(ldu_cq_info_ret_bank1_page_fault),
+        .ldu_cq_info_ret_bank1_access_fault(ldu_cq_info_ret_bank1_access_fault),
+        .ldu_cq_info_ret_bank1_dcache_hit(ldu_cq_info_ret_bank1_dcache_hit),
+        .ldu_cq_info_ret_bank1_is_mem(ldu_cq_info_ret_bank1_is_mem),
+        .ldu_cq_info_ret_bank1_aq_blocking(ldu_cq_info_ret_bank1_aq_blocking),
+        .ldu_cq_info_ret_bank1_PA_word(ldu_cq_info_ret_bank1_PA_word),
+        .ldu_cq_info_ret_bank1_byte_mask(ldu_cq_info_ret_bank1_byte_mask),
+        .ldu_cq_info_ret_bank1_data(ldu_cq_info_ret_bank1_data),
+
+        // misaligned queue info ret
+        .ldu_mq_info_ret_bank0_valid(ldu_mq_info_ret_bank0_valid),
+        .ldu_mq_info_ret_bank0_cq_index(ldu_mq_info_ret_bank0_cq_index),
+        .ldu_mq_info_ret_bank0_mq_index(ldu_mq_info_ret_bank0_mq_index),
+
+        .ldu_mq_info_ret_bank1_valid(ldu_mq_info_ret_bank1_valid),
+        .ldu_mq_info_ret_bank1_cq_index(ldu_mq_info_ret_bank1_cq_index),
+        .ldu_mq_info_ret_bank1_mq_index(ldu_mq_info_ret_bank1_mq_index),
+
+        // dtlb miss resp
+        .dtlb_miss_resp_valid(ldu_dtlb_miss_resp_valid),
+        .dtlb_miss_resp_cq_index(dtlb_miss_resp_cq_index),
+        .dtlb_miss_resp_is_mq(dtlb_miss_resp_is_mq),
+        .dtlb_miss_resp_mq_index(dtlb_miss_resp_mq_index),
+        .dtlb_miss_resp_PPN(dtlb_miss_resp_PPN),
+        .dtlb_miss_resp_is_mem(dtlb_miss_resp_is_mem),
+        .dtlb_miss_resp_page_fault(dtlb_miss_resp_page_fault),
+        .dtlb_miss_resp_access_fault(dtlb_miss_resp_access_fault),
+
+        // dcache miss resp
+        .dcache_miss_resp_valid(ldu_dcache_miss_resp_valid),
+        .dcache_miss_resp_cq_index(dcache_miss_resp_cq_index),
+        .dcache_miss_resp_is_mq(dcache_miss_resp_is_mq),
+        .dcache_miss_resp_mq_index(dcache_miss_resp_mq_index),
+        .dcache_miss_resp_data(dcache_miss_resp_data),
+
+        // stamofu CAM return
+        .stamofu_CAM_return_bank0_valid(stamofu_CAM_return_bank0_valid),
+        .stamofu_CAM_return_bank0_cq_index(stamofu_CAM_return_bank0_cq_index),
+        .stamofu_CAM_return_bank0_is_mq(stamofu_CAM_return_bank0_is_mq),
+        .stamofu_CAM_return_bank0_mq_index(stamofu_CAM_return_bank0_mq_index),
+        .stamofu_CAM_return_bank0_stall(stamofu_CAM_return_bank0_stall),
+        .stamofu_CAM_return_bank0_stall_count(stamofu_CAM_return_bank0_stall_count),
+        .stamofu_CAM_return_bank0_forward(stamofu_CAM_return_bank0_forward),
+        .stamofu_CAM_return_bank0_nasty_forward(stamofu_CAM_return_bank0_nasty_forward),
+        .stamofu_CAM_return_bank0_forward_ROB_index(stamofu_CAM_return_bank0_forward_ROB_index),
+        .stamofu_CAM_return_bank0_forward_data(stamofu_CAM_return_bank0_forward_data),
+        
+        .stamofu_CAM_return_bank1_valid(stamofu_CAM_return_bank1_valid),
+        .stamofu_CAM_return_bank1_cq_index(stamofu_CAM_return_bank1_cq_index),
+        .stamofu_CAM_return_bank1_is_mq(stamofu_CAM_return_bank1_is_mq),
+        .stamofu_CAM_return_bank1_mq_index(stamofu_CAM_return_bank1_mq_index),
+        .stamofu_CAM_return_bank1_stall(stamofu_CAM_return_bank1_stall),
+        .stamofu_CAM_return_bank1_stall_count(stamofu_CAM_return_bank1_stall_count),
+        .stamofu_CAM_return_bank1_forward(stamofu_CAM_return_bank1_forward),
+        .stamofu_CAM_return_bank1_nasty_forward(stamofu_CAM_return_bank1_nasty_forward),
+        .stamofu_CAM_return_bank1_forward_ROB_index(stamofu_CAM_return_bank1_forward_ROB_index),
+        .stamofu_CAM_return_bank1_forward_data(stamofu_CAM_return_bank1_forward_data),
+
+        // ldu CAM launch
+        .ldu_CAM_launch_valid(ldu_CAM_launch_valid),
+        .ldu_CAM_launch_cq_index(ldu_CAM_launch_cq_index),
+        .ldu_CAM_launch_is_mq(ldu_CAM_launch_is_mq),
+        .ldu_CAM_launch_mq_index(ldu_CAM_launch_mq_index),
+        .ldu_CAM_launch_is_amo(ldu_CAM_launch_is_amo),
+        .ldu_CAM_launch_PA_word(ldu_CAM_launch_PA_word),
+        .ldu_CAM_launch_byte_mask(ldu_CAM_launch_byte_mask),
+        .ldu_CAM_launch_write_data(ldu_CAM_launch_write_data),
+        .ldu_CAM_launch_mdp_info(ldu_CAM_launch_mdp_info),
+        .ldu_CAM_launch_ROB_index(ldu_CAM_launch_ROB_index),
+
+        // ldu CAM return
+        .ldu_CAM_return_valid(ldu_CAM_return_valid),
+        .ldu_CAM_return_cq_index(ldu_CAM_return_cq_index),
+        .ldu_CAM_return_is_mq(ldu_CAM_return_is_mq),
+        .ldu_CAM_return_mq_index(ldu_CAM_return_mq_index),
+        .ldu_CAM_return_forward(ldu_cq_CAM_return_forward),
+
+        // ldu_mq commit
+        .ldu_cq_commit_mq_valid(ldu_cq_commit_mq_valid),
+        .ldu_cq_commit_mq_index(ldu_cq_commit_mq_index),
+        .ldu_cq_commit_mq_has_forward(ldu_cq_commit_mq_has_forward),
+
+        // store set CAM update
+        .ssu_CAM_update_valid(ldu_cq_CAM_update_valid),
+        .ssu_CAM_update_ld_mdp_info(ldu_cq_CAM_update_ld_mdp_info),
+        .ssu_CAM_update_ld_ROB_index(ldu_cq_CAM_update_ld_ROB_index),
+        .ssu_CAM_update_stamo_mdp_info(ldu_cq_CAM_update_stamo_mdp_info),
+        .ssu_CAM_update_stamo_ROB_index(ldu_cq_CAM_update_stamo_ROB_index),
+
+        // store set commit update
+        .ssu_commit_update_valid(ldu_cq_commit_update_valid),
+        .ssu_commit_update_mdp_info(ldu_cq_commit_update_mdp_info),
+        .ssu_commit_update_ROB_index(ldu_cq_commit_update_ROB_index),
+
+        // acquire advertisement
+        .stamofu_aq_mem_aq_active(stamofu_aq_mem_aq_active),
+        .stamofu_aq_mem_aq_oldest_abs_ROB_index(stamofu_aq_mem_aq_oldest_abs_ROB_index),
+        .stamofu_aq_io_aq_active(stamofu_aq_io_aq_active),
+        .stamofu_aq_io_aq_oldest_abs_ROB_index(stamofu_aq_io_aq_oldest_abs_ROB_index),
+
+        // oldest stamofu advertisement
+        .stamofu_incomplete_active(stamofu_incomplete_active),
+        .stamofu_oldest_incomplete_ROB_index(stamofu_oldest_incomplete_ROB_index),
+
+        // ROB complete notif
+        .ldu_complete_valid(ldu_complete_valid),
+        .ldu_complete_ROB_index(ldu_complete_ROB_index),
+
+	    // ROB commit
+		.rob_commit_upper_index(rob_commit_upper_index),
+		.rob_commit_lower_index_valid_mask(rob_commit_lower_index_valid_mask),
+
+	    // ROB kill
+		.rob_kill_valid(rob_kill_valid),
+		.rob_kill_abs_head_index(rob_kill_abs_head_index),
+		.rob_kill_rel_kill_younger_index(rob_kill_rel_kill_younger_index)
     );
     
     // ldu_mq
+    ldu_mq #(
+        .LDU_MQ_ENTRIES(LDU_MQ_ENTRIES)
+    ) LDU_MQ (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
 
+        // op enqueue to misaligned queue
+        .ldu_mq_enq_valid(ldu_mq_enq_valid),
+
+        // misaligned queue enqueue feedback
+        .ldu_mq_enq_ready(ldu_mq_enq_ready),
+        .ldu_mq_enq_index(ldu_mq_enq_index),
+
+        // second try
+        .second_try_bank0_valid(ldu_mq_second_try_bank0_valid),
+        .second_try_bank1_valid(ldu_mq_second_try_bank1_valid),
+
+        .second_try_do_mispred(ldu_mq_second_try_do_mispred),
+        .second_try_is_mq(ldu_mq_second_try_is_mq),
+        .second_try_misaligned(ldu_mq_second_try_misaligned),
+        .second_try_page_fault(ldu_mq_second_try_page_fault),
+        .second_try_access_fault(ldu_mq_second_try_access_fault),
+        .second_try_is_mem(ldu_mq_second_try_is_mem),
+        .second_try_PPN(ldu_mq_second_try_PPN),
+        .second_try_PO_word(ldu_mq_second_try_PO_word),
+        .second_try_byte_mask(ldu_mq_second_try_byte_mask),
+        .second_try_cq_index(ldu_mq_second_try_cq_index),
+        .second_try_mq_index(ldu_mq_second_try_mq_index),
+
+        // second try feedback
+        .second_try_bank0_ack(ldu_mq_second_try_bank0_ack),
+        .second_try_bank1_ack(ldu_mq_second_try_bank1_ack),
+
+        // misaligned queue data try req
+        .ldu_mq_data_try_req_valid(ldu_mq_data_try_req_valid),
+        .ldu_mq_data_try_cq_index(ldu_mq_data_try_cq_index),
+
+        // misaligned queue info grab
+        .ldu_mq_info_grab_mq_index(ldu_mq_info_grab_mq_index),
+        .ldu_mq_info_grab_data_try_ack(ldu_mq_info_grab_data_try_ack),
+        .ldu_mq_info_grab_data_try_req(ldu_mq_info_grab_data_try_req),
+        .ldu_mq_info_grab_data(ldu_mq_info_grab_data),
+
+        // misaligned queue info ret
+        .ldu_mq_info_ret_bank0_valid(ldu_mq_info_ret_bank0_valid),
+        .ldu_mq_info_ret_bank0_cq_index(ldu_mq_info_ret_bank0_cq_index),
+        .ldu_mq_info_ret_bank0_mq_index(ldu_mq_info_ret_bank0_mq_index),
+        .ldu_mq_info_ret_bank0_ROB_index(ldu_mq_info_ret_bank0_ROB_index),
+        .ldu_mq_info_ret_bank0_WB_sent(ldu_mq_info_ret_bank0_WB_sent),
+        .ldu_mq_info_ret_bank0_dtlb_hit(ldu_mq_info_ret_bank0_dtlb_hit),
+        .ldu_mq_info_ret_bank0_page_fault(ldu_mq_info_ret_bank0_page_fault),
+        .ldu_mq_info_ret_bank0_access_fault(ldu_mq_info_ret_bank0_access_fault),
+        .ldu_mq_info_ret_bank0_dcache_hit(ldu_mq_info_ret_bank0_dcache_hit),
+        .ldu_mq_info_ret_bank0_is_mem(ldu_mq_info_ret_bank0_is_mem),
+        .ldu_mq_info_ret_bank0_aq_blocking(ldu_mq_info_ret_bank0_aq_blocking),
+        .ldu_mq_info_ret_bank0_PA_word(ldu_mq_info_ret_bank0_PA_word),
+        .ldu_mq_info_ret_bank0_byte_mask(ldu_mq_info_ret_bank0_byte_mask),
+        .ldu_mq_info_ret_bank0_data(ldu_mq_info_ret_bank0_data),
+        
+        .ldu_mq_info_ret_bank1_valid(ldu_mq_info_ret_bank1_valid),
+        .ldu_mq_info_ret_bank1_cq_index(ldu_mq_info_ret_bank1_cq_index),
+        .ldu_mq_info_ret_bank1_mq_index(ldu_mq_info_ret_bank1_mq_index),
+        .ldu_mq_info_ret_bank1_ROB_index(ldu_mq_info_ret_bank1_ROB_index),
+        .ldu_mq_info_ret_bank1_WB_sent(ldu_mq_info_ret_bank1_WB_sent),
+        .ldu_mq_info_ret_bank1_dtlb_hit(ldu_mq_info_ret_bank1_dtlb_hit),
+        .ldu_mq_info_ret_bank1_page_fault(ldu_mq_info_ret_bank1_page_fault),
+        .ldu_mq_info_ret_bank1_access_fault(ldu_mq_info_ret_bank1_access_fault),
+        .ldu_mq_info_ret_bank1_dcache_hit(ldu_mq_info_ret_bank1_dcache_hit),
+        .ldu_mq_info_ret_bank1_is_mem(ldu_mq_info_ret_bank1_is_mem),
+        .ldu_mq_info_ret_bank1_aq_blocking(ldu_mq_info_ret_bank1_aq_blocking),
+        .ldu_mq_info_ret_bank1_PA_word(ldu_mq_info_ret_bank1_PA_word),
+        .ldu_mq_info_ret_bank1_byte_mask(ldu_mq_info_ret_bank1_byte_mask),
+        .ldu_mq_info_ret_bank1_data(ldu_mq_info_ret_bank1_data),
+
+        // dtlb miss resp
+        .dtlb_miss_resp_valid(ldu_dtlb_miss_resp_valid),
+        .dtlb_miss_resp_cq_index(dtlb_miss_resp_cq_index),
+        .dtlb_miss_resp_is_mq(dtlb_miss_resp_is_mq),
+        .dtlb_miss_resp_mq_index(dtlb_miss_resp_mq_index),
+        .dtlb_miss_resp_PPN(dtlb_miss_resp_PPN),
+        .dtlb_miss_resp_is_mem(dtlb_miss_resp_is_mem),
+        .dtlb_miss_resp_page_fault(dtlb_miss_resp_page_fault),
+        .dtlb_miss_resp_access_fault(dtlb_miss_resp_access_fault),
+
+        // dcache miss resp
+        .dcache_miss_resp_valid(ldu_dcache_miss_resp_valid),
+        .dcache_miss_resp_cq_index(dcache_miss_resp_cq_index),
+        .dcache_miss_resp_is_mq(dcache_miss_resp_is_mq),
+        .dcache_miss_resp_mq_index(dcache_miss_resp_mq_index),
+        .dcache_miss_resp_data(dcache_miss_resp_data),
+
+        // stamofu CAM return
+        .stamofu_CAM_return_bank0_valid(stamofu_CAM_return_bank0_valid),
+        .stamofu_CAM_return_bank0_cq_index(stamofu_CAM_return_bank0_cq_index),
+        .stamofu_CAM_return_bank0_is_mq(stamofu_CAM_return_bank0_is_mq),
+        .stamofu_CAM_return_bank0_mq_index(stamofu_CAM_return_bank0_mq_index),
+        .stamofu_CAM_return_bank0_stall(stamofu_CAM_return_bank0_stall),
+        .stamofu_CAM_return_bank0_stall_count(stamofu_CAM_return_bank0_stall_count),
+        .stamofu_CAM_return_bank0_forward(stamofu_CAM_return_bank0_forward),
+        .stamofu_CAM_return_bank0_nasty_forward(stamofu_CAM_return_bank0_nasty_forward),
+        .stamofu_CAM_return_bank0_forward_ROB_index(stamofu_CAM_return_bank0_forward_ROB_index),
+        .stamofu_CAM_return_bank0_forward_data(stamofu_CAM_return_bank0_forward_data),
+        
+        .stamofu_CAM_return_bank1_valid(stamofu_CAM_return_bank1_valid),
+        .stamofu_CAM_return_bank1_cq_index(stamofu_CAM_return_bank1_cq_index),
+        .stamofu_CAM_return_bank1_is_mq(stamofu_CAM_return_bank1_is_mq),
+        .stamofu_CAM_return_bank1_mq_index(stamofu_CAM_return_bank1_mq_index),
+        .stamofu_CAM_return_bank1_stall(stamofu_CAM_return_bank1_stall),
+        .stamofu_CAM_return_bank1_stall_count(stamofu_CAM_return_bank1_stall_count),
+        .stamofu_CAM_return_bank1_forward(stamofu_CAM_return_bank1_forward),
+        .stamofu_CAM_return_bank1_nasty_forward(stamofu_CAM_return_bank1_nasty_forward),
+        .stamofu_CAM_return_bank1_forward_ROB_index(stamofu_CAM_return_bank1_forward_ROB_index),
+        .stamofu_CAM_return_bank1_forward_data(stamofu_CAM_return_bank1_forward_data),
+
+        // ldu CAM launch
+        .ldu_CAM_launch_valid(ldu_CAM_launch_valid),
+        .ldu_CAM_launch_cq_index(ldu_CAM_launch_cq_index),
+        .ldu_CAM_launch_is_mq(ldu_CAM_launch_is_mq),
+        .ldu_CAM_launch_mq_index(ldu_CAM_launch_mq_index),
+        .ldu_CAM_launch_is_amo(ldu_CAM_launch_is_amo),
+        .ldu_CAM_launch_PA_word(ldu_CAM_launch_PA_word),
+        .ldu_CAM_launch_byte_mask(ldu_CAM_launch_byte_mask),
+        .ldu_CAM_launch_write_data(ldu_CAM_launch_write_data),
+        .ldu_CAM_launch_mdp_info(ldu_CAM_launch_mdp_info),
+        .ldu_CAM_launch_ROB_index(ldu_CAM_launch_ROB_index),
+
+        // ldu CAM return
+        .ldu_CAM_return_forward(ldu_mq_CAM_return_forward),
+
+        // ldu_mq commit
+        .ldu_cq_commit_mq_valid(ldu_cq_commit_mq_valid),
+        .ldu_cq_commit_mq_index(ldu_cq_commit_mq_index),
+        .ldu_cq_commit_mq_has_forward(ldu_cq_commit_mq_has_forward),
+
+        // store set CAM update
+        .ssu_CAM_update_valid(ldu_mq_CAM_update_valid),
+        .ssu_CAM_update_ld_mdp_info(ldu_mq_CAM_update_ld_mdp_info),
+        .ssu_CAM_update_ld_ROB_index(ldu_mq_CAM_update_ld_ROB_index),
+        .ssu_CAM_update_stamo_mdp_info(ldu_mq_CAM_update_stamo_mdp_info),
+        .ssu_CAM_update_stamo_ROB_index(ldu_mq_CAM_update_stamo_ROB_index),
+
+        // acquire advertisement
+        .stamofu_aq_mem_aq_active(stamofu_aq_mem_aq_active),
+        .stamofu_aq_mem_aq_oldest_abs_ROB_index(stamofu_aq_mem_aq_oldest_abs_ROB_index),
+        .stamofu_aq_io_aq_active(stamofu_aq_io_aq_active),
+        .stamofu_aq_io_aq_oldest_abs_ROB_index(stamofu_aq_io_aq_oldest_abs_ROB_index),
+
+        // oldest stamofu advertisement
+        .stamofu_incomplete_active(stamofu_incomplete_active),
+        .stamofu_oldest_incomplete_ROB_index(stamofu_oldest_incomplete_ROB_index),
+
+	    // ROB kill
+		.rob_kill_valid(rob_kill_valid),
+		.rob_kill_abs_head_index(rob_kill_abs_head_index),
+		.rob_kill_rel_kill_younger_index(rob_kill_rel_kill_younger_index)
+    );
 
     always_comb begin
         // static priority ldu launch pipeline bank 0 > bank 1
@@ -2833,12 +3300,76 @@ module core #(
         else begin
             ldu_mispred_notif_ROB_index = ldu_mispred_notif_bank1_ROB_index;
         end
+
+        // static priority second try ldu_mq > ldu_cq
+        ldu_launch_pipeline_second_try_bank0_valid = ldu_cq_second_try_bank0_valid | ldu_mq_second_try_bank0_valid;
+        if (ldu_mq_second_try_bank0_valid) begin
+            ldu_launch_pipeline_second_try_bank0_do_mispred = ldu_mq_second_try_do_mispred;
+            ldu_launch_pipeline_second_try_bank0_is_mq = ldu_mq_second_try_is_mq;
+            ldu_launch_pipeline_second_try_bank0_misaligned = ldu_mq_second_try_misaligned;
+            ldu_launch_pipeline_second_try_bank0_page_fault = ldu_mq_second_try_page_fault;
+            ldu_launch_pipeline_second_try_bank0_access_fault = ldu_mq_second_try_access_fault;
+            ldu_launch_pipeline_second_try_bank0_is_mem = ldu_mq_second_try_is_mem;
+            ldu_launch_pipeline_second_try_bank0_PPN = ldu_mq_second_try_PPN;
+            ldu_launch_pipeline_second_try_bank0_PO_word = ldu_mq_second_try_PO_word;
+            ldu_launch_pipeline_second_try_bank0_byte_mask = ldu_mq_second_try_byte_mask;
+            ldu_launch_pipeline_second_try_bank0_cq_index = ldu_mq_second_try_cq_index;
+            ldu_launch_pipeline_second_try_bank0_mq_index = ldu_mq_second_try_mq_index;
+        end
+        else begin
+            ldu_launch_pipeline_second_try_bank0_do_mispred = ldu_cq_second_try_do_mispred;
+            ldu_launch_pipeline_second_try_bank0_is_mq = ldu_cq_second_try_is_mq;
+            ldu_launch_pipeline_second_try_bank0_misaligned = ldu_cq_second_try_misaligned;
+            ldu_launch_pipeline_second_try_bank0_page_fault = ldu_cq_second_try_page_fault;
+            ldu_launch_pipeline_second_try_bank0_access_fault = ldu_cq_second_try_access_fault;
+            ldu_launch_pipeline_second_try_bank0_is_mem = ldu_cq_second_try_is_mem;
+            ldu_launch_pipeline_second_try_bank0_PPN = ldu_cq_second_try_PPN;
+            ldu_launch_pipeline_second_try_bank0_PO_word = ldu_cq_second_try_PO_word;
+            ldu_launch_pipeline_second_try_bank0_byte_mask = ldu_cq_second_try_byte_mask;
+            ldu_launch_pipeline_second_try_bank0_cq_index = ldu_cq_second_try_cq_index;
+            ldu_launch_pipeline_second_try_bank0_mq_index = ldu_cq_second_try_mq_index;
+        end
+        ldu_mq_second_try_bank0_ack = ldu_mq_second_try_bank0_valid & ldu_launch_pipeline_second_try_bank0_ack;
+        ldu_cq_second_try_bank0_ack = ldu_cq_second_try_bank0_valid & ~ldu_mq_second_try_bank0_valid & ldu_launch_pipeline_second_try_bank0_ack;
+        
+        ldu_launch_pipeline_second_try_bank1_valid = ldu_cq_second_try_bank1_valid | ldu_mq_second_try_bank1_valid;
+        if (ldu_mq_second_try_bank1_valid) begin
+            ldu_launch_pipeline_second_try_bank1_do_mispred = ldu_mq_second_try_do_mispred;
+            ldu_launch_pipeline_second_try_bank1_is_mq = ldu_mq_second_try_is_mq;
+            ldu_launch_pipeline_second_try_bank1_misaligned = ldu_mq_second_try_misaligned;
+            ldu_launch_pipeline_second_try_bank1_page_fault = ldu_mq_second_try_page_fault;
+            ldu_launch_pipeline_second_try_bank1_access_fault = ldu_mq_second_try_access_fault;
+            ldu_launch_pipeline_second_try_bank1_is_mem = ldu_mq_second_try_is_mem;
+            ldu_launch_pipeline_second_try_bank1_PPN = ldu_mq_second_try_PPN;
+            ldu_launch_pipeline_second_try_bank1_PO_word = ldu_mq_second_try_PO_word;
+            ldu_launch_pipeline_second_try_bank1_byte_mask = ldu_mq_second_try_byte_mask;
+            ldu_launch_pipeline_second_try_bank1_cq_index = ldu_mq_second_try_cq_index;
+            ldu_launch_pipeline_second_try_bank1_mq_index = ldu_mq_second_try_mq_index;
+        end
+        else begin
+            ldu_launch_pipeline_second_try_bank1_do_mispred = ldu_cq_second_try_do_mispred;
+            ldu_launch_pipeline_second_try_bank1_is_mq = ldu_cq_second_try_is_mq;
+            ldu_launch_pipeline_second_try_bank1_misaligned = ldu_cq_second_try_misaligned;
+            ldu_launch_pipeline_second_try_bank1_page_fault = ldu_cq_second_try_page_fault;
+            ldu_launch_pipeline_second_try_bank1_access_fault = ldu_cq_second_try_access_fault;
+            ldu_launch_pipeline_second_try_bank1_is_mem = ldu_cq_second_try_is_mem;
+            ldu_launch_pipeline_second_try_bank1_PPN = ldu_cq_second_try_PPN;
+            ldu_launch_pipeline_second_try_bank1_PO_word = ldu_cq_second_try_PO_word;
+            ldu_launch_pipeline_second_try_bank1_byte_mask = ldu_cq_second_try_byte_mask;
+            ldu_launch_pipeline_second_try_bank1_cq_index = ldu_cq_second_try_cq_index;
+            ldu_launch_pipeline_second_try_bank1_mq_index = ldu_cq_second_try_mq_index;
+        end
+        ldu_mq_second_try_bank1_ack = ldu_mq_second_try_bank1_valid & ldu_launch_pipeline_second_try_bank1_ack;
+        ldu_cq_second_try_bank1_ack = ldu_cq_second_try_bank1_valid & ~ldu_mq_second_try_bank1_valid & ldu_launch_pipeline_second_try_bank1_ack;
+
+        ldu_CAM_return_forward = ldu_mq_CAM_return_forward | ldu_cq_CAM_return_forward;
     end
 
     // ----------------------------------------------------------------
     // stamofu:
 
     // stamofu_dq
+
     // stamofu_iq
     // stamofu_aq
     // stamofu_addr_pipeline
@@ -2850,6 +3381,61 @@ module core #(
     // stamofu_mq
 
     // ssu
+    ssu #(
+        .STORE_SET_COUNT(STORE_SET_COUNT),
+        .SSU_INPUT_BUFFER_ENTRIES(SSU_INPUT_BUFFER_ENTRIES),
+        .SSU_FUNNEL_BUFFER_ENTRIES(SSU_FUNNEL_BUFFER_ENTRIES)
+    ) SSU (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // ldu_cq CAM update
+        .ldu_cq_CAM_update_valid(ldu_cq_CAM_update_valid),
+        .ldu_cq_CAM_update_ld_mdp_info(ldu_cq_CAM_update_ld_mdp_info),
+        .ldu_cq_CAM_update_ld_ROB_index(ldu_cq_CAM_update_ld_ROB_index),
+        .ldu_cq_CAM_update_stamo_mdp_info(ldu_cq_CAM_update_stamo_mdp_info),
+        .ldu_cq_CAM_update_stamo_ROB_index(ldu_cq_CAM_update_stamo_ROB_index),
+
+        // ldu_mq CAM update
+        .ldu_mq_CAM_update_valid(ldu_mq_CAM_update_valid),
+        .ldu_mq_CAM_update_ld_mdp_info(ldu_mq_CAM_update_ld_mdp_info),
+        .ldu_mq_CAM_update_ld_ROB_index(ldu_mq_CAM_update_ld_ROB_index),
+        .ldu_mq_CAM_update_stamo_mdp_info(ldu_mq_CAM_update_stamo_mdp_info),
+        .ldu_mq_CAM_update_stamo_ROB_index(ldu_mq_CAM_update_stamo_ROB_index),
+
+        // ldu_cq commit update
+        .ldu_cq_commit_update_valid(ldu_cq_commit_update_valid),
+        .ldu_cq_commit_update_mdp_info(ldu_cq_commit_update_mdp_info),
+        .ldu_cq_commit_update_ROB_index(ldu_cq_commit_update_ROB_index),
+
+        // stamofu_cq CAM update bank 0
+        .stamofu_cq_CAM_bank0_update_valid(stamofu_cq_CAM_bank0_update_valid),
+        .stamofu_cq_CAM_bank0_update_ld_mdp_info(stamofu_cq_CAM_bank0_update_ld_mdp_info),
+        .stamofu_cq_CAM_bank0_update_ld_ROB_index(stamofu_cq_CAM_bank0_update_ld_ROB_index),
+        .stamofu_cq_CAM_bank0_update_stamo_mdp_info(stamofu_cq_CAM_bank0_update_stamo_mdp_info),
+        .stamofu_cq_CAM_bank0_update_stamo_ROB_index(stamofu_cq_CAM_bank0_update_stamo_ROB_index),
+
+        // stamofu_cq CAM update bank 1
+        .stamofu_cq_CAM_bank1_update_valid(stamofu_cq_CAM_bank1_update_valid),
+        .stamofu_cq_CAM_bank1_update_ld_mdp_info(stamofu_cq_CAM_bank1_update_ld_mdp_info),
+        .stamofu_cq_CAM_bank1_update_ld_ROB_index(stamofu_cq_CAM_bank1_update_ld_ROB_index),
+        .stamofu_cq_CAM_bank1_update_stamo_mdp_info(stamofu_cq_CAM_bank1_update_stamo_mdp_info),
+        .stamofu_cq_CAM_bank1_update_stamo_ROB_index(stamofu_cq_CAM_bank1_update_stamo_ROB_index),
+
+        // stamofu_cq commit update
+        .stamofu_cq_commit_update_valid(stamofu_cq_commit_update_valid),
+        .stamofu_cq_commit_update_mdp_info(stamofu_cq_commit_update_mdp_info),
+        .stamofu_cq_commit_update_ROB_index(stamofu_cq_commit_update_ROB_index),
+
+	    // mdp update to ROB
+		.rob_mdp_update_valid(ssu_mdp_update_valid),
+		.rob_mdp_update_mdp_info(ssu_mdp_update_mdp_info),
+		.rob_mdp_update_ROB_index(ssu_mdp_update_ROB_index),
+
+	    // mdp update feedback from ROB
+		.rob_mdp_update_ready(ssu_mdp_update_ready)
+    );
 
     always_comb begin
         // static priority ldu launch pipeline > stamofu launch pipeline
@@ -2884,6 +3470,9 @@ module core #(
 
         ldu_launch_pipeline_dtlb_req_bank1_ready = dtlb_req_bank1_ready;
         stamofu_launch_pipeline_dtlb_req_bank1_ready = dtlb_req_bank1_ready & ~ldu_launch_pipeline_dtlb_req_bank1_valid;
+
+        ldu_dtlb_miss_resp_valid = dtlb_miss_resp_valid & dtlb_miss_resp_is_ldu;
+        stamofu_dtlb_miss_resp_valid = dtlb_miss_resp_valid & ~dtlb_miss_resp_is_ldu;
 
         dcache_req_bank0_valid = ldu_launch_pipeline_dcache_req_bank0_valid | stamofu_launch_pipeline_dcache_req_bank0_valid;
         if (ldu_launch_pipeline_dcache_req_bank0_valid) begin
@@ -2970,6 +3559,9 @@ module core #(
             dcache_resp_bank1_miss_exclusive = stamofu_launch_pipeline_dcache_resp_bank1_miss_exclusive;
             dcache_resp_bank1_miss_tag = stamofu_launch_pipeline_dcache_resp_bank1_miss_tag;
         end
+
+        ldu_dcache_miss_resp_valid = dcache_miss_resp_valid & dcache_miss_resp_is_ldu;
+        stamofu_dcache_miss_resp_valid = dcache_miss_resp_valid & ~dcache_miss_resp_is_ldu;
     end
 
     // ----------------------------------------------------------------
