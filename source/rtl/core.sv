@@ -132,21 +132,21 @@ module core #(
     input logic [1:0][31:0]                         dcache_resp_bank1_data_by_way,
     
     // dcache resp feedback
-    output logic                                    dcache_resp_bank0_hit_valid,
-    output logic                                    dcache_resp_bank0_hit_exclusive,
-    output logic                                    dcache_resp_bank0_hit_way,
-    output logic                                    dcache_resp_bank0_miss_valid,
-    output logic                                    dcache_resp_bank0_miss_prefetch,
-    output logic                                    dcache_resp_bank0_miss_exclusive,
-    output logic [DCACHE_TAG_WIDTH-1:0]             dcache_resp_bank0_miss_tag,
+    output logic                            dcache_resp_bank0_hit_valid,
+    output logic                            dcache_resp_bank0_hit_exclusive,
+    output logic                            dcache_resp_bank0_hit_way,
+    output logic                            dcache_resp_bank0_miss_valid,
+    output logic                            dcache_resp_bank0_miss_prefetch,
+    output logic                            dcache_resp_bank0_miss_exclusive,
+    output logic [DCACHE_TAG_WIDTH-1:0]     dcache_resp_bank0_miss_tag,
     
-    output logic                                    dcache_resp_bank1_hit_valid,
-    output logic                                    dcache_resp_bank1_hit_exclusive,
-    output logic                                    dcache_resp_bank1_hit_way,
-    output logic                                    dcache_resp_bank1_miss_valid,
-    output logic                                    dcache_resp_bank1_miss_prefetch,
-    output logic                                    dcache_resp_bank1_miss_exclusive,
-    output logic [DCACHE_TAG_WIDTH-1:0]             dcache_resp_bank1_miss_tag,
+    output logic                            dcache_resp_bank1_hit_valid,
+    output logic                            dcache_resp_bank1_hit_exclusive,
+    output logic                            dcache_resp_bank1_hit_way,
+    output logic                            dcache_resp_bank1_miss_valid,
+    output logic                            dcache_resp_bank1_miss_prefetch,
+    output logic                            dcache_resp_bank1_miss_exclusive,
+    output logic [DCACHE_TAG_WIDTH-1:0]     dcache_resp_bank1_miss_tag,
 
     // write buffer WB data to PRF
     input logic                         wr_buf_WB_valid,
@@ -246,33 +246,33 @@ module core #(
     logic                           stamofu_launch_pipeline_dtlb_req_bank1_ready;
     
     // dcache req
-    logic                                   ldu_launch_pipeline_dcache_req_bank0_valid,
-    logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]   ldu_launch_pipeline_dcache_req_bank0_block_offset,
-    logic [DCACHE_INDEX_WIDTH-1:0]          ldu_launch_pipeline_dcache_req_bank0_index,
-    logic [LOG_LDU_CQ_ENTRIES-1:0]          ldu_launch_pipeline_dcache_req_bank0_cq_index,
-    logic                                   ldu_launch_pipeline_dcache_req_bank0_is_mq,
-    logic [LOG_LDU_MQ_ENTRIES-1:0]          ldu_launch_pipeline_dcache_req_bank0_mq_index,
+    logic                                   ldu_launch_pipeline_dcache_req_bank0_valid;
+    logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]   ldu_launch_pipeline_dcache_req_bank0_block_offset;
+    logic [DCACHE_INDEX_WIDTH-1:0]          ldu_launch_pipeline_dcache_req_bank0_index;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]          ldu_launch_pipeline_dcache_req_bank0_cq_index;
+    logic                                   ldu_launch_pipeline_dcache_req_bank0_is_mq;
+    logic [LOG_LDU_MQ_ENTRIES-1:0]          ldu_launch_pipeline_dcache_req_bank0_mq_index;
 
-    logic                                   ldu_launch_pipeline_dcache_req_bank1_valid,
-    logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]   ldu_launch_pipeline_dcache_req_bank1_block_offset,
-    logic [DCACHE_INDEX_WIDTH-1:0]          ldu_launch_pipeline_dcache_req_bank1_index,
-    logic [LOG_LDU_CQ_ENTRIES-1:0]          ldu_launch_pipeline_dcache_req_bank1_cq_index,
-    logic                                   ldu_launch_pipeline_dcache_req_bank1_is_mq,
-    logic [LOG_LDU_MQ_ENTRIES-1:0]          ldu_launch_pipeline_dcache_req_bank1_mq_index,
+    logic                                   ldu_launch_pipeline_dcache_req_bank1_valid;
+    logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]   ldu_launch_pipeline_dcache_req_bank1_block_offset;
+    logic [DCACHE_INDEX_WIDTH-1:0]          ldu_launch_pipeline_dcache_req_bank1_index;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]          ldu_launch_pipeline_dcache_req_bank1_cq_index;
+    logic                                   ldu_launch_pipeline_dcache_req_bank1_is_mq;
+    logic [LOG_LDU_MQ_ENTRIES-1:0]          ldu_launch_pipeline_dcache_req_bank1_mq_index;
     
-    logic                                   stamofu_launch_pipeline_dcache_req_bank0_valid,
-    logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]   stamofu_launch_pipeline_dcache_req_bank0_block_offset,
-    logic [DCACHE_INDEX_WIDTH-1:0]          stamofu_launch_pipeline_dcache_req_bank0_index,
-    logic [LOG_LDU_CQ_ENTRIES-1:0]          stamofu_launch_pipeline_dcache_req_bank0_cq_index,
-    logic                                   stamofu_launch_pipeline_dcache_req_bank0_is_mq,
-    logic [LOG_LDU_MQ_ENTRIES-1:0]          stamofu_launch_pipeline_dcache_req_bank0_mq_index,
+    logic                                   stamofu_launch_pipeline_dcache_req_bank0_valid;
+    logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]   stamofu_launch_pipeline_dcache_req_bank0_block_offset;
+    logic [DCACHE_INDEX_WIDTH-1:0]          stamofu_launch_pipeline_dcache_req_bank0_index;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]          stamofu_launch_pipeline_dcache_req_bank0_cq_index;
+    logic                                   stamofu_launch_pipeline_dcache_req_bank0_is_mq;
+    logic [LOG_LDU_MQ_ENTRIES-1:0]          stamofu_launch_pipeline_dcache_req_bank0_mq_index;
 
-    logic                                   stamofu_launch_pipeline_dcache_req_bank1_valid,
-    logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]   stamofu_launch_pipeline_dcache_req_bank1_block_offset,
-    logic [DCACHE_INDEX_WIDTH-1:0]          stamofu_launch_pipeline_dcache_req_bank1_index,
-    logic [LOG_LDU_CQ_ENTRIES-1:0]          stamofu_launch_pipeline_dcache_req_bank1_cq_index,
-    logic                                   stamofu_launch_pipeline_dcache_req_bank1_is_mq,
-    logic [LOG_LDU_MQ_ENTRIES-1:0]          stamofu_launch_pipeline_dcache_req_bank1_mq_index,
+    logic                                   stamofu_launch_pipeline_dcache_req_bank1_valid;
+    logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]   stamofu_launch_pipeline_dcache_req_bank1_block_offset;
+    logic [DCACHE_INDEX_WIDTH-1:0]          stamofu_launch_pipeline_dcache_req_bank1_index;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]          stamofu_launch_pipeline_dcache_req_bank1_cq_index;
+    logic                                   stamofu_launch_pipeline_dcache_req_bank1_is_mq;
+    logic [LOG_LDU_MQ_ENTRIES-1:0]          stamofu_launch_pipeline_dcache_req_bank1_mq_index;
 
     // dcache req feedback
     logic                                   ldu_launch_pipeline_dcache_req_bank0_ready;
@@ -284,25 +284,31 @@ module core #(
     logic                                   stamofu_launch_pipeline_dcache_req_bank1_ready;
 
     // dcache resp feedback
-    logic                                   ldu_launch_pipeline_dcache_resp_bank0_hit_valid;
-    logic                                   ldu_launch_pipeline_dcache_resp_bank0_hit_way;
-    logic                                   ldu_launch_pipeline_dcache_resp_bank0_miss_valid;
-    logic [DCACHE_TAG_WIDTH-1:0]            ldu_launch_pipeline_dcache_resp_bank0_miss_tag;
-
-    logic                                   ldu_launch_pipeline_dcache_resp_bank1_hit_valid;
-    logic                                   ldu_launch_pipeline_dcache_resp_bank1_hit_way;
-    logic                                   ldu_launch_pipeline_dcache_resp_bank1_miss_valid;
-    logic [DCACHE_TAG_WIDTH-1:0]            ldu_launch_pipeline_dcache_resp_bank1_miss_tag;
+    logic                           ldu_launch_pipeline_dcache_resp_bank0_hit_valid;
+    logic                           ldu_launch_pipeline_dcache_resp_bank0_hit_way;
+    logic                           ldu_launch_pipeline_dcache_resp_bank0_miss_valid;
+    logic [DCACHE_TAG_WIDTH-1:0]    ldu_launch_pipeline_dcache_resp_bank0_miss_tag;
     
-    logic                                   stamofu_launch_pipeline_dcache_resp_bank0_hit_valid;
-    logic                                   stamofu_launch_pipeline_dcache_resp_bank0_hit_way;
-    logic                                   stamofu_launch_pipeline_dcache_resp_bank0_miss_valid;
-    logic [DCACHE_TAG_WIDTH-1:0]            stamofu_launch_pipeline_dcache_resp_bank0_miss_tag;
+    logic                           ldu_launch_pipeline_dcache_resp_bank1_hit_valid;
+    logic                           ldu_launch_pipeline_dcache_resp_bank1_hit_way;
+    logic                           ldu_launch_pipeline_dcache_resp_bank1_miss_valid;
+    logic [DCACHE_TAG_WIDTH-1:0]    ldu_launch_pipeline_dcache_resp_bank1_miss_tag;
 
-    logic                                   stamofu_launch_pipeline_dcache_resp_bank1_hit_valid;
-    logic                                   stamofu_launch_pipeline_dcache_resp_bank1_hit_way;
-    logic                                   stamofu_launch_pipeline_dcache_resp_bank1_miss_valid;
-    logic [DCACHE_TAG_WIDTH-1:0]            stamofu_launch_pipeline_dcache_resp_bank1_miss_tag;
+    logic                           stamofu_launch_pipeline_dcache_resp_bank0_hit_valid;
+    logic                           stamofu_launch_pipeline_dcache_resp_bank0_hit_exclusive;
+    logic                           stamofu_launch_pipeline_dcache_resp_bank0_hit_way;
+    logic                           stamofu_launch_pipeline_dcache_resp_bank0_miss_valid;
+    logic                           stamofu_launch_pipeline_dcache_resp_bank0_miss_prefetch;
+    logic                           stamofu_launch_pipeline_dcache_resp_bank0_miss_exclusive;
+    logic [DCACHE_TAG_WIDTH-1:0]    stamofu_launch_pipeline_dcache_resp_bank0_miss_tag;
+    
+    logic                           stamofu_launch_pipeline_dcache_resp_bank1_hit_valid;
+    logic                           stamofu_launch_pipeline_dcache_resp_bank1_hit_exclusive;
+    logic                           stamofu_launch_pipeline_dcache_resp_bank1_hit_way;
+    logic                           stamofu_launch_pipeline_dcache_resp_bank1_miss_valid;
+    logic                           stamofu_launch_pipeline_dcache_resp_bank1_miss_prefetch;
+    logic                           stamofu_launch_pipeline_dcache_resp_bank1_miss_exclusive;
+    logic [DCACHE_TAG_WIDTH-1:0]    stamofu_launch_pipeline_dcache_resp_bank1_miss_tag;
 
     // output to istream
     logic                                   istream_valid_SENQ;
@@ -2802,7 +2808,7 @@ module core #(
 
         // second try feedback
         .second_try_bank0_ack(ldu_launch_pipeline_second_try_bank0_ack),
-        .second_try_bank1_ack(ldu_launch_pipeline_second_try_bank1_ack),
+        .second_try_bank1_ack(ldu_launch_pipeline_second_try_bank1_ack)
     );
     
     // ldu_mq
@@ -2874,50 +2880,96 @@ module core #(
         end
 
         ldu_launch_pipeline_dtlb_req_bank0_ready = dtlb_req_bank0_ready;
-        stamofu_launch_pipelinee_dtlb_req_bank0_ready = dtlb_req_bank0_ready & ~ldu_launch_pipeline_dtlb_req_bank0_valid;
+        stamofu_launch_pipeline_dtlb_req_bank0_ready = dtlb_req_bank0_ready & ~ldu_launch_pipeline_dtlb_req_bank0_valid;
 
         ldu_launch_pipeline_dtlb_req_bank1_ready = dtlb_req_bank1_ready;
-        stamofu_launch_pipelinee_dtlb_req_bank1_ready = dtlb_req_bank1_ready & ~ldu_launch_pipeline_dtlb_req_bank1_valid;
+        stamofu_launch_pipeline_dtlb_req_bank1_ready = dtlb_req_bank1_ready & ~ldu_launch_pipeline_dtlb_req_bank1_valid;
 
         dcache_req_bank0_valid = ldu_launch_pipeline_dcache_req_bank0_valid | stamofu_launch_pipeline_dcache_req_bank0_valid;
         if (ldu_launch_pipeline_dcache_req_bank0_valid) begin
             dcache_req_bank0_block_offset = ldu_launch_pipeline_dcache_req_bank0_block_offset;
             dcache_req_bank0_index = ldu_launch_pipeline_dcache_req_bank0_index;
-            dcache_req_bank0_cq_index = ldu_launch_pipeline_dcache_req_bank0_cq_index;
+            dcache_req_bank0_is_ldu = 1'b1;
+            dcache_req_bank0_cq_index = ldu_launch_pipeline_dcache_req_bank0_cq_index; // assuming LOG_LDU_CQ_ENTRIES >= LOG_STAMOFU_CQ_ENTRIES
             dcache_req_bank0_is_mq = ldu_launch_pipeline_dcache_req_bank0_is_mq;
-            dcache_req_bank0_mq_index = ldu_launch_pipeline_dcache_req_bank0_mq_index;
+            dcache_req_bank0_mq_index = ldu_launch_pipeline_dcache_req_bank0_mq_index; // assuming LOG_LDU_MQ_ENTRIES >= LOG_STAMOFU_MQ_ENTRIES
         end
         else begin
             dcache_req_bank0_block_offset = stamofu_launch_pipeline_dcache_req_bank0_block_offset;
             dcache_req_bank0_index = stamofu_launch_pipeline_dcache_req_bank0_index;
-            dcache_req_bank0_cq_index = stamofu_launch_pipeline_dcache_req_bank0_cq_index;
+            dcache_req_bank0_is_ldu = 1'b0;
+            dcache_req_bank0_cq_index = stamofu_launch_pipeline_dcache_req_bank0_cq_index; // assuming LOG_LDU_CQ_ENTRIES >= LOG_STAMOFU_CQ_ENTRIES
             dcache_req_bank0_is_mq = stamofu_launch_pipeline_dcache_req_bank0_is_mq;
-            dcache_req_bank0_mq_index = stamofu_launch_pipeline_dcache_req_bank0_mq_index;
+            dcache_req_bank0_mq_index = stamofu_launch_pipeline_dcache_req_bank0_mq_index; // assuming LOG_LDU_MQ_ENTRIES >= LOG_STAMOFU_MQ_ENTRIES
         end
 
         dcache_req_bank1_valid = ldu_launch_pipeline_dcache_req_bank1_valid | stamofu_launch_pipeline_dcache_req_bank1_valid;
         if (ldu_launch_pipeline_dcache_req_bank1_valid) begin
             dcache_req_bank1_block_offset = ldu_launch_pipeline_dcache_req_bank1_block_offset;
             dcache_req_bank1_index = ldu_launch_pipeline_dcache_req_bank1_index;
-            dcache_req_bank1_cq_index = ldu_launch_pipeline_dcache_req_bank1_cq_index;
+            dcache_req_bank1_is_ldu = 1'b1;
+            dcache_req_bank1_cq_index = ldu_launch_pipeline_dcache_req_bank1_cq_index; // assuming LOG_LDU_CQ_ENTRIES >= LOG_STAMOFU_CQ_ENTRIES
             dcache_req_bank1_is_mq = ldu_launch_pipeline_dcache_req_bank1_is_mq;
-            dcache_req_bank1_mq_index = ldu_launch_pipeline_dcache_req_bank1_mq_index;
+            dcache_req_bank1_mq_index = ldu_launch_pipeline_dcache_req_bank1_mq_index; // assuming LOG_LDU_MQ_ENTRIES >= LOG_STAMOFU_MQ_ENTRIES
         end
         else begin
             dcache_req_bank1_block_offset = stamofu_launch_pipeline_dcache_req_bank1_block_offset;
             dcache_req_bank1_index = stamofu_launch_pipeline_dcache_req_bank1_index;
-            dcache_req_bank1_cq_index = stamofu_launch_pipeline_dcache_req_bank1_cq_index;
+            dcache_req_bank1_is_ldu = 1'b0;
+            dcache_req_bank1_cq_index = stamofu_launch_pipeline_dcache_req_bank1_cq_index; // assuming LOG_LDU_CQ_ENTRIES >= LOG_STAMOFU_CQ_ENTRIES
             dcache_req_bank1_is_mq = stamofu_launch_pipeline_dcache_req_bank1_is_mq;
-            dcache_req_bank1_mq_index = stamofu_launch_pipeline_dcache_req_bank1_mq_index;
+            dcache_req_bank1_mq_index = stamofu_launch_pipeline_dcache_req_bank1_mq_index; // assuming LOG_LDU_MQ_ENTRIES >= LOG_STAMOFU_MQ_ENTRIES
         end
 
         ldu_launch_pipeline_dcache_req_bank0_ready = dcache_req_bank0_ready;
-        stamofu_launch_pipelinee_dcache_req_bank0_ready = dcache_req_bank0_ready & ~ldu_launch_pipeline_dcache_req_bank0_valid;
+        stamofu_launch_pipeline_dcache_req_bank0_ready = dcache_req_bank0_ready & ~ldu_launch_pipeline_dcache_req_bank0_valid;
 
         ldu_launch_pipeline_dcache_req_bank1_ready = dcache_req_bank1_ready;
-        stamofu_launch_pipelinee_dcache_req_bank1_ready = dcache_req_bank1_ready & ~ldu_launch_pipeline_dcache_req_bank1_valid;
+        stamofu_launch_pipeline_dcache_req_bank1_ready = dcache_req_bank1_ready & ~ldu_launch_pipeline_dcache_req_bank1_valid;
 
+        dcache_resp_bank0_hit_valid = ldu_launch_pipeline_dcache_resp_bank0_hit_valid | stamofu_launch_pipeline_dcache_resp_bank0_hit_valid;
+        if (ldu_launch_pipeline_dcache_resp_bank0_hit_valid) begin
+            dcache_resp_bank0_hit_exclusive = 1'b0;
+            dcache_resp_bank0_hit_way = ldu_launch_pipeline_dcache_resp_bank0_hit_way;
+        end
+        else begin
+            dcache_resp_bank0_hit_exclusive = stamofu_launch_pipeline_dcache_resp_bank0_hit_exclusive;
+            dcache_resp_bank0_hit_way = stamofu_launch_pipeline_dcache_resp_bank0_hit_way;
+        end
+
+        dcache_resp_bank1_hit_valid = ldu_launch_pipeline_dcache_resp_bank1_hit_valid | stamofu_launch_pipeline_dcache_resp_bank1_hit_valid;
+        if (ldu_launch_pipeline_dcache_resp_bank1_hit_valid) begin
+            dcache_resp_bank1_hit_exclusive = 1'b0;
+            dcache_resp_bank1_hit_way = ldu_launch_pipeline_dcache_resp_bank1_hit_way;
+        end
+        else begin
+            dcache_resp_bank1_hit_exclusive = stamofu_launch_pipeline_dcache_resp_bank1_hit_exclusive;
+            dcache_resp_bank1_hit_way = stamofu_launch_pipeline_dcache_resp_bank1_hit_way;
+        end
         
+        dcache_resp_bank0_miss_valid = ldu_launch_pipeline_dcache_resp_bank0_miss_valid | stamofu_launch_pipeline_dcache_resp_bank0_miss_valid;
+        if (stamofu_launch_pipeline_dcache_resp_bank0_miss_valid) begin
+            dcache_resp_bank0_miss_prefetch = 1'b0;
+            dcache_resp_bank0_miss_exclusive = 1'b0;
+            dcache_resp_bank0_miss_tag = ldu_launch_pipeline_dcache_resp_bank0_miss_tag;
+        end
+        else begin
+            dcache_resp_bank0_miss_prefetch = stamofu_launch_pipeline_dcache_resp_bank0_miss_prefetch;
+            dcache_resp_bank0_miss_exclusive = stamofu_launch_pipeline_dcache_resp_bank0_miss_exclusive;
+            dcache_resp_bank0_miss_tag = stamofu_launch_pipeline_dcache_resp_bank0_miss_tag;
+        end
+        
+        dcache_resp_bank1_miss_valid = ldu_launch_pipeline_dcache_resp_bank1_miss_valid | stamofu_launch_pipeline_dcache_resp_bank1_miss_valid;
+        if (stamofu_launch_pipeline_dcache_resp_bank1_miss_valid) begin
+            dcache_resp_bank1_miss_prefetch = 1'b0;
+            dcache_resp_bank1_miss_exclusive = 1'b0;
+            dcache_resp_bank1_miss_tag = ldu_launch_pipeline_dcache_resp_bank1_miss_tag;
+        end
+        else begin
+            dcache_resp_bank1_miss_prefetch = stamofu_launch_pipeline_dcache_resp_bank1_miss_prefetch;
+            dcache_resp_bank1_miss_exclusive = stamofu_launch_pipeline_dcache_resp_bank1_miss_exclusive;
+            dcache_resp_bank1_miss_tag = stamofu_launch_pipeline_dcache_resp_bank1_miss_tag;
+        end
     end
 
     // ----------------------------------------------------------------
