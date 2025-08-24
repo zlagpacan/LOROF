@@ -69,8 +69,6 @@ module rob_tb ();
 	// checkpoint info
 	logic tb_dispatch_has_checkpoint;
 	logic [CHECKPOINT_INDEX_WIDTH-1:0] tb_dispatch_checkpoint_index;
-    // instr FU valids
-	logic [3:0] tb_dispatch_attempt_ldu_dq_by_way;
     // dest operand
 	logic [3:0][4:0] tb_dispatch_dest_AR_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_dest_old_PR_by_way;
@@ -78,7 +76,7 @@ module rob_tb ();
 
     // ROB dispatch feedback
 	logic DUT_dispatch_enq_ready, expected_dispatch_enq_ready;
-	logic [3:0][LOG_ROB_ENTRIES-1:0] DUT_dispatch_ROB_index_by_way, expected_dispatch_ROB_index_by_way;
+	logic [3:0][LOG_ROB_ENTRIES-1:0] DUT_dispatch_enq_ROB_index_by_way, expected_dispatch_enq_ROB_index_by_way;
 
     // writeback bus complete notif by bank
 	logic [PRF_BANK_COUNT-1:0] tb_complete_bus_valid_by_bank;
@@ -249,8 +247,6 @@ module rob_tb ();
 		// checkpoint info
 		.dispatch_has_checkpoint(tb_dispatch_has_checkpoint),
 		.dispatch_checkpoint_index(tb_dispatch_checkpoint_index),
-	    // instr FU valids
-		.dispatch_attempt_ldu_dq_by_way(tb_dispatch_attempt_ldu_dq_by_way),
 	    // dest operand
 		.dispatch_dest_AR_by_way(tb_dispatch_dest_AR_by_way),
 		.dispatch_dest_old_PR_by_way(tb_dispatch_dest_old_PR_by_way),
@@ -258,7 +254,7 @@ module rob_tb ();
 
 	    // ROB dispatch feedback
 		.dispatch_enq_ready(DUT_dispatch_enq_ready),
-		.dispatch_ROB_index_by_way(DUT_dispatch_ROB_index_by_way),
+		.dispatch_enq_ROB_index_by_way(DUT_dispatch_enq_ROB_index_by_way),
 
 	    // writeback bus complete notif by bank
 		.complete_bus_valid_by_bank(tb_complete_bus_valid_by_bank),
@@ -400,9 +396,9 @@ module rob_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_dispatch_ROB_index_by_way !== DUT_dispatch_ROB_index_by_way) begin
-			$display("TB ERROR: expected_dispatch_ROB_index_by_way (%h) != DUT_dispatch_ROB_index_by_way (%h)",
-				expected_dispatch_ROB_index_by_way, DUT_dispatch_ROB_index_by_way);
+		if (expected_dispatch_enq_ROB_index_by_way !== DUT_dispatch_enq_ROB_index_by_way) begin
+			$display("TB ERROR: expected_dispatch_enq_ROB_index_by_way (%h) != DUT_dispatch_enq_ROB_index_by_way (%h)",
+				expected_dispatch_enq_ROB_index_by_way, DUT_dispatch_enq_ROB_index_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -762,8 +758,6 @@ module rob_tb ();
 		// checkpoint info
 		tb_dispatch_has_checkpoint = 1'b0;
 		tb_dispatch_checkpoint_index = 3'h0;
-	    // instr FU valids
-		tb_dispatch_attempt_ldu_dq_by_way = 4'b0000;
 	    // dest operand
 		tb_dispatch_dest_AR_by_way = {5'h00, 5'h00, 5'h00, 5'h00};
 		tb_dispatch_dest_old_PR_by_way = {7'h00, 7'h00, 7'h00, 7'h00};
@@ -839,7 +833,7 @@ module rob_tb ();
 	    // dest operand
 	    // ROB dispatch feedback
 		expected_dispatch_enq_ready = 1'b1;
-		expected_dispatch_ROB_index_by_way = {7'h03, 7'h02, 7'h01, 7'h00};
+		expected_dispatch_enq_ROB_index_by_way = {7'h03, 7'h02, 7'h01, 7'h00};
 	    // writeback bus complete notif by bank
 	    // LDU complete notif
 	    // STAMOFU complete notif
@@ -934,8 +928,6 @@ module rob_tb ();
 		// checkpoint info
 		tb_dispatch_has_checkpoint = 1'b0;
 		tb_dispatch_checkpoint_index = 3'h0;
-	    // instr FU valids
-		tb_dispatch_attempt_ldu_dq_by_way = 4'b0000;
 	    // dest operand
 		tb_dispatch_dest_AR_by_way = {5'h00, 5'h00, 5'h00, 5'h00};
 		tb_dispatch_dest_old_PR_by_way = {7'h00, 7'h00, 7'h00, 7'h00};
@@ -1011,7 +1003,7 @@ module rob_tb ();
 	    // dest operand
 	    // ROB dispatch feedback
 		expected_dispatch_enq_ready = 1'b1;
-		expected_dispatch_ROB_index_by_way = {7'h03, 7'h02, 7'h01, 7'h00};
+		expected_dispatch_enq_ROB_index_by_way = {7'h03, 7'h02, 7'h01, 7'h00};
 	    // writeback bus complete notif by bank
 	    // LDU complete notif
 	    // STAMOFU complete notif
@@ -1114,8 +1106,6 @@ module rob_tb ();
 		// checkpoint info
 		tb_dispatch_has_checkpoint = 1'b0;
 		tb_dispatch_checkpoint_index = 3'h0;
-	    // instr FU valids
-		tb_dispatch_attempt_ldu_dq_by_way = 4'b0000;
 	    // dest operand
 		tb_dispatch_dest_AR_by_way = {5'h00, 5'h00, 5'h00, 5'h00};
 		tb_dispatch_dest_old_PR_by_way = {7'h00, 7'h00, 7'h00, 7'h00};
@@ -1191,7 +1181,7 @@ module rob_tb ();
 	    // dest operand
 	    // ROB dispatch feedback
 		expected_dispatch_enq_ready = 1'b1;
-		expected_dispatch_ROB_index_by_way = {7'h03, 7'h02, 7'h01, 7'h00};
+		expected_dispatch_enq_ROB_index_by_way = {7'h03, 7'h02, 7'h01, 7'h00};
 	    // writeback bus complete notif by bank
 	    // LDU complete notif
 	    // STAMOFU complete notif

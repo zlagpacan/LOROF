@@ -63,6 +63,7 @@ module core #(
     input logic                         wr_buf_WB_valid,
     input logic [31:0]                  wr_buf_WB_data,
     input logic [LOG_PR_COUNT-1:0]      wr_buf_WB_PR,
+        // don't need ROB_index as WB_send_complete = 1'b0
 
     // write buffer WB feedback from PRF
     output logic                        wr_buf_WB_ready,
@@ -71,28 +72,36 @@ module core #(
     output logic unrecoverable_fault
 );
     // Modules:
+
         // Front End
             // fetch_unit
             // istream
             // decode_unit
+
         // Central
             // prf
             // rob
+
         // Back End
+
             // alu_reg_mdu
                 // alu_reg_mdu_dq
                 // alu_reg_mdu_iq_single
                 // alu_reg_pipeline_fast
                 // mdu_pipeline
+
             // alu_imm
                 // alu_imm_dq
                 // alu_imm_iq
                 // alu_imm_pipeline_fast
+
             // bru
                 // bru_dq
                 // bru_iq
                 // bru_pipeline_fast
+
             // lsu
+
                 // ldu
                     // ldu_dq
                     // ldu_iq
@@ -100,6 +109,7 @@ module core #(
                     // 2x ldu_launch_pipeline
                     // ldu_cq
                     // ldu_mq
+
                 // stamofu
                     // stamofu_dq
                     // stamofu_iq
@@ -109,7 +119,9 @@ module core #(
                     // 2x stamofu_launch_pipeline
                     // stamofu_cq
                     // stamofu_mq
+
                 // ssu
+
             // sysu
                 // sysu_dq
                 // sysu_pipeline
@@ -200,6 +212,10 @@ module core #(
     logic dispatch_rob_enq_valid;
 	logic dispatch_rob_enq_killed;
     logic dispatch_rob_enq_ready;
+
+    // ROB dispatch feedback
+    output logic                                dispatch_rob_enq_ready,
+    output logic [3:0][LOG_ROB_ENTRIES-1:0]     dispatch_rob_enq_ROB_index_by_way,
 
     // general instr info
     logic [3:0]                             dispatch_valid_by_way;
@@ -343,16 +359,37 @@ module core #(
     logic [PRF_RR_COUNT-1:0]    prf_read_resp_ack_by_rr;
     logic [PRF_RR_COUNT-1:0]    prf_read_resp_port_by_rr;
 
+    logic ldu_PRF_A_reg_read_ack;
+    logic alu_reg_mdu_PRF_A_reg_read_ack;
+    logic alu_reg_mdu_PRF_B_reg_read_ack;
+    logic alu_imm_PRF_A_reg_read_ack;
+    logic bru_PRF_A_reg_read_ack;
+    logic bru_PRF_B_reg_read_ack;
+    logic stamofu_PRF_A_reg_read_ack;
+    logic stamofu_PRF_B_reg_read_ack;
+    logic sysu_PRF_A_reg_read_ack;
+
+    logic ldu_PRF_A_reg_read_port;
+    logic alu_reg_mdu_PRF_A_reg_read_port;
+    logic alu_reg_mdu_PRF_B_reg_read_port;
+    logic alu_imm_PRF_A_reg_read_port;
+    logic bru_PRF_A_reg_read_port;
+    logic bru_PRF_B_reg_read_port;
+    logic stamofu_PRF_A_reg_read_port;
+    logic stamofu_PRF_B_reg_read_port;
+    logic sysu_PRF_A_reg_read_port;
+
     // read data by bank
     logic [PRF_BANK_COUNT-1:0][1:0][31:0] prf_read_data_by_bank_by_port;
 
     // writeback info by write requestor
     logic [PRF_WR_COUNT-1:0]                        WB_valid_by_wr;
+    logic [PRF_WR_COUNT-1:0]                        WB_send_complete_by_wr;
     logic [PRF_WR_COUNT-1:0][31:0]                  WB_data_by_wr;
     logic [PRF_WR_COUNT-1:0][LOG_PR_COUNT-1:0]      WB_PR_by_wr;
     logic [PRF_WR_COUNT-1:0][LOG_ROB_ENTRIES-1:0]   WB_ROB_index_by_wr;
 
-    logic stamofu_WB_valid;
+    // logic wr_buf_WB_valid; // in core IO
     logic ldu_bank0_WB_valid;
     logic ldu_bank1_WB_valid;
     logic alu_reg_WB_valid;
@@ -361,8 +398,53 @@ module core #(
     logic bru_WB_valid;
     logic sysu_WB_valid;
 
+    logic wr_buf_WB_send_complete;
+    logic ldu_bank0_WB_send_complete;
+    logic ldu_bank1_WB_send_complete;
+    logic alu_reg_WB_send_complete;
+    logic mdu_WB_send_complete;
+    logic alu_imm_WB_send_complete;
+    logic bru_WB_send_complete;
+    logic sysu_WB_send_complete;
+
+    // logic [31:0] wr_buf_WB_data; // in core IO
+    logic [31:0] ldu_bank0_WB_data;
+    logic [31:0] ldu_bank1_WB_data;
+    logic [31:0] alu_reg_WB_data;
+    logic [31:0] mdu_WB_data;
+    logic [31:0] alu_imm_WB_data;
+    logic [31:0] bru_WB_data;
+    logic [31:0] sysu_WB_data;
+
+    // logic [PRF_WR_COUNT-1:0] wr_buf_WB_PR; // in core IO
+    logic [PRF_WR_COUNT-1:0] ldu_bank0_WB_PR;
+    logic [PRF_WR_COUNT-1:0] ldu_bank1_WB_PR;
+    logic [PRF_WR_COUNT-1:0] alu_reg_WB_PR;
+    logic [PRF_WR_COUNT-1:0] mdu_WB_PR;
+    logic [PRF_WR_COUNT-1:0] alu_imm_WB_PR;
+    logic [PRF_WR_COUNT-1:0] bru_WB_PR;
+    logic [PRF_WR_COUNT-1:0] sysu_WB_PR;
+
+    logic [LOG_PR_COUNT-1:0] wr_buf_WB_ROB_index;
+    logic [LOG_PR_COUNT-1:0] ldu_bank0_WB_ROB_index;
+    logic [LOG_PR_COUNT-1:0] ldu_bank1_WB_ROB_index;
+    logic [LOG_PR_COUNT-1:0] alu_reg_WB_ROB_index;
+    logic [LOG_PR_COUNT-1:0] mdu_WB_ROB_index;
+    logic [LOG_PR_COUNT-1:0] alu_imm_WB_ROB_index;
+    logic [LOG_PR_COUNT-1:0] bru_WB_ROB_index;
+    logic [LOG_PR_COUNT-1:0] sysu_WB_ROB_index;
+
     // writeback feedback by write requestor
     logic [PRF_WR_COUNT-1:0] WB_ready_by_wr;
+
+    // logic wr_buf_WB_ready; // in core IO
+    logic ldu_bank0_WB_ready;
+    logic ldu_bank1_WB_ready;
+    logic alu_reg_WB_ready;
+    logic mdu_WB_ready;
+    logic alu_imm_WB_ready;
+    logic bru_WB_ready;
+    logic sysu_WB_ready;
 
     // forward data by bank
     logic [PRF_BANK_COUNT-1:0][31:0] prf_forward_data_bus_by_bank;
@@ -370,6 +452,8 @@ module core #(
     // complete bus by bank
     logic [PRF_BANK_COUNT-1:0]                          prf_complete_bus_valid_by_bank;
     logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0]     prf_complete_bus_ROB_index_by_bank;
+
+
 
     // ----------------------------------------------------------------
     // Front End Modules:
@@ -705,6 +789,31 @@ module core #(
 
     // prf
     always_comb begin
+        // hardwired prf inputs:
+
+        // hardwire send_complete's
+        wr_buf_WB_send_complete = 1'b0;
+        ldu_bank0_WB_send_complete = 1'b0;
+        ldu_bank1_WB_send_complete = 1'b0;
+        alu_reg_WB_send_complete = 1'b1;
+        mdu_WB_send_complete = 1'b1;
+        alu_imm_WB_send_complete = 1'b1;
+        bru_WB_send_complete = 1'b1; // LUI and AUIPC don't send branch notif
+        sysu_WB_send_complete = 1'b0;
+
+        // wr buf ROB_index hardwired
+        wr_buf_WB_ROB_index = 0;
+
+        // sysu PRF req's hardwired for now
+        sysu_PRF_req_A_valid = 1'b0;
+        sysu_PRF_req_A_PR = 0;
+
+        sysu_WB_valid = 1'b0;
+        sysu_WB_data = 32'h0;
+        sysu_WB_PR = 0;
+        sysu_WB_ROB_index = 0;
+    end
+    always_comb begin
 
         // read priority:
             // LDU A
@@ -738,6 +847,26 @@ module core #(
             alu_reg_mdu_PRF_req_A_PR,
             ldu_PRF_req_A_PR
         };
+
+        ldu_PRF_A_reg_read_ack = prf_read_resp_ack_by_rr[0];
+        alu_reg_mdu_PRF_A_reg_read_ack = prf_read_resp_ack_by_rr[1];
+        alu_reg_mdu_PRF_B_reg_read_ack = prf_read_resp_ack_by_rr[2];
+        alu_imm_PRF_A_reg_read_ack = prf_read_resp_ack_by_rr[3];
+        bru_PRF_A_reg_read_ack = prf_read_resp_ack_by_rr[4];
+        bru_PRF_B_reg_read_ack = prf_read_resp_ack_by_rr[5];
+        stamofu_PRF_A_reg_read_ack = prf_read_resp_ack_by_rr[6];
+        stamofu_PRF_B_reg_read_ack = prf_read_resp_ack_by_rr[7];
+        sysu_PRF_A_reg_read_ack = prf_read_resp_ack_by_rr[8];
+
+        ldu_PRF_A_reg_read_port = prf_read_resp_port_by_rr[0];
+        alu_reg_mdu_PRF_A_reg_read_port = prf_read_resp_port_by_rr[1];
+        alu_reg_mdu_PRF_B_reg_read_port = prf_read_resp_port_by_rr[2];
+        alu_imm_PRF_A_reg_read_port = prf_read_resp_port_by_rr[3];
+        bru_PRF_A_reg_read_port = prf_read_resp_port_by_rr[4];
+        bru_PRF_B_reg_read_port = prf_read_resp_port_by_rr[5];
+        stamofu_PRF_A_reg_read_port = prf_read_resp_port_by_rr[6];
+        stamofu_PRF_B_reg_read_port = prf_read_resp_port_by_rr[7];
+        sysu_PRF_A_reg_read_port = prf_read_resp_port_by_rr[8];
         
         // write priority:
             // STAMOFU
@@ -749,23 +878,64 @@ module core #(
             // BRU
             // SYSU
         WB_valid_by_wr = {
-
+            sysu_WB_valid,
+            bru_WB_valid,
+            alu_imm_WB_valid,
+            mdu_WB_valid,
+            alu_reg_WB_valid,
+            ldu_bank1_WB_valid,
+            ldu_bank0_WB_valid,
+            wr_buf_WB_valid
+        };
+        WB_send_complete_by_wr = {
+            sysu_WB_send_complete,
+            bru_WB_send_complete,
+            alu_imm_WB_send_complete,
+            mdu_WB_send_complete,
+            alu_reg_WB_send_complete,
+            ldu_bank1_WB_send_complete,
+            ldu_bank0_WB_send_complete,
+            wr_buf_WB_send_complete
         };
         WB_data_by_wr = {
-
+            sysu_WB_data,
+            bru_WB_data,
+            alu_imm_WB_data,
+            mdu_WB_data,
+            alu_reg_WB_data,
+            ldu_bank1_WB_data,
+            ldu_bank0_WB_data,
+            wr_buf_WB_data
         };
         WB_PR_by_wr = {
-
+            sysu_WB_PR,
+            bru_WB_PR,
+            alu_imm_WB_PR,
+            mdu_WB_PR,
+            alu_reg_WB_PR,
+            ldu_bank1_WB_PR,
+            ldu_bank0_WB_PR,
+            wr_buf_WB_PR
         };
         WB_ROB_index_by_wr = {
-
+            sysu_WB_ROB_index,
+            bru_WB_ROB_index,
+            alu_imm_WB_ROB_index,
+            mdu_WB_ROB_index,
+            alu_reg_WB_ROB_index,
+            ldu_bank1_WB_ROB_index,
+            ldu_bank0_WB_ROB_index,
+            wr_buf_WB_ROB_index
         };
 
-        stamofu_WB_ready = WB_ready_by_wr[0];
-
-        // sysu PRF req hardwired for now
-        sysu_PRF_req_A_valid = 1'b0;
-        sysu_PRF_req_A_PR = 7'h00;
+        wr_buf_WB_ready = WB_ready_by_wr[0];
+        ldu_bank0_WB_ready = WB_ready_by_wr[1];
+        ldu_bank1_WB_ready = WB_ready_by_wr[2];
+        alu_reg_WB_ready = WB_ready_by_wr[3];
+        mdu_WB_ready = WB_ready_by_wr[4];
+        alu_imm_WB_ready = WB_ready_by_wr[5];
+        bru_WB_ready = WB_ready_by_wr[6];
+        sysu_WB_ready = WB_ready_by_wr[7];
     end
     prf #(
         .PR_COUNT(PR_COUNT),
@@ -779,18 +949,19 @@ module core #(
 		.nRST(nRST),
 
 	    // reg read req by read requester
-		.read_req_valid_by_rr(read_req_valid_by_rr),
-		.read_req_PR_by_rr(read_req_PR_by_rr),
+		.read_req_valid_by_rr(prf_read_req_valid_by_rr),
+		.read_req_PR_by_rr(prf_read_req_PR_by_rr),
 
 	    // reg read info by read requestor
-		.read_resp_ack_by_rr(read_resp_ack_by_rr),
-		.read_resp_port_by_rr(read_resp_port_by_rr),
+		.read_resp_ack_by_rr(prf_read_resp_ack_by_rr),
+		.read_resp_port_by_rr(prf_read_resp_port_by_rr),
 
 	    // reg read data by bank
-		.read_data_by_bank_by_port(read_data_by_bank_by_port),
+		.read_data_by_bank_by_port(prf_read_data_by_bank_by_port),
 
 	    // writeback data by write requestor
 		.WB_valid_by_wr(WB_valid_by_wr),
+		.WB_send_complete_by_wr(WB_send_complete_by_wr),
 		.WB_data_by_wr(WB_data_by_wr),
 		.WB_PR_by_wr(WB_PR_by_wr),
 		.WB_ROB_index_by_wr(WB_ROB_index_by_wr),
@@ -803,11 +974,11 @@ module core #(
 		.WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
 
 	    // forward data from PRF
-		.forward_data_bus_by_bank(forward_data_bus_by_bank),
+		.forward_data_bus_by_bank(prf_forward_data_bus_by_bank),
 
 		// complete bus by bank
-		.complete_bus_valid_by_bank(complete_bus_valid_by_bank),
-		.complete_bus_ROB_index_by_bank(complete_bus_ROB_index_by_bank)
+		.complete_bus_valid_by_bank(prf_complete_bus_valid_by_bank),
+		.complete_bus_ROB_index_by_bank(prf_complete_bus_ROB_index_by_bank)
     );
 
     // rob

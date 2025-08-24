@@ -58,7 +58,7 @@ module rob #(
 
     // ROB dispatch feedback
     output logic                                dispatch_enq_ready,
-    output logic [3:0][LOG_ROB_ENTRIES-1:0]     dispatch_ROB_index_by_way,
+    output logic [3:0][LOG_ROB_ENTRIES-1:0]     dispatch_enq_ROB_index_by_way,
 
     // writeback bus complete notif by bank
     input logic [PRF_BANK_COUNT-1:0]                        complete_bus_valid_by_bank,
@@ -815,10 +815,10 @@ module rob #(
         end
     end
     always_comb begin
-        dispatch_ROB_index_by_way[0] = {tail_ptr, 2'h0};
-        dispatch_ROB_index_by_way[1] = {tail_ptr, 2'h1};
-        dispatch_ROB_index_by_way[2] = {tail_ptr, 2'h2};
-        dispatch_ROB_index_by_way[3] = {tail_ptr, 2'h3};
+        dispatch_enq_ROB_index_by_way[0] = {tail_ptr, 2'h0};
+        dispatch_enq_ROB_index_by_way[1] = {tail_ptr, 2'h1};
+        dispatch_enq_ROB_index_by_way[2] = {tail_ptr, 2'h2};
+        dispatch_enq_ROB_index_by_way[3] = {tail_ptr, 2'h3};
     end
 
     // enq logic:

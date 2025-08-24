@@ -62,7 +62,7 @@ module rob_wrapper (
 
     // ROB dispatch feedback
 	output logic last_dispatch_enq_ready,
-	output logic [3:0][LOG_ROB_ENTRIES-1:0] last_dispatch_ROB_index_by_way,
+	output logic [3:0][LOG_ROB_ENTRIES-1:0] last_dispatch_enq_ROB_index_by_way,
 
     // writeback bus complete notif by bank
 	input logic [PRF_BANK_COUNT-1:0] next_complete_bus_valid_by_bank,
@@ -222,7 +222,7 @@ module rob_wrapper (
 
     // ROB dispatch feedback
 	logic dispatch_enq_ready;
-	logic [3:0][LOG_ROB_ENTRIES-1:0] dispatch_ROB_index_by_way;
+	logic [3:0][LOG_ROB_ENTRIES-1:0] dispatch_enq_ROB_index_by_way;
 
     // writeback bus complete notif by bank
 	logic [PRF_BANK_COUNT-1:0] complete_bus_valid_by_bank;
@@ -405,7 +405,7 @@ module rob_wrapper (
 
 		    // ROB dispatch feedback
 			last_dispatch_enq_ready <= '0;
-			last_dispatch_ROB_index_by_way <= '0;
+			last_dispatch_enq_ROB_index_by_way <= '0;
 
 		    // writeback bus complete notif by bank
 			complete_bus_valid_by_bank <= '0;
@@ -563,7 +563,7 @@ module rob_wrapper (
 
 		    // ROB dispatch feedback
 			last_dispatch_enq_ready <= dispatch_enq_ready;
-			last_dispatch_ROB_index_by_way <= dispatch_ROB_index_by_way;
+			last_dispatch_enq_ROB_index_by_way <= dispatch_enq_ROB_index_by_way;
 
 		    // writeback bus complete notif by bank
 			complete_bus_valid_by_bank <= next_complete_bus_valid_by_bank;
