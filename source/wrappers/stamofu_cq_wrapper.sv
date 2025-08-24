@@ -219,6 +219,7 @@ module stamofu_cq_wrapper (
 	output logic last_wr_buf_enq_bank0_valid,
 	output logic last_wr_buf_enq_bank0_is_amo,
 	output logic [3:0] last_wr_buf_enq_bank0_op,
+	output logic [LOG_PR_COUNT-1:0] last_wr_buf_enq_bank0_dest_PR,
 	output logic last_wr_buf_enq_bank0_is_mem,
 	output logic [PA_WIDTH-2-1:0] last_wr_buf_enq_bank0_PA_word,
 	output logic [3:0] last_wr_buf_enq_bank0_byte_mask,
@@ -233,6 +234,7 @@ module stamofu_cq_wrapper (
 	output logic last_wr_buf_enq_bank1_valid,
 	output logic last_wr_buf_enq_bank1_is_amo,
 	output logic [3:0] last_wr_buf_enq_bank1_op,
+	output logic [LOG_PR_COUNT-1:0] last_wr_buf_enq_bank1_dest_PR,
 	output logic last_wr_buf_enq_bank1_is_mem,
 	output logic [PA_WIDTH-2-1:0] last_wr_buf_enq_bank1_PA_word,
 	output logic [3:0] last_wr_buf_enq_bank1_byte_mask,
@@ -518,6 +520,7 @@ module stamofu_cq_wrapper (
 	logic wr_buf_enq_bank0_valid;
 	logic wr_buf_enq_bank0_is_amo;
 	logic [3:0] wr_buf_enq_bank0_op;
+	logic [LOG_PR_COUNT-1:0] wr_buf_enq_bank0_dest_PR;
 	logic wr_buf_enq_bank0_is_mem;
 	logic [PA_WIDTH-2-1:0] wr_buf_enq_bank0_PA_word;
 	logic [3:0] wr_buf_enq_bank0_byte_mask;
@@ -532,6 +535,7 @@ module stamofu_cq_wrapper (
 	logic wr_buf_enq_bank1_valid;
 	logic wr_buf_enq_bank1_is_amo;
 	logic [3:0] wr_buf_enq_bank1_op;
+	logic [LOG_PR_COUNT-1:0] wr_buf_enq_bank1_dest_PR;
 	logic wr_buf_enq_bank1_is_mem;
 	logic [PA_WIDTH-2-1:0] wr_buf_enq_bank1_PA_word;
 	logic [3:0] wr_buf_enq_bank1_byte_mask;
@@ -827,6 +831,7 @@ module stamofu_cq_wrapper (
 			last_wr_buf_enq_bank0_valid <= '0;
 			last_wr_buf_enq_bank0_is_amo <= '0;
 			last_wr_buf_enq_bank0_op <= '0;
+			last_wr_buf_enq_bank0_dest_PR <= '0;
 			last_wr_buf_enq_bank0_is_mem <= '0;
 			last_wr_buf_enq_bank0_PA_word <= '0;
 			last_wr_buf_enq_bank0_byte_mask <= '0;
@@ -841,6 +846,7 @@ module stamofu_cq_wrapper (
 			last_wr_buf_enq_bank1_valid <= '0;
 			last_wr_buf_enq_bank1_is_amo <= '0;
 			last_wr_buf_enq_bank1_op <= '0;
+			last_wr_buf_enq_bank1_dest_PR <= '0;
 			last_wr_buf_enq_bank1_is_mem <= '0;
 			last_wr_buf_enq_bank1_PA_word <= '0;
 			last_wr_buf_enq_bank1_byte_mask <= '0;
@@ -1124,6 +1130,7 @@ module stamofu_cq_wrapper (
 			last_wr_buf_enq_bank0_valid <= wr_buf_enq_bank0_valid;
 			last_wr_buf_enq_bank0_is_amo <= wr_buf_enq_bank0_is_amo;
 			last_wr_buf_enq_bank0_op <= wr_buf_enq_bank0_op;
+			last_wr_buf_enq_bank0_dest_PR <= wr_buf_enq_bank0_dest_PR;
 			last_wr_buf_enq_bank0_is_mem <= wr_buf_enq_bank0_is_mem;
 			last_wr_buf_enq_bank0_PA_word <= wr_buf_enq_bank0_PA_word;
 			last_wr_buf_enq_bank0_byte_mask <= wr_buf_enq_bank0_byte_mask;
@@ -1138,6 +1145,7 @@ module stamofu_cq_wrapper (
 			last_wr_buf_enq_bank1_valid <= wr_buf_enq_bank1_valid;
 			last_wr_buf_enq_bank1_is_amo <= wr_buf_enq_bank1_is_amo;
 			last_wr_buf_enq_bank1_op <= wr_buf_enq_bank1_op;
+			last_wr_buf_enq_bank1_dest_PR <= wr_buf_enq_bank1_dest_PR;
 			last_wr_buf_enq_bank1_is_mem <= wr_buf_enq_bank1_is_mem;
 			last_wr_buf_enq_bank1_PA_word <= wr_buf_enq_bank1_PA_word;
 			last_wr_buf_enq_bank1_byte_mask <= wr_buf_enq_bank1_byte_mask;

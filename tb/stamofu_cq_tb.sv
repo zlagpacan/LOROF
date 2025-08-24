@@ -235,6 +235,7 @@ module stamofu_cq_tb ();
 	logic DUT_wr_buf_enq_bank0_valid, expected_wr_buf_enq_bank0_valid;
 	logic DUT_wr_buf_enq_bank0_is_amo, expected_wr_buf_enq_bank0_is_amo;
 	logic [3:0] DUT_wr_buf_enq_bank0_op, expected_wr_buf_enq_bank0_op;
+	logic [LOG_PR_COUNT-1:0] DUT_wr_buf_enq_bank0_dest_PR, expected_wr_buf_enq_bank0_dest_PR;
 	logic DUT_wr_buf_enq_bank0_is_mem, expected_wr_buf_enq_bank0_is_mem;
 	logic [PA_WIDTH-2-1:0] DUT_wr_buf_enq_bank0_PA_word, expected_wr_buf_enq_bank0_PA_word;
 	logic [3:0] DUT_wr_buf_enq_bank0_byte_mask, expected_wr_buf_enq_bank0_byte_mask;
@@ -249,6 +250,7 @@ module stamofu_cq_tb ();
 	logic DUT_wr_buf_enq_bank1_valid, expected_wr_buf_enq_bank1_valid;
 	logic DUT_wr_buf_enq_bank1_is_amo, expected_wr_buf_enq_bank1_is_amo;
 	logic [3:0] DUT_wr_buf_enq_bank1_op, expected_wr_buf_enq_bank1_op;
+	logic [LOG_PR_COUNT-1:0] DUT_wr_buf_enq_bank1_dest_PR, expected_wr_buf_enq_bank1_dest_PR;
 	logic DUT_wr_buf_enq_bank1_is_mem, expected_wr_buf_enq_bank1_is_mem;
 	logic [PA_WIDTH-2-1:0] DUT_wr_buf_enq_bank1_PA_word, expected_wr_buf_enq_bank1_PA_word;
 	logic [3:0] DUT_wr_buf_enq_bank1_byte_mask, expected_wr_buf_enq_bank1_byte_mask;
@@ -541,6 +543,7 @@ module stamofu_cq_tb ();
 		.wr_buf_enq_bank0_valid(DUT_wr_buf_enq_bank0_valid),
 		.wr_buf_enq_bank0_is_amo(DUT_wr_buf_enq_bank0_is_amo),
 		.wr_buf_enq_bank0_op(DUT_wr_buf_enq_bank0_op),
+		.wr_buf_enq_bank0_dest_PR(DUT_wr_buf_enq_bank0_dest_PR),
 		.wr_buf_enq_bank0_is_mem(DUT_wr_buf_enq_bank0_is_mem),
 		.wr_buf_enq_bank0_PA_word(DUT_wr_buf_enq_bank0_PA_word),
 		.wr_buf_enq_bank0_byte_mask(DUT_wr_buf_enq_bank0_byte_mask),
@@ -555,6 +558,7 @@ module stamofu_cq_tb ();
 		.wr_buf_enq_bank1_valid(DUT_wr_buf_enq_bank1_valid),
 		.wr_buf_enq_bank1_is_amo(DUT_wr_buf_enq_bank1_is_amo),
 		.wr_buf_enq_bank1_op(DUT_wr_buf_enq_bank1_op),
+		.wr_buf_enq_bank1_dest_PR(DUT_wr_buf_enq_bank1_dest_PR),
 		.wr_buf_enq_bank1_is_mem(DUT_wr_buf_enq_bank1_is_mem),
 		.wr_buf_enq_bank1_PA_word(DUT_wr_buf_enq_bank1_PA_word),
 		.wr_buf_enq_bank1_byte_mask(DUT_wr_buf_enq_bank1_byte_mask),
@@ -988,6 +992,13 @@ module stamofu_cq_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_wr_buf_enq_bank0_dest_PR !== DUT_wr_buf_enq_bank0_dest_PR) begin
+			$display("TB ERROR: expected_wr_buf_enq_bank0_dest_PR (%h) != DUT_wr_buf_enq_bank0_dest_PR (%h)",
+				expected_wr_buf_enq_bank0_dest_PR, DUT_wr_buf_enq_bank0_dest_PR);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_wr_buf_enq_bank0_is_mem !== DUT_wr_buf_enq_bank0_is_mem) begin
 			$display("TB ERROR: expected_wr_buf_enq_bank0_is_mem (%h) != DUT_wr_buf_enq_bank0_is_mem (%h)",
 				expected_wr_buf_enq_bank0_is_mem, DUT_wr_buf_enq_bank0_is_mem);
@@ -1033,6 +1044,13 @@ module stamofu_cq_tb ();
 		if (expected_wr_buf_enq_bank1_op !== DUT_wr_buf_enq_bank1_op) begin
 			$display("TB ERROR: expected_wr_buf_enq_bank1_op (%h) != DUT_wr_buf_enq_bank1_op (%h)",
 				expected_wr_buf_enq_bank1_op, DUT_wr_buf_enq_bank1_op);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_wr_buf_enq_bank1_dest_PR !== DUT_wr_buf_enq_bank1_dest_PR) begin
+			$display("TB ERROR: expected_wr_buf_enq_bank1_dest_PR (%h) != DUT_wr_buf_enq_bank1_dest_PR (%h)",
+				expected_wr_buf_enq_bank1_dest_PR, DUT_wr_buf_enq_bank1_dest_PR);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -1524,6 +1542,7 @@ module stamofu_cq_tb ();
 		expected_wr_buf_enq_bank0_valid = 1'b0;
 		expected_wr_buf_enq_bank0_is_amo = 1'b0;
 		expected_wr_buf_enq_bank0_op = 4'b0000;
+		expected_wr_buf_enq_bank0_dest_PR = 7'h00;
 		expected_wr_buf_enq_bank0_is_mem = 1'b0;
 		expected_wr_buf_enq_bank0_PA_word = 32'h00000000;
 		expected_wr_buf_enq_bank0_byte_mask = 4'b0000;
@@ -1533,6 +1552,7 @@ module stamofu_cq_tb ();
 		expected_wr_buf_enq_bank1_valid = 1'b0;
 		expected_wr_buf_enq_bank1_is_amo = 1'b0;
 		expected_wr_buf_enq_bank1_op = 4'b0000;
+		expected_wr_buf_enq_bank1_dest_PR = 7'h00;
 		expected_wr_buf_enq_bank1_is_mem = 1'b0;
 		expected_wr_buf_enq_bank1_PA_word = 32'h00000000;
 		expected_wr_buf_enq_bank1_byte_mask = 4'b0000;
@@ -1818,6 +1838,7 @@ module stamofu_cq_tb ();
 		expected_wr_buf_enq_bank0_valid = 1'b0;
 		expected_wr_buf_enq_bank0_is_amo = 1'b0;
 		expected_wr_buf_enq_bank0_op = 4'b0000;
+		expected_wr_buf_enq_bank0_dest_PR = 7'h00;
 		expected_wr_buf_enq_bank0_is_mem = 1'b0;
 		expected_wr_buf_enq_bank0_PA_word = 32'h00000000;
 		expected_wr_buf_enq_bank0_byte_mask = 4'b0000;
@@ -1827,6 +1848,7 @@ module stamofu_cq_tb ();
 		expected_wr_buf_enq_bank1_valid = 1'b0;
 		expected_wr_buf_enq_bank1_is_amo = 1'b0;
 		expected_wr_buf_enq_bank1_op = 4'b0000;
+		expected_wr_buf_enq_bank1_dest_PR = 7'h00;
 		expected_wr_buf_enq_bank1_is_mem = 1'b0;
 		expected_wr_buf_enq_bank1_PA_word = 32'h00000000;
 		expected_wr_buf_enq_bank1_byte_mask = 4'b0000;
@@ -2132,6 +2154,7 @@ module stamofu_cq_tb ();
 		expected_wr_buf_enq_bank0_valid = 1'b0;
 		expected_wr_buf_enq_bank0_is_amo = 1'b0;
 		expected_wr_buf_enq_bank0_op = 4'b0000;
+		expected_wr_buf_enq_bank0_dest_PR = 7'h00;
 		expected_wr_buf_enq_bank0_is_mem = 1'b0;
 		expected_wr_buf_enq_bank0_PA_word = 32'h00000000;
 		expected_wr_buf_enq_bank0_byte_mask = 4'b0000;
@@ -2141,6 +2164,7 @@ module stamofu_cq_tb ();
 		expected_wr_buf_enq_bank1_valid = 1'b0;
 		expected_wr_buf_enq_bank1_is_amo = 1'b0;
 		expected_wr_buf_enq_bank1_op = 4'b0000;
+		expected_wr_buf_enq_bank1_dest_PR = 7'h00;
 		expected_wr_buf_enq_bank1_is_mem = 1'b0;
 		expected_wr_buf_enq_bank1_PA_word = 32'h00000000;
 		expected_wr_buf_enq_bank1_byte_mask = 4'b0000;

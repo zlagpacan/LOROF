@@ -46,23 +46,23 @@ package core_types_pkg;
     parameter PRF_BANK_COUNT = 4;
     parameter LOG_PRF_BANK_COUNT = $clog2(PRF_BANK_COUNT);
     parameter PRF_RR_COUNT = 9;
+        // LDU A
         // ALU Reg-Reg / MDU A
         // ALU Reg-Reg / MDU B
         // ALU Reg-Imm A
         // BRU A
         // BRU B
-        // LDU A
         // STAMOFU A
         // STAMOFU B
         // SYSU A
     parameter PRF_WR_COUNT = 8;
+        // WR_BUF
+        // LDU bank 0
+        // LDU bank 1
         // ALU Reg-Reg
         // MDU
         // ALU Reg-Imm
         // BRU
-        // LDU bank 0
-        // LDU bank 1
-        // STAMOFU
         // SYSU
 
     // rob

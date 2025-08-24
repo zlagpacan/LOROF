@@ -213,32 +213,34 @@ module stamofu_cq #(
     input logic [31:0]                          stamofu_mq_info_grab_data,
 
     // write buffer enq bank 0
-    output logic                    wr_buf_enq_bank0_valid,
-    output logic                    wr_buf_enq_bank0_is_amo,
-    output logic [3:0]              wr_buf_enq_bank0_op,
-    output logic                    wr_buf_enq_bank0_is_mem,
-    output logic [PA_WIDTH-2-1:0]   wr_buf_enq_bank0_PA_word,
-    output logic [3:0]              wr_buf_enq_bank0_byte_mask,
-    output logic [31:0]             wr_buf_enq_bank0_data,
+    output logic                        wr_buf_enq_bank0_valid,
+    output logic                        wr_buf_enq_bank0_is_amo,
+    output logic [3:0]                  wr_buf_enq_bank0_op,
+    output logic [LOG_PR_COUNT-1:0]     wr_buf_enq_bank0_dest_PR,
+    output logic                        wr_buf_enq_bank0_is_mem,
+    output logic [PA_WIDTH-2-1:0]       wr_buf_enq_bank0_PA_word,
+    output logic [3:0]                  wr_buf_enq_bank0_byte_mask,
+    output logic [31:0]                 wr_buf_enq_bank0_data,
 
     // write buffer enq feedback bank 0
-    input logic                     wr_buf_enq_bank0_ready,
-    input logic                     wr_buf_enq_bank0_mem_present,
-    input logic                     wr_buf_enq_bank0_io_present,
+    input logic                         wr_buf_enq_bank0_ready,
+    input logic                         wr_buf_enq_bank0_mem_present,
+    input logic                         wr_buf_enq_bank0_io_present,
 
     // write buffer enq bank 1
-    output logic                    wr_buf_enq_bank1_valid,
-    output logic                    wr_buf_enq_bank1_is_amo,
-    output logic [3:0]              wr_buf_enq_bank1_op,
-    output logic                    wr_buf_enq_bank1_is_mem,
-    output logic [PA_WIDTH-2-1:0]   wr_buf_enq_bank1_PA_word,
-    output logic [3:0]              wr_buf_enq_bank1_byte_mask,
-    output logic [31:0]             wr_buf_enq_bank1_data,
+    output logic                        wr_buf_enq_bank1_valid,
+    output logic                        wr_buf_enq_bank1_is_amo,
+    output logic [3:0]                  wr_buf_enq_bank1_op,
+    output logic [LOG_PR_COUNT-1:0]     wr_buf_enq_bank1_dest_PR,
+    output logic                        wr_buf_enq_bank1_is_mem,
+    output logic [PA_WIDTH-2-1:0]       wr_buf_enq_bank1_PA_word,
+    output logic [3:0]                  wr_buf_enq_bank1_byte_mask,
+    output logic [31:0]                 wr_buf_enq_bank1_data,
 
     // write buffer enq feedback bank 1
-    input logic                     wr_buf_enq_bank1_ready,
-    input logic                     wr_buf_enq_bank1_mem_present,
-    input logic                     wr_buf_enq_bank1_io_present,
+    input logic                         wr_buf_enq_bank1_ready,
+    input logic                         wr_buf_enq_bank1_mem_present,
+    input logic                         wr_buf_enq_bank1_io_present,
 
     // fence restart notification to ROB
     output logic                        fence_restart_notif_valid,
@@ -1419,9 +1421,11 @@ module stamofu_cq #(
 
         wr_buf_enq_bank0_is_amo = entry_array[deq_ptr].is_amo;
         wr_buf_enq_bank0_op = entry_array[deq_ptr].op;
+        wr_buf_enq_bank0_dest_PR = entry_array[deq_ptr].dest_PR;
 
         wr_buf_enq_bank1_is_amo = entry_array[deq_ptr].is_amo;
         wr_buf_enq_bank1_op = entry_array[deq_ptr].op;
+        wr_buf_enq_bank1_dest_PR = entry_array[deq_ptr].dest_PR;
 
         sfence_inv_VA[31:2] = entry_array[deq_ptr].PA_word[PA_WIDTH-2-2-1:0];
         casez (entry_array[deq_ptr].byte_mask)

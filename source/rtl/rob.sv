@@ -51,8 +51,6 @@ module rob #(
 	// checkpoint info
 	input logic									dispatch_has_checkpoint,
 	input logic [CHECKPOINT_INDEX_WIDTH-1:0]    dispatch_checkpoint_index,
-    // instr FU valids
-	input logic [3:0]                           dispatch_attempt_ldu_dq_by_way,
     // dest operand
     input logic [3:0][4:0]                      dispatch_dest_AR_by_way,
     input logic [3:0][LOG_PR_COUNT-1:0]         dispatch_dest_old_PR_by_way,
@@ -255,7 +253,6 @@ module rob #(
         logic [3:0]                         valid_by_way; // need for deq/rollback
         logic [3:0]                         uncompressed_by_way; // need for deq/rollback
         logic [3:0]                         is_rename_by_way; // need for deq/rollback
-        logic [3:0]                         is_ldu_by_way; // need for deq/rollback
         logic [3:0][4:0]                    dest_AR_by_way; // need for deq/rollback
         logic [3:0][LOG_PR_COUNT-1:0]       dest_old_PR_by_way; // need for deq/rollback
         logic [3:0][LOG_PR_COUNT-1:0]       dest_new_PR_by_way; // need for deq/rollback
@@ -841,7 +838,6 @@ module rob #(
         bulk_bram_write_entry.valid_by_way = dispatch_valid_by_way;
         bulk_bram_write_entry.uncompressed_by_way = dispatch_uncompressed_by_way;
         bulk_bram_write_entry.is_rename_by_way = dispatch_is_rename_by_way;
-        bulk_bram_write_entry.is_ldu_by_way = dispatch_attempt_ldu_dq_by_way;
         bulk_bram_write_entry.dest_AR_by_way = dispatch_dest_AR_by_way;
         bulk_bram_write_entry.dest_old_PR_by_way = dispatch_dest_old_PR_by_way;
         bulk_bram_write_entry.dest_new_PR_by_way = dispatch_dest_new_PR_by_way;
@@ -959,11 +955,8 @@ module rob #(
     end
     always_comb begin
         for (int i = 0; i < 4; i++) begin
-            // ldu needs unit complete
-            // else, WB complete or unit complete
-            deq_complete_by_way[i] = 
-                (~bulk_bram_read_entry.is_ldu_by_way[i] & WB_complete_by_entry[4*head_ptr+i])
-                | unit_complete_by_entry[4*head_ptr+i];
+            // WB complete or unit complete
+            deq_complete_by_way[i] = WB_complete_by_entry[4*head_ptr+i] | unit_complete_by_entry[4*head_ptr+i];
         end
     end
     always_comb begin

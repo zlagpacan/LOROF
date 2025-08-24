@@ -50,6 +50,7 @@ module prf_tb ();
 
     // writeback data by write requestor
 	logic [PRF_WR_COUNT-1:0] tb_WB_valid_by_wr;
+	logic [PRF_WR_COUNT-1:0] tb_WB_send_complete_by_wr;
 	logic [PRF_WR_COUNT-1:0][31:0] tb_WB_data_by_wr;
 	logic [PRF_WR_COUNT-1:0][LOG_PR_COUNT-1:0] tb_WB_PR_by_wr;
 	logic [PRF_WR_COUNT-1:0][LOG_ROB_ENTRIES-1:0] tb_WB_ROB_index_by_wr;
@@ -96,6 +97,7 @@ module prf_tb ();
 
 	    // writeback data by write requestor
 		.WB_valid_by_wr(tb_WB_valid_by_wr),
+		.WB_send_complete_by_wr(tb_WB_send_complete_by_wr),
 		.WB_data_by_wr(tb_WB_data_by_wr),
 		.WB_PR_by_wr(tb_WB_PR_by_wr),
 		.WB_ROB_index_by_wr(tb_WB_ROB_index_by_wr),
@@ -212,6 +214,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = '0;
+		tb_WB_send_complete_by_wr = '0;
 		tb_WB_data_by_wr = '0;
 		tb_WB_PR_by_wr = '0;
 		tb_WB_ROB_index_by_wr = '0;
@@ -256,6 +259,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = '0;
+		tb_WB_send_complete_by_wr = '0;
 		tb_WB_data_by_wr = '0;
 		tb_WB_PR_by_wr = '0;
 		tb_WB_ROB_index_by_wr = '0;
@@ -308,6 +312,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0001111;
+		tb_WB_send_complete_by_wr = 7'b0001010;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -378,6 +383,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b1110000;
+		tb_WB_send_complete_by_wr = 7'b1010000;
 		tb_WB_data_by_wr = {
 			32'hF9F90606,
 			32'hFAFA0505,
@@ -437,7 +443,7 @@ module prf_tb ();
 			5'h00
 		};
 		// complete bus by bank
-		expected_complete_bus_valid_by_bank = 4'b1111;
+		expected_complete_bus_valid_by_bank = 4'b1010;
 		expected_complete_bus_ROB_index_by_bank = {
 			7'hFC,
 			7'hFD,
@@ -464,6 +470,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b1111111;
+		tb_WB_send_complete_by_wr = 7'b1010101;
 		tb_WB_data_by_wr = {
 			32'hF2F20D0D,
 			32'hF3F30C0C,
@@ -531,7 +538,7 @@ module prf_tb ();
 			5'h01,
 			5'h01
 		};
-		expected_complete_bus_valid_by_bank = 4'b0111;
+		expected_complete_bus_valid_by_bank = 4'b0101;
 		expected_complete_bus_ROB_index_by_bank = {
 			7'h00,
 			7'hF9,
@@ -563,6 +570,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b1111111;
+		tb_WB_send_complete_by_wr = 7'b1111111;
 		tb_WB_data_by_wr = {
 			32'hEBEB1414,
 			32'hECEC1313,
@@ -630,7 +638,7 @@ module prf_tb ();
 			5'h03,
 			5'h03
 		};
-		expected_complete_bus_valid_by_bank = 4'b1111;
+		expected_complete_bus_valid_by_bank = 4'b1010;
 		expected_complete_bus_ROB_index_by_bank = {
 			7'hF8,
 			7'hF5,
@@ -662,6 +670,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b1111111;
+		tb_WB_send_complete_by_wr = 7'b1111111;
 		tb_WB_data_by_wr = {
 			32'hE7E71818,
 			32'hE8E81717,
@@ -761,6 +770,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b1111111;
+		tb_WB_send_complete_by_wr = 7'b1111111;
 		tb_WB_data_by_wr = {
 			32'hE3E31C1C,
 			32'hE8E81717,
@@ -828,7 +838,7 @@ module prf_tb ();
 			5'h04,
 			5'h02
 		};
-		expected_complete_bus_valid_by_bank = 4'b1111;
+		expected_complete_bus_valid_by_bank = 4'b1110;
 		expected_complete_bus_ROB_index_by_bank = {
 			7'hec,
 			7'hed,
@@ -860,6 +870,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b1111111;
+		tb_WB_send_complete_by_wr = 7'b1111111;
 		tb_WB_data_by_wr = {
 			32'hE3E31C1C,
 			32'hDFDF2020,
@@ -959,6 +970,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b1111111;
+		tb_WB_send_complete_by_wr = 7'b1111111;
 		tb_WB_data_by_wr = {
 			32'hE3E31C1C,
 			32'hDFDF2020,
@@ -1058,6 +1070,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0101001;
+		tb_WB_send_complete_by_wr = 7'b0101001;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'hDFDF2020,
@@ -1157,6 +1170,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -1256,6 +1270,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -1355,6 +1370,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -1454,6 +1470,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -1571,6 +1588,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -1682,6 +1700,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -1793,6 +1812,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -1907,6 +1927,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -2018,6 +2039,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -2129,6 +2151,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -2240,6 +2263,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -2351,6 +2375,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -2462,6 +2487,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -2573,6 +2599,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -2690,6 +2717,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b1001001;
+		tb_WB_send_complete_by_wr = 7'b1001001;
 		tb_WB_data_by_wr = {
 			32'h96969696,
 			32'h00000000,
@@ -2801,6 +2829,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -2912,6 +2941,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -3023,6 +3053,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -3134,6 +3165,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,
@@ -3245,6 +3277,7 @@ module prf_tb ();
 	    // reg read data by bank
 	    // writeback data by write requestor
 		tb_WB_valid_by_wr = 7'b0000000;
+		tb_WB_send_complete_by_wr = 7'b0000000;
 		tb_WB_data_by_wr = {
 			32'h00000000,
 			32'h00000000,

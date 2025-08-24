@@ -36,6 +36,7 @@ module prf #(
 
     // writeback info by write requestor
     input logic [PRF_WR_COUNT-1:0]                          WB_valid_by_wr,
+    input logic [PRF_WR_COUNT-1:0]                          WB_send_complete_by_wr,
     input logic [PRF_WR_COUNT-1:0][31:0]                    WB_data_by_wr,
     input logic [PRF_WR_COUNT-1:0][LOG_PR_COUNT-1:0]        WB_PR_by_wr,
     input logic [PRF_WR_COUNT-1:0][LOG_ROB_ENTRIES-1:0]     WB_ROB_index_by_wr,
@@ -109,6 +110,8 @@ module prf #(
     // Writeback Signals
     logic [PRF_WR_COUNT-1:0]                        unacked_WB_valid_by_wr;
     logic [PRF_WR_COUNT-1:0]                        next_unacked_WB_valid_by_wr;
+    logic [PRF_WR_COUNT-1:0]                        unacked_WB_send_complete_by_wr;
+    logic [PRF_WR_COUNT-1:0]                        next_unacked_WB_send_complete_by_wr;
     logic [PRF_WR_COUNT-1:0][31:0]                  unacked_WB_data_by_wr;
     logic [PRF_WR_COUNT-1:0][31:0]                  next_unacked_WB_data_by_wr;
     logic [PRF_WR_COUNT-1:0][LOG_PR_COUNT-1:0]      unacked_WB_PR_by_wr;
@@ -120,6 +123,7 @@ module prf #(
     logic [PRF_BANK_COUNT-1:0][PRF_WR_COUNT-1:0]    unacked_WB_valid_by_bank_by_wr;
 
     logic [PRF_BANK_COUNT-1:0][PRF_WR_COUNT-1:0]    compressed_WB_valid_by_bank_by_wr;
+    logic [PRF_WR_COUNT-1:0]                        compressed_WB_send_complete_by_wr;
     logic [PRF_WR_COUNT-1:0][31:0]                  compressed_WB_data_by_wr;
     logic [PRF_WR_COUNT-1:0][LOG_PR_COUNT-1:0]      compressed_WB_PR_by_wr;
     logic [PRF_WR_COUNT-1:0][LOG_ROB_ENTRIES-1:0]   compressed_WB_ROB_index_by_wr;
@@ -422,11 +426,13 @@ module prf #(
 
             // use unacked WB info if any bank valid for unacked WB
             if (unacked_WB_valid_by_wr[wr]) begin
+                compressed_WB_send_complete_by_wr[wr] = unacked_WB_send_complete_by_wr[wr];
                 compressed_WB_data_by_wr[wr] = unacked_WB_data_by_wr[wr];
                 compressed_WB_PR_by_wr[wr] = unacked_WB_PR_by_wr[wr];
                 compressed_WB_ROB_index_by_wr[wr] = unacked_WB_ROB_index_by_wr[wr];
             end
             else begin
+                compressed_WB_send_complete_by_wr[wr] = WB_send_complete_by_wr[wr];
                 compressed_WB_data_by_wr[wr] = WB_data_by_wr[wr];
                 compressed_WB_PR_by_wr[wr] = WB_PR_by_wr[wr];
                 compressed_WB_ROB_index_by_wr[wr] = WB_ROB_index_by_wr[wr];
@@ -462,6 +468,7 @@ module prf #(
         end
         next_unacked_WB_valid_by_wr &= ~WB_ack_by_wr;
 
+        next_unacked_WB_send_complete_by_wr = compressed_WB_send_complete_by_wr;
         next_unacked_WB_data_by_wr = compressed_WB_data_by_wr;
         next_unacked_WB_PR_by_wr = compressed_WB_PR_by_wr;
         next_unacked_WB_ROB_index_by_wr = compressed_WB_ROB_index_by_wr;
@@ -486,7 +493,8 @@ module prf #(
             next_prf_WB_valid_by_bank[bank] = |compressed_WB_valid_by_bank_by_wr[bank];
 
             // valid complete follows any compressed for bank
-            next_prf_complete_valid_by_bank[bank] = |compressed_WB_valid_by_bank_by_wr[bank];
+                // need to take into account if send_complete
+            // next_prf_complete_valid_by_bank[bank] = |compressed_WB_valid_by_bank_by_wr[bank];
 
             // one-hot mux
                 // get data and PR:
@@ -495,6 +503,7 @@ module prf #(
             next_prf_WB_data_by_bank[bank] = '0;
             next_prf_WB_upper_PR_by_bank[bank] = '0;
 
+            next_prf_complete_valid_by_bank[bank] = '0;
             next_prf_complete_ROB_index_by_bank[bank] = '0;
 
             for (int wr = 0; wr < PRF_WR_COUNT; wr++) begin
@@ -507,6 +516,11 @@ module prf #(
                     compressed_WB_PR_by_wr[wr][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT]
                     &
                     {(LOG_PR_COUNT-LOG_PRF_BANK_COUNT){WB_ack_by_bank_by_wr[bank][wr]}}
+                ;
+                next_prf_complete_valid_by_bank[bank] |=
+                    compressed_WB_send_complete_by_wr[wr] // this is where take into account send_complete
+                    &
+                    WB_ack_by_bank_by_wr[bank][wr]
                 ;
                 next_prf_complete_ROB_index_by_bank[bank] |= 
                     compressed_WB_ROB_index_by_wr[wr]
@@ -545,6 +559,7 @@ module prf #(
             prf_complete_valid_by_bank <= '0;
             prf_complete_ROB_index_by_bank <= '0;
             unacked_WB_valid_by_wr <= '0;
+            unacked_WB_send_complete_by_wr <= '0;
             unacked_WB_data_by_wr <= '0;
             unacked_WB_PR_by_wr <= '0;
             unacked_WB_ROB_index_by_wr <= '0;
@@ -558,6 +573,7 @@ module prf #(
             prf_complete_valid_by_bank <= next_prf_complete_valid_by_bank;
             prf_complete_ROB_index_by_bank <= next_prf_complete_ROB_index_by_bank;
             unacked_WB_valid_by_wr <= next_unacked_WB_valid_by_wr;
+            unacked_WB_send_complete_by_wr <= next_unacked_WB_send_complete_by_wr;
             unacked_WB_data_by_wr <= next_unacked_WB_data_by_wr;
             unacked_WB_PR_by_wr <= next_unacked_WB_PR_by_wr;
             unacked_WB_ROB_index_by_wr <= next_unacked_WB_ROB_index_by_wr;
