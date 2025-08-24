@@ -43,20 +43,20 @@ module stamofu_launch_pipeline (
     input logic [LOG_STAMOFU_MQ_ENTRIES-1:0]    stamofu_mq_enq_index,
 
     // dtlb req
-    output logic                            dtlb_req_valid,
-    output logic [VPN_WIDTH-1:0]            dtlb_req_VPN,
-    output logic                            dtlb_req_is_read,
-    output logic                            dtlb_req_is_write,
+    output logic                    dtlb_req_valid,
+    output logic [VPN_WIDTH-1:0]    dtlb_req_VPN,
+    output logic                    dtlb_req_is_read,
+    output logic                    dtlb_req_is_write,
 
     // dtlb req feedback
-    input logic                             dtlb_req_ready,
+    input logic                     dtlb_req_ready,
 
     // dtlb resp
-    input logic                             dtlb_resp_hit,
-    input logic [PPN_WIDTH-1:0]             dtlb_resp_PPN,
-    input logic                             dtlb_resp_is_mem,
-    input logic                             dtlb_resp_page_fault,
-    input logic                             dtlb_resp_access_fault,
+    input logic                     dtlb_resp_hit,
+    input logic [PPN_WIDTH-1:0]     dtlb_resp_PPN,
+    input logic                     dtlb_resp_is_mem,
+    input logic                     dtlb_resp_page_fault,
+    input logic                     dtlb_resp_access_fault,
 
     // dcache req
     output logic                                    dcache_req_valid,
