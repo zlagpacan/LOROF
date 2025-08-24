@@ -211,11 +211,10 @@ module core #(
     // 4-way ROB entry
     logic dispatch_rob_enq_valid;
 	logic dispatch_rob_enq_killed;
-    logic dispatch_rob_enq_ready;
 
     // ROB dispatch feedback
-    output logic                                dispatch_rob_enq_ready,
-    output logic [3:0][LOG_ROB_ENTRIES-1:0]     dispatch_rob_enq_ROB_index_by_way,
+    logic                               dispatch_rob_enq_ready;
+    logic [3:0][LOG_ROB_ENTRIES-1:0]    dispatch_rob_enq_ROB_index_by_way;
 
     // general instr info
     logic [3:0]                             dispatch_valid_by_way;
@@ -453,7 +452,75 @@ module core #(
     logic [PRF_BANK_COUNT-1:0]                          prf_complete_bus_valid_by_bank;
     logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0]     prf_complete_bus_ROB_index_by_bank;
 
+    // LDU complete notif
+    logic                           ldu_complete_valid;
+    logic [LOG_ROB_ENTRIES-1:0]     ldu_complete_ROB_index;
 
+    // STAMOFU complete notif
+    logic                           stamofu_complete_valid;
+    logic [LOG_ROB_ENTRIES-1:0]     stamofu_complete_ROB_index;
+
+    // branch notification to ROB
+    logic                               branch_notif_valid;
+    logic [LOG_ROB_ENTRIES-1:0]         branch_notif_ROB_index;
+    logic                               branch_notif_is_mispredict;
+    logic                               branch_notif_is_taken;
+    logic                               branch_notif_use_upct;
+    logic [BTB_PRED_INFO_WIDTH-1:0]     branch_notif_updated_pred_info;
+    logic                               branch_notif_pred_lru;
+    logic [31:0]                        branch_notif_start_PC;
+    logic [31:0]                        branch_notif_target_PC;
+
+    // branch notification backpressure from ROB
+    logic                               branch_notif_ready;
+
+    // LDU misprediction notification to ROB
+    logic                           ldu_mispred_notif_valid;
+    logic [LOG_ROB_ENTRIES-1:0]     ldu_mispred_notif_ROB_index;
+
+    // LDU misprediction notification backpressure from ROB
+    logic                           ldu_mispred_notif_ready;
+
+    // fence restart notification to ROB
+    logic                           fence_restart_notif_valid;
+    logic [LOG_ROB_ENTRIES-1:0]     fence_restart_notif_ROB_index;
+
+    // fence restart notification backpressure from ROB
+    logic                           fence_restart_notif_ready;
+
+    // LDU exception to ROB
+    logic                           ldu_exception_valid;
+    logic [VA_WIDTH-1:0]            ldu_exception_VA;
+    logic                           ldu_exception_page_fault;
+    logic                           ldu_exception_access_fault;
+    logic [LOG_ROB_ENTRIES-1:0]     ldu_exception_ROB_index;
+
+    // LDU exception backpressure from ROB
+    logic                           ldu_exception_ready;
+
+    // STAMOFU exception to ROB
+    logic                           stamofu_exception_valid;
+    logic [VA_WIDTH-1:0]            stamofu_exception_VA;
+    logic                           stamofu_exception_is_lr;
+    logic                           stamofu_exception_page_fault;
+    logic                           stamofu_exception_access_fault;
+    logic                           stamofu_exception_misaligned_exception;
+    logic [LOG_ROB_ENTRIES-1:0]     stamofu_exception_ROB_index;
+
+    // STAMOFU exception backpressure from ROB
+    logic                           stamofu_exception_ready;
+
+    // mdp update to ROB
+    logic                           ssu_mdp_update_valid;
+    logic [MDPT_INFO_WIDTH-1:0]     ssu_mdp_update_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]     ssu_mdp_update_ROB_index;
+
+    // mdp update feedback from ROB
+    logic                           ssu_mdp_update_ready;
+
+    // ROB commit
+    logic [LOG_ROB_ENTRIES-3:0]     rob_commit_upper_index;
+    logic [3:0]                     rob_commit_lower_index_valid_mask;
 
     // ----------------------------------------------------------------
     // Front End Modules:
@@ -982,6 +1049,181 @@ module core #(
     );
 
     // rob
+    rob #(
+		.ROB_ENTRIES(ROB_ENTRIES),
+		.LOG_ROB_ENTRIES(LOG_ROB_ENTRIES),
+		.ROB_MISPRED_Q_ENTRIES(ROB_MISPRED_Q_ENTRIES),
+		.ROB_PR_FREE_Q_ENTRIES(ROB_PR_FREE_Q_ENTRIES),
+		.ROB_RESTART_ON_RESET(ROB_RESTART_ON_RESET),
+		.INIT_PC(INIT_PC),
+		.INIT_ASID(INIT_ASID),
+		.INIT_EXEC_MODE(INIT_EXEC_MODE),
+		.INIT_VIRTUAL_MODE(INIT_VIRTUAL_MODE),
+		.INIT_MXR(INIT_MXR),
+		.INIT_SUM(INIT_SUM),
+		.INIT_TRAP_SFENCE(INIT_TRAP_SFENCE),
+		.INIT_TRAP_WFI(INIT_TRAP_WFI),
+		.INIT_TRAP_SRET(INIT_TRAP_SRET),
+		.INIT_TVEC_BASE_PC(INIT_TVEC_BASE_PC)
+    ) ROB (
+		// seq
+		.CLK(CLK),
+		.nRST(nRST),
+
+	    // 4-way ROB dispatch:
+		.dispatch_enq_valid(dispatch_rob_enq_valid),
+		.dispatch_enq_killed(dispatch_rob_enq_killed),
+	    // general instr info
+		.dispatch_valid_by_way(dispatch_valid_by_way),
+		.dispatch_uncompressed_by_way(dispatch_uncompressed_by_way),
+		.dispatch_PC_by_way(dispatch_PC_by_way),
+		.dispatch_is_rename_by_way(dispatch_is_rename_by_way),
+	    // exception info
+		.dispatch_is_page_fault(dispatch_is_page_fault),
+		.dispatch_is_access_fault(dispatch_is_access_fault),
+		.dispatch_is_illegal_instr(dispatch_is_illegal_instr),
+		.dispatch_exception_present(dispatch_exception_present),
+		.dispatch_exception_index(dispatch_exception_index),
+		.dispatch_illegal_instr32(dispatch_illegal_instr32),
+		// checkpoint info
+		.dispatch_has_checkpoint(dispatch_has_checkpoint),
+		.dispatch_checkpoint_index(dispatch_checkpoint_index),
+	    // dest operand
+		.dispatch_dest_AR_by_way(dispatch_dest_AR_by_way),
+		.dispatch_dest_old_PR_by_way(dispatch_dest_old_PR_by_way),
+		.dispatch_dest_new_PR_by_way(dispatch_dest_new_PR_by_way),
+
+	    // ROB dispatch feedback
+		.dispatch_enq_ready(dispatch_rob_enq_ready),
+		.dispatch_enq_ROB_index_by_way(dispatch_rob_enq_ROB_index_by_way),
+
+	    // writeback bus complete notif by bank
+		.complete_bus_valid_by_bank(prf_complete_bus_valid_by_bank),
+		.complete_bus_ROB_index_by_bank(prf_complete_bus_ROB_index_by_bank),
+
+	    // LDU complete notif
+		.ldu_complete_valid(ldu_complete_valid),
+		.ldu_complete_ROB_index(ldu_complete_ROB_index),
+
+	    // STAMOFU complete notif
+		.stamofu_complete_valid(stamofu_complete_valid),
+		.stamofu_complete_ROB_index(stamofu_complete_ROB_index),
+
+	    // branch notification to ROB
+		.branch_notif_valid(branch_notif_valid),
+		.branch_notif_ROB_index(branch_notif_ROB_index),
+		.branch_notif_is_mispredict(branch_notif_is_mispredict),
+		.branch_notif_is_taken(branch_notif_is_taken),
+		.branch_notif_use_upct(branch_notif_use_upct),
+		.branch_notif_updated_pred_info(branch_notif_updated_pred_info),
+		.branch_notif_pred_lru(branch_notif_pred_lru),
+		.branch_notif_start_PC(branch_notif_start_PC),
+		.branch_notif_target_PC(branch_notif_target_PC),
+
+	    // branch notification backpressure from ROB
+		.branch_notif_ready(branch_notif_ready),
+
+	    // LDU misprediction notification to ROB
+		.ldu_mispred_notif_valid(ldu_mispred_notif_valid),
+		.ldu_mispred_notif_ROB_index(ldu_mispred_notif_ROB_index),
+
+	    // LDU misprediction notification backpressure from ROB
+		.ldu_mispred_notif_ready(ldu_mispred_notif_ready),
+
+	    // fence restart notification to ROB
+		.fence_restart_notif_valid(fence_restart_notif_valid),
+		.fence_restart_notif_ROB_index(fence_restart_notif_ROB_index),
+
+	    // fence restart notification backpressure from ROB
+		.fence_restart_notif_ready(fence_restart_notif_ready),
+
+	    // LDU exception to ROB
+		.ldu_exception_valid(ldu_exception_valid),
+		.ldu_exception_VA(ldu_exception_VA),
+		.ldu_exception_page_fault(ldu_exception_page_fault),
+		.ldu_exception_access_fault(ldu_exception_access_fault),
+		.ldu_exception_ROB_index(ldu_exception_ROB_index),
+
+	    // LDU exception backpressure from ROB
+		.ldu_exception_ready(ldu_exception_ready),
+
+	    // STAMOFU exception to ROB
+		.stamofu_exception_valid(stamofu_exception_valid),
+		.stamofu_exception_VA(stamofu_exception_VA),
+		.stamofu_exception_is_lr(stamofu_exception_is_lr),
+		.stamofu_exception_page_fault(stamofu_exception_page_fault),
+		.stamofu_exception_access_fault(stamofu_exception_access_fault),
+		.stamofu_exception_misaligned_exception(stamofu_exception_misaligned_exception),
+		.stamofu_exception_ROB_index(stamofu_exception_ROB_index),
+
+	    // STAMOFU exception backpressure from ROB
+		.stamofu_exception_ready(stamofu_exception_ready),
+
+	    // mdp update to ROB
+		.ssu_mdp_update_valid(ssu_mdp_update_valid),
+		.ssu_mdp_update_mdp_info(ssu_mdp_update_mdp_info),
+		.ssu_mdp_update_ROB_index(ssu_mdp_update_ROB_index),
+
+	    // mdp update feedback from ROB
+		.ssu_mdp_update_ready(ssu_mdp_update_ready),
+
+	    // mdpt update to fetch unit
+		.fetch_unit_mdpt_update_valid(fetch_unit_mdpt_update_valid),
+		.fetch_unit_mdpt_update_start_full_PC(fetch_unit_mdpt_update_start_full_PC),
+		.fetch_unit_mdpt_update_ASID(fetch_unit_mdpt_update_ASID),
+		.fetch_unit_mdpt_update_mdp_info(fetch_unit_mdpt_update_mdp_info),
+
+	    // ROB commit
+		.rob_commit_upper_index(rob_commit_upper_index),
+		.rob_commit_lower_index_valid_mask(rob_commit_lower_index_valid_mask),
+
+	    // restart from ROB
+		.rob_restart_valid(rob_restart_valid),
+		.rob_restart_PC(rob_restart_PC),
+		.rob_restart_ASID(rob_restart_ASID),
+		.rob_restart_exec_mode(rob_restart_exec_mode),
+		.rob_restart_virtual_mode(rob_restart_virtual_mode),
+		.rob_restart_MXR(rob_restart_MXR),
+		.rob_restart_SUM(rob_restart_SUM),
+		.rob_restart_trap_sfence(rob_restart_trap_sfence),
+		.rob_restart_trap_wfi(rob_restart_trap_wfi),
+		.rob_restart_trap_sret(rob_restart_trap_sret),
+
+	    // ROB kill
+		.rob_kill_valid(rob_kill_valid),
+		.rob_kill_abs_head_index(rob_kill_abs_head_index),
+		.rob_kill_rel_kill_younger_index(rob_kill_rel_kill_younger_index),
+
+	    // branch update from ROB
+		.rob_branch_update_valid(rob_branch_update_valid),
+		.rob_branch_update_has_checkpoint(rob_branch_update_has_checkpoint),
+		.rob_branch_update_checkpoint_index(rob_branch_update_checkpoint_index),
+		.rob_branch_update_is_mispredict(rob_branch_update_is_mispredict),
+		.rob_branch_update_is_taken(rob_branch_update_is_taken),
+		.rob_branch_update_use_upct(rob_branch_update_use_upct),
+		.rob_branch_update_intermediate_pred_info(rob_branch_update_intermediate_pred_info),
+		.rob_branch_update_pred_lru(rob_branch_update_pred_lru),
+		.rob_branch_update_start_PC(rob_branch_update_start_PC),
+		.rob_branch_update_target_PC(rob_branch_update_target_PC),
+
+	    // ROB control of rename
+		.rob_controlling_rename(rob_controlling_rename),
+
+		.rob_checkpoint_map_table_restore_valid(rob_checkpoint_map_table_restore_valid),
+		.rob_checkpoint_map_table_restore_index(rob_checkpoint_map_table_restore_index),
+
+		.rob_checkpoint_clear_valid(rob_checkpoint_clear_valid),
+		.rob_checkpoint_clear_index(rob_checkpoint_clear_index),
+
+		.rob_map_table_write_valid_by_port(rob_map_table_write_valid_by_port),
+		.rob_map_table_write_AR_by_port(rob_map_table_write_AR_by_port),
+		.rob_map_table_write_PR_by_port(rob_map_table_write_PR_by_port),
+
+		// ROB physical register freeing
+		.rob_PR_free_req_valid_by_bank(rob_PR_free_req_valid_by_bank),
+		.rob_PR_free_req_PR_by_bank(rob_PR_free_req_PR_by_bank),
+		.rob_PR_free_resp_ack_by_bank(rob_PR_free_resp_ack_by_bank)
+	);
 
     // ----------------------------------------------------------------
     // Backend Modules:
@@ -990,6 +1232,8 @@ module core #(
     // alu_reg_mdu:
 
     // alu_reg_mdu_dq
+    alu_reg_mdu_dq #()
+
     // alu_reg_mdu_iq_single
     // alu_reg_pipeline_fast
     // mdu_pipeline
