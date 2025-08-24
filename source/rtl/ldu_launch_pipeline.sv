@@ -90,14 +90,14 @@ module ldu_launch_pipeline #(
     output logic [LOG_LDU_MQ_ENTRIES-1:0]   dtlb_req_mq_index,
 
     // dtlb req feedback
-    input logic                     dtlb_req_ready,
+    input logic                             dtlb_req_ready,
 
     // dtlb resp
-    input logic                     dtlb_resp_hit,
-    input logic [PPN_WIDTH-1:0]     dtlb_resp_PPN,
-    input logic                     dtlb_resp_is_mem,
-    input logic                     dtlb_resp_page_fault,
-    input logic                     dtlb_resp_access_fault,
+    input logic                             dtlb_resp_hit,
+    input logic [PPN_WIDTH-1:0]             dtlb_resp_PPN,
+    input logic                             dtlb_resp_is_mem,
+    input logic                             dtlb_resp_page_fault,
+    input logic                             dtlb_resp_access_fault,
 
     // dcache req
     output logic                                    dcache_req_valid,
