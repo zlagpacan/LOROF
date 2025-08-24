@@ -182,10 +182,10 @@ module core #(
     logic [RAS_INDEX_WIDTH-1:0]         decode_unit_branch_update_ras_index;
 
     // mdpt update
-    logic                           mdpt_update_valid;
-    logic [31:0]                    mdpt_update_start_full_PC;
-    logic [ASID_WIDTH-1:0]          mdpt_update_ASID;
-    logic [MDPT_INFO_WIDTH-1:0]     mdpt_update_mdp_info;
+    logic                           fetch_unit_mdpt_update_valid;
+    logic [31:0]                    fetch_unit_mdpt_update_start_full_PC;
+    logic [ASID_WIDTH-1:0]          fetch_unit_mdpt_update_ASID;
+    logic [MDPT_INFO_WIDTH-1:0]     fetch_unit_mdpt_update_mdp_info;
 
     // input from istream
     logic                                       istream_valid_SDEQ;
@@ -223,9 +223,12 @@ module core #(
     logic [3:0][31:0]                       dispatch_pred_PC_by_way;
     logic [3:0]                             dispatch_is_rename_by_way;
     logic [3:0][BTB_PRED_INFO_WIDTH-1:0]    dispatch_pred_info_by_way;
+    logic [3:0]                             dispatch_pred_lru_by_way;
     logic [3:0][MDPT_INFO_WIDTH-1:0]        dispatch_mdp_info_by_way;
     logic [3:0][3:0]                        dispatch_op_by_way;
     logic [3:0][19:0]                       dispatch_imm20_by_way;
+
+    logic [3:0][11:0]                       dispatch_imm12_by_way;
 
     // ordering
     logic [3:0]                             dispatch_mem_aq_by_way;
@@ -281,7 +284,7 @@ module core #(
     logic [3:0][4:0]            		    dispatch_dest_AR_by_way;
     logic [3:0][LOG_PR_COUNT-1:0]           dispatch_dest_old_PR_by_way;
     logic [3:0][LOG_PR_COUNT-1:0]           dispatch_dest_new_PR_by_way;
-    logic [3:0]                             dispatch_dest_is_link_ra;
+    logic [3:0]                             dispatch_dest_is_link_ra_by_way;
 
     // instr IQ acks
     logic [3:0] dispatch_ack_alu_reg_mdu_dq_by_way;
@@ -522,6 +525,140 @@ module core #(
     logic [LOG_ROB_ENTRIES-3:0]     rob_commit_upper_index;
     logic [3:0]                     rob_commit_lower_index_valid_mask;
 
+    // op enqueue to issue queue
+    logic                           alu_reg_mdu_iq_enq_valid;
+    logic                           alu_reg_mdu_iq_enq_is_alu_reg;
+    logic                           alu_reg_mdu_iq_enq_is_mdu;
+    logic [3:0]                     alu_reg_mdu_iq_enq_op;
+    logic [LOG_PR_COUNT-1:0]        alu_reg_mdu_iq_enq_A_PR;
+    logic                           alu_reg_mdu_iq_enq_A_ready;
+    logic                           alu_reg_mdu_iq_enq_A_is_zero;
+    logic [LOG_PR_COUNT-1:0]        alu_reg_mdu_iq_enq_B_PR;
+    logic                           alu_reg_mdu_iq_enq_B_ready;
+    logic                           alu_reg_mdu_iq_enq_B_is_zero;
+    logic [LOG_PR_COUNT-1:0]        alu_reg_mdu_iq_enq_dest_PR;
+    logic [LOG_ROB_ENTRIES-1:0]     alu_reg_mdu_iq_enq_ROB_index;
+
+    // issue queue enqueue feedback
+    logic                           alu_reg_mdu_iq_enq_ready;
+
+    // ALU reg pipeline issue
+    logic                           alu_reg_issue_valid;
+
+    // MDU pipeline issue
+    logic                           mdu_issue_valid;
+
+    // shared ALU reg / MDU issue info
+    logic [3:0]                     alu_reg_mdu_issue_op;
+    logic                           alu_reg_mdu_issue_A_forward;
+    logic                           alu_reg_mdu_issue_A_is_zero;
+    logic [LOG_PRF_BANK_COUNT-1:0]  alu_reg_mdu_issue_A_bank;
+    logic                           alu_reg_mdu_issue_B_forward;
+    logic                           alu_reg_mdu_issue_B_is_zero;
+    logic [LOG_PRF_BANK_COUNT-1:0]  alu_reg_mdu_issue_B_bank;
+    logic [LOG_PR_COUNT-1:0]        alu_reg_mdu_issue_dest_PR;
+    logic [LOG_ROB_ENTRIES-1:0]     alu_reg_mdu_issue_ROB_index;
+
+    // ALU reg pipeline feedback
+    logic                           alu_reg_issue_ready;
+
+    // MDU pipeline feedback
+    logic                           mdu_issue_ready;
+
+    // op enqueue to issue queue
+    logic                           alu_imm_iq_enq_valid;
+    logic [3:0]                     alu_imm_iq_enq_op;
+    logic [11:0]                    alu_imm_iq_enq_imm12;
+    logic [LOG_PR_COUNT-1:0]        alu_imm_iq_enq_A_PR;
+    logic                           alu_imm_iq_enq_A_ready;
+    logic                           alu_imm_iq_enq_A_is_zero;
+    logic [LOG_PR_COUNT-1:0]        alu_imm_iq_enq_dest_PR;
+    logic [LOG_ROB_ENTRIES-1:0]     alu_imm_iq_enq_ROB_index;
+
+    // issue queue enqueue feedback
+    logic                           alu_imm_iq_enq_ready;
+
+    // pipeline issue
+    logic                           alu_imm_issue_valid;
+    logic [3:0]                     alu_imm_issue_op;
+    logic [11:0]                    alu_imm_issue_imm12;
+    logic                           alu_imm_issue_A_forward;
+    logic                           alu_imm_issue_A_is_zero;
+    logic [LOG_PRF_BANK_COUNT-1:0]  alu_imm_issue_A_bank;
+    logic [LOG_PR_COUNT-1:0]        alu_imm_issue_dest_PR;
+    logic [LOG_ROB_ENTRIES-1:0]     alu_imm_issue_ROB_index;
+
+    // pipeline feedback
+    logic                           alu_imm_issue_ready;
+
+    // op enqueue to issue queue
+    logic                               bru_iq_enq_valid;
+    logic [3:0]                         bru_iq_enq_op;
+    logic [BTB_PRED_INFO_WIDTH-1:0]     bru_iq_enq_pred_info;
+    logic                               bru_iq_enq_pred_lru;
+    logic                               bru_iq_enq_is_link_ra;
+    logic                               bru_iq_enq_is_ret_ra;
+    logic [31:0]                        bru_iq_enq_PC;
+    logic [31:0]                        bru_iq_enq_pred_PC;
+    logic [19:0]                        bru_iq_enq_imm20;
+    logic [LOG_PR_COUNT-1:0]            bru_iq_enq_A_PR;
+    logic                               bru_iq_enq_A_ready;
+    logic                               bru_iq_enq_A_unneeded_or_is_zero;
+    logic [LOG_PR_COUNT-1:0]            bru_iq_enq_B_PR;
+    logic                               bru_iq_enq_B_ready;
+    logic                               bru_iq_enq_B_unneeded_or_is_zero;
+    logic [LOG_PR_COUNT-1:0]            bru_iq_enq_dest_PR;
+    logic [LOG_ROB_ENTRIES-1:0]         bru_iq_enq_ROB_index;
+
+    // issue queue enqueue feedback
+    logic                               bru_iq_enq_ready;
+
+    // pipeline issue
+    logic                               bru_issue_valid;
+    logic [3:0]                         bru_issue_op;
+    logic [BTB_PRED_INFO_WIDTH-1:0]     bru_issue_pred_info;
+    logic                               bru_issue_pred_lru;
+    logic                               bru_issue_is_link_ra;
+    logic                               bru_issue_is_ret_ra;
+    logic [31:0]                        bru_issue_PC;
+    logic [31:0]                        bru_issue_pred_PC;
+    logic [19:0]                        bru_issue_imm20;
+    logic                               bru_issue_A_forward;
+    logic                               bru_issue_A_unneeded_or_is_zero;
+    logic [LOG_PRF_BANK_COUNT-1:0]      bru_issue_A_bank;
+    logic                               bru_issue_B_forward;
+    logic                               bru_issue_B_unneeded_or_is_zero;
+    logic [LOG_PRF_BANK_COUNT-1:0]      bru_issue_B_bank;
+    logic [LOG_PR_COUNT-1:0]            bru_issue_dest_PR;
+    logic [LOG_ROB_ENTRIES-1:0]         bru_issue_ROB_index;
+
+    // pipeline feedback
+    logic                               bru_issue_ready;
+
+    // op enqueue to central queue
+    logic                           ldu_cq_enq_valid;
+    logic                           ldu_cq_enq_killed;
+    logic [3:0]                     ldu_cq_enq_op;
+    logic [MDPT_INFO_WIDTH-1:0]     ldu_cq_enq_mdp_info;
+    logic [LOG_PR_COUNT-1:0]        ldu_cq_enq_dest_PR;
+    logic [LOG_ROB_ENTRIES-1:0]     ldu_cq_enq_ROB_index;
+    
+    // central queue enqueue feedback
+    logic                           ldu_cq_enq_ready;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]  ldu_cq_enq_index;
+
+    // op enqueue to issue queue
+    logic                           ldu_iq_enq_valid;
+    logic [3:0]                     ldu_iq_enq_op;
+    logic [11:0]                    ldu_iq_enq_imm12;
+    logic [LOG_PR_COUNT-1:0]        ldu_iq_enq_A_PR;
+    logic                           ldu_iq_enq_A_ready;
+    logic                           ldu_iq_enq_A_is_zero;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]  ldu_iq_enq_cq_index;
+    
+    // issue queue enqueue feedback
+    logic                           ldu_iq_enq_ready;
+
     // ----------------------------------------------------------------
     // Front End Modules:
 
@@ -612,10 +749,10 @@ module core #(
 		.decode_unit_branch_update_ras_index(decode_unit_branch_update_ras_index),
 
 	    // mdpt update
-		.mdpt_update_valid(mdpt_update_valid),
-		.mdpt_update_start_full_PC(mdpt_update_start_full_PC),
-		.mdpt_update_ASID(mdpt_update_ASID),
-		.mdpt_update_mdp_info(mdpt_update_mdp_info)
+		.mdpt_update_valid(fetch_unit_mdpt_update_valid),
+		.mdpt_update_start_full_PC(fetch_unit_mdpt_update_start_full_PC),
+		.mdpt_update_ASID(fetch_unit_mdpt_update_ASID),
+		.mdpt_update_mdp_info(fetch_unit_mdpt_update_mdp_info)
     );
 
     // istream
@@ -671,6 +808,11 @@ module core #(
 	);
 
     // decode_unit
+    always_comb begin
+        for (int way = 0; way < 4; way++) begin
+            dispatch_imm12_by_way[way] = dispatch_imm20_by_way[way][11:0];
+        end
+    end
     decode_unit #(
 		.INIT_EXEC_MODE(INIT_EXEC_MODE),
 		.INIT_TRAP_SFENCE(INIT_TRAP_SFENCE),
@@ -714,6 +856,7 @@ module core #(
 		.dispatch_pred_PC_by_way(dispatch_pred_PC_by_way),
 		.dispatch_is_rename_by_way(dispatch_is_rename_by_way),
 		.dispatch_pred_info_by_way(dispatch_pred_info_by_way),
+		.dispatch_pred_lru_by_way(dispatch_pred_lru_by_way),
 		.dispatch_mdp_info_by_way(dispatch_mdp_info_by_way),
 		.dispatch_op_by_way(dispatch_op_by_way),
 		.dispatch_imm20_by_way(dispatch_imm20_by_way),
@@ -772,7 +915,7 @@ module core #(
 		.dispatch_dest_AR_by_way(dispatch_dest_AR_by_way),
 		.dispatch_dest_old_PR_by_way(dispatch_dest_old_PR_by_way),
 		.dispatch_dest_new_PR_by_way(dispatch_dest_new_PR_by_way),
-		.dispatch_dest_is_link_ra(dispatch_dest_is_link_ra),
+		.dispatch_dest_is_link_ra_by_way(dispatch_dest_is_link_ra_by_way),
 
 	    // instr IQ acks
 		.dispatch_ack_alu_reg_mdu_dq_by_way(dispatch_ack_alu_reg_mdu_dq_by_way),
@@ -1232,25 +1375,472 @@ module core #(
     // alu_reg_mdu:
 
     // alu_reg_mdu_dq
-    alu_reg_mdu_dq #()
+    alu_reg_mdu_dq #(
+        .ALU_REG_MDU_DQ_ENTRIES(ALU_REG_MDU_DQ_ENTRIES)
+    ) ALU_REG_MDU_DQ (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+        
+        // op dispatch by way
+        .dispatch_attempt_by_way(dispatch_attempt_alu_reg_mdu_dq_by_way),
+        .dispatch_valid_alu_reg_by_way(dispatch_valid_alu_reg_by_way),
+        .dispatch_valid_mdu_by_way(dispatch_valid_mdu_by_way),
+        .dispatch_op_by_way(dispatch_op_by_way),
+        .dispatch_A_PR_by_way(dispatch_A_PR_by_way),
+        .dispatch_A_ready_by_way(dispatch_A_ready_by_way),
+        .dispatch_A_is_zero_by_way(dispatch_A_is_zero_by_way),
+        .dispatch_B_PR_by_way(dispatch_B_PR_by_way),
+        .dispatch_B_ready_by_way(dispatch_B_ready_by_way),
+        .dispatch_B_is_zero_by_way(dispatch_B_is_zero_by_way),
+        .dispatch_dest_PR_by_way(dispatch_dest_new_PR_by_way),
+        .dispatch_enq_ROB_index_by_way(dispatch_rob_enq_ROB_index_by_way),
+
+        // op dispatch feedback
+        .dispatch_ack_by_way(dispatch_ack_alu_reg_mdu_dq_by_way),
+
+        // writeback bus by bank
+        .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
+        .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
+
+        // op enqueue to issue queue
+        .iq_enq_valid(alu_reg_mdu_iq_enq_valid),
+        .iq_enq_is_alu_reg(alu_reg_mdu_iq_enq_is_alu_reg),
+        .iq_enq_is_mdu(alu_reg_mdu_iq_enq_is_mdu),
+        .iq_enq_op(alu_reg_mdu_iq_enq_op),
+        .iq_enq_A_PR(alu_reg_mdu_iq_enq_A_PR),
+        .iq_enq_A_ready(alu_reg_mdu_iq_enq_A_ready),
+        .iq_enq_A_is_zero(alu_reg_mdu_iq_enq_A_is_zero),
+        .iq_enq_B_PR(alu_reg_mdu_iq_enq_B_PR),
+        .iq_enq_B_ready(alu_reg_mdu_iq_enq_B_ready),
+        .iq_enq_B_is_zero(alu_reg_mdu_iq_enq_B_is_zero),
+        .iq_enq_dest_PR(alu_reg_mdu_iq_enq_dest_PR),
+        .iq_enq_ROB_index(alu_reg_mdu_iq_enq_ROB_index),
+
+        // issue queue enqueue feedback
+        .iq_enq_ready(alu_reg_mdu_iq_enq_ready)
+    );
 
     // alu_reg_mdu_iq_single
+    alu_reg_mdu_iq_single #(
+        .ALU_REG_MDU_IQ_ENTRIES(ALU_REG_MDU_IQ_ENTRIES)
+    ) ALU_REG_MDU_IQ (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // op enqueue to issue queue
+        .iq_enq_valid(alu_reg_mdu_iq_enq_valid),
+        .iq_enq_is_alu_reg(alu_reg_mdu_iq_enq_is_alu_reg),
+        .iq_enq_is_mdu(alu_reg_mdu_iq_enq_is_mdu),
+        .iq_enq_op(alu_reg_mdu_iq_enq_op),
+        .iq_enq_A_PR(alu_reg_mdu_iq_enq_A_PR),
+        .iq_enq_A_ready(alu_reg_mdu_iq_enq_A_ready),
+        .iq_enq_A_is_zero(alu_reg_mdu_iq_enq_A_is_zero),
+        .iq_enq_B_PR(alu_reg_mdu_iq_enq_B_PR),
+        .iq_enq_B_ready(alu_reg_mdu_iq_enq_B_ready),
+        .iq_enq_B_is_zero(alu_reg_mdu_iq_enq_B_is_zero),
+        .iq_enq_dest_PR(alu_reg_mdu_iq_enq_dest_PR),
+        .iq_enq_ROB_index(alu_reg_mdu_iq_enq_ROB_index),
+
+        // issue queue enqueue feedback
+        .iq_enq_ready(alu_reg_mdu_iq_enq_ready),
+
+        // writeback bus by bank
+        .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
+        .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
+
+        // ALU reg pipeline issue
+        .alu_reg_issue_valid(alu_reg_issue_valid),
+
+        // MDU pipeline issue
+        .mdu_issue_valid(mdu_issue_valid),
+        
+        // shared issue info
+        .issue_op(alu_reg_mdu_issue_op),
+        .issue_A_forward(alu_reg_mdu_issue_A_forward),
+        .issue_A_is_zero(alu_reg_mdu_issue_A_is_zero),
+        .issue_A_bank(alu_reg_mdu_issue_A_bank),
+        .issue_B_forward(alu_reg_mdu_issue_B_forward),
+        .issue_B_is_zero(alu_reg_mdu_issue_B_is_zero),
+        .issue_B_bank(alu_reg_mdu_issue_B_bank),
+        .issue_dest_PR(alu_reg_mdu_issue_dest_PR),
+        .issue_ROB_index(alu_reg_mdu_issue_ROB_index),
+
+        // ALU reg pipeline feedback
+        .alu_reg_issue_ready(alu_reg_issue_ready),
+
+        // MDU pipeline feedback
+        .mdu_issue_ready(mdu_issue_ready),
+
+        // reg read req to PRF
+        .PRF_req_A_valid(alu_reg_mdu_PRF_req_A_valid),
+        .PRF_req_A_PR(alu_reg_mdu_PRF_req_A_PR),
+        .PRF_req_B_valid(alu_reg_mdu_PRF_req_B_valid),
+        .PRF_req_B_PR(alu_reg_mdu_PRF_req_B_PR)
+    );
+
     // alu_reg_pipeline_fast
+    alu_reg_pipeline_fast ALU_REG_PIPELINE (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // ALU reg op issue from IQ
+        .issue_valid(alu_reg_issue_valid),
+        .issue_op(alu_reg_mdu_issue_op),
+        .issue_A_forward(alu_reg_mdu_issue_A_forward),
+        .issue_A_is_zero(alu_reg_mdu_issue_A_is_zero),
+        .issue_A_bank(alu_reg_mdu_issue_A_bank),
+        .issue_B_forward(alu_reg_mdu_issue_B_forward),
+        .issue_B_is_zero(alu_reg_mdu_issue_B_is_zero),
+        .issue_B_bank(alu_reg_mdu_issue_B_bank),
+        .issue_dest_PR(alu_reg_mdu_issue_dest_PR),
+        .issue_ROB_index(alu_reg_mdu_issue_ROB_index),
+
+        // ready feedback to IQ
+        .issue_ready(alu_reg_issue_ready),
+
+        // reg read info and data from PRF
+        .A_reg_read_ack(alu_reg_mdu_PRF_A_reg_read_ack),
+        .A_reg_read_port(alu_reg_mdu_PRF_A_reg_read_port),
+        .B_reg_read_ack(alu_reg_mdu_PRF_B_reg_read_ack),
+        .B_reg_read_port(alu_reg_mdu_PRF_B_reg_read_port),
+        .reg_read_data_by_bank_by_port(prf_read_data_by_bank_by_port),
+
+        // forward data from PRF
+        .forward_data_by_bank(prf_forward_data_bus_by_bank),
+
+        // writeback data to PRF
+        .WB_valid(alu_reg_WB_valid),
+        .WB_data(alu_reg_WB_data),
+        .WB_PR(alu_reg_WB_PR),
+        .WB_ROB_index(alu_reg_WB_ROB_index),
+
+        // writeback feedback from PRF
+        .WB_ready(alu_reg_WB_ready)
+    );
+
     // mdu_pipeline
+        // TODO: implement module
+        // hardwired outputs for now
+    always_comb begin
+        mdu_issue_ready = 1'b0;
+
+        mdu_WB_valid = 1'b0;
+        mdu_WB_data = 32'h0;
+        mdu_WB_PR = 0;
+        mdu_WB_ROB_index = 0;
+    end
 
     // ----------------------------------------------------------------
     // alu_imm:
 
     // alu_imm_dq
+    alu_imm_dq #(
+        .ALU_IMM_DQ_ENTRIES(ALU_IMM_DQ_ENTRIES)
+    ) ALU_IMM_DQ (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // op dispatch by way
+        .dispatch_attempt_by_way(dispatch_attempt_alu_imm_dq_by_way),
+        .dispatch_valid_by_way(dispatch_valid_alu_imm_by_way),
+        .dispatch_op_by_way(dispatch_op_by_way),
+        .dispatch_imm12_by_way(dispatch_imm12_by_way),
+        .dispatch_A_PR_by_way(dispatch_A_PR_by_way),
+        .dispatch_A_ready_by_way(dispatch_A_ready_by_way),
+        .dispatch_A_is_zero_by_way(dispatch_A_is_zero_by_way),
+        .dispatch_dest_PR_by_way(dispatch_dest_new_PR_by_way),
+        .dispatch_ROB_index_by_way(dispatch_rob_enq_ROB_index_by_way),
+
+        // op dispatch feedback
+        .dispatch_ack_by_way(dispatch_ack_alu_imm_dq_by_way),
+
+        // writeback bus by bank
+        .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
+        .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
+
+        // op enqueue to issue queue
+        .iq_enq_valid(alu_imm_iq_enq_valid),
+        .iq_enq_op(alu_imm_iq_enq_op),
+        .iq_enq_imm12(alu_imm_iq_enq_imm12),
+        .iq_enq_A_PR(alu_imm_iq_enq_A_PR),
+        .iq_enq_A_ready(alu_imm_iq_enq_A_ready),
+        .iq_enq_A_is_zero(alu_imm_iq_enq_A_is_zero),
+        .iq_enq_dest_PR(alu_imm_iq_enq_dest_PR),
+        .iq_enq_ROB_index(alu_imm_iq_enq_ROB_index),
+
+        // issue queue enqueue feedback
+        .iq_enq_ready(alu_imm_iq_enq_ready)
+    );
+
     // alu_imm_iq
+    alu_imm_iq #(
+        .ALU_IMM_IQ_ENTRIES(ALU_IMM_IQ_ENTRIES)
+    ) ALU_IMM_IQ (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // op enqueue to issue queue
+        .iq_enq_valid(alu_imm_iq_enq_valid),
+        .iq_enq_op(alu_imm_iq_enq_op),
+        .iq_enq_imm12(alu_imm_iq_enq_imm12),
+        .iq_enq_A_PR(alu_imm_iq_enq_A_PR),
+        .iq_enq_A_ready(alu_imm_iq_enq_A_ready),
+        .iq_enq_A_is_zero(alu_imm_iq_enq_A_is_zero),
+        .iq_enq_dest_PR(alu_imm_iq_enq_dest_PR),
+        .iq_enq_ROB_index(alu_imm_iq_enq_ROB_index),
+
+        // issue queue enqueue feedback
+        .iq_enq_ready(alu_imm_iq_enq_ready),
+
+        // writeback bus by bank
+        .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
+        .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
+
+        // pipeline issue
+        .issue_valid(alu_imm_issue_valid),
+        .issue_op(alu_imm_issue_op),
+        .issue_imm12(alu_imm_issue_imm12),
+        .issue_A_forward(alu_imm_issue_A_forward),
+        .issue_A_is_zero(alu_imm_issue_A_is_zero),
+        .issue_A_bank(alu_imm_issue_A_bank),
+        .issue_dest_PR(alu_imm_issue_dest_PR),
+        .issue_ROB_index(alu_imm_issue_ROB_index),
+
+        // pipeline feedback
+        .issue_ready(alu_imm_issue_ready),
+
+        // reg read req to PRF
+        .PRF_req_A_valid(alu_imm_PRF_req_A_valid),
+        .PRF_req_A_PR(alu_imm_PRF_req_A_PR)
+    );
+
     // alu_imm_pipeline_fast
+    alu_imm_pipeline_fast ALU_IMM_PIPELINE (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // ALU imm op issue from IQ
+        .issue_valid(alu_imm_issue_valid),
+        .issue_op(alu_imm_issue_op),
+        .issue_imm12(alu_imm_issue_imm12),
+        .issue_A_forward(alu_imm_issue_A_forward),
+        .issue_A_is_zero(alu_imm_issue_A_is_zero),
+        .issue_A_bank(alu_imm_issue_A_bank),
+        .issue_dest_PR(alu_imm_issue_dest_PR),
+        .issue_ROB_index(alu_imm_issue_ROB_index),
+
+        // ready feedback to IQ
+        .issue_ready(alu_imm_issue_ready),
+
+        // reg read info and data from PRF
+        .A_reg_read_ack(alu_imm_PRF_A_reg_read_ack),
+        .A_reg_read_port(alu_imm_PRF_A_reg_read_port),
+        .reg_read_data_by_bank_by_port(prf_read_data_by_bank_by_port),
+
+        // forward data from PRF
+        .forward_data_by_bank(prf_forward_data_bus_by_bank),
+
+        // writeback data to PRF
+        .WB_valid(alu_imm_WB_valid),
+        .WB_data(alu_imm_WB_data),
+        .WB_PR(alu_imm_WB_PR),
+        .WB_ROB_index(alu_imm_WB_ROB_index),
+
+        // writeback backpressure from PRF
+        .WB_ready(alu_imm_WB_ready)
+    );
 
     // ----------------------------------------------------------------
     // bru:
 
     // bru_dq
+    bru_dq #(
+        .BRU_DQ_ENTRIES(BRU_DQ_ENTRIES)
+    ) BRU_DQ (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // op dispatch by way
+        .dispatch_attempt_by_way(dispatch_attempt_bru_dq_by_way),
+        .dispatch_valid_by_way(dispatch_valid_bru_by_way),
+        .dispatch_op_by_way(dispatch_op_by_way),
+        .dispatch_pred_info_by_way(dispatch_pred_info_by_way),
+        .dispatch_pred_lru_by_way(dispatch_pred_lru_by_way),
+        .dispatch_is_link_ra_by_way(dispatch_dest_is_link_ra_by_way),
+        .dispatch_is_ret_ra_by_way(dispatch_A_is_ret_ra_by_way),
+        .dispatch_PC_by_way(dispatch_PC_by_way),
+        .dispatch_pred_PC_by_way(dispatch_pred_PC_by_way),
+        .dispatch_imm20_by_way(dispatch_imm20_by_way),
+        .dispatch_A_PR_by_way(dispatch_A_PR_by_way),
+        .dispatch_A_ready_by_way(dispatch_A_ready_by_way),
+        .dispatch_A_unneeded_or_is_zero_by_way(dispatch_A_unneeded_or_is_zero_by_way),
+        .dispatch_B_PR_by_way(dispatch_B_PR_by_way),
+        .dispatch_B_ready_by_way(dispatch_B_ready_by_way),
+        .dispatch_B_unneeded_or_is_zero_by_way(dispatch_B_unneeded_or_is_zero_by_way),
+        .dispatch_dest_PR_by_way(dispatch_dest_new_PR_by_way),
+        .dispatch_ROB_index_by_way(dispatch_rob_enq_ROB_index_by_way),
+
+        // op dispatch feedback
+        .dispatch_ack_by_way(dispatch_ack_bru_dq_by_way),
+
+        // writeback bus by bank
+        .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
+        .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
+
+        // op enqueue to issue queue
+        .iq_enq_valid(bru_iq_enq_valid),
+        .iq_enq_op(bru_iq_enq_op),
+        .iq_enq_pred_info(bru_iq_enq_pred_info),
+        .iq_enq_pred_lru(bru_iq_enq_pred_lru),
+        .iq_enq_is_link_ra(bru_iq_enq_is_link_ra),
+        .iq_enq_is_ret_ra(bru_iq_enq_is_ret_ra),
+        .iq_enq_PC(bru_iq_enq_PC),
+        .iq_enq_pred_PC(bru_iq_enq_pred_PC),
+        .iq_enq_imm20(bru_iq_enq_imm20),
+        .iq_enq_A_PR(bru_iq_enq_A_PR),
+        .iq_enq_A_ready(bru_iq_enq_A_ready),
+        .iq_enq_A_unneeded_or_is_zero(bru_iq_enq_A_unneeded_or_is_zero),
+        .iq_enq_B_PR(bru_iq_enq_B_PR),
+        .iq_enq_B_ready(bru_iq_enq_B_ready),
+        .iq_enq_B_unneeded_or_is_zero(bru_iq_enq_B_unneeded_or_is_zero),
+        .iq_enq_dest_PR(bru_iq_enq_dest_PR),
+        .iq_enq_ROB_index(bru_iq_enq_ROB_index),
+
+        // issue queue enqueue feedback
+        .iq_enq_ready(bru_iq_enq_ready)
+    );
+
     // bru_iq
+    bru_iq #(
+        .BRU_IQ_ENTRIES(BRU_IQ_ENTRIES)
+    ) BRU_IQ (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // op enqueue to issue queue
+        .iq_enq_valid(bru_iq_enq_valid),
+        .iq_enq_op(bru_iq_enq_op),
+        .iq_enq_pred_info(bru_iq_enq_pred_info),
+        .iq_enq_pred_lru(bru_iq_enq_pred_lru),
+        .iq_enq_is_link_ra(bru_iq_enq_is_link_ra),
+        .iq_enq_is_ret_ra(bru_iq_enq_is_ret_ra),
+        .iq_enq_PC(bru_iq_enq_PC),
+        .iq_enq_pred_PC(bru_iq_enq_pred_PC),
+        .iq_enq_imm20(bru_iq_enq_imm20),
+        .iq_enq_A_PR(bru_iq_enq_A_PR),
+        .iq_enq_A_ready(bru_iq_enq_A_ready),
+        .iq_enq_A_unneeded_or_is_zero(bru_iq_enq_A_unneeded_or_is_zero),
+        .iq_enq_B_PR(bru_iq_enq_B_PR),
+        .iq_enq_B_ready(bru_iq_enq_B_ready),
+        .iq_enq_B_unneeded_or_is_zero(bru_iq_enq_B_unneeded_or_is_zero),
+        .iq_enq_dest_PR(bru_iq_enq_dest_PR),
+        .iq_enq_ROB_index(bru_iq_enq_ROB_index),
+
+        // issue queue enqueue feedback
+        .iq_enq_ready(bru_iq_enq_ready),
+
+        // writeback bus by bank
+        .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
+        .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
+
+        // pipeline issue
+        .issue_valid(bru_issue_valid),
+        .issue_op(bru_issue_op),
+        .issue_pred_info(bru_issue_pred_info),
+        .issue_pred_lru(bru_issue_pred_lru),
+        .issue_is_link_ra(bru_issue_is_link_ra),
+        .issue_is_ret_ra(bru_issue_is_ret_ra),
+        .issue_PC(bru_issue_PC),
+        .issue_pred_PC(bru_issue_pred_PC),
+        .issue_imm20(bru_issue_imm20),
+        .issue_A_forward(bru_issue_A_forward),
+        .issue_A_unneeded_or_is_zero(bru_issue_A_unneeded_or_is_zero),
+        .issue_A_bank(bru_issue_A_bank),
+        .issue_B_forward(bru_issue_B_forward),
+        .issue_B_unneeded_or_is_zero(bru_issue_B_unneeded_or_is_zero),
+        .issue_B_bank(bru_issue_B_bank),
+        .issue_dest_PR(bru_issue_dest_PR),
+        .issue_ROB_index(bru_issue_ROB_index),
+
+        // pipeline feedback
+        .issue_ready(bru_issue_ready),
+
+        // reg read req to PRF
+        .PRF_req_A_valid(bru_PRF_req_A_valid),
+        .PRF_req_A_PR(bru_PRF_req_A_PR),
+        .PRF_req_B_valid(bru_PRF_req_B_valid),
+        .PRF_req_B_PR(bru_PRF_req_B_PR)
+    );
+
     // bru_pipeline_fast
+    bru_pipeline_fast BRU_PIPELINE (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // BRU op issue from BRU IQ
+        .issue_valid(bru_issue_valid),
+        .issue_op(bru_issue_op),
+        .issue_pred_info(bru_issue_pred_info),
+        .issue_pred_lru(bru_issue_pred_lru),
+        .issue_is_link_ra(bru_issue_is_link_ra),
+        .issue_is_ret_ra(bru_issue_is_ret_ra),
+        .issue_PC(bru_issue_PC),
+        .issue_pred_PC(bru_issue_pred_PC),
+        .issue_imm20(bru_issue_imm20),
+        .issue_A_forward(bru_issue_A_forward),
+        .issue_A_unneeded_or_is_zero(bru_issue_A_unneeded_or_is_zero),
+        .issue_A_bank(bru_issue_A_bank),
+        .issue_B_forward(bru_issue_B_forward),
+        .issue_B_unneeded_or_is_zero(bru_issue_B_unneeded_or_is_zero),
+        .issue_B_bank(bru_issue_B_bank),
+        .issue_dest_PR(bru_issue_dest_PR),
+        .issue_ROB_index(bru_issue_ROB_index),
+
+        // output feedback to BRU IQ
+        .issue_ready(bru_issue_ready),
+
+        // reg read info and data from PRF
+        .A_reg_read_ack(bru_PRF_A_reg_read_ack),
+        .A_reg_read_port(bru_PRF_A_reg_read_port),
+        .B_reg_read_ack(bru_PRF_B_reg_read_ack),
+        .B_reg_read_port(bru_PRF_B_reg_read_port),
+        .reg_read_data_by_bank_by_port(prf_read_data_by_bank_by_port),
+
+        // forward data from PRF
+        .forward_data_by_bank(prf_forward_data_bus_by_bank),
+
+        // writeback data to PRF
+        .WB_valid(bru_WB_valid),
+        .WB_data(bru_WB_data),
+        .WB_PR(bru_WB_PR),
+        .WB_ROB_index(bru_WB_ROB_index),
+
+        // writeback backpressure from PRF
+        .WB_ready(bru_WB_ready),
+
+        // branch notification to ROB
+		.branch_notif_valid(branch_notif_valid),
+		.branch_notif_ROB_index(branch_notif_ROB_index),
+		.branch_notif_is_mispredict(branch_notif_is_mispredict),
+		.branch_notif_is_taken(branch_notif_is_taken),
+		.branch_notif_use_upct(branch_notif_use_upct),
+		.branch_notif_updated_pred_info(branch_notif_updated_pred_info),
+		.branch_notif_pred_lru(branch_notif_pred_lru),
+		.branch_notif_start_PC(branch_notif_start_PC),
+		.branch_notif_target_PC(branch_notif_target_PC),
+
+	    // branch notification backpressure from ROB
+		.branch_notif_ready(branch_notif_ready)
+    );
 
     // ----------------------------------------------------------------
     // lsu:
@@ -1259,6 +1849,62 @@ module core #(
     // ldu:
 
     // ldu_dq
+    ldu_dq #(
+        .LDU_DQ_ENTRIES(LDU_DQ_ENTRIES)
+    ) LDU_DQ (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // op dispatch by way
+        .dispatch_attempt_by_way(dispatch_attempt_ldu_dq_by_way),
+        .dispatch_valid_by_way(dispatch_valid_ldu_by_way),
+        .dispatch_op_by_way(dispatch_op_by_way),
+        .dispatch_imm12_by_way(dispatch_imm12_by_way),
+        .dispatch_mdp_info_by_way(dispatch_mdp_info_by_way),
+        .dispatch_A_PR_by_way(dispatch_A_PR_by_way),
+        .dispatch_A_ready_by_way(dispatch_A_ready_by_way),
+        .dispatch_A_is_zero_by_way(dispatch_A_is_zero_by_way),
+        .dispatch_dest_PR_by_way(dispatch_dest_new_PR_by_way),
+        .dispatch_ROB_index_by_way(dispatch_rob_enq_ROB_index_by_way),
+
+        // op dispatch feedback
+        .dispatch_ack_by_way(dispatch_ack_ldu_dq_by_way),
+
+        // writeback bus by bank
+        .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
+        .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
+
+        // op enqueue to central queue
+        .ldu_cq_enq_valid(ldu_cq_enq_valid),
+        .ldu_cq_enq_killed(ldu_cq_enq_killed),
+        .ldu_cq_enq_op(ldu_cq_enq_op),
+        .ldu_cq_enq_mdp_info(ldu_cq_enq_mdp_info),
+        .ldu_cq_enq_dest_PR(ldu_cq_enq_dest_PR),
+        .ldu_cq_enq_ROB_index(ldu_cq_enq_ROB_index),
+    
+        // central queue enqueue feedback
+        .ldu_cq_enq_ready(ldu_cq_enq_ready),
+        .ldu_cq_enq_index(ldu_cq_enq_index),
+
+        // op enqueue to issue queue
+        .ldu_iq_enq_valid(ldu_iq_enq_valid),
+        .ldu_iq_enq_op(ldu_iq_enq_op),
+        .ldu_iq_enq_imm12(ldu_iq_enq_imm12),
+        .ldu_iq_enq_A_PR(ldu_iq_enq_A_PR),
+        .ldu_iq_enq_A_ready(ldu_iq_enq_A_ready),
+        .ldu_iq_enq_A_is_zero(ldu_iq_enq_A_is_zero),
+        .ldu_iq_enq_cq_index(ldu_iq_enq_cq_index),
+
+        // issue queue enqueue feedback
+        .ldu_iq_enq_ready(ldu_iq_enq_ready),
+
+	    // ROB kill
+		.rob_kill_valid(rob_kill_valid),
+		.rob_kill_abs_head_index(rob_kill_abs_head_index),
+		.rob_kill_rel_kill_younger_index(rob_kill_rel_kill_younger_index)
+    );
+
     // ldu_iq
     // ldu_addr_pipeline
     // ldu_launch_pipeline bank 0

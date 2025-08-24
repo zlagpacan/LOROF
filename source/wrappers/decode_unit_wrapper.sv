@@ -58,6 +58,7 @@ module decode_unit_wrapper (
 	output logic [3:0][31:0] last_dispatch_pred_PC_by_way,
 	output logic [3:0] last_dispatch_is_rename_by_way,
 	output logic [3:0][BTB_PRED_INFO_WIDTH-1:0] last_dispatch_pred_info_by_way,
+	output logic [3:0] last_dispatch_pred_lru_by_way,
 	output logic [3:0][MDPT_INFO_WIDTH-1:0] last_dispatch_mdp_info_by_way,
 	output logic [3:0][3:0] last_dispatch_op_by_way,
 	output logic [3:0][19:0] last_dispatch_imm20_by_way,
@@ -116,7 +117,7 @@ module decode_unit_wrapper (
 	output logic [3:0][4:0] last_dispatch_dest_AR_by_way,
 	output logic [3:0][LOG_PR_COUNT-1:0] last_dispatch_dest_old_PR_by_way,
 	output logic [3:0][LOG_PR_COUNT-1:0] last_dispatch_dest_new_PR_by_way,
-	output logic [3:0] last_dispatch_dest_is_link_ra,
+	output logic [3:0] last_dispatch_dest_is_link_ra_by_way,
 
     // instr IQ acks
 	input logic [3:0] next_dispatch_ack_alu_reg_mdu_dq_by_way,
@@ -232,6 +233,7 @@ module decode_unit_wrapper (
 	logic [3:0][31:0] dispatch_pred_PC_by_way;
 	logic [3:0] dispatch_is_rename_by_way;
 	logic [3:0][BTB_PRED_INFO_WIDTH-1:0] dispatch_pred_info_by_way;
+	logic [3:0] dispatch_pred_lru_by_way;
 	logic [3:0][MDPT_INFO_WIDTH-1:0] dispatch_mdp_info_by_way;
 	logic [3:0][3:0] dispatch_op_by_way;
 	logic [3:0][19:0] dispatch_imm20_by_way;
@@ -290,7 +292,7 @@ module decode_unit_wrapper (
 	logic [3:0][4:0] dispatch_dest_AR_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] dispatch_dest_old_PR_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] dispatch_dest_new_PR_by_way;
-	logic [3:0] dispatch_dest_is_link_ra;
+	logic [3:0] dispatch_dest_is_link_ra_by_way;
 
     // instr IQ acks
 	logic [3:0] dispatch_ack_alu_reg_mdu_dq_by_way;
@@ -418,6 +420,7 @@ module decode_unit_wrapper (
 			last_dispatch_pred_PC_by_way <= '0;
 			last_dispatch_is_rename_by_way <= '0;
 			last_dispatch_pred_info_by_way <= '0;
+			last_dispatch_pred_lru_by_way <= '0;
 			last_dispatch_mdp_info_by_way <= '0;
 			last_dispatch_op_by_way <= '0;
 			last_dispatch_imm20_by_way <= '0;
@@ -476,7 +479,7 @@ module decode_unit_wrapper (
 			last_dispatch_dest_AR_by_way <= '0;
 			last_dispatch_dest_old_PR_by_way <= '0;
 			last_dispatch_dest_new_PR_by_way <= '0;
-			last_dispatch_dest_is_link_ra <= '0;
+			last_dispatch_dest_is_link_ra_by_way <= '0;
 
 		    // instr IQ acks
 			dispatch_ack_alu_reg_mdu_dq_by_way <= '0;
@@ -590,6 +593,7 @@ module decode_unit_wrapper (
 			last_dispatch_pred_PC_by_way <= dispatch_pred_PC_by_way;
 			last_dispatch_is_rename_by_way <= dispatch_is_rename_by_way;
 			last_dispatch_pred_info_by_way <= dispatch_pred_info_by_way;
+			last_dispatch_pred_lru_by_way <= dispatch_pred_lru_by_way;
 			last_dispatch_mdp_info_by_way <= dispatch_mdp_info_by_way;
 			last_dispatch_op_by_way <= dispatch_op_by_way;
 			last_dispatch_imm20_by_way <= dispatch_imm20_by_way;
@@ -648,7 +652,7 @@ module decode_unit_wrapper (
 			last_dispatch_dest_AR_by_way <= dispatch_dest_AR_by_way;
 			last_dispatch_dest_old_PR_by_way <= dispatch_dest_old_PR_by_way;
 			last_dispatch_dest_new_PR_by_way <= dispatch_dest_new_PR_by_way;
-			last_dispatch_dest_is_link_ra <= dispatch_dest_is_link_ra;
+			last_dispatch_dest_is_link_ra_by_way <= dispatch_dest_is_link_ra_by_way;
 
 		    // instr IQ acks
 			dispatch_ack_alu_reg_mdu_dq_by_way <= next_dispatch_ack_alu_reg_mdu_dq_by_way;

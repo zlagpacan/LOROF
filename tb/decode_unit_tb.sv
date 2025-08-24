@@ -74,6 +74,7 @@ module decode_unit_tb ();
 	logic [3:0][31:0] DUT_dispatch_pred_PC_by_way, expected_dispatch_pred_PC_by_way;
 	logic [3:0] DUT_dispatch_is_rename_by_way, expected_dispatch_is_rename_by_way;
 	logic [3:0][BTB_PRED_INFO_WIDTH-1:0] DUT_dispatch_pred_info_by_way, expected_dispatch_pred_info_by_way;
+	logic [3:0] DUT_dispatch_pred_lru_by_way, expected_dispatch_pred_lru_by_way;
 	logic [3:0][MDPT_INFO_WIDTH-1:0] DUT_dispatch_mdp_info_by_way, expected_dispatch_mdp_info_by_way;
 	logic [3:0][3:0] DUT_dispatch_op_by_way, expected_dispatch_op_by_way;
 	logic [3:0][19:0] DUT_dispatch_imm20_by_way, expected_dispatch_imm20_by_way;
@@ -132,7 +133,7 @@ module decode_unit_tb ();
 	logic [3:0][4:0] DUT_dispatch_dest_AR_by_way, expected_dispatch_dest_AR_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] DUT_dispatch_dest_old_PR_by_way, expected_dispatch_dest_old_PR_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] DUT_dispatch_dest_new_PR_by_way, expected_dispatch_dest_new_PR_by_way;
-	logic [3:0] DUT_dispatch_dest_is_link_ra, expected_dispatch_dest_is_link_ra;
+	logic [3:0] DUT_dispatch_dest_is_link_ra_by_way, expected_dispatch_dest_is_link_ra_by_way;
 
     // instr IQ acks
 	logic [3:0] tb_dispatch_ack_alu_reg_mdu_dq_by_way;
@@ -257,6 +258,7 @@ module decode_unit_tb ();
 		.dispatch_pred_PC_by_way(DUT_dispatch_pred_PC_by_way),
 		.dispatch_is_rename_by_way(DUT_dispatch_is_rename_by_way),
 		.dispatch_pred_info_by_way(DUT_dispatch_pred_info_by_way),
+		.dispatch_pred_lru_by_way(DUT_dispatch_pred_lru_by_way),
 		.dispatch_mdp_info_by_way(DUT_dispatch_mdp_info_by_way),
 		.dispatch_op_by_way(DUT_dispatch_op_by_way),
 		.dispatch_imm20_by_way(DUT_dispatch_imm20_by_way),
@@ -315,7 +317,7 @@ module decode_unit_tb ();
 		.dispatch_dest_AR_by_way(DUT_dispatch_dest_AR_by_way),
 		.dispatch_dest_old_PR_by_way(DUT_dispatch_dest_old_PR_by_way),
 		.dispatch_dest_new_PR_by_way(DUT_dispatch_dest_new_PR_by_way),
-		.dispatch_dest_is_link_ra(DUT_dispatch_dest_is_link_ra),
+		.dispatch_dest_is_link_ra_by_way(DUT_dispatch_dest_is_link_ra_by_way),
 
 	    // instr IQ acks
 		.dispatch_ack_alu_reg_mdu_dq_by_way(tb_dispatch_ack_alu_reg_mdu_dq_by_way),
@@ -458,6 +460,13 @@ module decode_unit_tb ();
 		if (expected_dispatch_pred_info_by_way !== DUT_dispatch_pred_info_by_way) begin
 			$display("TB ERROR: expected_dispatch_pred_info_by_way (%h) != DUT_dispatch_pred_info_by_way (%h)",
 				expected_dispatch_pred_info_by_way, DUT_dispatch_pred_info_by_way);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_dispatch_pred_lru_by_way !== DUT_dispatch_pred_lru_by_way) begin
+			$display("TB ERROR: expected_dispatch_pred_lru_by_way (%h) != DUT_dispatch_pred_lru_by_way (%h)",
+				expected_dispatch_pred_lru_by_way, DUT_dispatch_pred_lru_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -756,9 +765,9 @@ module decode_unit_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_dispatch_dest_is_link_ra !== DUT_dispatch_dest_is_link_ra) begin
-			$display("TB ERROR: expected_dispatch_dest_is_link_ra (%h) != DUT_dispatch_dest_is_link_ra (%h)",
-				expected_dispatch_dest_is_link_ra, DUT_dispatch_dest_is_link_ra);
+		if (expected_dispatch_dest_is_link_ra_by_way !== DUT_dispatch_dest_is_link_ra_by_way) begin
+			$display("TB ERROR: expected_dispatch_dest_is_link_ra_by_way (%h) != DUT_dispatch_dest_is_link_ra_by_way (%h)",
+				expected_dispatch_dest_is_link_ra_by_way, DUT_dispatch_dest_is_link_ra_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -1002,6 +1011,7 @@ module decode_unit_tb ();
 		expected_dispatch_pred_PC_by_way = {32'h0, 32'h0, 32'h0, 32'h0};
 		expected_dispatch_is_rename_by_way = 4'b0000;
 		expected_dispatch_pred_info_by_way = {8'h0, 8'h0, 8'h0, 8'h0};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {8'h0, 8'h0, 8'h0, 8'h0};
 		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
 		expected_dispatch_imm20_by_way = {20'h0, 20'h0, 20'h0, 20'h0};
@@ -1052,7 +1062,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h0, 5'h0, 5'h0, 5'h0};
 		expected_dispatch_dest_old_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
 		expected_dispatch_dest_new_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -1180,6 +1190,7 @@ module decode_unit_tb ();
 		expected_dispatch_pred_PC_by_way = {32'h0, 32'h0, 32'h0, 32'h0};
 		expected_dispatch_is_rename_by_way = 4'b0000;
 		expected_dispatch_pred_info_by_way = {8'h0, 8'h0, 8'h0, 8'h0};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {8'h0, 8'h0, 8'h0, 8'h0};
 		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
 		expected_dispatch_imm20_by_way = {20'h0, 20'h0, 20'h0, 20'h0};
@@ -1230,7 +1241,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h0, 5'h0, 5'h0, 5'h0};
 		expected_dispatch_dest_old_PR_by_way = {7'h0, 7'h0, 7'h0, 7'h0};
 		expected_dispatch_dest_new_PR_by_way = {7'h23, 7'h22, 7'h21, 7'h20};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -1366,6 +1377,7 @@ module decode_unit_tb ();
 		expected_dispatch_pred_PC_by_way = {32'h0, 32'h0, 32'h0, 32'h0};
 		expected_dispatch_is_rename_by_way = 4'b0000;
 		expected_dispatch_pred_info_by_way = {8'h0, 8'h0, 8'h0, 8'h0};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {8'h0, 8'h0, 8'h0, 8'h0};
 		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
 		expected_dispatch_imm20_by_way = {20'h0, 20'h0, 20'h0, 20'h0};
@@ -1416,7 +1428,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h8, 5'h8, 5'h8, 5'h8};
 		expected_dispatch_dest_old_PR_by_way = {7'h8, 7'h8, 7'h8, 7'h8};
 		expected_dispatch_dest_new_PR_by_way = {7'h23, 7'h22, 7'h21, 7'h20};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -1546,6 +1558,7 @@ module decode_unit_tb ();
 		expected_dispatch_pred_PC_by_way = {32'h0, 32'h0, 32'h0, 32'h0};
 		expected_dispatch_is_rename_by_way = 4'b0000;
 		expected_dispatch_pred_info_by_way = {8'h0, 8'h0, 8'h0, 8'h0};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {8'h0, 8'h0, 8'h0, 8'h0};
 		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
 		expected_dispatch_imm20_by_way = {20'h0, 20'h0, 20'h0, 20'h0};
@@ -1596,7 +1609,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h8, 5'h8, 5'h8, 5'h8};
 		expected_dispatch_dest_old_PR_by_way = {7'h8, 7'h8, 7'h8, 7'h8};
 		expected_dispatch_dest_new_PR_by_way = {7'h23, 7'h22, 7'h21, 7'h20};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -1776,6 +1789,7 @@ module decode_unit_tb ();
 		expected_dispatch_pred_PC_by_way = {32'h0, 32'h0, 32'h0, 32'h0};
 		expected_dispatch_is_rename_by_way = 4'b0000;
 		expected_dispatch_pred_info_by_way = {8'h0, 8'h0, 8'h0, 8'h0};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {8'h0, 8'h0, 8'h0, 8'h0};
 		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
 		expected_dispatch_imm20_by_way = {20'h0, 20'h0, 20'h0, 20'h0};
@@ -1826,7 +1840,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h8, 5'h8, 5'h8, 5'h8};
 		expected_dispatch_dest_old_PR_by_way = {7'h8, 7'h8, 7'h8, 7'h8};
 		expected_dispatch_dest_new_PR_by_way = {7'h23, 7'h22, 7'h21, 7'h20};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -2009,6 +2023,7 @@ module decode_unit_tb ();
 		expected_dispatch_pred_PC_by_way = {32'h0, 32'h0, 32'h0, 32'h0};
 		expected_dispatch_is_rename_by_way = 4'b0000;
 		expected_dispatch_pred_info_by_way = {8'h0, 8'h0, 8'h0, 8'h0};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {8'h0, 8'h0, 8'h0, 8'h0};
 		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
 		expected_dispatch_imm20_by_way = {20'h0, 20'h0, 20'h0, 20'h0};
@@ -2059,7 +2074,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h8, 5'h8, 5'h8, 5'h8};
 		expected_dispatch_dest_old_PR_by_way = {7'h8, 7'h8, 7'h8, 7'h8};
 		expected_dispatch_dest_new_PR_by_way = {7'h23, 7'h22, 7'h21, 7'h20};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -2246,6 +2261,7 @@ module decode_unit_tb ();
 		expected_dispatch_pred_PC_by_way = {32'h0, 32'h0, 32'h0, 32'h0};
 		expected_dispatch_is_rename_by_way = 4'b0000;
 		expected_dispatch_pred_info_by_way = {8'h0, 8'h0, 8'h0, 8'h0};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {8'h0, 8'h0, 8'h0, 8'h0};
 		expected_dispatch_op_by_way = {4'b0000, 4'b0000, 4'b0000, 4'b0000};
 		expected_dispatch_imm20_by_way = {20'h0, 20'h0, 20'h0, 20'h0};
@@ -2296,7 +2312,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h8, 5'h8, 5'h8, 5'h8};
 		expected_dispatch_dest_old_PR_by_way = {7'h8, 7'h8, 7'h8, 7'h8};
 		expected_dispatch_dest_new_PR_by_way = {7'h23, 7'h22, 7'h21, 7'h20};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -2502,6 +2518,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'h10,
 			8'h0C,
@@ -2557,7 +2574,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h1a, 5'h1f, 5'h1, 5'h5};
 		expected_dispatch_dest_old_PR_by_way = {7'h1a, 7'h1f, 7'h1, 7'h5};
 		expected_dispatch_dest_new_PR_by_way = {7'h23, 7'h22, 7'h21, 7'h20};
-		expected_dispatch_dest_is_link_ra = 4'b0011;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0011;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -2759,6 +2776,7 @@ module decode_unit_tb ();
 			8'b01000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0010;
 		expected_dispatch_mdp_info_by_way = {
 			8'ha2,
 			8'h9e,
@@ -2814,7 +2832,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h1, 5'h16, 5'h0, 5'he};
 		expected_dispatch_dest_old_PR_by_way = {7'h21, 7'h16, 7'h0, 7'he};
 		expected_dispatch_dest_new_PR_by_way = {7'h26, 7'h25, 7'h24, 7'h23};
-		expected_dispatch_dest_is_link_ra = 4'b1000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b1000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -3012,6 +3030,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'hb2,
 			8'hae,
@@ -3067,7 +3086,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h04, 5'h00, 5'h13, 5'h13};
 		expected_dispatch_dest_old_PR_by_way = {7'h04, 7'h00, 7'h24, 7'h13};
 		expected_dispatch_dest_new_PR_by_way = {7'h28, 7'h27, 7'h26, 7'h24};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -3265,6 +3284,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'hb2,
 			8'hae,
@@ -3320,7 +3340,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h04, 5'h00, 5'h13, 5'h13};
 		expected_dispatch_dest_old_PR_by_way = {7'h04, 7'h00, 7'h24, 7'h13};
 		expected_dispatch_dest_new_PR_by_way = {7'h28, 7'h27, 7'h26, 7'h24};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -3514,6 +3534,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'hc2,
 			8'hbe,
@@ -3569,7 +3590,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h00, 5'h00, 5'h0a, 5'h06};
 		expected_dispatch_dest_old_PR_by_way = {7'h00, 7'h00, 7'h0a, 7'h06};
 		expected_dispatch_dest_new_PR_by_way = {7'h2b, 7'h2a, 7'h29, 7'h27};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -3763,6 +3784,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'hc2,
 			8'hbe,
@@ -3818,7 +3840,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h00, 5'h00, 5'h0a, 5'h06};
 		expected_dispatch_dest_old_PR_by_way = {7'h00, 7'h00, 7'h0a, 7'h06};
 		expected_dispatch_dest_new_PR_by_way = {7'h2b, 7'h2a, 7'h29, 7'h27};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -4008,6 +4030,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'hc2,
 			8'hbe,
@@ -4063,7 +4086,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h00, 5'h00, 5'h0a, 5'h06};
 		expected_dispatch_dest_old_PR_by_way = {7'h00, 7'h00, 7'h29, 7'h27};
 		expected_dispatch_dest_new_PR_by_way = {7'h2d, 7'h2c, 7'h2b, 7'h2a};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -4263,6 +4286,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'hc2,
 			8'hbe,
@@ -4318,7 +4342,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h00, 5'h00, 5'h0a, 5'h06};
 		expected_dispatch_dest_old_PR_by_way = {7'h00, 7'h00, 7'h29, 7'h27};
 		expected_dispatch_dest_new_PR_by_way = {7'h2d, 7'h2c, 7'h2b, 7'h2a};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -4516,6 +4540,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'hc2,
 			8'hbe,
@@ -4571,7 +4596,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h00, 5'h00, 5'h0a, 5'h06};
 		expected_dispatch_dest_old_PR_by_way = {7'h00, 7'h00, 7'h29, 7'h27};
 		expected_dispatch_dest_new_PR_by_way = {7'h2d, 7'h2c, 7'h2b, 7'h2a};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -4773,6 +4798,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'hc2,
 			8'hbe,
@@ -4828,7 +4854,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h00, 5'h00, 5'h0a, 5'h06};
 		expected_dispatch_dest_old_PR_by_way = {7'h00, 7'h00, 7'h29, 7'h27};
 		expected_dispatch_dest_new_PR_by_way = {7'h2d, 7'h2c, 7'h2b, 7'h2a};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -5030,6 +5056,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'h84,
 			8'h82,
@@ -5085,7 +5112,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h1f, 5'h01, 5'h18, 5'h14};
 		expected_dispatch_dest_old_PR_by_way = {7'h22, 7'h21, 7'h18, 7'h14};
 		expected_dispatch_dest_new_PR_by_way = {7'h2d, 7'h2c, 7'h2b, 7'h2a};
-		expected_dispatch_dest_is_link_ra = 4'b0100;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0100;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -5287,6 +5314,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'h84,
 			8'h82,
@@ -5342,7 +5370,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h1f, 5'h01, 5'h18, 5'h14};
 		expected_dispatch_dest_old_PR_by_way = {7'h22, 7'h21, 7'h18, 7'h14};
 		expected_dispatch_dest_new_PR_by_way = {7'h2d, 7'h2c, 7'h2b, 7'h2a};
-		expected_dispatch_dest_is_link_ra = 4'b0100;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0100;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -5540,6 +5568,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'h04,
 			8'h00,
@@ -5595,7 +5624,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h08, 5'h07};
 		expected_dispatch_dest_old_PR_by_way = {7'h2d, 7'h2c, 7'h08, 7'h07};
 		expected_dispatch_dest_new_PR_by_way = {7'h2e, 7'h2d, 7'h2c, 7'h2a};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -5797,6 +5826,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'h04,
 			8'h00,
@@ -5852,7 +5882,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h08, 5'h07};
 		expected_dispatch_dest_old_PR_by_way = {7'h2d, 7'h2c, 7'h08, 7'h07};
 		expected_dispatch_dest_new_PR_by_way = {7'h2e, 7'h2d, 7'h2c, 7'h2a};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -6054,6 +6084,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'h04,
 			8'h00,
@@ -6109,7 +6140,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h08, 5'h07};
 		expected_dispatch_dest_old_PR_by_way = {7'h2d, 7'h2c, 7'h08, 7'h07};
 		expected_dispatch_dest_new_PR_by_way = {7'h2e, 7'h2d, 7'h2c, 7'h2a};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -6307,6 +6338,7 @@ module decode_unit_tb ();
 			8'b10011001,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'h08,
 			8'h04,
@@ -6362,7 +6394,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h08, 5'h00, 5'h00, 5'h00};
 		expected_dispatch_dest_old_PR_by_way = {7'h2d, 7'h00, 7'h00, 7'h00};
 		expected_dispatch_dest_new_PR_by_way = {7'h31, 7'h30, 7'h2f, 7'h2e};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -6560,6 +6592,7 @@ module decode_unit_tb ();
 			8'b10011001,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'h08,
 			8'h04,
@@ -6615,7 +6648,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h08, 5'h00, 5'h00, 5'h00};
 		expected_dispatch_dest_old_PR_by_way = {7'h2d, 7'h00, 7'h00, 7'h00};
 		expected_dispatch_dest_new_PR_by_way = {7'h31, 7'h30, 7'h2f, 7'h2e};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -6809,6 +6842,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'h08,
 			8'h06,
@@ -6864,7 +6898,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h00, 5'h10};
 		expected_dispatch_dest_old_PR_by_way = {7'h2d, 7'h2d, 7'h00, 7'h10};
 		expected_dispatch_dest_new_PR_by_way = {7'h31, 7'h30, 7'h2f, 7'h2e};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -7058,6 +7092,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'h08,
 			8'h06,
@@ -7113,7 +7148,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h00, 5'h10};
 		expected_dispatch_dest_old_PR_by_way = {7'h2d, 7'h2d, 7'h00, 7'h10};
 		expected_dispatch_dest_new_PR_by_way = {7'h31, 7'h30, 7'h2f, 7'h2e};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -7303,6 +7338,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'h04,
 			8'h00,
@@ -7358,7 +7394,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h00, 5'h10};
 		expected_dispatch_dest_old_PR_by_way = {7'h2d, 7'h2d, 7'h00, 7'h2e};
 		expected_dispatch_dest_new_PR_by_way = {7'h32, 7'h31, 7'h30, 7'h2f};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -7552,6 +7588,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'h04,
 			8'h00,
@@ -7607,7 +7644,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h00, 5'h10};
 		expected_dispatch_dest_old_PR_by_way = {7'h08, 7'h08, 7'h00, 7'h10};
 		expected_dispatch_dest_new_PR_by_way = {7'h32, 7'h31, 7'h30, 7'h2f};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -7801,6 +7838,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'h04,
 			8'h00,
@@ -7856,7 +7894,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h00, 5'h10};
 		expected_dispatch_dest_old_PR_by_way = {7'h08, 7'h08, 7'h00, 7'h10};
 		expected_dispatch_dest_new_PR_by_way = {7'h32, 7'h31, 7'h30, 7'h2f};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -8050,6 +8088,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'h04,
 			8'h00,
@@ -8105,7 +8144,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h00, 5'h10};
 		expected_dispatch_dest_old_PR_by_way = {7'h08, 7'h08, 7'h00, 7'h10};
 		expected_dispatch_dest_new_PR_by_way = {7'h32, 7'h31, 7'h30, 7'h2f};
-		expected_dispatch_dest_is_link_ra = 4'b0000;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0000;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -8299,6 +8338,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'h0C,
 			8'h0A,
@@ -8354,7 +8394,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h08, 5'h01};
 		expected_dispatch_dest_old_PR_by_way = {7'h08, 7'h08, 7'h08, 7'h01};
 		expected_dispatch_dest_new_PR_by_way = {7'h32, 7'h31, 7'h30, 7'h2f};
-		expected_dispatch_dest_is_link_ra = 4'b0001;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0001;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB
@@ -8544,6 +8584,7 @@ module decode_unit_tb ();
 			8'b00000000,
 			8'b00000000
 		};
+		expected_dispatch_pred_lru_by_way = 4'b0000;
 		expected_dispatch_mdp_info_by_way = {
 			8'h0C,
 			8'h0A,
@@ -8599,7 +8640,7 @@ module decode_unit_tb ();
 		expected_dispatch_dest_AR_by_way = {5'h08, 5'h08, 5'h08, 5'h01};
 		expected_dispatch_dest_old_PR_by_way = {7'h08, 7'h08, 7'h08, 7'h2f};
 		expected_dispatch_dest_new_PR_by_way = {7'h33, 7'h32, 7'h31, 7'h30};
-		expected_dispatch_dest_is_link_ra = 4'b0001;
+		expected_dispatch_dest_is_link_ra_by_way = 4'b0001;
 	    // instr IQ acks
 	    // writeback bus by bank
 	    // fetch + decode restart from ROB

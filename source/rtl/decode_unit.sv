@@ -52,6 +52,7 @@ module decode_unit #(
     output logic [3:0][31:0]                        dispatch_pred_PC_by_way,
     output logic [3:0]                              dispatch_is_rename_by_way,
     output logic [3:0][BTB_PRED_INFO_WIDTH-1:0]		dispatch_pred_info_by_way,
+    output logic [3:0]                              dispatch_pred_lru_by_way,
     output logic [3:0][MDPT_INFO_WIDTH-1:0]         dispatch_mdp_info_by_way,
     output logic [3:0][3:0]                         dispatch_op_by_way,
     output logic [3:0][19:0]                       	dispatch_imm20_by_way,
@@ -110,7 +111,7 @@ module decode_unit #(
     output logic [3:0][4:0]            				dispatch_dest_AR_by_way,
     output logic [3:0][LOG_PR_COUNT-1:0]            dispatch_dest_old_PR_by_way,
     output logic [3:0][LOG_PR_COUNT-1:0]            dispatch_dest_new_PR_by_way,
-    output logic [3:0]                              dispatch_dest_is_link_ra,
+    output logic [3:0]                              dispatch_dest_is_link_ra_by_way,
 
     // instr IQ acks
     input logic [3:0] dispatch_ack_alu_reg_mdu_dq_by_way,
@@ -1977,6 +1978,7 @@ module decode_unit #(
 		dispatch_pred_PC_by_way = pred_PC_by_way_DISP;
 		dispatch_is_rename_by_way = is_reg_write_by_way_DISP;
 		dispatch_pred_info_by_way = pred_info_by_way_DISP;
+		dispatch_pred_lru_by_way = pred_lru_by_way_DISP;
 		dispatch_mdp_info_by_way = mdp_info_by_way_DISP;
 		dispatch_op_by_way = op_by_way_DISP;
 		dispatch_imm20_by_way = imm20_by_way_DISP;
@@ -2035,7 +2037,7 @@ module decode_unit #(
 		dispatch_dest_AR_by_way = dest_AR_by_way_DISP;
 		dispatch_dest_old_PR_by_way = dest_old_PR_by_way_DISP;
 		dispatch_dest_new_PR_by_way = dest_new_PR_by_way_DISP;
-		dispatch_dest_is_link_ra = dest_is_link_ra_by_way_DISP;
+		dispatch_dest_is_link_ra_by_way = dest_is_link_ra_by_way_DISP;
 	end
 
 endmodule
