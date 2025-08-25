@@ -317,25 +317,25 @@ module ldu_cq #(
     logic [LDU_CQ_ENTRIES-1:0] data_try_unmasked_req_ack_one_hot_by_entry;
     logic [LDU_CQ_ENTRIES-1:0] complete_unmasked_req_ack_one_hot_by_entry;
 
-    logic [LOG_LDU_CQ_ENTRIES-1:0] second_try_unmasked_req_ack_index_by_entry;
-    logic [LOG_LDU_CQ_ENTRIES-1:0] data_try_unmasked_req_ack_index_by_entry;
-    logic [LOG_LDU_CQ_ENTRIES-1:0] complete_unmasked_req_ack_index_by_entry;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] second_try_unmasked_req_ack_index;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] data_try_unmasked_req_ack_index;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] complete_unmasked_req_ack_index;
 
     logic [LDU_CQ_ENTRIES-1:0] second_try_masked_req_ack_one_hot_by_entry;
     logic [LDU_CQ_ENTRIES-1:0] data_try_masked_req_ack_one_hot_by_entry;
     logic [LDU_CQ_ENTRIES-1:0] complete_masked_req_ack_one_hot_by_entry;
 
-    logic [LOG_LDU_CQ_ENTRIES-1:0] second_try_masked_req_ack_index_by_entry;
-    logic [LOG_LDU_CQ_ENTRIES-1:0] data_try_masked_req_ack_index_by_entry;
-    logic [LOG_LDU_CQ_ENTRIES-1:0] complete_masked_req_ack_index_by_entry;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] second_try_masked_req_ack_index;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] data_try_masked_req_ack_index;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] complete_masked_req_ack_index;
 
     logic [LDU_CQ_ENTRIES-1:0] second_try_req_ack_one_hot_by_entry;
     logic [LDU_CQ_ENTRIES-1:0] data_try_req_ack_one_hot_by_entry;
     logic [LDU_CQ_ENTRIES-1:0] complete_req_ack_one_hot_by_entry;
 
-    logic [LOG_LDU_CQ_ENTRIES-1:0] second_try_req_ack_index_by_entry;
-    logic [LOG_LDU_CQ_ENTRIES-1:0] data_try_req_ack_index_by_entry;
-    logic [LOG_LDU_CQ_ENTRIES-1:0] complete_req_ack_index_by_entry;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] second_try_req_ack_index;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] data_try_req_ack_index;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] complete_req_ack_index;
 
     logic second_try_valid;
     logic potential_data_try_valid;
@@ -410,64 +410,64 @@ module ldu_cq #(
     ) SECOND_TRY_UNMASKED_PE (
         .req_vec(second_try_unmasked_req_by_entry),
         .ack_one_hot(second_try_unmasked_req_ack_one_hot_by_entry),
-        .ack_index(second_try_unmasked_req_ack_index_by_entry)
+        .ack_index(second_try_unmasked_req_ack_index)
     );
     pe_lsb # (
         .WIDTH(LDU_CQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
     ) SECOND_TRY_MASKED_PE (
         .req_vec(second_try_masked_req_by_entry),
         .ack_one_hot(second_try_masked_req_ack_one_hot_by_entry),
-        .ack_index(second_try_masked_req_ack_index_by_entry)
+        .ack_index(second_try_masked_req_ack_index)
     );
     pe_lsb # (
         .WIDTH(LDU_CQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
     ) DATA_TRY_UNMASKED_PE (
         .req_vec(data_try_unmasked_req_by_entry),
         .ack_one_hot(data_try_unmasked_req_ack_one_hot_by_entry),
-        .ack_index(data_try_unmasked_req_ack_index_by_entry)
+        .ack_index(data_try_unmasked_req_ack_index)
     );
     pe_lsb # (
         .WIDTH(LDU_CQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
     ) DATA_TRY_MASKED_PE (
         .req_vec(data_try_masked_req_by_entry),
         .ack_one_hot(data_try_masked_req_ack_one_hot_by_entry),
-        .ack_index(data_try_masked_req_ack_index_by_entry)
+        .ack_index(data_try_masked_req_ack_index)
     );
     pe_lsb # (
         .WIDTH(LDU_CQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
     ) COMPLETE_UNMASKED_PE (
         .req_vec(complete_unmasked_req_by_entry),
         .ack_one_hot(complete_unmasked_req_ack_one_hot_by_entry),
-        .ack_index(complete_unmasked_req_ack_index_by_entry)
+        .ack_index(complete_unmasked_req_ack_index)
     );
     pe_lsb # (
         .WIDTH(LDU_CQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
     ) COMPLETE_MASKED_PE (
         .req_vec(complete_masked_req_by_entry),
         .ack_one_hot(complete_masked_req_ack_one_hot_by_entry),
-        .ack_index(complete_masked_req_ack_index_by_entry)
+        .ack_index(complete_masked_req_ack_index)
     );
     always_comb begin
         if (|second_try_masked_req_by_entry) begin
             second_try_req_ack_one_hot_by_entry = second_try_masked_req_ack_one_hot_by_entry;
-            second_try_req_ack_index_by_entry = second_try_masked_req_ack_index_by_entry;
+            second_try_req_ack_index = second_try_masked_req_ack_index;
         end else begin
             second_try_req_ack_one_hot_by_entry = second_try_unmasked_req_ack_one_hot_by_entry;
-            second_try_req_ack_index_by_entry = second_try_unmasked_req_ack_index_by_entry;
+            second_try_req_ack_index = second_try_unmasked_req_ack_index;
         end
         if (|data_try_masked_req_by_entry) begin
             data_try_req_ack_one_hot_by_entry = data_try_masked_req_ack_one_hot_by_entry;
-            data_try_req_ack_index_by_entry = data_try_masked_req_ack_index_by_entry;
+            data_try_req_ack_index = data_try_masked_req_ack_index;
         end else begin
             data_try_req_ack_one_hot_by_entry = data_try_unmasked_req_ack_one_hot_by_entry;
-            data_try_req_ack_index_by_entry = data_try_unmasked_req_ack_index_by_entry;
+            data_try_req_ack_index = data_try_unmasked_req_ack_index;
         end
         if (|complete_masked_req_by_entry) begin
             complete_req_ack_one_hot_by_entry = complete_masked_req_ack_one_hot_by_entry;
-            complete_req_ack_index_by_entry = complete_masked_req_ack_index_by_entry;
+            complete_req_ack_index = complete_masked_req_ack_index;
         end else begin
             complete_req_ack_one_hot_by_entry = complete_unmasked_req_ack_one_hot_by_entry;
-            complete_req_ack_index_by_entry = complete_unmasked_req_ack_index_by_entry;
+            complete_req_ack_index = complete_unmasked_req_ack_index;
         end
     end
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -477,7 +477,7 @@ module ldu_cq #(
         end
         else if (~second_try_req_not_accepted) begin
             second_try_valid <= |second_try_unmasked_req_by_entry;
-            second_try_cq_index <= second_try_req_ack_index_by_entry;
+            second_try_cq_index <= second_try_req_ack_index;
         end
     end
     always_comb begin
@@ -506,7 +506,7 @@ module ldu_cq #(
         end
         else if (~data_try_req_not_accepted) begin
             potential_data_try_valid <= |data_try_unmasked_req_by_entry;
-            data_try_cq_index <= data_try_req_ack_index_by_entry;
+            data_try_cq_index <= data_try_req_ack_index;
         end
     end
     always_comb begin
@@ -568,7 +568,7 @@ module ldu_cq #(
         end
         else begin
             ldu_complete_valid <= |complete_unmasked_req_by_entry;
-            ldu_complete_cq_index <= complete_req_ack_index_by_entry;
+            ldu_complete_cq_index <= complete_req_ack_index;
         end
     end
     always_comb begin

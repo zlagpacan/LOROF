@@ -269,7 +269,7 @@ module rob #(
     // PC bram array
         // need for restart, mdp update
         // diff read index than bulk bram array due to mdp udpate
-    logic [LOG_ROB_ENTRIES-2-1:0]   PC_bram_read_next_valid;
+    logic                           PC_bram_read_next_valid;
     logic [LOG_ROB_ENTRIES-2-1:0]   PC_bram_read_next_index;
     logic [3:0][31:0]               PC_bram_read_PC_by_way;
 
@@ -444,6 +444,8 @@ module rob #(
         end
     end
     always_comb begin
+        branch_notif_ready = branch_mispred_enq_ready;
+        
         branch_mispred_enq_valid = 
             branch_notif_valid
             & branch_notif_ready
@@ -451,8 +453,6 @@ module rob #(
             & ~killed_by_entry[branch_notif_ROB_index];
         branch_mispred_enq_ROB_index = branch_notif_ROB_index;
         branch_mispred_enq_target_PC = branch_notif_target_PC;
-
-        branch_notif_ready = branch_mispred_enq_ready;
     end
     q_fast_ready #(
         .DATA_WIDTH(LOG_ROB_ENTRIES + 32),

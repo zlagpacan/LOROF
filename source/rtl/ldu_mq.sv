@@ -236,8 +236,8 @@ module ldu_mq #(
     logic [LDU_MQ_ENTRIES-1:0] second_try_req_ack_one_hot_by_entry;
     logic [LDU_MQ_ENTRIES-1:0] data_try_req_ack_one_hot_by_entry;
 
-    logic [LDU_MQ_ENTRIES-1:0] second_try_req_ack_index_by_entry;
-    logic [LDU_MQ_ENTRIES-1:0] data_try_req_ack_index_by_entry;
+    logic [LOG_LDU_MQ_ENTRIES-1:0] second_try_req_ack_index;
+    logic [LOG_LDU_MQ_ENTRIES-1:0] data_try_req_ack_index;
 
     logic second_try_valid;
 
@@ -299,14 +299,14 @@ module ldu_mq #(
     ) SECOND_TRY_PE (
         .req_vec(second_try_req_by_entry),
         .ack_one_hot(second_try_req_ack_one_hot_by_entry),
-        .ack_index(second_try_req_ack_index_by_entry)
+        .ack_index(second_try_req_ack_index)
     );
     pe_lsb # (
         .WIDTH(LDU_MQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
     ) DATA_TRY_PE (
         .req_vec(data_try_req_by_entry),
         .ack_one_hot(data_try_req_ack_one_hot_by_entry),
-        .ack_index(data_try_req_ack_index_by_entry)
+        .ack_index(data_try_req_ack_index)
     );
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
@@ -315,7 +315,7 @@ module ldu_mq #(
         end
         else begin
             second_try_valid <= |second_try_req_by_entry;
-            second_try_mq_index <= second_try_req_ack_index_by_entry;
+            second_try_mq_index <= second_try_req_ack_index;
         end
     end
     always_comb begin
@@ -348,7 +348,7 @@ module ldu_mq #(
         end
         else begin
             ldu_mq_data_try_req_valid <= |data_try_req_by_entry;
-            ldu_mq_data_try_mq_index <= data_try_req_ack_index_by_entry;
+            ldu_mq_data_try_mq_index <= data_try_req_ack_index;
         end
     end
     always_comb begin

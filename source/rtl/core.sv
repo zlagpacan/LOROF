@@ -594,15 +594,15 @@ module core #(
     logic stamofu_PRF_req_B_valid;
     logic sysu_PRF_req_A_valid;
 
-    logic ldu_PRF_req_A_PR;
-    logic alu_reg_mdu_PRF_req_A_PR;
-    logic alu_reg_mdu_PRF_req_B_PR;
-    logic alu_imm_PRF_req_A_PR;
-    logic bru_PRF_req_A_PR;
-    logic bru_PRF_req_B_PR;
-    logic stamofu_PRF_req_A_PR;
-    logic stamofu_PRF_req_B_PR;
-    logic sysu_PRF_req_A_PR;
+    logic [LOG_PR_COUNT-1:0] ldu_PRF_req_A_PR;
+    logic [LOG_PR_COUNT-1:0] alu_reg_mdu_PRF_req_A_PR;
+    logic [LOG_PR_COUNT-1:0] alu_reg_mdu_PRF_req_B_PR;
+    logic [LOG_PR_COUNT-1:0] alu_imm_PRF_req_A_PR;
+    logic [LOG_PR_COUNT-1:0] bru_PRF_req_A_PR;
+    logic [LOG_PR_COUNT-1:0] bru_PRF_req_B_PR;
+    logic [LOG_PR_COUNT-1:0] stamofu_PRF_req_A_PR;
+    logic [LOG_PR_COUNT-1:0] stamofu_PRF_req_B_PR;
+    logic [LOG_PR_COUNT-1:0] sysu_PRF_req_A_PR;
 
     // read resp info by read requestor
     logic [PRF_RR_COUNT-1:0]    prf_read_resp_ack_by_rr;
@@ -665,23 +665,23 @@ module core #(
     logic [31:0] bru_WB_data;
     logic [31:0] sysu_WB_data;
 
-    // logic [PRF_WR_COUNT-1:0] wr_buf_WB_PR; // in core IO
-    logic [PRF_WR_COUNT-1:0] ldu_bank0_WB_PR;
-    logic [PRF_WR_COUNT-1:0] ldu_bank1_WB_PR;
-    logic [PRF_WR_COUNT-1:0] alu_reg_WB_PR;
-    logic [PRF_WR_COUNT-1:0] mdu_WB_PR;
-    logic [PRF_WR_COUNT-1:0] alu_imm_WB_PR;
-    logic [PRF_WR_COUNT-1:0] bru_WB_PR;
-    logic [PRF_WR_COUNT-1:0] sysu_WB_PR;
+    // logic [LOG_PR_COUNT-1:0] wr_buf_WB_PR; // in core IO
+    logic [LOG_PR_COUNT-1:0] ldu_bank0_WB_PR;
+    logic [LOG_PR_COUNT-1:0] ldu_bank1_WB_PR;
+    logic [LOG_PR_COUNT-1:0] alu_reg_WB_PR;
+    logic [LOG_PR_COUNT-1:0] mdu_WB_PR;
+    logic [LOG_PR_COUNT-1:0] alu_imm_WB_PR;
+    logic [LOG_PR_COUNT-1:0] bru_WB_PR;
+    logic [LOG_PR_COUNT-1:0] sysu_WB_PR;
 
-    logic [LOG_PR_COUNT-1:0] wr_buf_WB_ROB_index;
-    logic [LOG_PR_COUNT-1:0] ldu_bank0_WB_ROB_index;
-    logic [LOG_PR_COUNT-1:0] ldu_bank1_WB_ROB_index;
-    logic [LOG_PR_COUNT-1:0] alu_reg_WB_ROB_index;
-    logic [LOG_PR_COUNT-1:0] mdu_WB_ROB_index;
-    logic [LOG_PR_COUNT-1:0] alu_imm_WB_ROB_index;
-    logic [LOG_PR_COUNT-1:0] bru_WB_ROB_index;
-    logic [LOG_PR_COUNT-1:0] sysu_WB_ROB_index;
+    logic [LOG_ROB_ENTRIES-1:0] wr_buf_WB_ROB_index;
+    logic [LOG_ROB_ENTRIES-1:0] ldu_bank0_WB_ROB_index;
+    logic [LOG_ROB_ENTRIES-1:0] ldu_bank1_WB_ROB_index;
+    logic [LOG_ROB_ENTRIES-1:0] alu_reg_WB_ROB_index;
+    logic [LOG_ROB_ENTRIES-1:0] mdu_WB_ROB_index;
+    logic [LOG_ROB_ENTRIES-1:0] alu_imm_WB_ROB_index;
+    logic [LOG_ROB_ENTRIES-1:0] bru_WB_ROB_index;
+    logic [LOG_ROB_ENTRIES-1:0] sysu_WB_ROB_index;
 
     // writeback feedback by write requestor
     logic [PRF_WR_COUNT-1:0] WB_ready_by_wr;
@@ -755,8 +755,23 @@ module core #(
     logic                           ldu_exception_access_fault;
     logic [LOG_ROB_ENTRIES-1:0]     ldu_exception_ROB_index;
 
+    logic                           ldu_launch_pipeline_bank0_ldu_exception_valid;
+    logic [VA_WIDTH-1:0]            ldu_launch_pipeline_bank0_ldu_exception_VA;
+    logic                           ldu_launch_pipeline_bank0_ldu_exception_page_fault;
+    logic                           ldu_launch_pipeline_bank0_ldu_exception_access_fault;
+    logic [LOG_ROB_ENTRIES-1:0]     ldu_launch_pipeline_bank0_ldu_exception_ROB_index;
+
+    logic                           ldu_launch_pipeline_bank1_ldu_exception_valid;
+    logic [VA_WIDTH-1:0]            ldu_launch_pipeline_bank1_ldu_exception_VA;
+    logic                           ldu_launch_pipeline_bank1_ldu_exception_page_fault;
+    logic                           ldu_launch_pipeline_bank1_ldu_exception_access_fault;
+    logic [LOG_ROB_ENTRIES-1:0]     ldu_launch_pipeline_bank1_ldu_exception_ROB_index;
+
     // LDU exception backpressure from ROB
     logic                           ldu_exception_ready;
+
+    logic                           ldu_launch_pipeline_bank0_ldu_exception_ready;
+    logic                           ldu_launch_pipeline_bank1_ldu_exception_ready;
 
     // STAMOFU exception to ROB
     logic                           stamofu_exception_valid;
@@ -1648,7 +1663,7 @@ module core #(
 		.instr_2B_by_way_by_chunk_SDEQ(istream_instr_2B_by_way_by_chunk_SDEQ),
 		.pred_info_by_way_by_chunk_SDEQ(istream_pred_info_by_way_by_chunk_SDEQ),
 		.pred_lru_by_way_by_chunk_SDEQ(istream_pred_lru_by_way_by_chunk_SDEQ),
-		// .redirect_by_way_by_chunk_SDEQ(), // unused
+		.redirect_by_way_by_chunk_SDEQ(), // unused
 		.pred_PC_by_way_by_chunk_SDEQ(istream_pred_PC_by_way_by_chunk_SDEQ),
 		.page_fault_by_way_by_chunk_SDEQ(istream_page_fault_by_way_by_chunk_SDEQ),
 		.access_fault_by_way_by_chunk_SDEQ(istream_access_fault_by_way_by_chunk_SDEQ),
@@ -2009,8 +2024,8 @@ module core #(
     prf #(
         .PR_COUNT(PR_COUNT),
         .PRF_BANK_COUNT(PRF_BANK_COUNT),
-        .PRF_RR_COUNT(9),
-        .PRF_WR_COUNT(7),
+        .PRF_RR_COUNT(PRF_RR_COUNT),
+        .PRF_WR_COUNT(PRF_WR_COUNT),
         .USE_BRAM(0)
     ) PRF (
 		// seq
@@ -2914,13 +2929,13 @@ module core #(
         .data_try_ack(ldu_launch_pipeline_data_try_bank0_ack),
 
         // dtlb req
-        .dtlb_req_valid(dtlb_req_bank0_valid),
+        .dtlb_req_valid(ldu_launch_pipeline_dtlb_req_bank0_valid),
         .dtlb_req_exec_mode(dtlb_req_bank0_exec_mode),
         .dtlb_req_virtual_mode(dtlb_req_bank0_virtual_mode),
         .dtlb_req_ASID(dtlb_req_bank0_ASID),
         .dtlb_req_MXR(dtlb_req_bank0_MXR),
         .dtlb_req_SUM(dtlb_req_bank0_SUM),
-        .dtlb_req_VPN(dtlb_req_bank0_VPN),
+        .dtlb_req_VPN(ldu_launch_pipeline_dtlb_req_bank0_VPN),
 
         // dtlb req feedback
         .dtlb_req_ready(dtlb_req_bank0_ready),
@@ -2933,12 +2948,12 @@ module core #(
         .dtlb_resp_access_fault(dtlb_resp_bank0_access_fault),
 
         // dcache req
-        .dcache_req_valid(dcache_req_bank0_valid),
-        .dcache_req_block_offset(dcache_req_bank0_block_offset),
-        .dcache_req_index(dcache_req_bank0_index),
-        .dcache_req_cq_index(dcache_req_bank0_cq_index),
-        .dcache_req_is_mq(dcache_req_bank0_is_mq),
-        .dcache_req_mq_index(dcache_req_bank0_mq_index),
+        .dcache_req_valid(ldu_launch_pipeline_dcache_req_bank0_valid),
+        .dcache_req_block_offset(ldu_launch_pipeline_dcache_req_bank0_block_offset),
+        .dcache_req_index(ldu_launch_pipeline_dcache_req_bank0_index),
+        .dcache_req_cq_index(ldu_launch_pipeline_dcache_req_bank0_cq_index),
+        .dcache_req_is_mq(ldu_launch_pipeline_dcache_req_bank0_is_mq),
+        .dcache_req_mq_index(ldu_launch_pipeline_dcache_req_bank0_mq_index),
 
         // dcache req feedback
         .dcache_req_ready(dcache_req_bank0_ready),
@@ -2949,10 +2964,10 @@ module core #(
         .dcache_resp_data_by_way(dcache_resp_bank0_data_by_way),
 
         // dcache resp feedback
-        .dcache_resp_hit_valid(dcache_resp_bank0_hit_valid),
-        .dcache_resp_hit_way(dcache_resp_bank0_hit_way),
-        .dcache_resp_miss_valid(dcache_resp_bank0_miss_valid),
-        .dcache_resp_miss_tag(dcache_resp_bank0_miss_tag),
+        .dcache_resp_hit_valid(ldu_launch_pipeline_dcache_resp_bank0_hit_valid),
+        .dcache_resp_hit_way(ldu_launch_pipeline_dcache_resp_bank0_hit_way),
+        .dcache_resp_miss_valid(ldu_launch_pipeline_dcache_resp_bank0_miss_valid),
+        .dcache_resp_miss_tag(ldu_launch_pipeline_dcache_resp_bank0_miss_tag),
 
         // writeback data to PRF
         .WB_valid(ldu_bank0_WB_valid),
@@ -2982,8 +2997,8 @@ module core #(
 
         // central queue info ret
         .ldu_cq_info_ret_valid(ldu_cq_info_ret_bank0_valid),
-        .ldu_cq_info_ret_cq_index(ldu_cq_info_ret_bank0_WB_sent),
-        .ldu_cq_info_ret_WB_sent(ldu_cq_info_ret_bank0_cq_index),
+        .ldu_cq_info_ret_cq_index(ldu_cq_info_ret_bank0_cq_index),
+        .ldu_cq_info_ret_WB_sent(ldu_cq_info_ret_bank0_WB_sent),
         .ldu_cq_info_ret_misaligned(ldu_cq_info_ret_bank0_misaligned),
         .ldu_cq_info_ret_dtlb_hit(ldu_cq_info_ret_bank0_dtlb_hit),
         .ldu_cq_info_ret_page_fault(ldu_cq_info_ret_bank0_page_fault),
@@ -3019,11 +3034,11 @@ module core #(
         .mispred_notif_ready(ldu_mispred_notif_bank0_ready),
 
         // excpetion to ROB
-        .rob_exception_valid(ldu_exception_valid),
-        .rob_exception_VA(ldu_exception_VA),
-        .rob_exception_page_fault(ldu_exception_page_fault),
-        .rob_exception_access_fault(ldu_exception_access_fault),
-        .rob_exception_ROB_index(ldu_exception_ROB_index),
+        .rob_exception_valid(ldu_launch_pipeline_bank0_ldu_exception_valid),
+        .rob_exception_VA(ldu_launch_pipeline_bank0_ldu_exception_VA),
+        .rob_exception_page_fault(ldu_launch_pipeline_bank0_ldu_exception_page_fault),
+        .rob_exception_access_fault(ldu_launch_pipeline_bank0_ldu_exception_access_fault),
+        .rob_exception_ROB_index(ldu_launch_pipeline_bank0_ldu_exception_ROB_index),
 
         // exception backpressure from ROB
         .rob_exception_ready(ldu_exception_ready),
@@ -3104,13 +3119,13 @@ module core #(
         .data_try_ack(ldu_launch_pipeline_data_try_bank1_ack),
 
         // dtlb req
-        .dtlb_req_valid(dtlb_req_bank1_valid),
+        .dtlb_req_valid(ldu_launch_pipeline_dtlb_req_bank1_valid),
         .dtlb_req_exec_mode(dtlb_req_bank1_exec_mode),
         .dtlb_req_virtual_mode(dtlb_req_bank1_virtual_mode),
         .dtlb_req_ASID(dtlb_req_bank1_ASID),
         .dtlb_req_MXR(dtlb_req_bank1_MXR),
         .dtlb_req_SUM(dtlb_req_bank1_SUM),
-        .dtlb_req_VPN(dtlb_req_bank1_VPN),
+        .dtlb_req_VPN(ldu_launch_pipeline_dtlb_req_bank1_VPN),
 
         // dtlb req feedback
         .dtlb_req_ready(dtlb_req_bank1_ready),
@@ -3123,12 +3138,12 @@ module core #(
         .dtlb_resp_access_fault(dtlb_resp_bank1_access_fault),
 
         // dcache req
-        .dcache_req_valid(dcache_req_bank1_valid),
-        .dcache_req_block_offset(dcache_req_bank1_block_offset),
-        .dcache_req_index(dcache_req_bank1_index),
-        .dcache_req_cq_index(dcache_req_bank1_cq_index),
-        .dcache_req_is_mq(dcache_req_bank1_is_mq),
-        .dcache_req_mq_index(dcache_req_bank1_mq_index),
+        .dcache_req_valid(ldu_launch_pipeline_dcache_req_bank1_valid),
+        .dcache_req_block_offset(ldu_launch_pipeline_dcache_req_bank1_block_offset),
+        .dcache_req_index(ldu_launch_pipeline_dcache_req_bank1_index),
+        .dcache_req_cq_index(ldu_launch_pipeline_dcache_req_bank1_cq_index),
+        .dcache_req_is_mq(ldu_launch_pipeline_dcache_req_bank1_is_mq),
+        .dcache_req_mq_index(ldu_launch_pipeline_dcache_req_bank1_mq_index),
 
         // dcache req feedback
         .dcache_req_ready(dcache_req_bank1_ready),
@@ -3139,10 +3154,10 @@ module core #(
         .dcache_resp_data_by_way(dcache_resp_bank1_data_by_way),
 
         // dcache resp feedback
-        .dcache_resp_hit_valid(dcache_resp_bank1_hit_valid),
-        .dcache_resp_hit_way(dcache_resp_bank1_hit_way),
-        .dcache_resp_miss_valid(dcache_resp_bank1_miss_valid),
-        .dcache_resp_miss_tag(dcache_resp_bank1_miss_tag),
+        .dcache_resp_hit_valid(ldu_launch_pipeline_dcache_resp_bank1_hit_valid),
+        .dcache_resp_hit_way(ldu_launch_pipeline_dcache_resp_bank1_hit_way),
+        .dcache_resp_miss_valid(ldu_launch_pipeline_dcache_resp_bank1_miss_valid),
+        .dcache_resp_miss_tag(ldu_launch_pipeline_dcache_resp_bank1_miss_tag),
 
         // writeback data to PRF
         .WB_valid(ldu_bank1_WB_valid),
@@ -3172,8 +3187,8 @@ module core #(
 
         // central queue info ret
         .ldu_cq_info_ret_valid(ldu_cq_info_ret_bank1_valid),
-        .ldu_cq_info_ret_cq_index(ldu_cq_info_ret_bank1_WB_sent),
-        .ldu_cq_info_ret_WB_sent(ldu_cq_info_ret_bank1_cq_index),
+        .ldu_cq_info_ret_cq_index(ldu_cq_info_ret_bank1_cq_index),
+        .ldu_cq_info_ret_WB_sent(ldu_cq_info_ret_bank1_WB_sent),
         .ldu_cq_info_ret_misaligned(ldu_cq_info_ret_bank1_misaligned),
         .ldu_cq_info_ret_dtlb_hit(ldu_cq_info_ret_bank1_dtlb_hit),
         .ldu_cq_info_ret_page_fault(ldu_cq_info_ret_bank1_page_fault),
@@ -3209,11 +3224,11 @@ module core #(
         .mispred_notif_ready(ldu_mispred_notif_bank1_ready),
 
         // excpetion to ROB
-        .rob_exception_valid(ldu_exception_valid),
-        .rob_exception_VA(ldu_exception_VA),
-        .rob_exception_page_fault(ldu_exception_page_fault),
-        .rob_exception_access_fault(ldu_exception_access_fault),
-        .rob_exception_ROB_index(ldu_exception_ROB_index),
+        .rob_exception_valid(ldu_launch_pipeline_bank1_ldu_exception_valid),
+        .rob_exception_VA(ldu_launch_pipeline_bank1_ldu_exception_VA),
+        .rob_exception_page_fault(ldu_launch_pipeline_bank1_ldu_exception_page_fault),
+        .rob_exception_access_fault(ldu_launch_pipeline_bank1_ldu_exception_access_fault),
+        .rob_exception_ROB_index(ldu_launch_pipeline_bank1_ldu_exception_ROB_index),
 
         // exception backpressure from ROB
         .rob_exception_ready(ldu_exception_ready),
@@ -3304,8 +3319,8 @@ module core #(
 
         // central queue info ret
         .ldu_cq_info_ret_bank0_valid(ldu_cq_info_ret_bank0_valid),
-        .ldu_cq_info_ret_bank0_cq_index(ldu_cq_info_ret_bank0_WB_sent),
-        .ldu_cq_info_ret_bank0_WB_sent(ldu_cq_info_ret_bank0_cq_index),
+        .ldu_cq_info_ret_bank0_cq_index(ldu_cq_info_ret_bank0_cq_index),
+        .ldu_cq_info_ret_bank0_WB_sent(ldu_cq_info_ret_bank0_WB_sent),
         .ldu_cq_info_ret_bank0_misaligned(ldu_cq_info_ret_bank0_misaligned),
         .ldu_cq_info_ret_bank0_dtlb_hit(ldu_cq_info_ret_bank0_dtlb_hit),
         .ldu_cq_info_ret_bank0_page_fault(ldu_cq_info_ret_bank0_page_fault),
@@ -3318,8 +3333,8 @@ module core #(
         .ldu_cq_info_ret_bank0_data(ldu_cq_info_ret_bank0_data),
 
         .ldu_cq_info_ret_bank1_valid(ldu_cq_info_ret_bank1_valid),
-        .ldu_cq_info_ret_bank1_cq_index(ldu_cq_info_ret_bank1_WB_sent),
-        .ldu_cq_info_ret_bank1_WB_sent(ldu_cq_info_ret_bank1_cq_index),
+        .ldu_cq_info_ret_bank1_cq_index(ldu_cq_info_ret_bank1_cq_index),
+        .ldu_cq_info_ret_bank1_WB_sent(ldu_cq_info_ret_bank1_WB_sent),
         .ldu_cq_info_ret_bank1_misaligned(ldu_cq_info_ret_bank1_misaligned),
         .ldu_cq_info_ret_bank1_dtlb_hit(ldu_cq_info_ret_bank1_dtlb_hit),
         .ldu_cq_info_ret_bank1_page_fault(ldu_cq_info_ret_bank1_page_fault),
@@ -3618,11 +3633,30 @@ module core #(
         ldu_mispred_notif_bank0_ready = ldu_mispred_notif_ready;
         ldu_mispred_notif_bank1_ready = ldu_mispred_notif_ready & ~ldu_mispred_notif_bank0_valid;
         
-        if (ldu_mispred_notif_bank0_valid & ldu_mispred_notif_bank0_ready) begin
+        if (ldu_mispred_notif_bank0_valid) begin
             ldu_mispred_notif_ROB_index = ldu_mispred_notif_bank0_ROB_index;
         end
         else begin
             ldu_mispred_notif_ROB_index = ldu_mispred_notif_bank1_ROB_index;
+        end
+
+        // static priority ldu exception bank 0 > bank 1
+        ldu_exception_valid = ldu_launch_pipeline_bank0_ldu_exception_valid | ldu_launch_pipeline_bank1_ldu_exception_valid;
+
+        ldu_launch_pipeline_bank0_ldu_exception_ready = ldu_exception_ready;
+        ldu_launch_pipeline_bank1_ldu_exception_ready = ldu_exception_ready & ~ldu_launch_pipeline_bank0_ldu_exception_valid;
+
+        if (ldu_launch_pipeline_bank0_ldu_exception_valid) begin
+            ldu_exception_VA = ldu_launch_pipeline_bank0_ldu_exception_VA;
+            ldu_exception_page_fault = ldu_launch_pipeline_bank0_ldu_exception_page_fault;
+            ldu_exception_access_fault = ldu_launch_pipeline_bank0_ldu_exception_access_fault;
+            ldu_exception_ROB_index = ldu_launch_pipeline_bank0_ldu_exception_ROB_index;
+        end
+        else begin
+            ldu_exception_VA = ldu_launch_pipeline_bank1_ldu_exception_VA;
+            ldu_exception_page_fault = ldu_launch_pipeline_bank1_ldu_exception_page_fault;
+            ldu_exception_access_fault = ldu_launch_pipeline_bank1_ldu_exception_access_fault;
+            ldu_exception_ROB_index = ldu_launch_pipeline_bank1_ldu_exception_ROB_index;
         end
 
         // static priority second try ldu_mq > ldu_cq
@@ -4330,9 +4364,9 @@ module core #(
 
         // dtlb miss resp
         .dtlb_miss_resp_valid(stamofu_dtlb_miss_resp_valid),
-        .dtlb_miss_resp_cq_index(dtlb_miss_resp_cq_index),
+        .dtlb_miss_resp_cq_index(dtlb_miss_resp_cq_index[LOG_STAMOFU_CQ_ENTRIES-1:0]),
         .dtlb_miss_resp_is_mq(dtlb_miss_resp_is_mq),
-        .dtlb_miss_resp_mq_index(dtlb_miss_resp_mq_index),
+        .dtlb_miss_resp_mq_index(dtlb_miss_resp_mq_index[LOG_STAMOFU_MQ_ENTRIES-1:0]),
         .dtlb_miss_resp_PPN(dtlb_miss_resp_PPN),
         .dtlb_miss_resp_is_mem(dtlb_miss_resp_is_mem),
         .dtlb_miss_resp_page_fault(dtlb_miss_resp_page_fault),
@@ -4492,18 +4526,18 @@ module core #(
         .rob_exception_ready(stamofu_exception_ready),
 
         // store set CAM update bank 0
-        .ssu_CAM_bank0_update_valid(stamofu_cq_CAM_bank0_update_valid),
-        .ssu_CAM_bank0_update_ld_mdp_info(stamofu_cq_CAM_bank0_update_ld_mdp_info),
-        .ssu_CAM_bank0_update_ld_ROB_index(stamofu_cq_CAM_bank0_update_ld_ROB_index),
-        .ssu_CAM_bank0_update_stamo_mdp_info(stamofu_cq_CAM_bank0_update_stamo_mdp_info),
-        .ssu_CAM_bank0_update_stamo_ROB_index(stamofu_cq_CAM_bank0_update_stamo_ROB_index),
+        .ssu_CAM_update_bank0_valid(stamofu_cq_CAM_bank0_update_valid),
+        .ssu_CAM_update_bank0_ld_mdp_info(stamofu_cq_CAM_bank0_update_ld_mdp_info),
+        .ssu_CAM_update_bank0_ld_ROB_index(stamofu_cq_CAM_bank0_update_ld_ROB_index),
+        .ssu_CAM_update_bank0_stamo_mdp_info(stamofu_cq_CAM_bank0_update_stamo_mdp_info),
+        .ssu_CAM_update_bank0_stamo_ROB_index(stamofu_cq_CAM_bank0_update_stamo_ROB_index),
 
         // store set CAM update bank 1
-        .ssu_CAM_bank1_update_valid(stamofu_cq_CAM_bank1_update_valid),
-        .ssu_CAM_bank1_update_ld_mdp_info(stamofu_cq_CAM_bank1_update_ld_mdp_info),
-        .ssu_CAM_bank1_update_ld_ROB_index(stamofu_cq_CAM_bank1_update_ld_ROB_index),
-        .ssu_CAM_bank1_update_stamo_mdp_info(stamofu_cq_CAM_bank1_update_stamo_mdp_info),
-        .ssu_CAM_bank1_update_stamo_ROB_index(stamofu_cq_CAM_bank1_update_stamo_ROB_index),
+        .ssu_CAM_update_bank1_valid(stamofu_cq_CAM_bank1_update_valid),
+        .ssu_CAM_update_bank1_ld_mdp_info(stamofu_cq_CAM_bank1_update_ld_mdp_info),
+        .ssu_CAM_update_bank1_ld_ROB_index(stamofu_cq_CAM_bank1_update_ld_ROB_index),
+        .ssu_CAM_update_bank1_stamo_mdp_info(stamofu_cq_CAM_bank1_update_stamo_mdp_info),
+        .ssu_CAM_update_bank1_stamo_ROB_index(stamofu_cq_CAM_bank1_update_stamo_ROB_index),
 
         // store set commit update
         .ssu_commit_update_valid(stamofu_cq_commit_update_valid),
@@ -4545,10 +4579,10 @@ module core #(
         .nRST(nRST),
 
         // op enqueue to misaligned queue
-        .stamofu_mq_enq_valid(stamofu_launch_pipeline_bank1_stamofu_mq_enq_valid),
+        .stamofu_mq_enq_valid(stamofu_mq_enq_valid),
 
         // misaligned queue enqueue feedback
-        .stamofu_mq_enq_ready(stamofu_launch_pipeline_bank1_stamofu_mq_enq_ready),
+        .stamofu_mq_enq_ready(stamofu_mq_enq_ready),
         .stamofu_mq_enq_index(stamofu_mq_enq_index),
 
         // misaligned queue info ret
@@ -4580,9 +4614,9 @@ module core #(
 
         // dtlb miss resp
         .dtlb_miss_resp_valid(stamofu_dtlb_miss_resp_valid),
-        .dtlb_miss_resp_cq_index(dtlb_miss_resp_cq_index),
+        .dtlb_miss_resp_cq_index(dtlb_miss_resp_cq_index[LOG_STAMOFU_CQ_ENTRIES-1:0]),
         .dtlb_miss_resp_is_mq(dtlb_miss_resp_is_mq),
-        .dtlb_miss_resp_mq_index(dtlb_miss_resp_mq_index),
+        .dtlb_miss_resp_mq_index(dtlb_miss_resp_mq_index[LOG_STAMOFU_MQ_ENTRIES-1:0]),
         .dtlb_miss_resp_PPN(dtlb_miss_resp_PPN),
         .dtlb_miss_resp_is_mem(dtlb_miss_resp_is_mem),
         .dtlb_miss_resp_page_fault(dtlb_miss_resp_page_fault),

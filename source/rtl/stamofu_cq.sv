@@ -423,10 +423,10 @@ module stamofu_cq #(
     logic                           next_stamofu_incomplete_active;
     logic [LOG_ROB_ENTRIES-1:0]     next_stamofu_oldest_incomplete_ROB_index;
 
-    logic                               unmasked_incomplete_vec;
+    logic [STAMOFU_CQ_ENTRIES-1:0]      unmasked_incomplete_vec;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  unmasked_incomplete_index;
 
-    logic                               masked_incomplete_vec;
+    logic [STAMOFU_CQ_ENTRIES-1:0]      masked_incomplete_vec;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  masked_incomplete_index;
 
     // stamofu CAM pipeline bank 0
