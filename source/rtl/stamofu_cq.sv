@@ -189,7 +189,7 @@ module stamofu_cq #(
     output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   stamofu_CAM_return_bank0_stall_count,
     output logic [3:0]                          stamofu_CAM_return_bank0_forward,
     output logic                                stamofu_CAM_return_bank0_nasty_forward,
-    output logic                                stamofu_CAM_return_bank0_forward_ROB_index,
+    output logic [LOG_ROB_ENTRIES-1:0]          stamofu_CAM_return_bank0_forward_ROB_index,
     output logic [31:0]                         stamofu_CAM_return_bank0_forward_data,
     
     output logic                                stamofu_CAM_return_bank1_valid,
@@ -200,7 +200,7 @@ module stamofu_cq #(
     output logic [LOG_STAMOFU_CQ_ENTRIES-1:0]   stamofu_CAM_return_bank1_stall_count,
     output logic [3:0]                          stamofu_CAM_return_bank1_forward,
     output logic                                stamofu_CAM_return_bank1_nasty_forward,
-    output logic                                stamofu_CAM_return_bank1_forward_ROB_index,
+    output logic [LOG_ROB_ENTRIES-1:0]          stamofu_CAM_return_bank1_forward_ROB_index,
     output logic [31:0]                         stamofu_CAM_return_bank1_forward_data,
 
     // misaligned queue info grab

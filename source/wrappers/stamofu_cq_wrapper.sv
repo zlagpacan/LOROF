@@ -192,7 +192,7 @@ module stamofu_cq_wrapper (
 	output logic [LOG_STAMOFU_CQ_ENTRIES-1:0] last_stamofu_CAM_return_bank0_stall_count,
 	output logic [3:0] last_stamofu_CAM_return_bank0_forward,
 	output logic last_stamofu_CAM_return_bank0_nasty_forward,
-	output logic last_stamofu_CAM_return_bank0_forward_ROB_index,
+	output logic [LOG_ROB_ENTRIES-1:0] last_stamofu_CAM_return_bank0_forward_ROB_index,
 	output logic [31:0] last_stamofu_CAM_return_bank0_forward_data,
 
 	output logic last_stamofu_CAM_return_bank1_valid,
@@ -203,7 +203,7 @@ module stamofu_cq_wrapper (
 	output logic [LOG_STAMOFU_CQ_ENTRIES-1:0] last_stamofu_CAM_return_bank1_stall_count,
 	output logic [3:0] last_stamofu_CAM_return_bank1_forward,
 	output logic last_stamofu_CAM_return_bank1_nasty_forward,
-	output logic last_stamofu_CAM_return_bank1_forward_ROB_index,
+	output logic [LOG_ROB_ENTRIES-1:0] last_stamofu_CAM_return_bank1_forward_ROB_index,
 	output logic [31:0] last_stamofu_CAM_return_bank1_forward_data,
 
     // misaligned queue info grab
@@ -493,7 +493,7 @@ module stamofu_cq_wrapper (
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank0_stall_count;
 	logic [3:0] stamofu_CAM_return_bank0_forward;
 	logic stamofu_CAM_return_bank0_nasty_forward;
-	logic stamofu_CAM_return_bank0_forward_ROB_index;
+	logic [LOG_ROB_ENTRIES-1:0] stamofu_CAM_return_bank0_forward_ROB_index;
 	logic [31:0] stamofu_CAM_return_bank0_forward_data;
 
 	logic stamofu_CAM_return_bank1_valid;
@@ -504,7 +504,7 @@ module stamofu_cq_wrapper (
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_CAM_return_bank1_stall_count;
 	logic [3:0] stamofu_CAM_return_bank1_forward;
 	logic stamofu_CAM_return_bank1_nasty_forward;
-	logic stamofu_CAM_return_bank1_forward_ROB_index;
+	logic [LOG_ROB_ENTRIES-1:0] stamofu_CAM_return_bank1_forward_ROB_index;
 	logic [31:0] stamofu_CAM_return_bank1_forward_data;
 
     // misaligned queue info grab

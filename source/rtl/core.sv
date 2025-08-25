@@ -167,6 +167,36 @@ module core #(
     input logic [LOG_LDU_MQ_ENTRIES-1:0]    dcache_miss_resp_mq_index,
     input logic [31:0]                      dcache_miss_resp_data,
 
+    // write buffer enq bank 0
+    output logic                        wr_buf_enq_bank0_valid,
+    output logic                        wr_buf_enq_bank0_is_amo,
+    output logic [3:0]                  wr_buf_enq_bank0_op,
+    output logic [LOG_PR_COUNT-1:0]     wr_buf_enq_bank0_dest_PR,
+    output logic                        wr_buf_enq_bank0_is_mem,
+    output logic [PA_WIDTH-2-1:0]       wr_buf_enq_bank0_PA_word,
+    output logic [3:0]                  wr_buf_enq_bank0_byte_mask,
+    output logic [31:0]                 wr_buf_enq_bank0_data,
+
+    // write buffer enq feedback bank 0
+    input logic                         wr_buf_enq_bank0_ready,
+    input logic                         wr_buf_enq_bank0_mem_present,
+    input logic                         wr_buf_enq_bank0_io_present,
+
+    // write buffer enq bank 1
+    output logic                        wr_buf_enq_bank1_valid,
+    output logic                        wr_buf_enq_bank1_is_amo,
+    output logic [3:0]                  wr_buf_enq_bank1_op,
+    output logic [LOG_PR_COUNT-1:0]     wr_buf_enq_bank1_dest_PR,
+    output logic                        wr_buf_enq_bank1_is_mem,
+    output logic [PA_WIDTH-2-1:0]       wr_buf_enq_bank1_PA_word,
+    output logic [3:0]                  wr_buf_enq_bank1_byte_mask,
+    output logic [31:0]                 wr_buf_enq_bank1_data,
+
+    // write buffer enq feedback bank 1
+    input logic                         wr_buf_enq_bank1_ready,
+    input logic                         wr_buf_enq_bank1_mem_present,
+    input logic                         wr_buf_enq_bank1_io_present,
+
     // write buffer WB data to PRF
     input logic                         wr_buf_WB_valid,
     input logic [31:0]                  wr_buf_WB_data,
@@ -175,6 +205,14 @@ module core #(
 
     // write buffer WB feedback from PRF
     output logic                        wr_buf_WB_ready,
+
+    // sfence invalidation to MMU
+    output logic                    sfence_inv_valid,
+    output logic [VA_WIDTH-1:0]     sfence_inv_VA,
+    output logic [ASID_WIDTH-1:0]   sfence_inv_ASID,
+
+    // sfence invalidation backpressure from MMU
+    input logic                     sfence_inv_ready,
 
     // hardware failure
     output logic unrecoverable_fault
@@ -223,7 +261,7 @@ module core #(
                     // stamofu_iq
                     // stamofu_aq
                     // stamofu_addr_pipeline
-                    // 2x stamofu_lq
+                    // stamofu_lq
                     // 2x stamofu_launch_pipeline
                     // stamofu_cq
                     // stamofu_mq
@@ -1245,6 +1283,250 @@ module core #(
 
     // acquire queue enqueue feedback
     logic                               stamofu_aq_enq_ready;
+
+    // pipeline issue
+    logic                               stamofu_issue_valid;
+    logic                               stamofu_issue_is_store;
+    logic                               stamofu_issue_is_amo;
+    logic                               stamofu_issue_is_fence;
+    logic [3:0]                         stamofu_issue_op;
+    logic [11:0]                        stamofu_issue_imm12;
+    logic                               stamofu_issue_A_forward;
+    logic                               stamofu_issue_A_is_zero;
+    logic [LOG_PRF_BANK_COUNT-1:0]      stamofu_issue_A_bank;
+    logic                               stamofu_issue_B_forward;
+    logic                               stamofu_issue_B_is_zero;
+    logic [LOG_PRF_BANK_COUNT-1:0]      stamofu_issue_B_bank;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_issue_cq_index;
+
+    // pipeline feedback
+    logic                               stamofu_issue_ready;
+
+    // op update bank 0
+    logic                           stamofu_aq_update_bank0_valid;
+    logic                           stamofu_aq_update_bank0_mem_aq;
+    logic                           stamofu_aq_update_bank0_io_aq;
+    logic [LOG_ROB_ENTRIES-1:0]     stamofu_aq_update_bank0_ROB_index;
+
+    // op update bank 1
+    logic                           stamofu_aq_update_bank1_valid;
+    logic                           stamofu_aq_update_bank1_mem_aq;
+    logic                           stamofu_aq_update_bank1_io_aq;
+    logic [LOG_ROB_ENTRIES-1:0]     stamofu_aq_update_bank1_ROB_index;
+
+    // op dequeue from acquire queue
+    logic                           stamofu_aq_deq_valid;
+    logic [LOG_ROB_ENTRIES-1:0]     stamofu_aq_deq_ROB_index;
+
+    // REQ stage enq info
+    logic                               stamofu_lq_REQ_enq_valid;
+    logic                               stamofu_lq_REQ_enq_is_store;
+    logic                               stamofu_lq_REQ_enq_is_amo;
+    logic                               stamofu_lq_REQ_enq_is_fence;
+    logic [3:0]                         stamofu_lq_REQ_enq_op;
+    logic                               stamofu_lq_REQ_enq_is_mq;
+    logic                               stamofu_lq_REQ_enq_misaligned;
+    logic                               stamofu_lq_REQ_enq_misaligned_exception;
+    logic [VPN_WIDTH-1:0]               stamofu_lq_REQ_enq_VPN;
+    logic [PO_WIDTH-3:0]                stamofu_lq_REQ_enq_PO_word;
+    logic [3:0]                         stamofu_lq_REQ_enq_byte_mask;
+    logic [31:0]                        stamofu_lq_REQ_enq_write_data;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_lq_REQ_enq_cq_index;
+
+    // REQ stage enq feedback
+    logic                               stamofu_lq_REQ_enq_ack;
+
+    // REQ stage deq info bank 0
+    logic                               stamofu_lq_REQ_deq_bank0_valid;
+
+    logic                               stamofu_lq_REQ_deq_bank0_is_store;
+    logic                               stamofu_lq_REQ_deq_bank0_is_amo;
+    logic                               stamofu_lq_REQ_deq_bank0_is_fence;
+    logic [3:0]                         stamofu_lq_REQ_deq_bank0_op;
+    logic                               stamofu_lq_REQ_deq_bank0_is_mq;
+    logic                               stamofu_lq_REQ_deq_bank0_misaligned;
+    logic                               stamofu_lq_REQ_deq_bank0_misaligned_exception;
+    logic [VPN_WIDTH-1:0]               stamofu_lq_REQ_deq_bank0_VPN;
+    logic [PO_WIDTH-3:0]                stamofu_lq_REQ_deq_bank0_PO_word;
+    logic [3:0]                         stamofu_lq_REQ_deq_bank0_byte_mask;
+    logic [31:0]                        stamofu_lq_REQ_deq_bank0_write_data;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_lq_REQ_deq_bank0_cq_index;
+
+    // REQ stage deq feedback bank 0
+    logic                               stamofu_lq_REQ_deq_bank0_ack;
+
+    // REQ stage deq info bank 1
+    logic                               stamofu_lq_REQ_deq_bank1_valid;
+
+    logic                               stamofu_lq_REQ_deq_bank1_is_store;
+    logic                               stamofu_lq_REQ_deq_bank1_is_amo;
+    logic                               stamofu_lq_REQ_deq_bank1_is_fence;
+    logic [3:0]                         stamofu_lq_REQ_deq_bank1_op;
+    logic                               stamofu_lq_REQ_deq_bank1_is_mq;
+    logic                               stamofu_lq_REQ_deq_bank1_misaligned;
+    logic                               stamofu_lq_REQ_deq_bank1_misaligned_exception;
+    logic [VPN_WIDTH-1:0]               stamofu_lq_REQ_deq_bank1_VPN;
+    logic [PO_WIDTH-3:0]                stamofu_lq_REQ_deq_bank1_PO_word;
+    logic [3:0]                         stamofu_lq_REQ_deq_bank1_byte_mask;
+    logic [31:0]                        stamofu_lq_REQ_deq_bank1_write_data;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_lq_REQ_deq_bank1_cq_index;
+
+    // REQ stage deq feedback bank 1
+    logic                               stamofu_lq_REQ_deq_bank1_ack;
+
+    // op enqueue to misaligned queue
+    logic                               stamofu_mq_enq_valid;
+
+    logic                               stamofu_launch_pipeline_bank0_stamofu_mq_enq_valid;
+    logic                               stamofu_launch_pipeline_bank1_stamofu_mq_enq_valid;
+
+    // misaligned queue enqueue feedback
+    logic                               stamofu_mq_enq_ready;
+    logic [LOG_STAMOFU_MQ_ENTRIES-1:0]  stamofu_mq_enq_index;
+
+    logic                               stamofu_launch_pipeline_bank0_stamofu_mq_enq_ready;
+    logic                               stamofu_launch_pipeline_bank1_stamofu_mq_enq_ready;
+
+    // central queue info grab
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_cq_info_grab_bank0_cq_index;
+    logic [MDPT_INFO_WIDTH-1:0]         stamofu_cq_info_grab_bank0_mdp_info;
+    logic                               stamofu_cq_info_grab_bank0_mem_aq;
+    logic                               stamofu_cq_info_grab_bank0_io_aq;
+    logic                               stamofu_cq_info_grab_bank0_mem_rl;
+    logic                               stamofu_cq_info_grab_bank0_io_rl;
+    logic [LOG_ROB_ENTRIES-1:0]         stamofu_cq_info_grab_bank0_ROB_index;
+    
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_cq_info_grab_bank1_cq_index;
+    logic [MDPT_INFO_WIDTH-1:0]         stamofu_cq_info_grab_bank1_mdp_info;
+    logic                               stamofu_cq_info_grab_bank1_mem_aq;
+    logic                               stamofu_cq_info_grab_bank1_io_aq;
+    logic                               stamofu_cq_info_grab_bank1_mem_rl;
+    logic                               stamofu_cq_info_grab_bank1_io_rl;
+    logic [LOG_ROB_ENTRIES-1:0]         stamofu_cq_info_grab_bank1_ROB_index;
+
+    // central queue info ret
+    logic                               stamofu_cq_info_ret_bank0_valid;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_cq_info_ret_bank0_cq_index;
+    logic                               stamofu_cq_info_ret_bank0_dtlb_hit;
+    logic                               stamofu_cq_info_ret_bank0_page_fault;
+    logic                               stamofu_cq_info_ret_bank0_access_fault;
+    logic                               stamofu_cq_info_ret_bank0_is_mem;
+    logic                               stamofu_cq_info_ret_bank0_mem_aq;
+    logic                               stamofu_cq_info_ret_bank0_io_aq;
+    logic                               stamofu_cq_info_ret_bank0_mem_rl;
+    logic                               stamofu_cq_info_ret_bank0_io_rl;
+    logic                               stamofu_cq_info_ret_bank0_misaligned;
+    logic                               stamofu_cq_info_ret_bank0_misaligned_exception;
+    logic [PA_WIDTH-2-1:0]              stamofu_cq_info_ret_bank0_PA_word;
+    logic [3:0]                         stamofu_cq_info_ret_bank0_byte_mask;
+    logic [31:0]                        stamofu_cq_info_ret_bank0_data;
+    
+    logic                               stamofu_cq_info_ret_bank1_valid;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_cq_info_ret_bank1_cq_index;
+    logic                               stamofu_cq_info_ret_bank1_dtlb_hit;
+    logic                               stamofu_cq_info_ret_bank1_page_fault;
+    logic                               stamofu_cq_info_ret_bank1_access_fault;
+    logic                               stamofu_cq_info_ret_bank1_is_mem;
+    logic                               stamofu_cq_info_ret_bank1_mem_aq;
+    logic                               stamofu_cq_info_ret_bank1_io_aq;
+    logic                               stamofu_cq_info_ret_bank1_mem_rl;
+    logic                               stamofu_cq_info_ret_bank1_io_rl;
+    logic                               stamofu_cq_info_ret_bank1_misaligned;
+    logic                               stamofu_cq_info_ret_bank1_misaligned_exception;
+    logic [PA_WIDTH-2-1:0]              stamofu_cq_info_ret_bank1_PA_word;
+    logic [3:0]                         stamofu_cq_info_ret_bank1_byte_mask;
+    logic [31:0]                        stamofu_cq_info_ret_bank1_data;
+
+    // misaligned queue info ret
+    logic                               stamofu_mq_info_ret_bank0_valid;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_mq_info_ret_bank0_cq_index;
+    logic [LOG_STAMOFU_MQ_ENTRIES-1:0]  stamofu_mq_info_ret_bank0_mq_index;
+    logic                               stamofu_mq_info_ret_bank0_dtlb_hit;
+    logic                               stamofu_mq_info_ret_bank0_page_fault;
+    logic                               stamofu_mq_info_ret_bank0_access_fault;
+    logic                               stamofu_mq_info_ret_bank0_is_mem;
+    logic [MDPT_INFO_WIDTH-1:0]         stamofu_mq_info_ret_bank0_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]         stamofu_mq_info_ret_bank0_ROB_index;
+    logic [PA_WIDTH-2-1:0]              stamofu_mq_info_ret_bank0_PA_word;
+    logic [3:0]                         stamofu_mq_info_ret_bank0_byte_mask;
+    logic [31:0]                        stamofu_mq_info_ret_bank0_data;
+    
+    logic                               stamofu_mq_info_ret_bank1_valid;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_mq_info_ret_bank1_cq_index;
+    logic [LOG_STAMOFU_MQ_ENTRIES-1:0]  stamofu_mq_info_ret_bank1_mq_index;
+    logic                               stamofu_mq_info_ret_bank1_dtlb_hit;
+    logic                               stamofu_mq_info_ret_bank1_page_fault;
+    logic                               stamofu_mq_info_ret_bank1_access_fault;
+    logic                               stamofu_mq_info_ret_bank1_is_mem;
+    logic [MDPT_INFO_WIDTH-1:0]         stamofu_mq_info_ret_bank1_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]         stamofu_mq_info_ret_bank1_ROB_index;
+    logic [PA_WIDTH-2-1:0]              stamofu_mq_info_ret_bank1_PA_word;
+    logic [3:0]                         stamofu_mq_info_ret_bank1_byte_mask;
+    logic [31:0]                        stamofu_mq_info_ret_bank1_data;
+
+    // ldu CAM launch from stamofu_mq
+    logic                               stamofu_mq_ldu_CAM_launch_valid;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_mq_ldu_CAM_launch_cq_index;
+    logic [LOG_STAMOFU_MQ_ENTRIES-1:0]  stamofu_mq_ldu_CAM_launch_mq_index;
+    logic [PA_WIDTH-2-1:0]              stamofu_mq_ldu_CAM_launch_PA_word;
+    logic [3:0]                         stamofu_mq_ldu_CAM_launch_byte_mask;
+    logic [31:0]                        stamofu_mq_ldu_CAM_launch_write_data;
+    logic [MDPT_INFO_WIDTH-1:0]         stamofu_mq_ldu_CAM_launch_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]         stamofu_mq_ldu_CAM_launch_ROB_index;
+
+    // stamofu_mq CAM stage 2 info
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_mq_CAM_return_bank0_cq_index;
+    logic                               stamofu_mq_CAM_return_bank0_stall;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_mq_CAM_return_bank0_stall_count;
+    logic [3:0]                         stamofu_mq_CAM_return_bank0_forward;
+    logic                               stamofu_mq_CAM_return_bank0_nasty_forward;
+    logic                               stamofu_mq_CAM_return_bank0_forward_ROB_index;
+    logic [31:0]                        stamofu_mq_CAM_return_bank0_forward_data;
+    
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_mq_CAM_return_bank1_cq_index;
+    logic                               stamofu_mq_CAM_return_bank1_stall;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_mq_CAM_return_bank1_stall_count;
+    logic [3:0]                         stamofu_mq_CAM_return_bank1_forward;
+    logic                               stamofu_mq_CAM_return_bank1_nasty_forward;
+    logic                               stamofu_mq_CAM_return_bank1_forward_ROB_index;
+    logic [31:0]                        stamofu_mq_CAM_return_bank1_forward_data;
+
+    // stamofu CAM return
+    logic                               stamofu_CAM_return_bank0_valid;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]      stamofu_CAM_return_bank0_cq_index;
+    logic                               stamofu_CAM_return_bank0_is_mq;
+    logic [LOG_LDU_MQ_ENTRIES-1:0]      stamofu_CAM_return_bank0_mq_index;
+    logic                               stamofu_CAM_return_bank0_stall;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_CAM_return_bank0_stall_count;
+    logic [3:0]                         stamofu_CAM_return_bank0_forward;
+    logic                               stamofu_CAM_return_bank0_nasty_forward;
+    logic                               stamofu_CAM_return_bank0_forward_ROB_index;
+    logic [31:0]                        stamofu_CAM_return_bank0_forward_data;
+    
+    logic                               stamofu_CAM_return_bank1_valid;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]      stamofu_CAM_return_bank1_cq_index;
+    logic                               stamofu_CAM_return_bank1_is_mq;
+    logic [LOG_LDU_MQ_ENTRIES-1:0]      stamofu_CAM_return_bank1_mq_index;
+    logic                               stamofu_CAM_return_bank1_stall;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_CAM_return_bank1_stall_count;
+    logic [3:0]                         stamofu_CAM_return_bank1_forward;
+    logic                               stamofu_CAM_return_bank1_nasty_forward;
+    logic                               stamofu_CAM_return_bank1_forward_ROB_index;
+    logic [31:0]                        stamofu_CAM_return_bank1_forward_data;
+
+    // misaligned queue info grab
+    logic [LOG_STAMOFU_MQ_ENTRIES-1:0]  stamofu_mq_info_grab_mq_index;
+    logic                               stamofu_mq_info_grab_clear_entry;
+    logic                               stamofu_mq_info_grab_is_mem;
+    logic [PA_WIDTH-2-1:0]              stamofu_mq_info_grab_PA_word;
+    logic [3:0]                         stamofu_mq_info_grab_byte_mask;
+    logic [31:0]                        stamofu_mq_info_grab_data;
+
+    // stamofu mq complete notif
+    logic                               stamofu_mq_complete_valid;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_mq_complete_cq_index;
+
+    
 
     // ----------------------------------------------------------------
     // Front End Modules:
@@ -3334,6 +3616,12 @@ module core #(
         ldu_launch_pipeline_bank0_ldu_mq_enq_ready = ldu_mq_enq_ready;
         ldu_launch_pipeline_bank1_ldu_mq_enq_ready = ldu_mq_enq_ready & ~ldu_launch_pipeline_bank0_ldu_mq_enq_valid;
 
+        // static priority stamofu launch pipeline bank 0 > bank 1
+        stamofu_mq_enq_valid = stamofu_launch_pipeline_bank0_stamofu_mq_enq_valid | stamofu_launch_pipeline_bank1_stamofu_mq_enq_valid;
+
+        stamofu_launch_pipeline_bank0_stamofu_mq_enq_ready = stamofu_mq_enq_ready;
+        stamofu_launch_pipeline_bank1_stamofu_mq_enq_ready = stamofu_mq_enq_ready & ~stamofu_launch_pipeline_bank0_stamofu_mq_enq_valid;
+
         // static priority ldu mispred notif bank 0 > bank 1
         ldu_mispred_notif_valid = ldu_mispred_notif_bank0_valid | ldu_mispred_notif_bank1_valid;
 
@@ -3468,14 +3756,377 @@ module core #(
         // central queue enqueue feedback
         .stamofu_cq_enq_ready(stamofu_cq_enq_ready),
         .stamofu_cq_enq_index(stamofu_cq_enq_index),
+
+        // op enqueue to issue queue
+        .stamofu_iq_enq_valid(stamofu_iq_enq_valid),
+        .stamofu_iq_enq_is_store(stamofu_iq_enq_is_store),
+        .stamofu_iq_enq_is_amo(stamofu_iq_enq_is_amo),
+        .stamofu_iq_enq_is_fence(stamofu_iq_enq_is_fence),
+        .stamofu_iq_enq_op(stamofu_iq_enq_op),
+        .stamofu_iq_enq_imm12(stamofu_iq_enq_imm12),
+        .stamofu_iq_enq_A_PR(stamofu_iq_enq_A_PR),
+        .stamofu_iq_enq_A_ready(stamofu_iq_enq_A_ready),
+        .stamofu_iq_enq_A_is_zero(stamofu_iq_enq_A_is_zero),
+        .stamofu_iq_enq_B_PR(stamofu_iq_enq_B_PR),
+        .stamofu_iq_enq_B_ready(stamofu_iq_enq_B_ready),
+        .stamofu_iq_enq_B_is_zero(stamofu_iq_enq_B_is_zero),
+        .stamofu_iq_enq_cq_index(stamofu_iq_enq_cq_index),
+
+        // issue queue enqueue feedback
+        .stamofu_iq_enq_ready(stamofu_iq_enq_ready),
+
+        // op enqueue to acquire queue
+        .stamofu_aq_enq_valid(stamofu_aq_enq_valid),
+        .stamofu_aq_enq_mem_aq(stamofu_aq_enq_mem_aq),
+        .stamofu_aq_enq_io_aq(stamofu_aq_enq_io_aq),
+        .stamofu_aq_enq_ROB_index(stamofu_aq_enq_ROB_index),
+
+        // acquire queue enqueue feedback
+        .stamofu_aq_enq_ready(stamofu_aq_enq_ready),
+
+	    // ROB kill
+		.rob_kill_valid(rob_kill_valid),
+		.rob_kill_abs_head_index(rob_kill_abs_head_index),
+		.rob_kill_rel_kill_younger_index(rob_kill_rel_kill_younger_index)
     );
 
     // stamofu_iq
+    stamofu_iq #(
+        .STAMOFU_IQ_ENTRIES(STAMOFU_IQ_ENTRIES)
+    ) STAMOFU_IQ (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // op enqueue to issue queue
+        .stamofu_iq_enq_valid(stamofu_iq_enq_valid),
+        .stamofu_iq_enq_is_store(stamofu_iq_enq_is_store),
+        .stamofu_iq_enq_is_amo(stamofu_iq_enq_is_amo),
+        .stamofu_iq_enq_is_fence(stamofu_iq_enq_is_fence),
+        .stamofu_iq_enq_op(stamofu_iq_enq_op),
+        .stamofu_iq_enq_imm12(stamofu_iq_enq_imm12),
+        .stamofu_iq_enq_A_PR(stamofu_iq_enq_A_PR),
+        .stamofu_iq_enq_A_ready(stamofu_iq_enq_A_ready),
+        .stamofu_iq_enq_A_is_zero(stamofu_iq_enq_A_is_zero),
+        .stamofu_iq_enq_B_PR(stamofu_iq_enq_B_PR),
+        .stamofu_iq_enq_B_ready(stamofu_iq_enq_B_ready),
+        .stamofu_iq_enq_B_is_zero(stamofu_iq_enq_B_is_zero),
+        .stamofu_iq_enq_cq_index(stamofu_iq_enq_cq_index),
+
+        // issue queue enqueue feedback
+        .stamofu_iq_enq_ready(stamofu_iq_enq_ready),
+
+        // writeback bus by bank
+        .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
+        .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
+
+        // pipeline issue
+        .issue_valid(stamofu_issue_valid),
+        .issue_is_store(stamofu_issue_is_store),
+        .issue_is_amo(stamofu_issue_is_amo),
+        .issue_is_fence(stamofu_issue_is_fence),
+        .issue_op(stamofu_issue_op),
+        .issue_imm12(stamofu_issue_imm12),
+        .issue_A_forward(stamofu_issue_A_forward),
+        .issue_A_is_zero(stamofu_issue_A_is_zero),
+        .issue_A_bank(stamofu_issue_A_bank),
+        .issue_B_forward(stamofu_issue_B_forward),
+        .issue_B_is_zero(stamofu_issue_B_is_zero),
+        .issue_B_bank(stamofu_issue_B_bank),
+        .issue_cq_index(stamofu_issue_cq_index),
+
+        // reg read req to PRF
+        .PRF_req_A_valid(stamofu_PRF_req_A_valid),
+        .PRF_req_A_PR(stamofu_PRF_req_A_PR),
+        .PRF_req_B_valid(stamofu_PRF_req_B_valid),
+        .PRF_req_B_PR(stamofu_PRF_req_B_PR),
+
+        // pipeline feedback
+        .pipeline_ready(stamofu_issue_ready)
+    );
+
     // stamofu_aq
+    stamofu_aq #(
+        .STAMOFU_AQ_ENTRIES(STAMOFU_AQ_ENTRIES)
+    ) STAMOFU_AQ (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // op enqueue to acquire queue
+        .stamofu_aq_enq_valid(stamofu_aq_enq_valid),
+        .stamofu_aq_enq_mem_aq(stamofu_aq_enq_mem_aq),
+        .stamofu_aq_enq_io_aq(stamofu_aq_enq_io_aq),
+        .stamofu_aq_enq_ROB_index(stamofu_aq_enq_ROB_index),
+
+        // acquire queue enqueue feedback
+        .stamofu_aq_enq_ready(stamofu_aq_enq_ready),
+
+        // op update bank 0
+        .stamofu_aq_update_bank0_valid(stamofu_aq_update_bank0_valid),
+        .stamofu_aq_update_bank0_mem_aq(stamofu_aq_update_bank0_mem_aq),
+        .stamofu_aq_update_bank0_io_aq(stamofu_aq_update_bank0_io_aq),
+        .stamofu_aq_update_bank0_ROB_index(stamofu_aq_update_bank0_ROB_index),
+
+        // op update bank 1
+        .stamofu_aq_update_bank1_valid(stamofu_aq_update_bank1_valid),
+        .stamofu_aq_update_bank1_mem_aq(stamofu_aq_update_bank1_mem_aq),
+        .stamofu_aq_update_bank1_io_aq(stamofu_aq_update_bank1_io_aq),
+        .stamofu_aq_update_bank1_ROB_index(stamofu_aq_update_bank1_ROB_index),
+
+        // op dequeue from acquire queue
+        .stamofu_aq_deq_valid(stamofu_aq_deq_valid),
+        .stamofu_aq_deq_ROB_index(stamofu_aq_deq_ROB_index),
+
+	    // ROB kill
+		.rob_abs_head_index(rob_kill_abs_head_index),
+		.rob_kill_valid(rob_kill_valid),
+		.rob_kill_rel_kill_younger_index(rob_kill_rel_kill_younger_index),
+
+        // acquire advertisement
+        .stamofu_aq_mem_aq_active(stamofu_aq_mem_aq_active),
+        .stamofu_aq_mem_aq_oldest_abs_ROB_index(stamofu_aq_mem_aq_oldest_abs_ROB_index),
+        .stamofu_aq_io_aq_active(stamofu_aq_io_aq_active),
+        .stamofu_aq_io_aq_oldest_abs_ROB_index(stamofu_aq_io_aq_oldest_abs_ROB_index)
+    );
+
     // stamofu_addr_pipeline
-    // stamofu_lq bank 0
-    // stamofu_lq bank 1
+    stamofu_addr_pipeline STAMOFU_ADDR_PIPELINE (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // op issue from IQ
+        .issue_valid(stamofu_issue_valid),
+        .issue_is_store(stamofu_issue_is_store),
+        .issue_is_amo(stamofu_issue_is_amo),
+        .issue_is_fence(stamofu_issue_is_fence),
+        .issue_op(stamofu_issue_op),
+        .issue_imm12(stamofu_issue_imm12),
+        .issue_A_forward(stamofu_issue_A_forward),
+        .issue_A_is_zero(stamofu_issue_A_is_zero),
+        .issue_A_bank(stamofu_issue_A_bank),
+        .issue_B_forward(stamofu_issue_B_forward),
+        .issue_B_is_zero(stamofu_issue_B_is_zero),
+        .issue_B_bank(stamofu_issue_B_bank),
+        .issue_cq_index(stamofu_issue_cq_index),
+
+        // output feedback to iQ
+        .issue_ready(stamofu_issue_ready),
+
+        // reg read info and data from PRF
+        .A_reg_read_ack(stamofu_PRF_A_reg_read_ack),
+        .A_reg_read_port(stamofu_PRF_A_reg_read_port),
+        .B_reg_read_ack(stamofu_PRF_B_reg_read_ack),
+        .B_reg_read_port(stamofu_PRF_B_reg_read_port),
+        .reg_read_data_by_bank_by_port(stamofu_read_data_by_bank_by_port),
+
+        // forward data from PRF
+        .forward_data_by_bank(prf_forward_data_bus_by_bank),
+
+        // REQ stage info
+        .REQ_valid(stamofu_lq_REQ_enq_valid),
+        .REQ_is_store(stamofu_lq_REQ_enq_is_store),
+        .REQ_is_amo(stamofu_lq_REQ_enq_is_amo),
+        .REQ_is_fence(stamofu_lq_REQ_enq_is_fence),
+        .REQ_op(stamofu_lq_REQ_enq_op),
+        .REQ_is_mq(stamofu_lq_REQ_enq_is_mq),
+        .REQ_misaligned(stamofu_lq_REQ_enq_misaligned),
+        .REQ_misaligned_exception(stamofu_lq_REQ_enq_misaligned_exception),
+        .REQ_VPN(stamofu_lq_REQ_enq_VPN),
+        .REQ_PO_word(stamofu_lq_REQ_enq_PO_word),
+        .REQ_byte_mask(stamofu_lq_REQ_enq_byte_mask),
+        .REQ_write_data(stamofu_lq_REQ_enq_write_data),
+        .REQ_cq_index(stamofu_lq_REQ_enq_cq_index),
+
+        // REQ stage feedback
+        .REQ_ack(stamofu_lq_REQ_enq_ack)
+    );
+
+    // stamofu_lq
+    stamofu_lq #(
+        .STAMOFU_LQ_ENTRIES_PER_BANK(STAMOFU_LQ_ENTRIES_PER_BANK)
+    ) STAMOFU_LQ_BANK0 (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // REQ stage enq info
+        .REQ_enq_valid(stamofu_lq_REQ_enq_valid),
+        .REQ_enq_is_store(stamofu_lq_REQ_enq_is_store),
+        .REQ_enq_is_amo(stamofu_lq_REQ_enq_is_amo),
+        .REQ_enq_is_fence(stamofu_lq_REQ_enq_is_fence),
+        .REQ_enq_op(stamofu_lq_REQ_enq_op),
+        .REQ_enq_is_mq(stamofu_lq_REQ_enq_is_mq),
+        .REQ_enq_misaligned(stamofu_lq_REQ_enq_misaligned),
+        .REQ_enq_misaligned_exception(stamofu_lq_REQ_enq_misaligned_exception),
+        .REQ_enq_VPN(stamofu_lq_REQ_enq_VPN),
+        .REQ_enq_PO_word(stamofu_lq_REQ_enq_PO_word),
+        .REQ_enq_byte_mask(stamofu_lq_REQ_enq_byte_mask),
+        .REQ_enq_write_data(stamofu_lq_REQ_enq_write_data),
+        .REQ_enq_cq_index(stamofu_lq_REQ_enq_cq_index),
+
+        // REQ stage enq feedback
+        .REQ_enq_ack(stamofu_lq_REQ_enq_ack),
+
+        // REQ stage deq info bank 0
+        .REQ_deq_bank0_valid(stamofu_lq_REQ_deq_bank0_valid),
+
+        .REQ_deq_bank0_is_store(stamofu_lq_REQ_deq_bank0_is_store),
+        .REQ_deq_bank0_is_amo(stamofu_lq_REQ_deq_bank0_is_amo),
+        .REQ_deq_bank0_is_fence(stamofu_lq_REQ_deq_bank0_is_fence),
+        .REQ_deq_bank0_op(stamofu_lq_REQ_deq_bank0_op),
+        .REQ_deq_bank0_is_mq(stamofu_lq_REQ_deq_bank0_is_mq),
+        .REQ_deq_bank0_misaligned(stamofu_lq_REQ_deq_bank0_misaligned),
+        .REQ_deq_bank0_misaligned_exception(stamofu_lq_REQ_deq_bank0_misaligned_exception),
+        .REQ_deq_bank0_VPN(stamofu_lq_REQ_deq_bank0_VPN),
+        .REQ_deq_bank0_PO_word(stamofu_lq_REQ_deq_bank0_PO_word),
+        .REQ_deq_bank0_byte_mask(stamofu_lq_REQ_deq_bank0_byte_mask),
+        .REQ_deq_bank0_write_data(stamofu_lq_REQ_deq_bank0_write_data),
+        .REQ_deq_bank0_cq_index(stamofu_lq_REQ_deq_bank0_cq_index),
+
+        // REQ stage deq feedback bank 0
+        .REQ_deq_bank0_ack(stamofu_lq_REQ_deq_bank0_ack),
+
+        // REQ stage deq info bank 1
+        .REQ_deq_bank1_valid(stamofu_lq_REQ_deq_bank1_valid),
+
+        .REQ_deq_bank1_is_store(stamofu_lq_REQ_deq_bank1_is_store),
+        .REQ_deq_bank1_is_amo(stamofu_lq_REQ_deq_bank1_is_amo),
+        .REQ_deq_bank1_is_fence(stamofu_lq_REQ_deq_bank1_is_fence),
+        .REQ_deq_bank1_op(stamofu_lq_REQ_deq_bank1_op),
+        .REQ_deq_bank1_is_mq(stamofu_lq_REQ_deq_bank1_is_mq),
+        .REQ_deq_bank1_misaligned(stamofu_lq_REQ_deq_bank1_misaligned),
+        .REQ_deq_bank1_misaligned_exception(stamofu_lq_REQ_deq_bank1_misaligned_exception),
+        .REQ_deq_bank1_VPN(stamofu_lq_REQ_deq_bank1_VPN),
+        .REQ_deq_bank1_PO_word(stamofu_lq_REQ_deq_bank1_PO_word),
+        .REQ_deq_bank1_byte_mask(stamofu_lq_REQ_deq_bank1_byte_mask),
+        .REQ_deq_bank1_write_data(stamofu_lq_REQ_deq_bank1_write_data),
+        .REQ_deq_bank1_cq_index(stamofu_lq_REQ_deq_bank1_cq_index),
+
+        // REQ stage deq feedback bank 1
+        .REQ_deq_bank1_ack(stamofu_lq_REQ_deq_bank1_ack)
+    );
+
     // stamofu_launch_pipeline bank 0
+    stamofu_launch_pipeline STAMOFU_LAUNCH_PIPELINE_BANK0 (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // REQ stage info
+        .REQ_valid(stamofu_lq_REQ_deq_bank0_valid),
+        .REQ_is_store(stamofu_lq_REQ_deq_bank0_is_store),
+        .REQ_is_amo(stamofu_lq_REQ_deq_bank0_is_amo),
+        .REQ_is_fence(stamofu_lq_REQ_deq_bank0_is_fence),
+        .REQ_op(stamofu_lq_REQ_deq_bank0_op),
+        .REQ_is_mq(stamofu_lq_REQ_deq_bank0_is_mq),
+        .REQ_misaligned(stamofu_lq_REQ_deq_bank0_misaligned),
+        .REQ_misaligned_exception(stamofu_lq_REQ_deq_bank0_misaligned_exception),
+        .REQ_VPN(stamofu_lq_REQ_deq_bank0_VPN),
+        .REQ_PO_word(stamofu_lq_REQ_deq_bank0_PO_word),
+        .REQ_byte_mask(stamofu_lq_REQ_deq_bank0_byte_mask),
+        .REQ_write_data(stamofu_lq_REQ_deq_bank0_write_data),
+        .REQ_cq_index(stamofu_lq_REQ_deq_bank0_cq_index),
+
+        // REQ stage feedback
+        .REQ_ack(stamofu_lq_REQ_deq_bank0_ack),
+
+        // op enqueue to misaligned queue
+        .stamofu_mq_enq_valid(stamofu_launch_pipeline_bank0_stamofu_mq_enq_valid),
+
+        // misaligned queue enqueue feedback
+        .stamofu_mq_enq_ready(stamofu_launch_pipeline_bank0_stamofu_mq_enq_ready),
+        .stamofu_mq_enq_index(stamofu_mq_enq_index),
+
+        // dtlb req
+        .dtlb_req_valid(stamofu_launch_pipeline_dtlb_req_bank0_valid),
+        .dtlb_req_VPN(stamofu_launch_pipeline_dtlb_req_bank0_VPN),
+        .dtlb_req_is_read(stamofu_launch_pipeline_dtlb_req_bank0_is_read),
+        .dtlb_req_is_write(stamofu_launch_pipeline_dtlb_req_bank0_is_write),
+
+        // dtlb req feedback
+        .dtlb_req_ready(stamofu_launch_pipeline_dtlb_req_bank0_ready),
+
+        // dtlb resp
+        .dtlb_resp_hit(dtlb_resp_bank0_hit),
+        .dtlb_resp_PPN(dtlb_resp_bank0_PPN),
+        .dtlb_resp_is_mem(dtlb_resp_bank0_is_mem),
+        .dtlb_resp_page_fault(dtlb_resp_bank0_page_fault),
+        .dtlb_resp_access_fault(dtlb_resp_bank0_access_fault),
+
+        // dcache req
+        .dcache_req_valid(stamofu_launch_pipeline_dcache_req_bank0_valid),
+        .dcache_req_block_offset(stamofu_launch_pipeline_dcache_req_bank0_block_offset),
+        .dcache_req_index(stamofu_launch_pipeline_dcache_req_bank0_index),
+        .dcache_req_cq_index(stamofu_launch_pipeline_dcache_req_bank0_cq_index),
+        .dcache_req_is_mq(stamofu_launch_pipeline_dcache_req_bank0_is_mq),
+        .dcache_req_mq_index(stamofu_launch_pipeline_dcache_req_bank0_mq_index),
+
+        // dcache req feedback
+        .dcache_req_ready(stamofu_launch_pipeline_dcache_req_bank0_ready),
+
+        // dcache resp
+        .dcache_resp_valid_by_way(dcache_resp_bank0_valid_by_way),
+        .dcache_resp_exclusive_by_way(dcache_resp_bank0_exclusive_by_way),
+        .dcache_resp_tag_by_way(dcache_resp_bank0_tag_by_way),
+
+        // dcache resp feedback
+        .dcache_resp_hit_valid(stamofu_launch_pipeline_dcache_resp_bank0_hit_valid),
+        .dcache_resp_hit_exclusive(stamofu_launch_pipeline_dcache_resp_bank0_hit_exclusive),
+        .dcache_resp_hit_way(stamofu_launch_pipeline_dcache_resp_bank0_hit_way),
+        .dcache_resp_miss_valid(stamofu_launch_pipeline_dcache_resp_bank0_miss_valid),
+        .dcache_resp_miss_prefetch(stamofu_launch_pipeline_dcache_resp_bank0_miss_prefetch),
+        .dcache_resp_miss_exclusive(stamofu_launch_pipeline_dcache_resp_bank0_miss_exclusive),
+        .dcache_resp_miss_tag(stamofu_launch_pipeline_dcache_resp_bank0_miss_tag),
+
+        // central queue info grab
+        .stamofu_cq_info_grab_cq_index(stamofu_cq_info_grab_bank0_cq_index),
+        .stamofu_cq_info_grab_mdp_info(stamofu_cq_info_grab_bank0_mdp_info),
+        .stamofu_cq_info_grab_mem_aq(stamofu_cq_info_grab_bank0_mem_aq),
+        .stamofu_cq_info_grab_io_aq(stamofu_cq_info_grab_bank0_io_aq),
+        .stamofu_cq_info_grab_mem_rl(stamofu_cq_info_grab_bank0_mem_rl),
+        .stamofu_cq_info_grab_io_rl(stamofu_cq_info_grab_bank0_io_rl),
+        .stamofu_cq_info_grab_ROB_index(stamofu_cq_info_grab_bank0_ROB_index),
+
+        // central queue info ret
+        .stamofu_cq_info_ret_valid(stamofu_cq_info_ret_bank0_valid),
+        .stamofu_cq_info_ret_cq_index(stamofu_cq_info_ret_bank0_cq_index),
+        .stamofu_cq_info_ret_dtlb_hit(stamofu_cq_info_ret_bank0_dtlb_hit),
+        .stamofu_cq_info_ret_page_fault(stamofu_cq_info_ret_bank0_page_fault),
+        .stamofu_cq_info_ret_access_fault(stamofu_cq_info_ret_bank0_access_fault),
+        .stamofu_cq_info_ret_is_mem(stamofu_cq_info_ret_bank0_is_mem),
+        .stamofu_cq_info_ret_mem_aq(stamofu_cq_info_ret_bank0_mem_aq),
+        .stamofu_cq_info_ret_io_aq(stamofu_cq_info_ret_bank0_io_aq),
+        .stamofu_cq_info_ret_mem_rl(stamofu_cq_info_ret_bank0_mem_rl),
+        .stamofu_cq_info_ret_io_rl(stamofu_cq_info_ret_bank0_io_rl),
+        .stamofu_cq_info_ret_misaligned(stamofu_cq_info_ret_bank0_misaligned),
+        .stamofu_cq_info_ret_misaligned_exception(stamofu_cq_info_ret_bank0_misaligned_exception),
+        .stamofu_cq_info_ret_PA_word(stamofu_cq_info_ret_bank0_PA_word),
+        .stamofu_cq_info_ret_byte_mask(stamofu_cq_info_ret_bank0_byte_mask),
+        .stamofu_cq_info_ret_data(stamofu_cq_info_ret_bank0_data),
+
+        // misaligned queue info ret
+        .stamofu_mq_info_ret_valid(stamofu_mq_info_ret_bank0_valid),
+        .stamofu_mq_info_ret_cq_index(stamofu_mq_info_ret_bank0_cq_index),
+        .stamofu_mq_info_ret_mq_index(stamofu_mq_info_ret_bank0_mq_index),
+        .stamofu_mq_info_ret_dtlb_hit(stamofu_mq_info_ret_bank0_dtlb_hit),
+        .stamofu_mq_info_ret_page_fault(stamofu_mq_info_ret_bank0_page_fault),
+        .stamofu_mq_info_ret_access_fault(stamofu_mq_info_ret_bank0_access_fault),
+        .stamofu_mq_info_ret_is_mem(stamofu_mq_info_ret_bank0_is_mem),
+        .stamofu_mq_info_ret_mdp_info(stamofu_mq_info_ret_bank0_mdp_info),
+        .stamofu_mq_info_ret_ROB_index(stamofu_mq_info_ret_bank0_ROB_index),
+        .stamofu_mq_info_ret_PA_word(stamofu_mq_info_ret_bank0_PA_word),
+        .stamofu_mq_info_ret_byte_mask(stamofu_mq_info_ret_bank0_byte_mask),
+        .stamofu_mq_info_ret_data(stamofu_mq_info_ret_bank0_data),
+
+        // aq update
+        .stamofu_aq_update_valid(stamofu_aq_update_bank0_valid),
+        .stamofu_aq_update_mem_aq(stamofu_aq_update_bank0_mem_aq),
+        .stamofu_aq_update_io_aq(stamofu_aq_update_bank0_io_aq),
+        .stamofu_aq_update_ROB_index(stamofu_aq_update_bank0_ROB_index)
+    );
+
     // stamofu_launch_pipeline bank 1
     // stamofu_cq
     // stamofu_mq
