@@ -1491,29 +1491,6 @@ module core #(
     logic                               stamofu_mq_CAM_return_bank1_forward_ROB_index;
     logic [31:0]                        stamofu_mq_CAM_return_bank1_forward_data;
 
-    // stamofu CAM return
-    logic                               stamofu_CAM_return_bank0_valid;
-    logic [LOG_LDU_CQ_ENTRIES-1:0]      stamofu_CAM_return_bank0_cq_index;
-    logic                               stamofu_CAM_return_bank0_is_mq;
-    logic [LOG_LDU_MQ_ENTRIES-1:0]      stamofu_CAM_return_bank0_mq_index;
-    logic                               stamofu_CAM_return_bank0_stall;
-    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_CAM_return_bank0_stall_count;
-    logic [3:0]                         stamofu_CAM_return_bank0_forward;
-    logic                               stamofu_CAM_return_bank0_nasty_forward;
-    logic                               stamofu_CAM_return_bank0_forward_ROB_index;
-    logic [31:0]                        stamofu_CAM_return_bank0_forward_data;
-    
-    logic                               stamofu_CAM_return_bank1_valid;
-    logic [LOG_LDU_CQ_ENTRIES-1:0]      stamofu_CAM_return_bank1_cq_index;
-    logic                               stamofu_CAM_return_bank1_is_mq;
-    logic [LOG_LDU_MQ_ENTRIES-1:0]      stamofu_CAM_return_bank1_mq_index;
-    logic                               stamofu_CAM_return_bank1_stall;
-    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_CAM_return_bank1_stall_count;
-    logic [3:0]                         stamofu_CAM_return_bank1_forward;
-    logic                               stamofu_CAM_return_bank1_nasty_forward;
-    logic                               stamofu_CAM_return_bank1_forward_ROB_index;
-    logic [31:0]                        stamofu_CAM_return_bank1_forward_data;
-
     // misaligned queue info grab
     logic [LOG_STAMOFU_MQ_ENTRIES-1:0]  stamofu_mq_info_grab_mq_index;
     logic                               stamofu_mq_info_grab_clear_entry;
@@ -1526,7 +1503,20 @@ module core #(
     logic                               stamofu_mq_complete_valid;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_mq_complete_cq_index;
 
-    
+    // op launch to sysu
+    logic                           sysu_launch_valid;
+    logic                           sysu_launch_killed;
+    logic [3:0]                     sysu_launch_op;
+    logic [11:0]                    sysu_launch_imm12;
+    logic [LOG_PR_COUNT-1:0]        sysu_launch_A_PR;
+    logic                           sysu_launch_A_is_zero;
+    logic [LOG_PR_COUNT-1:0]        sysu_launch_B_PR;
+    logic                           sysu_launch_B_is_zero;
+    logic [LOG_PR_COUNT-1:0]        sysu_launch_dest_PR;
+    logic [LOG_ROB_ENTRIES-1:0]     sysu_launch_ROB_index;
+
+    // sysu launch feedback
+    logic                           sysu_launch_ready;
 
     // ----------------------------------------------------------------
     // Front End Modules:
@@ -2263,7 +2253,7 @@ module core #(
         .dispatch_B_ready_by_way(dispatch_B_ready_by_way),
         .dispatch_B_is_zero_by_way(dispatch_B_is_zero_by_way),
         .dispatch_dest_PR_by_way(dispatch_dest_new_PR_by_way),
-        .dispatch_enq_ROB_index_by_way(dispatch_rob_enq_ROB_index_by_way),
+        .dispatch_ROB_index_by_way(dispatch_rob_enq_ROB_index_by_way),
 
         // op dispatch feedback
         .dispatch_ack_by_way(dispatch_ack_alu_reg_mdu_dq_by_way),
@@ -3919,7 +3909,7 @@ module core #(
         .A_reg_read_port(stamofu_PRF_A_reg_read_port),
         .B_reg_read_ack(stamofu_PRF_B_reg_read_ack),
         .B_reg_read_port(stamofu_PRF_B_reg_read_port),
-        .reg_read_data_by_bank_by_port(stamofu_read_data_by_bank_by_port),
+        .reg_read_data_by_bank_by_port(prf_read_data_by_bank_by_port),
 
         // forward data from PRF
         .forward_data_by_bank(prf_forward_data_bus_by_bank),
@@ -4128,8 +4118,540 @@ module core #(
     );
 
     // stamofu_launch_pipeline bank 1
+    stamofu_launch_pipeline STAMOFU_LAUNCH_PIPELINE_BANK1 (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // REQ stage info
+        .REQ_valid(stamofu_lq_REQ_deq_bank1_valid),
+        .REQ_is_store(stamofu_lq_REQ_deq_bank1_is_store),
+        .REQ_is_amo(stamofu_lq_REQ_deq_bank1_is_amo),
+        .REQ_is_fence(stamofu_lq_REQ_deq_bank1_is_fence),
+        .REQ_op(stamofu_lq_REQ_deq_bank1_op),
+        .REQ_is_mq(stamofu_lq_REQ_deq_bank1_is_mq),
+        .REQ_misaligned(stamofu_lq_REQ_deq_bank1_misaligned),
+        .REQ_misaligned_exception(stamofu_lq_REQ_deq_bank1_misaligned_exception),
+        .REQ_VPN(stamofu_lq_REQ_deq_bank1_VPN),
+        .REQ_PO_word(stamofu_lq_REQ_deq_bank1_PO_word),
+        .REQ_byte_mask(stamofu_lq_REQ_deq_bank1_byte_mask),
+        .REQ_write_data(stamofu_lq_REQ_deq_bank1_write_data),
+        .REQ_cq_index(stamofu_lq_REQ_deq_bank1_cq_index),
+
+        // REQ stage feedback
+        .REQ_ack(stamofu_lq_REQ_deq_bank1_ack),
+
+        // op enqueue to misaligned queue
+        .stamofu_mq_enq_valid(stamofu_launch_pipeline_bank1_stamofu_mq_enq_valid),
+
+        // misaligned queue enqueue feedback
+        .stamofu_mq_enq_ready(stamofu_launch_pipeline_bank1_stamofu_mq_enq_ready),
+        .stamofu_mq_enq_index(stamofu_mq_enq_index),
+
+        // dtlb req
+        .dtlb_req_valid(stamofu_launch_pipeline_dtlb_req_bank1_valid),
+        .dtlb_req_VPN(stamofu_launch_pipeline_dtlb_req_bank1_VPN),
+        .dtlb_req_is_read(stamofu_launch_pipeline_dtlb_req_bank1_is_read),
+        .dtlb_req_is_write(stamofu_launch_pipeline_dtlb_req_bank1_is_write),
+
+        // dtlb req feedback
+        .dtlb_req_ready(stamofu_launch_pipeline_dtlb_req_bank1_ready),
+
+        // dtlb resp
+        .dtlb_resp_hit(dtlb_resp_bank1_hit),
+        .dtlb_resp_PPN(dtlb_resp_bank1_PPN),
+        .dtlb_resp_is_mem(dtlb_resp_bank1_is_mem),
+        .dtlb_resp_page_fault(dtlb_resp_bank1_page_fault),
+        .dtlb_resp_access_fault(dtlb_resp_bank1_access_fault),
+
+        // dcache req
+        .dcache_req_valid(stamofu_launch_pipeline_dcache_req_bank1_valid),
+        .dcache_req_block_offset(stamofu_launch_pipeline_dcache_req_bank1_block_offset),
+        .dcache_req_index(stamofu_launch_pipeline_dcache_req_bank1_index),
+        .dcache_req_cq_index(stamofu_launch_pipeline_dcache_req_bank1_cq_index),
+        .dcache_req_is_mq(stamofu_launch_pipeline_dcache_req_bank1_is_mq),
+        .dcache_req_mq_index(stamofu_launch_pipeline_dcache_req_bank1_mq_index),
+
+        // dcache req feedback
+        .dcache_req_ready(stamofu_launch_pipeline_dcache_req_bank1_ready),
+
+        // dcache resp
+        .dcache_resp_valid_by_way(dcache_resp_bank1_valid_by_way),
+        .dcache_resp_exclusive_by_way(dcache_resp_bank1_exclusive_by_way),
+        .dcache_resp_tag_by_way(dcache_resp_bank1_tag_by_way),
+
+        // dcache resp feedback
+        .dcache_resp_hit_valid(stamofu_launch_pipeline_dcache_resp_bank1_hit_valid),
+        .dcache_resp_hit_exclusive(stamofu_launch_pipeline_dcache_resp_bank1_hit_exclusive),
+        .dcache_resp_hit_way(stamofu_launch_pipeline_dcache_resp_bank1_hit_way),
+        .dcache_resp_miss_valid(stamofu_launch_pipeline_dcache_resp_bank1_miss_valid),
+        .dcache_resp_miss_prefetch(stamofu_launch_pipeline_dcache_resp_bank1_miss_prefetch),
+        .dcache_resp_miss_exclusive(stamofu_launch_pipeline_dcache_resp_bank1_miss_exclusive),
+        .dcache_resp_miss_tag(stamofu_launch_pipeline_dcache_resp_bank1_miss_tag),
+
+        // central queue info grab
+        .stamofu_cq_info_grab_cq_index(stamofu_cq_info_grab_bank1_cq_index),
+        .stamofu_cq_info_grab_mdp_info(stamofu_cq_info_grab_bank1_mdp_info),
+        .stamofu_cq_info_grab_mem_aq(stamofu_cq_info_grab_bank1_mem_aq),
+        .stamofu_cq_info_grab_io_aq(stamofu_cq_info_grab_bank1_io_aq),
+        .stamofu_cq_info_grab_mem_rl(stamofu_cq_info_grab_bank1_mem_rl),
+        .stamofu_cq_info_grab_io_rl(stamofu_cq_info_grab_bank1_io_rl),
+        .stamofu_cq_info_grab_ROB_index(stamofu_cq_info_grab_bank1_ROB_index),
+
+        // central queue info ret
+        .stamofu_cq_info_ret_valid(stamofu_cq_info_ret_bank1_valid),
+        .stamofu_cq_info_ret_cq_index(stamofu_cq_info_ret_bank1_cq_index),
+        .stamofu_cq_info_ret_dtlb_hit(stamofu_cq_info_ret_bank1_dtlb_hit),
+        .stamofu_cq_info_ret_page_fault(stamofu_cq_info_ret_bank1_page_fault),
+        .stamofu_cq_info_ret_access_fault(stamofu_cq_info_ret_bank1_access_fault),
+        .stamofu_cq_info_ret_is_mem(stamofu_cq_info_ret_bank1_is_mem),
+        .stamofu_cq_info_ret_mem_aq(stamofu_cq_info_ret_bank1_mem_aq),
+        .stamofu_cq_info_ret_io_aq(stamofu_cq_info_ret_bank1_io_aq),
+        .stamofu_cq_info_ret_mem_rl(stamofu_cq_info_ret_bank1_mem_rl),
+        .stamofu_cq_info_ret_io_rl(stamofu_cq_info_ret_bank1_io_rl),
+        .stamofu_cq_info_ret_misaligned(stamofu_cq_info_ret_bank1_misaligned),
+        .stamofu_cq_info_ret_misaligned_exception(stamofu_cq_info_ret_bank1_misaligned_exception),
+        .stamofu_cq_info_ret_PA_word(stamofu_cq_info_ret_bank1_PA_word),
+        .stamofu_cq_info_ret_byte_mask(stamofu_cq_info_ret_bank1_byte_mask),
+        .stamofu_cq_info_ret_data(stamofu_cq_info_ret_bank1_data),
+
+        // misaligned queue info ret
+        .stamofu_mq_info_ret_valid(stamofu_mq_info_ret_bank1_valid),
+        .stamofu_mq_info_ret_cq_index(stamofu_mq_info_ret_bank1_cq_index),
+        .stamofu_mq_info_ret_mq_index(stamofu_mq_info_ret_bank1_mq_index),
+        .stamofu_mq_info_ret_dtlb_hit(stamofu_mq_info_ret_bank1_dtlb_hit),
+        .stamofu_mq_info_ret_page_fault(stamofu_mq_info_ret_bank1_page_fault),
+        .stamofu_mq_info_ret_access_fault(stamofu_mq_info_ret_bank1_access_fault),
+        .stamofu_mq_info_ret_is_mem(stamofu_mq_info_ret_bank1_is_mem),
+        .stamofu_mq_info_ret_mdp_info(stamofu_mq_info_ret_bank1_mdp_info),
+        .stamofu_mq_info_ret_ROB_index(stamofu_mq_info_ret_bank1_ROB_index),
+        .stamofu_mq_info_ret_PA_word(stamofu_mq_info_ret_bank1_PA_word),
+        .stamofu_mq_info_ret_byte_mask(stamofu_mq_info_ret_bank1_byte_mask),
+        .stamofu_mq_info_ret_data(stamofu_mq_info_ret_bank1_data),
+
+        // aq update
+        .stamofu_aq_update_valid(stamofu_aq_update_bank1_valid),
+        .stamofu_aq_update_mem_aq(stamofu_aq_update_bank1_mem_aq),
+        .stamofu_aq_update_io_aq(stamofu_aq_update_bank1_io_aq),
+        .stamofu_aq_update_ROB_index(stamofu_aq_update_bank1_ROB_index)
+    );
+
     // stamofu_cq
+    stamofu_cq #(
+        .STAMOFU_CQ_ENTRIES(STAMOFU_CQ_ENTRIES)
+    ) STAMOFU_CQ (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // op enqueue to central queue
+        .stamofu_cq_enq_valid(stamofu_cq_enq_valid),
+        .stamofu_cq_enq_killed(stamofu_cq_enq_killed),
+        .stamofu_cq_enq_is_store(stamofu_cq_enq_is_store),
+        .stamofu_cq_enq_is_amo(stamofu_cq_enq_is_amo),
+        .stamofu_cq_enq_is_fence(stamofu_cq_enq_is_fence),
+        .stamofu_cq_enq_op(stamofu_cq_enq_op),
+        .stamofu_cq_enq_mdp_info(stamofu_cq_enq_mdp_info),
+        .stamofu_cq_enq_mem_aq(stamofu_cq_enq_mem_aq),
+        .stamofu_cq_enq_io_aq(stamofu_cq_enq_io_aq),
+        .stamofu_cq_enq_mem_rl(stamofu_cq_enq_mem_rl),
+        .stamofu_cq_enq_io_rl(stamofu_cq_enq_io_rl),
+        .stamofu_cq_enq_dest_PR(stamofu_cq_enq_dest_PR),
+        .stamofu_cq_enq_ROB_index(stamofu_cq_enq_ROB_index),
+
+        // central queue enqueue feedback
+        .stamofu_cq_enq_ready(stamofu_cq_enq_ready),
+        .stamofu_cq_enq_index(stamofu_cq_enq_index),
+
+        // central queue info grab
+        .stamofu_cq_info_grab_bank0_cq_index(stamofu_cq_info_grab_bank0_cq_index),
+        .stamofu_cq_info_grab_bank0_mdp_info(stamofu_cq_info_grab_bank0_mdp_info),
+        .stamofu_cq_info_grab_bank0_mem_aq(stamofu_cq_info_grab_bank0_mem_aq),
+        .stamofu_cq_info_grab_bank0_io_aq(stamofu_cq_info_grab_bank0_io_aq),
+        .stamofu_cq_info_grab_bank0_mem_rl(stamofu_cq_info_grab_bank0_mem_rl),
+        .stamofu_cq_info_grab_bank0_io_rl(stamofu_cq_info_grab_bank0_io_rl),
+        .stamofu_cq_info_grab_bank0_ROB_index(stamofu_cq_info_grab_bank0_ROB_index),
+
+        .stamofu_cq_info_grab_bank1_cq_index(stamofu_cq_info_grab_bank1_cq_index),
+        .stamofu_cq_info_grab_bank1_mdp_info(stamofu_cq_info_grab_bank1_mdp_info),
+        .stamofu_cq_info_grab_bank1_mem_aq(stamofu_cq_info_grab_bank1_mem_aq),
+        .stamofu_cq_info_grab_bank1_io_aq(stamofu_cq_info_grab_bank1_io_aq),
+        .stamofu_cq_info_grab_bank1_mem_rl(stamofu_cq_info_grab_bank1_mem_rl),
+        .stamofu_cq_info_grab_bank1_io_rl(stamofu_cq_info_grab_bank1_io_rl),
+        .stamofu_cq_info_grab_bank1_ROB_index(stamofu_cq_info_grab_bank1_ROB_index),
+
+        // central queue info ret
+        .stamofu_cq_info_ret_bank0_valid(stamofu_cq_info_ret_bank0_valid),
+        .stamofu_cq_info_ret_bank0_cq_index(stamofu_cq_info_ret_bank0_cq_index),
+        .stamofu_cq_info_ret_bank0_dtlb_hit(stamofu_cq_info_ret_bank0_dtlb_hit),
+        .stamofu_cq_info_ret_bank0_page_fault(stamofu_cq_info_ret_bank0_page_fault),
+        .stamofu_cq_info_ret_bank0_access_fault(stamofu_cq_info_ret_bank0_access_fault),
+        .stamofu_cq_info_ret_bank0_is_mem(stamofu_cq_info_ret_bank0_is_mem),
+        .stamofu_cq_info_ret_bank0_mem_aq(stamofu_cq_info_ret_bank0_mem_aq),
+        .stamofu_cq_info_ret_bank0_io_aq(stamofu_cq_info_ret_bank0_io_aq),
+        .stamofu_cq_info_ret_bank0_mem_rl(stamofu_cq_info_ret_bank0_mem_rl),
+        .stamofu_cq_info_ret_bank0_io_rl(stamofu_cq_info_ret_bank0_io_rl),
+        .stamofu_cq_info_ret_bank0_misaligned(stamofu_cq_info_ret_bank0_misaligned),
+        .stamofu_cq_info_ret_bank0_misaligned_exception(stamofu_cq_info_ret_bank0_misaligned_exception),
+        .stamofu_cq_info_ret_bank0_PA_word(stamofu_cq_info_ret_bank0_PA_word),
+        .stamofu_cq_info_ret_bank0_byte_mask(stamofu_cq_info_ret_bank0_byte_mask),
+        .stamofu_cq_info_ret_bank0_data(stamofu_cq_info_ret_bank0_data),
+
+        .stamofu_cq_info_ret_bank1_valid(stamofu_cq_info_ret_bank1_valid),
+        .stamofu_cq_info_ret_bank1_cq_index(stamofu_cq_info_ret_bank1_cq_index),
+        .stamofu_cq_info_ret_bank1_dtlb_hit(stamofu_cq_info_ret_bank1_dtlb_hit),
+        .stamofu_cq_info_ret_bank1_page_fault(stamofu_cq_info_ret_bank1_page_fault),
+        .stamofu_cq_info_ret_bank1_access_fault(stamofu_cq_info_ret_bank1_access_fault),
+        .stamofu_cq_info_ret_bank1_is_mem(stamofu_cq_info_ret_bank1_is_mem),
+        .stamofu_cq_info_ret_bank1_mem_aq(stamofu_cq_info_ret_bank1_mem_aq),
+        .stamofu_cq_info_ret_bank1_io_aq(stamofu_cq_info_ret_bank1_io_aq),
+        .stamofu_cq_info_ret_bank1_mem_rl(stamofu_cq_info_ret_bank1_mem_rl),
+        .stamofu_cq_info_ret_bank1_io_rl(stamofu_cq_info_ret_bank1_io_rl),
+        .stamofu_cq_info_ret_bank1_misaligned(stamofu_cq_info_ret_bank1_misaligned),
+        .stamofu_cq_info_ret_bank1_misaligned_exception(stamofu_cq_info_ret_bank1_misaligned_exception),
+        .stamofu_cq_info_ret_bank1_PA_word(stamofu_cq_info_ret_bank1_PA_word),
+        .stamofu_cq_info_ret_bank1_byte_mask(stamofu_cq_info_ret_bank1_byte_mask),
+        .stamofu_cq_info_ret_bank1_data(stamofu_cq_info_ret_bank1_data),
+
+        // misaligned queue info ret
+        .stamofu_mq_info_ret_bank0_valid(stamofu_mq_info_ret_bank0_valid),
+        .stamofu_mq_info_ret_bank0_cq_index(stamofu_mq_info_ret_bank0_cq_index),
+        .stamofu_mq_info_ret_bank0_mq_index(stamofu_mq_info_ret_bank0_mq_index),
+        .stamofu_mq_info_ret_bank0_dtlb_hit(stamofu_mq_info_ret_bank0_dtlb_hit),
+        .stamofu_mq_info_ret_bank0_page_fault(stamofu_mq_info_ret_bank0_page_fault),
+        .stamofu_mq_info_ret_bank0_access_fault(stamofu_mq_info_ret_bank0_access_fault),
+
+        .stamofu_mq_info_ret_bank1_valid(stamofu_mq_info_ret_bank1_valid),
+        .stamofu_mq_info_ret_bank1_cq_index(stamofu_mq_info_ret_bank1_cq_index),
+        .stamofu_mq_info_ret_bank1_mq_index(stamofu_mq_info_ret_bank1_mq_index),
+        .stamofu_mq_info_ret_bank1_dtlb_hit(stamofu_mq_info_ret_bank1_dtlb_hit),
+        .stamofu_mq_info_ret_bank1_page_fault(stamofu_mq_info_ret_bank1_page_fault),
+        .stamofu_mq_info_ret_bank1_access_fault(stamofu_mq_info_ret_bank1_access_fault),
+
+        // dtlb miss resp
+        .dtlb_miss_resp_valid(stamofu_dtlb_miss_resp_valid),
+        .dtlb_miss_resp_cq_index(dtlb_miss_resp_cq_index),
+        .dtlb_miss_resp_is_mq(dtlb_miss_resp_is_mq),
+        .dtlb_miss_resp_mq_index(dtlb_miss_resp_mq_index),
+        .dtlb_miss_resp_PPN(dtlb_miss_resp_PPN),
+        .dtlb_miss_resp_is_mem(dtlb_miss_resp_is_mem),
+        .dtlb_miss_resp_page_fault(dtlb_miss_resp_page_fault),
+        .dtlb_miss_resp_access_fault(dtlb_miss_resp_access_fault),
+
+        // ldu CAM launch from stamofu_mq
+        .stamofu_mq_ldu_CAM_launch_valid(stamofu_mq_ldu_CAM_launch_valid),
+        .stamofu_mq_ldu_CAM_launch_cq_index(stamofu_mq_ldu_CAM_launch_cq_index),
+        .stamofu_mq_ldu_CAM_launch_mq_index(stamofu_mq_ldu_CAM_launch_mq_index),
+        .stamofu_mq_ldu_CAM_launch_PA_word(stamofu_mq_ldu_CAM_launch_PA_word),
+        .stamofu_mq_ldu_CAM_launch_byte_mask(stamofu_mq_ldu_CAM_launch_byte_mask),
+        .stamofu_mq_ldu_CAM_launch_write_data(stamofu_mq_ldu_CAM_launch_write_data),
+        .stamofu_mq_ldu_CAM_launch_mdp_info(stamofu_mq_ldu_CAM_launch_mdp_info),
+        .stamofu_mq_ldu_CAM_launch_ROB_index(stamofu_mq_ldu_CAM_launch_ROB_index),
+
+        // ldu CAM launch
+        .ldu_CAM_launch_valid(ldu_CAM_launch_valid),
+        .ldu_CAM_launch_cq_index(ldu_CAM_launch_cq_index),
+        .ldu_CAM_launch_is_mq(ldu_CAM_launch_is_mq),
+        .ldu_CAM_launch_mq_index(ldu_CAM_launch_mq_index),
+        .ldu_CAM_launch_is_amo(ldu_CAM_launch_is_amo),
+        .ldu_CAM_launch_PA_word(ldu_CAM_launch_PA_word),
+        .ldu_CAM_launch_byte_mask(ldu_CAM_launch_byte_mask),
+        .ldu_CAM_launch_write_data(ldu_CAM_launch_write_data),
+        .ldu_CAM_launch_mdp_info(ldu_CAM_launch_mdp_info),
+        .ldu_CAM_launch_ROB_index(ldu_CAM_launch_ROB_index),
+
+        // ldu CAM return
+        .ldu_CAM_return_valid(ldu_CAM_return_valid),
+        .ldu_CAM_return_cq_index(ldu_CAM_return_cq_index),
+        .ldu_CAM_return_is_mq(ldu_CAM_return_is_mq),
+        .ldu_CAM_return_mq_index(ldu_CAM_return_mq_index),
+        .ldu_CAM_return_forward(ldu_CAM_return_forward),
+
+        // stamofu CAM launch
+        .stamofu_CAM_launch_bank0_valid(stamofu_CAM_launch_bank0_valid),
+        .stamofu_CAM_launch_bank0_cq_index(stamofu_CAM_launch_bank0_cq_index),
+        .stamofu_CAM_launch_bank0_is_mq(stamofu_CAM_launch_bank0_is_mq),
+        .stamofu_CAM_launch_bank0_mq_index(stamofu_CAM_launch_bank0_mq_index),
+        .stamofu_CAM_launch_bank0_PA_word(stamofu_CAM_launch_bank0_PA_word),
+        .stamofu_CAM_launch_bank0_byte_mask(stamofu_CAM_launch_bank0_byte_mask),
+        .stamofu_CAM_launch_bank0_ROB_index(stamofu_CAM_launch_bank0_ROB_index),
+        .stamofu_CAM_launch_bank0_mdp_info(stamofu_CAM_launch_bank0_mdp_info),
+        
+        .stamofu_CAM_launch_bank1_valid(stamofu_CAM_launch_bank1_valid),
+        .stamofu_CAM_launch_bank1_cq_index(stamofu_CAM_launch_bank1_cq_index),
+        .stamofu_CAM_launch_bank1_is_mq(stamofu_CAM_launch_bank1_is_mq),
+        .stamofu_CAM_launch_bank1_mq_index(stamofu_CAM_launch_bank1_mq_index),
+        .stamofu_CAM_launch_bank1_PA_word(stamofu_CAM_launch_bank1_PA_word),
+        .stamofu_CAM_launch_bank1_byte_mask(stamofu_CAM_launch_bank1_byte_mask),
+        .stamofu_CAM_launch_bank1_ROB_index(stamofu_CAM_launch_bank1_ROB_index),
+        .stamofu_CAM_launch_bank1_mdp_info(stamofu_CAM_launch_bank1_mdp_info),
+
+        // stamofu_mq CAM stage 2 info
+        .stamofu_mq_CAM_return_bank0_cq_index(stamofu_mq_CAM_return_bank0_cq_index),
+        .stamofu_mq_CAM_return_bank0_stall(stamofu_mq_CAM_return_bank0_stall),
+        .stamofu_mq_CAM_return_bank0_stall_count(stamofu_mq_CAM_return_bank0_stall_count),
+        .stamofu_mq_CAM_return_bank0_forward(stamofu_mq_CAM_return_bank0_forward),
+        .stamofu_mq_CAM_return_bank0_nasty_forward(stamofu_mq_CAM_return_bank0_nasty_forward),
+        .stamofu_mq_CAM_return_bank0_forward_ROB_index(stamofu_mq_CAM_return_bank0_forward_ROB_index),
+        .stamofu_mq_CAM_return_bank0_forward_data(stamofu_mq_CAM_return_bank0_forward_data),
+        
+        .stamofu_mq_CAM_return_bank1_cq_index(stamofu_mq_CAM_return_bank1_cq_index),
+        .stamofu_mq_CAM_return_bank1_stall(stamofu_mq_CAM_return_bank1_stall),
+        .stamofu_mq_CAM_return_bank1_stall_count(stamofu_mq_CAM_return_bank1_stall_count),
+        .stamofu_mq_CAM_return_bank1_forward(stamofu_mq_CAM_return_bank1_forward),
+        .stamofu_mq_CAM_return_bank1_nasty_forward(stamofu_mq_CAM_return_bank1_nasty_forward),
+        .stamofu_mq_CAM_return_bank1_forward_ROB_index(stamofu_mq_CAM_return_bank1_forward_ROB_index),
+        .stamofu_mq_CAM_return_bank1_forward_data(stamofu_mq_CAM_return_bank1_forward_data),
+
+        // stamofu CAM return
+        .stamofu_CAM_return_bank0_valid(stamofu_CAM_return_bank0_valid),
+        .stamofu_CAM_return_bank0_cq_index(stamofu_CAM_return_bank0_cq_index),
+        .stamofu_CAM_return_bank0_is_mq(stamofu_CAM_return_bank0_is_mq),
+        .stamofu_CAM_return_bank0_mq_index(stamofu_CAM_return_bank0_mq_index),
+        .stamofu_CAM_return_bank0_stall(stamofu_CAM_return_bank0_stall),
+        .stamofu_CAM_return_bank0_stall_count(stamofu_CAM_return_bank0_stall_count),
+        .stamofu_CAM_return_bank0_forward(stamofu_CAM_return_bank0_forward),
+        .stamofu_CAM_return_bank0_nasty_forward(stamofu_CAM_return_bank0_nasty_forward),
+        .stamofu_CAM_return_bank0_forward_ROB_index(stamofu_CAM_return_bank0_forward_ROB_index),
+        .stamofu_CAM_return_bank0_forward_data(stamofu_CAM_return_bank0_forward_data),
+        
+        .stamofu_CAM_return_bank1_valid(stamofu_CAM_return_bank1_valid),
+        .stamofu_CAM_return_bank1_cq_index(stamofu_CAM_return_bank1_cq_index),
+        .stamofu_CAM_return_bank1_is_mq(stamofu_CAM_return_bank1_is_mq),
+        .stamofu_CAM_return_bank1_mq_index(stamofu_CAM_return_bank1_mq_index),
+        .stamofu_CAM_return_bank1_stall(stamofu_CAM_return_bank1_stall),
+        .stamofu_CAM_return_bank1_stall_count(stamofu_CAM_return_bank1_stall_count),
+        .stamofu_CAM_return_bank1_forward(stamofu_CAM_return_bank1_forward),
+        .stamofu_CAM_return_bank1_nasty_forward(stamofu_CAM_return_bank1_nasty_forward),
+        .stamofu_CAM_return_bank1_forward_ROB_index(stamofu_CAM_return_bank1_forward_ROB_index),
+        .stamofu_CAM_return_bank1_forward_data(stamofu_CAM_return_bank1_forward_data),
+
+        // misaligned queue info grab
+        .stamofu_mq_info_grab_mq_index(stamofu_mq_info_grab_mq_index),
+        .stamofu_mq_info_grab_clear_entry(stamofu_mq_info_grab_clear_entry),
+        .stamofu_mq_info_grab_is_mem(stamofu_mq_info_grab_is_mem),
+        .stamofu_mq_info_grab_PA_word(stamofu_mq_info_grab_PA_word),
+        .stamofu_mq_info_grab_byte_mask(stamofu_mq_info_grab_byte_mask),
+        .stamofu_mq_info_grab_data(stamofu_mq_info_grab_data),
+
+        // write buffer enq bank 0
+        .wr_buf_enq_bank0_valid(wr_buf_enq_bank0_valid),
+        .wr_buf_enq_bank0_is_amo(wr_buf_enq_bank0_is_amo),
+        .wr_buf_enq_bank0_op(wr_buf_enq_bank0_op),
+        .wr_buf_enq_bank0_dest_PR(wr_buf_enq_bank0_dest_PR),
+        .wr_buf_enq_bank0_is_mem(wr_buf_enq_bank0_is_mem),
+        .wr_buf_enq_bank0_PA_word(wr_buf_enq_bank0_PA_word),
+        .wr_buf_enq_bank0_byte_mask(wr_buf_enq_bank0_byte_mask),
+        .wr_buf_enq_bank0_data(wr_buf_enq_bank0_data),
+
+        // write buffer enq feedback bank 0
+        .wr_buf_enq_bank0_ready(wr_buf_enq_bank0_ready),
+        .wr_buf_enq_bank0_mem_present(wr_buf_enq_bank0_mem_present),
+        .wr_buf_enq_bank0_io_present(wr_buf_enq_bank0_io_present),
+
+        // write buffer enq bank 1
+        .wr_buf_enq_bank1_valid(wr_buf_enq_bank1_valid),
+        .wr_buf_enq_bank1_is_amo(wr_buf_enq_bank1_is_amo),
+        .wr_buf_enq_bank1_op(wr_buf_enq_bank1_op),
+        .wr_buf_enq_bank1_dest_PR(wr_buf_enq_bank1_dest_PR),
+        .wr_buf_enq_bank1_is_mem(wr_buf_enq_bank1_is_mem),
+        .wr_buf_enq_bank1_PA_word(wr_buf_enq_bank1_PA_word),
+        .wr_buf_enq_bank1_byte_mask(wr_buf_enq_bank1_byte_mask),
+        .wr_buf_enq_bank1_data(wr_buf_enq_bank1_data),
+
+        // write buffer enq feedback bank 1
+        .wr_buf_enq_bank1_ready(wr_buf_enq_bank1_ready),
+        .wr_buf_enq_bank1_mem_present(wr_buf_enq_bank1_mem_present),
+        .wr_buf_enq_bank1_io_present(wr_buf_enq_bank1_io_present),
+
+	    // fence restart notification to ROB
+		.fence_restart_notif_valid(fence_restart_notif_valid),
+		.fence_restart_notif_ROB_index(fence_restart_notif_ROB_index),
+
+	    // fence restart notification backpressure from ROB
+		.fence_restart_notif_ready(fence_restart_notif_ready),
+
+        // sfence invalidation to MMU
+        .sfence_inv_valid(sfence_inv_valid),
+        .sfence_inv_VA(sfence_inv_VA),
+        .sfence_inv_ASID(sfence_inv_ASID),
+
+        // sfence invalidation backpressure from MMU
+        .sfence_inv_ready(sfence_inv_ready),
+
+        // exception to ROB
+        .rob_exception_valid(stamofu_exception_valid),
+        .rob_exception_VA(stamofu_exception_VA),
+        .rob_exception_is_lr(stamofu_exception_is_lr),
+        .rob_exception_page_fault(stamofu_exception_page_fault),
+        .rob_exception_access_fault(stamofu_exception_access_fault),
+        .rob_exception_misaligned_exception(stamofu_exception_misaligned_exception),
+        .rob_exception_ROB_index(stamofu_exception_ROB_index),
+
+        // exception backpressure from ROB
+        .rob_exception_ready(stamofu_exception_ready),
+
+        // store set CAM update bank 0
+        .ssu_CAM_bank0_update_valid(stamofu_cq_CAM_bank0_update_valid),
+        .ssu_CAM_bank0_update_ld_mdp_info(stamofu_cq_CAM_bank0_update_ld_mdp_info),
+        .ssu_CAM_bank0_update_ld_ROB_index(stamofu_cq_CAM_bank0_update_ld_ROB_index),
+        .ssu_CAM_bank0_update_stamo_mdp_info(stamofu_cq_CAM_bank0_update_stamo_mdp_info),
+        .ssu_CAM_bank0_update_stamo_ROB_index(stamofu_cq_CAM_bank0_update_stamo_ROB_index),
+
+        // store set CAM update bank 1
+        .ssu_CAM_bank1_update_valid(stamofu_cq_CAM_bank1_update_valid),
+        .ssu_CAM_bank1_update_ld_mdp_info(stamofu_cq_CAM_bank1_update_ld_mdp_info),
+        .ssu_CAM_bank1_update_ld_ROB_index(stamofu_cq_CAM_bank1_update_ld_ROB_index),
+        .ssu_CAM_bank1_update_stamo_mdp_info(stamofu_cq_CAM_bank1_update_stamo_mdp_info),
+        .ssu_CAM_bank1_update_stamo_ROB_index(stamofu_cq_CAM_bank1_update_stamo_ROB_index),
+
+        // store set commit update
+        .ssu_commit_update_valid(stamofu_cq_commit_update_valid),
+        .ssu_commit_update_mdp_info(stamofu_cq_commit_update_mdp_info),
+        .ssu_commit_update_ROB_index(stamofu_cq_commit_update_ROB_index),
+
+        // oldest stamofu advertisement
+        .stamofu_incomplete_active(stamofu_incomplete_active),
+        .stamofu_oldest_incomplete_ROB_index(stamofu_oldest_incomplete_ROB_index),
+
+        // stamofu mq complete notif
+        .stamofu_mq_complete_valid(stamofu_mq_complete_valid),
+        .stamofu_mq_complete_cq_index(stamofu_mq_complete_cq_index),
+
+	    // ROB complete notif
+		.stamofu_complete_valid(stamofu_complete_valid),
+		.stamofu_complete_ROB_index(stamofu_complete_ROB_index),
+
+        // op dequeue from acquire queue
+        .stamofu_aq_deq_valid(stamofu_aq_deq_valid),
+        .stamofu_aq_deq_ROB_index(stamofu_aq_deq_ROB_index),
+
+	    // ROB commit
+		.rob_commit_upper_index(rob_commit_upper_index),
+		.rob_commit_lower_index_valid_mask(rob_commit_lower_index_valid_mask),
+
+	    // ROB kill
+		.rob_kill_valid(rob_kill_valid),
+		.rob_kill_abs_head_index(rob_kill_abs_head_index),
+		.rob_kill_rel_kill_younger_index(rob_kill_rel_kill_younger_index)
+    );
+
     // stamofu_mq
+    stamofu_mq #(
+        .STAMOFU_MQ_ENTRIES(STAMOFU_MQ_ENTRIES)
+    ) STAMOFU_MQ (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // op enqueue to misaligned queue
+        .stamofu_mq_enq_valid(stamofu_launch_pipeline_bank1_stamofu_mq_enq_valid),
+
+        // misaligned queue enqueue feedback
+        .stamofu_mq_enq_ready(stamofu_launch_pipeline_bank1_stamofu_mq_enq_ready),
+        .stamofu_mq_enq_index(stamofu_mq_enq_index),
+
+        // misaligned queue info ret
+        .stamofu_mq_info_ret_bank0_valid(stamofu_mq_info_ret_bank0_valid),
+        .stamofu_mq_info_ret_bank0_cq_index(stamofu_mq_info_ret_bank0_cq_index),
+        .stamofu_mq_info_ret_bank0_mq_index(stamofu_mq_info_ret_bank0_mq_index),
+        .stamofu_mq_info_ret_bank0_dtlb_hit(stamofu_mq_info_ret_bank0_dtlb_hit),
+        .stamofu_mq_info_ret_bank0_page_fault(stamofu_mq_info_ret_bank0_page_fault),
+        .stamofu_mq_info_ret_bank0_access_fault(stamofu_mq_info_ret_bank0_access_fault),
+        .stamofu_mq_info_ret_bank0_is_mem(stamofu_mq_info_ret_bank0_is_mem),
+        .stamofu_mq_info_ret_bank0_mdp_info(stamofu_mq_info_ret_bank0_mdp_info),
+        .stamofu_mq_info_ret_bank0_ROB_index(stamofu_mq_info_ret_bank0_ROB_index),
+        .stamofu_mq_info_ret_bank0_PA_word(stamofu_mq_info_ret_bank0_PA_word),
+        .stamofu_mq_info_ret_bank0_byte_mask(stamofu_mq_info_ret_bank0_byte_mask),
+        .stamofu_mq_info_ret_bank0_data(stamofu_mq_info_ret_bank0_data),
+
+        .stamofu_mq_info_ret_bank1_valid(stamofu_mq_info_ret_bank1_valid),
+        .stamofu_mq_info_ret_bank1_cq_index(stamofu_mq_info_ret_bank1_cq_index),
+        .stamofu_mq_info_ret_bank1_mq_index(stamofu_mq_info_ret_bank1_mq_index),
+        .stamofu_mq_info_ret_bank1_dtlb_hit(stamofu_mq_info_ret_bank1_dtlb_hit),
+        .stamofu_mq_info_ret_bank1_page_fault(stamofu_mq_info_ret_bank1_page_fault),
+        .stamofu_mq_info_ret_bank1_access_fault(stamofu_mq_info_ret_bank1_access_fault),
+        .stamofu_mq_info_ret_bank1_is_mem(stamofu_mq_info_ret_bank1_is_mem),
+        .stamofu_mq_info_ret_bank1_mdp_info(stamofu_mq_info_ret_bank1_mdp_info),
+        .stamofu_mq_info_ret_bank1_ROB_index(stamofu_mq_info_ret_bank1_ROB_index),
+        .stamofu_mq_info_ret_bank1_PA_word(stamofu_mq_info_ret_bank1_PA_word),
+        .stamofu_mq_info_ret_bank1_byte_mask(stamofu_mq_info_ret_bank1_byte_mask),
+        .stamofu_mq_info_ret_bank1_data(stamofu_mq_info_ret_bank1_data),
+
+        // dtlb miss resp
+        .dtlb_miss_resp_valid(stamofu_dtlb_miss_resp_valid),
+        .dtlb_miss_resp_cq_index(dtlb_miss_resp_cq_index),
+        .dtlb_miss_resp_is_mq(dtlb_miss_resp_is_mq),
+        .dtlb_miss_resp_mq_index(dtlb_miss_resp_mq_index),
+        .dtlb_miss_resp_PPN(dtlb_miss_resp_PPN),
+        .dtlb_miss_resp_is_mem(dtlb_miss_resp_is_mem),
+        .dtlb_miss_resp_page_fault(dtlb_miss_resp_page_fault),
+        .dtlb_miss_resp_access_fault(dtlb_miss_resp_access_fault),
+
+        // ldu CAM launch from stamofu_mq
+        .stamofu_mq_ldu_CAM_launch_valid(stamofu_mq_ldu_CAM_launch_valid),
+        .stamofu_mq_ldu_CAM_launch_cq_index(stamofu_mq_ldu_CAM_launch_cq_index),
+        .stamofu_mq_ldu_CAM_launch_mq_index(stamofu_mq_ldu_CAM_launch_mq_index),
+        .stamofu_mq_ldu_CAM_launch_PA_word(stamofu_mq_ldu_CAM_launch_PA_word),
+        .stamofu_mq_ldu_CAM_launch_byte_mask(stamofu_mq_ldu_CAM_launch_byte_mask),
+        .stamofu_mq_ldu_CAM_launch_write_data(stamofu_mq_ldu_CAM_launch_write_data),
+        .stamofu_mq_ldu_CAM_launch_mdp_info(stamofu_mq_ldu_CAM_launch_mdp_info),
+        .stamofu_mq_ldu_CAM_launch_ROB_index(stamofu_mq_ldu_CAM_launch_ROB_index),
+
+        // ldu CAM return
+        .ldu_CAM_return_valid(ldu_CAM_return_valid),
+        .ldu_CAM_return_cq_index(ldu_CAM_return_cq_index),
+        .ldu_CAM_return_is_mq(ldu_CAM_return_is_mq),
+        .ldu_CAM_return_mq_index(ldu_CAM_return_mq_index),
+        .ldu_CAM_return_forward(ldu_CAM_return_forward),
+
+        // stamofu CAM launch
+        .stamofu_CAM_launch_bank0_valid(stamofu_CAM_launch_bank0_valid),
+        .stamofu_CAM_launch_bank0_PA_word(stamofu_CAM_launch_bank0_PA_word),
+        .stamofu_CAM_launch_bank0_byte_mask(stamofu_CAM_launch_bank0_byte_mask),
+        .stamofu_CAM_launch_bank0_ROB_index(stamofu_CAM_launch_bank0_ROB_index),
+        .stamofu_CAM_launch_bank0_mdp_info(stamofu_CAM_launch_bank0_mdp_info),
+        
+        .stamofu_CAM_launch_bank1_valid(stamofu_CAM_launch_bank1_valid),
+        .stamofu_CAM_launch_bank1_PA_word(stamofu_CAM_launch_bank1_PA_word),
+        .stamofu_CAM_launch_bank1_byte_mask(stamofu_CAM_launch_bank1_byte_mask),
+        .stamofu_CAM_launch_bank1_ROB_index(stamofu_CAM_launch_bank1_ROB_index),
+        .stamofu_CAM_launch_bank1_mdp_info(stamofu_CAM_launch_bank1_mdp_info),
+
+        // stamofu_mq CAM stage 2 info
+        .stamofu_mq_CAM_return_bank0_cq_index(stamofu_mq_CAM_return_bank0_cq_index),
+        .stamofu_mq_CAM_return_bank0_stall(stamofu_mq_CAM_return_bank0_stall),
+        .stamofu_mq_CAM_return_bank0_stall_count(stamofu_mq_CAM_return_bank0_stall_count),
+        .stamofu_mq_CAM_return_bank0_forward(stamofu_mq_CAM_return_bank0_forward),
+        .stamofu_mq_CAM_return_bank0_nasty_forward(stamofu_mq_CAM_return_bank0_nasty_forward),
+        .stamofu_mq_CAM_return_bank0_forward_ROB_index(stamofu_mq_CAM_return_bank0_forward_ROB_index),
+        .stamofu_mq_CAM_return_bank0_forward_data(stamofu_mq_CAM_return_bank0_forward_data),
+        
+        .stamofu_mq_CAM_return_bank1_cq_index(stamofu_mq_CAM_return_bank1_cq_index),
+        .stamofu_mq_CAM_return_bank1_stall(stamofu_mq_CAM_return_bank1_stall),
+        .stamofu_mq_CAM_return_bank1_stall_count(stamofu_mq_CAM_return_bank1_stall_count),
+        .stamofu_mq_CAM_return_bank1_forward(stamofu_mq_CAM_return_bank1_forward),
+        .stamofu_mq_CAM_return_bank1_nasty_forward(stamofu_mq_CAM_return_bank1_nasty_forward),
+        .stamofu_mq_CAM_return_bank1_forward_ROB_index(stamofu_mq_CAM_return_bank1_forward_ROB_index),
+        .stamofu_mq_CAM_return_bank1_forward_data(stamofu_mq_CAM_return_bank1_forward_data),
+
+        // misaligned queue info grab
+        .stamofu_mq_info_grab_mq_index(stamofu_mq_info_grab_mq_index),
+        .stamofu_mq_info_grab_clear_entry(stamofu_mq_info_grab_clear_entry),
+        .stamofu_mq_info_grab_is_mem(stamofu_mq_info_grab_is_mem),
+        .stamofu_mq_info_grab_PA_word(stamofu_mq_info_grab_PA_word),
+        .stamofu_mq_info_grab_byte_mask(stamofu_mq_info_grab_byte_mask),
+        .stamofu_mq_info_grab_data(stamofu_mq_info_grab_data),
+
+        // stamofu mq complete notif
+        .stamofu_mq_complete_valid(stamofu_mq_complete_valid),
+        .stamofu_mq_complete_cq_index(stamofu_mq_complete_cq_index),
+
+	    // ROB kill
+		.rob_kill_valid(rob_kill_valid),
+		.rob_kill_abs_head_index(rob_kill_abs_head_index),
+		.rob_kill_rel_kill_younger_index(rob_kill_rel_kill_younger_index)
+    );
 
     // ssu
     ssu #(
@@ -4319,8 +4841,63 @@ module core #(
     // sysu:
     
     // sysu_dq
-    // sysu_pipeline
-    // csrf
+    sysu_dq #(
+        .SYSU_DQ_ENTRIES(SYSU_DQ_ENTRIES)
+    ) SYSU_DQ (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
 
+        // op dispatch by way
+        .dispatch_attempt_by_way(dispatch_attempt_sysu_dq_by_way),
+        .dispatch_valid_by_way(dispatch_valid_sysu_by_way),
+        .dispatch_op_by_way(dispatch_op_by_way),
+        .dispatch_imm12_by_way(dispatch_imm12_by_way),
+        .dispatch_A_PR_by_way(dispatch_A_PR_by_way),
+        .dispatch_A_ready_by_way(dispatch_A_ready_by_way),
+        .dispatch_A_is_zero_by_way(dispatch_A_is_zero_by_way),
+        .dispatch_B_PR_by_way(dispatch_B_PR_by_way),
+        .dispatch_B_ready_by_way(dispatch_B_ready_by_way),
+        .dispatch_B_is_zero_by_way(dispatch_B_is_zero_by_way),
+        .dispatch_dest_PR_by_way(dispatch_dest_new_PR_by_way),
+        .dispatch_ROB_index_by_way(dispatch_rob_enq_ROB_index_by_way),
+
+        // op dispatch feedback
+        .dispatch_ack_by_way(dispatch_ack_sysu_dq_by_way),
+
+        // writeback bus by bank
+        .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
+        .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
+
+        // op launch to sysu
+        .sysu_launch_valid(sysu_launch_valid),
+        .sysu_launch_killed(sysu_launch_killed),
+        .sysu_launch_op(sysu_launch_op),
+        .sysu_launch_imm12(sysu_launch_imm12),
+        .sysu_launch_A_PR(sysu_launch_A_PR),
+        .sysu_launch_A_is_zero(sysu_launch_A_is_zero),
+        .sysu_launch_B_PR(sysu_launch_B_PR),
+        .sysu_launch_B_is_zero(sysu_launch_B_is_zero),
+        .sysu_launch_dest_PR(sysu_launch_dest_PR),
+        .sysu_launch_ROB_index(sysu_launch_ROB_index),
+
+        // sysu launch feedback
+        .sysu_launch_ready(sysu_launch_ready),
+
+	    // ROB kill
+		.rob_kill_valid(rob_kill_valid),
+		.rob_kill_abs_head_index(rob_kill_abs_head_index),
+		.rob_kill_rel_kill_younger_index(rob_kill_rel_kill_younger_index)
+    );
+
+    // sysu_pipeline
+        // TODO: implement
+    always_comb begin
+        // hardwired no launch for now
+        sysu_launch_ready = 1'b0;
+    end
+
+    // csrf
+        // TODO: implement
 
 endmodule
