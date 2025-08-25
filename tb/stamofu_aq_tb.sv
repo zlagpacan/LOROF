@@ -41,11 +41,17 @@ module stamofu_aq_tb ();
     // acquire queue enqueue feedback
 	logic DUT_stamofu_aq_enq_ready, expected_stamofu_aq_enq_ready;
 
-    // op update
-	logic tb_stamofu_aq_update_valid;
-	logic tb_stamofu_aq_update_mem_aq;
-	logic tb_stamofu_aq_update_io_aq;
-	logic [LOG_ROB_ENTRIES-1:0] tb_stamofu_aq_update_ROB_index;
+    // op update bank 0
+	logic tb_stamofu_aq_update_bank0_valid;
+	logic tb_stamofu_aq_update_bank0_mem_aq;
+	logic tb_stamofu_aq_update_bank0_io_aq;
+	logic [LOG_ROB_ENTRIES-1:0] tb_stamofu_aq_update_bank0_ROB_index;
+
+    // op update bank 1
+	logic tb_stamofu_aq_update_bank1_valid;
+	logic tb_stamofu_aq_update_bank1_mem_aq;
+	logic tb_stamofu_aq_update_bank1_io_aq;
+	logic [LOG_ROB_ENTRIES-1:0] tb_stamofu_aq_update_bank1_ROB_index;
 
     // op dequeue from acquire queue
 	logic tb_stamofu_aq_deq_valid;
@@ -81,11 +87,17 @@ module stamofu_aq_tb ();
 	    // acquire queue enqueue feedback
 		.stamofu_aq_enq_ready(DUT_stamofu_aq_enq_ready),
 
-	    // op update
-		.stamofu_aq_update_valid(tb_stamofu_aq_update_valid),
-		.stamofu_aq_update_mem_aq(tb_stamofu_aq_update_mem_aq),
-		.stamofu_aq_update_io_aq(tb_stamofu_aq_update_io_aq),
-		.stamofu_aq_update_ROB_index(tb_stamofu_aq_update_ROB_index),
+	    // op update bank 0
+		.stamofu_aq_update_bank0_valid(tb_stamofu_aq_update_bank0_valid),
+		.stamofu_aq_update_bank0_mem_aq(tb_stamofu_aq_update_bank0_mem_aq),
+		.stamofu_aq_update_bank0_io_aq(tb_stamofu_aq_update_bank0_io_aq),
+		.stamofu_aq_update_bank0_ROB_index(tb_stamofu_aq_update_bank0_ROB_index),
+
+	    // op update bank 1
+		.stamofu_aq_update_bank1_valid(tb_stamofu_aq_update_bank1_valid),
+		.stamofu_aq_update_bank1_mem_aq(tb_stamofu_aq_update_bank1_mem_aq),
+		.stamofu_aq_update_bank1_io_aq(tb_stamofu_aq_update_bank1_io_aq),
+		.stamofu_aq_update_bank1_ROB_index(tb_stamofu_aq_update_bank1_ROB_index),
 
 	    // op dequeue from acquire queue
 		.stamofu_aq_deq_valid(tb_stamofu_aq_deq_valid),
@@ -178,11 +190,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b0;
 		tb_stamofu_aq_enq_ROB_index = 7'h0;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b0;
-		tb_stamofu_aq_update_ROB_index = 7'h0;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h0;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b0;
 	    // ROB info and kill
@@ -222,11 +239,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b0;
 		tb_stamofu_aq_enq_ROB_index = 7'h0;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b0;
-		tb_stamofu_aq_update_ROB_index = 7'h0;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h0;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b0;
 	    // ROB info and kill
@@ -285,11 +307,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b1;
 		tb_stamofu_aq_enq_ROB_index = 7'h2;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b0;
-		tb_stamofu_aq_update_ROB_index = 7'h0;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h0;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b0;
 	    // ROB info and kill
@@ -342,11 +369,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b0;
 		tb_stamofu_aq_enq_ROB_index = 7'h3;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b0;
-		tb_stamofu_aq_update_ROB_index = 7'h0;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h0;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b0;
 	    // ROB info and kill
@@ -399,11 +431,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b1;
 		tb_stamofu_aq_enq_ROB_index = 7'h7;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b0;
-		tb_stamofu_aq_update_ROB_index = 7'h0;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h0;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b0;
 	    // ROB info and kill
@@ -456,11 +493,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b1;
 		tb_stamofu_aq_enq_ROB_index = 7'hA;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b1;
-		tb_stamofu_aq_update_ROB_index = 7'h2;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b1;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h2;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b0;
 	    // ROB info and kill
@@ -513,11 +555,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b0;
 		tb_stamofu_aq_enq_ROB_index = 7'hC;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b1;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b1;
-		tb_stamofu_aq_update_ROB_index = 7'h2;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b1;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b1;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h2;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b0;
 	    // ROB info and kill
@@ -570,11 +617,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b0;
 		tb_stamofu_aq_enq_ROB_index = 7'hC;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b1;
-		tb_stamofu_aq_update_ROB_index = 7'h2;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b1;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h2;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b1;
 	    // ROB info and kill
@@ -627,11 +679,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b0;
 		tb_stamofu_aq_enq_ROB_index = 7'hC;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b1;
-		tb_stamofu_aq_update_ROB_index = 7'h2;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b1;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h2;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b0;
 	    // ROB info and kill
@@ -684,11 +741,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b1;
 		tb_stamofu_aq_enq_ROB_index = 7'hD;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b1;
-		tb_stamofu_aq_update_ROB_index = 7'h2;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b1;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h2;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b1;
 	    // ROB info and kill
@@ -741,11 +803,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b1;
 		tb_stamofu_aq_enq_ROB_index = 7'hD;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b1;
-		tb_stamofu_aq_update_ROB_index = 7'h2;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b1;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h2;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b0;
 	    // ROB info and kill
@@ -798,11 +865,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b1;
 		tb_stamofu_aq_enq_ROB_index = 7'hD;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b1;
-		tb_stamofu_aq_update_ROB_index = 7'h2;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b1;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h2;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b0;
 	    // ROB info and kill
@@ -855,11 +927,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b0;
 		tb_stamofu_aq_enq_ROB_index = 7'h0;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b1;
-		tb_stamofu_aq_update_mem_aq = 1'b1;
-		tb_stamofu_aq_update_io_aq = 1'b1;
-		tb_stamofu_aq_update_ROB_index = 7'hD;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h0;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b1;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b1;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b1;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'hD;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b0;
 	    // ROB info and kill
@@ -912,11 +989,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b0;
 		tb_stamofu_aq_enq_ROB_index = 7'h0;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b1;
-		tb_stamofu_aq_update_ROB_index = 7'h2;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h0;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b0;
 	    // ROB info and kill
@@ -969,11 +1051,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b0;
 		tb_stamofu_aq_enq_ROB_index = 7'h0;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b0;
-		tb_stamofu_aq_update_ROB_index = 7'h0;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h0;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b1;
 	    // ROB info and kill
@@ -1026,11 +1113,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b0;
 		tb_stamofu_aq_enq_ROB_index = 7'h0;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b0;
-		tb_stamofu_aq_update_ROB_index = 7'h0;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h0;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b1;
 	    // ROB info and kill
@@ -1083,11 +1175,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b0;
 		tb_stamofu_aq_enq_ROB_index = 7'h0;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b0;
-		tb_stamofu_aq_update_ROB_index = 7'h0;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h0;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b1;
 	    // ROB info and kill
@@ -1140,11 +1237,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b0;
 		tb_stamofu_aq_enq_ROB_index = 7'h0;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b0;
-		tb_stamofu_aq_update_ROB_index = 7'h0;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h0;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b1;
 	    // ROB info and kill
@@ -1197,11 +1299,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b0;
 		tb_stamofu_aq_enq_ROB_index = 7'h0;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b0;
-		tb_stamofu_aq_update_ROB_index = 7'h0;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h0;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b1;
 	    // ROB info and kill
@@ -1254,11 +1361,16 @@ module stamofu_aq_tb ();
 		tb_stamofu_aq_enq_io_aq = 1'b0;
 		tb_stamofu_aq_enq_ROB_index = 7'h0;
 	    // acquire queue enqueue feedback
-	    // op update
-		tb_stamofu_aq_update_valid = 1'b0;
-		tb_stamofu_aq_update_mem_aq = 1'b0;
-		tb_stamofu_aq_update_io_aq = 1'b0;
-		tb_stamofu_aq_update_ROB_index = 7'h0;
+	    // op update bank 0
+		tb_stamofu_aq_update_bank0_valid = 1'b0;
+		tb_stamofu_aq_update_bank0_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank0_ROB_index = 7'h0;
+	    // op update bank 1
+		tb_stamofu_aq_update_bank1_valid = 1'b0;
+		tb_stamofu_aq_update_bank1_mem_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_io_aq = 1'b0;
+		tb_stamofu_aq_update_bank1_ROB_index = 7'h0;
 	    // op dequeue from acquire queue
 		tb_stamofu_aq_deq_valid = 1'b1;
 	    // ROB info and kill

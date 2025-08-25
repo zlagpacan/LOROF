@@ -10,6 +10,11 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
+parameter STAMOFU_AQ_ENTRIES = core_types_pkg::STAMOFU_AQ_ENTRIES;
+
 module stamofu_aq_wrapper (
 
     // seq
@@ -25,11 +30,17 @@ module stamofu_aq_wrapper (
     // acquire queue enqueue feedback
 	output logic last_stamofu_aq_enq_ready,
 
-    // op update
-	input logic next_stamofu_aq_update_valid,
-	input logic next_stamofu_aq_update_mem_aq,
-	input logic next_stamofu_aq_update_io_aq,
-	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_aq_update_ROB_index,
+    // op update bank 0
+	input logic next_stamofu_aq_update_bank0_valid,
+	input logic next_stamofu_aq_update_bank0_mem_aq,
+	input logic next_stamofu_aq_update_bank0_io_aq,
+	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_aq_update_bank0_ROB_index,
+
+    // op update bank 1
+	input logic next_stamofu_aq_update_bank1_valid,
+	input logic next_stamofu_aq_update_bank1_mem_aq,
+	input logic next_stamofu_aq_update_bank1_io_aq,
+	input logic [LOG_ROB_ENTRIES-1:0] next_stamofu_aq_update_bank1_ROB_index,
 
     // op dequeue from acquire queue
 	input logic next_stamofu_aq_deq_valid,
@@ -59,11 +70,17 @@ module stamofu_aq_wrapper (
     // acquire queue enqueue feedback
 	logic stamofu_aq_enq_ready;
 
-    // op update
-	logic stamofu_aq_update_valid;
-	logic stamofu_aq_update_mem_aq;
-	logic stamofu_aq_update_io_aq;
-	logic [LOG_ROB_ENTRIES-1:0] stamofu_aq_update_ROB_index;
+    // op update bank 0
+	logic stamofu_aq_update_bank0_valid;
+	logic stamofu_aq_update_bank0_mem_aq;
+	logic stamofu_aq_update_bank0_io_aq;
+	logic [LOG_ROB_ENTRIES-1:0] stamofu_aq_update_bank0_ROB_index;
+
+    // op update bank 1
+	logic stamofu_aq_update_bank1_valid;
+	logic stamofu_aq_update_bank1_mem_aq;
+	logic stamofu_aq_update_bank1_io_aq;
+	logic [LOG_ROB_ENTRIES-1:0] stamofu_aq_update_bank1_ROB_index;
 
     // op dequeue from acquire queue
 	logic stamofu_aq_deq_valid;
@@ -83,7 +100,9 @@ module stamofu_aq_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    stamofu_aq #(.STAMOFU_AQ_ENTRIES(STAMOFU_AQ_ENTRIES)) WRAPPED_MODULE (.*);
+	stamofu_aq #(
+		.STAMOFU_AQ_ENTRIES(STAMOFU_AQ_ENTRIES)
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -100,11 +119,17 @@ module stamofu_aq_wrapper (
 		    // acquire queue enqueue feedback
 			last_stamofu_aq_enq_ready <= '0;
 
-		    // op update
-			stamofu_aq_update_valid <= '0;
-			stamofu_aq_update_mem_aq <= '0;
-			stamofu_aq_update_io_aq <= '0;
-			stamofu_aq_update_ROB_index <= '0;
+		    // op update bank 0
+			stamofu_aq_update_bank0_valid <= '0;
+			stamofu_aq_update_bank0_mem_aq <= '0;
+			stamofu_aq_update_bank0_io_aq <= '0;
+			stamofu_aq_update_bank0_ROB_index <= '0;
+
+		    // op update bank 1
+			stamofu_aq_update_bank1_valid <= '0;
+			stamofu_aq_update_bank1_mem_aq <= '0;
+			stamofu_aq_update_bank1_io_aq <= '0;
+			stamofu_aq_update_bank1_ROB_index <= '0;
 
 		    // op dequeue from acquire queue
 			stamofu_aq_deq_valid <= '0;
@@ -132,11 +157,17 @@ module stamofu_aq_wrapper (
 		    // acquire queue enqueue feedback
 			last_stamofu_aq_enq_ready <= stamofu_aq_enq_ready;
 
-		    // op update
-			stamofu_aq_update_valid <= next_stamofu_aq_update_valid;
-			stamofu_aq_update_mem_aq <= next_stamofu_aq_update_mem_aq;
-			stamofu_aq_update_io_aq <= next_stamofu_aq_update_io_aq;
-			stamofu_aq_update_ROB_index <= next_stamofu_aq_update_ROB_index;
+		    // op update bank 0
+			stamofu_aq_update_bank0_valid <= next_stamofu_aq_update_bank0_valid;
+			stamofu_aq_update_bank0_mem_aq <= next_stamofu_aq_update_bank0_mem_aq;
+			stamofu_aq_update_bank0_io_aq <= next_stamofu_aq_update_bank0_io_aq;
+			stamofu_aq_update_bank0_ROB_index <= next_stamofu_aq_update_bank0_ROB_index;
+
+		    // op update bank 1
+			stamofu_aq_update_bank1_valid <= next_stamofu_aq_update_bank1_valid;
+			stamofu_aq_update_bank1_mem_aq <= next_stamofu_aq_update_bank1_mem_aq;
+			stamofu_aq_update_bank1_io_aq <= next_stamofu_aq_update_bank1_io_aq;
+			stamofu_aq_update_bank1_ROB_index <= next_stamofu_aq_update_bank1_ROB_index;
 
 		    // op dequeue from acquire queue
 			stamofu_aq_deq_valid <= next_stamofu_aq_deq_valid;

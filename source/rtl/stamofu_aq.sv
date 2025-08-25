@@ -24,11 +24,17 @@ module stamofu_aq #(
     // acquire queue enqueue feedback
     output logic                        stamofu_aq_enq_ready,
 
-    // op update
-    input logic                         stamofu_aq_update_valid,
-    input logic                         stamofu_aq_update_mem_aq,
-    input logic                         stamofu_aq_update_io_aq,
-    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_aq_update_ROB_index,
+    // op update bank 0
+    input logic                         stamofu_aq_update_bank0_valid,
+    input logic                         stamofu_aq_update_bank0_mem_aq,
+    input logic                         stamofu_aq_update_bank0_io_aq,
+    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_aq_update_bank0_ROB_index,
+
+    // op update bank 1
+    input logic                         stamofu_aq_update_bank1_valid,
+    input logic                         stamofu_aq_update_bank1_mem_aq,
+    input logic                         stamofu_aq_update_bank1_io_aq,
+    input logic [LOG_ROB_ENTRIES-1:0]   stamofu_aq_update_bank1_ROB_index,
 
     // op dequeue from acquire queue
     input logic                         stamofu_aq_deq_valid,
@@ -60,7 +66,8 @@ module stamofu_aq #(
     logic [STAMOFU_AQ_ENTRIES-1:0] new_killed_by_entry;
 
     // update check
-    logic [STAMOFU_AQ_ENTRIES-1:0] update_by_entry;
+    logic [STAMOFU_AQ_ENTRIES-1:0] update_bank0_by_entry;
+    logic [STAMOFU_AQ_ENTRIES-1:0] update_bank1_by_entry;
 
     // enqueue crossbar by entry
     logic [STAMOFU_AQ_ENTRIES-1:0] enq_valid_by_entry;
@@ -87,8 +94,11 @@ module stamofu_aq #(
             new_killed_by_entry[i] = rob_kill_valid & 
                 (ROB_index_by_entry[i] - rob_abs_head_index) > rob_kill_rel_kill_younger_index;
 
-            update_by_entry[i] = stamofu_aq_update_valid
-                & stamofu_aq_update_ROB_index == ROB_index_by_entry[i];
+            update_bank0_by_entry[i] = stamofu_aq_update_bank0_valid
+                & stamofu_aq_update_bank0_ROB_index == ROB_index_by_entry[i];
+
+            update_bank1_by_entry[i] = stamofu_aq_update_bank1_valid
+                & stamofu_aq_update_bank1_ROB_index == ROB_index_by_entry[i];
         end
     end
 
@@ -137,9 +147,13 @@ module stamofu_aq #(
                     ROB_index_by_entry[STAMOFU_AQ_ENTRIES-1] <= ROB_index_by_entry[STAMOFU_AQ_ENTRIES-1];
 
                     // check for update
-                    if (update_by_entry[STAMOFU_AQ_ENTRIES-1]) begin
-                        mem_aq_by_entry[STAMOFU_AQ_ENTRIES-1] <= stamofu_aq_update_mem_aq;
-                        io_aq_by_entry[STAMOFU_AQ_ENTRIES-1] <= stamofu_aq_update_io_aq;
+                    if (update_bank0_by_entry[STAMOFU_AQ_ENTRIES-1]) begin
+                        mem_aq_by_entry[STAMOFU_AQ_ENTRIES-1] <= stamofu_aq_update_bank0_mem_aq;
+                        io_aq_by_entry[STAMOFU_AQ_ENTRIES-1] <= stamofu_aq_update_bank0_io_aq;
+                    end
+                    else if (update_bank1_by_entry[STAMOFU_AQ_ENTRIES-1]) begin
+                        mem_aq_by_entry[STAMOFU_AQ_ENTRIES-1] <= stamofu_aq_update_bank1_mem_aq;
+                        io_aq_by_entry[STAMOFU_AQ_ENTRIES-1] <= stamofu_aq_update_bank1_io_aq;
                     end
                     else begin
                         mem_aq_by_entry[STAMOFU_AQ_ENTRIES-1] <= mem_aq_by_entry[STAMOFU_AQ_ENTRIES-1];
@@ -171,9 +185,13 @@ module stamofu_aq #(
                         ROB_index_by_entry[i] <= ROB_index_by_entry[i+1];
 
                         // check for update
-                        if (update_by_entry[i+1]) begin
-                            mem_aq_by_entry[i] <= stamofu_aq_update_mem_aq;
-                            io_aq_by_entry[i] <= stamofu_aq_update_io_aq;
+                        if (update_bank0_by_entry[i+1]) begin
+                            mem_aq_by_entry[i] <= stamofu_aq_update_bank0_mem_aq;
+                            io_aq_by_entry[i] <= stamofu_aq_update_bank0_io_aq;
+                        end
+                        else if (update_bank1_by_entry[i+1]) begin
+                            mem_aq_by_entry[i] <= stamofu_aq_update_bank1_mem_aq;
+                            io_aq_by_entry[i] <= stamofu_aq_update_bank1_io_aq;
                         end
                         else begin
                             mem_aq_by_entry[i] <= mem_aq_by_entry[i+1];
@@ -201,9 +219,13 @@ module stamofu_aq #(
                         ROB_index_by_entry[i] <= ROB_index_by_entry[i];
 
                         // check for update
-                        if (update_by_entry[i]) begin
-                            mem_aq_by_entry[i] <= stamofu_aq_update_mem_aq;
-                            io_aq_by_entry[i] <= stamofu_aq_update_io_aq;
+                        if (update_bank0_by_entry[i]) begin
+                            mem_aq_by_entry[i] <= stamofu_aq_update_bank0_mem_aq;
+                            io_aq_by_entry[i] <= stamofu_aq_update_bank0_io_aq;
+                        end
+                        else if (update_bank1_by_entry[i]) begin
+                            mem_aq_by_entry[i] <= stamofu_aq_update_bank1_mem_aq;
+                            io_aq_by_entry[i] <= stamofu_aq_update_bank1_io_aq;
                         end
                         else begin
                             mem_aq_by_entry[i] <= mem_aq_by_entry[i];

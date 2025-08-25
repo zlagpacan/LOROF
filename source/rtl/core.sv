@@ -1200,6 +1200,52 @@ module core #(
     logic [MDPT_INFO_WIDTH-1:0]     stamofu_cq_commit_update_mdp_info;
     logic [LOG_ROB_ENTRIES-1:0]     stamofu_cq_commit_update_ROB_index;
 
+    // op enqueue to central queue
+    logic                               stamofu_cq_enq_valid;
+    logic                               stamofu_cq_enq_killed;
+    logic                               stamofu_cq_enq_is_store;
+    logic                               stamofu_cq_enq_is_amo;
+    logic                               stamofu_cq_enq_is_fence;
+    logic [3:0]                         stamofu_cq_enq_op;
+    logic [MDPT_INFO_WIDTH-1:0]         stamofu_cq_enq_mdp_info;
+    logic                               stamofu_cq_enq_mem_aq;
+    logic                               stamofu_cq_enq_io_aq;
+    logic                               stamofu_cq_enq_mem_rl;
+    logic                               stamofu_cq_enq_io_rl;
+    logic [LOG_PR_COUNT-1:0]            stamofu_cq_enq_dest_PR;
+    logic [LOG_ROB_ENTRIES-1:0]         stamofu_cq_enq_ROB_index;
+
+    // central queue enqueue feedback
+    logic                               stamofu_cq_enq_ready;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_cq_enq_index;
+
+    // op enqueue to issue queue
+    logic                               stamofu_iq_enq_valid;
+    logic                               stamofu_iq_enq_is_store;
+    logic                               stamofu_iq_enq_is_amo;
+    logic                               stamofu_iq_enq_is_fence;
+    logic [3:0]                         stamofu_iq_enq_op;
+    logic [11:0]                        stamofu_iq_enq_imm12;
+    logic [LOG_PR_COUNT-1:0]            stamofu_iq_enq_A_PR;
+    logic                               stamofu_iq_enq_A_ready;
+    logic                               stamofu_iq_enq_A_is_zero;
+    logic [LOG_PR_COUNT-1:0]            stamofu_iq_enq_B_PR;
+    logic                               stamofu_iq_enq_B_ready;
+    logic                               stamofu_iq_enq_B_is_zero;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_iq_enq_cq_index;
+
+    // issue queue enqueue feedback
+    logic                               stamofu_iq_enq_ready;
+
+    // op enqueue to acquire queue
+    logic                               stamofu_aq_enq_valid;
+    logic                               stamofu_aq_enq_mem_aq;
+    logic                               stamofu_aq_enq_io_aq;
+    logic [LOG_ROB_ENTRIES-1:0]         stamofu_aq_enq_ROB_index;
+
+    // acquire queue enqueue feedback
+    logic                               stamofu_aq_enq_ready;
+
     // ----------------------------------------------------------------
     // Front End Modules:
 
@@ -3369,6 +3415,60 @@ module core #(
     // stamofu:
 
     // stamofu_dq
+    stamofu_dq #(
+        .STAMOFU_DQ_ENTRIES(STAMOFU_DQ_ENTRIES)
+    ) STAMOFU_DQ (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
+
+        // op dispatch by way
+        .dispatch_attempt_by_way(dispatch_attempt_stamofu_dq_by_way),
+        .dispatch_valid_store_by_way(dispatch_valid_store_by_way),
+        .dispatch_valid_amo_by_way(dispatch_valid_amo_by_way),
+        .dispatch_valid_fence_by_way(dispatch_valid_fence_by_way),
+        .dispatch_op_by_way(dispatch_op_by_way),
+        .dispatch_imm12_by_way(dispatch_imm12_by_way),
+        .dispatch_mdp_info_by_way(dispatch_mdp_info_by_way),
+        .dispatch_mem_aq_by_way(dispatch_mem_aq_by_way),
+        .dispatch_io_aq_by_way(dispatch_io_aq_by_way),
+        .dispatch_mem_rl_by_way(dispatch_mem_rl_by_way),
+        .dispatch_io_rl_by_way(dispatch_io_rl_by_way),
+        .dispatch_A_PR_by_way(dispatch_A_PR_by_way),
+        .dispatch_A_ready_by_way(dispatch_A_ready_by_way),
+        .dispatch_A_is_zero_by_way(dispatch_A_is_zero_by_way),
+        .dispatch_B_PR_by_way(dispatch_B_PR_by_way),
+        .dispatch_B_ready_by_way(dispatch_B_ready_by_way),
+        .dispatch_B_is_zero_by_way(dispatch_B_is_zero_by_way),
+        .dispatch_dest_PR_by_way(dispatch_dest_new_PR_by_way),
+        .dispatch_ROB_index_by_way(dispatch_rob_enq_ROB_index_by_way),
+
+        // op dispatch feedback
+        .dispatch_ack_by_way(dispatch_ack_stamofu_dq_by_way),
+
+        // writeback bus by bank
+        .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
+        .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
+
+        // op enqueue to central queue
+        .stamofu_cq_enq_valid(stamofu_cq_enq_valid),
+        .stamofu_cq_enq_killed(stamofu_cq_enq_killed),
+        .stamofu_cq_enq_is_store(stamofu_cq_enq_is_store),
+        .stamofu_cq_enq_is_amo(stamofu_cq_enq_is_amo),
+        .stamofu_cq_enq_is_fence(stamofu_cq_enq_is_fence),
+        .stamofu_cq_enq_op(stamofu_cq_enq_op),
+        .stamofu_cq_enq_mdp_info(stamofu_cq_enq_mdp_info),
+        .stamofu_cq_enq_mem_aq(stamofu_cq_enq_mem_aq),
+        .stamofu_cq_enq_io_aq(stamofu_cq_enq_io_aq),
+        .stamofu_cq_enq_mem_rl(stamofu_cq_enq_mem_rl),
+        .stamofu_cq_enq_io_rl(stamofu_cq_enq_io_rl),
+        .stamofu_cq_enq_dest_PR(stamofu_cq_enq_dest_PR),
+        .stamofu_cq_enq_ROB_index(stamofu_cq_enq_ROB_index),
+
+        // central queue enqueue feedback
+        .stamofu_cq_enq_ready(stamofu_cq_enq_ready),
+        .stamofu_cq_enq_index(stamofu_cq_enq_index),
+    );
 
     // stamofu_iq
     // stamofu_aq
