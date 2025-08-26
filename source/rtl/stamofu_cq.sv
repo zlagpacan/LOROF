@@ -534,11 +534,23 @@ module stamofu_cq #(
     logic [31:0]                        CAM_stage2_bank1_forward_data;
 
     // ssu CAM update
-    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  ssu_CAM_update_bank0_cq_index;
-    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  ssu_CAM_update_bank1_cq_index;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  ssu_CAM_update_bank0_cq_index, next_ssu_CAM_update_bank0_cq_index;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  ssu_CAM_update_bank1_cq_index, next_ssu_CAM_update_bank1_cq_index;
 
-    logic [STAMOFU_CQ_ENTRIES-1:0]  ssu_CAM_update_bank0_valid_by_entry;
-    logic [STAMOFU_CQ_ENTRIES-1:0]  ssu_CAM_update_bank1_valid_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0]  ssu_CAM_update_bank0_valid_by_entry, next_ssu_CAM_update_bank0_valid_by_entry;
+    logic [STAMOFU_CQ_ENTRIES-1:0]  ssu_CAM_update_bank1_valid_by_entry, next_ssu_CAM_update_bank1_valid_by_entry;
+
+    logic                           next_ssu_CAM_update_bank0_valid;
+    logic [MDPT_INFO_WIDTH-1:0]     next_ssu_CAM_update_bank0_ld_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]     next_ssu_CAM_update_bank0_ld_ROB_index;
+    logic [MDPT_INFO_WIDTH-1:0]     next_ssu_CAM_update_bank0_stamo_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]     next_ssu_CAM_update_bank0_stamo_ROB_index;
+
+    logic                           next_ssu_CAM_update_bank1_valid;
+    logic [MDPT_INFO_WIDTH-1:0]     next_ssu_CAM_update_bank1_ld_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]     next_ssu_CAM_update_bank1_ld_ROB_index;
+    logic [MDPT_INFO_WIDTH-1:0]     next_ssu_CAM_update_bank1_stamo_mdp_info;
+    logic [LOG_ROB_ENTRIES-1:0]     next_ssu_CAM_update_bank1_stamo_ROB_index;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -1159,7 +1171,7 @@ module stamofu_cq #(
             stamofu_CAM_return_bank0_forward_data = stamofu_mq_CAM_return_bank0_forward_data;
 
             // ssu CAM update from mq
-            ssu_CAM_update_bank0_cq_index = stamofu_mq_CAM_return_bank0_cq_index;
+            next_ssu_CAM_update_bank0_cq_index = stamofu_mq_CAM_return_bank0_cq_index;
         end
         else begin
             stamofu_CAM_return_bank0_forward = CAM_stage2_bank0_forward;
@@ -1168,7 +1180,7 @@ module stamofu_cq #(
             stamofu_CAM_return_bank0_forward_data = CAM_stage2_bank0_forward_data;
 
             // ssu CAM update from cq
-            ssu_CAM_update_bank0_cq_index = CAM_stage2_bank0_load_selected_index;
+            next_ssu_CAM_update_bank0_cq_index = CAM_stage2_bank0_load_selected_index;
         end
 
         // accumulate stalls
@@ -1176,17 +1188,37 @@ module stamofu_cq #(
         stamofu_CAM_return_bank0_stall_count = stamofu_mq_CAM_return_bank0_stall_count + CAM_stage2_bank0_stall_count;
         
         // ssu CAM update
-        ssu_CAM_update_bank0_valid = 
+        next_ssu_CAM_update_bank0_valid = 
             stamofu_CAM_return_bank0_valid 
             & (stamofu_CAM_return_bank0_forward | stamofu_CAM_return_bank0_nasty_forward)
         ;
-        ssu_CAM_update_bank0_ld_mdp_info = CAM_stage2_bank0_load_mdp_info;
-        ssu_CAM_update_bank0_ld_ROB_index = CAM_stage2_bank0_load_ROB_index;
-        ssu_CAM_update_bank0_stamo_mdp_info = entry_array[ssu_CAM_update_bank0_cq_index].mdp_info;
-        ssu_CAM_update_bank0_stamo_ROB_index = entry_array[ssu_CAM_update_bank0_cq_index].ROB_index;
+        next_ssu_CAM_update_bank0_ld_mdp_info = CAM_stage2_bank0_load_mdp_info;
+        next_ssu_CAM_update_bank0_ld_ROB_index = CAM_stage2_bank0_load_ROB_index;
+        next_ssu_CAM_update_bank0_stamo_mdp_info = entry_array[ssu_CAM_update_bank0_cq_index].mdp_info;
+        next_ssu_CAM_update_bank0_stamo_ROB_index = entry_array[ssu_CAM_update_bank0_cq_index].ROB_index;
 
-        ssu_CAM_update_bank0_valid_by_entry = '0;
-        ssu_CAM_update_bank0_valid_by_entry[ssu_CAM_update_bank0_cq_index] = ssu_CAM_update_bank0_valid;
+        next_ssu_CAM_update_bank0_valid_by_entry = '0;
+        next_ssu_CAM_update_bank0_valid_by_entry[ssu_CAM_update_bank0_cq_index] = ssu_CAM_update_bank0_valid;
+    end
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            ssu_CAM_update_bank0_cq_index <= 0;
+            ssu_CAM_update_bank0_valid <= 1'b0;
+            ssu_CAM_update_bank0_ld_mdp_info <= 8'h00;
+            ssu_CAM_update_bank0_ld_ROB_index <= 0;
+            ssu_CAM_update_bank0_stamo_mdp_info <= 8'h00;
+            ssu_CAM_update_bank0_stamo_ROB_index <= 0;
+            ssu_CAM_update_bank0_valid_by_entry <= '0;
+        end
+        else begin
+            ssu_CAM_update_bank0_cq_index <= next_ssu_CAM_update_bank0_cq_index;
+            ssu_CAM_update_bank0_valid <= next_ssu_CAM_update_bank0_valid;
+            ssu_CAM_update_bank0_ld_mdp_info <= next_ssu_CAM_update_bank0_ld_mdp_info;
+            ssu_CAM_update_bank0_ld_ROB_index <= next_ssu_CAM_update_bank0_ld_ROB_index;
+            ssu_CAM_update_bank0_stamo_mdp_info <= next_ssu_CAM_update_bank0_stamo_mdp_info;
+            ssu_CAM_update_bank0_stamo_ROB_index <= next_ssu_CAM_update_bank0_stamo_ROB_index;
+            ssu_CAM_update_bank0_valid_by_entry <= next_ssu_CAM_update_bank0_valid_by_entry;
+        end
     end
 
     /////////////////////////
@@ -1354,7 +1386,7 @@ module stamofu_cq #(
             stamofu_CAM_return_bank1_forward_data = stamofu_mq_CAM_return_bank1_forward_data;
 
             // ssu CAM update from mq
-            ssu_CAM_update_bank1_cq_index = stamofu_mq_CAM_return_bank1_cq_index;
+            next_ssu_CAM_update_bank1_cq_index = stamofu_mq_CAM_return_bank1_cq_index;
         end
         else begin
             stamofu_CAM_return_bank1_forward = CAM_stage2_bank1_forward;
@@ -1363,7 +1395,7 @@ module stamofu_cq #(
             stamofu_CAM_return_bank1_forward_data = CAM_stage2_bank1_forward_data;
 
             // ssu CAM update from cq
-            ssu_CAM_update_bank1_cq_index = CAM_stage2_bank1_load_selected_index;
+            next_ssu_CAM_update_bank1_cq_index = CAM_stage2_bank1_load_selected_index;
         end
 
         // accumulate stalls
@@ -1371,17 +1403,37 @@ module stamofu_cq #(
         stamofu_CAM_return_bank1_stall_count = stamofu_mq_CAM_return_bank1_stall_count + CAM_stage2_bank1_stall_count;
         
         // ssu CAM update
-        ssu_CAM_update_bank1_valid = 
+        next_ssu_CAM_update_bank1_valid = 
             stamofu_CAM_return_bank1_valid 
             & (stamofu_CAM_return_bank1_forward | stamofu_CAM_return_bank1_nasty_forward)
         ;
-        ssu_CAM_update_bank1_ld_mdp_info = CAM_stage2_bank1_load_mdp_info;
-        ssu_CAM_update_bank1_ld_ROB_index = CAM_stage2_bank1_load_ROB_index;
-        ssu_CAM_update_bank1_stamo_mdp_info = entry_array[ssu_CAM_update_bank1_cq_index].mdp_info;
-        ssu_CAM_update_bank1_stamo_ROB_index = entry_array[ssu_CAM_update_bank1_cq_index].ROB_index;
+        next_ssu_CAM_update_bank1_ld_mdp_info = CAM_stage2_bank1_load_mdp_info;
+        next_ssu_CAM_update_bank1_ld_ROB_index = CAM_stage2_bank1_load_ROB_index;
+        next_ssu_CAM_update_bank1_stamo_mdp_info = entry_array[ssu_CAM_update_bank1_cq_index].mdp_info;
+        next_ssu_CAM_update_bank1_stamo_ROB_index = entry_array[ssu_CAM_update_bank1_cq_index].ROB_index;
 
-        ssu_CAM_update_bank1_valid_by_entry = '0;
-        ssu_CAM_update_bank1_valid_by_entry[ssu_CAM_update_bank1_cq_index] = ssu_CAM_update_bank1_valid;
+        next_ssu_CAM_update_bank1_valid_by_entry = '0;
+        next_ssu_CAM_update_bank1_valid_by_entry[ssu_CAM_update_bank1_cq_index] = ssu_CAM_update_bank1_valid;
+    end
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            ssu_CAM_update_bank1_cq_index <= 0;
+            ssu_CAM_update_bank1_valid <= 1'b0;
+            ssu_CAM_update_bank1_ld_mdp_info <= 8'h00;
+            ssu_CAM_update_bank1_ld_ROB_index <= 0;
+            ssu_CAM_update_bank1_stamo_mdp_info <= 8'h00;
+            ssu_CAM_update_bank1_stamo_ROB_index <= 0;
+            ssu_CAM_update_bank1_valid_by_entry <= '0;
+        end
+        else begin
+            ssu_CAM_update_bank1_cq_index <= next_ssu_CAM_update_bank1_cq_index;
+            ssu_CAM_update_bank1_valid <= next_ssu_CAM_update_bank1_valid;
+            ssu_CAM_update_bank1_ld_mdp_info <= next_ssu_CAM_update_bank1_ld_mdp_info;
+            ssu_CAM_update_bank1_ld_ROB_index <= next_ssu_CAM_update_bank1_ld_ROB_index;
+            ssu_CAM_update_bank1_stamo_mdp_info <= next_ssu_CAM_update_bank1_stamo_mdp_info;
+            ssu_CAM_update_bank1_stamo_ROB_index <= next_ssu_CAM_update_bank1_stamo_ROB_index;
+            ssu_CAM_update_bank1_valid_by_entry <= next_ssu_CAM_update_bank1_valid_by_entry;
+        end
     end
 
     // central queue info grab
