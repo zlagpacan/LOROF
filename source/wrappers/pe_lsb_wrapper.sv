@@ -10,7 +10,7 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-parameter WIDTH = 40;
+parameter WIDTH = 32;
 
 module pe_lsb_wrapper (
 

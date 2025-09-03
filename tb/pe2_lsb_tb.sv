@@ -41,6 +41,9 @@ module pe2_lsb_tb ();
 	logic [WIDTH-1:0] DUT_ack_one_hot, expected_ack_one_hot;
 	logic [$clog2(WIDTH)-1:0] DUT_ack_index, expected_ack_index;
 
+    logic DUT_found_first, expected_found_first;
+    logic DUT_found_second, expected_found_second;
+
     // ----------------------------------------------------------------
     // DUT instantiation:
 
@@ -50,7 +53,10 @@ module pe2_lsb_tb ();
 		.req_vec(tb_req_vec),
 
 		.ack_one_hot(DUT_ack_one_hot),
-		.ack_index(DUT_ack_index)
+		.ack_index(DUT_ack_index),
+
+        .found_first(DUT_found_first),
+        .found_second(DUT_found_second)
 	);
 
     // ----------------------------------------------------------------
@@ -68,6 +74,20 @@ module pe2_lsb_tb ();
 		if (expected_ack_index !== DUT_ack_index) begin
 			$display("TB ERROR: expected_ack_index (%h) != DUT_ack_index (%h)",
 				expected_ack_index, DUT_ack_index);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_found_first !== DUT_found_first) begin
+			$display("TB ERROR: expected_found_first (%h) != DUT_found_first (%h)",
+				expected_found_first, DUT_found_first);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_found_second !== DUT_found_second) begin
+			$display("TB ERROR: expected_found_second (%h) != DUT_found_second (%h)",
+				expected_found_second, DUT_found_second);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -103,6 +123,9 @@ module pe2_lsb_tb ();
 		expected_ack_one_hot = 8'b00000000;
 		expected_ack_index = 0;
 
+		expected_found_first = 1'b0;
+		expected_found_second = 1'b0;
+
 		check_outputs();
 
         // inputs:
@@ -119,6 +142,9 @@ module pe2_lsb_tb ();
 
 		expected_ack_one_hot = 8'b00000000;
 		expected_ack_index = 0;
+
+		expected_found_first = 1'b0;
+		expected_found_second = 1'b0;
 
 		check_outputs();
 
@@ -146,6 +172,9 @@ module pe2_lsb_tb ();
 
             expected_ack_one_hot = 8'b00000000;
             expected_ack_index = 0;
+
+            expected_found_first = 1'b0;
+            expected_found_second = 1'b0;
 
             check_outputs();
         end

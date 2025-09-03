@@ -23,7 +23,10 @@ module pe2_lsb_wrapper (
 	input logic [WIDTH-1:0] next_req_vec,
 
 	output logic [WIDTH-1:0] last_ack_one_hot,
-	output logic [$clog2(WIDTH)-1:0] last_ack_index
+	output logic [$clog2(WIDTH)-1:0] last_ack_index,
+
+	output logic last_found_first,
+	output logic last_found_second
 );
 
     // ----------------------------------------------------------------
@@ -32,6 +35,9 @@ module pe2_lsb_wrapper (
 
 	logic [WIDTH-1:0] ack_one_hot;
 	logic [$clog2(WIDTH)-1:0] ack_index;
+
+	logic found_first;
+	logic found_second;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -49,12 +55,18 @@ module pe2_lsb_wrapper (
 
 			last_ack_one_hot <= '0;
 			last_ack_index <= '0;
+
+			last_found_first <= '0;
+			last_found_second <= '0;
         end
         else begin
 			req_vec <= next_req_vec;
 
 			last_ack_one_hot <= ack_one_hot;
 			last_ack_index <= ack_index;
+
+			last_found_first <= found_first;
+			last_found_second <= found_second;
         end
     end
 

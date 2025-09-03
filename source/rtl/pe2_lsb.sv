@@ -10,10 +10,11 @@ module pe2_lsb #(
     input logic [WIDTH-1:0]             req_vec,
 
     output logic [WIDTH-1:0]            ack_one_hot,
-    output logic [$clog2(WIDTH)-1:0]    ack_index
+    output logic [$clog2(WIDTH)-1:0]    ack_index,
+
+    output logic                        found_first,
+    output logic                        found_second
 );
-    logic found_first;
-    logic found_second;
 
     always_comb begin
 

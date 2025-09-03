@@ -97,6 +97,8 @@ module prf #(
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port0_unmasked_read_ack_by_bank_by_rr;
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port1_masked_read_ack_by_bank_by_rr;
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port1_unmasked_read_ack_by_bank_by_rr;
+    logic [PRF_BANK_COUNT-1:0]                      port1_masked_found_first_by_bank;
+    logic [PRF_BANK_COUNT-1:0]                      port1_masked_found_second_by_bank;
 
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port0_read_ack_by_bank_by_rr;
     logic [PRF_BANK_COUNT-1:0][PRF_RR_COUNT-1:0]    port1_read_ack_by_bank_by_rr;
@@ -234,17 +236,17 @@ module prf #(
                 // single PE over raw compressed req's with port 0 ack masked out
             
             // port 1 masked
-            pe_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_MASKED_PE_LSB (
-                .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank] & ~port0_read_ack_by_bank_by_rr[rr_bank] & last_read_mask_by_bank[rr_bank]),
+            pe2_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_MASKED_PE2_LSB (
+                .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank] & last_read_mask_by_bank[rr_bank]),
                 .ack_one_hot(port1_masked_read_ack_by_bank_by_rr[rr_bank]),
-                .ack_mask()
+                .found_first(port1_masked_found_first_by_bank[rr_bank]),
+                .found_second(port1_masked_found_second_by_bank[rr_bank])
             );
             
             // port 1 unmasked
-            pe_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_UNMASKED_PE_LSB (
-                .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank] & ~port0_read_ack_by_bank_by_rr[rr_bank]),
-                .ack_one_hot(port1_unmasked_read_ack_by_bank_by_rr[rr_bank]),
-                .ack_mask()
+            pe2_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_UNMASKED_PE2_LSB (
+                .req_vec(compressed_read_req_valid_by_bank_by_rr[rr_bank]),
+                .ack_one_hot(port1_unmasked_read_ack_by_bank_by_rr[rr_bank])
             );
 
         end
@@ -290,10 +292,14 @@ module prf #(
             end
 
             // select port 1:
-                // if any masked req, use masked
-                // else use unmasked
-            if (|(compressed_read_req_valid_by_bank_by_rr[bank] & ~port0_read_ack_by_bank_by_rr[bank] & last_read_mask_by_bank[bank])) begin
+                // if found masked second, use it
+                // if found masked first but not second, use unmasked first
+                // else, use unmasked second
+            if (port1_masked_found_second_by_bank[bank]) begin
                 port1_read_ack_by_bank_by_rr[bank] = port1_masked_read_ack_by_bank_by_rr[bank];
+            end
+            else if (port1_masked_found_first_by_bank[bank]) begin
+                port1_read_ack_by_bank_by_rr[bank] = port0_unmasked_read_ack_by_bank_by_rr[bank];
             end
             else begin
                 port1_read_ack_by_bank_by_rr[bank] = port1_unmasked_read_ack_by_bank_by_rr[bank];
@@ -307,7 +313,7 @@ module prf #(
         next_read_resp_port_by_rr = '0;
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
             next_read_resp_ack_by_rr |= port0_read_ack_by_bank_by_rr[bank] | port1_read_ack_by_bank_by_rr[bank];
-            next_read_resp_port_by_rr |= port1_read_ack_by_bank_by_rr[bank];
+            next_read_resp_port_by_rr |= port1_read_ack_by_bank_by_rr[bank]; // if only one req (and it is masked req), what would be port0 can become port1 
         end
 
         // unacked req's
