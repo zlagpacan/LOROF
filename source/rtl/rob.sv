@@ -416,6 +416,9 @@ module rob #(
 
     logic [3:0]                     PR_free_q_deq_invalid_mask, next_PR_free_q_deq_invalid_mask;
 
+    // deq timing fix
+    logic empty_last_cycle;
+
     // instret ret
         // can add 0,1,2,3,4 per cycle
     logic [31:0]                instret;
@@ -1410,7 +1413,8 @@ module rob #(
                     // 4way entry valid
                     // all sub-entries invalid or complete
                 else if (
-                    valid_by_4way[head_ptr]
+                    ~empty_last_cycle
+                    & valid_by_4way[head_ptr]
                     & &(~bulk_bram_read_entry.valid_by_way | deq_complete_by_way)
                     & PR_free_q_enq_ready
                 ) begin
@@ -1444,7 +1448,8 @@ module rob #(
                     next_restart_info_is_exception = restart_info_is_exception;
                     // lowest 3 invalid or complete
                     if (
-                        valid_by_4way[head_ptr]
+                        ~empty_last_cycle
+                        & valid_by_4way[head_ptr]
                         & &(~bulk_bram_read_entry.valid_by_way[2:0] | deq_complete_by_way[2:0])
                     ) begin
                         deq_launching_by_way[3] = 1'b0;
@@ -1452,7 +1457,8 @@ module rob #(
                     end
                     // lowest 2 invalid or complete
                     else if (
-                        valid_by_4way[head_ptr]
+                        ~empty_last_cycle
+                        & valid_by_4way[head_ptr]
                         & &(~bulk_bram_read_entry.valid_by_way[1:0] | deq_complete_by_way[1:0])
                     ) begin
                         deq_launching_by_way[3:2] = 2'b00;
@@ -1460,7 +1466,8 @@ module rob #(
                     end
                     // lowest 1 invalid or complete
                     else if (
-                        valid_by_4way[head_ptr]
+                        ~empty_last_cycle
+                        & valid_by_4way[head_ptr]
                         & (~bulk_bram_read_entry.valid_by_way[0] | deq_complete_by_way[0])
                     ) begin
                         deq_launching_by_way[3:1] = 3'b000;
@@ -1612,6 +1619,16 @@ module rob #(
     end
     always_comb begin
         rob_instret = instret;
+    end
+
+    // deq timing fix
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            empty_last_cycle <= 1'b1;
+        end
+        else begin
+            empty_last_cycle <= (tail_ptr == head_ptr) & enq_perform;
+        end
     end
 
     // ----------------------------------------------------------------

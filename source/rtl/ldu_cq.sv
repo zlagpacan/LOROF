@@ -343,7 +343,7 @@ module ldu_cq #(
     logic second_try_req_not_accepted;
     logic data_try_req_not_accepted;
 
-    logic ldu_complete_cq_index;
+    logic [LOG_LDU_CQ_ENTRIES-1:0] ldu_complete_cq_index;
 
     logic [LDU_CQ_ENTRIES-1:0][LOG_ROB_ENTRIES-1:0] rel_ROB_index_by_entry;
     

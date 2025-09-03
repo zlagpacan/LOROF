@@ -214,6 +214,9 @@ module core #(
     // sfence invalidation backpressure from MMU
     input logic                     sfence_inv_ready,
 
+    // ROB instret advertisement
+    output logic [31:0] rob_instret,
+
     // hardware failure
     output logic unrecoverable_fault
 );
@@ -579,6 +582,10 @@ module core #(
 	logic [3:0]                     rob_PR_free_req_valid_by_bank;
 	logic [3:0][LOG_PR_COUNT-1:0]   rob_PR_free_req_PR_by_bank;
 	logic [3:0]						rob_PR_free_resp_ack_by_bank;
+
+    // ROB instret write
+    logic           rob_instret_write_valid;
+    logic [31:0]    rob_instret_write_data;
 
     // read req info by read requester
     logic [PRF_RR_COUNT-1:0]                    prf_read_req_valid_by_rr;
@@ -2066,6 +2073,10 @@ module core #(
     );
 
     // rob
+    always_comb begin
+        rob_instret_write_valid = 1'b0;
+        rob_instret_write_data = 32'h0;
+    end
     rob #(
 		.ROB_ENTRIES(ROB_ENTRIES),
 		.LOG_ROB_ENTRIES(LOG_ROB_ENTRIES),
@@ -2239,7 +2250,14 @@ module core #(
 		// ROB physical register freeing
 		.rob_PR_free_req_valid_by_bank(rob_PR_free_req_valid_by_bank),
 		.rob_PR_free_req_PR_by_bank(rob_PR_free_req_PR_by_bank),
-		.rob_PR_free_resp_ack_by_bank(rob_PR_free_resp_ack_by_bank)
+		.rob_PR_free_resp_ack_by_bank(rob_PR_free_resp_ack_by_bank),
+
+        // ROB instret advertisement
+        .rob_instret(rob_instret),
+
+        // ROB instret write
+        .rob_instret_write_valid(rob_instret_write_valid),
+        .rob_instret_write_data(rob_instret_write_data)
 	);
 
     // ----------------------------------------------------------------

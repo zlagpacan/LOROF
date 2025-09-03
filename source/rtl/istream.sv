@@ -360,7 +360,7 @@ module istream #(
 
                     // guaranteed valid for way 0 valid
                     if (way == 0) begin
-                        valid_SDEQ = 1'b1;
+                        valid_SDEQ = set_valid_array[0];
                     end
 
                     // mark way valid
@@ -385,7 +385,7 @@ module istream #(
 
                 // guaranteed valid for way 0 valid
                 if (way == 0) begin
-                    valid_SDEQ = 1'b1;
+                    valid_SDEQ = set_valid_array[0];
                 end
 
                 // mark way valid

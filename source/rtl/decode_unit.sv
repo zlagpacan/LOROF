@@ -682,7 +682,7 @@ module decode_unit #(
 			unrecoverable_fault <= 1'b0;
 		end
 		else begin
-			unrecoverable_fault <= unrecoverable_fault | |decoder_unrecoverable_fault_by_way;
+			unrecoverable_fault <= (state_DEC == DEC_ACTIVE) & |decoder_unrecoverable_fault_by_way;
 		end
 	end
 

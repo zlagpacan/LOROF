@@ -216,6 +216,9 @@ module core_wrapper (
     // sfence invalidation backpressure from MMU
 	input logic next_sfence_inv_ready,
 
+	// ROB instret advertisement
+	output logic [31:0] last_rob_instret,
+
     // hardware failure
 	output logic last_unrecoverable_fault
 );
@@ -406,6 +409,9 @@ module core_wrapper (
 
     // sfence invalidation backpressure from MMU
 	logic sfence_inv_ready;
+
+	// ROB instret advertisement
+	logic [31:0] rob_instret;
 
     // hardware failure
 	logic unrecoverable_fault;
@@ -618,6 +624,9 @@ module core_wrapper (
 		    // sfence invalidation backpressure from MMU
 			sfence_inv_ready <= '0;
 
+			// ROB instret advertisement
+			last_rob_instret <= '0;
+
 		    // hardware failure
 			last_unrecoverable_fault <= '0;
         end
@@ -806,6 +815,9 @@ module core_wrapper (
 
 		    // sfence invalidation backpressure from MMU
 			sfence_inv_ready <= next_sfence_inv_ready;
+
+			// ROB instret advertisement
+			last_rob_instret <= rob_instret;
 
 		    // hardware failure
 			last_unrecoverable_fault <= unrecoverable_fault;

@@ -232,6 +232,9 @@ module core_tb ();
     // sfence invalidation backpressure from MMU
 	logic tb_sfence_inv_ready;
 
+	// ROB instret advertisement
+	logic [31:0] DUT_rob_instret, expected_rob_instret;
+
     // hardware failure
 	logic DUT_unrecoverable_fault, expected_unrecoverable_fault;
 
@@ -439,6 +442,9 @@ module core_tb ();
 
 	    // sfence invalidation backpressure from MMU
 		.sfence_inv_ready(tb_sfence_inv_ready),
+
+		// ROB instret advertisement
+		.rob_instret(DUT_rob_instret),
 
 	    // hardware failure
 		.unrecoverable_fault(DUT_unrecoverable_fault)
@@ -995,6 +1001,13 @@ module core_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_rob_instret !== DUT_rob_instret) begin
+			$display("TB ERROR: expected_rob_instret (%h) != DUT_rob_instret (%h)",
+				expected_rob_instret, DUT_rob_instret);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_unrecoverable_fault !== DUT_unrecoverable_fault) begin
 			$display("TB ERROR: expected_unrecoverable_fault (%h) != DUT_unrecoverable_fault (%h)",
 				expected_unrecoverable_fault, DUT_unrecoverable_fault);
@@ -1108,6 +1121,7 @@ module core_tb ();
 	    // write buffer WB feedback from PRF
 	    // sfence invalidation to MMU
 	    // sfence invalidation backpressure from MMU
+		// ROB instret advertisement
 		tb_sfence_inv_ready = 1'b1;
 	    // hardware failure
 
@@ -1215,6 +1229,8 @@ module core_tb ();
 		expected_sfence_inv_VA = 20'h00000;
 		expected_sfence_inv_ASID = 9'h000;
 	    // sfence invalidation backpressure from MMU
+		// ROB instret advertisement
+		expected_rob_instret = 32'h0;
 	    // hardware failure
 		expected_unrecoverable_fault = 1'b0;
 
@@ -1310,6 +1326,7 @@ module core_tb ();
 	    // write buffer WB feedback from PRF
 	    // sfence invalidation to MMU
 	    // sfence invalidation backpressure from MMU
+		// ROB instret advertisement
 		tb_sfence_inv_ready = 1'b1;
 	    // hardware failure
 
@@ -1417,220 +1434,456 @@ module core_tb ();
 		expected_sfence_inv_VA = 20'h00000;
 		expected_sfence_inv_ASID = 9'h000;
 	    // sfence invalidation backpressure from MMU
+		// ROB instret advertisement
+		expected_rob_instret = 32'h0;
 	    // hardware failure
 		expected_unrecoverable_fault = 1'b0;
 
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // vector add repeat:
+            // ADDI x1, x2, 4
+            // LW x3, 0x28(x4)
+            // SUB x5, x6, x7
+            // LUI x8, 0x293d0
+        test_case = "vector add repeat";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		@(posedge CLK); #(PERIOD/10);
+		for (int i = 0; i < 128; i++) begin
 
-		// inputs
-		sub_test_case = "default";
-		$display("\t- sub_test: %s", sub_test_case);
+			@(posedge CLK); #(PERIOD/10);
 
-		// reset
-		nRST = 1'b1;
-	    // itlb req
-	    // itlb resp
-		tb_itlb_resp_valid = 1'b0;
-		tb_itlb_resp_PPN = 22'h000000;
-		tb_itlb_resp_page_fault = 1'b0;
-		tb_itlb_resp_access_fault = 1'b0;
-	    // icache req
-	    // icache resp
-		tb_icache_resp_valid_by_way = 2'b00;
-		tb_icache_resp_tag_by_way = {22'h000000, 22'h000000};
-		tb_icache_resp_instr_16B_by_way = {
-			16'h0000, 16'h0000,
-			16'h0000, 16'h0000,
-			16'h0000, 16'h0000,
-			16'h0000, 16'h0000,
-			16'h0000, 16'h0000,
-			16'h0000, 16'h0000,
-			16'h0000, 16'h0000,
-			16'h0000, 16'h0000
-		};
-	    // icache resp feedback
-	    // dtlb req
-	    // dtlb req feedback
-		tb_dtlb_req_bank0_ready = 1'b1;
-		tb_dtlb_req_bank1_ready = 1'b1;
-	    // dtlb resp
-		tb_dtlb_resp_bank0_hit = 1'b0;
-		tb_dtlb_resp_bank0_PPN = 22'h000000;
-		tb_dtlb_resp_bank0_is_mem = 1'b0;
-		tb_dtlb_resp_bank0_page_fault = 1'b0;
-		tb_dtlb_resp_bank0_access_fault = 1'b0;
-		tb_dtlb_resp_bank1_hit = 1'b0;
-		tb_dtlb_resp_bank1_PPN = 22'h000000;
-		tb_dtlb_resp_bank1_is_mem = 1'b0;
-		tb_dtlb_resp_bank1_page_fault = 1'b0;
-		tb_dtlb_resp_bank1_access_fault = 1'b0;
-	    // dtlb miss resp
-		tb_dtlb_miss_resp_valid = 1'b0;
-		tb_dtlb_miss_resp_is_ldu = 1'b0;
-		tb_dtlb_miss_resp_cq_index = 0;
-		tb_dtlb_miss_resp_is_mq = 1'b0;
-		tb_dtlb_miss_resp_mq_index = 0;
-		tb_dtlb_miss_resp_PPN = 22'h000000;
-		tb_dtlb_miss_resp_is_mem = 1'b0;
-		tb_dtlb_miss_resp_page_fault = 1'b0;
-		tb_dtlb_miss_resp_access_fault = 1'b0;
-	    // dcache req
-	    // dcache req feedback
-		tb_dcache_req_bank0_ready = 1'b1;
-		tb_dcache_req_bank1_ready = 1'b1;
-	    // dcache resp
-		tb_dcache_resp_bank0_valid_by_way = 2'b00;
-		tb_dcache_resp_bank0_exclusive_by_way = 2'b00;
-		tb_dcache_resp_bank0_tag_by_way = {22'h000000, 22'h000000};
-		tb_dcache_resp_bank0_data_by_way = {32'h00000000, 32'h00000000};
-		tb_dcache_resp_bank1_valid_by_way = 2'b00;
-		tb_dcache_resp_bank1_exclusive_by_way = 2'b00;
-		tb_dcache_resp_bank1_tag_by_way = {22'h000000, 22'h000000};
-		tb_dcache_resp_bank1_data_by_way = {32'h00000000, 32'h00000000};
-	    // dcache resp feedback
-	    // dcache miss resp
-		tb_dcache_miss_resp_valid = 1'b0;
-		tb_dcache_miss_resp_is_ldu = 1'b0;
-		tb_dcache_miss_resp_cq_index = 0;
-		tb_dcache_miss_resp_is_mq = 1'b0;
-		tb_dcache_miss_resp_mq_index = 0;
-		tb_dcache_miss_resp_data = 32'h00000000;
-	    // write buffer enq bank 0
-	    // write buffer enq feedback bank 0
-		tb_wr_buf_enq_bank0_ready = 1'b1;
-		tb_wr_buf_enq_bank0_mem_present = 1'b0;
-		tb_wr_buf_enq_bank0_io_present = 1'b0;
-	    // write buffer enq bank 1
-	    // write buffer enq feedback bank 1
-		tb_wr_buf_enq_bank1_ready = 1'b1;
-		tb_wr_buf_enq_bank1_mem_present = 1'b0;
-		tb_wr_buf_enq_bank1_io_present = 1'b0;
-	    // write buffer WB data to PRF
-		tb_wr_buf_WB_valid = 1'b0;
-		tb_wr_buf_WB_data = 32'h00000000;
-		tb_wr_buf_WB_PR = 0;
-	    // write buffer WB feedback from PRF
-	    // sfence invalidation to MMU
-	    // sfence invalidation backpressure from MMU
-		tb_sfence_inv_ready = 1'b1;
-	    // hardware failure
+			// inputs
+			sub_test_case = $sformatf("cycle %0d", i);
+			$display("\t- sub_test: %s", sub_test_case);
 
-		@(negedge CLK);
+			// reset
+			nRST = 1'b1;
+			// itlb req
+			// itlb resp
+			tb_itlb_resp_valid = i > 0;
+			tb_itlb_resp_PPN = 22'h000000;
+			tb_itlb_resp_page_fault = 1'b0;
+			tb_itlb_resp_access_fault = 1'b0;
+			// icache req
+			// icache resp
+			tb_icache_resp_valid_by_way = (i > 0) ? 2'b01 : 2'b00;
+			tb_icache_resp_tag_by_way = {22'h000000, 22'h000000};
+			tb_icache_resp_instr_16B_by_way = {
+				16'h0000, 16'h0000,
+				16'h0000, 16'h0000,
+				16'h0000, 16'h0000,
+				16'h0000, 16'h0000,
+                32'h293d0437,   // LUI x8, 0x293d0
+                32'h407302b3,   // SUB x5, x6, x7
+                32'h02822183,   // LW x3, 0x28(x4)
+				32'h00410093    // ADDI x1, x2, 4
+			};
+			// icache resp feedback
+			// dtlb req
+			// dtlb req feedback
+			tb_dtlb_req_bank0_ready = 1'b1;
+			tb_dtlb_req_bank1_ready = 1'b1;
+			// dtlb resp
+			tb_dtlb_resp_bank0_hit = 1'b0;
+			tb_dtlb_resp_bank0_PPN = 22'h000000;
+			tb_dtlb_resp_bank0_is_mem = 1'b0;
+			tb_dtlb_resp_bank0_page_fault = 1'b0;
+			tb_dtlb_resp_bank0_access_fault = 1'b0;
+			tb_dtlb_resp_bank1_hit = (i >= 10);
+			tb_dtlb_resp_bank1_PPN = 22'h000000;
+			tb_dtlb_resp_bank1_is_mem = 1'b1;
+			tb_dtlb_resp_bank1_page_fault = 1'b0;
+			tb_dtlb_resp_bank1_access_fault = 1'b0;
+			// dtlb miss resp
+			tb_dtlb_miss_resp_valid = 1'b0;
+			tb_dtlb_miss_resp_is_ldu = 1'b0;
+			tb_dtlb_miss_resp_cq_index = 0;
+			tb_dtlb_miss_resp_is_mq = 1'b0;
+			tb_dtlb_miss_resp_mq_index = 0;
+			tb_dtlb_miss_resp_PPN = 22'h000000;
+			tb_dtlb_miss_resp_is_mem = 1'b0;
+			tb_dtlb_miss_resp_page_fault = 1'b0;
+			tb_dtlb_miss_resp_access_fault = 1'b0;
+			// dcache req
+			// dcache req feedback
+			tb_dcache_req_bank0_ready = 1'b1;
+			tb_dcache_req_bank1_ready = 1'b1;
+			// dcache resp
+			tb_dcache_resp_bank0_valid_by_way = 2'b00;
+			tb_dcache_resp_bank0_exclusive_by_way = 2'b00;
+			tb_dcache_resp_bank0_tag_by_way = {22'h000000, 22'h000000};
+			tb_dcache_resp_bank0_data_by_way = {32'h00000000, 32'h00000000};
+			tb_dcache_resp_bank1_valid_by_way = (i >= 10) ? 2'b01 : 2'b00;
+			tb_dcache_resp_bank1_exclusive_by_way = 2'b00;
+			tb_dcache_resp_bank1_tag_by_way = {22'h000000, 22'h000000};
+			tb_dcache_resp_bank1_data_by_way = {32'h00000000, 32'h01234567};
+			// dcache resp feedback
+			// dcache miss resp
+			tb_dcache_miss_resp_valid = 1'b0;
+			tb_dcache_miss_resp_is_ldu = 1'b0;
+			tb_dcache_miss_resp_cq_index = 0;
+			tb_dcache_miss_resp_is_mq = 1'b0;
+			tb_dcache_miss_resp_mq_index = 0;
+			tb_dcache_miss_resp_data = 32'h00000000;
+			// write buffer enq bank 0
+			// write buffer enq feedback bank 0
+			tb_wr_buf_enq_bank0_ready = 1'b1;
+			tb_wr_buf_enq_bank0_mem_present = 1'b0;
+			tb_wr_buf_enq_bank0_io_present = 1'b0;
+			// write buffer enq bank 1
+			// write buffer enq feedback bank 1
+			tb_wr_buf_enq_bank1_ready = 1'b1;
+			tb_wr_buf_enq_bank1_mem_present = 1'b0;
+			tb_wr_buf_enq_bank1_io_present = 1'b0;
+			// write buffer WB data to PRF
+			tb_wr_buf_WB_valid = 1'b0;
+			tb_wr_buf_WB_data = 32'h00000000;
+			tb_wr_buf_WB_PR = 0;
+			// write buffer WB feedback from PRF
+			// sfence invalidation to MMU
+			// sfence invalidation backpressure from MMU
+			// ROB instret advertisement
+			tb_sfence_inv_ready = 1'b1;
+			// hardware failure
 
-		// outputs:
+			@(negedge CLK);
 
-	    // itlb req
-		expected_itlb_req_valid = 1'b1;
-		expected_itlb_req_exec_mode = M_MODE;
-		expected_itlb_req_virtual_mode = 1'b0;
-		expected_itlb_req_ASID = 9'h000;
-		expected_itlb_req_VPN = 20'h00000;
-	    // itlb resp
-	    // icache req
-		expected_icache_req_valid = 1'b1;
-		expected_icache_req_block_offset = 0;
-		expected_icache_req_index = 0;
-	    // icache resp
-	    // icache resp feedback
-		expected_icache_resp_hit_valid = 1'b0;
-		expected_icache_resp_hit_way = 1'b0;
-		expected_icache_resp_miss_valid = 1'b0;
-		expected_icache_resp_miss_tag = 22'h000000;
-	    // dtlb req
-		expected_dtlb_req_bank0_valid = 1'b0;
-		expected_dtlb_req_bank0_exec_mode = M_MODE;
-		expected_dtlb_req_bank0_virtual_mode = 1'b0;
-		expected_dtlb_req_bank0_ASID = 9'h000;
-		expected_dtlb_req_bank0_MXR = 1'b0;
-		expected_dtlb_req_bank0_SUM = 1'b0;
-		expected_dtlb_req_bank0_VPN = 20'h00000;
-		expected_dtlb_req_bank0_is_read = 1'b0;
-		expected_dtlb_req_bank0_is_write = 1'b1;
-		expected_dtlb_req_bank1_valid = 1'b0;
-		expected_dtlb_req_bank1_exec_mode = M_MODE;
-		expected_dtlb_req_bank1_virtual_mode = 1'b0;
-		expected_dtlb_req_bank1_ASID = 9'h000;
-		expected_dtlb_req_bank1_MXR = 1'b0;
-		expected_dtlb_req_bank1_SUM = 1'b0;
-		expected_dtlb_req_bank1_VPN = 20'h00000;
-		expected_dtlb_req_bank1_is_read = 1'b0;
-		expected_dtlb_req_bank1_is_write = 1'b1;
-	    // dtlb req feedback
-	    // dtlb resp
-	    // dtlb miss resp
-	    // dcache req
-		expected_dcache_req_bank0_valid = 1'b0;
-		expected_dcache_req_bank0_block_offset = 0;
-		expected_dcache_req_bank0_index = 0;
-		expected_dcache_req_bank0_is_ldu = 1'b0;
-		expected_dcache_req_bank0_cq_index = 0;
-		expected_dcache_req_bank0_is_mq = 1'b0;
-		expected_dcache_req_bank0_mq_index = 0;
-		expected_dcache_req_bank1_valid = 1'b0;
-		expected_dcache_req_bank1_block_offset = 0;
-		expected_dcache_req_bank1_index = 0;
-		expected_dcache_req_bank1_is_ldu = 1'b0;
-		expected_dcache_req_bank1_cq_index = 0;
-		expected_dcache_req_bank1_is_mq = 1'b0;
-		expected_dcache_req_bank1_mq_index = 0;
-	    // dcache req feedback
-	    // dcache resp
-	    // dcache resp feedback
-		expected_dcache_resp_bank0_hit_valid = 1'b0;
-		expected_dcache_resp_bank0_hit_exclusive = 1'b1;
-		expected_dcache_resp_bank0_hit_way = 1'b0;
-		expected_dcache_resp_bank0_miss_valid = 1'b0;
-		expected_dcache_resp_bank0_miss_prefetch = 1'b1;
-		expected_dcache_resp_bank0_miss_exclusive = 1'b1;
-		expected_dcache_resp_bank0_miss_tag = 22'h000000;
-		expected_dcache_resp_bank1_hit_valid = 1'b0;
-		expected_dcache_resp_bank1_hit_exclusive = 1'b1;
-		expected_dcache_resp_bank1_hit_way = 1'b0;
-		expected_dcache_resp_bank1_miss_valid = 1'b0;
-		expected_dcache_resp_bank1_miss_prefetch = 1'b1;
-		expected_dcache_resp_bank1_miss_exclusive = 1'b1;
-		expected_dcache_resp_bank1_miss_tag = 22'h000000;
-	    // dcache miss resp
-	    // write buffer enq bank 0
-		expected_wr_buf_enq_bank0_valid = 1'b0;
-		expected_wr_buf_enq_bank0_is_amo = 1'b0;
-		expected_wr_buf_enq_bank0_op = 4'b0000;
-		expected_wr_buf_enq_bank0_dest_PR = 0;
-		expected_wr_buf_enq_bank0_is_mem = 1'b0;
-		expected_wr_buf_enq_bank0_PA_word = 32'h00000000;
-		expected_wr_buf_enq_bank0_byte_mask = 4'b0000;
-		expected_wr_buf_enq_bank0_data = 32'h00000000;
-	    // write buffer enq feedback bank 0
-	    // write buffer enq bank 1
-		expected_wr_buf_enq_bank1_valid = 1'b0;
-		expected_wr_buf_enq_bank1_is_amo = 1'b0;
-		expected_wr_buf_enq_bank1_op = 4'b0000;
-		expected_wr_buf_enq_bank1_dest_PR = 0;
-		expected_wr_buf_enq_bank1_is_mem = 1'b0;
-		expected_wr_buf_enq_bank1_PA_word = 32'h00000000;
-		expected_wr_buf_enq_bank1_byte_mask = 4'b0000;
-		expected_wr_buf_enq_bank1_data = 32'h00000000;
-	    // write buffer enq feedback bank 1
-	    // write buffer WB data to PRF
-	    // write buffer WB feedback from PRF
-		expected_wr_buf_WB_ready = 1'b1;
-	    // sfence invalidation to MMU
-		expected_sfence_inv_valid = 1'b0;
-		expected_sfence_inv_VA = 20'h00000;
-		expected_sfence_inv_ASID = 9'h000;
-	    // sfence invalidation backpressure from MMU
-	    // hardware failure
-		expected_unrecoverable_fault = 1'b0;
+			// outputs:
 
-		check_outputs();
+			// itlb req
+			expected_itlb_req_valid = 1'b1;
+			expected_itlb_req_exec_mode = M_MODE;
+			expected_itlb_req_virtual_mode = 1'b0;
+			expected_itlb_req_ASID = 9'h000;
+			expected_itlb_req_VPN = 20'h00000;
+			// itlb resp
+			// icache req
+			expected_icache_req_valid = 1'b1;
+			expected_icache_req_block_offset = i % 2;
+			expected_icache_req_index = i / 2;
+			// icache resp
+			// icache resp feedback
+			expected_icache_resp_hit_valid = i > 0;
+			expected_icache_resp_hit_way = 1'b0;
+			expected_icache_resp_miss_valid = 1'b0;
+			expected_icache_resp_miss_tag = 22'h000000;
+			// dtlb req
+			expected_dtlb_req_bank0_valid = 1'b0;
+			expected_dtlb_req_bank0_exec_mode = M_MODE;
+			expected_dtlb_req_bank0_virtual_mode = 1'b0;
+			expected_dtlb_req_bank0_ASID = 9'h000;
+			expected_dtlb_req_bank0_MXR = 1'b0;
+			expected_dtlb_req_bank0_SUM = 1'b0;
+			expected_dtlb_req_bank0_VPN = 20'h00000;
+			expected_dtlb_req_bank0_is_read = 1'b0;
+			expected_dtlb_req_bank0_is_write = 1'b1;
+			expected_dtlb_req_bank1_valid = (i >= 9);
+			expected_dtlb_req_bank1_exec_mode = M_MODE;
+			expected_dtlb_req_bank1_virtual_mode = 1'b0;
+			expected_dtlb_req_bank1_ASID = 9'h000;
+			expected_dtlb_req_bank1_MXR = 1'b0;
+			expected_dtlb_req_bank1_SUM = 1'b0;
+			expected_dtlb_req_bank1_VPN = 20'h00000;
+			expected_dtlb_req_bank1_is_read = (i >= 9);
+			expected_dtlb_req_bank1_is_write = (i < 9);
+			// dtlb req feedback
+			// dtlb resp
+			// dtlb miss resp
+			// dcache req
+			expected_dcache_req_bank0_valid = 1'b0;
+			expected_dcache_req_bank0_block_offset = 0;
+			expected_dcache_req_bank0_index = 0;
+			expected_dcache_req_bank0_is_ldu = 1'b0;
+			expected_dcache_req_bank0_cq_index = 0;
+			expected_dcache_req_bank0_is_mq = 1'b0;
+			expected_dcache_req_bank0_mq_index = 0;
+			expected_dcache_req_bank1_valid = (i >= 9);
+			expected_dcache_req_bank1_block_offset = (i >= 9) ? 'h8 : 'h0;
+			expected_dcache_req_bank1_index = 0;
+			expected_dcache_req_bank1_is_ldu = (i >= 9);
+			expected_dcache_req_bank1_cq_index = (i >= 9) ? i - 9 : 0;
+			expected_dcache_req_bank1_is_mq = 1'b0;
+			expected_dcache_req_bank1_mq_index = 0;
+			// dcache req feedback
+			// dcache resp
+			// dcache resp feedback
+			expected_dcache_resp_bank0_hit_valid = 1'b0;
+			expected_dcache_resp_bank0_hit_exclusive = 1'b1;
+			expected_dcache_resp_bank0_hit_way = 1'b0;
+			expected_dcache_resp_bank0_miss_valid = 1'b0;
+			expected_dcache_resp_bank0_miss_prefetch = 1'b1;
+			expected_dcache_resp_bank0_miss_exclusive = 1'b1;
+			expected_dcache_resp_bank0_miss_tag = 22'h000000;
+			expected_dcache_resp_bank1_hit_valid = (i >= 10);
+			expected_dcache_resp_bank1_hit_exclusive = (i < 10);
+			expected_dcache_resp_bank1_hit_way = 1'b0;
+			expected_dcache_resp_bank1_miss_valid = 1'b0;
+			expected_dcache_resp_bank1_miss_prefetch = 1'b1;
+			expected_dcache_resp_bank1_miss_exclusive = 1'b1;
+			expected_dcache_resp_bank1_miss_tag = 22'h000000;
+			// dcache miss resp
+			// write buffer enq bank 0
+			expected_wr_buf_enq_bank0_valid = 1'b0;
+			expected_wr_buf_enq_bank0_is_amo = 1'b0;
+			expected_wr_buf_enq_bank0_op = 4'b0000;
+			expected_wr_buf_enq_bank0_dest_PR = 0;
+			expected_wr_buf_enq_bank0_is_mem = 1'b0;
+			expected_wr_buf_enq_bank0_PA_word = 32'h00000000;
+			expected_wr_buf_enq_bank0_byte_mask = 4'b0000;
+			expected_wr_buf_enq_bank0_data = 32'h00000000;
+			// write buffer enq feedback bank 0
+			// write buffer enq bank 1
+			expected_wr_buf_enq_bank1_valid = 1'b0;
+			expected_wr_buf_enq_bank1_is_amo = 1'b0;
+			expected_wr_buf_enq_bank1_op = 4'b0000;
+			expected_wr_buf_enq_bank1_dest_PR = 0;
+			expected_wr_buf_enq_bank1_is_mem = 1'b0;
+			expected_wr_buf_enq_bank1_PA_word = 32'h00000000;
+			expected_wr_buf_enq_bank1_byte_mask = 4'b0000;
+			expected_wr_buf_enq_bank1_data = 32'h00000000;
+			// write buffer enq feedback bank 1
+			// write buffer WB data to PRF
+			// write buffer WB feedback from PRF
+			expected_wr_buf_WB_ready = 1'b1;
+			// sfence invalidation to MMU
+			expected_sfence_inv_valid = 1'b0;
+			expected_sfence_inv_VA = 20'h00000;
+			expected_sfence_inv_ASID = 9'h000;
+			// sfence invalidation backpressure from MMU
+			// ROB instret advertisement
+			expected_rob_instret = 
+                (i < 12) ? 0
+                : (i < 17) ? 1
+                : (i - 16) * 4
+            ;
+			// hardware failure
+			expected_unrecoverable_fault = 1'b0;
+
+			check_outputs();
+		end
+
+        // // ------------------------------------------------------------
+        // // vector add repeat:
+        //     // ADDI s0, s0, 4
+        //     // LW t0, 0(s0)
+        //     // ADD t0, t0, s0
+        //     // SW t0, 0x810(s0)
+        // test_case = "vector add repeat";
+        // $display("\ntest %0d: %s", test_num, test_case);
+        // test_num++;
+
+		// for (int i = 0; i < 20; i++) begin
+
+		// 	@(posedge CLK); #(PERIOD/10);
+
+		// 	// inputs
+		// 	sub_test_case = $sformatf("cycle %0d", i);
+		// 	$display("\t- sub_test: %s", sub_test_case);
+
+		// 	// reset
+		// 	nRST = 1'b1;
+		// 	// itlb req
+		// 	// itlb resp
+		// 	tb_itlb_resp_valid = i > 0;
+		// 	tb_itlb_resp_PPN = 22'h000000;
+		// 	tb_itlb_resp_page_fault = 1'b0;
+		// 	tb_itlb_resp_access_fault = 1'b0;
+		// 	// icache req
+		// 	// icache resp
+		// 	tb_icache_resp_valid_by_way = i > 0 ? 2'b01 : 2'b00;
+		// 	tb_icache_resp_tag_by_way = {22'h000000, 22'h000000};
+		// 	tb_icache_resp_instr_16B_by_way = {
+		// 		16'h0000, 16'h0000,
+		// 		16'h0000, 16'h0000,
+		// 		16'h0000, 16'h0000,
+		// 		16'h0000, 16'h0000,
+        //         32'h80542023,   // SW t0, 0x800(s0)
+        //         32'h008282b3,   // ADD t0, t0, s0
+        //         32'h00042283,   // LW t0, 0(s0)
+		// 		32'h00440413    // ADDI s0, s0, 4
+		// 	};
+		// 	// icache resp feedback
+		// 	// dtlb req
+		// 	// dtlb req feedback
+		// 	tb_dtlb_req_bank0_ready = 1'b1;
+		// 	tb_dtlb_req_bank1_ready = 1'b1;
+		// 	// dtlb resp
+		// 	tb_dtlb_resp_bank0_hit = 1'b0;
+		// 	tb_dtlb_resp_bank0_PPN = 22'h000000;
+		// 	tb_dtlb_resp_bank0_is_mem = 1'b0;
+		// 	tb_dtlb_resp_bank0_page_fault = 1'b0;
+		// 	tb_dtlb_resp_bank0_access_fault = 1'b0;
+		// 	tb_dtlb_resp_bank1_hit = 1'b0;
+		// 	tb_dtlb_resp_bank1_PPN = 22'h000000;
+		// 	tb_dtlb_resp_bank1_is_mem = 1'b0;
+		// 	tb_dtlb_resp_bank1_page_fault = 1'b0;
+		// 	tb_dtlb_resp_bank1_access_fault = 1'b0;
+		// 	// dtlb miss resp
+		// 	tb_dtlb_miss_resp_valid = 1'b0;
+		// 	tb_dtlb_miss_resp_is_ldu = 1'b0;
+		// 	tb_dtlb_miss_resp_cq_index = 0;
+		// 	tb_dtlb_miss_resp_is_mq = 1'b0;
+		// 	tb_dtlb_miss_resp_mq_index = 0;
+		// 	tb_dtlb_miss_resp_PPN = 22'h000000;
+		// 	tb_dtlb_miss_resp_is_mem = 1'b0;
+		// 	tb_dtlb_miss_resp_page_fault = 1'b0;
+		// 	tb_dtlb_miss_resp_access_fault = 1'b0;
+		// 	// dcache req
+		// 	// dcache req feedback
+		// 	tb_dcache_req_bank0_ready = 1'b1;
+		// 	tb_dcache_req_bank1_ready = 1'b1;
+		// 	// dcache resp
+		// 	tb_dcache_resp_bank0_valid_by_way = 2'b00;
+		// 	tb_dcache_resp_bank0_exclusive_by_way = 2'b00;
+		// 	tb_dcache_resp_bank0_tag_by_way = {22'h000000, 22'h000000};
+		// 	tb_dcache_resp_bank0_data_by_way = {32'h00000000, 32'h00000000};
+		// 	tb_dcache_resp_bank1_valid_by_way = 2'b00;
+		// 	tb_dcache_resp_bank1_exclusive_by_way = 2'b00;
+		// 	tb_dcache_resp_bank1_tag_by_way = {22'h000000, 22'h000000};
+		// 	tb_dcache_resp_bank1_data_by_way = {32'h00000000, 32'h00000000};
+		// 	// dcache resp feedback
+		// 	// dcache miss resp
+		// 	tb_dcache_miss_resp_valid = 1'b0;
+		// 	tb_dcache_miss_resp_is_ldu = 1'b0;
+		// 	tb_dcache_miss_resp_cq_index = 0;
+		// 	tb_dcache_miss_resp_is_mq = 1'b0;
+		// 	tb_dcache_miss_resp_mq_index = 0;
+		// 	tb_dcache_miss_resp_data = 32'h00000000;
+		// 	// write buffer enq bank 0
+		// 	// write buffer enq feedback bank 0
+		// 	tb_wr_buf_enq_bank0_ready = 1'b1;
+		// 	tb_wr_buf_enq_bank0_mem_present = 1'b0;
+		// 	tb_wr_buf_enq_bank0_io_present = 1'b0;
+		// 	// write buffer enq bank 1
+		// 	// write buffer enq feedback bank 1
+		// 	tb_wr_buf_enq_bank1_ready = 1'b1;
+		// 	tb_wr_buf_enq_bank1_mem_present = 1'b0;
+		// 	tb_wr_buf_enq_bank1_io_present = 1'b0;
+		// 	// write buffer WB data to PRF
+		// 	tb_wr_buf_WB_valid = 1'b0;
+		// 	tb_wr_buf_WB_data = 32'h00000000;
+		// 	tb_wr_buf_WB_PR = 0;
+		// 	// write buffer WB feedback from PRF
+		// 	// sfence invalidation to MMU
+		// 	// sfence invalidation backpressure from MMU
+		// 	// ROB instret advertisement
+		// 	tb_sfence_inv_ready = 1'b1;
+		// 	// hardware failure
+
+		// 	@(negedge CLK);
+
+		// 	// outputs:
+
+		// 	// itlb req
+		// 	expected_itlb_req_valid = 1'b1;
+		// 	expected_itlb_req_exec_mode = M_MODE;
+		// 	expected_itlb_req_virtual_mode = 1'b0;
+		// 	expected_itlb_req_ASID = 9'h000;
+		// 	expected_itlb_req_VPN = 20'h00000;
+		// 	// itlb resp
+		// 	// icache req
+		// 	expected_icache_req_valid = 1'b1;
+		// 	expected_icache_req_block_offset = i % 2;
+		// 	expected_icache_req_index = i / 2;
+		// 	// icache resp
+		// 	// icache resp feedback
+		// 	expected_icache_resp_hit_valid = i > 0;
+		// 	expected_icache_resp_hit_way = 1'b0;
+		// 	expected_icache_resp_miss_valid = 1'b0;
+		// 	expected_icache_resp_miss_tag = 22'h000000;
+		// 	// dtlb req
+		// 	expected_dtlb_req_bank0_valid = 1'b0;
+		// 	expected_dtlb_req_bank0_exec_mode = M_MODE;
+		// 	expected_dtlb_req_bank0_virtual_mode = 1'b0;
+		// 	expected_dtlb_req_bank0_ASID = 9'h000;
+		// 	expected_dtlb_req_bank0_MXR = 1'b0;
+		// 	expected_dtlb_req_bank0_SUM = 1'b0;
+		// 	expected_dtlb_req_bank0_VPN = 20'h00000;
+		// 	expected_dtlb_req_bank0_is_read = 1'b0;
+		// 	expected_dtlb_req_bank0_is_write = 1'b1;
+		// 	expected_dtlb_req_bank1_valid = 1'b0;
+		// 	expected_dtlb_req_bank1_exec_mode = M_MODE;
+		// 	expected_dtlb_req_bank1_virtual_mode = 1'b0;
+		// 	expected_dtlb_req_bank1_ASID = 9'h000;
+		// 	expected_dtlb_req_bank1_MXR = 1'b0;
+		// 	expected_dtlb_req_bank1_SUM = 1'b0;
+		// 	expected_dtlb_req_bank1_VPN = 20'h00000;
+		// 	expected_dtlb_req_bank1_is_read = 1'b0;
+		// 	expected_dtlb_req_bank1_is_write = 1'b1;
+		// 	// dtlb req feedback
+		// 	// dtlb resp
+		// 	// dtlb miss resp
+		// 	// dcache req
+		// 	expected_dcache_req_bank0_valid = 1'b0;
+		// 	expected_dcache_req_bank0_block_offset = 0;
+		// 	expected_dcache_req_bank0_index = 0;
+		// 	expected_dcache_req_bank0_is_ldu = 1'b0;
+		// 	expected_dcache_req_bank0_cq_index = 0;
+		// 	expected_dcache_req_bank0_is_mq = 1'b0;
+		// 	expected_dcache_req_bank0_mq_index = 0;
+		// 	expected_dcache_req_bank1_valid = 1'b0;
+		// 	expected_dcache_req_bank1_block_offset = 0;
+		// 	expected_dcache_req_bank1_index = 0;
+		// 	expected_dcache_req_bank1_is_ldu = 1'b0;
+		// 	expected_dcache_req_bank1_cq_index = 0;
+		// 	expected_dcache_req_bank1_is_mq = 1'b0;
+		// 	expected_dcache_req_bank1_mq_index = 0;
+		// 	// dcache req feedback
+		// 	// dcache resp
+		// 	// dcache resp feedback
+		// 	expected_dcache_resp_bank0_hit_valid = 1'b0;
+		// 	expected_dcache_resp_bank0_hit_exclusive = 1'b1;
+		// 	expected_dcache_resp_bank0_hit_way = 1'b0;
+		// 	expected_dcache_resp_bank0_miss_valid = 1'b0;
+		// 	expected_dcache_resp_bank0_miss_prefetch = 1'b1;
+		// 	expected_dcache_resp_bank0_miss_exclusive = 1'b1;
+		// 	expected_dcache_resp_bank0_miss_tag = 22'h000000;
+		// 	expected_dcache_resp_bank1_hit_valid = 1'b0;
+		// 	expected_dcache_resp_bank1_hit_exclusive = 1'b1;
+		// 	expected_dcache_resp_bank1_hit_way = 1'b0;
+		// 	expected_dcache_resp_bank1_miss_valid = 1'b0;
+		// 	expected_dcache_resp_bank1_miss_prefetch = 1'b1;
+		// 	expected_dcache_resp_bank1_miss_exclusive = 1'b1;
+		// 	expected_dcache_resp_bank1_miss_tag = 22'h000000;
+		// 	// dcache miss resp
+		// 	// write buffer enq bank 0
+		// 	expected_wr_buf_enq_bank0_valid = 1'b0;
+		// 	expected_wr_buf_enq_bank0_is_amo = 1'b0;
+		// 	expected_wr_buf_enq_bank0_op = 4'b0000;
+		// 	expected_wr_buf_enq_bank0_dest_PR = 0;
+		// 	expected_wr_buf_enq_bank0_is_mem = 1'b0;
+		// 	expected_wr_buf_enq_bank0_PA_word = 32'h00000000;
+		// 	expected_wr_buf_enq_bank0_byte_mask = 4'b0000;
+		// 	expected_wr_buf_enq_bank0_data = 32'h00000000;
+		// 	// write buffer enq feedback bank 0
+		// 	// write buffer enq bank 1
+		// 	expected_wr_buf_enq_bank1_valid = 1'b0;
+		// 	expected_wr_buf_enq_bank1_is_amo = 1'b0;
+		// 	expected_wr_buf_enq_bank1_op = 4'b0000;
+		// 	expected_wr_buf_enq_bank1_dest_PR = 0;
+		// 	expected_wr_buf_enq_bank1_is_mem = 1'b0;
+		// 	expected_wr_buf_enq_bank1_PA_word = 32'h00000000;
+		// 	expected_wr_buf_enq_bank1_byte_mask = 4'b0000;
+		// 	expected_wr_buf_enq_bank1_data = 32'h00000000;
+		// 	// write buffer enq feedback bank 1
+		// 	// write buffer WB data to PRF
+		// 	// write buffer WB feedback from PRF
+		// 	expected_wr_buf_WB_ready = 1'b1;
+		// 	// sfence invalidation to MMU
+		// 	expected_sfence_inv_valid = 1'b0;
+		// 	expected_sfence_inv_VA = 20'h00000;
+		// 	expected_sfence_inv_ASID = 9'h000;
+		// 	// sfence invalidation backpressure from MMU
+		// 	// ROB instret advertisement
+		// 	expected_rob_instret = 32'h0;
+		// 	// hardware failure
+		// 	expected_unrecoverable_fault = 1'b0;
+
+		// 	check_outputs();
+		// end
 
         // ------------------------------------------------------------
         // finish:
