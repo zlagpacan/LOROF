@@ -53,8 +53,6 @@ module rob_wrapper (
 	// checkpoint info
 	input logic next_dispatch_has_checkpoint,
 	input logic [CHECKPOINT_INDEX_WIDTH-1:0] next_dispatch_checkpoint_index,
-    // instr FU valids
-	input logic [3:0] next_dispatch_attempt_ldu_dq_by_way,
     // dest operand
 	input logic [3:0][4:0] next_dispatch_dest_AR_by_way,
 	input logic [3:0][LOG_PR_COUNT-1:0] next_dispatch_dest_old_PR_by_way,
@@ -189,7 +187,14 @@ module rob_wrapper (
 	// ROB physical register freeing
 	output logic [3:0] last_rob_PR_free_req_valid_by_bank,
 	output logic [3:0][LOG_PR_COUNT-1:0] last_rob_PR_free_req_PR_by_bank,
-	input logic [3:0] next_rob_PR_free_resp_ack_by_bank
+	input logic [3:0] next_rob_PR_free_resp_ack_by_bank,
+
+    // ROB instret advertisement
+	output logic [31:0] last_rob_instret,
+
+    // ROB instret write
+	input logic next_rob_instret_write_valid,
+	input logic [31:0] next_rob_instret_write_data
 );
 
     // ----------------------------------------------------------------
@@ -213,8 +218,6 @@ module rob_wrapper (
 	// checkpoint info
 	logic dispatch_has_checkpoint;
 	logic [CHECKPOINT_INDEX_WIDTH-1:0] dispatch_checkpoint_index;
-    // instr FU valids
-	logic [3:0] dispatch_attempt_ldu_dq_by_way;
     // dest operand
 	logic [3:0][4:0] dispatch_dest_AR_by_way;
 	logic [3:0][LOG_PR_COUNT-1:0] dispatch_dest_old_PR_by_way;
@@ -351,6 +354,13 @@ module rob_wrapper (
 	logic [3:0][LOG_PR_COUNT-1:0] rob_PR_free_req_PR_by_bank;
 	logic [3:0] rob_PR_free_resp_ack_by_bank;
 
+    // ROB instret advertisement
+	logic [31:0] rob_instret;
+
+    // ROB instret write
+	logic rob_instret_write_valid;
+	logic [31:0] rob_instret_write_data;
+
     // ----------------------------------------------------------------
     // Module Instantiation:
 
@@ -396,8 +406,6 @@ module rob_wrapper (
 			// checkpoint info
 			dispatch_has_checkpoint <= '0;
 			dispatch_checkpoint_index <= '0;
-		    // instr FU valids
-			dispatch_attempt_ldu_dq_by_way <= '0;
 		    // dest operand
 			dispatch_dest_AR_by_way <= '0;
 			dispatch_dest_old_PR_by_way <= '0;
@@ -533,6 +541,13 @@ module rob_wrapper (
 			last_rob_PR_free_req_valid_by_bank <= '0;
 			last_rob_PR_free_req_PR_by_bank <= '0;
 			rob_PR_free_resp_ack_by_bank <= '0;
+
+		    // ROB instret advertisement
+			last_rob_instret <= '0;
+
+		    // ROB instret write
+			rob_instret_write_valid <= '0;
+			rob_instret_write_data <= '0;
         end
         else begin
 
@@ -554,8 +569,6 @@ module rob_wrapper (
 			// checkpoint info
 			dispatch_has_checkpoint <= next_dispatch_has_checkpoint;
 			dispatch_checkpoint_index <= next_dispatch_checkpoint_index;
-		    // instr FU valids
-			dispatch_attempt_ldu_dq_by_way <= next_dispatch_attempt_ldu_dq_by_way;
 		    // dest operand
 			dispatch_dest_AR_by_way <= next_dispatch_dest_AR_by_way;
 			dispatch_dest_old_PR_by_way <= next_dispatch_dest_old_PR_by_way;
@@ -691,6 +704,13 @@ module rob_wrapper (
 			last_rob_PR_free_req_valid_by_bank <= rob_PR_free_req_valid_by_bank;
 			last_rob_PR_free_req_PR_by_bank <= rob_PR_free_req_PR_by_bank;
 			rob_PR_free_resp_ack_by_bank <= next_rob_PR_free_resp_ack_by_bank;
+
+		    // ROB instret advertisement
+			last_rob_instret <= rob_instret;
+
+		    // ROB instret write
+			rob_instret_write_valid <= next_rob_instret_write_valid;
+			rob_instret_write_data <= next_rob_instret_write_data;
         end
     end
 

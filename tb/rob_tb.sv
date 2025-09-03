@@ -205,6 +205,13 @@ module rob_tb ();
 	logic [3:0][LOG_PR_COUNT-1:0] DUT_rob_PR_free_req_PR_by_bank, expected_rob_PR_free_req_PR_by_bank;
 	logic [3:0] tb_rob_PR_free_resp_ack_by_bank;
 
+	// ROB instret advertisement
+	logic [31:0] DUT_rob_instret, expected_rob_instret;
+
+	// ROB instret write
+	logic tb_rob_instret_write_valid;
+	logic [31:0] tb_rob_instret_write_data;
+
     // ----------------------------------------------------------------
     // DUT instantiation:
 
@@ -381,7 +388,14 @@ module rob_tb ();
 		// ROB physical register freeing
 		.rob_PR_free_req_valid_by_bank(DUT_rob_PR_free_req_valid_by_bank),
 		.rob_PR_free_req_PR_by_bank(DUT_rob_PR_free_req_PR_by_bank),
-		.rob_PR_free_resp_ack_by_bank(tb_rob_PR_free_resp_ack_by_bank)
+		.rob_PR_free_resp_ack_by_bank(tb_rob_PR_free_resp_ack_by_bank),
+
+		// ROB instret advertisement
+		.rob_instret(DUT_rob_instret),
+
+		// ROB instret write
+		.rob_instret_write_valid(tb_rob_instret_write_valid),
+		.rob_instret_write_data(tb_rob_instret_write_data)
 	);
 
     // ----------------------------------------------------------------
@@ -718,6 +732,13 @@ module rob_tb ();
 			tb_error = 1'b1;
 		end
 
+		if (expected_rob_instret !== DUT_rob_instret) begin
+			$display("TB ERROR: expected_rob_instret (%h) != DUT_rob_instret (%h)",
+				expected_rob_instret, DUT_rob_instret);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
         #(PERIOD / 10);
         tb_error = 1'b0;
     end
@@ -820,6 +841,10 @@ module rob_tb ();
 	    // ROB control of rename
 		// ROB physical register freeing
 		tb_rob_PR_free_resp_ack_by_bank = 4'b1111;
+		// ROB instret advertisement
+		// ROB instret write
+		tb_rob_instret_write_valid = 1'b0;
+		tb_rob_instret_write_data = 32'h0;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -901,6 +926,9 @@ module rob_tb ();
 		// ROB physical register freeing
 		expected_rob_PR_free_req_valid_by_bank = 4'b0000;
 		expected_rob_PR_free_req_PR_by_bank = {7'h00, 7'h00, 7'h00, 7'h00};
+		// ROB instret advertisement
+		expected_rob_instret = 32'h0;
+		// ROB instret write
 
 		check_outputs();
 
@@ -990,6 +1018,10 @@ module rob_tb ();
 	    // ROB control of rename
 		// ROB physical register freeing
 		tb_rob_PR_free_resp_ack_by_bank = 4'b1111;
+		// ROB instret advertisement
+		// ROB instret write
+		tb_rob_instret_write_valid = 1'b0;
+		tb_rob_instret_write_data = 32'h0;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -1071,6 +1103,9 @@ module rob_tb ();
 		// ROB physical register freeing
 		expected_rob_PR_free_req_valid_by_bank = 4'b0000;
 		expected_rob_PR_free_req_PR_by_bank = {7'h00, 7'h00, 7'h00, 7'h00};
+		// ROB instret advertisement
+		expected_rob_instret = 32'h0;
+		// ROB instret write
 
 		check_outputs();
 
@@ -1168,6 +1203,10 @@ module rob_tb ();
 	    // ROB control of rename
 		// ROB physical register freeing
 		tb_rob_PR_free_resp_ack_by_bank = 4'b1111;
+		// ROB instret advertisement
+		// ROB instret write
+		tb_rob_instret_write_valid = 1'b0;
+		tb_rob_instret_write_data = 32'h0;
 
 		@(negedge CLK);
 
@@ -1249,6 +1288,9 @@ module rob_tb ();
 		// ROB physical register freeing
 		expected_rob_PR_free_req_valid_by_bank = 4'b0000;
 		expected_rob_PR_free_req_PR_by_bank = {7'h00, 7'h00, 7'h00, 7'h00};
+		// ROB instret advertisement
+		expected_rob_instret = 32'h0;
+		// ROB instret write
 
 		check_outputs();
 

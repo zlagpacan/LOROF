@@ -185,7 +185,14 @@ module rob #(
 	// ROB physical register freeing
 	output logic [3:0]						rob_PR_free_req_valid_by_bank,
 	output logic [3:0][LOG_PR_COUNT-1:0]	rob_PR_free_req_PR_by_bank,
-	input logic [3:0]                       rob_PR_free_resp_ack_by_bank
+	input logic [3:0]                       rob_PR_free_resp_ack_by_bank,
+
+    // ROB instret advertisement
+    output logic [31:0]     rob_instret,
+
+    // ROB instret write
+    input logic             rob_instret_write_valid,
+    input logic [31:0]      rob_instret_write_data
 );
 
     // on restart
@@ -408,6 +415,11 @@ module rob #(
     logic                           PR_free_q_deq_ready;
 
     logic [3:0]                     PR_free_q_deq_invalid_mask, next_PR_free_q_deq_invalid_mask;
+
+    // instret ret
+        // can add 0,1,2,3,4 per cycle
+    logic [31:0]                instret;
+    logic [$clog2(4+1)-1:0]     instret_incr;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -1574,6 +1586,32 @@ module rob #(
         else begin
             // for now, since no csrf, these are hardwired
         end
+    end
+
+    // instret reg
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            instret <= 0;
+        end
+        else begin
+            if (rob_instret_write_valid) begin
+                instret <= rob_instret_write_data;
+            end
+            else begin
+                instret <= instret + instret_incr;
+            end
+        end
+    end
+    always_comb begin
+        instret_incr = 0;
+        for (int way = 0; way < 4; way++) begin
+            if (deq_launching_by_way[way] & ~killed_by_entry[{head_ptr, way}]) begin
+                instret_incr++;
+            end
+        end
+    end
+    always_comb begin
+        rob_instret = instret;
     end
 
     // ----------------------------------------------------------------
