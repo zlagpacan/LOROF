@@ -50,7 +50,7 @@ module youngest_older #(
     );
 
     always_comb begin
-        if (target_index > head_index) begin
+        if (target_index >= head_index) begin
             older_present = |(req_vec & head_mask & ~target_mask);
             youngest_older_index = and_head_and_not_target_index;
         end
