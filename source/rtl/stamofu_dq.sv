@@ -206,10 +206,7 @@ module stamofu_dq #(
         stamofu_cq_enq_dest_PR = dest_PR_by_entry[0];
         stamofu_cq_enq_ROB_index = ROB_index_by_entry[0];
 
-        stamofu_iq_enq_valid = 
-            launching
-            & ~(killed_at_0
-                | (is_fence_by_entry[0] & ~op_by_entry[1]));
+        stamofu_iq_enq_valid = launching;
         stamofu_iq_enq_is_store = is_store_by_entry[0];
         stamofu_iq_enq_is_amo = is_amo_by_entry[0];
         stamofu_iq_enq_is_fence = is_fence_by_entry[0];

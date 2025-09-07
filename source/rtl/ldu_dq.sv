@@ -137,7 +137,7 @@ module ldu_dq #(
         ldu_cq_enq_dest_PR = dest_PR_by_entry[0];
         ldu_cq_enq_ROB_index = ROB_index_by_entry[0];
 
-        ldu_iq_enq_valid = launching & ~killed_at_0;
+        ldu_iq_enq_valid = launching;
         ldu_iq_enq_op = op_by_entry[0];
         ldu_iq_enq_imm12 = imm12_by_entry[0];
         ldu_iq_enq_A_PR = A_PR_by_entry[0];

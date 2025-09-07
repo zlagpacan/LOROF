@@ -1483,7 +1483,7 @@ module core_tb ();
                 // 32'h400002b3,   // SUB x5, x0, x0
                 // 32'h02802183,   // LW x3, 0x28(x0)
 				// 32'h00400093    // ADDI x1, x0, 4
-            // dependent vector add: IPC = 1.310
+            // more dependent chain: IPC = 1.310
                 // 32'h293d0437,   // LUI x8, 0x293d0
                 // 32'h40320233,   // SUB x4, x4, x3
                 // 32'h0280a183,   // LW x3, 0x28(x1)
