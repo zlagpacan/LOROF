@@ -1444,57 +1444,6 @@ module core_tb ();
         // ------------------------------------------------------------
 		// IPC tester
 			// 0x400 = 1024 cycles
-        // friendly indep repeat: IPC = 3.645
-            // ADDI x1, x2, 4
-            // LW x3, 0x28(x4)
-            // SUB x5, x6, x7
-            // LUI x8, 0x293d0
-		// friendly all reg zero's repeat: IPC = 3.645
-            // ADDI x1, x0, 4
-            // LW x3, 0x28(x0)
-            // SUB x5, x0, x0
-            // LUI x8, 0x293d0
-		// dependent vector add: IPC = 1.310
-            // ADDI x1, x1, 4
-            // LW x3, 0x28(x1)
-            // SUB x4, x4, x3
-            // LUI x8, 0x293d0
-		// highly dependent chain: IPC = 0.330
-			// ADDI x1, x1, 4
-			// ADD x2, x1, x3
-			// ORI x3, x2, 12
-			// OR x1, x3, x2
-		// all alu_reg indep: IPC = 0.791
-			// ADD x3, x1, x2
-			// ADD x3, x1, x2
-			// ADD x3, x1, x2
-			// ADD x3, x1, x2
-		// all alu_imm dep: IPC = 0.330
-			// ADDI x1, x1, 4
-			// ADDI x1, x1, 4
-			// ADDI x1, x1, 4
-			// ADDI x1, x1, 4
-		// all stores indep: IPC = 0.785
-			// SW x1, 0x34(x3)
-			// SW x1, 0x34(x3)
-			// SW x1, 0x34(x3)
-			// SW x1, 0x34(x3)
-        // all BRU indep: IPC = 0.985
-            // LUI x8, 0x293d0
-            // BNE x0, x0, 0x8a
-            // AUIPC x28, 0x125
-            // JAL x0, 0
-        // 4x indep instr loop:
-            // ADD x8, x3, x5
-            // ADDI x1, x2, 4
-            // LW x6, 0x28(x4)
-            // BEQ x7, x9, 0
-        // 4x dep instr loop:
-            // ADD 
-        // 3x instr loop:
-        // 2x instr loop:
-        // 1x instr loop:
-        // store-load dep:
         test_case = "IPC tester";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
@@ -1524,38 +1473,57 @@ module core_tb ();
 				16'h0000, 16'h0000,
 				16'h0000, 16'h0000,
 				16'h0000, 16'h0000,
+            // friendly indep repeat: IPC = 3.645
                 // 32'h293d0437,   // LUI x8, 0x293d0
                 // 32'h407302b3,   // SUB x5, x6, x7
                 // 32'h02822183,   // LW x3, 0x28(x4)
 				// 32'h00410093    // ADDI x1, x2, 4
+            // friendly all reg zero's repeat: IPC = 3.645
                 // 32'h293d0437,   // LUI x8, 0x293d0
                 // 32'h400002b3,   // SUB x5, x0, x0
                 // 32'h02802183,   // LW x3, 0x28(x0)
 				// 32'h00400093    // ADDI x1, x0, 4
+            // dependent vector add: IPC = 1.310
                 // 32'h293d0437,   // LUI x8, 0x293d0
                 // 32'h40320233,   // SUB x4, x4, x3
                 // 32'h0280a183,   // LW x3, 0x28(x1)
 				// 32'h00408093    // ADDI x1, x1, 4
+            // highly dependent chain: IPC = 0.330
                 // 32'h0021e0b3,   // OR x1, x3, x2
                 // 32'h00c16193,   // ORI x3, x2, 12
                 // 32'h00308133,   // ADD x2, x1, x3
 				// 32'h00408093    // ADDI x1, x1, 4
+            // all alu_reg indep: IPC = 0.791
                 // 32'h002081b3,   // ADD x3, x1, x2
                 // 32'h002081b3,   // ADD x3, x1, x2
                 // 32'h002081b3,   // ADD x3, x1, x2
 				// 32'h002081b3    // ADD x3, x1, x2
+            // all alu_imm dep: IPC = 0.330
                 // 32'h00408093,   // ADDI x1, x1, 4
                 // 32'h00408093,   // ADDI x1, x1, 4
                 // 32'h00408093,   // ADDI x1, x1, 4
                 // 32'h00408093    // ADDI x1, x1, 4
+            // all stores indep: IPC = 0.785
                 // 32'h0211aa23,   // SW x1, 0x34(x3)
                 // 32'h0211aa23,   // SW x1, 0x34(x3)
                 // 32'h0211aa23,   // SW x1, 0x34(x3)
                 // 32'h0211aa23    // SW x1, 0x34(x3)
-                32'h0000006f,   // JAL x0, 0
-                32'h00125e17,   // AUIPC x28, 0x125
-                32'h08001563,   // BNE x0, x0, 0x8a
-                32'h293d0437    // LUI x8, 0x293d0
+            // all BRU indep: IPC = 0.985
+                // 32'h0000006f,   // JAL x0, 0
+                // 32'h00125e17,   // AUIPC x28, 0x125
+                // 32'h08001563,   // BNE x0, x0, 0x8a
+                // 32'h293d0437    // LUI x8, 0x293d0
+            // 4x indep instr loop:
+                32'h00938063,   // BEQ x7, x9, 0
+                32'h02822303,   // LW x6, 0x28(x4)
+                32'h00410093,   // ADDI x1, x2, 4
+                32'h00518433    // ADD x8, x3, x5
+            // 4x dep instr loop:
+            // 3x instr loop:
+            // 2x instr loop:
+            // 1x instr loop:
+            // store-load dep:
+                
 			};
 			// icache resp feedback
 			// dtlb req
