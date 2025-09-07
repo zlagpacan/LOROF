@@ -1164,7 +1164,7 @@ module rob #(
                 // otherwise, check for checkpoint:
                 else if (checkpoint_present) begin
                     bulk_bram_read_next_valid = 1'b0; // start read next cycle
-                    bulk_bram_read_next_index = new_restart_target_index[LOG_ROB_ENTRIES-1:2];;
+                    bulk_bram_read_next_index = new_restart_target_index[LOG_ROB_ENTRIES-1:2];
                     PC_bram_read_restart_control = 1'b0;
                     next_restart_state = CHECKPOINT_RESTORE;
                     next_restart_info_valid = 1'b1;
@@ -1179,7 +1179,7 @@ module rob #(
                     bulk_bram_read_next_valid = 1'b1;
                     bulk_bram_read_next_index = next_map_table_state_ptr;
                     PC_bram_read_restart_control = 1'b0;
-                    next_restart_state = CHECKPOINT_RESTORE;
+                    next_restart_state = ROLLBACK;
                     next_restart_info_valid = 1'b1;
                     next_restart_info_target_index = restart_info_target_index;
                     next_restart_info_target_mask_by_4way = restart_info_target_mask_by_4way;

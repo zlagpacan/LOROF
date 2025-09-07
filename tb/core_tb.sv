@@ -1479,7 +1479,7 @@ module core_tb ();
 			// SW x1, 0x34(x3)
 			// SW x1, 0x34(x3)
 			// SW x1, 0x34(x3)
-        // all BRU indep: IPC = 0.982
+        // all BRU indep: IPC = 0.985
             // LUI x8, 0x293d0
             // BNE x0, x0, 0x8a
             // AUIPC x28, 0x125
