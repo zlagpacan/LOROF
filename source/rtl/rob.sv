@@ -602,13 +602,13 @@ module rob #(
 
         next_new_restart_valid = fence_mispred_restarting | ldu_mispred_restarting | branch_mispred_restarting;
         if (fence_mispred_restarting) begin
-            next_new_restart_target_index = fence_mispred_deq_ROB_index;
+            next_new_restart_target_index = fence_mispred_deq_ROB_index + 1; // restart after fence
             next_new_restart_use_rob_PC = 1'b1;
         end else if (ldu_mispred_restarting) begin
-            next_new_restart_target_index = ldu_mispred_deq_ROB_index;
+            next_new_restart_target_index = ldu_mispred_deq_ROB_index + 1; // restart after load
             next_new_restart_use_rob_PC = 1'b1;
         end else begin
-            next_new_restart_target_index = branch_mispred_deq_ROB_index;
+            next_new_restart_target_index = branch_mispred_deq_ROB_index + 1; // restart after branch mispred
             next_new_restart_use_rob_PC = 1'b0;
         end
         next_new_restart_branch_target_PC = branch_mispred_deq_target_PC;
