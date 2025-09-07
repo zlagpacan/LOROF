@@ -216,8 +216,18 @@ module core_wrapper (
     // sfence invalidation backpressure from MMU
 	input logic next_sfence_inv_ready,
 
-	// ROB instret advertisement
+    // ROB instret advertisement
 	output logic [31:0] last_rob_instret,
+
+    // stats
+	output logic [31:0] last_alu_reg_complete_count,
+	output logic [31:0] last_alu_imm_complete_count,
+	output logic [31:0] last_branch_complete_count,
+	output logic [31:0] last_ldu_complete_count,
+	output logic [31:0] last_stamofu_complete_count,
+	output logic [31:0] last_sysu_complete_count,
+	output logic [31:0] last_wr_buf_enq_count,
+	output logic [31:0] last_restart_count,
 
     // hardware failure
 	output logic last_unrecoverable_fault
@@ -410,8 +420,18 @@ module core_wrapper (
     // sfence invalidation backpressure from MMU
 	logic sfence_inv_ready;
 
-	// ROB instret advertisement
+    // ROB instret advertisement
 	logic [31:0] rob_instret;
+
+    // stats
+	logic [31:0] alu_reg_complete_count;
+	logic [31:0] alu_imm_complete_count;
+	logic [31:0] branch_complete_count;
+	logic [31:0] ldu_complete_count;
+	logic [31:0] stamofu_complete_count;
+	logic [31:0] sysu_complete_count;
+	logic [31:0] wr_buf_enq_count;
+	logic [31:0] restart_count;
 
     // hardware failure
 	logic unrecoverable_fault;
@@ -624,8 +644,18 @@ module core_wrapper (
 		    // sfence invalidation backpressure from MMU
 			sfence_inv_ready <= '0;
 
-			// ROB instret advertisement
+		    // ROB instret advertisement
 			last_rob_instret <= '0;
+
+		    // stats
+			last_alu_reg_complete_count <= '0;
+			last_alu_imm_complete_count <= '0;
+			last_branch_complete_count <= '0;
+			last_ldu_complete_count <= '0;
+			last_stamofu_complete_count <= '0;
+			last_sysu_complete_count <= '0;
+			last_wr_buf_enq_count <= '0;
+			last_restart_count <= '0;
 
 		    // hardware failure
 			last_unrecoverable_fault <= '0;
@@ -816,8 +846,18 @@ module core_wrapper (
 		    // sfence invalidation backpressure from MMU
 			sfence_inv_ready <= next_sfence_inv_ready;
 
-			// ROB instret advertisement
+		    // ROB instret advertisement
 			last_rob_instret <= rob_instret;
+
+		    // stats
+			last_alu_reg_complete_count <= alu_reg_complete_count;
+			last_alu_imm_complete_count <= alu_imm_complete_count;
+			last_branch_complete_count <= branch_complete_count;
+			last_ldu_complete_count <= ldu_complete_count;
+			last_stamofu_complete_count <= stamofu_complete_count;
+			last_sysu_complete_count <= sysu_complete_count;
+			last_wr_buf_enq_count <= wr_buf_enq_count;
+			last_restart_count <= restart_count;
 
 		    // hardware failure
 			last_unrecoverable_fault <= unrecoverable_fault;

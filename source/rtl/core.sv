@@ -217,6 +217,16 @@ module core #(
     // ROB instret advertisement
     output logic [31:0] rob_instret,
 
+    // stats
+    output logic [31:0] alu_reg_complete_count,
+    output logic [31:0] alu_imm_complete_count,
+    output logic [31:0] branch_complete_count,
+    output logic [31:0] ldu_complete_count,
+    output logic [31:0] stamofu_complete_count,
+    output logic [31:0] sysu_complete_count,
+    output logic [31:0] wr_buf_enq_count,
+    output logic [31:0] restart_count,
+
     // hardware failure
     output logic unrecoverable_fault
 );
@@ -4951,5 +4961,58 @@ module core #(
 
     // csrf
         // TODO: implement
+
+    // stats
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            alu_reg_complete_count <= 0;
+            alu_imm_complete_count <= 0;
+            branch_complete_count <= 0;
+            ldu_complete_count <= 0;
+            stamofu_complete_count <= 0;
+            sysu_complete_count <= 0;
+            wr_buf_enq_count <= 0;
+            restart_count <= 0;
+        end
+        else begin
+            if (alu_reg_WB_valid & alu_reg_WB_ready) begin
+                alu_reg_complete_count <= alu_reg_complete_count + 1;
+            end
+
+            if (alu_imm_WB_valid & alu_imm_WB_ready) begin
+                alu_imm_complete_count <= alu_imm_complete_count + 1;
+            end
+
+            if (branch_notif_valid & branch_notif_ready) begin
+                branch_complete_count <= branch_complete_count + 1;
+            end
+
+            if (ldu_complete_valid) begin
+                ldu_complete_count <= ldu_complete_count + 1;
+            end
+
+            if (stamofu_complete_valid) begin
+                stamofu_complete_count <= stamofu_complete_count + 1;
+            end
+
+            // TODO: implement sysu complete count w/ sysu complete functionality
+
+            if (wr_buf_enq_bank0_valid & wr_buf_enq_bank0_ready) begin
+                if (wr_buf_enq_bank1_valid & wr_buf_enq_bank1_ready) begin
+                    wr_buf_enq_count <= wr_buf_enq_count + 2;
+                end
+                else begin
+                    wr_buf_enq_count <= wr_buf_enq_count + 1;
+                end
+            end
+            else if (wr_buf_enq_bank1_valid & wr_buf_enq_bank1_ready) begin
+                wr_buf_enq_count <= wr_buf_enq_count + 1;
+            end
+
+            if (rob_kill_valid) begin
+                restart_count <= restart_count + 1;
+            end
+        end
+    end
 
 endmodule
