@@ -1902,7 +1902,7 @@ module core #(
         bru_WB_send_complete = 1'b1; // LUI and AUIPC don't send branch notif
         sysu_WB_send_complete = 1'b0;
 
-        // wr buf ROB_index hardwired
+        // wr buf ROB_index hardwired (don't care)
         wr_buf_WB_ROB_index = 0;
 
         // sysu PRF req's hardwired for now

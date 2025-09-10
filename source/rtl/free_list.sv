@@ -1122,9 +1122,26 @@ module free_list #(
             // simple reset with all PR's in ordered slot
                 // ptr resets take care of the initially non-free PR's
             free_list_by_bank <= '0;
+            
+            // interleave values over banks
             for (int pr = 0; pr < PR_COUNT; pr++) begin
                 free_list_by_bank[pr[LOG_FREE_LIST_BANK_COUNT-1:0]][pr[LOG_PR_COUNT-1:LOG_FREE_LIST_BANK_COUNT]] <= pr[LOG_PR_COUNT-1:0];
             end
+
+            // // first 12 pr's follow interleave over banks
+            // for (int pr = 0; pr < 12; pr++) begin
+            //     free_list_by_bank[pr[LOG_FREE_LIST_BANK_COUNT-1:0]][pr[LOG_PR_COUNT-1:LOG_FREE_LIST_BANK_COUNT]] <= pr[LOG_PR_COUNT-1:0];
+            // end
+            // // put remaining pr's in banks so that get uniform distr over mod4
+            // // bank0: 12:40
+            // // bank1: 41:69
+            // // bank2: 70:98
+            // // bank3: 99:127
+            // for (int bank = 0; bank < 4; bank++) begin
+            //     for (int rem_per_bank = 0; rem_per_bank < 29; rem_per_bank++) begin
+            //         free_list_by_bank[bank][rem_per_bank + 3] <= 12 + 29 * bank + rem_per_bank;
+            //     end
+            // end
         end
         else begin
             for (int bank = 0; bank < FREE_LIST_BANK_COUNT; bank++) begin

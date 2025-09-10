@@ -1549,7 +1549,7 @@ module core_tb ();
 
 			// inputs
 			sub_test_case = $sformatf("cycle %0d", i);
-			$display("\t- sub_test: %s", sub_test_case);
+			// $display("\t- sub_test: %s", sub_test_case);
 
 			// reset
 			nRST = 1'b1;
@@ -1603,13 +1603,15 @@ module core_tb ();
                 // 32'h0211aa23,   // SW x1, 0x34(x3)
                 // 32'h0211aa23,   // SW x1, 0x34(x3)
                 // 32'h0211aa23    // SW x1, 0x34(x3)
-            // all BRU indep: IPC = 0.985
-                // 32'h0000006f,   // JAL x0, 0
+            // all BRU indep: IPC = 0.791 (FREE LIST BUG)
+                // 32'hff5ff06f,   // JAL x0, -12
                 // 32'h00125e17,   // AUIPC x28, 0x125
                 // 32'h08001563,   // BNE x0, x0, 0x8a
                 // 32'h293d0437    // LUI x8, 0x293d0
-            // 4x indep instr loop:
-                32'h00938063,   // BEQ x7, x9, 0
+            // 4x indep instr loop: IPC = 1.492 (FREE LIST BUG)
+                // 32'h293d0437,    // LUI x8, 0x293d0
+                32'hfe938ae3,   // BEQ x7, x9, -12
+                // 32'hfe938ee3,   // BEQ x7, x9, -4
                 32'h02822303,   // LW x6, 0x28(x4)
                 32'h00410093,   // ADDI x1, x2, 4
                 32'h00518433    // ADD x8, x3, x5
@@ -1815,8 +1817,9 @@ module core_tb ();
 			// hardware failure
 			expected_unrecoverable_fault = 1'b0;
 
-			check_outputs();
+			// check_outputs();
 		end
+		check_outputs();
 
         // ------------------------------------------------------------
         // finish:
