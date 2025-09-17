@@ -1588,11 +1588,11 @@ module core_tb ();
                 // 32'h00c16193,   // ORI x3, x2, 12
                 // 32'h00308133,   // ADD x2, x1, x3
 				// 32'h00408093    // ADDI x1, x1, 4
-            // all alu_reg indep: IPC = 0.791
-                // 32'h002081b3,   // ADD x3, x1, x2
-                // 32'h002081b3,   // ADD x3, x1, x2
-                // 32'h002081b3,   // ADD x3, x1, x2
-				// 32'h002081b3    // ADD x3, x1, x2
+            // all alu_reg indep: IPC = 0.791 (bug?)
+                32'h002081b3,   // ADD x3, x1, x2
+                32'h002081b3,   // ADD x3, x1, x2
+                32'h002081b3,   // ADD x3, x1, x2
+				32'h002081b3    // ADD x3, x1, x2
             // all alu_imm dep: IPC = 0.330
                 // 32'h00408093,   // ADDI x1, x1, 4
                 // 32'h00408093,   // ADDI x1, x1, 4
@@ -1621,10 +1621,10 @@ module core_tb ();
                 // 32'h0280a183,   // LW x3, 0x28(x1)
 				// 32'h00408093    // ADDI x1, x1, 4
             // 3x instr loop: IPC = 0.504 (BUG -> hangs)
-                32'hfe938ce3,   // BEQ x7, x9, -8
-                32'h02822303,   // LW x6, 0x28(x4)
-                32'h00410093,   // ADDI x1, x2, 4
-                32'h00518433    // ADD x8, x3, x5
+                // 32'hfe938ce3,   // BEQ x7, x9, -8
+                // 32'h02822303,   // LW x6, 0x28(x4)
+                // 32'h00410093,   // ADDI x1, x2, 4
+                // 32'h00518433    // ADD x8, x3, x5
             // 2x instr loop: IPC = 1.975
                 // 32'hfe938ee3,   // BEQ x7, x9, -4
                 // 32'h02822303,   // LW x6, 0x28(x4)
