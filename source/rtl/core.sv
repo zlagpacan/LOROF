@@ -24,7 +24,7 @@ module core #(
 	parameter INIT_TRAP_SFENCE = 1'b0,
 	parameter INIT_TRAP_WFI = 1'b0,
 	parameter INIT_TRAP_SRET = 1'b0,
-    parameter INIT_TVEC_BASE_PC = 32'h0000F000
+    parameter INIT_TVEC_BASE_PC = 32'h80000000
 ) (
     // seq
     input logic CLK,

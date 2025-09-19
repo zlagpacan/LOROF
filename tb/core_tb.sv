@@ -24,7 +24,7 @@ parameter INIT_SUM = 1'b0;
 parameter INIT_TRAP_SFENCE = 1'b0;
 parameter INIT_TRAP_WFI = 1'b0;
 parameter INIT_TRAP_SRET = 1'b0;
-parameter INIT_TVEC_BASE_PC = 32'h0000F000;
+parameter INIT_TVEC_BASE_PC = 32'h80000000;
 
 module core_tb ();
 
@@ -1588,27 +1588,27 @@ module core_tb ();
                 // 32'h00c16193,   // ORI x3, x2, 12
                 // 32'h00308133,   // ADD x2, x1, x3
 				// 32'h00408093    // ADDI x1, x1, 4
-            // all alu_reg indep: IPC = 0.791 (bug?)
-                32'h002081b3,   // ADD x3, x1, x2
-                32'h002081b3,   // ADD x3, x1, x2
-                32'h002081b3,   // ADD x3, x1, x2
-				32'h002081b3    // ADD x3, x1, x2
+            // all alu_reg indep: IPC = 0.791 (get 0.988 if increase DQ width to 5)
+                // 32'h002081b3,   // ADD x3, x1, x2
+                // 32'h002081b3,   // ADD x3, x1, x2
+                // 32'h002081b3,   // ADD x3, x1, x2
+				// 32'h002081b3    // ADD x3, x1, x2
             // all alu_imm dep: IPC = 0.330
                 // 32'h00408093,   // ADDI x1, x1, 4
                 // 32'h00408093,   // ADDI x1, x1, 4
                 // 32'h00408093,   // ADDI x1, x1, 4
                 // 32'h00408093    // ADDI x1, x1, 4
-            // all stores indep: IPC = 0.785 (bug?)
+            // all stores indep: IPC = 0.785 (get 0.981 if increase DQ width to 5)
                 // 32'h03092a23,   // SW x16, 0x34(x18)
                 // 32'h02b6aa23,   // SW x11, 0x34(x13)
                 // 32'h02642a23,   // SW x6, 0x34(x8)
                 // 32'h0211aa23    // SW x1, 0x34(x3)
-            // all BRU indep: IPC = 0.791 (bug?)
+            // all BRU indep: IPC = 0.791 (get 0.986 if increase DQ width to 5)
                 // 32'hff5ff06f,   // JAL x0, -12
                 // 32'h00125e17,   // AUIPC x28, 0x125
                 // 32'h08001563,   // BNE x0, x0, 0x8a
                 // 32'h293d0437    // LUI x8, 0x293d0
-            // 4x indep instr loop: IPC = 2.953
+            // 4x indep instr loop: IPC = 2.953 (bug?)
                 // 32'hfe938ae3,   // BEQ x7, x9, -12
                 // 32'h02822303,   // LW x6, 0x28(x4)
                 // 32'h00410093,   // ADDI x1, x2, 4
@@ -1620,11 +1620,11 @@ module core_tb ();
                 // 32'h7e30aa23,   // SW x3, 0x7f4(x1)
                 // 32'h0280a183,   // LW x3, 0x28(x1)
 				// 32'h00408093    // ADDI x1, x1, 4
-            // 3x instr loop: IPC = 0.504 (BUG -> hangs)
-                // 32'hfe938ce3,   // BEQ x7, x9, -8
-                // 32'h02822303,   // LW x6, 0x28(x4)
-                // 32'h00410093,   // ADDI x1, x2, 4
-                // 32'h00518433    // ADD x8, x3, x5
+            // 3x instr loop: IPC = 0.504 (BUG -> hangs due to illegal instr)
+                32'hfe938ce3,   // BEQ x7, x9, -8
+                32'h02822303,   // LW x6, 0x28(x4)
+                32'h00410093,   // ADDI x1, x2, 4
+                32'h00518433    // ADD x8, x3, x5
             // 2x instr loop: IPC = 1.975
                 // 32'hfe938ee3,   // BEQ x7, x9, -4
                 // 32'h02822303,   // LW x6, 0x28(x4)
