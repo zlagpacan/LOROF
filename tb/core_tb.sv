@@ -1638,7 +1638,7 @@ module core_tb ();
                 // 32'h02822303,   // LW x6, 0x28(x4)
                 // 32'h00410093,   // ADDI x1, x2, 4
                 // 32'h00518433    // ADD x8, x3, x5
-            // store-load dep: IPC = 0.028 (BUG -> hangs after duplicate restart)
+            // store-load dep: IPC = 0.028 (BUG -> ldu_cq killed entries not completing)
                 32'h02822203,   // LW x4, 0x28(x4)
                 32'h02222423,   // SW x2, 0x28(x4)
                 32'h02822183,   // LW x3, 0x28(x4)

@@ -545,7 +545,7 @@ module rob #(
 
         // fence check
         if (fence_mispred_deq_valid) begin
-            if (killed_by_entry[branch_mispred_deq_ROB_index]) begin
+            if (killed_by_entry[fence_mispred_deq_ROB_index]) begin
                 // ack and ignore fence
                 fence_mispred_deq_ready = 1'b1;
                 fence_mispred_restarting = 1'b0;
@@ -561,7 +561,7 @@ module rob #(
 
         // ldu check
         if (ldu_mispred_deq_valid) begin
-            if (killed_by_entry[branch_mispred_deq_ROB_index]) begin
+            if (killed_by_entry[ldu_mispred_deq_ROB_index]) begin
                 // ack and ignore ldu
                 ldu_mispred_deq_ready = 1'b1;
                 ldu_mispred_restarting = 1'b0;
@@ -1258,8 +1258,6 @@ module rob #(
                 // perform rollback no matter what
                 rob_controlling_rename = 1'b1;
                 map_table_state_rolling_back = 1'b1;
-                map_table_state_ptr_incr = ~map_table_state_reversing;
-                map_table_state_ptr_decr = map_table_state_reversing;
                 deq_perform = 1'b0;
                 checkpoint_perform = 1'b0;
                 next_deq_launched_by_way = deq_launched_by_way; // save DEQ progress
@@ -1295,6 +1293,8 @@ module rob #(
                     bulk_bram_read_next_index = new_restart_target_index[LOG_ROB_ENTRIES-1:2];
                     PC_bram_read_restart_control = 1'b1;
                     exception_sent = 1'b0;
+                    map_table_state_ptr_incr = 1'b0;
+                    map_table_state_ptr_decr = 1'b0;
                     next_restart_state = RESTART_SEND;
                     next_restart_info_valid = 1'b1;
                     next_restart_info_target_index = new_restart_target_index;
@@ -1314,6 +1314,8 @@ module rob #(
                     bulk_bram_read_next_index = head_ptr + 1;
                     PC_bram_read_restart_control = 1'b0;
                     exception_sent = restart_info_is_exception;
+                    map_table_state_ptr_incr = 1'b0;
+                    map_table_state_ptr_decr = 1'b0;
                     next_restart_state = DEQ;
                     next_restart_info_valid = 1'b0;
                     next_restart_info_target_index = restart_info_target_index;
@@ -1328,6 +1330,8 @@ module rob #(
                     bulk_bram_read_next_index = next_map_table_state_ptr;
                     PC_bram_read_restart_control = 1'b0;
                     exception_sent = 1'b0;
+                    map_table_state_ptr_incr = ~map_table_state_reversing;
+                    map_table_state_ptr_decr = map_table_state_reversing;
                     next_restart_state = ROLLBACK;
                     next_restart_info_valid = 1'b1;
                     next_restart_info_target_index = restart_info_target_index;
