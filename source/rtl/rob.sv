@@ -463,7 +463,6 @@ module rob #(
         
         branch_mispred_enq_valid = 
             branch_notif_valid
-            & branch_notif_ready
             & branch_notif_is_mispredict
             & ~killed_by_entry[branch_notif_ROB_index];
         branch_mispred_enq_ROB_index = branch_notif_ROB_index;
@@ -485,7 +484,7 @@ module rob #(
 
     // ldu mispred notif consumer
     always_comb begin
-        ldu_mispred_enq_valid = ldu_mispred_notif_valid & killed_by_entry[branch_notif_ROB_index];
+        ldu_mispred_enq_valid = ldu_mispred_notif_valid & ~killed_by_entry[branch_notif_ROB_index];
         ldu_mispred_enq_ROB_index = ldu_mispred_notif_ROB_index;
 
         ldu_mispred_notif_ready = ldu_mispred_enq_ready;
@@ -506,7 +505,7 @@ module rob #(
 
     // fence mispred notif consumer
     always_comb begin
-        fence_mispred_enq_valid = fence_restart_notif_valid & killed_by_entry[branch_notif_ROB_index];
+        fence_mispred_enq_valid = fence_restart_notif_valid & ~killed_by_entry[branch_notif_ROB_index];
         fence_mispred_enq_ROB_index = fence_restart_notif_ROB_index;
 
         fence_restart_notif_ready = fence_mispred_enq_ready;

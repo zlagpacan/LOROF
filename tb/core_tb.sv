@@ -1022,63 +1022,63 @@ module core_tb ();
 		end
 
 		if (expected_rob_instret !== DUT_rob_instret) begin
-			$display("TB ERROR: expected_rob_instret (%h) != DUT_rob_instret (%h)",
+			$display("TB ERROR: expected_rob_instret (%0d) != DUT_rob_instret (%0d)",
 				expected_rob_instret, DUT_rob_instret);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
 		if (expected_alu_reg_complete_count !== DUT_alu_reg_complete_count) begin
-			$display("TB ERROR: expected_alu_reg_complete_count (%h) != DUT_alu_reg_complete_count (%h)",
+			$display("TB ERROR: expected_alu_reg_complete_count (%0d) != DUT_alu_reg_complete_count (%0d)",
 				expected_alu_reg_complete_count, DUT_alu_reg_complete_count);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
 		if (expected_alu_imm_complete_count !== DUT_alu_imm_complete_count) begin
-			$display("TB ERROR: expected_alu_imm_complete_count (%h) != DUT_alu_imm_complete_count (%h)",
+			$display("TB ERROR: expected_alu_imm_complete_count (%0d) != DUT_alu_imm_complete_count (%0d)",
 				expected_alu_imm_complete_count, DUT_alu_imm_complete_count);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
 		if (expected_branch_complete_count !== DUT_branch_complete_count) begin
-			$display("TB ERROR: expected_branch_complete_count (%h) != DUT_branch_complete_count (%h)",
+			$display("TB ERROR: expected_branch_complete_count (%0d) != DUT_branch_complete_count (%0d)",
 				expected_branch_complete_count, DUT_branch_complete_count);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
 		if (expected_ldu_complete_count !== DUT_ldu_complete_count) begin
-			$display("TB ERROR: expected_ldu_complete_count (%h) != DUT_ldu_complete_count (%h)",
+			$display("TB ERROR: expected_ldu_complete_count (%0d) != DUT_ldu_complete_count (%0d)",
 				expected_ldu_complete_count, DUT_ldu_complete_count);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
 		if (expected_stamofu_complete_count !== DUT_stamofu_complete_count) begin
-			$display("TB ERROR: expected_stamofu_complete_count (%h) != DUT_stamofu_complete_count (%h)",
+			$display("TB ERROR: expected_stamofu_complete_count (%0d) != DUT_stamofu_complete_count (%0d)",
 				expected_stamofu_complete_count, DUT_stamofu_complete_count);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
 		if (expected_sysu_complete_count !== DUT_sysu_complete_count) begin
-			$display("TB ERROR: expected_sysu_complete_count (%h) != DUT_sysu_complete_count (%h)",
+			$display("TB ERROR: expected_sysu_complete_count (%0d) != DUT_sysu_complete_count (%0d)",
 				expected_sysu_complete_count, DUT_sysu_complete_count);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
 		if (expected_wr_buf_enq_count !== DUT_wr_buf_enq_count) begin
-			$display("TB ERROR: expected_wr_buf_enq_count (%h) != DUT_wr_buf_enq_count (%h)",
+			$display("TB ERROR: expected_wr_buf_enq_count (%0d) != DUT_wr_buf_enq_count (%0d)",
 				expected_wr_buf_enq_count, DUT_wr_buf_enq_count);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
 		if (expected_restart_count !== DUT_restart_count) begin
-			$display("TB ERROR: expected_restart_count (%h) != DUT_restart_count (%h)",
+			$display("TB ERROR: expected_restart_count (%0d) != DUT_restart_count (%0d)",
 				expected_restart_count, DUT_restart_count);
 			num_errors++;
 			tb_error = 1'b1;
@@ -1608,23 +1608,26 @@ module core_tb ();
                 // 32'h00125e17,   // AUIPC x28, 0x125
                 // 32'h08001563,   // BNE x0, x0, 0x8a
                 // 32'h293d0437    // LUI x8, 0x293d0
-            // 4x indep instr loop: IPC = 2.953 (bug?)
+            // 4x indep instr loop: IPC = 2.953
                 // 32'hfe938ae3,   // BEQ x7, x9, -12
                 // 32'h02822303,   // LW x6, 0x28(x4)
                 // 32'h00410093,   // ADDI x1, x2, 4
                 // 32'h00518433    // ADD x8, x3, x5
-            // 4x dep instr loop:
-
+            // 4x dep instr loop: IPC = 0.673
+                // 32'hfe338ae3,   // BEQ x7, x3, -12
+                // 32'h02822283,   // LW x5, 0x28(x4)
+                // 32'h00410193,   // ADDI x3, x2, 4
+                // 32'h00328133    // ADD x2, x5, x3
             // memcpy loop: IPC = 1.316
                 // 32'hfe938ae3,   // BEQ x7, x9, -12
                 // 32'h7e30aa23,   // SW x3, 0x7f4(x1)
                 // 32'h0280a183,   // LW x3, 0x28(x1)
 				// 32'h00408093    // ADDI x1, x1, 4
-            // 3x instr loop: IPC = 0.504 (BUG -> hangs due to illegal instr)
-                32'hfe938ce3,   // BEQ x7, x9, -8
-                32'h02822303,   // LW x6, 0x28(x4)
-                32'h00410093,   // ADDI x1, x2, 4
-                32'h00518433    // ADD x8, x3, x5
+            // 3x instr loop: IPC = 2.531
+                // 32'hfe938ce3,   // BEQ x7, x9, -8
+                // 32'h02822303,   // LW x6, 0x28(x4)
+                // 32'h00410093,   // ADDI x1, x2, 4
+                // 32'h00518433    // ADD x8, x3, x5
             // 2x instr loop: IPC = 1.975
                 // 32'hfe938ee3,   // BEQ x7, x9, -4
                 // 32'h02822303,   // LW x6, 0x28(x4)
@@ -1635,7 +1638,11 @@ module core_tb ();
                 // 32'h02822303,   // LW x6, 0x28(x4)
                 // 32'h00410093,   // ADDI x1, x2, 4
                 // 32'h00518433    // ADD x8, x3, x5
-            // store-load dep:
+            // store-load dep: IPC = 0.028 (BUG -> hangs after duplicate restart)
+                32'h02822203,   // LW x4, 0x28(x4)
+                32'h02222423,   // SW x2, 0x28(x4)
+                32'h02822183,   // LW x3, 0x28(x4)
+                32'h02122423    // SW x1, 0x28(x4)
             // 4x indep w/ misaligned load:
             // 4x indep w/ misaligned store:
             // misaligned store-load:
@@ -1843,7 +1850,7 @@ module core_tb ();
 
         $display();
         if (num_errors) begin
-            $display("FAIL: %d tests fail", num_errors);
+            $display("FAIL: %0d tests fail", num_errors);
         end
         else begin
             $display("SUCCESS: all tests pass");

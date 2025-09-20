@@ -148,7 +148,6 @@ module istream #(
     logic [3:0][3:0]    upper_ack_index_by_way;
 
     logic [15:0]    marker_vec;
-    logic [15:0]    last_marker_uncompressed_vec;
     logic [15:0]    ack_vec;
 
     logic [15:0]    valid_mask_vec;
@@ -500,18 +499,17 @@ module istream #(
             ;
         end
 
-        valid_mask_neq_marker_lower_and_uncompressed_mask = 1'b0;
         marker_lower_and_uncompressed_mask_vec[7] = marker_vec[7] & uncompressed_vec[7];
-        for (int i = 14; i >= 0; i--) begin
-            
-            if (i <= 6) begin
-                marker_lower_and_uncompressed_mask_vec[i] = 
-                    (marker_vec[i] & uncompressed_vec[i]) 
-                    | 
-                    marker_lower_and_uncompressed_mask_vec[i+1]
-                ;
-            end
+        for (int i = 6; i >= 0; i--) begin
+            marker_lower_and_uncompressed_mask_vec[i] = 
+                (marker_vec[i] & uncompressed_vec[i]) 
+                | 
+                marker_lower_and_uncompressed_mask_vec[i+1]
+            ;
+        end
 
+        valid_mask_neq_marker_lower_and_uncompressed_mask = 1'b0;
+        for (int i = 15; i >= 0; i--) begin
             if (i >= 8) begin
                 if (valid_mask_vec[i]) begin
                     valid_mask_neq_marker_lower_and_uncompressed_mask = 1'b1;
@@ -523,16 +521,17 @@ module istream #(
             end
         end
 
-        valid_mask_neq_marker_total_and_uncompressed_mask = 1'b0;
         marker_total_and_uncompressed_mask_vec[15] = marker_vec[15] & uncompressed_vec[15];
         for (int i = 14; i >= 0; i--) begin
-
             marker_total_and_uncompressed_mask_vec[i] = 
                 (marker_vec[i] & uncompressed_vec[i]) 
                 | 
                 marker_total_and_uncompressed_mask_vec[i+1]
             ;
+        end
 
+        valid_mask_neq_marker_total_and_uncompressed_mask = 1'b0;
+        for (int i = 15; i >= 0; i--) begin
             if (valid_mask_vec[i] & ~marker_total_and_uncompressed_mask_vec[i]) begin
                 valid_mask_neq_marker_total_and_uncompressed_mask = 1'b1;
             end
