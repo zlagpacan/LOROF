@@ -325,7 +325,6 @@ module stamofu_cq #(
         logic                               misaligned;
         logic                               misaligned_complete;
         logic [LOG_STAMOFU_MQ_ENTRIES-1:0]  mq_index;
-        logic                               killed_in_dq;
         logic                               killed;
         logic                               dtlb_hit;
         logic                               forward;
@@ -760,7 +759,6 @@ module stamofu_cq #(
                 next_entry_array[i].misaligned = stamofu_cq_info_ret_bank0_misaligned;
                 // next_entry_array[i].misaligned_complete = 
                 // next_entry_array[i].mq_index = 
-                // next_entry_array[i].killed_in_dq = 
                 // next_entry_array[i].killed = 
                 next_entry_array[i].dtlb_hit = stamofu_cq_info_ret_bank0_dtlb_hit;
                 // next_entry_array[i].forward = 
@@ -812,7 +810,6 @@ module stamofu_cq #(
                 next_entry_array[i].misaligned = stamofu_cq_info_ret_bank1_misaligned;
                 // next_entry_array[i].misaligned_complete = 
                 // next_entry_array[i].mq_index = 
-                // next_entry_array[i].killed_in_dq = 
                 // next_entry_array[i].killed = 
                 next_entry_array[i].dtlb_hit = stamofu_cq_info_ret_bank1_dtlb_hit;
                 // next_entry_array[i].forward = 
@@ -958,8 +955,7 @@ module stamofu_cq #(
                 & ~entry_array[i].complete_req
                 & (~entry_array[i].misaligned | entry_array[i].misaligned_complete)
                 & (
-                    entry_array[i].killed_in_dq
-                    | entry_array[i].is_fence
+                    entry_array[i].is_fence
                     | entry_array[i].ldu_CAM_launch_returned
                     | entry_array[i].exception_sent)
                 & (
@@ -1725,7 +1721,6 @@ module stamofu_cq #(
                 entry_array[enq_ptr].misaligned <= 1'b0;
                 entry_array[enq_ptr].misaligned_complete <= 1'b0;
                 // entry_array[enq_ptr].mq_index <= 
-                entry_array[enq_ptr].killed_in_dq <= stamofu_cq_enq_killed;
                 entry_array[enq_ptr].killed <= stamofu_cq_enq_killed;
                 entry_array[enq_ptr].dtlb_hit <= 1'b0;
                 entry_array[enq_ptr].forward <= 1'b0;
@@ -1773,7 +1768,6 @@ module stamofu_cq #(
                 entry_array[deq_ptr].misaligned <= 1'b0;
                 entry_array[deq_ptr].misaligned_complete <= 1'b0;
                 // entry_array[deq_ptr].mq_index <= 
-                entry_array[deq_ptr].killed_in_dq <= 1'b0;
                 entry_array[deq_ptr].killed <= 1'b0;
                 entry_array[deq_ptr].dtlb_hit <= 1'b0;
                 entry_array[deq_ptr].forward <= 1'b0;

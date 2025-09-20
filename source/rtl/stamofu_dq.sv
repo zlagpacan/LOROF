@@ -154,24 +154,19 @@ module stamofu_dq #(
     logic [3:0][STAMOFU_DQ_ENTRIES-1:0] dispatch_one_hot_by_way;
 
     // launching
-    logic killed_at_0;
     logic launching;
 
     // ----------------------------------------------------------------
     // Launch Logic:
 
-    assign killed_at_0 = killed_by_entry[0] | new_killed_by_entry[0];
-
     assign launching = 
         valid_by_entry[0] 
         & stamofu_cq_enq_ready
         & (stamofu_iq_enq_ready
-            | killed_at_0
             | (is_fence_by_entry[0] & ~op_by_entry[1])) 
             // check op which doesn't need operand collection
                 // FENCE, FENCE.I
         & (stamofu_aq_enq_ready
-            | killed_at_0
             | ~(mem_aq_by_entry[0] | io_aq_by_entry[0]));
             // check op without aq
 
@@ -222,8 +217,7 @@ module stamofu_dq #(
 
         stamofu_aq_enq_valid = 
             launching
-            & ~(killed_at_0
-                | ~(mem_aq_by_entry[0] | io_aq_by_entry[0]));
+            & (mem_aq_by_entry[0] | io_aq_by_entry[0]);
         stamofu_aq_enq_mem_aq = mem_aq_by_entry[0];
         stamofu_aq_enq_io_aq = io_aq_by_entry[0];
         stamofu_aq_enq_ROB_index = ROB_index_by_entry[0];

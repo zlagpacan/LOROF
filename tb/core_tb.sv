@@ -1638,11 +1638,36 @@ module core_tb ();
                 // 32'h02822303,   // LW x6, 0x28(x4)
                 // 32'h00410093,   // ADDI x1, x2, 4
                 // 32'h00518433    // ADD x8, x3, x5
-            // store-load dep: IPC = 0.028 (BUG -> ldu_cq killed entries not completing)
-                32'h02822203,   // LW x4, 0x28(x4)
-                32'h02222423,   // SW x2, 0x28(x4)
-                32'h02822183,   // LW x3, 0x28(x4)
-                32'h02122423    // SW x1, 0x28(x4)
+            // 1x1 store-load dep no pred: IPC = 1.004
+                // 32'h0284a403,   // LW x8, 0x28(x9)
+                // 32'h00430393,   // ADDI x7, x6, 4
+                // 32'h004182b3,   // ADD x5, x3, x4
+                // 32'h02112423    // SW x1, 0x28(x2)
+            // 2x2 store-load dep no pred: IPC = 1.078
+                // 32'h0282a183,   // LW x3, 0x28(x5)
+                // 32'h1042a203,   // LW x4, 0x104(x5)
+                // 32'h1022a223,   // SW x2, 0x104(x5)
+                // 32'h0212a423    // SW x1, 0x28(x5)
+            // 2x 1x1 store-load dep no pred: IPC = 0.799
+                // 32'h0282a203,   // LW x4, 0x28(x5)
+                // 32'h0222a423,   // SW x2, 0x28(x5)
+                // 32'h0282a183,   // LW x3, 0x28(x5)
+                // 32'h0212a423    // SW x1, 0x28(x5)
+            // 2x 1x1 store-load dep no pred w/ reg dep: IPC = 0.662
+                // 32'h02822203,   // LW x4, 0x28(x4)
+                // 32'h02222423,   // SW x2, 0x28(x4)
+                // 32'h02822183,   // LW x3, 0x28(x4)
+                // 32'h02122423    // SW x1, 0x28(x4)
+			// 1x1 store-load dep w/ pred: IPC = 1.918
+                // 32'hfe838ae3,   // BEQ x7, x8, -12
+                // 32'h02832283,   // LW x5, 0x28(x6)
+                // 32'h00420193,   // ADDI x3, x4, 4
+                // 32'h02112423    // SW x1, 0x28(x2)
+			// 1x1 no store-load dep: IPC = 3.418
+                // 32'hfe838ae3,   // BEQ x7, x8, -12
+                // 32'h02832283,   // LW x5, 0x28(x6)
+                // 32'h00420193,   // ADDI x3, x4, 4
+				// 32'h10112223    // SW x1, 0x104(x2)
             // 4x indep w/ misaligned load:
             // 4x indep w/ misaligned store:
             // misaligned store-load:

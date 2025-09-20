@@ -109,15 +109,12 @@ module sysu_dq #(
     logic [3:0][SYSU_DQ_ENTRIES-1:0] dispatch_one_hot_by_way;
 
     // launching
-    logic killed_at_0;
     logic A_ready_at_0;
     logic B_ready_at_0;
     logic launching;
 
     // ----------------------------------------------------------------
     // Launch Logic:
-
-    assign killed_at_0 = killed_by_entry[0] | new_killed_by_entry[0];
 
     assign A_ready_at_0 = 
         (op_by_entry[0][1:0] == 2'b00)

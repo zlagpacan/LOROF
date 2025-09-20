@@ -102,19 +102,15 @@ module ldu_dq #(
     logic [3:0][LDU_DQ_ENTRIES-1:0] dispatch_one_hot_by_way;
 
     // launching
-    logic killed_at_0;
     logic launching;
 
     // ----------------------------------------------------------------
     // Launch Logic:
 
-    assign killed_at_0 = killed_by_entry[0] | new_killed_by_entry[0];
-
     assign launching = 
         valid_by_entry[0] 
         & ldu_cq_enq_ready 
-        & (ldu_iq_enq_ready
-            | killed_at_0);
+        & ldu_iq_enq_ready;
 
     // new ready and killed checks
     always_comb begin
