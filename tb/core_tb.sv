@@ -1573,6 +1573,11 @@ module core_tb ();
                 // 32'h407302b3,   // SUB x5, x6, x7
                 // 32'h02822183,   // LW x3, 0x28(x4)
 				// 32'h00410093    // ADDI x1, x2, 4
+            // friendly indep repeat w/ store: IPC = 2.957 (lower because of dest PR conflicts)
+                // 32'h293d0437,   // LUI x8, 0x293d0
+                // 32'h10532223,   // SW x5, 0x104(x6)
+                // 32'h02822183,   // LW x3, 0x28(x4)
+				// 32'h00410093    // ADDI x1, x2, 4
             // friendly all reg zero's repeat: IPC = 3.645
                 // 32'h293d0437,   // LUI x8, 0x293d0
                 // 32'h400002b3,   // SUB x5, x0, x0
@@ -1608,6 +1613,11 @@ module core_tb ();
                 // 32'h00125e17,   // AUIPC x28, 0x125
                 // 32'h08001563,   // BNE x0, x0, 0x8a
                 // 32'h293d0437    // LUI x8, 0x293d0
+            // 4x indep instr loop w/ store: IPC = 3.875
+                32'hfe938ae3,   // BEQ x7, x9, -12
+                32'h10532223,   // SW x5, 0x104(x6)
+                32'h02822183,   // LW x3, 0x28(x4)
+				32'h00410093    // ADDI x1, x2, 4
             // 4x indep instr loop: IPC = 2.953
                 // 32'hfe938ae3,   // BEQ x7, x9, -12
                 // 32'h02822303,   // LW x6, 0x28(x4)
