@@ -544,7 +544,7 @@ module ldu_cq #(
                 end
             end
 
-            ldu_mq_info_grab_data_try_ack = 1'b1;
+            ldu_mq_info_grab_data_try_ack = data_try_bank0_ack | data_try_bank1_ack;
         end else begin
             data_try_bank0_valid = potential_data_try_valid & (entry_array[data_try_cq_index].PA_word[DCACHE_WORD_ADDR_BANK_BIT] == 1'b0);
             data_try_bank1_valid = potential_data_try_valid & (entry_array[data_try_cq_index].PA_word[DCACHE_WORD_ADDR_BANK_BIT] == 1'b1);

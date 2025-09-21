@@ -776,7 +776,7 @@ module ldu_mq #(
     // misaligned queue info grab
     always_comb begin
         ldu_mq_info_grab_data_try_req = 
-            entry_array[ldu_mq_info_grab_mq_index].data_try_req 
+            entry_array[ldu_mq_info_grab_mq_index].data_try_req
             | entry_array[ldu_mq_info_grab_mq_index].data_try_waiting;
         ldu_mq_info_grab_data = {8'h00, entry_array[ldu_mq_info_grab_mq_index].data};
     end
