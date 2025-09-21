@@ -3647,7 +3647,9 @@ module core #(
         ldu_mq_enq_valid = ldu_launch_pipeline_bank0_ldu_mq_enq_valid | ldu_launch_pipeline_bank1_ldu_mq_enq_valid;
 
         ldu_launch_pipeline_bank0_ldu_mq_enq_ready = ldu_mq_enq_ready;
-        ldu_launch_pipeline_bank1_ldu_mq_enq_ready = ldu_mq_enq_ready & ~ldu_launch_pipeline_bank0_ldu_mq_enq_valid;
+        // ldu_launch_pipeline_bank1_ldu_mq_enq_ready = ldu_mq_enq_ready & ~ldu_launch_pipeline_bank0_ldu_mq_enq_valid;
+            // need both pipes ready for first try launch. would stall if didn't allow both sides to be ready
+        ldu_launch_pipeline_bank1_ldu_mq_enq_ready = ldu_mq_enq_ready;
 
         // static priority stamofu launch pipeline bank 0 > bank 1
         stamofu_mq_enq_valid = stamofu_launch_pipeline_bank0_stamofu_mq_enq_valid | stamofu_launch_pipeline_bank1_stamofu_mq_enq_valid;
@@ -4774,7 +4776,7 @@ module core #(
 
     always_comb begin
         // static priority ldu launch pipeline > stamofu launch pipeline
-            // d$ can internally choose what dcache_req_ready looks like at core based on write buffer
+            // d$ can internally choose what dcache_req_ready looks like at core based on write buffer, MSHR, etc.
 
         dtlb_req_bank0_valid = ldu_launch_pipeline_dtlb_req_bank0_valid | stamofu_launch_pipeline_dtlb_req_bank0_valid;
         if (ldu_launch_pipeline_dtlb_req_bank0_valid) begin
