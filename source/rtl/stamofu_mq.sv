@@ -310,7 +310,7 @@ module stamofu_mq #(
         .ack_index(ldu_CAM_launch_req_ack_index)
     );
     pe_lsb # (
-        .WIDTH(STAMOFU_MQ_ENTRIES), .USE_ONE_HOT(0), .USE_INDEX(1)
+        .WIDTH(STAMOFU_MQ_ENTRIES), .USE_ONE_HOT(1), .USE_INDEX(1)
     ) COMPLETE_LAUNCH_PE (
         .req_vec(complete_req_by_entry),
         .ack_one_hot(complete_req_ack_one_hot),
@@ -341,7 +341,7 @@ module stamofu_mq #(
         end
         else begin
             stamofu_mq_complete_valid <= |complete_req_by_entry;
-            stamofu_mq_complete_cq_index <= complete_req_ack_index;
+            stamofu_mq_complete_cq_index <= entry_array[complete_req_ack_index].cq_index;
         end
     end
 

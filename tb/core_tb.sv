@@ -1678,12 +1678,16 @@ module core_tb ();
                 // 32'h02832283,   // LW x5, 0x28(x6)
                 // 32'h00420193,   // ADDI x3, x4, 4
 				// 32'h10112223    // SW x1, 0x104(x2)
-            // 4x indep w/ misaligned load:
+            // 4x indep w/ misaligned load: IPC = 0.985
+                // 32'hfe938ae3,   // BEQ x7, x9, -12
+                // 32'h10532223,   // SW x5, 0x104(x6)
+                // 32'h02a22183,   // LW x3, 0x2A(x4)
+				// 32'h00410093    // ADDI x1, x2, 4
+            // 4x indep w/ misaligned store: IPC = 1.125
                 32'hfe938ae3,   // BEQ x7, x9, -12
-                32'h10532223,   // SW x5, 0x104(x6)
-                32'h02a22183,   // LW x3, 0x2A(x4)
+                32'h10532323,   // SW x5, 0x106(x6)
+                32'h02822183,   // LW x3, 0x28(x4)
 				32'h00410093    // ADDI x1, x2, 4
-            // 4x indep w/ misaligned store:
             // misaligned store-load:
 			};
 			// icache resp feedback
