@@ -92,7 +92,7 @@ module stamofu_aq #(
     always_comb begin
         for (int i = 0; i < STAMOFU_AQ_ENTRIES; i++) begin
             new_killed_by_entry[i] = rob_kill_valid & 
-                (ROB_index_by_entry[i] - rob_abs_head_index) > rob_kill_rel_kill_younger_index;
+                (ROB_index_by_entry[i] - rob_abs_head_index) >= rob_kill_rel_kill_younger_index;
 
             update_bank0_by_entry[i] = stamofu_aq_update_bank0_valid
                 & stamofu_aq_update_bank0_ROB_index == ROB_index_by_entry[i];

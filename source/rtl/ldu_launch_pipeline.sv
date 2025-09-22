@@ -386,6 +386,21 @@ module ldu_launch_pipeline #(
             data_try_ack = 1'b0;
         end
 
+        // otherwise, check data
+            // need no propagated stall
+            // this must be higher priority than second try since data try's are often older instr's needing to finish
+                // in bad case, second try can block out data try for rapid misaligned data try's
+        else if (
+            data_try_valid
+            & ~stall_RESP
+        ) begin
+            REQ_stage_valid = 1'b1;
+
+            first_try_ack = 1'b0;
+            second_try_ack = 1'b0;
+            data_try_ack = 1'b1;
+        end
+
         // otherwise, check second try
             // need no propagated stall and dcache req
         else if (
@@ -398,18 +413,6 @@ module ldu_launch_pipeline #(
             first_try_ack = 1'b0;
             second_try_ack = 1'b1;
             data_try_ack = 1'b0;
-        end
-
-        // otherwise, check data
-        else if (
-            data_try_valid
-            & ~stall_RESP
-        ) begin
-            REQ_stage_valid = 1'b1;
-
-            first_try_ack = 1'b0;
-            second_try_ack = 1'b0;
-            data_try_ack = 1'b1;
         end
 
         // otherwise, REQ stage NOP

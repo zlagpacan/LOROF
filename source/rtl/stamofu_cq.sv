@@ -981,7 +981,7 @@ module stamofu_cq #(
                 // check younger than kill index
             if (
                 rob_kill_valid
-                & (rel_ROB_index_by_entry[i] > rob_kill_rel_kill_younger_index)
+                & (rel_ROB_index_by_entry[i] >= rob_kill_rel_kill_younger_index)
             ) begin
                 next_entry_array[i].killed = 1'b1;
             end
@@ -1676,7 +1676,7 @@ module stamofu_cq #(
     end
     always_comb begin
         for (int i = 0; i < STAMOFU_CQ_ENTRIES; i++) begin
-            unmasked_incomplete_vec = (entry_array[i].valid & ~entry_array[i].complete);
+            unmasked_incomplete_vec[i] = (entry_array[i].valid & ~entry_array[i].complete);
         end
         masked_incomplete_vec = unmasked_incomplete_vec & wraparound_mask;
     end

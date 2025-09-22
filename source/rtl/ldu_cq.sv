@@ -913,8 +913,9 @@ module ldu_cq #(
                     // no stamofu active OR older than oldest stamofu
             if (
                 ~entry_array[i].dtlb_hit
-                & stamofu_incomplete_active
-                & (rel_ROB_index_by_entry[i] < (stamofu_oldest_incomplete_ROB_index - rob_kill_abs_head_index))
+                & ~(
+                    ~stamofu_incomplete_active
+                    | (rel_ROB_index_by_entry[i] < (stamofu_oldest_incomplete_ROB_index - rob_kill_abs_head_index)))
             ) begin
                 next_entry_array[i].older_stamofu_incomplete_active = 1'b1;
             end
@@ -982,7 +983,7 @@ module ldu_cq #(
             if (
                 entry_array[i].valid
                 & rob_kill_valid
-                & (rel_ROB_index_by_entry[i] > rob_kill_rel_kill_younger_index)
+                & (rel_ROB_index_by_entry[i] >= rob_kill_rel_kill_younger_index)
             ) begin
                 next_entry_array[i].killed = 1'b1;
             end

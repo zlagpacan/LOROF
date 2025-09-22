@@ -181,7 +181,7 @@ module stamofu_dq #(
                 & WB_bus_valid_by_bank[B_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
 
             new_killed_by_entry[i] = rob_kill_valid & 
-                (ROB_index_by_entry[i] - rob_kill_abs_head_index) > rob_kill_rel_kill_younger_index;
+                (ROB_index_by_entry[i] - rob_kill_abs_head_index) >= rob_kill_rel_kill_younger_index;
         end
     end
 

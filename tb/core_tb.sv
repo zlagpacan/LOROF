@@ -1613,16 +1613,16 @@ module core_tb ();
                 // 32'h00125e17,   // AUIPC x28, 0x125
                 // 32'h08001563,   // BNE x0, x0, 0x8a
                 // 32'h293d0437    // LUI x8, 0x293d0
-            // 4x indep instr loop w/ store: IPC = 3.875
-                // 32'hfe938ae3,   // BEQ x7, x9, -12
-                // 32'h10532223,   // SW x5, 0x104(x6)
-                // 32'h02822183,   // LW x3, 0x28(x4)
-				// 32'h00410093    // ADDI x1, x2, 4
             // 4x indep instr loop: IPC = 2.953
                 // 32'hfe938ae3,   // BEQ x7, x9, -12
                 // 32'h02822303,   // LW x6, 0x28(x4)
                 // 32'h00410093,   // ADDI x1, x2, 4
                 // 32'h00518433    // ADD x8, x3, x5
+            // 4x indep instr loop w/ store: IPC = 3.570
+                // 32'hfe938ae3,   // BEQ x7, x9, -12
+                // 32'h10532223,   // SW x5, 0x104(x6)
+                // 32'h02822183,   // LW x3, 0x28(x4)
+				// 32'h00410093    // ADDI x1, x2, 4
             // 4x dep instr loop: IPC = 0.673
                 // 32'hfe338ae3,   // BEQ x7, x3, -12
                 // 32'h02822283,   // LW x5, 0x28(x4)
@@ -1698,11 +1698,48 @@ module core_tb ();
                 // 32'h02a22183,   // LW x3, 0x2A(x4)
 				// 32'h02532423,   // SW x5, 0x28(x6)
 				// 32'h00410093    // ADDI x1, x2, 4
-            // misaligned store, aligned load: IPC = 0.070 (BUG -> nasty forward)
-                32'hfe938ae3,   // BEQ x7, x9, -12
-                32'h02822183,   // LW x3, 0x28(x4)
-				32'h02532523,   // SW x5, 0x2A(x6)
-				32'h00410093    // ADDI x1, x2, 4
+            // misaligned store, aligned load: IPC = 0.261
+                // 32'hfe938ae3,   // BEQ x7, x9, -12
+                // 32'h02822183,   // LW x3, 0x28(x4)
+				// 32'h02532523,   // SW x5, 0x2A(x6)
+				// 32'h00410093    // ADDI x1, x2, 4
+			// compressed friendly indep repeat: IPC = 3.785
+                // 16'h647d,   // C.LUI x8, 31
+                // 16'h808e,   // C.MV x1, x3
+                // 16'h4544,   // C.LW x9, 12(x10)
+				// 16'h103c,   // C.ADDI4SPN x15, 40
+                // 16'h647d,   // C.LUI x8, 31
+                // 16'h808e,   // C.MV x1, x3
+                // 16'h4544,   // C.LW x9, 12(x10)
+				// 16'h103c    // C.ADDI4SPN x15, 40
+            // uncompressed friendly indep repeat: IPC = 3.785
+                // 32'h0001f437,   // LUI x8, 31
+                // 32'h003000b3,   // ADD x1, x0, x3
+                // 32'h00c52483,   // LW x9, 12(x10)
+				// 32'h02810793    // ADDI x15, x2, 40
+            // compressed 4x indep instr loop w/ store: IPC = 1.931
+                // 16'h0000,   // NONE
+                // 16'h0000,   // NONE
+                // 16'h0000,   // NONE
+				// 16'h0000,   // NONE
+                // 16'hdc6d,   // C.BEQZ x8, -6
+                // 16'hc24c,   // C.SW x11, 4(x12)
+                // 16'h4544,   // C.LW x9, 12(x10)
+				// 16'h103c    // C.ADDI4SPN x15, 40
+            // uncompressed 4x indep instr loop w/ store: IPC = 1.939
+                // 32'hfe040ae3,   // BEQ x8, x0, -12
+                // 32'h00b62223,   // SW x11, 4(x12)
+                // 32'h00c52483,   // LW x9, 12(x10)
+				// 32'h02810793    // ADDI x15, x2, 40
+            // compressed 8x indep instr loop w/ store: IPC = 0.531 (BUG)
+                16'hd86d,   // C.BEQZ x8, -14
+                16'hc24c,   // C.SW x11, 4(x12)
+                16'h4544,   // C.LW x9, 12(x10)
+				16'h103c,   // C.ADDI4SPN x15, 40
+                16'h647d,   // C.LUI x8, 31
+                16'hc24c,   // C.SW x11, 4(x12)
+                16'h4544,   // C.LW x9, 12(x10)
+				16'h103c    // C.ADDI4SPN x15, 40
 			};
 			// icache resp feedback
 			// dtlb req

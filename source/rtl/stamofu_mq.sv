@@ -460,7 +460,7 @@ module stamofu_mq #(
                 // check younger than kill index
             if (
                 rob_kill_valid
-                & (rel_ROB_index_by_entry[i] > rob_kill_rel_kill_younger_index)
+                & (rel_ROB_index_by_entry[i] >= rob_kill_rel_kill_younger_index)
             ) begin
                 next_entry_array[i].killed = 1'b1;
             end

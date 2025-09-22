@@ -744,6 +744,10 @@ module rob #(
                 next_exception_reg_valid = 1'b0;
             end
         end
+        // clear current exception if killed
+        else if (exception_reg_valid & killed_by_entry[exception_reg_target_index]) begin
+            next_exception_reg_valid = 1'b0;
+        end
     end
     always_comb begin
         exception_reg_target_mask_by_4way = {(ROB_ENTRIES/4){1'b1}} << exception_reg_target_index[LOG_ROB_ENTRIES-1:2];
@@ -771,7 +775,7 @@ module rob #(
                 
                 for (int i = 0; i < 4; i++) begin
                     WB_complete_by_entry[4*tail_ptr+i] <= 1'b0;
-                    unit_complete_by_entry[4*tail_ptr+i] <= 1'b0;
+                    unit_complete_by_entry[4*tail_ptr+i] <= dispatch_exception_present & (i >= dispatch_exception_index);
                     killed_by_entry[4*tail_ptr+i] <= dispatch_enq_killed;
                 end
 
@@ -804,7 +808,7 @@ module rob #(
                         valid_by_4way[entry[LOG_ROB_ENTRIES-1:2]]
                         & (
                             (entry - rob_kill_abs_head_index) 
-                            > rob_kill_rel_kill_younger_index)
+                            >= rob_kill_rel_kill_younger_index)
                     ) begin
                         killed_by_entry[entry] <= 1'b1;
                     end
@@ -825,6 +829,12 @@ module rob #(
             end
             if (branch_notif_valid) begin
                 unit_complete_by_entry[branch_notif_ROB_index] <= 1'b1;
+            end
+            if (ldu_exception_valid) begin
+                unit_complete_by_entry[ldu_exception_ROB_index] <= 1'b1;
+            end
+            if (stamofu_exception_valid) begin
+                unit_complete_by_entry[stamofu_exception_ROB_index] <= 1'b1;
             end
         end
     end
@@ -1144,7 +1154,7 @@ module rob #(
                         ~exception_reg_valid
                         | (
                             (new_restart_target_index - rob_kill_abs_head_index)
-                            <
+                            <=
                             (exception_reg_target_index - rob_kill_abs_head_index)
                         )
                     )
@@ -1222,7 +1232,7 @@ module rob #(
                         ~exception_reg_valid
                         | (
                             (new_restart_target_index - rob_kill_abs_head_index)
-                            <
+                            <=
                             (exception_reg_target_index - rob_kill_abs_head_index)
                         )
                     )
@@ -1284,7 +1294,7 @@ module rob #(
                         ~exception_reg_valid
                         | (
                             (new_restart_target_index - rob_kill_abs_head_index)
-                            <
+                            <=
                             (exception_reg_target_index - rob_kill_abs_head_index)
                         )
                     )
@@ -1311,7 +1321,7 @@ module rob #(
                     & map_table_state_ptr == restart_info_target_index[LOG_ROB_ENTRIES-1:2]
                 ) begin
                     bulk_bram_read_next_valid = 1'b1;
-                    bulk_bram_read_next_index = head_ptr + 1;
+                    bulk_bram_read_next_index = head_ptr; // back to head
                     PC_bram_read_restart_control = 1'b0;
                     exception_sent = restart_info_is_exception;
                     map_table_state_ptr_incr = 1'b0;
@@ -1392,7 +1402,7 @@ module rob #(
                         ~exception_reg_valid
                         | (
                             (new_restart_target_index - rob_kill_abs_head_index)
-                            <
+                            <=
                             (exception_reg_target_index - rob_kill_abs_head_index)
                         )
                     )
