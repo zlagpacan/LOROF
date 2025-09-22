@@ -1722,16 +1722,25 @@ module core_tb ();
                 // 16'h0000,   // NONE
                 // 16'h0000,   // NONE
 				// 16'h0000,   // NONE
-                // 16'hdc6d,   // C.BEQZ x8, -6
+                // 16'hdeed,   // C.BEQZ x13, -6
                 // 16'hc24c,   // C.SW x11, 4(x12)
                 // 16'h4544,   // C.LW x9, 12(x10)
 				// 16'h103c    // C.ADDI4SPN x15, 40
             // uncompressed 4x indep instr loop w/ store: IPC = 1.939
-                // 32'hfe040ae3,   // BEQ x8, x0, -12
+                // 32'hfe040ae3,   // BEQ x13, x0, -12
                 // 32'h00b62223,   // SW x11, 4(x12)
                 // 32'h00c52483,   // LW x9, 12(x10)
 				// 32'h02810793    // ADDI x15, x2, 40
-            // compressed 8x indep instr loop w/ store: IPC = 0.531 (BUG)
+            // compressed 8x indep instr loop w/ store: IPC = 1.939
+                // 16'hdaed,   // C.BEQZ x13, -14
+                // 16'hc24c,   // C.SW x11, 4(x12)
+                // 16'h4544,   // C.LW x9, 12(x10)
+				// 16'h103c,   // C.ADDI4SPN x15, 40
+                // 16'h647d,   // C.LUI x8, 31
+                // 16'hc24c,   // C.SW x11, 4(x12)
+                // 16'h4544,   // C.LW x9, 12(x10)
+				// 16'h103c    // C.ADDI4SPN x15, 40
+            // compressed 8x 1 dep instr loop w/ store: IPC = 1.906
                 16'hd86d,   // C.BEQZ x8, -14
                 16'hc24c,   // C.SW x11, 4(x12)
                 16'h4544,   // C.LW x9, 12(x10)

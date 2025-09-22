@@ -559,7 +559,7 @@ module bru_pipeline_fast (
                     next_WB_stage_target_PC = PC_plus_imm32_EX;
                     next_WB_stage_is_taken = 1'b1;
                 end else begin
-                    next_WB_stage_target_PC = PC_plus_4_EX;
+                    next_WB_stage_target_PC = PC_plus_2_EX;
                     next_WB_stage_is_taken = 1'b0;
                 end
                 next_WB_stage_start_PC = PC_EX;
@@ -572,7 +572,7 @@ module bru_pipeline_fast (
                     next_WB_stage_target_PC = PC_plus_imm32_EX;
                     next_WB_stage_is_taken = 1'b1;
                 end else begin
-                    next_WB_stage_target_PC = PC_plus_4_EX;
+                    next_WB_stage_target_PC = PC_plus_2_EX;
                     next_WB_stage_is_taken = 1'b0;
                 end
                 next_WB_stage_start_PC = PC_EX;
