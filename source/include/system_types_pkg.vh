@@ -27,21 +27,37 @@ package system_types_pkg;
     // ----------------------------------------------------------------
     // Caches:
 
+    // coherence granularity 
+    parameter COH_BLOCK_SIZE = 64; // 64B
+    parameter COH_BLOCK_SIZE_BITS = COH_BLOCK_SIZE * 8; // 512b
+        // AKA data512
+    parameter COH_BLOCK_OFFSET = $clog2(COH_BLOCK_SIZE); // 6b
+    parameter COH_BLOCK_ADDR_WIDTH = PA_WIDTH - COH_BLOCK_OFFSET; // 34b - 6b = 28b
+        // AKA PA28
+
+    // L1 granularity
+    parameter L1_BLOCK_SIZE = 32; // 32B
+    parameter L1_BLOCK_SIZE_BITS = L1_BLOCK_SIZE * 8; // 256b
+        // AKA data256
+    parameter L1_BLOCK_OFFSET = $clog2(L1_BLOCK_SIZE); // 5b
+    parameter L1_BLOCK_ADDR_WIDTH = PA_WIDTH - L1_BLOCK_OFFSET; // 34b - 5b = 29b
+        // AKA PA29
+
     // icache
         // sizing
-    parameter ICACHE_SIZE = 2**13; // 8 KB
-    parameter ICACHE_BLOCK_SIZE = 32;
-    parameter ICACHE_ASSOC = 2;
+    parameter ICACHE_SIZE = 2**13; // 8KB, 4KB page per way
+    parameter ICACHE_BLOCK_SIZE = 32; // 32B
+    parameter ICACHE_ASSOC = 2; // 2x
         // address bit partitioning
             // 16B*2-way fetch width
-            // {tag, index[], blkoff[0]}[]
-    parameter ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE);
-    parameter ICACHE_NUM_SETS = ICACHE_SIZE / ICACHE_ASSOC / ICACHE_BLOCK_SIZE;
-    parameter ICACHE_INDEX_WIDTH = $clog2(ICACHE_NUM_SETS);
-    parameter ICACHE_TAG_WIDTH = PA_WIDTH - ICACHE_INDEX_WIDTH - ICACHE_BLOCK_OFFSET_WIDTH;
+            // {tag[21:0], index[6:0], block_offset[0], fetch_offset[3:0]}
+    parameter ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE); // 5b
+    parameter ICACHE_NUM_SETS = ICACHE_SIZE / ICACHE_ASSOC / ICACHE_BLOCK_SIZE; // 128x
+    parameter ICACHE_INDEX_WIDTH = $clog2(ICACHE_NUM_SETS); // 7b
+    parameter ICACHE_TAG_WIDTH = PA_WIDTH - ICACHE_INDEX_WIDTH - ICACHE_BLOCK_OFFSET_WIDTH; // 34b - 7b - 5b = 22b
         // fetch side interface
-    parameter ICACHE_FETCH_WIDTH = 16;
-    parameter ICACHE_FETCH_BLOCK_OFFSET_WIDTH = 1;
+    parameter ICACHE_FETCH_WIDTH = 16; // 16B
+    parameter ICACHE_FETCH_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE / ICACHE_FETCH_WIDTH); // 1b
 
     // dcache_write_buffer
 
