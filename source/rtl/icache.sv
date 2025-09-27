@@ -97,7 +97,7 @@ module icache #(
     // LRU array:
         // reg
     
-    logic [ICACHE_NUM_SETS-1:0] lru_array, next_lru_array;
+    logic [ICACHE_NUM_SETS-1:0] lru_array;
         // remember to set lru on inv
 
     // data array:
@@ -105,11 +105,11 @@ module icache #(
 
     logic                                                           data_array_read_next_valid;
     logic [ICACHE_INDEX_WIDTH+ICACHE_FETCH_BLOCK_OFFSET_WIDTH-1:0]  data_array_read_next_index;
-    logic [ICACHE_FETCH_WIDTH*8-1:0]                                data_array_read_entry;
+    logic [1:0][ICACHE_FETCH_WIDTH*8-1:0]                           data_array_read_entry;
 
-    logic                                                           data_array_write_valid;
+    logic [1:0][ICACHE_FETCH_WIDTH-1:0]                             data_array_write_valid_mask;
     logic [ICACHE_INDEX_WIDTH+ICACHE_FETCH_BLOCK_OFFSET_WIDTH-1:0]  data_array_write_index;
-    logic [ICACHE_FETCH_WIDTH*8-1:0]                                data_array_write_entry;
+    logic [1:0][ICACHE_FETCH_WIDTH*8-1:0]                           data_array_write_entry;
 
     // read port usage:
         // core req
@@ -117,51 +117,206 @@ module icache #(
         // l2 snoop inv
             // tag
 
-    logic snoop_inv_next_reading;
-
     // write port usage:
         // miss resp
             // tag + data
         // l2 snoop inv
             // tag
-            
-    logic snoop_inv_writing;
+
+    logic                               snoop_inv_next_reading;
+    logic                               snoop_inv_writing;
+    logic [L1_BLOCK_ADDR_WIDTH-1:0]     snoop_inv_saved_PA29;
+
+    logic l2_snoop_hit;
+    logic l2_snoop_hit_way;
 
     logic                                           core_resp_valid;
     logic [ICACHE_FETCH_BLOCK_OFFSET_WIDTH-1:0]     core_resp_block_offset;
     logic [ICACHE_INDEX_WIDTH-1:0]                  core_resp_index;
 
-    logic                                       miss_reg_valid, next_miss_reg_valid;
-    logic                                       miss_reg_requested, next_miss_reg_requested;
-    logic [L1_BLOCK_ADDR_WIDTH-1:0]             miss_reg_PA29, next_miss_reg_PA29;
-    logic                                       miss_reg_lru_way, next_miss_reg_lru_way;
-    logic                                       miss_reg_data_valid, next_miss_reg_data_valid;
-    logic [ICACHE_FETCH_BLOCK_OFFSET_WIDTH]     miss_reg_data_blkoff, next_miss_reg_data_blkoff;
-    logic [L1_BLOCK_SIZE_BITS-1:0]              miss_reg_data_buffer, next_miss_reg_data_buffer;
+    logic                                                                       miss_reg_valid, next_miss_reg_valid;
+    logic                                                                       miss_reg_requested, next_miss_reg_requested;
+    logic [ICACHE_INDEX_WIDTH-1:0]                                              miss_reg_missing_index, next_miss_reg_missing_index;
+    logic [ICACHE_TAG_WIDTH-1:0]                                                miss_reg_missing_tag, next_miss_reg_missing_tag;
+    logic                                                                       miss_reg_old_lru_way, next_miss_reg_old_lru_way;
+    logic                                                                       miss_reg_other_way_valid, next_miss_reg_other_way_valid;
+    logic [ICACHE_TAG_WIDTH-1:0]                                                miss_reg_other_way_tag, next_miss_reg_other_way_tag;
+    logic                                                                       miss_reg_data_valid, next_miss_reg_data_valid;
+    logic [ICACHE_FETCH_BLOCK_OFFSET_WIDTH-1:0]                                 miss_reg_data_blkoff, next_miss_reg_data_blkoff;
+    logic [2**ICACHE_FETCH_BLOCK_OFFSET_WIDTH-1:0][ICACHE_FETCH_WIDTH*8-1:0]    miss_reg_data_buffer, next_miss_reg_data_buffer;
+
+    logic miss_matching_core;
 
     // ----------------------------------------------------------------
     // Logic:
 
     // read port logic
     always_comb begin
-        
+        tag_array_read_next_valid = core_req_valid | snoop_inv_next_reading;
+        if (snoop_inv_next_reading) begin
+            tag_array_read_next_index = l2_snoop_inv_PA29[ICACHE_INDEX_WIDTH-1:0];
+        end
+        else begin
+            tag_array_read_next_index = core_req_index;
+        end
+
+        data_array_read_next_valid = core_req_valid;
+        data_array_read_next_index = {core_req_index, core_req_block_offset};
     end
 
     // write port logic
     always_comb begin
+        l2_snoop_hit = 1'b0;
+        l2_snoop_hit_way = 1'b0;
 
+        tag_array_write_valid = (miss_reg_valid & miss_reg_data_valid) | snoop_inv_writing;
+        if (snoop_inv_writing) begin
+            tag_array_write_index = snoop_inv_saved_PA29[ICACHE_INDEX_WIDTH-1:0];
+            if (tag_array_read_entry.tag_by_way[0] == snoop_inv_saved_PA29[ICACHE_TAG_WIDTH+ICACHE_INDEX_WIDTH-1:ICACHE_INDEX_WIDTH]) begin
+                tag_array_write_entry.valid_by_way[0] = 1'b0;
+                l2_snoop_hit = 1'b1;
+                l2_snoop_hit_way = 1'b0;
+            end else begin
+                tag_array_write_entry.valid_by_way[0] = tag_array_read_entry.valid_by_way[0];
+            end
+            if (tag_array_read_entry.tag_by_way[1] == snoop_inv_saved_PA29[ICACHE_TAG_WIDTH+ICACHE_INDEX_WIDTH-1:ICACHE_INDEX_WIDTH]) begin
+                tag_array_write_entry.valid_by_way[1] = 1'b0;
+                l2_snoop_hit = 1'b1;
+                l2_snoop_hit_way = 1'b1;
+            end else begin
+                tag_array_write_entry.valid_by_way[1] = tag_array_read_entry.valid_by_way[1];
+            end
+            tag_array_write_entry.tag_by_way[0] = tag_array_read_entry.tag_by_way[0];
+            tag_array_write_entry.tag_by_way[1] = tag_array_read_entry.tag_by_way[1];
+        end
+        else begin
+            tag_array_write_index = miss_reg_missing_index;
+            tag_array_write_entry.valid_by_way[miss_reg_old_lru_way] = (miss_reg_data_blkoff == '1);
+                // mark block as invalid until all data is in cache, then mark valid
+            tag_array_write_entry.tag_by_way[miss_reg_old_lru_way] = miss_reg_missing_tag;
+            tag_array_write_entry.valid_by_way[~miss_reg_old_lru_way] = miss_reg_other_way_valid;
+            tag_array_write_entry.tag_by_way[~miss_reg_old_lru_way] = miss_reg_other_way_tag;
+        end
+
+        data_array_write_valid_mask = '0;
+        if (miss_reg_valid & miss_reg_data_valid & ~snoop_inv_writing) begin
+            data_array_write_valid_mask[miss_reg_old_lru_way] = '1;
+        end
+        data_array_write_index = {miss_reg_missing_index, miss_reg_data_blkoff};
+        data_array_write_entry[0] = miss_reg_data_buffer[miss_reg_data_blkoff];
+        data_array_write_entry[1] = miss_reg_data_buffer[miss_reg_data_blkoff];
+            // duplicate for both ways, write valid mask will make so only write to one
     end
 
     // miss logic
     always_comb begin
-        
+
+        // defaults
+        next_miss_reg_valid = miss_reg_valid;
+        next_miss_reg_requested = miss_reg_requested;
+        next_miss_reg_missing_index = miss_reg_missing_index;
+        next_miss_reg_missing_tag = miss_reg_missing_tag;
+        next_miss_reg_other_way_valid = miss_reg_other_way_valid;
+        next_miss_reg_other_way_tag = miss_reg_other_way_tag;
+        next_miss_reg_old_lru_way = miss_reg_old_lru_way;
+        next_miss_reg_data_valid = miss_reg_data_valid;
+        next_miss_reg_data_blkoff = miss_reg_data_blkoff;
+        next_miss_reg_data_buffer = miss_reg_data_buffer;
+
+        l2_req_valid = 1'b0;
+        l2_req_PA29 = {miss_reg_missing_tag, miss_reg_missing_index};
+
+        // check for l2 snoop of miss reg
+        if (
+            l2_snoop_inv_valid
+            & (l2_snoop_inv_PA29[ICACHE_INDEX_WIDTH-1:0] == miss_reg_missing_index)
+            & (l2_snoop_inv_PA29[ICACHE_TAG_WIDTH+ICACHE_INDEX_WIDTH-1:ICACHE_INDEX_WIDTH] == miss_reg_missing_tag)
+        ) begin
+            // clear miss reg
+                // could resp to core and be fine, but definitely don't want to fill cache if got inv'd
+            next_miss_reg_valid = 1'b0;
+        end
+        // check for miss with data arrived
+        else if (miss_reg_valid & miss_reg_data_valid) begin
+            if (~snoop_inv_writing & (miss_reg_data_blkoff == '1)) begin
+                next_miss_reg_valid = 1'b0;
+            end
+            else if (~snoop_inv_writing) begin
+                next_miss_reg_data_blkoff = miss_reg_data_blkoff + 1;
+            end
+        end
+        // check for new miss
+        else if (
+            core_resp_miss_valid
+            & (~miss_reg_valid | ~miss_matching_core)
+            & ~snoop_inv_writing
+        ) begin
+            next_miss_reg_valid = 1'b1;
+            next_miss_reg_requested = 1'b0;
+            next_miss_reg_missing_index = core_resp_index;
+            next_miss_reg_missing_tag = core_resp_miss_tag;
+            next_miss_reg_old_lru_way = lru_array[core_resp_index];
+            next_miss_reg_other_way_valid = tag_array_read_entry.valid_by_way[lru_array[core_resp_index]];
+            next_miss_reg_other_way_tag = tag_array_read_entry.tag_by_way[lru_array[core_resp_index]];
+            next_miss_reg_data_valid = 1'b0;
+            next_miss_reg_data_blkoff = 0;
+        end
+        // check waiting for l2
+        else if (miss_reg_valid) begin
+            // l2 resp arrived
+            if (
+                l2_resp_valid
+                & (l2_resp_PA29[ICACHE_INDEX_WIDTH-1:0] == miss_reg_missing_index)
+                & (l2_resp_PA29[ICACHE_TAG_WIDTH+ICACHE_INDEX_WIDTH-1:ICACHE_INDEX_WIDTH] == miss_reg_missing_tag)
+            ) begin
+                next_miss_reg_requested = 1'b1;
+                    // possible for old l2 resp to come in for this new miss
+                        // check l2 req ready after this case for same reason
+                        // don't reset data blkoff for same reason
+                next_miss_reg_data_valid = 1'b1;
+                next_miss_reg_data_buffer = l2_resp_data256;
+            end
+            // finish l2 req
+            else if (~miss_reg_requested) begin
+                l2_req_valid = 1'b1;
+                if (l2_req_ready) begin
+                    next_miss_reg_requested = 1'b1;
+                end
+            end
+        end
     end
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            
+            miss_reg_valid <= 1'b0;
+            miss_reg_requested <= 1'b0;
+            miss_reg_missing_index <= 0;
+            miss_reg_missing_tag <= 0;
+            miss_reg_other_way_valid <= 1'b0;
+            miss_reg_other_way_tag <= 0;
+            miss_reg_old_lru_way <= 1'b0;
+            miss_reg_data_valid <= 1'b0;
+            miss_reg_data_blkoff <= 0;
+            miss_reg_data_buffer <= '0;
+
+            miss_matching_core <= 1'b0;
         end
         else begin
+            miss_reg_valid <= next_miss_reg_valid;
+            miss_reg_requested <= next_miss_reg_requested;
+            miss_reg_missing_index <= next_miss_reg_missing_index;
+            miss_reg_missing_tag <= next_miss_reg_missing_tag;
+            miss_reg_other_way_valid <= next_miss_reg_other_way_valid;
+            miss_reg_other_way_tag <= next_miss_reg_other_way_tag;
+            miss_reg_old_lru_way <= next_miss_reg_old_lru_way;
+            miss_reg_data_valid <= next_miss_reg_data_valid;
+            miss_reg_data_blkoff <= next_miss_reg_data_blkoff;
+            miss_reg_data_buffer <= next_miss_reg_data_buffer;
 
+            miss_matching_core <=
+                core_req_valid
+                & miss_reg_valid
+                & (core_req_index == miss_reg_missing_index)
+                & (core_resp_miss_tag == miss_reg_missing_tag)
         end
     end
 
@@ -171,10 +326,46 @@ module icache #(
     end
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
+            core_resp_valid <= 1'b0;
+            core_resp_block_offset <= 0;
+            core_resp_index <= 0;
+
             snoop_inv_writing <= 1'b0;
         end
         else begin
+            core_resp_valid <= core_req_valid;
+            core_resp_block_offset <= core_req_block_offset;
+            core_resp_index <= core_req_index;
+
             snoop_inv_writing <= snoop_inv_next_reading;
+        end
+    end
+
+    // resp to core:
+    always_comb begin
+
+        // defaults
+        core_resp_valid_by_way[0] = tag_array_read_entry.valid_by_way[0];
+        core_resp_valid_by_way[1] = tag_array_read_entry.valid_by_way[1];
+        core_resp_tag_by_way[0] = tag_array_read_entry.tag_by_way[0];
+        core_resp_tag_by_way[1] = tag_array_read_entry.tag_by_way[1];
+        core_resp_instr_16B_by_way[0] = data_array_read_entry[0];
+        core_resp_instr_16B_by_way[1] = data_array_read_entry[1];
+
+        // miss return bypass
+        if (miss_matching_core & miss_reg_data_valid) begin
+            core_resp_valid_by_way[miss_reg_old_lru_way] = 1'b1;
+            core_resp_tag_by_way[miss_reg_old_lru_way] = miss_reg_missing_tag;
+                // keep this arranged as when would enter cache so that lru gets set correctly
+            core_resp_instr_16B_by_way[miss_reg_old_lru_way] = miss_reg_data_buffer[core_resp_block_offset];
+        end
+    end
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            snoop_inv_saved_PA29 <= '0;
+        end
+        else begin
+            snoop_inv_saved_PA29 <= l2_snoop_inv_PA29;
         end
     end
 
@@ -196,7 +387,7 @@ module icache #(
     );
     
     bram_1rport_1wport #(
-        .INNER_WIDTH(ICACHE_FETCH_WIDTH * 8),
+        .INNER_WIDTH(ICACHE_FETCH_WIDTH * 8 * 2),
         .OUTER_WIDTH(ICACHE_NUM_SETS * 2**ICACHE_FETCH_BLOCK_OFFSET_WIDTH)
     ) DATA_ARRAY_BRAM (
         .CLK(CLK),
@@ -204,7 +395,7 @@ module icache #(
         .ren(data_array_read_next_valid),
         .rindex(data_array_read_next_index),
         .rdata(data_array_read_entry),
-        .wen_byte({(ICACHE_FETCH_WIDTH){data_array_write_valid}}),
+        .wen_byte(data_array_write_valid_mask),
         .windex(data_array_write_index),
         .wdata(data_array_write_entry)
     );
@@ -214,7 +405,14 @@ module icache #(
             lru_array <= '0;
         end
         else begin
-            lru_array <= next_lru_array;
+            // on core hit, make opposite way LRU
+            if (core_resp_hit_valid) begin
+                lru_array[core_resp_index] <= ~core_resp_hit_way;
+            end
+            // on l2 snoop hit, make this way LRU
+            if (l2_snoop_hit) begin
+                lru_array[snoop_inv_saved_PA29[ICACHE_INDEX_WIDTH-1:0]] <= l2_snoop_hit_way;
+            end
         end
     end
 
