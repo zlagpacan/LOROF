@@ -9,16 +9,16 @@
 import system_types_pkg::*;
 
 module icache #(
-    parameter ICACHE_NUM_SETS = 2**7, // 128x
-    parameter ICACHE_INDEX_WIDTH = $clog2(ICACHE_NUM_SETS), // 7b
+    parameter ICACHE_NUM_SETS = 2**7,
+    parameter ICACHE_INDEX_WIDTH = $clog2(ICACHE_NUM_SETS),
 
-    parameter ICACHE_BLOCK_SIZE = 32, // 32B
-    parameter ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE); // 5b
+    parameter ICACHE_BLOCK_SIZE = 32,
+    parameter ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE),
 
-    parameter ICACHE_TAG_WIDTH = 22, // 22b
+    parameter ICACHE_TAG_WIDTH = 22,
 
-    parameter ICACHE_FETCH_WIDTH = 16, // 16B
-    parameter ICACHE_FETCH_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE / ICACHE_FETCH_WIDTH), // 1b
+    parameter ICACHE_FETCH_WIDTH = 16,
+    parameter ICACHE_FETCH_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE / ICACHE_FETCH_WIDTH)
 ) (
     // seq
     input logic CLK,
@@ -316,7 +316,7 @@ module icache #(
                 core_req_valid
                 & miss_reg_valid
                 & (core_req_index == miss_reg_missing_index)
-                & (core_resp_miss_tag == miss_reg_missing_tag)
+                & (core_resp_miss_tag == miss_reg_missing_tag);
         end
     end
 
