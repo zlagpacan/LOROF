@@ -36,7 +36,7 @@ Quad-Core, so 4 of each:
     - private, per-core
     - coherent
         - receives snoops from L2 Cache
-    - MOESI cache block states
+    - MOESIF cache block states
     - write-back
     - supports atomics
 - Data TLB
@@ -64,14 +64,14 @@ Quad-Core, so 4 of each:
         - receives snoops from Bus
         - sends snoops to L1 Instruction Cache
         - sends snoops L1 Data Cache
-    - MOESI cache block states
+    - MOESIF cache block states
     - write-back
 
 
 # Shared System Modules
 - Bus
     - split-transaction, pipelined
-    - MOESI coherence
+    - MOESIF coherence
         - snoops L2 Caches
     - memory mapping to DRAM or I/O space
     - supports atomics
