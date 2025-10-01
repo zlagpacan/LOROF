@@ -274,7 +274,7 @@ module icache_tb ();
 
 		// inputs
 		sub_test_case = {
-            "\n\t\t", "req: miss 0,0,0",
+            "\n\t\t", "req: miss 000000,0,0",
             "\n\t\t", "resp: ",
             "\n\t\t", "miss reg: "
         };
@@ -324,8 +324,8 @@ module icache_tb ();
 
 		// inputs
 		sub_test_case = {
-            "\n\t\t", "req: miss 0,0,0",
-            "\n\t\t", "resp: miss 0,0,0",
+            "\n\t\t", "req: miss 000000,0,0",
+            "\n\t\t", "resp: miss 000000,0,0",
             "\n\t\t", "miss reg: "
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -374,8 +374,8 @@ module icache_tb ();
 
 		// inputs
 		sub_test_case = {
-            "\n\t\t", "req: miss 0,0,0",
-            "\n\t\t", "resp: miss 0,0,0",
+            "\n\t\t", "req: miss 000000,0,0",
+            "\n\t\t", "resp: miss 000000,0,0",
             "\n\t\t", "miss reg: miss 0,0 -> l2 req not ready"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -424,8 +424,8 @@ module icache_tb ();
 
 		// inputs
 		sub_test_case = {
-            "\n\t\t", "req: miss 0,0,0",
-            "\n\t\t", "resp: miss 0,0,0",
+            "\n\t\t", "req: miss 000000,0,0",
+            "\n\t\t", "resp: miss 000000,0,0",
             "\n\t\t", "miss reg: miss 0,0 -> l2 req"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -474,8 +474,8 @@ module icache_tb ();
 
 		// inputs
 		sub_test_case = {
-            "\n\t\t", "req: miss 0,0,0",
-            "\n\t\t", "resp: miss 0,0,0",
+            "\n\t\t", "req: miss 000000,0,0",
+            "\n\t\t", "resp: miss 000000,0,0",
             "\n\t\t", "miss reg: miss 0,0 -> waiting l2 resp"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -524,8 +524,8 @@ module icache_tb ();
 
 		// inputs
 		sub_test_case = {
-            "\n\t\t", "req: miss 0,0,0",
-            "\n\t\t", "resp: miss 0,0,0",
+            "\n\t\t", "req: miss 000000,0,0",
+            "\n\t\t", "resp: miss 000000,0,0",
             "\n\t\t", "miss reg: miss 0,0 -> garbage l2 resp"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -574,8 +574,8 @@ module icache_tb ();
 
 		// inputs
 		sub_test_case = {
-            "\n\t\t", "req: miss 0,0,0",
-            "\n\t\t", "resp: miss 0,0,0",
+            "\n\t\t", "req: miss 000000,0,0",
+            "\n\t\t", "resp: miss 000000,0,0",
             "\n\t\t", "miss reg: miss 0,0 -> l2 resp 7654,3210"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -624,8 +624,8 @@ module icache_tb ();
 
 		// inputs
 		sub_test_case = {
-            "\n\t\t", "req: miss return 0,0,1",
-            "\n\t\t", "resp: miss 0,0,0",
+            "\n\t\t", "req: miss return 000000,0,1",
+            "\n\t\t", "resp: miss 000000,0,0",
             "\n\t\t", "miss reg: miss 0,0 -> miss return 3210, miss fill 3210"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -674,8 +674,8 @@ module icache_tb ();
 
 		// inputs
 		sub_test_case = {
-            "\n\t\t", "req: miss return 0,0,0",
-            "\n\t\t", "resp: miss return 0,0,1",
+            "\n\t\t", "req: miss return 000000,0,0",
+            "\n\t\t", "resp: miss return 000000,0,1",
             "\n\t\t", "miss reg: miss 0,0 -> miss return 7654, miss fill 7654"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -724,8 +724,8 @@ module icache_tb ();
 
 		// inputs
 		sub_test_case = {
-            "\n\t\t", "req: hit 0,0,1",
-            "\n\t\t", "resp: miss return 0,0,0",
+            "\n\t\t", "req: hit 000000,0,1",
+            "\n\t\t", "resp: miss return 000000,0,0",
             "\n\t\t", "miss reg: miss 0,0 -> delay cycle"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -774,8 +774,8 @@ module icache_tb ();
 
 		// inputs
 		sub_test_case = {
-            "\n\t\t", "req: hit 0,0,0",
-            "\n\t\t", "resp: hit 0,0,1",
+            "\n\t\t", "req: hit 000000,0,0",
+            "\n\t\t", "resp: hit 000000,0,1",
             "\n\t\t", "miss reg: "
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -825,7 +825,7 @@ module icache_tb ();
 		// inputs
 		sub_test_case = {
             "\n\t\t", "req: miss 123456,0,1",
-            "\n\t\t", "resp: hit 0,0,0",
+            "\n\t\t", "resp: hit 000000,0,0",
             "\n\t\t", "miss reg: "
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -963,7 +963,7 @@ module icache_tb ();
 		expected_core_resp_instr_16B_by_way = {{8{16'h0000}}, {8{16'h7654}}};
 	    // resp feedback from core
 	    // req to L2
-		expected_l2_req_valid = 1'b0;
+		expected_l2_req_valid = 1'b1;
 		expected_l2_req_PA29 = {22'h123456, 7'h00};
 	    // resp from L2
 	    // L2 snoop inv
@@ -1174,9 +1174,9 @@ module icache_tb ();
 
 		// inputs
 		sub_test_case = {
-            "\n\t\t", "req: hit 123456,0,0",
+            "\n\t\t", "req: hit hit 000000,0,0",
             "\n\t\t", "resp: miss 010203,1,0",
-            "\n\t\t", "miss reg: miss 010203,1 -> miss return e1e1"
+            "\n\t\t", "miss reg: miss 010203,1 -> miss fill e1e1, miss return e1e1"
         };
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -1224,9 +1224,9 @@ module icache_tb ();
 
 		// inputs
 		sub_test_case = {
-            "\n\t\t", "req: hit 123456,0,0",
-            "\n\t\t", "resp: hit 123456,0,0",
-            "\n\t\t", "miss reg: miss 010203,1 -> miss return e1e1"
+            "\n\t\t", "req: miss 789abc,0,0",
+            "\n\t\t", "resp: hit 000000,0,0",
+            "\n\t\t", "miss reg: miss 010203,1 -> miss fill f0f0"
         };
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -1241,7 +1241,7 @@ module icache_tb ();
 		tb_core_resp_hit_valid = 1'b1;
 		tb_core_resp_hit_way = 1'b0;
 		tb_core_resp_miss_valid = 1'b0;
-		tb_core_resp_miss_tag = 22'h010203;
+		tb_core_resp_miss_tag = 22'h000000;
 	    // req to L2
 		tb_l2_req_ready = 1'b1;
 	    // resp from L2
@@ -1265,6 +1265,909 @@ module icache_tb ();
 	    // req to L2
 		expected_l2_req_valid = 1'b0;
 		expected_l2_req_PA29 = {22'h010203, 7'h01};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: miss 789abc,0,0",
+            "\n\t\t", "resp: miss 789abc,0,0",
+            "\n\t\t", "miss reg: miss 010203,1 -> delay cycle"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b0;
+		tb_core_req_index = 7'h00;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b0;
+		tb_core_resp_hit_way = 1'b1;
+		tb_core_resp_miss_valid = 1'b1;
+		tb_core_resp_miss_tag = 22'h789abc;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b0;
+		tb_l2_resp_PA29 = {22'h010203, 7'h01};
+		tb_l2_resp_data256 = {{8{16'hf0f0}}, {8{16'he1e1}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b0;
+		tb_l2_snoop_inv_PA29 = 29'h00000000;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b11;
+		expected_core_resp_tag_by_way = {22'h123456, 22'h000000};
+		expected_core_resp_instr_16B_by_way = {{8{16'hba98}}, {8{16'h3210}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b0;
+		expected_l2_req_PA29 = {22'h010203, 7'h01};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: miss 789abc,0,0",
+            "\n\t\t", "resp: miss 789abc,0,0",
+            "\n\t\t", "miss reg: miss 789abc,0 -> l2 req"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b0;
+		tb_core_req_index = 7'h00;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b0;
+		tb_core_resp_hit_way = 1'b1;
+		tb_core_resp_miss_valid = 1'b1;
+		tb_core_resp_miss_tag = 22'h789abc;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b0;
+		tb_l2_resp_PA29 = {22'h010203, 7'h01};
+		tb_l2_resp_data256 = {{8{16'hf0f0}}, {8{16'he1e1}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b0;
+		tb_l2_snoop_inv_PA29 = 29'h00000000;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b11;
+		expected_core_resp_tag_by_way = {22'h123456, 22'h000000};
+		expected_core_resp_instr_16B_by_way = {{8{16'hba98}}, {8{16'h3210}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b1;
+		expected_l2_req_PA29 = {22'h789abc, 7'h00};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: miss 789abc,0,0",
+            "\n\t\t", "resp: miss 789abc,0,0",
+            "\n\t\t", "miss reg: miss 789abc,0 -> l2 resp, l2 snooped",
+            "\n\t\t", "l2 snoop: 789abc,0"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b0;
+		tb_core_req_index = 7'h00;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b0;
+		tb_core_resp_hit_way = 1'b1;
+		tb_core_resp_miss_valid = 1'b1;
+		tb_core_resp_miss_tag = 22'h789abc;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b1;
+		tb_l2_resp_PA29 = {22'h789abc, 7'h00};
+		tb_l2_resp_data256 = {{8{16'hd2d2}}, {8{16'hc3c3}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b1;
+		tb_l2_snoop_inv_PA29 = {22'h789abc, 7'h00};
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b11;
+		expected_core_resp_tag_by_way = {22'h123456, 22'h000000};
+		expected_core_resp_instr_16B_by_way = {{8{16'hba98}}, {8{16'h3210}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b0;
+		expected_l2_req_PA29 = {22'h789abc, 7'h00};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: miss 789abc,0,0",
+            "\n\t\t", "resp: miss 789abc,0,0",
+            "\n\t\t", "miss reg: ",
+            "\n\t\t", "l2 snoop: 010203,1"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b0;
+		tb_core_req_index = 7'h00;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b0;
+		tb_core_resp_hit_way = 1'b1;
+		tb_core_resp_miss_valid = 1'b1;
+		tb_core_resp_miss_tag = 22'h789abc;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b0;
+		tb_l2_resp_PA29 = {22'h789abc, 7'h00};
+		tb_l2_resp_data256 = {{8{16'hd2d2}}, {8{16'hc3c3}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b1;
+		tb_l2_snoop_inv_PA29 = {22'h010203, 7'h01};
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b00;
+		expected_core_resp_tag_by_way = {22'h123456, 22'h000000};
+		expected_core_resp_instr_16B_by_way = {{8{16'hba98}}, {8{16'h3210}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b0;
+		expected_l2_req_PA29 = {22'h789abc, 7'h00};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: miss 789abc,0,0",
+            "\n\t\t", "resp: miss 789abc,0,0",
+            "\n\t\t", "miss reg: blocked by snoop inv writing",
+            "\n\t\t", "l2 snoop: 000000,0"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b0;
+		tb_core_req_index = 7'h00;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b0;
+		tb_core_resp_hit_way = 1'b1;
+		tb_core_resp_miss_valid = 1'b1;
+		tb_core_resp_miss_tag = 22'h789abc;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b0;
+		tb_l2_resp_PA29 = {22'h789abc, 7'h00};
+		tb_l2_resp_data256 = {{8{16'hd2d2}}, {8{16'hc3c3}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b1;
+		tb_l2_snoop_inv_PA29 = {22'h000000, 7'h00};
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b00;
+		expected_core_resp_tag_by_way = {22'h000000, 22'h010203};
+		expected_core_resp_instr_16B_by_way = {{8{16'hba98}}, {8{16'h3210}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b0;
+		expected_l2_req_PA29 = {22'h789abc, 7'h00};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: miss 789abc,0,0",
+            "\n\t\t", "resp: miss 789abc,0,0",
+            "\n\t\t", "miss reg: blocked by snoop inv writing"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b0;
+		tb_core_req_index = 7'h00;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b0;
+		tb_core_resp_hit_way = 1'b1;
+		tb_core_resp_miss_valid = 1'b1;
+		tb_core_resp_miss_tag = 22'h789abc;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b0;
+		tb_l2_resp_PA29 = {22'h789abc, 7'h00};
+		tb_l2_resp_data256 = {{8{16'hd2d2}}, {8{16'hc3c3}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b0;
+		tb_l2_snoop_inv_PA29 = {22'h000000, 7'h00};
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b00;
+		expected_core_resp_tag_by_way = {22'h123456, 22'h000000};
+		expected_core_resp_instr_16B_by_way = {{8{16'hba98}}, {8{16'h3210}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b0;
+		expected_l2_req_PA29 = {22'h789abc, 7'h00};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: miss 789abc,0,0",
+            "\n\t\t", "resp: miss 789abc,0,0",
+            "\n\t\t", "miss reg: blocked by snoop inv writing"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b0;
+		tb_core_req_index = 7'h00;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b0;
+		tb_core_resp_hit_way = 1'b1;
+		tb_core_resp_miss_valid = 1'b1;
+		tb_core_resp_miss_tag = 22'h789abc;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b0;
+		tb_l2_resp_PA29 = {22'h789abc, 7'h00};
+		tb_l2_resp_data256 = {{8{16'hd2d2}}, {8{16'hc3c3}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b0;
+		tb_l2_snoop_inv_PA29 = {22'h000000, 7'h00};
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b11;
+		expected_core_resp_tag_by_way = {22'h123456, 22'h000000};
+		expected_core_resp_instr_16B_by_way = {{8{16'hba98}}, {8{16'h3210}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b0;
+		expected_l2_req_PA29 = {22'h789abc, 7'h00};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: miss 789abc,0,0",
+            "\n\t\t", "resp: miss 789abc,0,0",
+            "\n\t\t", "miss reg: 789abc,0 -> l2 req"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b0;
+		tb_core_req_index = 7'h00;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b0;
+		tb_core_resp_hit_way = 1'b1;
+		tb_core_resp_miss_valid = 1'b1;
+		tb_core_resp_miss_tag = 22'h789abc;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b0;
+		tb_l2_resp_PA29 = {22'h789abc, 7'h00};
+		tb_l2_resp_data256 = {{8{16'hd2d2}}, {8{16'hc3c3}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b0;
+		tb_l2_snoop_inv_PA29 = {22'h000000, 7'h00};
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b10;
+		expected_core_resp_tag_by_way = {22'h123456, 22'h789abc};
+		expected_core_resp_instr_16B_by_way = {{8{16'hba98}}, {8{16'h3210}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b1;
+		expected_l2_req_PA29 = {22'h789abc, 7'h00};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: miss 789abc,0,0",
+            "\n\t\t", "resp: miss 789abc,0,0",
+            "\n\t\t", "miss reg: 789abc,0 -> l2 resp d2d2;c3c3"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b0;
+		tb_core_req_index = 7'h00;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b0;
+		tb_core_resp_hit_way = 1'b1;
+		tb_core_resp_miss_valid = 1'b1;
+		tb_core_resp_miss_tag = 22'h789abc;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b1;
+		tb_l2_resp_PA29 = {22'h789abc, 7'h00};
+		tb_l2_resp_data256 = {{8{16'hd2d2}}, {8{16'hc3c3}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b0;
+		tb_l2_snoop_inv_PA29 = {22'h000000, 7'h00};
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b10;
+		expected_core_resp_tag_by_way = {22'h123456, 22'h789abc};
+		expected_core_resp_instr_16B_by_way = {{8{16'hba98}}, {8{16'h3210}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b0;
+		expected_l2_req_PA29 = {22'h789abc, 7'h00};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: hit 123456,0,1",
+            "\n\t\t", "resp: miss 789abc,0,0",
+            "\n\t\t", "miss reg: 789abc,0 -> fill c3c3, return c3c3"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b1;
+		tb_core_req_index = 7'h00;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b1;
+		tb_core_resp_hit_way = 1'b0;
+		tb_core_resp_miss_valid = 1'b0;
+		tb_core_resp_miss_tag = 22'h789abc;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b0;
+		tb_l2_resp_PA29 = {22'h789abc, 7'h00};
+		tb_l2_resp_data256 = {{8{16'hd2d2}}, {8{16'hc3c3}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b0;
+		tb_l2_snoop_inv_PA29 = {22'h000000, 7'h00};
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b11;
+		expected_core_resp_tag_by_way = {22'h123456, 22'h789abc};
+		expected_core_resp_instr_16B_by_way = {{8{16'hba98}}, {8{16'hc3c3}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b0;
+		expected_l2_req_PA29 = {22'h789abc, 7'h00};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: miss 010203,1,1",
+            "\n\t\t", "resp: hit 123456,0,1",
+            "\n\t\t", "miss reg: 789abc,0 -> fill d2d2"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b1;
+		tb_core_req_index = 7'h01;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b1;
+		tb_core_resp_hit_way = 1'b1;
+		tb_core_resp_miss_valid = 1'b0;
+		tb_core_resp_miss_tag = 22'h123456;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b0;
+		tb_l2_resp_PA29 = {22'h789abc, 7'h00};
+		tb_l2_resp_data256 = {{8{16'hd2d2}}, {8{16'hc3c3}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b0;
+		tb_l2_snoop_inv_PA29 = {22'h000000, 7'h00};
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b11;
+		expected_core_resp_tag_by_way = {22'h123456, 22'h789abc};
+		expected_core_resp_instr_16B_by_way = {{8{16'hfedc}}, {8{16'hd2d2}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b0;
+		expected_l2_req_PA29 = {22'h789abc, 7'h00};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: hit 789abc,0,0",
+            "\n\t\t", "resp: miss 010203,1,1",
+            "\n\t\t", "miss reg: 789abc,0 -> delay cycle"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b0;
+		tb_core_req_index = 7'h00;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b0;
+		tb_core_resp_hit_way = 1'b0;
+		tb_core_resp_miss_valid = 1'b1;
+		tb_core_resp_miss_tag = 22'h010203;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b0;
+		tb_l2_resp_PA29 = {22'h789abc, 7'h00};
+		tb_l2_resp_data256 = {{8{16'hd2d2}}, {8{16'hc3c3}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b0;
+		tb_l2_snoop_inv_PA29 = {22'h000000, 7'h00};
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b00;
+		expected_core_resp_tag_by_way = {22'h000000, 22'h789abc};
+		expected_core_resp_instr_16B_by_way = {{8{16'h0000}}, {8{16'hf0f0}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b0;
+		expected_l2_req_PA29 = {22'h789abc, 7'h00};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: miss 040506,1,1",
+            "\n\t\t", "resp: hit 789abc,0,0",
+            "\n\t\t", "miss reg: 010203,1 -> l2 req"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b1;
+		tb_core_req_index = 7'h01;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b1;
+		tb_core_resp_hit_way = 1'b0;
+		tb_core_resp_miss_valid = 1'b0;
+		tb_core_resp_miss_tag = 22'h010203;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b0;
+		tb_l2_resp_PA29 = {22'h789abc, 7'h00};
+		tb_l2_resp_data256 = {{8{16'hd2d2}}, {8{16'hc3c3}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b0;
+		tb_l2_snoop_inv_PA29 = {22'h000000, 7'h00};
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b11;
+		expected_core_resp_tag_by_way = {22'h123456, 22'h789abc};
+		expected_core_resp_instr_16B_by_way = {{8{16'hba98}}, {8{16'hc3c3}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b1;
+		expected_l2_req_PA29 = {22'h010203, 7'h01};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: miss 040506,1,1",
+            "\n\t\t", "resp: miss 040506,1,1",
+            "\n\t\t", "miss reg: 010203,1 -> l2 resp b4b4;a5a5"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b1;
+		tb_core_req_index = 7'h01;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b0;
+		tb_core_resp_hit_way = 1'b0;
+		tb_core_resp_miss_valid = 1'b1;
+		tb_core_resp_miss_tag = 22'h040506;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b1;
+		tb_l2_resp_PA29 = {22'h010203, 7'h01};
+		tb_l2_resp_data256 = {{8{16'hb4b4}}, {8{16'ha5a5}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b0;
+		tb_l2_snoop_inv_PA29 = {22'h000000, 7'h00};
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b00;
+		expected_core_resp_tag_by_way = {22'h000000, 22'h789abc};
+		expected_core_resp_instr_16B_by_way = {{8{16'h0000}}, {8{16'hf0f0}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b0;
+		expected_l2_req_PA29 = {22'h010203, 7'h01};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: miss 040506,1,1",
+            "\n\t\t", "resp: miss 040506,1,1",
+            "\n\t\t", "miss reg: 040506,1 -> l2 req"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b1;
+		tb_core_req_index = 7'h01;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b0;
+		tb_core_resp_hit_way = 1'b0;
+		tb_core_resp_miss_valid = 1'b1;
+		tb_core_resp_miss_tag = 22'h040506;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b0;
+		tb_l2_resp_PA29 = {22'h789abc, 7'h00};
+		tb_l2_resp_data256 = {{8{16'hd2d2}}, {8{16'hc3c3}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b0;
+		tb_l2_snoop_inv_PA29 = {22'h000000, 7'h00};
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b00;
+		expected_core_resp_tag_by_way = {22'h000000, 22'h789abc};
+		expected_core_resp_instr_16B_by_way = {{8{16'h0000}}, {8{16'hf0f0}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b1;
+		expected_l2_req_PA29 = {22'h040506, 7'h01};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: miss 040506,1,1",
+            "\n\t\t", "resp: miss 040506,1,1",
+            "\n\t\t", "miss reg: 040506,1 -> l2 resp 9696;8787"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b1;
+		tb_core_req_index = 7'h01;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b0;
+		tb_core_resp_hit_way = 1'b0;
+		tb_core_resp_miss_valid = 1'b1;
+		tb_core_resp_miss_tag = 22'h040506;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b1;
+		tb_l2_resp_PA29 = {22'h040506, 7'h01};
+		tb_l2_resp_data256 = {{8{16'h9696}}, {8{16'h8787}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b0;
+		tb_l2_snoop_inv_PA29 = {22'h000000, 7'h00};
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b00;
+		expected_core_resp_tag_by_way = {22'h000000, 22'h789abc};
+		expected_core_resp_instr_16B_by_way = {{8{16'h0000}}, {8{16'hf0f0}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b0;
+		expected_l2_req_PA29 = {22'h040506, 7'h01};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: miss return 040506,1,0",
+            "\n\t\t", "resp: miss 040506,1,1",
+            "\n\t\t", "miss reg: 040506,1 -> fill 8787, return 9696"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b0;
+		tb_core_req_index = 7'h01;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b1;
+		tb_core_resp_hit_way = 1'b0;
+		tb_core_resp_miss_valid = 1'b0;
+		tb_core_resp_miss_tag = 22'h040506;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b0;
+		tb_l2_resp_PA29 = {22'h040506, 7'h01};
+		tb_l2_resp_data256 = {{8{16'h9696}}, {8{16'h8787}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b0;
+		tb_l2_snoop_inv_PA29 = {22'h000000, 7'h00};
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b01;
+		expected_core_resp_tag_by_way = {22'h000000, 22'h040506};
+		expected_core_resp_instr_16B_by_way = {{8{16'h0000}}, {8{16'h9696}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b0;
+		expected_l2_req_PA29 = {22'h040506, 7'h01};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: ",
+            "\n\t\t", "resp: miss return 040506,1,0",
+            "\n\t\t", "miss reg: 040506,1 -> fill 8787, return 9696"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b0;
+		tb_core_req_block_offset = 1'b0;
+		tb_core_req_index = 7'h00;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b1;
+		tb_core_resp_hit_way = 1'b0;
+		tb_core_resp_miss_valid = 1'b0;
+		tb_core_resp_miss_tag = 22'h040506;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b0;
+		tb_l2_resp_PA29 = {22'h040506, 7'h01};
+		tb_l2_resp_data256 = {{8{16'h9696}}, {8{16'h8787}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b0;
+		tb_l2_snoop_inv_PA29 = {22'h000000, 7'h00};
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b01;
+		expected_core_resp_tag_by_way = {22'h000000, 22'h040506};
+		expected_core_resp_instr_16B_by_way = {{8{16'h0000}}, {8{16'h8787}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b0;
+		expected_l2_req_PA29 = {22'h040506, 7'h01};
 	    // resp from L2
 	    // L2 snoop inv
 

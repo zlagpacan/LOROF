@@ -150,7 +150,8 @@ module icache #(
     logic [2**ICACHE_FETCH_BLOCK_OFFSET_WIDTH-1:0][ICACHE_FETCH_WIDTH*8-1:0]    miss_reg_data_buffer, next_miss_reg_data_buffer;
     logic                                                                       miss_reg_delay_cycle, next_miss_reg_delay_cycle;
 
-    logic miss_matching_core;
+    logic miss_index_matching_core;
+    logic miss_index_and_tag_matching_core;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -231,13 +232,16 @@ module icache #(
         next_miss_reg_data_buffer = miss_reg_data_buffer;
         next_miss_reg_delay_cycle = 1'b0;
 
-        l2_req_valid = 1'b0;
+        l2_req_valid = miss_reg_valid & ~miss_reg_requested;
         l2_req_PA29 = {miss_reg_missing_tag, miss_reg_missing_index};
 
-        miss_matching_core =
+        miss_index_matching_core = 
             core_resp_valid
             & miss_reg_valid
-            & (core_resp_index == miss_reg_missing_index)
+            & (core_resp_index == miss_reg_missing_index);
+
+        miss_index_and_tag_matching_core =
+            miss_index_matching_core
             & (core_resp_miss_tag == miss_reg_missing_tag);
 
         // check for l2 snoop of miss reg
@@ -262,7 +266,7 @@ module icache #(
         // check for new miss
         else if (
             core_resp_miss_valid
-            & (~miss_reg_valid | ~miss_matching_core)
+            & (~miss_reg_valid | ~miss_index_and_tag_matching_core)
             & ~snoop_inv_writing
         ) begin
             next_miss_reg_valid = 1'b1;
@@ -305,7 +309,6 @@ module icache #(
             end
             // finish l2 req
             else if (~miss_reg_requested) begin
-                l2_req_valid = 1'b1;
                 if (l2_req_ready) begin
                     next_miss_reg_requested = 1'b1;
                 end
@@ -362,15 +365,15 @@ module icache #(
     always_comb begin
 
         // defaults
-        core_resp_valid_by_way[0] = tag_array_read_entry[0].valid;
-        core_resp_valid_by_way[1] = tag_array_read_entry[1].valid;
+        core_resp_valid_by_way[0] = tag_array_read_entry[0].valid & ~snoop_inv_writing;
+        core_resp_valid_by_way[1] = tag_array_read_entry[1].valid & ~snoop_inv_writing;
         core_resp_tag_by_way[0] = tag_array_read_entry[0].tag;
         core_resp_tag_by_way[1] = tag_array_read_entry[1].tag;
         core_resp_instr_16B_by_way[0] = data_array_read_entry[0];
         core_resp_instr_16B_by_way[1] = data_array_read_entry[1];
 
-        // miss return bypass
-        if (miss_matching_core & (miss_reg_data_valid | miss_reg_delay_cycle)) begin
+        // miss return bypass (only index has to match, bring in new tags based on miss reg)
+        if (miss_index_matching_core & (miss_reg_data_valid | miss_reg_delay_cycle)) begin
             core_resp_valid_by_way[miss_reg_old_lru_way] = 1'b1;
             core_resp_tag_by_way[miss_reg_old_lru_way] = miss_reg_missing_tag;
                 // keep this arranged as when would enter cache so that lru gets set correctly
