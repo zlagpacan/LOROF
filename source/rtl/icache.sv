@@ -81,18 +81,24 @@ module icache #(
     // tag array:
         // BRAM
 
+    // typedef struct packed {
+    //     logic [1:0]                         valid_by_way;
+    //     logic [1:0][ICACHE_TAG_WIDTH-1:0]   tag_by_way;
+    // } tag_entry_t;
+
     typedef struct packed {
-        logic [1:0]                         valid_by_way;
-        logic [1:0][ICACHE_TAG_WIDTH-1:0]   tag_by_way;
+        logic                                           valid;
+        logic [((8-((ICACHE_TAG_WIDTH+1)%8))%8)-1:0]    byte_align_bits;
+        logic [ICACHE_TAG_WIDTH-1:0]                    tag;
     } tag_entry_t;
 
-    logic                           tag_array_read_next_valid;
-    logic [ICACHE_INDEX_WIDTH-1:0]  tag_array_read_next_index;
-    tag_entry_t                     tag_array_read_entry;
+    logic                                       tag_array_read_next_valid;
+    logic [ICACHE_INDEX_WIDTH-1:0]              tag_array_read_next_index;
+    tag_entry_t [1:0]                           tag_array_read_entry;
 
-    logic                           tag_array_write_valid;
-    logic [ICACHE_INDEX_WIDTH-1:0]  tag_array_write_index;
-    tag_entry_t                     tag_array_write_entry;
+    logic [1:0][($bits(tag_entry_t)/8)-1:0]     tag_array_write_valid_mask;
+    logic [ICACHE_INDEX_WIDTH-1:0]              tag_array_write_index;
+    tag_entry_t [1:0]                           tag_array_write_entry;
 
     // LRU array:
         // reg
@@ -139,8 +145,6 @@ module icache #(
     logic [ICACHE_INDEX_WIDTH-1:0]                                              miss_reg_missing_index, next_miss_reg_missing_index;
     logic [ICACHE_TAG_WIDTH-1:0]                                                miss_reg_missing_tag, next_miss_reg_missing_tag;
     logic                                                                       miss_reg_old_lru_way, next_miss_reg_old_lru_way;
-    logic                                                                       miss_reg_other_way_valid, next_miss_reg_other_way_valid;
-    logic [ICACHE_TAG_WIDTH-1:0]                                                miss_reg_other_way_tag, next_miss_reg_other_way_tag;
     logic                                                                       miss_reg_data_valid, next_miss_reg_data_valid;
     logic [ICACHE_FETCH_BLOCK_OFFSET_WIDTH-1:0]                                 miss_reg_data_blkoff, next_miss_reg_data_blkoff;
     logic [2**ICACHE_FETCH_BLOCK_OFFSET_WIDTH-1:0][ICACHE_FETCH_WIDTH*8-1:0]    miss_reg_data_buffer, next_miss_reg_data_buffer;
@@ -170,34 +174,38 @@ module icache #(
         l2_snoop_hit = 1'b0;
         l2_snoop_hit_way = 1'b0;
 
-        tag_array_write_valid = (miss_reg_valid & miss_reg_data_valid) | snoop_inv_writing;
+        tag_array_write_valid_mask = '0;
         if (snoop_inv_writing) begin
             tag_array_write_index = snoop_inv_saved_PA29[ICACHE_INDEX_WIDTH-1:0];
-            if (tag_array_read_entry.tag_by_way[0] == snoop_inv_saved_PA29[ICACHE_TAG_WIDTH+ICACHE_INDEX_WIDTH-1:ICACHE_INDEX_WIDTH]) begin
-                tag_array_write_entry.valid_by_way[0] = 1'b0;
+
+            if (tag_array_read_entry[0].tag == snoop_inv_saved_PA29[ICACHE_TAG_WIDTH+ICACHE_INDEX_WIDTH-1:ICACHE_INDEX_WIDTH]) begin
+                tag_array_write_valid_mask[0] = '1;
                 l2_snoop_hit = 1'b1;
                 l2_snoop_hit_way = 1'b0;
-            end else begin
-                tag_array_write_entry.valid_by_way[0] = tag_array_read_entry.valid_by_way[0];
             end
-            if (tag_array_read_entry.tag_by_way[1] == snoop_inv_saved_PA29[ICACHE_TAG_WIDTH+ICACHE_INDEX_WIDTH-1:ICACHE_INDEX_WIDTH]) begin
-                tag_array_write_entry.valid_by_way[1] = 1'b0;
+            if (tag_array_read_entry[1].tag == snoop_inv_saved_PA29[ICACHE_TAG_WIDTH+ICACHE_INDEX_WIDTH-1:ICACHE_INDEX_WIDTH]) begin
+                tag_array_write_valid_mask[1] = '1;
                 l2_snoop_hit = 1'b1;
                 l2_snoop_hit_way = 1'b1;
-            end else begin
-                tag_array_write_entry.valid_by_way[1] = tag_array_read_entry.valid_by_way[1];
             end
-            tag_array_write_entry.tag_by_way[0] = tag_array_read_entry.tag_by_way[0];
-            tag_array_write_entry.tag_by_way[1] = tag_array_read_entry.tag_by_way[1];
+            tag_array_write_entry[0].valid = 1'b0;
+            tag_array_write_entry[1].valid = 1'b0;
         end
         else begin
             tag_array_write_index = miss_reg_missing_index;
-            tag_array_write_entry.valid_by_way[miss_reg_old_lru_way] = (miss_reg_data_blkoff == '1);
-                // mark block as invalid until all data is in cache, then mark valid
-            tag_array_write_entry.tag_by_way[miss_reg_old_lru_way] = miss_reg_missing_tag;
-            tag_array_write_entry.valid_by_way[~miss_reg_old_lru_way] = miss_reg_other_way_valid;
-            tag_array_write_entry.tag_by_way[~miss_reg_old_lru_way] = miss_reg_other_way_tag;
+
+            if (miss_reg_valid & miss_reg_data_valid) begin
+                tag_array_write_valid_mask[miss_reg_old_lru_way] = '1;
+            end
+            tag_array_write_entry[0].valid = (miss_reg_data_blkoff == '1);
+            tag_array_write_entry[1].valid = (miss_reg_data_blkoff == '1);
         end
+        tag_array_write_entry[0].byte_align_bits = '0;
+        tag_array_write_entry[1].byte_align_bits = '0;
+        tag_array_write_entry[0].tag = miss_reg_missing_tag;
+        tag_array_write_entry[1].tag = miss_reg_missing_tag;
+            // duplicate for both ways, write valid mask will make so only write to one
+            // for snooping, don't care what tag is written
 
         data_array_write_valid_mask = '0;
         if (miss_reg_valid & miss_reg_data_valid & ~snoop_inv_writing) begin
@@ -217,8 +225,6 @@ module icache #(
         next_miss_reg_requested = miss_reg_requested;
         next_miss_reg_missing_index = miss_reg_missing_index;
         next_miss_reg_missing_tag = miss_reg_missing_tag;
-        next_miss_reg_other_way_valid = miss_reg_other_way_valid;
-        next_miss_reg_other_way_tag = miss_reg_other_way_tag;
         next_miss_reg_old_lru_way = miss_reg_old_lru_way;
         next_miss_reg_data_valid = miss_reg_data_valid;
         next_miss_reg_data_blkoff = miss_reg_data_blkoff;
@@ -264,8 +270,6 @@ module icache #(
             next_miss_reg_missing_index = core_resp_index;
             next_miss_reg_missing_tag = core_resp_miss_tag;
             next_miss_reg_old_lru_way = lru_array[core_resp_index];
-            next_miss_reg_other_way_valid = tag_array_read_entry.valid_by_way[lru_array[core_resp_index]];
-            next_miss_reg_other_way_tag = tag_array_read_entry.tag_by_way[lru_array[core_resp_index]];
             next_miss_reg_data_valid = 1'b0;
             next_miss_reg_data_blkoff = 0;
             next_miss_reg_delay_cycle = 1'b0;
@@ -314,8 +318,6 @@ module icache #(
             miss_reg_requested <= 1'b0;
             miss_reg_missing_index <= 0;
             miss_reg_missing_tag <= 0;
-            miss_reg_other_way_valid <= 1'b0;
-            miss_reg_other_way_tag <= 0;
             miss_reg_old_lru_way <= 1'b0;
             miss_reg_data_valid <= 1'b0;
             miss_reg_data_blkoff <= 0;
@@ -327,8 +329,6 @@ module icache #(
             miss_reg_requested <= next_miss_reg_requested;
             miss_reg_missing_index <= next_miss_reg_missing_index;
             miss_reg_missing_tag <= next_miss_reg_missing_tag;
-            miss_reg_other_way_valid <= next_miss_reg_other_way_valid;
-            miss_reg_other_way_tag <= next_miss_reg_other_way_tag;
             miss_reg_old_lru_way <= next_miss_reg_old_lru_way;
             miss_reg_data_valid <= next_miss_reg_data_valid;
             miss_reg_data_blkoff <= next_miss_reg_data_blkoff;
@@ -362,10 +362,10 @@ module icache #(
     always_comb begin
 
         // defaults
-        core_resp_valid_by_way[0] = tag_array_read_entry.valid_by_way[0];
-        core_resp_valid_by_way[1] = tag_array_read_entry.valid_by_way[1];
-        core_resp_tag_by_way[0] = tag_array_read_entry.tag_by_way[0];
-        core_resp_tag_by_way[1] = tag_array_read_entry.tag_by_way[1];
+        core_resp_valid_by_way[0] = tag_array_read_entry[0].valid;
+        core_resp_valid_by_way[1] = tag_array_read_entry[1].valid;
+        core_resp_tag_by_way[0] = tag_array_read_entry[0].tag;
+        core_resp_tag_by_way[1] = tag_array_read_entry[1].tag;
         core_resp_instr_16B_by_way[0] = data_array_read_entry[0];
         core_resp_instr_16B_by_way[1] = data_array_read_entry[1];
 
@@ -390,7 +390,7 @@ module icache #(
     // Arrays:
 
     bram_1rport_1wport #(
-        .INNER_WIDTH((($bits(tag_entry_t)-1)/8 + 1) * 8),
+        .INNER_WIDTH($bits(tag_entry_t) * 2),
         .OUTER_WIDTH(ICACHE_NUM_SETS)
     ) TAG_ARRAY_BRAM (
         .CLK(CLK),
@@ -398,7 +398,7 @@ module icache #(
         .ren(tag_array_read_next_valid),
         .rindex(tag_array_read_next_index),
         .rdata(tag_array_read_entry),
-        .wen_byte({(($bits(tag_entry_t)-1)/8 + 1){tag_array_write_valid}}),
+        .wen_byte(tag_array_write_valid_mask),
         .windex(tag_array_write_index),
         .wdata(tag_array_write_entry)        
     );

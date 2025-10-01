@@ -1220,6 +1220,56 @@ module icache_tb ();
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\t", "req: hit 123456,0,0",
+            "\n\t\t", "resp: hit 123456,0,0",
+            "\n\t\t", "miss reg: miss 010203,1 -> miss return e1e1"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // req from core
+		tb_core_req_valid = 1'b1;
+		tb_core_req_block_offset = 1'b0;
+		tb_core_req_index = 7'h00;
+	    // resp to core
+	    // resp feedback from core
+		tb_core_resp_hit_valid = 1'b1;
+		tb_core_resp_hit_way = 1'b0;
+		tb_core_resp_miss_valid = 1'b0;
+		tb_core_resp_miss_tag = 22'h010203;
+	    // req to L2
+		tb_l2_req_ready = 1'b1;
+	    // resp from L2
+		tb_l2_resp_valid = 1'b0;
+		tb_l2_resp_PA29 = {22'h010203, 7'h01};
+		tb_l2_resp_data256 = {{8{16'hf0f0}}, {8{16'he1e1}}};
+	    // L2 snoop inv
+		tb_l2_snoop_inv_valid = 1'b0;
+		tb_l2_snoop_inv_PA29 = 29'h00000000;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // req from core
+	    // resp to core
+		expected_core_resp_valid_by_way = 2'b11;
+		expected_core_resp_tag_by_way = {22'h123456, 22'h000000};
+		expected_core_resp_instr_16B_by_way = {{8{16'hba98}}, {8{16'h3210}}};
+	    // resp feedback from core
+	    // req to L2
+		expected_l2_req_valid = 1'b0;
+		expected_l2_req_PA29 = {22'h010203, 7'h01};
+	    // resp from L2
+	    // L2 snoop inv
+
+		check_outputs();
+
         // ------------------------------------------------------------
         // finish:
         @(posedge CLK); #(PERIOD/10);
