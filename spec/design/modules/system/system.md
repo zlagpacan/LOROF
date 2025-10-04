@@ -20,7 +20,7 @@ Quad-Core, so 4 of each:
     - coherent
         - receives snoops from L2 Cache
     - {valid, invalid} cache block states
-- Instruction TLB
+- L1 Instruction TLB
     - 32-entry
     - 2-way associative
     - private, per-core
@@ -39,19 +39,13 @@ Quad-Core, so 4 of each:
     - MOESIF cache block states
     - write-back
     - supports atomics
-- Data TLB
+- L1 Data TLB
     - 32-entry
     - 2-way associative
     - private, per-core
     - incoherent
         - SFENCE.VMA instruction triggers relevant TLB entry flush
         - inter-processor interrupts used to notify other cores of page table updates
-    - {valid, invalid} page table entry states
-- Page Table Walker
-    - unified instruction + data
-    - private, per-core
-    - 32-entry page table entry cache
-        - doubles as L2 TLB
     - {valid, invalid} page table entry states
 - L2 Cache
     - 32KB
@@ -66,6 +60,19 @@ Quad-Core, so 4 of each:
         - sends snoops L1 Data Cache
     - MOESIF cache block states
     - write-back
+- L2 TLB
+    - 64-entry
+    - 2-way associative
+    - unified instruction + data
+    - private, per-core
+    - non-inclusive non-exclusive with L1 Instruction TLB and L1 Data TLB
+    - page table walker
+    - Accessed/Dirty page table entry updater
+    - incoherent
+        - SFENCE.VMA instruction triggers relevant TLB entry flush
+        - inter-processor interrupts used to notify other cores of page table updates
+        - make coherent requests to L2 Cache
+    - {valid, invalid} page table entry states
 
 
 # Shared System Modules

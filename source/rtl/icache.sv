@@ -1,8 +1,8 @@
 /*
-    Filename: core.sv
+    Filename: icache.sv
     Author: zlagpacan
-    Description: RTL for Instruction Cache. Blocking, 2-way associative, configurable set count and block size
-    Spec: LOROF/spec/design/core.md
+    Description: RTL for L1 Instruction Cache. Blocking, 2-way associative, configurable set count and block size
+    Spec: LOROF/spec/design/icache.md
 */
 
 `include "system_types_pkg.vh"

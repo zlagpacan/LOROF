@@ -46,9 +46,9 @@ package system_types_pkg;
     // icache
         // sizing
     parameter ICACHE_SIZE = 2**13; // 8KB, 4KB page per way
-    parameter ICACHE_BLOCK_SIZE = 32; // 32B
-    parameter ICACHE_ASSOC = 2; // 2x
-        // address bit partitioning
+    parameter ICACHE_BLOCK_SIZE = L1_BLOCK_SIZE; // 32B
+    parameter ICACHE_ASSOC = 2; // 2x, hardcoded
+        // PA bit partitioning
             // 16B*2-way fetch width
             // {tag[21:0], index[6:0], block_offset[0], fetch_offset[3:0]}
     parameter ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE); // 5b
@@ -58,6 +58,26 @@ package system_types_pkg;
         // fetch side interface
     parameter ICACHE_FETCH_WIDTH = 16; // 16B
     parameter ICACHE_FETCH_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE / ICACHE_FETCH_WIDTH); // 1b
+
+    // itlb
+    // 4KB page array:
+    parameter ITLB_4KBPAGE_ENTRIES = 32; // 32-entry
+        // 1x TLB entry per TLB block
+    parameter ITLB_4KBPAGE_ASSOC = 2; // 2x, hardcoded
+        // VA bit partitioning
+            // {tag[15:0], index[3:0], page_offset[11:0]}
+    parameter ITLB_4KBPAGE_NUM_SETS = ITLB_4KBPAGE_ENTRIES / ITLB_4KBPAGE_ASSOC; // 16x
+    parameter ITLB_4KBPAGE_INDEX_WIDTH = $clog2(ITLB_4KBPAGE_NUM_SETS); // 4b
+    parameter ITLB_4KBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4KBPAGE_INDEX_WIDTH - PO_WIDTH; // 16b
+    // 2MB page array:
+    parameter ITLB_2MBPAGE_ENTRIES = 4; // 4-entry
+        // 1x TLB entry per TLB block
+    parameter ITLB_2MBPAGE_ASSOC = 1; // 1x, hardcoded
+        // VA bit partitioning
+            // {tag[8:0], index[1:0], page_offset[20:0]}
+    parameter ITLB_2MBPAGE_NUM_SETS = ITLB_2MBPAGE_ENTRIES / ITLB_2MBPAGE_ASSOC; // 4x
+    parameter ITLB_2MBPAGE_INDEX_WIDTH = $clog2(ITLB_2MBPAGE_NUM_SETS); // 2b
+    parameter ITLB_2MBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_2MBPAGE_INDEX_WIDTH - PO_WIDTH; // 9b
 
     // dcache_write_buffer
 
@@ -82,14 +102,11 @@ package system_types_pkg;
     parameter DCACHE_DATA_WORD_INDEX_WIDTH = DCACHE_INDEX_WIDTH + DCACHE_BLOCK_OFFSET_WIDTH - LOG_DCACHE_DATA_WORD_WIDTH;
     parameter DCACHE_DATA_NUM_ROWS_PER_BANK = 2**DCACHE_DATA_WORD_INDEX_WIDTH;
 
-    typedef struct packed {
-        logic [DCACHE_TAG_WIDTH-1:0]            tag;
-        logic [DCACHE_INDEX_WIDTH-1:0]          index;
-        logic                                   bank;
-        logic [DCACHE_BLOCK_OFFSET_WIDTH-1:0]   block_offset;
-    } dcache_PA_t;
+    // dtlb
 
     // l2_cache
+
+    // l2_tlb
 
     // conflict_table
 
@@ -102,15 +119,6 @@ package system_types_pkg;
     // mem_controller_write_buffer
 
     // mem_controller
-
-    // ----------------------------------------------------------------
-    // TLB's:
-
-    // itlb
-
-    // dtlb
-
-    // pt_walker
 
 endpackage
 
