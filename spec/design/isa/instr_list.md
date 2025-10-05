@@ -157,7 +157,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
         - rs1, rd ignored
     - FU: stamofu
     - op: 4'bxx00
-- FENCE.TSO 
+- FENCE.TSO
     - {4'b1000, 4'b0011, 4'b0011, 5'b00000, 3'b000, 5'b00000, 5'b00011, 2'b11}
         - rs1, rd ignored
     - FU: stamofu
@@ -191,15 +191,15 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - {csr[11:0], rs1[4:0], 3'b011, rd[4:0], 5'b11100, 2'b11}
     - FU: sysu
     - op: 4'bx011
-- CSRRWI rd, csr, rs1
+- CSRRWI rd, csr, uimm
     - {csr[11:0], uimm[4:0], 3'b101, rd[4:0], 5'b11100, 2'b11}
     - FU: sysu
     - op: 4'bx101
-- CSRRSI rd, csr, rs1
+- CSRRSI rd, csr, uimm
     - {csr[11:0], uimm[4:0], 3'b110, rd[4:0], 5'b11100, 2'b11}
     - FU: sysu
     - op: 4'bx110
-- CSRRCI rd, csr, rs1
+- CSRRCI rd, csr, uimm
     - {csr[11:0], uimm[4:0], 3'b111, rd[4:0], 5'b11100, 2'b11}
     - FU: sysu
     - op: 4'bx111
