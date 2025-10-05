@@ -1,0 +1,43 @@
+@0000
+03CCE537    // LUI x10, 15566
+0580016F    // JAL x2, 88
+00F18E67    // JALR x28, 15(x3)
+F8B30FE3    // BEQ x6, x11, 8094
+00DF8083    // LB x1, 13(x31)
+11D02223    // SW x29, 260(x0) // whoa
+12338093    // ADDI x1, x7, 291
+40EDDA93    // SRAI x21, x27, 14
+41FB0333    // SUB x6, x22, x31
+001355B3    // SRL x11, x6, x1
+
+// inserted hex
+DEADBEEF
+00FF
+0000FF
+
+0960000F    // FENCE iw, or
+8330000F    // FENCE.TSO
+00100073    // EBREAK
+0000100F    // FENCE.I
+731A1F73    // CSRRW x30, 1841, x20
+0994F273    // CSRRCI x4, 153, 9
+
+// inserted binary
+A5
+0F5A
+
+035221B3    // MULHSU x3, x4, x21
+03845333    // DIVU x6, x8, x24
+1201222F    // LR.W.RL x4, (x2)
+19D4AEAF    // SC.W x29, x29, (x9)
+67C4222F    // AMOAND.W.AQRL x4, x28, (x8)
+C41124AF    // AMOMINU.W.AQ x9, x1, (x2)
+
+6101        // C.ADDI16SP 
+
+30200073    // MRET
+10500073    // WFI
+10200073    // SRET
+12A98073    // SFENCE.VMA x19, x10
+
+0000
