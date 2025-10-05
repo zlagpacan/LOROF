@@ -1345,11 +1345,11 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 - accessing root level 1 PTE:
     - PPN1 = satp.PPN[21:10]
     - PPN0 = satp.PPN[9:0]
-    - PO = VA.VPN1
+    - PO = {VA.VPN1, 2'b00}
 - accessing leaf level 0 PTE:
     - PPN1 = root level 1 PTE.PPN1
     - PPN0 = root level 1 PTE.PPN0
-    - PO = VA.VPN0
+    - PO = {VA.VPN0, 2'b00}
 - VA -> PA:
     - PPN1 = leaf level 0 PTE.PPN1
     - PPN0 = leaf level 0 PTE.PPN0

@@ -15,7 +15,7 @@ module itlb #(
 
     parameter ITLB_2MBPAGE_NUM_SETS = 4,
     parameter ITLB_2MBPAGE_INDEX_WIDTH = $clog2(ITLB_2MBPAGE_NUM_SETS),
-    parameter ITLB_2MBPAGE_TAG_WIDTH = 9
+    parameter ITLB_2MBPAGE_TAG_WIDTH = 10
 ) (
     // seq
     input logic CLK,
@@ -35,13 +35,22 @@ module itlb #(
     output logic                    core_resp_access_fault,
 
     // req to L2 TLB
-
+    output logic                    l2_tlb_req_valid,
+    output logic [ASID_WIDTH-1:0]   l2_tlb_req_ASID,
+    output logic [VPN_WIDTH-1:0]    l2_tlb_req_VPN,
+    input logic                     l2_tlb_req_ready,
 
     // resp from L2 TLB
-
+    input logic                     l2_tlb_resp_valid,
+    input logic [ASID_WIDTH-1:0]    l2_tlb_resp_ASID,
+    input logic [VPN_WIDTH-1:0]     l2_tlb_resp_VPN,
+    input pte_t                     l2_tlb_resp_pte,
 
     // l2 evict to L2 TLB
-    
+    output logic                    l2_tlb_evict_valid,
+    output logic [ASID_WIDTH-1:0]   l2_tlb_evict_ASID,
+    output logic [VPN_WIDTH-1:0]    l2_tlb_evict_VPN,
+    output pte_t                    l2_tlb_evict_pte
 );
 
 endmodule

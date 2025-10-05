@@ -24,6 +24,12 @@ package system_types_pkg;
 
     parameter PO_WIDTH = 12;
 
+    // Sv32 Page Table Entry:
+        // {PPN1[11:0], PPN0[9:0], RSW[1:0], D, A, G, U, X, W, R, V}
+    typedef struct packed {
+
+    } pte_t;
+
     // ----------------------------------------------------------------
     // Caches:
 
@@ -65,19 +71,19 @@ package system_types_pkg;
         // 1x TLB entry per TLB block
     parameter ITLB_4KBPAGE_ASSOC = 2; // 2x, hardcoded
         // VA bit partitioning
-            // {tag[15:0], index[3:0], page_offset[11:0]}
+            // {tag[15:0], index[3:0], PO[11:0]}
     parameter ITLB_4KBPAGE_NUM_SETS = ITLB_4KBPAGE_ENTRIES / ITLB_4KBPAGE_ASSOC; // 16x
     parameter ITLB_4KBPAGE_INDEX_WIDTH = $clog2(ITLB_4KBPAGE_NUM_SETS); // 4b
     parameter ITLB_4KBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4KBPAGE_INDEX_WIDTH - PO_WIDTH; // 16b
-    // 2MB page array:
-    parameter ITLB_2MBPAGE_ENTRIES = 4; // 4-entry
+    // 4MB page array:
+    parameter ITLB_4MBPAGE_ENTRIES = 4; // 4-entry
         // 1x TLB entry per TLB block
-    parameter ITLB_2MBPAGE_ASSOC = 1; // 1x, hardcoded
+    parameter ITLB_4MBPAGE_ASSOC = 1; // 1x, hardcoded
         // VA bit partitioning
-            // {tag[8:0], index[1:0], page_offset[20:0]}
-    parameter ITLB_2MBPAGE_NUM_SETS = ITLB_2MBPAGE_ENTRIES / ITLB_2MBPAGE_ASSOC; // 4x
-    parameter ITLB_2MBPAGE_INDEX_WIDTH = $clog2(ITLB_2MBPAGE_NUM_SETS); // 2b
-    parameter ITLB_2MBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_2MBPAGE_INDEX_WIDTH - PO_WIDTH; // 9b
+            // {tag[7:0], index[1:0], VPN0[9:0], PO[11:0]}
+    parameter ITLB_4MBPAGE_NUM_SETS = ITLB_4MBPAGE_ENTRIES / ITLB_4MBPAGE_ASSOC; // 4x
+    parameter ITLB_4MBPAGE_INDEX_WIDTH = $clog2(ITLB_4MBPAGE_NUM_SETS); // 2b
+    parameter ITLB_4MBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4MBPAGE_INDEX_WIDTH - VPN0_WIDTH - PO_WIDTH; // 8b
 
     // dcache_write_buffer
 
