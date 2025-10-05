@@ -2,162 +2,162 @@
 ISA: RV32IMAC_Zicsr_Zifencei Sv32
 
 ## RV32I
-- LUI
+- LUI rd, imm
     - {imm[31:12], rd[4:0], 5'b01101, 2'b11}
     - FU: bru
     - op: 4'b0110
-- AUIPC
+- AUIPC rd, imm
     - {imm[31:12], rd[4:0], 5'b00101, 2'b11}
     - FU: bru
     - op: 4'b0111
-- JAL
+- JAL rd, imm
     - {imm[20|10:1|11|19:12], rd[4:0], 5'b11011, 2'b11}
     - FU: bru
     - op: 4'b0010
-- JALR
+- JALR rd, imm(rs1)
     - {imm[11:0], rs1[4:0], 3'b000, rd[4:0], 5'b11001, 2'b11}
     - FU: bru
     - op: 4'b0000
-- BEQ
+- BEQ rs1, rs2, imm
     - {imm[12|10:5], rs2[4:0], rs1[4:0], 3'b000, imm[4:1|11], 5'b11000, 2'b11}
     - FU: bru
     - op: 4'b1000
-- BNE
+- BNE rs1, rs2, imm
     - {imm[12|10:5], rs2[4:0], rs1[4:0], 3'b001, imm[4:1|11], 5'b11000, 2'b11}
     - FU: bru
     - op: 4'b1001
-- BLT
+- BLT rs1, rs2, imm
     - {imm[12|10:5], rs2[4:0], rs1[4:0], 3'b100, imm[4:1|11], 5'b11000, 2'b11}
     - FU: bru
     - op: 4'b1100
-- BGE
+- BGE rs1, rs2, imm
     - {imm[12|10:5], rs2[4:0], rs1[4:0], 3'b101, imm[4:1|11], 5'b11000, 2'b11}
     - FU: bru
     - op: 4'b1101
-- BLTU
+- BLTU rs1, rs2, imm
     - {imm[12|10:5], rs2[4:0], rs1[4:0], 3'b110, imm[4:1|11], 5'b11000, 2'b11}
     - FU: bru
     - op: 4'b1110
-- BGEU
+- BGEU rs1, rs2, imm
     - {imm[12|10:5], rs2[4:0], rs1[4:0], 3'b111, imm[4:1|11], 5'b11000, 2'b11}
     - FU: bru
     - op: 4'b1111
-- LB
+- LB rd, imm(rs1)
     - {imm[11:0], rs1[4:0], 3'b000, rd[4:0], 5'b00000, 2'b11}
     - FU: ldu
     - op: 4'bx000
-- LH
+- LH rd, imm(rs1)
     - {imm[11:0], rs1[4:0], 3'b001, rd[4:0], 5'b00000, 2'b11}
     - FU: ldu
     - op: 4'bx001
-- LW
+- LW rd, imm(rs1)
     - {imm[11:0], rs1[4:0], 3'b010, rd[4:0], 5'b00000, 2'b11}
     - FU: ldu
     - op: 4'bx010
-- LBU
+- LBU rd, imm(rs1)
     - {imm[11:0], rs1[4:0], 3'b100, rd[4:0], 5'b00000, 2'b11}
     - FU: ldu
     - op: 4'bx100
-- LHU
+- LHU rd, imm(rs1)
     - {imm[11:0], rs1[4:0], 3'b101, rd[4:0], 5'b00000, 2'b11}
     - FU: ldu
     - op: 4'bx101
-- SB
+- SB rs2, imm(rs1)
     - {imm[11:5], rs2[4:0], rs1[4:0], 3'b000, imm[4:0], 5'b01000, 2'b11}
     - FU: stamofu
     - op: 4'bxx00
-- SH
+- SH rs2, imm(rs1)
     - {imm[11:5], rs2[4:0], rs1[4:0], 3'b001, imm[4:0], 5'b01000, 2'b11}
     - FU: stamofu
     - op: 4'bxx01
-- SW
+- SW rs2, imm(rs1)
     - {imm[11:5], rs2[4:0], rs1[4:0], 3'b010, imm[4:0], 5'b01000, 2'b11}
     - FU: stamofu
     - op: 4'bxx10
-- ADDI
+- ADDI rd, rs1, imm
     - {imm[11:0], rs1[4:0], 3'b000, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'b0000
-- SLLI
+- SLLI rd, rs1, imm
     - {7'b0000000, shamt[4:0], rs1[4:0], 3'b001, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'bx001
-- SLTI
+- SLTI rd, rs1, imm
     - {imm[11:0], rs1[4:0], 3'b010, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'bx010
-- SLTIU
+- SLTIU rd, rs1, imm
     - {imm[11:0], rs1[4:0], 3'b011, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'bx011
-- XORI
+- XORI rd, rs1, imm
     - {imm[11:0], rs1[4:0], 3'b100, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'bx100
-- SRLI
+- SRLI rd, rs1, imm
     - {7'b0<mark>0</mark>00000, shamt[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'b0101
-- SRAI
+- SRAI rd, rs1, imm
     - {7'b0<mark>1</mark>00000, shamt[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'b1101
-- ORI
+- ORI rd, rs1, imm
     - {imm[11:0], rs1[4:0], 3'b110, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'bx110
-- ANDI
+- ANDI rd, rs1, imm
     - {imm[11:0], rs1[4:0], 3'b111, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'bx111
-- ADD
+- ADD rd, rs1, rs2
     - {7'b0<mark>0</mark>00000, rs2[4:0], rs1[4:0], 3'b000, rd[4:0], 5'b01100, 2'b11}
     - FU: alu_reg
     - op: 4'b0000
-- SUB
+- SUB rd, rs1, rs2
     - {7'b0<mark>1</mark>00000, rs2[4:0], rs1[4:0], 3'b000, rd[4:0], 5'b01100, 2'b11}
     - FU: alu_reg
     - op: 4'b1000
-- SLL
+- SLL rd, rs1, rs2
     - {7'b0000000, rs2[4:0], rs1[4:0], 3'b001, rd[4:0], 5'b01100, 2'b11}
     - FU: alu_reg
     - op: 4'bx001
-- SLT
+- SLT rd, rs1, rs2
     - {7'b0000000, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01100, 2'b11}
     - FU: alu_reg
     - op: 4'bx010
-- SLTU
+- SLTU rd, rs1, rs2
     - {7'b0000000, rs2[4:0], rs1[4:0], 3'b011, rd[4:0], 5'b01100, 2'b11}
     - FU: alu_reg
     - op: 4'bx011
-- XOR
+- XOR rd, rs1, rs2
     - {7'b0000000, rs2[4:0], rs1[4:0], 3'b100, rd[4:0], 5'b01100, 2'b11}
     - FU: alu_reg
     - op: 4'bx100
-- SRL
+- SRL rd, rs1, rs2
     - {7'b0<mark>0</mark>00000, rs2[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b01100, 2'b11}
     - FU: alu_reg
     - op: 4'b0101
-- SRA
+- SRA rd, rs1, rs2
     - {7'b0<mark>1</mark>00000, rs2[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b01100, 2'b11}
     - FU: alu_reg
     - op: 4'b1101
-- OR
+- OR rd, rs1, rs2
     - {7'b0000000, rs2[4:0], rs1[4:0], 3'b110, rd[4:0], 5'b01100, 2'b11}
     - FU: alu_reg
     - op: 4'bx110
-- AND
+- AND rd, rs1, rs2
     - {7'b0000000, rs2[4:0], rs1[4:0], 3'b111, rd[4:0], 5'b01100, 2'b11}
     - FU: alu_reg
     - op: 4'bx111
-- FENCE
+- FENCE iorw, iorw
     - {fm[3:0], pred[3:0], succ[3:0], rs1[4:0], 3'b000, rd[4:0], 5'b00011, 2'b11}
         - only fm[3:0] = 4'b0000 used
             - fm[3:0] = 4'b1000 used for FENCE.TSO
         - rs1, rd ignored
     - FU: stamofu
     - op: 4'bxx00
-- FENCE.TSO
+- FENCE.TSO 
     - {4'b1000, 4'b0011, 4'b0011, 5'b00000, 3'b000, 5'b00000, 5'b00011, 2'b11}
         - rs1, rd ignored
     - FU: stamofu
@@ -179,129 +179,129 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - op: 4'bxx01
 
 ## Zicsr Extension
-- CSRRW
+- CSRRW rd, csr, rs1
     - {csr[11:0], rs1[4:0], 3'b001, rd[4:0], 5'b11100, 2'b11}
     - FU: sysu
     - op: 4'bx001
-- CSRRS
+- CSRRS rd, csr, rs1
     - {csr[11:0], rs1[4:0], 3'b010, rd[4:0], 5'b11100, 2'b11}
     - FU: sysu
     - op: 4'bx010
-- CSRRC
+- CSRRC rd, csr, rs1
     - {csr[11:0], rs1[4:0], 3'b011, rd[4:0], 5'b11100, 2'b11}
     - FU: sysu
     - op: 4'bx011
-- CSRRWI
+- CSRRWI rd, csr, rs1
     - {csr[11:0], uimm[4:0], 3'b101, rd[4:0], 5'b11100, 2'b11}
     - FU: sysu
     - op: 4'bx101
-- CSRRSI
+- CSRRSI rd, csr, rs1
     - {csr[11:0], uimm[4:0], 3'b110, rd[4:0], 5'b11100, 2'b11}
     - FU: sysu
     - op: 4'bx110
-- CSRRCI
+- CSRRCI rd, csr, rs1
     - {csr[11:0], uimm[4:0], 3'b111, rd[4:0], 5'b11100, 2'b11}
     - FU: sysu
     - op: 4'bx111
 
 ## M Extension
-- MUL
+- MUL rd, rs1, rs2
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b000, rd[4:0], 5'b01100, 2'b11}
     - FU: mdu
     - op: 4'bx000
-- MULH
+- MULH rd, rs1, rs2
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b001, rd[4:0], 5'b01100, 2'b11}
     - FU: mdu
     - op: 4'bx001
-- MULHSU
+- MULHSU rd, rs1, rs2
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01100, 2'b11}
     - FU: mdu
     - op: 4'bx010
-- MULHU
+- MULHU rd, rs1, rs2
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b011, rd[4:0], 5'b01100, 2'b11}
     - FU: mdu
     - op: 4'bx011
-- DIV
+- DIV rd, rs1, rs2
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b100, rd[4:0], 5'b01100, 2'b11}
     - FU: mdu
     - op: 4'bx100
-- DIVU
+- DIVU rd, rs1, rs2
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b01100, 2'b11}
     - FU: mdu
     - op: 4'bx101
-- REM
+- REM rd, rs1, rs2
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b110, rd[4:0], 5'b01100, 2'b11}
     - FU: mdu
     - op: 4'bx110
-- REMU
+- REMU rd, rs1, rs2
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b111, rd[4:0], 5'b01100, 2'b11}
     - FU: mdu
     - op: 4'bx111
 
 ## A Extension
-- LR.W
+- LR.W[.AQ][.RL] rd, (rs1)
     - {5'b00010, aq, rl, 5'b00000, rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0010
     - raise misaligned exception
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- SC.W
+- SC.W[.AQ][.RL] rd, rs2, (rs1)
     - {5'b00011, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0011
     - raise misaligned exception
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOSWAP.W
+- AMOSWAP.W rd, rs2, (rs1)
     - {5'b00001, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0111
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOADD.W
+- AMOADD.W rd, rs2, (rs1)
     - {5'b00000, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0000
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOXOR.W
+- AMOXOR.W rd, rs2, (rs1)
     - {5'b00100, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0100
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOAND.W
+- AMOAND.W rd, rs2, (rs1)
     - {5'b01100, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b1100
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOOR.W
+- AMOOR.W rd, rs2, (rs1)
     - {5'b01000, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b1000
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOMIN.W
+- AMOMIN.W rd, rs2, (rs1)
     - {5'b10000, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b1001
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOMAX.W
+- AMOMAX.W rd, rs2, (rs1)
     - {5'b10100, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b1101
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOMINU.W
+- AMOMINU.W rd, rs2, (rs1)
     - {5'b11000, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0001
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOMAXU.W
+- AMOMAXU.W rd, rs2, (rs1)
     - {5'b11100, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0101
@@ -311,17 +311,17 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 ## C Extension
 rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
 
-- C.ADDI4SPN
+- C.ADDI4SPN rd', uimm
     - ADDI rd', sp/x2, uimm
     - {3'b000, uimm[5:4|9:6|2|3], rd'[2:0], 2'b00}
     - FU: alu_imm
     - op: 4'b0000
-- C.LW
+- C.LW rd', uimm(rs1')
     - LW rd', uimm(rs1')
     - {3'b010, uimm[5:3], rs1'[2:0], uimm[2|6], rd'[2:0], 2'b00}
     - FU: ldu
     - op: 4'bx010
-- C.SW
+- C.SW rs2', uimm(rs1')
     - SW rs2', uimm(rs1')
     - {3'b110, uimm[5:3], rs1'[2:0], uimm[2|6], rs2'[2:0], 2'b00}
     - FU: stamofu
@@ -332,98 +332,98 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
         - same as C.ADDI
     - FU: alu_imm
     - op: 4'b0000
-- C.ADDI
+- C.ADDI rd, imm
     - ADDI rd, rd, imm
     - {3'b000, imm[5], rs1/rd[4:0], imm[4:0], 2'b01}
     - FU: alu_imm
     - op: 4'b0000
-- C.JAL
+- C.JAL imm
     - JAL ra/x1, imm
     - {3'b001, imm[11|4|9:8|10|6|7|3:1|5], 2'b01}
     - FU: bru
     - op: 4'b0011
-- C.LI
+- C.LI rd, imm
     - ADDI rd, x0, imm
     - {3'b010, imm[5], rd[4:0], imm[4:0], 2'b01}
     - FU: alu_imm
     - op: 4'b0000
-- C.ADDI16SP
+- C.ADDI16SP imm
     - ADDI sp/x2, sp/x2, imm
     - {3'b011, imm[9], 5'b00010, imm[4|6|8:7|5], 2'b01}
     - FU: alu_imm
     - op: 4'b0000
-- C.LUI
+- C.LUI rd, imm
     - LUI rd, imm
     - {3'b011, imm[17], rd[4:0], imm[16:12], 2'b01}
         - (rd == 2) -> C.ADDI16SP
     - FU: bru
     - op: 4'b0110
-- C.SRLI
+- C.SRLI rd', uimm
     - SRLI rd', rd', uimm
     - {3'b100, uimm[5], 2'b00, rs1'/rd'[2:0], uimm[4:0], 2'b01}
     - FU: alu_imm
     - op: 4'b0101
-- C.SRAI
+- C.SRAI rd', uimm
     - SRAI rd', rd', uimm
     - {3'b100, uimm[5], 2'b01, rs1'/rd'[2:0], uimm[4:0], 2'b01}
     - FU: alu_imm
     - op: 4'b1101
-- C.ANDI
+- C.ANDI rd', imm
     - ANDI rd', rd', imm
     - {3'b100, imm[5], 2'b10, rs1'/rd'[2:0], imm[4:0], 2'b01}
     - FU: alu_imm
     - op: 4'bx111
-- C.SUB
+- C.SUB rd', rs2'
     - SUB rd', rd', rs2'
     - {3'b100, 1'b0, 2'b11, rs1'/rd'[2:0], 2'b00, rs2'[2:0], 2'b01}
     - FU: alu_reg
     - op: 4'b1000
-- C.XOR
+- C.XOR rd', rs2'
     - XOR rd', rd', rs2'
     - {3'b100, 1'b0, 2'b11, rs1'/rd'[2:0], 2'b01, rs2'[2:0], 2'b01}
     - FU: alu_reg
     - op: 4'bx100
-- C.OR
+- C.OR rd', rs2'
     - OR rd', rd', rs2'
     - {3'b100, 1'b0, 2'b11, rs1'/rd'[2:0], 2'b10, rs2'[2:0], 2'b01}
     - FU: alu_reg
     - op: 4'bx110
-- C.AND
+- C.AND rd', rs2'
     - AND rd', rd', rs2'
     - {3'b100, 1'b0, 2'b11, rs1'/rd'[2:0], 2'b11, rs2'[2:0], 2'b01}
     - FU: alu_reg
     - op: 4'bx111
-- C.J
+- C.J imm
     - JAL x0, imm
     - {3'b101, imm[11|4|9:8|10|6|7|3:1|5], 2'b01}
     - FU: bru
     - op: 4'b0100
-- C.BEQZ
+- C.BEQZ rs1', imm
     - BEQ rs1', x0, imm
     - {3'b110, imm[8|4:3], rs1'[2:0], imm[7:6|2:1|5], 2'b01}
     - FU: bru
     - op: 4'b1010
-- C.BNEZ
+- C.BNEZ rs1', imm
     - BNE rs1', x0, imm
     - {3'b111, imm[8|4:3], rs1'[2:0], imm[7:6|2:1|5], 2'b01}
     - FU: bru
     - op: 4'b1011
-- C.SLLI
+- C.SLLI rd, uimm
     - SLLI rd, rd, uimm
     - {3'b000, uimm[5], rs1/rd[4:0], uimm[4:0], 2'b10}
     - FU: alu_imm
     - op: 4'bx001
-- C.LWSP
+- C.LWSP rd, uimm
     - LW rd, uimm(sp/x2)
     - {3'b010, uimm[5], rd[4:0], uimm[4:2|7:6], 2'b10}
     - FU: ldu
     - op: 4'bx010
-- C.JR
+- C.JR rs1
     - JALR x0, 0(rs1)
     - {3'b100, 1'b0, rs1[4:0], 5'b00000, 2'b10}
     - FU: bru
     - op: 4'b0101
-- C.MV
+- C.MV rd, rs2
     - ADD rd, x0, rs2
     - {3'b100, 1'b0, rd[4:0], rs2[4:0], 2'b10}
         - (rs2 == 0) -> C.JR
@@ -434,20 +434,20 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
     - {3'b100, 1'b1, 5'b00000, 5'b00000, 2'b10}
     - FU: sysu
     - op: 4'bx000
-- C.JALR
+- C.JALR rs1
     - JALR ra/x1, 0(rs1)
     - {3'b100, 1'b1, rs1[4:0], 5'b00000, 2'b10}
         - (rs1 == 0) -> C.EBREAK
     - FU: bru
     - op: 4'b0001
-- C.ADD
+- C.ADD rd, rs2
     - ADD rd, rd, rs2
     - {3'b100, 1'b1, rs1/rd[4:0], rs2[4:0], 2'b10}
         - (rs1/rd == 0 & rs2 == 0) -> C.EBREAK
         - (rs2 == 0) -> C.JALR
     - FU: alu_reg
     - op: 4'b0000
-- C.SWSP
+- C.SWSP rs2, uimm
     - SW rs2, uimm(sp/x2)
     - {3'b110, uimm[5:2|7:6], rs2[4:0], 2'b10}
     - FU: stamofu
@@ -468,7 +468,7 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
     - {7'b0001000, 5'b00010, 5'b00000, 3'b000, 5'b00000, 5'b11100, 2'b11}
     - FU: sysu
     - op: 4'bx000
-- SFENCE.VMA
+- SFENCE.VMA rs1, rs2
     - {7'b0001001, rs2[4:0], rs1[4:0], 3'b000, 5'b00000, 5'b11100, 2'b11}
         - rs1 = VA
         - rs2 = ASID
