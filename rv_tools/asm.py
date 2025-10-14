@@ -1173,7 +1173,7 @@ def instr_to_hex(instr):
     elif instr.startswith("c.sw "):
         compressed = True
         binary += 0b00
-        binary += 0b010 << 13
+        binary += 0b110 << 13
         interpreted_instr += "C.SW"
         rs2p = get_regp(instr, first)
         binary += bits(rs2p, 2, 0) << 2
@@ -1187,7 +1187,7 @@ def instr_to_hex(instr):
         binary += bits(rs1p, 2, 0) << 7
         interpreted_instr += f"(x{rs1p})"
 
-    elif instr.startswith("c.nop "):
+    elif instr.startswith("c.nop"):
         compressed = True
         binary += 0b01
         binary += 0b000 << 13
@@ -1271,8 +1271,7 @@ def instr_to_hex(instr):
         rdp = get_regp(instr, first)
         binary += bits(rdp, 2, 0) << 7
         interpreted_instr += f" x{rdp}"
-        shamt = get_num(instr, last, 5, 0, unsigned=True)
-        binary += bit(shamt, 5) << 12 # TODO: check why compressed shifts have 6-bit shamt
+        shamt = get_num(instr, last, 4, 0, unsigned=True)
         binary += bits(shamt, 4, 0) << 2
         interpreted_instr += f", {shamt}"
 
@@ -1285,8 +1284,7 @@ def instr_to_hex(instr):
         rdp = get_regp(instr, first)
         binary += bits(rdp, 2, 0) << 7
         interpreted_instr += f" x{rdp}"
-        shamt = get_num(instr, last, 5, 0, unsigned=True)
-        binary += bit(shamt, 5) << 12 # TODO: check why compressed shifts have 6-bit shamt
+        shamt = get_num(instr, last, 4, 0, unsigned=True)
         binary += bits(shamt, 4, 0) << 2
         interpreted_instr += f", {shamt}"
 
@@ -1415,8 +1413,7 @@ def instr_to_hex(instr):
         rd = get_reg(instr, first)
         binary += rd << 7
         interpreted_instr += f" x{rd}"
-        shamt = get_num(instr, last, 5, 0, unsigned=True)
-        binary += bit(shamt, 5) << 12 # TODO: check why compressed shifts have 6-bit shamt
+        shamt = get_num(instr, last, 4, 0, unsigned=True)
         binary += bits(shamt, 4, 0) << 2
         interpreted_instr += f", {shamt}"
 

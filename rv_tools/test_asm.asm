@@ -112,7 +112,7 @@ AMOMAXU.W x15, x16, (x17)
 C.ADDI4SPN x15, 8
 c.lw x14, 20(x13)
 C.SW x12, 0(x11)
-C.NOP 12
+C.NOP
 c.addi s11, 63
 c.jal -0b1000_0000_0000
 C.LI ra, -32
@@ -128,7 +128,7 @@ C.AND x11, x10
 c.j -2
 C.BEQZ x9, 254
 c.bnez x8, -256
-C.SLLI x7, 63
+C.SLLI x7, 31
 C.LWSP x19, 8
 c.jr x26
 c.MV sp, s9
@@ -136,9 +136,6 @@ c.ebreak
 C.JALR s10
 c.add x5, x30
 C.SWSP t0, 252
-
-// TODO: why do compressed shifts have 6-bit shamt?
-    // maybe because sharing encoding for RV64I
 
 mret
 WFI

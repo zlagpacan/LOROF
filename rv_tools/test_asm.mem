@@ -107,11 +107,11 @@ A0D7262F    // AMOMAX.W x12, x13, (x14)
 C41124AF    // AMOMINU.W.AQ x9, x1, (x2)
 E108A7AF    // AMOMAXU.W x15, x16, (x17)
 
-@1644
+@1644 // segment 2
 
 003C        // C.ADDI4SPN x15, 8
 4AD8        // C.LW x14, 20(x13)
-4190        // C.SW x12, 0(x11)
+C190        // C.SW x12, 0(x11)
 0001        // C.NOP
 1DFD        // C.ADDI x27, 63
 3001        // C.JAL -2048
@@ -128,7 +128,7 @@ E108A7AF    // AMOMAXU.W x15, x16, (x17)
 BFFD        // C.J
 CCFD        // C.BEQZ x9, 254
 F001        // C.BNEZ x8, -256
-13FE        // C.SLLI x7, 63
+03FE        // C.SLLI x7, 31
 49A2        // C.LWSP x19, 8
 8D02        // C.JR x26
 8166        // C.MV x2, x25
@@ -136,9 +136,6 @@ F001        // C.BNEZ x8, -256
 9D02        // C.JALR x26
 92FA        // C.ADD x5, x30
 DF96        // C.SWSP x5, 252
-
-// TODO: why do compressed shifts have 6-bit shamt?
-// maybe because sharing encoding for RV64I
 
 30200073    // MRET
 10500073    // WFI
