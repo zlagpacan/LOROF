@@ -12,11 +12,10 @@ def get_word_list(mem):
 
     word_list = []
     for word_addr, word_value in word_dict.items():
-        word_list.append((word_addr, word_value))
+        if any(word_value):
+            word_list.append((word_addr, word_value))
 
-    word_list.sort(key=lambda x: x[0])
-
-    return word_list
+    return sorted(word_list, key=lambda x: x[0])
 
 def print_mem(mem):
     
@@ -24,8 +23,26 @@ def print_mem(mem):
 
     print("\nmem:")
     for word_addr, word_value in word_list:
-        print(f"    0x{word_addr << 2:08X}: {word_value[0]:02X} {word_value[1]:02X} {word_value[2]:02X} {word_value[3]:02X}")
+        word_value_str = " ".join(reversed([f"{x:02X}" for x in word_value]))
+        print(f"    0x{word_addr << 2:08X}: {word_value_str}")
     print()
+
+class ArchState:
+    def __init__(self, start_pc, mem):
+        self.pc = args.start_pc
+        self.reg_file = [0x0 for x in range(32)]
+        self.instret = 0
+        self.mem = mem
+
+    def exec_instr(self):
+        instr = 0
+        instr += self.mem[self.pc+0]
+        instr += self.mem[self.pc+1]
+        instr += self.mem[self.pc+2]
+        instr += self.mem[self.pc+3]
+
+        if instr:
+            return True
 
 if __name__ == "__main__":
     print(" ".join(sys.argv))
@@ -72,18 +89,30 @@ if __name__ == "__main__":
     print_mem(mem)
 
     # init arch state
-    pc = args.start_pc
-    reg_file = [0x0 for x in range(32)]
+    arch_state = ArchState(args.start_pc, mem)
 
     # execute program
-
+    exception = False
+    while not exception:
+        exception = arch_state.exec_instr()
 
     # print(mem)
     print_mem(mem)
 
-    # # write output mem
-    # with open(args.output_mem_file_path, "w") as fp:
-    #     word_mem = get_word_mem(mem)
+    # write output mem
+    with open(args.output_mem_file_path, "w") as fp:
+        word_list = get_word_list(mem)
 
-    #     fp.writeline(f"@{word_mem}")
-        
+        first = True
+        ptr_word_addr = -1
+        for word_addr, word_value in word_list:
+            word_value_str = "".join(reversed([f"{x:02X}" for x in word_value]))
+            if word_addr != ptr_word_addr:
+                if not first:
+                    fp.write("\n")
+                else:
+                    first = False
+                fp.write(f"@{word_addr << 2:0x}\n")
+                ptr_word_addr = word_addr
+            fp.write(word_value_str + "\n")
+            ptr_word_addr += 1
