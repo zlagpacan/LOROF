@@ -7,11 +7,33 @@ for i in range(32):
     reg_name_map[f"x{i}"] = i
 reg_name_map.update({"zero": 0, "ra": 1, "sp": 2, "gp": 3, "tp": 4, "t0": 5, "t1": 6, "t2": 7, "s0": 8, "fp": 8, "s1": 9, "a0": 10, "a1": 11, "a2": 12, "a3": 13, "a4": 14, "a5": 15, "a6": 16, "a7": 17, "s2": 18, "s3": 19, "s4": 20, "s5": 21, "s6": 22, "s7": 23, "s8": 24, "s9": 25, "s10": 26, "s11": 27, "t3": 28, "t4": 29, "t5": 30, "t6": 31,})
 
-def get_reg(reg_str):
-    return reg_name_map[reg_str.lstrip("(), ").rstrip("(), ")]
+def get_reg(instr, func_ptr):
+    try:
+        return reg_name_map[func_ptr(instr).lstrip("(), ").rstrip("(), ")]
+    except KeyError as e:
+        print(func_ptr)
+        raise Exception(f"\nBad reg from \"{func_ptr(instr)}\" @ {func_ptr.__name__}() for instr:\n{instr}")
+    except ValueError as e:
+        raise Exception(f"\nError getting reg @ {func_ptr.__name__}() for instr:\n{instr}")
 
-def get_num(imm_str, align=1):
-    return int(imm_str.lstrip("(), ").rstrip("(), "), 0) // align * align
+def get_regp(instr, func_ptr):
+    try:
+        regp = reg_name_map[func_ptr(instr).lstrip("(), ").rstrip("(), ")]
+        assert 8 <= regp <= 15, f"\nERROR: reg must be in x8:x15 for @ {func_ptr.__name__}() instr:\n{instr}"
+        return regp
+    except KeyError as e:
+        print(func_ptr)
+        raise Exception(f"\nBad regp from \"{func_ptr(instr)}\" @ {func_ptr.__name__}() for instr:\n{instr}")
+    except ValueError as e:
+        raise Exception(f"\nError getting regp @ {func_ptr.__name__}() for instr:\n{instr}")
+
+def get_num(instr, func_ptr, upper_index, lower_index, unsigned=False, signed=False):
+    try:
+        num = int(func_ptr(instr).lstrip("(), ").rstrip("(), "), 0)
+        check_imm_bits(instr, num, upper_index, lower_index, unsigned, signed)
+        return num
+    except ValueError as e:
+        raise Exception(f"\nError getting num @ {func_ptr.__name__}() for instr:\n{instr}")
 
 def only(instr):
     return instr[instr.index(" "):]
@@ -27,7 +49,7 @@ def last(instr):
     val = instr[:instr.index(",")]
     return val[::-1]
 
-def paren_prefix(instr):
+def before_paren(instr):
     instr = instr[::-1]
     val = instr[instr.index("("):instr.index(",")]
     return val[::-1]
@@ -50,6 +72,15 @@ def bit(num, index):
 def bits(num, upper_index, lower_index):
     return ((2**(upper_index+1) - 1) & num) >> lower_index
 
+def check_imm_bits(instr, num, upper_index, lower_index, unsigned=False, signed=False):
+    if unsigned:
+        assert 0 <= num <= (2**(upper_index+1))-(2**lower_index), f"\nimm={num} out of range: [0, {(2**(upper_index+1))-(2**lower_index)}] for instr:\n{instr}"
+    elif signed:
+        assert -(2**upper_index) <= num <= (2**upper_index)-(2**lower_index), f"\nimm={num} out of range: [{-(2**upper_index)}, {(2**upper_index)-(2**lower_index)}] for instr:\n{instr}"
+    else:
+        assert -(2**upper_index) <= num <= (2**(upper_index+1))-(2**lower_index), f"\nimm={num} out of range: [{-(2**upper_index)}, {(2**(upper_index+1))-(2**lower_index)}] for instr:\n{instr}"
+    assert lower_index == 0 or bits(num, lower_index-1, 0) == 0, f"\nimm={num} not aligned to multiple of {2**lower_index} for instr:\n{instr}"
+
 def instr_to_hex(instr):
     # print(instr)
 
@@ -59,543 +90,544 @@ def instr_to_hex(instr):
 
     if instr.startswith("lui "):
         binary += 0b_01101_11
-        interpreted_instr += "LUI "
-        rd = get_reg(first(instr))
+        interpreted_instr += "LUI"
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        imm = get_num(last(instr))
-        binary += bits(imm, 31-12, 0) << 12
-        interpreted_instr += f", {bits(imm, 31-12, 0)}"
+        interpreted_instr += f" x{rd}"
+        imm = get_num(instr, last, 19, 0)
+        binary += bits(imm, 19, 0) << 12
+        interpreted_instr += f", {imm}"
 
     elif instr.startswith("auipc "):
         binary += 0b_00101_11
-        interpreted_instr += "AUIPC "
-        rd = get_reg(first(instr))
+        interpreted_instr += "AUIPC"
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        imm = get_num(last(instr))
-        binary += bits(imm, 31-12, 0) << 12
-        interpreted_instr += f", {bits(imm, 31-12, 0)}"
+        interpreted_instr += f" x{rd}"
+        imm = get_num(instr, last, 19, 0)
+        binary += bits(imm, 19, 0) << 12
+        interpreted_instr += f", {imm}"
 
     elif instr.startswith("jal "):
         binary += 0b_11011_11
-        interpreted_instr += "JAL "
-        rd = get_reg(first(instr))
+        interpreted_instr += "JAL"
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        imm = get_num(last(instr), 2)
+        interpreted_instr += f" x{rd}"
+        imm = get_num(instr, last, 20, 1, signed=True)
         binary += bits(imm, 19, 12) << 12
         binary += bit(imm, 11) << 20
         binary += bits(imm, 10, 1) << 21
         binary += bit(imm, 20) << 31
-        interpreted_instr += f", {bits(imm, 20, 0)}"
+        interpreted_instr += f", {imm}"
 
     elif instr.startswith("jalr "):
         binary += 0b_11001_11
-        interpreted_instr += "JALR "
-        rd = get_reg(first(instr))
+        interpreted_instr += "JALR"
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        imm = get_num(paren_prefix(instr))
+        interpreted_instr += f" x{rd}"
+        imm = get_num(instr, before_paren, 11, 0, signed=True)
         binary += bits(imm, 11, 0) << 20
-        interpreted_instr += f", {bits(imm, 11, 0)}"
-        rs1 = get_reg(in_paren(instr))
+        interpreted_instr += f", {imm}"
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f"(x{rs1})"
 
     elif instr.startswith("beq "):
         binary += 0b_11000_11
-        interpreted_instr += "BEQ "
+        interpreted_instr += "BEQ"
         binary += 0b000 << 12
-        rs1 = get_reg(first(instr))
+        rs1 = get_reg(instr, first)
         binary += bin_rs1(rs1)
-        interpreted_instr += f"x{rs1}"
-        rs2 = get_reg(second(instr))
+        interpreted_instr += f" x{rs1}"
+        rs2 = get_reg(instr, second)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
-        imm = get_num(last(instr), 2)
+        imm = get_num(instr, last, 12, 1, signed=True)
         binary += bit(imm, 11) << 7
         binary += bits(imm, 4, 1) << 8
         binary += bits(imm, 10, 5) << 25
         binary += bit(imm, 12) << 31
-        interpreted_instr += f", {bits(imm, 12, 0)}"
+        interpreted_instr += f", {imm}"
 
     elif instr.startswith("bne "):
         binary += 0b_11000_11
-        interpreted_instr += "BNE "
+        interpreted_instr += "BNE"
         binary += 0b001 << 12
-        rs1 = get_reg(first(instr))
+        rs1 = get_reg(instr, first)
         binary += bin_rs1(rs1)
-        interpreted_instr += f"x{rs1}"
-        rs2 = get_reg(second(instr))
+        interpreted_instr += f" x{rs1}"
+        rs2 = get_reg(instr, second)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
-        imm = get_num(last(instr), 2)
+        imm = get_num(instr, last, 12, 1, signed=True)
         binary += bit(imm, 11) << 7
         binary += bits(imm, 4, 1) << 8
         binary += bits(imm, 10, 5) << 25
         binary += bit(imm, 12) << 31
-        interpreted_instr += f", {bits(imm, 12, 0)}"
+        interpreted_instr += f", {imm}"
 
     elif instr.startswith("blt "):
         binary += 0b_11000_11
-        interpreted_instr += "BLT "
+        interpreted_instr += "BLT"
         binary += 0b100 << 12
-        rs1 = get_reg(first(instr))
+        rs1 = get_reg(instr, first)
         binary += bin_rs1(rs1)
-        interpreted_instr += f"x{rs1}"
-        rs2 = get_reg(second(instr))
+        interpreted_instr += f" x{rs1}"
+        rs2 = get_reg(instr, second)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
-        imm = get_num(last(instr), 2)
+        imm = get_num(instr, last, 12, 1, signed=True)
         binary += bit(imm, 11) << 7
         binary += bits(imm, 4, 1) << 8
         binary += bits(imm, 10, 5) << 25
         binary += bit(imm, 12) << 31
-        interpreted_instr += f", {bits(imm, 12, 0)}"
+        interpreted_instr += f", {imm}"
 
     elif instr.startswith("bge "):
         binary += 0b_11000_11
-        interpreted_instr += "BGE "
+        interpreted_instr += "BGE"
         binary += 0b101 << 12
-        rs1 = get_reg(first(instr))
+        rs1 = get_reg(instr, first)
         binary += bin_rs1(rs1)
-        interpreted_instr += f"x{rs1}"
-        rs2 = get_reg(second(instr))
+        interpreted_instr += f" x{rs1}"
+        rs2 = get_reg(instr, second)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
-        imm = get_num(last(instr), 2)
+        imm = get_num(instr, last, 12, 1, signed=True)
         binary += bit(imm, 11) << 7
         binary += bits(imm, 4, 1) << 8
         binary += bits(imm, 10, 5) << 25
         binary += bit(imm, 12) << 31
-        interpreted_instr += f", {bits(imm, 12, 0)}"
+        interpreted_instr += f", {imm}"
 
     elif instr.startswith("bltu "):
         binary += 0b_11000_11
-        interpreted_instr += "BLTU "
+        interpreted_instr += "BLTU"
         binary += 0b110 << 12
-        rs1 = get_reg(first(instr))
+        rs1 = get_reg(instr, first)
         binary += bin_rs1(rs1)
-        interpreted_instr += f"x{rs1}"
-        rs2 = get_reg(second(instr))
+        interpreted_instr += f" x{rs1}"
+        rs2 = get_reg(instr, second)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
-        imm = get_num(last(instr), 2)
+        imm = get_num(instr, last, 12, 1, signed=True)
         binary += bit(imm, 11) << 7
         binary += bits(imm, 4, 1) << 8
         binary += bits(imm, 10, 5) << 25
         binary += bit(imm, 12) << 31
-        interpreted_instr += f", {bits(imm, 12, 0)}"
+        interpreted_instr += f", {imm}"
 
     elif instr.startswith("bgeu "):
         binary += 0b_11000_11
-        interpreted_instr += "BGEU "
+        interpreted_instr += "BGEU"
         binary += 0b111 << 12
-        rs1 = get_reg(first(instr))
+        rs1 = get_reg(instr, first)
         binary += bin_rs1(rs1)
-        interpreted_instr += f"x{rs1}"
-        rs2 = get_reg(second(instr))
+        interpreted_instr += f" x{rs1}"
+        rs2 = get_reg(instr, second)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
-        imm = get_num(last(instr), 2)
+        imm = get_num(instr, last, 12, 1, signed=True)
         binary += bit(imm, 11) << 7
         binary += bits(imm, 4, 1) << 8
         binary += bits(imm, 10, 5) << 25
         binary += bit(imm, 12) << 31
-        interpreted_instr += f", {bits(imm, 12, 0)}"
+        interpreted_instr += f", {imm}"
 
     elif instr.startswith("lb "):
         binary += 0b_00000_11
-        interpreted_instr += "LB "
+        interpreted_instr += "LB"
         binary += 0b000 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        imm = get_num(paren_prefix(instr))
+        interpreted_instr += f" x{rd}"
+        imm = get_num(instr, before_paren, 11, 0, signed=True)
         binary += bits(imm, 11, 0) << 20
-        interpreted_instr += f", {bits(imm, 11, 0)}"
-        rs1 = get_reg(in_paren(instr))
+        interpreted_instr += f", {imm}"
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f"(x{rs1})"
 
     elif instr.startswith("lh "):
         binary += 0b_00000_11
-        interpreted_instr += "LH "
+        interpreted_instr += "LH"
         binary += 0b001 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        imm = get_num(paren_prefix(instr))
+        interpreted_instr += f" x{rd}"
+        imm = get_num(instr, before_paren, 11, 0, signed=True)
         binary += bits(imm, 11, 0) << 20
-        interpreted_instr += f", {bits(imm, 11, 0)}"
-        rs1 = get_reg(in_paren(instr))
+        interpreted_instr += f", {imm}"
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f"(x{rs1})"
 
     elif instr.startswith("lw "):
         binary += 0b_00000_11
-        interpreted_instr += "LW "
+        interpreted_instr += "LW"
         binary += 0b010 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        imm = get_num(paren_prefix(instr))
+        interpreted_instr += f" x{rd}"
+        imm = get_num(instr, before_paren, 11, 0, signed=True)
         binary += bits(imm, 11, 0) << 20
-        interpreted_instr += f", {bits(imm, 11, 0)}"
-        rs1 = get_reg(in_paren(instr))
+        interpreted_instr += f", {imm}"
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f"(x{rs1})"
 
     elif instr.startswith("lbu "):
         binary += 0b_00000_11
-        interpreted_instr += "LBU "
+        interpreted_instr += "LBU"
         binary += 0b100 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        imm = get_num(paren_prefix(instr))
+        interpreted_instr += f" x{rd}"
+        imm = get_num(instr, before_paren, 11, 0, signed=True)
         binary += bits(imm, 11, 0) << 20
-        interpreted_instr += f", {bits(imm, 11, 0)}"
-        rs1 = get_reg(in_paren(instr))
+        interpreted_instr += f", {imm}"
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f"(x{rs1})"
 
     elif instr.startswith("lhu "):
         binary += 0b_00000_11
-        interpreted_instr += "LHU "
+        interpreted_instr += "LHU"
         binary += 0b101 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        imm = get_num(paren_prefix(instr))
+        interpreted_instr += f" x{rd}"
+        imm = get_num(instr, before_paren, 11, 0, signed=True)
         binary += bits(imm, 11, 0) << 20
-        interpreted_instr += f", {bits(imm, 11, 0)}"
-        rs1 = get_reg(in_paren(instr))
+        interpreted_instr += f", {imm}"
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f"(x{rs1})"
 
     elif instr.startswith("sb "):
         binary += 0b_01000_11
-        interpreted_instr += "SB "
+        interpreted_instr += "SB"
         binary += 0b000 << 12
-        rs2 = get_reg(first(instr))
+        rs2 = get_reg(instr, first)
         binary += bin_rs2(rs2)
-        interpreted_instr += f"x{rs2}"
-        imm = get_num(paren_prefix(instr))
+        interpreted_instr += f" x{rs2}"
+        imm = get_num(instr, before_paren, 11, 0, signed=True)
         binary += bits(imm, 4, 0) << 7
         binary += bits(imm, 11, 5) << 25
-        interpreted_instr += f", {bits(imm, 11, 0)}"
-        rs1 = get_reg(in_paren(instr))
+        interpreted_instr += f", {imm}"
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f"(x{rs1})"
 
     elif instr.startswith("sh "):
         binary += 0b_01000_11
-        interpreted_instr += "SH "
+        interpreted_instr += "SH"
         binary += 0b001 << 12
-        rs2 = get_reg(first(instr))
+        rs2 = get_reg(instr, first)
         binary += bin_rs2(rs2)
-        interpreted_instr += f"x{rs2}"
-        imm = get_num(paren_prefix(instr))
+        interpreted_instr += f" x{rs2}"
+        imm = get_num(instr, before_paren, 11, 0, signed=True)
         binary += bits(imm, 4, 0) << 7
         binary += bits(imm, 11, 5) << 25
-        interpreted_instr += f", {bits(imm, 11, 0)}"
-        rs1 = get_reg(in_paren(instr))
+        interpreted_instr += f", {imm}"
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f"(x{rs1})"
 
     elif instr.startswith("sw "):
         binary += 0b_01000_11
-        interpreted_instr += "SW "
+        interpreted_instr += "SW"
         binary += 0b010 << 12
-        rs2 = get_reg(first(instr))
+        rs2 = get_reg(instr, first)
         binary += bin_rs2(rs2)
-        interpreted_instr += f"x{rs2}"
-        imm = get_num(paren_prefix(instr))
+        interpreted_instr += f" x{rs2}"
+        imm = get_num(instr, before_paren, 11, 0, signed=True)
         binary += bits(imm, 4, 0) << 7
         binary += bits(imm, 11, 5) << 25
-        interpreted_instr += f", {bits(imm, 11, 0)}"
-        rs1 = get_reg(in_paren(instr))
+        interpreted_instr += f", {imm}"
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f"(x{rs1})"
 
     elif instr.startswith("addi "):
         binary += 0b_00100_11
-        interpreted_instr += "ADDI "
+        interpreted_instr += "ADDI"
         binary += 0b000 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        imm = get_num(last(instr))
+        imm = get_num(instr, last, 11, 0)
         binary += bits(imm, 11, 0) << 20
         interpreted_instr += f", {imm}"
 
     elif instr.startswith("slli "):
         binary += 0b_00100_11
-        interpreted_instr += "SLLI "
+        interpreted_instr += "SLLI"
         binary += 0b001 << 12
         binary += 0b0000000 << 25
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        imm = get_num(last(instr))
-        binary += bits(imm, 4, 0) << 20
-        interpreted_instr += f", {imm}"
+        shamt = get_num(instr, last, 4, 0, unsigned=True)
+        binary += bits(shamt, 4, 0) << 20
+        interpreted_instr += f", {shamt}"
 
     elif instr.startswith("slti "):
         binary += 0b_00100_11
-        interpreted_instr += "SLTI "
+        interpreted_instr += "SLTI"
         binary += 0b010 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        imm = get_num(last(instr))
+        imm = get_num(instr, last, 11, 0, signed=True)
         binary += bits(imm, 11, 0) << 20
         interpreted_instr += f", {imm}"
 
     elif instr.startswith("sltiu "):
         binary += 0b_00100_11
-        interpreted_instr += "SLTIU "
+        interpreted_instr += "SLTIU"
         binary += 0b011 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        imm = get_num(last(instr))
+        imm = get_num(instr, last, 11, 0, unsigned=True)
         binary += bits(imm, 11, 0) << 20
         interpreted_instr += f", {imm}"
 
     elif instr.startswith("xori "):
         binary += 0b_00100_11
-        interpreted_instr += "XORI "
+        interpreted_instr += "XORI"
         binary += 0b100 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        imm = get_num(last(instr))
+        imm = get_num(instr, last, 11, 0)
         binary += bits(imm, 11, 0) << 20
         interpreted_instr += f", {imm}"
 
     elif instr.startswith("srli "):
         binary += 0b_00100_11
-        interpreted_instr += "SRLI "
+        interpreted_instr += "SRLI"
         binary += 0b101 << 12
         binary += 0b0000000 << 25
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        imm = get_num(last(instr))
-        binary += bits(imm, 4, 0) << 20
-        interpreted_instr += f", {imm}"
+        shamt = get_num(instr, last, 4, 0, unsigned=True)
+        binary += bits(shamt, 4, 0) << 20
+        interpreted_instr += f", {shamt}"
 
     elif instr.startswith("srai "):
         binary += 0b_00100_11
-        interpreted_instr += "SRAI "
+        interpreted_instr += "SRAI"
         binary += 0b101 << 12
         binary += 0b0100000 << 25
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        imm = get_num(last(instr))
-        binary += bits(imm, 4, 0) << 20
-        interpreted_instr += f", {imm}"
+        shamt = get_num(instr, last, 4, 0, unsigned=True)
+        binary += bits(shamt, 4, 0) << 20
+        interpreted_instr += f", {shamt}"
 
     elif instr.startswith("ori "):
         binary += 0b_00100_11
-        interpreted_instr += "ORI "
+        interpreted_instr += "ORI"
         binary += 0b110 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        imm = get_num(last(instr))
+        imm = get_num(instr, last, 11, 0)
         binary += bits(imm, 11, 0) << 20
         interpreted_instr += f", {imm}"
 
     elif instr.startswith("andi "):
         binary += 0b_00100_11
-        interpreted_instr += "ANDI "
+        interpreted_instr += "ANDI"
         binary += 0b111 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        imm = get_num(last(instr))
+        imm = get_num(instr, last, 11, 0)
         binary += bits(imm, 11, 0) << 20
         interpreted_instr += f", {imm}"
 
     elif instr.startswith("add "):
         binary += 0b_01100_11
-        interpreted_instr += "ADD "
+        interpreted_instr += "ADD"
         binary += 0b000 << 12
         binary += 0b0000000 << 25
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("sub "):
         binary += 0b_01100_11
-        interpreted_instr += "SUB "
+        interpreted_instr += "SUB"
         binary += 0b000 << 12
         binary += 0b0100000 << 25
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("sll "):
         binary += 0b_01100_11
-        interpreted_instr += "SLL "
+        interpreted_instr += "SLL"
         binary += 0b001 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("slt "):
         binary += 0b_01100_11
-        interpreted_instr += "SLT "
+        interpreted_instr += "SLT"
         binary += 0b010 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("sltu "):
         binary += 0b_01100_11
-        interpreted_instr += "SLTU "
+        interpreted_instr += "SLTU"
         binary += 0b011 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("xor "):
         binary += 0b_01100_11
-        interpreted_instr += "XOR "
+        interpreted_instr += "XOR"
         binary += 0b100 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("srl "):
         binary += 0b_01100_11
-        interpreted_instr += "SRL "
+        interpreted_instr += "SRL"
         binary += 0b101 << 12
         binary += 0b0000000 << 25
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("sra "):
         binary += 0b_01100_11
-        interpreted_instr += "SRA "
+        interpreted_instr += "SRA"
         binary += 0b101 << 12
         binary += 0b0100000 << 25
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("or "):
         binary += 0b_01100_11
-        interpreted_instr += "OR "
+        interpreted_instr += "OR"
         binary += 0b110 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("and "):
         binary += 0b_01100_11
-        interpreted_instr += "AND "
+        interpreted_instr += "AND"
         binary += 0b111 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("fence "):
         binary += 0b_00011_11
-        interpreted_instr += "FENCE "
+        interpreted_instr += "FENCE"
+        interpreted_instr += " "
         if "i" in first(instr):
             binary += 1 << 27
             interpreted_instr += "i"
@@ -624,8 +656,8 @@ def instr_to_hex(instr):
 
     elif instr.startswith("fence.tso"):
         binary += 0b_00011_11
-        interpreted_instr += "FENCE.TSO"
         binary += 0b_1000_0011_0011 << 20
+        interpreted_instr += "FENCE.TSO"
 
     elif instr.startswith("ecall"):
         binary += 0b_11100_11
@@ -633,215 +665,215 @@ def instr_to_hex(instr):
     
     elif instr.startswith("ebreak"):
         binary += 0b_11100_11
-        interpreted_instr += "EBREAK"
         binary += 0b00001 << 20
+        interpreted_instr += "EBREAK"
 
     elif instr.startswith("fence.i"):
         binary += 0b_00011_11
-        interpreted_instr += "FENCE.I"
         binary += 0b001 << 12
+        interpreted_instr += "FENCE.I"
 
     elif instr.startswith("csrrw "):
         binary += 0b_11100_11
-        interpreted_instr += "CSRRW "
+        interpreted_instr += "CSRRW"
         binary += 0b001 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        csr = get_num(second(instr))
+        interpreted_instr += f" x{rd}"
+        csr = get_num(instr, second, 11, 0, unsigned=True)
         binary += csr << 20
         interpreted_instr += f", {csr}"
-        rs1 = get_reg(last(instr))
+        rs1 = get_reg(instr, last)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
 
     elif instr.startswith("csrrs "):
         binary += 0b_11100_11
-        interpreted_instr += "CSRRS "
+        interpreted_instr += "CSRRS"
         binary += 0b010 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        csr = get_num(second(instr))
+        interpreted_instr += f" x{rd}"
+        csr = get_num(instr, second, 11, 0, unsigned=True)
         binary += csr << 20
         interpreted_instr += f", {csr}"
-        rs1 = get_reg(last(instr))
+        rs1 = get_reg(instr, last)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
 
     elif instr.startswith("csrrc "):
         binary += 0b_11100_11
-        interpreted_instr += "CSRRC "
+        interpreted_instr += "CSRRC"
         binary += 0b011 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        csr = get_num(second(instr))
+        interpreted_instr += f" x{rd}"
+        csr = get_num(instr, second, 11, 0, unsigned=True)
         binary += csr << 20
         interpreted_instr += f", {csr}"
-        rs1 = get_reg(last(instr))
+        rs1 = get_reg(instr, last)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
 
     elif instr.startswith("csrrwi "):
         binary += 0b_11100_11
-        interpreted_instr += "CSRRWI "
+        interpreted_instr += "CSRRWI"
         binary += 0b101 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        csr = get_num(second(instr))
+        interpreted_instr += f" x{rd}"
+        csr = get_num(instr, second, 11, 0, unsigned=True)
         binary += csr << 20
         interpreted_instr += f", {csr}"
-        uimm = get_num(last(instr))
+        uimm = get_num(instr, last, 4, 0, unsigned=True)
         binary += bits(uimm, 4, 0) << 15
         interpreted_instr += f", {bits(uimm, 4, 0)}"
 
     elif instr.startswith("csrrsi "):
         binary += 0b_11100_11
-        interpreted_instr += "CSRRSI "
+        interpreted_instr += "CSRRSI"
         binary += 0b110 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        csr = get_num(second(instr))
+        interpreted_instr += f" x{rd}"
+        csr = get_num(instr, second, 11, 0, unsigned=True)
         binary += csr << 20
         interpreted_instr += f", {csr}"
-        uimm = get_num(last(instr))
+        uimm = get_num(instr, last, 4, 0, unsigned=True)
         binary += bits(uimm, 4, 0) << 15
         interpreted_instr += f", {bits(uimm, 4, 0)}"
 
     elif instr.startswith("csrrci "):
         binary += 0b_11100_11
-        interpreted_instr += "CSRRCI "
+        interpreted_instr += "CSRRCI"
         binary += 0b111 << 12
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        csr = get_num(second(instr))
+        interpreted_instr += f" x{rd}"
+        csr = get_num(instr, second, 11, 0, unsigned=True)
         binary += csr << 20
         interpreted_instr += f", {csr}"
-        uimm = get_num(last(instr))
+        uimm = get_num(instr, last, 4, 0, unsigned=True)
         binary += bits(uimm, 4, 0) << 15
         interpreted_instr += f", {bits(uimm, 4, 0)}"
 
     elif instr.startswith("mul "):
         binary += 0b_01100_11
-        interpreted_instr += "MUL "
+        interpreted_instr += "MUL"
         binary += 0b000 << 12
         binary += 0b0000001 << 25
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("mulh "):
         binary += 0b_01100_11
-        interpreted_instr += "MULH "
+        interpreted_instr += "MULH"
         binary += 0b001 << 12
         binary += 0b0000001 << 25
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("mulhsu "):
         binary += 0b_01100_11
-        interpreted_instr += "MULHSU "
+        interpreted_instr += "MULHSU"
         binary += 0b010 << 12
         binary += 0b0000001 << 25
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("mulhu "):
         binary += 0b_01100_11
-        interpreted_instr += "MULHU "
+        interpreted_instr += "MULHU"
         binary += 0b011 << 12
         binary += 0b0000001 << 25
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("div "):
         binary += 0b_01100_11
-        interpreted_instr += "DIV "
+        interpreted_instr += "DIV"
         binary += 0b100 << 12
         binary += 0b0000001 << 25
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("divu "):
         binary += 0b_01100_11
-        interpreted_instr += "DIVU "
+        interpreted_instr += "DIVU"
         binary += 0b101 << 12
         binary += 0b0000001 << 25
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("rem "):
         binary += 0b_01100_11
-        interpreted_instr += "REM "
+        interpreted_instr += "REM"
         binary += 0b110 << 12
         binary += 0b0000001 << 25
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     elif instr.startswith("remu "):
         binary += 0b_01100_11
-        interpreted_instr += "REMU "
+        interpreted_instr += "REMU"
         binary += 0b111 << 12
         binary += 0b0000001 << 25
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
-        interpreted_instr += f"x{rd}"
-        rs1 = get_reg(second(instr))
+        interpreted_instr += f" x{rd}"
+        rs1 = get_reg(instr, second)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
@@ -853,13 +885,16 @@ def instr_to_hex(instr):
         if ".aq" in instr:
             binary += 1 << 26
             interpreted_instr += ".AQ"
-        if ".rl" in instr:
+            if "rl" in instr:
+                binary += 1 << 25
+                interpreted_instr += "RL"
+        elif ".rl" in instr:
             binary += 1 << 25
             interpreted_instr += ".RL"
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
-        rs1 = get_reg(in_paren(instr))
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f", (x{rs1})"
 
@@ -871,16 +906,19 @@ def instr_to_hex(instr):
         if ".aq" in instr:
             binary += 1 << 26
             interpreted_instr += ".AQ"
-        if ".rl" in instr:
+            if "rl" in instr:
+                binary += 1 << 25
+                interpreted_instr += "RL"
+        elif ".rl" in instr:
             binary += 1 << 25
             interpreted_instr += ".RL"
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
-        rs2 = get_reg(second(instr))
+        rs2 = get_reg(instr, second)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
-        rs1 = get_reg(in_paren(instr))
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f", (x{rs1})"
 
@@ -892,16 +930,19 @@ def instr_to_hex(instr):
         if ".aq" in instr:
             binary += 1 << 26
             interpreted_instr += ".AQ"
-        if ".rl" in instr:
+            if "rl" in instr:
+                binary += 1 << 25
+                interpreted_instr += "RL"
+        elif ".rl" in instr:
             binary += 1 << 25
             interpreted_instr += ".RL"
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
-        rs2 = get_reg(second(instr))
+        rs2 = get_reg(instr, second)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
-        rs1 = get_reg(in_paren(instr))
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f", (x{rs1})"
 
@@ -913,16 +954,19 @@ def instr_to_hex(instr):
         if ".aq" in instr:
             binary += 1 << 26
             interpreted_instr += ".AQ"
-        if ".rl" in instr:
+            if "rl" in instr:
+                binary += 1 << 25
+                interpreted_instr += "RL"
+        elif ".rl" in instr:
             binary += 1 << 25
             interpreted_instr += ".RL"
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
-        rs2 = get_reg(second(instr))
+        rs2 = get_reg(instr, second)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
-        rs1 = get_reg(in_paren(instr))
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f", (x{rs1})"
 
@@ -934,16 +978,19 @@ def instr_to_hex(instr):
         if ".aq" in instr:
             binary += 1 << 26
             interpreted_instr += ".AQ"
-        if ".rl" in instr:
+            if "rl" in instr:
+                binary += 1 << 25
+                interpreted_instr += "RL"
+        elif ".rl" in instr:
             binary += 1 << 25
             interpreted_instr += ".RL"
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
-        rs2 = get_reg(second(instr))
+        rs2 = get_reg(instr, second)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
-        rs1 = get_reg(in_paren(instr))
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f", (x{rs1})"
 
@@ -961,13 +1008,13 @@ def instr_to_hex(instr):
         elif ".rl" in instr:
             binary += 1 << 25
             interpreted_instr += ".RL"
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
-        rs2 = get_reg(second(instr))
+        rs2 = get_reg(instr, second)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
-        rs1 = get_reg(in_paren(instr))
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f", (x{rs1})"
 
@@ -979,16 +1026,19 @@ def instr_to_hex(instr):
         if ".aq" in instr:
             binary += 1 << 26
             interpreted_instr += ".AQ"
-        if ".rl" in instr:
+            if "rl" in instr:
+                binary += 1 << 25
+                interpreted_instr += "RL"
+        elif ".rl" in instr:
             binary += 1 << 25
             interpreted_instr += ".RL"
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
-        rs2 = get_reg(second(instr))
+        rs2 = get_reg(instr, second)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
-        rs1 = get_reg(in_paren(instr))
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f", (x{rs1})"
 
@@ -1000,16 +1050,19 @@ def instr_to_hex(instr):
         if ".aq" in instr:
             binary += 1 << 26
             interpreted_instr += ".AQ"
-        if ".rl" in instr:
+            if "rl" in instr:
+                binary += 1 << 25
+                interpreted_instr += "RL"
+        elif ".rl" in instr:
             binary += 1 << 25
             interpreted_instr += ".RL"
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
-        rs2 = get_reg(second(instr))
+        rs2 = get_reg(instr, second)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
-        rs1 = get_reg(in_paren(instr))
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f", (x{rs1})"
 
@@ -1021,16 +1074,19 @@ def instr_to_hex(instr):
         if ".aq" in instr:
             binary += 1 << 26
             interpreted_instr += ".AQ"
-        if ".rl" in instr:
+            if "rl" in instr:
+                binary += 1 << 25
+                interpreted_instr += "RL"
+        elif ".rl" in instr:
             binary += 1 << 25
             interpreted_instr += ".RL"
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
-        rs2 = get_reg(second(instr))
+        rs2 = get_reg(instr, second)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
-        rs1 = get_reg(in_paren(instr))
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f", (x{rs1})"
 
@@ -1042,16 +1098,19 @@ def instr_to_hex(instr):
         if ".aq" in instr:
             binary += 1 << 26
             interpreted_instr += ".AQ"
-        if ".rl" in instr:
+            if "rl" in instr:
+                binary += 1 << 25
+                interpreted_instr += "RL"
+        elif ".rl" in instr:
             binary += 1 << 25
             interpreted_instr += ".RL"
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
-        rs2 = get_reg(second(instr))
+        rs2 = get_reg(instr, second)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
-        rs1 = get_reg(in_paren(instr))
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f", (x{rs1})"
 
@@ -1063,27 +1122,383 @@ def instr_to_hex(instr):
         if ".aq" in instr:
             binary += 1 << 26
             interpreted_instr += ".AQ"
-        if ".rl" in instr:
+            if "rl" in instr:
+                binary += 1 << 25
+                interpreted_instr += "RL"
+        elif ".rl" in instr:
             binary += 1 << 25
             interpreted_instr += ".RL"
-        rd = get_reg(first(instr))
+        rd = get_reg(instr, first)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
-        rs2 = get_reg(second(instr))
+        rs2 = get_reg(instr, second)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
-        rs1 = get_reg(in_paren(instr))
+        rs1 = get_reg(instr, in_paren)
         binary += bin_rs1(rs1)
         interpreted_instr += f", (x{rs1})"
 
-    # TODO: compressed instructions
+    elif instr.startswith("c.addi4spn "):
+        compressed = True
+        binary += 0b00
+        binary += 0b000 << 13
+        interpreted_instr += "C.ADDI4SPN"
+        rdp = get_regp(instr, first)
+        binary += bits(rdp, 2, 0) << 2
+        interpreted_instr += f" x{rdp}"
+        uimm = get_num(instr, last, 9, 2, unsigned=True)
+        binary += bits(uimm, 5, 4) << 11
+        binary += bits(uimm, 9, 6) << 7
+        binary += bit(uimm, 2) << 6
+        binary += bit(uimm, 3) << 5
+        interpreted_instr += f", {uimm}"
+
+    elif instr.startswith("c.lw "):
+        compressed = True
+        binary += 0b00
+        binary += 0b010 << 13
+        interpreted_instr += "C.LW"
+        rdp = get_regp(instr, first)
+        binary += bits(rdp, 2, 0) << 2
+        interpreted_instr += f" x{rdp}"
+        uimm = get_num(instr, before_paren, 6, 2, unsigned=True)
+        binary += bits(uimm, 5, 3) << 10
+        binary += bit(uimm, 2) << 6
+        binary += bit(uimm, 6) << 5
+        interpreted_instr += f", {uimm}"
+        rs1p = get_regp(instr, in_paren)
+        binary += bits(rs1p, 2, 0) << 7
+        interpreted_instr += f"(x{rs1p})"
+
+    elif instr.startswith("c.sw "):
+        compressed = True
+        binary += 0b00
+        binary += 0b010 << 13
+        interpreted_instr += "C.SW"
+        rs2p = get_regp(instr, first)
+        binary += bits(rs2p, 2, 0) << 2
+        interpreted_instr += f" x{rs2p}"
+        uimm = get_num(instr, before_paren, 6, 2, unsigned=True)
+        binary += bits(uimm, 5, 3) << 10
+        binary += bit(uimm, 2) << 6
+        binary += bit(uimm, 6) << 5
+        interpreted_instr += f", {uimm}"
+        rs1p = get_regp(instr, in_paren)
+        binary += bits(rs1p, 2, 0) << 7
+        interpreted_instr += f"(x{rs1p})"
+
+    elif instr.startswith("c.nop "):
+        compressed = True
+        binary += 0b01
+        binary += 0b000 << 13
+        interpreted_instr += "C.NOP"
+
+    elif instr.startswith("c.addi "):
+        compressed = True
+        binary += 0b01
+        binary += 0b000 << 13
+        interpreted_instr += "C.ADDI"
+        rd = get_reg(instr, first)
+        binary += rd << 7
+        interpreted_instr += f" x{rd}"
+        imm = get_num(instr, last, 5, 0)
+        binary += bit(imm, 5) << 12
+        binary += bits(imm, 4,0) << 2
+        interpreted_instr += f", {imm}"
+
+    elif instr.startswith("c.jal "):
+        compressed = True
+        binary += 0b01
+        binary += 0b001 << 13
+        interpreted_instr += "C.JAL"
+        imm = get_num(instr, only, 11, 1, signed=True)
+        binary += bit(imm, 11) << 12
+        binary += bit(imm, 4) << 11
+        binary += bits(imm, 9, 8) << 9
+        binary += bit(imm, 10) << 8
+        binary += bit(imm, 6) << 7
+        binary += bit(imm, 7) << 6
+        binary += bits(imm, 3, 1) << 3
+        binary += bit(imm, 5) << 2
+        interpreted_instr += f" {imm}"
+
+    elif instr.startswith("c.li "):
+        compressed = True
+        binary += 0b01
+        binary += 0b010 << 13
+        interpreted_instr += "C.LI"
+        rd = get_reg(instr, first)
+        binary += rd << 7
+        interpreted_instr += f" x{rd}"
+        imm = get_num(instr, last, 5, 0)
+        binary += bit(imm, 5) << 12
+        binary += bits(imm, 4, 0) << 2
+        interpreted_instr += f", {imm}"
 
     elif instr.startswith("c.addi16sp "):
         compressed = True
-        binary += 0b_011_0_00010_00000_01
-        interpreted_instr += "C.ADDI16SP "
+        binary += 0b01
+        binary += 0b011 << 13
+        binary += 0b00010 << 7
+        interpreted_instr += "C.ADDI16SP"
+        imm = get_num(instr, only, 9, 4, signed=True)
+        binary += bit(imm, 9) << 12
+        binary += bit(imm, 4) << 6
+        binary += bit(imm, 6) << 5
+        binary += bits(imm, 8, 7) << 3
+        binary += bit(imm, 5) << 2
+        interpreted_instr += f" {imm}"
 
+    elif instr.startswith("c.lui "):
+        compressed = True
+        binary += 0b01
+        binary += 0b011 << 13
+        interpreted_instr += "C.LUI"
+        rd = get_reg(instr, first)
+        binary += rd << 7
+        interpreted_instr += f" x{rd}"
+        imm = get_num(instr, last, 5, 0)
+        binary += bit(imm, 5) << 12
+        binary += bits(imm, 4, 0) << 2
+        interpreted_instr += f", {imm}"
 
+    elif instr.startswith("c.srli "):
+        compressed = True
+        binary += 0b01
+        binary += 0b100 << 13
+        binary += 0b00 << 10
+        interpreted_instr += "C.SRLI"
+        rdp = get_regp(instr, first)
+        binary += bits(rdp, 2, 0) << 7
+        interpreted_instr += f" x{rdp}"
+        shamt = get_num(instr, last, 5, 0, unsigned=True)
+        binary += bit(shamt, 5) << 12 # TODO: check why compressed shifts have 6-bit shamt
+        binary += bits(shamt, 4, 0) << 2
+        interpreted_instr += f", {shamt}"
+
+    elif instr.startswith("c.srai "):
+        compressed = True
+        binary += 0b01
+        binary += 0b100 << 13
+        binary += 0b01 << 10
+        interpreted_instr += "C.SRAI"
+        rdp = get_regp(instr, first)
+        binary += bits(rdp, 2, 0) << 7
+        interpreted_instr += f" x{rdp}"
+        shamt = get_num(instr, last, 5, 0, unsigned=True)
+        binary += bit(shamt, 5) << 12 # TODO: check why compressed shifts have 6-bit shamt
+        binary += bits(shamt, 4, 0) << 2
+        interpreted_instr += f", {shamt}"
+
+    elif instr.startswith("c.andi "):
+        compressed = True
+        binary += 0b01
+        binary += 0b100 << 13
+        binary += 0b10 << 10
+        interpreted_instr += "C.ANDI"
+        rdp = get_regp(instr, first)
+        binary += bits(rdp, 2, 0) << 7
+        interpreted_instr += f" x{rdp}"
+        imm = get_num(instr, last, 5, 0)
+        binary += bit(imm, 5) << 12
+        binary += bits(imm, 4, 0) << 2
+        interpreted_instr += f", {imm}"
+    
+    elif instr.startswith("c.sub "):
+        compressed = True
+        binary += 0b01
+        binary += 0b100 << 13
+        binary += 0b11 << 10
+        binary += 0b00 << 5
+        interpreted_instr += "C.SUB"
+        rdp = get_regp(instr, first)
+        binary += bits(rdp, 2, 0) << 7
+        interpreted_instr += f" x{rdp}"
+        rs2p = get_regp(instr, last)
+        binary += bits(rs2p, 2, 0) << 2
+        interpreted_instr += f", x{rs2p}"
+
+    elif instr.startswith("c.xor "):
+        compressed = True
+        binary += 0b01
+        binary += 0b100 << 13
+        binary += 0b11 << 10
+        binary += 0b01 << 5
+        interpreted_instr += "C.XOR"
+        rdp = get_regp(instr, first)
+        binary += bits(rdp, 2, 0) << 7
+        interpreted_instr += f" x{rdp}"
+        rs2p = get_regp(instr, last)
+        binary += bits(rs2p, 2, 0) << 2
+        interpreted_instr += f", x{rs2p}"
+
+    elif instr.startswith("c.or "):
+        compressed = True
+        binary += 0b01
+        binary += 0b100 << 13
+        binary += 0b11 << 10
+        binary += 0b10 << 5
+        interpreted_instr += "C.OR"
+        rdp = get_regp(instr, first)
+        binary += bits(rdp, 2, 0) << 7
+        interpreted_instr += f" x{rdp}"
+        rs2p = get_regp(instr, last)
+        binary += bits(rs2p, 2, 0) << 2
+        interpreted_instr += f", x{rs2p}"
+
+    elif instr.startswith("c.and "):
+        compressed = True
+        binary += 0b01
+        binary += 0b100 << 13
+        binary += 0b11 << 10
+        binary += 0b11 << 5
+        interpreted_instr += "C.AND"
+        rdp = get_regp(instr, first)
+        binary += bits(rdp, 2, 0) << 7
+        interpreted_instr += f" x{rdp}"
+        rs2p = get_regp(instr, last)
+        binary += bits(rs2p, 2, 0) << 2
+        interpreted_instr += f", x{rs2p}"
+
+    elif instr.startswith("c.j "):
+        compressed = True
+        binary += 0b01
+        binary += 0b101 << 13
+        interpreted_instr += "C.J"
+        imm = get_num(instr, only, 11, 1, signed=True)
+        binary += bit(imm, 11) << 12
+        binary += bit(imm, 4) << 11
+        binary += bits(imm, 9, 8) << 9
+        binary += bit(imm, 10) << 8
+        binary += bit(imm, 6) << 7
+        binary += bit(imm, 7) << 6
+        binary += bits(imm, 3, 1) << 3
+        binary += bit(imm, 5) << 2
+
+    elif instr.startswith("c.beqz "):
+        compressed = True
+        binary += 0b01
+        binary += 0b110 << 13
+        interpreted_instr += "C.BEQZ"
+        rs1p = get_regp(instr, first)
+        binary += bits(rs1p, 2, 0) << 7
+        interpreted_instr += f" x{rs1p}"
+        imm = get_num(instr, last, 8, 1, signed=True)
+        binary += bit(imm, 8) << 12
+        binary += bits(imm, 4, 3) << 10
+        binary += bits(imm, 7, 6) << 5
+        binary += bits(imm, 2, 1) << 3
+        binary += bit(imm, 5) << 2
+        interpreted_instr += f", {imm}"
+
+    elif instr.startswith("c.bnez "):
+        compressed = True
+        binary += 0b01
+        binary += 0b111 << 13
+        interpreted_instr += "C.BNEZ"
+        rs1p = get_regp(instr, first)
+        binary += bits(rs1p, 2, 0) << 7
+        interpreted_instr += f" x{rs1p}"
+        imm = get_num(instr, last, 8, 1, signed=True)
+        binary += bit(imm, 8) << 12
+        binary += bits(imm, 4, 3) << 10
+        binary += bits(imm, 7, 6) << 5
+        binary += bits(imm, 2, 1) << 3
+        binary += bit(imm, 5) << 2
+        interpreted_instr += f", {imm}"
+
+    elif instr.startswith("c.slli "):
+        compressed = True
+        binary += 0b10
+        binary += 0b000 << 13
+        interpreted_instr += "C.SLLI"
+        rd = get_reg(instr, first)
+        binary += rd << 7
+        interpreted_instr += f" x{rd}"
+        shamt = get_num(instr, last, 5, 0, unsigned=True)
+        binary += bit(shamt, 5) << 12 # TODO: check why compressed shifts have 6-bit shamt
+        binary += bits(shamt, 4, 0) << 2
+        interpreted_instr += f", {shamt}"
+
+    elif instr.startswith("c.lwsp "):
+        compressed = True
+        binary += 0b10
+        binary += 0b010 << 13
+        interpreted_instr += "C.LWSP"
+        rd = get_reg(instr, first)
+        binary += rd << 7
+        interpreted_instr += f" x{rd}"
+        uimm = get_num(instr, last, 7, 2, unsigned=True)
+        binary += bit(uimm, 5) << 12
+        binary += bits(uimm, 4, 2) << 4
+        binary += bits(uimm, 7, 6) << 2
+        interpreted_instr += f", {uimm}"
+
+    elif instr.startswith("c.jr "):
+        compressed = True
+        binary += 0b10
+        binary += 0b100 << 13
+        binary += 0b0 << 12
+        interpreted_instr += "C.JR"
+        rs1 = get_reg(instr, only)
+        binary += rs1 << 7
+        interpreted_instr += f" x{rs1}"
+
+    elif instr.startswith("c.mv "):
+        compressed = True
+        binary += 0b10 
+        binary += 0b100 << 13
+        binary += 0b0 << 12
+        interpreted_instr += "C.MV"
+        rd = get_reg(instr, first)
+        binary += rd << 7
+        interpreted_instr += f" x{rd}"
+        rs2 = get_reg(instr, last)
+        binary += rs2 << 2
+        interpreted_instr += f", x{rs2}"
+
+    elif instr.startswith("c.ebreak"):
+        compressed = True
+        binary += 0b10
+        binary += 0b100 << 13
+        binary += 0b1 << 12
+        interpreted_instr += "C.EBREAK"
+
+    elif instr.startswith("c.jalr "):
+        compressed = True
+        binary += 0b10
+        binary += 0b100 << 13
+        binary += 0b1 << 12
+        interpreted_instr += "C.JALR"
+        rs1 = get_reg(instr, only)
+        binary += rs1 << 7
+        interpreted_instr += f" x{rs1}"
+
+    elif instr.startswith("c.add "):
+        compressed = True
+        binary += 0b10
+        binary += 0b100 << 13
+        binary += 0b1 << 12
+        interpreted_instr += "C.ADD"
+        rd = get_reg(instr, first)
+        binary += rd << 7
+        interpreted_instr += f" x{rd}"
+        rs2 = get_reg(instr, last)
+        binary += rs2 << 2
+        interpreted_instr += f", x{rs2}"
+
+    elif instr.startswith("c.swsp "):
+        compressed = True
+        binary += 0b10
+        binary += 0b110 << 13
+        interpreted_instr += "C.SWSP"
+        rs2 = get_reg(instr, first)
+        binary += rs2 << 2
+        interpreted_instr += f" x{rs2}"
+        uimm = get_num(instr, last, 7, 2, unsigned=True)
+        binary += bits(uimm, 5, 2) << 9
+        binary += bits(uimm, 7, 6) << 7
+        interpreted_instr += f", {uimm}"
 
     elif instr.startswith("mret"):
         binary += 0b_11100_11
@@ -1104,15 +1519,15 @@ def instr_to_hex(instr):
         binary += 0b_11100_11
         interpreted_instr += "SFENCE.VMA "
         binary += 0b0001001 << 25
-        rs1 = get_reg(first(instr))
+        rs1 = get_reg(instr, first)
         binary += bin_rs1(rs1)
         interpreted_instr += f"x{rs1}"
-        rs2 = get_reg(last(instr))
+        rs2 = get_reg(instr, last)
         binary += bin_rs2(rs2)
         interpreted_instr += f", x{rs2}"
 
     else:
-        raise Exception(f"unrecognized instruction: {instr}")
+        raise Exception(f"\nUnrecognized instr:\n{instr}")
 
     if compressed:
         return f"{binary:04X}        // {interpreted_instr}"
@@ -1158,7 +1573,7 @@ if __name__ == "__main__":
 
         # unrecognized lines
         else:
-            raise Exception(f"unrecognized line format: {asm_line}")
+            raise Exception(f"\nUnrecognized line format:\n{asm_line}")
 
     for line in output_mem_lines:
         print(line)

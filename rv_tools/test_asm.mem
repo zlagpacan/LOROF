@@ -1,0 +1,148 @@
+@0000
+
+// Error Cases:
+// beezy x14, 12
+// c.lw x4, 24(x15)
+// JAL 15
+// c.addi4spn 33
+// c.addi4spn x9, 33
+// c.addi4spn x10, -4
+// addi x4, x5, x6
+// c.sw 15, 16(x17)
+// c.jal x13
+// csrrw x15, 7
+// lui x1, 0x100000
+// jal x16, 47
+// c.addi16sp 8
+// slli x6, x7, 34
+// srai x31, x20, -5
+// beq t6, t7, -14
+// beq t6, t5, 8190
+// C.SW x12, -60(x11)
+// c.lwsp a8, 4
+// c.lwsp a5, -1
+// c.swsp s5, 256
+// CSRRW x20, 4096, x8
+// CSRRWI x15, -1, 1
+// csrrsi ra, 16, zero
+// csrrsi ra, 16, -1
+// csrrci ra, 16, 32
+
+03CCE537    // LUI x10, 15566
+FFFFFE17    // AUIPC x28, 1048575
+0580016F    // JAL x2, 88
+00F18E67    // JALR x28, 15(x3)
+F8B30FE3    // BEQ x6, x11, -98
+7F169FE3    // BNE x13, x17, 4094
+8089C063    // BLT x19, x8, -4096
+0A01D4E3    // BGE x3, x0, 2216
+E040ECE3    // BLTU x1, x4, -488
+0081F063    // BGEU x3, x8, 0
+00DF8083    // LB x1, 13(x31)
+FF2B1283    // LH x5, -14(x22)
+801FA483    // LW x9, -2047(x31)
+7FF04903    // LBU x18, 2047(x0)
+8009D983    // LHU x19, -2048(x19)
+814F0023    // SB x20, -2048(x30)
+7F5E9FA3    // SH x21, 2047(x29)
+11D02223    // SW x29, 260(x0) // whoa
+12338093    // ADDI x1, x7, 291
+01F09013    // SLLI x0, x1, 31
+FF61A113    // SLTI x2, x3, -10
+FFF2B213    // SLTIU x4, x5, 4095
+FFF3C313    // XORI x6, x7, 4095
+40EDDA93    // SRAI x21, x27, 14
+8764E413    // ORI x8, x9, 2166
+9AB5F513    // ANDI x10, x11, 2475
+00E68633    // ADD x12, x13, x14
+41FB0333    // SUB x6, x22, x31
+011817B3    // SLL x15, x16, x17
+0149A933    // SLT x18, x19, x20
+017B3AB3    // SLTU x21, x22, x23
+01ACCC33    // XOR x24, x25, x26
+001355B3    // SRL x11, x6, x1
+41DE5DB3    // SRA x27, x28, x29
+01EFEF33    // OR x30, x31, x30
+01BE7EB3    // AND x29, x28, x27
+
+// inserted hex
+DEADBEEF
+00FF
+0000FF
+
+0960000F    // FENCE iw, or
+07E0000F    // FENCE orw, ior
+8330000F    // FENCE.TSO
+00000073    // ECALL
+00100073    // EBREAK
+0000100F    // FENCE.I
+731A1F73    // CSRRW x30, 1841, x20
+FFFCAD73    // CSRRS x26, 4095, x25
+000BBC73    // CSRRC x24, 0, x23
+4D1F5B73    // CSRRWI x22, 1233, 30
+80806AF3    // CSRRSI x21, 2056, 0
+0994F273    // CSRRCI x4, 153, 9
+
+// inserted binary
+A5
+0F5A
+
+03298A33    // MUL x20, x19, x18
+02F818B3    // MULH x17, x16, x15
+035221B3    // MULHSU x3, x4, x21
+02C6B733    // MULHU x14, x13, x12
+029545B3    // DIV x11, x10, x9
+03845333    // DIVU x6, x8, x24
+0263E433    // REM x8, x7, x6
+023272B3    // REMU x5, x4, x3
+1201222F    // LR.W.RL x4, (x2)
+19D4AEAF    // SC.W x29, x29, (x9)
+0A10212F    // AMOSWAP.W.RL x2, x1, (x0)
+0011202F    // AMOADD.W x0, x1, (x2)
+2642A1AF    // AMOXOR.W.AQRL x3, x4, (x5)
+67C4222F    // AMOAND.W.AQRL x4, x28, (x8)
+4474232F    // AMOOR.W.AQ x6, x7, (x8)
+82A5A4AF    // AMOMIN.W.RL x9, x10, (x11)
+A0D7262F    // AMOMAX.W x12, x13, (x14)
+C41124AF    // AMOMINU.W.AQ x9, x1, (x2)
+E108A7AF    // AMOMAXU.W x15, x16, (x17)
+
+@1644
+
+003C        // C.ADDI4SPN x15, 8
+4AD8        // C.LW x14, 20(x13)
+4190        // C.SW x12, 0(x11)
+0001        // C.NOP
+1DFD        // C.ADDI x27, 63
+3001        // C.JAL -2048
+5081        // C.LI x1, -32
+6105        // C.ADDI16SP 32
+7E7D        // C.LUI x28, 63
+80C1        // C.SRLI x9, 16
+8605        // C.SRAI x12, 1
+9959        // C.ANDI x10, 54
+8D95        // C.SUB x11, x13
+8FB9        // C.XOR x15, x14
+8ED1        // C.OR x13, x12
+8DE9        // C.AND x11, x10
+BFFD        // C.J
+CCFD        // C.BEQZ x9, 254
+F001        // C.BNEZ x8, -256
+13FE        // C.SLLI x7, 63
+49A2        // C.LWSP x19, 8
+8D02        // C.JR x26
+8166        // C.MV x2, x25
+9002        // C.EBREAK
+9D02        // C.JALR x26
+92FA        // C.ADD x5, x30
+DF96        // C.SWSP x5, 252
+
+// TODO: why do compressed shifts have 6-bit shamt?
+// maybe because sharing encoding for RV64I
+
+30200073    // MRET
+10500073    // WFI
+10200073    // SRET
+12A98073    // SFENCE.VMA x19, x10
+
+0000

@@ -78,7 +78,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - {imm[11:0], rs1[4:0], 3'b000, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'b0000
-- SLLI rd, rs1, imm
+- SLLI rd, rs1, shamt
     - {7'b0000000, shamt[4:0], rs1[4:0], 3'b001, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'bx001
@@ -94,11 +94,11 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - {imm[11:0], rs1[4:0], 3'b100, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'bx100
-- SRLI rd, rs1, imm
+- SRLI rd, rs1, shamt
     - {7'b0<mark>0</mark>00000, shamt[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'b0101
-- SRAI rd, rs1, imm
+- SRAI rd, rs1, shamt
     - {7'b0<mark>1</mark>00000, shamt[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'b1101
@@ -239,69 +239,69 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - op: 4'bx111
 
 ## A Extension
-- LR.W[.AQ][.RL] rd, (rs1)
+- LR.W[.[AQ][RL]] rd, (rs1)
     - {5'b00010, aq, rl, 5'b00000, rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0010
     - raise misaligned exception
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- SC.W[.AQ][.RL] rd, rs2, (rs1)
+- SC.W[.[AQ][RL]] rd, rs2, (rs1)
     - {5'b00011, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0011
     - raise misaligned exception
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOSWAP.W rd, rs2, (rs1)
+- AMOSWAP.W[.[AQ][RL]] rd, rs2, (rs1)
     - {5'b00001, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0111
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOADD.W rd, rs2, (rs1)
+- AMOADD.W[.[AQ][RL]] rd, rs2, (rs1)
     - {5'b00000, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0000
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOXOR.W rd, rs2, (rs1)
+- AMOXOR.W[.[AQ][RL]] rd, rs2, (rs1)
     - {5'b00100, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0100
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOAND.W rd, rs2, (rs1)
+- AMOAND.W[.[AQ][RL]] rd, rs2, (rs1)
     - {5'b01100, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b1100
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOOR.W rd, rs2, (rs1)
+- AMOOR.W[.[AQ][RL]] rd, rs2, (rs1)
     - {5'b01000, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b1000
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOMIN.W rd, rs2, (rs1)
+- AMOMIN.W[.[AQ][RL]] rd, rs2, (rs1)
     - {5'b10000, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b1001
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOMAX.W rd, rs2, (rs1)
+- AMOMAX.W[.[AQ][RL]] rd, rs2, (rs1)
     - {5'b10100, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b1101
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOMINU.W rd, rs2, (rs1)
+- AMOMINU.W[.[AQ][RL]] rd, rs2, (rs1)
     - {5'b11000, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0001
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
-- AMOMAXU.W rd, rs2, (rs1)
+- AMOMAXU.W[.[AQ][RL]] rd, rs2, (rs1)
     - {5'b11100, aq, rl, rs2[4:0], rs1[4:0], 3'b010, rd[4:0], 5'b01011, 2'b11}
     - FU: stamofu
     - op: 4'b0101
@@ -358,14 +358,14 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
         - (rd == 2) -> C.ADDI16SP
     - FU: bru
     - op: 4'b0110
-- C.SRLI rd', uimm
-    - SRLI rd', rd', uimm
-    - {3'b100, uimm[5], 2'b00, rs1'/rd'[2:0], uimm[4:0], 2'b01}
+- C.SRLI rd', shamt
+    - SRLI rd', rd', shamt
+    - {3'b100, shamt[5], 2'b00, rs1'/rd'[2:0], shamt[4:0], 2'b01}
     - FU: alu_imm
     - op: 4'b0101
-- C.SRAI rd', uimm
-    - SRAI rd', rd', uimm
-    - {3'b100, uimm[5], 2'b01, rs1'/rd'[2:0], uimm[4:0], 2'b01}
+- C.SRAI rd', shamt
+    - SRAI rd', rd', shamt
+    - {3'b100, shamt[5], 2'b01, rs1'/rd'[2:0], shamt[4:0], 2'b01}
     - FU: alu_imm
     - op: 4'b1101
 - C.ANDI rd', imm
@@ -408,9 +408,9 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
     - {3'b111, imm[8|4:3], rs1'[2:0], imm[7:6|2:1|5], 2'b01}
     - FU: bru
     - op: 4'b1011
-- C.SLLI rd, uimm
-    - SLLI rd, rd, uimm
-    - {3'b000, uimm[5], rs1/rd[4:0], uimm[4:0], 2'b10}
+- C.SLLI rd, shamt
+    - SLLI rd, rd, shamt
+    - {3'b000, shamt[5], rs1/rd[4:0], shamt[4:0], 2'b10}
     - FU: alu_imm
     - op: 4'bx001
 - C.LWSP rd, uimm
