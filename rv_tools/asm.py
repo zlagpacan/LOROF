@@ -104,7 +104,7 @@ def instr_to_hex(instr):
         interpreted_instr += f" x{rd}"
         imm = get_num(instr, last, 19, 0)
         binary += bits(imm, 19, 0) << 12
-        interpreted_instr += f", {imm}"
+        interpreted_instr += f", 0x{imm:05X}"
 
     elif instr.startswith("auipc "):
         binary += 0b_00101_11
@@ -114,7 +114,7 @@ def instr_to_hex(instr):
         interpreted_instr += f" x{rd}"
         imm = get_num(instr, last, 19, 0)
         binary += bits(imm, 19, 0) << 12
-        interpreted_instr += f", {imm}"
+        interpreted_instr += f", 0x{imm:05X}"
 
     elif instr.startswith("jal "):
         binary += 0b_11011_11
@@ -1535,9 +1535,9 @@ def instr_to_hex(instr):
         raise Exception(f"\nUnrecognized instr:\n{instr}")
 
     if compressed:
-        return make_little_endian(f"{binary:04X}") + f"       // {binary:04X}: {interpreted_instr}"
+        return make_little_endian(f"{binary:04X}") + f"       //     0x{binary:04X}: {interpreted_instr}"
     else:
-        return make_little_endian(f"{binary:08X}") + f" // {binary:08X}: {interpreted_instr}"
+        return make_little_endian(f"{binary:08X}") + f" // 0x{binary:08X}: {interpreted_instr}"
 
 if __name__ == "__main__":
     print(" ".join(sys.argv))

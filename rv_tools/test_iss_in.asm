@@ -1,15 +1,22 @@
 @0000
-addi x1, zero, 15
-sw x1, 0x18(sp)
-c.swsp x1, 0x24
+addi a3, zero, -15
+sw a3, 0x78(sp)
+lui s6, 0xabcde
+c.swsp a3, 0x84
+addi sp, a3, 24
+c.swsp s6, 0x88
+addi zero, s6, 246
+lw a1, 0x702(s0)
+addi s4, a1, -222
+sw s4, 0x723(s1)
 
 @2000
 0x01234567
 0x00000000
 0xFF00EE11
 
-@1000
-0x89abcdef
+@700
+0x76543210
 0x0000
 0xf0e1
 0x1

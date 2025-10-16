@@ -17,15 +17,14 @@ def get_word_list(mem):
 
     return sorted(word_list, key=lambda x: x[0])
 
-def print_mem(mem):
-    
-    word_list = get_word_list(mem)
+def bits(num, upper_index, lower_index):
+    return (num >> lower_index) & (2**(upper_index - lower_index + 1) - 1)
 
-    print("\nmem:")
-    for word_addr, word_value in word_list:
-        word_value_str = " ".join([f"{x:02X}" for x in word_value])
-        print(f"    0x{word_addr << 2:08X}: {word_value_str}")
-    print()
+def signed32(num, size):
+    if num >> (size - 1) & 0b1:
+        return bits((0xFFFFFFFF << size) + num, 31, 0)
+    else:
+        return num
 
 class ArchState:
     def __init__(self, start_pc, mem):
@@ -36,40 +35,166 @@ class ArchState:
         self.log = ""
 
     def exec_instr(self):
+
         instr = 0
-        instr += self.mem[self.pc+0]
-        instr += self.mem[self.pc+1]
-        instr += self.mem[self.pc+2]
-        instr += self.mem[self.pc+3]
+        for i in range(4):
+            if self.pc+i in self.mem:
+                instr += self.mem[self.pc+i] << 8*i
+            else:
+                break
+
+        opcode2 = bits(instr, 1, 0)
 
         # uncompressed
-        if instr & 0b11:
-            self.log += f"PC = 0x{self.pc:08X} -> 0x{instr:08X}: "
-            opcode5 = instr >> 2 & 0b11111
-            rd = instr >> 7 & 0b11111
-            rs1 = instr >> 15 & 0b11111
-            rs2 = instr >> 20 & 0b11111
+        if opcode2 == 0b11:
+            self.log += f"MEM[0x{self.pc:08X}] = 0x{instr:08X}: "
+            opcode5 = bits(instr, 6, 2)
+            funct3 = bits(instr, 14, 12)
+            funct7 = bits(instr, 31, 25)
+            rd = bits(instr, 11, 7)
+            rs1 = bits(instr, 19, 15)
+            rs2 = bits(instr, 24, 20)
 
             if opcode5 == 0b01101:
-                imm = 0
-                self.log += f"LUI {rd}, {imm}"
-                self.arf[rd] = 0
+                imm20 = bits(instr, 31, 12)
+                self.log += f"LUI x{rd}, 0x{imm20:05X}\n"
+                result = imm20 << 12
+                self.write_arf(rd, result)
+                self.incr_pc(4)
+
+
+
+            elif opcode5 == 0b00000:
+                imm12 = bits(instr, 31, 20)
+                imm32 = signed32(imm12, 12)
+                self.log += f"LW x{rd}, 0x{imm32}(x{rs1})\n"
+                addr = bits(self.arf[rs1] + imm32, 31, 0)
+                value = self.read_mem(addr, 4)
+                self.write_arf(rd, value)
+                self.incr_pc(4)
+
+            
+
+            elif opcode5 == 0b01000:
+                imm12 = bits(instr, 11, 7)
+                imm12 += bits(instr, 31, 25) << 5
+                imm32 = signed32(imm12, 12)
+                addr = bits(self.arf[rs1] + imm32, 31, 0)
+                value = self.arf[rs2]
+
+                if funct3 == 0b000:
+                    self.log += f"illegal instr\n"
+                    return False
+                
+
+
+                elif funct3 == 0b010:
+                    self.log += f"SW x{rs2}, 0x{imm32:08X}(x{rs1})\n"
+                    self.write_mem(addr, value, 4)
+
+                else:
+                    self.log += f"illegal instr\n"
+                    return False
+
+                self.incr_pc(4)
+
+            elif opcode5 == 0b00100:
+                imm12 = bits(instr, 31, 20)
+                imm32 = signed32(imm12, 12)
+
+                if funct3 == 0b000:
+                    self.log += f"ADDI x{rd}, x{rs1}, 0x{imm32:08X}\n"
+                    result = bits(self.arf[rs1] + imm32, 31, 0)
+                    self.write_arf(rd, result)
+
+                else:
+                    self.log += f"illegal instr\n"
+                    return False
+
+
+
+                self.incr_pc(4)
+
+            else:
+                self.log += f"illegal instr\n"
+                return False
 
         # compressed
         else:
-            self.log += f"PC = 0x{self.pc:08X} -> 0x{instr:04X}: "
+            instr = bits(instr, 15, 0)
+            self.log += f"MEM[0x{self.pc:08X}] = 0x{instr:04X}: "
+
+            if opcode2 == 0b00:
+                self.log += f"illegal instr\n"
+                return False
+            
+            elif opcode2 == 0b01:
+                self.log += f"illegal instr\n"
+                return False
+
+            elif opcode2 == 0b10:
+                rs2 = bits(instr, 6, 2)
+                uimm = bits(instr, 12, 9) << 2
+                uimm += bits(instr, 8, 7) << 6
+                self.log += f"C.SWSP x{rs2}, 0x{uimm:02X}\n"
+                addr = bits(self.arf[2] + uimm, 31, 0)
+                value = self.arf[rs2]
+                self.write_mem(addr, value, 4)
+                self.incr_pc(2)
+                
+            else:
+                self.log += f"illegal instr\n"
+                return False
 
         return True
     
-    def incr_pc(self, compressed=False):
-        if compressed:
-            self.pc += 2
+    def write_arf(self, dest, value):
+        if dest == 0:
+            self.log += f"    ARF[x0] = 0x00000000 <=/= 0x{value:08X}\n"
         else:
-            self.pc += 4
-        self.log += f"PC <= {self.pc:08X}"
+            self.log += f"    ARF[x{dest}] <= 0x{value:08X}\n"
+            self.arf[dest] = value
+
+    def write_pc(self, value):
+        self.log += f"    PC <= 0x{value:08X}\n"
+        self.pc = value
+    
+    def incr_pc(self, incr):
+        self.write_pc(self.pc + incr)
+
+    def read_mem(self, addr, num_bytes):
+        value = 0
+        for i in range(num_bytes):
+            sub_addr = bits(addr+i, 31, 0)
+            sub_value = self.mem[sub_addr]
+            self.log += f"    MEM[0x{sub_addr:08X}] = 0x{sub_value:02X}\n"
+            value += sub_value << 8*i
+        return value
+
+    def write_mem(self, addr, value, num_bytes):
+        for i in range(num_bytes):
+            sub_addr = bits(addr+i, 31, 0)
+            sub_value = bits(value, 8*i+7, 8*i)
+            self.log += f"    MEM[0x{sub_addr:08X}] <= 0x{sub_value:02X}\n"
+            self.mem[sub_addr] = sub_value
 
     def print_log(self):
         print(self.log)
+
+    def print_arf(self):
+        print(f"ARF:")
+        for ar, value in enumerate(self.arf):
+            print(f"    {ar:2d}: 0x{value:08X}")
+
+    def print_mem(self):
+        
+        word_list = get_word_list(self.mem)
+
+        print("\nMEM:")
+        for word_addr, word_value in word_list:
+            word_value_str = " ".join([f"{x:02X}" for x in word_value])
+            print(f"    0x{word_addr << 2:08X}: {word_value_str}")
+        print()
 
 if __name__ == "__main__":
     print(" ".join(sys.argv))
@@ -110,21 +235,18 @@ if __name__ == "__main__":
             
         # otherwise, empty line after removal of comments
 
-    # print(mem)
-    print_mem(mem)
-
     # init arch state
     arch_state = ArchState(args.start_pc, mem)
+    arch_state.print_mem()
 
     # execute program
-    exception = False
-    while not exception:
-        exception = arch_state.exec_instr()
+    no_exception = True
+    while no_exception:
+        no_exception = arch_state.exec_instr()
 
     arch_state.print_log()
-
-    # print(mem)
-    print_mem(mem)
+    arch_state.print_arf()
+    arch_state.print_mem()
 
     # write output mem
     with open(args.output_mem_file_path, "w") as fp:
