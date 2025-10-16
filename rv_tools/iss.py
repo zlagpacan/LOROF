@@ -5,10 +5,10 @@ def get_word_list(mem):
     word_dict = dict()
     for byte_addr, byte_value in mem.items():
         try:
-            word_dict[byte_addr >> 2][byte_addr & 2**2-1] = byte_value
+            word_dict[byte_addr >> 2][byte_addr & 0x3] = byte_value
         except KeyError:
             word_dict[byte_addr >> 2] = [0x0, 0x0, 0x0, 0x0]
-            word_dict[byte_addr >> 2][byte_addr & 2**2-1] = byte_value
+            word_dict[byte_addr >> 2][byte_addr & 0x3] = byte_value
 
     word_list = []
     for word_addr, word_value in word_dict.items():
@@ -23,16 +23,17 @@ def print_mem(mem):
 
     print("\nmem:")
     for word_addr, word_value in word_list:
-        word_value_str = " ".join(reversed([f"{x:02X}" for x in word_value]))
+        word_value_str = " ".join([f"{x:02X}" for x in word_value])
         print(f"    0x{word_addr << 2:08X}: {word_value_str}")
     print()
 
 class ArchState:
     def __init__(self, start_pc, mem):
-        self.pc = args.start_pc
-        self.reg_file = [0x0 for x in range(32)]
+        self.pc = start_pc
+        self.arf = [0x0 for x in range(32)]
         self.instret = 0
         self.mem = mem
+        self.log = ""
 
     def exec_instr(self):
         instr = 0
@@ -41,8 +42,34 @@ class ArchState:
         instr += self.mem[self.pc+2]
         instr += self.mem[self.pc+3]
 
-        if instr:
-            return True
+        # uncompressed
+        if instr & 0b11:
+            self.log += f"PC = 0x{self.pc:08X} -> 0x{instr:08X}: "
+            opcode5 = instr >> 2 & 0b11111
+            rd = instr >> 7 & 0b11111
+            rs1 = instr >> 15 & 0b11111
+            rs2 = instr >> 20 & 0b11111
+
+            if opcode5 == 0b01101:
+                imm = 0
+                self.log += f"LUI {rd}, {imm}"
+                self.arf[rd] = 0
+
+        # compressed
+        else:
+            self.log += f"PC = 0x{self.pc:08X} -> 0x{instr:04X}: "
+
+        return True
+    
+    def incr_pc(self, compressed=False):
+        if compressed:
+            self.pc += 2
+        else:
+            self.pc += 4
+        self.log += f"PC <= {self.pc:08X}"
+
+    def print_log(self):
+        print(self.log)
 
 if __name__ == "__main__":
     print(" ".join(sys.argv))
@@ -64,8 +91,8 @@ if __name__ == "__main__":
     ptr = 0x0
     for mem_line in input_mem_lines:
         # ignore all comments on the right
-        if "/" in mem_line:
-            mem_line = mem_line[:mem_line.index("/")]
+        if "//" in mem_line:
+            mem_line = mem_line[:mem_line.index("//")]
         mem_line = mem_line.lstrip().rstrip()
 
         # ptr change
@@ -74,13 +101,11 @@ if __name__ == "__main__":
 
         # byte fill
         elif mem_line:
-            byte_value_list = []
             while mem_line:
-                byte_value_list.insert(0, int(mem_line[:2], 16))
+                # print(f"mem_line: {mem_line}")
+                mem_line = mem_line.lstrip()
+                mem[ptr] = int(mem_line[:2], 16)
                 mem_line = mem_line[2:]
-            # print(byte_value_list)
-            for byte_value in byte_value_list:
-                mem[ptr] = byte_value
                 ptr += 1
             
         # otherwise, empty line after removal of comments
@@ -96,6 +121,8 @@ if __name__ == "__main__":
     while not exception:
         exception = arch_state.exec_instr()
 
+    arch_state.print_log()
+
     # print(mem)
     print_mem(mem)
 
@@ -106,13 +133,13 @@ if __name__ == "__main__":
         first = True
         ptr_word_addr = -1
         for word_addr, word_value in word_list:
-            word_value_str = "".join(reversed([f"{x:02X}" for x in word_value]))
+            word_value_str = " ".join([f"{x:02X}" for x in word_value])
             if word_addr != ptr_word_addr:
                 if not first:
                     fp.write("\n")
                 else:
                     first = False
-                fp.write(f"@{word_addr << 2:0x}\n")
+                fp.write(f"@{word_addr << 2:X}\n")
                 ptr_word_addr = word_addr
             fp.write(word_value_str + "\n")
             ptr_word_addr += 1

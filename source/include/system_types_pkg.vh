@@ -26,9 +26,9 @@ package system_types_pkg;
 
     // Sv32 Page Table Entry:
         // {PPN1[11:0], PPN0[9:0], RSW[1:0], D, A, G, U, X, W, R, V}
-    typedef struct packed {
+    // typedef struct packed {
 
-    } pte_t;
+    // } pte_t;
 
     // ----------------------------------------------------------------
     // Caches:

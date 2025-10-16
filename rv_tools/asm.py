@@ -81,6 +81,14 @@ def check_imm_bits(instr, num, upper_index, lower_index, unsigned=False, signed=
         assert -(2**upper_index) <= num <= (2**(upper_index+1))-(2**lower_index), f"\nimm={num} out of range: [{-(2**upper_index)}, {(2**(upper_index+1))-(2**lower_index)}] for instr:\n{instr}"
     assert lower_index == 0 or bits(num, lower_index-1, 0) == 0, f"\nimm={num} not aligned to multiple of {2**lower_index} for instr:\n{instr}"
 
+def make_little_endian(input_str):
+    output_str = ""
+    ptr = len(input_str)
+    while ptr > 0:
+        output_str += input_str[ptr-2:ptr] + " "
+        ptr -= 2
+    return output_str[:-1]
+
 def instr_to_hex(instr):
     # print(instr)
 
@@ -1527,9 +1535,9 @@ def instr_to_hex(instr):
         raise Exception(f"\nUnrecognized instr:\n{instr}")
 
     if compressed:
-        return f"{binary:04X}        // {interpreted_instr}"
+        return make_little_endian(f"{binary:04X}") + f"       // {binary:04X}: {interpreted_instr}"
     else:
-        return f"{binary:08X}    // {interpreted_instr}"
+        return make_little_endian(f"{binary:08X}") + f" // {binary:08X}: {interpreted_instr}"
 
 if __name__ == "__main__":
     print(" ".join(sys.argv))
@@ -1551,10 +1559,10 @@ if __name__ == "__main__":
 
         # manually inserted hex or binary
         if asm_line.startswith("0x"):
-            output_mem_lines.append(f"{int(asm_line, 0):0{ceil((len(asm_line)-2) / 2) * 2}X}")
+            output_mem_lines.append(make_little_endian(f"{int(asm_line, 0):0{ceil((len(asm_line)-2) / 2) * 2}X}"))
 
         elif asm_line.startswith("0b"):
-            output_mem_lines.append(f"{int(asm_line, 0):0{ceil((len(asm_line)-2) / 8) * 2}X}")
+            output_mem_lines.append(make_little_endian(f"{int(asm_line, 0):0{ceil((len(asm_line)-2) / 8) * 2}X}"))
 
         # preserved lines
         elif not asm_line or asm_line.startswith("@") or asm_line.startswith("//"):
@@ -1562,10 +1570,10 @@ if __name__ == "__main__":
 
         # instr lines
         elif asm_line[0].isalpha():
-            try:
-                comment_index = asm_line.index("/")
+            if "//" in asm_line:
+                comment_index = asm_line.index("//")
                 output_mem_lines.append(instr_to_hex(asm_line[:comment_index].lower().rstrip()) + " " + asm_line[comment_index:])
-            except ValueError:
+            else:
                 output_mem_lines.append(instr_to_hex(asm_line.lower()))
 
         # unrecognized lines

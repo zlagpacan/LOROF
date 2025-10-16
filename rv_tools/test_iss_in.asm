@@ -1,6 +1,7 @@
 @0000
 addi x1, zero, 15
 sw x1, 0x18(sp)
+c.swsp x1, 0x24
 
 @2000
 0x01234567
@@ -11,3 +12,4 @@ sw x1, 0x18(sp)
 0x89abcdef
 0x0000
 0xf0e1
+0x1
