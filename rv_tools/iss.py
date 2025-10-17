@@ -27,13 +27,13 @@ def signed32(num, size=32):
     if bit(num, size-1):
         return bits((0xFFFFFFFF << size) + num, 31, 0)
     else:
-        return num
+        return bits(num, size-1, 0)
     
 def make_signed(num, size=32):
     if bit(num, size-1):
         return -1 * 2**(size-1) + bits(num, size-2, 0)
     else:
-        return num
+        return bits(num, size-1, 0)
 
 class ArchState:
     def __init__(self, start_pc, mem):
@@ -160,7 +160,7 @@ class ArchState:
                         self.incr_pc(4)
 
                 else:
-                    self.log += f"illegal instr\n"
+                    self.log += f"illegal B-Type instr\n"
                     return False
 
             # L-Type
@@ -195,7 +195,7 @@ class ArchState:
                     value = self.read_mem(addr, 2)
 
                 else:
-                    self.log += f"illegal instr\n"
+                    self.log += f"illegal L-Type instr\n"
                     return False
 
                 self.write_arf(rd, value)
@@ -225,7 +225,7 @@ class ArchState:
                     self.write_mem(addr, value, 4)
 
                 else:
-                    self.log += f"illegal instr\n"
+                    self.log += f"illegal S-Type instr\n"
                     return False
 
                 self.incr_pc(4)
@@ -257,7 +257,7 @@ class ArchState:
                             result = 0
 
                     else:
-                        self.log += f"illegal instr\n"
+                        self.log += f"illegal I-Type instr\n"
                         return False
 
                 # SLTIU
@@ -287,7 +287,7 @@ class ArchState:
                         result = signed32(self.arf[rs1] >> shamt, 32-shamt)
 
                     else:
-                        self.log += f"illegal instr\n"
+                        self.log += f"illegal I-Type instr\n"
                         return False
 
                 # ORI
@@ -301,7 +301,7 @@ class ArchState:
                     result = signed32(self.arf[rs1] & imm32)
 
                 else:
-                    self.log += f"illegal instr\n"
+                    self.log += f"illegal I-Type instr\n"
                     return False
 
                 self.write_arf(rd, result)
@@ -324,14 +324,14 @@ class ArchState:
                         result = signed32(self.arf[rs1] - self.arf[rs2])
 
                     else:
-                        self.log += f"illegal instr\n"
+                        self.log += f"illegal R-Type instr\n"
                         return False
 
                 # SLL
                 elif funct3 == 0b001:
                     shamt = bits(self.arf[rs2], 4, 0)
                     if funct7 != 0b0000000:
-                        self.log += f"illegal instr\n"
+                        self.log += f"illegal R-Type instr\n"
                         return False
                     self.log += f"SLL x{rd}, x{rs1}, x{rs2}\n"
                     result = signed32(self.arf[rs1] << shamt)
@@ -339,7 +339,7 @@ class ArchState:
                 # SLT
                 elif funct3 == 0b010:
                     if funct7 != 0b0000000:
-                        self.log += f"illegal instr\n"
+                        self.log += f"illegal R-Type instr\n"
                         return False
                     self.log += f"SLT x{rd}, x{rs1}, x{rs2}\n"
                     if make_signed(self.arf[rs1]) < make_signed(self.arf[rs2]):
@@ -350,7 +350,7 @@ class ArchState:
                 # SLTU
                 elif funct3 == 0b011:
                     if funct7 != 0b0000000:
-                        self.log += f"illegal instr\n"
+                        self.log += f"illegal R-Type instr\n"
                         return False
                     self.log += f"SLTU x{rd}, x{rs1}, x{rs2}\n"
                     if self.arf[rs1] < self.arf[rs2]:
@@ -361,7 +361,7 @@ class ArchState:
                 # XOR
                 elif funct3 == 0b100:
                     if funct7 != 0b0000000:
-                        self.log += f"illegal instr\n"
+                        self.log += f"illegal R-Type instr\n"
                         return False
                     self.log += f"XOR x{rd}, x{rs1}, x{rs2}\n"
                     result = signed32(self.arf[rs1] ^ self.arf[rs2])
@@ -381,13 +381,13 @@ class ArchState:
                         result = signed32(self.arf[rs1] >> shamt, 32-shamt)
 
                     else:
-                        self.log += f"illegal instr\n"
+                        self.log += f"illegal R-Type instr\n"
                         return False
                     
                 # OR
                 elif funct3 == 0b110:
                     if funct7 != 0b0000000:
-                        self.log += f"illegal instr\n"
+                        self.log += f"illegal R-Type instr\n"
                         return False
                     self.log += f"OR x{rd}, x{rs1}, x{rs2}\n"
                     result = signed32(self.arf[rs1] | self.arf[rs2])
@@ -395,13 +395,13 @@ class ArchState:
                 # AND
                 elif funct3 == 0b111:
                     if funct7 != 0b0000000:
-                        self.log += f"illegal instr\n"
+                        self.log += f"illegal R-Type instr\n"
                         return False
                     self.log += f"AND x{rd}, x{rs1}, x{rs2}\n"
                     result = signed32(self.arf[rs1] & self.arf[rs2])
 
                 else:
-                    self.log += f"illegal instr\n"
+                    self.log += f"illegal R-Type instr\n"
                     return False
 
                 self.write_arf(rd, result)
@@ -421,7 +421,7 @@ class ArchState:
                         self.log += f"FENCE.TSO "
 
                     else:
-                        self.log += f"illegal instr\n"
+                        self.log += f"illegal FENCE instr\n"
                         return False
                     
                     if bit(instr, 27):
@@ -449,7 +449,7 @@ class ArchState:
                     pass
 
                 else:
-                    self.log += f"illegal instr\n"
+                    self.log += f"illegal FENCE instr\n"
                     return False
 
                 self.incr_pc(4)
@@ -461,7 +461,7 @@ class ArchState:
                 if funct3 == 0b000:
 
                     if funct7 != 0 or rs1 != 0 or rd != 0:
-                        self.log += f"illegal instr\n"
+                        self.log += f"illegal ECALL/EBREAK instr\n"
                         return False
 
                     # ECALL
@@ -475,7 +475,7 @@ class ArchState:
                         return False
                 
                     else:
-                        self.log += f"illegal instr"
+                        self.log += f"illegal ECALL/EBREAK instr\n"
                         return False
                     
                 # CSR
@@ -505,16 +505,16 @@ class ArchState:
                         
                     # CSRRSI
                     elif funct3 == 0b110:
-                        self.log += f"CSRRSI x{rd}, 0x{csr:03X}, 0x{uimm:02X}"
+                        self.log += f"CSRRSI x{rd}, 0x{csr:03X}, 0x{uimm:02X}\n"
                         return False
                         
                     # CSRRCI
                     elif funct3 == 0b111:
-                        self.log += f"CSRRCI x{rd}, 0x{csr:03X}, 0x{uimm:02X}"
+                        self.log += f"CSRRCI x{rd}, 0x{csr:03X}, 0x{uimm:02X}\n"
                         return False
                 
                     else:
-                        self.log += f"illegal instr"
+                        self.log += f"illegal SYS instr\n"
                         return False
                     
                 self.incr_pc(4)
@@ -523,32 +523,32 @@ class ArchState:
             elif opcode5 == 0b01100:
                 
                 if funct7 != 0b0000001:
-                    self.log += f"illegal instr"
+                    self.log += f"illegal M-Ext instr\n"
                     return False
 
                 # MUL
                 if funct3 == 0b000:
-                    self.log += f"MUL x{rd}, x{rs1}, x{rs2}"
+                    self.log += f"MUL x{rd}, x{rs1}, x{rs2}\n"
                     result = signed32(self.arf[rs1] * self.arf[rs2])
                 
                 # MULH
                 elif funct3 == 0b001:
-                    self.log += f"MULH x{rd}, x{rs1}, x{rs2}"
+                    self.log += f"MULH x{rd}, x{rs1}, x{rs2}\n"
                     result = signed32((make_signed(self.arf[rs1]) * make_signed(self.arf[rs2])) >> 32)
 
                 # MULHSU
                 elif funct3 == 0b010:
-                    self.log += f"MULHSU x{rd}, x{rs1}, x{rs2}"
+                    self.log += f"MULHSU x{rd}, x{rs1}, x{rs2}\n"
                     result = signed32((make_signed(self.arf[rs1]) * self.arf[rs2]) >> 32)
 
                 # MULHU
                 elif funct3 == 0b011:
-                    self.log += f"MULHU x{rd}, x{rs1}, x{rs2}"
+                    self.log += f"MULHU x{rd}, x{rs1}, x{rs2}\n"
                     result = signed32((self.arf[rs1] * self.arf[rs2]) >> 32)
 
                 # DIV
                 elif funct3 == 0b100:
-                    self.log += f"DIV x{rd}, x{rs1}, x{rs2}"
+                    self.log += f"DIV x{rd}, x{rs1}, x{rs2}\n"
                     if self.arf[rs2] == 0:
                         result = 0xFFFFFFFF
                     # elif self.arf[rs1] == 0x80000000 and self.arf[rs2] == 0xFFFFFFFF:
@@ -559,7 +559,7 @@ class ArchState:
 
                 # DIVU
                 elif funct3 == 0b101:
-                    self.log += f"DIVU x{rd}, x{rs1}, x{rs2}"
+                    self.log += f"DIVU x{rd}, x{rs1}, x{rs2}\n"
                     if self.arf[rs2] == 0:
                         result = 0xFFFFFFFF
                     else:
@@ -567,7 +567,7 @@ class ArchState:
 
                 # REM
                 elif funct3 == 0b110:
-                    self.log += f"REM x{rd}, x{rs1}, x{rs2}"
+                    self.log += f"REM x{rd}, x{rs1}, x{rs2}\n"
                     if self.arf[rs2] == 0:
                         result = self.arf[rs1]
                     else:
@@ -576,7 +576,7 @@ class ArchState:
 
                 # REMU
                 elif funct3 == 0b111:
-                    self.log += f"REM x{rd}, x{rs1}, x{rs2}"
+                    self.log += f"REM x{rd}, x{rs1}, x{rs2}\n"
                     if self.arf[rs2] == 0:
                         result = self.arf[rs1]
                     else:
@@ -585,8 +585,37 @@ class ArchState:
                 self.write_arf(rd, result)
                 self.incr_pc(4)
 
+            # A-Ext
+            elif opcode5 == 0b01011:
+                funct5 = bits(instr, 31, 27)
+
+                if funct3 != 0b010:
+                    self.log += f"illegal A-Ext instr\n"
+                    return False
+
+                if funct5 == 0b00010:
+                    self.log += f"LR.W"
+                else:
+                    # TODO
+                    return False
+
+                self.log += f" x{rd}, x{rs2}, (x{rs1})\n"
+
+                # LR.W
+                if funct5 == 0b00010:
+                    # TODO
+                    return False
+
+                if self.arf[rs1] % 4 != 0:
+                    self.log += f"misaligned AMO"
+                    return False
+
+                self.write_mem(addr, write_value)
+                self.write_arf(rd, read_value)
+                self.incr_pc(4)
+
             else:
-                self.log += f"illegal instr\n"
+                self.log += f"illegal Uncompressed instr\n"
                 return False
 
         # compressed
@@ -595,11 +624,11 @@ class ArchState:
             self.log += f"MEM[0x{self.pc:08X}] = 0x{instr:04X}: "
 
             if opcode2 == 0b00:
-                self.log += f"illegal instr\n"
+                self.log += f"illegal Compressed instr\n"
                 return False
             
             elif opcode2 == 0b01:
-                self.log += f"illegal instr\n"
+                self.log += f"illegal Compressed instr\n"
                 return False
 
             elif opcode2 == 0b10:
@@ -613,7 +642,7 @@ class ArchState:
                 self.incr_pc(2)
                 
             else:
-                self.log += f"illegal instr\n"
+                self.log += f"illegal Compressed instr\n"
                 return False
 
         return True
@@ -710,9 +739,8 @@ if __name__ == "__main__":
     arch_state.print_mem()
 
     # execute program
-    no_exception = True
-    while no_exception:
-        no_exception = arch_state.exec_instr()
+    while arch_state.exec_instr():
+        continue
 
     arch_state.print_log()
     arch_state.print_arf()
