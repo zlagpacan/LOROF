@@ -22,6 +22,23 @@ sw s4, 0x723(s1)
 0xf0e1
 0x1
 
+@3000
+0x0f0f0f0f
+
+0x1e1e1e1e
+
+0x2d2d2d2d
+
+0x3c3c3c3c
+0x4b4b4b4b
+0x5a5a5a5a
+0x69696969
+0x78787878
+0x87878787
+0x96969696
+0xa5a5a5a5
+0xb4b4b4b4
+
 @1000
 lui x1, 0xfedcb
 auipc x2, 0xa9876
@@ -104,3 +121,82 @@ sw x26, 0x664(x5)
 sw x27, 0x668(x5)
 sw x28, 0x66C(x5)
 sw x29, 0x670(x5)
+
+add x1, x0, x10
+add x2, x0, x28
+sub x3, x0, x10
+mul x4, x2, x1
+mulh x5, x2, x1
+mulhsu x6, x2, x1
+mulhsu x7, x1, x2
+mulhu x8, x2, x1
+mul x9, x2, x3
+mulh x10, x2, x3
+mulhsu x11, x2, x3
+mulhsu x12, x3, x2
+mulhu x13, x2, x3
+div x14, x2, x1
+divu x15, x2, x1
+rem x16, x2, x1
+remu x17, x2, x1
+div x18, x2, x3
+divu x19, x2, x3
+rem x20, x2, x3
+remu x21, x2, x3
+
+sw x1, 0x700(x5)
+sw x2, 0x704(x5)
+sw x3, 0x708(x5)
+sw x4, 0x70C(x5)
+sw x5, 0x710(x5)
+sw x6, 0x714(x5)
+sw x7, 0x718(x5)
+sw x8, 0x71C(x5)
+sw x9, 0x720(x5)
+sw x10, 0x724(x5)
+sw x11, 0x728(x5)
+sw x12, 0x72C(x5)
+sw x13, 0x730(x5)
+sw x14, 0x734(x5)
+sw x15, 0x738(x5)
+sw x16, 0x73C(x5)
+sw x17, 0x740(x5)
+sw x18, 0x744(x5)
+sw x19, 0x748(x5)
+sw x20, 0x74C(x5)
+sw x21, 0x750(x5)
+
+lui x2, 0x3
+
+lr.w.aq x3, (x2)
+addi x4, x3, 1
+sc.w.rl x5, x4, (x2)
+
+addi x2, x2, 4
+lr.w.aqrl x6, (x2)
+sw x1, 0(x2)
+sc.w x7, x4, (x2)
+
+lr.w x8, (x2)
+addi x2, x2, 4
+addi x9, x8, 1
+sc.w x10, x9, (x2)
+
+addi x2, x2, 4
+amoswap.w x11, x1, (x2)
+addi x2, x2, 4
+amoadd.w x12, x1, (x2)
+addi x2, x2, 4
+amoxor.w x13, x1, (x2)
+addi x2, x2, 4
+amoand.w x14, x1, (x2)
+addi x2, x2, 4
+amoor.w x15, x1, (x2)
+addi x2, x2, 4
+amomin.w x16, x1, (x2)
+addi x2, x2, 4
+amomax.w x17, x1, (x2)
+addi x2, x2, 4
+amominu.w x18, x1, (x2)
+addi x2, x2, 4
+amomaxu.w x19, x1, (x2)
