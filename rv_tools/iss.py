@@ -90,6 +90,7 @@ class Mem:
             sub_addr = signed32(addr + i)
             for hart_id, word_addr in self.reserve_set_dict.items():
                 if sub_addr >> 2 == word_addr:
+                    self.log.write(f"    invalidating reservation set for Hart {hart_id}: 0x{word_addr << 2:08X}")
                     self.reserve_set_dict.pop(hart_id)
             sub_value = bits(value, 8*i+7, 8*i)
             self.log.write(f"    MEM[0x{sub_addr:08X}] <= 0x{sub_value:02X}\n")
@@ -97,13 +98,24 @@ class Mem:
 
     def reserve_set(self, hart_id, byte_addr):
         self.reserve_set_dict[hart_id] = byte_addr >> 2 # word addr granularity
+        self.log.write(f"    new reservation set for Hart {hart_id}: 0x{byte_addr:08X}")
 
     def check_reserve_set(self, hart_id, byte_addr):
+        self.log.write(f"    check reservation set for Hart {hart_id} for addr: 0x{byte_addr:08X}")
+
         valid = False
         if hart_id in self.reserve_set_dict.keys():
+            self.log.write(f"    reservation set: 0x{self.reserve_set_dict[hart_id] << 2:08X}")
             if self.reserve_set_dict[hart_id] == byte_addr >> 2: # word addr granularity
                 valid = True
-            self.reserve_set_dict.pop(hart_id)
+        else:
+            self.log.write(f"    reservation set: invalid")
+
+        if valid:
+            self.log.write(f"    reservation set check passed")
+        else:
+            self.log.write(f"    reservation set check failed")
+            
         return valid
 
     def get_word_list(self):
@@ -150,23 +162,25 @@ class Mem:
                 ptr_word_addr += 1
 
 class Hart:
-    def __init__(self, hart_id, start_pc, mem, log):
+    def __init__(self, hart_id, start_pc, mem, log, trace):
         self.hart_id = hart_id
         self.pc = signed32(start_pc)
         self.arf = [0x0 for x in range(32)]
         self.instret = 0
         self.mem = mem
         self.log = log
+        self.trace = trace
 
     def exec_instr(self):
+        self.log.write(f"Hart {self.hart_id}: PC = 0x{self.pc:08X}:\n")
 
+        # read instr
         instr = self.mem.read_instr(self.pc)
-
         opcode2 = bits(instr, 1, 0)
 
         # uncompressed
         if opcode2 == 0b11:
-            self.log.write(f"MEM[0x{self.pc:08X}] = 0x{instr:08X}: ")
+            self.log.write(f"    MEM[0x{self.pc:08X}] = 0x{instr:08X}: ")
             opcode5 = bits(instr, 6, 2)
             funct3 = bits(instr, 14, 12)
             funct7 = bits(instr, 31, 25)
@@ -209,7 +223,7 @@ class Hart:
                 imm32 = signed32(imm12, 12)
                 self.log.write(f"JALR x{rd}, 0x{imm12:03X}(x{rs1})\n")
                 result = signed32(self.pc + 4)
-                npc = signed32(self.arf[rs1] + imm32)
+                npc = signed32(self.read_arf(rs1) + imm32)
                 self.write_arf(rd, result)
                 self.write_pc(npc)
 
@@ -224,7 +238,7 @@ class Hart:
                 # BEQ
                 if funct3 == 0b000:
                     self.log.write(f"BEQ x{rs1}, x{rs2}, 0x{imm13:04X}\n")
-                    if self.arf[rs1] == self.arf[rs2]:
+                    if self.read_arf(rs1) == self.read_arf(rs2):
                         self.incr_pc(imm32)
                     else:
                         self.incr_pc(4)
@@ -232,7 +246,7 @@ class Hart:
                 # BNE
                 elif funct3 == 0b001:
                     self.log.write(f"BNE x{rs1}, x{rs2}, 0x{imm13:04X}\n")
-                    if self.arf[rs1] != self.arf[rs2]:
+                    if self.read_arf(rs1) != self.read_arf(rs2):
                         self.incr_pc(imm32)
                     else:
                         self.incr_pc(4)
@@ -240,7 +254,7 @@ class Hart:
                 # BLT
                 elif funct3 == 0b100:
                     self.log.write(f"BLT x{rs1}, x{rs2}, 0x{imm13:04X}\n")
-                    if make_signed(self.arf[rs1]) < make_signed(self.arf[rs2]):
+                    if make_signed(self.read_arf(rs1)) < make_signed(self.read_arf(rs2)):
                         self.incr_pc(imm32)
                     else:
                         self.incr_pc(4)
@@ -248,7 +262,7 @@ class Hart:
                 # BGE
                 elif funct3 == 0b101:
                     self.log.write(f"BGE x{rs1}, x{rs2}, 0x{imm13:04X}\n")
-                    if make_signed(self.arf[rs1]) >= make_signed(self.arf[rs2]):
+                    if make_signed(self.read_arf(rs1)) >= make_signed(self.read_arf(rs2)):
                         self.incr_pc(imm32)
                     else:
                         self.incr_pc(4)
@@ -256,7 +270,7 @@ class Hart:
                 # BLTU
                 elif funct3 == 0b110:
                     self.log.write(f"BLTU x{rs1}, x{rs2}, 0x{imm13:04X}\n")
-                    if self.arf[rs1] < self.arf[rs2]:
+                    if self.read_arf(rs1) < self.read_arf(rs2):
                         self.incr_pc(imm32)
                     else:
                         self.incr_pc(4)
@@ -264,7 +278,7 @@ class Hart:
                 # BGEU
                 elif funct3 == 0b111:
                     self.log.write(f"BGEU x{rs1}, x{rs2}, 0x{imm13:04X}\n")
-                    if self.arf[rs1] >= self.arf[rs2]:
+                    if self.read_arf(rs1) >= self.read_arf(rs2):
                         self.incr_pc(imm32)
                     else:
                         self.incr_pc(4)
@@ -277,31 +291,35 @@ class Hart:
             elif opcode5 == 0b00000:
                 imm12 = bits(instr, 31, 20)
                 imm32 = signed32(imm12, 12)
-                addr = signed32(self.arf[rs1] + imm32)
 
                 # LB
                 if funct3 == 0b000:
                     self.log.write(f"LB x{rd}, 0x{imm12:03X}(x{rs1})\n")
+                    addr = signed32(self.read_arf(rs1) + imm32)
                     value = signed32(self.mem.read_data(addr, 1), 8)
 
                 # LH
                 elif funct3 == 0b001:
                     self.log.write(f"LH x{rd}, 0x{imm12:03X}(x{rs1})\n")
+                    addr = signed32(self.read_arf(rs1) + imm32)
                     value = signed32(self.mem.read_data(addr, 2), 16)
 
                 # LW
                 elif funct3 == 0b010:
                     self.log.write(f"LW x{rd}, 0x{imm12:03X}(x{rs1})\n")
+                    addr = signed32(self.read_arf(rs1) + imm32)
                     value = self.mem.read_data(addr, 4)
 
                 # LBU
                 elif funct3 == 0b100:
                     self.log.write(f"LBU x{rd}, 0x{imm12:03X}(x{rs1})\n")
+                    addr = signed32(self.read_arf(rs1) + imm32)
                     value = self.mem.read_data(addr, 1)
 
                 # LHU
                 elif funct3 == 0b101:
                     self.log.write(f"LHU x{rd}, 0x{imm12:03X}(x{rs1})\n")
+                    addr = signed32(self.read_arf(rs1) + imm32)
                     value = self.mem.read_data(addr, 2)
 
                 else:
@@ -316,22 +334,26 @@ class Hart:
                 imm12 = bits(instr, 11, 7)
                 imm12 += bits(instr, 31, 25) << 5
                 imm32 = signed32(imm12, 12)
-                addr = bits(self.arf[rs1] + imm32, 31, 0)
-                value = self.arf[rs2]
 
                 # SB
                 if funct3 == 0b000:
                     self.log.write(f"SB x{rs2}, 0x{imm12:03X}(x{rs1})\n")
+                    addr = bits(self.read_arf(rs1) + imm32, 31, 0)
+                    value = self.read_arf(rs2)
                     self.mem.write_data(addr, value, 1)
                 
                 # SH
                 elif funct3 == 0b001:
                     self.log.write(f"SH x{rs2}, 0x{imm12:03X}(x{rs1})\n")
+                    addr = bits(self.read_arf(rs1) + imm32, 31, 0)
+                    value = self.read_arf(rs2)
                     self.mem.write_data(addr, value, 2)
 
                 # SW
                 elif funct3 == 0b010:
                     self.log.write(f"SW x{rs2}, 0x{imm12:03X}(x{rs1})\n")
+                    addr = bits(self.read_arf(rs1) + imm32, 31, 0)
+                    value = self.read_arf(rs2)
                     self.mem.write_data(addr, value, 4)
 
                 else:
@@ -349,31 +371,29 @@ class Hart:
                 # ADDI
                 if funct3 == 0b000:
                     self.log.write(f"ADDI x{rd}, x{rs1}, 0x{imm12:03X}\n")
-                    result = signed32(self.arf[rs1] + imm32)
+                    result = signed32(self.read_arf(rs1) + imm32)
 
                 # SLLI
                 elif funct3 == 0b001:
-                    self.log.write(f"SLLI x{rd}, x{rs1}, 0x{shamt:02X}\n")
-                    result = signed32(self.arf[rs1] << shamt)
-
-                # SLTI
-                elif funct3 == 0b010:
-
                     if funct7 == 0b0000000:
-                        self.log.write(f"SLTI x{rd}, x{rs1}, 0x{imm12:03X}\n")
-                        if make_signed(self.arf[rs1]) < make_signed(imm32):
-                            result = 1
-                        else:
-                            result = 0
-
+                        self.log.write(f"SLLI x{rd}, x{rs1}, 0x{shamt:02X}\n")
+                        result = signed32(self.read_arf(rs1) << shamt)
                     else:
                         self.log.write(f"illegal I-Type instr\n")
                         return False
 
+                # SLTI
+                elif funct3 == 0b010:
+                    self.log.write(f"SLTI x{rd}, x{rs1}, 0x{imm12:03X}\n")
+                    if make_signed(self.read_arf(rs1)) < make_signed(imm32):
+                        result = 1
+                    else:
+                        result = 0
+
                 # SLTIU
                 elif funct3 == 0b011:
                     self.log.write(f"SLTIU x{rd}, x{rs1}, 0x{imm12:03X}\n")
-                    if self.arf[rs1] < imm32:
+                    if self.read_arf(rs1) < imm32:
                         result = 1
                     else:
                         result = 0
@@ -381,7 +401,7 @@ class Hart:
                 # XORI
                 elif funct3 == 0b100:
                     self.log.write(f"XORI x{rd}, x{rs1}, 0x{imm12:03X}\n")
-                    result = signed32(self.arf[rs1] ^ imm32)
+                    result = signed32(self.read_arf(rs1) ^ imm32)
 
                 # SR*I
                 elif funct3 == 0b101:
@@ -389,12 +409,12 @@ class Hart:
                     # SRLI
                     if funct7 == 0b0000000:
                         self.log.write(f"SRLI x{rd}, x{rs1}, 0x{shamt:02X}\n")
-                        result = self.arf[rs1] >> shamt
+                        result = self.read_arf(rs1) >> shamt
 
                     # SRAI
                     elif funct7 == 0b0100000:
                         self.log.write(f"SRAI x{rd}, x{rs1}, 0x{shamt:02X}\n")
-                        result = signed32(self.arf[rs1] >> shamt, 32-shamt)
+                        result = signed32(self.read_arf(rs1) >> shamt, 32-shamt)
 
                     else:
                         self.log.write(f"illegal I-Type instr\n")
@@ -403,12 +423,12 @@ class Hart:
                 # ORI
                 elif funct3 == 0b110:
                     self.log.write(f"ORI x{rd}, x{rs1}, 0x{imm12:03X}\n")
-                    result = signed32(self.arf[rs1] | imm32)
+                    result = signed32(self.read_arf(rs1) | imm32)
 
                 # ANDI
                 elif funct3 == 0b111:
-                    self.log.write(f"ORI x{rd}, x{rs1}, 0x{imm12:03X}\n")
-                    result = signed32(self.arf[rs1] & imm32)
+                    self.log.write(f"ANDI x{rd}, x{rs1}, 0x{imm12:03X}\n")
+                    result = signed32(self.read_arf(rs1) & imm32)
 
                 else:
                     self.log.write(f"illegal I-Type instr\n")
@@ -426,12 +446,12 @@ class Hart:
                     # ADD
                     if funct7 == 0b0000000:
                         self.log.write(f"ADD x{rd}, x{rs1}, x{rs2}\n")
-                        result = signed32(self.arf[rs1] + self.arf[rs2])
+                        result = signed32(self.read_arf(rs1) + self.read_arf(rs2))
 
                     # SUB
                     elif funct7 == 0b0100000:
-                        self.log.write(f"ADD x{rd}, x{rs1}, x{rs2}\n")
-                        result = signed32(self.arf[rs1] - self.arf[rs2])
+                        self.log.write(f"SUB x{rd}, x{rs1}, x{rs2}\n")
+                        result = signed32(self.read_arf(rs1) - self.read_arf(rs2))
 
                     else:
                         self.log.write(f"illegal R-Type instr\n")
@@ -439,12 +459,13 @@ class Hart:
 
                 # SLL
                 elif funct3 == 0b001:
-                    shamt = bits(self.arf[rs2], 4, 0)
                     if funct7 != 0b0000000:
                         self.log.write(f"illegal R-Type instr\n")
                         return False
                     self.log.write(f"SLL x{rd}, x{rs1}, x{rs2}\n")
-                    result = signed32(self.arf[rs1] << shamt)
+                    shamt = bits(self.read_arf(rs2), 4, 0)
+                    self.log.write(f"    shamt = {shamt}\n")
+                    result = signed32(self.read_arf(rs1) << shamt)
 
                 # SLT
                 elif funct3 == 0b010:
@@ -452,7 +473,7 @@ class Hart:
                         self.log.write(f"illegal R-Type instr\n")
                         return False
                     self.log.write(f"SLT x{rd}, x{rs1}, x{rs2}\n")
-                    if make_signed(self.arf[rs1]) < make_signed(self.arf[rs2]):
+                    if make_signed(self.read_arf(rs1)) < make_signed(self.read_arf(rs2)):
                         result = 1
                     else:
                         result = 0
@@ -463,7 +484,7 @@ class Hart:
                         self.log.write(f"illegal R-Type instr\n")
                         return False
                     self.log.write(f"SLTU x{rd}, x{rs1}, x{rs2}\n")
-                    if self.arf[rs1] < self.arf[rs2]:
+                    if self.read_arf(rs1) < self.read_arf(rs2):
                         result = 1
                     else:
                         result = 0
@@ -474,21 +495,24 @@ class Hart:
                         self.log.write(f"illegal R-Type instr\n")
                         return False
                     self.log.write(f"XOR x{rd}, x{rs1}, x{rs2}\n")
-                    result = signed32(self.arf[rs1] ^ self.arf[rs2])
+                    result = signed32(self.read_arf(rs1) ^ self.read_arf(rs2))
 
                 # SR*
                 elif funct3 == 0b101:
-                    shamt = bits(self.arf[rs2], 4, 0)
 
                     # SRL
                     if funct7 == 0b0000000:
                         self.log.write(f"SRL x{rd}, x{rs1}, x{rs2}\n")
-                        result = self.arf[rs1] >> shamt
+                        shamt = bits(self.read_arf(rs2), 4, 0)
+                        self.log.write(f"    shamt = {shamt}\n")
+                        result = self.read_arf(rs1) >> shamt
 
                     # SRA
                     elif funct7 == 0b0100000:
                         self.log.write(f"SRA x{rd}, x{rs1}, x{rs2}\n")
-                        result = signed32(self.arf[rs1] >> shamt, 32-shamt)
+                        shamt = bits(self.read_arf(rs2), 4, 0)
+                        self.log.write(f"    shamt = {shamt}\n")
+                        result = signed32(self.read_arf(rs1) >> shamt, 32-shamt)
 
                     else:
                         self.log.write(f"illegal R-Type instr\n")
@@ -500,7 +524,7 @@ class Hart:
                         self.log.write(f"illegal R-Type instr\n")
                         return False
                     self.log.write(f"OR x{rd}, x{rs1}, x{rs2}\n")
-                    result = signed32(self.arf[rs1] | self.arf[rs2])
+                    result = signed32(self.read_arf(rs1) | self.read_arf(rs2))
                     
                 # AND
                 elif funct3 == 0b111:
@@ -508,7 +532,7 @@ class Hart:
                         self.log.write(f"illegal R-Type instr\n")
                         return False
                     self.log.write(f"AND x{rd}, x{rs1}, x{rs2}\n")
-                    result = signed32(self.arf[rs1] & self.arf[rs2])
+                    result = signed32(self.read_arf(rs1) & self.read_arf(rs2))
 
                 else:
                     self.log.write(f"illegal R-Type instr\n")
@@ -553,10 +577,12 @@ class Hart:
                         self.log.write("r")
                     if bit(instr, 20):
                         self.log.write("w")
+                    
+                    self.log.write(f"\n")
 
                 # FENCE.I
                 elif funct3 == 0b001:
-                    pass
+                    self.log.write(f"FENCE.I\n")
 
                 else:
                     self.log.write(f"illegal FENCE instr\n")
@@ -575,13 +601,13 @@ class Hart:
                         return False
 
                     # ECALL
-                    if rd == 0b00000:
-                        self.log.write(f"ECALL")
+                    if rs2 == 0b00000:
+                        self.log.write(f"ECALL\n")
                         return False
                     
                     # EBREAK
-                    elif rd == 0b00001:
-                        self.log.write(f"EBREAK")
+                    elif rs2 == 0b00001:
+                        self.log.write(f"EBREAK\n")
                         return False
                 
                     else:
@@ -595,22 +621,22 @@ class Hart:
                     
                     # CSRRW
                     if funct3 == 0b001:
-                        self.log.write(f"CSRRW x{rd}, 0x{csr:03X}, x{rs1}")
+                        self.log.write(f"CSRRW x{rd}, 0x{csr:03X}, x{rs1}\n")
                         return False
                         
                     # CSRRS
                     elif funct3 == 0b010:
-                        self.log.write(f"CSRRS x{rd}, 0x{csr:03X}, x{rs1}")
+                        self.log.write(f"CSRRS x{rd}, 0x{csr:03X}, x{rs1}\n")
                         return False
                         
                     # CSRRC
                     elif funct3 == 0b011:
-                        self.log.write(f"CSRRC x{rd}, 0x{csr:03X}, x{rs1}")
+                        self.log.write(f"CSRRC x{rd}, 0x{csr:03X}, x{rs1}\n")
                         return False
                         
                     # CSRRWI
                     elif funct3 == 0b101:
-                        self.log.write(f"CSRRWI x{rd}, 0x{csr:03X}, 0x{uimm:02X}")
+                        self.log.write(f"CSRRWI x{rd}, 0x{csr:03X}, 0x{uimm:02X}\n")
                         return False
                         
                     # CSRRSI
@@ -639,58 +665,74 @@ class Hart:
                 # MUL
                 if funct3 == 0b000:
                     self.log.write(f"MUL x{rd}, x{rs1}, x{rs2}\n")
-                    result = signed32(self.arf[rs1] * self.arf[rs2])
+                    R_rs1 = self.read_arf(rs1)
+                    R_rs2 = self.read_arf(rs2)
+                    result = signed32(self.read_arf(rs1) * self.read_arf(rs2))
                 
                 # MULH
                 elif funct3 == 0b001:
                     self.log.write(f"MULH x{rd}, x{rs1}, x{rs2}\n")
-                    result = signed32((make_signed(self.arf[rs1]) * make_signed(self.arf[rs2])) >> 32)
+                    R_rs1 = self.read_arf(rs1)
+                    R_rs2 = self.read_arf(rs2)
+                    result = signed32((make_signed(self.read_arf(rs1)) * make_signed(self.read_arf(rs2))) >> 32)
 
                 # MULHSU
                 elif funct3 == 0b010:
                     self.log.write(f"MULHSU x{rd}, x{rs1}, x{rs2}\n")
-                    result = signed32((make_signed(self.arf[rs1]) * self.arf[rs2]) >> 32)
+                    R_rs1 = self.read_arf(rs1)
+                    R_rs2 = self.read_arf(rs2)
+                    result = signed32((make_signed(self.read_arf(rs1)) * self.read_arf(rs2)) >> 32)
 
                 # MULHU
                 elif funct3 == 0b011:
                     self.log.write(f"MULHU x{rd}, x{rs1}, x{rs2}\n")
-                    result = signed32((self.arf[rs1] * self.arf[rs2]) >> 32)
+                    R_rs1 = self.read_arf(rs1)
+                    R_rs2 = self.read_arf(rs2)
+                    result = signed32((self.read_arf(rs1) * self.read_arf(rs2)) >> 32)
 
                 # DIV
                 elif funct3 == 0b100:
                     self.log.write(f"DIV x{rd}, x{rs1}, x{rs2}\n")
-                    if self.arf[rs2] == 0:
+                    R_rs1 = self.read_arf(rs1)
+                    R_rs2 = self.read_arf(rs2)
+                    if R_rs2 == 0:
                         result = 0xFFFFFFFF
-                    # elif self.arf[rs1] == 0x80000000 and self.arf[rs2] == 0xFFFFFFFF:
+                    # elif R_rs1 == 0x80000000 and R_rs2 == 0xFFFFFFFF:
                     #     result = 0x80000000
                         # default case handles this overflow, get 0x80000000 regardless
                     else:
-                        result = signed32(int(make_signed(self.arf[rs1]) / make_signed(self.arf[rs2])))
+                        result = signed32(int(make_signed(R_rs1) / make_signed(R_rs2)))
 
                 # DIVU
                 elif funct3 == 0b101:
                     self.log.write(f"DIVU x{rd}, x{rs1}, x{rs2}\n")
-                    if self.arf[rs2] == 0:
+                    R_rs1 = self.read_arf(rs1)
+                    R_rs2 = self.read_arf(rs2)
+                    if R_rs2 == 0:
                         result = 0xFFFFFFFF
                     else:
-                        result = signed32(self.arf[rs1] // self.arf[rs2])
+                        result = signed32(R_rs1 // R_rs2)
 
                 # REM
                 elif funct3 == 0b110:
                     self.log.write(f"REM x{rd}, x{rs1}, x{rs2}\n")
-                    if self.arf[rs2] == 0:
-                        result = self.arf[rs1]
+                    R_rs1 = self.read_arf(rs1)
+                    R_rs2 = self.read_arf(rs2)
+                    if R_rs2 == 0:
+                        result = R_rs1
                     else:
-                        quotient = int(self.arf[rs1] / self.arf[rs2]) # round towards 0
-                        result = self.arf[rs1] - (quotient * self.arf[rs2])
+                        quotient = int(R_rs1 / R_rs2) # round towards 0
+                        result = R_rs1 - (quotient * R_rs2)
 
                 # REMU
                 elif funct3 == 0b111:
                     self.log.write(f"REM x{rd}, x{rs1}, x{rs2}\n")
-                    if self.arf[rs2] == 0:
-                        result = self.arf[rs1]
+                    R_rs1 = self.read_arf(rs1)
+                    R_rs2 = self.read_arf(rs2)
+                    if R_rs2 == 0:
+                        result = R_rs1
                     else:
-                        result = signed32(self.arf[rs1] % self.arf[rs2])
+                        result = signed32(R_rs1 % R_rs2)
 
                 self.write_arf(rd, result)
                 self.incr_pc(4)
@@ -702,56 +744,159 @@ class Hart:
                 rl = bit(instr, 25)
                 if aq:
                     if rl:
-                        opcode_suffix = ".AQRL"
+                        aqrl_str = ".AQRL"
                     else:
-                        opcode_suffix = ".AQ"
+                        aqrl_str = ".AQ"
                 elif rl:
-                    opcode_suffix = ".RL"
+                    aqrl_str = ".RL"
                 else:
-                    opcode_suffix = ""
+                    aqrl_str = ""
 
                 if funct3 != 0b010:
                     self.log.write(f"illegal A-Ext instr\n")
                     return False
 
+                if R_rs1 % 4 != 0:
+                    self.log.write(f"misaligned AMO\n")
+                    self.log.write(f"    addr = 0x{R_rs1:08X}\n")
+                    return False
+
                 # LR.W
                 if funct5 == 0b00010:
-                    self.log.write(f"LR.W{opcode_suffix} x{rd}, (x{rs1})\n")
+                    self.log.write(f"LR.W{aqrl_str} x{rd}, (x{rs1})\n")
+                    R_rs1 = self.read_arf(rs1)
+                    R_rs2 = self.read_arf(rs2)
+                    self.mem.reserve_set(self.hart_id, R_rs1)
+                    read_value = self.mem.read_data(R_rs1, 4)
 
                 # SC.W
                 elif funct5 == 0b00011:
-                    self.log.write(f"SC.W{opcode_suffix} x{rd}, x{rs2}, (x{rs1})\n")
+                    self.log.write(f"SC.W{aqrl_str} x{rd}, x{rs2}, (x{rs1})\n")
+                    R_rs1 = self.read_arf(rs1)
+                    R_rs2 = self.read_arf(rs2)
+                    if self.mem.check_reserve_set(self.hart_id, R_rs1):
+                        self.mem.write_data(R_rs1, R_rs2, 4)
+                        read_value = 0
+                    else:
+                        read_value = 1
 
                 # AMO*
                 else:
-                    # TODO
-                    return False
+                    # AMOSWAP.W
+                    if funct5 == 0b00001:
+                        self.log.write(f"AMOSWAP.W{aqrl_str} x{rd}, x{rs2}, (x{rs1})\n")
+                        R_rs1 = self.read_arf(rs1)
+                        R_rs2 = self.read_arf(rs2)
+                        read_value = self.mem.read_data(R_rs1, 4)
+                        write_value = R_rs2
+                        self.mem.write_data(R_rs1, write_value, 4)
 
-                self.log.write(f" x{rd}, x{rs2}, (x{rs1})\n")
+                    # AMOADD.W
+                    elif funct5 == 0b00000:
+                        self.log.write(f"AMOADD.W{aqrl_str} x{rd}, x{rs2}, (x{rs1})\n")
+                        R_rs1 = self.read_arf(rs1)
+                        R_rs2 = self.read_arf(rs2)
+                        read_value = self.mem.read_data(R_rs1, 4)
+                        write_value = signed32(read_value + R_rs2)
+                        self.mem.write_data(R_rs1, write_value, 4)
 
-                if self.arf[rs1] % 4 != 0:
-                    self.log.write(f"misaligned AMO")
-                    return False
+                    # AMOXOR.W
+                    elif funct5 == 0b00100:
+                        self.log.write(f"AMOXOR.W{aqrl_str} x{rd}, x{rs2}, (x{rs1})\n")
+                        R_rs1 = self.read_arf(rs1)
+                        R_rs2 = self.read_arf(rs2)
+                        read_value = self.mem.read_data(R_rs1, 4)
+                        write_value = signed32(read_value ^ R_rs2)
+                        self.mem.write_data(R_rs1, write_value, 4)
 
-                self.mem.write_data(addr, write_value, 4)
+                    # AMOAND.W
+                    elif funct5 == 0b01100:
+                        self.log.write(f"AMOAND.W{aqrl_str} x{rd}, x{rs2}, (x{rs1})\n")
+                        R_rs1 = self.read_arf(rs1)
+                        R_rs2 = self.read_arf(rs2)
+                        read_value = self.mem.read_data(R_rs1, 4)
+                        write_value = signed32(read_value & R_rs2)
+                        self.mem.write_data(R_rs1, write_value, 4)
+
+                    # AMOOR.W
+                    elif funct5 == 0b01000:
+                        self.log.write(f"AMOOR.W{aqrl_str} x{rd}, x{rs2}, (x{rs1})\n")
+                        R_rs1 = self.read_arf(rs1)
+                        R_rs2 = self.read_arf(rs2)
+                        read_value = self.mem.read_data(R_rs1, 4)
+                        write_value = signed32(read_value | R_rs2)
+                        self.mem.write_data(R_rs1, write_value, 4)
+
+                    # AMOMIN.W
+                    elif funct5 == 0b10000:
+                        self.log.write(f"AMOMIN.W{aqrl_str} x{rd}, x{rs2}, (x{rs1})\n")
+                        R_rs1 = self.read_arf(rs1)
+                        R_rs2 = self.read_arf(rs2)
+                        read_value = self.mem.read_data(R_rs1, 4)
+                        if make_signed(R_rs2) < make_signed(read_value):
+                            write_value = R_rs2
+                        else:
+                            write_value = read_value
+                        self.mem.write_data(R_rs1, write_value, 4)
+
+                    # AMOMAX.W
+                    elif funct5 == 0b10100:
+                        self.log.write(f"AMOMAX.W{aqrl_str} x{rd}, x{rs2}, (x{rs1})\n")
+                        R_rs1 = self.read_arf(rs1)
+                        R_rs2 = self.read_arf(rs2)
+                        read_value = self.mem.read_data(R_rs1, 4)
+                        if make_signed(R_rs2) > make_signed(read_value):
+                            write_value = R_rs2
+                        else:
+                            write_value = read_value
+                        self.mem.write_data(R_rs1, write_value, 4)
+
+                    # AMOMINU.W
+                    elif funct5 == 0b11000:
+                        self.log.write(f"AMOMINU.W{aqrl_str} x{rd}, x{rs2}, (x{rs1})\n")
+                        R_rs1 = self.read_arf(rs1)
+                        R_rs2 = self.read_arf(rs2)
+                        read_value = self.mem.read_data(R_rs1, 4)
+                        if R_rs2 < read_value:
+                            write_value = R_rs2
+                        else:
+                            write_value = read_value
+                        self.mem.write_data(R_rs1, write_value, 4)
+
+                    # AMOMAXU.W
+                    elif funct5 == 0b11100:
+                        self.log.write(f"AMOMAXU.W{aqrl_str} x{rd}, x{rs2}, (x{rs1})\n")
+                        R_rs1 = self.read_arf(rs1)
+                        R_rs2 = self.read_arf(rs2)
+                        read_value = self.mem.read_data(R_rs1, 4)
+                        if R_rs2 > read_value:
+                            write_value = R_rs2
+                        else:
+                            write_value = read_value
+                        self.mem.write_data(R_rs1, write_value, 4)
+
+                    else:
+                        self.log.write(f"illegal A-Ext instr\n")
+                        return False
+                
                 self.write_arf(rd, read_value)
                 self.incr_pc(4)
 
             else:
-                self.log.write(f"illegal Uncompressed instr\n")
+                self.log.write(f"illegal uncompressed instr\n")
                 return False
 
         # compressed
         else:
             instr = bits(instr, 15, 0)
-            self.log.write(f"MEM[0x{self.pc:08X}] = 0x{instr:04X}: ")
+            self.log.write(f"    MEM[0x{self.pc:08X}] = 0x{instr:04X}: ")
 
             if opcode2 == 0b00:
-                self.log.write(f"illegal Compressed instr\n")
+                self.log.write(f"illegal compressed instr\n")
                 return False
             
             elif opcode2 == 0b01:
-                self.log.write(f"illegal Compressed instr\n")
+                self.log.write(f"illegal compressed instr\n")
                 return False
 
             elif opcode2 == 0b10:
@@ -759,16 +904,23 @@ class Hart:
                 uimm = bits(instr, 12, 9) << 2
                 uimm += bits(instr, 8, 7) << 6
                 self.log.write(f"C.SWSP x{rs2}, 0x{uimm:02X}\n")
-                addr = bits(self.arf[2] + uimm, 31, 0)
-                value = self.arf[rs2]
+                addr = bits(self.read_arf(2) + uimm, 31, 0)
+                value = self.read_arf(rs2)
                 self.mem.write_data(addr, value, 4)
                 self.incr_pc(2)
                 
             else:
-                self.log.write(f"illegal Compressed instr\n")
+                self.log.write(f"illegal compressed instr\n")
                 return False
 
+        self.instret += 1
+        if self.trace:
+            self.log.print_log()
         return True
+    
+    def read_arf(self, rs):
+        self.log.write(f"    ARF[x{rs}] = 0x{self.arf[rs]:08X}\n")
+        return self.arf[rs]
     
     def write_arf(self, dest, value):
         if dest == 0:
@@ -784,10 +936,13 @@ class Hart:
     def incr_pc(self, incr):
         self.write_pc(signed32(self.pc + incr))
 
-    def print_arf(self):
-        print(f"ARF:")
+    def print_hart(self):
+        print(f"Hart {self.hart_id}:")
+        print(f"    PC = 0x{self.pc:08X}")
+        print(f"    instret = {self.instret}")
+        print(f"    ARF:")
         for ar, value in enumerate(self.arf):
-            print(f"    {ar:2d}: 0x{value:08X}")
+            print(f"        {ar:2d}: 0x{value:08X}")
 
 if __name__ == "__main__":
     print(" ".join(sys.argv))
@@ -796,23 +951,24 @@ if __name__ == "__main__":
     parser.add_argument("input_mem_file_path")
     parser.add_argument("output_mem_file_path")
     parser.add_argument("-pc", "--start-pc", default=0x0)
-    parser.add_argument("-s", "--steps", action="store_true")
+    parser.add_argument("-s", "--silent", action="store_true")
     args = parser.parse_args()
-    # print(args)
 
     # init arch components
     log = Log()
     mem = Mem(args.input_mem_file_path, log)
-    hart = Hart(0, args.start_pc, mem, log)
+    hart = Hart(0, args.start_pc, mem, log, not args.silent)
 
-    mem.print_mem()
+    if not args.silent:
+        mem.print_mem()
 
     # execute program
     while hart.exec_instr():
         continue
 
-    log.print_log()
-    hart.print_arf()
-    mem.print_mem()
+    if not args.silent:
+        log.print_log()
+        hart.print_hart()
+        mem.print_mem()
 
     mem.write_mem_file(args.output_mem_file_path)
