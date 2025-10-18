@@ -1,22 +1,6 @@
 import sys
 import argparse
 
-def get_word_list(mem):
-    word_dict = dict()
-    for byte_addr, byte_value in mem.items():
-        try:
-            word_dict[byte_addr >> 2][byte_addr & 0x3] = byte_value
-        except KeyError:
-            word_dict[byte_addr >> 2] = [0x0, 0x0, 0x0, 0x0]
-            word_dict[byte_addr >> 2][byte_addr & 0x3] = byte_value
-
-    word_list = []
-    for word_addr, word_value in word_dict.items():
-        if any(word_value):
-            word_list.append((word_addr, word_value))
-
-    return sorted(word_list, key=lambda x: x[0])
-
 def bits(num, upper_index, lower_index):
     return (num >> lower_index) & (2**(upper_index - lower_index + 1) - 1)
 
@@ -34,29 +18,155 @@ def make_signed(num, size=32):
         return -1 * 2**(size-1) + bits(num, size-2, 0)
     else:
         return bits(num, size-1, 0)
+    
+class Log:
+    def __init__(self):
+        self.log_str = ""
 
-class ArchState:
-    def __init__(self, start_pc, mem):
+    def write(self, string):
+        self.log_str += string
+
+    def print_log(self):
+        print(self.log_str)
+        self.log_str = ""
+
+class Mem:
+    def __init__(self, mem_file_path, log):
+        self.log = log
+        self.reserve_set_dict = dict()
+
+        # read mem
+        with open(mem_file_path, "r") as fp:
+            input_mem_lines = fp.readlines()
+
+        # parse input mem
+        self.mem_dict = dict()
+        ptr = 0x0
+        try:
+            for mem_line in input_mem_lines:
+                # ignore all comments on the right
+                if "//" in mem_line:
+                    mem_line = mem_line[:mem_line.index("//")]
+                mem_line = mem_line.lstrip().rstrip()
+
+                # ptr change
+                if mem_line.startswith("@"):
+                    ptr = int(mem_line[1:], 16)
+
+                # byte fill
+                elif mem_line:
+                    while mem_line:
+                        # print(f"mem_line: {mem_line}")
+                        mem_line = mem_line.lstrip()
+                        self.mem_dict[ptr] = int(mem_line[:2], 16)
+                        mem_line = mem_line[2:]
+                        ptr += 1
+                    
+                # otherwise, empty line after removal of comments
+        
+        except ValueError:
+            raise Exception("ERROR: input mem file syntax error")
+
+    def read_instr(self, pc):
+        instr = 0
+        for i in range(4):
+            if pc + i in self.mem_dict:
+                instr += self.mem_dict[pc + i] << 8 * i
+            else:
+                break
+        return instr
+
+    def read_data(self, addr, num_bytes):
+        value = 0
+        for i in range(num_bytes):
+            sub_addr = signed32(addr + i)
+            sub_value = self.mem_dict[sub_addr]
+            self.log.write(f"    MEM[0x{sub_addr:08X}] = 0x{sub_value:02X}\n")
+            value += sub_value << 8 * i
+        return value
+
+    def write_data(self, addr, value, num_bytes):
+        for i in range(num_bytes):
+            sub_addr = signed32(addr + i)
+            for hart_id, word_addr in self.reserve_set_dict.items():
+                if sub_addr >> 2 == word_addr:
+                    self.reserve_set_dict.pop(hart_id)
+            sub_value = bits(value, 8*i+7, 8*i)
+            self.log.write(f"    MEM[0x{sub_addr:08X}] <= 0x{sub_value:02X}\n")
+            self.mem_dict[sub_addr] = sub_value
+
+    def reserve_set(self, hart_id, byte_addr):
+        self.reserve_set_dict[hart_id] = byte_addr >> 2 # word addr granularity
+
+    def check_reserve_set(self, hart_id, byte_addr):
+        valid = False
+        if hart_id in self.reserve_set_dict.keys():
+            if self.reserve_set_dict[hart_id] == byte_addr >> 2: # word addr granularity
+                valid = True
+            self.reserve_set_dict.pop(hart_id)
+        return valid
+
+    def get_word_list(self):
+        word_dict = dict()
+        for byte_addr, byte_value in self.mem_dict.items():
+            try:
+                word_dict[byte_addr >> 2][byte_addr & 0x3] = byte_value
+            except KeyError:
+                word_dict[byte_addr >> 2] = [0x0, 0x0, 0x0, 0x0]
+                word_dict[byte_addr >> 2][byte_addr & 0x3] = byte_value
+
+        word_list = []
+        for word_addr, word_value in word_dict.items():
+            if any(word_value):
+                word_list.append((word_addr, word_value))
+
+        return sorted(word_list, key=lambda x: x[0])
+
+    def print_mem(self):
+        word_list = self.get_word_list()
+
+        print("\nMEM:")
+        for word_addr, word_value in word_list:
+            word_value_str = " ".join([f"{x:02X}" for x in word_value])
+            print(f"    0x{word_addr << 2:08X}: {word_value_str}")
+        print()
+
+    def write_mem_file(self, mem_file_path):
+        with open(mem_file_path, "w") as fp:
+            word_list = self.get_word_list()
+
+            first = True
+            ptr_word_addr = -1
+            for word_addr, word_value in word_list:
+                word_value_str = " ".join([f"{x:02X}" for x in word_value])
+                if word_addr != ptr_word_addr:
+                    if not first:
+                        fp.write("\n")
+                    else:
+                        first = False
+                    fp.write(f"@{word_addr << 2:X}\n")
+                    ptr_word_addr = word_addr
+                fp.write(word_value_str + "\n")
+                ptr_word_addr += 1
+
+class Hart:
+    def __init__(self, hart_id, start_pc, mem, log):
+        self.hart_id = hart_id
         self.pc = signed32(start_pc)
         self.arf = [0x0 for x in range(32)]
         self.instret = 0
         self.mem = mem
-        self.log = ""
+        self.log = log
 
     def exec_instr(self):
 
-        instr = 0
-        for i in range(4):
-            if self.pc+i in self.mem:
-                instr += self.mem[self.pc+i] << 8*i
-            else:
-                break
+        instr = self.mem.read_instr(self.pc)
 
         opcode2 = bits(instr, 1, 0)
 
         # uncompressed
         if opcode2 == 0b11:
-            self.log += f"MEM[0x{self.pc:08X}] = 0x{instr:08X}: "
+            self.log.write(f"MEM[0x{self.pc:08X}] = 0x{instr:08X}: ")
             opcode5 = bits(instr, 6, 2)
             funct3 = bits(instr, 14, 12)
             funct7 = bits(instr, 31, 25)
@@ -67,7 +177,7 @@ class ArchState:
             # LUI
             if opcode5 == 0b01101:
                 imm20 = bits(instr, 31, 12)
-                self.log += f"LUI x{rd}, 0x{imm20:05X}\n"
+                self.log.write(f"LUI x{rd}, 0x{imm20:05X}\n")
                 result = imm20 << 12
                 self.write_arf(rd, result)
                 self.incr_pc(4)
@@ -76,7 +186,7 @@ class ArchState:
             elif opcode5 == 0b00101:
                 imm20 = bits(instr, 31, 12)
                 imm32 = imm20 << 12
-                self.log += f"AUIPC x{rd}, 0x{imm20:05X}\n"
+                self.log.write(f"AUIPC x{rd}, 0x{imm20:05X}\n")
                 result = signed32(self.pc + imm32)
                 self.write_arf(rd, result)
                 self.incr_pc(4)
@@ -88,7 +198,7 @@ class ArchState:
                 imm21 += bit(instr, 20) << 11
                 imm21 += bits(instr, 19, 12) << 12
                 imm32 = signed32(imm21, 21)
-                self.log += f"JAL x{rd}, 0x{imm21:06X}\n"
+                self.log.write(f"JAL x{rd}, 0x{imm21:06X}\n")
                 result = signed32(self.pc + 4)
                 self.write_arf(rd, result)
                 self.incr_pc(imm32)
@@ -97,7 +207,7 @@ class ArchState:
             elif opcode5 == 0b11001:
                 imm12 = bits(instr, 31, 20)
                 imm32 = signed32(imm12, 12)
-                self.log += f"JALR x{rd}, 0x{imm12:03X}(x{rs1})\n"
+                self.log.write(f"JALR x{rd}, 0x{imm12:03X}(x{rs1})\n")
                 result = signed32(self.pc + 4)
                 npc = signed32(self.arf[rs1] + imm32)
                 self.write_arf(rd, result)
@@ -113,7 +223,7 @@ class ArchState:
                 
                 # BEQ
                 if funct3 == 0b000:
-                    self.log += f"BEQ x{rs1}, x{rs2}, 0x{imm13:04X}\n"
+                    self.log.write(f"BEQ x{rs1}, x{rs2}, 0x{imm13:04X}\n")
                     if self.arf[rs1] == self.arf[rs2]:
                         self.incr_pc(imm32)
                     else:
@@ -121,7 +231,7 @@ class ArchState:
 
                 # BNE
                 elif funct3 == 0b001:
-                    self.log += f"BNE x{rs1}, x{rs2}, 0x{imm13:04X}\n"
+                    self.log.write(f"BNE x{rs1}, x{rs2}, 0x{imm13:04X}\n")
                     if self.arf[rs1] != self.arf[rs2]:
                         self.incr_pc(imm32)
                     else:
@@ -129,7 +239,7 @@ class ArchState:
 
                 # BLT
                 elif funct3 == 0b100:
-                    self.log += f"BLT x{rs1}, x{rs2}, 0x{imm13:04X}\n"
+                    self.log.write(f"BLT x{rs1}, x{rs2}, 0x{imm13:04X}\n")
                     if make_signed(self.arf[rs1]) < make_signed(self.arf[rs2]):
                         self.incr_pc(imm32)
                     else:
@@ -137,7 +247,7 @@ class ArchState:
 
                 # BGE
                 elif funct3 == 0b101:
-                    self.log += f"BGE x{rs1}, x{rs2}, 0x{imm13:04X}\n"
+                    self.log.write(f"BGE x{rs1}, x{rs2}, 0x{imm13:04X}\n")
                     if make_signed(self.arf[rs1]) >= make_signed(self.arf[rs2]):
                         self.incr_pc(imm32)
                     else:
@@ -145,7 +255,7 @@ class ArchState:
 
                 # BLTU
                 elif funct3 == 0b110:
-                    self.log += f"BLTU x{rs1}, x{rs2}, 0x{imm13:04X}\n"
+                    self.log.write(f"BLTU x{rs1}, x{rs2}, 0x{imm13:04X}\n")
                     if self.arf[rs1] < self.arf[rs2]:
                         self.incr_pc(imm32)
                     else:
@@ -153,14 +263,14 @@ class ArchState:
 
                 # BGEU
                 elif funct3 == 0b111:
-                    self.log += f"BGEU x{rs1}, x{rs2}, 0x{imm13:04X}\n"
+                    self.log.write(f"BGEU x{rs1}, x{rs2}, 0x{imm13:04X}\n")
                     if self.arf[rs1] >= self.arf[rs2]:
                         self.incr_pc(imm32)
                     else:
                         self.incr_pc(4)
 
                 else:
-                    self.log += f"illegal B-Type instr\n"
+                    self.log.write(f"illegal B-Type instr\n")
                     return False
 
             # L-Type
@@ -171,31 +281,31 @@ class ArchState:
 
                 # LB
                 if funct3 == 0b000:
-                    self.log += f"LB x{rd}, 0x{imm12:03X}(x{rs1})\n"
-                    value = signed32(self.read_mem(addr, 1), 8)
+                    self.log.write(f"LB x{rd}, 0x{imm12:03X}(x{rs1})\n")
+                    value = signed32(self.mem.read_data(addr, 1), 8)
 
                 # LH
                 elif funct3 == 0b001:
-                    self.log += f"LH x{rd}, 0x{imm12:03X}(x{rs1})\n"
-                    value = signed32(self.read_mem(addr, 2), 16)
+                    self.log.write(f"LH x{rd}, 0x{imm12:03X}(x{rs1})\n")
+                    value = signed32(self.mem.read_data(addr, 2), 16)
 
                 # LW
                 elif funct3 == 0b010:
-                    self.log += f"LW x{rd}, 0x{imm12:03X}(x{rs1})\n"
-                    value = self.read_mem(addr, 4)
+                    self.log.write(f"LW x{rd}, 0x{imm12:03X}(x{rs1})\n")
+                    value = self.mem.read_data(addr, 4)
 
                 # LBU
                 elif funct3 == 0b100:
-                    self.log += f"LBU x{rd}, 0x{imm12:03X}(x{rs1})\n"
-                    value = self.read_mem(addr, 1)
+                    self.log.write(f"LBU x{rd}, 0x{imm12:03X}(x{rs1})\n")
+                    value = self.mem.read_data(addr, 1)
 
                 # LHU
                 elif funct3 == 0b101:
-                    self.log += f"LHU x{rd}, 0x{imm12:03X}(x{rs1})\n"
-                    value = self.read_mem(addr, 2)
+                    self.log.write(f"LHU x{rd}, 0x{imm12:03X}(x{rs1})\n")
+                    value = self.mem.read_data(addr, 2)
 
                 else:
-                    self.log += f"illegal L-Type instr\n"
+                    self.log.write(f"illegal L-Type instr\n")
                     return False
 
                 self.write_arf(rd, value)
@@ -211,21 +321,21 @@ class ArchState:
 
                 # SB
                 if funct3 == 0b000:
-                    self.log += f"SB x{rs2}, 0x{imm12:03X}(x{rs1})\n"
-                    self.write_mem(addr, value, 1)
+                    self.log.write(f"SB x{rs2}, 0x{imm12:03X}(x{rs1})\n")
+                    self.mem.write_data(addr, value, 1)
                 
                 # SH
                 elif funct3 == 0b001:
-                    self.log += f"SH x{rs2}, 0x{imm12:03X}(x{rs1})\n"
-                    self.write_mem(addr, value, 2)
+                    self.log.write(f"SH x{rs2}, 0x{imm12:03X}(x{rs1})\n")
+                    self.mem.write_data(addr, value, 2)
 
                 # SW
                 elif funct3 == 0b010:
-                    self.log += f"SW x{rs2}, 0x{imm12:03X}(x{rs1})\n"
-                    self.write_mem(addr, value, 4)
+                    self.log.write(f"SW x{rs2}, 0x{imm12:03X}(x{rs1})\n")
+                    self.mem.write_data(addr, value, 4)
 
                 else:
-                    self.log += f"illegal S-Type instr\n"
+                    self.log.write(f"illegal S-Type instr\n")
                     return False
 
                 self.incr_pc(4)
@@ -238,31 +348,31 @@ class ArchState:
 
                 # ADDI
                 if funct3 == 0b000:
-                    self.log += f"ADDI x{rd}, x{rs1}, 0x{imm12:03X}\n"
+                    self.log.write(f"ADDI x{rd}, x{rs1}, 0x{imm12:03X}\n")
                     result = signed32(self.arf[rs1] + imm32)
 
                 # SLLI
                 elif funct3 == 0b001:
-                    self.log += f"SLLI x{rd}, x{rs1}, 0x{shamt:02X}\n"
+                    self.log.write(f"SLLI x{rd}, x{rs1}, 0x{shamt:02X}\n")
                     result = signed32(self.arf[rs1] << shamt)
 
                 # SLTI
                 elif funct3 == 0b010:
 
                     if funct7 == 0b0000000:
-                        self.log += f"SLTI x{rd}, x{rs1}, 0x{imm12:03X}\n"
+                        self.log.write(f"SLTI x{rd}, x{rs1}, 0x{imm12:03X}\n")
                         if make_signed(self.arf[rs1]) < make_signed(imm32):
                             result = 1
                         else:
                             result = 0
 
                     else:
-                        self.log += f"illegal I-Type instr\n"
+                        self.log.write(f"illegal I-Type instr\n")
                         return False
 
                 # SLTIU
                 elif funct3 == 0b011:
-                    self.log += f"SLTIU x{rd}, x{rs1}, 0x{imm12:03X}\n"
+                    self.log.write(f"SLTIU x{rd}, x{rs1}, 0x{imm12:03X}\n")
                     if self.arf[rs1] < imm32:
                         result = 1
                     else:
@@ -270,7 +380,7 @@ class ArchState:
 
                 # XORI
                 elif funct3 == 0b100:
-                    self.log += f"XORI x{rd}, x{rs1}, 0x{imm12:03X}\n"
+                    self.log.write(f"XORI x{rd}, x{rs1}, 0x{imm12:03X}\n")
                     result = signed32(self.arf[rs1] ^ imm32)
 
                 # SR*I
@@ -278,30 +388,30 @@ class ArchState:
                         
                     # SRLI
                     if funct7 == 0b0000000:
-                        self.log += f"SRLI x{rd}, x{rs1}, 0x{shamt:02X}\n"
+                        self.log.write(f"SRLI x{rd}, x{rs1}, 0x{shamt:02X}\n")
                         result = self.arf[rs1] >> shamt
 
                     # SRAI
                     elif funct7 == 0b0100000:
-                        self.log += f"SRAI x{rd}, x{rs1}, 0x{shamt:02X}\n"
+                        self.log.write(f"SRAI x{rd}, x{rs1}, 0x{shamt:02X}\n")
                         result = signed32(self.arf[rs1] >> shamt, 32-shamt)
 
                     else:
-                        self.log += f"illegal I-Type instr\n"
+                        self.log.write(f"illegal I-Type instr\n")
                         return False
 
                 # ORI
                 elif funct3 == 0b110:
-                    self.log += f"ORI x{rd}, x{rs1}, 0x{imm12:03X}\n"
+                    self.log.write(f"ORI x{rd}, x{rs1}, 0x{imm12:03X}\n")
                     result = signed32(self.arf[rs1] | imm32)
 
                 # ANDI
                 elif funct3 == 0b111:
-                    self.log += f"ORI x{rd}, x{rs1}, 0x{imm12:03X}\n"
+                    self.log.write(f"ORI x{rd}, x{rs1}, 0x{imm12:03X}\n")
                     result = signed32(self.arf[rs1] & imm32)
 
                 else:
-                    self.log += f"illegal I-Type instr\n"
+                    self.log.write(f"illegal I-Type instr\n")
                     return False
 
                 self.write_arf(rd, result)
@@ -315,33 +425,33 @@ class ArchState:
 
                     # ADD
                     if funct7 == 0b0000000:
-                        self.log += f"ADD x{rd}, x{rs1}, x{rs2}\n"
+                        self.log.write(f"ADD x{rd}, x{rs1}, x{rs2}\n")
                         result = signed32(self.arf[rs1] + self.arf[rs2])
 
                     # SUB
                     elif funct7 == 0b0100000:
-                        self.log += f"ADD x{rd}, x{rs1}, x{rs2}\n"
+                        self.log.write(f"ADD x{rd}, x{rs1}, x{rs2}\n")
                         result = signed32(self.arf[rs1] - self.arf[rs2])
 
                     else:
-                        self.log += f"illegal R-Type instr\n"
+                        self.log.write(f"illegal R-Type instr\n")
                         return False
 
                 # SLL
                 elif funct3 == 0b001:
                     shamt = bits(self.arf[rs2], 4, 0)
                     if funct7 != 0b0000000:
-                        self.log += f"illegal R-Type instr\n"
+                        self.log.write(f"illegal R-Type instr\n")
                         return False
-                    self.log += f"SLL x{rd}, x{rs1}, x{rs2}\n"
+                    self.log.write(f"SLL x{rd}, x{rs1}, x{rs2}\n")
                     result = signed32(self.arf[rs1] << shamt)
 
                 # SLT
                 elif funct3 == 0b010:
                     if funct7 != 0b0000000:
-                        self.log += f"illegal R-Type instr\n"
+                        self.log.write(f"illegal R-Type instr\n")
                         return False
-                    self.log += f"SLT x{rd}, x{rs1}, x{rs2}\n"
+                    self.log.write(f"SLT x{rd}, x{rs1}, x{rs2}\n")
                     if make_signed(self.arf[rs1]) < make_signed(self.arf[rs2]):
                         result = 1
                     else:
@@ -350,9 +460,9 @@ class ArchState:
                 # SLTU
                 elif funct3 == 0b011:
                     if funct7 != 0b0000000:
-                        self.log += f"illegal R-Type instr\n"
+                        self.log.write(f"illegal R-Type instr\n")
                         return False
-                    self.log += f"SLTU x{rd}, x{rs1}, x{rs2}\n"
+                    self.log.write(f"SLTU x{rd}, x{rs1}, x{rs2}\n")
                     if self.arf[rs1] < self.arf[rs2]:
                         result = 1
                     else:
@@ -361,9 +471,9 @@ class ArchState:
                 # XOR
                 elif funct3 == 0b100:
                     if funct7 != 0b0000000:
-                        self.log += f"illegal R-Type instr\n"
+                        self.log.write(f"illegal R-Type instr\n")
                         return False
-                    self.log += f"XOR x{rd}, x{rs1}, x{rs2}\n"
+                    self.log.write(f"XOR x{rd}, x{rs1}, x{rs2}\n")
                     result = signed32(self.arf[rs1] ^ self.arf[rs2])
 
                 # SR*
@@ -372,36 +482,36 @@ class ArchState:
 
                     # SRL
                     if funct7 == 0b0000000:
-                        self.log += f"SRL x{rd}, x{rs1}, x{rs2}\n"
+                        self.log.write(f"SRL x{rd}, x{rs1}, x{rs2}\n")
                         result = self.arf[rs1] >> shamt
 
                     # SRA
                     elif funct7 == 0b0100000:
-                        self.log += f"SRA x{rd}, x{rs1}, x{rs2}\n"
+                        self.log.write(f"SRA x{rd}, x{rs1}, x{rs2}\n")
                         result = signed32(self.arf[rs1] >> shamt, 32-shamt)
 
                     else:
-                        self.log += f"illegal R-Type instr\n"
+                        self.log.write(f"illegal R-Type instr\n")
                         return False
                     
                 # OR
                 elif funct3 == 0b110:
                     if funct7 != 0b0000000:
-                        self.log += f"illegal R-Type instr\n"
+                        self.log.write(f"illegal R-Type instr\n")
                         return False
-                    self.log += f"OR x{rd}, x{rs1}, x{rs2}\n"
+                    self.log.write(f"OR x{rd}, x{rs1}, x{rs2}\n")
                     result = signed32(self.arf[rs1] | self.arf[rs2])
                     
                 # AND
                 elif funct3 == 0b111:
                     if funct7 != 0b0000000:
-                        self.log += f"illegal R-Type instr\n"
+                        self.log.write(f"illegal R-Type instr\n")
                         return False
-                    self.log += f"AND x{rd}, x{rs1}, x{rs2}\n"
+                    self.log.write(f"AND x{rd}, x{rs1}, x{rs2}\n")
                     result = signed32(self.arf[rs1] & self.arf[rs2])
 
                 else:
-                    self.log += f"illegal R-Type instr\n"
+                    self.log.write(f"illegal R-Type instr\n")
                     return False
 
                 self.write_arf(rd, result)
@@ -415,41 +525,41 @@ class ArchState:
                 if funct3 == 0b000:
 
                     if fm == 0b0000:
-                        self.log += f"FENCE "
+                        self.log.write(f"FENCE ")
 
                     elif fm == 0b1000:
-                        self.log += f"FENCE.TSO "
+                        self.log.write(f"FENCE.TSO ")
 
                     else:
-                        self.log += f"illegal FENCE instr\n"
+                        self.log.write(f"illegal FENCE instr\n")
                         return False
                     
                     if bit(instr, 27):
-                        self.log += "i"
+                        self.log.write("i")
                     if bit(instr, 26):
-                        self.log += "o"
+                        self.log.write("o")
                     if bit(instr, 25):
-                        self.log += "r"
+                        self.log.write("r")
                     if bit(instr, 24):
-                        self.log += "w"
+                        self.log.write("w")
 
-                    self.log += f", "
+                    self.log.write(f", ")
 
                     if bit(instr, 23):
-                        self.log += "i"
+                        self.log.write("i")
                     if bit(instr, 22):
-                        self.log += "o"
+                        self.log.write("o")
                     if bit(instr, 21):
-                        self.log += "r"
+                        self.log.write("r")
                     if bit(instr, 20):
-                        self.log += "w"
+                        self.log.write("w")
 
                 # FENCE.I
                 elif funct3 == 0b001:
                     pass
 
                 else:
-                    self.log += f"illegal FENCE instr\n"
+                    self.log.write(f"illegal FENCE instr\n")
                     return False
 
                 self.incr_pc(4)
@@ -461,21 +571,21 @@ class ArchState:
                 if funct3 == 0b000:
 
                     if funct7 != 0 or rs1 != 0 or rd != 0:
-                        self.log += f"illegal ECALL/EBREAK instr\n"
+                        self.log.write(f"illegal ECALL/EBREAK instr\n")
                         return False
 
                     # ECALL
                     if rd == 0b00000:
-                        self.log += f"ECALL"
+                        self.log.write(f"ECALL")
                         return False
                     
                     # EBREAK
                     elif rd == 0b00001:
-                        self.log += f"EBREAK"
+                        self.log.write(f"EBREAK")
                         return False
                 
                     else:
-                        self.log += f"illegal ECALL/EBREAK instr\n"
+                        self.log.write(f"illegal ECALL/EBREAK instr\n")
                         return False
                     
                 # CSR
@@ -485,36 +595,36 @@ class ArchState:
                     
                     # CSRRW
                     if funct3 == 0b001:
-                        self.log += f"CSRRW x{rd}, 0x{csr:03X}, x{rs1}"
+                        self.log.write(f"CSRRW x{rd}, 0x{csr:03X}, x{rs1}")
                         return False
                         
                     # CSRRS
                     elif funct3 == 0b010:
-                        self.log += f"CSRRS x{rd}, 0x{csr:03X}, x{rs1}"
+                        self.log.write(f"CSRRS x{rd}, 0x{csr:03X}, x{rs1}")
                         return False
                         
                     # CSRRC
                     elif funct3 == 0b011:
-                        self.log += f"CSRRC x{rd}, 0x{csr:03X}, x{rs1}"
+                        self.log.write(f"CSRRC x{rd}, 0x{csr:03X}, x{rs1}")
                         return False
                         
                     # CSRRWI
                     elif funct3 == 0b101:
-                        self.log += f"CSRRWI x{rd}, 0x{csr:03X}, 0x{uimm:02X}"
+                        self.log.write(f"CSRRWI x{rd}, 0x{csr:03X}, 0x{uimm:02X}")
                         return False
                         
                     # CSRRSI
                     elif funct3 == 0b110:
-                        self.log += f"CSRRSI x{rd}, 0x{csr:03X}, 0x{uimm:02X}\n"
+                        self.log.write(f"CSRRSI x{rd}, 0x{csr:03X}, 0x{uimm:02X}\n")
                         return False
                         
                     # CSRRCI
                     elif funct3 == 0b111:
-                        self.log += f"CSRRCI x{rd}, 0x{csr:03X}, 0x{uimm:02X}\n"
+                        self.log.write(f"CSRRCI x{rd}, 0x{csr:03X}, 0x{uimm:02X}\n")
                         return False
                 
                     else:
-                        self.log += f"illegal SYS instr\n"
+                        self.log.write(f"illegal SYS instr\n")
                         return False
                     
                 self.incr_pc(4)
@@ -523,32 +633,32 @@ class ArchState:
             elif opcode5 == 0b01100:
                 
                 if funct7 != 0b0000001:
-                    self.log += f"illegal M-Ext instr\n"
+                    self.log.write(f"illegal M-Ext instr\n")
                     return False
 
                 # MUL
                 if funct3 == 0b000:
-                    self.log += f"MUL x{rd}, x{rs1}, x{rs2}\n"
+                    self.log.write(f"MUL x{rd}, x{rs1}, x{rs2}\n")
                     result = signed32(self.arf[rs1] * self.arf[rs2])
                 
                 # MULH
                 elif funct3 == 0b001:
-                    self.log += f"MULH x{rd}, x{rs1}, x{rs2}\n"
+                    self.log.write(f"MULH x{rd}, x{rs1}, x{rs2}\n")
                     result = signed32((make_signed(self.arf[rs1]) * make_signed(self.arf[rs2])) >> 32)
 
                 # MULHSU
                 elif funct3 == 0b010:
-                    self.log += f"MULHSU x{rd}, x{rs1}, x{rs2}\n"
+                    self.log.write(f"MULHSU x{rd}, x{rs1}, x{rs2}\n")
                     result = signed32((make_signed(self.arf[rs1]) * self.arf[rs2]) >> 32)
 
                 # MULHU
                 elif funct3 == 0b011:
-                    self.log += f"MULHU x{rd}, x{rs1}, x{rs2}\n"
+                    self.log.write(f"MULHU x{rd}, x{rs1}, x{rs2}\n")
                     result = signed32((self.arf[rs1] * self.arf[rs2]) >> 32)
 
                 # DIV
                 elif funct3 == 0b100:
-                    self.log += f"DIV x{rd}, x{rs1}, x{rs2}\n"
+                    self.log.write(f"DIV x{rd}, x{rs1}, x{rs2}\n")
                     if self.arf[rs2] == 0:
                         result = 0xFFFFFFFF
                     # elif self.arf[rs1] == 0x80000000 and self.arf[rs2] == 0xFFFFFFFF:
@@ -559,7 +669,7 @@ class ArchState:
 
                 # DIVU
                 elif funct3 == 0b101:
-                    self.log += f"DIVU x{rd}, x{rs1}, x{rs2}\n"
+                    self.log.write(f"DIVU x{rd}, x{rs1}, x{rs2}\n")
                     if self.arf[rs2] == 0:
                         result = 0xFFFFFFFF
                     else:
@@ -567,7 +677,7 @@ class ArchState:
 
                 # REM
                 elif funct3 == 0b110:
-                    self.log += f"REM x{rd}, x{rs1}, x{rs2}\n"
+                    self.log.write(f"REM x{rd}, x{rs1}, x{rs2}\n")
                     if self.arf[rs2] == 0:
                         result = self.arf[rs1]
                     else:
@@ -576,7 +686,7 @@ class ArchState:
 
                 # REMU
                 elif funct3 == 0b111:
-                    self.log += f"REM x{rd}, x{rs1}, x{rs2}\n"
+                    self.log.write(f"REM x{rd}, x{rs1}, x{rs2}\n")
                     if self.arf[rs2] == 0:
                         result = self.arf[rs1]
                     else:
@@ -588,112 +698,96 @@ class ArchState:
             # A-Ext
             elif opcode5 == 0b01011:
                 funct5 = bits(instr, 31, 27)
+                aq = bit(instr, 26)
+                rl = bit(instr, 25)
+                if aq:
+                    if rl:
+                        opcode_suffix = ".AQRL"
+                    else:
+                        opcode_suffix = ".AQ"
+                elif rl:
+                    opcode_suffix = ".RL"
+                else:
+                    opcode_suffix = ""
 
                 if funct3 != 0b010:
-                    self.log += f"illegal A-Ext instr\n"
+                    self.log.write(f"illegal A-Ext instr\n")
                     return False
 
+                # LR.W
                 if funct5 == 0b00010:
-                    self.log += f"LR.W"
+                    self.log.write(f"LR.W{opcode_suffix} x{rd}, (x{rs1})\n")
+
+                # SC.W
+                elif funct5 == 0b00011:
+                    self.log.write(f"SC.W{opcode_suffix} x{rd}, x{rs2}, (x{rs1})\n")
+
+                # AMO*
                 else:
                     # TODO
                     return False
 
-                self.log += f" x{rd}, x{rs2}, (x{rs1})\n"
-
-                # LR.W
-                if funct5 == 0b00010:
-                    # TODO
-                    return False
+                self.log.write(f" x{rd}, x{rs2}, (x{rs1})\n")
 
                 if self.arf[rs1] % 4 != 0:
-                    self.log += f"misaligned AMO"
+                    self.log.write(f"misaligned AMO")
                     return False
 
-                self.write_mem(addr, write_value)
+                self.mem.write_data(addr, write_value, 4)
                 self.write_arf(rd, read_value)
                 self.incr_pc(4)
 
             else:
-                self.log += f"illegal Uncompressed instr\n"
+                self.log.write(f"illegal Uncompressed instr\n")
                 return False
 
         # compressed
         else:
             instr = bits(instr, 15, 0)
-            self.log += f"MEM[0x{self.pc:08X}] = 0x{instr:04X}: "
+            self.log.write(f"MEM[0x{self.pc:08X}] = 0x{instr:04X}: ")
 
             if opcode2 == 0b00:
-                self.log += f"illegal Compressed instr\n"
+                self.log.write(f"illegal Compressed instr\n")
                 return False
             
             elif opcode2 == 0b01:
-                self.log += f"illegal Compressed instr\n"
+                self.log.write(f"illegal Compressed instr\n")
                 return False
 
             elif opcode2 == 0b10:
                 rs2 = bits(instr, 6, 2)
                 uimm = bits(instr, 12, 9) << 2
                 uimm += bits(instr, 8, 7) << 6
-                self.log += f"C.SWSP x{rs2}, 0x{uimm:02X}\n"
+                self.log.write(f"C.SWSP x{rs2}, 0x{uimm:02X}\n")
                 addr = bits(self.arf[2] + uimm, 31, 0)
                 value = self.arf[rs2]
-                self.write_mem(addr, value, 4)
+                self.mem.write_data(addr, value, 4)
                 self.incr_pc(2)
                 
             else:
-                self.log += f"illegal Compressed instr\n"
+                self.log.write(f"illegal Compressed instr\n")
                 return False
 
         return True
     
     def write_arf(self, dest, value):
         if dest == 0:
-            self.log += f"    ARF[x0] = 0x00000000 <=/= 0x{value:08X}\n"
+            self.log.write(f"    ARF[x0] = 0x00000000 <=/= 0x{value:08X}\n")
         else:
-            self.log += f"    ARF[x{dest}] <= 0x{value:08X}\n"
+            self.log.write(f"    ARF[x{dest}] <= 0x{value:08X}\n")
             self.arf[dest] = signed32(value)
 
     def write_pc(self, value):
-        self.log += f"    PC <= 0x{value:08X}\n"
+        self.log.write(f"    PC <= 0x{value:08X}\n")
         self.pc = signed32(value)
     
     def incr_pc(self, incr):
         self.write_pc(signed32(self.pc + incr))
 
-    def read_mem(self, addr, num_bytes):
-        value = 0
-        for i in range(num_bytes):
-            sub_addr = signed32(addr + i)
-            sub_value = self.mem[sub_addr]
-            self.log += f"    MEM[0x{sub_addr:08X}] = 0x{sub_value:02X}\n"
-            value += sub_value << 8*i
-        return value
-
-    def write_mem(self, addr, value, num_bytes):
-        for i in range(num_bytes):
-            sub_addr = signed32(addr + i)
-            sub_value = bits(value, 8*i+7, 8*i)
-            self.log += f"    MEM[0x{sub_addr:08X}] <= 0x{sub_value:02X}\n"
-            self.mem[sub_addr] = sub_value
-
-    def print_log(self):
-        print(self.log)
-
     def print_arf(self):
         print(f"ARF:")
         for ar, value in enumerate(self.arf):
             print(f"    {ar:2d}: 0x{value:08X}")
-
-    def print_mem(self):
-        
-        word_list = get_word_list(self.mem)
-
-        print("\nMEM:")
-        for word_addr, word_value in word_list:
-            word_value_str = " ".join([f"{x:02X}" for x in word_value])
-            print(f"    0x{word_addr << 2:08X}: {word_value_str}")
-        print()
 
 if __name__ == "__main__":
     print(" ".join(sys.argv))
@@ -706,60 +800,19 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # print(args)
 
-    # read mem
-    with open(args.input_mem_file_path, "r") as fp:
-        input_mem_lines = fp.readlines()
+    # init arch components
+    log = Log()
+    mem = Mem(args.input_mem_file_path, log)
+    hart = Hart(0, args.start_pc, mem, log)
 
-    # parse input mem
-    mem = dict()
-    ptr = 0x0
-    for mem_line in input_mem_lines:
-        # ignore all comments on the right
-        if "//" in mem_line:
-            mem_line = mem_line[:mem_line.index("//")]
-        mem_line = mem_line.lstrip().rstrip()
-
-        # ptr change
-        if mem_line.startswith("@"):
-            ptr = int(mem_line[1:], 16)
-
-        # byte fill
-        elif mem_line:
-            while mem_line:
-                # print(f"mem_line: {mem_line}")
-                mem_line = mem_line.lstrip()
-                mem[ptr] = int(mem_line[:2], 16)
-                mem_line = mem_line[2:]
-                ptr += 1
-            
-        # otherwise, empty line after removal of comments
-
-    # init arch state
-    arch_state = ArchState(args.start_pc, mem)
-    arch_state.print_mem()
+    mem.print_mem()
 
     # execute program
-    while arch_state.exec_instr():
+    while hart.exec_instr():
         continue
 
-    arch_state.print_log()
-    arch_state.print_arf()
-    arch_state.print_mem()
+    log.print_log()
+    hart.print_arf()
+    mem.print_mem()
 
-    # write output mem
-    with open(args.output_mem_file_path, "w") as fp:
-        word_list = get_word_list(mem)
-
-        first = True
-        ptr_word_addr = -1
-        for word_addr, word_value in word_list:
-            word_value_str = " ".join([f"{x:02X}" for x in word_value])
-            if word_addr != ptr_word_addr:
-                if not first:
-                    fp.write("\n")
-                else:
-                    first = False
-                fp.write(f"@{word_addr << 2:X}\n")
-                ptr_word_addr = word_addr
-            fp.write(word_value_str + "\n")
-            ptr_word_addr += 1
+    mem.write_mem_file(args.output_mem_file_path)
