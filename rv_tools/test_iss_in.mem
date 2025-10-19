@@ -91,6 +91,10 @@ B3 FE 8D 00 // 0x008DFEB3: AND x29, x27, x8
 // CSRRWI x22, 1233, 30
 // csrrsi x21, 0x808, 0
 // CSRRCI tp, 0x99, 9
+// mret
+// WFI
+// SRET
+// sfence.vma t5, a5
 
 23 A0 12 60 // 0x6012A023: SW x1, 1536(x5)
 23 A2 22 60 // 0x6022A223: SW x2, 1540(x5)

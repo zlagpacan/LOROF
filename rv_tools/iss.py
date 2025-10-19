@@ -681,25 +681,57 @@ class Hart:
             # SYS
             elif opcode5 == 0b11100:
 
-                # ECALL/EBREAK
+                # privilege switchers
                 if funct3 == 0b000:
 
-                    if funct7 != 0 or rs1 != 0 or rd != 0:
-                        self.log.write(f"illegal ECALL/EBREAK instr\n")
-                        return False
+                    # E*
+                    if funct7 == 0:
 
-                    # ECALL
-                    if rs2 == 0b00000:
-                        self.log.write(f"ECALL\n")
-                        return False
+                        # ECALL
+                        if rs2 == 0b00000:
+                            self.log.write(f"ECALL\n")
+                            return False
+                        
+                        # EBREAK
+                        elif rs2 == 0b00001:
+                            self.log.write(f"EBREAK\n")
+                            return False
                     
-                    # EBREAK
-                    elif rs2 == 0b00001:
-                        self.log.write(f"EBREAK\n")
-                        return False
-                
-                    else:
-                        self.log.write(f"illegal ECALL/EBREAK instr\n")
+                        else:
+                            self.log.write(f"illegal SYS instr\n")
+                            return False
+                        
+                    # MRET
+                    elif funct7 == 0b0011000:
+
+                        if rs2 == 0b00010:
+                            self.log.write(f"MRET\n")
+                            return False
+                    
+                        else:
+                            self.log.write(f"illegal SYS instr\n")
+                            return False
+                        
+                    # WFI/SRET
+                    elif funct7 == 0b0001000:
+
+                        # WFI
+                        if rs2 == 0b00101:
+                            self.log.write(f"WFI\n")
+                            return False
+                        
+                        # SRET
+                        elif rs2 == 0b00010:
+                            self.log.write(f"SRET\n")
+                            return False
+                    
+                        else:
+                            self.log.write(f"illegal SYS instr\n")
+                            return False
+                        
+                    # SFENCE.VMA
+                    elif funct7 == 0b0001001:
+                        self.log.write(f"SFENCE.VMA x{rs1}, x{rs2}")
                         return False
                     
                 # CSR
@@ -935,14 +967,61 @@ class Hart:
         else:
             instr = bits(instr, 15, 0)
             self.log.write(f"    MEM[0x{self.pc:08X}] = 0x{instr:04X}: ")
+            opcode3 = bits(instr, 15, 13)
 
             if opcode2 == 0b00:
-                self.log.write(f"illegal compressed instr\n")
-                return False
+
+                # C.ADDI4SPN
+                if opcode3:
+                    uimm = bits(instr, 12, 11) << 4
+                    uimm += bits(instr, 10, 7) << 6
+                    uimm += bit(instr, 6) << 2
+                    uimm += bit(instr, 5) << 3
+                    rd = bits(instr, 4, 2) + 8
+                    self.log.write(f"C.ADDI4SPN x{rd}, 0x{uimm:03X}\n")
+                    value = signed32(self.read_arf(2) + uimm)
+                    self.write_arf(rd, value)
+                    self.incr_pc(2)
+
+                # C.LW
+                elif opcode3:
+                    uimm = bits(instr, 12, 10) << 3
+                    uimm += bit(instr, 6) << 2
+                    uimm += bit(instr, 5) << 6
+                    rs1 = bits(instr, 9, 7) + 8
+                    rd = bits(instr, 4, 2) + 8
+                    self.log.write(f"C.LW x{rd}, 0x{uimm:02X}\n")
+                    addr = signed32(self.read_arf(rs1) + uimm)
+                    value = self.mem.read_data(addr, 4)
+                    self.write_arf(rd, value)
+                    self.incr_pc(2)
+
+                # C.SW
+                elif opcode3:
+                    uimm = bits(instr, 12, 10) << 3
+                    uimm += bit(instr, 6) << 2
+                    uimm += bit(instr, 5) << 6
+                    rs1 = bits(instr, 9, 7) + 8
+                    rs2 = bits(instr, 4, 2) + 8
+                    self.log.write(f"C.SW x{rs2}, 0x{uimm:02X}\n")
+                    addr = signed32(self.read_arf(rs1) + uimm)
+                    self.mem.write_data(addr, self.read_arf(rs2), 4)
+                    self.incr_pc(2)
+
+                else:
+                    self.log.write(f"illegal compressed instr\n")
+                    return False
             
             elif opcode2 == 0b01:
-                self.log.write(f"illegal compressed instr\n")
-                return False
+                
+                # C.NOP
+                if opcode3 == 0b000:
+                    self.log.write(f"illegal compressed instr\n")
+                    return False
+
+                else:
+                    self.log.write(f"illegal compressed instr\n")
+                    return False
 
             elif opcode2 == 0b10:
                 rs2 = bits(instr, 6, 2)

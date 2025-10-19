@@ -91,6 +91,10 @@ fence.i
 // CSRRWI x22, 1233, 30
 // csrrsi x21, 0x808, 0
 // CSRRCI tp, 0x99, 9
+// mret
+// WFI
+// SRET
+// sfence.vma t5, a5
 
 sw x1, 0x600(x5)
 sw x2, 0x604(x5)
