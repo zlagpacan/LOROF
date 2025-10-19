@@ -972,11 +972,14 @@ class Hart:
             if opcode2 == 0b00:
 
                 # C.ADDI4SPN
-                if opcode3:
+                if opcode3 == 0b000:
                     uimm = bits(instr, 12, 11) << 4
                     uimm += bits(instr, 10, 7) << 6
                     uimm += bit(instr, 6) << 2
                     uimm += bit(instr, 5) << 3
+                    if uimm == 0:
+                        self.log.write(f"illegal all 0's instr\n")
+                        return False
                     rd = bits(instr, 4, 2) + 8
                     self.log.write(f"C.ADDI4SPN x{rd}, 0x{uimm:03X}\n")
                     value = signed32(self.read_arf(2) + uimm)
@@ -984,7 +987,7 @@ class Hart:
                     self.incr_pc(2)
 
                 # C.LW
-                elif opcode3:
+                elif opcode3 == 0b010:
                     uimm = bits(instr, 12, 10) << 3
                     uimm += bit(instr, 6) << 2
                     uimm += bit(instr, 5) << 6
@@ -997,7 +1000,7 @@ class Hart:
                     self.incr_pc(2)
 
                 # C.SW
-                elif opcode3:
+                elif opcode3 == 0b110:
                     uimm = bits(instr, 12, 10) << 3
                     uimm += bit(instr, 6) << 2
                     uimm += bit(instr, 5) << 6
@@ -1014,24 +1017,263 @@ class Hart:
             
             elif opcode2 == 0b01:
                 
-                # C.NOP
+                # C.NOP/C.ADDI
                 if opcode3 == 0b000:
-                    self.log.write(f"illegal compressed instr\n")
-                    return False
+                    imm = bit(instr, 12) << 5
+                    imm += bits(instr, 6, 2)
+                    imm32 = signed32(imm, 6)
+                    rd = bits(instr, 11, 7)
+                    self.log.write(f"C.ADDI x{rd}, 0x{imm:02X}\n")
+                    result = signed32(self.read_arf(rd) + imm32)
+                    self.write_arf(rd, result)
+                    self.incr_pc(2)
+
+                # C.JAL
+                elif opcode3 == 0b001:
+                    imm = bit(instr, 12) << 11
+                    imm += bit(instr, 11) << 4
+                    imm += bits(instr, 10, 9) << 8
+                    imm += bit(instr, 8) << 10
+                    imm += bit(instr, 7) << 6
+                    imm += bit(instr, 6) << 7
+                    imm += bits(instr, 5, 3) << 1
+                    imm += bit(instr, 2) << 5
+                    imm32 = signed32(imm, 12)
+                    self.log.write(f"C.JAL 0x{imm:03X}\n")
+                    result = signed32(self.pc + 2)
+                    self.write_arf(1, result)
+                    self.incr_pc(imm32)
+
+                # C.LI
+                elif opcode3 == 0b010:
+                    imm = bit(instr, 12) << 5
+                    imm += bits(instr, 6, 2)
+                    imm32 = signed32(imm, 6)
+                    rd = bits(instr, 11, 7)
+                    self.log.write(f"C.LI x{rd}, 0x{imm:02X}\n")
+                    result = imm32
+                    self.write_arf(rd, result)
+                    self.incr_pc(2)
+
+                # C.ADDI16SP/C.LUI
+                elif opcode3 == 0b011:
+
+                    # C.ADDI16SP
+                    if bits(instr, 11, 7) == 2:
+                        imm = bit(instr, 12) << 9
+                        imm += bit(instr, 6) << 4
+                        imm += bit(instr, 5) << 6
+                        imm += bits(instr, 4, 3) << 7
+                        imm += bit(instr, 2) << 5
+                        imm32 = signed32(imm, 10)
+                        self.log.write(f"C.ADDI16SP 0x{imm:03X}\n")
+                        result = signed32(self.read_arf(2) + imm32)
+                        self.write_arf(2, result)
+
+                    # C.LUI
+                    else:
+                        imm = bit(instr, 12) << 17
+                        imm += bits(instr, 6, 2) << 12
+                        imm32 = signed32(imm, 18)
+                        rd = bits(instr, 11, 7)
+                        self.log.write(f"C.LUI x{rd}, 0x{imm >> 12:02X}\n")
+                        result = imm32
+                        self.write_arf(rd, result)
+
+                    self.incr_pc(2)
+
+                # C.SRLI/C.SRAI/C.ANDI/C.SUB/C.XOR/C.OR/C.AND
+                elif opcode3 == 0b100:
+                    funct2 = bits(instr, 11, 10)
+                    rd = bits(instr, 9, 7) + 8
+
+                    # C.SRLI
+                    if funct2 == 0b00:
+                        shamt = bits(instr, 6, 2)
+                        self.log.write(f"C.SRLI x{rd}, 0x{shamt:02X}\n")
+                        result = signed32(self.read_arf(rd) >> shamt)
+
+                    # C.SRAI
+                    elif funct2 == 0b01:
+                        shamt = bits(instr, 6, 2)
+                        self.log.write(f"C.SRAI x{rd}, 0x{shamt:02X}\n")
+                        result = signed32(self.read_arf(rd) >> shamt, 32-shamt)
+
+                    # C.ANDI
+                    elif funct2 == 0b10:
+                        imm = bit(instr, 12) << 5
+                        imm += bits(instr, 6, 2)
+                        imm32 = signed32(imm, 6)
+                        self.log.write(f"C.ANDI x{rd}, 0x{imm:02X}\n")
+                        result = signed32(self.read_arf(rd) & imm32)
+
+                    # C.SUB/C.XOR/C.OR/C.AND
+                    elif funct2 == 0b11:
+                        funct2_2 = bits(instr, 6, 5)
+                        rs2 = bits(instr, 4, 2) + 8
+                        
+                        # C.SUB
+                        if funct2_2 == 0b00:
+                            self.log.write(f"C.SUB x{rd}, x{rs2}\n")
+                            result = signed32(self.read_arf(rd) - self.read_arf(rs2))
+
+                        # C.XOR
+                        elif funct2_2 == 0b01:
+                            self.log.write(f"C.XOR x{rd}, x{rs2}\n")
+                            result = signed32(self.read_arf(rd) ^ self.read_arf(rs2))
+
+                        # C.OR
+                        elif funct2_2 == 0b10:
+                            self.log.write(f"C.OR x{rd}, x{rs2}\n")
+                            result = signed32(self.read_arf(rd) | self.read_arf(rs2))
+
+                        # C.AND
+                        elif funct2_2 == 0b11:
+                            self.log.write(f"C.AND x{rd}, x{rs2}\n")
+                            result = signed32(self.read_arf(rd) & self.read_arf(rs2))
+
+                        else:
+                            self.log.write(f"illegal compressed instr\n")
+                            return False
+
+                    else:
+                        self.log.write(f"illegal compressed instr\n")
+                        return False
+
+                    self.write_arf(rd, result)
+                    self.incr_pc(2)
+
+                # C.J
+                elif opcode3 == 0b101:
+                    imm = bit(instr, 12) << 11
+                    imm += bit(instr, 11) << 4
+                    imm += bits(instr, 10, 9) << 8
+                    imm += bit(instr, 8) << 10
+                    imm += bit(instr, 7) << 6
+                    imm += bit(instr, 6) << 7
+                    imm += bits(instr, 5, 3) << 1
+                    imm += bit(instr, 2) << 5
+                    imm32 = signed32(imm, 12)
+                    self.log.write(f"C.J 0x{imm:03X}\n")
+                    self.incr_pc(imm32)
+                
+                # C.BEQZ
+                elif opcode3 == 0b110:
+                    imm = bit(instr, 12) << 8
+                    imm += bits(instr, 11, 10) << 3
+                    imm += bits(instr, 6, 5) << 6
+                    imm += bits(instr, 4, 3) << 1
+                    imm += bit(instr, 2) << 5
+                    imm32 = signed32(imm, 9)
+                    rs1 = bits(instr, 9, 7) + 8
+                    self.log.write(f"C.BEQZ x{rs1}, 0x{imm:03X}\n")
+                    if self.read_arf(rs1) == 0:
+                        self.incr_pc(imm32)
+                    else:
+                        self.incr_pc(2)
+
+                # C.BNEZ
+                elif opcode3 == 0b111:
+                    imm = bit(instr, 12) << 8
+                    imm += bits(instr, 11, 10) << 3
+                    imm += bits(instr, 6, 5) << 6
+                    imm += bits(instr, 4, 3) << 1
+                    imm += bit(instr, 2) << 5
+                    imm32 = signed32(imm, 9)
+                    rs1 = bits(instr, 9, 7) + 8
+                    self.log.write(f"C.BNEZ x{rs1}, 0x{imm:03X}\n")
+                    if self.read_arf(rs1) != 0:
+                        self.incr_pc(imm32)
+                    else:
+                        self.incr_pc(2)
 
                 else:
                     self.log.write(f"illegal compressed instr\n")
                     return False
 
             elif opcode2 == 0b10:
-                rs2 = bits(instr, 6, 2)
-                uimm = bits(instr, 12, 9) << 2
-                uimm += bits(instr, 8, 7) << 6
-                self.log.write(f"C.SWSP x{rs2}, 0x{uimm:02X}\n")
-                addr = bits(self.read_arf(2) + uimm, 31, 0)
-                value = self.read_arf(rs2)
-                self.mem.write_data(addr, value, 4)
-                self.incr_pc(2)
+
+                # C.SLLI
+                if opcode3 == 0b000:
+                    shamt = bits(instr, 6, 2)
+                    rd = bits(instr, 11, 7)
+                    self.log.write(f"C.SLLI x{rd}, 0x{shamt:02X}\n")
+                    result = signed32(self.read_arf(rd) << shamt)
+                    self.write_arf(rd, result)
+                    self.incr_pc(2)
+
+                # C.LWSP
+                elif opcode3 == 0b010:
+                    uimm = bit(instr, 12) << 5
+                    uimm += bits(instr, 6, 4) << 2
+                    uimm += bits(instr, 3, 2) << 6
+                    rd = bits(instr, 11, 7)
+                    self.log.write(f"C.LWSP x{rd}, 0x{uimm:02X}\n")
+                    addr = signed32(self.read_arf(2) + uimm)
+                    result = self.mem.read_data(addr, 4)
+                    self.write_arf(rd, result)
+                    self.incr_pc(2)
+
+                # C.JR/C.MV/C.EBREAK/C.JALR/C.ADD
+                elif opcode3 == 0b100:
+                    rd_rs1 = bits(instr, 11, 7)
+                    rs2 = bits(instr, 6, 2)
+
+                    # C.JR/C.MV
+                    if bit(instr, 12) == 0b0:
+
+                        # C.JR
+                        if rs2 == 0:
+                            self.log.write(f"C.JR x{rd_rs1}\n")
+                            npc = self.read_arf(rd_rs1)
+                            self.write_pc(npc)
+
+                        # C.MV:
+                        else:
+                            self.log.write(f"C.MV x{rd_rs1}, x{rs2}\n")
+                            self.write_arf(rd_rs1, self.read_arf(rs2))
+                            self.incr_pc(2)
+
+                    # C.EBREAK/C.JALR/C.ADD
+                    elif bit(instr, 12) == 0b1:
+
+                        # C.EBREAK
+                        if rd_rs1 == 0 and rs2 == 0:
+                            self.log.write(f"C.EBREAK\n")
+                            return False
+
+                        # C.JALR
+                        elif rs2 == 0:
+                            self.log.write(f"C.JALR\n")
+                            result = signed32(self.pc + 2)
+                            self.write_arf(1, result)
+                            self.write_pc(self.read_arf(rd_rs1))
+
+                        # C.ADD
+                        else:
+                            self.log.write(f"C.ADD\n")
+                            result = signed32(self.read_arf(rd_rs1) + self.read_arf(rs2))
+                            self.write_arf(rd_rs1, result)
+                            self.incr_pc(2)
+
+                    else:
+                        self.log.write(f"illegal compressed instr\n")
+                        return False
+                    
+                # C.SWSP
+                elif opcode3 == 0b110:
+                    uimm = bits(instr, 12, 9) << 2
+                    uimm += bits(instr, 8, 7) << 6
+                    rs2 = bits(instr, 6, 2)
+                    self.log.write(f"C.SWSP x{rs2}, 0x{uimm:02X}\n")
+                    addr = signed32(self.read_arf(2) + uimm)
+                    result = self.read_arf(rs2)
+                    self.mem.write_data(addr, result, 4)
+                    self.incr_pc(2)
+                
+                else:
+                    self.log.write(f"illegal compressed instr\n")
+                    return False
                 
             else:
                 self.log.write(f"illegal compressed instr\n")

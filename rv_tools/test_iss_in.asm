@@ -1,5 +1,4 @@
 @0000
-jal x0, 0x1000
 addi a3, zero, -15
 sw a3, 0x78(sp)
 lui s6, 0xabcde
@@ -10,6 +9,7 @@ addi zero, s6, 246
 lw a1, 0x702(s0)
 addi s4, a1, -222
 sw s4, 0x723(s1)
+jal x0, 0x1000
 
 @2000
 0x01234567
@@ -39,7 +39,7 @@ sw s4, 0x723(s1)
 0xa5a5a5a5
 0xb4b4b4b4
 
-@1000
+@1024
 lui x1, 0xfedcb
 auipc x2, 0xa9876
 jal x3, 24 // 0
@@ -148,27 +148,28 @@ divu x19, x2, x3
 rem x20, x2, x3
 remu x21, x2, x3
 
-sw x1, 0x700(x5)
-sw x2, 0x704(x5)
-sw x3, 0x708(x5)
-sw x4, 0x70C(x5)
-sw x5, 0x710(x5)
-sw x6, 0x714(x5)
-sw x7, 0x718(x5)
-sw x8, 0x71C(x5)
-sw x9, 0x720(x5)
-sw x10, 0x724(x5)
-sw x11, 0x728(x5)
-sw x12, 0x72C(x5)
-sw x13, 0x730(x5)
-sw x14, 0x734(x5)
-sw x15, 0x738(x5)
-sw x16, 0x73C(x5)
-sw x17, 0x740(x5)
-sw x18, 0x744(x5)
-sw x19, 0x748(x5)
-sw x20, 0x74C(x5)
-sw x21, 0x750(x5)
+addi x22, x0, 0x300
+sw x1, 0x700(x22)
+sw x2, 0x704(x22)
+sw x3, 0x708(x22)
+sw x4, 0x70C(x22)
+sw x5, 0x710(x22)
+sw x6, 0x714(x22)
+sw x7, 0x718(x22)
+sw x8, 0x71C(x22)
+sw x9, 0x720(x22)
+sw x10, 0x724(x22)
+sw x11, 0x728(x22)
+sw x12, 0x72C(x22)
+sw x13, 0x730(x22)
+sw x14, 0x734(x22)
+sw x15, 0x738(x22)
+sw x16, 0x73C(x22)
+sw x17, 0x740(x22)
+sw x18, 0x744(x22)
+sw x19, 0x748(x22)
+sw x20, 0x74C(x22)
+sw x21, 0x750(x22)
 
 lui x2, 0x3
 
@@ -204,3 +205,100 @@ addi x2, x2, 4
 amominu.w x18, x1, (x2)
 addi x2, x2, 4
 amomaxu.w x19, x1, (x2)
+
+addi x20, x0, 0x400
+sw x1, 0x700(x20)
+sw x2, 0x704(x20)
+sw x3, 0x708(x20)
+sw x4, 0x70C(x20)
+sw x5, 0x710(x20)
+sw x6, 0x714(x20)
+sw x7, 0x718(x20)
+sw x8, 0x71C(x20)
+sw x9, 0x720(x20)
+sw x10, 0x724(x20)
+sw x11, 0x728(x20)
+sw x12, 0x72C(x20)
+sw x13, 0x730(x20)
+sw x14, 0x734(x20)
+sw x15, 0x738(x20)
+sw x16, 0x73C(x20)
+sw x17, 0x740(x20)
+sw x18, 0x744(x20)
+sw x19, 0x748(x20)
+
+addi x8, x0, 0x6FE
+c.addi4spn x9, 0x3B4
+c.lw x10, 0x4(x8)
+c.sw x10, 0x34(x8)
+c.nop
+c.addi x2, 15
+c.jal 6
+addi x1, x1, 0x123
+c.li x3, 0x21
+c.addi16sp -496
+c.lui x4, 0x3A
+c.srli x11, 5
+c.srai x12, 5
+c.andi x13, 0xA
+
+addi x20, x0, 0x500
+sw x1, 0x700(x20)
+sw x2, 0x704(x20)
+sw x3, 0x708(x20)
+sw x4, 0x70C(x20)
+sw x5, 0x710(x20)
+sw x6, 0x714(x20)
+sw x7, 0x718(x20)
+sw x8, 0x71C(x20)
+sw x9, 0x720(x20)
+sw x10, 0x724(x20)
+sw x11, 0x728(x20)
+sw x12, 0x72C(x20)
+sw x13, 0x730(x20)
+
+c.sub x9, x8
+c.xor x10, x9
+c.or x11, x10
+c.and x12, x11
+c.j 10
+addi x14, x0, -1
+c.beqz x14, -254
+c.bnez x14, 10
+addi x13, x0, 0
+c.bnez x13, 126
+c.beqz x13, -14
+c.slli x16, 11
+addi sp, x0, 0x6FE
+c.lwsp x17, 0x4
+lui x18, 0x4
+c.jalr x18
+c.add x20, x19
+c.swsp x20, 0x30
+
+addi x21, x0, 0x600
+sw x1, 0x700(x21)
+sw x2, 0x704(x21)
+sw x3, 0x708(x21)
+sw x4, 0x70C(x21)
+sw x5, 0x710(x21)
+sw x6, 0x714(x21)
+sw x7, 0x718(x21)
+sw x8, 0x71C(x21)
+sw x9, 0x720(x21)
+sw x10, 0x724(x21)
+sw x11, 0x728(x21)
+sw x12, 0x72C(x21)
+sw x13, 0x730(x21)
+sw x14, 0x734(x21)
+sw x15, 0x738(x21)
+sw x16, 0x73C(x21)
+sw x17, 0x740(x21)
+sw x18, 0x744(x21)
+sw x19, 0x748(x21)
+sw x20, 0x74C(x21)
+
+@4000
+c.mv x19, x18
+// c.ebreak
+c.jr x1
