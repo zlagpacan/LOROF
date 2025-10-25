@@ -841,10 +841,10 @@ module core #(
     logic [3:0]                     alu_reg_mdu_issue_op;
     logic                           alu_reg_mdu_issue_A_forward;
     logic                           alu_reg_mdu_issue_A_is_zero;
-    logic [LOG_PRF_BANK_COUNT-1:0]  alu_reg_mdu_issue_A_bank;
+    logic [LOG_PR_COUNT-1:0]        alu_reg_mdu_issue_A_PR;
     logic                           alu_reg_mdu_issue_B_forward;
     logic                           alu_reg_mdu_issue_B_is_zero;
-    logic [LOG_PRF_BANK_COUNT-1:0]  alu_reg_mdu_issue_B_bank;
+    logic [LOG_PR_COUNT-1:0]        alu_reg_mdu_issue_B_PR;
     logic [LOG_PR_COUNT-1:0]        alu_reg_mdu_issue_dest_PR;
     logic [LOG_ROB_ENTRIES-1:0]     alu_reg_mdu_issue_ROB_index;
 
@@ -2323,8 +2323,8 @@ module core #(
         .iq_enq_ready(alu_reg_mdu_iq_enq_ready)
     );
 
-    // alu_reg_mdu_iq_single
-    alu_reg_mdu_iq_single #(
+    // alu_reg_mdu_iq
+    alu_reg_mdu_iq #(
         .ALU_REG_MDU_IQ_ENTRIES(ALU_REG_MDU_IQ_ENTRIES)
     ) ALU_REG_MDU_IQ (
         // seq
@@ -2362,10 +2362,10 @@ module core #(
         .issue_op(alu_reg_mdu_issue_op),
         .issue_A_forward(alu_reg_mdu_issue_A_forward),
         .issue_A_is_zero(alu_reg_mdu_issue_A_is_zero),
-        .issue_A_bank(alu_reg_mdu_issue_A_bank),
+        .issue_A_PR(alu_reg_mdu_issue_A_PR),
         .issue_B_forward(alu_reg_mdu_issue_B_forward),
         .issue_B_is_zero(alu_reg_mdu_issue_B_is_zero),
-        .issue_B_bank(alu_reg_mdu_issue_B_bank),
+        .issue_B_PR(alu_reg_mdu_issue_B_PR),
         .issue_dest_PR(alu_reg_mdu_issue_dest_PR),
         .issue_ROB_index(alu_reg_mdu_issue_ROB_index),
 
@@ -2393,10 +2393,10 @@ module core #(
         .issue_op(alu_reg_mdu_issue_op),
         .issue_A_forward(alu_reg_mdu_issue_A_forward),
         .issue_A_is_zero(alu_reg_mdu_issue_A_is_zero),
-        .issue_A_bank(alu_reg_mdu_issue_A_bank),
+        .issue_A_bank(alu_reg_mdu_issue_A_PR[LOG_PRF_BANK_COUNT-1:0]),
         .issue_B_forward(alu_reg_mdu_issue_B_forward),
         .issue_B_is_zero(alu_reg_mdu_issue_B_is_zero),
-        .issue_B_bank(alu_reg_mdu_issue_B_bank),
+        .issue_B_bank(alu_reg_mdu_issue_B_PR[LOG_PRF_BANK_COUNT-1:0]),
         .issue_dest_PR(alu_reg_mdu_issue_dest_PR),
         .issue_ROB_index(alu_reg_mdu_issue_ROB_index),
 

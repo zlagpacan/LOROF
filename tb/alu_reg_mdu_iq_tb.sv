@@ -1,8 +1,8 @@
 /*
-    Filename: alu_reg_mdu_iq_single.sv
+    Filename: alu_reg_mdu_iq.sv
     Author: zlagpacan
-    Description: Testbench for alu_reg_mdu_iq_single module. 
-    Spec: LOROF/spec/design/alu_reg_mdu_iq_single.md
+    Description: Testbench for alu_reg_mdu_iq module. 
+    Spec: LOROF/spec/design/alu_reg_mdu_iq.md
 */
 
 `timescale 1ns/100ps
@@ -13,7 +13,7 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-module alu_reg_mdu_iq_single_tb ();
+module alu_reg_mdu_iq_tb ();
 
     // ----------------------------------------------------------------
     // TB setup:
@@ -66,10 +66,10 @@ module alu_reg_mdu_iq_single_tb ();
 	logic [3:0] DUT_issue_op, expected_issue_op;
 	logic DUT_issue_A_forward, expected_issue_A_forward;
 	logic DUT_issue_A_is_zero, expected_issue_A_is_zero;
-	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_A_bank, expected_issue_A_bank;
+	logic [LOG_PR_COUNT-1:0] DUT_issue_A_PR, expected_issue_A_PR;
 	logic DUT_issue_B_forward, expected_issue_B_forward;
 	logic DUT_issue_B_is_zero, expected_issue_B_is_zero;
-	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_B_bank, expected_issue_B_bank;
+	logic [LOG_PR_COUNT-1:0] DUT_issue_B_PR, expected_issue_B_PR;
 	logic [LOG_PR_COUNT-1:0] DUT_issue_dest_PR, expected_issue_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_issue_ROB_index, expected_issue_ROB_index;
 
@@ -88,7 +88,7 @@ module alu_reg_mdu_iq_single_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	alu_reg_mdu_iq_single #(
+	alu_reg_mdu_iq #(
 		.ALU_REG_MDU_IQ_ENTRIES(8)
 	) DUT (
 		// seq
@@ -126,10 +126,10 @@ module alu_reg_mdu_iq_single_tb ();
 		.issue_op(DUT_issue_op),
 		.issue_A_forward(DUT_issue_A_forward),
 		.issue_A_is_zero(DUT_issue_A_is_zero),
-		.issue_A_bank(DUT_issue_A_bank),
+		.issue_A_PR(DUT_issue_A_PR),
 		.issue_B_forward(DUT_issue_B_forward),
 		.issue_B_is_zero(DUT_issue_B_is_zero),
-		.issue_B_bank(DUT_issue_B_bank),
+		.issue_B_PR(DUT_issue_B_PR),
 		.issue_dest_PR(DUT_issue_dest_PR),
 		.issue_ROB_index(DUT_issue_ROB_index),
 
@@ -193,9 +193,9 @@ module alu_reg_mdu_iq_single_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_A_bank !== DUT_issue_A_bank) begin
-			$display("TB ERROR: expected_issue_A_bank (%h) != DUT_issue_A_bank (%h)",
-				expected_issue_A_bank, DUT_issue_A_bank);
+		if (expected_issue_A_PR !== DUT_issue_A_PR) begin
+			$display("TB ERROR: expected_issue_A_PR (%h) != DUT_issue_A_PR (%h)",
+				expected_issue_A_PR, DUT_issue_A_PR);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -214,9 +214,9 @@ module alu_reg_mdu_iq_single_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_B_bank !== DUT_issue_B_bank) begin
-			$display("TB ERROR: expected_issue_B_bank (%h) != DUT_issue_B_bank (%h)",
-				expected_issue_B_bank, DUT_issue_B_bank);
+		if (expected_issue_B_PR !== DUT_issue_B_PR) begin
+			$display("TB ERROR: expected_issue_B_PR (%h) != DUT_issue_B_PR (%h)",
+				expected_issue_B_PR, DUT_issue_B_PR);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -327,10 +327,10 @@ module alu_reg_mdu_iq_single_tb ();
 		expected_issue_op = 4'b0000;
 		expected_issue_A_forward = 1'b0;
 		expected_issue_A_is_zero = 1'b0;
-		expected_issue_A_bank = 2'h0;
+		expected_issue_A_PR = 7'h00;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b0;
-		expected_issue_B_bank = 2'h0;
+		expected_issue_B_PR = 7'h00
 		expected_issue_dest_PR = 7'h0;
 		expected_issue_ROB_index = 7'h0;
 	    // ALU reg pipeline feedback
@@ -391,10 +391,10 @@ module alu_reg_mdu_iq_single_tb ();
 		expected_issue_op = 4'b0000;
 		expected_issue_A_forward = 1'b0;
 		expected_issue_A_is_zero = 1'b0;
-		expected_issue_A_bank = 2'h0;
+		expected_issue_A_PR = 7'h00;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b0;
-		expected_issue_B_bank = 2'h0;
+		expected_issue_B_PR = 7'h00;
 		expected_issue_dest_PR = 7'h0;
 		expected_issue_ROB_index = 7'h0;
 	    // ALU reg pipeline feedback
@@ -463,10 +463,10 @@ module alu_reg_mdu_iq_single_tb ();
 		expected_issue_op = 4'b0000;
 		expected_issue_A_forward = 1'b0;
 		expected_issue_A_is_zero = 1'b0;
-		expected_issue_A_bank = 2'h0;
+		expected_issue_A_PR = 7'h00;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b0;
-		expected_issue_B_bank = 2'h0;
+		expected_issue_B_PR = 7'h00;
 		expected_issue_dest_PR = 7'h0;
 		expected_issue_ROB_index = 7'h0;
 	    // ALU reg pipeline feedback
