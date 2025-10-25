@@ -194,6 +194,12 @@ package core_types_pkg;
     parameter CHECKPOINT_THRESHOLD = 3;
 
     // ----------------------------------------------------------------
+    // MDU:
+
+    parameter MDU_RESULT_CACHE_ENTRIES = 4;
+    parameter LOG_MDU_RESULT_CACHE_ENTRIES = $clog2(MDU_RESULT_CACHE_ENTRIES);
+
+    // ----------------------------------------------------------------
     // LSQ:
 
     // ldu
