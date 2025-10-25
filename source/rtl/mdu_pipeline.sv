@@ -82,16 +82,23 @@ module mdu_pipeline (
 
     logic launch_ready_OC;
 
-    logic                           next_WB_valid;
-    logic [3:0]                     next_WB_op;
-    logic [31:0]                    next_WB_A;
-    logic [31:0]                    next_WB_B;
-    logic [LOG_PR_COUNT-1:0]        next_WB_PR;
-    logic [LOG_ROB_ENTRIES-1:0]     next_WB_ROB_index;
+    logic                           next_valid_WB;
+    logic [3:0]                     next_op_WB;
+    logic [LOG_PR_COUNT-1:0]        next_A_PR_WB;
+    logic [31:0]                    next_A_data_WB;
+    logic [LOG_PR_COUNT-1:0]        next_B_PR_WB;
+    logic [31:0]                    next_B_data_WB;
+    logic [LOG_PR_COUNT-1:0]        next_dest_PR_WB;
+    logic [LOG_ROB_ENTRIES-1:0]     next_ROB_index_WB;
 
     // ----------------------------------------------------------------
     // WB Stage Signals:
 
-    logic [3:0]     WB_op;
-    logic [31:0]    WB_A;
-    logic [31:0]    WB_B;
+    logic                           valid_WB;
+    logic [3:0]                     op_WB;
+    logic [LOG_PR_COUNT-1:0]        A_PR_WB;
+    logic [31:0]                    A_data_WB;
+    logic [LOG_PR_COUNT-1:0]        B_PR_WB;
+    logic [31:0]                    B_data_WB;
+    logic [LOG_PR_COUNT-1:0]        dest_PR_WB;
+    logic [LOG_ROB_ENTRIES-1:0]     ROB_index_WB;

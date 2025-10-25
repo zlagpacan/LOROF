@@ -75,22 +75,19 @@ module alu_reg_pipeline (
 
     logic launch_ready_OC;
 
-    logic                           next_valid_WB;
-    logic [3:0]                     next_op_WB;
-    logic [31:0]                    next_A_WB;
-    logic [31:0]                    next_B_WB;
-    logic [LOG_PR_COUNT-1:0]        next_PR_WB;
-    logic [LOG_ROB_ENTRIES-1:0]     next_ROB_index_WB;
+    logic                           next_WB_valid;
+    logic [3:0]                     next_WB_op;
+    logic [31:0]                    next_WB_A;
+    logic [31:0]                    next_WB_B;
+    logic [LOG_PR_COUNT-1:0]        next_WB_PR;
+    logic [LOG_ROB_ENTRIES-1:0]     next_WB_ROB_index;
 
     // ----------------------------------------------------------------
     // WB Stage Signals:
 
-    logic                           valid_WB;
-    logic [3:0]                     op_WB;
-    logic [31:0]                    A_WB;
-    logic [31:0]                    B_WB;
-    logic [LOG_PR_COUNT-1:0]        PR_WB;
-    logic [LOG_ROB_ENTRIES-1:0]     ROB_index_WB;
+    logic [3:0]     WB_op;
+    logic [31:0]    WB_A;
+    logic [31:0]    WB_B;
 
     // ----------------------------------------------------------------
     // Control Logic: 
