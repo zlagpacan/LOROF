@@ -10,6 +10,9 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
 module bru_pipeline_tb ();
 
     // ----------------------------------------------------------------
@@ -33,7 +36,7 @@ module bru_pipeline_tb ();
     // DUT signals:
 
 
-    // BRU op issue to BRU IQ
+    // BRU op issue from BRU IQ
 	logic tb_issue_valid;
 	logic [3:0] tb_issue_op;
 	logic [BTB_PRED_INFO_WIDTH-1:0] tb_issue_pred_info;
@@ -97,7 +100,7 @@ module bru_pipeline_tb ();
 		.nRST(nRST),
 
 
-	    // BRU op issue to BRU IQ
+	    // BRU op issue from BRU IQ
 		.issue_valid(tb_issue_valid),
 		.issue_op(tb_issue_op),
 		.issue_pred_info(tb_issue_pred_info),
@@ -278,7 +281,7 @@ module bru_pipeline_tb ();
 
 		// reset
 		nRST = 1'b0;
-	    // BRU op issue to BRU IQ
+	    // BRU op issue from BRU IQ
 		tb_issue_valid = 1'b0;
 		tb_issue_op = 4'b0000;
 		tb_issue_pred_info = 8'h0;
@@ -302,23 +305,9 @@ module bru_pipeline_tb ();
 		tb_A_reg_read_port = 1'b0;
 		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0
-		};
+		tb_reg_read_data_by_bank_by_port = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // forward data from PRF
-		tb_forward_data_by_bank = {
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0
-		};
+		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // writeback data to PRF
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
@@ -330,7 +319,7 @@ module bru_pipeline_tb ();
 
 		// outputs:
 
-	    // BRU op issue to BRU IQ
+	    // BRU op issue from BRU IQ
 	    // output feedback to BRU IQ
 		expected_issue_ready = 1'b1;
 	    // reg read info and data from PRF
@@ -347,7 +336,7 @@ module bru_pipeline_tb ();
 		expected_branch_notif_is_mispredict = 1'b0;
 		expected_branch_notif_is_taken = 1'b1;
 		expected_branch_notif_use_upct = 1'b0;
-		expected_branch_notif_updated_pred_info = 8'b01000000;
+		expected_branch_notif_updated_pred_info = 8'h40;
 		expected_branch_notif_pred_lru = 1'b0;
 		expected_branch_notif_start_PC = 32'h2;
 		expected_branch_notif_target_PC = 32'h0;
@@ -361,7 +350,7 @@ module bru_pipeline_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
+	    // BRU op issue from BRU IQ
 		tb_issue_valid = 1'b0;
 		tb_issue_op = 4'b0000;
 		tb_issue_pred_info = 8'h0;
@@ -385,23 +374,9 @@ module bru_pipeline_tb ();
 		tb_A_reg_read_port = 1'b0;
 		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0
-		};
+		tb_reg_read_data_by_bank_by_port = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // forward data from PRF
-		tb_forward_data_by_bank = {
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0
-		};
+		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // writeback data to PRF
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
@@ -413,7 +388,7 @@ module bru_pipeline_tb ();
 
 		// outputs:
 
-	    // BRU op issue to BRU IQ
+	    // BRU op issue from BRU IQ
 	    // output feedback to BRU IQ
 		expected_issue_ready = 1'b1;
 	    // reg read info and data from PRF
@@ -430,7 +405,7 @@ module bru_pipeline_tb ();
 		expected_branch_notif_is_mispredict = 1'b0;
 		expected_branch_notif_is_taken = 1'b1;
 		expected_branch_notif_use_upct = 1'b0;
-		expected_branch_notif_updated_pred_info = 8'b01000000;
+		expected_branch_notif_updated_pred_info = 8'h40;
 		expected_branch_notif_pred_lru = 1'b0;
 		expected_branch_notif_start_PC = 32'h2;
 		expected_branch_notif_target_PC = 32'h0;
@@ -452,7 +427,7 @@ module bru_pipeline_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // BRU op issue to BRU IQ
+	    // BRU op issue from BRU IQ
 		tb_issue_valid = 1'b0;
 		tb_issue_op = 4'b0000;
 		tb_issue_pred_info = 8'h0;
@@ -476,23 +451,9 @@ module bru_pipeline_tb ();
 		tb_A_reg_read_port = 1'b0;
 		tb_B_reg_read_ack = 1'b0;
 		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0
-		};
+		tb_reg_read_data_by_bank_by_port = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // forward data from PRF
-		tb_forward_data_by_bank = {
-			32'h0,
-			32'h0,
-			32'h0,
-			32'h0
-		};
+		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // writeback data to PRF
 	    // writeback backpressure from PRF
 		tb_WB_ready = 1'b1;
@@ -504,7 +465,7 @@ module bru_pipeline_tb ();
 
 		// outputs:
 
-	    // BRU op issue to BRU IQ
+	    // BRU op issue from BRU IQ
 	    // output feedback to BRU IQ
 		expected_issue_ready = 1'b1;
 	    // reg read info and data from PRF
@@ -521,7 +482,7 @@ module bru_pipeline_tb ();
 		expected_branch_notif_is_mispredict = 1'b0;
 		expected_branch_notif_is_taken = 1'b1;
 		expected_branch_notif_use_upct = 1'b0;
-		expected_branch_notif_updated_pred_info = 8'b01000000;
+		expected_branch_notif_updated_pred_info = 8'h40;
 		expected_branch_notif_pred_lru = 1'b0;
 		expected_branch_notif_start_PC = 32'h2;
 		expected_branch_notif_target_PC = 32'h0;

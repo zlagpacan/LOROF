@@ -10,6 +10,9 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
 module alu_imm_pipeline_tb ();
 
     // ----------------------------------------------------------------
@@ -178,12 +181,17 @@ module alu_imm_pipeline_tb ();
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = '0;
+		tb_reg_read_data_by_bank_by_port = {
+			32'h0, 32'h0,
+			32'h0, 32'h0,
+			32'h0, 32'h0,
+			32'h0, 32'h0
+		};
 	    // forward data from PRF
-		tb_forward_data_by_bank = '0;
+		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // writeback data to PRF
 	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b0;
+		tb_WB_ready = 1'b1;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -222,12 +230,17 @@ module alu_imm_pipeline_tb ();
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = '0;
+		tb_reg_read_data_by_bank_by_port = {
+			32'h0, 32'h0,
+			32'h0, 32'h0,
+			32'h0, 32'h0,
+			32'h0, 32'h0
+		};
 	    // forward data from PRF
-		tb_forward_data_by_bank = '0;
+		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // writeback data to PRF
 	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b0;
+		tb_WB_ready = 1'b1;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -274,12 +287,17 @@ module alu_imm_pipeline_tb ();
 	    // reg read info and data from PRF
 		tb_A_reg_read_ack = 1'b0;
 		tb_A_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = '0;
+		tb_reg_read_data_by_bank_by_port = {
+			32'h0, 32'h0,
+			32'h0, 32'h0,
+			32'h0, 32'h0,
+			32'h0, 32'h0
+		};
 	    // forward data from PRF
-		tb_forward_data_by_bank = '0;
+		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
 	    // writeback data to PRF
 	    // writeback backpressure from PRF
-		tb_WB_ready = 1'b0;
+		tb_WB_ready = 1'b1;
 
 		@(negedge CLK);
 

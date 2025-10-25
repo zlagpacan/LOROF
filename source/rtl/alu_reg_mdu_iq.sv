@@ -58,16 +58,16 @@ module alu_reg_mdu_iq #(
     output logic [LOG_PR_COUNT-1:0]     PRF_alu_reg_req_B_PR,
 
     // MDU pipeline issue
-    output logic                            mdu_issue_valid,
-    output logic [3:0]                      mdu_issue_op,
-    output logic                            mdu_issue_A_forward,
-    output logic                            mdu_issue_A_is_zero,
-    output logic [LOG_PRF_BANK_COUNT-1:0]   mdu_issue_A_bank,
-    output logic                            mdu_issue_B_forward,
-    output logic                            mdu_issue_B_is_zero,
-    output logic [LOG_PRF_BANK_COUNT-1:0]   mdu_issue_B_bank,
-    output logic [LOG_PR_COUNT-1:0]         mdu_issue_dest_PR,
-    output logic [LOG_ROB_ENTRIES-1:0]      mdu_issue_ROB_index,
+    output logic                        mdu_issue_valid,
+    output logic [3:0]                  mdu_issue_op,
+    output logic                        mdu_issue_A_forward,
+    output logic                        mdu_issue_A_is_zero,
+    output logic [LOG_PR_COUNT-1:0]     mdu_issue_A_PR,
+    output logic                        mdu_issue_B_forward,
+    output logic                        mdu_issue_B_is_zero,
+    output logic [LOG_PR_COUNT-1:0]     mdu_issue_B_PR,
+    output logic [LOG_PR_COUNT-1:0]     mdu_issue_dest_PR,
+    output logic [LOG_ROB_ENTRIES-1:0]  mdu_issue_ROB_index,
 
     // MDU pipeline feedback
     input logic                             mdu_issue_ready,
@@ -215,10 +215,10 @@ module alu_reg_mdu_iq #(
         mdu_issue_op = '0;
         mdu_issue_A_forward = '0;
         mdu_issue_A_is_zero = '0;
-        mdu_issue_A_bank = '0;
+        mdu_issue_A_PR = '0;
         mdu_issue_B_forward = '0;
         mdu_issue_B_is_zero = '0;
-        mdu_issue_B_bank = '0;
+        mdu_issue_B_PR = '0;
         mdu_issue_dest_PR = '0;
         mdu_issue_ROB_index = '0;
 
@@ -234,10 +234,10 @@ module alu_reg_mdu_iq #(
                 mdu_issue_op |= op_by_entry[entry];
                 mdu_issue_A_forward |= A_forward_by_entry[entry];
                 mdu_issue_A_is_zero |= A_is_zero_by_entry[entry];
-                mdu_issue_A_bank |= A_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0];
+                mdu_issue_A_PR |= A_PR_by_entry[entry];
                 mdu_issue_B_forward |= B_forward_by_entry[entry];
                 mdu_issue_B_is_zero |= B_is_zero_by_entry[entry];
-                mdu_issue_B_bank |= B_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0];
+                mdu_issue_B_PR |= B_PR_by_entry[entry];
                 mdu_issue_dest_PR |= dest_PR_by_entry[entry];
                 mdu_issue_ROB_index |= ROB_index_by_entry[entry];
 
