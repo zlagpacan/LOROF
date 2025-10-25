@@ -246,18 +246,18 @@ module core #(
             // alu_reg_mdu
                 // alu_reg_mdu_dq
                 // alu_reg_mdu_iq_single
-                // alu_reg_pipeline_fast
+                // alu_reg_pipeline
                 // mdu_pipeline
 
             // alu_imm
                 // alu_imm_dq
                 // alu_imm_iq
-                // alu_imm_pipeline_fast
+                // alu_imm_pipeline
 
             // bru
                 // bru_dq
                 // bru_iq
-                // bru_pipeline_fast
+                // bru_pipeline
 
             // lsu
 
@@ -2382,8 +2382,8 @@ module core #(
         .PRF_req_B_PR(alu_reg_mdu_PRF_req_B_PR)
     );
 
-    // alu_reg_pipeline_fast
-    alu_reg_pipeline_fast ALU_REG_PIPELINE (
+    // alu_reg_pipeline
+    alu_reg_pipeline ALU_REG_PIPELINE (
         // seq
         .CLK(CLK),
         .nRST(nRST),
@@ -2521,8 +2521,8 @@ module core #(
         .PRF_req_A_PR(alu_imm_PRF_req_A_PR)
     );
 
-    // alu_imm_pipeline_fast
-    alu_imm_pipeline_fast ALU_IMM_PIPELINE (
+    // alu_imm_pipeline
+    alu_imm_pipeline ALU_IMM_PIPELINE (
         // seq
         .CLK(CLK),
         .nRST(nRST),
@@ -2682,8 +2682,8 @@ module core #(
         .PRF_req_B_PR(bru_PRF_req_B_PR)
     );
 
-    // bru_pipeline_fast
-    bru_pipeline_fast BRU_PIPELINE (
+    // bru_pipeline
+    bru_pipeline BRU_PIPELINE (
         // seq
         .CLK(CLK),
         .nRST(nRST),
