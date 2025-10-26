@@ -10,6 +10,11 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
+parameter ALU_REG_MDU_IQ_ENTRIES = core_types_pkg::ALU_REG_MDU_IQ_ENTRIES;
+
 module alu_reg_mdu_iq_wrapper (
 
     // seq
@@ -39,45 +44,32 @@ module alu_reg_mdu_iq_wrapper (
 
     // ALU reg pipeline issue
 	output logic last_alu_reg_issue_valid,
-	output logic [3:0] last_alu_reg_issue_op,
-	output logic last_alu_reg_issue_A_forward,
-	output logic last_alu_reg_issue_A_is_zero,
-	output logic [LOG_PRF_BANK_COUNT-1:0] last_alu_reg_issue_A_bank,
-	output logic last_alu_reg_issue_B_forward,
-	output logic last_alu_reg_issue_B_is_zero,
-	output logic [LOG_PRF_BANK_COUNT-1:0] last_alu_reg_issue_B_bank,
-	output logic [LOG_PR_COUNT-1:0] last_alu_reg_issue_dest_PR,
-	output logic [LOG_ROB_ENTRIES-1:0] last_alu_reg_issue_ROB_index,
+
+    // MDU pipeline issue
+	output logic last_mdu_issue_valid,
+
+    // shared issue info
+	output logic [3:0] last_issue_op,
+	output logic last_issue_A_forward,
+	output logic last_issue_A_is_zero,
+	output logic [LOG_PR_COUNT-1:0] last_issue_A_PR,
+	output logic last_issue_B_forward,
+	output logic last_issue_B_is_zero,
+	output logic [LOG_PR_COUNT-1:0] last_issue_B_PR,
+	output logic [LOG_PR_COUNT-1:0] last_issue_dest_PR,
+	output logic [LOG_ROB_ENTRIES-1:0] last_issue_ROB_index,
 
     // ALU reg pipeline feedback
 	input logic next_alu_reg_issue_ready,
 
-    // ALU reg reg read req to PRF
-	output logic last_PRF_alu_reg_req_A_valid,
-	output logic [LOG_PR_COUNT-1:0] last_PRF_alu_reg_req_A_PR,
-	output logic last_PRF_alu_reg_req_B_valid,
-	output logic [LOG_PR_COUNT-1:0] last_PRF_alu_reg_req_B_PR,
-
-    // MDU pipeline issue
-	output logic last_mdu_issue_valid,
-	output logic [3:0] last_mdu_issue_op,
-	output logic last_mdu_issue_A_forward,
-	output logic last_mdu_issue_A_is_zero,
-	output logic [LOG_PRF_BANK_COUNT-1:0] last_mdu_issue_A_bank,
-	output logic last_mdu_issue_B_forward,
-	output logic last_mdu_issue_B_is_zero,
-	output logic [LOG_PRF_BANK_COUNT-1:0] last_mdu_issue_B_bank,
-	output logic [LOG_PR_COUNT-1:0] last_mdu_issue_dest_PR,
-	output logic [LOG_ROB_ENTRIES-1:0] last_mdu_issue_ROB_index,
-
     // MDU pipeline feedback
 	input logic next_mdu_issue_ready,
 
-    // MDU reg read req to PRF
-	output logic last_PRF_mdu_req_A_valid,
-	output logic [LOG_PR_COUNT-1:0] last_PRF_mdu_req_A_PR,
-	output logic last_PRF_mdu_req_B_valid,
-	output logic [LOG_PR_COUNT-1:0] last_PRF_mdu_req_B_PR
+    // reg read req to PRF
+	output logic last_PRF_req_A_valid,
+	output logic [LOG_PR_COUNT-1:0] last_PRF_req_A_PR,
+	output logic last_PRF_req_B_valid,
+	output logic [LOG_PR_COUNT-1:0] last_PRF_req_B_PR
 );
 
     // ----------------------------------------------------------------
@@ -106,50 +98,39 @@ module alu_reg_mdu_iq_wrapper (
 
     // ALU reg pipeline issue
 	logic alu_reg_issue_valid;
-	logic [3:0] alu_reg_issue_op;
-	logic alu_reg_issue_A_forward;
-	logic alu_reg_issue_A_is_zero;
-	logic [LOG_PRF_BANK_COUNT-1:0] alu_reg_issue_A_bank;
-	logic alu_reg_issue_B_forward;
-	logic alu_reg_issue_B_is_zero;
-	logic [LOG_PRF_BANK_COUNT-1:0] alu_reg_issue_B_bank;
-	logic [LOG_PR_COUNT-1:0] alu_reg_issue_dest_PR;
-	logic [LOG_ROB_ENTRIES-1:0] alu_reg_issue_ROB_index;
+
+    // MDU pipeline issue
+	logic mdu_issue_valid;
+
+    // shared issue info
+	logic [3:0] issue_op;
+	logic issue_A_forward;
+	logic issue_A_is_zero;
+	logic [LOG_PR_COUNT-1:0] issue_A_PR;
+	logic issue_B_forward;
+	logic issue_B_is_zero;
+	logic [LOG_PR_COUNT-1:0] issue_B_PR;
+	logic [LOG_PR_COUNT-1:0] issue_dest_PR;
+	logic [LOG_ROB_ENTRIES-1:0] issue_ROB_index;
 
     // ALU reg pipeline feedback
 	logic alu_reg_issue_ready;
 
-    // ALU reg reg read req to PRF
-	logic PRF_alu_reg_req_A_valid;
-	logic [LOG_PR_COUNT-1:0] PRF_alu_reg_req_A_PR;
-	logic PRF_alu_reg_req_B_valid;
-	logic [LOG_PR_COUNT-1:0] PRF_alu_reg_req_B_PR;
-
-    // MDU pipeline issue
-	logic mdu_issue_valid;
-	logic [3:0] mdu_issue_op;
-	logic mdu_issue_A_forward;
-	logic mdu_issue_A_is_zero;
-	logic [LOG_PRF_BANK_COUNT-1:0] mdu_issue_A_bank;
-	logic mdu_issue_B_forward;
-	logic mdu_issue_B_is_zero;
-	logic [LOG_PRF_BANK_COUNT-1:0] mdu_issue_B_bank;
-	logic [LOG_PR_COUNT-1:0] mdu_issue_dest_PR;
-	logic [LOG_ROB_ENTRIES-1:0] mdu_issue_ROB_index;
-
     // MDU pipeline feedback
 	logic mdu_issue_ready;
 
-    // MDU reg read req to PRF
-	logic PRF_mdu_req_A_valid;
-	logic [LOG_PR_COUNT-1:0] PRF_mdu_req_A_PR;
-	logic PRF_mdu_req_B_valid;
-	logic [LOG_PR_COUNT-1:0] PRF_mdu_req_B_PR;
+    // reg read req to PRF
+	logic PRF_req_A_valid;
+	logic [LOG_PR_COUNT-1:0] PRF_req_A_PR;
+	logic PRF_req_B_valid;
+	logic [LOG_PR_COUNT-1:0] PRF_req_B_PR;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    alu_reg_mdu_iq #(.ALU_REG_MDU_IQ_ENTRIES(ALU_REG_MDU_IQ_ENTRIES)) WRAPPED_MODULE (.*);
+	alu_reg_mdu_iq #(
+		.ALU_REG_MDU_IQ_ENTRIES(ALU_REG_MDU_IQ_ENTRIES)
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -180,45 +161,32 @@ module alu_reg_mdu_iq_wrapper (
 
 		    // ALU reg pipeline issue
 			last_alu_reg_issue_valid <= '0;
-			last_alu_reg_issue_op <= '0;
-			last_alu_reg_issue_A_forward <= '0;
-			last_alu_reg_issue_A_is_zero <= '0;
-			last_alu_reg_issue_A_bank <= '0;
-			last_alu_reg_issue_B_forward <= '0;
-			last_alu_reg_issue_B_is_zero <= '0;
-			last_alu_reg_issue_B_bank <= '0;
-			last_alu_reg_issue_dest_PR <= '0;
-			last_alu_reg_issue_ROB_index <= '0;
+
+		    // MDU pipeline issue
+			last_mdu_issue_valid <= '0;
+
+		    // shared issue info
+			last_issue_op <= '0;
+			last_issue_A_forward <= '0;
+			last_issue_A_is_zero <= '0;
+			last_issue_A_PR <= '0;
+			last_issue_B_forward <= '0;
+			last_issue_B_is_zero <= '0;
+			last_issue_B_PR <= '0;
+			last_issue_dest_PR <= '0;
+			last_issue_ROB_index <= '0;
 
 		    // ALU reg pipeline feedback
 			alu_reg_issue_ready <= '0;
 
-		    // ALU reg reg read req to PRF
-			last_PRF_alu_reg_req_A_valid <= '0;
-			last_PRF_alu_reg_req_A_PR <= '0;
-			last_PRF_alu_reg_req_B_valid <= '0;
-			last_PRF_alu_reg_req_B_PR <= '0;
-
-		    // MDU pipeline issue
-			last_mdu_issue_valid <= '0;
-			last_mdu_issue_op <= '0;
-			last_mdu_issue_A_forward <= '0;
-			last_mdu_issue_A_is_zero <= '0;
-			last_mdu_issue_A_bank <= '0;
-			last_mdu_issue_B_forward <= '0;
-			last_mdu_issue_B_is_zero <= '0;
-			last_mdu_issue_B_bank <= '0;
-			last_mdu_issue_dest_PR <= '0;
-			last_mdu_issue_ROB_index <= '0;
-
 		    // MDU pipeline feedback
 			mdu_issue_ready <= '0;
 
-		    // MDU reg read req to PRF
-			last_PRF_mdu_req_A_valid <= '0;
-			last_PRF_mdu_req_A_PR <= '0;
-			last_PRF_mdu_req_B_valid <= '0;
-			last_PRF_mdu_req_B_PR <= '0;
+		    // reg read req to PRF
+			last_PRF_req_A_valid <= '0;
+			last_PRF_req_A_PR <= '0;
+			last_PRF_req_B_valid <= '0;
+			last_PRF_req_B_PR <= '0;
         end
         else begin
 
@@ -245,45 +213,32 @@ module alu_reg_mdu_iq_wrapper (
 
 		    // ALU reg pipeline issue
 			last_alu_reg_issue_valid <= alu_reg_issue_valid;
-			last_alu_reg_issue_op <= alu_reg_issue_op;
-			last_alu_reg_issue_A_forward <= alu_reg_issue_A_forward;
-			last_alu_reg_issue_A_is_zero <= alu_reg_issue_A_is_zero;
-			last_alu_reg_issue_A_bank <= alu_reg_issue_A_bank;
-			last_alu_reg_issue_B_forward <= alu_reg_issue_B_forward;
-			last_alu_reg_issue_B_is_zero <= alu_reg_issue_B_is_zero;
-			last_alu_reg_issue_B_bank <= alu_reg_issue_B_bank;
-			last_alu_reg_issue_dest_PR <= alu_reg_issue_dest_PR;
-			last_alu_reg_issue_ROB_index <= alu_reg_issue_ROB_index;
+
+		    // MDU pipeline issue
+			last_mdu_issue_valid <= mdu_issue_valid;
+
+		    // shared issue info
+			last_issue_op <= issue_op;
+			last_issue_A_forward <= issue_A_forward;
+			last_issue_A_is_zero <= issue_A_is_zero;
+			last_issue_A_PR <= issue_A_PR;
+			last_issue_B_forward <= issue_B_forward;
+			last_issue_B_is_zero <= issue_B_is_zero;
+			last_issue_B_PR <= issue_B_PR;
+			last_issue_dest_PR <= issue_dest_PR;
+			last_issue_ROB_index <= issue_ROB_index;
 
 		    // ALU reg pipeline feedback
 			alu_reg_issue_ready <= next_alu_reg_issue_ready;
 
-		    // ALU reg reg read req to PRF
-			last_PRF_alu_reg_req_A_valid <= PRF_alu_reg_req_A_valid;
-			last_PRF_alu_reg_req_A_PR <= PRF_alu_reg_req_A_PR;
-			last_PRF_alu_reg_req_B_valid <= PRF_alu_reg_req_B_valid;
-			last_PRF_alu_reg_req_B_PR <= PRF_alu_reg_req_B_PR;
-
-		    // MDU pipeline issue
-			last_mdu_issue_valid <= mdu_issue_valid;
-			last_mdu_issue_op <= mdu_issue_op;
-			last_mdu_issue_A_forward <= mdu_issue_A_forward;
-			last_mdu_issue_A_is_zero <= mdu_issue_A_is_zero;
-			last_mdu_issue_A_bank <= mdu_issue_A_bank;
-			last_mdu_issue_B_forward <= mdu_issue_B_forward;
-			last_mdu_issue_B_is_zero <= mdu_issue_B_is_zero;
-			last_mdu_issue_B_bank <= mdu_issue_B_bank;
-			last_mdu_issue_dest_PR <= mdu_issue_dest_PR;
-			last_mdu_issue_ROB_index <= mdu_issue_ROB_index;
-
 		    // MDU pipeline feedback
 			mdu_issue_ready <= next_mdu_issue_ready;
 
-		    // MDU reg read req to PRF
-			last_PRF_mdu_req_A_valid <= PRF_mdu_req_A_valid;
-			last_PRF_mdu_req_A_PR <= PRF_mdu_req_A_PR;
-			last_PRF_mdu_req_B_valid <= PRF_mdu_req_B_valid;
-			last_PRF_mdu_req_B_PR <= PRF_mdu_req_B_PR;
+		    // reg read req to PRF
+			last_PRF_req_A_valid <= PRF_req_A_valid;
+			last_PRF_req_A_PR <= PRF_req_A_PR;
+			last_PRF_req_B_valid <= PRF_req_B_valid;
+			last_PRF_req_B_PR <= PRF_req_B_PR;
         end
     end
 

@@ -1,14 +1,14 @@
 /*
-    Filename: alu_reg_mdu_iq_single.sv
+    Filename: alu_reg_mdu_iq.sv
     Author: zlagpacan
     Description: RTL for ALU Reg-Reg + Mul-Div Unit Issue Queue
-    Spec: LOROF/spec/design/alu_reg_mdu_iq_single.md
+    Spec: LOROF/spec/design/alu_reg_mdu_iq.md
 */
 
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module alu_reg_mdu_iq_single #(
+module alu_reg_mdu_iq #(
     parameter ALU_REG_MDU_IQ_ENTRIES = 12
 ) (
     // seq

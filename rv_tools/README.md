@@ -1,11 +1,17 @@
 # rv_tools
 Directory containing custom LOROF RISC-V tools
 
-## Implemented Tools:
+# Implemented Tools:
 
-### asm.py
+## asm.py
 - RISC-V Assembler
 - translate .asm format to .mem format
+
+#### usage:
+```
+python asm.py [-h] input_asm_file_path output_mem_file_path
+```
+
 - input: .asm format
     - untranslated instructions and data within verilog .mem format which can read in with $readmemh()
     - RISC-V assembly except:
@@ -20,13 +26,22 @@ Directory containing custom LOROF RISC-V tools
 - output: .mem format
     - verilog .mem format which can read in with $readmemh()
 
-### iss.py
+## iss.py
 - RISC-V Instruction Set Simulator
 - simulate RISC-V hart execution given memory state
-- planned functionality
     - give final memory state for starting memory state
     - give instruction-by-instruction expected architectural state for verification
 
-## Planned Tools:
+#### usage:
+```
+python iss.py [-h] [-pc START_PC] [-s] input_mem_file_path output_mem_file_path
+```
+
+- input: .mem format
+    - initial memory state verilog .mem format which can read in with $readmemh()
+- output: .mem format
+    - final memory state verilog .mem format which can read in with $readmemh()
+
+# Planned Tools:
 - instruction generator
     - design to assist in creating testcases
