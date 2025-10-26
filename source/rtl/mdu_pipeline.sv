@@ -329,6 +329,8 @@ module mdu_pipeline (
 
     always_comb begin
 
+        // TODO: change to mul 33 logic
+
         // MULHU
         if (op_WB[1] & op_WB[0]) begin
             multiplier_result = A_data_WB * B_data_WB;
