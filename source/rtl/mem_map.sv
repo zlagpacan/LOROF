@@ -17,7 +17,7 @@ module mem_map (
     output logic valid,
     output logic executable,
     output logic writeable,
-    output logic readable,
+    output logic readable
 );
 
 endmodule

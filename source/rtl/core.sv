@@ -245,7 +245,7 @@ module core #(
 
             // alu_reg_mdu
                 // alu_reg_mdu_dq
-                // alu_reg_mdu_iq_single
+                // alu_reg_mdu_iq
                 // alu_reg_pipeline
                 // mdu_pipeline
 

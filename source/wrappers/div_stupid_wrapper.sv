@@ -1,8 +1,8 @@
 /*
-    Filename: stupid_div_wrapper.sv
+    Filename: div_stupid_wrapper.sv
     Author: zlagpacan
-    Description: RTL wrapper around stupid_div module. 
-    Spec: LOROF/spec/design/stupid_div.md
+    Description: RTL wrapper around div_stupid module. 
+    Spec: LOROF/spec/design/div_stupid.md
 */
 
 `timescale 1ns/100ps
@@ -10,7 +10,7 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module stupid_div_wrapper (
+module div_stupid_wrapper (
 
     // seq
     input logic CLK,
@@ -33,7 +33,7 @@ module stupid_div_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    stupid_div WRAPPED_MODULE (.*);
+    div_stupid WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:

@@ -1,4 +1,4 @@
-module stupid_div (
+module div_stupid (
     input logic CLK,
     input logic nRST,
 

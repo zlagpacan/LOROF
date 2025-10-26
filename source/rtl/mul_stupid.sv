@@ -1,4 +1,4 @@
-module stupid_mul (
+module mul_stupid (
     input logic CLK,
     input logic nRST,
 
