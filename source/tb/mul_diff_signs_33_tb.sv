@@ -1,8 +1,8 @@
 /*
-    Filename: stupid_mul_tb.sv
+    Filename: mul_diff_signs_33_tb.sv
     Author: zlagpacan
-    Description: Testbench for stupid_mul module. 
-    Spec: LOROF/spec/design/stupid_mul.md
+    Description: Testbench for mul_diff_signs_33 module. 
+    Spec: LOROF/spec/design/mul_diff_signs_33.md
 */
 
 `timescale 1ns/100ps
@@ -14,7 +14,7 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 
-module stupid_mul_tb ();
+module mul_diff_signs_33_tb ();
 
     // ----------------------------------------------------------------
     // TB setup:
@@ -36,15 +36,17 @@ module stupid_mul_tb ();
     // ----------------------------------------------------------------
     // DUT signals:
 
-	logic signed [31:0] tb_A;
-	logic signed [31:0] tb_B;
+	logic [31:0] tb_A;
+	logic [31:0] tb_B;
 
-	logic signed [63:0] DUT_out, expected_out;
+	logic [1:0] tb_sel;
+
+	logic [63:0] DUT_out, expected_out;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	stupid_mul #(
+	mul_diff_signs_33 #(
 	) DUT (
 		// seq
 		.CLK(CLK),
@@ -53,6 +55,8 @@ module stupid_mul_tb ();
 		.A(tb_A),
 		.B(tb_B),
 
+		.sel(tb_sel),
+
 		.out(DUT_out)
 	);
 
@@ -60,8 +64,8 @@ module stupid_mul_tb ();
     // classes:
 
     class RandIntOperands;
-        rand bit signed [31:0] A;
-        rand bit signed [31:0] B;
+        rand bit [31:0] A;
+        rand bit [31:0] B;
     endclass
 
     RandIntOperands operands;
@@ -102,6 +106,7 @@ module stupid_mul_tb ();
 		nRST = 1'b0;
 		tb_A = 0;
 		tb_B = 0;
+		tb_sel = 2'b00;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -119,6 +124,7 @@ module stupid_mul_tb ();
 		nRST = 1'b1;
 		tb_A = 0;
 		tb_B = 0;
+		tb_sel = 2'b00;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -129,12 +135,74 @@ module stupid_mul_tb ();
 		check_outputs();
 
         // ------------------------------------------------------------
-        // random operands:
-        test_case = "random operands";
+        // random operands MUL/MULH:
+        test_case = "random operands MUL/MULH";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
         operands = new();
+
+        for (int i = 0; i < 1024; i++) begin
+
+            operands.randomize();
+
+            @(posedge CLK); #(PERIOD/10);
+
+            // inputs
+            sub_test_case = $sformatf("%d * %d", $signed(operands.A), $signed(operands.B));
+            $display("\t- sub_test: %s", sub_test_case);
+
+            // reset
+            nRST = 1'b1;
+            tb_A = operands.A;
+            tb_B = operands.B;
+		    tb_sel = 2'b00;
+
+            @(negedge CLK);
+
+            // outputs:
+
+            expected_out = $signed(operands.A) * $signed(operands.B);
+
+            check_outputs();
+        end
+
+        // ------------------------------------------------------------
+        // random operands MUL/MULHSU:
+        test_case = "random operands MUL/MULHSU";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+        for (int i = 0; i < 1024; i++) begin
+
+            operands.randomize();
+
+            @(posedge CLK); #(PERIOD/10);
+
+            // inputs
+            sub_test_case = $sformatf("%d * %d", $signed({operands.A[31], operands.A}), $signed({1'b0, operands.B}));
+            $display("\t- sub_test: %s", sub_test_case);
+
+            // reset
+            nRST = 1'b1;
+            tb_A = operands.A;
+            tb_B = operands.B;
+		    tb_sel = 2'b10;
+
+            @(negedge CLK);
+
+            // outputs:
+
+            expected_out = $signed({operands.A[31], operands.A}) * $signed({1'b0, operands.B});
+
+            check_outputs();
+        end
+
+        // ------------------------------------------------------------
+        // random operands MUL/MULHU:
+        test_case = "random operands MUL/MULHU";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
 
         for (int i = 0; i < 1024; i++) begin
 
@@ -150,6 +218,7 @@ module stupid_mul_tb ();
             nRST = 1'b1;
             tb_A = operands.A;
             tb_B = operands.B;
+		    tb_sel = 2'b11;
 
             @(negedge CLK);
 
@@ -172,7 +241,7 @@ module stupid_mul_tb ();
 
         $display();
         if (num_errors) begin
-            $display("FAIL: %d tests fail", num_errors);
+            $display("FAIL: %0d tests fail", num_errors);
         end
         else begin
             $display("SUCCESS: all tests pass");

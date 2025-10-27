@@ -330,7 +330,7 @@ module alu_reg_mdu_iq_tb ();
 		expected_issue_A_PR = 7'h00;
 		expected_issue_B_forward = 1'b0;
 		expected_issue_B_is_zero = 1'b0;
-		expected_issue_B_PR = 7'h00
+		expected_issue_B_PR = 7'h00;
 		expected_issue_dest_PR = 7'h0;
 		expected_issue_ROB_index = 7'h0;
 	    // ALU reg pipeline feedback

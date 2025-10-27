@@ -1,8 +1,8 @@
 /*
-    Filename: stupid_div_tb.sv
+    Filename: mul_stupid_tb.sv
     Author: zlagpacan
-    Description: Testbench for stupid_div module. 
-    Spec: LOROF/spec/design/stupid_div.md
+    Description: Testbench for mul_stupid module. 
+    Spec: LOROF/spec/design/mul_stupid.md
 */
 
 `timescale 1ns/100ps
@@ -14,7 +14,7 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 
-module stupid_div_tb ();
+module mul_stupid_tb ();
 
     // ----------------------------------------------------------------
     // TB setup:
@@ -44,7 +44,7 @@ module stupid_div_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	stupid_div #(
+	mul_stupid #(
 	) DUT (
 		// seq
 		.CLK(CLK),
@@ -107,7 +107,7 @@ module stupid_div_tb ();
 
 		// outputs:
 
-		expected_out = '1;
+		expected_out = 0;
 
 		check_outputs();
 
@@ -124,7 +124,7 @@ module stupid_div_tb ();
 
 		// outputs:
 
-		expected_out = '1;
+		expected_out = 0;
 
 		check_outputs();
 
@@ -155,8 +155,7 @@ module stupid_div_tb ();
 
             // outputs:
 
-            if (operands.B == 0)    expected_out = '1;
-            else                    expected_out = operands.A / operands.B;
+            expected_out = operands.A * operands.B;
 
             check_outputs();
         end

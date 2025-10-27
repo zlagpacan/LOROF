@@ -108,6 +108,8 @@ module mdu_pipeline (
     // ----------------------------------------------------------------
     // Multiplier Signals:
 
+    logic [32:0] multiplier_A33;
+    logic [32:0] multiplier_B33;
     logic [63:0] multiplier_result;
 
     // ----------------------------------------------------------------
@@ -328,20 +330,23 @@ module mdu_pipeline (
     // Multiplier Logic:
 
     always_comb begin
-
-        // TODO: change to mul 33 logic
+        multiplier_A33[31:0] = A_data_WB;
+        multiplier_B33[31:0] = B_data_WB;
 
         // MULHU
         if (op_WB[1] & op_WB[0]) begin
-            multiplier_result = A_data_WB * B_data_WB;
+            multiplier_A33[32] = 1'b0;
+            multiplier_B33[32] = 1'b0;
         end
         // MULHSU
         else if (op_WB[1]) begin
-            multiplier_result = $signed(A_data_WB) * B_data_WB;
+            multiplier_A33[32] = multiplier_A33[31];
+            multiplier_B33[32] = 1'b0;
         end
         // MUL/MULHU
         else begin
-            multiplier_result = $signed(A_data_WB) * $signed(B_data_WB);
+            multiplier_A33[32] = multiplier_A33[31];
+            multiplier_B33[32] = multiplier_B33[31];
         end
     end
     

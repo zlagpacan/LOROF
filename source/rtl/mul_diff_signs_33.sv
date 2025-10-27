@@ -18,18 +18,18 @@ module mul_diff_signs_33 (
 
         // MULHU
         if (sel[1] & sel[0]) begin
-            A33[32] = A33[31];
-            B33[32] = B33[31];
+            A33[32] = 1'b0;
+            B33[32] = 1'b0;
         end
         // MULHSU
         else if (sel[1]) begin
             A33[32] = A33[31];
             B33[32] = 1'b0;
         end
-        // MUL/MULHU
+        // MUL/MULH
         else begin
-            A33[32] = 1'b0;
-            B33[32] = 1'b0;
+            A33[32] = A33[31];
+            B33[32] = B33[31];
         end
 
         out = $signed(A33) * $signed(B33);
