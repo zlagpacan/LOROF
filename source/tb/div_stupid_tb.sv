@@ -39,7 +39,8 @@ module div_stupid_tb ();
 	logic signed [31:0] tb_A;
 	logic signed [31:0] tb_B;
 
-	logic signed [63:0] DUT_out, expected_out;
+	logic signed [31:0] DUT_quotient, expected_quotient;
+	logic signed [31:0] DUT_remainder, expected_remainder;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -53,7 +54,8 @@ module div_stupid_tb ();
 		.A(tb_A),
 		.B(tb_B),
 
-		.out(DUT_out)
+		.quotient(DUT_quotient),
+		.remainder(DUT_remainder)
 	);
 
     // ----------------------------------------------------------------
@@ -71,9 +73,15 @@ module div_stupid_tb ();
 
     task check_outputs();
     begin
-		if (expected_out !== DUT_out) begin
-			$display("TB ERROR: expected_out (%h) != DUT_out (%h)",
-				expected_out, DUT_out);
+		if (expected_quotient !== DUT_quotient) begin
+			$display("TB ERROR: expected_quotient (%h) != DUT_quotient (%h)",
+				expected_quotient, DUT_quotient);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+		if (expected_remainder !== DUT_remainder) begin
+			$display("TB ERROR: expected_remainder (%h) != DUT_remainder (%h)",
+				expected_remainder, DUT_remainder);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -107,7 +115,8 @@ module div_stupid_tb ();
 
 		// outputs:
 
-		expected_out = '1;
+		expected_quotient = '1;
+		expected_remainder = 0;
 
 		check_outputs();
 
@@ -124,7 +133,8 @@ module div_stupid_tb ();
 
 		// outputs:
 
-		expected_out = '1;
+		expected_quotient = '1;
+		expected_remainder = 0;
 
 		check_outputs();
 
@@ -143,7 +153,7 @@ module div_stupid_tb ();
             @(posedge CLK); #(PERIOD/10);
 
             // inputs
-            sub_test_case = $sformatf("%d * %d", operands.A, operands.B);
+            sub_test_case = $sformatf("%d / %d", operands.A, operands.B);
             $display("\t- sub_test: %s", sub_test_case);
 
             // reset
@@ -155,8 +165,14 @@ module div_stupid_tb ();
 
             // outputs:
 
-            if (operands.B == 0)    expected_out = '1;
-            else                    expected_out = operands.A / operands.B;
+            if (operands.B == 0) begin
+                expected_quotient = '1;
+                expected_remainder = '1;
+            end
+            else begin
+                expected_quotient = operands.A / operands.B;
+                expected_remainder = operands.A % operands.B;
+            end
 
             check_outputs();
         end

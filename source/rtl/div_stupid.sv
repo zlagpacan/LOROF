@@ -5,14 +5,17 @@ module div_stupid (
     input logic signed [31:0] A,
     input logic signed [31:0] B,
 
-    output logic signed [31:0] out
+    output logic signed [31:0] quotient,
+    output logic signed [31:0] remainder
 );
     always_comb begin
         if (B == 0) begin
-            out = '1;
+            quotient = '1;
+            remainder = A;
         end
         else begin
-            out = A / B;
+            quotient = A / B;
+            remainder = A % B;
         end
     end
 
