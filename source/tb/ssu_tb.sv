@@ -13,12 +13,12 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter STORE_SET_COUNT = 64;
-parameter SSID_WIDTH = $clog2(STORE_SET_COUNT);
-parameter SSU_INPUT_BUFFER_ENTRIES = 2;
-parameter SSU_FUNNEL_BUFFER_ENTRIES = 2;
-
-module ssu_tb ();
+module ssu_tb #(
+	parameter STORE_SET_COUNT = 64,
+	parameter SSID_WIDTH = $clog2(STORE_SET_COUNT),
+	parameter SSU_INPUT_BUFFER_ENTRIES = 2,
+	parameter SSU_FUNNEL_BUFFER_ENTRIES = 2
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:

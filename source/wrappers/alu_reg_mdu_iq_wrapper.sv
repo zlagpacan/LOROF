@@ -13,9 +13,9 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter ALU_REG_MDU_IQ_ENTRIES = core_types_pkg::ALU_REG_MDU_IQ_ENTRIES;
-
-module alu_reg_mdu_iq_wrapper (
+module alu_reg_mdu_iq_wrapper #(
+	parameter ALU_REG_MDU_IQ_ENTRIES = 12
+) (
 
     // seq
     input logic CLK,

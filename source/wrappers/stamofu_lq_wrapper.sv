@@ -13,9 +13,9 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter STAMOFU_LQ_ENTRIES_PER_BANK = core_types_pkg::STAMOFU_LQ_ENTRIES_PER_BANK;
-
-module stamofu_lq_wrapper (
+module stamofu_lq_wrapper #(
+	parameter STAMOFU_LQ_ENTRIES_PER_BANK = 2
+) (
 
     // seq
     input logic CLK,

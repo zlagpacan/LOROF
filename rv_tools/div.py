@@ -291,8 +291,8 @@ if __name__ == "__main__":
                 print(f"    ERROR: nonrestoring_rem = {nonrestoring_rem}")
                 errors += 1
 
-    print()
     if args.expected:
+        print()
         print(f"distributions:")
         print()
         print(f"    dividend_size_percent5 = {dividend_size_percent5 / 1024}")

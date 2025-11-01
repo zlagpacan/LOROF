@@ -13,12 +13,15 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter ICACHE_NUM_SETS = system_types_pkg::ICACHE_NUM_SETS;
-parameter ICACHE_BLOCK_SIZE = system_types_pkg::ICACHE_BLOCK_SIZE;
-parameter ICACHE_TAG_WIDTH = system_types_pkg::ICACHE_TAG_WIDTH;
-parameter ICACHE_FETCH_WIDTH = system_types_pkg::ICACHE_FETCH_WIDTH;
-
-module icache_wrapper (
+module icache_wrapper #(
+	parameter ICACHE_NUM_SETS = 2**7,
+	parameter ICACHE_INDEX_WIDTH = $clog2(ICACHE_NUM_SETS),
+	parameter ICACHE_BLOCK_SIZE = 32,
+	parameter ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE),
+	parameter ICACHE_TAG_WIDTH = 22,
+	parameter ICACHE_FETCH_WIDTH = 16,
+	parameter ICACHE_FETCH_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE / ICACHE_FETCH_WIDTH)
+) (
 
     // seq
     input logic CLK,

@@ -13,10 +13,10 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter STAMOFU_CQ_ENTRIES = 24;
-parameter LOG_STAMOFU_CQ_ENTRIES = $clog2(STAMOFU_CQ_ENTRIES);
-
-module stamofu_cq_tb ();
+module stamofu_cq_tb #(
+	parameter STAMOFU_CQ_ENTRIES = 24,
+	parameter LOG_STAMOFU_CQ_ENTRIES = $clog2(STAMOFU_CQ_ENTRIES)
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:

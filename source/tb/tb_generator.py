@@ -13,10 +13,9 @@
                     - may not be necessary?
 """
 
-import sys
+import argparse
 
 PRINTS = False
-# PRINTS = True
 BLOCK_IS_SEQ = False
 
 class Signal():
@@ -165,9 +164,14 @@ def generate_tb(tb_base_lines, design_name, design_signals, design_params):
 
             # iterate through params adding param lines
             for i, param in enumerate(design_params):
-                output_lines.extend([
-                    f"parameter {param.name} = {param.default_value};\n",
-                ])
+                if i < len(design_params) - 1:
+                    output_lines.extend([
+                        f"\tparameter {param.name} = {param.default_value},\n",
+                    ])
+                else:
+                    output_lines.extend([
+                        f"\tparameter {param.name} = {param.default_value}\n",
+                    ])
 
             num_found += 1
             continue
@@ -515,15 +519,21 @@ def generate_tb(tb_base_lines, design_name, design_signals, design_params):
 
 if __name__ == "__main__":
 
-    assert len(sys.argv) == 2, f"len(sys.argv) = {len(sys.argv)}; expect commandline input as:\n" + \
-        "python3 tb_generator.py <path to design .sv file>"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("design_file_path")
+    parser.add_argument("-o", "--output-to-tb-file", action="store_true")
+    parser.add_argument("-p", "--prints", action="store_true")
+    args = parser.parse_args()
+
+    if args.prints:
+        PRINTS = True
 
     # get input design file
     try:
-        with open(sys.argv[1], "r") as fp:
+        with open(args.design_file_path, "r") as fp:
             design_lines = fp.readlines()
     except:
-        assert False, f"could not find {sys.argv[1]}"
+        assert False, f"could not find {args.design_file_path}"
 
     # get tb base
     try:
@@ -537,8 +547,12 @@ if __name__ == "__main__":
 
     output_lines = generate_tb(tb_base_lines, design_name, design_signals, design_params)
 
-    # write output to tb_output.txt
-    with open("tb_output.txt", "w") as fp:
+    # write output file
+    if args.output_to_tb_file:
+        output_file_path = f"{design_name}_tb.sv"
+    else:
+        output_file_path = "tb_output.txt"
+    with open(output_file_path, "w") as fp:
         fp.writelines(output_lines)
 
-    print("SUCCESS: generated tb in tb_output.txt")
+    print(f"SUCCESS: generated tb in {output_file_path}")

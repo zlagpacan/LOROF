@@ -10,11 +10,11 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-parameter INNER_WIDTH = 32;
-parameter OUTER_WIDTH = 32;
-parameter INIT_FILE = "";
-
-module bram_2rport_1wport_tb ();
+module bram_2rport_1wport_tb #(
+	parameter INNER_WIDTH = 32,
+	parameter OUTER_WIDTH = 32,
+	parameter INIT_FILE = ""
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:

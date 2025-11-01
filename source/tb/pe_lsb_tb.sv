@@ -10,7 +10,12 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module pe_lsb_tb ();
+module pe_lsb_tb #(
+	parameter WIDTH = 8,
+	parameter USE_ONE_HOT = 1,
+	parameter USE_COLD = 0,
+	parameter USE_INDEX = 0
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:
@@ -31,10 +36,8 @@ module pe_lsb_tb ();
 
     // ----------------------------------------------------------------
     // DUT signals:
-
-    parameter WIDTH = 8;
-
 	logic [WIDTH-1:0] tb_req_vec;
+    
 	logic [WIDTH-1:0] DUT_ack_one_hot, expected_ack_one_hot;
 	logic [WIDTH-1:0] DUT_ack_mask, expected_ack_mask;
 	logic [WIDTH-1:0] DUT_cold_ack_mask, expected_cold_ack_mask;
@@ -43,12 +46,18 @@ module pe_lsb_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	pe_lsb #(.WIDTH(WIDTH), .USE_COLD(1), .USE_INDEX(1)) DUT (
+	pe_lsb #(
+		.WIDTH(WIDTH),
+		.USE_ONE_HOT(USE_ONE_HOT),
+		.USE_COLD(USE_COLD),
+		.USE_INDEX(USE_INDEX)
+	) DUT (
 		.req_vec(tb_req_vec),
+
 		.ack_one_hot(DUT_ack_one_hot),
 		.ack_mask(DUT_ack_mask),
-        .cold_ack_mask(DUT_cold_ack_mask),
-        .ack_index(DUT_ack_index)
+		.cold_ack_mask(DUT_cold_ack_mask),
+		.ack_index(DUT_ack_index)
 	);
 
     // ----------------------------------------------------------------

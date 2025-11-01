@@ -13,10 +13,10 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter WIDTH = 8;
-parameter THRESHOLD = 4;
-
-module majority_wrapper (
+module majority_wrapper #(
+	parameter WIDTH = 8,
+	parameter THRESHOLD = 4
+) (
 
     // seq
     input logic CLK,

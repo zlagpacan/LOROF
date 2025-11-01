@@ -13,9 +13,9 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter WIDTH = 8;
-
-module pe2_lsb_wrapper (
+module pe2_lsb_wrapper #(
+	parameter WIDTH = 8
+) (
 
     // seq
     input logic CLK,

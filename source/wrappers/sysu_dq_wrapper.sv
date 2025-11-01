@@ -13,9 +13,9 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter SYSU_DQ_ENTRIES = core_types_pkg::SYSU_DQ_ENTRIES;
-
-module sysu_dq_wrapper (
+module sysu_dq_wrapper #(
+	parameter SYSU_DQ_ENTRIES = 4
+) (
 
     // seq
     input logic CLK,

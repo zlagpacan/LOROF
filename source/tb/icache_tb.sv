@@ -13,15 +13,15 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter ICACHE_NUM_SETS = 2**7;
-parameter ICACHE_INDEX_WIDTH = $clog2(ICACHE_NUM_SETS);
-parameter ICACHE_BLOCK_SIZE = 32;
-parameter ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE);
-parameter ICACHE_TAG_WIDTH = 22;
-parameter ICACHE_FETCH_WIDTH = 16;
-parameter ICACHE_FETCH_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE / ICACHE_FETCH_WIDTH);
-
-module icache_tb ();
+module icache_tb #(
+	parameter ICACHE_NUM_SETS = 2**7,
+	parameter ICACHE_INDEX_WIDTH = $clog2(ICACHE_NUM_SETS),
+	parameter ICACHE_BLOCK_SIZE = 32,
+	parameter ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE),
+	parameter ICACHE_TAG_WIDTH = 22,
+	parameter ICACHE_FETCH_WIDTH = 16,
+	parameter ICACHE_FETCH_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE / ICACHE_FETCH_WIDTH)
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:

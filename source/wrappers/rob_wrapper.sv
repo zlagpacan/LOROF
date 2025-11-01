@@ -13,23 +13,23 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter ROB_ENTRIES = core_types_pkg::ROB_ENTRIES;
-parameter LOG_ROB_ENTRIES = $clog2(ROB_ENTRIES);
-parameter ROB_MISPRED_Q_ENTRIES = core_types_pkg::ROB_MISPRED_Q_ENTRIES;
-parameter ROB_PR_FREE_Q_ENTRIES = core_types_pkg::ROB_MISPRED_Q_ENTRIES;
-parameter ROB_RESTART_ON_RESET = 1'b1;
-parameter INIT_PC = 32'h00000000;
-parameter INIT_ASID = 9'h0;
-parameter INIT_EXEC_MODE = M_MODE;
-parameter INIT_VIRTUAL_MODE = 1'b0;
-parameter INIT_MXR = 1'b0;
-parameter INIT_SUM = 1'b0;
-parameter INIT_TRAP_SFENCE = 1'b0;
-parameter INIT_TRAP_WFI = 1'b0;
-parameter INIT_TRAP_SRET = 1'b0;
-parameter INIT_TVEC_BASE_PC = 32'h0000F000;
-
-module rob_wrapper (
+module rob_wrapper #(
+	parameter ROB_ENTRIES = 128,
+	parameter LOG_ROB_ENTRIES = $clog2(ROB_ENTRIES),
+	parameter ROB_MISPRED_Q_ENTRIES = 2,
+	parameter ROB_PR_FREE_Q_ENTRIES = 2,
+	parameter ROB_RESTART_ON_RESET = 1'b1,
+	parameter INIT_PC = 32'h00000000,
+	parameter INIT_ASID = 9'h000,
+	parameter INIT_EXEC_MODE = M_MODE,
+	parameter INIT_VIRTUAL_MODE = 1'b0,
+	parameter INIT_MXR = 1'b0,
+	parameter INIT_SUM = 1'b0,
+	parameter INIT_TRAP_SFENCE = 1'b0,
+	parameter INIT_TRAP_WFI = 1'b0,
+	parameter INIT_TRAP_SRET = 1'b0,
+	parameter INIT_TVEC_BASE_PC = 32'h0000F000
+) (
 
     // seq
     input logic CLK,

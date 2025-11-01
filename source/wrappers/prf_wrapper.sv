@@ -13,15 +13,15 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter PR_COUNT = core_types_pkg::PR_COUNT;
-parameter LOG_PR_COUNT = $clog2(PR_COUNT);
-parameter PRF_BANK_COUNT = core_types_pkg::PRF_BANK_COUNT;
-parameter LOG_PRF_BANK_COUNT = $clog2(PRF_BANK_COUNT);
-parameter PRF_RR_COUNT = core_types_pkg::PRF_RR_COUNT;
-parameter PRF_WR_COUNT = core_types_pkg::PRF_WR_COUNT;
-parameter USE_BRAM = 1'b0;
-
-module prf_wrapper (
+module prf_wrapper #(
+	parameter PR_COUNT = 128,
+	parameter LOG_PR_COUNT = $clog2(PR_COUNT),
+	parameter PRF_BANK_COUNT = 4,
+	parameter LOG_PRF_BANK_COUNT = $clog2(PRF_BANK_COUNT),
+	parameter PRF_RR_COUNT = 9,
+	parameter PRF_WR_COUNT = 7,
+	parameter USE_BRAM = 1'b0
+) (
 
     // seq
     input logic CLK,

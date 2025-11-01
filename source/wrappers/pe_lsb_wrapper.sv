@@ -10,9 +10,15 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-parameter WIDTH = 32;
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
 
-module pe_lsb_wrapper (
+module pe_lsb_wrapper #(
+	parameter WIDTH = 8,
+	parameter USE_ONE_HOT = 1,
+	parameter USE_COLD = 0,
+	parameter USE_INDEX = 0
+) (
 
     // seq
     input logic CLK,
@@ -37,12 +43,12 @@ module pe_lsb_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    pe_lsb #(
-        .WIDTH(WIDTH),
-        .USE_ONE_HOT(1),
-        .USE_COLD(1),
-        .USE_INDEX(1)
-    ) WRAPPED_MODULE (.*);
+	pe_lsb #(
+		.WIDTH(WIDTH),
+		.USE_ONE_HOT(USE_ONE_HOT),
+		.USE_COLD(USE_COLD),
+		.USE_INDEX(USE_INDEX)
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:

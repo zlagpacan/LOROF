@@ -13,10 +13,10 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter LDU_CQ_ENTRIES = core_types_pkg::LDU_CQ_ENTRIES;
-parameter LOG_LDU_CQ_ENTRIES = $clog2(LDU_CQ_ENTRIES);
-
-module ldu_cq_wrapper (
+module ldu_cq_wrapper #(
+	parameter LDU_CQ_ENTRIES = 40,
+	parameter LOG_LDU_CQ_ENTRIES = $clog2(LDU_CQ_ENTRIES)
+) (
 
     // seq
     input logic CLK,

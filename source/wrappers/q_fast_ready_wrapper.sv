@@ -13,10 +13,11 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter DATA_WIDTH = 32;
-parameter NUM_ENTRIES = 32;
-
-module q_fast_ready_wrapper (
+module q_fast_ready_wrapper #(
+	parameter DATA_WIDTH = 32,
+	parameter NUM_ENTRIES = 4,
+	parameter LOG_NUM_ENTRIES = $clog2(NUM_ENTRIES)
+) (
 
     // seq
     input logic CLK,
@@ -57,9 +58,10 @@ module q_fast_ready_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    q_fast_ready #(
+	q_fast_ready #(
 		.DATA_WIDTH(DATA_WIDTH),
-    	.NUM_ENTRIES(NUM_ENTRIES)
+		.NUM_ENTRIES(NUM_ENTRIES),
+		.LOG_NUM_ENTRIES(LOG_NUM_ENTRIES)
 	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------

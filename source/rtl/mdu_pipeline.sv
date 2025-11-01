@@ -110,9 +110,8 @@ module mdu_pipeline (
     // ----------------------------------------------------------------
     // Divider Signals:
 
-    typedef enum logic [:0] {
+    typedef enum logic [1:0] {
         DIV_INIT,
-        DIV_CHECKS,
         DIV_ITERS,
         DIV_CORRECTION,
         DIV_DONE
@@ -126,13 +125,18 @@ module mdu_pipeline (
     logic divider_A_is_neg;
     logic divider_B_is_neg;
 
-    logic [31:0] divider_A_abs;
+    logic divider_B_is_zero;
 
-    logic [31:0] divider_B_abs;
-    logic [31:0] divider_B_abs_neg;
+    logic [31:0] next_divider_A_abs;
 
-    logic [31:0] divider_div_result;
-    logic [31:0] divider_rem_result;
+    logic [32:0] divider_B_abs;
+    logic [32:0] divider_B_abs_neg;
+
+    logic [4:0] divider_msb_index, next_divider_msb_index;
+    logic [31:0] divider_msb_mask, next_divider_msb_mask;
+
+    logic [32:0] divider_remainder, next_divider_remainder;
+    logic [31:0] divider_quotient, next_divider_quotient;
 
     // ----------------------------------------------------------------
     // Result Cache Signals:
@@ -157,7 +161,7 @@ module mdu_pipeline (
     // ----------------------------------------------------------------
     // Control Logic: 
 
-    assign stall_WB = valid_WB & (~WB_ready | (op_WB[2] & ~(div_done | result_cache_hit)));
+    assign stall_WB = valid_WB & (~WB_ready | (op_WB[2] & ~(divider_done | result_cache_hit)));
     assign stall_OC = stall_WB & valid_OC;
 
     // ----------------------------------------------------------------
@@ -302,7 +306,7 @@ module mdu_pipeline (
     end
 
     always_comb begin
-        WB_valid = valid_WB & (~op_WB[2] | div_done | result_cache_hit);
+        WB_valid = valid_WB & (~op_WB[2] | divider_done | result_cache_hit);
 
         // mul
         if (~op_WB[2]) begin
@@ -332,11 +336,11 @@ module mdu_pipeline (
             else begin
                 // DIV[U]
                 if (~op_WB[1]) begin
-                    WB_data = divider_div_result;
+                    WB_data = divider_quotient;
                 end
                 // REM[U]
                 else begin
-                    WB_data = divider_rem_result;
+                    WB_data = divider_remainder;
                 end
             end
         end
@@ -375,41 +379,100 @@ module mdu_pipeline (
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             divider_state <= DIV_INIT;
+            divider_A_is_neg <= 1'b0;
+            divider_B_is_neg <= 1'b0;
+            divider_B_is_zero <= 1'b0;
+            divider_B_abs <= 32'h0;
+            divider_B_abs_neg <= 32'h0;
+            divider_msb_index <= 5'h0;
+            divider_msb_mask <= '0;
+            divider_remainder <= 33'h0;
+            divider_quotient <= 32'h0;
         end
         else begin
-            divider_state <= next_divider_state;
+            if (divider_clear) begin
+                divider_state <= DIV_INIT;
+            end
+            else begin
+                divider_state <= next_divider_state;
+            end
+
+            divider_A_is_neg <= A_data_WB[31];
+            divider_B_is_neg <= B_data_WB[31];
+            divider_B_is_zero <= B_data_WB == 32'h0;
+
+            if (~op_WB[0] & B_data_WB[31]) begin
+                divider_B_abs <= -B_data_WB;
+                divider_B_abs_neg <= B_data_WB;
+            end
+            else begin
+                divider_B_abs <= B_data_WB;
+                divider_B_abs_neg <= -B_data_WB;
+            end
+
+            if (divider_state == DIV_INIT) begin
+                divider_msb_index <= next_divider_msb_index;
+                divider_msb_mask <= next_divider_msb_mask;
+            end
+            else begin
+                divider_msb_index <= divider_msb_index - 1;
+            end
+
+            divider_remainder <= next_divider_remainder;
+            divider_quotient <= next_divider_quotient;
         end
     end
+    pe_msb #(
+        .WIDTH(32), .USE_ONE_HOT(0), .USE_COLD(0), .USE_INDEX(1)
+    ) DIVIDER_PE_MSB (
+        .req_vec(next_divider_A_abs),
+        .ack_mask(next_divider_msb_mask),
+        .ack_index(next_divider_msb_index)
+    );
     always_comb begin
         divider_clear = ~valid_WB | ~op_WB[2] | ~stall_WB;
+            
+        if (~op_WB[0] & A_data_WB[31]) begin
+            next_divider_A_abs = -A_data_WB;
+        end
+        else begin
+            next_divider_A_abs = A_data_WB;
+        end
 
         case (divider_state)
 
             DIV_INIT: begin
-
-            end
-
-            DIV_CHECKS: begin
-                
+                next_divider_state = DIV_ITERS;
+                next_divider_remainder = 33'h0;
+                next_divider_quotient = next_divider_A_abs;
             end
 
             DIV_ITERS: begin
+                if (divider_msb_index == 0) begin
+                    next_divider_state = DIV_DONE;
+                end
+                else begin
+                    next_divider_state = DIV_ITERS;
+                end
 
+                if (divider_remainder[divider_msb_index + 1]) begin
+                    next_divider_remainder = {divider_remainder[31:0], divider_quotient[divider_msb_index]} + divider_B_abs;
+                end
+                else begin
+                    next_divider_remainder = {divider_remainder[31:0], divider_quotient[divider_msb_index]} + divider_B_abs_neg;
+                end
+                next_divider_quotient = {divider_quotient[30:0], next_divider_remainder[divider_msb_index + 1]} & divider_msb_mask;
             end
 
             DIV_CORRECTION: begin
-
+                
             end
 
-            DIV_DONE: begin
+            default: begin // DIV_DONE
 
             end
 
         endcase
-
-        if (divider_clear) begin
-            next_divider_state = DIV_INIT;
-        end
     end
 
     // ----------------------------------------------------------------
@@ -439,8 +502,8 @@ module mdu_pipeline (
                 result_cache_array[result_cache_write_index].valid <= 1'b1;
                 result_cache_array[result_cache_write_index].A_PR <= A_PR_WB;
                 result_cache_array[result_cache_write_index].B_PR <= A_PR_WB;
-                result_cache_array[result_cache_write_index].div_result <= divider_div_result;
-                result_cache_array[result_cache_write_index].rem_result <= divider_rem_result;
+                result_cache_array[result_cache_write_index].div_result <= divider_quotient;
+                result_cache_array[result_cache_write_index].rem_result <= divider_remainder[31:0];
                 result_cache_write_index <= result_cache_write_index + 1;
             end
         end

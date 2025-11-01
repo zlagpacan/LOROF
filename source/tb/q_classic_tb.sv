@@ -13,10 +13,11 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter DATA_WIDTH = 32;
-parameter NUM_ENTRIES = 4;
-
-module q_classic_tb ();
+module q_classic_tb #(
+	parameter DATA_WIDTH = 32,
+	parameter NUM_ENTRIES = 4,
+	parameter LOG_NUM_ENTRIES = $clog2(NUM_ENTRIES)
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:

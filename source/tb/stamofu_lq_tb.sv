@@ -13,9 +13,9 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter STAMOFU_LQ_ENTRIES_PER_BANK = 2;
-
-module stamofu_lq_tb ();
+module stamofu_lq_tb #(
+	parameter STAMOFU_LQ_ENTRIES_PER_BANK = 2
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:

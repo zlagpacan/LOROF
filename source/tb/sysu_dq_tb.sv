@@ -13,9 +13,9 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter SYSU_DQ_ENTRIES = 4;
-
-module sysu_dq_tb ();
+module stamofu_dq_tb #(
+	parameter STAMOFU_DQ_ENTRIES = 4
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:

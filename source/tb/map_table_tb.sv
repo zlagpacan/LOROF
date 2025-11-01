@@ -10,10 +10,10 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-parameter MAP_TABLE_READ_PORT_COUNT = 12;
-parameter MAP_TABLE_WRITE_PORT_COUNT = 4;
-
-module map_table_tb ();
+module map_table_tb #(
+	parameter MAP_TABLE_READ_PORT_COUNT = 12,
+	parameter MAP_TABLE_WRITE_PORT_COUNT = 4
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:

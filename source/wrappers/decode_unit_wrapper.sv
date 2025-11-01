@@ -13,12 +13,12 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter INIT_EXEC_MODE = M_MODE;
-parameter INIT_TRAP_SFENCE = 1'b0;
-parameter INIT_TRAP_WFI = 1'b0;
-parameter INIT_TRAP_SRET = 1'b0;
-
-module decode_unit_wrapper (
+module decode_unit_wrapper #(
+	parameter INIT_EXEC_MODE = M_MODE,
+	parameter INIT_TRAP_SFENCE = 1'b0,
+	parameter INIT_TRAP_WFI = 1'b0,
+	parameter INIT_TRAP_SRET = 1'b0
+) (
 
     // seq
     input logic CLK,

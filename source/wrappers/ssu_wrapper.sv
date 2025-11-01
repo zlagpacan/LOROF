@@ -1,7 +1,7 @@
 /*
     Filename: ssu_wrapper.sv
     Author: zlagpacan
-    Description: RTL wrapper around ssu module.
+    Description: RTL wrapper around ssu module. 
     Spec: LOROF/spec/design/ssu.md
 */
 
@@ -13,12 +13,12 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter STORE_SET_COUNT = 64;
-parameter SSID_WIDTH = $clog2(STORE_SET_COUNT);
-parameter SSU_INPUT_BUFFER_ENTRIES = core_types_pkg::SSU_INPUT_BUFFER_ENTRIES;
-parameter SSU_FUNNEL_BUFFER_ENTRIES = core_types_pkg::SSU_FUNNEL_BUFFER_ENTRIES;
-
-module ssu_wrapper (
+module ssu_wrapper #(
+	parameter STORE_SET_COUNT = 64,
+	parameter SSID_WIDTH = $clog2(STORE_SET_COUNT),
+	parameter SSU_INPUT_BUFFER_ENTRIES = 2,
+	parameter SSU_FUNNEL_BUFFER_ENTRIES = 2
+) (
 
     // seq
     input logic CLK,

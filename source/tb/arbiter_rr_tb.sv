@@ -13,10 +13,10 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter REQUESTER_COUNT = 4;
-parameter LOG_REQUESTER_COUNT = $clog2(REQUESTER_COUNT);
-
-module arbiter_rr_tb ();
+module arbiter_rr_tb #(
+	parameter REQUESTER_COUNT = 4,
+	parameter LOG_REQUESTER_COUNT = $clog2(REQUESTER_COUNT)
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:

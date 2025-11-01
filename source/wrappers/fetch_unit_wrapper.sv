@@ -13,13 +13,13 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter FETCH_UNIT_WAIT_FOR_RESTART_STATE = 1'b1;
-parameter INIT_PC = 32'h0;
-parameter INIT_ASID = 9'h0;
-parameter INIT_EXEC_MODE = M_MODE;
-parameter INIT_VIRTUAL_MODE = 1'b0;
-
-module fetch_unit_wrapper (
+module fetch_unit_wrapper #(
+	parameter FETCH_UNIT_WAIT_FOR_RESTART_STATE = 1'b1,
+	parameter INIT_PC = 32'h0,
+	parameter INIT_ASID = 9'h0,
+	parameter INIT_EXEC_MODE = M_MODE,
+	parameter INIT_VIRTUAL_MODE = 1'b0
+) (
 
     // seq
     input logic CLK,

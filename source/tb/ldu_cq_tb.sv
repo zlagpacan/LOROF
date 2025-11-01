@@ -13,10 +13,10 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter LDU_CQ_ENTRIES = 10;
-parameter LOG_LDU_CQ_ENTRIES = $clog2(LDU_CQ_ENTRIES);
-
-module ldu_cq_tb ();
+module ldu_cq_tb #(
+	parameter LDU_CQ_ENTRIES = 40,
+	parameter LOG_LDU_CQ_ENTRIES = $clog2(LDU_CQ_ENTRIES)
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:

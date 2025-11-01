@@ -13,10 +13,10 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter VECTOR_WIDTH = 32;
-parameter INDEX_WIDTH = $clog2(VECTOR_WIDTH);
-
-module oldest_younger_wrapper (
+module oldest_younger_wrapper #(
+	parameter VECTOR_WIDTH = 8,
+	parameter INDEX_WIDTH = $clog2(VECTOR_WIDTH)
+) (
 
     // seq
     input logic CLK,

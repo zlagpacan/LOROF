@@ -13,9 +13,9 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter STAMOFU_AQ_ENTRIES = core_types_pkg::STAMOFU_AQ_ENTRIES;
-
-module stamofu_aq_wrapper (
+module stamofu_aq_wrapper #(
+	parameter STAMOFU_AQ_ENTRIES = 4
+) (
 
     // seq
     input logic CLK,

@@ -13,10 +13,10 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter VECTOR_WIDTH = 8;
-parameter INDEX_WIDTH = $clog2(VECTOR_WIDTH);
-
-module youngest_older_tb ();
+module youngest_older_tb #(
+	parameter VECTOR_WIDTH = 8,
+	parameter INDEX_WIDTH = $clog2(VECTOR_WIDTH)
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:

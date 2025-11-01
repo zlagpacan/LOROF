@@ -13,11 +13,11 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter CHECKPOINT_COUNT = 8;
-parameter CHECKPOINT_INDEX_WIDTH = $clog2(CHECKPOINT_COUNT);
-parameter CHECKPOINT_THRESHOLD = 4;
-
-module checkpoint_array_tb ();
+module checkpoint_array_tb #(
+	parameter CHECKPOINT_COUNT = 8,
+	parameter CHECKPOINT_INDEX_WIDTH = $clog2(CHECKPOINT_COUNT),
+	parameter CHECKPOINT_THRESHOLD = 4
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:

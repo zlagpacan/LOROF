@@ -1,7 +1,7 @@
 /*
     Filename: youngest_older_wrapper.sv
     Author: zlagpacan
-    Description: RTL wrapper around youngest_older module.
+    Description: RTL wrapper around youngest_older module. 
     Spec: LOROF/spec/design/youngest_older.md
 */
 
@@ -13,10 +13,10 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter VECTOR_WIDTH = 32;
-parameter INDEX_WIDTH = $clog2(VECTOR_WIDTH);
-
-module youngest_older_wrapper (
+module youngest_older_wrapper #(
+	parameter VECTOR_WIDTH = 8,
+	parameter INDEX_WIDTH = $clog2(VECTOR_WIDTH)
+) (
 
     // seq
     input logic CLK,

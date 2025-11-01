@@ -13,13 +13,13 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter INIT_ASID = 9'h0;
-parameter INIT_EXEC_MODE = M_MODE;
-parameter INIT_VIRTUAL_MODE = 1'b0;
-parameter INIT_MXR = 1'b0;
-parameter INIT_SUM = 1'b0;
-
-module ldu_launch_pipeline_wrapper (
+module ldu_launch_pipeline_wrapper #(
+	parameter INIT_ASID = 9'h0,
+	parameter INIT_EXEC_MODE = M_MODE,
+	parameter INIT_VIRTUAL_MODE = 1'b0,
+	parameter INIT_MXR = 1'b0,
+	parameter INIT_SUM = 1'b0
+) (
 
     // seq
     input logic CLK,

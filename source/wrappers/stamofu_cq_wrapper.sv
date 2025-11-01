@@ -13,10 +13,10 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter STAMOFU_CQ_ENTRIES = core_types_pkg::STAMOFU_CQ_ENTRIES;
-parameter LOG_STAMOFU_CQ_ENTRIES = $clog2(STAMOFU_CQ_ENTRIES);
-
-module stamofu_cq_wrapper (
+module stamofu_cq_wrapper #(
+	parameter STAMOFU_CQ_ENTRIES = 24,
+	parameter LOG_STAMOFU_CQ_ENTRIES = $clog2(STAMOFU_CQ_ENTRIES)
+) (
 
     // seq
     input logic CLK,

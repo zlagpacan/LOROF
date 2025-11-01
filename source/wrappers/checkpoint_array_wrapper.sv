@@ -13,11 +13,11 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-parameter CHECKPOINT_COUNT = core_types_pkg::CHECKPOINT_COUNT;
-parameter CHECKPOINT_INDEX_WIDTH = core_types_pkg::CHECKPOINT_INDEX_WIDTH;
-parameter CHECKPOINT_THRESHOLD = core_types_pkg::CHECKPOINT_THRESHOLD;
-
-module checkpoint_array_wrapper (
+module checkpoint_array_wrapper #(
+	parameter CHECKPOINT_COUNT = 8,
+	parameter CHECKPOINT_INDEX_WIDTH = $clog2(CHECKPOINT_COUNT),
+	parameter CHECKPOINT_THRESHOLD = 4
+) (
 
     // seq
     input logic CLK,
