@@ -73,8 +73,6 @@ def div_nonrestoring_skip(a, b, signed):
     if b == 0:
         return 0xFFFFFFFF, a
     if signed:
-        if a == 0x80000000 and b == 0xFFFFFFFF:
-            return 0x80000000, 0
         a_neg = (a >> 31) & 0b1
         b_neg = (b >> 31) & 0b1
         a_abs = abs(make_signed(a))

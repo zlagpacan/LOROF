@@ -58,11 +58,6 @@ module mdu_pipeline (
     logic stall_WB;
     logic stall_OC;
 
-    logic divider_start;
-    logic divider_in_progress;
-    logic divider_done;
-    logic result_cache_hit;
-
     // ----------------------------------------------------------------
     // OC Stage Signals:
 
@@ -115,6 +110,27 @@ module mdu_pipeline (
     // ----------------------------------------------------------------
     // Divider Signals:
 
+    typedef enum logic [:0] {
+        DIV_INIT,
+        DIV_CHECKS,
+        DIV_ITERS,
+        DIV_CORRECTION,
+        DIV_DONE
+    } div_fsm_t;
+
+    div_fsm_t divider_state, next_divider_state;
+
+    logic divider_clear;
+    logic divider_done;
+
+    logic divider_A_is_neg;
+    logic divider_B_is_neg;
+
+    logic [31:0] divider_A_abs;
+
+    logic [31:0] divider_B_abs;
+    logic [31:0] divider_B_abs_neg;
+
     logic [31:0] divider_div_result;
     logic [31:0] divider_rem_result;
 
@@ -132,6 +148,8 @@ module mdu_pipeline (
     result_cache_entry_t [MDU_RESULT_CACHE_ENTRIES-1:0] result_cache_array;
 
     logic [LOG_MDU_RESULT_CACHE_ENTRIES-1:0] result_cache_write_index;
+    
+    logic result_cache_hit;
 
     logic [31:0] result_cache_div_result;
     logic [31:0] result_cache_rem_result;
@@ -297,9 +315,9 @@ module mdu_pipeline (
                 WB_data = multiplier_result[63:32];
             end
         end
-
         // div
         else begin
+            // result cache
             if (result_cache_hit) begin
                 // DIV[U]
                 if (~op_WB[1]) begin
@@ -310,6 +328,7 @@ module mdu_pipeline (
                     WB_data = result_cache_rem_result;
                 end
             end
+            // divider
             else begin
                 // DIV[U]
                 if (~op_WB[1]) begin
@@ -353,7 +372,45 @@ module mdu_pipeline (
     // ----------------------------------------------------------------
     // Divider Logic: 
 
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            divider_state <= DIV_INIT;
+        end
+        else begin
+            divider_state <= next_divider_state;
+        end
+    end
+    always_comb begin
+        divider_clear = ~valid_WB | ~op_WB[2] | ~stall_WB;
 
+        case (divider_state)
+
+            DIV_INIT: begin
+
+            end
+
+            DIV_CHECKS: begin
+                
+            end
+
+            DIV_ITERS: begin
+
+            end
+
+            DIV_CORRECTION: begin
+
+            end
+
+            DIV_DONE: begin
+
+            end
+
+        endcase
+
+        if (divider_clear) begin
+            next_divider_state = DIV_INIT;
+        end
+    end
 
     // ----------------------------------------------------------------
     // Result Cache Logic:
