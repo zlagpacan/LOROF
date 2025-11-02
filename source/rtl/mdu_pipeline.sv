@@ -293,15 +293,17 @@ module mdu_pipeline (
     end
     
     always_ff @ (posedge CLK) begin
-        op_WB <= next_op_WB;
-        A_PR_WB <= next_A_PR_WB;
-        A_data_WB <= next_A_data_WB;
-        A_msb_WB <= next_A_msb_WB;
-        B_PR_WB <= next_B_PR_WB;
-        B_data_WB <= next_B_data_WB;
-        B_msb_WB <= next_B_msb_WB;
-        dest_PR_WB <= next_dest_PR_WB;
-        ROB_index_WB <= next_ROB_index_WB;
+        if (~stall_WB) begin
+            op_WB <= next_op_WB;
+            A_PR_WB <= next_A_PR_WB;
+            A_data_WB <= next_A_data_WB;
+            A_msb_WB <= next_A_msb_WB;
+            B_PR_WB <= next_B_PR_WB;
+            B_data_WB <= next_B_data_WB;
+            B_msb_WB <= next_B_msb_WB;
+            dest_PR_WB <= next_dest_PR_WB;
+            ROB_index_WB <= next_ROB_index_WB;
+        end
     end
 
     always_comb begin
