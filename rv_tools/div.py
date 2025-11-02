@@ -97,15 +97,13 @@ def div_nonrestoring_skip(a, b, signed):
     print(f"         init AQ = 0b_{bit(A, 32)}_{bits(A, 31, 0):032b}_{bits(Q, 31, 0):032b}") if PRINTS else None
 
     for iter in range(msb_index + 1):
-        if bit(A, msb_index + 1):
+        if bit(A, 32):
             A = bits(A << 1, 32, 0) + bit(Q, msb_index)
-            Q = bits(Q << 1, msb_index, 0)
             A = bits(A + b_abs, 32, 0)
         else:
             A = bits(A << 1, 32, 0) + bit(Q, msb_index)
-            Q = bits(Q << 1, msb_index, 0)
             A = bits(A - b_abs, 32, 0)
-        Q += (not bit(A, msb_index + 1))
+        Q = bits(Q << 1, msb_index, 0) + (not bit(A, 32))
         print(f"after iter {iter:2d} AQ = 0b_{bit(A, 32)}_{bits(A, 31, 0):032b}_{bits(Q, 31, 0):032b}") if PRINTS else None
 
         ITERS += 1
