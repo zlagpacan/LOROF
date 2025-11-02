@@ -138,9 +138,77 @@ def parse_design(design_lines):
 
     return design_name, design_signals, design_params
 
-def generate_tb(tb_base_lines, design_name, design_signals, design_params):
+def generate_tb(args, tb_base_lines, design_name, design_signals, design_params):
     
     output_lines = []
+
+    # generate input and output signal lines which will be reused
+    input_signal_lines = []
+    output_signal_lines = []
+
+    # iterate through input signals setting tb signals
+    for input_comment_signal in [signal for signal in design_signals if signal.io == "input" or signal.type == "comment"]:
+        
+        # input signal
+        if input_comment_signal.io == "input":
+            # if typedef'd, add typecast
+            if not ("logic" in input_comment_signal.type):
+                if args.zeroes:
+                    input_signal_lines.extend([
+                        f"\t\ttb_{input_comment_signal.name} = {input_comment_signal.type}'('0);\n",
+                    ])
+                else:
+                    input_signal_lines.extend([
+                        f"\t\ttb_{input_comment_signal.name} = {input_comment_signal.type}'(\n",
+                    ])
+            # otherwise leave at = 
+            else:
+                if args.zeroes:
+                    input_signal_lines.extend([
+                        f"\t\ttb_{input_comment_signal.name} = '0;\n",
+                    ])
+                else:
+                    input_signal_lines.extend([
+                        f"\t\ttb_{input_comment_signal.name} = \n",
+                    ])
+
+        # only top level comments
+        elif input_comment_signal.type == "comment" and input_comment_signal.name.index("//") <= 4:
+            input_signal_lines.extend([
+                f"\t{input_comment_signal.name}",
+            ])
+
+    # iterate through input signals setting expected signals
+    for output_comment_signal in [signal for signal in design_signals if signal.io == "output" or signal.type == "comment"]:
+        
+        # output signal
+        if output_comment_signal.io == "output":
+            # if typedef'd, add typecast
+            if not ("logic" in output_comment_signal.type):
+                if args.zeroes:
+                    output_signal_lines.extend([
+                        f"\t\texpected_{output_comment_signal.name} = {output_comment_signal.type}'('0);\n",
+                    ])
+                else:
+                    output_signal_lines.extend([
+                        f"\t\texpected_{output_comment_signal.name} = {output_comment_signal.type}'(\n",
+                    ])
+            # otherwise leave at = 
+            else:
+                if args.zeroes:
+                    output_signal_lines.extend([
+                        f"\t\texpected_{output_comment_signal.name} = '0;\n",
+                    ])
+                else:
+                    output_signal_lines.extend([
+                        f"\t\texpected_{output_comment_signal.name} = \n",
+                    ])
+        
+        # only top level comments
+        elif output_comment_signal.type == "comment" and output_comment_signal.name.index("//") <= 4:
+            output_signal_lines.extend([
+                f"\t{output_comment_signal.name}",
+            ])
 
     # iterate through tb base lines adding in info based on design_name and design_signals as go
     num_found = 0
@@ -332,54 +400,6 @@ def generate_tb(tb_base_lines, design_name, design_signals, design_params):
 
             num_found += 1
             continue
-
-        # here on, have same input and output signal lines
-        input_signal_lines = []
-        output_signal_lines = []
-
-        # iterate through input signals setting tb signals
-        for input_comment_signal in [signal for signal in design_signals if signal.io == "input" or signal.type == "comment"]:
-            
-            # input signal
-            if input_comment_signal.io == "input":
-                # if typedef'd, add typecast
-                if not ("logic" in input_comment_signal.type):
-                    input_signal_lines.extend([
-                        f"\t\ttb_{input_comment_signal.name} = {input_comment_signal.type}'(\n",
-                    ])
-                # otherwise leave at = 
-                else:
-                    input_signal_lines.extend([
-                        f"\t\ttb_{input_comment_signal.name} = \n",
-                    ])
-
-            # only top level comments
-            elif input_comment_signal.type == "comment" and input_comment_signal.name.index("//") <= 4:
-                input_signal_lines.extend([
-                    f"\t{input_comment_signal.name}",
-                ])
-
-        # iterate through input signals setting expected signals
-        for output_comment_signal in [signal for signal in design_signals if signal.io == "output" or signal.type == "comment"]:
-            
-            # output signal
-            if output_comment_signal.io == "output":
-                # if typedef'd, add typecast
-                if not ("logic" in output_comment_signal.type):
-                    output_signal_lines.extend([
-                        f"\t\texpected_{output_comment_signal.name} = {output_comment_signal.type}'(\n",
-                    ])
-                # otherwise leave at = 
-                else:
-                    output_signal_lines.extend([
-                        f"\t\texpected_{output_comment_signal.name} = \n",
-                    ])
-            
-            # only top level comments
-            elif output_comment_signal.type == "comment" and output_comment_signal.name.index("//") <= 4:
-                output_signal_lines.extend([
-                    f"\t{output_comment_signal.name}",
-                ])
             
         # check for <assert reset test case>
         if line.lstrip().rstrip() == "<assert reset test case>":
@@ -413,6 +433,12 @@ def generate_tb(tb_base_lines, design_name, design_signals, design_params):
                 f"\n",
                 f"\t\tcheck_outputs();\n",
             ])
+
+            # fill in reminder
+            if not args.zeroes:
+                assert_reset_test_case_lines.extend([
+                    f"fill in ^\n"
+                ])
 
             output_lines.extend(assert_reset_test_case_lines)
 
@@ -451,6 +477,12 @@ def generate_tb(tb_base_lines, design_name, design_signals, design_params):
                 f"\n",
                 f"\t\tcheck_outputs();\n",
             ])
+
+            # fill in reminder
+            if not args.zeroes:
+                deassert_reset_test_case_lines.extend([
+                    f"fill in ^\n"
+                ])
 
             output_lines.extend(deassert_reset_test_case_lines)
 
@@ -504,6 +536,12 @@ def generate_tb(tb_base_lines, design_name, design_signals, design_params):
                 f"\t\tcheck_outputs();\n",
             ])
 
+            # fill in reminder
+            if not args.zeroes:
+                default_test_case_lines.extend([
+                    f"fill in ^\n"
+                ])
+
             output_lines.extend(default_test_case_lines)
 
             num_found += 1
@@ -522,6 +560,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("design_file_path")
     parser.add_argument("-o", "--output-to-tb-file", action="store_true")
+    parser.add_argument("-z", "--zeroes", action="store_true")
     parser.add_argument("-p", "--prints", action="store_true")
     args = parser.parse_args()
 
@@ -545,7 +584,7 @@ if __name__ == "__main__":
     # run generator algo
     design_name, design_signals, design_params = parse_design(design_lines)
 
-    output_lines = generate_tb(tb_base_lines, design_name, design_signals, design_params)
+    output_lines = generate_tb(args, tb_base_lines, design_name, design_signals, design_params)
 
     # write output file
     if args.output_to_tb_file:
