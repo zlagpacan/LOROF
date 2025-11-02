@@ -1,0 +1,369 @@
+/*
+    Filename: mdu_pipeline_tb.sv
+    Author: zlagpacan
+    Description: Testbench for mdu_pipeline module. 
+    Spec: LOROF/spec/design/mdu_pipeline.md
+*/
+
+`timescale 1ns/100ps
+
+`include "core_types_pkg.vh"
+import core_types_pkg::*;
+
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
+module mdu_pipeline_tb #(
+) ();
+
+    // ----------------------------------------------------------------
+    // TB setup:
+
+    // parameters
+    parameter PERIOD = 10;
+
+    // TB signals:
+    logic CLK = 1'b1, nRST;
+    string test_case;
+    string sub_test_case;
+    int test_num = 0;
+    int num_errors = 0;
+    logic tb_error = 1'b0;
+
+    // clock gen
+    always begin #(PERIOD/2); CLK = ~CLK; end
+
+    // ----------------------------------------------------------------
+    // DUT signals:
+
+
+    // MDU pipeline issue
+	logic tb_issue_valid;
+	logic [2:0] tb_issue_op;
+	logic tb_issue_A_forward;
+	logic tb_issue_A_is_zero;
+	logic [LOG_PRF_BANK_COUNT-1:0] tb_issue_A_PR;
+	logic tb_issue_B_forward;
+	logic tb_issue_B_is_zero;
+	logic [LOG_PRF_BANK_COUNT-1:0] tb_issue_B_PR;
+	logic [LOG_PR_COUNT-1:0] tb_issue_dest_PR;
+	logic [LOG_ROB_ENTRIES-1:0] tb_issue_ROB_index;
+
+    // MDU pipeline feedback to IQ
+	logic DUT_issue_ready, expected_issue_ready;
+
+    // writeback bus by bank
+	logic [PRF_BANK_COUNT-1:0] tb_WB_bus_valid_by_bank;
+	logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] tb_WB_bus_upper_PR_by_bank;
+
+    // reg read info and data from PRF
+	logic tb_A_reg_read_ack;
+	logic tb_A_reg_read_port;
+	logic tb_B_reg_read_ack;
+	logic tb_B_reg_read_port;
+	logic [PRF_BANK_COUNT-1:0][1:0][31:0] tb_reg_read_data_by_bank_by_port;
+
+    // forward data from PRF
+	logic [PRF_BANK_COUNT-1:0][31:0] tb_forward_data_by_bank;
+
+    // writeback data to PRF
+	logic DUT_WB_valid, expected_WB_valid;
+	logic [31:0] DUT_WB_data, expected_WB_data;
+	logic [LOG_PR_COUNT-1:0] DUT_WB_PR, expected_WB_PR;
+	logic [LOG_ROB_ENTRIES-1:0] DUT_WB_ROB_index, expected_WB_ROB_index;
+
+    // writeback feedback from
+	logic tb_WB_ready;
+
+    // ----------------------------------------------------------------
+    // DUT instantiation:
+
+	mdu_pipeline #(
+	) DUT (
+		// seq
+		.CLK(CLK),
+		.nRST(nRST),
+
+
+	    // MDU pipeline issue
+		.issue_valid(tb_issue_valid),
+		.issue_op(tb_issue_op),
+		.issue_A_forward(tb_issue_A_forward),
+		.issue_A_is_zero(tb_issue_A_is_zero),
+		.issue_A_PR(tb_issue_A_PR),
+		.issue_B_forward(tb_issue_B_forward),
+		.issue_B_is_zero(tb_issue_B_is_zero),
+		.issue_B_PR(tb_issue_B_PR),
+		.issue_dest_PR(tb_issue_dest_PR),
+		.issue_ROB_index(tb_issue_ROB_index),
+
+	    // MDU pipeline feedback to IQ
+		.issue_ready(DUT_issue_ready),
+
+	    // writeback bus by bank
+		.WB_bus_valid_by_bank(tb_WB_bus_valid_by_bank),
+		.WB_bus_upper_PR_by_bank(tb_WB_bus_upper_PR_by_bank),
+
+	    // reg read info and data from PRF
+		.A_reg_read_ack(tb_A_reg_read_ack),
+		.A_reg_read_port(tb_A_reg_read_port),
+		.B_reg_read_ack(tb_B_reg_read_ack),
+		.B_reg_read_port(tb_B_reg_read_port),
+		.reg_read_data_by_bank_by_port(tb_reg_read_data_by_bank_by_port),
+
+	    // forward data from PRF
+		.forward_data_by_bank(tb_forward_data_by_bank),
+
+	    // writeback data to PRF
+		.WB_valid(DUT_WB_valid),
+		.WB_data(DUT_WB_data),
+		.WB_PR(DUT_WB_PR),
+		.WB_ROB_index(DUT_WB_ROB_index),
+
+	    // writeback feedback from
+		.WB_ready(tb_WB_ready)
+	);
+
+    // ----------------------------------------------------------------
+    // tasks:
+
+    task check_outputs();
+    begin
+		if (expected_issue_ready !== DUT_issue_ready) begin
+			$display("TB ERROR: expected_issue_ready (%h) != DUT_issue_ready (%h)",
+				expected_issue_ready, DUT_issue_ready);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_WB_valid !== DUT_WB_valid) begin
+			$display("TB ERROR: expected_WB_valid (%h) != DUT_WB_valid (%h)",
+				expected_WB_valid, DUT_WB_valid);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_WB_data !== DUT_WB_data) begin
+			$display("TB ERROR: expected_WB_data (%h) != DUT_WB_data (%h)",
+				expected_WB_data, DUT_WB_data);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_WB_PR !== DUT_WB_PR) begin
+			$display("TB ERROR: expected_WB_PR (%h) != DUT_WB_PR (%h)",
+				expected_WB_PR, DUT_WB_PR);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_WB_ROB_index !== DUT_WB_ROB_index) begin
+			$display("TB ERROR: expected_WB_ROB_index (%h) != DUT_WB_ROB_index (%h)",
+				expected_WB_ROB_index, DUT_WB_ROB_index);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+        #(PERIOD / 10);
+        tb_error = 1'b0;
+    end
+    endtask
+
+    // ----------------------------------------------------------------
+    // initial block:
+
+    initial begin
+
+        // ------------------------------------------------------------
+        // reset:
+        test_case = "reset";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+        // inputs:
+        sub_test_case = "assert reset";
+        $display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b0;
+	    // MDU pipeline issue
+		tb_issue_valid = '0;
+		tb_issue_op = '0;
+		tb_issue_A_forward = '0;
+		tb_issue_A_is_zero = '0;
+		tb_issue_A_PR = '0;
+		tb_issue_B_forward = '0;
+		tb_issue_B_is_zero = '0;
+		tb_issue_B_PR = '0;
+		tb_issue_dest_PR = '0;
+		tb_issue_ROB_index = '0;
+	    // MDU pipeline feedback to IQ
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = '0;
+		tb_WB_bus_upper_PR_by_bank = '0;
+	    // reg read info and data from PRF
+		tb_A_reg_read_ack = '0;
+		tb_A_reg_read_port = '0;
+		tb_B_reg_read_ack = '0;
+		tb_B_reg_read_port = '0;
+		tb_reg_read_data_by_bank_by_port = '0;
+	    // forward data from PRF
+		tb_forward_data_by_bank = '0;
+	    // writeback data to PRF
+	    // writeback feedback from
+		tb_WB_ready = '0;
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// outputs:
+
+	    // MDU pipeline issue
+	    // MDU pipeline feedback to IQ
+		expected_issue_ready = '0;
+	    // writeback bus by bank
+	    // reg read info and data from PRF
+	    // forward data from PRF
+	    // writeback data to PRF
+		expected_WB_valid = '0;
+		expected_WB_data = '0;
+		expected_WB_PR = '0;
+		expected_WB_ROB_index = '0;
+	    // writeback feedback from
+
+		check_outputs();
+
+        // inputs:
+        sub_test_case = "deassert reset";
+        $display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // MDU pipeline issue
+		tb_issue_valid = '0;
+		tb_issue_op = '0;
+		tb_issue_A_forward = '0;
+		tb_issue_A_is_zero = '0;
+		tb_issue_A_PR = '0;
+		tb_issue_B_forward = '0;
+		tb_issue_B_is_zero = '0;
+		tb_issue_B_PR = '0;
+		tb_issue_dest_PR = '0;
+		tb_issue_ROB_index = '0;
+	    // MDU pipeline feedback to IQ
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = '0;
+		tb_WB_bus_upper_PR_by_bank = '0;
+	    // reg read info and data from PRF
+		tb_A_reg_read_ack = '0;
+		tb_A_reg_read_port = '0;
+		tb_B_reg_read_ack = '0;
+		tb_B_reg_read_port = '0;
+		tb_reg_read_data_by_bank_by_port = '0;
+	    // forward data from PRF
+		tb_forward_data_by_bank = '0;
+	    // writeback data to PRF
+	    // writeback feedback from
+		tb_WB_ready = '0;
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// outputs:
+
+	    // MDU pipeline issue
+	    // MDU pipeline feedback to IQ
+		expected_issue_ready = '0;
+	    // writeback bus by bank
+	    // reg read info and data from PRF
+	    // forward data from PRF
+	    // writeback data to PRF
+		expected_WB_valid = '0;
+		expected_WB_data = '0;
+		expected_WB_PR = '0;
+		expected_WB_ROB_index = '0;
+	    // writeback feedback from
+
+		check_outputs();
+
+        // ------------------------------------------------------------
+        // default:
+        test_case = "default";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "default";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // MDU pipeline issue
+		tb_issue_valid = '0;
+		tb_issue_op = '0;
+		tb_issue_A_forward = '0;
+		tb_issue_A_is_zero = '0;
+		tb_issue_A_PR = '0;
+		tb_issue_B_forward = '0;
+		tb_issue_B_is_zero = '0;
+		tb_issue_B_PR = '0;
+		tb_issue_dest_PR = '0;
+		tb_issue_ROB_index = '0;
+	    // MDU pipeline feedback to IQ
+	    // writeback bus by bank
+		tb_WB_bus_valid_by_bank = '0;
+		tb_WB_bus_upper_PR_by_bank = '0;
+	    // reg read info and data from PRF
+		tb_A_reg_read_ack = '0;
+		tb_A_reg_read_port = '0;
+		tb_B_reg_read_ack = '0;
+		tb_B_reg_read_port = '0;
+		tb_reg_read_data_by_bank_by_port = '0;
+	    // forward data from PRF
+		tb_forward_data_by_bank = '0;
+	    // writeback data to PRF
+	    // writeback feedback from
+		tb_WB_ready = '0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // MDU pipeline issue
+	    // MDU pipeline feedback to IQ
+		expected_issue_ready = '0;
+	    // writeback bus by bank
+	    // reg read info and data from PRF
+	    // forward data from PRF
+	    // writeback data to PRF
+		expected_WB_valid = '0;
+		expected_WB_data = '0;
+		expected_WB_PR = '0;
+		expected_WB_ROB_index = '0;
+	    // writeback feedback from
+
+		check_outputs();
+
+        // ------------------------------------------------------------
+        // finish:
+        @(posedge CLK); #(PERIOD/10);
+        
+        test_case = "finish";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+        @(posedge CLK); #(PERIOD/10);
+
+        $display();
+        if (num_errors) begin
+            $display("FAIL: %0d tests fail", num_errors);
+        end
+        else begin
+            $display("SUCCESS: all tests pass");
+        end
+        $display();
+
+        $finish();
+    end
+
+endmodule

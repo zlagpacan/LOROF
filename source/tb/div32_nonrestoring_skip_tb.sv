@@ -123,7 +123,7 @@ module div32_nonrestoring_skip_tb #(
 		// reset
 		nRST = 1'b0;
 	    // fsm control
-		tb_clear = 
+		tb_clear = 1'b1;
 		tb_is_signed = 1'b0;
 	    // inputs
 		tb_A32_in = 32'h0;
@@ -150,7 +150,7 @@ module div32_nonrestoring_skip_tb #(
 		// reset
 		nRST = 1'b1;
 	    // fsm control
-		tb_clear = 
+		tb_clear = 1'b1;
 		tb_is_signed = 1'b0;
 	    // inputs
 		tb_A32_in = 32'h0;
@@ -185,7 +185,7 @@ module div32_nonrestoring_skip_tb #(
 		// reset
 		nRST = 1'b1;
 	    // fsm control
-		tb_clear = 
+		tb_clear = 1'b1;
 		tb_is_signed = 1'b0;
 	    // inputs
 		tb_A32_in = 32'h0;

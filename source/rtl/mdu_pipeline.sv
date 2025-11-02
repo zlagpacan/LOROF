@@ -27,7 +27,7 @@ module mdu_pipeline (
     input logic [LOG_ROB_ENTRIES-1:0]       issue_ROB_index,
 
     // MDU pipeline feedback to IQ
-    input logic                             issue_ready,
+    output logic                            issue_ready,
 
     // writeback bus by bank
     input logic [PRF_BANK_COUNT-1:0]                                        WB_bus_valid_by_bank,
@@ -83,8 +83,10 @@ module mdu_pipeline (
     logic [2:0]                     next_op_WB;
     logic [LOG_PR_COUNT-1:0]        next_A_PR_WB;
     logic [31:0]                    next_A_data_WB;
+    logic                           next_A_msb_WB;
     logic [LOG_PR_COUNT-1:0]        next_B_PR_WB;
     logic [31:0]                    next_B_data_WB;
+    logic                           next_B_msb_WB;
     logic [LOG_PR_COUNT-1:0]        next_dest_PR_WB;
     logic [LOG_ROB_ENTRIES-1:0]     next_ROB_index_WB;
 
@@ -95,8 +97,10 @@ module mdu_pipeline (
     logic [2:0]                     op_WB;
     logic [LOG_PR_COUNT-1:0]        A_PR_WB;
     logic [31:0]                    A_data_WB;
+    logic                           A_msb_WB;
     logic [LOG_PR_COUNT-1:0]        B_PR_WB;
     logic [31:0]                    B_data_WB;
+    logic                           B_msb_WB;
     logic [LOG_PR_COUNT-1:0]        dest_PR_WB;
     logic [LOG_ROB_ENTRIES-1:0]     ROB_index_WB;
 
@@ -110,33 +114,12 @@ module mdu_pipeline (
     // ----------------------------------------------------------------
     // Divider Signals:
 
-    typedef enum logic [1:0] {
-        DIV_INIT,
-        DIV_ITERS,
-        DIV_CORRECTION,
-        DIV_DONE
-    } div_fsm_t;
-
-    div_fsm_t divider_state, next_divider_state;
-
     logic divider_clear;
+    logic divider_is_signed;
     logic divider_done;
 
-    logic divider_A_is_neg;
-    logic divider_B_is_neg;
-
-    logic divider_B_is_zero;
-
-    logic [31:0] next_divider_A_abs;
-
-    logic [32:0] divider_B_abs;
-    logic [32:0] divider_B_abs_neg;
-
-    logic [4:0] divider_msb_index, next_divider_msb_index;
-    logic [31:0] divider_msb_mask, next_divider_msb_mask;
-
-    logic [32:0] divider_remainder, next_divider_remainder;
-    logic [31:0] divider_quotient, next_divider_quotient;
+    logic [31:0] divider_quotient;
+    logic [31:0] divider_remainder;
 
     // ----------------------------------------------------------------
     // Result Cache Signals:
@@ -276,6 +259,24 @@ module mdu_pipeline (
         else begin
             next_B_data_WB = reg_read_data_by_bank_by_port[B_PR_OC[LOG_PRF_BANK_COUNT-1:0]][B_reg_read_port];
         end
+
+        // get bit 32 for signed 33b mul:
+
+        // MULHU
+        if (op_OC[1] & op_OC[0]) begin
+            next_A_msb_WB = 1'b0;
+            next_B_msb_WB = 1'b0;
+        end
+        // MULHSU
+        else if (op_OC[1]) begin
+            next_A_msb_WB = next_A_data_WB[31];
+            next_B_msb_WB = 1'b0;
+        end
+        // MUL/MULHU
+        else begin
+            next_A_msb_WB = next_A_data_WB[31];
+            next_B_msb_WB = next_B_data_WB[31];
+        end
     end
 
     // ----------------------------------------------------------------
@@ -285,24 +286,22 @@ module mdu_pipeline (
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             valid_WB <= 1'b0;
-            op_WB <= 3'b000;
-            A_PR_WB <= 0;
-            A_data_WB <= '0;
-            B_PR_WB <= 0;
-            B_data_WB <= '0;
-            dest_PR_WB <= 0;
-            ROB_index_WB <= '0;
         end
         else if (~stall_WB) begin
             valid_WB <= next_valid_WB;
-            op_WB <= next_op_WB;
-            A_PR_WB <= next_A_PR_WB;
-            A_data_WB <= next_A_data_WB;
-            B_PR_WB <= next_B_PR_WB;
-            B_data_WB <= next_B_data_WB;
-            dest_PR_WB <= next_dest_PR_WB;
-            ROB_index_WB <= next_ROB_index_WB;
         end
+    end
+    
+    always_ff @ (posedge CLK) begin
+        op_WB <= next_op_WB;
+        A_PR_WB <= next_A_PR_WB;
+        A_data_WB <= next_A_data_WB;
+        A_msb_WB <= next_A_msb_WB;
+        B_PR_WB <= next_B_PR_WB;
+        B_data_WB <= next_B_data_WB;
+        B_msb_WB <= next_B_msb_WB;
+        dest_PR_WB <= next_dest_PR_WB;
+        ROB_index_WB <= next_ROB_index_WB;
     end
 
     always_comb begin
@@ -352,128 +351,52 @@ module mdu_pipeline (
     // ----------------------------------------------------------------
     // Multiplier Logic:
 
-    always_comb begin
-        multiplier_A33[31:0] = A_data_WB;
-        multiplier_B33[31:0] = B_data_WB;
+    // always_comb begin
+    //     multiplier_A33[31:0] = A_data_WB;
+    //     multiplier_B33[31:0] = B_data_WB;
 
-        // MULHU
-        if (op_WB[1] & op_WB[0]) begin
-            multiplier_A33[32] = 1'b0;
-            multiplier_B33[32] = 1'b0;
-        end
-        // MULHSU
-        else if (op_WB[1]) begin
-            multiplier_A33[32] = multiplier_A33[31];
-            multiplier_B33[32] = 1'b0;
-        end
-        // MUL/MULHU
-        else begin
-            multiplier_A33[32] = multiplier_A33[31];
-            multiplier_B33[32] = multiplier_B33[31];
-        end
-    end
+    //     // MULHU
+    //     if (op_WB[1] & op_WB[0]) begin
+    //         multiplier_A33[32] = 1'b0;
+    //         multiplier_B33[32] = 1'b0;
+    //     end
+    //     // MULHSU
+    //     else if (op_WB[1]) begin
+    //         multiplier_A33[32] = multiplier_A33[31];
+    //         multiplier_B33[32] = 1'b0;
+    //     end
+    //     // MUL/MULH
+    //     else begin
+    //         multiplier_A33[32] = multiplier_A33[31];
+    //         multiplier_B33[32] = multiplier_B33[31];
+    //     end
+    // end
+
+    assign multiplier_A33 = {A_msb_WB, A_data_WB};
+    assign multiplier_B33 = {B_msb_WB, B_data_WB};
+
+    assign multiplier_result = $signed(multiplier_A33) * $signed(multiplier_B33);
     
     // ----------------------------------------------------------------
-    // Divider Logic: 
+    // Divider Logic:
 
-    always_ff @ (posedge CLK, negedge nRST) begin
-        if (~nRST) begin
-            divider_state <= DIV_INIT;
-            divider_A_is_neg <= 1'b0;
-            divider_B_is_neg <= 1'b0;
-            divider_B_is_zero <= 1'b0;
-            divider_B_abs <= 32'h0;
-            divider_B_abs_neg <= 32'h0;
-            divider_msb_index <= 5'h0;
-            divider_msb_mask <= '0;
-            divider_remainder <= 33'h0;
-            divider_quotient <= 32'h0;
-        end
-        else begin
-            if (divider_clear) begin
-                divider_state <= DIV_INIT;
-            end
-            else begin
-                divider_state <= next_divider_state;
-            end
+    assign divider_clear = ~valid_WB | ~op_WB[2] | ~stall_WB | result_cache_hit;
+    assign divider_is_signed = ~op_WB[0];
 
-            divider_A_is_neg <= A_data_WB[31];
-            divider_B_is_neg <= B_data_WB[31];
-            divider_B_is_zero <= B_data_WB == 32'h0;
+    div32_nonrestoring_skip DIVIDER (
+        .CLK(CLK),
+        .nRST(nRST),
 
-            if (~op_WB[0] & B_data_WB[31]) begin
-                divider_B_abs <= -B_data_WB;
-                divider_B_abs_neg <= B_data_WB;
-            end
-            else begin
-                divider_B_abs <= B_data_WB;
-                divider_B_abs_neg <= -B_data_WB;
-            end
+        .clear(divider_clear),
+        .is_signed(divider_is_signed),
+        .done(divider_done),
 
-            if (divider_state == DIV_INIT) begin
-                divider_msb_index <= next_divider_msb_index;
-                divider_msb_mask <= next_divider_msb_mask;
-            end
-            else begin
-                divider_msb_index <= divider_msb_index - 1;
-            end
-
-            divider_remainder <= next_divider_remainder;
-            divider_quotient <= next_divider_quotient;
-        end
-    end
-    pe_msb #(
-        .WIDTH(32), .USE_ONE_HOT(0), .USE_COLD(0), .USE_INDEX(1)
-    ) DIVIDER_PE_MSB (
-        .req_vec(next_divider_A_abs),
-        .ack_mask(next_divider_msb_mask),
-        .ack_index(next_divider_msb_index)
+        .A32_in(A_data_WB),
+        .B32_in(B_data_WB),
+        
+        .quotient_out(divider_quotient),
+        .remainder_out(divider_remainder)
     );
-    always_comb begin
-        divider_clear = ~valid_WB | ~op_WB[2] | ~stall_WB;
-            
-        if (~op_WB[0] & A_data_WB[31]) begin
-            next_divider_A_abs = -A_data_WB;
-        end
-        else begin
-            next_divider_A_abs = A_data_WB;
-        end
-
-        case (divider_state)
-
-            DIV_INIT: begin
-                next_divider_state = DIV_ITERS;
-                next_divider_remainder = 33'h0;
-                next_divider_quotient = next_divider_A_abs;
-            end
-
-            DIV_ITERS: begin
-                if (divider_msb_index == 0) begin
-                    next_divider_state = DIV_DONE;
-                end
-                else begin
-                    next_divider_state = DIV_ITERS;
-                end
-
-                if (divider_remainder[divider_msb_index + 1]) begin
-                    next_divider_remainder = {divider_remainder[31:0], divider_quotient[divider_msb_index]} + divider_B_abs;
-                end
-                else begin
-                    next_divider_remainder = {divider_remainder[31:0], divider_quotient[divider_msb_index]} + divider_B_abs_neg;
-                end
-                next_divider_quotient = {divider_quotient[30:0], next_divider_remainder[divider_msb_index + 1]} & divider_msb_mask;
-            end
-
-            DIV_CORRECTION: begin
-                
-            end
-
-            default: begin // DIV_DONE
-
-            end
-
-        endcase
-    end
 
     // ----------------------------------------------------------------
     // Result Cache Logic:
