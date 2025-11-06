@@ -53,6 +53,8 @@ module div32_nonrestoring_skip (
     logic [4:0] msb_index, next_msb_index;
     logic [31:0] msb_mask, next_msb_mask;
 
+    logic [4:0] counter_index, next_counter_index;
+
     logic [32:0] accumulator_reg, next_accumulator_reg;
     logic [31:0] quotient_reg, next_quotient_reg;
     
@@ -70,6 +72,7 @@ module div32_nonrestoring_skip (
             B_abs_neg <= 33'h0;
             msb_index <= 5'h0;
             msb_mask <= '0;
+            counter_index <= 5'h0;
             accumulator_reg <= 33'h0;
             quotient_reg <= 32'h0;
         end
@@ -87,20 +90,21 @@ module div32_nonrestoring_skip (
 
             A_abs <= next_A_abs;
             if (is_signed & B32_in[31]) begin
-                B_abs <= -B32_in;
-                B_abs_neg <= B32_in;
+                B_abs <= -$signed(B32_in);
+                B_abs_neg <= $signed(B32_in);
             end
             else begin
                 B_abs <= B32_in;
-                B_abs_neg <= -B32_in;
+                B_abs_neg <= -$signed(B32_in);
             end
 
             if (state == DIV_INIT) begin
                 msb_index <= next_msb_index;
                 msb_mask <= next_msb_mask;
+                counter_index <= next_msb_index;
             end
             else begin
-                msb_index <= msb_index - 1;
+                counter_index <= counter_index - 1;
             end
 
             accumulator_reg <= next_accumulator_reg;
@@ -111,14 +115,14 @@ module div32_nonrestoring_skip (
     pe_msb #(
         .WIDTH(32), .USE_ONE_HOT(0), .USE_COLD(0), .USE_INDEX(1)
     ) PE_MSB (
-        .req_vec(next_A_abs),
+        .req_vec(next_A_abs[31:0]),
         .ack_mask(next_msb_mask),
         .ack_index(next_msb_index)
     );
 
     always_comb begin
         if (is_signed & A32_in[31]) begin
-            next_A_abs = -A32_in;
+            next_A_abs = -$signed(A32_in);
         end
         else begin
             next_A_abs = A32_in;
@@ -148,8 +152,8 @@ module div32_nonrestoring_skip (
                     next_quotient_reg = 32'h0;
                 end
                 else begin
-                    if (msb_index == 0) begin
-                        next_state = DIV_DONE;
+                    if (counter_index == 0) begin
+                        next_state = DIV_CORRECTION;
                     end
                     else begin
                         next_state = DIV_ITERS;
@@ -172,14 +176,14 @@ module div32_nonrestoring_skip (
 
                 next_accumulator_reg = accumulator_reg + (B_abs & {33{accumulator_reg[32]}});
                 if (A_is_neg) begin
-                    next_accumulator_reg = -next_accumulator_reg;
+                    next_accumulator_reg = -$signed(next_accumulator_reg);
                 end
 
                 if (A_is_neg ^ B_is_neg) begin
-                    next_quotient_reg = -quotient_reg; 
+                    next_quotient_reg = -$signed(quotient_reg);
                 end
                 else begin
-                    next_quotient_reg = quotient_reg; 
+                    next_quotient_reg = quotient_reg;
                 end
             end
 
