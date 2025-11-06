@@ -79,12 +79,19 @@ module div32_nonrestoring_skip_tb #(
 
     class RandIntOperands;
         rand bit            is_signed;
+        rand bit            small_divisor;
         rand bit [31:0]     A;
         rand bit [31:0]     B;
 
         constraint B_range {
-            (is_signed) -> (-32768 <= B <= 32767);
-            (!is_signed) -> (0 <= B <= 65535);
+            if (small_divisor) {
+                if (is_signed) {
+                    -32768 <= B && B <= 32767;
+                }
+                else {
+                    0 <= B && B <= 65535;
+                }
+            }
         }
 
     endclass
@@ -444,7 +451,7 @@ module div32_nonrestoring_skip_tb #(
             // inputs
             if (operands.is_signed) begin
                 if (DUT_done) begin
-                    sub_test_case = $sformatf("%d / %d (signed)", $signed(operands.A), $signed(operands.B));
+                    sub_test_case = $sformatf("(signed) %d / %d = %d R %d", $signed(operands.A), $signed(operands.B), $signed(operands.A) / $signed(operands.B), $signed(operands.A) % $signed(operands.B));
                     $display("\t- sub_test: %s", sub_test_case);
                 end
 
@@ -471,7 +478,7 @@ module div32_nonrestoring_skip_tb #(
             end
             else begin
                 if (DUT_done) begin
-                    sub_test_case = $sformatf("%d / %d (unsigned)", operands.A, operands.B);
+                    sub_test_case = $sformatf("(unsigned) %d / %d = %d R %d", operands.A, operands.B, operands.A / operands.B, operands.A % operands.B);
                     $display("\t- sub_test: %s", sub_test_case);
                 end
 
