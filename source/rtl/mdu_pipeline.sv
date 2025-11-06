@@ -426,7 +426,7 @@ module mdu_pipeline (
             if (divider_done) begin
                 result_cache_array[result_cache_write_index].valid <= 1'b1;
                 result_cache_array[result_cache_write_index].A_PR <= A_PR_WB;
-                result_cache_array[result_cache_write_index].B_PR <= A_PR_WB;
+                result_cache_array[result_cache_write_index].B_PR <= B_PR_WB;
                 result_cache_array[result_cache_write_index].div_result <= divider_quotient;
                 result_cache_array[result_cache_write_index].rem_result <= divider_remainder[31:0];
                 result_cache_write_index <= result_cache_write_index + 1;

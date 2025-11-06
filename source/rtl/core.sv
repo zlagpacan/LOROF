@@ -2424,16 +2424,49 @@ module core #(
     );
 
     // mdu_pipeline
-        // TODO: implement module
-        // hardwired outputs for now
-    always_comb begin
-        mdu_issue_ready = 1'b0;
+    mdu_pipeline MDU_PIPELINE (
+        // seq
+        .CLK(CLK),
+        .nRST(nRST),
 
-        mdu_WB_valid = 1'b0;
-        mdu_WB_data = 32'h0;
-        mdu_WB_PR = 0;
-        mdu_WB_ROB_index = 0;
-    end
+        // ALU reg op issue from IQ
+        .issue_valid(mdu_issue_valid),
+        .issue_op(alu_reg_mdu_issue_op),
+        .issue_A_forward(alu_reg_mdu_issue_A_forward),
+        .issue_A_is_zero(alu_reg_mdu_issue_A_is_zero),
+        .issue_A_PR(alu_reg_mdu_issue_A_PR),
+        .issue_B_forward(alu_reg_mdu_issue_B_forward),
+        .issue_B_is_zero(alu_reg_mdu_issue_B_is_zero),
+        .issue_B_PR(alu_reg_mdu_issue_B_PR),
+        .issue_dest_PR(alu_reg_mdu_issue_dest_PR),
+        .issue_ROB_index(alu_reg_mdu_issue_ROB_index),
+
+        // ready feedback to IQ
+        .issue_ready(mdu_issue_ready),
+
+        // writeback bus by bank
+        .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
+        .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
+
+        // reg read info and data from PRF
+        .A_reg_read_ack(alu_reg_mdu_PRF_A_reg_read_ack),
+        .A_reg_read_port(alu_reg_mdu_PRF_A_reg_read_port),
+        .B_reg_read_ack(alu_reg_mdu_PRF_B_reg_read_ack),
+        .B_reg_read_port(alu_reg_mdu_PRF_B_reg_read_port),
+        .reg_read_data_by_bank_by_port(prf_read_data_by_bank_by_port),
+
+        // forward data from PRF
+        .forward_data_by_bank(prf_forward_data_bus_by_bank),
+
+        // writeback data to PRF
+        .WB_valid(mdu_WB_valid),
+        .WB_data(mdu_WB_data),
+        .WB_PR(mdu_WB_PR),
+        .WB_ROB_index(mdu_WB_ROB_index),
+
+        // writeback feedback from PRF
+        .WB_ready(mdu_WB_ready)
+    );
 
     // ----------------------------------------------------------------
     // alu_imm:
