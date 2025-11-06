@@ -90,12 +90,12 @@ module div32_nonrestoring_skip (
 
             A_abs <= next_A_abs;
             if (is_signed & B32_in[31]) begin
-                B_abs <= -$signed(B32_in);
-                B_abs_neg <= $signed(B32_in);
+                B_abs <= -{1'b1, B32_in};
+                B_abs_neg <= {1'b1, B32_in};
             end
             else begin
-                B_abs <= B32_in;
-                B_abs_neg <= -$signed(B32_in);
+                B_abs <= {1'b0, B32_in};
+                B_abs_neg <= -{1'b0, B32_in};
             end
 
             if (state == DIV_INIT) begin
@@ -122,7 +122,7 @@ module div32_nonrestoring_skip (
 
     always_comb begin
         if (is_signed & A32_in[31]) begin
-            next_A_abs = -$signed(A32_in);
+            next_A_abs = -{1'b1, A32_in};
         end
         else begin
             next_A_abs = A32_in;

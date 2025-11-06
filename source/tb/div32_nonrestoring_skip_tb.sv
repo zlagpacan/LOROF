@@ -196,6 +196,144 @@ module div32_nonrestoring_skip_tb #(
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
+        sub_test_case = $sformatf("%d / %d (signed)", 13, 5);
+        $display("\t- sub_test: %s", sub_test_case);
+
+        cycle_counter = 0;
+        while (1) begin
+            @(posedge CLK); #(PERIOD/10);
+
+            // reset
+            nRST = 1'b1;
+            // fsm control
+            tb_clear = 1'b0;
+            tb_is_signed = 1'b1;
+            // inputs
+            tb_A32_in = 13;
+            tb_B32_in = 5;
+            // outputs
+
+            @(negedge CLK);
+
+            // outputs:
+
+            // fsm control
+            // expected_done = 1'b0;
+            // inputs
+            // outputs
+            expected_quotient_out = 13 / 5;
+            expected_remainder_out = 13 % 5;
+
+            cycle_counter++;
+
+            if (DUT_done) begin
+
+                check_outputs();
+
+                $display("    output in %d cycles", cycle_counter);
+
+                @(posedge CLK); #(PERIOD/10);
+
+                tb_clear = 1'b1;
+
+                @(negedge CLK);
+
+                break;
+            end
+        end
+
+        sub_test_case = $sformatf("%d / %d (signed)", -17, -6);
+        $display("\t- sub_test: %s", sub_test_case);
+
+        cycle_counter = 0;
+        while (1) begin
+            @(posedge CLK); #(PERIOD/10);
+
+            // reset
+            nRST = 1'b1;
+            // fsm control
+            tb_clear = 1'b0;
+            tb_is_signed = 1'b1;
+            // inputs
+            tb_A32_in = -17;
+            tb_B32_in = -6;
+            // outputs
+
+            @(negedge CLK);
+
+            // outputs:
+
+            // fsm control
+            // expected_done = 1'b0;
+            // inputs
+            // outputs
+            expected_quotient_out = -17 / -6;
+            expected_remainder_out = -17 % -6;
+
+            cycle_counter++;
+
+            if (DUT_done) begin
+
+                check_outputs();
+
+                $display("    output in %d cycles", cycle_counter);
+
+                @(posedge CLK); #(PERIOD/10);
+
+                tb_clear = 1'b1;
+
+                @(negedge CLK);
+
+                break;
+            end
+        end
+
+        sub_test_case = $sformatf("%d / %d (signed)", -5, 2);
+        $display("\t- sub_test: %s", sub_test_case);
+
+        cycle_counter = 0;
+        while (1) begin
+            @(posedge CLK); #(PERIOD/10);
+
+            // reset
+            nRST = 1'b1;
+            // fsm control
+            tb_clear = 1'b0;
+            tb_is_signed = 1'b1;
+            // inputs
+            tb_A32_in = -5;
+            tb_B32_in = 2;
+            // outputs
+
+            @(negedge CLK);
+
+            // outputs:
+
+            // fsm control
+            // expected_done = 1'b0;
+            // inputs
+            // outputs
+            expected_quotient_out = -5 / 2;
+            expected_remainder_out = -5 % 2;
+
+            cycle_counter++;
+
+            if (DUT_done) begin
+
+                check_outputs();
+
+                $display("    output in %d cycles", cycle_counter);
+
+                @(posedge CLK); #(PERIOD/10);
+
+                tb_clear = 1'b1;
+
+                @(negedge CLK);
+
+                break;
+            end
+        end
+
         sub_test_case = $sformatf("%d / %d (signed)", 24, -7);
         $display("\t- sub_test: %s", sub_test_case);
 
@@ -242,6 +380,52 @@ module div32_nonrestoring_skip_tb #(
             end
         end
 
+        sub_test_case = $sformatf("%d / %d (unsigned)", $unsigned(3964119742), $unsigned(3597913658));
+        $display("\t- sub_test: %s", sub_test_case);
+
+        cycle_counter = 0;
+        while (1) begin
+            @(posedge CLK); #(PERIOD/10);
+
+            // reset
+            nRST = 1'b1;
+            // fsm control
+            tb_clear = 1'b0;
+            tb_is_signed = 1'b0;
+            // inputs
+            tb_A32_in = 3964119742;
+            tb_B32_in = 3597913658;
+            // outputs
+
+            @(negedge CLK);
+
+            // outputs:
+
+            // fsm control
+            // expected_done = 1'b0;
+            // inputs
+            // outputs
+            expected_quotient_out = $unsigned(3964119742) / $unsigned(3597913658);
+            expected_remainder_out = $unsigned(3964119742) % $unsigned(3597913658);
+
+            cycle_counter++;
+
+            if (DUT_done) begin
+
+                check_outputs();
+
+                $display("    output in %d cycles", cycle_counter);
+
+                @(posedge CLK); #(PERIOD/10);
+
+                tb_clear = 1'b1;
+
+                @(negedge CLK);
+
+                break;
+            end
+        end
+
         // ------------------------------------------------------------
         // randomized test cases:
         test_case = "randomized test cases";
@@ -260,7 +444,7 @@ module div32_nonrestoring_skip_tb #(
             // inputs
             if (operands.is_signed) begin
                 if (DUT_done) begin
-                    sub_test_case = $sformatf("%d / %d (signed)", operands.A, operands.B);
+                    sub_test_case = $sformatf("%d / %d (signed)", $signed(operands.A), $signed(operands.B));
                     $display("\t- sub_test: %s", sub_test_case);
                 end
 
@@ -287,7 +471,7 @@ module div32_nonrestoring_skip_tb #(
             end
             else begin
                 if (DUT_done) begin
-                    sub_test_case = $sformatf("%d / %d (unsigned)", $signed(operands.A), $signed(operands.B));
+                    sub_test_case = $sformatf("%d / %d (unsigned)", operands.A, operands.B);
                     $display("\t- sub_test: %s", sub_test_case);
                 end
 

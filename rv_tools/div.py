@@ -7,6 +7,7 @@ from iss import bits, bit, signed32, make_signed
 
 random.seed(0)
 PRINTS = False
+HEX = False
 ITERS = 0
 
 def div_nonrestoring(a, b, signed):
@@ -83,8 +84,10 @@ def div_nonrestoring_skip(a, b, signed):
         a_abs = a
         b_abs = b
 
-    print(f"a_abs = 0b_{a_abs:032b}") if PRINTS else None
-    print(f"b_abs = 0b_{b_abs:032b}") if PRINTS else None
+    print(f"a_abs = 0b_{a_abs:032b}") if PRINTS and not HEX else None
+    print(f"a_abs = 0x_{a_abs:08X}") if PRINTS and HEX else None
+    print(f"b_abs = 0b_{b_abs:032b}") if PRINTS and not HEX else None
+    print(f"b_abs = 0x_{b_abs:08X}") if PRINTS and HEX else None
 
     # want to do this so skip works better (otherwise would be sizing AQ reg based on b pointlessly)
     if a_abs < b_abs:
@@ -94,7 +97,8 @@ def div_nonrestoring_skip(a, b, signed):
 
     A = 0
     Q = a_abs
-    print(f"         init AQ = 0b_{bit(A, 32)}_{bits(A, 31, 0):032b}_{bits(Q, 31, 0):032b}") if PRINTS else None
+    print(f"         init AQ = 0b_{bit(A, 32)}_{bits(A, 31, 0):032b}_{bits(Q, 31, 0):032b}") if PRINTS and not HEX else None
+    print(f"         init AQ = 0x_{bit(A, 32)}_{bits(A, 31, 0):08X}_{bits(Q, 31, 0):08X}") if PRINTS and HEX else None
 
     for iter in range(msb_index + 1):
         if bit(A, 32):
@@ -104,14 +108,16 @@ def div_nonrestoring_skip(a, b, signed):
             A = bits(A << 1, 32, 0) + bit(Q, msb_index)
             A = bits(A - b_abs, 32, 0)
         Q = bits(Q << 1, msb_index, 0) + (not bit(A, 32))
-        print(f"after iter {iter:2d} AQ = 0b_{bit(A, 32)}_{bits(A, 31, 0):032b}_{bits(Q, 31, 0):032b}") if PRINTS else None
+        print(f"after iter {iter:2d} AQ = 0b_{bit(A, 32)}_{bits(A, 31, 0):032b}_{bits(Q, 31, 0):032b}") if PRINTS and not HEX else None
+        print(f"after iter {iter:2d} AQ = 0x_{bit(A, 32)}_{bits(A, 31, 0):08X}_{bits(Q, 31, 0):08X}") if PRINTS and HEX else None
 
         ITERS += 1
 
     if bit(A, 32):
         A = bits(A + b_abs, 32, 0)
 
-    print(f"        final AQ = 0b_{bit(A, 32)}_{bits(A, 31, 0):032b}_{bits(Q, 31, 0):032b}") if PRINTS else None
+    print(f"        final AQ = 0b_{bit(A, 32)}_{bits(A, 31, 0):032b}_{bits(Q, 31, 0):032b}") if PRINTS and not HEX else None
+    print(f"        final AQ = 0x_{bit(A, 32)}_{bits(A, 31, 0):08X}_{bits(Q, 31, 0):08X}") if PRINTS and HEX else None
 
     quotient = bits(Q, 31, 0)
     remainder = bits(A, 31, 0)
@@ -142,11 +148,13 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--prints", action="store_true")
+    parser.add_argument("-H", "--hex", action="store_true")
     parser.add_argument("-m", "--mine", action="store_true")
     parser.add_argument("-r", "--regression", action="store_true")
     parser.add_argument("-e", "--expected", action="store_true")
     args = parser.parse_args()
     PRINTS = args.prints
+    HEX = args.hex
 
     testcases = list()
 
@@ -162,7 +170,7 @@ if __name__ == "__main__":
         # testcases.append((-17, -6, False))
         # testcases.append((-5, 2, True))
         # testcases.append((-5, 2, False))
-        testcases.append((24, -7, True))
+        # testcases.append((24, -7, True))
         # testcases.append((24, -7, False))
         # testcases.append((-4, -13, True))
         # testcases.append((-4, -13, False))
@@ -174,6 +182,7 @@ if __name__ == "__main__":
         # testcases.append((55, -55, False))
         # testcases.append((-3, 3, False))
         # testcases.append((-170, -170, False))
+        testcases.append((3964119742, 3597913658, False))
 
         # testcases.append((0x80000000, -1, True))
         # testcases.append((0x80000000, -1, False))
