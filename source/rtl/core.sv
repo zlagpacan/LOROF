@@ -219,6 +219,7 @@ module core #(
 
     // stats
     output logic [31:0] alu_reg_complete_count,
+    output logic [31:0] mdu_complete_count,
     output logic [31:0] alu_imm_complete_count,
     output logic [31:0] branch_complete_count,
     output logic [31:0] ldu_complete_count,
@@ -5001,6 +5002,7 @@ module core #(
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             alu_reg_complete_count <= 0;
+            mdu_complete_count <= 0;
             alu_imm_complete_count <= 0;
             branch_complete_count <= 0;
             ldu_complete_count <= 0;
@@ -5012,6 +5014,10 @@ module core #(
         else begin
             if (alu_reg_WB_valid & alu_reg_WB_ready) begin
                 alu_reg_complete_count <= alu_reg_complete_count + 1;
+            end
+
+            if (mdu_WB_valid & mdu_WB_ready) begin
+                mdu_complete_count <= mdu_complete_count + 1;
             end
 
             if (alu_imm_WB_valid & alu_imm_WB_ready) begin

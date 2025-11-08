@@ -237,6 +237,7 @@ module core_tb #(
 
     // stats
     logic [31:0] DUT_alu_reg_complete_count, expected_alu_reg_complete_count;
+    logic [31:0] DUT_mdu_complete_count, expected_mdu_complete_count;
     logic [31:0] DUT_alu_imm_complete_count, expected_alu_imm_complete_count;
     logic [31:0] DUT_branch_complete_count, expected_branch_complete_count;
     logic [31:0] DUT_ldu_complete_count, expected_ldu_complete_count;
@@ -458,6 +459,7 @@ module core_tb #(
 
         // stats
         .alu_reg_complete_count(DUT_alu_reg_complete_count),
+        .mdu_complete_count(DUT_mdu_complete_count),
         .alu_imm_complete_count(DUT_alu_imm_complete_count),
         .branch_complete_count(DUT_branch_complete_count),
         .ldu_complete_count(DUT_ldu_complete_count),
@@ -1035,6 +1037,13 @@ module core_tb #(
 			tb_error = 1'b1;
 		end
 
+		if (expected_mdu_complete_count !== DUT_mdu_complete_count) begin
+			$display("TB ERROR: expected_mdu_complete_count (%0d) != DUT_mdu_complete_count (%0d)",
+				expected_mdu_complete_count, DUT_mdu_complete_count);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_alu_imm_complete_count !== DUT_alu_imm_complete_count) begin
 			$display("TB ERROR: expected_alu_imm_complete_count (%0d) != DUT_alu_imm_complete_count (%0d)",
 				expected_alu_imm_complete_count, DUT_alu_imm_complete_count);
@@ -1309,6 +1318,7 @@ module core_tb #(
 		expected_rob_instret = 32'h0;
         // stats
         expected_alu_reg_complete_count = 32'h0;
+        expected_mdu_complete_count = 32'h0;
         expected_alu_imm_complete_count = 32'h0;
         expected_branch_complete_count = 32'h0;
         expected_ldu_complete_count = 32'h0;
@@ -1524,6 +1534,7 @@ module core_tb #(
 		expected_rob_instret = 32'h0;
         // stats
         expected_alu_reg_complete_count = 32'h0;
+        expected_mdu_complete_count = 32'h0;
         expected_alu_imm_complete_count = 32'h0;
         expected_branch_complete_count = 32'h0;
         expected_ldu_complete_count = 32'h0;
@@ -1618,16 +1629,36 @@ module core_tb #(
                 // 32'h02822303,   // LW x6, 0x28(x4)
                 // 32'h00410093,   // ADDI x1, x2, 4
                 // 32'h00518433    // ADD x8, x3, x5
+            // 4x indep instr loop w/ mul: IPC = 2.934
+                // 32'hfe938ae3,   // BEQ x7, x9, -12
+                // 32'h02822303,   // LW x6, 0x28(x4)
+                // 32'h00410093,   // ADDI x1, x2, 4
+                // 32'h02518433    // MUL x8, x3, x5
+            // 4x indep instr loop w/ div: IPC = 2.934
+                // 32'hfe938ae3,   // BEQ x7, x9, -12
+                // 32'h02822303,   // LW x6, 0x28(x4)
+                // 32'h00410093,   // ADDI x1, x2, 4
+                // 32'h0251c433    // DIV x8, x3, x5
             // 4x indep instr loop w/ store: IPC = 3.570
                 // 32'hfe938ae3,   // BEQ x7, x9, -12
                 // 32'h10532223,   // SW x5, 0x104(x6)
                 // 32'h02822183,   // LW x3, 0x28(x4)
 				// 32'h00410093    // ADDI x1, x2, 4
-            // 4x dep instr loop: IPC = 0.673
+            // 4x dep instr loop: IPC = 0.637
                 // 32'hfe338ae3,   // BEQ x7, x3, -12
                 // 32'h02822283,   // LW x5, 0x28(x4)
                 // 32'h00410193,   // ADDI x3, x2, 4
                 // 32'h00328133    // ADD x2, x5, x3
+            // 4x dep instr loop w/ mul: IPC = 0.563
+                // 32'hfe338ae3,   // BEQ x7, x3, -12
+                // 32'h02822283,   // LW x5, 0x28(x4)
+                // 32'h00410193,   // ADDI x3, x2, 4
+                // 32'h02328133    // MUL x2, x5, x3
+            // 4x dep instr loop w/ div: IPC = 0.431
+                32'hfe338ae3,   // BEQ x7, x3, -12
+                32'h02822283,   // LW x5, 0x28(x4)
+                32'h00410193,   // ADDI x3, x2, 4
+                32'h0232c133    // DIV x2, x5, x3
             // memcpy loop: IPC = 1.316
                 // 32'hfe938ae3,   // BEQ x7, x9, -12
                 // 32'h7e30aa23,   // SW x3, 0x7f4(x1)
@@ -1741,14 +1772,14 @@ module core_tb #(
                 // 16'h4544,   // C.LW x9, 12(x10)
 				// 16'h103c    // C.ADDI4SPN x15, 40
             // compressed 8x 1 dep instr loop w/ store: IPC = 1.906
-                16'hd86d,   // C.BEQZ x8, -14
-                16'hc24c,   // C.SW x11, 4(x12)
-                16'h4544,   // C.LW x9, 12(x10)
-				16'h103c,   // C.ADDI4SPN x15, 40
-                16'h647d,   // C.LUI x8, 31
-                16'hc24c,   // C.SW x11, 4(x12)
-                16'h4544,   // C.LW x9, 12(x10)
-				16'h103c    // C.ADDI4SPN x15, 40
+                // 16'hd86d,   // C.BEQZ x8, -14
+                // 16'hc24c,   // C.SW x11, 4(x12)
+                // 16'h4544,   // C.LW x9, 12(x10)
+				// 16'h103c,   // C.ADDI4SPN x15, 40
+                // 16'h647d,   // C.LUI x8, 31
+                // 16'hc24c,   // C.SW x11, 4(x12)
+                // 16'h4544,   // C.LW x9, 12(x10)
+				// 16'h103c    // C.ADDI4SPN x15, 40
 			};
 			// icache resp feedback
 			// dtlb req
@@ -1927,6 +1958,7 @@ module core_tb #(
 			expected_rob_instret = 0;
             // stats
             expected_alu_reg_complete_count = 32'h0;
+            expected_mdu_complete_count = 32'h0;
             expected_alu_imm_complete_count = 32'h0;
             expected_branch_complete_count = 32'h0;
             expected_ldu_complete_count = 32'h0;
@@ -1940,6 +1972,9 @@ module core_tb #(
 			// check_outputs();
 		end
 		check_outputs();
+
+        $display();
+		$display("IPC: %1.3f", DUT_rob_instret / 1024.0);
 
         // ------------------------------------------------------------
         // finish:
@@ -1958,7 +1993,6 @@ module core_tb #(
         else begin
             $display("SUCCESS: all tests pass");
         end
-        $display();
 
         $finish();
     end
