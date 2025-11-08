@@ -105,8 +105,6 @@ module mdu_pipeline (
     logic [LOG_PR_COUNT-1:0]        dest_PR_EX;
     logic [LOG_ROB_ENTRIES-1:0]     ROB_index_EX;
 
-    logic divider_hit;
-
     logic                           next_valid_WB;
     logic [2:0]                     next_op_WB;
     logic [LOG_PR_COUNT-1:0]        next_A_PR_WB;
@@ -357,7 +355,7 @@ module mdu_pipeline (
     // FF
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            valid_EX <= 1'b0;
+            valid_WB <= 1'b0;
             op_WB <= '0;
             A_PR_WB <= '0;
             A_data_WB <= '0;

@@ -219,7 +219,7 @@ module mdu_pipeline_tb #(
 
 	    // MDU pipeline issue
 	    // MDU pipeline feedback to IQ
-		expected_issue_ready = '0;
+		expected_issue_ready = 1'b1;
 	    // writeback bus by bank
 	    // reg read info and data from PRF
 	    // forward data from PRF
@@ -271,7 +271,7 @@ module mdu_pipeline_tb #(
 
 	    // MDU pipeline issue
 	    // MDU pipeline feedback to IQ
-		expected_issue_ready = '0;
+		expected_issue_ready = 1'b1;
 	    // writeback bus by bank
 	    // reg read info and data from PRF
 	    // forward data from PRF
@@ -331,7 +331,7 @@ module mdu_pipeline_tb #(
 
 	    // MDU pipeline issue
 	    // MDU pipeline feedback to IQ
-		expected_issue_ready = '0;
+		expected_issue_ready = 1'b1;
 	    // writeback bus by bank
 	    // reg read info and data from PRF
 	    // forward data from PRF
