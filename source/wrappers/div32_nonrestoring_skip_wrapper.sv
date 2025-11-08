@@ -25,6 +25,7 @@ module div32_nonrestoring_skip_wrapper #(
 	input logic next_clear,
 	input logic next_is_signed,
 	output logic last_done,
+	input logic next_stall_if_done,
 
     // inputs
 	input logic [31:0] next_A32_in,
@@ -43,6 +44,7 @@ module div32_nonrestoring_skip_wrapper #(
 	logic clear;
 	logic is_signed;
 	logic done;
+	logic stall_if_done;
 
     // inputs
 	logic [31:0] A32_in;
@@ -69,6 +71,7 @@ module div32_nonrestoring_skip_wrapper #(
 			clear <= '0;
 			is_signed <= '0;
 			last_done <= '0;
+			stall_if_done <= '0;
 
 		    // inputs
 			A32_in <= '0;
@@ -85,6 +88,7 @@ module div32_nonrestoring_skip_wrapper #(
 			clear <= next_clear;
 			is_signed <= next_is_signed;
 			last_done <= done;
+			stall_if_done <= next_stall_if_done;
 
 		    // inputs
 			A32_in <= next_A32_in;

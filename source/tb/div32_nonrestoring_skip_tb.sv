@@ -41,6 +41,7 @@ module div32_nonrestoring_skip_tb #(
 	logic tb_clear;
 	logic tb_is_signed;
 	// logic DUT_done, expected_done;
+    logic tb_stall_if_done;
 
     // inputs
 	logic [31:0] tb_A32_in;
@@ -64,6 +65,7 @@ module div32_nonrestoring_skip_tb #(
 		.clear(tb_clear),
 		.is_signed(tb_is_signed),
 		.done(DUT_done),
+		.stall_if_done(tb_stall_if_done),
 
 	    // inputs
 		.A32_in(tb_A32_in),
@@ -152,6 +154,7 @@ module div32_nonrestoring_skip_tb #(
 	    // fsm control
 		tb_clear = 1'b1;
 		tb_is_signed = 1'b0;
+		tb_stall_if_done = 1'b0;
 	    // inputs
 		tb_A32_in = 32'h0;
 		tb_B32_in = 32'h0;
@@ -179,6 +182,7 @@ module div32_nonrestoring_skip_tb #(
 	    // fsm control
 		tb_clear = 1'b1;
 		tb_is_signed = 1'b0;
+		tb_stall_if_done = 1'b0;
 	    // inputs
 		tb_A32_in = 32'h0;
 		tb_B32_in = 32'h0;
@@ -215,6 +219,7 @@ module div32_nonrestoring_skip_tb #(
             // fsm control
             tb_clear = 1'b0;
             tb_is_signed = 1'b1;
+		    tb_stall_if_done = 1'b0;
             // inputs
             tb_A32_in = 13;
             tb_B32_in = 5;
@@ -261,6 +266,7 @@ module div32_nonrestoring_skip_tb #(
             // fsm control
             tb_clear = 1'b0;
             tb_is_signed = 1'b1;
+		    tb_stall_if_done = 1'b1;
             // inputs
             tb_A32_in = -17;
             tb_B32_in = -6;
@@ -307,6 +313,7 @@ module div32_nonrestoring_skip_tb #(
             // fsm control
             tb_clear = 1'b0;
             tb_is_signed = 1'b1;
+		    tb_stall_if_done = 1'b0;
             // inputs
             tb_A32_in = -5;
             tb_B32_in = 2;
@@ -353,6 +360,7 @@ module div32_nonrestoring_skip_tb #(
             // fsm control
             tb_clear = 1'b0;
             tb_is_signed = 1'b1;
+		    tb_stall_if_done = 1'b1;
             // inputs
             tb_A32_in = 24;
             tb_B32_in = -7;
@@ -399,6 +407,7 @@ module div32_nonrestoring_skip_tb #(
             // fsm control
             tb_clear = 1'b0;
             tb_is_signed = 1'b0;
+		    tb_stall_if_done = 1'b0;
             // inputs
             tb_A32_in = 3964119742;
             tb_B32_in = 3597913658;
@@ -460,6 +469,7 @@ module div32_nonrestoring_skip_tb #(
                 // fsm control
                 tb_clear = 1'b0;
                 tb_is_signed = operands.is_signed;
+		        tb_stall_if_done = 1'b0;
                 // inputs
                 tb_A32_in = operands.A;
                 tb_B32_in = operands.B;
@@ -487,6 +497,7 @@ module div32_nonrestoring_skip_tb #(
                 // fsm control
                 tb_clear = 1'b0;
                 tb_is_signed = operands.is_signed;
+		        tb_stall_if_done = 1'b0;
                 // inputs
                 tb_A32_in = operands.A;
                 tb_B32_in = operands.B;

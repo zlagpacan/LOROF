@@ -18,6 +18,7 @@ module div32_nonrestoring_skip (
     input logic     clear,
     input logic     is_signed,
     output logic    done,
+    input logic     stall_if_done,
 
     // inputs
     input logic [31:0]  A32_in,
@@ -190,7 +191,11 @@ module div32_nonrestoring_skip (
             DIV_DONE: begin
                 done = 1'b1;
 
-                next_state = DIV_INIT;
+                if (stall_if_done) begin
+                    next_state = DIV_DONE;
+                end else begin
+                    next_state = DIV_INIT;
+                end
 
                 // don't cares (reg's already have values)
                 next_accumulator_reg = 33'h0;
