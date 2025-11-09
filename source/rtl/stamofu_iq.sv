@@ -192,8 +192,8 @@ module stamofu_iq #(
     // route PE'd dispatch to entries
     assign dispatch_valid_by_entry = dispatch_one_hot;
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             valid_by_entry <= '0;
             is_store_by_entry <= '0;

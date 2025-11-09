@@ -629,8 +629,8 @@ module decode_unit #(
 	////////////////
 
 	// SDEQ/DEC pipeline reg outputs:
-	// always_ff @ (posedge CLK, negedge nRST) begin
-	always_ff @ (posedge CLK) begin
+	always_ff @ (posedge CLK, negedge nRST) begin
+	// always_ff @ (posedge CLK) begin
 		if (~nRST) begin
 			valid_by_way_DEC <= '0;
 			uncompressed_by_way_DEC <= '0;
@@ -678,8 +678,8 @@ module decode_unit #(
 		end
 	end
 
-	// always_ff @ (posedge CLK, negedge nRST) begin
-	always_ff @ (posedge CLK) begin
+	always_ff @ (posedge CLK, negedge nRST) begin
+	// always_ff @ (posedge CLK) begin
 		if (~nRST) begin
 			unrecoverable_fault <= 1'b0;
 		end
@@ -688,8 +688,8 @@ module decode_unit #(
 		end
 	end
 
-	// always_ff @ (posedge CLK, negedge nRST) begin
-	always_ff @ (posedge CLK) begin
+	always_ff @ (posedge CLK, negedge nRST) begin
+	// always_ff @ (posedge CLK) begin
 		if (~nRST) begin
 			state_DEC <= DEC_IDLE;
 
@@ -1168,8 +1168,8 @@ module decode_unit #(
 	////////////////
 
 	// DEC/RNM pipeline reg outputs:
-	// always_ff @ (posedge CLK, negedge nRST) begin
-	always_ff @ (posedge CLK) begin
+	always_ff @ (posedge CLK, negedge nRST) begin
+	// always_ff @ (posedge CLK) begin
 		if (~nRST) begin
 			// non-decoder:
 			valid_by_way_RNM <= '0;
@@ -1347,8 +1347,8 @@ module decode_unit #(
 	end
 
 	// simple active state + comb modification to say if making arch state modifications and yielding
-	// always_ff @ (posedge CLK, negedge nRST) begin
-	always_ff @ (posedge CLK) begin
+	always_ff @ (posedge CLK, negedge nRST) begin
+	// always_ff @ (posedge CLK) begin
 		if (~nRST) begin
 			active_RNM <= 1'b0;
 		end
@@ -1698,8 +1698,8 @@ module decode_unit #(
 	/////////////////
 
 	// RNM/DISP pipeline reg outputs:
-	// always_ff @ (posedge CLK, negedge nRST) begin
-	always_ff @ (posedge CLK) begin
+	always_ff @ (posedge CLK, negedge nRST) begin
+	// always_ff @ (posedge CLK) begin
 		if (~nRST) begin
 			valid_by_way_DISP <= '0;
 			uncompressed_by_way_DISP <= '0;
@@ -1865,8 +1865,8 @@ module decode_unit #(
 	end
 
 	// simple active state + comb modification to say if making arch state modifications and yielding
-	// always_ff @ (posedge CLK, negedge nRST) begin
-	always_ff @ (posedge CLK) begin
+	always_ff @ (posedge CLK, negedge nRST) begin
+	// always_ff @ (posedge CLK) begin
 		if (~nRST) begin
 			active_DISP <= 1'b0;
 			killed_DISP <= 1'b0;

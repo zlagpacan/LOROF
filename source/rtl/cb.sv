@@ -46,8 +46,8 @@ module cb #(
     assign enq_ptr_plus_1 = enq_ptr + 1;
     assign deq_ptr_plus_1 = deq_ptr + 1;
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             cb_entries <= '0;
 

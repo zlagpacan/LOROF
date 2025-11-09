@@ -136,8 +136,8 @@ module stamofu_addr_pipeline (
     // OC Stage Logic:
 
     // FF
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             valid_OC <= '0;
             is_store_OC <= '0;
@@ -252,8 +252,8 @@ module stamofu_addr_pipeline (
     end
 
     // FF
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             REQ_state <= REQ_IDLE;
 
@@ -292,8 +292,8 @@ module stamofu_addr_pipeline (
         end
     end
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             REQ_saved_VA32 <= 32'h0;
         end

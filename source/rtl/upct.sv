@@ -55,8 +55,8 @@ module upct (
     // Logic: 
 
     // FF's:
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             upct_array <= '0;
 

@@ -246,8 +246,8 @@ module sysu_dq #(
         end
     end
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             valid_by_entry <= '0;
             killed_by_entry <= '0;

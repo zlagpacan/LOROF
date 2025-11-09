@@ -118,8 +118,8 @@ module stamofu_aq #(
     // route PE'd dispatch to entries
     assign enq_valid_by_entry = enq_one_hot;
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             valid_by_entry <= '0;
             killed_by_entry <= '0;
@@ -289,8 +289,8 @@ module stamofu_aq #(
     );
 
     // advertised aq latched mux
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             stamofu_aq_mem_aq_active <= 1'b0;
             stamofu_aq_mem_aq_oldest_abs_ROB_index <= '0;

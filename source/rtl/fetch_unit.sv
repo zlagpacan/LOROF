@@ -402,8 +402,8 @@ module fetch_unit #(
     //////////////////////
 
     // FF logic;
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             fetch_req_PC_VA <= INIT_PC;
             fetch_req_ASID <= INIT_ASID;
@@ -594,8 +594,8 @@ module fetch_unit #(
     ///////////////////////
 
     // FF logic:
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             fetch_resp_state <= FETCH_RESP_IDLE;
             ghr <= '0;
@@ -640,8 +640,8 @@ module fetch_unit #(
     end
 
     // pipeline latch logic:
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             fetch_resp_PC_VA <= 32'h0;
             fetch_resp_PC_mask <= 8'b11111111;
@@ -1668,8 +1668,8 @@ module fetch_unit #(
     // Update 0 Stage: //
     /////////////////////
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             update0_ASID <= INIT_ASID;
         end
@@ -1684,8 +1684,8 @@ module fetch_unit #(
     // Update 1 Stage: //
     /////////////////////
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             update1_is_complex <= 1'b0;
             update1_use_upct <= 1'b0;

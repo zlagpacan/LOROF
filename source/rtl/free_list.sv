@@ -105,8 +105,8 @@ module free_list #(
     // swizzle enQ Logic:
 
     // register upper threshold and lower threshold based on previous cycle (not big deal if slightly off)
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             not_upper_threshold_bank_mask <= '1;
             lower_threshold_bank_mask <= '0;
@@ -445,8 +445,8 @@ module free_list #(
     assign upper_take_4_above = &shift_reg_deq_by_bank;
 
     // shift reg logic
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             // reset with lowest 12 PR's above 32 AR's
             for (int entry = 0; entry < FREE_LIST_SHIFT_REG_ENTRIES; entry++) begin
@@ -1046,8 +1046,8 @@ module free_list #(
     // ----------------------------------------------------------------
     // Array Logic: 
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             // init with 32 AR's mapped to 32 lowest PR's
                 // 8 PR's per bank
@@ -1100,8 +1100,8 @@ module free_list #(
         end
     end
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             full_by_bank <= '0;
         end
@@ -1124,8 +1124,8 @@ module free_list #(
         end
     end
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             // simple reset with all PR's in ordered slot
                 // ptr resets take care of the initially non-free PR's

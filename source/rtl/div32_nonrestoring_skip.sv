@@ -62,8 +62,8 @@ module div32_nonrestoring_skip (
     // ----------------------------------------------------------------
     // Logic:
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             state <= DIV_INIT;
             A_is_neg <= 1'b0;

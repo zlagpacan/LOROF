@@ -181,8 +181,8 @@ module alu_imm_dq #(
         end
     end
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             valid_by_entry <= '0;
             op_by_entry <= '0;

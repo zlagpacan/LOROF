@@ -428,8 +428,8 @@ module rob #(
     // Logic:
 
     // branch notif consumer
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             rob_branch_update_valid <= 1'b0;
             rob_branch_update_has_checkpoint <= 1'b0;
@@ -526,8 +526,8 @@ module rob #(
     );
 
     // restart controller
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             new_restart_valid <= 1'b0;
             new_restart_target_index <= 0;
@@ -619,8 +619,8 @@ module rob #(
     end
 
     // exception controller
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             exception_reg_valid <= 1'b0;
             exception_reg_target_index <= 2'h0;
@@ -757,8 +757,8 @@ module rob #(
     end
 
     // FF state
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             valid_by_4way <= '0;
             checkpoint_present_by_4way <= '0;
@@ -901,8 +901,8 @@ module rob #(
         .older_present(next_older_checkpoint_present),
         .youngest_older_index(next_youngest_older_checkpoint_4way_index)
     );
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             younger_checkpoint_present <= 1'b0;
             oldest_younger_checkpoint_4way_index <= 0;
@@ -948,8 +948,8 @@ module rob #(
     end
 
     // deq/rollback logic:
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             map_table_state_ptr <= 0;
             map_table_state_reversing <= 1'b0;
@@ -1519,8 +1519,8 @@ module rob #(
     end
 
     // ssu mdp update
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             fetch_unit_mdpt_update_valid <= 1'b0;
             fetch_unit_mdpt_update_ASID <= 'h0;
@@ -1541,8 +1541,8 @@ module rob #(
     end
 
     // PR free queue
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             PR_free_q_deq_invalid_mask <= 4'b0000;
         end
@@ -1598,8 +1598,8 @@ module rob #(
     );
 
     // env vars
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             env_restart_PC <= INIT_PC; // can mess with this for trap handling
             env_ASID <= INIT_ASID;
@@ -1618,8 +1618,8 @@ module rob #(
     end
 
     // instret reg
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             instret <= 0;
         end
@@ -1645,8 +1645,8 @@ module rob #(
     end
 
     // deq timing fix
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             empty_last_cycle <= 1'b1;
         end

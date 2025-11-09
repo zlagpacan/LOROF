@@ -45,8 +45,8 @@ module q_fast_ready #(
     assign enq_ptr_plus_1 = enq_ptr + 1;
     assign deq_ptr_plus_1 = deq_ptr + 1;
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             q_entries <= '0;
             enq_ptr <= 0;

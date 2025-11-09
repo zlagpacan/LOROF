@@ -470,8 +470,8 @@ module ldu_cq #(
             complete_req_ack_index = complete_unmasked_req_ack_index;
         end
     end
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             second_try_valid <= 1'b0;
             second_try_cq_index <= 0;
@@ -500,8 +500,8 @@ module ldu_cq #(
             second_try_bank0_valid & ~second_try_bank0_ack
             | second_try_bank1_valid & ~second_try_bank1_ack;
     end
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             potential_data_try_valid <= 1'b0;
             data_try_cq_index <= 0;
@@ -563,8 +563,8 @@ module ldu_cq #(
             data_try_bank0_valid & ~data_try_bank0_ack
             | data_try_bank1_valid & ~data_try_bank1_ack;
     end
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             ldu_complete_valid <= 1'b0;
             ldu_complete_cq_index <= 0;
@@ -1086,8 +1086,8 @@ module ldu_cq #(
             end
         end
     end
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             ldu_CAM_return_valid <= 1'b0;
             ldu_CAM_return_forward <= 1'b0;
@@ -1106,8 +1106,8 @@ module ldu_cq #(
 
     // store set CAM update
         // can only perform for single CAM forward -> choose oldest
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             ssu_CAM_update_unmasked_valid_by_entry <= '0;
 
@@ -1198,8 +1198,8 @@ module ldu_cq #(
     end
 
     // wraparound mask based on deq
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             wraparound_mask <= '1;
         end
@@ -1220,8 +1220,8 @@ module ldu_cq #(
         end
     end
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             entry_array <= '0;
 

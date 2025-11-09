@@ -341,8 +341,8 @@ module ldu_launch_pipeline #(
     // REQ stage logic:
 
     // rob-restart determined state
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             dtlb_req_exec_mode <= INIT_EXEC_MODE;
             dtlb_req_virtual_mode <= INIT_VIRTUAL_MODE;
@@ -464,8 +464,8 @@ module ldu_launch_pipeline #(
     // RESP stage logic:
 
     // REQ/RESP stage FF output
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             RESP_stage_valid <= '0;
             RESP_stage_is_first <= '0;
@@ -528,8 +528,8 @@ module ldu_launch_pipeline #(
         end
     end
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             RESP_first_cycle <= 1'b1;
         end
@@ -538,8 +538,8 @@ module ldu_launch_pipeline #(
         end
     end
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             saved_dtlb_resp_hit <= 1'b0;
             saved_dtlb_resp_PPN <= 22'h0;
@@ -685,8 +685,8 @@ module ldu_launch_pipeline #(
     // RESP stage logic:
 
     // REQ/RESP stage FF output
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             RET_stage_valid <= '0;
             RET_stage_is_first <= '0;

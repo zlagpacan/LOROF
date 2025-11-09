@@ -39,8 +39,8 @@ module ras (
     // ----------------------------------------------------------------
     // Logic:
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             ras_array <= '0;
             sp <= 0;

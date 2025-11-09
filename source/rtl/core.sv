@@ -4999,8 +4999,8 @@ module core #(
         // TODO: implement
 
     // stats
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    always_ff @ (posedge CLK) begin
+    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             alu_reg_complete_count <= 0;
             mdu_complete_count <= 0;
