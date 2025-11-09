@@ -221,6 +221,7 @@ module core_wrapper #(
 
     // stats
 	output logic [31:0] last_alu_reg_complete_count,
+	output logic [31:0] last_mdu_complete_count,
 	output logic [31:0] last_alu_imm_complete_count,
 	output logic [31:0] last_branch_complete_count,
 	output logic [31:0] last_ldu_complete_count,
@@ -425,6 +426,7 @@ module core_wrapper #(
 
     // stats
 	logic [31:0] alu_reg_complete_count;
+	logic [31:0] mdu_complete_count;
 	logic [31:0] alu_imm_complete_count;
 	logic [31:0] branch_complete_count;
 	logic [31:0] ldu_complete_count;
@@ -649,6 +651,7 @@ module core_wrapper #(
 
 		    // stats
 			last_alu_reg_complete_count <= '0;
+			last_mdu_complete_count <= '0;
 			last_alu_imm_complete_count <= '0;
 			last_branch_complete_count <= '0;
 			last_ldu_complete_count <= '0;
@@ -851,6 +854,7 @@ module core_wrapper #(
 
 		    // stats
 			last_alu_reg_complete_count <= alu_reg_complete_count;
+			last_mdu_complete_count <= mdu_complete_count;
 			last_alu_imm_complete_count <= alu_imm_complete_count;
 			last_branch_complete_count <= branch_complete_count;
 			last_ldu_complete_count <= ldu_complete_count;
