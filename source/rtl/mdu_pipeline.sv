@@ -161,7 +161,8 @@ module mdu_pipeline (
     // OC Stage Logic:
 
     // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             valid_OC <= 1'b0;
             op_OC <= 3'b0000;
@@ -209,7 +210,8 @@ module mdu_pipeline (
     end
 
     // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             A_saved_data_OC <= 32'h0;
             B_saved_data_OC <= 32'h0;
@@ -293,7 +295,8 @@ module mdu_pipeline (
     // EX Stage Logic:
 
     // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             valid_EX <= 1'b0;
             op_EX <= '0;
@@ -353,7 +356,8 @@ module mdu_pipeline (
     // WB Stage Logic:
 
     // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             valid_WB <= 1'b0;
             op_WB <= '0;
@@ -425,7 +429,8 @@ module mdu_pipeline (
     assign multiplier_A33 = {A_msb_EX, A_data_EX};
     assign multiplier_B33 = {B_msb_EX, B_data_EX};
 
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             multiplier_immediate <= 64'h0;
             multiplier_result <= 64'h0;

@@ -199,7 +199,8 @@ module bru_pipeline (
     // OC Stage Logic:
 
     // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             valid_OC <= 1'b0;
             op_OC <= 4'b0000;
@@ -384,7 +385,8 @@ module bru_pipeline (
     // EX1 Stage Logic:
 
     // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             valid_EX <= 1'b0;
             op_EX <= 4'b0000;
@@ -637,7 +639,8 @@ module bru_pipeline (
     // WB Stage Logic:
 
     // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             WB_stage_valid <= 1'b0;
             WB_stage_op <= 4'b0000;

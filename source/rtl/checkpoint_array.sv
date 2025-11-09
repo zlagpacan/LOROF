@@ -86,7 +86,8 @@ module checkpoint_array #(
         end
     end
 
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             valid_array <= '0;
         end

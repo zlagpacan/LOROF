@@ -94,7 +94,8 @@ module alu_imm_pipeline (
     // OC Stage Logic:
 
     // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             valid_OC <= 1'b0;
             op_OC <= 4'b0000;
@@ -172,7 +173,8 @@ module alu_imm_pipeline (
     // WB Stage Logic:
 
     // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             WB_valid <= 1'b0;
             WB_op <= 4'b0000;

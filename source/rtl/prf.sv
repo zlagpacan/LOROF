@@ -367,7 +367,8 @@ module prf #(
     end
 
     // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             prf_port0_read_upper_PR_by_bank <= '0;
             prf_port1_read_upper_PR_by_bank <= '0;
@@ -557,7 +558,8 @@ module prf #(
     assign complete_bus_ROB_index_by_bank = prf_complete_ROB_index_by_bank;
 
     // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             prf_WB_valid_by_bank <= '0;
             prf_WB_data_by_bank <= '0;

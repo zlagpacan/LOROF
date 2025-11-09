@@ -599,7 +599,8 @@ module istream #(
     // ----------------------------------------------------------------
     // FF Logic: 
 
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             stream_set_array <= '0;
 

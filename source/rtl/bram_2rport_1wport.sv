@@ -47,7 +47,8 @@ module bram_2rport_1wport #(
     endgenerate
 
     // bram read ports
-    always @ (posedge CLK, negedge nRST) begin : bram_read
+    // always @ (posedge CLK, negedge nRST) begin : bram_read
+    always_ff @ (posedge CLK) begin : bram_read
         if (~nRST) begin
             port0_rreg <= '0;
             port1_rreg <= '0;

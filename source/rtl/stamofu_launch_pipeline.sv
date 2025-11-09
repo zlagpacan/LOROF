@@ -273,7 +273,8 @@ module stamofu_launch_pipeline (
     // RESP stage logic:
 
     // REQ/RESP stage FF output
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             RESP_stage_valid <= '0;
             RESP_stage_is_store <= '0;

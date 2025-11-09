@@ -117,7 +117,8 @@ module ldu_addr_pipeline (
     // OC Stage Logic:
 
     // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             valid_OC <= '0;
             op_OC <= '0;
@@ -185,7 +186,8 @@ module ldu_addr_pipeline (
     end
 
     // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             REQ_state <= REQ_IDLE;
             REQ_op <= '0;
@@ -208,7 +210,8 @@ module ldu_addr_pipeline (
     // internal REQ stage blocks
     assign REQ_VA32 = REQ_A + {{20{REQ_imm12[11]}}, REQ_imm12};
 
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             REQ_saved_VA32 <= 32'h0;
         end

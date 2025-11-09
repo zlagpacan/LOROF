@@ -46,7 +46,8 @@ module sst #(
     // ----------------------------------------------------------------
     // Logic: 
 
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             plru5 <= '0;
             plru4 <= '0;

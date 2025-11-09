@@ -68,7 +68,8 @@ module map_table #(
     assign save_map_table = map_table;
 
     // map table FF logic
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             // init: map AR to equivalent value PR
             for (int ar = 0; ar < AR_COUNT; ar++) begin

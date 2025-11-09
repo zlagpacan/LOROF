@@ -98,7 +98,8 @@ module btb (
     // ----------------------------------------------------------------
     // RESP Stage Logic:
 
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             // replicated_tags_by_instr_RESP <= '0;
             replicated_tags_by_instr_by_way_RESP <= '0;
@@ -202,7 +203,8 @@ module btb (
     // ----------------------------------------------------------------
     // Update 1 Logic:
 
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             update1_valid <= 1'b0;
             update1_index <= '0;

@@ -656,7 +656,8 @@ module stamofu_cq #(
             stamofu_complete_final_req_ack_index = stamofu_complete_unmasked_req_ack_index;
         end
     end
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             stamofu_cq_ldu_CAM_launch_valid <= 1'b0;
             stamofu_cq_ldu_CAM_launch_cq_index <= '0;
@@ -698,7 +699,8 @@ module stamofu_cq #(
             ldu_CAM_launch_ROB_index = entry_array[stamofu_cq_ldu_CAM_launch_cq_index].ROB_index;
         end
     end
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             rob_exception_valid <= 1'b0;
             rob_exception_cq_index <= '0;
@@ -725,7 +727,8 @@ module stamofu_cq #(
         rob_exception_misaligned_exception = entry_array[rob_exception_cq_index].misaligned_exception;
         rob_exception_ROB_index = entry_array[rob_exception_cq_index].ROB_index;
     end
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             stamofu_complete_valid <= 1'b0;
             stamofu_complete_cq_index <= '0;
@@ -1038,7 +1041,8 @@ module stamofu_cq #(
         end
     end
     // stamofu CAM stage 1 bank 0
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             CAM_stage1_bank0_valid <= 1'b0;
             CAM_stage1_bank0_return_cq_index <= 0;
@@ -1101,7 +1105,8 @@ module stamofu_cq #(
         end
     end
     // stamofu CAM stage 2 bank 0
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             CAM_stage2_bank0_valid <= 1'b0;
             CAM_stage2_bank0_return_cq_index <= 0;
@@ -1196,7 +1201,8 @@ module stamofu_cq #(
         next_ssu_CAM_update_bank0_valid_by_entry = '0;
         next_ssu_CAM_update_bank0_valid_by_entry[ssu_CAM_update_bank0_cq_index] = ssu_CAM_update_bank0_valid;
     end
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             ssu_CAM_update_bank0_cq_index <= 0;
             ssu_CAM_update_bank0_valid <= 1'b0;
@@ -1253,7 +1259,8 @@ module stamofu_cq #(
         end
     end
     // stamofu CAM stage 1 bank 1
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             CAM_stage1_bank1_valid <= 1'b0;
             CAM_stage1_bank1_return_cq_index <= 0;
@@ -1316,7 +1323,8 @@ module stamofu_cq #(
         end
     end
     // stamofu CAM stage 2 bank 1
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             CAM_stage2_bank1_valid <= 1'b0;
             CAM_stage2_bank1_return_cq_index <= 0;
@@ -1411,7 +1419,8 @@ module stamofu_cq #(
         next_ssu_CAM_update_bank1_valid_by_entry = '0;
         next_ssu_CAM_update_bank1_valid_by_entry[ssu_CAM_update_bank1_cq_index] = ssu_CAM_update_bank1_valid;
     end
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             ssu_CAM_update_bank1_cq_index <= 0;
             ssu_CAM_update_bank1_valid <= 1'b0;
@@ -1643,7 +1652,8 @@ module stamofu_cq #(
     end
 
     // wraparound mask based on deq
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             wraparound_mask <= '1;
         end
@@ -1664,7 +1674,8 @@ module stamofu_cq #(
         end
     end
 
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             stamofu_incomplete_active <= 1'b0;
             stamofu_oldest_incomplete_ROB_index <= 7'h00;
@@ -1703,7 +1714,8 @@ module stamofu_cq #(
         end
     end
 
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             entry_array <= '0;
 

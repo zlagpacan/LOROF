@@ -13,7 +13,7 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-module stamofu_dq_tb #(
+module sysu_dq_tb #(
 	parameter STAMOFU_DQ_ENTRIES = 4
 ) ();
 

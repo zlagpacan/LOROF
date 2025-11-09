@@ -472,7 +472,8 @@ module ssu #(
     );
 
     // funnel buffer deq FSM
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             funnel_deq_disable_A <= 1'b0;
         end

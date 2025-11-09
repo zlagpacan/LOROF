@@ -65,7 +65,8 @@ module ready_table (
     end
 
     // FF Logic
-    always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    always_ff @ (posedge CLK) begin
         if (~nRST) begin
             // first PR's corresonding to AR's start ready
             for (int pr = 0; pr < AR_COUNT; pr++) begin
