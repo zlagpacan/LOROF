@@ -37,6 +37,7 @@ module arbiter_rr #(
     logic [LOG_REQUESTER_COUNT-1:0]     unmasked_ack_index;
 
     always_ff @ (posedge CLK, negedge nRST) begin
+    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             last_mask <= '0;
         end

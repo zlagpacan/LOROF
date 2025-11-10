@@ -25,7 +25,7 @@ module bram_2rport_1wport #(
     input logic [INNER_WIDTH-1:0] wdata
 );
 
-    logic [INNER_WIDTH-1:0] bram_array [OUTER_WIDTH-1:0];
+    logic [INNER_WIDTH-1:0] bram_array [0:OUTER_WIDTH-1];
     logic [INNER_WIDTH-1:0] port0_rreg;
     logic [INNER_WIDTH-1:0] port1_rreg;    
     

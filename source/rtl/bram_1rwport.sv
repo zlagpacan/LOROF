@@ -19,7 +19,7 @@ module bram_1rwport #(
     input logic [INNER_WIDTH-1:0] wdata
 );
 
-    logic [INNER_WIDTH-1:0] bram_array [OUTER_WIDTH-1:0];
+    logic [INNER_WIDTH-1:0] bram_array [0:OUTER_WIDTH-1];
     logic [INNER_WIDTH-1:0] rreg;
     
     // bram init values

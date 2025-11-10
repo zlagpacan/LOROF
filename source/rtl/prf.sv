@@ -1,7 +1,7 @@
 /*
     Filename: prf.sv
     Author: zlagpacan
-    Description: RTL for Physical Register File
+    Description: RTL for 2-Read-Port, 1-Write-Port Physical Register File
     Spec: LOROF/spec/design/prf.md
 */
 
