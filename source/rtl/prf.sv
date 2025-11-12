@@ -24,7 +24,7 @@ module prf #(
     input logic CLK,
     input logic nRST,
 
-    // read req info by read requester
+    // read req info by read requestor
     input logic [PRF_RR_COUNT-1:0]                      read_req_valid_by_rr,
     input logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]    read_req_PR_by_rr,
 
@@ -33,7 +33,7 @@ module prf #(
 
     // read resp info by read requestor
     output logic [PRF_RR_COUNT-1:0]                     read_resp_valid_by_rr,
-    output logic [PRF_BANK_COUNT-1:0][31:0]             read_resp_data_by_rr,
+    output logic [PRF_RR_COUNT-1:0][31:0]               read_resp_data_by_rr,
 
     // writeback info by write requestor
     input logic [PRF_WR_COUNT-1:0]                          WB_valid_by_wr,
@@ -145,67 +145,22 @@ module prf #(
     // create RAM array for each bank
     genvar ram_bank;
     generate
-
         for (ram_bank = 0; ram_bank < PRF_BANK_COUNT; ram_bank++) begin : ram_banks
-
-            if (USE_BRAM) begin
-
-                // BRAM using next's
-                bram_2rport_1wport #(
-                    .INNER_WIDTH(32),
-                    .OUTER_WIDTH(PR_COUNT/PRF_BANK_COUNT)
-                ) BRAM (
-                    .CLK(CLK),
-                    .nRST(nRST),
-                    .port0_ren(1'b1),
-                    .port0_rindex(next_prf_port0_read_upper_PR_by_bank[ram_bank]),
-                    .port0_rdata(read_data_by_bank_by_port[ram_bank][0]),
-                    .port1_ren(1'b1),
-                    .port1_rindex(next_prf_port1_read_upper_PR_by_bank[ram_bank]),
-                    .port1_rdata(read_data_by_bank_by_port[ram_bank][1]),
-                    .wen_byte({4{prf_WB_valid_by_bank[ram_bank]}}),
-                    .windex(prf_WB_upper_PR_by_bank[ram_bank]),
-                    .wdata(prf_WB_data_by_bank[ram_bank])
-                );
-
-                // // BRAM using curr's
-                // bram_2rport_1wport #(
-                //     .INNER_WIDTH(32),
-                //     .OUTER_WIDTH(PR_COUNT/PRF_BANK_COUNT)
-                // ) BRAM (
-                //     .CLK(CLK),
-                //     .nRST(nRST),
-                //     .port0_ren(1'b1),
-                //     .port0_rindex(prf_port0_read_upper_PR_by_bank[ram_bank]),
-                //     .port0_rdata(read_data_by_bank_by_port[ram_bank][0]),
-                //     .port1_ren(1'b1),
-                //     .port1_rindex(prf_port1_read_upper_PR_by_bank[ram_bank]),
-                //     .port1_rdata(read_data_by_bank_by_port[ram_bank][1]),
-                //     .wen_byte({4{prf_WB_valid_by_bank[ram_bank]}}),
-                //     .windex(prf_WB_upper_PR_by_bank[ram_bank]),
-                //     .wdata(prf_WB_data_by_bank[ram_bank])
-                // );
-            end
-
-            else begin
-
-                // DistRAM using curr's
-                distram_2rport_1wport #(
-                    .INNER_WIDTH(32),
-                    .OUTER_WIDTH(PR_COUNT/PRF_BANK_COUNT)
-                ) DISTRAM (
-                    .CLK(CLK),
-                    .port0_rindex(prf_port0_read_upper_PR_by_bank[ram_bank]),
-                    .port0_rdata(read_data_by_bank_by_port[ram_bank][0]),
-                    .port1_rindex(prf_port1_read_upper_PR_by_bank[ram_bank]),
-                    .port1_rdata(read_data_by_bank_by_port[ram_bank][1]),
-                    .wen(prf_WB_valid_by_bank[ram_bank]),
-                    .windex(prf_WB_upper_PR_by_bank[ram_bank]),
-                    .wdata(prf_WB_data_by_bank[ram_bank])
-                );
-            end
+            // DistRAM using curr's
+            distram_2rport_1wport #(
+                .INNER_WIDTH(32),
+                .OUTER_WIDTH(PR_COUNT/PRF_BANK_COUNT)
+            ) DISTRAM (
+                .CLK(CLK),
+                .port0_rindex(prf_port0_read_upper_PR_by_bank[ram_bank]),
+                .port0_rdata(read_data_by_bank_by_port[ram_bank][0]),
+                .port1_rindex(prf_port1_read_upper_PR_by_bank[ram_bank]),
+                .port1_rdata(read_data_by_bank_by_port[ram_bank][1]),
+                .wen(prf_WB_valid_by_bank[ram_bank]),
+                .windex(prf_WB_upper_PR_by_bank[ram_bank]),
+                .wdata(prf_WB_data_by_bank[ram_bank])
+            );
         end
-
     endgenerate
 
     // ----------------------------------------------------------------
@@ -215,9 +170,6 @@ module prf #(
     genvar rr_bank;
     generate
         for (rr_bank = 0; rr_bank < PRF_BANK_COUNT; rr_bank++) begin
-            
-            // port 0:
-                // single PE over raw compressed req's
             
             // port 0 masked
             pe_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT0_MASKED_PE_LSB (
@@ -232,9 +184,6 @@ module prf #(
                 .ack_one_hot(port0_unmasked_read_ack_by_bank_by_rr[rr_bank]),
                 .ack_mask()
             );
-
-            // port 1:
-                // single PE over raw compressed req's with port 0 ack masked out
             
             // port 1 masked
             pe2_lsb #(.WIDTH(PRF_RR_COUNT)) RR_PORT1_MASKED_PE2_LSB (

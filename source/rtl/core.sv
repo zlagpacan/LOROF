@@ -598,7 +598,7 @@ module core #(
     logic           rob_instret_write_valid;
     logic [31:0]    rob_instret_write_data;
 
-    // read req info by read requester
+    // read req info by read requestor
     logic [PRF_RR_COUNT-1:0]                    prf_read_req_valid_by_rr;
     logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]  prf_read_req_PR_by_rr;
 
@@ -2050,7 +2050,7 @@ module core #(
 		.CLK(CLK),
 		.nRST(nRST),
 
-	    // reg read req by read requester
+	    // reg read req by read requestor
 		.read_req_valid_by_rr(prf_read_req_valid_by_rr),
 		.read_req_PR_by_rr(prf_read_req_PR_by_rr),
 

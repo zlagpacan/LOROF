@@ -14,8 +14,8 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 module arbiter_rr_tb #(
-	parameter REQUESTER_COUNT = 4,
-	parameter LOG_REQUESTER_COUNT = $clog2(REQUESTER_COUNT)
+	parameter REQUESTOR_COUNT = 4,
+	parameter LOG_REQUESTOR_COUNT = $clog2(REQUESTOR_COUNT)
 ) ();
 
     // ----------------------------------------------------------------
@@ -38,19 +38,19 @@ module arbiter_rr_tb #(
     // ----------------------------------------------------------------
     // DUT signals:
 
-	logic [REQUESTER_COUNT-1:0] tb_req_vec;
+	logic [REQUESTOR_COUNT-1:0] tb_req_vec;
 	logic DUT_req_present, expected_req_present;
 
 	logic tb_ack_ready;
-	logic [REQUESTER_COUNT-1:0] DUT_ack_one_hot, expected_ack_one_hot;
-	logic [LOG_REQUESTER_COUNT-1:0] DUT_ack_index, expected_ack_index;
+	logic [REQUESTOR_COUNT-1:0] DUT_ack_one_hot, expected_ack_one_hot;
+	logic [LOG_REQUESTOR_COUNT-1:0] DUT_ack_index, expected_ack_index;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
 
 	arbiter_rr #(
-		.REQUESTER_COUNT(REQUESTER_COUNT),
-		.LOG_REQUESTER_COUNT(LOG_REQUESTER_COUNT)
+		.REQUESTOR_COUNT(REQUESTOR_COUNT),
+		.LOG_REQUESTOR_COUNT(LOG_REQUESTOR_COUNT)
 	) DUT (
 		// seq
 		.CLK(CLK),
