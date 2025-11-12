@@ -1,7 +1,7 @@
 /*
     Filename: prf.sv
     Author: zlagpacan
-    Description: RTL for 2-Read-Port, 1-Write-Port Physical Register File
+    Description: RTL for 2-read-port, 1-write-port, banked Physical Register File
     Spec: LOROF/spec/design/prf.md
 */
 
@@ -13,10 +13,11 @@ module prf #(
     parameter LOG_PR_COUNT = $clog2(PR_COUNT),
     parameter PRF_BANK_COUNT = 4,
     parameter LOG_PRF_BANK_COUNT = $clog2(PRF_BANK_COUNT),
+
     parameter PRF_RR_COUNT = 9,
-    parameter PRF_WR_COUNT = 7,
-    
-    parameter USE_BRAM = 1'b0
+    parameter PRF_RR_BUFFER_SIZE = 2,
+    parameter PRF_WR_COUNT = 8,
+    parameter PRF_WR_BUFFER_SIZE = 2
 )(
 
     // seq
@@ -27,12 +28,12 @@ module prf #(
     input logic [PRF_RR_COUNT-1:0]                      read_req_valid_by_rr,
     input logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]    read_req_PR_by_rr,
 
-    // read resp info by read requestor
-    output logic [PRF_RR_COUNT-1:0]     read_resp_ack_by_rr,
-    output logic [PRF_RR_COUNT-1:0]     read_resp_port_by_rr,
+    // read req feedback by read requestor
+    input logic [PRF_RR_COUNT-1:0]                      read_req_ready_by_rr,
 
-    // read data by bank
-    output logic [PRF_BANK_COUNT-1:0][1:0][31:0] read_data_by_bank_by_port,
+    // read resp info by read requestor
+    output logic [PRF_RR_COUNT-1:0]                     read_resp_valid_by_rr,
+    output logic [PRF_BANK_COUNT-1:0][31:0]             read_resp_data_by_rr,
 
     // writeback info by write requestor
     input logic [PRF_WR_COUNT-1:0]                          WB_valid_by_wr,
@@ -42,7 +43,7 @@ module prf #(
     input logic [PRF_WR_COUNT-1:0][LOG_ROB_ENTRIES-1:0]     WB_ROB_index_by_wr,
 
     // writeback feedback by write requestor
-    output logic [PRF_WR_COUNT-1:0] WB_ready_by_wr,
+    output logic [PRF_WR_COUNT-1:0]                         WB_ready_by_wr,
 
     // writeback bus by bank
     output logic [PRF_BANK_COUNT-1:0]                                       WB_bus_valid_by_bank,
