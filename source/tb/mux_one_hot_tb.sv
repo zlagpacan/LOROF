@@ -118,27 +118,128 @@ module mux_one_hot_tb #(
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // simple:
+        test_case = "simple";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "default";
+		sub_test_case = "simple";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-		tb_sel_one_hot = '0;
-		tb_data_by_requestor = '0;
+		tb_sel_one_hot = 4'b0000;
+		tb_data_by_requestor = {
+            32'h01234567,
+            32'h89abcdef,
+            32'hfedcba98,
+            32'h76543210
+        };
 
 		@(negedge CLK);
 
 		// outputs:
 
 		expected_selected_data = '0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_sel_one_hot = 4'b0001;
+		tb_data_by_requestor = {
+            32'h01234567,
+            32'h89abcdef,
+            32'hfedcba98,
+            32'h76543210
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_selected_data = 32'h76543210;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_sel_one_hot = 4'b0010;
+		tb_data_by_requestor = {
+            32'h01234567,
+            32'h89abcdef,
+            32'hfedcba98,
+            32'h76543210
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_selected_data = 32'hfedcba98;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_sel_one_hot = 4'b0100;
+		tb_data_by_requestor = {
+            32'h01234567,
+            32'h89abcdef,
+            32'hfedcba98,
+            32'h76543210
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_selected_data = 32'h89abcdef;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_sel_one_hot = 4'b1000;
+		tb_data_by_requestor = {
+            32'h01234567,
+            32'h89abcdef,
+            32'hfedcba98,
+            32'h76543210
+        };
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_selected_data = 32'h01234567;
 
 		check_outputs();
 
