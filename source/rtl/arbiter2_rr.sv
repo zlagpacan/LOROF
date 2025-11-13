@@ -67,7 +67,7 @@ module arbiter2_rr #(
     pe2_lsb #(
         .WIDTH(REQUESTOR_COUNT)
     ) MASKED_PORT1_PE2_LSB (
-        .req_vec(req_vec),
+        .req_vec(masked_req_vec),
         .ack_one_hot(port1_masked_ack_one_hot),
         .found_first(),
         .found_second(masked_found_second)
@@ -76,7 +76,7 @@ module arbiter2_rr #(
     pe2_lsb #(
         .WIDTH(REQUESTOR_COUNT)
     ) UNMASKED_PORT1_PE2_LSB (
-        .req_vec(masked_req_vec),
+        .req_vec(req_vec),
         .ack_one_hot(port1_unmasked_ack_one_hot),
         .found_first(),
         .found_second(unmasked_found_second)

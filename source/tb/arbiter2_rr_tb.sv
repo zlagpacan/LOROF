@@ -81,7 +81,7 @@ module arbiter2_rr_tb #(
 		end
 
 		if (expected_port0_ack_one_hot !== DUT_port0_ack_one_hot) begin
-			$display("TB ERROR: expected_port0_ack_one_hot (%h) != DUT_port0_ack_one_hot (%h)",
+			$display("TB ERROR: expected_port0_ack_one_hot (%b) != DUT_port0_ack_one_hot (%b)",
 				expected_port0_ack_one_hot, DUT_port0_ack_one_hot);
 			num_errors++;
 			tb_error = 1'b1;
@@ -95,7 +95,7 @@ module arbiter2_rr_tb #(
 		end
 
 		if (expected_port1_ack_one_hot !== DUT_port1_ack_one_hot) begin
-			$display("TB ERROR: expected_port1_ack_one_hot (%h) != DUT_port1_ack_one_hot (%h)",
+			$display("TB ERROR: expected_port1_ack_one_hot (%b) != DUT_port1_ack_one_hot (%b)",
 				expected_port1_ack_one_hot, DUT_port1_ack_one_hot);
 			num_errors++;
 			tb_error = 1'b1;
@@ -158,30 +158,228 @@ module arbiter2_rr_tb #(
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // simple chain:
+        test_case = "simple chain";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "default";
+		sub_test_case = "simple chain";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-		tb_req_valid = '0;
-		tb_req_vec = '0;
+		tb_req_valid = 1'b0;
+		tb_req_vec = 8'b11111111;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_port0_ack_valid = '0;
-		expected_port0_ack_one_hot = '0;
-		expected_port1_ack_valid = '0;
-		expected_port1_ack_one_hot = '0;
+		expected_port0_ack_valid = 1'b1;
+		expected_port0_ack_one_hot = 8'b00000001;
+		expected_port1_ack_valid = 1'b1;
+		expected_port1_ack_one_hot = 8'b00000010;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple chain";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_req_valid = 1'b1;
+		tb_req_vec = 8'b11111111;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_port0_ack_valid = 1'b1;
+		expected_port0_ack_one_hot = 8'b00000001;
+		expected_port1_ack_valid = 1'b1;
+		expected_port1_ack_one_hot = 8'b00000010;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple chain";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_req_valid = 1'b1;
+		tb_req_vec = 8'b11111101;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_port0_ack_valid = 1'b1;
+		expected_port0_ack_one_hot = 8'b00000100;
+		expected_port1_ack_valid = 1'b1;
+		expected_port1_ack_one_hot = 8'b00001000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple chain";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_req_valid = 1'b1;
+		tb_req_vec = 8'b11111001;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_port0_ack_valid = 1'b1;
+		expected_port0_ack_one_hot = 8'b00010000;
+		expected_port1_ack_valid = 1'b1;
+		expected_port1_ack_one_hot = 8'b00100000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple chain";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_req_valid = 1'b0;
+		tb_req_vec = 8'b10001001;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_port0_ack_valid = 1'b1;
+		expected_port0_ack_one_hot = 8'b10000000;
+		expected_port1_ack_valid = 1'b1;
+		expected_port1_ack_one_hot = 8'b00000001;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple chain";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_req_valid = 1'b1;
+		tb_req_vec = 8'b10001001;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_port0_ack_valid = 1'b1;
+		expected_port0_ack_one_hot = 8'b10000000;
+		expected_port1_ack_valid = 1'b1;
+		expected_port1_ack_one_hot = 8'b00000001;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple chain";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_req_valid = 1'b1;
+		tb_req_vec = 8'b00000011;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_port0_ack_valid = 1'b1;
+		expected_port0_ack_one_hot = 8'b00000010;
+		expected_port1_ack_valid = 1'b1;
+		expected_port1_ack_one_hot = 8'b00000001;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple chain";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_req_valid = 1'b1;
+		tb_req_vec = 8'b00001000;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_port0_ack_valid = 1'b1;
+		expected_port0_ack_one_hot = 8'b00001000;
+		expected_port1_ack_valid = 1'b0;
+		expected_port1_ack_one_hot = 8'b00001000; // don't care
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple chain";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_req_valid = 1'b1;
+		tb_req_vec = 8'b00000100;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_port0_ack_valid = 1'b1;
+		expected_port0_ack_one_hot = 8'b00000100;
+		expected_port1_ack_valid = 1'b0;
+		expected_port1_ack_one_hot = 8'b00000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "simple chain";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_req_valid = 1'b1;
+		tb_req_vec = 8'b00100010;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_port0_ack_valid = 1'b1;
+		expected_port0_ack_one_hot = 8'b00000010;
+		expected_port1_ack_valid = 1'b1;
+		expected_port1_ack_one_hot = 8'b00100000;
 
 		check_outputs();
 
