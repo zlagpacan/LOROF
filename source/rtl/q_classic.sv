@@ -47,8 +47,35 @@ module q_classic #(
 
     assign deq_data = q_entries[deq_ptr.index];
 
-    assign enq_ptr_plus_1 = enq_ptr + 1;
-    assign deq_ptr_plus_1 = deq_ptr + 1;
+    generate
+        // power-of-2 # entries can use simple +1 for ptr's
+        if (NUM_ENTRIES & (NUM_ENTRIES - 1) == 0) begin
+            assign enq_ptr_plus_1 = enq_ptr + 1;
+            assign deq_ptr_plus_1 = deq_ptr + 1;
+        end
+
+        // otherwise, manual wraparound for ptr's
+        else begin
+            always_comb begin
+                if (enq_ptr.index == NUM_ENTRIES - 1) begin
+                    enq_ptr_plus_1.msb = ~enq_ptr.msb;
+                    enq_ptr_plus_1.index = 0;
+                end
+                else begin
+                    enq_ptr_plus_1.msb = enq_ptr.msb;
+                    enq_ptr_plus_1.index = enq_ptr + 1;
+                end
+                if (deq_ptr.index == NUM_ENTRIES - 1) begin
+                    deq_ptr_plus_1.msb = ~deq_ptr.msb;
+                    deq_ptr_plus_1.index = 0;
+                end
+                else begin
+                    deq_ptr_plus_1.msb = deq_ptr.msb;
+                    deq_ptr_plus_1.index = deq_ptr + 1;
+                end
+            end
+        end
+    endgenerate
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
