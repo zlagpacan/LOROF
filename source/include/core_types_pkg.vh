@@ -46,6 +46,8 @@ package core_types_pkg;
     parameter PRF_BANK_COUNT = 4;
     parameter LOG_PRF_BANK_COUNT = $clog2(PRF_BANK_COUNT);
 
+    parameter IS_OC_BUFFER_SIZE = 2;
+
     parameter PRF_RR_COUNT = 9;
         // LDU A
         // ALU Reg-Reg / MDU A
@@ -56,7 +58,7 @@ package core_types_pkg;
         // STAMOFU A
         // STAMOFU B
         // SYSU A
-    parameter PRF_RR_INPUT_BUFFER_SIZE = 2;
+    parameter PRF_RR_INPUT_BUFFER_SIZE = IS_OC_BUFFER_SIZE;
     parameter PRF_RR_OUTPUT_BUFFER_SIZE = PRF_RR_INPUT_BUFFER_SIZE + 1;
     
     parameter PRF_WR_COUNT = 8;
