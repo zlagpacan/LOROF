@@ -85,8 +85,6 @@ module alu_imm_pipeline #(
     logic [11:0]                    next_WB_imm12;
     logic                           next_WB_A_forward;
     logic                           next_WB_A_is_reg;
-    logic                           next_WB_B_forward;
-    logic                           next_WB_B_is_reg;
     logic [LOG_PR_COUNT-1:0]        next_WB_PR;
     logic [LOG_ROB_ENTRIES-1:0]     next_WB_ROB_index;
 

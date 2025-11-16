@@ -77,6 +77,8 @@ module ldu_addr_pipeline_tb #(
     // DUT instantiation:
 
 	ldu_addr_pipeline #(
+		.IS_OC_BUFFER_SIZE(IS_OC_BUFFER_SIZE),
+		.PRF_RR_OUTPUT_BUFFER_SIZE(PRF_RR_OUTPUT_BUFFER_SIZE)
 	) DUT (
 		// seq
 		.CLK(CLK),

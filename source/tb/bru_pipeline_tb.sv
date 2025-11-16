@@ -97,6 +97,8 @@ module bru_pipeline_tb #(
     // DUT instantiation:
 
 	bru_pipeline #(
+		.IS_OC_BUFFER_SIZE(IS_OC_BUFFER_SIZE),
+		.PRF_RR_OUTPUT_BUFFER_SIZE(PRF_RR_OUTPUT_BUFFER_SIZE)
 	) DUT (
 		// seq
 		.CLK(CLK),
