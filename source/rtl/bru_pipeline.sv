@@ -8,8 +8,11 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module bru_pipeline (
-
+module bru_pipeline #(
+    parameter IS_OC_BUFFER_SIZE = 2,
+    parameter PRF_RR_OUTPUT_BUFFER_SIZE = 3
+) (
+    
     // seq
     input logic CLK,
     input logic nRST,

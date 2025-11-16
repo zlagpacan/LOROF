@@ -14,6 +14,8 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 module bru_pipeline_tb #(
+	parameter IS_OC_BUFFER_SIZE = 2,
+	parameter PRF_RR_OUTPUT_BUFFER_SIZE = 3
 ) ();
 
     // ----------------------------------------------------------------
