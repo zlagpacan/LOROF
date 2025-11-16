@@ -13,7 +13,10 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-module alu_reg_pipeline_tb ();
+module alu_reg_pipeline_tb #(
+	parameter IS_OC_BUFFER_SIZE = 2,
+	parameter PRF_RR_OUTPUT_BUFFER_SIZE = 3
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:
@@ -52,11 +55,10 @@ module alu_reg_pipeline_tb ();
 	logic DUT_issue_ready, expected_issue_ready;
 
     // reg read info and data from PRF
-	logic tb_A_reg_read_ack;
-	logic tb_A_reg_read_port;
-	logic tb_B_reg_read_ack;
-	logic tb_B_reg_read_port;
-	logic [PRF_BANK_COUNT-1:0][1:0][31:0] tb_reg_read_data_by_bank_by_port;
+	logic tb_A_reg_read_resp_valid;
+	logic [31:0] tb_A_reg_read_resp_data;
+	logic tb_B_reg_read_resp_valid;
+	logic [31:0] tb_B_reg_read_resp_data;
 
     // forward data from PRF
 	logic [PRF_BANK_COUNT-1:0][31:0] tb_forward_data_by_bank;
@@ -73,7 +75,10 @@ module alu_reg_pipeline_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	alu_reg_pipeline DUT (
+	alu_reg_pipeline #(
+		.IS_OC_BUFFER_SIZE(IS_OC_BUFFER_SIZE),
+		.PRF_RR_OUTPUT_BUFFER_SIZE(PRF_RR_OUTPUT_BUFFER_SIZE)
+	) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
@@ -95,11 +100,10 @@ module alu_reg_pipeline_tb ();
 		.issue_ready(DUT_issue_ready),
 
 	    // reg read info and data from PRF
-		.A_reg_read_ack(tb_A_reg_read_ack),
-		.A_reg_read_port(tb_A_reg_read_port),
-		.B_reg_read_ack(tb_B_reg_read_ack),
-		.B_reg_read_port(tb_B_reg_read_port),
-		.reg_read_data_by_bank_by_port(tb_reg_read_data_by_bank_by_port),
+		.A_reg_read_resp_valid(tb_A_reg_read_resp_valid),
+		.A_reg_read_resp_data(tb_A_reg_read_resp_data),
+		.B_reg_read_resp_valid(tb_B_reg_read_resp_valid),
+		.B_reg_read_resp_data(tb_B_reg_read_resp_data),
 
 	    // forward data from PRF
 		.forward_data_by_bank(tb_forward_data_by_bank),
@@ -185,22 +189,21 @@ module alu_reg_pipeline_tb ();
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_is_zero = 1'b0;
 		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 7'h0;
-		tb_issue_ROB_index = 7'h0;
+		tb_issue_dest_PR = 7'h00;
+		tb_issue_ROB_index = 7'h00;
 	    // ready feedback to IQ
 	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b0;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b0;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-			32'h0, 32'h0,
-			32'h0, 32'h0,
-			32'h0, 32'h0,
-			32'h0, 32'h0
-		};
+		tb_A_reg_read_resp_valid = 1'b0;
+		tb_A_reg_read_resp_data = 32'h00000000;
+		tb_B_reg_read_resp_valid = 1'b0;
+		tb_B_reg_read_resp_data = 32'h00000000;
 	    // forward data from PRF
-		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
+		tb_forward_data_by_bank = {
+            32'h00000000,
+            32'h00000000,
+            32'h00000000,
+            32'h00000000
+        };
 	    // writeback data to PRF
 	    // writeback feedback from PRF
 		tb_WB_ready = 1'b1;
@@ -216,9 +219,9 @@ module alu_reg_pipeline_tb ();
 	    // forward data from PRF
 	    // writeback data to PRF
 		expected_WB_valid = 1'b0;
-		expected_WB_data = 32'h0;
-		expected_WB_PR = 7'h0;
-		expected_WB_ROB_index = 7'h0;
+		expected_WB_data = 32'h00000000;
+		expected_WB_PR = 7'h00;
+		expected_WB_ROB_index = 7'h00;
 	    // writeback feedback from PRF
 
 		check_outputs();
@@ -238,22 +241,21 @@ module alu_reg_pipeline_tb ();
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_is_zero = 1'b0;
 		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 7'h0;
-		tb_issue_ROB_index = 7'h0;
+		tb_issue_dest_PR = 7'h00;
+		tb_issue_ROB_index = 7'h00;
 	    // ready feedback to IQ
 	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b0;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b0;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-			32'h0, 32'h0,
-			32'h0, 32'h0,
-			32'h0, 32'h0,
-			32'h0, 32'h0
-		};
+		tb_A_reg_read_resp_valid = 1'b0;
+		tb_A_reg_read_resp_data = 32'h00000000;
+		tb_B_reg_read_resp_valid = 1'b0;
+		tb_B_reg_read_resp_data = 32'h00000000;
 	    // forward data from PRF
-		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
+		tb_forward_data_by_bank = {
+            32'h00000000,
+            32'h00000000,
+            32'h00000000,
+            32'h00000000
+        };
 	    // writeback data to PRF
 	    // writeback feedback from PRF
 		tb_WB_ready = 1'b1;
@@ -269,9 +271,9 @@ module alu_reg_pipeline_tb ();
 	    // forward data from PRF
 	    // writeback data to PRF
 		expected_WB_valid = 1'b0;
-		expected_WB_data = 32'h0;
-		expected_WB_PR = 7'h0;
-		expected_WB_ROB_index = 7'h0;
+		expected_WB_data = 32'h00000000;
+		expected_WB_PR = 7'h00;
+		expected_WB_ROB_index = 7'h00;
 	    // writeback feedback from PRF
 
 		check_outputs();
@@ -299,22 +301,21 @@ module alu_reg_pipeline_tb ();
 		tb_issue_B_forward = 1'b0;
 		tb_issue_B_is_zero = 1'b0;
 		tb_issue_B_bank = 2'h0;
-		tb_issue_dest_PR = 7'h0;
-		tb_issue_ROB_index = 7'h0;
+		tb_issue_dest_PR = 7'h00;
+		tb_issue_ROB_index = 7'h00;
 	    // ready feedback to IQ
 	    // reg read info and data from PRF
-		tb_A_reg_read_ack = 1'b0;
-		tb_A_reg_read_port = 1'b0;
-		tb_B_reg_read_ack = 1'b0;
-		tb_B_reg_read_port = 1'b0;
-		tb_reg_read_data_by_bank_by_port = {
-			32'h0, 32'h0,
-			32'h0, 32'h0,
-			32'h0, 32'h0,
-			32'h0, 32'h0
-		};
+		tb_A_reg_read_resp_valid = 1'b0;
+		tb_A_reg_read_resp_data = 32'h00000000;
+		tb_B_reg_read_resp_valid = 1'b0;
+		tb_B_reg_read_resp_data = 32'h00000000;
 	    // forward data from PRF
-		tb_forward_data_by_bank = {32'h0, 32'h0, 32'h0, 32'h0};
+		tb_forward_data_by_bank = {
+            32'h00000000,
+            32'h00000000,
+            32'h00000000,
+            32'h00000000
+        };
 	    // writeback data to PRF
 	    // writeback feedback from PRF
 		tb_WB_ready = 1'b1;
@@ -330,9 +331,9 @@ module alu_reg_pipeline_tb ();
 	    // forward data from PRF
 	    // writeback data to PRF
 		expected_WB_valid = 1'b0;
-		expected_WB_data = 32'h0;
-		expected_WB_PR = 7'h0;
-		expected_WB_ROB_index = 7'h0;
+		expected_WB_data = 32'h00000000;
+		expected_WB_PR = 7'h00;
+		expected_WB_ROB_index = 7'h00;
 	    // writeback feedback from PRF
 
 		check_outputs();
@@ -349,7 +350,7 @@ module alu_reg_pipeline_tb ();
 
         $display();
         if (num_errors) begin
-            $display("FAIL: %d tests fail", num_errors);
+            $display("FAIL: %0d tests fail", num_errors);
         end
         else begin
             $display("SUCCESS: all tests pass");

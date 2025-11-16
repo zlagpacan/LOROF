@@ -32,7 +32,7 @@ module mdu_pipeline #(
     input logic [LOG_ROB_ENTRIES-1:0]   issue_ROB_index,
 
     // MDU pipeline feedback to IQ
-    output logic                            issue_ready,
+    output logic                        issue_ready,
 
     // reg read data from PRF
     input logic         A_reg_read_resp_valid,
@@ -292,7 +292,6 @@ module mdu_pipeline #(
 
     always_comb begin
         enq_A_forward_data = forward_data_by_bank[enq_A_forward_bank];
-
         enq_B_forward_data = forward_data_by_bank[enq_B_forward_bank];
     end
 
