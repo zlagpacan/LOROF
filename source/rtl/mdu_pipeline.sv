@@ -371,7 +371,6 @@ module mdu_pipeline #(
     // data gathering
     always_comb begin
         A_data_EX = ({32{A_is_reg_EX}} & deq_A_reg_data) | ({32{A_forward_EX}} & deq_A_forward_data);
-
         B_data_EX = ({32{B_is_reg_EX}} & deq_B_reg_data) | ({32{B_forward_EX}} & deq_B_forward_data);
 
         // get bit 32 for signed 33b mul:

@@ -36,12 +36,11 @@ module bru_pipeline (
     // output feedback to BRU IQ
     output logic                            issue_ready,
 
-    // reg read info and data from PRF
-    input logic                                     A_reg_read_ack,
-    input logic                                     A_reg_read_port,
-    input logic                                     B_reg_read_ack,
-    input logic                                     B_reg_read_port,
-    input logic [PRF_BANK_COUNT-1:0][1:0][31:0]     reg_read_data_by_bank_by_port,
+    // reg read data from PRF
+    input logic         A_reg_read_resp_valid,
+    input logic [31:0]  A_reg_read_resp_data,
+    input logic         B_reg_read_resp_valid,
+    input logic [31:0]  B_reg_read_resp_data,
 
     // forward data from PRF
     input logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank,
@@ -75,7 +74,6 @@ module bru_pipeline (
 
     logic stall_WB;
     logic stall_EX;
-    logic stall_OC;
 
     // ----------------------------------------------------------------
     // OC Stage Signals:
@@ -89,21 +87,45 @@ module bru_pipeline (
     logic [31:0]                        PC_OC;
     logic [31:0]                        pred_PC_OC;
     logic [19:0]                        imm20_OC;
-    logic                               A_saved_OC;
-    logic                               A_unneeded_or_is_zero_OC;
     logic                               A_forward_OC;
-    logic [LOG_PRF_BANK_COUNT-1:0]      A_bank_OC;
-    logic                               B_saved_OC;
-    logic                               B_unneeded_or_is_zero_OC;
+    logic                               A_is_reg_OC;
     logic                               B_forward_OC;
-    logic [LOG_PRF_BANK_COUNT-1:0]      B_bank_OC;
+    logic                               B_is_reg_OC;
     logic [LOG_PR_COUNT-1:0]            dest_PR_OC;
     logic [LOG_ROB_ENTRIES-1:0]         ROB_index_OC;
 
-    logic [31:0] A_saved_data_OC;
-    logic [31:0] B_saved_data_OC;
+    logic operands_ready_OC;
 
-    logic launch_ready_OC;
+    logic           enq_A_reg_valid;
+    logic [31:0]    enq_A_reg_data;
+    // logic           enq_A_reg_ready; // should always be 1
+    logic           deq_A_reg_valid;
+    logic [31:0]    deq_A_reg_data;
+    logic           deq_A_reg_ready;
+
+    logic           enq_B_reg_valid;
+    logic [31:0]    enq_B_reg_data;
+    // logic           enq_B_reg_ready; // should always be 1
+    logic           deq_B_reg_valid;
+    logic [31:0]    deq_B_reg_data;
+    logic           deq_B_reg_ready;
+
+    logic [LOG_PRF_BANK_COUNT-1:0]  enq_A_forward_bank;
+    logic [LOG_PRF_BANK_COUNT-1:0]  enq_B_forward_bank;
+
+    logic           enq_A_forward_valid;
+    logic [31:0]    enq_A_forward_data;
+    // logic           enq_A_forward_ready; // should always be 1
+    logic           deq_A_forward_valid;
+    logic [31:0]    deq_A_forward_data;
+    logic           deq_A_forward_ready;
+
+    logic           enq_B_forward_valid;
+    logic [31:0]    enq_B_forward_data;
+    // logic           enq_B_forward_ready; // should always be 1
+    logic           deq_B_forward_valid;
+    logic [31:0]    deq_B_forward_data;
+    logic           deq_B_forward_ready;
 
     logic                               next_valid_EX;
     logic [3:0]                         next_op_EX;
@@ -114,8 +136,10 @@ module bru_pipeline (
     logic [31:0]                        next_PC_EX;
     logic [31:0]                        next_pred_PC_EX;
     logic [31:0]                        next_imm32_EX;
-    logic [31:0]                        next_A_EX;
-    logic [31:0]                        next_B_EX;
+    logic                               next_A_forward_EX;
+    logic                               next_A_is_reg_EX;
+    logic                               next_B_forward_EX;
+    logic                               next_B_is_reg_EX;
     logic [LOG_PR_COUNT-1:0]            next_dest_PR_EX;
     logic [LOG_ROB_ENTRIES-1:0]         next_ROB_index_EX;
 
@@ -131,10 +155,15 @@ module bru_pipeline (
     logic [31:0]                        PC_EX;
     logic [31:0]                        pred_PC_EX;
     logic [31:0]                        imm32_EX;
-    logic [31:0]                        A_EX;
-    logic [31:0]                        B_EX;
+    logic                               A_forward_EX;
+    logic                               A_is_reg_EX;
+    logic                               B_forward_EX;
+    logic                               B_is_reg_EX;
     logic [LOG_PR_COUNT-1:0]            dest_PR_EX;
     logic [LOG_ROB_ENTRIES-1:0]         ROB_index_EX;
+
+    logic [31:0] A_data_EX;
+    logic [31:0] B_data_EX;
 
     logic [31:0]    PC_plus_imm32_EX;
     logic [31:0]    PC_plus_2_EX;
@@ -193,140 +222,168 @@ module bru_pipeline (
     // propagate stalls backwards
     assign stall_WB = (WB_stage_need_WB & ~WB_ready) | (WB_stage_need_branch_notif & ~branch_notif_ready);
     assign stall_EX = valid_EX & stall_WB;
-    assign stall_OC = valid_OC & stall_EX;
+
+    // ----------------------------------------------------------------
+    // IS -> OC Buffer Logic:
+
+    q_fast_ready #(
+        .DATA_WIDTH(4 + BTB_PRED_INFO_WIDTH + 1 + 1 + 1 + 32 + 32 + 20 + 1 + 1 + 1 + 1 + LOG_PR_COUNT + LOG_ROB_ENTRIES),
+        .NUM_ENTRIES(IS_OC_BUFFER_SIZE)
+    ) IS_OC_BUFFER (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(issue_valid),
+        .enq_data({
+            issue_op,
+            issue_pred_info,
+            issue_pred_lru,
+            issue_is_link_ra,
+            issue_is_ret_ra,
+            issue_PC,
+            issue_pred_PC,
+            issue_imm20,
+            issue_A_forward,
+            ~(issue_A_forward | issue_A_unneeded_or_is_zero),
+            issue_A_forward,
+            ~(issue_B_forward | issue_B_unneeded_or_is_zero),
+            issue_dest_PR,
+            issue_ROB_index
+        }),
+        .enq_ready(issue_ready),
+        .deq_valid(valid_OC),
+        .deq_data({
+            op_OC,
+            pred_info_OC,
+            pred_lru_OC,
+            is_link_ra_OC,
+            is_ret_ra_OC,
+            PC_OC,
+            pred_PC_OC,
+            imm20_OC,
+            A_forward_OC,
+            A_is_reg_OC,
+            B_forward_OC,
+            B_is_reg_OC,
+            dest_PR_OC,
+            ROB_index_OC
+        }),
+        .deq_ready(~stall_EX & operands_ready_OC)
+    );
 
     // ----------------------------------------------------------------
     // OC Stage Logic:
 
-    // FF
+    assign operands_ready_OC = 
+        // A operand present
+        (~A_is_reg_OC | A_reg_read_resp_valid | deq_A_reg_valid)
+        &
+        // B operand present
+        (~B_is_reg_OC | B_reg_read_resp_valid | deq_B_reg_valid)
+    ;
+
+    // reg read data buffers:
+
+    always_comb begin
+        enq_A_reg_valid = A_reg_read_resp_valid;
+        enq_A_reg_data = A_reg_read_resp_data;
+
+        enq_B_reg_valid = B_reg_read_resp_valid;
+        enq_B_reg_data = B_reg_read_resp_data;
+    end
+
+    q_fast_ready #(
+        .DATA_WIDTH(32),
+        .NUM_ENTRIES(PRF_RR_OUTPUT_BUFFER_SIZE)
+    ) A_REG_DATA_BUFFER (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(enq_A_reg_valid),
+        .enq_data(enq_A_reg_data),
+        .enq_ready(), // should always be 1
+        .deq_valid(deq_A_reg_valid),
+        .deq_data(deq_A_reg_data),
+        .deq_ready(deq_A_reg_ready)
+    );
+
+    q_fast_ready #(
+        .DATA_WIDTH(32),
+        .NUM_ENTRIES(PRF_RR_OUTPUT_BUFFER_SIZE)
+    ) B_REG_DATA_BUFFER (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(enq_B_reg_valid),
+        .enq_data(enq_B_reg_data),
+        .enq_ready(), // should always be 1
+        .deq_valid(deq_B_reg_valid),
+        .deq_data(deq_B_reg_data),
+        .deq_ready(deq_B_reg_ready)
+    );
+
+    // forward data buffers:
+
     always_ff @ (posedge CLK, negedge nRST) begin
-    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
-            valid_OC <= 1'b0;
-            op_OC <= 4'b0000;
-            pred_info_OC <= 8'h0;
-            pred_lru_OC <= 1'b0;
-            is_link_ra_OC <= 1'b0;
-            is_ret_ra_OC <= 1'b0;
-            PC_OC <= 32'h0;
-            pred_PC_OC <= 32'h0;
-            imm20_OC <= 20'h0;
-            A_saved_OC <= 1'b0;
-            A_unneeded_or_is_zero_OC <= 1'b0;
-            A_forward_OC <= 1'b0;
-            A_bank_OC <= 2'h0;
-            A_saved_data_OC <= 32'h0;
-            B_saved_OC <= 1'b0;
-            B_unneeded_or_is_zero_OC <= 1'b0;
-            B_forward_OC <= 1'b0;
-            B_bank_OC <= 2'h0;
-            B_saved_data_OC <= 32'h0;
-            dest_PR_OC <= 7'h0;
-            ROB_index_OC <= 7'h0;
+            enq_A_forward_valid <= 1'b0;
+            enq_A_forward_bank <= 0;
+            enq_B_forward_valid <= 1'b0;
+            enq_B_forward_bank <= 0;
         end
-        // stall OC stage when have valid op which can't move on: issue_ready == 1'b0
-        else if (~issue_ready) begin
-            valid_OC <= valid_OC;
-            op_OC <= op_OC;
-            pred_info_OC <= pred_info_OC;
-            pred_lru_OC <= pred_lru_OC;
-            is_link_ra_OC <= is_link_ra_OC;
-            is_ret_ra_OC <= is_ret_ra_OC;
-            PC_OC <= PC_OC;
-            pred_PC_OC <= pred_PC_OC;
-            imm20_OC <= imm20_OC;
-            A_saved_OC <= A_saved_OC | A_forward_OC | A_reg_read_ack;
-            A_unneeded_or_is_zero_OC <= A_unneeded_or_is_zero_OC;
-            A_forward_OC <= 1'b0;
-            A_bank_OC <= A_bank_OC;
-            A_saved_data_OC <= next_A_EX;
-            B_saved_OC <= B_saved_OC | B_forward_OC | B_reg_read_ack;
-            B_unneeded_or_is_zero_OC <= B_unneeded_or_is_zero_OC;
-            B_forward_OC <= 1'b0;
-            B_bank_OC <= B_bank_OC;
-            B_saved_data_OC <= next_B_EX;
-            dest_PR_OC <= dest_PR_OC;
-            ROB_index_OC <= ROB_index_OC;
-        end
-        // pass input issue to OC
         else begin
-            valid_OC <= issue_valid;
-            op_OC <= issue_op;
-            pred_info_OC <= issue_pred_info;
-            pred_lru_OC <= issue_pred_lru;
-            is_link_ra_OC <= issue_is_link_ra;
-            is_ret_ra_OC <= issue_is_ret_ra;
-            PC_OC <= issue_PC;
-            pred_PC_OC <= issue_pred_PC;
-            imm20_OC <= issue_imm20;
-            A_saved_OC <= 1'b0;
-            A_unneeded_or_is_zero_OC <= issue_A_unneeded_or_is_zero;
-            A_forward_OC <= issue_A_forward;
-            A_bank_OC <= issue_A_bank;
-            A_saved_data_OC <= next_A_EX;
-            B_saved_OC <= 1'b0;
-            B_unneeded_or_is_zero_OC <= issue_B_unneeded_or_is_zero;
-            B_forward_OC <= issue_B_forward;
-            B_bank_OC <= issue_B_bank;
-            B_saved_data_OC <= next_B_EX;
-            dest_PR_OC <= issue_dest_PR;
-            ROB_index_OC <= issue_ROB_index;
+            enq_A_forward_valid <= issue_valid & issue_ready & issue_A_forward;
+            enq_A_forward_bank <= issue_A_bank;
+            enq_B_forward_valid <= issue_valid & issue_ready & issue_B_forward;
+            enq_B_forward_bank <= issue_B_bank;
         end
     end
 
-    assign launch_ready_OC = 
-        // no backpressure
-        ~stall_OC
-        &
-        // A operand present
-        (A_unneeded_or_is_zero_OC | A_saved_OC | A_forward_OC | A_reg_read_ack)
-        &
-        // B operand present
-        (B_unneeded_or_is_zero_OC | B_saved_OC | B_forward_OC | B_reg_read_ack)
-    ;
-    assign issue_ready = ~valid_OC | launch_ready_OC;
-
-    assign next_valid_EX = valid_OC & launch_ready_OC;
-    assign next_op_EX = op_OC;
-    assign next_pred_info_EX = pred_info_OC;
-    assign next_pred_lru_EX = pred_lru_OC;
-    assign next_is_link_ra_EX = is_link_ra_OC;
-    assign next_is_ret_ra_EX = is_ret_ra_OC;
-    assign next_PC_EX = PC_OC;
-    assign next_pred_PC_EX = pred_PC_OC;
-    assign next_dest_PR_EX = dest_PR_OC;
-    assign next_ROB_index_EX = ROB_index_OC;
-
-    // A and B operand collection
     always_comb begin
+        enq_A_forward_data = forward_data_by_bank[enq_A_forward_bank];
+        enq_B_forward_data = forward_data_by_bank[enq_B_forward_bank];
+    end
 
-        // collect A value to save OR pass to EX1
-        if (A_unneeded_or_is_zero_OC) begin
-            next_A_EX = 32'h0;
-        end
-        else if (A_saved_OC) begin
-            next_A_EX = A_saved_data_OC;
-        end
-        else if (A_forward_OC) begin
-            next_A_EX = forward_data_by_bank[A_bank_OC];
-        end
-        else begin
-            next_A_EX = reg_read_data_by_bank_by_port[A_bank_OC][A_reg_read_port];
-        end
+    q_fast_ready #(
+        .DATA_WIDTH(32),
+        .NUM_ENTRIES(PRF_RR_OUTPUT_BUFFER_SIZE)
+    ) A_FORWARD_DATA_BUFFER (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(enq_A_forward_valid),
+        .enq_data(enq_A_forward_data),
+        .enq_ready(), // should always be 1
+        .deq_valid(deq_A_forward_valid),
+        .deq_data(deq_A_forward_data),
+        .deq_ready(deq_A_forward_ready)
+    );
 
-        // collect B value to save OR pass to EX1
-        if (B_unneeded_or_is_zero_OC) begin
-            next_B_EX = 32'h0;
-        end
-        else if (B_saved_OC) begin
-            next_B_EX = B_saved_data_OC;
-        end
-        else if (B_forward_OC) begin
-            next_B_EX = forward_data_by_bank[B_bank_OC];
-        end
-        else begin
-            next_B_EX = reg_read_data_by_bank_by_port[B_bank_OC][B_reg_read_port];
-        end
+    q_fast_ready #(
+        .DATA_WIDTH(32),
+        .NUM_ENTRIES(PRF_RR_OUTPUT_BUFFER_SIZE)
+    ) B_FORWARD_DATA_BUFFER (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(enq_B_forward_valid),
+        .enq_data(enq_B_forward_data),
+        .enq_ready(), // should always be 1
+        .deq_valid(deq_B_forward_valid),
+        .deq_data(deq_B_forward_data),
+        .deq_ready(deq_B_forward_ready)
+    );
+
+    always_comb begin
+        next_valid_EX = valid_OC & operands_ready_OC;
+        next_op_EX = op_OC;
+        next_pred_info_EX = pred_info_OC;
+        next_pred_lru_EX = pred_lru_OC;
+        next_is_link_ra_EX = is_link_ra_OC;
+        next_is_ret_ra_EX = is_ret_ra_OC;
+        next_PC_EX = PC_OC;
+        next_pred_PC_EX = pred_PC_OC;
+        next_A_forward_EX = A_forward_OC;
+        next_A_is_reg_EX = A_is_reg_OC;
+        next_B_forward_EX = B_forward_OC;
+        next_B_is_reg_EX = B_is_reg_OC;
+        next_dest_PR_EX = dest_PR_OC;
+        next_ROB_index_EX = ROB_index_OC;
     end
 
     // map imm20 -> imm32
@@ -382,7 +439,7 @@ module bru_pipeline (
     end
 
     // ----------------------------------------------------------------
-    // EX1 Stage Logic:
+    // EX Stage Logic:
 
     // FF
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -397,27 +454,14 @@ module bru_pipeline (
             PC_EX <= 32'h0;
             pred_PC_EX <= 32'h0;
             imm32_EX <= 20'h0;
-            A_EX <= 32'h0;
-            B_EX <= 32'h0;
+            A_forward_EX <= 1'b0;
+            A_is_reg_EX <= 1'b0;
+            B_forward_EX <= 1'b0;
+            B_is_reg_EX <= 1'b0;
             dest_PR_EX <= '0;
             ROB_index_EX <= '0;
         end
-        else if (stall_EX) begin
-            valid_EX <= valid_EX;
-            op_EX <= op_EX;
-            pred_info_EX <= pred_info_EX;
-            pred_lru_EX <= pred_lru_EX;
-            is_link_ra_EX <= is_link_ra_EX;
-            is_ret_ra_EX <= is_ret_ra_EX;
-            PC_EX <= PC_EX;
-            pred_PC_EX <= pred_PC_EX;
-            imm32_EX <= imm32_EX;
-            A_EX <= A_EX;
-            B_EX <= B_EX;
-            dest_PR_EX <= dest_PR_EX;
-            ROB_index_EX <= ROB_index_EX;
-        end
-        else begin
+        else if (~stall_EX) begin
             valid_EX <= next_valid_EX;
             op_EX <= next_op_EX;
             pred_info_EX <= next_pred_info_EX;
@@ -427,11 +471,25 @@ module bru_pipeline (
             PC_EX <= next_PC_EX;
             pred_PC_EX <= next_pred_PC_EX;
             imm32_EX <= next_imm32_EX;
-            A_EX <= next_A_EX;
-            B_EX <= next_B_EX;
+            A_forward_EX <= next_A_forward_EX;
+            A_is_reg_EX <= next_A_is_reg_EX;
+            B_forward_EX <= next_B_forward_EX;
+            B_is_reg_EX <= next_B_is_reg_EX;
             dest_PR_EX <= next_dest_PR_EX;
             ROB_index_EX <= next_ROB_index_EX;
         end
+    end
+
+    // data gathering
+    always_comb begin
+        A_data_EX = ({32{A_is_reg_EX}} & deq_A_reg_data) | ({32{A_forward_EX}} & deq_A_forward_data);
+        B_data_EX = ({32{B_is_reg_EX}} & deq_B_reg_data) | ({32{B_forward_EX}} & deq_B_forward_data);
+
+        deq_A_reg_ready = valid_EX & A_is_reg_EX & ~stall_EX;
+        deq_A_forward_ready = valid_EX & A_forward_EX & ~stall_EX;
+
+        deq_B_reg_ready = valid_EX & B_is_reg_EX & ~stall_EX;
+        deq_B_forward_ready = valid_EX & B_forward_EX & ~stall_EX;
     end
 
     // pass-through's:
@@ -449,12 +507,12 @@ module bru_pipeline (
     assign PC_plus_imm32_EX = PC_EX + imm32_EX;
     assign PC_plus_2_EX = PC_EX + 32'h2;
     assign PC_plus_4_EX = PC_EX + 32'h4;
-    assign A_plus_imm32_EX = A_EX + imm32_EX;
-    assign inner_A_lt_B_EX = A_EX[30:0] < B_EX[30:0];
-    assign A_eq_B_EX = A_EX == B_EX;
-    assign A_eq_zero_EX = A_EX == 32'h0;
-    assign A_lts_B_EX = A_EX[31] & ~B_EX[31] | inner_A_lt_B_EX & ~(~A_EX[31] & B_EX[31]);
-    assign A_ltu_B_EX = ~A_EX[31] & B_EX[31] | inner_A_lt_B_EX & ~(A_EX[31] & ~B_EX[31]);
+    assign A_plus_imm32_EX = A_data_EX + imm32_EX;
+    assign inner_A_lt_B_EX = A_data_EX[30:0] < B_data_EX[30:0];
+    assign A_eq_B_EX = A_data_EX == B_data_EX;
+    assign A_eq_zero_EX = A_data_EX == 32'h0;
+    assign A_lts_B_EX = A_data_EX[31] & ~B_data_EX[31] | inner_A_lt_B_EX & ~(~A_data_EX[31] & B_data_EX[31]);
+    assign A_ltu_B_EX = ~A_data_EX[31] & B_data_EX[31] | inner_A_lt_B_EX & ~(A_data_EX[31] & ~B_data_EX[31]);
 
     // op-wise behavior
         // next_WB_stage_target_PC
@@ -475,7 +533,7 @@ module bru_pipeline (
 
             4'b0001: // C.JALR
             begin
-                next_WB_stage_target_PC = A_EX;
+                next_WB_stage_target_PC = A_data_EX;
                 next_WB_stage_is_taken = 1'b1;
                 next_WB_stage_start_PC = PC_EX;
                 next_WB_stage_write_data = PC_plus_2_EX;
@@ -507,7 +565,7 @@ module bru_pipeline (
 
             4'b0101: // C.JR
             begin
-                next_WB_stage_target_PC = A_EX;
+                next_WB_stage_target_PC = A_data_EX;
                 next_WB_stage_is_taken = 1'b1;
                 next_WB_stage_start_PC = PC_EX;
                 next_WB_stage_write_data = PC_plus_4_EX; // don't care
