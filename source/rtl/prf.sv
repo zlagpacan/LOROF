@@ -341,10 +341,20 @@ module prf #(
 
     // WB bus broadcast
         // can switch this to registered if too slow, but will slow down IPC for dependent forward data paths
-    always_comb begin
-        WB_bus_valid_by_bank = array_write_valid_by_bank;
-            // also needs forced PRF 0 writes invalid
-        WB_bus_upper_PR_by_bank = selected_write_upper_PR_by_bank;
+    // always_comb begin
+    //     WB_bus_valid_by_bank = array_write_valid_by_bank;
+    //         // also needs forced PRF 0 writes invalid
+    //     WB_bus_upper_PR_by_bank = selected_write_upper_PR_by_bank;
+    // end
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            WB_bus_valid_by_bank <= '0;
+            WB_bus_upper_PR_by_bank <= '0;
+        end
+        else begin
+            WB_bus_valid_by_bank <= array_write_valid_by_bank;
+            WB_bus_upper_PR_by_bank <= selected_write_upper_PR_by_bank;
+        end
     end
 
     always_ff @ (posedge CLK, negedge nRST) begin
