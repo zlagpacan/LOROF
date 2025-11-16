@@ -333,9 +333,9 @@ module prf #(
         array_write_valid_by_bank = selected_write_valid_by_bank;
         array_write_upper_PR_by_bank = selected_write_upper_PR_by_bank;
         // force PRF 0 writes invalid
-//        if (array_write_upper_PR_by_bank[0] == 0) begin
-//            array_write_valid_by_bank[0] = 1'b0;
-//        end
+        // if (array_write_upper_PR_by_bank[0] == 0) begin
+        //     array_write_valid_by_bank[0] = 1'b0;
+        // end
         array_write_data_by_bank = selected_write_data_by_bank;
     end
 
@@ -346,16 +346,16 @@ module prf #(
              // also needs forced PRF 0 writes invalid
          WB_bus_upper_PR_by_bank = selected_write_upper_PR_by_bank;
      end
-//    always_ff @ (posedge CLK, negedge nRST) begin
-//        if (~nRST) begin
-//            WB_bus_valid_by_bank <= '0;
-//            WB_bus_upper_PR_by_bank <= '0;
-//        end
-//        else begin
-//            WB_bus_valid_by_bank <= array_write_valid_by_bank;
-//            WB_bus_upper_PR_by_bank <= selected_write_upper_PR_by_bank;
-//        end
-//    end
+    // always_ff @ (posedge CLK, negedge nRST) begin
+    //     if (~nRST) begin
+    //         WB_bus_valid_by_bank <= '0;
+    //         WB_bus_upper_PR_by_bank <= '0;
+    //     end
+    //     else begin
+    //         WB_bus_valid_by_bank <= array_write_valid_by_bank;
+    //         WB_bus_upper_PR_by_bank <= selected_write_upper_PR_by_bank;
+    //     end
+    // end
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
