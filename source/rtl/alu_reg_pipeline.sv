@@ -32,7 +32,7 @@ module alu_reg_pipeline #(
     // ready feedback to IQ
     output logic                            issue_ready,
 
-    // reg read info and data from PRF
+    // reg read data from PRF
     input logic         A_reg_read_resp_valid,
     input logic [31:0]  A_reg_read_resp_data,
     input logic         B_reg_read_resp_valid,
@@ -48,7 +48,7 @@ module alu_reg_pipeline #(
     output logic [LOG_ROB_ENTRIES-1:0]  WB_ROB_index,
 
     // writeback feedback from PRF
-    input logic WB_ready
+    input logic                         WB_ready
 );
     // ----------------------------------------------------------------
     // Control Signals: 

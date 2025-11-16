@@ -50,7 +50,7 @@ module mdu_pipeline #(
     output logic [LOG_ROB_ENTRIES-1:0]  WB_ROB_index,
 
     // writeback feedback from
-    input logic WB_ready
+    input logic                         WB_ready
 );
     // ----------------------------------------------------------------
     // Control Signals:
