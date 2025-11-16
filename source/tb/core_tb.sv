@@ -1584,16 +1584,16 @@ module core_tb #(
                 // 32'h407302b3,   // SUB x5, x6, x7
                 // 32'h02822183,   // LW x3, 0x28(x4)
 				// 32'h00410093    // ADDI x1, x2, 4
-            // friendly indep repeat w/ store: IPC = 2.957 (lower because of dest PR conflicts)
+            // friendly indep repeat w/ store: IPC = 2.945 (lower because of dest PR conflicts)
                 // 32'h293d0437,   // LUI x8, 0x293d0
                 // 32'h10532223,   // SW x5, 0x104(x6)
                 // 32'h02822183,   // LW x3, 0x28(x4)
 				// 32'h00410093    // ADDI x1, x2, 4
             // friendly all reg zero's repeat: IPC = 3.645
-                // 32'h293d0437,   // LUI x8, 0x293d0
-                // 32'h400002b3,   // SUB x5, x0, x0
-                // 32'h02802183,   // LW x3, 0x28(x0)
-				// 32'h00400093    // ADDI x1, x0, 4
+                32'h293d0437,   // LUI x8, 0x293d0
+                32'h400002b3,   // SUB x5, x0, x0
+                32'h02802183,   // LW x3, 0x28(x0)
+				32'h00400093    // ADDI x1, x0, 4
             // more dependent chain: IPC = 1.310
                 // 32'h293d0437,   // LUI x8, 0x293d0
                 // 32'h40320233,   // SUB x4, x4, x3
@@ -1655,10 +1655,10 @@ module core_tb #(
                 // 32'h00410193,   // ADDI x3, x2, 4
                 // 32'h02328133    // MUL x2, x5, x3
             // 4x dep instr loop w/ div: IPC = 0.431
-                32'hfe338ae3,   // BEQ x7, x3, -12
-                32'h02822283,   // LW x5, 0x28(x4)
-                32'h00410193,   // ADDI x3, x2, 4
-                32'h0232c133    // DIV x2, x5, x3
+                // 32'hfe338ae3,   // BEQ x7, x3, -12
+                // 32'h02822283,   // LW x5, 0x28(x4)
+                // 32'h00410193,   // ADDI x3, x2, 4
+                // 32'h0232c133    // DIV x2, x5, x3
             // memcpy loop: IPC = 1.316
                 // 32'hfe938ae3,   // BEQ x7, x9, -12
                 // 32'h7e30aa23,   // SW x3, 0x7f4(x1)
