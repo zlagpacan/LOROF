@@ -1644,17 +1644,17 @@ module core_tb #(
                 // 32'h10532223,   // SW x5, 0x104(x6)
                 // 32'h02822183,   // LW x3, 0x28(x4)
 				// 32'h00410093    // ADDI x1, x2, 4
-            // 4x dep instr loop: IPC = 1.205 (1.074)
+            // 4x dep instr loop: IPC = 1.015 (1.074) 
                 // 32'hfe338ae3,   // BEQ x7, x3, -12
                 // 32'h02822283,   // LW x5, 0x28(x4)
                 // 32'h00410193,   // ADDI x3, x2, 4
                 // 32'h00328133    // ADD x2, x5, x3
-            // 4x dep instr loop w/ mul: IPC = 1.134 (0.786)
+            // 4x dep instr loop w/ mul: IPC = 1.041 (0.786)
                 // 32'hfe338ae3,   // BEQ x7, x3, -12
                 // 32'h02822283,   // LW x5, 0x28(x4)
                 // 32'h00410193,   // ADDI x3, x2, 4
                 // 32'h02328133    // MUL x2, x5, x3
-            // 4x dep instr loop w/ div: IPC = 0.790 (0.194)
+            // 4x dep instr loop w/ div: IPC = 0.540 (0.194)
                 // 32'hfe338ae3,   // BEQ x7, x3, -12
                 // 32'h02822283,   // LW x5, 0x28(x4)
                 // 32'h00410193,   // ADDI x3, x2, 4
@@ -1714,7 +1714,7 @@ module core_tb #(
                 // 32'h10622183,   // LW x3, 0x106(x4)
 				// 32'h02532423,   // SW x5, 0x28(x6)
 				// 32'h00410093    // ADDI x1, x2, 4
-            // 4x indep w/ misaligned load (bank1): IPC = 0.961 (0.969)
+            // 4x indep w/ misaligned load (bank1): IPC = 0.969
                 // 32'hfe938ae3,   // BEQ x7, x9, -12
                 // 32'h0e622183,   // LW x3, 0xE6(x4)
 				// 32'h02532423,   // SW x5, 0x28(x6)
