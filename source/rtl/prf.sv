@@ -90,6 +90,7 @@ module prf #(
     // Reg Write Signals:
 
     logic [PRF_WR_COUNT-1:0]                                        enq_write_req_valid_by_wr;
+    logic [PRF_WR_COUNT-1:0]                                        enq_write_req_perform_write_by_wr;
     logic [PRF_WR_COUNT-1:0]                                        enq_write_req_send_complete_by_wr;
     logic [PRF_WR_COUNT-1:0][31:0]                                  enq_write_req_data_by_wr;
     logic [PRF_WR_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]   enq_write_req_upper_PR_by_wr;
@@ -98,6 +99,7 @@ module prf #(
     logic [PRF_WR_COUNT-1:0]                                        enq_write_req_ready_by_wr;
 
     logic [PRF_WR_COUNT-1:0]                                        deq_write_req_valid_by_wr;
+    logic [PRF_WR_COUNT-1:0]                                        deq_write_req_perform_write_by_wr;
     logic [PRF_WR_COUNT-1:0]                                        deq_write_req_send_complete_by_wr;
     logic [PRF_WR_COUNT-1:0][31:0]                                  deq_write_req_data_by_wr;
     logic [PRF_WR_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]   deq_write_req_upper_PR_by_wr;
@@ -109,6 +111,7 @@ module prf #(
     logic [PRF_BANK_COUNT-1:0][PRF_WR_COUNT-1:0]    arbiter_write_req_ack_by_bank_by_wr;
 
     logic [PRF_BANK_COUNT-1:0]                                          selected_write_valid_by_bank;
+    logic [PRF_BANK_COUNT-1:0]                                          selected_write_perform_write_by_bank;
     logic [PRF_BANK_COUNT-1:0]                                          selected_write_send_complete_by_bank;
     logic [PRF_BANK_COUNT-1:0][31:0]                                    selected_write_data_by_bank;
     logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     selected_write_upper_PR_by_bank;
@@ -223,13 +226,14 @@ module prf #(
     generate
         for (input_buffer_wr = 0; input_buffer_wr < PRF_WR_COUNT; input_buffer_wr++) begin : write_req_input_buffers
             q_fast_ready #(
-                .DATA_WIDTH(1 + 32 + LOG_PR_COUNT-LOG_PRF_BANK_COUNT + PRF_BANK_COUNT + LOG_ROB_ENTRIES),
+                .DATA_WIDTH(1 + 1 + 32 + LOG_PR_COUNT-LOG_PRF_BANK_COUNT + PRF_BANK_COUNT + LOG_ROB_ENTRIES),
                 .NUM_ENTRIES(PRF_WR_INPUT_BUFFER_SIZE)
             ) WRITE_REQ_INPUT_BUFFER (
                 .CLK(CLK),
                 .nRST(nRST),
                 .enq_valid(enq_write_req_valid_by_wr[input_buffer_wr]),
                 .enq_data({
+                    enq_write_req_perform_write_by_wr[input_buffer_wr],
                     enq_write_req_send_complete_by_wr[input_buffer_wr],
                     enq_write_req_data_by_wr[input_buffer_wr],
                     enq_write_req_upper_PR_by_wr[input_buffer_wr],
@@ -239,6 +243,7 @@ module prf #(
                 .enq_ready(enq_write_req_ready_by_wr[input_buffer_wr]),
                 .deq_valid(deq_write_req_valid_by_wr[input_buffer_wr]),
                 .deq_data({
+                    deq_write_req_perform_write_by_wr[input_buffer_wr],
                     deq_write_req_send_complete_by_wr[input_buffer_wr],
                     deq_write_req_data_by_wr[input_buffer_wr],
                     deq_write_req_upper_PR_by_wr[input_buffer_wr],
@@ -254,7 +259,8 @@ module prf #(
         enq_write_req_valid_by_wr = WB_valid_by_wr;
         enq_write_req_send_complete_by_wr = WB_send_complete_by_wr;
         enq_write_req_data_by_wr = WB_data_by_wr;
-        for (int wr = 0; wr < PRF_WR_COUNT; wr++) begin  
+        for (int wr = 0; wr < PRF_WR_COUNT; wr++) begin
+            enq_write_req_perform_write_by_wr[wr] = WB_PR_by_wr[wr] != 0;
             enq_write_req_upper_PR_by_wr[wr] = WB_PR_by_wr[wr][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT];
             enq_write_req_bank_mask_by_wr[wr] = '0;
             enq_write_req_bank_mask_by_wr[wr][WB_PR_by_wr[wr][LOG_PRF_BANK_COUNT-1:0]] = 1'b1;
@@ -297,6 +303,14 @@ module prf #(
             mux_one_hot #(
                 .COUNT(PRF_WR_COUNT),
                 .WIDTH(1)
+            ) WRITE_PERFORM_WRITE_MUX_ONE_HOT (
+                .sel_one_hot(arbiter_write_req_ack_by_bank_by_wr[write_bank]),
+                .data_by_requestor(deq_write_req_perform_write_by_wr),
+                .selected_data(selected_write_perform_write_by_bank[write_bank])
+            );
+            mux_one_hot #(
+                .COUNT(PRF_WR_COUNT),
+                .WIDTH(1)
             ) WRITE_SEND_COMPLETE_MUX_ONE_HOT (
                 .sel_one_hot(arbiter_write_req_ack_by_bank_by_wr[write_bank]),
                 .data_by_requestor(deq_write_req_send_complete_by_wr),
@@ -330,20 +344,17 @@ module prf #(
     endgenerate
 
     always_comb begin
-        array_write_valid_by_bank = selected_write_valid_by_bank;
+        array_write_valid_by_bank = selected_write_valid_by_bank & selected_write_perform_write_by_bank;
+            // must be forced 0 for PRF0
         array_write_upper_PR_by_bank = selected_write_upper_PR_by_bank;
-        // // force PRF 0 writes invalid
-        // if (array_write_upper_PR_by_bank[0] == 0) begin
-        //     array_write_valid_by_bank[0] = 1'b0;
-        // end
         array_write_data_by_bank = selected_write_data_by_bank;
     end
 
     // WB bus broadcast
         // can switch this to registered if too slow, but will slow down IPC for dependent forward data paths
     always_comb begin
-        WB_bus_valid_by_bank = array_write_valid_by_bank;
-            // also needs forced PRF 0 writes invalid
+        WB_bus_valid_by_bank = selected_write_valid_by_bank;
+            // doesn't have to be forced 0 for PRF0
         WB_bus_upper_PR_by_bank = selected_write_upper_PR_by_bank;
     end
     // always_ff @ (posedge CLK, negedge nRST) begin
@@ -352,7 +363,7 @@ module prf #(
     //         WB_bus_upper_PR_by_bank <= '0;
     //     end
     //     else begin
-    //         WB_bus_valid_by_bank <= array_write_valid_by_bank;
+    //         WB_bus_valid_by_bank <= selected_write_valid_by_bank;
     //         WB_bus_upper_PR_by_bank <= selected_write_upper_PR_by_bank;
     //     end
     // end

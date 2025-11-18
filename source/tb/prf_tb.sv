@@ -755,7 +755,7 @@ module prf_tb #(
 	    // writeback feedback by write requestor
 		expected_WB_ready_by_wr = 8'b00001111;
 	    // writeback bus by bank
-		expected_WB_bus_valid_by_bank = 4'b1110;
+		expected_WB_bus_valid_by_bank = 4'b1111; // still send WB bus for PRF0 write (ready_table and backend dq's, iq's, and pipe's are fine with this)
 		expected_WB_bus_upper_PR_by_bank = {
             5'h01,
             5'h01,
