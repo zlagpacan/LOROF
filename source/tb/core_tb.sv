@@ -1579,37 +1579,37 @@ module core_tb #(
 				16'h0000, 16'h0000,
 				16'h0000, 16'h0000,
 				16'h0000, 16'h0000,
-            // friendly indep repeat: IPC = 3.645
+            // friendly indep repeat: IPC = 3.781
                 // 32'h293d0437,   // LUI x8, 0x293d0
                 // 32'h407302b3,   // SUB x5, x6, x7
                 // 32'h02822183,   // LW x3, 0x28(x4)
 				// 32'h00410093    // ADDI x1, x2, 4
-            // friendly indep repeat w/ store: IPC = 2.945 (lower because of dest PR conflicts)
+            // friendly indep repeat w/ store: IPC = 3.543
                 // 32'h293d0437,   // LUI x8, 0x293d0
                 // 32'h10532223,   // SW x5, 0x104(x6)
                 // 32'h02822183,   // LW x3, 0x28(x4)
 				// 32'h00410093    // ADDI x1, x2, 4
-            // friendly all reg zero's repeat: IPC = 3.645
+            // friendly all reg zero's repeat: IPC = 3.781
                 // 32'h293d0437,   // LUI x8, 0x293d0
                 // 32'h400002b3,   // SUB x5, x0, x0
                 // 32'h02802183,   // LW x3, 0x28(x0)
 				// 32'h00400093    // ADDI x1, x0, 4
-            // more dependent chain: IPC = 1.309 (0.980)
+            // more dependent chain: IPC = 1.310
                 // 32'h293d0437,   // LUI x8, 0x293d0
                 // 32'h40320233,   // SUB x4, x4, x3
                 // 32'h0280a183,   // LW x3, 0x28(x1)
 				// 32'h00408093    // ADDI x1, x1, 4
-            // highly dependent chain: IPC = 0.329 (0.247)
+            // highly dependent chain: IPC = 0.330
                 // 32'h0021e0b3,   // OR x1, x3, x2
                 // 32'h00c16193,   // ORI x3, x2, 12
                 // 32'h00308133,   // ADD x2, x1, x3
 				// 32'h00408093    // ADDI x1, x1, 4
-            // all alu_reg indep: IPC = 0.790 (get 0.987 if increase DQ width to 5)
+            // all alu_reg indep: IPC = 0.791 (get 0.988 if increase DQ width to 5)
                 // 32'h002081b3,   // ADD x3, x1, x2
                 // 32'h002081b3,   // ADD x3, x1, x2
                 // 32'h002081b3,   // ADD x3, x1, x2
 				// 32'h002081b3    // ADD x3, x1, x2
-            // all alu_imm dep: IPC = 0.329 (0.247)
+            // all alu_imm dep: IPC = 0.330
                 // 32'h00408093,   // ADDI x1, x1, 4
                 // 32'h00408093,   // ADDI x1, x1, 4
                 // 32'h00408093,   // ADDI x1, x1, 4
@@ -1619,22 +1619,22 @@ module core_tb #(
                 // 32'h02b6aa23,   // SW x11, 0x34(x13)
                 // 32'h02642a23,   // SW x6, 0x34(x8)
                 // 32'h0211aa23    // SW x1, 0x34(x3)
-            // all BRU indep: IPC = 0.789 (get 0.986 if increase DQ width to 5)
+            // all BRU indep: IPC = 0.791 (get 0.986 if increase DQ width to 5)
                 // 32'hff5ff06f,   // JAL x0, -12
                 // 32'h00125e17,   // AUIPC x28, 0x125
                 // 32'h08001563,   // BNE x0, x0, 0x8a
                 // 32'h293d0437    // LUI x8, 0x293d0
-            // 4x indep instr loop: IPC = 2.879
+            // 4x indep instr loop: IPC = 3.629
                 // 32'hfe938ae3,   // BEQ x7, x9, -12
                 // 32'h02822303,   // LW x6, 0x28(x4)
                 // 32'h00410093,   // ADDI x1, x2, 4
                 // 32'h00518433    // ADD x8, x3, x5
-            // 4x indep instr loop w/ mul: IPC = 2.914
+            // 4x indep instr loop w/ mul: IPC = 3.625
                 // 32'hfe938ae3,   // BEQ x7, x9, -12
                 // 32'h02822303,   // LW x6, 0x28(x4)
                 // 32'h00410093,   // ADDI x1, x2, 4
                 // 32'h02518433    // MUL x8, x3, x5
-            // 4x indep instr loop w/ div: IPC = 2.992
+            // 4x indep instr loop w/ div: IPC = 3.661
                 // 32'hfe938ae3,   // BEQ x7, x9, -12
                 // 32'h02822303,   // LW x6, 0x28(x4)
                 // 32'h00410093,   // ADDI x1, x2, 4
@@ -1644,27 +1644,27 @@ module core_tb #(
                 // 32'h10532223,   // SW x5, 0x104(x6)
                 // 32'h02822183,   // LW x3, 0x28(x4)
 				// 32'h00410093    // ADDI x1, x2, 4
-            // 4x dep instr loop: IPC = 1.015 (1.074) 
+            // 4x dep instr loop: IPC = 1.100
                 // 32'hfe338ae3,   // BEQ x7, x3, -12
                 // 32'h02822283,   // LW x5, 0x28(x4)
                 // 32'h00410193,   // ADDI x3, x2, 4
                 // 32'h00328133    // ADD x2, x5, x3
-            // 4x dep instr loop w/ mul: IPC = 1.041 (0.786)
+            // 4x dep instr loop w/ mul: IPC = 0.988
                 // 32'hfe338ae3,   // BEQ x7, x3, -12
                 // 32'h02822283,   // LW x5, 0x28(x4)
                 // 32'h00410193,   // ADDI x3, x2, 4
                 // 32'h02328133    // MUL x2, x5, x3
-            // 4x dep instr loop w/ div: IPC = 0.540 (0.194)
+            // 4x dep instr loop w/ div: IPC = 0.447
                 // 32'hfe338ae3,   // BEQ x7, x3, -12
                 // 32'h02822283,   // LW x5, 0x28(x4)
                 // 32'h00410193,   // ADDI x3, x2, 4
                 // 32'h0232c133    // DIV x2, x5, x3
-            // memcpy loop: IPC = 1.316 (0.996)
+            // memcpy loop: IPC = 1.316
                 // 32'hfe938ae3,   // BEQ x7, x9, -12
                 // 32'h7e30aa23,   // SW x3, 0x7f4(x1)
                 // 32'h0280a183,   // LW x3, 0x28(x1)
 				// 32'h00408093    // ADDI x1, x1, 4
-            // 3x instr loop: IPC = 2.545
+            // 3x instr loop: IPC = 2.921
                 // 32'hfe938ce3,   // BEQ x7, x9, -8
                 // 32'h02822303,   // LW x6, 0x28(x4)
                 // 32'h00410093,   // ADDI x1, x2, 4
@@ -1679,7 +1679,7 @@ module core_tb #(
                 // 32'h02822303,   // LW x6, 0x28(x4)
                 // 32'h00410093,   // ADDI x1, x2, 4
                 // 32'h00518433    // ADD x8, x3, x5
-            // 1x1 store-load dep no pred: IPC = 1.102
+            // 1x1 store-load dep no pred: IPC = 0.933
                 // 32'h0284a403,   // LW x8, 0x28(x9)
                 // 32'h00430393,   // ADDI x7, x6, 4
                 // 32'h004182b3,   // ADD x5, x3, x4
@@ -1694,7 +1694,7 @@ module core_tb #(
                 // 32'h0222a423,   // SW x2, 0x28(x5)
                 // 32'h0282a183,   // LW x3, 0x28(x5)
                 // 32'h0212a423    // SW x1, 0x28(x5)
-            // 2x 1x1 store-load dep no pred w/ reg dep: IPC = 0.479 (0.205)
+            // 2x 1x1 store-load dep no pred w/ reg dep: IPC = 0.479
                 // 32'h02822203,   // LW x4, 0x28(x4)
                 // 32'h02222423,   // SW x2, 0x28(x4)
                 // 32'h02822183,   // LW x3, 0x28(x4)
@@ -1704,7 +1704,7 @@ module core_tb #(
                 // 32'h02832283,   // LW x5, 0x28(x6)
                 // 32'h00420193,   // ADDI x3, x4, 4
                 // 32'h02112423    // SW x1, 0x28(x2)
-			// 1x1 no store-load dep: IPC = 3.371
+			// 1x1 no store-load dep: IPC = 3.570
                 // 32'hfe838ae3,   // BEQ x7, x8, -12
                 // 32'h02832283,   // LW x5, 0x28(x6)
                 // 32'h00420193,   // ADDI x3, x4, 4
@@ -1729,7 +1729,7 @@ module core_tb #(
                 // 32'h02a22183,   // LW x3, 0x2A(x4)
 				// 32'h02532423,   // SW x5, 0x28(x6)
 				// 32'h00410093    // ADDI x1, x2, 4
-            // misaligned store, aligned load: IPC = 0.167
+            // misaligned store, aligned load: IPC = 0.155
                 // 32'hfe938ae3,   // BEQ x7, x9, -12
                 // 32'h02822183,   // LW x3, 0x28(x4)
 				// 32'h02532523,   // SW x5, 0x2A(x6)
@@ -1748,7 +1748,7 @@ module core_tb #(
                 // 32'h003000b3,   // ADD x1, x0, x3
                 // 32'h00c52483,   // LW x9, 12(x10)
 				// 32'h02810793    // ADDI x15, x2, 40
-            // compressed 4x indep instr loop w/ store: IPC = 1.927
+            // compressed 4x indep instr loop w/ store: IPC = 1.923
                 // 16'h0000,   // NONE
                 // 16'h0000,   // NONE
                 // 16'h0000,   // NONE
@@ -1771,7 +1771,7 @@ module core_tb #(
                 // 16'hc24c,   // C.SW x11, 4(x12)
                 // 16'h4544,   // C.LW x9, 12(x10)
 				// 16'h103c    // C.ADDI4SPN x15, 40
-            // compressed 8x 1 dep instr loop w/ store: IPC = 1.846 (0.638)
+            // compressed 8x 1 dep instr loop w/ store: IPC = 1.859
                 16'hd86d,   // C.BEQZ x8, -14
                 16'hc24c,   // C.SW x11, 4(x12)
                 16'h4544,   // C.LW x9, 12(x10)
