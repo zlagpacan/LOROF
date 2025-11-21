@@ -598,7 +598,7 @@ module core #(
     logic           rob_instret_write_valid;
     logic [31:0]    rob_instret_write_data;
 
-    // read req info by read requester
+    // read req info by read requestor
     logic [PRF_RR_COUNT-1:0]                    prf_read_req_valid_by_rr;
     logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0]  prf_read_req_PR_by_rr;
 
@@ -622,32 +622,34 @@ module core #(
     logic [LOG_PR_COUNT-1:0] stamofu_PRF_req_B_PR;
     logic [LOG_PR_COUNT-1:0] sysu_PRF_req_A_PR;
 
+    // read req feedback by read requestor
+    // logic [PRF_RR_COUNT-1:0]                    prf_read_req_ready_by_rr;
+        // due to IS_OC buffer sizing, can guarantee these always ready
+        // IQ's know if ready purely based on issue_ready
+
     // read resp info by read requestor
-    logic [PRF_RR_COUNT-1:0]    prf_read_resp_ack_by_rr;
-    logic [PRF_RR_COUNT-1:0]    prf_read_resp_port_by_rr;
+    logic [PRF_RR_COUNT-1:0]        prf_read_resp_valid_by_rr;
+    logic [PRF_RR_COUNT-1:0][31:0]  prf_read_resp_data_by_rr;
 
-    logic ldu_PRF_A_reg_read_ack;
-    logic alu_reg_mdu_PRF_A_reg_read_ack;
-    logic alu_reg_mdu_PRF_B_reg_read_ack;
-    logic alu_imm_PRF_A_reg_read_ack;
-    logic bru_PRF_A_reg_read_ack;
-    logic bru_PRF_B_reg_read_ack;
-    logic stamofu_PRF_A_reg_read_ack;
-    logic stamofu_PRF_B_reg_read_ack;
-    logic sysu_PRF_A_reg_read_ack;
+    logic ldu_PRF_A_reg_read_resp_valid;
+    logic alu_reg_mdu_PRF_A_reg_read_resp_valid;
+    logic alu_reg_mdu_PRF_B_reg_read_resp_valid;
+    logic alu_imm_PRF_A_reg_read_resp_valid;
+    logic bru_PRF_A_reg_read_resp_valid;
+    logic bru_PRF_B_reg_read_resp_valid;
+    logic stamofu_PRF_A_reg_read_resp_valid;
+    logic stamofu_PRF_B_reg_read_resp_valid;
+    logic sysu_PRF_A_reg_read_resp_valid;
 
-    logic ldu_PRF_A_reg_read_port;
-    logic alu_reg_mdu_PRF_A_reg_read_port;
-    logic alu_reg_mdu_PRF_B_reg_read_port;
-    logic alu_imm_PRF_A_reg_read_port;
-    logic bru_PRF_A_reg_read_port;
-    logic bru_PRF_B_reg_read_port;
-    logic stamofu_PRF_A_reg_read_port;
-    logic stamofu_PRF_B_reg_read_port;
-    logic sysu_PRF_A_reg_read_port;
-
-    // read data by bank
-    logic [PRF_BANK_COUNT-1:0][1:0][31:0] prf_read_data_by_bank_by_port;
+    logic [31:0] ldu_PRF_A_reg_read_resp_data;
+    logic [31:0] alu_reg_mdu_PRF_A_reg_read_resp_data;
+    logic [31:0] alu_reg_mdu_PRF_B_reg_read_resp_data;
+    logic [31:0] alu_imm_PRF_A_reg_read_resp_data;
+    logic [31:0] bru_PRF_A_reg_read_resp_data;
+    logic [31:0] bru_PRF_B_reg_read_resp_data;
+    logic [31:0] stamofu_PRF_A_reg_read_resp_data;
+    logic [31:0] stamofu_PRF_B_reg_read_resp_data;
+    logic [31:0] sysu_PRF_A_reg_read_resp_data;
 
     // writeback info by write requestor
     logic [PRF_WR_COUNT-1:0]                        WB_valid_by_wr;
@@ -1950,26 +1952,28 @@ module core #(
             ldu_PRF_req_A_PR
         };
 
-        ldu_PRF_A_reg_read_ack = prf_read_resp_ack_by_rr[0];
-        alu_reg_mdu_PRF_A_reg_read_ack = prf_read_resp_ack_by_rr[1];
-        alu_reg_mdu_PRF_B_reg_read_ack = prf_read_resp_ack_by_rr[2];
-        alu_imm_PRF_A_reg_read_ack = prf_read_resp_ack_by_rr[3];
-        bru_PRF_A_reg_read_ack = prf_read_resp_ack_by_rr[4];
-        bru_PRF_B_reg_read_ack = prf_read_resp_ack_by_rr[5];
-        stamofu_PRF_A_reg_read_ack = prf_read_resp_ack_by_rr[6];
-        stamofu_PRF_B_reg_read_ack = prf_read_resp_ack_by_rr[7];
-        sysu_PRF_A_reg_read_ack = prf_read_resp_ack_by_rr[8];
+        ldu_PRF_A_reg_read_resp_valid = prf_read_resp_valid_by_rr[0];
+        alu_reg_mdu_PRF_A_reg_read_resp_valid = prf_read_resp_valid_by_rr[1];
+        alu_reg_mdu_PRF_B_reg_read_resp_valid = prf_read_resp_valid_by_rr[2];
+        alu_imm_PRF_A_reg_read_resp_valid = prf_read_resp_valid_by_rr[3];
+        bru_PRF_A_reg_read_resp_valid = prf_read_resp_valid_by_rr[4];
+        bru_PRF_B_reg_read_resp_valid = prf_read_resp_valid_by_rr[5];
+        stamofu_PRF_A_reg_read_resp_valid = prf_read_resp_valid_by_rr[6];
+        stamofu_PRF_B_reg_read_resp_valid = prf_read_resp_valid_by_rr[7];
+        sysu_PRF_A_reg_read_resp_valid = prf_read_resp_valid_by_rr[8];
 
-        ldu_PRF_A_reg_read_port = prf_read_resp_port_by_rr[0];
-        alu_reg_mdu_PRF_A_reg_read_port = prf_read_resp_port_by_rr[1];
-        alu_reg_mdu_PRF_B_reg_read_port = prf_read_resp_port_by_rr[2];
-        alu_imm_PRF_A_reg_read_port = prf_read_resp_port_by_rr[3];
-        bru_PRF_A_reg_read_port = prf_read_resp_port_by_rr[4];
-        bru_PRF_B_reg_read_port = prf_read_resp_port_by_rr[5];
-        stamofu_PRF_A_reg_read_port = prf_read_resp_port_by_rr[6];
-        stamofu_PRF_B_reg_read_port = prf_read_resp_port_by_rr[7];
-        sysu_PRF_A_reg_read_port = prf_read_resp_port_by_rr[8];
+        ldu_PRF_A_reg_read_resp_data = prf_read_resp_data_by_rr[0];
+        alu_reg_mdu_PRF_A_reg_read_resp_data = prf_read_resp_data_by_rr[1];
+        alu_reg_mdu_PRF_B_reg_read_resp_data = prf_read_resp_data_by_rr[2];
+        alu_imm_PRF_A_reg_read_resp_data = prf_read_resp_data_by_rr[3];
+        bru_PRF_A_reg_read_resp_data = prf_read_resp_data_by_rr[4];
+        bru_PRF_B_reg_read_resp_data = prf_read_resp_data_by_rr[5];
+        stamofu_PRF_A_reg_read_resp_data = prf_read_resp_data_by_rr[6];
+        stamofu_PRF_B_reg_read_resp_data = prf_read_resp_data_by_rr[7];
+        sysu_PRF_A_reg_read_resp_data = prf_read_resp_data_by_rr[8];
+    end
         
+    always_comb begin
         // write priority:
             // STAMOFU
             // LDU bank 0
@@ -2042,24 +2046,26 @@ module core #(
     prf #(
         .PR_COUNT(PR_COUNT),
         .PRF_BANK_COUNT(PRF_BANK_COUNT),
+
         .PRF_RR_COUNT(PRF_RR_COUNT),
+        .PRF_RR_INPUT_BUFFER_SIZE(PRF_RR_INPUT_BUFFER_SIZE),
         .PRF_WR_COUNT(PRF_WR_COUNT),
-        .USE_BRAM(0)
+        .PRF_WR_INPUT_BUFFER_SIZE(PRF_WR_INPUT_BUFFER_SIZE)
     ) PRF (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
 
-	    // reg read req by read requester
+	    // reg read req by read requestor
 		.read_req_valid_by_rr(prf_read_req_valid_by_rr),
 		.read_req_PR_by_rr(prf_read_req_PR_by_rr),
 
-	    // reg read info by read requestor
-		.read_resp_ack_by_rr(prf_read_resp_ack_by_rr),
-		.read_resp_port_by_rr(prf_read_resp_port_by_rr),
+        // read req feedback by read requestor
+        // .read_req_ready_by_rr(), // due to IS_OC buffer sizing, can guarantee these always ready
 
-	    // reg read data by bank
-		.read_data_by_bank_by_port(prf_read_data_by_bank_by_port),
+	    // reg read info by read requestor
+		.read_resp_valid_by_rr(prf_read_resp_valid_by_rr),
+		.read_resp_data_by_rr(prf_read_resp_data_by_rr),
 
 	    // writeback data by write requestor
 		.WB_valid_by_wr(WB_valid_by_wr),
@@ -2404,12 +2410,11 @@ module core #(
         // ready feedback to IQ
         .issue_ready(alu_reg_issue_ready),
 
-        // reg read info and data from PRF
-        .A_reg_read_ack(alu_reg_mdu_PRF_A_reg_read_ack),
-        .A_reg_read_port(alu_reg_mdu_PRF_A_reg_read_port),
-        .B_reg_read_ack(alu_reg_mdu_PRF_B_reg_read_ack),
-        .B_reg_read_port(alu_reg_mdu_PRF_B_reg_read_port),
-        .reg_read_data_by_bank_by_port(prf_read_data_by_bank_by_port),
+        // reg read data from PRF
+        .A_reg_read_resp_valid(alu_reg_mdu_PRF_A_reg_read_resp_valid),
+        .A_reg_read_resp_data(alu_reg_mdu_PRF_A_reg_read_resp_data),
+        .B_reg_read_resp_valid(alu_reg_mdu_PRF_B_reg_read_resp_valid),
+        .B_reg_read_resp_data(alu_reg_mdu_PRF_B_reg_read_resp_data),
 
         // forward data from PRF
         .forward_data_by_bank(prf_forward_data_bus_by_bank),
@@ -2445,16 +2450,11 @@ module core #(
         // ready feedback to IQ
         .issue_ready(mdu_issue_ready),
 
-        // writeback bus by bank
-        .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
-        .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
-
         // reg read info and data from PRF
-        .A_reg_read_ack(alu_reg_mdu_PRF_A_reg_read_ack),
-        .A_reg_read_port(alu_reg_mdu_PRF_A_reg_read_port),
-        .B_reg_read_ack(alu_reg_mdu_PRF_B_reg_read_ack),
-        .B_reg_read_port(alu_reg_mdu_PRF_B_reg_read_port),
-        .reg_read_data_by_bank_by_port(prf_read_data_by_bank_by_port),
+        .A_reg_read_resp_valid(alu_reg_mdu_PRF_A_reg_read_resp_valid),
+        .A_reg_read_resp_data(alu_reg_mdu_PRF_A_reg_read_resp_data),
+        .B_reg_read_resp_valid(alu_reg_mdu_PRF_B_reg_read_resp_valid),
+        .B_reg_read_resp_data(alu_reg_mdu_PRF_B_reg_read_resp_data),
 
         // forward data from PRF
         .forward_data_by_bank(prf_forward_data_bus_by_bank),
@@ -2575,9 +2575,8 @@ module core #(
         .issue_ready(alu_imm_issue_ready),
 
         // reg read info and data from PRF
-        .A_reg_read_ack(alu_imm_PRF_A_reg_read_ack),
-        .A_reg_read_port(alu_imm_PRF_A_reg_read_port),
-        .reg_read_data_by_bank_by_port(prf_read_data_by_bank_by_port),
+        .A_reg_read_resp_valid(alu_imm_PRF_A_reg_read_resp_valid),
+        .A_reg_read_resp_data(alu_imm_PRF_A_reg_read_resp_data),
 
         // forward data from PRF
         .forward_data_by_bank(prf_forward_data_bus_by_bank),
@@ -2745,11 +2744,10 @@ module core #(
         .issue_ready(bru_issue_ready),
 
         // reg read info and data from PRF
-        .A_reg_read_ack(bru_PRF_A_reg_read_ack),
-        .A_reg_read_port(bru_PRF_A_reg_read_port),
-        .B_reg_read_ack(bru_PRF_B_reg_read_ack),
-        .B_reg_read_port(bru_PRF_B_reg_read_port),
-        .reg_read_data_by_bank_by_port(prf_read_data_by_bank_by_port),
+        .A_reg_read_resp_valid(bru_PRF_A_reg_read_resp_valid),
+        .A_reg_read_resp_data(bru_PRF_A_reg_read_resp_data),
+        .B_reg_read_resp_valid(bru_PRF_B_reg_read_resp_valid),
+        .B_reg_read_resp_data(bru_PRF_B_reg_read_resp_data),
 
         // forward data from PRF
         .forward_data_by_bank(prf_forward_data_bus_by_bank),
@@ -2901,9 +2899,8 @@ module core #(
         .issue_ready(ldu_issue_ready),
 
         // reg read info and data from PRF
-        .A_reg_read_ack(ldu_PRF_A_reg_read_ack),
-        .A_reg_read_port(ldu_PRF_A_reg_read_port),
-        .reg_read_data_by_bank_by_port(prf_read_data_by_bank_by_port),
+        .A_reg_read_resp_valid(ldu_PRF_A_reg_read_resp_valid),
+        .A_reg_read_resp_data(ldu_PRF_A_reg_read_resp_data),
 
         // forward data from PRF
         .forward_data_by_bank(prf_forward_data_bus_by_bank),
@@ -4003,11 +4000,10 @@ module core #(
         .issue_ready(stamofu_issue_ready),
 
         // reg read info and data from PRF
-        .A_reg_read_ack(stamofu_PRF_A_reg_read_ack),
-        .A_reg_read_port(stamofu_PRF_A_reg_read_port),
-        .B_reg_read_ack(stamofu_PRF_B_reg_read_ack),
-        .B_reg_read_port(stamofu_PRF_B_reg_read_port),
-        .reg_read_data_by_bank_by_port(prf_read_data_by_bank_by_port),
+        .A_reg_read_resp_valid(stamofu_PRF_A_reg_read_resp_valid),
+        .A_reg_read_resp_data(stamofu_PRF_A_reg_read_resp_data),
+        .B_reg_read_resp_valid(stamofu_PRF_B_reg_read_resp_valid),
+        .B_reg_read_resp_data(stamofu_PRF_B_reg_read_resp_data),
 
         // forward data from PRF
         .forward_data_by_bank(prf_forward_data_bus_by_bank),

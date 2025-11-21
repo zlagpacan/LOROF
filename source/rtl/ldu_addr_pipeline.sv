@@ -11,7 +11,10 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-module ldu_addr_pipeline (
+module ldu_addr_pipeline #(
+    parameter IS_OC_BUFFER_SIZE = 2,
+    parameter PRF_RR_OUTPUT_BUFFER_SIZE = 3
+) (
 
     // seq
     input logic CLK,
@@ -29,10 +32,9 @@ module ldu_addr_pipeline (
     // output feedback to IQ
     output logic                            issue_ready,
 
-    // reg read info and data from PRF
-    input logic                                     A_reg_read_ack,
-    input logic                                     A_reg_read_port,
-    input logic [PRF_BANK_COUNT-1:0][1:0][31:0]     reg_read_data_by_bank_by_port,
+    // reg read data from PRF
+    input logic         A_reg_read_resp_valid,
+    input logic [31:0]  A_reg_read_resp_data,
 
     // forward data from PRF
     input logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank,
@@ -57,7 +59,6 @@ module ldu_addr_pipeline (
     // Control Signals: 
 
     logic stall_REQ;
-    logic stall_OC;
 
     // ----------------------------------------------------------------
     // OC Stage Signals:
@@ -66,20 +67,33 @@ module ldu_addr_pipeline (
     logic                           valid_OC;
     logic [3:0]                     op_OC;
     logic [11:0]                    imm12_OC;
-    logic                           A_saved_OC;
     logic                           A_forward_OC;
-    logic                           A_is_zero_OC;
-    logic [LOG_PRF_BANK_COUNT-1:0]  A_bank_OC;
+    logic                           A_is_reg_OC;
     logic [LOG_LDU_CQ_ENTRIES-1:0]  cq_index_OC;
 
-    logic [31:0]    A_saved_data_OC;
+    logic operands_ready_OC;
 
-    logic launch_ready_OC;
+    logic           enq_A_reg_valid;
+    logic [31:0]    enq_A_reg_data;
+    // logic           enq_A_reg_ready; // should always be 1
+    logic           deq_A_reg_valid;
+    logic [31:0]    deq_A_reg_data;
+    logic           deq_A_reg_ready;
+
+    logic [LOG_PRF_BANK_COUNT-1:0]  enq_A_forward_bank;
+
+    logic           enq_A_forward_valid;
+    logic [31:0]    enq_A_forward_data;
+    // logic           enq_A_forward_ready; // should always be 1
+    logic           deq_A_forward_valid;
+    logic [31:0]    deq_A_forward_data;
+    logic           deq_A_forward_ready;
 
     logic                           next_REQ_valid;
     logic [3:0]                     next_REQ_op;
     logic [11:0]                    next_REQ_imm12;
-    logic [31:0]                    next_REQ_A;
+    logic                           next_REQ_A_forward;
+    logic                           next_REQ_A_is_reg;
     logic [LOG_LDU_CQ_ENTRIES-1:0]  next_REQ_cq_index;
 
     // ----------------------------------------------------------------
@@ -90,6 +104,9 @@ module ldu_addr_pipeline (
 
     logic [3:0]     REQ_op;
     logic [11:0]    REQ_imm12;
+    logic           REQ_A_forward;
+    logic           REQ_A_is_reg;
+
     logic [31:0]    REQ_A;
 
     logic           REQ_ack;
@@ -111,79 +128,107 @@ module ldu_addr_pipeline (
 
     // propagate stalls backwards
         // handle REQ stall in REQ state machine
-    assign stall_OC = valid_OC & stall_REQ;
+
+    // ----------------------------------------------------------------
+    // IS -> OC Buffer Logic:
+
+    q_fast_ready #(
+        .DATA_WIDTH(4 + 12 + 1 + 1 + LOG_LDU_CQ_ENTRIES),
+        .NUM_ENTRIES(IS_OC_BUFFER_SIZE)
+    ) IS_OC_BUFFER (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(issue_valid),
+        .enq_data({
+            issue_op,
+            issue_imm12,
+            issue_A_forward,
+            ~(issue_A_forward | issue_A_is_zero),
+            issue_cq_index
+        }),
+        .enq_ready(issue_ready),
+        .deq_valid(valid_OC),
+        .deq_data({
+            op_OC,
+            imm12_OC,
+            A_forward_OC,
+            A_is_reg_OC,
+            cq_index_OC
+        }),
+        .deq_ready(~stall_REQ & operands_ready_OC)
+    );
 
     // ----------------------------------------------------------------
     // OC Stage Logic:
 
-    // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
-    // always_ff @ (posedge CLK) begin
-        if (~nRST) begin
-            valid_OC <= '0;
-            op_OC <= '0;
-            imm12_OC <= '0;
-            A_saved_OC <= '0;
-            A_forward_OC <= '0;
-            A_is_zero_OC <= '0;
-            A_bank_OC <= '0;
-            A_saved_data_OC <= '0;
-            cq_index_OC <= '0;
-        end
-        else if (~issue_ready) begin
-            valid_OC <= valid_OC;
-            op_OC <= op_OC;
-            imm12_OC <= imm12_OC;
-            A_saved_OC <= A_saved_OC | A_forward_OC | A_reg_read_ack;
-            A_forward_OC <= A_forward_OC;
-            A_is_zero_OC <= A_is_zero_OC;
-            A_bank_OC <= A_bank_OC;
-            A_saved_data_OC <= next_REQ_A;
-            cq_index_OC <= cq_index_OC;
-        end
-        else begin
-            valid_OC <= issue_valid;
-            op_OC <= issue_op;
-            imm12_OC <= issue_imm12;
-            A_saved_OC <= 1'b0;
-            A_forward_OC <= issue_A_forward;
-            A_is_zero_OC <= issue_A_is_zero;
-            A_bank_OC <= issue_A_bank;
-            A_saved_data_OC <= next_REQ_A;
-            cq_index_OC <= issue_cq_index;
-        end
-    end
-
-    assign launch_ready_OC = 
-        // no backpressure
-        ~stall_OC
+    assign operands_ready_OC = 
         // A operand present
-        & (A_is_zero_OC | A_saved_OC | A_forward_OC | A_reg_read_ack);
-    
-    assign issue_ready = ~valid_OC | launch_ready_OC;
-    
-    assign next_REQ_valid = valid_OC & launch_ready_OC;
-    assign next_REQ_op = op_OC;
-    assign next_REQ_imm12 = imm12_OC;
-    assign next_REQ_cq_index = cq_index_OC;
+        (~A_is_reg_OC | A_reg_read_resp_valid | deq_A_reg_valid)
+    ;
 
-    // A operand collection
+    // reg read data buffers:
+
     always_comb begin
+        enq_A_reg_valid = A_reg_read_resp_valid;
+        enq_A_reg_data = A_reg_read_resp_data;
+    end
 
-        // collect A value to save OR pass to REQ
-        if (A_is_zero_OC) begin
-            next_REQ_A = 32'h0;
-        end
-        else if (A_saved_OC) begin
-            next_REQ_A = A_saved_data_OC;
-        end
-        else if (A_forward_OC) begin
-            next_REQ_A = forward_data_by_bank[A_bank_OC];
+    q_fast_ready #(
+        .DATA_WIDTH(32),
+        .NUM_ENTRIES(PRF_RR_OUTPUT_BUFFER_SIZE)
+    ) A_REG_DATA_BUFFER (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(enq_A_reg_valid),
+        .enq_data(enq_A_reg_data),
+        .enq_ready(), // should always be 1
+        .deq_valid(deq_A_reg_valid),
+        .deq_data(deq_A_reg_data),
+        .deq_ready(deq_A_reg_ready)
+    );
+
+    // forward data buffers:
+
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            enq_A_forward_valid <= 1'b0;
+            enq_A_forward_bank <= 0;
         end
         else begin
-            next_REQ_A = reg_read_data_by_bank_by_port[A_bank_OC][A_reg_read_port];
+            enq_A_forward_valid <= issue_valid & issue_ready & issue_A_forward;
+            enq_A_forward_bank <= issue_A_bank;
         end
     end
+
+    always_comb begin
+        enq_A_forward_data = forward_data_by_bank[enq_A_forward_bank];
+    end
+
+    q_fast_ready #(
+        .DATA_WIDTH(32),
+        .NUM_ENTRIES(PRF_RR_OUTPUT_BUFFER_SIZE)
+    ) A_FORWARD_DATA_BUFFER (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(enq_A_forward_valid),
+        .enq_data(enq_A_forward_data),
+        .enq_ready(), // should always be 1
+        .deq_valid(deq_A_forward_valid),
+        .deq_data(deq_A_forward_data),
+        .deq_ready(deq_A_forward_ready)
+    );
+    
+    always_comb begin
+        next_REQ_valid = valid_OC & operands_ready_OC;
+        next_REQ_op = op_OC;
+        next_REQ_imm12 = imm12_OC;
+        next_REQ_A_forward = A_forward_OC;
+        next_REQ_A_is_reg = A_is_reg_OC;
+        next_REQ_cq_index = cq_index_OC;
+    end
+
+    // ----------------------------------------------------------------
+    // REQ Stage Logic:
 
     // FF
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -192,7 +237,8 @@ module ldu_addr_pipeline (
             REQ_state <= REQ_IDLE;
             REQ_op <= '0;
             REQ_imm12 <= '0;
-            REQ_A <= '0;
+            REQ_A_forward <= 1'b0;
+            REQ_A_is_reg <= 1'b0;
             REQ_cq_index <= '0;
         end
         else begin
@@ -201,10 +247,19 @@ module ldu_addr_pipeline (
             if (~stall_REQ) begin
                 REQ_op <= next_REQ_op;
                 REQ_imm12 <= next_REQ_imm12;
-                REQ_A <= next_REQ_A;
+                REQ_A_forward <= next_REQ_A_forward;
+                REQ_A_is_reg <= next_REQ_A_is_reg;
                 REQ_cq_index <= next_REQ_cq_index;
             end
         end
+    end
+
+    // data gathering
+    always_comb begin
+        REQ_A = ({32{REQ_A_is_reg}} & deq_A_reg_data) | ({32{REQ_A_forward}} & deq_A_forward_data);
+
+        deq_A_reg_ready = REQ_valid & REQ_A_is_reg & ~stall_REQ;
+        deq_A_forward_ready = REQ_valid & REQ_A_forward & ~stall_REQ;
     end
 
     // internal REQ stage blocks

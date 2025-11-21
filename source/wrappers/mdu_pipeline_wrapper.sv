@@ -14,6 +14,10 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 module mdu_pipeline_wrapper #(
+	parameter IS_OC_BUFFER_SIZE = 2,
+	parameter PRF_RR_OUTPUT_BUFFER_SIZE = 3,
+	parameter MDU_RESULT_CACHE_ENTRIES = 4,
+	parameter LOG_MDU_RESULT_CACHE_ENTRIES = $clog2(MDU_RESULT_CACHE_ENTRIES)
 ) (
 
     // seq
@@ -26,26 +30,21 @@ module mdu_pipeline_wrapper #(
 	input logic [2:0] next_issue_op,
 	input logic next_issue_A_forward,
 	input logic next_issue_A_is_zero,
-	input logic [LOG_PRF_BANK_COUNT-1:0] next_issue_A_PR,
+	input logic [LOG_PR_COUNT-1:0] next_issue_A_PR,
 	input logic next_issue_B_forward,
 	input logic next_issue_B_is_zero,
-	input logic [LOG_PRF_BANK_COUNT-1:0] next_issue_B_PR,
+	input logic [LOG_PR_COUNT-1:0] next_issue_B_PR,
 	input logic [LOG_PR_COUNT-1:0] next_issue_dest_PR,
 	input logic [LOG_ROB_ENTRIES-1:0] next_issue_ROB_index,
 
     // MDU pipeline feedback to IQ
 	output logic last_issue_ready,
 
-    // writeback bus by bank
-	input logic [PRF_BANK_COUNT-1:0] next_WB_bus_valid_by_bank,
-	input logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] next_WB_bus_upper_PR_by_bank,
-
-    // reg read info and data from PRF
-	input logic next_A_reg_read_ack,
-	input logic next_A_reg_read_port,
-	input logic next_B_reg_read_ack,
-	input logic next_B_reg_read_port,
-	input logic [PRF_BANK_COUNT-1:0][1:0][31:0] next_reg_read_data_by_bank_by_port,
+    // reg read data from PRF
+	input logic next_A_reg_read_resp_valid,
+	input logic [31:0] next_A_reg_read_resp_data,
+	input logic next_B_reg_read_resp_valid,
+	input logic [31:0] next_B_reg_read_resp_data,
 
     // forward data from PRF
 	input logic [PRF_BANK_COUNT-1:0][31:0] next_forward_data_by_bank,
@@ -69,26 +68,21 @@ module mdu_pipeline_wrapper #(
 	logic [2:0] issue_op;
 	logic issue_A_forward;
 	logic issue_A_is_zero;
-	logic [LOG_PRF_BANK_COUNT-1:0] issue_A_PR;
+	logic [LOG_PR_COUNT-1:0] issue_A_PR;
 	logic issue_B_forward;
 	logic issue_B_is_zero;
-	logic [LOG_PRF_BANK_COUNT-1:0] issue_B_PR;
+	logic [LOG_PR_COUNT-1:0] issue_B_PR;
 	logic [LOG_PR_COUNT-1:0] issue_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] issue_ROB_index;
 
     // MDU pipeline feedback to IQ
 	logic issue_ready;
 
-    // writeback bus by bank
-	logic [PRF_BANK_COUNT-1:0] WB_bus_valid_by_bank;
-	logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] WB_bus_upper_PR_by_bank;
-
-    // reg read info and data from PRF
-	logic A_reg_read_ack;
-	logic A_reg_read_port;
-	logic B_reg_read_ack;
-	logic B_reg_read_port;
-	logic [PRF_BANK_COUNT-1:0][1:0][31:0] reg_read_data_by_bank_by_port;
+    // reg read data from PRF
+	logic A_reg_read_resp_valid;
+	logic [31:0] A_reg_read_resp_data;
+	logic B_reg_read_resp_valid;
+	logic [31:0] B_reg_read_resp_data;
 
     // forward data from PRF
 	logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank;
@@ -106,6 +100,10 @@ module mdu_pipeline_wrapper #(
     // Module Instantiation:
 
 	mdu_pipeline #(
+		.IS_OC_BUFFER_SIZE(IS_OC_BUFFER_SIZE),
+		.PRF_RR_OUTPUT_BUFFER_SIZE(PRF_RR_OUTPUT_BUFFER_SIZE),
+		.MDU_RESULT_CACHE_ENTRIES(MDU_RESULT_CACHE_ENTRIES),
+		.LOG_MDU_RESULT_CACHE_ENTRIES(LOG_MDU_RESULT_CACHE_ENTRIES)
 	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
@@ -130,16 +128,11 @@ module mdu_pipeline_wrapper #(
 		    // MDU pipeline feedback to IQ
 			last_issue_ready <= '0;
 
-		    // writeback bus by bank
-			WB_bus_valid_by_bank <= '0;
-			WB_bus_upper_PR_by_bank <= '0;
-
-		    // reg read info and data from PRF
-			A_reg_read_ack <= '0;
-			A_reg_read_port <= '0;
-			B_reg_read_ack <= '0;
-			B_reg_read_port <= '0;
-			reg_read_data_by_bank_by_port <= '0;
+		    // reg read data from PRF
+			A_reg_read_resp_valid <= '0;
+			A_reg_read_resp_data <= '0;
+			B_reg_read_resp_valid <= '0;
+			B_reg_read_resp_data <= '0;
 
 		    // forward data from PRF
 			forward_data_by_bank <= '0;
@@ -171,16 +164,11 @@ module mdu_pipeline_wrapper #(
 		    // MDU pipeline feedback to IQ
 			last_issue_ready <= issue_ready;
 
-		    // writeback bus by bank
-			WB_bus_valid_by_bank <= next_WB_bus_valid_by_bank;
-			WB_bus_upper_PR_by_bank <= next_WB_bus_upper_PR_by_bank;
-
-		    // reg read info and data from PRF
-			A_reg_read_ack <= next_A_reg_read_ack;
-			A_reg_read_port <= next_A_reg_read_port;
-			B_reg_read_ack <= next_B_reg_read_ack;
-			B_reg_read_port <= next_B_reg_read_port;
-			reg_read_data_by_bank_by_port <= next_reg_read_data_by_bank_by_port;
+		    // reg read data from PRF
+			A_reg_read_resp_valid <= next_A_reg_read_resp_valid;
+			A_reg_read_resp_data <= next_A_reg_read_resp_data;
+			B_reg_read_resp_valid <= next_B_reg_read_resp_valid;
+			B_reg_read_resp_data <= next_B_reg_read_resp_data;
 
 		    // forward data from PRF
 			forward_data_by_bank <= next_forward_data_by_bank;

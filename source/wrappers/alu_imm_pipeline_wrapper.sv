@@ -10,7 +10,13 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module alu_imm_pipeline_wrapper (
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
+module alu_imm_pipeline_wrapper #(
+	parameter IS_OC_BUFFER_SIZE = 2,
+	parameter PRF_RR_OUTPUT_BUFFER_SIZE = 3
+) (
 
     // seq
     input logic CLK,
@@ -30,10 +36,9 @@ module alu_imm_pipeline_wrapper (
     // ready feedback to IQ
 	output logic last_issue_ready,
 
-    // reg read info and data from PRF
-	input logic next_A_reg_read_ack,
-	input logic next_A_reg_read_port,
-	input logic [PRF_BANK_COUNT-1:0][1:0][31:0] next_reg_read_data_by_bank_by_port,
+    // reg read data from PRF
+	input logic next_A_reg_read_resp_valid,
+	input logic [31:0] next_A_reg_read_resp_data,
 
     // forward data from PRF
 	input logic [PRF_BANK_COUNT-1:0][31:0] next_forward_data_by_bank,
@@ -65,10 +70,9 @@ module alu_imm_pipeline_wrapper (
     // ready feedback to IQ
 	logic issue_ready;
 
-    // reg read info and data from PRF
-	logic A_reg_read_ack;
-	logic A_reg_read_port;
-	logic [PRF_BANK_COUNT-1:0][1:0][31:0] reg_read_data_by_bank_by_port;
+    // reg read data from PRF
+	logic A_reg_read_resp_valid;
+	logic [31:0] A_reg_read_resp_data;
 
     // forward data from PRF
 	logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank;
@@ -85,7 +89,10 @@ module alu_imm_pipeline_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    alu_imm_pipeline WRAPPED_MODULE (.*);
+	alu_imm_pipeline #(
+		.IS_OC_BUFFER_SIZE(IS_OC_BUFFER_SIZE),
+		.PRF_RR_OUTPUT_BUFFER_SIZE(PRF_RR_OUTPUT_BUFFER_SIZE)
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -107,10 +114,9 @@ module alu_imm_pipeline_wrapper (
 		    // ready feedback to IQ
 			last_issue_ready <= '0;
 
-		    // reg read info and data from PRF
-			A_reg_read_ack <= '0;
-			A_reg_read_port <= '0;
-			reg_read_data_by_bank_by_port <= '0;
+		    // reg read data from PRF
+			A_reg_read_resp_valid <= '0;
+			A_reg_read_resp_data <= '0;
 
 		    // forward data from PRF
 			forward_data_by_bank <= '0;
@@ -140,10 +146,9 @@ module alu_imm_pipeline_wrapper (
 		    // ready feedback to IQ
 			last_issue_ready <= issue_ready;
 
-		    // reg read info and data from PRF
-			A_reg_read_ack <= next_A_reg_read_ack;
-			A_reg_read_port <= next_A_reg_read_port;
-			reg_read_data_by_bank_by_port <= next_reg_read_data_by_bank_by_port;
+		    // reg read data from PRF
+			A_reg_read_resp_valid <= next_A_reg_read_resp_valid;
+			A_reg_read_resp_data <= next_A_reg_read_resp_data;
 
 		    // forward data from PRF
 			forward_data_by_bank <= next_forward_data_by_bank;

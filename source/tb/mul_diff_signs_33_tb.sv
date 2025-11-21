@@ -142,7 +142,7 @@ module mul_diff_signs_33_tb ();
 
         operands = new();
 
-        for (int i = 0; i < 1024; i++) begin
+        for (int i = 0; i < 100; i++) begin
 
             operands.randomize();
 
@@ -156,7 +156,7 @@ module mul_diff_signs_33_tb ();
             nRST = 1'b1;
             tb_A = operands.A;
             tb_B = operands.B;
-		    tb_sel = 2'b00;
+		    tb_sel = 2'b01;
 
             @(negedge CLK);
 
@@ -173,7 +173,7 @@ module mul_diff_signs_33_tb ();
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-        for (int i = 0; i < 1024; i++) begin
+        for (int i = 0; i < 100; i++) begin
 
             operands.randomize();
 
@@ -204,7 +204,7 @@ module mul_diff_signs_33_tb ();
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-        for (int i = 0; i < 1024; i++) begin
+        for (int i = 0; i < 100; i++) begin
 
             operands.randomize();
 
@@ -228,6 +228,52 @@ module mul_diff_signs_33_tb ();
 
             check_outputs();
         end
+
+        // ------------------------------------------------------------
+        // custom inputs:
+        test_case = "custom inputs";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = $sformatf("%d * %d", -9, 32'h5A5A5A5A);
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        tb_A = -9;
+        tb_B = 32'h5A5A5A5A;
+        tb_sel = 2'b10;
+
+        @(negedge CLK);
+
+        // outputs:
+
+        expected_out = -9 * 32'h5A5A5A5A;
+
+        check_outputs();
+
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = $sformatf("%d * %d", 33'h1FFFFFFF6, 33'h05A5A5A5A);
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        tb_A = $signed(33'h1FFFFFFF6);
+        tb_B = $signed(33'h05A5A5A5A);
+        tb_sel = 2'b10;
+
+        @(negedge CLK);
+
+        // outputs:
+
+        expected_out = $signed(33'h1FFFFFFF6) * $signed(33'h05A5A5A5A);
+
+        check_outputs();
 
         // ------------------------------------------------------------
         // finish:

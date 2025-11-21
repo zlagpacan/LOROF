@@ -11,7 +11,10 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-module stamofu_addr_pipeline (
+module stamofu_addr_pipeline #(
+    parameter IS_OC_BUFFER_SIZE = 2,
+    parameter PRF_RR_OUTPUT_BUFFER_SIZE = 3
+) (
 
     // seq
     input logic CLK,
@@ -35,12 +38,11 @@ module stamofu_addr_pipeline (
     // output feedback to IQ
     output logic                                issue_ready,
 
-    // reg read info and data from PRF
-    input logic                                     A_reg_read_ack,
-    input logic                                     A_reg_read_port,
-    input logic                                     B_reg_read_ack,
-    input logic                                     B_reg_read_port,
-    input logic [PRF_BANK_COUNT-1:0][1:0][31:0]     reg_read_data_by_bank_by_port,
+    // reg read data from PRF
+    input logic         A_reg_read_resp_valid,
+    input logic [31:0]  A_reg_read_resp_data,
+    input logic         B_reg_read_resp_valid,
+    input logic [31:0]  B_reg_read_resp_data,
 
     // forward data from PRF
     input logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank,
@@ -68,7 +70,6 @@ module stamofu_addr_pipeline (
     // Control Signals: 
 
     logic stall_REQ;
-    logic stall_OC;
 
     // ----------------------------------------------------------------
     // OC Stage Signals:
@@ -80,20 +81,44 @@ module stamofu_addr_pipeline (
     logic                               is_fence_OC;
     logic [3:0]                         op_OC;
     logic [11:0]                        imm12_OC;
-    logic                               A_saved_OC;
     logic                               A_forward_OC;
-    logic                               A_is_zero_OC;
-    logic [LOG_PRF_BANK_COUNT-1:0]      A_bank_OC;
-    logic                               B_saved_OC;
+    logic                               A_is_reg_OC;
     logic                               B_forward_OC;
-    logic                               B_is_zero_OC;
-    logic [LOG_PRF_BANK_COUNT-1:0]      B_bank_OC;
+    logic                               B_is_reg_OC;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  cq_index_OC;
 
-    logic [31:0]    A_saved_data_OC;
-    logic [31:0]    B_saved_data_OC;
+    logic operands_ready_OC;
 
-    logic launch_ready_OC;
+    logic           enq_A_reg_valid;
+    logic [31:0]    enq_A_reg_data;
+    // logic           enq_A_reg_ready; // should always be 1
+    logic           deq_A_reg_valid;
+    logic [31:0]    deq_A_reg_data;
+    logic           deq_A_reg_ready;
+
+    logic           enq_B_reg_valid;
+    logic [31:0]    enq_B_reg_data;
+    // logic           enq_B_reg_ready; // should always be 1
+    logic           deq_B_reg_valid;
+    logic [31:0]    deq_B_reg_data;
+    logic           deq_B_reg_ready;
+
+    logic [LOG_PRF_BANK_COUNT-1:0]  enq_A_forward_bank;
+    logic [LOG_PRF_BANK_COUNT-1:0]  enq_B_forward_bank;
+
+    logic           enq_A_forward_valid;
+    logic [31:0]    enq_A_forward_data;
+    // logic           enq_A_forward_ready; // should always be 1
+    logic           deq_A_forward_valid;
+    logic [31:0]    deq_A_forward_data;
+    logic           deq_A_forward_ready;
+
+    logic           enq_B_forward_valid;
+    logic [31:0]    enq_B_forward_data;
+    // logic           enq_B_forward_ready; // should always be 1
+    logic           deq_B_forward_valid;
+    logic [31:0]    deq_B_forward_data;
+    logic           deq_B_forward_ready;
 
     logic                               next_REQ_valid;
     logic                               next_REQ_is_store;
@@ -101,8 +126,10 @@ module stamofu_addr_pipeline (
     logic                               next_REQ_is_fence;
     logic [3:0]                         next_REQ_op;
     logic [11:0]                        next_REQ_imm12;
-    logic [31:0]                        next_REQ_A;
-    logic [31:0]                        next_REQ_B;
+    logic                               next_REQ_A_forward;
+    logic                               next_REQ_A_is_reg;
+    logic                               next_REQ_B_forward;
+    logic                               next_REQ_B_is_reg;
     logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  next_REQ_cq_index;
 
     // ----------------------------------------------------------------
@@ -110,6 +137,11 @@ module stamofu_addr_pipeline (
         // Request
         
     logic [11:0]    REQ_imm12;
+    logic           REQ_A_forward;
+    logic           REQ_A_is_reg;
+    logic           REQ_B_forward;
+    logic           REQ_B_is_reg;
+
     logic [31:0]    REQ_A;
     logic [31:0]    REQ_B;
 
@@ -130,126 +162,161 @@ module stamofu_addr_pipeline (
 
     // propagate stalls backwards
         // handle REQ stall in REQ state machine
-    assign stall_OC = valid_OC & stall_REQ;
+
+    // ----------------------------------------------------------------
+    // IS -> OC Buffer Logic:
+
+    q_fast_ready #(
+        .DATA_WIDTH(1 + 1 + 1 + 4 + 12 + 1 + 1 + 1 + 1 + LOG_LDU_CQ_ENTRIES),
+        .NUM_ENTRIES(IS_OC_BUFFER_SIZE)
+    ) IS_OC_BUFFER (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(issue_valid),
+        .enq_data({
+            issue_is_store,
+            issue_is_amo,
+            issue_is_fence,
+            issue_op,
+            issue_imm12,
+            issue_A_forward,
+            ~(issue_A_forward | issue_A_is_zero),
+            issue_B_forward,
+            ~(issue_B_forward | issue_B_is_zero),
+            issue_cq_index
+        }),
+        .enq_ready(issue_ready),
+        .deq_valid(valid_OC),
+        .deq_data({
+            is_store_OC,
+            is_amo_OC,
+            is_fence_OC,
+            op_OC,
+            imm12_OC,
+            A_forward_OC,
+            A_is_reg_OC,
+            B_forward_OC,
+            B_is_reg_OC,
+            cq_index_OC
+        }),
+        .deq_ready(~stall_REQ & operands_ready_OC)
+    );
 
     // ----------------------------------------------------------------
     // OC Stage Logic:
 
-    // FF
-    always_ff @ (posedge CLK, negedge nRST) begin
-    // always_ff @ (posedge CLK) begin
-        if (~nRST) begin
-            valid_OC <= '0;
-            is_store_OC <= '0;
-            is_amo_OC <= '0;
-            is_fence_OC <= '0;
-            op_OC <= '0;
-            imm12_OC <= '0;
-            A_saved_OC <= '0;
-            A_forward_OC <= '0;
-            A_is_zero_OC <= '0;
-            A_bank_OC <= '0;
-            A_saved_data_OC <= '0;
-            B_saved_OC <= '0;
-            B_forward_OC <= '0;
-            B_is_zero_OC <= '0;
-            B_bank_OC <= '0;
-            B_saved_data_OC <= '0;
-            cq_index_OC <= '0;
-        end
-        else if (~issue_ready) begin
-            valid_OC <= valid_OC;
-            is_store_OC <= is_store_OC;
-            is_amo_OC <= is_amo_OC;
-            is_fence_OC <= is_fence_OC;
-            op_OC <= op_OC;
-            imm12_OC <= imm12_OC;
-            A_saved_OC <= A_saved_OC | A_forward_OC | A_reg_read_ack;
-            A_forward_OC <= A_forward_OC;
-            A_is_zero_OC <= A_is_zero_OC;
-            A_bank_OC <= A_bank_OC;
-            A_saved_data_OC <= next_REQ_A;
-            B_saved_OC <= B_saved_OC | B_forward_OC | B_reg_read_ack;
-            B_forward_OC <= B_forward_OC;
-            B_is_zero_OC <= B_is_zero_OC;
-            B_bank_OC <= B_bank_OC;
-            B_saved_data_OC <= next_REQ_B;
-            cq_index_OC <= cq_index_OC;
-        end
-        else begin
-            valid_OC <= issue_valid;
-            is_store_OC <= issue_is_store;
-            is_amo_OC <= issue_is_amo;
-            is_fence_OC <= issue_is_fence;
-            op_OC <= issue_op;
-            imm12_OC <= issue_imm12;
-            A_saved_OC <= 1'b0;
-            A_forward_OC <= issue_A_forward;
-            A_is_zero_OC <= issue_A_is_zero;
-            A_bank_OC <= issue_A_bank;
-            A_saved_data_OC <= next_REQ_A;
-            B_saved_OC <= 1'b0;
-            B_forward_OC <= issue_B_forward;
-            B_is_zero_OC <= issue_B_is_zero;
-            B_bank_OC <= issue_B_bank;
-            B_saved_data_OC <= next_REQ_B;
-            cq_index_OC <= issue_cq_index;
-        end
-    end
-
-    assign launch_ready_OC = 
-        // no backpressure
-        ~stall_OC
+    assign operands_ready_OC = 
         // A operand present
-        & (A_is_zero_OC | A_saved_OC | A_forward_OC | A_reg_read_ack)
+        (~A_is_reg_OC | A_reg_read_resp_valid | deq_A_reg_valid)
+        &
         // B operand present
-        & (B_is_zero_OC | B_saved_OC | B_forward_OC | B_reg_read_ack);
-    
-    assign issue_ready = ~valid_OC | launch_ready_OC;
-    
-    assign next_REQ_valid = valid_OC & launch_ready_OC;
-    assign next_REQ_is_store = is_store_OC;
-    assign next_REQ_is_amo = is_amo_OC;
-    assign next_REQ_is_fence = is_fence_OC;
-    assign next_REQ_op = op_OC;
-    assign next_REQ_imm12 = imm12_OC;
-    assign next_REQ_cq_index = cq_index_OC;
+        (~B_is_reg_OC | B_reg_read_resp_valid | deq_B_reg_valid)
+    ;
 
-    // A operand collection
+    // reg read data buffers:
+
     always_comb begin
+        enq_A_reg_valid = A_reg_read_resp_valid;
+        enq_A_reg_data = A_reg_read_resp_data;
 
-        // collect A value to save OR pass to AC
-        if (A_is_zero_OC) begin
-            next_REQ_A = 32'h0;
-        end
-        else if (A_saved_OC) begin
-            next_REQ_A = A_saved_data_OC;
-        end
-        else if (A_forward_OC) begin
-            next_REQ_A = forward_data_by_bank[A_bank_OC];
+        enq_B_reg_valid = B_reg_read_resp_valid;
+        enq_B_reg_data = B_reg_read_resp_data;
+    end
+
+    q_fast_ready #(
+        .DATA_WIDTH(32),
+        .NUM_ENTRIES(PRF_RR_OUTPUT_BUFFER_SIZE)
+    ) A_REG_DATA_BUFFER (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(enq_A_reg_valid),
+        .enq_data(enq_A_reg_data),
+        .enq_ready(), // should always be 1
+        .deq_valid(deq_A_reg_valid),
+        .deq_data(deq_A_reg_data),
+        .deq_ready(deq_A_reg_ready)
+    );
+
+    q_fast_ready #(
+        .DATA_WIDTH(32),
+        .NUM_ENTRIES(PRF_RR_OUTPUT_BUFFER_SIZE)
+    ) B_REG_DATA_BUFFER (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(enq_B_reg_valid),
+        .enq_data(enq_B_reg_data),
+        .enq_ready(), // should always be 1
+        .deq_valid(deq_B_reg_valid),
+        .deq_data(deq_B_reg_data),
+        .deq_ready(deq_B_reg_ready)
+    );
+
+    // forward data buffers:
+
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            enq_A_forward_valid <= 1'b0;
+            enq_A_forward_bank <= 0;
+            enq_B_forward_valid <= 1'b0;
+            enq_B_forward_bank <= 0;
         end
         else begin
-            next_REQ_A = reg_read_data_by_bank_by_port[A_bank_OC][A_reg_read_port];
+            enq_A_forward_valid <= issue_valid & issue_ready & issue_A_forward;
+            enq_A_forward_bank <= issue_A_bank;
+            enq_B_forward_valid <= issue_valid & issue_ready & issue_B_forward;
+            enq_B_forward_bank <= issue_B_bank;
         end
     end
 
-    // B operand collection
     always_comb begin
-
-        // collect B value to save OR pass to AC
-        if (B_is_zero_OC) begin
-            next_REQ_B = 32'h0;
-        end
-        else if (B_saved_OC) begin
-            next_REQ_B = B_saved_data_OC;
-        end
-        else if (B_forward_OC) begin
-            next_REQ_B = forward_data_by_bank[B_bank_OC];
-        end
-        else begin
-            next_REQ_B = reg_read_data_by_bank_by_port[B_bank_OC][B_reg_read_port];
-        end
+        enq_A_forward_data = forward_data_by_bank[enq_A_forward_bank];
+        enq_B_forward_data = forward_data_by_bank[enq_B_forward_bank];
     end
+
+    q_fast_ready #(
+        .DATA_WIDTH(32),
+        .NUM_ENTRIES(PRF_RR_OUTPUT_BUFFER_SIZE)
+    ) A_FORWARD_DATA_BUFFER (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(enq_A_forward_valid),
+        .enq_data(enq_A_forward_data),
+        .enq_ready(), // should always be 1
+        .deq_valid(deq_A_forward_valid),
+        .deq_data(deq_A_forward_data),
+        .deq_ready(deq_A_forward_ready)
+    );
+
+    q_fast_ready #(
+        .DATA_WIDTH(32),
+        .NUM_ENTRIES(PRF_RR_OUTPUT_BUFFER_SIZE)
+    ) B_FORWARD_DATA_BUFFER (
+        .CLK(CLK),
+        .nRST(nRST),
+        .enq_valid(enq_B_forward_valid),
+        .enq_data(enq_B_forward_data),
+        .enq_ready(), // should always be 1
+        .deq_valid(deq_B_forward_valid),
+        .deq_data(deq_B_forward_data),
+        .deq_ready(deq_B_forward_ready)
+    );
+    
+    always_comb begin
+        next_REQ_valid = valid_OC & operands_ready_OC;
+        next_REQ_is_store = is_store_OC;
+        next_REQ_is_amo = is_amo_OC;
+        next_REQ_is_fence = is_fence_OC;
+        next_REQ_op = op_OC;
+        next_REQ_imm12 = imm12_OC;
+        next_REQ_A_forward = A_forward_OC;
+        next_REQ_A_is_reg = A_is_reg_OC;
+        next_REQ_B_forward = B_forward_OC;
+        next_REQ_B_is_reg = B_is_reg_OC;
+        next_REQ_cq_index = cq_index_OC;
+    end
+
+    // ----------------------------------------------------------------
+    // REQ Stage Logic:
 
     // FF
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -262,8 +329,10 @@ module stamofu_addr_pipeline (
             REQ_is_fence <= '0;
             REQ_op <= '0;
             REQ_imm12 <= '0;
-            REQ_A <= '0;
-            REQ_B <= '0;
+            REQ_A_forward <= 1'b0;
+            REQ_A_is_reg <= 1'b0;
+            REQ_B_forward <= 1'b0;
+            REQ_B_is_reg <= 1'b0;
             REQ_cq_index <= '0;
         end
         else begin
@@ -275,11 +344,25 @@ module stamofu_addr_pipeline (
                 REQ_is_fence <= next_REQ_is_fence;
                 REQ_op <= next_REQ_op;
                 REQ_imm12 <= next_REQ_imm12;
-                REQ_A <= next_REQ_A;
-                REQ_B <= next_REQ_A;
+                REQ_A_forward <= next_REQ_A_forward;
+                REQ_A_is_reg <= next_REQ_A_is_reg;
+                REQ_B_forward <= next_REQ_B_forward;
+                REQ_B_is_reg <= next_REQ_B_is_reg;
                 REQ_cq_index <= next_REQ_cq_index;
             end
         end
+    end
+
+    // data gathering
+    always_comb begin
+        REQ_A = ({32{REQ_A_is_reg}} & deq_A_reg_data) | ({32{REQ_A_forward}} & deq_A_forward_data);
+        REQ_B = ({32{REQ_B_is_reg}} & deq_B_reg_data) | ({32{REQ_B_forward}} & deq_B_forward_data);
+
+        deq_A_reg_ready = REQ_valid & REQ_A_is_reg & ~stall_REQ;
+        deq_A_forward_ready = REQ_valid & REQ_A_forward & ~stall_REQ;
+        
+        deq_B_reg_ready = REQ_valid & REQ_B_is_reg & ~stall_REQ;
+        deq_B_forward_ready = REQ_valid & REQ_B_forward & ~stall_REQ;
     end
 
     // internal REQ stage blocks

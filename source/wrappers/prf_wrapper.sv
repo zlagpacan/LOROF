@@ -19,8 +19,9 @@ module prf_wrapper #(
 	parameter PRF_BANK_COUNT = 4,
 	parameter LOG_PRF_BANK_COUNT = $clog2(PRF_BANK_COUNT),
 	parameter PRF_RR_COUNT = 9,
-	parameter PRF_WR_COUNT = 7,
-	parameter USE_BRAM = 1'b0
+	parameter PRF_RR_INPUT_BUFFER_SIZE = 2,
+	parameter PRF_WR_COUNT = 8,
+	parameter PRF_WR_INPUT_BUFFER_SIZE = 2
 ) (
 
     // seq
@@ -28,16 +29,16 @@ module prf_wrapper #(
     input logic nRST,
 
 
-    // read req info by read requester
+    // read req info by read requestor
 	input logic [PRF_RR_COUNT-1:0] next_read_req_valid_by_rr,
 	input logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0] next_read_req_PR_by_rr,
 
-    // read resp info by read requestor
-	output logic [PRF_RR_COUNT-1:0] last_read_resp_ack_by_rr,
-	output logic [PRF_RR_COUNT-1:0] last_read_resp_port_by_rr,
+    // read req feedback by read requestor
+	output logic [PRF_RR_COUNT-1:0] last_read_req_ready_by_rr,
 
-    // read data by bank
-	output logic [PRF_BANK_COUNT-1:0][1:0][31:0] last_read_data_by_bank_by_port,
+    // read resp info by read requestor
+	output logic [PRF_RR_COUNT-1:0] last_read_resp_valid_by_rr,
+	output logic [PRF_RR_COUNT-1:0][31:0] last_read_resp_data_by_rr,
 
     // writeback info by write requestor
 	input logic [PRF_WR_COUNT-1:0] next_WB_valid_by_wr,
@@ -65,16 +66,16 @@ module prf_wrapper #(
     // Direct Module Connections:
 
 
-    // read req info by read requester
+    // read req info by read requestor
 	logic [PRF_RR_COUNT-1:0] read_req_valid_by_rr;
 	logic [PRF_RR_COUNT-1:0][LOG_PR_COUNT-1:0] read_req_PR_by_rr;
 
-    // read resp info by read requestor
-	logic [PRF_RR_COUNT-1:0] read_resp_ack_by_rr;
-	logic [PRF_RR_COUNT-1:0] read_resp_port_by_rr;
+    // read req feedback by read requestor
+	logic [PRF_RR_COUNT-1:0] read_req_ready_by_rr;
 
-    // read data by bank
-	logic [PRF_BANK_COUNT-1:0][1:0][31:0] read_data_by_bank_by_port;
+    // read resp info by read requestor
+	logic [PRF_RR_COUNT-1:0] read_resp_valid_by_rr;
+	logic [PRF_RR_COUNT-1:0][31:0] read_resp_data_by_rr;
 
     // writeback info by write requestor
 	logic [PRF_WR_COUNT-1:0] WB_valid_by_wr;
@@ -106,8 +107,9 @@ module prf_wrapper #(
 		.PRF_BANK_COUNT(PRF_BANK_COUNT),
 		.LOG_PRF_BANK_COUNT(LOG_PRF_BANK_COUNT),
 		.PRF_RR_COUNT(PRF_RR_COUNT),
+		.PRF_RR_INPUT_BUFFER_SIZE(PRF_RR_INPUT_BUFFER_SIZE),
 		.PRF_WR_COUNT(PRF_WR_COUNT),
-		.USE_BRAM(USE_BRAM)
+		.PRF_WR_INPUT_BUFFER_SIZE(PRF_WR_INPUT_BUFFER_SIZE)
 	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
@@ -117,16 +119,16 @@ module prf_wrapper #(
         if (~nRST) begin
 
 
-		    // read req info by read requester
+		    // read req info by read requestor
 			read_req_valid_by_rr <= '0;
 			read_req_PR_by_rr <= '0;
 
-		    // read resp info by read requestor
-			last_read_resp_ack_by_rr <= '0;
-			last_read_resp_port_by_rr <= '0;
+		    // read req feedback by read requestor
+			last_read_req_ready_by_rr <= '0;
 
-		    // read data by bank
-			last_read_data_by_bank_by_port <= '0;
+		    // read resp info by read requestor
+			last_read_resp_valid_by_rr <= '0;
+			last_read_resp_data_by_rr <= '0;
 
 		    // writeback info by write requestor
 			WB_valid_by_wr <= '0;
@@ -152,16 +154,16 @@ module prf_wrapper #(
         else begin
 
 
-		    // read req info by read requester
+		    // read req info by read requestor
 			read_req_valid_by_rr <= next_read_req_valid_by_rr;
 			read_req_PR_by_rr <= next_read_req_PR_by_rr;
 
-		    // read resp info by read requestor
-			last_read_resp_ack_by_rr <= read_resp_ack_by_rr;
-			last_read_resp_port_by_rr <= read_resp_port_by_rr;
+		    // read req feedback by read requestor
+			last_read_req_ready_by_rr <= read_req_ready_by_rr;
 
-		    // read data by bank
-			last_read_data_by_bank_by_port <= read_data_by_bank_by_port;
+		    // read resp info by read requestor
+			last_read_resp_valid_by_rr <= read_resp_valid_by_rr;
+			last_read_resp_data_by_rr <= read_resp_data_by_rr;
 
 		    // writeback info by write requestor
 			WB_valid_by_wr <= next_WB_valid_by_wr;
