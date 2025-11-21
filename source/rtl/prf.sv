@@ -107,8 +107,27 @@ module prf #(
     logic [PRF_WR_COUNT-1:0][LOG_ROB_ENTRIES-1:0]                   deq_write_req_ROB_index_by_wr;
     logic [PRF_WR_COUNT-1:0]                                        deq_write_req_ready_by_wr;
 
-    logic [PRF_BANK_COUNT-1:0][PRF_WR_COUNT-1:0]    arbiter_write_req_valid_by_bank_by_wr;
-    logic [PRF_BANK_COUNT-1:0][PRF_WR_COUNT-1:0]    arbiter_write_req_ack_by_bank_by_wr;
+    logic [PRF_BANK_COUNT-1:0][PRF_WR_COUNT-1:0]    queue_arbiter_write_req_valid_by_bank_by_wr;
+    logic [PRF_BANK_COUNT-1:0]                      queue_arbiter_write_req_present_by_bank;
+    logic [PRF_BANK_COUNT-1:0][PRF_WR_COUNT-1:0]    queue_arbiter_write_req_ack_by_bank_by_wr;
+
+    logic [PRF_BANK_COUNT-1:0][PRF_WR_COUNT-1:0]    bypass_arbiter_write_req_valid_by_bank_by_wr;
+    logic [PRF_BANK_COUNT-1:0][PRF_WR_COUNT-1:0]    bypass_arbiter_write_req_ack_by_bank_by_wr;
+    logic [PRF_WR_COUNT-1:0]                        bypass_arbiter_write_req_ack_by_wr;
+
+    logic [PRF_BANK_COUNT-1:0]                                          queue_selected_write_valid_by_bank;
+    logic [PRF_BANK_COUNT-1:0]                                          queue_selected_write_perform_write_by_bank;
+    logic [PRF_BANK_COUNT-1:0]                                          queue_selected_write_send_complete_by_bank;
+    logic [PRF_BANK_COUNT-1:0][31:0]                                    queue_selected_write_data_by_bank;
+    logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     queue_selected_write_upper_PR_by_bank;
+    logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0]                     queue_selected_write_ROB_index_by_bank;
+
+    logic [PRF_BANK_COUNT-1:0]                                          bypass_selected_write_valid_by_bank;
+    logic [PRF_BANK_COUNT-1:0]                                          bypass_selected_write_perform_write_by_bank;
+    logic [PRF_BANK_COUNT-1:0]                                          bypass_selected_write_send_complete_by_bank;
+    logic [PRF_BANK_COUNT-1:0][31:0]                                    bypass_selected_write_data_by_bank;
+    logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     bypass_selected_write_upper_PR_by_bank;
+    logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0]                     bypass_selected_write_ROB_index_by_bank;
 
     logic [PRF_BANK_COUNT-1:0]                                          selected_write_valid_by_bank;
     logic [PRF_BANK_COUNT-1:0]                                          selected_write_perform_write_by_bank;
@@ -116,6 +135,8 @@ module prf #(
     logic [PRF_BANK_COUNT-1:0][31:0]                                    selected_write_data_by_bank;
     logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     selected_write_upper_PR_by_bank;
     logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0]                     selected_write_ROB_index_by_bank;
+
+    logic [PRF_BANK_COUNT-1:0][31:0] WB_bus_data_by_bank;
 
     // ----------------------------------------------------------------
     // Reg Read Logic:
@@ -256,7 +277,19 @@ module prf #(
     endgenerate
 
     always_comb begin
+        // check for a bypass
+        bypass_arbiter_write_req_ack_by_wr = '0;
+        for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
+            bypass_arbiter_write_req_ack_by_wr |= bypass_arbiter_write_req_ack_by_bank_by_wr[bank];
+        end
+
+        // only enq if didn't get bypass -> queue arbiter req present for relevant bank or this bypass arbiter req not ack'd
         enq_write_req_valid_by_wr = WB_valid_by_wr;
+        for (int wr = 0; wr < PRF_WR_COUNT; wr++) begin
+            enq_write_req_valid_by_wr[wr] &= (
+                queue_arbiter_write_req_present_by_bank[WB_PR_by_wr[wr][LOG_PRF_BANK_COUNT-1:0]]
+                | ~bypass_arbiter_write_req_ack_by_wr[wr]);
+        end
         enq_write_req_send_complete_by_wr = WB_send_complete_by_wr;
         enq_write_req_data_by_wr = WB_data_by_wr;
         for (int wr = 0; wr < PRF_WR_COUNT; wr++) begin
@@ -267,12 +300,14 @@ module prf #(
         end
         enq_write_req_ROB_index_by_wr = WB_ROB_index_by_wr;
 
+        // even with bypass, readiness simply follows enq ready
         WB_ready_by_wr = enq_write_req_ready_by_wr;
 
         // demux write req's to arbiter banks
         for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
             for (int wr = 0; wr < PRF_WR_COUNT; wr++) begin
-                arbiter_write_req_valid_by_bank_by_wr[bank][wr] = deq_write_req_valid_by_wr[wr] & deq_write_req_bank_mask_by_wr[wr][bank];
+                queue_arbiter_write_req_valid_by_bank_by_wr[bank][wr] = deq_write_req_valid_by_wr[wr] & deq_write_req_bank_mask_by_wr[wr][bank];
+                bypass_arbiter_write_req_valid_by_bank_by_wr[bank][wr] = WB_valid_by_wr[wr] & enq_write_req_bank_mask_by_wr[wr][bank];
             end
         end
 
@@ -280,7 +315,7 @@ module prf #(
         for (int wr = 0; wr < PRF_WR_COUNT; wr++) begin
             deq_write_req_ready_by_wr[wr] = '0;
             for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
-                deq_write_req_ready_by_wr[wr] |= arbiter_write_req_ack_by_bank_by_wr[bank][wr];
+                deq_write_req_ready_by_wr[wr] |= queue_arbiter_write_req_ack_by_bank_by_wr[bank][wr];
             end
         end
     end
@@ -289,84 +324,177 @@ module prf #(
     generate
         for (write_bank = 0; write_bank < PRF_BANK_COUNT; write_bank++) begin : write_arbiters
 
+            // queue arbiter
+                // must be fair -> round robin
             arbiter_rr #(
                 .REQUESTOR_COUNT(PRF_WR_COUNT)
-            ) WRITE_ARBITER (
+            ) QUEUE_WRITE_ARBITER (
                 .CLK(CLK),
                 .nRST(nRST),
-                .req_vec(arbiter_write_req_valid_by_bank_by_wr[write_bank]),
-                .req_present(selected_write_valid_by_bank[write_bank]),
+                .req_vec(queue_arbiter_write_req_valid_by_bank_by_wr[write_bank]),
+                .req_present(queue_arbiter_write_req_present_by_bank[write_bank]),
                 .ack_ready(1'b1),
-                .ack_one_hot(arbiter_write_req_ack_by_bank_by_wr[write_bank])
+                .ack_one_hot(queue_arbiter_write_req_ack_by_bank_by_wr[write_bank])
             );
 
             mux_one_hot #(
                 .COUNT(PRF_WR_COUNT),
                 .WIDTH(1)
-            ) WRITE_PERFORM_WRITE_MUX_ONE_HOT (
-                .sel_one_hot(arbiter_write_req_ack_by_bank_by_wr[write_bank]),
+            ) QUEUE_WRITE_PERFORM_WRITE_MUX_ONE_HOT (
+                .sel_one_hot(queue_arbiter_write_req_ack_by_bank_by_wr[write_bank]),
                 .data_by_requestor(deq_write_req_perform_write_by_wr),
-                .selected_data(selected_write_perform_write_by_bank[write_bank])
+                .selected_data(queue_selected_write_perform_write_by_bank[write_bank])
             );
             mux_one_hot #(
                 .COUNT(PRF_WR_COUNT),
                 .WIDTH(1)
-            ) WRITE_SEND_COMPLETE_MUX_ONE_HOT (
-                .sel_one_hot(arbiter_write_req_ack_by_bank_by_wr[write_bank]),
+            ) QUEUE_WRITE_SEND_COMPLETE_MUX_ONE_HOT (
+                .sel_one_hot(queue_arbiter_write_req_ack_by_bank_by_wr[write_bank]),
                 .data_by_requestor(deq_write_req_send_complete_by_wr),
-                .selected_data(selected_write_send_complete_by_bank[write_bank])
+                .selected_data(queue_selected_write_send_complete_by_bank[write_bank])
             );
             mux_one_hot #(
                 .COUNT(PRF_WR_COUNT),
                 .WIDTH(32)
-            ) WRITE_DATA_MUX_ONE_HOT (
-                .sel_one_hot(arbiter_write_req_ack_by_bank_by_wr[write_bank]),
+            ) QUEUE_WRITE_DATA_MUX_ONE_HOT (
+                .sel_one_hot(queue_arbiter_write_req_ack_by_bank_by_wr[write_bank]),
                 .data_by_requestor(deq_write_req_data_by_wr),
-                .selected_data(selected_write_data_by_bank[write_bank])
+                .selected_data(queue_selected_write_data_by_bank[write_bank])
             );
             mux_one_hot #(
                 .COUNT(PRF_WR_COUNT),
                 .WIDTH(LOG_PR_COUNT - LOG_PRF_BANK_COUNT)
-            ) WRITE_UPPER_PR_MUX_ONE_HOT (
-                .sel_one_hot(arbiter_write_req_ack_by_bank_by_wr[write_bank]),
+            ) QUEUE_WRITE_UPPER_PR_MUX_ONE_HOT (
+                .sel_one_hot(queue_arbiter_write_req_ack_by_bank_by_wr[write_bank]),
                 .data_by_requestor(deq_write_req_upper_PR_by_wr),
-                .selected_data(selected_write_upper_PR_by_bank[write_bank])
+                .selected_data(queue_selected_write_upper_PR_by_bank[write_bank])
             );
             mux_one_hot #(
                 .COUNT(PRF_WR_COUNT),
                 .WIDTH(LOG_ROB_ENTRIES)
-            ) WRITE_ROB_INDEX_MUX_ONE_HOT (
-                .sel_one_hot(arbiter_write_req_ack_by_bank_by_wr[write_bank]),
+            ) QUEUE_WRITE_ROB_INDEX_MUX_ONE_HOT (
+                .sel_one_hot(queue_arbiter_write_req_ack_by_bank_by_wr[write_bank]),
                 .data_by_requestor(deq_write_req_ROB_index_by_wr),
-                .selected_data(selected_write_ROB_index_by_bank[write_bank])
+                .selected_data(queue_selected_write_ROB_index_by_bank[write_bank])
+            );
+
+            // bypass arbiter
+                // simple and fast ideal -> static priority
+            pe_lsb #(
+                .WIDTH(PRF_WR_COUNT)
+            ) BYPASS_WRITE_ARBITER (
+                .req_vec(bypass_arbiter_write_req_valid_by_bank_by_wr[write_bank]),
+                .ack_one_hot(bypass_arbiter_write_req_ack_by_bank_by_wr[write_bank])
+            );
+
+            mux_one_hot #(
+                .COUNT(PRF_WR_COUNT),
+                .WIDTH(1)
+            ) BYPASS_WRITE_PERFORM_WRITE_MUX_ONE_HOT (
+                .sel_one_hot(bypass_arbiter_write_req_ack_by_bank_by_wr[write_bank]),
+                .data_by_requestor(enq_write_req_perform_write_by_wr),
+                .selected_data(bypass_selected_write_perform_write_by_bank[write_bank])
+            );
+            mux_one_hot #(
+                .COUNT(PRF_WR_COUNT),
+                .WIDTH(1)
+            ) BYPASS_WRITE_SEND_COMPLETE_MUX_ONE_HOT (
+                .sel_one_hot(bypass_arbiter_write_req_ack_by_bank_by_wr[write_bank]),
+                .data_by_requestor(enq_write_req_send_complete_by_wr),
+                .selected_data(bypass_selected_write_send_complete_by_bank[write_bank])
+            );
+            mux_one_hot #(
+                .COUNT(PRF_WR_COUNT),
+                .WIDTH(32)
+            ) BYPASS_WRITE_DATA_MUX_ONE_HOT (
+                .sel_one_hot(bypass_arbiter_write_req_ack_by_bank_by_wr[write_bank]),
+                .data_by_requestor(enq_write_req_data_by_wr),
+                .selected_data(bypass_selected_write_data_by_bank[write_bank])
+            );
+            mux_one_hot #(
+                .COUNT(PRF_WR_COUNT),
+                .WIDTH(LOG_PR_COUNT - LOG_PRF_BANK_COUNT)
+            ) BYPASS_WRITE_UPPER_PR_MUX_ONE_HOT (
+                .sel_one_hot(bypass_arbiter_write_req_ack_by_bank_by_wr[write_bank]),
+                .data_by_requestor(enq_write_req_upper_PR_by_wr),
+                .selected_data(bypass_selected_write_upper_PR_by_bank[write_bank])
+            );
+            mux_one_hot #(
+                .COUNT(PRF_WR_COUNT),
+                .WIDTH(LOG_ROB_ENTRIES)
+            ) BYPASS_WRITE_ROB_INDEX_MUX_ONE_HOT (
+                .sel_one_hot(bypass_arbiter_write_req_ack_by_bank_by_wr[write_bank]),
+                .data_by_requestor(enq_write_req_ROB_index_by_wr),
+                .selected_data(bypass_selected_write_ROB_index_by_bank[write_bank])
             );
         end
     endgenerate
 
     always_comb begin
-        array_write_valid_by_bank = selected_write_valid_by_bank & selected_write_perform_write_by_bank;
-            // must be forced 0 for PRF0
-        array_write_upper_PR_by_bank = selected_write_upper_PR_by_bank;
-        array_write_data_by_bank = selected_write_data_by_bank;
+        for (int bank = 0; bank < PRF_BANK_COUNT; bank++) begin
+            queue_selected_write_valid_by_bank[bank] = queue_arbiter_write_req_present_by_bank[bank];
+            bypass_selected_write_valid_by_bank[bank] = |bypass_arbiter_write_req_valid_by_bank_by_wr[bank];
+
+            selected_write_valid_by_bank[bank] = queue_selected_write_valid_by_bank[bank] | bypass_selected_write_valid_by_bank[bank];
+            // select queue arbitration if present else bypass
+            if (queue_selected_write_valid_by_bank[bank]) begin
+                selected_write_perform_write_by_bank[bank] = queue_selected_write_perform_write_by_bank[bank];
+                selected_write_send_complete_by_bank[bank] = queue_selected_write_send_complete_by_bank[bank];
+                selected_write_data_by_bank[bank] = queue_selected_write_data_by_bank[bank];
+                selected_write_upper_PR_by_bank[bank] = queue_selected_write_upper_PR_by_bank[bank];
+                selected_write_ROB_index_by_bank[bank] = queue_selected_write_ROB_index_by_bank[bank];
+            end
+            else begin
+                selected_write_perform_write_by_bank[bank] = bypass_selected_write_perform_write_by_bank[bank];
+                selected_write_send_complete_by_bank[bank] = bypass_selected_write_send_complete_by_bank[bank];
+                selected_write_data_by_bank[bank] = bypass_selected_write_data_by_bank[bank];
+                selected_write_upper_PR_by_bank[bank] = bypass_selected_write_upper_PR_by_bank[bank];
+                selected_write_ROB_index_by_bank[bank] = bypass_selected_write_ROB_index_by_bank[bank];
+            end
+        end
+    end
+
+    // array write
+    // always_comb begin
+    //     array_write_valid_by_bank = selected_write_valid_by_bank & selected_write_perform_write_by_bank;
+    //         // must be forced 0 for PRF0
+    //     array_write_upper_PR_by_bank = selected_write_upper_PR_by_bank;
+    //     array_write_data_by_bank = selected_write_data_by_bank;
+    // end
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            array_write_valid_by_bank <= '0;
+            array_write_upper_PR_by_bank <= '0;
+            array_write_data_by_bank <= '0;
+        end
+        else begin
+            array_write_valid_by_bank <= selected_write_valid_by_bank & selected_write_perform_write_by_bank;
+                // must be forced 0 for PRF0
+            array_write_upper_PR_by_bank <= selected_write_upper_PR_by_bank;
+            array_write_data_by_bank <= selected_write_data_by_bank;
+        end
     end
 
     // WB bus broadcast
         // can switch this to registered if too slow, but will slow down IPC for dependent forward data paths
-    always_comb begin
-        WB_bus_valid_by_bank = selected_write_valid_by_bank;
-            // doesn't have to be forced 0 for PRF0
-        WB_bus_upper_PR_by_bank = selected_write_upper_PR_by_bank;
-    end
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    //     if (~nRST) begin
-    //         WB_bus_valid_by_bank <= '0;
-    //         WB_bus_upper_PR_by_bank <= '0;
-    //     end
-    //     else begin
-    //         WB_bus_valid_by_bank <= selected_write_valid_by_bank;
-    //         WB_bus_upper_PR_by_bank <= selected_write_upper_PR_by_bank;
-    //     end
+    // always_comb begin
+    //     WB_bus_valid_by_bank = selected_write_valid_by_bank;
+    //         // doesn't have to be forced 0 for PRF0
+    //     WB_bus_upper_PR_by_bank = selected_write_upper_PR_by_bank;
     // end
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            WB_bus_valid_by_bank <= '0;
+            WB_bus_upper_PR_by_bank <= '0;
+            WB_bus_data_by_bank <= '0;
+        end
+        else begin
+            WB_bus_valid_by_bank <= selected_write_valid_by_bank;
+                // doesn't have to be forced 0 for PRF0
+            WB_bus_upper_PR_by_bank <= selected_write_upper_PR_by_bank;
+            WB_bus_data_by_bank <= selected_write_data_by_bank;
+        end
+    end
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
@@ -375,7 +503,7 @@ module prf #(
             complete_bus_ROB_index_by_bank <= 0;
         end
         else begin
-            forward_data_bus_by_bank <= selected_write_data_by_bank;
+            forward_data_bus_by_bank <= WB_bus_data_by_bank;
             complete_bus_valid_by_bank <= selected_write_valid_by_bank & selected_write_send_complete_by_bank;
                 // don't want forced PRF 0 writes invalid
             complete_bus_ROB_index_by_bank <= selected_write_ROB_index_by_bank;

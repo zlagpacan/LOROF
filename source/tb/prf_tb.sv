@@ -151,7 +151,7 @@ module prf_tb #(
 			$display("TB ERROR: expected_read_resp_data_by_rr (%h) != DUT_read_resp_data_by_rr (%h)",
 				expected_read_resp_data_by_rr, DUT_read_resp_data_by_rr);
             for (int i = 8; i >= 0; i--) begin
-                $display("        %h vs %h",
+                $display("        h%h vs h%h",
                     expected_read_resp_data_by_rr[i], DUT_read_resp_data_by_rr[i]);
             end
 			num_errors++;
@@ -176,7 +176,7 @@ module prf_tb #(
 			$display("TB ERROR: expected_WB_bus_upper_PR_by_bank (%h) != DUT_WB_bus_upper_PR_by_bank (%h)",
 				expected_WB_bus_upper_PR_by_bank, DUT_WB_bus_upper_PR_by_bank);
             for (int i = 3; i >= 0; i--) begin
-                $display("        %h vs %h",
+                $display("        h%h vs h%h",
                     expected_WB_bus_upper_PR_by_bank[i], DUT_WB_bus_upper_PR_by_bank[i]);
             end
 			num_errors++;
@@ -187,7 +187,7 @@ module prf_tb #(
 			$display("TB ERROR: expected_forward_data_bus_by_bank (%h) != DUT_forward_data_bus_by_bank (%h)",
 				expected_forward_data_bus_by_bank, DUT_forward_data_bus_by_bank);
             for (int i = 3; i >= 0; i--) begin
-                $display("        %h vs %h",
+                $display("        h%h vs h%h",
                     expected_forward_data_bus_by_bank[i], DUT_forward_data_bus_by_bank[i]);
             end
 			num_errors++;
@@ -205,7 +205,7 @@ module prf_tb #(
 			$display("TB ERROR: expected_complete_bus_ROB_index_by_bank (%h) != DUT_complete_bus_ROB_index_by_bank (%h)",
 				expected_complete_bus_ROB_index_by_bank, DUT_complete_bus_ROB_index_by_bank);
             for (int i = 3; i >= 0; i--) begin
-                $display("        %h vs %h",
+                $display("        h%h vs h%h",
                     expected_complete_bus_ROB_index_by_bank[i], DUT_complete_bus_ROB_index_by_bank[i]);
             end
 			num_errors++;
@@ -660,12 +660,12 @@ module prf_tb #(
             32'h00000000
         };
 	    // complete bus by bank
-		expected_complete_bus_valid_by_bank = 4'b0000;
+		expected_complete_bus_valid_by_bank = 4'b1101;
 		expected_complete_bus_ROB_index_by_bank = {
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00
+            7'h7c,
+            7'h7d,
+            7'h7e,
+            7'h7b
         };
 
 		check_outputs();
@@ -753,13 +753,13 @@ module prf_tb #(
         };
 	    // writeback info by write requestor
 	    // writeback feedback by write requestor
-		expected_WB_ready_by_wr = 8'b00001111;
+		expected_WB_ready_by_wr = 8'b11111111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b1111; // still send WB bus for PRF0 write (ready_table and backend dq's, iq's, and pipe's are fine with this)
 		expected_WB_bus_upper_PR_by_bank = {
             5'h01,
             5'h01,
-            5'h02,
+            5'h01,
             5'h00
         };
 	    // forward data by bank
@@ -772,10 +772,10 @@ module prf_tb #(
 	    // complete bus by bank
 		expected_complete_bus_valid_by_bank = 4'b1101;
 		expected_complete_bus_ROB_index_by_bank = {
-            7'h7c,
-            7'h7d,
-            7'h7e,
-            7'h7b
+            7'h78,
+            7'h79,
+            7'h7a,
+            7'h7f
         };
 
 		check_outputs();
@@ -804,33 +804,33 @@ module prf_tb #(
 	    // read req feedback by read requestor
 	    // read resp info by read requestor
 	    // writeback info by write requestor
-		tb_WB_valid_by_wr = 8'b11110000;
-		tb_WB_send_complete_by_wr = 8'b01100110;
+		tb_WB_valid_by_wr = 8'b00000000;
+		tb_WB_send_complete_by_wr = 8'b00000000;
 		tb_WB_data_by_wr = {
-            32'h6A6A1515,
-            32'h6B6B1414,
-            32'h6C6C1313,
-            32'h6D6D1212,
+            32'h00007F7F,
+            32'h00007F7F,
+            32'h00007F7F,
+            32'h00007F7F,
             32'h00007F7F,
             32'h00007F7F,
             32'h00007F7F,
             32'h00007F7F
         };
 		tb_WB_PR_by_wr = {
-            7'h15,
-            7'h14,
-            7'h13,
-            7'h12,
+            7'h7F,
+            7'h7F,
+            7'h7F,
+            7'h7F,
             7'h7F,
             7'h7F,
             7'h7F,
             7'h7F
         };
 		tb_WB_ROB_index_by_wr = {
-            7'h6A,
-            7'h6B,
-            7'h6C,
-            7'h6D,
+            7'h00,
+            7'h00,
+            7'h00,
+            7'h00,
             7'h00,
             7'h00,
             7'h00,
@@ -863,29 +863,29 @@ module prf_tb #(
         };
 	    // writeback info by write requestor
 	    // writeback feedback by write requestor
-		expected_WB_ready_by_wr = 8'b11100100;
+		expected_WB_ready_by_wr = 8'b11101000;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b1111;
 		expected_WB_bus_upper_PR_by_bank = {
             5'h03,
             5'h03,
-            5'h01,
-            5'h04
+            5'h03,
+            5'h02
         };
 	    // forward data by bank
 		expected_forward_data_bus_by_bank = {
             32'h78780707,
             32'h79790606,
-            32'h76760909,
+            32'h7a7a0505,
             32'h7f7f0000
         };
 	    // complete bus by bank
-		expected_complete_bus_valid_by_bank = 4'b1111;
+		expected_complete_bus_valid_by_bank = 4'b0110;
 		expected_complete_bus_ROB_index_by_bank = {
-            7'h78,
-            7'h79,
-            7'h76,
-            7'h7F
+            7'h70,
+            7'h71,
+            7'h72,
+            7'h77
         };
 
 		check_outputs();
@@ -914,13 +914,13 @@ module prf_tb #(
 	    // read req feedback by read requestor
 	    // read resp info by read requestor
 	    // writeback info by write requestor
-		tb_WB_valid_by_wr = 8'b00010000;
-		tb_WB_send_complete_by_wr = 8'b01100110;
+		tb_WB_valid_by_wr = 8'b00000000;
+		tb_WB_send_complete_by_wr = 8'b00000000;
 		tb_WB_data_by_wr = {
             32'h00007F7F,
             32'h00007F7F,
             32'h00007F7F,
-            32'h6D6D1212,
+            32'h00007F7F,
             32'h00007F7F,
             32'h00007F7F,
             32'h00007F7F,
@@ -930,7 +930,7 @@ module prf_tb #(
             7'h7F,
             7'h7F,
             7'h7F,
-            7'h12,
+            7'h7F,
             7'h7F,
             7'h7F,
             7'h7F,
@@ -940,7 +940,7 @@ module prf_tb #(
             7'h00,
             7'h00,
             7'h00,
-            7'h6D,
+            7'h00,
             7'h00,
             7'h00,
             7'h00,
@@ -973,29 +973,29 @@ module prf_tb #(
         };
 	    // writeback info by write requestor
 	    // writeback feedback by write requestor
-		expected_WB_ready_by_wr = 8'b11010100;
+		expected_WB_ready_by_wr = 8'b11111011;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b1111;
 		expected_WB_bus_upper_PR_by_bank = {
             5'h02,
             5'h02,
-            5'h03,
-            5'h02
+            5'h05,
+            5'h03
         };
 	    // forward data by bank
 		expected_forward_data_bus_by_bank = {
             32'h70700f0f,
             32'h71710e0e,
-            32'h7a7a0505,
-            32'h6f6f1010
+            32'h72720d0d,
+            32'h77770808
         };
 	    // complete bus by bank
-		expected_complete_bus_valid_by_bank = 4'b0101;
+		expected_complete_bus_valid_by_bank = 4'b1101;
 		expected_complete_bus_ROB_index_by_bank = {
-            7'h70,
-            7'h71,
-            7'h7A,
-            7'h6F
+            7'h74,
+            7'h75,
+            7'h6a,
+            7'h73
         };
 
 		check_outputs();
@@ -1083,29 +1083,29 @@ module prf_tb #(
         };
 	    // writeback info by write requestor
 	    // writeback feedback by write requestor
-		expected_WB_ready_by_wr = 8'b11101111;
+		expected_WB_ready_by_wr = 8'b11111111;
 	    // writeback bus by bank
 		expected_WB_bus_valid_by_bank = 4'b1111;
 		expected_WB_bus_upper_PR_by_bank = {
             5'h04,
-            5'h05,
-            5'h05,
-            5'h03
+            5'h04,
+            5'h02,
+            5'h05
         };
 	    // forward data by bank
 		expected_forward_data_bus_by_bank = {
             32'h74740b0b,
             32'h75750a0a,
-            32'h72720d0d,
-            32'h77770808
+            32'h6a6a1515,
+            32'h73730c0c
         };
 	    // complete bus by bank
-		expected_complete_bus_valid_by_bank = 4'b1110;
+		expected_complete_bus_valid_by_bank = 4'b1011;
 		expected_complete_bus_ROB_index_by_bank = {
-            7'h74,
-            7'h75,
-            7'h72,
-            7'h77
+            7'h6c,
+            7'h6d,
+            7'h76,
+            7'h6b
         };
 
 		check_outputs();
@@ -1198,24 +1198,24 @@ module prf_tb #(
 		expected_WB_bus_valid_by_bank = 4'b1111;
 		expected_WB_bus_upper_PR_by_bank = {
             5'h05,
+            5'h05,
             5'h04,
-            5'h04,
-            5'h05
+            5'h04
         };
 	    // forward data by bank
 		expected_forward_data_bus_by_bank = {
             32'h6c6c1313,
-            32'h69691616,
-            32'h6a6a1515,
-            32'h73730c0c
+            32'h6d6d1212,
+            32'h76760909,
+            32'h6b6b1414
         };
 	    // complete bus by bank
-		expected_complete_bus_valid_by_bank = 4'b1101;
+		expected_complete_bus_valid_by_bank = 4'b0101;
 		expected_complete_bus_ROB_index_by_bank = {
-            7'h6c,
+            7'h68,
             7'h69,
-            7'h6a,
-            7'h73
+            7'h6e,
+            7'h6f
         };
 
 		check_outputs();
@@ -1315,119 +1315,9 @@ module prf_tb #(
 	    // forward data by bank
 		expected_forward_data_bus_by_bank = {
             32'h68681717,
-            32'h6d6d1212,
+            32'h69691616,
             32'h6e6e1111,
-            32'h6b6b1414
-        };
-	    // complete bus by bank
-		expected_complete_bus_valid_by_bank = 4'b0001;
-		expected_complete_bus_ROB_index_by_bank = {
-            7'h68,
-            7'h6d,
-            7'h6e,
-            7'h6b
-        };
-
-		check_outputs();
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = "simple write cycle 8";
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-	    // read req info by read requestor
-		tb_read_req_valid_by_rr = 9'b000000000;
-		tb_read_req_PR_by_rr = {
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00
-        };
-	    // read req feedback by read requestor
-	    // read resp info by read requestor
-	    // writeback info by write requestor
-		tb_WB_valid_by_wr = 8'b00000000;
-		tb_WB_send_complete_by_wr = 8'b01100110;
-		tb_WB_data_by_wr = {
-            32'h00007F7F,
-            32'h00007F7F,
-            32'h00007F7F,
-            32'h00007F7F,
-            32'h00007F7F,
-            32'h00007F7F,
-            32'h00007F7F,
-            32'h00007F7F
-        };
-		tb_WB_PR_by_wr = {
-            7'h7F,
-            7'h7F,
-            7'h7F,
-            7'h7F,
-            7'h7F,
-            7'h7F,
-            7'h7F,
-            7'h7F
-        };
-		tb_WB_ROB_index_by_wr = {
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00
-        };
-	    // writeback feedback by write requestor
-	    // writeback bus by bank
-	    // forward data by bank
-	    // complete bus by bank
-
-		@(negedge CLK);
-
-		// outputs:
-
-	    // read req info by read requestor
-	    // read req feedback by read requestor
-		expected_read_req_ready_by_rr = 9'b111111111;
-	    // read resp info by read requestor
-		expected_read_resp_valid_by_rr = 9'b000000000;
-		expected_read_resp_data_by_rr = {
-            32'h00000000,
-            32'h00000000,
-            32'h00000000,
-            32'h00000000,
-            32'h00000000,
-            32'h00000000,
-            32'h00000000,
-            32'h00000000,
-            32'h00000000
-        };
-	    // writeback info by write requestor
-	    // writeback feedback by write requestor
-		expected_WB_ready_by_wr = 8'b11111111;
-	    // writeback bus by bank
-		expected_WB_bus_valid_by_bank = 4'b0000;
-		expected_WB_bus_upper_PR_by_bank = {
-            5'h00,
-            5'h00,
-            5'h00,
-            5'h00
-        };
-	    // forward data by bank
-		expected_forward_data_bus_by_bank = {
-            32'h00000000,
-            32'h00000000,
-            32'h00000000,
-            32'h00000000
+            32'h6f6f1010
         };
 	    // complete bus by bank
 		expected_complete_bus_valid_by_bank = 4'b0000;
