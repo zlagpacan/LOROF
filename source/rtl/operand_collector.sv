@@ -131,45 +131,45 @@ module operand_collector #(
             for (int entry = 0; entry < OC_ENTRIES; entry++) begin
                 // reg read's come in in-order -> signal with reg_collecting_by_entry
                 if (reg_collecting_by_entry[entry] & reg_read_resp_valid) begin
-                    OC_array[entry].need_reg = 1'b0;
-                    OC_array[entry].data |= reg_read_resp_data;
+                    OC_array[entry].need_reg <= 1'b0;
+                    OC_array[entry].data <= reg_read_resp_data;
                 end
                 // bus forwards technically can only come the cycle after enQ but this way is fine
                 if (OC_array[entry].need_bus_forward) begin
-                    OC_array[entry].need_bus_forward = 1'b0;
-                    OC_array[entry].data |= bus_forward_data_by_bank[OC_array[entry].bank];
+                    OC_array[entry].need_bus_forward <= 1'b0;
+                    OC_array[entry].data <= bus_forward_data_by_bank[OC_array[entry].bank];
                 end
                 // fast forwards can come at any time into any entry
                 if (OC_array[entry].need_fast_forward & fast_forward_data_valid_by_pipe[OC_array[entry].fast_forward_pipe]) begin
-                    OC_array[entry].need_fast_forward = 1'b0;
-                    OC_array[entry].data |= fast_forward_data_by_pipe[OC_array[entry].fast_forward_pipe];
+                    OC_array[entry].need_fast_forward <= 1'b0;
+                    OC_array[entry].data <= fast_forward_data_by_pipe[OC_array[entry].fast_forward_pipe];
                 end
             end
 
             // notif deQ
                 // assume external will deQ only if entry valid 
             if (operand_notif_ack) begin
-                OC_array[notif_deq_ptr].acked = 1'b1;
+                OC_array[notif_deq_ptr].acked <= 1'b1;
                     // optional, only for debug
             end
 
             // data deQ
                 // assume external will deQ only if entry valid
             if (operand_data_ack) begin
-                OC_array[data_deq_ptr].valid = 1'b0; 
+                OC_array[data_deq_ptr].valid <= 1'b0; 
             end
 
             // enQ
                 // assume enQ never overrides entry
             if (enq_valid) begin
-                OC_array[enq_ptr].valid = 1'b1;
-                OC_array[enq_ptr].acked = 1'b0;
-                OC_array[enq_ptr].need_reg = enq_is_reg;
-                OC_array[enq_ptr].need_bus_forward = enq_is_bus_forward;
-                OC_array[enq_ptr].need_fast_forward = enq_is_fast_forward;
-                OC_array[enq_ptr].fast_forward_pipe = enq_fast_forward_pipe;
-                OC_array[enq_ptr].bank = enq_bank;
-                OC_array[enq_ptr].data = 32'h0; 
+                OC_array[enq_ptr].valid <= 1'b1;
+                OC_array[enq_ptr].acked <= 1'b0;
+                OC_array[enq_ptr].need_reg <= enq_is_reg;
+                OC_array[enq_ptr].need_bus_forward <= enq_is_bus_forward;
+                OC_array[enq_ptr].need_fast_forward <= enq_is_fast_forward;
+                OC_array[enq_ptr].fast_forward_pipe <= enq_fast_forward_pipe;
+                OC_array[enq_ptr].bank <= enq_bank;
+                OC_array[enq_ptr].data <= 32'h0; 
                     // clear data for is_zero case
             end
         end
