@@ -12,7 +12,7 @@ module alu_imm_pipeline #(
     parameter IS_OC_BUFFER_SIZE = 2,
     parameter PRF_RR_OUTPUT_BUFFER_SIZE = 3,
     parameter FAST_FORWARD_PIPE_COUNT = 4,
-    parameter LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FF_PIPELINE_COUNT)
+    parameter LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FAST_FORWARD_PIPE_COUNT)
 ) (
 
     // seq
@@ -54,8 +54,10 @@ module alu_imm_pipeline #(
     input logic                         WB_ready,
 
     // this pipe's fast forward notif
-    output logic                        pipe_fast_forward_valid,
-    output logic [LOG_PR_COUNT-1:0]     pipe_fast_forward_PR,
+    output logic                        pipe_fast_forward_notif_valid,
+    output logic [LOG_PR_COUNT-1:0]     pipe_fast_forward_notif_PR,
+
+    output logic                        pipe_fast_forward_data_valid,
     output logic [31:0]                 pipe_fast_forward_data,
 );
     // ----------------------------------------------------------------
