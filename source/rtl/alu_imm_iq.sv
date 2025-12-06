@@ -11,7 +11,7 @@ import core_types_pkg::*;
 module alu_imm_iq #(
     parameter ALU_IMM_IQ_ENTRIES = 12,
     parameter FAST_FORWARD_PIPE_COUNT = 4,
-    parameter LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FF_PIPELINE_COUNT)
+    parameter LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FAST_FORWARD_PIPE_COUNT)
 ) (
     // seq
     input logic CLK,
