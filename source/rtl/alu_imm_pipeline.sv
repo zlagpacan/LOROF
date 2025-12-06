@@ -58,7 +58,7 @@ module alu_imm_pipeline #(
     output logic [LOG_PR_COUNT-1:0]     pipe_fast_forward_notif_PR,
 
     output logic                        pipe_fast_forward_data_valid,
-    output logic [31:0]                 pipe_fast_forward_data,
+    output logic [31:0]                 pipe_fast_forward_data
 );
     // ----------------------------------------------------------------
     // Control Signals: 
@@ -315,7 +315,7 @@ module alu_imm_pipeline #(
     // this pipe's fast forward
         // passing OC -> WB
     always_comb begin
-        pipe_fast_forward_valid = valid_OC & operands_collected_OC & ~stall_WB;
+        pipe_fast_forward_notif_valid = valid_OC & operands_collected_OC & ~stall_WB;
             // from OC stage
             // potential issue w/ long comb path
                 // have to wait on prf rr arbitration to know if stalled before can even start IQ arbitration
@@ -334,9 +334,13 @@ module alu_imm_pipeline #(
                     // lengthen problem pipelines so cycle before WB data is known early in stage before
                         // would have to lengthen alu reg, alu imm
 
-        pipe_fast_forward_PR = next_WB_PR;
+        pipe_fast_forward_notif_PR = next_WB_PR;
             // from OC stage
 
+        pipe_fast_forward_data_valid = WB_valid;
+            // TODO: need to fix this to be first cycle
+                // can't be last cycle as fast forward can pick up OC stage younger op forward but if there is stall it might pick up
+                    // later cycle where still older unwanted op still in WB stage
         pipe_fast_forward_data = WB_data;
             // from WB stage
     end
