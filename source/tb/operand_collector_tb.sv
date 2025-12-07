@@ -60,8 +60,8 @@ module operand_collector_tb #(
 	logic [FAST_FORWARD_PIPE_COUNT-1:0][31:0] tb_fast_forward_data_by_pipe;
 
     // operand collection control
-	logic DUT_operand_notif_valid, expected_operand_notif_valid;
-	logic tb_operand_notif_ack;
+	logic DUT_operand_collected, expected_operand_collected;
+	logic tb_operand_collected_ack;
 	logic [31:0] DUT_operand_data, expected_operand_data;
 	logic tb_operand_data_ack;
 
@@ -98,8 +98,8 @@ module operand_collector_tb #(
 		.fast_forward_data_by_pipe(tb_fast_forward_data_by_pipe),
 
 	    // operand collection control
-		.operand_notif_valid(DUT_operand_notif_valid),
-		.operand_notif_ack(tb_operand_notif_ack),
+		.operand_collected(DUT_operand_collected),
+		.operand_collected_ack(tb_operand_collected_ack),
 		.operand_data(DUT_operand_data),
 		.operand_data_ack(tb_operand_data_ack)
 	);
@@ -109,9 +109,9 @@ module operand_collector_tb #(
 
     task check_outputs();
     begin
-		if (expected_operand_notif_valid !== DUT_operand_notif_valid) begin
-			$display("TB ERROR: expected_operand_notif_valid (%h) != DUT_operand_notif_valid (%h)",
-				expected_operand_notif_valid, DUT_operand_notif_valid);
+		if (expected_operand_collected !== DUT_operand_collected) begin
+			$display("TB ERROR: expected_operand_collected (%h) != DUT_operand_collected (%h)",
+				expected_operand_collected, DUT_operand_collected);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -171,7 +171,7 @@ module operand_collector_tb #(
             32'h00000000
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b0;
+		tb_operand_collected_ack = 1'b0;
 		tb_operand_data_ack = 1'b0;
 
 		@(posedge CLK); #(PERIOD/10);
@@ -183,7 +183,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b0;
+		expected_operand_collected = 1'b0;
 		expected_operand_data = 32'h00000000;
 
 		check_outputs();
@@ -220,7 +220,7 @@ module operand_collector_tb #(
             32'h00000000
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b0;
+		tb_operand_collected_ack = 1'b0;
 		tb_operand_data_ack = 1'b0;
 
 		@(posedge CLK); #(PERIOD/10);
@@ -232,7 +232,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b0;
+		expected_operand_collected = 1'b0;
 		expected_operand_data = 32'h00000000;
 
 		check_outputs();
@@ -277,7 +277,7 @@ module operand_collector_tb #(
             32'h00000000
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b0;
+		tb_operand_collected_ack = 1'b0;
 		tb_operand_data_ack = 1'b0;
 
 		@(negedge CLK);
@@ -289,7 +289,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b0;
+		expected_operand_collected = 1'b0;
 		expected_operand_data = 32'h00000000;
 
 		check_outputs();
@@ -328,7 +328,7 @@ module operand_collector_tb #(
             32'h00000000
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b0;
+		tb_operand_collected_ack = 1'b0;
 		tb_operand_data_ack = 1'b0;
 
 		@(negedge CLK);
@@ -340,7 +340,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b0;
+		expected_operand_collected = 1'b0;
 		expected_operand_data = 32'h00000000;
 
 		check_outputs();
@@ -379,7 +379,7 @@ module operand_collector_tb #(
             32'h00000000
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b0;
+		tb_operand_collected_ack = 1'b0;
 		tb_operand_data_ack = 1'b0;
 
 		@(negedge CLK);
@@ -391,7 +391,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b1;
+		expected_operand_collected = 1'b1;
 		expected_operand_data = 32'h00000000;
 
 		check_outputs();
@@ -430,7 +430,7 @@ module operand_collector_tb #(
             32'h00000000
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b0;
+		tb_operand_collected_ack = 1'b0;
 		tb_operand_data_ack = 1'b0;
 
 		@(negedge CLK);
@@ -442,7 +442,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b1;
+		expected_operand_collected = 1'b1;
 		expected_operand_data = 32'hf0f0f0f0;
 
 		check_outputs();
@@ -481,7 +481,7 @@ module operand_collector_tb #(
             32'h00000000
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b1;
+		tb_operand_collected_ack = 1'b1;
 		tb_operand_data_ack = 1'b0;
 
 		@(negedge CLK);
@@ -493,7 +493,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b1;
+		expected_operand_collected = 1'b1;
 		expected_operand_data = 32'hf0f0f0f0;
 
 		check_outputs();
@@ -532,7 +532,7 @@ module operand_collector_tb #(
             32'h00000000
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b0;
+		tb_operand_collected_ack = 1'b0;
 		tb_operand_data_ack = 1'b1;
 
 		@(negedge CLK);
@@ -544,7 +544,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b0;
+		expected_operand_collected = 1'b0;
 		expected_operand_data = 32'hf0f0f0f0;
 
 		check_outputs();
@@ -583,7 +583,7 @@ module operand_collector_tb #(
             32'h00000000
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b1;
+		tb_operand_collected_ack = 1'b1;
 		tb_operand_data_ack = 1'b0;
 
 		@(negedge CLK);
@@ -595,7 +595,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b1;
+		expected_operand_collected = 1'b1;
 		expected_operand_data = 32'h00000000;
 
 		check_outputs();
@@ -634,7 +634,7 @@ module operand_collector_tb #(
             32'h00000000
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b1;
+		tb_operand_collected_ack = 1'b1;
 		tb_operand_data_ack = 1'b1;
 
 		@(negedge CLK);
@@ -646,7 +646,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b1;
+		expected_operand_collected = 1'b1;
 		expected_operand_data = 32'he1e1e1e1;
 
 		check_outputs();
@@ -685,7 +685,7 @@ module operand_collector_tb #(
             32'hdeadbeef
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b1;
+		tb_operand_collected_ack = 1'b1;
 		tb_operand_data_ack = 1'b1;
 
 		@(negedge CLK);
@@ -697,7 +697,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b1;
+		expected_operand_collected = 1'b1;
 		expected_operand_data = 32'hd2d2d2d2;
 
 		check_outputs();
@@ -736,7 +736,7 @@ module operand_collector_tb #(
             32'hdeadbeef
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b0;
+		tb_operand_collected_ack = 1'b0;
 		tb_operand_data_ack = 1'b1;
 
 		@(negedge CLK);
@@ -748,7 +748,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b0;
+		expected_operand_collected = 1'b0;
 		expected_operand_data = 32'hc3c3c3c3;
 
 		check_outputs();
@@ -787,7 +787,7 @@ module operand_collector_tb #(
             32'hdeadbeef
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b0;
+		tb_operand_collected_ack = 1'b0;
 		tb_operand_data_ack = 1'b0;
 
 		@(negedge CLK);
@@ -799,7 +799,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b0;
+		expected_operand_collected = 1'b0;
 		expected_operand_data = 32'h00000000;
 
 		check_outputs();
@@ -838,7 +838,7 @@ module operand_collector_tb #(
             32'hdeadbeef
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b0;
+		tb_operand_collected_ack = 1'b0;
 		tb_operand_data_ack = 1'b0;
 
 		@(negedge CLK);
@@ -850,7 +850,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b0;
+		expected_operand_collected = 1'b0;
 		expected_operand_data = 32'h00000000;
 
 		check_outputs();
@@ -889,7 +889,7 @@ module operand_collector_tb #(
             32'hb4b4b4b4
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b1;
+		tb_operand_collected_ack = 1'b1;
 		tb_operand_data_ack = 1'b0;
 
 		@(negedge CLK);
@@ -901,7 +901,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b1;
+		expected_operand_collected = 1'b1;
 		expected_operand_data = 32'h00000000;
 
 		check_outputs();
@@ -940,7 +940,7 @@ module operand_collector_tb #(
             32'hdeadbeef
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b1;
+		tb_operand_collected_ack = 1'b1;
 		tb_operand_data_ack = 1'b1;
 
 		@(negedge CLK);
@@ -952,7 +952,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b1;
+		expected_operand_collected = 1'b1;
 		expected_operand_data = 32'hb4b4b4b4;
 
 		check_outputs();
@@ -991,7 +991,7 @@ module operand_collector_tb #(
             32'hdeadbeef
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b1;
+		tb_operand_collected_ack = 1'b1;
 		tb_operand_data_ack = 1'b1;
 
 		@(negedge CLK);
@@ -1003,7 +1003,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b1;
+		expected_operand_collected = 1'b1;
 		expected_operand_data = 32'ha5a5a5a5;
 
 		check_outputs();
@@ -1042,7 +1042,7 @@ module operand_collector_tb #(
             32'hdeadbeef
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b0;
+		tb_operand_collected_ack = 1'b0;
 		tb_operand_data_ack = 1'b1;
 
 		@(negedge CLK);
@@ -1054,7 +1054,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b0;
+		expected_operand_collected = 1'b0;
 		expected_operand_data = 32'hb4b4b4b4;
 
 		check_outputs();
@@ -1093,7 +1093,7 @@ module operand_collector_tb #(
             32'hdeadbeef
         };
 	    // operand collection control
-		tb_operand_notif_ack = 1'b0;
+		tb_operand_collected_ack = 1'b0;
 		tb_operand_data_ack = 1'b0;
 
 		@(negedge CLK);
@@ -1105,7 +1105,7 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_notif_valid = 1'b0;
+		expected_operand_collected = 1'b0;
 		expected_operand_data = 32'hb4b4b4b4; // don't care
 
 		check_outputs();

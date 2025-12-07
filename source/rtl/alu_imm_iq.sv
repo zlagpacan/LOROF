@@ -35,8 +35,8 @@ module alu_imm_iq #(
     input logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]   WB_bus_upper_PR_by_bank,
 
     // fast forward notifs
-    input logic [FAST_FORWARD_PIPE_COUNT-1:0]                       fast_forward_valid_by_pipe,
-    input logic [FAST_FORWARD_PIPE_COUNT-1:0][LOG_PR_COUNT-1:0]     fast_forward_PR_by_pipe,
+    input logic [FAST_FORWARD_PIPE_COUNT-1:0]                       fast_forward_notif_valid_by_pipe,
+    input logic [FAST_FORWARD_PIPE_COUNT-1:0][LOG_PR_COUNT-1:0]     fast_forward_notif_PR_by_pipe,
 
     // pipeline issue
     output logic                                    issue_valid,
@@ -98,7 +98,7 @@ module alu_imm_iq #(
             A_is_bus_forward_by_entry[i] = (A_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
             A_is_fast_forward_by_entry[i] = 1'b0;
             for (int pipe = 0; pipe < FAST_FORWARD_PIPE_COUNT; pipe++) begin
-                if (fast_forward_valid_by_pipe[pipe] & (A_PR_by_entry[i] == fast_forward_PR_by_pipe[pipe])) begin
+                if (fast_forward_notif_valid_by_pipe[pipe] & (A_PR_by_entry[i] == fast_forward_notif_PR_by_pipe[pipe])) begin
                     A_is_fast_forward_by_entry[i] = 1'b1;
                     A_fast_forward_pipe_by_entry[i] = pipe;
                 end

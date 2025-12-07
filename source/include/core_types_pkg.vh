@@ -65,7 +65,7 @@ package core_types_pkg;
         // STAMOFU B
         // SYSU A
     parameter PRF_RR_INPUT_BUFFER_SIZE = IS_OC_BUFFER_SIZE;
-    parameter PRF_RR_OUTPUT_BUFFER_SIZE = PRF_RR_INPUT_BUFFER_SIZE + 1;
+    parameter OC_ENTRIES = IS_OC_BUFFER_SIZE + 1;
     
     parameter PRF_WR_COUNT = 8;
         // WR_BUF

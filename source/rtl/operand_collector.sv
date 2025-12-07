@@ -1,7 +1,7 @@
 /*
     Filename: operand_collector.sv
     Author: zlagpacan
-    Description: RTL for Physical Register Operand Collector
+    Description: RTL for Operand Collector
     Spec: LOROF/spec/design/operand_collector.md
 */
 
@@ -38,8 +38,8 @@ module operand_collector #(
     input logic [FAST_FORWARD_PIPE_COUNT-1:0][31:0]     fast_forward_data_by_pipe,
 
     // operand collection control
-    output logic            operand_notif_valid,
-    input logic             operand_notif_ack,
+    output logic            operand_collected,
+    input logic             operand_collected_ack,
     output logic [31:0]     operand_data,
     input logic             operand_data_ack
 );
@@ -77,7 +77,7 @@ module operand_collector #(
 
     // outputs:
     always_comb begin
-        operand_notif_valid =
+        operand_collected =
             OC_array[notif_deq_ptr].valid
             & (~OC_array[notif_deq_ptr].need_reg | reg_read_resp_valid)
             // bus forward guaranteed to be handled
@@ -148,7 +148,7 @@ module operand_collector #(
 
             // notif deQ
                 // assume external will deQ only if entry valid 
-            if (operand_notif_ack) begin
+            if (operand_collected_ack) begin
                 OC_array[notif_deq_ptr].acked <= 1'b1;
                     // optional, only for debug
             end
@@ -233,7 +233,7 @@ module operand_collector #(
                 enq_ptr <= enq_ptr_plus_1;
             end
             // notif deQ
-            if (operand_notif_ack) begin
+            if (operand_collected_ack) begin
                 notif_deq_ptr <= notif_deq_ptr_plus_1;
                 wraparound_mask <= next_wraparound_mask;
             end

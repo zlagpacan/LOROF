@@ -44,8 +44,8 @@ module operand_collector_wrapper #(
 	input logic [FAST_FORWARD_PIPE_COUNT-1:0][31:0] next_fast_forward_data_by_pipe,
 
     // operand collection control
-	output logic last_operand_notif_valid,
-	input logic next_operand_notif_ack,
+	output logic last_operand_collected,
+	input logic next_operand_collected_ack,
 	output logic [31:0] last_operand_data,
 	input logic next_operand_data_ack
 );
@@ -73,8 +73,8 @@ module operand_collector_wrapper #(
 	logic [FAST_FORWARD_PIPE_COUNT-1:0][31:0] fast_forward_data_by_pipe;
 
     // operand collection control
-	logic operand_notif_valid;
-	logic operand_notif_ack;
+	logic operand_collected;
+	logic operand_collected_ack;
 	logic [31:0] operand_data;
 	logic operand_data_ack;
 
@@ -114,8 +114,8 @@ module operand_collector_wrapper #(
 			fast_forward_data_by_pipe <= '0;
 
 		    // operand collection control
-			last_operand_notif_valid <= '0;
-			operand_notif_ack <= '0;
+			last_operand_collected <= '0;
+			operand_collected_ack <= '0;
 			last_operand_data <= '0;
 			operand_data_ack <= '0;
         end
@@ -141,8 +141,8 @@ module operand_collector_wrapper #(
 			fast_forward_data_by_pipe <= next_fast_forward_data_by_pipe;
 
 		    // operand collection control
-			last_operand_notif_valid <= operand_notif_valid;
-			operand_notif_ack <= next_operand_notif_ack;
+			last_operand_collected <= operand_collected;
+			operand_collected_ack <= next_operand_collected_ack;
 			last_operand_data <= operand_data;
 			operand_data_ack <= next_operand_data_ack;
         end

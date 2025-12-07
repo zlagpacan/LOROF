@@ -15,7 +15,7 @@ import system_types_pkg::*;
 
 module alu_imm_pipeline_tb #(
 	parameter IS_OC_BUFFER_SIZE = 2,
-	parameter PRF_RR_OUTPUT_BUFFER_SIZE = 3,
+	parameter OC_ENTRIES = IS_OC_BUFFER_SIZE + 1,
 	parameter FAST_FORWARD_PIPE_COUNT = 4,
 	parameter LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FAST_FORWARD_PIPE_COUNT)
 ) ();
@@ -64,6 +64,7 @@ module alu_imm_pipeline_tb #(
 	logic [PRF_BANK_COUNT-1:0][31:0] tb_bus_forward_data_by_bank;
 
     // fast forward data
+	logic [FAST_FORWARD_PIPE_COUNT-1:0] tb_fast_forward_data_valid_by_pipe;
 	logic [FAST_FORWARD_PIPE_COUNT-1:0][31:0] tb_fast_forward_data_by_pipe;
 
     // writeback data to PRF
@@ -87,7 +88,7 @@ module alu_imm_pipeline_tb #(
 
 	alu_imm_pipeline #(
 		.IS_OC_BUFFER_SIZE(IS_OC_BUFFER_SIZE),
-		.PRF_RR_OUTPUT_BUFFER_SIZE(PRF_RR_OUTPUT_BUFFER_SIZE),
+		.OC_ENTRIES(OC_ENTRIES),
 		.FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT),
 		.LOG_FAST_FORWARD_PIPE_COUNT(LOG_FAST_FORWARD_PIPE_COUNT)
 	) DUT (
@@ -119,6 +120,7 @@ module alu_imm_pipeline_tb #(
 		.bus_forward_data_by_bank(tb_bus_forward_data_by_bank),
 
 	    // fast forward data
+		.fast_forward_data_valid_by_pipe(tb_fast_forward_data_valid_by_pipe),
 		.fast_forward_data_by_pipe(tb_fast_forward_data_by_pipe),
 
 	    // writeback data to PRF
@@ -229,27 +231,38 @@ module alu_imm_pipeline_tb #(
 		// reset
 		nRST = 1'b0;
 	    // ALU imm op issue from IQ
-		tb_issue_valid = '0;
-		tb_issue_op = '0;
-		tb_issue_imm12 = '0;
-		tb_issue_A_is_reg = '0;
-		tb_issue_A_is_bus_forward = '0;
-		tb_issue_A_is_fast_forward = '0;
-		tb_issue_A_fast_forward_pipe = '0;
-		tb_issue_A_bank = '0;
-		tb_issue_dest_PR = '0;
-		tb_issue_ROB_index = '0;
+		tb_issue_valid = 1'b0;
+		tb_issue_op = 4'b0000;
+		tb_issue_imm12 = 12'h000;
+		tb_issue_A_is_reg = 1'b0;
+		tb_issue_A_is_bus_forward = 1'b0;
+		tb_issue_A_is_fast_forward = 1'b0;
+		tb_issue_A_fast_forward_pipe = 2'h0;
+		tb_issue_A_bank = 2'h0;
+		tb_issue_dest_PR = 7'h00;
+		tb_issue_ROB_index = 7'h00;
 	    // ready feedback to IQ
 	    // reg read data from PRF
-		tb_A_reg_read_resp_valid = '0;
-		tb_A_reg_read_resp_data = '0;
+		tb_A_reg_read_resp_valid = 1'b0;
+		tb_A_reg_read_resp_data = 32'h00000000;
 	    // bus forward data from PRF
-		tb_bus_forward_data_by_bank = '0;
+		tb_bus_forward_data_by_bank = {
+            32'h00000000,
+            32'h00000000,
+            32'h00000000,
+            32'h00000000
+        };
 	    // fast forward data
-		tb_fast_forward_data_by_pipe = '0;
+		tb_fast_forward_data_valid_by_pipe = 4'b0000;
+		tb_fast_forward_data_by_pipe = {
+            32'h00000000,
+            32'h00000000,
+            32'h00000000,
+            32'h00000000
+        };
 	    // writeback data to PRF
 	    // writeback backpressure from PRF
-		tb_WB_ready = '0;
+		tb_WB_ready = 1'b1;
 	    // this pipe's fast forward notif
 
 		@(posedge CLK); #(PERIOD/10);
@@ -258,21 +271,21 @@ module alu_imm_pipeline_tb #(
 
 	    // ALU imm op issue from IQ
 	    // ready feedback to IQ
-		expected_issue_ready = '0;
+		expected_issue_ready = 1'b1;
 	    // reg read data from PRF
 	    // bus forward data from PRF
 	    // fast forward data
 	    // writeback data to PRF
-		expected_WB_valid = '0;
-		expected_WB_data = '0;
-		expected_WB_PR = '0;
-		expected_WB_ROB_index = '0;
+		expected_WB_valid = 1'b0;
+		expected_WB_data = 32'h00000000;
+		expected_WB_PR = 7'h00;
+		expected_WB_ROB_index = 7'h00;
 	    // writeback backpressure from PRF
 	    // this pipe's fast forward notif
-		expected_pipe_fast_forward_notif_valid = '0;
-		expected_pipe_fast_forward_notif_PR = '0;
-		expected_pipe_fast_forward_data_valid = '0;
-		expected_pipe_fast_forward_data = '0;
+		expected_pipe_fast_forward_notif_valid = 1'b0;
+		expected_pipe_fast_forward_notif_PR = 7'h00;
+		expected_pipe_fast_forward_data_valid = 1'b0;
+		expected_pipe_fast_forward_data = 32'h00000000;
 
 		check_outputs();
 
@@ -283,27 +296,38 @@ module alu_imm_pipeline_tb #(
 		// reset
 		nRST = 1'b1;
 	    // ALU imm op issue from IQ
-		tb_issue_valid = '0;
-		tb_issue_op = '0;
-		tb_issue_imm12 = '0;
-		tb_issue_A_is_reg = '0;
-		tb_issue_A_is_bus_forward = '0;
-		tb_issue_A_is_fast_forward = '0;
-		tb_issue_A_fast_forward_pipe = '0;
-		tb_issue_A_bank = '0;
-		tb_issue_dest_PR = '0;
-		tb_issue_ROB_index = '0;
+		tb_issue_valid = 1'b0;
+		tb_issue_op = 4'b0000;
+		tb_issue_imm12 = 12'h000;
+		tb_issue_A_is_reg = 1'b0;
+		tb_issue_A_is_bus_forward = 1'b0;
+		tb_issue_A_is_fast_forward = 1'b0;
+		tb_issue_A_fast_forward_pipe = 2'h0;
+		tb_issue_A_bank = 2'h0;
+		tb_issue_dest_PR = 7'h00;
+		tb_issue_ROB_index = 7'h00;
 	    // ready feedback to IQ
 	    // reg read data from PRF
-		tb_A_reg_read_resp_valid = '0;
-		tb_A_reg_read_resp_data = '0;
+		tb_A_reg_read_resp_valid = 1'b0;
+		tb_A_reg_read_resp_data = 32'h00000000;
 	    // bus forward data from PRF
-		tb_bus_forward_data_by_bank = '0;
+		tb_bus_forward_data_by_bank = {
+            32'h00000000,
+            32'h00000000,
+            32'h00000000,
+            32'h00000000
+        };
 	    // fast forward data
-		tb_fast_forward_data_by_pipe = '0;
+		tb_fast_forward_data_valid_by_pipe = 4'b0000;
+		tb_fast_forward_data_by_pipe = {
+            32'h00000000,
+            32'h00000000,
+            32'h00000000,
+            32'h00000000
+        };
 	    // writeback data to PRF
 	    // writeback backpressure from PRF
-		tb_WB_ready = '0;
+		tb_WB_ready = 1'b1;
 	    // this pipe's fast forward notif
 
 		@(posedge CLK); #(PERIOD/10);
@@ -312,60 +336,71 @@ module alu_imm_pipeline_tb #(
 
 	    // ALU imm op issue from IQ
 	    // ready feedback to IQ
-		expected_issue_ready = '0;
+		expected_issue_ready = 1'b1;
 	    // reg read data from PRF
 	    // bus forward data from PRF
 	    // fast forward data
 	    // writeback data to PRF
-		expected_WB_valid = '0;
-		expected_WB_data = '0;
-		expected_WB_PR = '0;
-		expected_WB_ROB_index = '0;
+		expected_WB_valid = 1'b0;
+		expected_WB_data = 32'h00000000;
+		expected_WB_PR = 7'h00;
+		expected_WB_ROB_index = 7'h00;
 	    // writeback backpressure from PRF
 	    // this pipe's fast forward notif
-		expected_pipe_fast_forward_notif_valid = '0;
-		expected_pipe_fast_forward_notif_PR = '0;
-		expected_pipe_fast_forward_data_valid = '0;
-		expected_pipe_fast_forward_data = '0;
+		expected_pipe_fast_forward_notif_valid = 1'b0;
+		expected_pipe_fast_forward_notif_PR = 7'h00;
+		expected_pipe_fast_forward_data_valid = 1'b0;
+		expected_pipe_fast_forward_data = 32'h00000000;
 
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // simple chain:
+        test_case = "simple chain";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "default";
+		sub_test_case = "{i, i, i} : issue reg0";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
 	    // ALU imm op issue from IQ
-		tb_issue_valid = '0;
-		tb_issue_op = '0;
-		tb_issue_imm12 = '0;
-		tb_issue_A_is_reg = '0;
-		tb_issue_A_is_bus_forward = '0;
-		tb_issue_A_is_fast_forward = '0;
-		tb_issue_A_fast_forward_pipe = '0;
-		tb_issue_A_bank = '0;
-		tb_issue_dest_PR = '0;
-		tb_issue_ROB_index = '0;
+		tb_issue_valid = 1'b1;
+		tb_issue_op = 4'b0000;
+		tb_issue_imm12 = 12'h0f0;
+		tb_issue_A_is_reg = 1'b1;
+		tb_issue_A_is_bus_forward = 1'b0;
+		tb_issue_A_is_fast_forward = 1'b0;
+		tb_issue_A_fast_forward_pipe = 2'h0;
+		tb_issue_A_bank = 2'h0;
+		tb_issue_dest_PR = 7'h00;
+		tb_issue_ROB_index = 7'h00;
 	    // ready feedback to IQ
 	    // reg read data from PRF
-		tb_A_reg_read_resp_valid = '0;
-		tb_A_reg_read_resp_data = '0;
+		tb_A_reg_read_resp_valid = 1'b0;
+		tb_A_reg_read_resp_data = 32'h00000000;
 	    // bus forward data from PRF
-		tb_bus_forward_data_by_bank = '0;
+		tb_bus_forward_data_by_bank = {
+            32'h00000000,
+            32'h00000000,
+            32'h00000000,
+            32'h00000000
+        };
 	    // fast forward data
-		tb_fast_forward_data_by_pipe = '0;
+		tb_fast_forward_data_valid_by_pipe = 4'b0000;
+		tb_fast_forward_data_by_pipe = {
+            32'h00000000,
+            32'h00000000,
+            32'h00000000,
+            32'h00000000
+        };
 	    // writeback data to PRF
 	    // writeback backpressure from PRF
-		tb_WB_ready = '0;
+		tb_WB_ready = 1'b1;
 	    // this pipe's fast forward notif
 
 		@(negedge CLK);
@@ -374,21 +409,21 @@ module alu_imm_pipeline_tb #(
 
 	    // ALU imm op issue from IQ
 	    // ready feedback to IQ
-		expected_issue_ready = '0;
+		expected_issue_ready = 1'b1;
 	    // reg read data from PRF
 	    // bus forward data from PRF
 	    // fast forward data
 	    // writeback data to PRF
-		expected_WB_valid = '0;
-		expected_WB_data = '0;
-		expected_WB_PR = '0;
-		expected_WB_ROB_index = '0;
+		expected_WB_valid = 1'b0;
+		expected_WB_data = 32'h00000000;
+		expected_WB_PR = 7'h00;
+		expected_WB_ROB_index = 7'h00;
 	    // writeback backpressure from PRF
 	    // this pipe's fast forward notif
-		expected_pipe_fast_forward_notif_valid = '0;
-		expected_pipe_fast_forward_notif_PR = '0;
-		expected_pipe_fast_forward_data_valid = '0;
-		expected_pipe_fast_forward_data = '0;
+		expected_pipe_fast_forward_notif_valid = 1'b0;
+		expected_pipe_fast_forward_notif_PR = 7'h00;
+		expected_pipe_fast_forward_data_valid = 1'b0;
+		expected_pipe_fast_forward_data = 32'h00000000;
 
 		check_outputs();
 

@@ -15,7 +15,7 @@ import system_types_pkg::*;
 
 module alu_imm_pipeline_wrapper #(
 	parameter IS_OC_BUFFER_SIZE = 2,
-	parameter PRF_RR_OUTPUT_BUFFER_SIZE = 3,
+	parameter OC_ENTRIES = IS_OC_BUFFER_SIZE + 1,
 	parameter FAST_FORWARD_PIPE_COUNT = 4,
 	parameter LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FAST_FORWARD_PIPE_COUNT)
 ) (
@@ -48,6 +48,7 @@ module alu_imm_pipeline_wrapper #(
 	input logic [PRF_BANK_COUNT-1:0][31:0] next_bus_forward_data_by_bank,
 
     // fast forward data
+	input logic [FAST_FORWARD_PIPE_COUNT-1:0] next_fast_forward_data_valid_by_pipe,
 	input logic [FAST_FORWARD_PIPE_COUNT-1:0][31:0] next_fast_forward_data_by_pipe,
 
     // writeback data to PRF
@@ -94,6 +95,7 @@ module alu_imm_pipeline_wrapper #(
 	logic [PRF_BANK_COUNT-1:0][31:0] bus_forward_data_by_bank;
 
     // fast forward data
+	logic [FAST_FORWARD_PIPE_COUNT-1:0] fast_forward_data_valid_by_pipe;
 	logic [FAST_FORWARD_PIPE_COUNT-1:0][31:0] fast_forward_data_by_pipe;
 
     // writeback data to PRF
@@ -117,7 +119,7 @@ module alu_imm_pipeline_wrapper #(
 
 	alu_imm_pipeline #(
 		.IS_OC_BUFFER_SIZE(IS_OC_BUFFER_SIZE),
-		.PRF_RR_OUTPUT_BUFFER_SIZE(PRF_RR_OUTPUT_BUFFER_SIZE),
+		.OC_ENTRIES(OC_ENTRIES),
 		.FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT),
 		.LOG_FAST_FORWARD_PIPE_COUNT(LOG_FAST_FORWARD_PIPE_COUNT)
 	) WRAPPED_MODULE (.*);
@@ -152,6 +154,7 @@ module alu_imm_pipeline_wrapper #(
 			bus_forward_data_by_bank <= '0;
 
 		    // fast forward data
+			fast_forward_data_valid_by_pipe <= '0;
 			fast_forward_data_by_pipe <= '0;
 
 		    // writeback data to PRF
@@ -196,6 +199,7 @@ module alu_imm_pipeline_wrapper #(
 			bus_forward_data_by_bank <= next_bus_forward_data_by_bank;
 
 		    // fast forward data
+			fast_forward_data_valid_by_pipe <= next_fast_forward_data_valid_by_pipe;
 			fast_forward_data_by_pipe <= next_fast_forward_data_by_pipe;
 
 		    // writeback data to PRF
