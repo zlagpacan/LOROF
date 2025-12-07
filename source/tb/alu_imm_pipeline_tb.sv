@@ -1033,22 +1033,22 @@ module alu_imm_pipeline_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "{i, i}, fastfwd4p2:c : WB not ready";
+		sub_test_case = "{i, i}, fastfwd4p2:c : issue zero6, WB not ready";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
 	    // ALU imm op issue from IQ
-		tb_issue_valid = 1'b0;
-		tb_issue_op = 4'b0000;
-		tb_issue_imm12 = 12'h000;
+		tb_issue_valid = 1'b1;
+		tb_issue_op = 4'b0110;
+		tb_issue_imm12 = 12'h696;
 		tb_issue_A_is_reg = 1'b0;
 		tb_issue_A_is_bus_forward = 1'b0;
 		tb_issue_A_is_fast_forward = 1'b0;
 		tb_issue_A_fast_forward_pipe = 2'h0;
 		tb_issue_A_bank = 2'h0;
-		tb_issue_dest_PR = 7'h00;
-		tb_issue_ROB_index = 7'h00;
+		tb_issue_dest_PR = 7'h69;
+		tb_issue_ROB_index = 7'h69;
 	    // ready feedback to IQ
 	    // reg read data from PRF
 		tb_A_reg_read_resp_valid = 1'b0;
@@ -1100,7 +1100,7 @@ module alu_imm_pipeline_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "{i, i}, fastfwd4p2:c : WB ready";
+		sub_test_case = "{i, zero6}, fastfwd4p2:c : WB ready";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -1157,10 +1157,144 @@ module alu_imm_pipeline_tb #(
 		expected_WB_ROB_index = 7'h5a;
 	    // writeback backpressure from PRF
 	    // this pipe's fast forward notif
-		expected_pipe_fast_forward_notif_valid = 1'b0;
-		expected_pipe_fast_forward_notif_PR = 7'h4b;
+		expected_pipe_fast_forward_notif_valid = 1'b1;
+		expected_pipe_fast_forward_notif_PR = 7'h69;
 		expected_pipe_fast_forward_data_valid = 1'b0;
 		expected_pipe_fast_forward_data = 32'hb4b4b4b4 >> 5;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "{i, i}, zero6 : WB not ready";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // ALU imm op issue from IQ
+		tb_issue_valid = 1'b0;
+		tb_issue_op = 4'b0000;
+		tb_issue_imm12 = 12'h000;
+		tb_issue_A_is_reg = 1'b0;
+		tb_issue_A_is_bus_forward = 1'b0;
+		tb_issue_A_is_fast_forward = 1'b0;
+		tb_issue_A_fast_forward_pipe = 2'h0;
+		tb_issue_A_bank = 2'h0;
+		tb_issue_dest_PR = 7'h00;
+		tb_issue_ROB_index = 7'h00;
+	    // ready feedback to IQ
+	    // reg read data from PRF
+		tb_A_reg_read_resp_valid = 1'b0;
+		tb_A_reg_read_resp_data = 32'h00000000;
+	    // bus forward data from PRF
+		tb_bus_forward_data_by_bank = {
+            32'hdeadbeef,
+            32'hdeadbeef,
+            32'hdeadbeef,
+            32'hdeadbeef
+        };
+	    // fast forward data
+		tb_fast_forward_data_valid_by_pipe = 4'b0000;
+		tb_fast_forward_data_by_pipe = {
+            32'hdeadbeef,
+            32'hdeadbeef,
+            32'hdeadbeef,
+            32'hdeadbeef
+        };
+	    // writeback data to PRF
+	    // writeback backpressure from PRF
+		tb_WB_ready = 1'b0;
+	    // this pipe's fast forward notif
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // ALU imm op issue from IQ
+	    // ready feedback to IQ
+		expected_issue_ready = 1'b1;
+	    // reg read data from PRF
+	    // bus forward data from PRF
+	    // fast forward data
+	    // writeback data to PRF
+		expected_WB_valid = 1'b1;
+		expected_WB_data = 32'h00000696;
+		expected_WB_PR = 7'h69;
+		expected_WB_ROB_index = 7'h69;
+	    // writeback backpressure from PRF
+	    // this pipe's fast forward notif
+		expected_pipe_fast_forward_notif_valid = 1'b0;
+		expected_pipe_fast_forward_notif_PR = 7'h5a; // don't care
+		expected_pipe_fast_forward_data_valid = 1'b1;
+		expected_pipe_fast_forward_data = 32'h00000696;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "{i, i}, zero6 : WB ready";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // ALU imm op issue from IQ
+		tb_issue_valid = 1'b0;
+		tb_issue_op = 4'b0000;
+		tb_issue_imm12 = 12'h000;
+		tb_issue_A_is_reg = 1'b0;
+		tb_issue_A_is_bus_forward = 1'b0;
+		tb_issue_A_is_fast_forward = 1'b0;
+		tb_issue_A_fast_forward_pipe = 2'h0;
+		tb_issue_A_bank = 2'h0;
+		tb_issue_dest_PR = 7'h00;
+		tb_issue_ROB_index = 7'h00;
+	    // ready feedback to IQ
+	    // reg read data from PRF
+		tb_A_reg_read_resp_valid = 1'b0;
+		tb_A_reg_read_resp_data = 32'h00000000;
+	    // bus forward data from PRF
+		tb_bus_forward_data_by_bank = {
+            32'hdeadbeef,
+            32'hdeadbeef,
+            32'hdeadbeef,
+            32'hdeadbeef
+        };
+	    // fast forward data
+		tb_fast_forward_data_valid_by_pipe = 4'b0000;
+		tb_fast_forward_data_by_pipe = {
+            32'hdeadbeef,
+            32'hdeadbeef,
+            32'hdeadbeef,
+            32'hdeadbeef
+        };
+	    // writeback data to PRF
+	    // writeback backpressure from PRF
+		tb_WB_ready = 1'b1;
+	    // this pipe's fast forward notif
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // ALU imm op issue from IQ
+	    // ready feedback to IQ
+		expected_issue_ready = 1'b1;
+	    // reg read data from PRF
+	    // bus forward data from PRF
+	    // fast forward data
+	    // writeback data to PRF
+		expected_WB_valid = 1'b1;
+		expected_WB_data = 32'h00000696;
+		expected_WB_PR = 7'h69;
+		expected_WB_ROB_index = 7'h69;
+	    // writeback backpressure from PRF
+	    // this pipe's fast forward notif
+		expected_pipe_fast_forward_notif_valid = 1'b0;
+		expected_pipe_fast_forward_notif_PR = 7'h5a; // don't care
+		expected_pipe_fast_forward_data_valid = 1'b0;
+		expected_pipe_fast_forward_data = 32'h00000696;
 
 		check_outputs();
 
@@ -1219,15 +1353,15 @@ module alu_imm_pipeline_tb #(
 	    // fast forward data
 	    // writeback data to PRF
 		expected_WB_valid = 1'b0;
-		expected_WB_data = 32'hc3c3c777; // don't care
-		expected_WB_PR = 7'h4b;
-		expected_WB_ROB_index = 7'h4b;
+		expected_WB_data = 32'h05a5a5a5; // don't care
+		expected_WB_PR = 7'h5a; // don't care
+		expected_WB_ROB_index = 7'h5a; // don't care
 	    // writeback backpressure from PRF
 	    // this pipe's fast forward notif
 		expected_pipe_fast_forward_notif_valid = 1'b0;
-		expected_pipe_fast_forward_notif_PR = 7'h4b;
+		expected_pipe_fast_forward_notif_PR = 7'h5a; // don't care
 		expected_pipe_fast_forward_data_valid = 1'b0;
-		expected_pipe_fast_forward_data = 32'hc3c3c777; // don't care
+		expected_pipe_fast_forward_data = 32'h05a5a5a5; // don't care
 
 		check_outputs();
 

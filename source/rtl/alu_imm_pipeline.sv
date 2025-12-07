@@ -186,12 +186,7 @@ module alu_imm_pipeline #(
             WB_first_cycle <= 1'b0;
         end
         else begin
-            if (next_WB_valid & ~stall_WB) begin
-                WB_first_cycle <= 1'b1;
-            end
-            else begin
-                WB_first_cycle <= 1'b0;
-            end
+            WB_first_cycle <= next_WB_valid & ~stall_WB;
         end
     end
 
@@ -212,34 +207,15 @@ module alu_imm_pipeline #(
         // passing OC -> WB
     always_comb begin
         pipe_fast_forward_notif_valid = valid_OC;
-            // from OC stage
-            // potential issue w/ long comb path
-                // have to wait on prf rr arbitration to know if stalled before can even start IQ arbitration
-                // path:
-                    // prf rr -> A_collected_OC -> fast forward valid -> IQ arbitration's -> pipe issue's
-                // for simplicity would want this as A_collected_OC tells if guaranteed have data next cycle
-                // maybe this not a big deal now that have buffer-based prf to split path
-                // maybe not that different from old crit path:
-                    // bus forward's -> IQ arbitration's -> prf rr
-                    // may be pretty bad path compared to rest of buffer-based prf version now
-                // solutions:
-                    // delay fast forward by 1 cycle
-                        // fast forwarding loses 1 cycle of crucial efficiency, especially for all the effort (gets closer to just bus forward)
-                    // only do fast forward in pipelines where cycle before WB data is known early in stage before
-                        // only works for LDU bank 0, LDU bank 1
-                    // lengthen problem pipelines so cycle before WB data is known early in stage before
-                        // would have to lengthen alu reg, alu imm
-            // decided to always notif fast forward if in OC at beginning of cycle, and operand collector will be able to pick up value when it comes in
-
+            // always notif fast forward if in notif stage at beginning of cycle, 
+                // and operand collector will be able to pick up data value when broadcasted first cycle in data stage
         pipe_fast_forward_notif_PR = dest_PR_OC;
-            // from OC stage
 
         pipe_fast_forward_data_valid = WB_first_cycle;
             // must be first cycle
-            // can't be last cycle as fast forward can pick up OC stage younger op forward but if there is stall it might pick up
-                // later cycle where still older unwanted op still in WB stage
+            // can't be last cycle as fast forward can pick up notif stage younger op forward but if there is stall it might pick up
+                // later cycle where still older unwanted op still in data stage
         pipe_fast_forward_data = WB_data;
-            // from WB stage
     end
 
 endmodule

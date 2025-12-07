@@ -960,13 +960,13 @@ module operand_collector_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "{i, fastfwd4p2:c, fastfwd5:ca} : fastfwdp24 notif ack, fastfwd5 data ack";
+		sub_test_case = "{i, fastfwd4p2:c, fastfwd5:ca} : enq zero, fastfwdp24 notif ack, fastfwd5 data ack";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
 	    // issue info
-		tb_enq_valid = 1'b0;
+		tb_enq_valid = 1'b1;
 		tb_enq_is_reg = 1'b0;
 		tb_enq_is_bus_forward = 1'b0;
 		tb_enq_is_fast_forward = 1'b0;
@@ -1011,7 +1011,7 @@ module operand_collector_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "{i, i, fastfwd5:ca} : fastfwdp24 data ack";
+		sub_test_case = "{i, zero:c, fastfwd5:ca} : zero notif ack, fastfwdp24 data ack";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -1054,8 +1054,59 @@ module operand_collector_tb #(
 	    // bus forward data from PRF
 	    // fast forward data
 	    // operand collection control
-		expected_operand_collected = 1'b0;
+		expected_operand_collected = 1'b1;
 		expected_operand_data = 32'hb4b4b4b4;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "{i, i, zero:ca} : zero data ack";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // issue info
+		tb_enq_valid = 1'b0;
+		tb_enq_is_reg = 1'b0;
+		tb_enq_is_bus_forward = 1'b0;
+		tb_enq_is_fast_forward = 1'b0;
+		tb_enq_fast_forward_pipe = 2'h0;
+		tb_enq_bank = 2'h0;
+	    // reg read data from PRF
+		tb_reg_read_resp_valid = 1'b0;
+		tb_reg_read_resp_data = 32'hdeadbeef;
+	    // bus forward data from PRF
+		tb_bus_forward_data_by_bank = {
+            32'hdeadbeef,
+            32'hdeadbeef,
+            32'hdeadbeef,
+            32'hdeadbeef
+        };
+	    // fast forward data
+		tb_fast_forward_data_valid_by_pipe = 4'b0000;
+		tb_fast_forward_data_by_pipe = {
+            32'hdeadbeef,
+            32'hdeadbeef,
+            32'hdeadbeef,
+            32'hdeadbeef
+        };
+	    // operand collection control
+		tb_operand_collected_ack = 1'b0;
+		tb_operand_data_ack = 1'b1;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // issue info
+	    // reg read data from PRF
+	    // bus forward data from PRF
+	    // fast forward data
+	    // operand collection control
+		expected_operand_collected = 1'b1;
+		expected_operand_data = 32'h00000000;
 
 		check_outputs();
 
@@ -1106,7 +1157,7 @@ module operand_collector_tb #(
 	    // fast forward data
 	    // operand collection control
 		expected_operand_collected = 1'b0;
-		expected_operand_data = 32'hb4b4b4b4; // don't care
+		expected_operand_data = 32'ha5a5a5a5; // don't care
 
 		check_outputs();
 
