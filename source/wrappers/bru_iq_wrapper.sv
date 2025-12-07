@@ -10,7 +10,14 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module bru_iq_wrapper (
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
+module bru_iq_wrapper #(
+	parameter BRU_IQ_ENTRIES = 6,
+	parameter FAST_FORWARD_PIPE_COUNT = 4,
+	parameter LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FAST_FORWARD_PIPE_COUNT)
+) (
 
     // seq
     input logic CLK,
@@ -28,10 +35,10 @@ module bru_iq_wrapper (
 	input logic [19:0] next_iq_enq_imm20,
 	input logic [LOG_PR_COUNT-1:0] next_iq_enq_A_PR,
 	input logic next_iq_enq_A_ready,
-	input logic next_iq_enq_A_unneeded_or_is_zero,
+	input logic next_iq_enq_A_is_zero,
 	input logic [LOG_PR_COUNT-1:0] next_iq_enq_B_PR,
 	input logic next_iq_enq_B_ready,
-	input logic next_iq_enq_B_unneeded_or_is_zero,
+	input logic next_iq_enq_B_is_zero,
 	input logic [LOG_PR_COUNT-1:0] next_iq_enq_dest_PR,
 	input logic [LOG_ROB_ENTRIES-1:0] next_iq_enq_ROB_index,
 
@@ -41,6 +48,10 @@ module bru_iq_wrapper (
     // writeback bus by bank
 	input logic [PRF_BANK_COUNT-1:0] next_WB_bus_valid_by_bank,
 	input logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] next_WB_bus_upper_PR_by_bank,
+
+    // fast forward notifs
+	input logic [FAST_FORWARD_PIPE_COUNT-1:0] next_fast_forward_notif_valid_by_pipe,
+	input logic [FAST_FORWARD_PIPE_COUNT-1:0][LOG_PR_COUNT-1:0] next_fast_forward_notif_PR_by_pipe,
 
     // pipeline issue
 	output logic last_issue_valid,
@@ -52,11 +63,15 @@ module bru_iq_wrapper (
 	output logic [31:0] last_issue_PC,
 	output logic [31:0] last_issue_pred_PC,
 	output logic [19:0] last_issue_imm20,
-	output logic last_issue_A_forward,
-	output logic last_issue_A_unneeded_or_is_zero,
+	output logic last_issue_A_is_reg,
+	output logic last_issue_A_is_bus_forward,
+	output logic last_issue_A_is_fast_forward,
+	output logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0] last_issue_A_fast_forward_pipe,
 	output logic [LOG_PRF_BANK_COUNT-1:0] last_issue_A_bank,
-	output logic last_issue_B_forward,
-	output logic last_issue_B_unneeded_or_is_zero,
+	output logic last_issue_B_is_reg,
+	output logic last_issue_B_is_bus_forward,
+	output logic last_issue_B_is_fast_forward,
+	output logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0] last_issue_B_fast_forward_pipe,
 	output logic [LOG_PRF_BANK_COUNT-1:0] last_issue_B_bank,
 	output logic [LOG_PR_COUNT-1:0] last_issue_dest_PR,
 	output logic [LOG_ROB_ENTRIES-1:0] last_issue_ROB_index,
@@ -86,10 +101,10 @@ module bru_iq_wrapper (
 	logic [19:0] iq_enq_imm20;
 	logic [LOG_PR_COUNT-1:0] iq_enq_A_PR;
 	logic iq_enq_A_ready;
-	logic iq_enq_A_unneeded_or_is_zero;
+	logic iq_enq_A_is_zero;
 	logic [LOG_PR_COUNT-1:0] iq_enq_B_PR;
 	logic iq_enq_B_ready;
-	logic iq_enq_B_unneeded_or_is_zero;
+	logic iq_enq_B_is_zero;
 	logic [LOG_PR_COUNT-1:0] iq_enq_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] iq_enq_ROB_index;
 
@@ -99,6 +114,10 @@ module bru_iq_wrapper (
     // writeback bus by bank
 	logic [PRF_BANK_COUNT-1:0] WB_bus_valid_by_bank;
 	logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] WB_bus_upper_PR_by_bank;
+
+    // fast forward notifs
+	logic [FAST_FORWARD_PIPE_COUNT-1:0] fast_forward_notif_valid_by_pipe;
+	logic [FAST_FORWARD_PIPE_COUNT-1:0][LOG_PR_COUNT-1:0] fast_forward_notif_PR_by_pipe;
 
     // pipeline issue
 	logic issue_valid;
@@ -110,11 +129,15 @@ module bru_iq_wrapper (
 	logic [31:0] issue_PC;
 	logic [31:0] issue_pred_PC;
 	logic [19:0] issue_imm20;
-	logic issue_A_forward;
-	logic issue_A_unneeded_or_is_zero;
+	logic issue_A_is_reg;
+	logic issue_A_is_bus_forward;
+	logic issue_A_is_fast_forward;
+	logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0] issue_A_fast_forward_pipe;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_A_bank;
-	logic issue_B_forward;
-	logic issue_B_unneeded_or_is_zero;
+	logic issue_B_is_reg;
+	logic issue_B_is_bus_forward;
+	logic issue_B_is_fast_forward;
+	logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0] issue_B_fast_forward_pipe;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_B_bank;
 	logic [LOG_PR_COUNT-1:0] issue_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] issue_ROB_index;
@@ -131,7 +154,11 @@ module bru_iq_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    bru_iq #(.BRU_IQ_ENTRIES(BRU_IQ_ENTRIES)) WRAPPED_MODULE (.*);
+	bru_iq #(
+		.BRU_IQ_ENTRIES(BRU_IQ_ENTRIES),
+		.FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT),
+		.LOG_FAST_FORWARD_PIPE_COUNT(LOG_FAST_FORWARD_PIPE_COUNT)
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -151,10 +178,10 @@ module bru_iq_wrapper (
 			iq_enq_imm20 <= '0;
 			iq_enq_A_PR <= '0;
 			iq_enq_A_ready <= '0;
-			iq_enq_A_unneeded_or_is_zero <= '0;
+			iq_enq_A_is_zero <= '0;
 			iq_enq_B_PR <= '0;
 			iq_enq_B_ready <= '0;
-			iq_enq_B_unneeded_or_is_zero <= '0;
+			iq_enq_B_is_zero <= '0;
 			iq_enq_dest_PR <= '0;
 			iq_enq_ROB_index <= '0;
 
@@ -164,6 +191,10 @@ module bru_iq_wrapper (
 		    // writeback bus by bank
 			WB_bus_valid_by_bank <= '0;
 			WB_bus_upper_PR_by_bank <= '0;
+
+		    // fast forward notifs
+			fast_forward_notif_valid_by_pipe <= '0;
+			fast_forward_notif_PR_by_pipe <= '0;
 
 		    // pipeline issue
 			last_issue_valid <= '0;
@@ -175,11 +206,15 @@ module bru_iq_wrapper (
 			last_issue_PC <= '0;
 			last_issue_pred_PC <= '0;
 			last_issue_imm20 <= '0;
-			last_issue_A_forward <= '0;
-			last_issue_A_unneeded_or_is_zero <= '0;
+			last_issue_A_is_reg <= '0;
+			last_issue_A_is_bus_forward <= '0;
+			last_issue_A_is_fast_forward <= '0;
+			last_issue_A_fast_forward_pipe <= '0;
 			last_issue_A_bank <= '0;
-			last_issue_B_forward <= '0;
-			last_issue_B_unneeded_or_is_zero <= '0;
+			last_issue_B_is_reg <= '0;
+			last_issue_B_is_bus_forward <= '0;
+			last_issue_B_is_fast_forward <= '0;
+			last_issue_B_fast_forward_pipe <= '0;
 			last_issue_B_bank <= '0;
 			last_issue_dest_PR <= '0;
 			last_issue_ROB_index <= '0;
@@ -207,10 +242,10 @@ module bru_iq_wrapper (
 			iq_enq_imm20 <= next_iq_enq_imm20;
 			iq_enq_A_PR <= next_iq_enq_A_PR;
 			iq_enq_A_ready <= next_iq_enq_A_ready;
-			iq_enq_A_unneeded_or_is_zero <= next_iq_enq_A_unneeded_or_is_zero;
+			iq_enq_A_is_zero <= next_iq_enq_A_is_zero;
 			iq_enq_B_PR <= next_iq_enq_B_PR;
 			iq_enq_B_ready <= next_iq_enq_B_ready;
-			iq_enq_B_unneeded_or_is_zero <= next_iq_enq_B_unneeded_or_is_zero;
+			iq_enq_B_is_zero <= next_iq_enq_B_is_zero;
 			iq_enq_dest_PR <= next_iq_enq_dest_PR;
 			iq_enq_ROB_index <= next_iq_enq_ROB_index;
 
@@ -220,6 +255,10 @@ module bru_iq_wrapper (
 		    // writeback bus by bank
 			WB_bus_valid_by_bank <= next_WB_bus_valid_by_bank;
 			WB_bus_upper_PR_by_bank <= next_WB_bus_upper_PR_by_bank;
+
+		    // fast forward notifs
+			fast_forward_notif_valid_by_pipe <= next_fast_forward_notif_valid_by_pipe;
+			fast_forward_notif_PR_by_pipe <= next_fast_forward_notif_PR_by_pipe;
 
 		    // pipeline issue
 			last_issue_valid <= issue_valid;
@@ -231,11 +270,15 @@ module bru_iq_wrapper (
 			last_issue_PC <= issue_PC;
 			last_issue_pred_PC <= issue_pred_PC;
 			last_issue_imm20 <= issue_imm20;
-			last_issue_A_forward <= issue_A_forward;
-			last_issue_A_unneeded_or_is_zero <= issue_A_unneeded_or_is_zero;
+			last_issue_A_is_reg <= issue_A_is_reg;
+			last_issue_A_is_bus_forward <= issue_A_is_bus_forward;
+			last_issue_A_is_fast_forward <= issue_A_is_fast_forward;
+			last_issue_A_fast_forward_pipe <= issue_A_fast_forward_pipe;
 			last_issue_A_bank <= issue_A_bank;
-			last_issue_B_forward <= issue_B_forward;
-			last_issue_B_unneeded_or_is_zero <= issue_B_unneeded_or_is_zero;
+			last_issue_B_is_reg <= issue_B_is_reg;
+			last_issue_B_is_bus_forward <= issue_B_is_bus_forward;
+			last_issue_B_is_fast_forward <= issue_B_is_fast_forward;
+			last_issue_B_fast_forward_pipe <= issue_B_fast_forward_pipe;
 			last_issue_B_bank <= issue_B_bank;
 			last_issue_dest_PR <= issue_dest_PR;
 			last_issue_ROB_index <= issue_ROB_index;

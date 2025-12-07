@@ -1,7 +1,7 @@
 /*
-    Filename: alu_reg_mdu_iq.sv
+    Filename: alu_reg_mdu_iq_tb.sv
     Author: zlagpacan
-    Description: Testbench for alu_reg_mdu_iq module. 
+    Description: Testbench for alu_reg_mdu_iq module.
     Spec: LOROF/spec/design/alu_reg_mdu_iq.md
 */
 
@@ -13,7 +13,11 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-module alu_reg_mdu_iq_tb ();
+module alu_reg_mdu_iq_tb #(
+	parameter ALU_REG_MDU_IQ_ENTRIES = 12,
+	parameter FAST_FORWARD_PIPE_COUNT = 4,
+	parameter LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FAST_FORWARD_PIPE_COUNT)
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:
@@ -56,6 +60,10 @@ module alu_reg_mdu_iq_tb ();
 	logic [PRF_BANK_COUNT-1:0] tb_WB_bus_valid_by_bank;
 	logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] tb_WB_bus_upper_PR_by_bank;
 
+    // fast forward notifs
+	logic [FAST_FORWARD_PIPE_COUNT-1:0] tb_fast_forward_notif_valid_by_pipe;
+	logic [FAST_FORWARD_PIPE_COUNT-1:0][LOG_PR_COUNT-1:0] tb_fast_forward_notif_PR_by_pipe;
+
     // ALU reg pipeline issue
 	logic DUT_alu_reg_issue_valid, expected_alu_reg_issue_valid;
 
@@ -64,11 +72,15 @@ module alu_reg_mdu_iq_tb ();
 
     // shared issue info
 	logic [3:0] DUT_issue_op, expected_issue_op;
-	logic DUT_issue_A_forward, expected_issue_A_forward;
-	logic DUT_issue_A_is_zero, expected_issue_A_is_zero;
+	logic DUT_issue_A_is_reg, expected_issue_A_is_reg;
+	logic DUT_issue_A_is_bus_forward, expected_issue_A_is_bus_forward;
+	logic DUT_issue_A_is_fast_forward, expected_issue_A_is_fast_forward;
+	logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0] DUT_issue_A_fast_forward_pipe, expected_issue_A_fast_forward_pipe;
 	logic [LOG_PR_COUNT-1:0] DUT_issue_A_PR, expected_issue_A_PR;
-	logic DUT_issue_B_forward, expected_issue_B_forward;
-	logic DUT_issue_B_is_zero, expected_issue_B_is_zero;
+	logic DUT_issue_B_is_reg, expected_issue_B_is_reg;
+	logic DUT_issue_B_is_bus_forward, expected_issue_B_is_bus_forward;
+	logic DUT_issue_B_is_fast_forward, expected_issue_B_is_fast_forward;
+	logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0] DUT_issue_B_fast_forward_pipe, expected_issue_B_fast_forward_pipe;
 	logic [LOG_PR_COUNT-1:0] DUT_issue_B_PR, expected_issue_B_PR;
 	logic [LOG_PR_COUNT-1:0] DUT_issue_dest_PR, expected_issue_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_issue_ROB_index, expected_issue_ROB_index;
@@ -89,7 +101,9 @@ module alu_reg_mdu_iq_tb ();
     // DUT instantiation:
 
 	alu_reg_mdu_iq #(
-		.ALU_REG_MDU_IQ_ENTRIES(8)
+		.ALU_REG_MDU_IQ_ENTRIES(ALU_REG_MDU_IQ_ENTRIES),
+		.FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT),
+		.LOG_FAST_FORWARD_PIPE_COUNT(LOG_FAST_FORWARD_PIPE_COUNT)
 	) DUT (
 		// seq
 		.CLK(CLK),
@@ -116,6 +130,10 @@ module alu_reg_mdu_iq_tb ();
 		.WB_bus_valid_by_bank(tb_WB_bus_valid_by_bank),
 		.WB_bus_upper_PR_by_bank(tb_WB_bus_upper_PR_by_bank),
 
+	    // fast forward notifs
+		.fast_forward_notif_valid_by_pipe(tb_fast_forward_notif_valid_by_pipe),
+		.fast_forward_notif_PR_by_pipe(tb_fast_forward_notif_PR_by_pipe),
+
 	    // ALU reg pipeline issue
 		.alu_reg_issue_valid(DUT_alu_reg_issue_valid),
 
@@ -124,11 +142,15 @@ module alu_reg_mdu_iq_tb ();
 
 	    // shared issue info
 		.issue_op(DUT_issue_op),
-		.issue_A_forward(DUT_issue_A_forward),
-		.issue_A_is_zero(DUT_issue_A_is_zero),
+		.issue_A_is_reg(DUT_issue_A_is_reg),
+		.issue_A_is_bus_forward(DUT_issue_A_is_bus_forward),
+		.issue_A_is_fast_forward(DUT_issue_A_is_fast_forward),
+		.issue_A_fast_forward_pipe(DUT_issue_A_fast_forward_pipe),
 		.issue_A_PR(DUT_issue_A_PR),
-		.issue_B_forward(DUT_issue_B_forward),
-		.issue_B_is_zero(DUT_issue_B_is_zero),
+		.issue_B_is_reg(DUT_issue_B_is_reg),
+		.issue_B_is_bus_forward(DUT_issue_B_is_bus_forward),
+		.issue_B_is_fast_forward(DUT_issue_B_is_fast_forward),
+		.issue_B_fast_forward_pipe(DUT_issue_B_fast_forward_pipe),
 		.issue_B_PR(DUT_issue_B_PR),
 		.issue_dest_PR(DUT_issue_dest_PR),
 		.issue_ROB_index(DUT_issue_ROB_index),
@@ -179,16 +201,30 @@ module alu_reg_mdu_iq_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_A_forward !== DUT_issue_A_forward) begin
-			$display("TB ERROR: expected_issue_A_forward (%h) != DUT_issue_A_forward (%h)",
-				expected_issue_A_forward, DUT_issue_A_forward);
+		if (expected_issue_A_is_reg !== DUT_issue_A_is_reg) begin
+			$display("TB ERROR: expected_issue_A_is_reg (%h) != DUT_issue_A_is_reg (%h)",
+				expected_issue_A_is_reg, DUT_issue_A_is_reg);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_A_is_zero !== DUT_issue_A_is_zero) begin
-			$display("TB ERROR: expected_issue_A_is_zero (%h) != DUT_issue_A_is_zero (%h)",
-				expected_issue_A_is_zero, DUT_issue_A_is_zero);
+		if (expected_issue_A_is_bus_forward !== DUT_issue_A_is_bus_forward) begin
+			$display("TB ERROR: expected_issue_A_is_bus_forward (%h) != DUT_issue_A_is_bus_forward (%h)",
+				expected_issue_A_is_bus_forward, DUT_issue_A_is_bus_forward);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_A_is_fast_forward !== DUT_issue_A_is_fast_forward) begin
+			$display("TB ERROR: expected_issue_A_is_fast_forward (%h) != DUT_issue_A_is_fast_forward (%h)",
+				expected_issue_A_is_fast_forward, DUT_issue_A_is_fast_forward);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_A_fast_forward_pipe !== DUT_issue_A_fast_forward_pipe) begin
+			$display("TB ERROR: expected_issue_A_fast_forward_pipe (%h) != DUT_issue_A_fast_forward_pipe (%h)",
+				expected_issue_A_fast_forward_pipe, DUT_issue_A_fast_forward_pipe);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -200,16 +236,30 @@ module alu_reg_mdu_iq_tb ();
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_B_forward !== DUT_issue_B_forward) begin
-			$display("TB ERROR: expected_issue_B_forward (%h) != DUT_issue_B_forward (%h)",
-				expected_issue_B_forward, DUT_issue_B_forward);
+		if (expected_issue_B_is_reg !== DUT_issue_B_is_reg) begin
+			$display("TB ERROR: expected_issue_B_is_reg (%h) != DUT_issue_B_is_reg (%h)",
+				expected_issue_B_is_reg, DUT_issue_B_is_reg);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_B_is_zero !== DUT_issue_B_is_zero) begin
-			$display("TB ERROR: expected_issue_B_is_zero (%h) != DUT_issue_B_is_zero (%h)",
-				expected_issue_B_is_zero, DUT_issue_B_is_zero);
+		if (expected_issue_B_is_bus_forward !== DUT_issue_B_is_bus_forward) begin
+			$display("TB ERROR: expected_issue_B_is_bus_forward (%h) != DUT_issue_B_is_bus_forward (%h)",
+				expected_issue_B_is_bus_forward, DUT_issue_B_is_bus_forward);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_B_is_fast_forward !== DUT_issue_B_is_fast_forward) begin
+			$display("TB ERROR: expected_issue_B_is_fast_forward (%h) != DUT_issue_B_is_fast_forward (%h)",
+				expected_issue_B_is_fast_forward, DUT_issue_B_is_fast_forward);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_B_fast_forward_pipe !== DUT_issue_B_fast_forward_pipe) begin
+			$display("TB ERROR: expected_issue_B_fast_forward_pipe (%h) != DUT_issue_B_fast_forward_pipe (%h)",
+				expected_issue_B_fast_forward_pipe, DUT_issue_B_fast_forward_pipe);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -286,29 +336,32 @@ module alu_reg_mdu_iq_tb ();
 		// reset
 		nRST = 1'b0;
 	    // op enqueue to issue queue
-		tb_iq_enq_valid = 1'b0;
-		tb_iq_enq_is_alu_reg = 1'b0;
-		tb_iq_enq_is_mdu = 1'b0;
-		tb_iq_enq_op = 4'b0000;
-		tb_iq_enq_A_PR = 7'h0;
-		tb_iq_enq_A_ready = 1'b0;
-		tb_iq_enq_A_is_zero = 1'b0;
-		tb_iq_enq_B_PR = 7'h0;
-		tb_iq_enq_B_ready = 1'b0;
-		tb_iq_enq_B_is_zero = 1'b0;
-		tb_iq_enq_dest_PR = 7'h0;
-		tb_iq_enq_ROB_index = 7'h0;
+		tb_iq_enq_valid = '0;
+		tb_iq_enq_is_alu_reg = '0;
+		tb_iq_enq_is_mdu = '0;
+		tb_iq_enq_op = '0;
+		tb_iq_enq_A_PR = '0;
+		tb_iq_enq_A_ready = '0;
+		tb_iq_enq_A_is_zero = '0;
+		tb_iq_enq_B_PR = '0;
+		tb_iq_enq_B_ready = '0;
+		tb_iq_enq_B_is_zero = '0;
+		tb_iq_enq_dest_PR = '0;
+		tb_iq_enq_ROB_index = '0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 4'b0000;
-		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+		tb_WB_bus_valid_by_bank = '0;
+		tb_WB_bus_upper_PR_by_bank = '0;
+	    // fast forward notifs
+		tb_fast_forward_notif_valid_by_pipe = '0;
+		tb_fast_forward_notif_PR_by_pipe = '0;
 	    // ALU reg pipeline issue
 	    // MDU pipeline issue
 	    // shared issue info
 	    // ALU reg pipeline feedback
-		tb_alu_reg_issue_ready = 1'b1;
+		tb_alu_reg_issue_ready = '0;
 	    // MDU pipeline feedback
-		tb_mdu_issue_ready = 1'b1;
+		tb_mdu_issue_ready = '0;
 	    // reg read req to PRF
 
 		@(posedge CLK); #(PERIOD/10);
@@ -319,27 +372,32 @@ module alu_reg_mdu_iq_tb ();
 	    // issue queue enqueue feedback
 		expected_iq_enq_ready = 1'b1;
 	    // writeback bus by bank
+	    // fast forward notifs
 	    // ALU reg pipeline issue
-		expected_alu_reg_issue_valid = 1'b0;
+		expected_alu_reg_issue_valid = '0;
 	    // MDU pipeline issue
-		expected_mdu_issue_valid = 1'b0;
+		expected_mdu_issue_valid = '0;
 	    // shared issue info
-		expected_issue_op = 4'b0000;
-		expected_issue_A_forward = 1'b0;
-		expected_issue_A_is_zero = 1'b0;
-		expected_issue_A_PR = 7'h00;
-		expected_issue_B_forward = 1'b0;
-		expected_issue_B_is_zero = 1'b0;
-		expected_issue_B_PR = 7'h00;
-		expected_issue_dest_PR = 7'h0;
-		expected_issue_ROB_index = 7'h0;
+		expected_issue_op = '0;
+		expected_issue_A_is_reg = '0;
+		expected_issue_A_is_bus_forward = '0;
+		expected_issue_A_is_fast_forward = '0;
+		expected_issue_A_fast_forward_pipe = '0;
+		expected_issue_A_PR = '0;
+		expected_issue_B_is_reg = '0;
+		expected_issue_B_is_bus_forward = '0;
+		expected_issue_B_is_fast_forward = '0;
+		expected_issue_B_fast_forward_pipe = '0;
+		expected_issue_B_PR = '0;
+		expected_issue_dest_PR = '0;
+		expected_issue_ROB_index = '0;
 	    // ALU reg pipeline feedback
 	    // MDU pipeline feedback
 	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b0;
-		expected_PRF_req_A_PR = 7'h0;
-		expected_PRF_req_B_valid = 1'b0;
-		expected_PRF_req_B_PR = 7'h0;
+		expected_PRF_req_A_valid = '0;
+		expected_PRF_req_A_PR = '0;
+		expected_PRF_req_B_valid = '0;
+		expected_PRF_req_B_PR = '0;
 
 		check_outputs();
 
@@ -350,29 +408,32 @@ module alu_reg_mdu_iq_tb ();
 		// reset
 		nRST = 1'b1;
 	    // op enqueue to issue queue
-		tb_iq_enq_valid = 1'b0;
-		tb_iq_enq_is_alu_reg = 1'b0;
-		tb_iq_enq_is_mdu = 1'b0;
-		tb_iq_enq_op = 4'b0000;
-		tb_iq_enq_A_PR = 7'h0;
-		tb_iq_enq_A_ready = 1'b0;
-		tb_iq_enq_A_is_zero = 1'b0;
-		tb_iq_enq_B_PR = 7'h0;
-		tb_iq_enq_B_ready = 1'b0;
-		tb_iq_enq_B_is_zero = 1'b0;
-		tb_iq_enq_dest_PR = 7'h0;
-		tb_iq_enq_ROB_index = 7'h0;
+		tb_iq_enq_valid = '0;
+		tb_iq_enq_is_alu_reg = '0;
+		tb_iq_enq_is_mdu = '0;
+		tb_iq_enq_op = '0;
+		tb_iq_enq_A_PR = '0;
+		tb_iq_enq_A_ready = '0;
+		tb_iq_enq_A_is_zero = '0;
+		tb_iq_enq_B_PR = '0;
+		tb_iq_enq_B_ready = '0;
+		tb_iq_enq_B_is_zero = '0;
+		tb_iq_enq_dest_PR = '0;
+		tb_iq_enq_ROB_index = '0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 4'b0000;
-		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+		tb_WB_bus_valid_by_bank = '0;
+		tb_WB_bus_upper_PR_by_bank = '0;
+	    // fast forward notifs
+		tb_fast_forward_notif_valid_by_pipe = '0;
+		tb_fast_forward_notif_PR_by_pipe = '0;
 	    // ALU reg pipeline issue
 	    // MDU pipeline issue
 	    // shared issue info
 	    // ALU reg pipeline feedback
-		tb_alu_reg_issue_ready = 1'b1;
+		tb_alu_reg_issue_ready = '0;
 	    // MDU pipeline feedback
-		tb_mdu_issue_ready = 1'b1;
+		tb_mdu_issue_ready = '0;
 	    // reg read req to PRF
 
 		@(posedge CLK); #(PERIOD/10);
@@ -383,27 +444,32 @@ module alu_reg_mdu_iq_tb ();
 	    // issue queue enqueue feedback
 		expected_iq_enq_ready = 1'b1;
 	    // writeback bus by bank
+	    // fast forward notifs
 	    // ALU reg pipeline issue
-		expected_alu_reg_issue_valid = 1'b0;
+		expected_alu_reg_issue_valid = '0;
 	    // MDU pipeline issue
-		expected_mdu_issue_valid = 1'b0;
+		expected_mdu_issue_valid = '0;
 	    // shared issue info
-		expected_issue_op = 4'b0000;
-		expected_issue_A_forward = 1'b0;
-		expected_issue_A_is_zero = 1'b0;
-		expected_issue_A_PR = 7'h00;
-		expected_issue_B_forward = 1'b0;
-		expected_issue_B_is_zero = 1'b0;
-		expected_issue_B_PR = 7'h00;
-		expected_issue_dest_PR = 7'h0;
-		expected_issue_ROB_index = 7'h0;
+		expected_issue_op = '0;
+		expected_issue_A_is_reg = '0;
+		expected_issue_A_is_bus_forward = '0;
+		expected_issue_A_is_fast_forward = '0;
+		expected_issue_A_fast_forward_pipe = '0;
+		expected_issue_A_PR = '0;
+		expected_issue_B_is_reg = '0;
+		expected_issue_B_is_bus_forward = '0;
+		expected_issue_B_is_fast_forward = '0;
+		expected_issue_B_fast_forward_pipe = '0;
+		expected_issue_B_PR = '0;
+		expected_issue_dest_PR = '0;
+		expected_issue_ROB_index = '0;
 	    // ALU reg pipeline feedback
 	    // MDU pipeline feedback
 	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b0;
-		expected_PRF_req_A_PR = 7'h0;
-		expected_PRF_req_B_valid = 1'b0;
-		expected_PRF_req_B_PR = 7'h0;
+		expected_PRF_req_A_valid = '0;
+		expected_PRF_req_A_PR = '0;
+		expected_PRF_req_B_valid = '0;
+		expected_PRF_req_B_PR = '0;
 
 		check_outputs();
 
@@ -422,29 +488,32 @@ module alu_reg_mdu_iq_tb ();
 		// reset
 		nRST = 1'b1;
 	    // op enqueue to issue queue
-		tb_iq_enq_valid = 1'b0;
-		tb_iq_enq_is_alu_reg = 1'b0;
-		tb_iq_enq_is_mdu = 1'b0;
-		tb_iq_enq_op = 4'b0000;
-		tb_iq_enq_A_PR = 7'h0;
-		tb_iq_enq_A_ready = 1'b0;
-		tb_iq_enq_A_is_zero = 1'b0;
-		tb_iq_enq_B_PR = 7'h0;
-		tb_iq_enq_B_ready = 1'b0;
-		tb_iq_enq_B_is_zero = 1'b0;
-		tb_iq_enq_dest_PR = 7'h0;
-		tb_iq_enq_ROB_index = 7'h0;
+		tb_iq_enq_valid = '0;
+		tb_iq_enq_is_alu_reg = '0;
+		tb_iq_enq_is_mdu = '0;
+		tb_iq_enq_op = '0;
+		tb_iq_enq_A_PR = '0;
+		tb_iq_enq_A_ready = '0;
+		tb_iq_enq_A_is_zero = '0;
+		tb_iq_enq_B_PR = '0;
+		tb_iq_enq_B_ready = '0;
+		tb_iq_enq_B_is_zero = '0;
+		tb_iq_enq_dest_PR = '0;
+		tb_iq_enq_ROB_index = '0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 4'b0000;
-		tb_WB_bus_upper_PR_by_bank = {5'h0, 5'h0, 5'h0, 5'h0};
+		tb_WB_bus_valid_by_bank = '0;
+		tb_WB_bus_upper_PR_by_bank = '0;
+	    // fast forward notifs
+		tb_fast_forward_notif_valid_by_pipe = '0;
+		tb_fast_forward_notif_PR_by_pipe = '0;
 	    // ALU reg pipeline issue
 	    // MDU pipeline issue
 	    // shared issue info
 	    // ALU reg pipeline feedback
-		tb_alu_reg_issue_ready = 1'b1;
+		tb_alu_reg_issue_ready = '0;
 	    // MDU pipeline feedback
-		tb_mdu_issue_ready = 1'b1;
+		tb_mdu_issue_ready = '0;
 	    // reg read req to PRF
 
 		@(negedge CLK);
@@ -455,34 +524,39 @@ module alu_reg_mdu_iq_tb ();
 	    // issue queue enqueue feedback
 		expected_iq_enq_ready = 1'b1;
 	    // writeback bus by bank
+	    // fast forward notifs
 	    // ALU reg pipeline issue
-		expected_alu_reg_issue_valid = 1'b0;
+		expected_alu_reg_issue_valid = '0;
 	    // MDU pipeline issue
-		expected_mdu_issue_valid = 1'b0;
+		expected_mdu_issue_valid = '0;
 	    // shared issue info
-		expected_issue_op = 4'b0000;
-		expected_issue_A_forward = 1'b0;
-		expected_issue_A_is_zero = 1'b0;
-		expected_issue_A_PR = 7'h00;
-		expected_issue_B_forward = 1'b0;
-		expected_issue_B_is_zero = 1'b0;
-		expected_issue_B_PR = 7'h00;
-		expected_issue_dest_PR = 7'h0;
-		expected_issue_ROB_index = 7'h0;
+		expected_issue_op = '0;
+		expected_issue_A_is_reg = '0;
+		expected_issue_A_is_bus_forward = '0;
+		expected_issue_A_is_fast_forward = '0;
+		expected_issue_A_fast_forward_pipe = '0;
+		expected_issue_A_PR = '0;
+		expected_issue_B_is_reg = '0;
+		expected_issue_B_is_bus_forward = '0;
+		expected_issue_B_is_fast_forward = '0;
+		expected_issue_B_fast_forward_pipe = '0;
+		expected_issue_B_PR = '0;
+		expected_issue_dest_PR = '0;
+		expected_issue_ROB_index = '0;
 	    // ALU reg pipeline feedback
 	    // MDU pipeline feedback
 	    // reg read req to PRF
-		expected_PRF_req_A_valid = 1'b0;
-		expected_PRF_req_A_PR = 7'h0;
-		expected_PRF_req_B_valid = 1'b0;
-		expected_PRF_req_B_PR = 7'h0;
+		expected_PRF_req_A_valid = '0;
+		expected_PRF_req_A_PR = '0;
+		expected_PRF_req_B_valid = '0;
+		expected_PRF_req_B_PR = '0;
 
 		check_outputs();
 
         // ------------------------------------------------------------
         // finish:
         @(posedge CLK); #(PERIOD/10);
-        
+
         test_case = "finish";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
@@ -491,7 +565,7 @@ module alu_reg_mdu_iq_tb ();
 
         $display();
         if (num_errors) begin
-            $display("FAIL: %d tests fail", num_errors);
+            $display("FAIL: %0d tests fail", num_errors);
         end
         else begin
             $display("SUCCESS: all tests pass");

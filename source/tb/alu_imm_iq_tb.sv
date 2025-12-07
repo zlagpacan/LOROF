@@ -251,24 +251,24 @@ module alu_imm_iq_tb #(
 		// reset
 		nRST = 1'b0;
 	    // op enqueue to issue queue
-		tb_iq_enq_valid = 
-		tb_iq_enq_op = 
-		tb_iq_enq_imm12 = 
-		tb_iq_enq_A_PR = 
-		tb_iq_enq_A_ready = 
-		tb_iq_enq_A_is_zero = 
-		tb_iq_enq_dest_PR = 
-		tb_iq_enq_ROB_index = 
+		tb_iq_enq_valid = '0;
+		tb_iq_enq_op = '0;
+		tb_iq_enq_imm12 = '0;
+		tb_iq_enq_A_PR = '0;
+		tb_iq_enq_A_ready = '0;
+		tb_iq_enq_A_is_zero = '0;
+		tb_iq_enq_dest_PR = '0;
+		tb_iq_enq_ROB_index = '0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 
-		tb_WB_bus_upper_PR_by_bank = 
+		tb_WB_bus_valid_by_bank = '0;
+		tb_WB_bus_upper_PR_by_bank = '0;
 	    // fast forward notifs
-		tb_fast_forward_notif_valid_by_pipe = 
-		tb_fast_forward_notif_PR_by_pipe = 
+		tb_fast_forward_notif_valid_by_pipe = '0;
+		tb_fast_forward_notif_PR_by_pipe = '0;
 	    // pipeline issue
 	    // pipeline feedback
-		tb_issue_ready = 
+		tb_issue_ready = '0;
 	    // reg read req to PRF
 
 		@(posedge CLK); #(PERIOD/10);
@@ -277,27 +277,26 @@ module alu_imm_iq_tb #(
 
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
-		expected_iq_enq_ready = 
+		expected_iq_enq_ready = 1'b1;
 	    // writeback bus by bank
 	    // fast forward notifs
 	    // pipeline issue
-		expected_issue_valid = 
-		expected_issue_op = 
-		expected_issue_imm12 = 
-		expected_issue_A_is_reg = 
-		expected_issue_A_is_bus_forward = 
-		expected_issue_A_is_fast_forward = 
-		expected_issue_A_fast_forward_pipe = 
-		expected_issue_A_bank = 
-		expected_issue_dest_PR = 
-		expected_issue_ROB_index = 
+		expected_issue_valid = '0;
+		expected_issue_op = '0;
+		expected_issue_imm12 = '0;
+		expected_issue_A_is_reg = '0;
+		expected_issue_A_is_bus_forward = '0;
+		expected_issue_A_is_fast_forward = '0;
+		expected_issue_A_fast_forward_pipe = '0;
+		expected_issue_A_bank = '0;
+		expected_issue_dest_PR = '0;
+		expected_issue_ROB_index = '0;
 	    // pipeline feedback
 	    // reg read req to PRF
-		expected_PRF_req_A_valid = 
-		expected_PRF_req_A_PR = 
+		expected_PRF_req_A_valid = '0;
+		expected_PRF_req_A_PR = '0;
 
 		check_outputs();
-fill in ^
 
         // inputs:
         sub_test_case = "deassert reset";
@@ -306,24 +305,24 @@ fill in ^
 		// reset
 		nRST = 1'b1;
 	    // op enqueue to issue queue
-		tb_iq_enq_valid = 
-		tb_iq_enq_op = 
-		tb_iq_enq_imm12 = 
-		tb_iq_enq_A_PR = 
-		tb_iq_enq_A_ready = 
-		tb_iq_enq_A_is_zero = 
-		tb_iq_enq_dest_PR = 
-		tb_iq_enq_ROB_index = 
+		tb_iq_enq_valid = '0;
+		tb_iq_enq_op = '0;
+		tb_iq_enq_imm12 = '0;
+		tb_iq_enq_A_PR = '0;
+		tb_iq_enq_A_ready = '0;
+		tb_iq_enq_A_is_zero = '0;
+		tb_iq_enq_dest_PR = '0;
+		tb_iq_enq_ROB_index = '0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 
-		tb_WB_bus_upper_PR_by_bank = 
+		tb_WB_bus_valid_by_bank = '0;
+		tb_WB_bus_upper_PR_by_bank = '0;
 	    // fast forward notifs
-		tb_fast_forward_notif_valid_by_pipe = 
-		tb_fast_forward_notif_PR_by_pipe = 
+		tb_fast_forward_notif_valid_by_pipe = '0;
+		tb_fast_forward_notif_PR_by_pipe = '0;
 	    // pipeline issue
 	    // pipeline feedback
-		tb_issue_ready = 
+		tb_issue_ready = '0;
 	    // reg read req to PRF
 
 		@(posedge CLK); #(PERIOD/10);
@@ -332,27 +331,26 @@ fill in ^
 
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
-		expected_iq_enq_ready = 
+		expected_iq_enq_ready = 1'b1;
 	    // writeback bus by bank
 	    // fast forward notifs
 	    // pipeline issue
-		expected_issue_valid = 
-		expected_issue_op = 
-		expected_issue_imm12 = 
-		expected_issue_A_is_reg = 
-		expected_issue_A_is_bus_forward = 
-		expected_issue_A_is_fast_forward = 
-		expected_issue_A_fast_forward_pipe = 
-		expected_issue_A_bank = 
-		expected_issue_dest_PR = 
-		expected_issue_ROB_index = 
+		expected_issue_valid = '0;
+		expected_issue_op = '0;
+		expected_issue_imm12 = '0;
+		expected_issue_A_is_reg = '0;
+		expected_issue_A_is_bus_forward = '0;
+		expected_issue_A_is_fast_forward = '0;
+		expected_issue_A_fast_forward_pipe = '0;
+		expected_issue_A_bank = '0;
+		expected_issue_dest_PR = '0;
+		expected_issue_ROB_index = '0;
 	    // pipeline feedback
 	    // reg read req to PRF
-		expected_PRF_req_A_valid = 
-		expected_PRF_req_A_PR = 
+		expected_PRF_req_A_valid = '0;
+		expected_PRF_req_A_PR = '0;
 
 		check_outputs();
-fill in ^
 
         // ------------------------------------------------------------
         // default:
@@ -369,24 +367,24 @@ fill in ^
 		// reset
 		nRST = 1'b1;
 	    // op enqueue to issue queue
-		tb_iq_enq_valid = 
-		tb_iq_enq_op = 
-		tb_iq_enq_imm12 = 
-		tb_iq_enq_A_PR = 
-		tb_iq_enq_A_ready = 
-		tb_iq_enq_A_is_zero = 
-		tb_iq_enq_dest_PR = 
-		tb_iq_enq_ROB_index = 
+		tb_iq_enq_valid = '0;
+		tb_iq_enq_op = '0;
+		tb_iq_enq_imm12 = '0;
+		tb_iq_enq_A_PR = '0;
+		tb_iq_enq_A_ready = '0;
+		tb_iq_enq_A_is_zero = '0;
+		tb_iq_enq_dest_PR = '0;
+		tb_iq_enq_ROB_index = '0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = 
-		tb_WB_bus_upper_PR_by_bank = 
+		tb_WB_bus_valid_by_bank = '0;
+		tb_WB_bus_upper_PR_by_bank = '0;
 	    // fast forward notifs
-		tb_fast_forward_notif_valid_by_pipe = 
-		tb_fast_forward_notif_PR_by_pipe = 
+		tb_fast_forward_notif_valid_by_pipe = '0;
+		tb_fast_forward_notif_PR_by_pipe = '0;
 	    // pipeline issue
 	    // pipeline feedback
-		tb_issue_ready = 
+		tb_issue_ready = '0;
 	    // reg read req to PRF
 
 		@(negedge CLK);
@@ -395,27 +393,26 @@ fill in ^
 
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
-		expected_iq_enq_ready = 
+		expected_iq_enq_ready = 1'b1;
 	    // writeback bus by bank
 	    // fast forward notifs
 	    // pipeline issue
-		expected_issue_valid = 
-		expected_issue_op = 
-		expected_issue_imm12 = 
-		expected_issue_A_is_reg = 
-		expected_issue_A_is_bus_forward = 
-		expected_issue_A_is_fast_forward = 
-		expected_issue_A_fast_forward_pipe = 
-		expected_issue_A_bank = 
-		expected_issue_dest_PR = 
-		expected_issue_ROB_index = 
+		expected_issue_valid = '0;
+		expected_issue_op = '0;
+		expected_issue_imm12 = '0;
+		expected_issue_A_is_reg = '0;
+		expected_issue_A_is_bus_forward = '0;
+		expected_issue_A_is_fast_forward = '0;
+		expected_issue_A_fast_forward_pipe = '0;
+		expected_issue_A_bank = '0;
+		expected_issue_dest_PR = '0;
+		expected_issue_ROB_index = '0;
 	    // pipeline feedback
 	    // reg read req to PRF
-		expected_PRF_req_A_valid = 
-		expected_PRF_req_A_PR = 
+		expected_PRF_req_A_valid = '0;
+		expected_PRF_req_A_PR = '0;
 
 		check_outputs();
-fill in ^
 
         // ------------------------------------------------------------
         // finish:

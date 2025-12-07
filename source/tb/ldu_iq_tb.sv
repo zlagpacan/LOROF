@@ -1,7 +1,7 @@
 /*
     Filename: ldu_iq_tb.sv
     Author: zlagpacan
-    Description: Testbench for ldu_iq module. 
+    Description: Testbench for ldu_iq module.
     Spec: LOROF/spec/design/ldu_iq.md
 */
 
@@ -265,7 +265,7 @@ module ldu_iq_tb #(
 
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
-		expected_ldu_iq_enq_ready = '0;
+		expected_ldu_iq_enq_ready = 1'b1;
 	    // writeback bus by bank
 	    // fast forward notifs
 	    // pipeline issue
@@ -317,7 +317,7 @@ module ldu_iq_tb #(
 
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
-		expected_ldu_iq_enq_ready = '0;
+		expected_ldu_iq_enq_ready = 1'b1;
 	    // writeback bus by bank
 	    // fast forward notifs
 	    // pipeline issue
@@ -377,7 +377,7 @@ module ldu_iq_tb #(
 
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
-		expected_ldu_iq_enq_ready = '0;
+		expected_ldu_iq_enq_ready = 1'b1;
 	    // writeback bus by bank
 	    // fast forward notifs
 	    // pipeline issue
@@ -400,7 +400,7 @@ module ldu_iq_tb #(
         // ------------------------------------------------------------
         // finish:
         @(posedge CLK); #(PERIOD/10);
-        
+
         test_case = "finish";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;

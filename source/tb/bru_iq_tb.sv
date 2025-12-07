@@ -14,7 +14,9 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 module bru_iq_tb #(
-	parameter BRU_IQ_ENTRIES = 6
+	parameter BRU_IQ_ENTRIES = 6,
+	parameter FAST_FORWARD_PIPE_COUNT = 4,
+	parameter LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FAST_FORWARD_PIPE_COUNT)
 ) ();
 
     // ----------------------------------------------------------------
@@ -49,10 +51,10 @@ module bru_iq_tb #(
 	logic [19:0] tb_iq_enq_imm20;
 	logic [LOG_PR_COUNT-1:0] tb_iq_enq_A_PR;
 	logic tb_iq_enq_A_ready;
-	logic tb_iq_enq_A_unneeded_or_is_zero;
+	logic tb_iq_enq_A_is_zero;
 	logic [LOG_PR_COUNT-1:0] tb_iq_enq_B_PR;
 	logic tb_iq_enq_B_ready;
-	logic tb_iq_enq_B_unneeded_or_is_zero;
+	logic tb_iq_enq_B_is_zero;
 	logic [LOG_PR_COUNT-1:0] tb_iq_enq_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] tb_iq_enq_ROB_index;
 
@@ -62,6 +64,10 @@ module bru_iq_tb #(
     // writeback bus by bank
 	logic [PRF_BANK_COUNT-1:0] tb_WB_bus_valid_by_bank;
 	logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] tb_WB_bus_upper_PR_by_bank;
+
+    // fast forward notifs
+	logic [FAST_FORWARD_PIPE_COUNT-1:0] tb_fast_forward_notif_valid_by_pipe;
+	logic [FAST_FORWARD_PIPE_COUNT-1:0][LOG_PR_COUNT-1:0] tb_fast_forward_notif_PR_by_pipe;
 
     // pipeline issue
 	logic DUT_issue_valid, expected_issue_valid;
@@ -73,11 +79,15 @@ module bru_iq_tb #(
 	logic [31:0] DUT_issue_PC, expected_issue_PC;
 	logic [31:0] DUT_issue_pred_PC, expected_issue_pred_PC;
 	logic [19:0] DUT_issue_imm20, expected_issue_imm20;
-	logic DUT_issue_A_forward, expected_issue_A_forward;
-	logic DUT_issue_A_unneeded_or_is_zero, expected_issue_A_unneeded_or_is_zero;
+	logic DUT_issue_A_is_reg, expected_issue_A_is_reg;
+	logic DUT_issue_A_is_bus_forward, expected_issue_A_is_bus_forward;
+	logic DUT_issue_A_is_fast_forward, expected_issue_A_is_fast_forward;
+	logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0] DUT_issue_A_fast_forward_pipe, expected_issue_A_fast_forward_pipe;
 	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_A_bank, expected_issue_A_bank;
-	logic DUT_issue_B_forward, expected_issue_B_forward;
-	logic DUT_issue_B_unneeded_or_is_zero, expected_issue_B_unneeded_or_is_zero;
+	logic DUT_issue_B_is_reg, expected_issue_B_is_reg;
+	logic DUT_issue_B_is_bus_forward, expected_issue_B_is_bus_forward;
+	logic DUT_issue_B_is_fast_forward, expected_issue_B_is_fast_forward;
+	logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0] DUT_issue_B_fast_forward_pipe, expected_issue_B_fast_forward_pipe;
 	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_B_bank, expected_issue_B_bank;
 	logic [LOG_PR_COUNT-1:0] DUT_issue_dest_PR, expected_issue_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_issue_ROB_index, expected_issue_ROB_index;
@@ -95,7 +105,9 @@ module bru_iq_tb #(
     // DUT instantiation:
 
 	bru_iq #(
-		.BRU_IQ_ENTRIES(BRU_IQ_ENTRIES)
+		.BRU_IQ_ENTRIES(BRU_IQ_ENTRIES),
+		.FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT),
+		.LOG_FAST_FORWARD_PIPE_COUNT(LOG_FAST_FORWARD_PIPE_COUNT)
 	) DUT (
 		// seq
 		.CLK(CLK),
@@ -113,10 +125,10 @@ module bru_iq_tb #(
 		.iq_enq_imm20(tb_iq_enq_imm20),
 		.iq_enq_A_PR(tb_iq_enq_A_PR),
 		.iq_enq_A_ready(tb_iq_enq_A_ready),
-		.iq_enq_A_unneeded_or_is_zero(tb_iq_enq_A_unneeded_or_is_zero),
+		.iq_enq_A_is_zero(tb_iq_enq_A_is_zero),
 		.iq_enq_B_PR(tb_iq_enq_B_PR),
 		.iq_enq_B_ready(tb_iq_enq_B_ready),
-		.iq_enq_B_unneeded_or_is_zero(tb_iq_enq_B_unneeded_or_is_zero),
+		.iq_enq_B_is_zero(tb_iq_enq_B_is_zero),
 		.iq_enq_dest_PR(tb_iq_enq_dest_PR),
 		.iq_enq_ROB_index(tb_iq_enq_ROB_index),
 
@@ -126,6 +138,10 @@ module bru_iq_tb #(
 	    // writeback bus by bank
 		.WB_bus_valid_by_bank(tb_WB_bus_valid_by_bank),
 		.WB_bus_upper_PR_by_bank(tb_WB_bus_upper_PR_by_bank),
+
+	    // fast forward notifs
+		.fast_forward_notif_valid_by_pipe(tb_fast_forward_notif_valid_by_pipe),
+		.fast_forward_notif_PR_by_pipe(tb_fast_forward_notif_PR_by_pipe),
 
 	    // pipeline issue
 		.issue_valid(DUT_issue_valid),
@@ -137,11 +153,15 @@ module bru_iq_tb #(
 		.issue_PC(DUT_issue_PC),
 		.issue_pred_PC(DUT_issue_pred_PC),
 		.issue_imm20(DUT_issue_imm20),
-		.issue_A_forward(DUT_issue_A_forward),
-		.issue_A_unneeded_or_is_zero(DUT_issue_A_unneeded_or_is_zero),
+		.issue_A_is_reg(DUT_issue_A_is_reg),
+		.issue_A_is_bus_forward(DUT_issue_A_is_bus_forward),
+		.issue_A_is_fast_forward(DUT_issue_A_is_fast_forward),
+		.issue_A_fast_forward_pipe(DUT_issue_A_fast_forward_pipe),
 		.issue_A_bank(DUT_issue_A_bank),
-		.issue_B_forward(DUT_issue_B_forward),
-		.issue_B_unneeded_or_is_zero(DUT_issue_B_unneeded_or_is_zero),
+		.issue_B_is_reg(DUT_issue_B_is_reg),
+		.issue_B_is_bus_forward(DUT_issue_B_is_bus_forward),
+		.issue_B_is_fast_forward(DUT_issue_B_is_fast_forward),
+		.issue_B_fast_forward_pipe(DUT_issue_B_fast_forward_pipe),
 		.issue_B_bank(DUT_issue_B_bank),
 		.issue_dest_PR(DUT_issue_dest_PR),
 		.issue_ROB_index(DUT_issue_ROB_index),
@@ -231,16 +251,30 @@ module bru_iq_tb #(
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_A_forward !== DUT_issue_A_forward) begin
-			$display("TB ERROR: expected_issue_A_forward (%h) != DUT_issue_A_forward (%h)",
-				expected_issue_A_forward, DUT_issue_A_forward);
+		if (expected_issue_A_is_reg !== DUT_issue_A_is_reg) begin
+			$display("TB ERROR: expected_issue_A_is_reg (%h) != DUT_issue_A_is_reg (%h)",
+				expected_issue_A_is_reg, DUT_issue_A_is_reg);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_A_unneeded_or_is_zero !== DUT_issue_A_unneeded_or_is_zero) begin
-			$display("TB ERROR: expected_issue_A_unneeded_or_is_zero (%h) != DUT_issue_A_unneeded_or_is_zero (%h)",
-				expected_issue_A_unneeded_or_is_zero, DUT_issue_A_unneeded_or_is_zero);
+		if (expected_issue_A_is_bus_forward !== DUT_issue_A_is_bus_forward) begin
+			$display("TB ERROR: expected_issue_A_is_bus_forward (%h) != DUT_issue_A_is_bus_forward (%h)",
+				expected_issue_A_is_bus_forward, DUT_issue_A_is_bus_forward);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_A_is_fast_forward !== DUT_issue_A_is_fast_forward) begin
+			$display("TB ERROR: expected_issue_A_is_fast_forward (%h) != DUT_issue_A_is_fast_forward (%h)",
+				expected_issue_A_is_fast_forward, DUT_issue_A_is_fast_forward);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_A_fast_forward_pipe !== DUT_issue_A_fast_forward_pipe) begin
+			$display("TB ERROR: expected_issue_A_fast_forward_pipe (%h) != DUT_issue_A_fast_forward_pipe (%h)",
+				expected_issue_A_fast_forward_pipe, DUT_issue_A_fast_forward_pipe);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -252,16 +286,30 @@ module bru_iq_tb #(
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_B_forward !== DUT_issue_B_forward) begin
-			$display("TB ERROR: expected_issue_B_forward (%h) != DUT_issue_B_forward (%h)",
-				expected_issue_B_forward, DUT_issue_B_forward);
+		if (expected_issue_B_is_reg !== DUT_issue_B_is_reg) begin
+			$display("TB ERROR: expected_issue_B_is_reg (%h) != DUT_issue_B_is_reg (%h)",
+				expected_issue_B_is_reg, DUT_issue_B_is_reg);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_B_unneeded_or_is_zero !== DUT_issue_B_unneeded_or_is_zero) begin
-			$display("TB ERROR: expected_issue_B_unneeded_or_is_zero (%h) != DUT_issue_B_unneeded_or_is_zero (%h)",
-				expected_issue_B_unneeded_or_is_zero, DUT_issue_B_unneeded_or_is_zero);
+		if (expected_issue_B_is_bus_forward !== DUT_issue_B_is_bus_forward) begin
+			$display("TB ERROR: expected_issue_B_is_bus_forward (%h) != DUT_issue_B_is_bus_forward (%h)",
+				expected_issue_B_is_bus_forward, DUT_issue_B_is_bus_forward);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_B_is_fast_forward !== DUT_issue_B_is_fast_forward) begin
+			$display("TB ERROR: expected_issue_B_is_fast_forward (%h) != DUT_issue_B_is_fast_forward (%h)",
+				expected_issue_B_is_fast_forward, DUT_issue_B_is_fast_forward);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_B_fast_forward_pipe !== DUT_issue_B_fast_forward_pipe) begin
+			$display("TB ERROR: expected_issue_B_fast_forward_pipe (%h) != DUT_issue_B_fast_forward_pipe (%h)",
+				expected_issue_B_fast_forward_pipe, DUT_issue_B_fast_forward_pipe);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -349,16 +397,19 @@ module bru_iq_tb #(
 		tb_iq_enq_imm20 = '0;
 		tb_iq_enq_A_PR = '0;
 		tb_iq_enq_A_ready = '0;
-		tb_iq_enq_A_unneeded_or_is_zero = '0;
+		tb_iq_enq_A_is_zero = '0;
 		tb_iq_enq_B_PR = '0;
 		tb_iq_enq_B_ready = '0;
-		tb_iq_enq_B_unneeded_or_is_zero = '0;
+		tb_iq_enq_B_is_zero = '0;
 		tb_iq_enq_dest_PR = '0;
 		tb_iq_enq_ROB_index = '0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = '0;
 		tb_WB_bus_upper_PR_by_bank = '0;
+	    // fast forward notifs
+		tb_fast_forward_notif_valid_by_pipe = '0;
+		tb_fast_forward_notif_PR_by_pipe = '0;
 	    // pipeline issue
 	    // pipeline feedback
 		tb_issue_ready = '0;
@@ -372,6 +423,7 @@ module bru_iq_tb #(
 	    // issue queue enqueue feedback
 		expected_iq_enq_ready = 1'b1;
 	    // writeback bus by bank
+	    // fast forward notifs
 	    // pipeline issue
 		expected_issue_valid = '0;
 		expected_issue_op = '0;
@@ -382,11 +434,15 @@ module bru_iq_tb #(
 		expected_issue_PC = '0;
 		expected_issue_pred_PC = '0;
 		expected_issue_imm20 = '0;
-		expected_issue_A_forward = '0;
-		expected_issue_A_unneeded_or_is_zero = '0;
+		expected_issue_A_is_reg = '0;
+		expected_issue_A_is_bus_forward = '0;
+		expected_issue_A_is_fast_forward = '0;
+		expected_issue_A_fast_forward_pipe = '0;
 		expected_issue_A_bank = '0;
-		expected_issue_B_forward = '0;
-		expected_issue_B_unneeded_or_is_zero = '0;
+		expected_issue_B_is_reg = '0;
+		expected_issue_B_is_bus_forward = '0;
+		expected_issue_B_is_fast_forward = '0;
+		expected_issue_B_fast_forward_pipe = '0;
 		expected_issue_B_bank = '0;
 		expected_issue_dest_PR = '0;
 		expected_issue_ROB_index = '0;
@@ -417,16 +473,19 @@ module bru_iq_tb #(
 		tb_iq_enq_imm20 = '0;
 		tb_iq_enq_A_PR = '0;
 		tb_iq_enq_A_ready = '0;
-		tb_iq_enq_A_unneeded_or_is_zero = '0;
+		tb_iq_enq_A_is_zero = '0;
 		tb_iq_enq_B_PR = '0;
 		tb_iq_enq_B_ready = '0;
-		tb_iq_enq_B_unneeded_or_is_zero = '0;
+		tb_iq_enq_B_is_zero = '0;
 		tb_iq_enq_dest_PR = '0;
 		tb_iq_enq_ROB_index = '0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = '0;
 		tb_WB_bus_upper_PR_by_bank = '0;
+	    // fast forward notifs
+		tb_fast_forward_notif_valid_by_pipe = '0;
+		tb_fast_forward_notif_PR_by_pipe = '0;
 	    // pipeline issue
 	    // pipeline feedback
 		tb_issue_ready = '0;
@@ -440,6 +499,7 @@ module bru_iq_tb #(
 	    // issue queue enqueue feedback
 		expected_iq_enq_ready = 1'b1;
 	    // writeback bus by bank
+	    // fast forward notifs
 	    // pipeline issue
 		expected_issue_valid = '0;
 		expected_issue_op = '0;
@@ -450,11 +510,15 @@ module bru_iq_tb #(
 		expected_issue_PC = '0;
 		expected_issue_pred_PC = '0;
 		expected_issue_imm20 = '0;
-		expected_issue_A_forward = '0;
-		expected_issue_A_unneeded_or_is_zero = '0;
+		expected_issue_A_is_reg = '0;
+		expected_issue_A_is_bus_forward = '0;
+		expected_issue_A_is_fast_forward = '0;
+		expected_issue_A_fast_forward_pipe = '0;
 		expected_issue_A_bank = '0;
-		expected_issue_B_forward = '0;
-		expected_issue_B_unneeded_or_is_zero = '0;
+		expected_issue_B_is_reg = '0;
+		expected_issue_B_is_bus_forward = '0;
+		expected_issue_B_is_fast_forward = '0;
+		expected_issue_B_fast_forward_pipe = '0;
 		expected_issue_B_bank = '0;
 		expected_issue_dest_PR = '0;
 		expected_issue_ROB_index = '0;
@@ -493,16 +557,19 @@ module bru_iq_tb #(
 		tb_iq_enq_imm20 = '0;
 		tb_iq_enq_A_PR = '0;
 		tb_iq_enq_A_ready = '0;
-		tb_iq_enq_A_unneeded_or_is_zero = '0;
+		tb_iq_enq_A_is_zero = '0;
 		tb_iq_enq_B_PR = '0;
 		tb_iq_enq_B_ready = '0;
-		tb_iq_enq_B_unneeded_or_is_zero = '0;
+		tb_iq_enq_B_is_zero = '0;
 		tb_iq_enq_dest_PR = '0;
 		tb_iq_enq_ROB_index = '0;
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
 		tb_WB_bus_valid_by_bank = '0;
 		tb_WB_bus_upper_PR_by_bank = '0;
+	    // fast forward notifs
+		tb_fast_forward_notif_valid_by_pipe = '0;
+		tb_fast_forward_notif_PR_by_pipe = '0;
 	    // pipeline issue
 	    // pipeline feedback
 		tb_issue_ready = '0;
@@ -516,6 +583,7 @@ module bru_iq_tb #(
 	    // issue queue enqueue feedback
 		expected_iq_enq_ready = 1'b1;
 	    // writeback bus by bank
+	    // fast forward notifs
 	    // pipeline issue
 		expected_issue_valid = '0;
 		expected_issue_op = '0;
@@ -526,11 +594,15 @@ module bru_iq_tb #(
 		expected_issue_PC = '0;
 		expected_issue_pred_PC = '0;
 		expected_issue_imm20 = '0;
-		expected_issue_A_forward = '0;
-		expected_issue_A_unneeded_or_is_zero = '0;
+		expected_issue_A_is_reg = '0;
+		expected_issue_A_is_bus_forward = '0;
+		expected_issue_A_is_fast_forward = '0;
+		expected_issue_A_fast_forward_pipe = '0;
 		expected_issue_A_bank = '0;
-		expected_issue_B_forward = '0;
-		expected_issue_B_unneeded_or_is_zero = '0;
+		expected_issue_B_is_reg = '0;
+		expected_issue_B_is_bus_forward = '0;
+		expected_issue_B_is_fast_forward = '0;
+		expected_issue_B_fast_forward_pipe = '0;
 		expected_issue_B_bank = '0;
 		expected_issue_dest_PR = '0;
 		expected_issue_ROB_index = '0;
