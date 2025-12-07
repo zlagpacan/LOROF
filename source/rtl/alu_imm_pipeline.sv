@@ -135,7 +135,7 @@ module alu_imm_pipeline #(
     ) A_OPERAND_COLLECTOR (
         .CLK(CLK),
         .nRST(nRST),
-        .enq_valid(issue_valid),
+        .enq_valid(issue_valid & issue_ready),
         .enq_is_reg(issue_A_is_reg),
         .enq_is_bus_forward(issue_A_is_bus_forward),
         .enq_is_fast_forward(issue_A_is_fast_forward),
