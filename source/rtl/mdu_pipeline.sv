@@ -10,7 +10,9 @@ import core_types_pkg::*;
 
 module mdu_pipeline #(
     parameter IS_OC_BUFFER_SIZE = 2,
-    parameter PRF_RR_OUTPUT_BUFFER_SIZE = 3,
+    parameter OC_ENTRIES = IS_OC_BUFFER_SIZE + 1,
+    parameter FAST_FORWARD_PIPE_COUNT = 4,
+    parameter LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FAST_FORWARD_PIPE_COUNT),
     parameter MDU_RESULT_CACHE_ENTRIES = 4,
     parameter LOG_MDU_RESULT_CACHE_ENTRIES = $clog2(MDU_RESULT_CACHE_ENTRIES)
 ) (
@@ -20,16 +22,20 @@ module mdu_pipeline #(
     input logic nRST,
 
     // MDU pipeline issue
-    input logic                         issue_valid,
-    input logic [2:0]                   issue_op,
-    input logic                         issue_A_forward,
-    input logic                         issue_A_is_zero,
-    input logic [LOG_PR_COUNT-1:0]      issue_A_PR,
-    input logic                         issue_B_forward,
-    input logic                         issue_B_is_zero,
-    input logic [LOG_PR_COUNT-1:0]      issue_B_PR,
-    input logic [LOG_PR_COUNT-1:0]      issue_dest_PR,
-    input logic [LOG_ROB_ENTRIES-1:0]   issue_ROB_index,
+    input logic                                     issue_valid,
+    input logic [2:0]                               issue_op,
+    input logic                                     issue_A_is_reg,
+    input logic                                     issue_A_is_bus_forward,
+    input logic                                     issue_A_is_fast_forward,
+    input logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0]   issue_A_fast_forward_pipe,
+    input logic [LOG_PR_COUNT-1:0]                  issue_A_PR,
+    input logic                                     issue_B_is_reg,
+    input logic                                     issue_B_is_bus_forward,
+    input logic                                     issue_B_is_fast_forward,
+    input logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0]   issue_B_fast_forward_pipe,
+    input logic [LOG_PR_COUNT-1:0]                  issue_B_PR,
+    input logic [LOG_PR_COUNT-1:0]                  issue_dest_PR,
+    input logic [LOG_ROB_ENTRIES-1:0]               issue_ROB_index,
 
     // MDU pipeline feedback to IQ
     output logic                        issue_ready,
@@ -40,8 +46,12 @@ module mdu_pipeline #(
     input logic         B_reg_read_resp_valid,
     input logic [31:0]  B_reg_read_resp_data,
 
-    // forward data from PRF
-    input logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank,
+    // bus forward data from PRF
+    input logic [PRF_BANK_COUNT-1:0][31:0] bus_forward_data_by_bank,
+
+    // fast forward data
+    input logic [FAST_FORWARD_PIPE_COUNT-1:0]           fast_forward_data_valid_by_pipe,
+    input logic [FAST_FORWARD_PIPE_COUNT-1:0][31:0]     fast_forward_data_by_pipe,
 
     // writeback data to PRF
     output logic                        WB_valid,
@@ -49,13 +59,14 @@ module mdu_pipeline #(
     output logic [LOG_PR_COUNT-1:0]     WB_PR,
     output logic [LOG_ROB_ENTRIES-1:0]  WB_ROB_index,
 
-    // writeback feedback from
+    // writeback backpressure from PRF
     input logic                         WB_ready
 );
     // ----------------------------------------------------------------
     // Control Signals:
 
-    logic stall_WB;
+    logic stall_MUL_WB;
+    logic stall_DIV_WB;
     logic stall_EX;
 
     // ----------------------------------------------------------------
@@ -63,55 +74,18 @@ module mdu_pipeline #(
 
     logic                           valid_OC;
     logic [2:0]                     op_OC;
-    logic                           A_forward_OC;
-    logic                           A_is_reg_OC;
     logic [LOG_PR_COUNT-1:0]        A_PR_OC;
-    logic                           B_forward_OC;
-    logic                           B_is_reg_OC;
     logic [LOG_PR_COUNT-1:0]        B_PR_OC;
     logic [LOG_PR_COUNT-1:0]        dest_PR_OC;
     logic [LOG_ROB_ENTRIES-1:0]     ROB_index_OC;
 
-    logic operands_ready_OC;
-
-    logic           enq_A_reg_valid;
-    logic [31:0]    enq_A_reg_data;
-    // logic           enq_A_reg_ready; // should always be 1
-    logic           deq_A_reg_valid;
-    logic [31:0]    deq_A_reg_data;
-    logic           deq_A_reg_ready;
-
-    logic           enq_B_reg_valid;
-    logic [31:0]    enq_B_reg_data;
-    // logic           enq_B_reg_ready; // should always be 1
-    logic           deq_B_reg_valid;
-    logic [31:0]    deq_B_reg_data;
-    logic           deq_B_reg_ready;
-
-    logic [LOG_PRF_BANK_COUNT-1:0]  enq_A_forward_bank;
-    logic [LOG_PRF_BANK_COUNT-1:0]  enq_B_forward_bank;
-
-    logic           enq_A_forward_valid;
-    logic [31:0]    enq_A_forward_data;
-    // logic           enq_A_forward_ready; // should always be 1
-    logic           deq_A_forward_valid;
-    logic [31:0]    deq_A_forward_data;
-    logic           deq_A_forward_ready;
-
-    logic           enq_B_forward_valid;
-    logic [31:0]    enq_B_forward_data;
-    // logic           enq_B_forward_ready; // should always be 1
-    logic           deq_B_forward_valid;
-    logic [31:0]    deq_B_forward_data;
-    logic           deq_B_forward_ready;
+    logic A_collected_OC;
+    logic B_collected_OC;
+    logic operands_collected_OC;
 
     logic                           next_valid_EX;
     logic [2:0]                     next_op_EX;
-    logic                           next_A_forward_EX;
-    logic                           next_A_is_reg_EX;
     logic [LOG_PR_COUNT-1:0]        next_A_PR_EX;
-    logic                           next_B_forward_EX;
-    logic                           next_B_is_reg_EX;
     logic [LOG_PR_COUNT-1:0]        next_B_PR_EX;
     logic [LOG_PR_COUNT-1:0]        next_dest_PR_EX;
     logic [LOG_ROB_ENTRIES-1:0]     next_ROB_index_EX;
@@ -121,11 +95,7 @@ module mdu_pipeline #(
 
     logic                           valid_EX;
     logic [2:0]                     op_EX;
-    logic                           A_forward_EX;
-    logic                           A_is_reg_EX;
     logic [LOG_PR_COUNT-1:0]        A_PR_EX;
-    logic                           B_forward_EX;
-    logic                           B_is_reg_EX;
     logic [LOG_PR_COUNT-1:0]        B_PR_EX;
     logic [LOG_PR_COUNT-1:0]        dest_PR_EX;
     logic [LOG_ROB_ENTRIES-1:0]     ROB_index_EX;
@@ -151,17 +121,26 @@ module mdu_pipeline #(
     // ----------------------------------------------------------------
     // WB Stage Signals:
 
-    logic                           valid_WB;
-    logic [2:0]                     op_WB;
-    logic [LOG_PR_COUNT-1:0]        A_PR_WB;
-    logic [31:0]                    A_data_WB;
-    logic [LOG_PR_COUNT-1:0]        B_PR_WB;
-    logic [31:0]                    B_data_WB;
-    logic [LOG_PR_COUNT-1:0]        dest_PR_WB;
-    logic [LOG_ROB_ENTRIES-1:0]     ROB_index_WB;
+    // separate MUL_WB and DIV_WB paths:
+    logic                           valid_MUL_WB;
+    logic [1:0]                     op_MUL_WB;
+    logic [LOG_PR_COUNT-1:0]        dest_PR_MUL_WB;
+    logic [LOG_ROB_ENTRIES-1:0]     ROB_index_MUL_WB;
+
+    logic                           valid_DIV_WB;
+    logic [1:0]                     op_DIV_WB;
+    logic [LOG_PR_COUNT-1:0]        A_PR_DIV_WB;
+    logic [31:0]                    A_data_DIV_WB;
+    logic [LOG_PR_COUNT-1:0]        B_PR_DIV_WB;
+    logic [31:0]                    B_data_DIV_WB;
+    logic [LOG_PR_COUNT-1:0]        dest_PR_DIV_WB;
+    logic [LOG_ROB_ENTRIES-1:0]     ROB_index_DIV_WB;
 
     logic                           divider_hit_valid_WB;
     logic [31:0]                    divider_hit_data_WB;
+
+    logic mul_selected_WB;
+    logic div_selected_WB;
 
     // ----------------------------------------------------------------
     // Multiplier Signals:
@@ -184,14 +163,15 @@ module mdu_pipeline #(
     // ----------------------------------------------------------------
     // Control Logic: 
 
-    assign stall_WB = valid_WB & (~WB_ready | (op_WB[2] & ~(divider_done | divider_hit_valid_WB)));
-    assign stall_EX = valid_EX & stall_WB;
+    assign stall_MUL_WB = valid_MUL_WB & (~WB_ready | ~mul_selected_WB);
+    assign stall_DIV_WB = valid_DIV_WB & (~WB_ready | ~div_selected_WB);
+    assign stall_EX = valid_EX & (~op_OC[2] & stall_MUL_WB | op_OC[2] & stall_DIV_WB);
 
     // ----------------------------------------------------------------
     // IS -> OC Buffer Logic:
 
     q_fast_ready #(
-        .DATA_WIDTH(3 + 1 + 1 + LOG_PR_COUNT + 1 + 1 + LOG_PR_COUNT + LOG_PR_COUNT + LOG_ROB_ENTRIES),
+        .DATA_WIDTH(3 + LOG_PR_COUNT + LOG_PR_COUNT + LOG_PR_COUNT + LOG_ROB_ENTRIES),
         .NUM_ENTRIES(IS_OC_BUFFER_SIZE)
     ) IS_OC_BUFFER (
         .CLK(CLK),
@@ -199,11 +179,7 @@ module mdu_pipeline #(
         .enq_valid(issue_valid),
         .enq_data({
             issue_op,
-            issue_A_forward,
-            ~(issue_A_forward | issue_A_is_zero),
             issue_A_PR,
-            issue_B_forward,
-            ~(issue_B_forward | issue_B_is_zero),
             issue_B_PR,
             issue_dest_PR,
             issue_ROB_index
@@ -212,125 +188,69 @@ module mdu_pipeline #(
         .deq_valid(valid_OC),
         .deq_data({
             op_OC,
-            A_forward_OC,
-            A_is_reg_OC,
             A_PR_OC,
-            B_forward_OC,
-            B_is_reg_OC,
             B_PR_OC,
             dest_PR_OC,
             ROB_index_OC
         }),
-        .deq_ready(~stall_EX & operands_ready_OC)
+        .deq_ready(~stall_EX & operands_collected_OC)
     );
 
     // ----------------------------------------------------------------
     // OC Stage Logic:
 
-    assign operands_ready_OC = 
-        // A operand present
-        (~A_is_reg_OC | A_reg_read_resp_valid | deq_A_reg_valid)
-        &
-        // B operand present
-        (~B_is_reg_OC | B_reg_read_resp_valid | deq_B_reg_valid)
-    ;
-
-    // reg read data buffers:
-
-    always_comb begin
-        enq_A_reg_valid = A_reg_read_resp_valid;
-        enq_A_reg_data = A_reg_read_resp_data;
-
-        enq_B_reg_valid = B_reg_read_resp_valid;
-        enq_B_reg_data = B_reg_read_resp_data;
-    end
-
-    q_fast_ready #(
-        .DATA_WIDTH(32),
-        .NUM_ENTRIES(PRF_RR_OUTPUT_BUFFER_SIZE)
-    ) A_REG_DATA_BUFFER (
+    assign operands_collected_OC = A_collected_OC & B_collected_OC;
+    
+    operand_collector #(
+        .OC_ENTRIES(OC_ENTRIES),
+        .FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT)
+    ) A_OPERAND_COLLECTOR (
         .CLK(CLK),
         .nRST(nRST),
-        .enq_valid(enq_A_reg_valid),
-        .enq_data(enq_A_reg_data),
-        .enq_ready(), // should always be 1
-        .deq_valid(deq_A_reg_valid),
-        .deq_data(deq_A_reg_data),
-        .deq_ready(deq_A_reg_ready)
+        .enq_valid(issue_valid & issue_ready),
+        .enq_is_reg(issue_A_is_reg),
+        .enq_is_bus_forward(issue_A_is_bus_forward),
+        .enq_is_fast_forward(issue_A_is_fast_forward),
+        .enq_fast_forward_pipe(issue_A_fast_forward_pipe),
+        .enq_bank(issue_A_PR[LOG_PRF_BANK_COUNT-1:0]),
+        .reg_read_resp_valid(A_reg_read_resp_valid),
+        .reg_read_resp_data(A_reg_read_resp_data),
+        .bus_forward_data_by_bank(bus_forward_data_by_bank),
+        .fast_forward_data_valid_by_pipe(fast_forward_data_valid_by_pipe),
+        .fast_forward_data_by_pipe(fast_forward_data_by_pipe),
+        .operand_collected(A_collected_OC),
+        .operand_collected_ack(next_valid_EX & ~stall_EX),
+        .operand_data(A_data_EX),
+        .operand_data_ack(valid_EX & ~stall_EX)
     );
-
-    q_fast_ready #(
-        .DATA_WIDTH(32),
-        .NUM_ENTRIES(PRF_RR_OUTPUT_BUFFER_SIZE)
-    ) B_REG_DATA_BUFFER (
+    
+    operand_collector #(
+        .OC_ENTRIES(OC_ENTRIES),
+        .FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT)
+    ) B_OPERAND_COLLECTOR (
         .CLK(CLK),
         .nRST(nRST),
-        .enq_valid(enq_B_reg_valid),
-        .enq_data(enq_B_reg_data),
-        .enq_ready(), // should always be 1
-        .deq_valid(deq_B_reg_valid),
-        .deq_data(deq_B_reg_data),
-        .deq_ready(deq_B_reg_ready)
-    );
-
-    // forward data buffers:
-
-    always_ff @ (posedge CLK, negedge nRST) begin
-        if (~nRST) begin
-            enq_A_forward_valid <= 1'b0;
-            enq_A_forward_bank <= 0;
-            enq_B_forward_valid <= 1'b0;
-            enq_B_forward_bank <= 0;
-        end
-        else begin
-            enq_A_forward_valid <= issue_valid & issue_ready & issue_A_forward;
-            enq_A_forward_bank <= issue_A_PR[LOG_PRF_BANK_COUNT-1:0];
-            enq_B_forward_valid <= issue_valid & issue_ready & issue_B_forward;
-            enq_B_forward_bank <= issue_B_PR[LOG_PRF_BANK_COUNT-1:0];
-        end
-    end
-
-    always_comb begin
-        enq_A_forward_data = forward_data_by_bank[enq_A_forward_bank];
-        enq_B_forward_data = forward_data_by_bank[enq_B_forward_bank];
-    end
-
-    q_fast_ready #(
-        .DATA_WIDTH(32),
-        .NUM_ENTRIES(PRF_RR_OUTPUT_BUFFER_SIZE)
-    ) A_FORWARD_DATA_BUFFER (
-        .CLK(CLK),
-        .nRST(nRST),
-        .enq_valid(enq_A_forward_valid),
-        .enq_data(enq_A_forward_data),
-        .enq_ready(), // should always be 1
-        .deq_valid(deq_A_forward_valid),
-        .deq_data(deq_A_forward_data),
-        .deq_ready(deq_A_forward_ready)
-    );
-
-    q_fast_ready #(
-        .DATA_WIDTH(32),
-        .NUM_ENTRIES(PRF_RR_OUTPUT_BUFFER_SIZE)
-    ) B_FORWARD_DATA_BUFFER (
-        .CLK(CLK),
-        .nRST(nRST),
-        .enq_valid(enq_B_forward_valid),
-        .enq_data(enq_B_forward_data),
-        .enq_ready(), // should always be 1
-        .deq_valid(deq_B_forward_valid),
-        .deq_data(deq_B_forward_data),
-        .deq_ready(deq_B_forward_ready)
+        .enq_valid(issue_valid & issue_ready),
+        .enq_is_reg(issue_B_is_reg),
+        .enq_is_bus_forward(issue_B_is_bus_forward),
+        .enq_is_fast_forward(issue_B_is_fast_forward),
+        .enq_fast_forward_pipe(issue_B_fast_forward_pipe),
+        .enq_bank(issue_B_PR[LOG_PRF_BANK_COUNT-1:0]),
+        .reg_read_resp_valid(B_reg_read_resp_valid),
+        .reg_read_resp_data(B_reg_read_resp_data),
+        .bus_forward_data_by_bank(bus_forward_data_by_bank),
+        .fast_forward_data_valid_by_pipe(fast_forward_data_valid_by_pipe),
+        .fast_forward_data_by_pipe(fast_forward_data_by_pipe),
+        .operand_collected(B_collected_OC),
+        .operand_collected_ack(next_valid_EX & ~stall_EX),
+        .operand_data(B_data_EX),
+        .operand_data_ack(valid_EX & ~stall_EX)
     );
 
     always_comb begin
-        next_valid_EX = valid_OC & operands_ready_OC;
+        next_valid_EX = valid_OC & operands_collected_OC;
         next_op_EX = op_OC;
-        next_A_forward_EX = A_forward_OC;
-        next_A_is_reg_EX = A_is_reg_OC;
         next_A_PR_EX = A_PR_OC;
-        next_B_forward_EX = B_forward_OC;
-        next_B_is_reg_EX = B_is_reg_OC;
         next_B_PR_EX = B_PR_OC;
         next_dest_PR_EX = dest_PR_OC;
         next_ROB_index_EX = ROB_index_OC;
@@ -345,11 +265,7 @@ module mdu_pipeline #(
         if (~nRST) begin
             valid_EX <= 1'b0;
             op_EX <= '0;
-            A_forward_EX <= 1'b0;
-            A_is_reg_EX <= 1'b0;
             A_PR_EX <= '0;
-            B_forward_EX <= 1'b0;
-            B_is_reg_EX <= 1'b0;
             B_PR_EX <= '0;
             dest_PR_EX <= '0;
             ROB_index_EX <= '0;
@@ -357,11 +273,7 @@ module mdu_pipeline #(
         else if (~stall_EX) begin
             valid_EX <= next_valid_EX;
             op_EX <= next_op_EX;
-            A_forward_EX <= next_A_forward_EX;
-            A_is_reg_EX <= next_A_is_reg_EX;
             A_PR_EX <= next_A_PR_EX;
-            B_forward_EX <= next_B_forward_EX;
-            B_is_reg_EX <= next_B_is_reg_EX;
             B_PR_EX <= next_B_PR_EX;
             dest_PR_EX <= next_dest_PR_EX;
             ROB_index_EX <= next_ROB_index_EX;
@@ -370,8 +282,6 @@ module mdu_pipeline #(
 
     // data gathering
     always_comb begin
-        A_data_EX = ({32{A_is_reg_EX}} & deq_A_reg_data) | ({32{A_forward_EX}} & deq_A_forward_data);
-        B_data_EX = ({32{B_is_reg_EX}} & deq_B_reg_data) | ({32{B_forward_EX}} & deq_B_forward_data);
 
         // get bit 32 for signed 33b mul:
 
@@ -390,12 +300,6 @@ module mdu_pipeline #(
             A_msb_EX = A_data_EX[31];
             B_msb_EX = B_data_EX[31];
         end
-
-        deq_A_reg_ready = valid_EX & A_is_reg_EX & ~stall_EX;
-        deq_A_forward_ready = valid_EX & A_forward_EX & ~stall_EX;
-
-        deq_B_reg_ready = valid_EX & B_is_reg_EX & ~stall_EX;
-        deq_B_forward_ready = valid_EX & B_forward_EX & ~stall_EX;
     end
 
     always_comb begin
@@ -411,13 +315,13 @@ module mdu_pipeline #(
 
     always_comb begin
         next_divider_hit_valid_WB = 
-            // both {DIV, DIVU, REM, REMU}
-            valid_EX & op_EX[2] & valid_WB & op_WB[2]
+            // EX is {DIV, DIVU, REM, REMU} and have a DIV_WB
+            valid_EX & op_EX[2] & valid_DIV_WB
             // same signedness
-            & (op_EX[0] == op_WB[0])
+            & (op_EX[0] == op_DIV_WB[0])
             // same operands
-            & (A_PR_EX == A_PR_WB)
-            & (B_PR_EX == B_PR_WB);
+            & (A_PR_EX == A_PR_DIV_WB)
+            & (B_PR_EX == B_PR_DIV_WB);
 
         // DIV[U]
         if (~op_EX[1]) begin
@@ -436,46 +340,82 @@ module mdu_pipeline #(
     always_ff @ (posedge CLK, negedge nRST) begin
     // always_ff @ (posedge CLK) begin
         if (~nRST) begin
-            valid_WB <= 1'b0;
-            op_WB <= '0;
-            A_PR_WB <= '0;
-            A_data_WB <= '0;
-            B_PR_WB <= '0;
-            B_data_WB <= '0;
-            dest_PR_WB <= '0;
-            ROB_index_WB <= '0;
+            valid_MUL_WB <= 1'b0;
+            op_MUL_WB <= 2'b00;
+            dest_PR_MUL_WB <= 7'h00;
+            ROB_index_MUL_WB <= 7'h00;
+
+            valid_DIV_WB <= 1'b0;
+            op_DIV_WB <= 2'b00;
+            A_PR_DIV_WB <= 7'h00;
+            A_data_DIV_WB <= 32'h00000000;
+            B_PR_DIV_WB <= 7'h00;
+            B_data_DIV_WB <= 32'h00000000;
+            dest_PR_DIV_WB <= 7'h00;
+            ROB_index_DIV_WB <= 7'h00;
 
             divider_hit_valid_WB <= 1'b0;
-            divider_hit_data_WB <= '0;
+            divider_hit_data_WB <= 32'h00000000;
         end
-        else if (~stall_WB) begin
-            valid_WB <= next_valid_WB;
-            op_WB <= next_op_WB;
-            A_PR_WB <= next_A_PR_WB;
-            A_data_WB <= next_A_data_WB;
-            B_PR_WB <= next_B_PR_WB;
-            B_data_WB <= next_B_data_WB;
-            dest_PR_WB <= next_dest_PR_WB;
-            ROB_index_WB <= next_ROB_index_WB;
+        else begin
+            if (~stall_MUL_WB) begin
+                valid_MUL_WB <= next_valid_WB & ~next_op_WB[2];
+                op_MUL_WB <= next_op_WB;
+                dest_PR_MUL_WB <= next_dest_PR_WB;
+                ROB_index_MUL_WB <= next_ROB_index_WB;
+            end
 
-            divider_hit_valid_WB <= next_divider_hit_valid_WB;
-            divider_hit_data_WB <= next_divider_hit_data_WB;
+            if (~stall_DIV_WB) begin
+                valid_DIV_WB <= next_valid_WB & next_op_WB[2];
+                op_DIV_WB <= next_op_WB;
+                A_PR_DIV_WB <= next_A_PR_WB;
+                A_data_DIV_WB <= next_A_data_WB;
+                B_PR_DIV_WB <= next_B_PR_WB;
+                B_data_DIV_WB <= next_B_data_WB;
+                dest_PR_DIV_WB <= next_dest_PR_WB;
+                ROB_index_DIV_WB <= next_ROB_index_WB;
+
+                divider_hit_valid_WB <= next_divider_hit_valid_WB;
+                divider_hit_data_WB <= next_divider_hit_data_WB;
+            end
         end
     end
 
+    // round-robing arbiter between MUL and DIV paths
+    arbiter_rr #(
+        .REQUESTOR_COUNT(2)
+    ) MUL_DIV_ARBITER_RR (
+        .CLK(CLK),
+        .nRST(nRST),
+        .req_vec({
+            valid_MUL_WB & WB_ready,
+            valid_DIV_WB & WB_ready & (divider_done | divider_hit_valid_WB)
+        }),
+        .req_present(),
+        .ack_ready(WB_ready),
+        .ack_one_hot({
+            mul_selected_WB,
+            div_selected_WB
+        }),
+        .ack_index()
+    );
+
     always_comb begin
-        WB_valid = valid_WB & (~op_WB[2] | divider_done | divider_hit_valid_WB);
+        WB_valid = valid_MUL_WB | (valid_DIV_WB & (divider_done | divider_hit_valid_WB));
 
         // mul
-        if (~op_WB[2]) begin
+        if (mul_selected_WB) begin
             // MUL
-            if (op_WB[1:0] == 2'b00) begin
+            if (op_MUL_WB[1:0] == 2'b00) begin
                 WB_data = multiplier_result[31:0];
             end
             // MULH*
             else begin
                 WB_data = multiplier_result[63:32];
             end
+
+            WB_PR = dest_PR_MUL_WB;
+            WB_ROB_index = ROB_index_MUL_WB;
         end
         // div
         else begin
@@ -486,7 +426,7 @@ module mdu_pipeline #(
             // divider
             else begin
                 // DIV[U]
-                if (~op_WB[1]) begin
+                if (~op_DIV_WB[1]) begin
                     WB_data = divider_quotient;
                 end
                 // REM[U]
@@ -494,10 +434,10 @@ module mdu_pipeline #(
                     WB_data = divider_remainder;
                 end
             end
-        end
 
-        WB_PR = dest_PR_WB;
-        WB_ROB_index = ROB_index_WB;
+            WB_PR = dest_PR_DIV_WB;
+            WB_ROB_index = ROB_index_DIV_WB;
+        end
     end
 
     // ----------------------------------------------------------------
@@ -511,10 +451,8 @@ module mdu_pipeline #(
         if (~nRST) begin
             multiplier_immediate <= 64'h0;
         end
-        else begin
-            if (~stall_EX) begin
-                multiplier_immediate <= $signed(multiplier_A33) * $signed(multiplier_B33);
-            end
+        else if (~stall_EX) begin
+            multiplier_immediate <= $signed(multiplier_A33) * $signed(multiplier_B33);
         end
     end
     // want to allow retiming along path multiplier_A33, multplier_B33 -> multiplier_immediate -> multiplier_result
@@ -525,8 +463,8 @@ module mdu_pipeline #(
     // ----------------------------------------------------------------
     // Divider Logic:
 
-    assign divider_clear = ~valid_WB | ~op_WB[2] | ~stall_WB | divider_hit_valid_WB;
-    assign divider_is_signed = ~op_WB[0];
+    assign divider_clear = ~valid_DIV_WB | ~stall_DIV_WB | divider_hit_valid_WB;
+    assign divider_is_signed = ~op_DIV_WB[0];
 
     div32_nonrestoring_skip DIVIDER (
         .CLK(CLK),
@@ -535,10 +473,10 @@ module mdu_pipeline #(
         .clear(divider_clear),
         .is_signed(divider_is_signed),
         .done(divider_done),
-        .stall_if_done(stall_WB),
+        .stall_if_done(stall_DIV_WB),
 
-        .A32_in(A_data_WB),
-        .B32_in(B_data_WB),
+        .A32_in(A_data_DIV_WB),
+        .B32_in(B_data_DIV_WB),
         
         .quotient_out(divider_quotient),
         .remainder_out(divider_remainder)
