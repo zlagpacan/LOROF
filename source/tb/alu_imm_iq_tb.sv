@@ -14,7 +14,9 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 module alu_imm_iq_tb #(
-	parameter ALU_IMM_IQ_ENTRIES = 12
+	parameter ALU_IMM_IQ_ENTRIES = 12,
+	parameter FAST_FORWARD_PIPE_COUNT = 4,
+	parameter LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FAST_FORWARD_PIPE_COUNT)
 ) ();
 
     // ----------------------------------------------------------------
@@ -54,12 +56,18 @@ module alu_imm_iq_tb #(
 	logic [PRF_BANK_COUNT-1:0] tb_WB_bus_valid_by_bank;
 	logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] tb_WB_bus_upper_PR_by_bank;
 
+    // fast forward notifs
+	logic [FAST_FORWARD_PIPE_COUNT-1:0] tb_fast_forward_notif_valid_by_pipe;
+	logic [FAST_FORWARD_PIPE_COUNT-1:0][LOG_PR_COUNT-1:0] tb_fast_forward_notif_PR_by_pipe;
+
     // pipeline issue
 	logic DUT_issue_valid, expected_issue_valid;
 	logic [3:0] DUT_issue_op, expected_issue_op;
 	logic [11:0] DUT_issue_imm12, expected_issue_imm12;
-	logic DUT_issue_A_forward, expected_issue_A_forward;
-	logic DUT_issue_A_is_zero, expected_issue_A_is_zero;
+	logic DUT_issue_A_is_reg, expected_issue_A_is_reg;
+	logic DUT_issue_A_is_bus_forward, expected_issue_A_is_bus_forward;
+	logic DUT_issue_A_is_fast_forward, expected_issue_A_is_fast_forward;
+	logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0] DUT_issue_A_fast_forward_pipe, expected_issue_A_fast_forward_pipe;
 	logic [LOG_PRF_BANK_COUNT-1:0] DUT_issue_A_bank, expected_issue_A_bank;
 	logic [LOG_PR_COUNT-1:0] DUT_issue_dest_PR, expected_issue_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] DUT_issue_ROB_index, expected_issue_ROB_index;
@@ -75,7 +83,9 @@ module alu_imm_iq_tb #(
     // DUT instantiation:
 
 	alu_imm_iq #(
-		.ALU_IMM_IQ_ENTRIES(ALU_IMM_IQ_ENTRIES)
+		.ALU_IMM_IQ_ENTRIES(ALU_IMM_IQ_ENTRIES),
+		.FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT),
+		.LOG_FAST_FORWARD_PIPE_COUNT(LOG_FAST_FORWARD_PIPE_COUNT)
 	) DUT (
 		// seq
 		.CLK(CLK),
@@ -98,12 +108,18 @@ module alu_imm_iq_tb #(
 		.WB_bus_valid_by_bank(tb_WB_bus_valid_by_bank),
 		.WB_bus_upper_PR_by_bank(tb_WB_bus_upper_PR_by_bank),
 
+	    // fast forward notifs
+		.fast_forward_notif_valid_by_pipe(tb_fast_forward_notif_valid_by_pipe),
+		.fast_forward_notif_PR_by_pipe(tb_fast_forward_notif_PR_by_pipe),
+
 	    // pipeline issue
 		.issue_valid(DUT_issue_valid),
 		.issue_op(DUT_issue_op),
 		.issue_imm12(DUT_issue_imm12),
-		.issue_A_forward(DUT_issue_A_forward),
-		.issue_A_is_zero(DUT_issue_A_is_zero),
+		.issue_A_is_reg(DUT_issue_A_is_reg),
+		.issue_A_is_bus_forward(DUT_issue_A_is_bus_forward),
+		.issue_A_is_fast_forward(DUT_issue_A_is_fast_forward),
+		.issue_A_fast_forward_pipe(DUT_issue_A_fast_forward_pipe),
 		.issue_A_bank(DUT_issue_A_bank),
 		.issue_dest_PR(DUT_issue_dest_PR),
 		.issue_ROB_index(DUT_issue_ROB_index),
@@ -149,16 +165,30 @@ module alu_imm_iq_tb #(
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_A_forward !== DUT_issue_A_forward) begin
-			$display("TB ERROR: expected_issue_A_forward (%h) != DUT_issue_A_forward (%h)",
-				expected_issue_A_forward, DUT_issue_A_forward);
+		if (expected_issue_A_is_reg !== DUT_issue_A_is_reg) begin
+			$display("TB ERROR: expected_issue_A_is_reg (%h) != DUT_issue_A_is_reg (%h)",
+				expected_issue_A_is_reg, DUT_issue_A_is_reg);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_issue_A_is_zero !== DUT_issue_A_is_zero) begin
-			$display("TB ERROR: expected_issue_A_is_zero (%h) != DUT_issue_A_is_zero (%h)",
-				expected_issue_A_is_zero, DUT_issue_A_is_zero);
+		if (expected_issue_A_is_bus_forward !== DUT_issue_A_is_bus_forward) begin
+			$display("TB ERROR: expected_issue_A_is_bus_forward (%h) != DUT_issue_A_is_bus_forward (%h)",
+				expected_issue_A_is_bus_forward, DUT_issue_A_is_bus_forward);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_A_is_fast_forward !== DUT_issue_A_is_fast_forward) begin
+			$display("TB ERROR: expected_issue_A_is_fast_forward (%h) != DUT_issue_A_is_fast_forward (%h)",
+				expected_issue_A_is_fast_forward, DUT_issue_A_is_fast_forward);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_issue_A_fast_forward_pipe !== DUT_issue_A_fast_forward_pipe) begin
+			$display("TB ERROR: expected_issue_A_fast_forward_pipe (%h) != DUT_issue_A_fast_forward_pipe (%h)",
+				expected_issue_A_fast_forward_pipe, DUT_issue_A_fast_forward_pipe);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -221,21 +251,24 @@ module alu_imm_iq_tb #(
 		// reset
 		nRST = 1'b0;
 	    // op enqueue to issue queue
-		tb_iq_enq_valid = '0;
-		tb_iq_enq_op = '0;
-		tb_iq_enq_imm12 = '0;
-		tb_iq_enq_A_PR = '0;
-		tb_iq_enq_A_ready = '0;
-		tb_iq_enq_A_is_zero = '0;
-		tb_iq_enq_dest_PR = '0;
-		tb_iq_enq_ROB_index = '0;
+		tb_iq_enq_valid = 
+		tb_iq_enq_op = 
+		tb_iq_enq_imm12 = 
+		tb_iq_enq_A_PR = 
+		tb_iq_enq_A_ready = 
+		tb_iq_enq_A_is_zero = 
+		tb_iq_enq_dest_PR = 
+		tb_iq_enq_ROB_index = 
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = '0;
-		tb_WB_bus_upper_PR_by_bank = '0;
+		tb_WB_bus_valid_by_bank = 
+		tb_WB_bus_upper_PR_by_bank = 
+	    // fast forward notifs
+		tb_fast_forward_notif_valid_by_pipe = 
+		tb_fast_forward_notif_PR_by_pipe = 
 	    // pipeline issue
 	    // pipeline feedback
-		tb_issue_ready = '0;
+		tb_issue_ready = 
 	    // reg read req to PRF
 
 		@(posedge CLK); #(PERIOD/10);
@@ -244,23 +277,27 @@ module alu_imm_iq_tb #(
 
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
-		expected_iq_enq_ready = 1'b1;
+		expected_iq_enq_ready = 
 	    // writeback bus by bank
+	    // fast forward notifs
 	    // pipeline issue
-		expected_issue_valid = '0;
-		expected_issue_op = '0;
-		expected_issue_imm12 = '0;
-		expected_issue_A_forward = '0;
-		expected_issue_A_is_zero = '0;
-		expected_issue_A_bank = '0;
-		expected_issue_dest_PR = '0;
-		expected_issue_ROB_index = '0;
+		expected_issue_valid = 
+		expected_issue_op = 
+		expected_issue_imm12 = 
+		expected_issue_A_is_reg = 
+		expected_issue_A_is_bus_forward = 
+		expected_issue_A_is_fast_forward = 
+		expected_issue_A_fast_forward_pipe = 
+		expected_issue_A_bank = 
+		expected_issue_dest_PR = 
+		expected_issue_ROB_index = 
 	    // pipeline feedback
 	    // reg read req to PRF
-		expected_PRF_req_A_valid = '0;
-		expected_PRF_req_A_PR = '0;
+		expected_PRF_req_A_valid = 
+		expected_PRF_req_A_PR = 
 
 		check_outputs();
+fill in ^
 
         // inputs:
         sub_test_case = "deassert reset";
@@ -269,21 +306,24 @@ module alu_imm_iq_tb #(
 		// reset
 		nRST = 1'b1;
 	    // op enqueue to issue queue
-		tb_iq_enq_valid = '0;
-		tb_iq_enq_op = '0;
-		tb_iq_enq_imm12 = '0;
-		tb_iq_enq_A_PR = '0;
-		tb_iq_enq_A_ready = '0;
-		tb_iq_enq_A_is_zero = '0;
-		tb_iq_enq_dest_PR = '0;
-		tb_iq_enq_ROB_index = '0;
+		tb_iq_enq_valid = 
+		tb_iq_enq_op = 
+		tb_iq_enq_imm12 = 
+		tb_iq_enq_A_PR = 
+		tb_iq_enq_A_ready = 
+		tb_iq_enq_A_is_zero = 
+		tb_iq_enq_dest_PR = 
+		tb_iq_enq_ROB_index = 
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = '0;
-		tb_WB_bus_upper_PR_by_bank = '0;
+		tb_WB_bus_valid_by_bank = 
+		tb_WB_bus_upper_PR_by_bank = 
+	    // fast forward notifs
+		tb_fast_forward_notif_valid_by_pipe = 
+		tb_fast_forward_notif_PR_by_pipe = 
 	    // pipeline issue
 	    // pipeline feedback
-		tb_issue_ready = '0;
+		tb_issue_ready = 
 	    // reg read req to PRF
 
 		@(posedge CLK); #(PERIOD/10);
@@ -292,23 +332,27 @@ module alu_imm_iq_tb #(
 
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
-		expected_iq_enq_ready = 1'b1;
+		expected_iq_enq_ready = 
 	    // writeback bus by bank
+	    // fast forward notifs
 	    // pipeline issue
-		expected_issue_valid = '0;
-		expected_issue_op = '0;
-		expected_issue_imm12 = '0;
-		expected_issue_A_forward = '0;
-		expected_issue_A_is_zero = '0;
-		expected_issue_A_bank = '0;
-		expected_issue_dest_PR = '0;
-		expected_issue_ROB_index = '0;
+		expected_issue_valid = 
+		expected_issue_op = 
+		expected_issue_imm12 = 
+		expected_issue_A_is_reg = 
+		expected_issue_A_is_bus_forward = 
+		expected_issue_A_is_fast_forward = 
+		expected_issue_A_fast_forward_pipe = 
+		expected_issue_A_bank = 
+		expected_issue_dest_PR = 
+		expected_issue_ROB_index = 
 	    // pipeline feedback
 	    // reg read req to PRF
-		expected_PRF_req_A_valid = '0;
-		expected_PRF_req_A_PR = '0;
+		expected_PRF_req_A_valid = 
+		expected_PRF_req_A_PR = 
 
 		check_outputs();
+fill in ^
 
         // ------------------------------------------------------------
         // default:
@@ -325,21 +369,24 @@ module alu_imm_iq_tb #(
 		// reset
 		nRST = 1'b1;
 	    // op enqueue to issue queue
-		tb_iq_enq_valid = '0;
-		tb_iq_enq_op = '0;
-		tb_iq_enq_imm12 = '0;
-		tb_iq_enq_A_PR = '0;
-		tb_iq_enq_A_ready = '0;
-		tb_iq_enq_A_is_zero = '0;
-		tb_iq_enq_dest_PR = '0;
-		tb_iq_enq_ROB_index = '0;
+		tb_iq_enq_valid = 
+		tb_iq_enq_op = 
+		tb_iq_enq_imm12 = 
+		tb_iq_enq_A_PR = 
+		tb_iq_enq_A_ready = 
+		tb_iq_enq_A_is_zero = 
+		tb_iq_enq_dest_PR = 
+		tb_iq_enq_ROB_index = 
 	    // issue queue enqueue feedback
 	    // writeback bus by bank
-		tb_WB_bus_valid_by_bank = '0;
-		tb_WB_bus_upper_PR_by_bank = '0;
+		tb_WB_bus_valid_by_bank = 
+		tb_WB_bus_upper_PR_by_bank = 
+	    // fast forward notifs
+		tb_fast_forward_notif_valid_by_pipe = 
+		tb_fast_forward_notif_PR_by_pipe = 
 	    // pipeline issue
 	    // pipeline feedback
-		tb_issue_ready = '0;
+		tb_issue_ready = 
 	    // reg read req to PRF
 
 		@(negedge CLK);
@@ -348,23 +395,27 @@ module alu_imm_iq_tb #(
 
 	    // op enqueue to issue queue
 	    // issue queue enqueue feedback
-		expected_iq_enq_ready = 1'b1;
+		expected_iq_enq_ready = 
 	    // writeback bus by bank
+	    // fast forward notifs
 	    // pipeline issue
-		expected_issue_valid = '0;
-		expected_issue_op = '0;
-		expected_issue_imm12 = '0;
-		expected_issue_A_forward = '0;
-		expected_issue_A_is_zero = '0;
-		expected_issue_A_bank = '0;
-		expected_issue_dest_PR = '0;
-		expected_issue_ROB_index = '0;
+		expected_issue_valid = 
+		expected_issue_op = 
+		expected_issue_imm12 = 
+		expected_issue_A_is_reg = 
+		expected_issue_A_is_bus_forward = 
+		expected_issue_A_is_fast_forward = 
+		expected_issue_A_fast_forward_pipe = 
+		expected_issue_A_bank = 
+		expected_issue_dest_PR = 
+		expected_issue_ROB_index = 
 	    // pipeline feedback
 	    // reg read req to PRF
-		expected_PRF_req_A_valid = '0;
-		expected_PRF_req_A_PR = '0;
+		expected_PRF_req_A_valid = 
+		expected_PRF_req_A_PR = 
 
 		check_outputs();
+fill in ^
 
         // ------------------------------------------------------------
         // finish:

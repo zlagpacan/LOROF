@@ -54,10 +54,10 @@ module alu_reg_mdu_iq #(
     output logic [LOG_ROB_ENTRIES-1:0]  issue_ROB_index,
 
     // ALU reg pipeline feedback
-    input logic                             alu_reg_issue_ready,
+    input logic                         alu_reg_issue_ready,
 
     // MDU pipeline feedback
-    input logic                             mdu_issue_ready,
+    input logic                         mdu_issue_ready,
 
     // reg read req to PRF
     output logic                        PRF_req_A_valid,

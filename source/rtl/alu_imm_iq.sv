@@ -51,7 +51,7 @@ module alu_imm_iq #(
     output logic [LOG_ROB_ENTRIES-1:0]              issue_ROB_index,
 
     // pipeline feedback
-    output logic                                    issue_ready,
+    input logic                                     issue_ready,
 
     // reg read req to PRF
     output logic                        PRF_req_A_valid,
