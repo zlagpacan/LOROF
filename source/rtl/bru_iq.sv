@@ -9,7 +9,9 @@
 import core_types_pkg::*;
 
 module bru_iq #(
-    parameter BRU_IQ_ENTRIES = 6
+    parameter BRU_IQ_ENTRIES = 6,
+    parameter FAST_FORWARD_PIPE_COUNT = 4,
+    parameter LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FAST_FORWARD_PIPE_COUNT)
 ) (
     // seq
     input logic CLK,
@@ -35,33 +37,41 @@ module bru_iq #(
     input logic [LOG_ROB_ENTRIES-1:0]       iq_enq_ROB_index,
 
     // issue queue enqueue feedback
-    output logic                        iq_enq_ready,
+    output logic                            iq_enq_ready,
 
     // writeback bus by bank
     input logic [PRF_BANK_COUNT-1:0]                                        WB_bus_valid_by_bank,
     input logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]   WB_bus_upper_PR_by_bank,
 
+    // fast forward notifs
+    input logic [FAST_FORWARD_PIPE_COUNT-1:0]                       fast_forward_notif_valid_by_pipe,
+    input logic [FAST_FORWARD_PIPE_COUNT-1:0][LOG_PR_COUNT-1:0]     fast_forward_notif_PR_by_pipe,
+
     // pipeline issue
-    output logic                            issue_valid,
-    output logic [3:0]                      issue_op,
-    output logic [BTB_PRED_INFO_WIDTH-1:0]  issue_pred_info,
-    output logic                            issue_pred_lru,
-    output logic                            issue_is_link_ra,
-    output logic                            issue_is_ret_ra,
-    output logic [31:0]                     issue_PC,
-    output logic [31:0]                     issue_pred_PC,
-    output logic [19:0]                     issue_imm20,
-    output logic                            issue_A_forward,
-    output logic                            issue_A_unneeded_or_is_zero,
-    output logic [LOG_PRF_BANK_COUNT-1:0]   issue_A_bank,
-    output logic                            issue_B_forward,
-    output logic                            issue_B_unneeded_or_is_zero,
-    output logic [LOG_PRF_BANK_COUNT-1:0]   issue_B_bank,
-    output logic [LOG_PR_COUNT-1:0]         issue_dest_PR,
-    output logic [LOG_ROB_ENTRIES-1:0]      issue_ROB_index,
+    output logic                                    issue_valid,
+    output logic [3:0]                              issue_op,
+    output logic [BTB_PRED_INFO_WIDTH-1:0]          issue_pred_info,
+    output logic                                    issue_pred_lru,
+    output logic                                    issue_is_link_ra,
+    output logic                                    issue_is_ret_ra,
+    output logic [31:0]                             issue_PC,
+    output logic [31:0]                             issue_pred_PC,
+    output logic [19:0]                             issue_imm20,
+    output logic                                    issue_A_is_reg,
+    output logic                                    issue_A_is_bus_forward,
+    output logic                                    issue_A_is_fast_forward,
+    output logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0]  issue_A_fast_forward_pipe,
+    output logic [LOG_PRF_BANK_COUNT-1:0]           issue_A_bank,
+    output logic                                    issue_B_is_reg,
+    output logic                                    issue_B_is_bus_forward,
+    output logic                                    issue_B_is_fast_forward,
+    output logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0]  issue_B_fast_forward_pipe,
+    output logic [LOG_PRF_BANK_COUNT-1:0]           issue_B_bank,
+    output logic [LOG_PR_COUNT-1:0]                 issue_dest_PR,
+    output logic [LOG_ROB_ENTRIES-1:0]              issue_ROB_index,
 
     // pipeline feedback
-    input logic                             issue_ready,
+    input logic                                     issue_ready,
 
     // reg read req to PRF
     output logic                        PRF_req_A_valid,
@@ -85,16 +95,21 @@ module bru_iq #(
     logic [BRU_IQ_ENTRIES-1:0][19:0]                        imm20_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            A_PR_by_entry;
     logic [BRU_IQ_ENTRIES-1:0]                              A_ready_by_entry;
-    logic [BRU_IQ_ENTRIES-1:0]                              A_unneeded_or_is_zero_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]                              A_is_zero_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            B_PR_by_entry;
     logic [BRU_IQ_ENTRIES-1:0]                              B_ready_by_entry;
-    logic [BRU_IQ_ENTRIES-1:0]                              B_unneeded_or_is_zero_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]                              B_is_zero_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]            dest_PR_by_entry;
     logic [BRU_IQ_ENTRIES-1:0][LOG_ROB_ENTRIES-1:0]         ROB_index_by_entry;
 
     // issue logic helper signals
-    logic [BRU_IQ_ENTRIES-1:0] A_forward_by_entry;
-    logic [BRU_IQ_ENTRIES-1:0] B_forward_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0] A_is_bus_forward_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0] B_is_bus_forward_by_entry;
+
+    logic [BRU_IQ_ENTRIES-1:0]                                      A_is_fast_forward_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0][LOG_FAST_FORWARD_PIPE_COUNT-1:0]     A_fast_forward_pipe_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0]                                      B_is_fast_forward_by_entry;
+    logic [BRU_IQ_ENTRIES-1:0][LOG_FAST_FORWARD_PIPE_COUNT-1:0]     B_fast_forward_pipe_by_entry;
 
     logic [BRU_IQ_ENTRIES-1:0] issue_ready_by_entry;
     logic [BRU_IQ_ENTRIES-1:0] issue_one_hot_by_entry;
@@ -114,8 +129,25 @@ module bru_iq #(
     // forwarding check
     always_comb begin
         for (int i = 0; i < BRU_IQ_ENTRIES; i++) begin
-            A_forward_by_entry[i] = (A_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
-            B_forward_by_entry[i] = (B_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[B_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[B_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
+            A_is_bus_forward_by_entry[i] = (A_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
+            B_is_bus_forward_by_entry[i] = (B_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[B_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[B_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
+            
+            A_is_fast_forward_by_entry[i] = 1'b0;
+            A_fast_forward_pipe_by_entry[i] = 0;
+            for (int pipe = 0; pipe < FAST_FORWARD_PIPE_COUNT; pipe++) begin
+                if (fast_forward_notif_valid_by_pipe[pipe] & (A_PR_by_entry[i] == fast_forward_notif_PR_by_pipe[pipe])) begin
+                    A_is_fast_forward_by_entry[i] = 1'b1;
+                    A_fast_forward_pipe_by_entry[i] = pipe;
+                end
+            end
+            B_is_fast_forward_by_entry[i] = 1'b0;
+            B_fast_forward_pipe_by_entry[i] = 0;
+            for (int pipe = 0; pipe < FAST_FORWARD_PIPE_COUNT; pipe++) begin
+                if (fast_forward_notif_valid_by_pipe[pipe] & (B_PR_by_entry[i] == fast_forward_notif_PR_by_pipe[pipe])) begin
+                    B_is_fast_forward_by_entry[i] = 1'b1;
+                    B_fast_forward_pipe_by_entry[i] = pipe;
+                end
+            end
         end
     end
 
@@ -125,8 +157,8 @@ module bru_iq #(
     assign issue_ready_by_entry = 
         {BRU_IQ_ENTRIES{issue_ready}}
         & valid_by_entry
-        & (A_ready_by_entry | A_forward_by_entry | A_unneeded_or_is_zero_by_entry)
-        & (B_ready_by_entry | B_forward_by_entry | B_unneeded_or_is_zero_by_entry);
+        & (A_ready_by_entry | A_is_bus_forward_by_entry | A_is_fast_forward_by_entry | A_is_zero_by_entry)
+        & (B_ready_by_entry | B_is_bus_forward_by_entry | B_is_fast_forward_by_entry | B_is_zero_by_entry);
 
     // pe
     pe_lsb #(.WIDTH(BRU_IQ_ENTRIES)) ISSUE_PE_LSB (
@@ -150,11 +182,15 @@ module bru_iq #(
         issue_PC = '0;
         issue_pred_PC = '0;
         issue_imm20 = '0;
-        issue_A_forward = '0;
-        issue_A_unneeded_or_is_zero = '0;
+        issue_A_is_reg = '0;
+        issue_A_is_bus_forward = '0;
+        issue_A_is_fast_forward = '0;
+        issue_A_fast_forward_pipe = '0;
         issue_A_bank = '0;
-        issue_B_forward = '0;
-        issue_B_unneeded_or_is_zero = '0;
+        issue_B_is_reg = '0;
+        issue_B_is_bus_forward = '0;
+        issue_B_is_fast_forward = '0;
+        issue_B_fast_forward_pipe = '0;
         issue_B_bank = '0;
         issue_dest_PR = '0;
         issue_ROB_index = '0;
@@ -176,18 +212,22 @@ module bru_iq #(
                 issue_PC |= PC_by_entry[entry];
                 issue_pred_PC |= pred_PC_by_entry[entry];
                 issue_imm20 |= imm20_by_entry[entry];
-                issue_A_forward |= A_forward_by_entry[entry];
-                issue_A_unneeded_or_is_zero |= A_unneeded_or_is_zero_by_entry[entry];
+                issue_A_is_reg |= ~(A_is_zero_by_entry[entry] | A_is_bus_forward_by_entry[entry] | A_is_fast_forward_by_entry[entry]);
+                issue_A_is_bus_forward |= A_is_bus_forward_by_entry[entry];
+                issue_A_is_fast_forward |= A_is_fast_forward_by_entry[entry];
+                issue_A_fast_forward_pipe |= A_fast_forward_pipe_by_entry[entry];
                 issue_A_bank |= A_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0];
-                issue_B_forward |= B_forward_by_entry[entry];
-                issue_B_unneeded_or_is_zero |= B_unneeded_or_is_zero_by_entry[entry];
+                issue_B_is_reg |= ~(B_is_zero_by_entry[entry] | B_is_bus_forward_by_entry[entry] | B_is_fast_forward_by_entry[entry]);
+                issue_B_is_bus_forward |= B_is_bus_forward_by_entry[entry];
+                issue_B_is_fast_forward |= B_is_fast_forward_by_entry[entry];
+                issue_B_fast_forward_pipe |= B_fast_forward_pipe_by_entry[entry];
                 issue_B_bank |= B_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0];
                 issue_dest_PR |= dest_PR_by_entry[entry];
                 issue_ROB_index |= ROB_index_by_entry[entry];
 
-                PRF_req_A_valid |= ~A_forward_by_entry[entry] & ~A_unneeded_or_is_zero_by_entry[entry];
+                PRF_req_A_valid |= ~A_is_bus_forward_by_entry[entry] & ~A_is_zero_by_entry[entry];
                 PRF_req_A_PR |= A_PR_by_entry[entry];
-                PRF_req_B_valid |= ~B_forward_by_entry[entry] & ~B_unneeded_or_is_zero_by_entry[entry];
+                PRF_req_B_valid |= ~B_is_bus_forward_by_entry[entry] & ~B_is_zero_by_entry[entry];
                 PRF_req_B_PR |= B_PR_by_entry[entry];
             end
         end
@@ -224,10 +264,10 @@ module bru_iq #(
             imm20_by_entry <= '0;
             A_PR_by_entry <= '0;
             A_ready_by_entry <= '0;
-            A_unneeded_or_is_zero_by_entry <= '0;
+            A_is_zero_by_entry <= '0;
             B_PR_by_entry <= '0;
             B_ready_by_entry <= '0;
-            B_unneeded_or_is_zero_by_entry <= '0;
+            B_is_zero_by_entry <= '0;
             dest_PR_by_entry <= '0;
             ROB_index_by_entry <= '0;
         end
@@ -257,11 +297,11 @@ module bru_iq #(
                     pred_PC_by_entry[BRU_IQ_ENTRIES-1] <= pred_PC_by_entry[BRU_IQ_ENTRIES-1];
                     imm20_by_entry[BRU_IQ_ENTRIES-1] <= imm20_by_entry[BRU_IQ_ENTRIES-1];
                     A_PR_by_entry[BRU_IQ_ENTRIES-1] <= A_PR_by_entry[BRU_IQ_ENTRIES-1];
-                    A_ready_by_entry[BRU_IQ_ENTRIES-1] <= A_ready_by_entry[BRU_IQ_ENTRIES-1] | A_forward_by_entry[BRU_IQ_ENTRIES-1];
-                    A_unneeded_or_is_zero_by_entry[BRU_IQ_ENTRIES-1] <= A_unneeded_or_is_zero_by_entry[BRU_IQ_ENTRIES-1];
+                    A_ready_by_entry[BRU_IQ_ENTRIES-1] <= A_ready_by_entry[BRU_IQ_ENTRIES-1] | A_is_bus_forward_by_entry[BRU_IQ_ENTRIES-1];
+                    A_is_zero_by_entry[BRU_IQ_ENTRIES-1] <= A_is_zero_by_entry[BRU_IQ_ENTRIES-1];
                     B_PR_by_entry[BRU_IQ_ENTRIES-1] <= B_PR_by_entry[BRU_IQ_ENTRIES-1];
-                    B_ready_by_entry[BRU_IQ_ENTRIES-1] <= B_ready_by_entry[BRU_IQ_ENTRIES-1] | B_forward_by_entry[BRU_IQ_ENTRIES-1];
-                    B_unneeded_or_is_zero_by_entry[BRU_IQ_ENTRIES-1] <= B_unneeded_or_is_zero_by_entry[BRU_IQ_ENTRIES-1];
+                    B_ready_by_entry[BRU_IQ_ENTRIES-1] <= B_ready_by_entry[BRU_IQ_ENTRIES-1] | B_is_bus_forward_by_entry[BRU_IQ_ENTRIES-1];
+                    B_is_zero_by_entry[BRU_IQ_ENTRIES-1] <= B_is_zero_by_entry[BRU_IQ_ENTRIES-1];
                     dest_PR_by_entry[BRU_IQ_ENTRIES-1] <= dest_PR_by_entry[BRU_IQ_ENTRIES-1];
                     ROB_index_by_entry[BRU_IQ_ENTRIES-1] <= ROB_index_by_entry[BRU_IQ_ENTRIES-1];
                 end
@@ -279,10 +319,10 @@ module bru_iq #(
                     imm20_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_imm20;
                     A_PR_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_A_PR;
                     A_ready_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_A_ready;
-                    A_unneeded_or_is_zero_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_A_unneeded_or_is_zero;
+                    A_is_zero_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_A_unneeded_or_is_zero;
                     B_PR_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_B_PR;
                     B_ready_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_B_ready;
-                    B_unneeded_or_is_zero_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_B_unneeded_or_is_zero;
+                    B_is_zero_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_B_unneeded_or_is_zero;
                     dest_PR_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_dest_PR;
                     ROB_index_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_ROB_index;
                 end
@@ -307,11 +347,11 @@ module bru_iq #(
                         pred_PC_by_entry[i] <= pred_PC_by_entry[i+1];
                         imm20_by_entry[i] <= imm20_by_entry[i+1];
                         A_PR_by_entry[i] <= A_PR_by_entry[i+1];
-                        A_ready_by_entry[i] <= A_ready_by_entry[i+1] | A_forward_by_entry[i+1];
-                        A_unneeded_or_is_zero_by_entry[i] <= A_unneeded_or_is_zero_by_entry[i+1];
+                        A_ready_by_entry[i] <= A_ready_by_entry[i+1] | A_is_bus_forward_by_entry[i+1];
+                        A_is_zero_by_entry[i] <= A_is_zero_by_entry[i+1];
                         B_PR_by_entry[i] <= B_PR_by_entry[i+1];
-                        B_ready_by_entry[i] <= B_ready_by_entry[i+1] | B_forward_by_entry[i+1];
-                        B_unneeded_or_is_zero_by_entry[i] <= B_unneeded_or_is_zero_by_entry[i+1];
+                        B_ready_by_entry[i] <= B_ready_by_entry[i+1] | B_is_bus_forward_by_entry[i+1];
+                        B_is_zero_by_entry[i] <= B_is_zero_by_entry[i+1];
                         dest_PR_by_entry[i] <= dest_PR_by_entry[i+1];
                         ROB_index_by_entry[i] <= ROB_index_by_entry[i+1];
                     end
@@ -329,10 +369,10 @@ module bru_iq #(
                         imm20_by_entry[i] <= iq_enq_imm20;
                         A_PR_by_entry[i] <= iq_enq_A_PR;
                         A_ready_by_entry[i] <= iq_enq_A_ready;
-                        A_unneeded_or_is_zero_by_entry[i] <= iq_enq_A_unneeded_or_is_zero;
+                        A_is_zero_by_entry[i] <= iq_enq_A_unneeded_or_is_zero;
                         B_PR_by_entry[i] <= iq_enq_B_PR;
                         B_ready_by_entry[i] <= iq_enq_B_ready;
-                        B_unneeded_or_is_zero_by_entry[i] <= iq_enq_B_unneeded_or_is_zero;
+                        B_is_zero_by_entry[i] <= iq_enq_B_unneeded_or_is_zero;
                         dest_PR_by_entry[i] <= iq_enq_dest_PR;
                         ROB_index_by_entry[i] <= iq_enq_ROB_index;
                     end
@@ -353,11 +393,11 @@ module bru_iq #(
                         pred_PC_by_entry[i] <= pred_PC_by_entry[i];
                         imm20_by_entry[i] <= imm20_by_entry[i];
                         A_PR_by_entry[i] <= A_PR_by_entry[i];
-                        A_ready_by_entry[i] <= A_ready_by_entry[i] | A_forward_by_entry[i];
-                        A_unneeded_or_is_zero_by_entry[i] <= A_unneeded_or_is_zero_by_entry[i];
+                        A_ready_by_entry[i] <= A_ready_by_entry[i] | A_is_bus_forward_by_entry[i];
+                        A_is_zero_by_entry[i] <= A_is_zero_by_entry[i];
                         B_PR_by_entry[i] <= B_PR_by_entry[i];
-                        B_ready_by_entry[i] <= B_ready_by_entry[i] | B_forward_by_entry[i];
-                        B_unneeded_or_is_zero_by_entry[i] <= B_unneeded_or_is_zero_by_entry[i];
+                        B_ready_by_entry[i] <= B_ready_by_entry[i] | B_is_bus_forward_by_entry[i];
+                        B_is_zero_by_entry[i] <= B_is_zero_by_entry[i];
                         dest_PR_by_entry[i] <= dest_PR_by_entry[i];
                         ROB_index_by_entry[i] <= ROB_index_by_entry[i];
                     end
@@ -375,10 +415,10 @@ module bru_iq #(
                         imm20_by_entry[i] <= iq_enq_imm20;
                         A_PR_by_entry[i] <= iq_enq_A_PR;
                         A_ready_by_entry[i] <= iq_enq_A_ready;
-                        A_unneeded_or_is_zero_by_entry[i] <= iq_enq_A_unneeded_or_is_zero;
+                        A_is_zero_by_entry[i] <= iq_enq_A_unneeded_or_is_zero;
                         B_PR_by_entry[i] <= iq_enq_B_PR;
                         B_ready_by_entry[i] <= iq_enq_B_ready;
-                        B_unneeded_or_is_zero_by_entry[i] <= iq_enq_B_unneeded_or_is_zero;
+                        B_is_zero_by_entry[i] <= iq_enq_B_unneeded_or_is_zero;
                         dest_PR_by_entry[i] <= iq_enq_dest_PR;
                         ROB_index_by_entry[i] <= iq_enq_ROB_index;
                     end

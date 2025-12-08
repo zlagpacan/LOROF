@@ -722,6 +722,35 @@ module core #(
     logic [PRF_BANK_COUNT-1:0]                          prf_complete_bus_valid_by_bank;
     logic [PRF_BANK_COUNT-1:0][LOG_ROB_ENTRIES-1:0]     prf_complete_bus_ROB_index_by_bank;
 
+    // fast forward notif's
+    logic [FAST_FORWARD_PIPE_COUNT-1:0]                     fast_forward_notif_valid_by_pipe;
+    logic [FAST_FORWARD_PIPE_COUNT-1:0][LOG_PR_COUNT-1:0]   fast_forward_notif_PR_by_pipe;
+
+    // fast forward data's
+    logic [FAST_FORWARD_PIPE_COUNT-1:0]         fast_forward_data_valid_by_pipe;
+    logic [FAST_FORWARD_PIPE_COUNT-1:0][31:0]   fast_forward_data_by_pipe;
+
+    // fast forward info by pipe
+    logic                       ldu_launch_pipeline_bank0_fast_forward_notif_valid;
+    logic [LOG_PR_COUNT-1:0]    ldu_launch_pipeline_bank0_fast_forward_notif_PR;
+    logic                       ldu_launch_pipeline_bank0_fast_forward_data_valid;
+    logic [31:0]                ldu_launch_pipeline_bank0_fast_forward_data;
+    
+    logic                       ldu_launch_pipeline_bank1_fast_forward_notif_valid;
+    logic [LOG_PR_COUNT-1:0]    ldu_launch_pipeline_bank1_fast_forward_notif_PR;
+    logic                       ldu_launch_pipeline_bank1_fast_forward_data_valid;
+    logic [31:0]                ldu_launch_pipeline_bank1_fast_forward_data;
+
+    logic                       alu_imm_pipeline_fast_forward_notif_valid;
+    logic [LOG_PR_COUNT-1:0]    alu_imm_pipeline_fast_forward_notif_PR;
+    logic                       alu_imm_pipeline_fast_forward_data_valid;
+    logic [31:0]                alu_imm_pipeline_fast_forward_data;
+
+    logic                       alu_reg_pipeline_fast_forward_notif_valid;
+    logic [LOG_PR_COUNT-1:0]    alu_reg_pipeline_fast_forward_notif_PR;
+    logic                       alu_reg_pipeline_fast_forward_data_valid;
+    logic [31:0]                alu_reg_pipeline_fast_forward_data;
+
     // LDU complete notif
     logic                           ldu_complete_valid;
     logic [LOG_ROB_ENTRIES-1:0]     ldu_complete_ROB_index;
@@ -841,21 +870,25 @@ module core #(
     logic                           mdu_issue_valid;
 
     // shared ALU reg / MDU issue info
-    logic [3:0]                     alu_reg_mdu_issue_op;
-    logic                           alu_reg_mdu_issue_A_forward;
-    logic                           alu_reg_mdu_issue_A_is_zero;
-    logic [LOG_PR_COUNT-1:0]        alu_reg_mdu_issue_A_PR;
-    logic                           alu_reg_mdu_issue_B_forward;
-    logic                           alu_reg_mdu_issue_B_is_zero;
-    logic [LOG_PR_COUNT-1:0]        alu_reg_mdu_issue_B_PR;
-    logic [LOG_PR_COUNT-1:0]        alu_reg_mdu_issue_dest_PR;
-    logic [LOG_ROB_ENTRIES-1:0]     alu_reg_mdu_issue_ROB_index;
+    logic [3:0]                                 alu_reg_mdu_issue_op;
+    logic                                       alu_reg_mdu_issue_A_is_reg;
+    logic                                       alu_reg_mdu_issue_A_is_bus_forward;
+    logic                                       alu_reg_mdu_issue_A_is_fast_forward;
+    logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0]     alu_reg_mdu_issue_A_fast_forward_pipe;
+    logic [LOG_PR_COUNT-1:0]                    alu_reg_mdu_issue_A_PR;
+    logic                                       alu_reg_mdu_issue_B_is_reg;
+    logic                                       alu_reg_mdu_issue_B_is_bus_forward;
+    logic                                       alu_reg_mdu_issue_B_is_fast_forward;
+    logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0]     alu_reg_mdu_issue_B_fast_forward_pipe;
+    logic [LOG_PR_COUNT-1:0]                    alu_reg_mdu_issue_B_PR;
+    logic [LOG_PR_COUNT-1:0]                    alu_reg_mdu_issue_dest_PR;
+    logic [LOG_ROB_ENTRIES-1:0]                 alu_reg_mdu_issue_ROB_index;
 
     // ALU reg pipeline feedback
-    logic                           alu_reg_issue_ready;
+    logic                                       alu_reg_issue_ready;
 
     // MDU pipeline feedback
-    logic                           mdu_issue_ready;
+    logic                                       mdu_issue_ready;
 
     // op enqueue to issue queue
     logic                           alu_imm_iq_enq_valid;
@@ -871,17 +904,19 @@ module core #(
     logic                           alu_imm_iq_enq_ready;
 
     // pipeline issue
-    logic                           alu_imm_issue_valid;
-    logic [3:0]                     alu_imm_issue_op;
-    logic [11:0]                    alu_imm_issue_imm12;
-    logic                           alu_imm_issue_A_forward;
-    logic                           alu_imm_issue_A_is_zero;
-    logic [LOG_PRF_BANK_COUNT-1:0]  alu_imm_issue_A_bank;
-    logic [LOG_PR_COUNT-1:0]        alu_imm_issue_dest_PR;
-    logic [LOG_ROB_ENTRIES-1:0]     alu_imm_issue_ROB_index;
+    logic                                       alu_imm_issue_valid;
+    logic [3:0]                                 alu_imm_issue_op;
+    logic [11:0]                                alu_imm_issue_imm12;
+    logic                                       alu_imm_issue_A_is_reg;
+    logic                                       alu_imm_issue_A_is_bus_forward;
+    logic                                       alu_imm_issue_A_is_fast_forward;
+    logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0]     alu_imm_issue_A_fast_forward_pipe;
+    logic [LOG_PRF_BANK_COUNT-1:0]              alu_imm_issue_A_bank;
+    logic [LOG_PR_COUNT-1:0]                    alu_imm_issue_dest_PR;
+    logic [LOG_ROB_ENTRIES-1:0]                 alu_imm_issue_ROB_index;
 
     // pipeline feedback
-    logic                           alu_imm_issue_ready;
+    logic                                       alu_imm_issue_ready;
 
     // op enqueue to issue queue
     logic                               bru_iq_enq_valid;
@@ -906,26 +941,30 @@ module core #(
     logic                               bru_iq_enq_ready;
 
     // pipeline issue
-    logic                               bru_issue_valid;
-    logic [3:0]                         bru_issue_op;
-    logic [BTB_PRED_INFO_WIDTH-1:0]     bru_issue_pred_info;
-    logic                               bru_issue_pred_lru;
-    logic                               bru_issue_is_link_ra;
-    logic                               bru_issue_is_ret_ra;
-    logic [31:0]                        bru_issue_PC;
-    logic [31:0]                        bru_issue_pred_PC;
-    logic [19:0]                        bru_issue_imm20;
-    logic                               bru_issue_A_forward;
-    logic                               bru_issue_A_unneeded_or_is_zero;
-    logic [LOG_PRF_BANK_COUNT-1:0]      bru_issue_A_bank;
-    logic                               bru_issue_B_forward;
-    logic                               bru_issue_B_unneeded_or_is_zero;
-    logic [LOG_PRF_BANK_COUNT-1:0]      bru_issue_B_bank;
-    logic [LOG_PR_COUNT-1:0]            bru_issue_dest_PR;
-    logic [LOG_ROB_ENTRIES-1:0]         bru_issue_ROB_index;
+    logic                                       bru_issue_valid;
+    logic [3:0]                                 bru_issue_op;
+    logic [BTB_PRED_INFO_WIDTH-1:0]             bru_issue_pred_info;
+    logic                                       bru_issue_pred_lru;
+    logic                                       bru_issue_is_link_ra;
+    logic                                       bru_issue_is_ret_ra;
+    logic [31:0]                                bru_issue_PC;
+    logic [31:0]                                bru_issue_pred_PC;
+    logic [19:0]                                bru_issue_imm20;
+    logic                                       bru_issue_A_is_reg;
+    logic                                       bru_issue_A_is_bus_forward;
+    logic                                       bru_issue_A_is_fast_forward;
+    logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0]     bru_issue_A_fast_forward_pipe;
+    logic [LOG_PRF_BANK_COUNT-1:0]              bru_issue_A_bank;
+    logic                                       bru_issue_B_is_reg;
+    logic                                       bru_issue_B_is_bus_forward;
+    logic                                       bru_issue_B_is_fast_forward;
+    logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0]     bru_issue_B_fast_forward_pipe;
+    logic [LOG_PRF_BANK_COUNT-1:0]              bru_issue_B_bank;
+    logic [LOG_PR_COUNT-1:0]                    bru_issue_dest_PR;
+    logic [LOG_ROB_ENTRIES-1:0]                 bru_issue_ROB_index;
 
     // pipeline feedback
-    logic                               bru_issue_ready;
+    logic                                       bru_issue_ready;
 
     // op enqueue to central queue
     logic                           ldu_cq_enq_valid;
@@ -952,13 +991,15 @@ module core #(
     logic                           ldu_iq_enq_ready;
 
     // pipeline issue
-    logic                           ldu_issue_valid;
-    logic [3:0]                     ldu_issue_op;
-    logic [11:0]                    ldu_issue_imm12;
-    logic                           ldu_issue_A_forward;
-    logic                           ldu_issue_A_is_zero;
-    logic [LOG_PRF_BANK_COUNT-1:0]  ldu_issue_A_bank;
-    logic [LOG_LDU_CQ_ENTRIES-1:0]  ldu_issue_cq_index;
+    logic                                       ldu_issue_valid;
+    logic [3:0]                                 ldu_issue_op;
+    logic [11:0]                                ldu_issue_imm12;
+    logic                                       ldu_issue_A_is_reg;
+    logic                                       ldu_issue_A_is_bus_forward;
+    logic                                       ldu_issue_A_is_fast_forward;
+    logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0]     ldu_issue_A_fast_forward_pipe;
+    logic [LOG_PRF_BANK_COUNT-1:0]              ldu_issue_A_bank;
+    logic [LOG_LDU_CQ_ENTRIES-1:0]              ldu_issue_cq_index;
 
     // pipeline feedback
     logic                           ldu_issue_ready;
@@ -1320,22 +1361,26 @@ module core #(
     logic                               stamofu_aq_enq_ready;
 
     // pipeline issue
-    logic                               stamofu_issue_valid;
-    logic                               stamofu_issue_is_store;
-    logic                               stamofu_issue_is_amo;
-    logic                               stamofu_issue_is_fence;
-    logic [3:0]                         stamofu_issue_op;
-    logic [11:0]                        stamofu_issue_imm12;
-    logic                               stamofu_issue_A_forward;
-    logic                               stamofu_issue_A_is_zero;
-    logic [LOG_PRF_BANK_COUNT-1:0]      stamofu_issue_A_bank;
-    logic                               stamofu_issue_B_forward;
-    logic                               stamofu_issue_B_is_zero;
-    logic [LOG_PRF_BANK_COUNT-1:0]      stamofu_issue_B_bank;
-    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]  stamofu_issue_cq_index;
+    logic                                       stamofu_issue_valid;
+    logic                                       stamofu_issue_is_store;
+    logic                                       stamofu_issue_is_amo;
+    logic                                       stamofu_issue_is_fence;
+    logic [3:0]                                 stamofu_issue_op;
+    logic [11:0]                                stamofu_issue_imm12;
+    logic                                       stamofu_issue_A_is_reg;
+    logic                                       stamofu_issue_A_is_bus_forward;
+    logic                                       stamofu_issue_A_is_fast_forward;
+    logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0]     stamofu_issue_A_fast_forward_pipe;
+    logic [LOG_PRF_BANK_COUNT-1:0]              stamofu_issue_A_bank;
+    logic                                       stamofu_issue_B_is_reg;
+    logic                                       stamofu_issue_B_is_bus_forward;
+    logic                                       stamofu_issue_B_is_fast_forward;
+    logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0]     stamofu_issue_B_fast_forward_pipe;
+    logic [LOG_PRF_BANK_COUNT-1:0]              stamofu_issue_B_bank;
+    logic [LOG_STAMOFU_CQ_ENTRIES-1:0]          stamofu_issue_cq_index;
 
     // pipeline feedback
-    logic                               stamofu_issue_ready;
+    logic                                       stamofu_issue_ready;
 
     // op update bank 0
     logic                           stamofu_aq_update_bank0_valid;
@@ -2089,6 +2134,41 @@ module core #(
 		.complete_bus_ROB_index_by_bank(prf_complete_bus_ROB_index_by_bank)
     );
 
+    // fast-forward's
+    always_comb begin
+
+        // 4x fast-forward pipes:
+            // ALU Reg-Reg
+            // ALU Reg-Imm
+            // LDU bank 1
+            // LDU bank 0
+        fast_forward_notif_valid_by_pipe = {
+            alu_reg_pipeline_fast_forward_notif_valid,
+            alu_imm_pipeline_fast_forward_notif_valid,
+            ldu_launch_pipeline_bank1_fast_forward_notif_valid,
+            ldu_launch_pipeline_bank0_fast_forward_notif_valid
+        };
+        fast_forward_notif_PR_by_pipe = {
+            alu_reg_pipeline_fast_forward_notif_PR,
+            alu_imm_pipeline_fast_forward_notif_PR,
+            ldu_launch_pipeline_bank1_fast_forward_notif_PR,
+            ldu_launch_pipeline_bank0_fast_forward_notif_PR
+        };
+
+        fast_forward_data_valid_by_pipe = {
+            alu_reg_pipeline_fast_forward_data_valid,
+            alu_imm_pipeline_fast_forward_data_valid,
+            ldu_launch_pipeline_bank1_fast_forward_data_valid,
+            ldu_launch_pipeline_bank0_fast_forward_data_valid
+        };
+        fast_forward_data_by_pipe = {
+            alu_reg_pipeline_fast_forward_data,
+            alu_imm_pipeline_fast_forward_data,
+            ldu_launch_pipeline_bank1_fast_forward_data,
+            ldu_launch_pipeline_bank0_fast_forward_data
+        };
+    end
+
     // rob
     always_comb begin
         rob_instret_write_valid = 1'b0;
@@ -2332,7 +2412,9 @@ module core #(
 
     // alu_reg_mdu_iq
     alu_reg_mdu_iq #(
-        .ALU_REG_MDU_IQ_ENTRIES(ALU_REG_MDU_IQ_ENTRIES)
+        .ALU_REG_MDU_IQ_ENTRIES(ALU_REG_MDU_IQ_ENTRIES),
+        .FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT),
+        .LOG_FAST_FORWARD_PIPE_COUNT(LOG_FAST_FORWARD_PIPE_COUNT)
     ) ALU_REG_MDU_IQ (
         // seq
         .CLK(CLK),
@@ -2359,6 +2441,10 @@ module core #(
         .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
         .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
 
+        // fast forward notifs
+        .fast_forward_notif_valid_by_pipe(fast_forward_notif_valid_by_pipe),
+        .fast_forward_notif_PR_by_pipe(fast_forward_notif_PR_by_pipe),
+
         // ALU reg pipeline issue
         .alu_reg_issue_valid(alu_reg_issue_valid),
 
@@ -2367,11 +2453,15 @@ module core #(
         
         // shared issue info
         .issue_op(alu_reg_mdu_issue_op),
-        .issue_A_forward(alu_reg_mdu_issue_A_forward),
-        .issue_A_is_zero(alu_reg_mdu_issue_A_is_zero),
+        .issue_A_is_reg(alu_reg_mdu_issue_A_is_reg),
+        .issue_A_is_bus_forward(alu_reg_mdu_issue_A_is_bus_forward),
+        .issue_A_is_fast_forward(alu_reg_mdu_issue_A_is_fast_forward),
+        .issue_A_fast_forward_pipe(alu_reg_mdu_issue_A_fast_forward_pipe),
         .issue_A_PR(alu_reg_mdu_issue_A_PR),
-        .issue_B_forward(alu_reg_mdu_issue_B_forward),
-        .issue_B_is_zero(alu_reg_mdu_issue_B_is_zero),
+        .issue_B_is_reg(alu_reg_mdu_issue_B_is_reg),
+        .issue_B_is_bus_forward(alu_reg_mdu_issue_B_is_bus_forward),
+        .issue_B_is_fast_forward(alu_reg_mdu_issue_B_is_fast_forward),
+        .issue_B_fast_forward_pipe(alu_reg_mdu_issue_B_fast_forward_pipe),
         .issue_B_PR(alu_reg_mdu_issue_B_PR),
         .issue_dest_PR(alu_reg_mdu_issue_dest_PR),
         .issue_ROB_index(alu_reg_mdu_issue_ROB_index),
@@ -2390,7 +2480,12 @@ module core #(
     );
 
     // alu_reg_pipeline
-    alu_reg_pipeline ALU_REG_PIPELINE (
+    alu_reg_pipeline #(
+        .IS_OC_BUFFER_SIZE(IS_OC_BUFFER_SIZE),
+        .OC_ENTRIES(OC_ENTRIES),
+        .FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT),
+        .LOG_FAST_FORWARD_PIPE_COUNT(LOG_FAST_FORWARD_PIPE_COUNT)
+    ) ALU_REG_PIPELINE (
         // seq
         .CLK(CLK),
         .nRST(nRST),
@@ -2398,11 +2493,15 @@ module core #(
         // ALU reg op issue from IQ
         .issue_valid(alu_reg_issue_valid),
         .issue_op(alu_reg_mdu_issue_op),
-        .issue_A_forward(alu_reg_mdu_issue_A_forward),
-        .issue_A_is_zero(alu_reg_mdu_issue_A_is_zero),
+        .issue_A_is_reg(alu_reg_mdu_issue_A_is_reg),
+        .issue_A_is_bus_forward(alu_reg_mdu_issue_A_is_bus_forward),
+        .issue_A_is_fast_forward(alu_reg_mdu_issue_A_is_fast_forward),
+        .issue_A_fast_forward_pipe(alu_reg_mdu_issue_A_fast_forward_pipe),
         .issue_A_bank(alu_reg_mdu_issue_A_PR[LOG_PRF_BANK_COUNT-1:0]),
-        .issue_B_forward(alu_reg_mdu_issue_B_forward),
-        .issue_B_is_zero(alu_reg_mdu_issue_B_is_zero),
+        .issue_B_is_reg(alu_reg_mdu_issue_B_is_reg),
+        .issue_B_is_bus_forward(alu_reg_mdu_issue_B_is_bus_forward),
+        .issue_B_is_fast_forward(alu_reg_mdu_issue_B_is_fast_forward),
+        .issue_B_fast_forward_pipe(alu_reg_mdu_issue_B_fast_forward_pipe),
         .issue_B_bank(alu_reg_mdu_issue_B_PR[LOG_PRF_BANK_COUNT-1:0]),
         .issue_dest_PR(alu_reg_mdu_issue_dest_PR),
         .issue_ROB_index(alu_reg_mdu_issue_ROB_index),
@@ -2416,8 +2515,12 @@ module core #(
         .B_reg_read_resp_valid(alu_reg_mdu_PRF_B_reg_read_resp_valid),
         .B_reg_read_resp_data(alu_reg_mdu_PRF_B_reg_read_resp_data),
 
-        // forward data from PRF
-        .forward_data_by_bank(prf_forward_data_bus_by_bank),
+        // bus forward data from PRF
+        .bus_forward_data_by_bank(prf_forward_data_bus_by_bank),
+
+        // fast forward data
+        .fast_forward_data_valid_by_pipe(fast_forward_data_valid_by_pipe),
+        .fast_forward_data_by_pipe(fast_forward_data_by_pipe),
 
         // writeback data to PRF
         .WB_valid(alu_reg_WB_valid),
@@ -2426,7 +2529,14 @@ module core #(
         .WB_ROB_index(alu_reg_WB_ROB_index),
 
         // writeback feedback from PRF
-        .WB_ready(alu_reg_WB_ready)
+        .WB_ready(alu_reg_WB_ready),
+
+        // this pipe's fast forward notif
+        .pipe_fast_forward_notif_valid(alu_reg_pipeline_fast_forward_notif_valid),
+        .pipe_fast_forward_notif_PR(alu_reg_pipeline_fast_forward_notif_PR),
+
+        .pipe_fast_forward_data_valid(alu_reg_pipeline_fast_forward_data_valid),
+        .pipe_fast_forward_data(alu_reg_pipeline_fast_forward_data)
     );
 
     // mdu_pipeline
@@ -2438,11 +2548,15 @@ module core #(
         // ALU reg op issue from IQ
         .issue_valid(mdu_issue_valid),
         .issue_op(alu_reg_mdu_issue_op),
-        .issue_A_forward(alu_reg_mdu_issue_A_forward),
-        .issue_A_is_zero(alu_reg_mdu_issue_A_is_zero),
+        .issue_A_is_reg(alu_reg_mdu_issue_A_is_reg),
+        .issue_A_is_bus_forward(alu_reg_mdu_issue_A_is_bus_forward),
+        .issue_A_is_fast_forward(alu_reg_mdu_issue_A_is_fast_forward),
+        .issue_A_fast_forward_pipe(alu_reg_mdu_issue_A_fast_forward_pipe),
         .issue_A_PR(alu_reg_mdu_issue_A_PR),
-        .issue_B_forward(alu_reg_mdu_issue_B_forward),
-        .issue_B_is_zero(alu_reg_mdu_issue_B_is_zero),
+        .issue_B_is_reg(alu_reg_mdu_issue_B_is_reg),
+        .issue_B_is_bus_forward(alu_reg_mdu_issue_B_is_bus_forward),
+        .issue_B_is_fast_forward(alu_reg_mdu_issue_B_is_fast_forward),
+        .issue_B_fast_forward_pipe(alu_reg_mdu_issue_B_fast_forward_pipe),
         .issue_B_PR(alu_reg_mdu_issue_B_PR),
         .issue_dest_PR(alu_reg_mdu_issue_dest_PR),
         .issue_ROB_index(alu_reg_mdu_issue_ROB_index),
@@ -2456,8 +2570,12 @@ module core #(
         .B_reg_read_resp_valid(alu_reg_mdu_PRF_B_reg_read_resp_valid),
         .B_reg_read_resp_data(alu_reg_mdu_PRF_B_reg_read_resp_data),
 
-        // forward data from PRF
-        .forward_data_by_bank(prf_forward_data_bus_by_bank),
+        // bus forward data from PRF
+        .bus_forward_data_by_bank(prf_forward_data_bus_by_bank),
+
+        // fast forward data
+        .fast_forward_data_valid_by_pipe(fast_forward_data_valid_by_pipe),
+        .fast_forward_data_by_pipe(fast_forward_data_by_pipe),
 
         // writeback data to PRF
         .WB_valid(mdu_WB_valid),
@@ -2514,7 +2632,9 @@ module core #(
 
     // alu_imm_iq
     alu_imm_iq #(
-        .ALU_IMM_IQ_ENTRIES(ALU_IMM_IQ_ENTRIES)
+        .ALU_IMM_IQ_ENTRIES(ALU_IMM_IQ_ENTRIES),
+        .FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT),
+        .LOG_FAST_FORWARD_PIPE_COUNT(LOG_FAST_FORWARD_PIPE_COUNT)
     ) ALU_IMM_IQ (
         // seq
         .CLK(CLK),
@@ -2537,12 +2657,18 @@ module core #(
         .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
         .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
 
+        // fast forward notifs
+        .fast_forward_notif_valid_by_pipe(fast_forward_notif_valid_by_pipe),
+        .fast_forward_notif_PR_by_pipe(fast_forward_notif_PR_by_pipe),
+
         // pipeline issue
         .issue_valid(alu_imm_issue_valid),
         .issue_op(alu_imm_issue_op),
         .issue_imm12(alu_imm_issue_imm12),
-        .issue_A_forward(alu_imm_issue_A_forward),
-        .issue_A_is_zero(alu_imm_issue_A_is_zero),
+        .issue_A_is_reg(alu_imm_issue_A_is_reg),
+        .issue_A_is_bus_forward(alu_imm_issue_A_is_bus_forward),
+        .issue_A_is_fast_forward(alu_imm_issue_A_is_fast_forward),
+        .issue_A_fast_forward_pipe(alu_imm_issue_A_fast_forward_pipe),
         .issue_A_bank(alu_imm_issue_A_bank),
         .issue_dest_PR(alu_imm_issue_dest_PR),
         .issue_ROB_index(alu_imm_issue_ROB_index),
@@ -2556,7 +2682,12 @@ module core #(
     );
 
     // alu_imm_pipeline
-    alu_imm_pipeline ALU_IMM_PIPELINE (
+    alu_imm_pipeline #(
+        .IS_OC_BUFFER_SIZE(IS_OC_BUFFER_SIZE),
+        .OC_ENTRIES(OC_ENTRIES),
+        .FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT),
+        .LOG_FAST_FORWARD_PIPE_COUNT(LOG_FAST_FORWARD_PIPE_COUNT)
+    ) ALU_IMM_PIPELINE (
         // seq
         .CLK(CLK),
         .nRST(nRST),
@@ -2565,8 +2696,10 @@ module core #(
         .issue_valid(alu_imm_issue_valid),
         .issue_op(alu_imm_issue_op),
         .issue_imm12(alu_imm_issue_imm12),
-        .issue_A_forward(alu_imm_issue_A_forward),
-        .issue_A_is_zero(alu_imm_issue_A_is_zero),
+        .issue_A_is_reg(alu_imm_issue_A_is_reg),
+        .issue_A_is_bus_forward(alu_imm_issue_A_is_bus_forward),
+        .issue_A_is_fast_forward(alu_imm_issue_A_is_fast_forward),
+        .issue_A_fast_forward_pipe(alu_imm_issue_A_fast_forward_pipe),
         .issue_A_bank(alu_imm_issue_A_bank),
         .issue_dest_PR(alu_imm_issue_dest_PR),
         .issue_ROB_index(alu_imm_issue_ROB_index),
@@ -2578,8 +2711,12 @@ module core #(
         .A_reg_read_resp_valid(alu_imm_PRF_A_reg_read_resp_valid),
         .A_reg_read_resp_data(alu_imm_PRF_A_reg_read_resp_data),
 
-        // forward data from PRF
-        .forward_data_by_bank(prf_forward_data_bus_by_bank),
+        // bus forward data from PRF
+        .bus_forward_data_by_bank(prf_forward_data_bus_by_bank),
+
+        // fast forward data
+        .fast_forward_data_valid_by_pipe(fast_forward_data_valid_by_pipe),
+        .fast_forward_data_by_pipe(fast_forward_data_by_pipe),
 
         // writeback data to PRF
         .WB_valid(alu_imm_WB_valid),
@@ -2588,7 +2725,14 @@ module core #(
         .WB_ROB_index(alu_imm_WB_ROB_index),
 
         // writeback backpressure from PRF
-        .WB_ready(alu_imm_WB_ready)
+        .WB_ready(alu_imm_WB_ready),
+
+        // this pipe's fast forward notif
+        .pipe_fast_forward_notif_valid(alu_imm_pipeline_fast_forward_notif_valid),
+        .pipe_fast_forward_notif_PR(alu_imm_pipeline_fast_forward_notif_PR),
+
+        .pipe_fast_forward_data_valid(alu_imm_pipeline_fast_forward_data_valid),
+        .pipe_fast_forward_data(alu_imm_pipeline_fast_forward_data)
     );
 
     // ----------------------------------------------------------------
@@ -2654,7 +2798,9 @@ module core #(
 
     // bru_iq
     bru_iq #(
-        .BRU_IQ_ENTRIES(BRU_IQ_ENTRIES)
+        .BRU_IQ_ENTRIES(BRU_IQ_ENTRIES),
+        .FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT),
+        .LOG_FAST_FORWARD_PIPE_COUNT(LOG_FAST_FORWARD_PIPE_COUNT)
     ) BRU_IQ (
         // seq
         .CLK(CLK),
@@ -2686,6 +2832,10 @@ module core #(
         .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
         .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
 
+        // fast forward notifs
+        .fast_forward_notif_valid_by_pipe(fast_forward_notif_valid_by_pipe),
+        .fast_forward_notif_PR_by_pipe(fast_forward_notif_PR_by_pipe),
+
         // pipeline issue
         .issue_valid(bru_issue_valid),
         .issue_op(bru_issue_op),
@@ -2696,11 +2846,15 @@ module core #(
         .issue_PC(bru_issue_PC),
         .issue_pred_PC(bru_issue_pred_PC),
         .issue_imm20(bru_issue_imm20),
-        .issue_A_forward(bru_issue_A_forward),
-        .issue_A_unneeded_or_is_zero(bru_issue_A_unneeded_or_is_zero),
+        .issue_A_is_reg(bru_issue_A_is_reg),
+        .issue_A_is_bus_forward(bru_issue_A_is_bus_forward),
+        .issue_A_is_fast_forward(bru_issue_A_is_fast_forward),
+        .issue_A_fast_forward_pipe(bru_issue_A_fast_forward_pipe),
         .issue_A_bank(bru_issue_A_bank),
-        .issue_B_forward(bru_issue_B_forward),
-        .issue_B_unneeded_or_is_zero(bru_issue_B_unneeded_or_is_zero),
+        .issue_B_is_reg(bru_issue_B_is_reg),
+        .issue_B_is_bus_forward(bru_issue_B_is_bus_forward),
+        .issue_B_is_fast_forward(bru_issue_B_is_fast_forward),
+        .issue_B_fast_forward_pipe(bru_issue_B_fast_forward_pipe),
         .issue_B_bank(bru_issue_B_bank),
         .issue_dest_PR(bru_issue_dest_PR),
         .issue_ROB_index(bru_issue_ROB_index),
@@ -2731,11 +2885,15 @@ module core #(
         .issue_PC(bru_issue_PC),
         .issue_pred_PC(bru_issue_pred_PC),
         .issue_imm20(bru_issue_imm20),
-        .issue_A_forward(bru_issue_A_forward),
-        .issue_A_unneeded_or_is_zero(bru_issue_A_unneeded_or_is_zero),
+        .issue_A_is_reg(bru_issue_A_is_reg),
+        .issue_A_is_bus_forward(bru_issue_A_is_bus_forward),
+        .issue_A_is_fast_forward(bru_issue_A_is_fast_forward),
+        .issue_A_fast_forward_pipe(bru_issue_A_fast_forward_pipe),
         .issue_A_bank(bru_issue_A_bank),
-        .issue_B_forward(bru_issue_B_forward),
-        .issue_B_unneeded_or_is_zero(bru_issue_B_unneeded_or_is_zero),
+        .issue_B_is_reg(bru_issue_B_is_reg),
+        .issue_B_is_bus_forward(bru_issue_B_is_bus_forward),
+        .issue_B_is_fast_forward(bru_issue_B_is_fast_forward),
+        .issue_B_fast_forward_pipe(bru_issue_B_fast_forward_pipe),
         .issue_B_bank(bru_issue_B_bank),
         .issue_dest_PR(bru_issue_dest_PR),
         .issue_ROB_index(bru_issue_ROB_index),
@@ -2749,8 +2907,12 @@ module core #(
         .B_reg_read_resp_valid(bru_PRF_B_reg_read_resp_valid),
         .B_reg_read_resp_data(bru_PRF_B_reg_read_resp_data),
 
-        // forward data from PRF
-        .forward_data_by_bank(prf_forward_data_bus_by_bank),
+        // bus forward data from PRF
+        .bus_forward_data_by_bank(prf_forward_data_bus_by_bank),
+
+        // fast forward data
+        .fast_forward_data_valid_by_pipe(fast_forward_data_valid_by_pipe),
+        .fast_forward_data_by_pipe(fast_forward_data_by_pipe),
 
         // writeback data to PRF
         .WB_valid(bru_WB_valid),
@@ -2863,12 +3025,18 @@ module core #(
         .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
         .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
 
+        // fast forward notifs
+        .fast_forward_notif_valid_by_pipe(fast_forward_notif_valid_by_pipe),
+        .fast_forward_notif_PR_by_pipe(fast_forward_notif_PR_by_pipe),
+
         // pipeline issue
         .issue_valid(ldu_issue_valid),
         .issue_op(ldu_issue_op),
         .issue_imm12(ldu_issue_imm12),
-        .issue_A_forward(ldu_issue_A_forward),
-        .issue_A_is_zero(ldu_issue_A_is_zero),
+        .issue_A_is_reg(ldu_issue_A_is_reg),
+        .issue_A_is_bus_forward(ldu_issue_A_is_bus_forward),
+        .issue_A_is_fast_forward(ldu_issue_A_is_fast_forward),
+        .issue_A_fast_forward_pipe(ldu_issue_A_fast_forward_pipe),
         .issue_A_bank(ldu_issue_A_bank),
         .issue_cq_index(ldu_issue_cq_index),
 
@@ -2877,11 +3045,16 @@ module core #(
         .PRF_req_A_PR(ldu_PRF_req_A_PR),
 
         // pipeline feedback
-        .pipeline_ready(ldu_issue_ready)
+        .issue_ready(ldu_issue_ready)
     );
 
     // ldu_addr_pipeline
-    ldu_addr_pipeline LDU_ADDR_PIPELINE (
+    ldu_addr_pipeline #(
+        .IS_OC_BUFFER_SIZE(IS_OC_BUFFER_SIZE),
+        .OC_ENTRIES(OC_ENTRIES),
+        .FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT),
+        .LOG_FAST_FORWARD_PIPE_COUNT(LOG_FAST_FORWARD_PIPE_COUNT)
+    ) LDU_ADDR_PIPELINE (
         // seq
         .CLK(CLK),
         .nRST(nRST),
@@ -2890,8 +3063,10 @@ module core #(
         .issue_valid(ldu_issue_valid),
         .issue_op(ldu_issue_op),
         .issue_imm12(ldu_issue_imm12),
-        .issue_A_forward(ldu_issue_A_forward),
-        .issue_A_is_zero(ldu_issue_A_is_zero),
+        .issue_A_is_reg(ldu_issue_A_is_reg),
+        .issue_A_is_bus_forward(ldu_issue_A_is_bus_forward),
+        .issue_A_is_fast_forward(ldu_issue_A_is_fast_forward),
+        .issue_A_fast_forward_pipe(ldu_issue_A_fast_forward_pipe),
         .issue_A_bank(ldu_issue_A_bank),
         .issue_cq_index(ldu_issue_cq_index),
 
@@ -2902,8 +3077,12 @@ module core #(
         .A_reg_read_resp_valid(ldu_PRF_A_reg_read_resp_valid),
         .A_reg_read_resp_data(ldu_PRF_A_reg_read_resp_data),
 
-        // forward data from PRF
-        .forward_data_by_bank(prf_forward_data_bus_by_bank),
+        // bus forward data from PRF
+        .bus_forward_data_by_bank(prf_forward_data_bus_by_bank),
+
+        // fast forward data
+        .fast_forward_data_valid_by_pipe(fast_forward_data_valid_by_pipe),
+        .fast_forward_data_by_pipe(fast_forward_data_by_pipe),
 
         // REQ stage info
         .REQ_bank0_valid(ldu_launch_pipeline_first_try_bank0_valid),
@@ -3036,6 +3215,13 @@ module core #(
 
         // writeback backpressure from PRF
         .WB_ready(ldu_bank0_WB_ready),
+
+        // this pipe's fast forward notif
+        .pipe_fast_forward_notif_valid(ldu_launch_pipeline_bank0_fast_forward_notif_valid),
+        .pipe_fast_forward_notif_PR(ldu_launch_pipeline_bank0_fast_forward_notif_PR),
+
+        .pipe_fast_forward_data_valid(ldu_launch_pipeline_bank0_fast_forward_data_valid),
+        .pipe_fast_forward_data(ldu_launch_pipeline_bank0_fast_forward_data),
 
         // CAM launch
         .stamofu_CAM_launch_valid(stamofu_CAM_launch_bank0_valid),
@@ -3226,6 +3412,13 @@ module core #(
 
         // writeback backpressure from PRF
         .WB_ready(ldu_bank1_WB_ready),
+
+        // this pipe's fast forward notif
+        .pipe_fast_forward_notif_valid(ldu_launch_pipeline_bank1_fast_forward_notif_valid),
+        .pipe_fast_forward_notif_PR(ldu_launch_pipeline_bank1_fast_forward_notif_PR),
+
+        .pipe_fast_forward_data_valid(ldu_launch_pipeline_bank1_fast_forward_data_valid),
+        .pipe_fast_forward_data(ldu_launch_pipeline_bank1_fast_forward_data),
 
         // CAM launch
         .stamofu_CAM_launch_valid(stamofu_CAM_launch_bank1_valid),
@@ -3877,7 +4070,9 @@ module core #(
 
     // stamofu_iq
     stamofu_iq #(
-        .STAMOFU_IQ_ENTRIES(STAMOFU_IQ_ENTRIES)
+        .STAMOFU_IQ_ENTRIES(STAMOFU_IQ_ENTRIES),
+        .FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT),
+        .LOG_FAST_FORWARD_PIPE_COUNT(LOG_FAST_FORWARD_PIPE_COUNT)
     ) STAMOFU_IQ (
         // seq
         .CLK(CLK),
@@ -3905,6 +4100,10 @@ module core #(
         .WB_bus_valid_by_bank(WB_bus_valid_by_bank),
         .WB_bus_upper_PR_by_bank(WB_bus_upper_PR_by_bank),
 
+        // fast forward notifs
+        .fast_forward_notif_valid_by_pipe(fast_forward_notif_valid_by_pipe),
+        .fast_forward_notif_PR_by_pipe(fast_forward_notif_PR_by_pipe),
+
         // pipeline issue
         .issue_valid(stamofu_issue_valid),
         .issue_is_store(stamofu_issue_is_store),
@@ -3912,11 +4111,15 @@ module core #(
         .issue_is_fence(stamofu_issue_is_fence),
         .issue_op(stamofu_issue_op),
         .issue_imm12(stamofu_issue_imm12),
-        .issue_A_forward(stamofu_issue_A_forward),
-        .issue_A_is_zero(stamofu_issue_A_is_zero),
+        .issue_A_is_reg(stamofu_issue_A_is_reg),
+        .issue_A_is_bus_forward(stamofu_issue_A_is_bus_forward),
+        .issue_A_is_fast_forward(stamofu_issue_A_is_fast_forward),
+        .issue_A_fast_forward_pipe(stamofu_issue_A_fast_forward_pipe),
         .issue_A_bank(stamofu_issue_A_bank),
-        .issue_B_forward(stamofu_issue_B_forward),
-        .issue_B_is_zero(stamofu_issue_B_is_zero),
+        .issue_B_is_reg(stamofu_issue_B_is_reg),
+        .issue_B_is_bus_forward(stamofu_issue_B_is_bus_forward),
+        .issue_B_is_fast_forward(stamofu_issue_B_is_fast_forward),
+        .issue_B_fast_forward_pipe(stamofu_issue_B_fast_forward_pipe),
         .issue_B_bank(stamofu_issue_B_bank),
         .issue_cq_index(stamofu_issue_cq_index),
 
@@ -3927,7 +4130,7 @@ module core #(
         .PRF_req_B_PR(stamofu_PRF_req_B_PR),
 
         // pipeline feedback
-        .pipeline_ready(stamofu_issue_ready)
+        .issue_ready(stamofu_issue_ready)
     );
 
     // stamofu_aq
@@ -3976,7 +4179,12 @@ module core #(
     );
 
     // stamofu_addr_pipeline
-    stamofu_addr_pipeline STAMOFU_ADDR_PIPELINE (
+    stamofu_addr_pipeline #(
+        .IS_OC_BUFFER_SIZE(IS_OC_BUFFER_SIZE),
+        .OC_ENTRIES(OC_ENTRIES),
+        .FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT),
+        .LOG_FAST_FORWARD_PIPE_COUNT(LOG_FAST_FORWARD_PIPE_COUNT)
+    ) STAMOFU_ADDR_PIPELINE (
         // seq
         .CLK(CLK),
         .nRST(nRST),
@@ -3988,11 +4196,15 @@ module core #(
         .issue_is_fence(stamofu_issue_is_fence),
         .issue_op(stamofu_issue_op),
         .issue_imm12(stamofu_issue_imm12),
-        .issue_A_forward(stamofu_issue_A_forward),
-        .issue_A_is_zero(stamofu_issue_A_is_zero),
+        .issue_A_is_reg(stamofu_issue_A_is_reg),
+        .issue_A_is_bus_forward(stamofu_issue_A_is_bus_forward),
+        .issue_A_is_fast_forward(stamofu_issue_A_is_fast_forward),
+        .issue_A_fast_forward_pipe(stamofu_issue_A_fast_forward_pipe),
         .issue_A_bank(stamofu_issue_A_bank),
-        .issue_B_forward(stamofu_issue_B_forward),
-        .issue_B_is_zero(stamofu_issue_B_is_zero),
+        .issue_B_is_reg(stamofu_issue_B_is_reg),
+        .issue_B_is_bus_forward(stamofu_issue_B_is_bus_forward),
+        .issue_B_is_fast_forward(stamofu_issue_B_is_fast_forward),
+        .issue_B_fast_forward_pipe(stamofu_issue_B_fast_forward_pipe),
         .issue_B_bank(stamofu_issue_B_bank),
         .issue_cq_index(stamofu_issue_cq_index),
 
@@ -4005,8 +4217,12 @@ module core #(
         .B_reg_read_resp_valid(stamofu_PRF_B_reg_read_resp_valid),
         .B_reg_read_resp_data(stamofu_PRF_B_reg_read_resp_data),
 
-        // forward data from PRF
-        .forward_data_by_bank(prf_forward_data_bus_by_bank),
+        // bus forward data from PRF
+        .bus_forward_data_by_bank(prf_forward_data_bus_by_bank),
+
+        // fast forward data
+        .fast_forward_data_valid_by_pipe(fast_forward_data_valid_by_pipe),
+        .fast_forward_data_by_pipe(fast_forward_data_by_pipe),
 
         // REQ stage info
         .REQ_valid(stamofu_lq_REQ_enq_valid),

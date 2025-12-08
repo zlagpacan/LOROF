@@ -130,6 +130,13 @@ module ldu_launch_pipeline_wrapper #(
     // writeback backpressure from PRF
 	input logic next_WB_ready,
 
+    // this pipe's fast forward notif
+	output logic last_pipe_fast_forward_notif_valid,
+	output logic [LOG_PR_COUNT-1:0] last_pipe_fast_forward_notif_PR,
+
+	output logic last_pipe_fast_forward_data_valid,
+	output logic [31:0] last_pipe_fast_forward_data,
+
     // CAM launch
 	output logic last_stamofu_CAM_launch_valid,
 	output logic [LOG_LDU_CQ_ENTRIES-1:0] last_stamofu_CAM_launch_cq_index,
@@ -311,6 +318,13 @@ module ldu_launch_pipeline_wrapper #(
 
     // writeback backpressure from PRF
 	logic WB_ready;
+
+    // this pipe's fast forward notif
+	logic pipe_fast_forward_notif_valid;
+	logic [LOG_PR_COUNT-1:0] pipe_fast_forward_notif_PR;
+
+	logic pipe_fast_forward_data_valid;
+	logic [31:0] pipe_fast_forward_data;
 
     // CAM launch
 	logic stamofu_CAM_launch_valid;
@@ -507,6 +521,13 @@ module ldu_launch_pipeline_wrapper #(
 		    // writeback backpressure from PRF
 			WB_ready <= '0;
 
+		    // this pipe's fast forward notif
+			last_pipe_fast_forward_notif_valid <= '0;
+			last_pipe_fast_forward_notif_PR <= '0;
+
+			last_pipe_fast_forward_data_valid <= '0;
+			last_pipe_fast_forward_data <= '0;
+
 		    // CAM launch
 			last_stamofu_CAM_launch_valid <= '0;
 			last_stamofu_CAM_launch_cq_index <= '0;
@@ -686,6 +707,13 @@ module ldu_launch_pipeline_wrapper #(
 
 		    // writeback backpressure from PRF
 			WB_ready <= next_WB_ready;
+
+		    // this pipe's fast forward notif
+			last_pipe_fast_forward_notif_valid <= pipe_fast_forward_notif_valid;
+			last_pipe_fast_forward_notif_PR <= pipe_fast_forward_notif_PR;
+
+			last_pipe_fast_forward_data_valid <= pipe_fast_forward_data_valid;
+			last_pipe_fast_forward_data <= pipe_fast_forward_data;
 
 		    // CAM launch
 			last_stamofu_CAM_launch_valid <= stamofu_CAM_launch_valid;

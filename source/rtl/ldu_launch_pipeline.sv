@@ -127,6 +127,13 @@ module ldu_launch_pipeline #(
     // writeback backpressure from PRF
     input logic                         WB_ready,
 
+    // this pipe's fast forward notif
+    output logic                        pipe_fast_forward_notif_valid,
+    output logic [LOG_PR_COUNT-1:0]     pipe_fast_forward_notif_PR,
+
+    output logic                        pipe_fast_forward_data_valid,
+    output logic [31:0]                 pipe_fast_forward_data,
+
     // CAM launch
     output logic                            stamofu_CAM_launch_valid,
     output logic [LOG_LDU_CQ_ENTRIES-1:0]   stamofu_CAM_launch_cq_index,
@@ -207,7 +214,7 @@ module ldu_launch_pipeline #(
     logic stall_RESP;
     logic stall_RET;
 
-    logic RESP_first_cycle;
+    logic RESP_stage_first_cycle;
     logic RET_stage_perform;
 
     // ----------------------------------------------------------------
@@ -531,10 +538,10 @@ module ldu_launch_pipeline #(
     always_ff @ (posedge CLK, negedge nRST) begin
     // always_ff @ (posedge CLK) begin
         if (~nRST) begin
-            RESP_first_cycle <= 1'b1;
+            RESP_stage_first_cycle <= 1'b1;
         end
         else begin
-            RESP_first_cycle <= ~stall_RET;
+            RESP_stage_first_cycle <= REQ_stage_valid & ~stall_RESP;
         end
     end
 
@@ -551,7 +558,7 @@ module ldu_launch_pipeline #(
             saved_dcache_resp_tag_by_way <= '0;
             saved_dcache_resp_data_by_way <= {32'h0, 32'h0};
         end
-        else if (RESP_first_cycle) begin
+        else if (RESP_stage_first_cycle) begin
             saved_dtlb_resp_hit <= dtlb_resp_hit;
             saved_dtlb_resp_PPN <= dtlb_resp_PPN;
             saved_dtlb_resp_is_mem <= dtlb_resp_is_mem;
@@ -577,7 +584,7 @@ module ldu_launch_pipeline #(
         RESP_stage_mdp_present = ldu_cq_info_grab_mdp_info[7:6] != 2'b00;
 
         // choose saved vs current resp's
-        if (RESP_first_cycle) begin
+        if (RESP_stage_first_cycle) begin
             selected_dtlb_resp_hit = dtlb_resp_hit;
             selected_dtlb_resp_PPN = dtlb_resp_PPN;
             selected_dtlb_resp_is_mem = dtlb_resp_is_mem;
@@ -631,7 +638,7 @@ module ldu_launch_pipeline #(
 
         dcache_resp_hit_valid = 
             RESP_stage_valid
-            & RESP_first_cycle
+            & RESP_stage_first_cycle
             & RESP_stage_dtlb_hit
             // & ~RESP_stage_aq_blocking // still want to prefetch
             & ~(RESP_stage_selected_page_fault | RESP_stage_selected_access_fault)
@@ -639,7 +646,7 @@ module ldu_launch_pipeline #(
         dcache_resp_hit_way = RESP_stage_dcache_vtm_by_way[1];
         dcache_resp_miss_valid = 
             RESP_stage_valid
-            & RESP_first_cycle
+            & RESP_stage_first_cycle
             & RESP_stage_dtlb_hit
             // & ~RESP_stage_aq_blocking // still want to prefetch
             & ~(RESP_stage_selected_page_fault | RESP_stage_selected_access_fault)
@@ -912,6 +919,29 @@ module ldu_launch_pipeline #(
         ldu_mq_info_ret_PA_word = RET_stage_PA_word;
         ldu_mq_info_ret_byte_mask = RET_stage_byte_mask;
         ldu_mq_info_ret_data = RET_stage_data;
+    end
+
+    // this pipe's fast forward
+        // passing OC -> WB
+    always_comb begin
+        pipe_fast_forward_notif_valid = RET_stage_valid & RET_stage_do_WB & (RET_stage_dest_PR != 0);
+            // always notif fast forward if in notif stage at beginning of cycle, 
+                // and operand collector will be able to pick up data value when broadcasted first cycle in data stage
+        pipe_fast_forward_notif_PR = RET_stage_dest_PR;
+    end
+
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            pipe_fast_forward_data_valid <= 1'b0;
+            pipe_fast_forward_data <= 32'h00000000;
+        end
+        else begin
+            pipe_fast_forward_data_valid <= pipe_fast_forward_notif_valid & ~stall_RET;
+                // must be first cycle
+                // can't be last cycle as fast forward can pick up notif stage younger op forward but if there is stall it might pick up
+                    // later cycle where still older unwanted op still in data stage
+            pipe_fast_forward_data <= RET_stage_data;
+        end
     end
 
 endmodule

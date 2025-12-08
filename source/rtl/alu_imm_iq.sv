@@ -9,7 +9,9 @@
 import core_types_pkg::*;
 
 module alu_imm_iq #(
-    parameter ALU_IMM_IQ_ENTRIES = 12
+    parameter ALU_IMM_IQ_ENTRIES = 12,
+    parameter FAST_FORWARD_PIPE_COUNT = 4,
+    parameter LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FAST_FORWARD_PIPE_COUNT)
 ) (
     // seq
     input logic CLK,
@@ -32,18 +34,24 @@ module alu_imm_iq #(
     input logic [PRF_BANK_COUNT-1:0]                                        WB_bus_valid_by_bank,
     input logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]   WB_bus_upper_PR_by_bank,
 
+    // fast forward notifs
+    input logic [FAST_FORWARD_PIPE_COUNT-1:0]                       fast_forward_notif_valid_by_pipe,
+    input logic [FAST_FORWARD_PIPE_COUNT-1:0][LOG_PR_COUNT-1:0]     fast_forward_notif_PR_by_pipe,
+
     // pipeline issue
-    output logic                            issue_valid,
-    output logic [3:0]                      issue_op,
-    output logic [11:0]                     issue_imm12,
-    output logic                            issue_A_forward,
-    output logic                            issue_A_is_zero,
-    output logic [LOG_PRF_BANK_COUNT-1:0]   issue_A_bank,
-    output logic [LOG_PR_COUNT-1:0]         issue_dest_PR,
-    output logic [LOG_ROB_ENTRIES-1:0]      issue_ROB_index,
+    output logic                                    issue_valid,
+    output logic [3:0]                              issue_op,
+    output logic [11:0]                             issue_imm12,
+    output logic                                    issue_A_is_reg,
+    output logic                                    issue_A_is_bus_forward,
+    output logic                                    issue_A_is_fast_forward,
+    output logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0]  issue_A_fast_forward_pipe,
+    output logic [LOG_PRF_BANK_COUNT-1:0]           issue_A_bank,
+    output logic [LOG_PR_COUNT-1:0]                 issue_dest_PR,
+    output logic [LOG_ROB_ENTRIES-1:0]              issue_ROB_index,
 
     // pipeline feedback
-    input logic                             issue_ready,
+    input logic                                     issue_ready,
 
     // reg read req to PRF
     output logic                        PRF_req_A_valid,
@@ -64,7 +72,10 @@ module alu_imm_iq #(
     logic [ALU_IMM_IQ_ENTRIES-1:0][LOG_ROB_ENTRIES-1:0]     ROB_index_by_entry;
 
     // issue logic helper signals
-    logic [ALU_IMM_IQ_ENTRIES-1:0] A_forward_by_entry;
+    logic [ALU_IMM_IQ_ENTRIES-1:0] A_is_bus_forward_by_entry;
+
+    logic [ALU_IMM_IQ_ENTRIES-1:0]                                      A_is_fast_forward_by_entry;
+    logic [ALU_IMM_IQ_ENTRIES-1:0][LOG_FAST_FORWARD_PIPE_COUNT-1:0]     A_fast_forward_pipe_by_entry;
 
     logic [ALU_IMM_IQ_ENTRIES-1:0] issue_ready_by_entry;
     logic [ALU_IMM_IQ_ENTRIES-1:0] issue_one_hot_by_entry;
@@ -81,10 +92,19 @@ module alu_imm_iq #(
     // ----------------------------------------------------------------
     // Issue Logic:
 
-    // forwarding check
+    // forwarding checks
     always_comb begin
         for (int i = 0; i < ALU_IMM_IQ_ENTRIES; i++) begin
-            A_forward_by_entry[i] = (A_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
+            A_is_bus_forward_by_entry[i] = (A_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
+
+            A_is_fast_forward_by_entry[i] = 1'b0;
+            A_fast_forward_pipe_by_entry[i] = 0;
+            for (int pipe = 0; pipe < FAST_FORWARD_PIPE_COUNT; pipe++) begin
+                if (fast_forward_notif_valid_by_pipe[pipe] & (A_PR_by_entry[i] == fast_forward_notif_PR_by_pipe[pipe])) begin
+                    A_is_fast_forward_by_entry[i] = 1'b1;
+                    A_fast_forward_pipe_by_entry[i] = pipe;
+                end
+            end
         end
     end
 
@@ -94,7 +114,7 @@ module alu_imm_iq #(
     assign issue_ready_by_entry = 
         {ALU_IMM_IQ_ENTRIES{issue_ready}}
         & valid_by_entry
-        & (A_ready_by_entry | A_forward_by_entry | A_is_zero_by_entry);
+        & (A_ready_by_entry | A_is_bus_forward_by_entry | A_is_fast_forward_by_entry | A_is_zero_by_entry);
 
     // pe
     pe_lsb #(.WIDTH(ALU_IMM_IQ_ENTRIES)) ISSUE_PE_LSB (
@@ -112,8 +132,10 @@ module alu_imm_iq #(
         // one-hot mux over entries for final issue:
         issue_op = '0;
         issue_imm12 = '0;
-        issue_A_forward = '0;
-        issue_A_is_zero = '0;
+        issue_A_is_reg = '0;
+        issue_A_is_bus_forward = '0;
+        issue_A_is_fast_forward = '0;
+        issue_A_fast_forward_pipe = '0;
         issue_A_bank = '0;
         issue_dest_PR = '0;
         issue_ROB_index = '0;
@@ -127,13 +149,15 @@ module alu_imm_iq #(
 
                 issue_op |= op_by_entry[entry];
                 issue_imm12 |= imm12_by_entry[entry];
-                issue_A_forward |= A_forward_by_entry[entry];
-                issue_A_is_zero |= A_is_zero_by_entry[entry];
+                issue_A_is_reg |= ~(A_is_zero_by_entry[entry] | A_is_bus_forward_by_entry[entry] | A_is_fast_forward_by_entry[entry]);
+                issue_A_is_bus_forward |= A_is_bus_forward_by_entry[entry];
+                issue_A_is_fast_forward |= A_is_fast_forward_by_entry[entry];
+                issue_A_fast_forward_pipe |= A_fast_forward_pipe_by_entry[entry];
                 issue_A_bank |= A_PR_by_entry[entry][LOG_PRF_BANK_COUNT-1:0];
                 issue_dest_PR |= dest_PR_by_entry[entry];
                 issue_ROB_index |= ROB_index_by_entry[entry];
 
-                PRF_req_A_valid |= ~A_forward_by_entry[entry] & ~A_is_zero_by_entry[entry];
+                PRF_req_A_valid |= ~(A_is_zero_by_entry[entry] | A_is_bus_forward_by_entry[entry] | A_is_fast_forward_by_entry[entry]);
                 PRF_req_A_PR |= A_PR_by_entry[entry];
             end
         end
@@ -188,7 +212,7 @@ module alu_imm_iq #(
                     op_by_entry[ALU_IMM_IQ_ENTRIES-1] <= op_by_entry[ALU_IMM_IQ_ENTRIES-1];
                     imm12_by_entry[ALU_IMM_IQ_ENTRIES-1] <= imm12_by_entry[ALU_IMM_IQ_ENTRIES-1];
                     A_PR_by_entry[ALU_IMM_IQ_ENTRIES-1] <= A_PR_by_entry[ALU_IMM_IQ_ENTRIES-1];
-                    A_ready_by_entry[ALU_IMM_IQ_ENTRIES-1] <= A_ready_by_entry[ALU_IMM_IQ_ENTRIES-1] | A_forward_by_entry[ALU_IMM_IQ_ENTRIES-1];
+                    A_ready_by_entry[ALU_IMM_IQ_ENTRIES-1] <= A_ready_by_entry[ALU_IMM_IQ_ENTRIES-1] | A_is_bus_forward_by_entry[ALU_IMM_IQ_ENTRIES-1];
                     A_is_zero_by_entry[ALU_IMM_IQ_ENTRIES-1] <= A_is_zero_by_entry[ALU_IMM_IQ_ENTRIES-1];
                     dest_PR_by_entry[ALU_IMM_IQ_ENTRIES-1] <= dest_PR_by_entry[ALU_IMM_IQ_ENTRIES-1];
                     ROB_index_by_entry[ALU_IMM_IQ_ENTRIES-1] <= ROB_index_by_entry[ALU_IMM_IQ_ENTRIES-1];
@@ -220,7 +244,7 @@ module alu_imm_iq #(
                         op_by_entry[i] <= op_by_entry[i+1];
                         imm12_by_entry[i] <= imm12_by_entry[i+1];
                         A_PR_by_entry[i] <= A_PR_by_entry[i+1];
-                        A_ready_by_entry[i] <= A_ready_by_entry[i+1] | A_forward_by_entry[i+1];
+                        A_ready_by_entry[i] <= A_ready_by_entry[i+1] | A_is_bus_forward_by_entry[i+1];
                         A_is_zero_by_entry[i] <= A_is_zero_by_entry[i+1];
                         dest_PR_by_entry[i] <= dest_PR_by_entry[i+1];
                         ROB_index_by_entry[i] <= ROB_index_by_entry[i+1];
@@ -248,7 +272,7 @@ module alu_imm_iq #(
                         op_by_entry[i] <= op_by_entry[i];
                         imm12_by_entry[i] <= imm12_by_entry[i];
                         A_PR_by_entry[i] <= A_PR_by_entry[i];
-                        A_ready_by_entry[i] <= A_ready_by_entry[i] | A_forward_by_entry[i];
+                        A_ready_by_entry[i] <= A_ready_by_entry[i] | A_is_bus_forward_by_entry[i];
                         A_is_zero_by_entry[i] <= A_is_zero_by_entry[i];
                         dest_PR_by_entry[i] <= dest_PR_by_entry[i];
                         ROB_index_by_entry[i] <= ROB_index_by_entry[i];

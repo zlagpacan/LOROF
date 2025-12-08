@@ -40,13 +40,19 @@ package core_types_pkg;
     // ----------------------------------------------------------------
     // Central:
 
-    // prf
+    // prf and reg read/write
     parameter PR_COUNT = 128;
     parameter LOG_PR_COUNT = $clog2(PR_COUNT);
     parameter PRF_BANK_COUNT = 4;
     parameter LOG_PRF_BANK_COUNT = $clog2(PRF_BANK_COUNT);
 
     parameter IS_OC_BUFFER_SIZE = 2;
+    parameter FAST_FORWARD_PIPE_COUNT = 4;
+        // LDU bank 0
+        // LDU bank 1
+        // ALU reg-reg
+        // ALU reg-imm
+    parameter LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FAST_FORWARD_PIPE_COUNT);
 
     parameter PRF_RR_COUNT = 9;
         // LDU A
@@ -59,7 +65,7 @@ package core_types_pkg;
         // STAMOFU B
         // SYSU A
     parameter PRF_RR_INPUT_BUFFER_SIZE = IS_OC_BUFFER_SIZE;
-    parameter PRF_RR_OUTPUT_BUFFER_SIZE = PRF_RR_INPUT_BUFFER_SIZE + 1;
+    parameter OC_ENTRIES = IS_OC_BUFFER_SIZE + 1;
     
     parameter PRF_WR_COUNT = 8;
         // WR_BUF
