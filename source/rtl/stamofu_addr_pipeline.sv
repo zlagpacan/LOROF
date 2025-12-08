@@ -160,7 +160,7 @@ module stamofu_addr_pipeline #(
             imm12_OC,
             cq_index_OC
         }),
-        .deq_ready(~stall_REQ & operands_ready_OC)
+        .deq_ready(~stall_REQ & operands_collected_OC)
     );
 
     // ----------------------------------------------------------------

@@ -51,10 +51,10 @@ module bru_iq_tb #(
 	logic [19:0] tb_iq_enq_imm20;
 	logic [LOG_PR_COUNT-1:0] tb_iq_enq_A_PR;
 	logic tb_iq_enq_A_ready;
-	logic tb_iq_enq_A_is_zero;
+	logic tb_iq_enq_A_unneeded_or_is_zero;
 	logic [LOG_PR_COUNT-1:0] tb_iq_enq_B_PR;
 	logic tb_iq_enq_B_ready;
-	logic tb_iq_enq_B_is_zero;
+	logic tb_iq_enq_B_unneeded_or_is_zero;
 	logic [LOG_PR_COUNT-1:0] tb_iq_enq_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] tb_iq_enq_ROB_index;
 
@@ -125,10 +125,10 @@ module bru_iq_tb #(
 		.iq_enq_imm20(tb_iq_enq_imm20),
 		.iq_enq_A_PR(tb_iq_enq_A_PR),
 		.iq_enq_A_ready(tb_iq_enq_A_ready),
-		.iq_enq_A_is_zero(tb_iq_enq_A_is_zero),
+		.iq_enq_A_unneeded_or_is_zero(tb_iq_enq_A_unneeded_or_is_zero),
 		.iq_enq_B_PR(tb_iq_enq_B_PR),
 		.iq_enq_B_ready(tb_iq_enq_B_ready),
-		.iq_enq_B_is_zero(tb_iq_enq_B_is_zero),
+		.iq_enq_B_unneeded_or_is_zero(tb_iq_enq_B_unneeded_or_is_zero),
 		.iq_enq_dest_PR(tb_iq_enq_dest_PR),
 		.iq_enq_ROB_index(tb_iq_enq_ROB_index),
 
@@ -397,10 +397,10 @@ module bru_iq_tb #(
 		tb_iq_enq_imm20 = '0;
 		tb_iq_enq_A_PR = '0;
 		tb_iq_enq_A_ready = '0;
-		tb_iq_enq_A_is_zero = '0;
+		tb_iq_enq_A_unneeded_or_is_zero = '0;
 		tb_iq_enq_B_PR = '0;
 		tb_iq_enq_B_ready = '0;
-		tb_iq_enq_B_is_zero = '0;
+		tb_iq_enq_B_unneeded_or_is_zero = '0;
 		tb_iq_enq_dest_PR = '0;
 		tb_iq_enq_ROB_index = '0;
 	    // issue queue enqueue feedback
@@ -473,10 +473,10 @@ module bru_iq_tb #(
 		tb_iq_enq_imm20 = '0;
 		tb_iq_enq_A_PR = '0;
 		tb_iq_enq_A_ready = '0;
-		tb_iq_enq_A_is_zero = '0;
+		tb_iq_enq_A_unneeded_or_is_zero = '0;
 		tb_iq_enq_B_PR = '0;
 		tb_iq_enq_B_ready = '0;
-		tb_iq_enq_B_is_zero = '0;
+		tb_iq_enq_B_unneeded_or_is_zero = '0;
 		tb_iq_enq_dest_PR = '0;
 		tb_iq_enq_ROB_index = '0;
 	    // issue queue enqueue feedback
@@ -557,10 +557,10 @@ module bru_iq_tb #(
 		tb_iq_enq_imm20 = '0;
 		tb_iq_enq_A_PR = '0;
 		tb_iq_enq_A_ready = '0;
-		tb_iq_enq_A_is_zero = '0;
+		tb_iq_enq_A_unneeded_or_is_zero = '0;
 		tb_iq_enq_B_PR = '0;
 		tb_iq_enq_B_ready = '0;
-		tb_iq_enq_B_is_zero = '0;
+		tb_iq_enq_B_unneeded_or_is_zero = '0;
 		tb_iq_enq_dest_PR = '0;
 		tb_iq_enq_ROB_index = '0;
 	    // issue queue enqueue feedback

@@ -29,10 +29,10 @@ module bru_iq #(
     input logic [19:0]                      iq_enq_imm20,
     input logic [LOG_PR_COUNT-1:0]          iq_enq_A_PR,
     input logic                             iq_enq_A_ready,
-    input logic                             iq_enq_A_is_zero,
+    input logic                             iq_enq_A_unneeded_or_is_zero,
     input logic [LOG_PR_COUNT-1:0]          iq_enq_B_PR,
     input logic                             iq_enq_B_ready,
-    input logic                             iq_enq_B_is_zero,
+    input logic                             iq_enq_B_unneeded_or_is_zero,
     input logic [LOG_PR_COUNT-1:0]          iq_enq_dest_PR,
     input logic [LOG_ROB_ENTRIES-1:0]       iq_enq_ROB_index,
 
@@ -131,12 +131,17 @@ module bru_iq #(
         for (int i = 0; i < BRU_IQ_ENTRIES; i++) begin
             A_is_bus_forward_by_entry[i] = (A_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
             B_is_bus_forward_by_entry[i] = (B_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[B_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[B_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
+            
+            A_is_fast_forward_by_entry[i] = 1'b0;
+            A_fast_forward_pipe_by_entry[i] = 0;
             for (int pipe = 0; pipe < FAST_FORWARD_PIPE_COUNT; pipe++) begin
                 if (fast_forward_notif_valid_by_pipe[pipe] & (A_PR_by_entry[i] == fast_forward_notif_PR_by_pipe[pipe])) begin
                     A_is_fast_forward_by_entry[i] = 1'b1;
                     A_fast_forward_pipe_by_entry[i] = pipe;
                 end
             end
+            B_is_fast_forward_by_entry[i] = 1'b0;
+            B_fast_forward_pipe_by_entry[i] = 0;
             for (int pipe = 0; pipe < FAST_FORWARD_PIPE_COUNT; pipe++) begin
                 if (fast_forward_notif_valid_by_pipe[pipe] & (B_PR_by_entry[i] == fast_forward_notif_PR_by_pipe[pipe])) begin
                     B_is_fast_forward_by_entry[i] = 1'b1;
@@ -314,10 +319,10 @@ module bru_iq #(
                     imm20_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_imm20;
                     A_PR_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_A_PR;
                     A_ready_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_A_ready;
-                    A_is_zero_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_A_is_zero;
+                    A_is_zero_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_A_unneeded_or_is_zero;
                     B_PR_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_B_PR;
                     B_ready_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_B_ready;
-                    B_is_zero_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_B_is_zero;
+                    B_is_zero_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_B_unneeded_or_is_zero;
                     dest_PR_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_dest_PR;
                     ROB_index_by_entry[BRU_IQ_ENTRIES-1] <= iq_enq_ROB_index;
                 end
@@ -364,10 +369,10 @@ module bru_iq #(
                         imm20_by_entry[i] <= iq_enq_imm20;
                         A_PR_by_entry[i] <= iq_enq_A_PR;
                         A_ready_by_entry[i] <= iq_enq_A_ready;
-                        A_is_zero_by_entry[i] <= iq_enq_A_is_zero;
+                        A_is_zero_by_entry[i] <= iq_enq_A_unneeded_or_is_zero;
                         B_PR_by_entry[i] <= iq_enq_B_PR;
                         B_ready_by_entry[i] <= iq_enq_B_ready;
-                        B_is_zero_by_entry[i] <= iq_enq_B_is_zero;
+                        B_is_zero_by_entry[i] <= iq_enq_B_unneeded_or_is_zero;
                         dest_PR_by_entry[i] <= iq_enq_dest_PR;
                         ROB_index_by_entry[i] <= iq_enq_ROB_index;
                     end
@@ -410,10 +415,10 @@ module bru_iq #(
                         imm20_by_entry[i] <= iq_enq_imm20;
                         A_PR_by_entry[i] <= iq_enq_A_PR;
                         A_ready_by_entry[i] <= iq_enq_A_ready;
-                        A_is_zero_by_entry[i] <= iq_enq_A_is_zero;
+                        A_is_zero_by_entry[i] <= iq_enq_A_unneeded_or_is_zero;
                         B_PR_by_entry[i] <= iq_enq_B_PR;
                         B_ready_by_entry[i] <= iq_enq_B_ready;
-                        B_is_zero_by_entry[i] <= iq_enq_B_is_zero;
+                        B_is_zero_by_entry[i] <= iq_enq_B_unneeded_or_is_zero;
                         dest_PR_by_entry[i] <= iq_enq_dest_PR;
                         ROB_index_by_entry[i] <= iq_enq_ROB_index;
                     end

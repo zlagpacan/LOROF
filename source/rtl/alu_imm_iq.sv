@@ -96,7 +96,9 @@ module alu_imm_iq #(
     always_comb begin
         for (int i = 0; i < ALU_IMM_IQ_ENTRIES; i++) begin
             A_is_bus_forward_by_entry[i] = (A_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
+
             A_is_fast_forward_by_entry[i] = 1'b0;
+            A_fast_forward_pipe_by_entry[i] = 0;
             for (int pipe = 0; pipe < FAST_FORWARD_PIPE_COUNT; pipe++) begin
                 if (fast_forward_notif_valid_by_pipe[pipe] & (A_PR_by_entry[i] == fast_forward_notif_PR_by_pipe[pipe])) begin
                     A_is_fast_forward_by_entry[i] = 1'b1;

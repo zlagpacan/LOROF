@@ -1580,10 +1580,10 @@ module core_tb #(
 				16'h0000, 16'h0000,
 				16'h0000, 16'h0000,
             // friendly indep repeat: IPC = 3.781
-                // 32'h293d0437,   // LUI x8, 0x293d0
-                // 32'h407302b3,   // SUB x5, x6, x7
-                // 32'h02822183,   // LW x3, 0x28(x4)
-				// 32'h00410093    // ADDI x1, x2, 4
+                32'h293d0437,   // LUI x8, 0x293d0
+                32'h407302b3,   // SUB x5, x6, x7
+                32'h02822183,   // LW x3, 0x28(x4)
+				32'h00410093    // ADDI x1, x2, 4
             // friendly indep repeat w/ store: IPC = 3.543
                 // 32'h293d0437,   // LUI x8, 0x293d0
                 // 32'h10532223,   // SW x5, 0x104(x6)
@@ -1772,14 +1772,14 @@ module core_tb #(
                 // 16'h4544,   // C.LW x9, 12(x10)
 				// 16'h103c    // C.ADDI4SPN x15, 40
             // compressed 8x 1 dep instr loop w/ store: IPC = 1.859
-                16'hd86d,   // C.BEQZ x8, -14
-                16'hc24c,   // C.SW x11, 4(x12)
-                16'h4544,   // C.LW x9, 12(x10)
-				16'h103c,   // C.ADDI4SPN x15, 40
-                16'h647d,   // C.LUI x8, 31
-                16'hc24c,   // C.SW x11, 4(x12)
-                16'h4544,   // C.LW x9, 12(x10)
-				16'h103c    // C.ADDI4SPN x15, 40
+                // 16'hd86d,   // C.BEQZ x8, -14
+                // 16'hc24c,   // C.SW x11, 4(x12)
+                // 16'h4544,   // C.LW x9, 12(x10)
+				// 16'h103c,   // C.ADDI4SPN x15, 40
+                // 16'h647d,   // C.LUI x8, 31
+                // 16'hc24c,   // C.SW x11, 4(x12)
+                // 16'h4544,   // C.LW x9, 12(x10)
+				// 16'h103c    // C.ADDI4SPN x15, 40
 			};
 			// icache resp feedback
 			// dtlb req

@@ -231,7 +231,7 @@ module bru_pipeline #(
             dest_PR_OC,
             ROB_index_OC
         }),
-        .deq_ready(~stall_EX & operands_ready_OC)
+        .deq_ready(~stall_EX & operands_collected_OC)
     );
 
     // ----------------------------------------------------------------
@@ -257,7 +257,7 @@ module bru_pipeline #(
         .fast_forward_data_valid_by_pipe(fast_forward_data_valid_by_pipe),
         .fast_forward_data_by_pipe(fast_forward_data_by_pipe),
         .operand_collected(A_collected_OC),
-        .operand_collected_ack(next_EX_valid & ~stall_EX),
+        .operand_collected_ack(next_valid_EX & ~stall_EX),
         .operand_data(A_data_EX),
         .operand_data_ack(valid_EX & ~stall_EX)
     );
@@ -280,13 +280,13 @@ module bru_pipeline #(
         .fast_forward_data_valid_by_pipe(fast_forward_data_valid_by_pipe),
         .fast_forward_data_by_pipe(fast_forward_data_by_pipe),
         .operand_collected(B_collected_OC),
-        .operand_collected_ack(next_EX_valid & ~stall_EX),
+        .operand_collected_ack(next_valid_EX & ~stall_EX),
         .operand_data(B_data_EX),
         .operand_data_ack(valid_EX & ~stall_EX)
     );
 
     always_comb begin
-        next_valid_EX = valid_OC & operands_ready_OC;
+        next_valid_EX = valid_OC & operands_collected_OC;
         next_op_EX = op_OC;
         next_pred_info_EX = pred_info_OC;
         next_pred_lru_EX = pred_lru_OC;

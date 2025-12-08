@@ -35,10 +35,10 @@ module bru_iq_wrapper #(
 	input logic [19:0] next_iq_enq_imm20,
 	input logic [LOG_PR_COUNT-1:0] next_iq_enq_A_PR,
 	input logic next_iq_enq_A_ready,
-	input logic next_iq_enq_A_is_zero,
+	input logic next_iq_enq_A_unneeded_or_is_zero,
 	input logic [LOG_PR_COUNT-1:0] next_iq_enq_B_PR,
 	input logic next_iq_enq_B_ready,
-	input logic next_iq_enq_B_is_zero,
+	input logic next_iq_enq_B_unneeded_or_is_zero,
 	input logic [LOG_PR_COUNT-1:0] next_iq_enq_dest_PR,
 	input logic [LOG_ROB_ENTRIES-1:0] next_iq_enq_ROB_index,
 
@@ -101,10 +101,10 @@ module bru_iq_wrapper #(
 	logic [19:0] iq_enq_imm20;
 	logic [LOG_PR_COUNT-1:0] iq_enq_A_PR;
 	logic iq_enq_A_ready;
-	logic iq_enq_A_is_zero;
+	logic iq_enq_A_unneeded_or_is_zero;
 	logic [LOG_PR_COUNT-1:0] iq_enq_B_PR;
 	logic iq_enq_B_ready;
-	logic iq_enq_B_is_zero;
+	logic iq_enq_B_unneeded_or_is_zero;
 	logic [LOG_PR_COUNT-1:0] iq_enq_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] iq_enq_ROB_index;
 
@@ -178,10 +178,10 @@ module bru_iq_wrapper #(
 			iq_enq_imm20 <= '0;
 			iq_enq_A_PR <= '0;
 			iq_enq_A_ready <= '0;
-			iq_enq_A_is_zero <= '0;
+			iq_enq_A_unneeded_or_is_zero <= '0;
 			iq_enq_B_PR <= '0;
 			iq_enq_B_ready <= '0;
-			iq_enq_B_is_zero <= '0;
+			iq_enq_B_unneeded_or_is_zero <= '0;
 			iq_enq_dest_PR <= '0;
 			iq_enq_ROB_index <= '0;
 
@@ -242,10 +242,10 @@ module bru_iq_wrapper #(
 			iq_enq_imm20 <= next_iq_enq_imm20;
 			iq_enq_A_PR <= next_iq_enq_A_PR;
 			iq_enq_A_ready <= next_iq_enq_A_ready;
-			iq_enq_A_is_zero <= next_iq_enq_A_is_zero;
+			iq_enq_A_unneeded_or_is_zero <= next_iq_enq_A_unneeded_or_is_zero;
 			iq_enq_B_PR <= next_iq_enq_B_PR;
 			iq_enq_B_ready <= next_iq_enq_B_ready;
-			iq_enq_B_is_zero <= next_iq_enq_B_is_zero;
+			iq_enq_B_unneeded_or_is_zero <= next_iq_enq_B_unneeded_or_is_zero;
 			iq_enq_dest_PR <= next_iq_enq_dest_PR;
 			iq_enq_ROB_index <= next_iq_enq_ROB_index;
 
