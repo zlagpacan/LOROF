@@ -149,7 +149,7 @@ module alu_imm_pipeline #(
         .operand_collected(A_collected_OC),
         .operand_collected_ack(next_WB_valid & ~stall_WB),
         .operand_data(WB_A),
-        .operand_data_ack(WB_valid & WB_ready)
+        .operand_data_ack(WB_valid & ~stall_WB)
     );
     
     always_comb begin

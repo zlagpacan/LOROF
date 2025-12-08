@@ -188,7 +188,7 @@ module stamofu_addr_pipeline #(
         .operand_collected(A_collected_OC),
         .operand_collected_ack(next_REQ_valid & ~stall_REQ),
         .operand_data(REQ_A),
-        .operand_data_ack(REQ_valid & REQ_ack)
+        .operand_data_ack(REQ_valid & ~stall_REQ)
     );
     
     operand_collector #(
@@ -211,7 +211,7 @@ module stamofu_addr_pipeline #(
         .operand_collected(B_collected_OC),
         .operand_collected_ack(next_REQ_valid & ~stall_REQ),
         .operand_data(REQ_B),
-        .operand_data_ack(REQ_valid & REQ_ack)
+        .operand_data_ack(REQ_valid & ~stall_REQ)
     );
     
     always_comb begin

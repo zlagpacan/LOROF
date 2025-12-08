@@ -82,8 +82,6 @@ module ldu_addr_pipeline #(
     logic                           next_REQ_valid;
     logic [3:0]                     next_REQ_op;
     logic [11:0]                    next_REQ_imm12;
-    logic                           next_REQ_A_forward;
-    logic                           next_REQ_A_is_reg;
     logic [LOG_LDU_CQ_ENTRIES-1:0]  next_REQ_cq_index;
 
     // ----------------------------------------------------------------
@@ -165,7 +163,7 @@ module ldu_addr_pipeline #(
         .operand_collected(A_collected_OC),
         .operand_collected_ack(next_REQ_valid & ~stall_REQ),
         .operand_data(REQ_A),
-        .operand_data_ack(REQ_valid & REQ_ack)
+        .operand_data_ack(REQ_valid & ~stall_REQ)
     );
     
     always_comb begin
