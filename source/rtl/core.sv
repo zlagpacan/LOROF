@@ -2148,6 +2148,12 @@ module core #(
             ldu_launch_pipeline_bank1_fast_forward_notif_valid,
             ldu_launch_pipeline_bank0_fast_forward_notif_valid
         };
+        // fast_forward_notif_valid_by_pipe = {
+        //     alu_reg_pipeline_fast_forward_notif_valid,
+        //     alu_imm_pipeline_fast_forward_notif_valid,
+        //     1'b0,
+        //     1'b0
+        // };
         fast_forward_notif_PR_by_pipe = {
             alu_reg_pipeline_fast_forward_notif_PR,
             alu_imm_pipeline_fast_forward_notif_PR,

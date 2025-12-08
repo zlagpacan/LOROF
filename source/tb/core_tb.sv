@@ -1659,7 +1659,7 @@ module core_tb #(
                 // 32'h02822283,   // LW x5, 0x28(x4)
                 // 32'h00410193,   // ADDI x3, x2, 4
                 // 32'h0232c133    // DIV x2, x5, x3
-            // memcpy loop: IPC = 3.102
+            // memcpy loop: IPC = 3.102 (3.102 without ldu forwarding (only get these at beginning), 1.352 without alu imm forwarding, 1.316 without both)
                 // 32'hfe938ae3,   // BEQ x7, x9, -12
                 // 32'h7e30aa23,   // SW x3, 0x7f4(x1)
                 // 32'h0280a183,   // LW x3, 0x28(x1)
