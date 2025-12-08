@@ -226,12 +226,12 @@ module alu_reg_pipeline #(
     // this pipe's fast forward
         // passing OC -> WB
     always_comb begin
-        pipe_fast_forward_notif_valid = valid_OC;
+        pipe_fast_forward_notif_valid = valid_OC & (dest_PR_OC != 0);
             // always notif fast forward if in notif stage at beginning of cycle, 
                 // and operand collector will be able to pick up data value when broadcasted first cycle in data stage
         pipe_fast_forward_notif_PR = dest_PR_OC;
 
-        pipe_fast_forward_data_valid = WB_first_cycle;
+        pipe_fast_forward_data_valid = WB_first_cycle & (WB_PR != 0);
             // must be first cycle
             // can't be last cycle as fast forward can pick up notif stage younger op forward but if there is stall it might pick up
                 // later cycle where still older unwanted op still in data stage

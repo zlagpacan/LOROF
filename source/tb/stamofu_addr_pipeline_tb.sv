@@ -15,7 +15,9 @@ import system_types_pkg::*;
 
 module stamofu_addr_pipeline_tb #(
 	parameter IS_OC_BUFFER_SIZE = 2,
-	parameter PRF_RR_OUTPUT_BUFFER_SIZE = 3
+	parameter OC_ENTRIES = IS_OC_BUFFER_SIZE + 1,
+	parameter FAST_FORWARD_PIPE_COUNT = 4,
+	parameter LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FAST_FORWARD_PIPE_COUNT)
 ) ();
 
     // ----------------------------------------------------------------
@@ -46,11 +48,15 @@ module stamofu_addr_pipeline_tb #(
 	logic tb_issue_is_fence;
 	logic [3:0] tb_issue_op;
 	logic [11:0] tb_issue_imm12;
-	logic tb_issue_A_forward;
-	logic tb_issue_A_is_zero;
+	logic tb_issue_A_is_reg;
+	logic tb_issue_A_is_bus_forward;
+	logic tb_issue_A_is_fast_forward;
+	logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0] tb_issue_A_fast_forward_pipe;
 	logic [LOG_PRF_BANK_COUNT-1:0] tb_issue_A_bank;
-	logic tb_issue_B_forward;
-	logic tb_issue_B_is_zero;
+	logic tb_issue_B_is_reg;
+	logic tb_issue_B_is_bus_forward;
+	logic tb_issue_B_is_fast_forward;
+	logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0] tb_issue_B_fast_forward_pipe;
 	logic [LOG_PRF_BANK_COUNT-1:0] tb_issue_B_bank;
 	logic [LOG_STAMOFU_CQ_ENTRIES-1:0] tb_issue_cq_index;
 
@@ -63,8 +69,12 @@ module stamofu_addr_pipeline_tb #(
 	logic tb_B_reg_read_resp_valid;
 	logic [31:0] tb_B_reg_read_resp_data;
 
-    // forward data from PRF
-	logic [PRF_BANK_COUNT-1:0][31:0] tb_forward_data_by_bank;
+    // bus forward data from PRF
+	logic [PRF_BANK_COUNT-1:0][31:0] tb_bus_forward_data_by_bank;
+
+    // fast forward data
+	logic [FAST_FORWARD_PIPE_COUNT-1:0] tb_fast_forward_data_valid_by_pipe;
+	logic [FAST_FORWARD_PIPE_COUNT-1:0][31:0] tb_fast_forward_data_by_pipe;
 
     // REQ stage info
 	logic DUT_REQ_valid, expected_REQ_valid;
@@ -89,7 +99,9 @@ module stamofu_addr_pipeline_tb #(
 
 	stamofu_addr_pipeline #(
 		.IS_OC_BUFFER_SIZE(IS_OC_BUFFER_SIZE),
-		.PRF_RR_OUTPUT_BUFFER_SIZE(PRF_RR_OUTPUT_BUFFER_SIZE)
+		.OC_ENTRIES(OC_ENTRIES),
+		.FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT),
+		.LOG_FAST_FORWARD_PIPE_COUNT(LOG_FAST_FORWARD_PIPE_COUNT)
 	) DUT (
 		// seq
 		.CLK(CLK),
@@ -103,11 +115,15 @@ module stamofu_addr_pipeline_tb #(
 		.issue_is_fence(tb_issue_is_fence),
 		.issue_op(tb_issue_op),
 		.issue_imm12(tb_issue_imm12),
-		.issue_A_forward(tb_issue_A_forward),
-		.issue_A_is_zero(tb_issue_A_is_zero),
+		.issue_A_is_reg(tb_issue_A_is_reg),
+		.issue_A_is_bus_forward(tb_issue_A_is_bus_forward),
+		.issue_A_is_fast_forward(tb_issue_A_is_fast_forward),
+		.issue_A_fast_forward_pipe(tb_issue_A_fast_forward_pipe),
 		.issue_A_bank(tb_issue_A_bank),
-		.issue_B_forward(tb_issue_B_forward),
-		.issue_B_is_zero(tb_issue_B_is_zero),
+		.issue_B_is_reg(tb_issue_B_is_reg),
+		.issue_B_is_bus_forward(tb_issue_B_is_bus_forward),
+		.issue_B_is_fast_forward(tb_issue_B_is_fast_forward),
+		.issue_B_fast_forward_pipe(tb_issue_B_fast_forward_pipe),
 		.issue_B_bank(tb_issue_B_bank),
 		.issue_cq_index(tb_issue_cq_index),
 
@@ -120,8 +136,12 @@ module stamofu_addr_pipeline_tb #(
 		.B_reg_read_resp_valid(tb_B_reg_read_resp_valid),
 		.B_reg_read_resp_data(tb_B_reg_read_resp_data),
 
-	    // forward data from PRF
-		.forward_data_by_bank(tb_forward_data_by_bank),
+	    // bus forward data from PRF
+		.bus_forward_data_by_bank(tb_bus_forward_data_by_bank),
+
+	    // fast forward data
+		.fast_forward_data_valid_by_pipe(tb_fast_forward_data_valid_by_pipe),
+		.fast_forward_data_by_pipe(tb_fast_forward_data_by_pipe),
 
 	    // REQ stage info
 		.REQ_valid(DUT_REQ_valid),
@@ -268,35 +288,37 @@ module stamofu_addr_pipeline_tb #(
 		// reset
 		nRST = 1'b0;
 	    // op issue from IQ
-		tb_issue_valid = 1'b0;
-		tb_issue_is_store = 1'b0;
-		tb_issue_is_amo = 1'b0;
-		tb_issue_is_fence = 1'b0;
-		tb_issue_op = 4'b0000;
-		tb_issue_imm12 = 12'h000;
-		tb_issue_A_forward = 1'b0;
-		tb_issue_A_is_zero = 1'b0;
-		tb_issue_A_bank = 2'h0;
-		tb_issue_B_forward = 1'b0;
-		tb_issue_B_is_zero = 1'b0;
-		tb_issue_B_bank = 2'h0;
-		tb_issue_cq_index = 'h0;
+		tb_issue_valid = '0;
+		tb_issue_is_store = '0;
+		tb_issue_is_amo = '0;
+		tb_issue_is_fence = '0;
+		tb_issue_op = '0;
+		tb_issue_imm12 = '0;
+		tb_issue_A_is_reg = '0;
+		tb_issue_A_is_bus_forward = '0;
+		tb_issue_A_is_fast_forward = '0;
+		tb_issue_A_fast_forward_pipe = '0;
+		tb_issue_A_bank = '0;
+		tb_issue_B_is_reg = '0;
+		tb_issue_B_is_bus_forward = '0;
+		tb_issue_B_is_fast_forward = '0;
+		tb_issue_B_fast_forward_pipe = '0;
+		tb_issue_B_bank = '0;
+		tb_issue_cq_index = '0;
 	    // output feedback to IQ
 	    // reg read data from PRF
-		tb_A_reg_read_resp_valid = 1'b0;
-		tb_A_reg_read_resp_data = 32'h00000000;
-		tb_B_reg_read_resp_valid = 1'b0;
-		tb_B_reg_read_resp_data = 32'h00000000;
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'h00000000,
-            32'h00000000,
-            32'h00000000,
-            32'h00000000
-        };
+		tb_A_reg_read_resp_valid = '0;
+		tb_A_reg_read_resp_data = '0;
+		tb_B_reg_read_resp_valid = '0;
+		tb_B_reg_read_resp_data = '0;
+	    // bus forward data from PRF
+		tb_bus_forward_data_by_bank = '0;
+	    // fast forward data
+		tb_fast_forward_data_valid_by_pipe = '0;
+		tb_fast_forward_data_by_pipe = '0;
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b0;
+		tb_REQ_ack = 1'b1;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -306,21 +328,22 @@ module stamofu_addr_pipeline_tb #(
 	    // output feedback to IQ
 		expected_issue_ready = 1'b1;
 	    // reg read data from PRF
-	    // forward data from PRF
+	    // bus forward data from PRF
+	    // fast forward data
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
-		expected_REQ_is_store = 1'b0;
-		expected_REQ_is_amo = 1'b0;
-		expected_REQ_is_fence = 1'b0;
-		expected_REQ_op = 4'b0000;
-		expected_REQ_is_mq = 1'b0;
-		expected_REQ_misaligned = 1'b0;
-		expected_REQ_misaligned_exception = 1'b0;
-		expected_REQ_VPN = 20'h00000;
-		expected_REQ_PO_word = 32'h00000000;
+		expected_REQ_valid = '0;
+		expected_REQ_is_store = '0;
+		expected_REQ_is_amo = '0;
+		expected_REQ_is_fence = '0;
+		expected_REQ_op = '0;
+		expected_REQ_is_mq = '0;
+		expected_REQ_misaligned = '0;
+		expected_REQ_misaligned_exception = '0;
+		expected_REQ_VPN = '0;
+		expected_REQ_PO_word = '0;
 		expected_REQ_byte_mask = 4'b1111;
-		expected_REQ_write_data = 32'h00000000;
-		expected_REQ_cq_index = 'h0;
+		expected_REQ_write_data = '0;
+		expected_REQ_cq_index = '0;
 	    // REQ stage feedback
 
 		check_outputs();
@@ -332,35 +355,37 @@ module stamofu_addr_pipeline_tb #(
 		// reset
 		nRST = 1'b1;
 	    // op issue from IQ
-		tb_issue_valid = 1'b0;
-		tb_issue_is_store = 1'b0;
-		tb_issue_is_amo = 1'b0;
-		tb_issue_is_fence = 1'b0;
-		tb_issue_op = 4'b0000;
-		tb_issue_imm12 = 12'h000;
-		tb_issue_A_forward = 1'b0;
-		tb_issue_A_is_zero = 1'b0;
-		tb_issue_A_bank = 2'h0;
-		tb_issue_B_forward = 1'b0;
-		tb_issue_B_is_zero = 1'b0;
-		tb_issue_B_bank = 2'h0;
-		tb_issue_cq_index = 'h0;
+		tb_issue_valid = '0;
+		tb_issue_is_store = '0;
+		tb_issue_is_amo = '0;
+		tb_issue_is_fence = '0;
+		tb_issue_op = '0;
+		tb_issue_imm12 = '0;
+		tb_issue_A_is_reg = '0;
+		tb_issue_A_is_bus_forward = '0;
+		tb_issue_A_is_fast_forward = '0;
+		tb_issue_A_fast_forward_pipe = '0;
+		tb_issue_A_bank = '0;
+		tb_issue_B_is_reg = '0;
+		tb_issue_B_is_bus_forward = '0;
+		tb_issue_B_is_fast_forward = '0;
+		tb_issue_B_fast_forward_pipe = '0;
+		tb_issue_B_bank = '0;
+		tb_issue_cq_index = '0;
 	    // output feedback to IQ
 	    // reg read data from PRF
-		tb_A_reg_read_resp_valid = 1'b0;
-		tb_A_reg_read_resp_data = 32'h00000000;
-		tb_B_reg_read_resp_valid = 1'b0;
-		tb_B_reg_read_resp_data = 32'h00000000;
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'h00000000,
-            32'h00000000,
-            32'h00000000,
-            32'h00000000
-        };
+		tb_A_reg_read_resp_valid = '0;
+		tb_A_reg_read_resp_data = '0;
+		tb_B_reg_read_resp_valid = '0;
+		tb_B_reg_read_resp_data = '0;
+	    // bus forward data from PRF
+		tb_bus_forward_data_by_bank = '0;
+	    // fast forward data
+		tb_fast_forward_data_valid_by_pipe = '0;
+		tb_fast_forward_data_by_pipe = '0;
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b0;
+		tb_REQ_ack = 1'b1;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -370,21 +395,22 @@ module stamofu_addr_pipeline_tb #(
 	    // output feedback to IQ
 		expected_issue_ready = 1'b1;
 	    // reg read data from PRF
-	    // forward data from PRF
+	    // bus forward data from PRF
+	    // fast forward data
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
-		expected_REQ_is_store = 1'b0;
-		expected_REQ_is_amo = 1'b0;
-		expected_REQ_is_fence = 1'b0;
-		expected_REQ_op = 4'b0000;
-		expected_REQ_is_mq = 1'b0;
-		expected_REQ_misaligned = 1'b0;
-		expected_REQ_misaligned_exception = 1'b0;
-		expected_REQ_VPN = 20'h00000;
-		expected_REQ_PO_word = 32'h00000000;
+		expected_REQ_valid = '0;
+		expected_REQ_is_store = '0;
+		expected_REQ_is_amo = '0;
+		expected_REQ_is_fence = '0;
+		expected_REQ_op = '0;
+		expected_REQ_is_mq = '0;
+		expected_REQ_misaligned = '0;
+		expected_REQ_misaligned_exception = '0;
+		expected_REQ_VPN = '0;
+		expected_REQ_PO_word = '0;
 		expected_REQ_byte_mask = 4'b1111;
-		expected_REQ_write_data = 32'h00000000;
-		expected_REQ_cq_index = 'h0;
+		expected_REQ_write_data = '0;
+		expected_REQ_cq_index = '0;
 	    // REQ stage feedback
 
 		check_outputs();
@@ -404,35 +430,37 @@ module stamofu_addr_pipeline_tb #(
 		// reset
 		nRST = 1'b1;
 	    // op issue from IQ
-		tb_issue_valid = 1'b0;
-		tb_issue_is_store = 1'b0;
-		tb_issue_is_amo = 1'b0;
-		tb_issue_is_fence = 1'b0;
-		tb_issue_op = 4'b0000;
-		tb_issue_imm12 = 12'h000;
-		tb_issue_A_forward = 1'b0;
-		tb_issue_A_is_zero = 1'b0;
-		tb_issue_A_bank = 2'h0;
-		tb_issue_B_forward = 1'b0;
-		tb_issue_B_is_zero = 1'b0;
-		tb_issue_B_bank = 2'h0;
-		tb_issue_cq_index = 'h0;
+		tb_issue_valid = '0;
+		tb_issue_is_store = '0;
+		tb_issue_is_amo = '0;
+		tb_issue_is_fence = '0;
+		tb_issue_op = '0;
+		tb_issue_imm12 = '0;
+		tb_issue_A_is_reg = '0;
+		tb_issue_A_is_bus_forward = '0;
+		tb_issue_A_is_fast_forward = '0;
+		tb_issue_A_fast_forward_pipe = '0;
+		tb_issue_A_bank = '0;
+		tb_issue_B_is_reg = '0;
+		tb_issue_B_is_bus_forward = '0;
+		tb_issue_B_is_fast_forward = '0;
+		tb_issue_B_fast_forward_pipe = '0;
+		tb_issue_B_bank = '0;
+		tb_issue_cq_index = '0;
 	    // output feedback to IQ
 	    // reg read data from PRF
-		tb_A_reg_read_resp_valid = 1'b0;
-		tb_A_reg_read_resp_data = 32'h00000000;
-		tb_B_reg_read_resp_valid = 1'b0;
-		tb_B_reg_read_resp_data = 32'h00000000;
-	    // forward data from PRF
-		tb_forward_data_by_bank = {
-            32'h00000000,
-            32'h00000000,
-            32'h00000000,
-            32'h00000000
-        };
+		tb_A_reg_read_resp_valid = '0;
+		tb_A_reg_read_resp_data = '0;
+		tb_B_reg_read_resp_valid = '0;
+		tb_B_reg_read_resp_data = '0;
+	    // bus forward data from PRF
+		tb_bus_forward_data_by_bank = '0;
+	    // fast forward data
+		tb_fast_forward_data_valid_by_pipe = '0;
+		tb_fast_forward_data_by_pipe = '0;
 	    // REQ stage info
 	    // REQ stage feedback
-		tb_REQ_ack = 1'b0;
+		tb_REQ_ack = 1'b1;
 
 		@(negedge CLK);
 
@@ -442,21 +470,22 @@ module stamofu_addr_pipeline_tb #(
 	    // output feedback to IQ
 		expected_issue_ready = 1'b1;
 	    // reg read data from PRF
-	    // forward data from PRF
+	    // bus forward data from PRF
+	    // fast forward data
 	    // REQ stage info
-		expected_REQ_valid = 1'b0;
-		expected_REQ_is_store = 1'b0;
-		expected_REQ_is_amo = 1'b0;
-		expected_REQ_is_fence = 1'b0;
-		expected_REQ_op = 4'b0000;
-		expected_REQ_is_mq = 1'b0;
-		expected_REQ_misaligned = 1'b0;
-		expected_REQ_misaligned_exception = 1'b0;
-		expected_REQ_VPN = 20'h00000;
-		expected_REQ_PO_word = 32'h00000000;
+		expected_REQ_valid = '0;
+		expected_REQ_is_store = '0;
+		expected_REQ_is_amo = '0;
+		expected_REQ_is_fence = '0;
+		expected_REQ_op = '0;
+		expected_REQ_is_mq = '0;
+		expected_REQ_misaligned = '0;
+		expected_REQ_misaligned_exception = '0;
+		expected_REQ_VPN = '0;
+		expected_REQ_PO_word = '0;
 		expected_REQ_byte_mask = 4'b1111;
-		expected_REQ_write_data = 32'h00000000;
-		expected_REQ_cq_index = 'h0;
+		expected_REQ_write_data = '0;
+		expected_REQ_cq_index = '0;
 	    // REQ stage feedback
 
 		check_outputs();

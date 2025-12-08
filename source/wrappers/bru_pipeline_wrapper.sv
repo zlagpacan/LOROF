@@ -15,7 +15,9 @@ import system_types_pkg::*;
 
 module bru_pipeline_wrapper #(
 	parameter IS_OC_BUFFER_SIZE = 2,
-	parameter PRF_RR_OUTPUT_BUFFER_SIZE = 3
+	parameter OC_ENTRIES = IS_OC_BUFFER_SIZE + 1,
+	parameter FAST_FORWARD_PIPE_COUNT = 4,
+	parameter LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FAST_FORWARD_PIPE_COUNT)
 ) (
 
     // seq
@@ -33,11 +35,15 @@ module bru_pipeline_wrapper #(
 	input logic [31:0] next_issue_PC,
 	input logic [31:0] next_issue_pred_PC,
 	input logic [19:0] next_issue_imm20,
-	input logic next_issue_A_unneeded_or_is_zero,
-	input logic next_issue_A_forward,
+	input logic next_issue_A_is_reg,
+	input logic next_issue_A_is_bus_forward,
+	input logic next_issue_A_is_fast_forward,
+	input logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0] next_issue_A_fast_forward_pipe,
 	input logic [LOG_PRF_BANK_COUNT-1:0] next_issue_A_bank,
-	input logic next_issue_B_unneeded_or_is_zero,
-	input logic next_issue_B_forward,
+	input logic next_issue_B_is_reg,
+	input logic next_issue_B_is_bus_forward,
+	input logic next_issue_B_is_fast_forward,
+	input logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0] next_issue_B_fast_forward_pipe,
 	input logic [LOG_PRF_BANK_COUNT-1:0] next_issue_B_bank,
 	input logic [LOG_PR_COUNT-1:0] next_issue_dest_PR,
 	input logic [LOG_ROB_ENTRIES-1:0] next_issue_ROB_index,
@@ -51,8 +57,12 @@ module bru_pipeline_wrapper #(
 	input logic next_B_reg_read_resp_valid,
 	input logic [31:0] next_B_reg_read_resp_data,
 
-    // forward data from PRF
-	input logic [PRF_BANK_COUNT-1:0][31:0] next_forward_data_by_bank,
+    // bus forward data from PRF
+	input logic [PRF_BANK_COUNT-1:0][31:0] next_bus_forward_data_by_bank,
+
+    // fast forward data
+	input logic [FAST_FORWARD_PIPE_COUNT-1:0] next_fast_forward_data_valid_by_pipe,
+	input logic [FAST_FORWARD_PIPE_COUNT-1:0][31:0] next_fast_forward_data_by_pipe,
 
     // writeback data to PRF
 	output logic last_WB_valid,
@@ -92,11 +102,15 @@ module bru_pipeline_wrapper #(
 	logic [31:0] issue_PC;
 	logic [31:0] issue_pred_PC;
 	logic [19:0] issue_imm20;
-	logic issue_A_unneeded_or_is_zero;
-	logic issue_A_forward;
+	logic issue_A_is_reg;
+	logic issue_A_is_bus_forward;
+	logic issue_A_is_fast_forward;
+	logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0] issue_A_fast_forward_pipe;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_A_bank;
-	logic issue_B_unneeded_or_is_zero;
-	logic issue_B_forward;
+	logic issue_B_is_reg;
+	logic issue_B_is_bus_forward;
+	logic issue_B_is_fast_forward;
+	logic [LOG_FAST_FORWARD_PIPE_COUNT-1:0] issue_B_fast_forward_pipe;
 	logic [LOG_PRF_BANK_COUNT-1:0] issue_B_bank;
 	logic [LOG_PR_COUNT-1:0] issue_dest_PR;
 	logic [LOG_ROB_ENTRIES-1:0] issue_ROB_index;
@@ -110,8 +124,12 @@ module bru_pipeline_wrapper #(
 	logic B_reg_read_resp_valid;
 	logic [31:0] B_reg_read_resp_data;
 
-    // forward data from PRF
-	logic [PRF_BANK_COUNT-1:0][31:0] forward_data_by_bank;
+    // bus forward data from PRF
+	logic [PRF_BANK_COUNT-1:0][31:0] bus_forward_data_by_bank;
+
+    // fast forward data
+	logic [FAST_FORWARD_PIPE_COUNT-1:0] fast_forward_data_valid_by_pipe;
+	logic [FAST_FORWARD_PIPE_COUNT-1:0][31:0] fast_forward_data_by_pipe;
 
     // writeback data to PRF
 	logic WB_valid;
@@ -141,7 +159,9 @@ module bru_pipeline_wrapper #(
 
 	bru_pipeline #(
 		.IS_OC_BUFFER_SIZE(IS_OC_BUFFER_SIZE),
-		.PRF_RR_OUTPUT_BUFFER_SIZE(PRF_RR_OUTPUT_BUFFER_SIZE)
+		.OC_ENTRIES(OC_ENTRIES),
+		.FAST_FORWARD_PIPE_COUNT(FAST_FORWARD_PIPE_COUNT),
+		.LOG_FAST_FORWARD_PIPE_COUNT(LOG_FAST_FORWARD_PIPE_COUNT)
 	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
@@ -161,11 +181,15 @@ module bru_pipeline_wrapper #(
 			issue_PC <= '0;
 			issue_pred_PC <= '0;
 			issue_imm20 <= '0;
-			issue_A_unneeded_or_is_zero <= '0;
-			issue_A_forward <= '0;
+			issue_A_is_reg <= '0;
+			issue_A_is_bus_forward <= '0;
+			issue_A_is_fast_forward <= '0;
+			issue_A_fast_forward_pipe <= '0;
 			issue_A_bank <= '0;
-			issue_B_unneeded_or_is_zero <= '0;
-			issue_B_forward <= '0;
+			issue_B_is_reg <= '0;
+			issue_B_is_bus_forward <= '0;
+			issue_B_is_fast_forward <= '0;
+			issue_B_fast_forward_pipe <= '0;
 			issue_B_bank <= '0;
 			issue_dest_PR <= '0;
 			issue_ROB_index <= '0;
@@ -179,8 +203,12 @@ module bru_pipeline_wrapper #(
 			B_reg_read_resp_valid <= '0;
 			B_reg_read_resp_data <= '0;
 
-		    // forward data from PRF
-			forward_data_by_bank <= '0;
+		    // bus forward data from PRF
+			bus_forward_data_by_bank <= '0;
+
+		    // fast forward data
+			fast_forward_data_valid_by_pipe <= '0;
+			fast_forward_data_by_pipe <= '0;
 
 		    // writeback data to PRF
 			last_WB_valid <= '0;
@@ -218,11 +246,15 @@ module bru_pipeline_wrapper #(
 			issue_PC <= next_issue_PC;
 			issue_pred_PC <= next_issue_pred_PC;
 			issue_imm20 <= next_issue_imm20;
-			issue_A_unneeded_or_is_zero <= next_issue_A_unneeded_or_is_zero;
-			issue_A_forward <= next_issue_A_forward;
+			issue_A_is_reg <= next_issue_A_is_reg;
+			issue_A_is_bus_forward <= next_issue_A_is_bus_forward;
+			issue_A_is_fast_forward <= next_issue_A_is_fast_forward;
+			issue_A_fast_forward_pipe <= next_issue_A_fast_forward_pipe;
 			issue_A_bank <= next_issue_A_bank;
-			issue_B_unneeded_or_is_zero <= next_issue_B_unneeded_or_is_zero;
-			issue_B_forward <= next_issue_B_forward;
+			issue_B_is_reg <= next_issue_B_is_reg;
+			issue_B_is_bus_forward <= next_issue_B_is_bus_forward;
+			issue_B_is_fast_forward <= next_issue_B_is_fast_forward;
+			issue_B_fast_forward_pipe <= next_issue_B_fast_forward_pipe;
 			issue_B_bank <= next_issue_B_bank;
 			issue_dest_PR <= next_issue_dest_PR;
 			issue_ROB_index <= next_issue_ROB_index;
@@ -236,8 +268,12 @@ module bru_pipeline_wrapper #(
 			B_reg_read_resp_valid <= next_B_reg_read_resp_valid;
 			B_reg_read_resp_data <= next_B_reg_read_resp_data;
 
-		    // forward data from PRF
-			forward_data_by_bank <= next_forward_data_by_bank;
+		    // bus forward data from PRF
+			bus_forward_data_by_bank <= next_bus_forward_data_by_bank;
+
+		    // fast forward data
+			fast_forward_data_valid_by_pipe <= next_fast_forward_data_valid_by_pipe;
+			fast_forward_data_by_pipe <= next_fast_forward_data_by_pipe;
 
 		    // writeback data to PRF
 			last_WB_valid <= WB_valid;

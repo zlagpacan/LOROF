@@ -924,7 +924,7 @@ module ldu_launch_pipeline #(
     // this pipe's fast forward
         // passing OC -> WB
     always_comb begin
-        pipe_fast_forward_notif_valid = RET_stage_valid & RET_stage_do_WB;
+        pipe_fast_forward_notif_valid = RET_stage_valid & RET_stage_do_WB & (RET_stage_dest_PR != 0);
             // always notif fast forward if in notif stage at beginning of cycle, 
                 // and operand collector will be able to pick up data value when broadcasted first cycle in data stage
         pipe_fast_forward_notif_PR = RET_stage_dest_PR;
@@ -936,7 +936,7 @@ module ldu_launch_pipeline #(
             pipe_fast_forward_data <= 32'h00000000;
         end
         else begin
-            pipe_fast_forward_data_valid <= RET_stage_valid & ~stall_RET;
+            pipe_fast_forward_data_valid <= pipe_fast_forward_notif_valid & ~stall_RET;
                 // must be first cycle
                 // can't be last cycle as fast forward can pick up notif stage younger op forward but if there is stall it might pick up
                     // later cycle where still older unwanted op still in data stage
