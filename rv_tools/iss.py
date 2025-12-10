@@ -26,9 +26,39 @@ class Log:
     def write(self, string):
         self.log_str += string
 
-    def print_log(self):
+    def print(self):
         print(self.log_str)
         self.log_str = ""
+
+class PerfCounters:
+    perf_counter_name_list = [
+        "any instr",
+        "alu_reg instr",
+        "alu_imm instr",
+        "mdu instr",
+        "bru instr",
+        "ldu instr",
+        "stamofu instr",
+        "sysu instr",
+    ]
+
+    def __init__(self):
+
+        self.perf_counter_dict = dict()
+        for perf_counter_name in self.perf_counter_name_list:
+            self.perf_counter_dict[perf_counter_name] = 0
+
+    def incr(self, perf_counter_name):
+        self.perf_counter_dict[perf_counter_name] += 1
+
+    def func(self, perf_counter_name, function):
+        self.perf_counter_dict[perf_counter_name] = function(self.perf_counter_dict[perf_counter_name])
+    
+    def print(self):
+        print(f"Perf Counters:")
+        for perf_counter_name, perf_counter_value in self.perf_counter_dict.items():
+            print(f"    {perf_counter_name}: {perf_counter_value}")
+        print()
 
 class Mem:
     def __init__(self, mem_file_path, log):
@@ -140,7 +170,7 @@ class Mem:
 
         return sorted(word_list, key=lambda x: x[0])
 
-    def print_mem(self):
+    def print(self):
         word_list = self.get_word_list()
 
         print("\nMEM:")
@@ -168,13 +198,14 @@ class Mem:
                 ptr_word_addr += 1
 
 class Hart:
-    def __init__(self, hart_id, start_pc, mem, log, trace):
+    def __init__(self, hart_id, start_pc, log, perf_counters, mem, trace):
         self.hart_id = hart_id
         self.pc = signed32(start_pc)
         self.arf = [0x0 for x in range(32)]
         self.instret = 0
-        self.mem = mem
         self.log = log
+        self.perf_counters = perf_counters
+        self.mem = mem
         self.trace = trace
 
     def exec_instr(self):
@@ -201,6 +232,7 @@ class Hart:
                 result = imm20 << 12
                 self.write_arf(rd, result)
                 self.incr_pc(4)
+                self.perf_counters.incr("bru instr")
 
             # AUIPC
             elif opcode5 == 0b00101:
@@ -210,6 +242,7 @@ class Hart:
                 result = signed32(self.pc + imm32)
                 self.write_arf(rd, result)
                 self.incr_pc(4)
+                self.perf_counters.incr("bru instr")
 
             # JAL
             elif opcode5 == 0b11011:
@@ -222,6 +255,7 @@ class Hart:
                 result = signed32(self.pc + 4)
                 self.write_arf(rd, result)
                 self.incr_pc(imm32)
+                self.perf_counters.incr("bru instr")
 
             # JALR
             elif opcode5 == 0b11001:
@@ -232,6 +266,7 @@ class Hart:
                 npc = signed32(self.read_arf(rs1) + imm32)
                 self.write_arf(rd, result)
                 self.write_pc(npc)
+                self.perf_counters.incr("bru instr")
 
             # B-Type
             elif opcode5 == 0b11000:
@@ -248,6 +283,7 @@ class Hart:
                         self.incr_pc(imm32)
                     else:
                         self.incr_pc(4)
+                    self.perf_counters.incr("bru instr")
 
                 # BNE
                 elif funct3 == 0b001:
@@ -256,6 +292,7 @@ class Hart:
                         self.incr_pc(imm32)
                     else:
                         self.incr_pc(4)
+                    self.perf_counters.incr("bru instr")
 
                 # BLT
                 elif funct3 == 0b100:
@@ -264,6 +301,7 @@ class Hart:
                         self.incr_pc(imm32)
                     else:
                         self.incr_pc(4)
+                    self.perf_counters.incr("bru instr")
 
                 # BGE
                 elif funct3 == 0b101:
@@ -272,6 +310,7 @@ class Hart:
                         self.incr_pc(imm32)
                     else:
                         self.incr_pc(4)
+                    self.perf_counters.incr("bru instr")
 
                 # BLTU
                 elif funct3 == 0b110:
@@ -280,6 +319,7 @@ class Hart:
                         self.incr_pc(imm32)
                     else:
                         self.incr_pc(4)
+                    self.perf_counters.incr("bru instr")
 
                 # BGEU
                 elif funct3 == 0b111:
@@ -288,6 +328,7 @@ class Hart:
                         self.incr_pc(imm32)
                     else:
                         self.incr_pc(4)
+                    self.perf_counters.incr("bru instr")
 
                 else:
                     self.log.write(f"illegal B-Type instr\n")
@@ -336,6 +377,7 @@ class Hart:
 
                 self.write_arf(rd, value)
                 self.incr_pc(4)
+                self.perf_counters.incr("ldu instr")
 
             # S-Type
             elif opcode5 == 0b01000:
@@ -370,6 +412,7 @@ class Hart:
                     return False
 
                 self.incr_pc(4)
+                self.perf_counters.incr("stamofu instr")
 
             # I-Type
             elif opcode5 == 0b00100:
@@ -448,6 +491,7 @@ class Hart:
 
                 self.write_arf(rd, result)
                 self.incr_pc(4)
+                self.perf_counters.incr("alu_imm instr")
 
             # R-Type and M-Ext
             elif opcode5 == 0b01100:
@@ -561,6 +605,8 @@ class Hart:
                         self.log.write(f"illegal R-Type instr\n")
                         self.log.write(f"\n< Exiting Execution >\n")
                         return False
+
+                    self.perf_counters.incr("alu_reg instr")
                     
                 # M-Ext
                 elif funct7 == 0b0000001:
@@ -637,6 +683,8 @@ class Hart:
                         else:
                             result = signed32(R_rs1 % R_rs2)
 
+                    self.perf_counters.incr("mdu instr")
+
                 else:
                     self.log.write(f"illegal R-Type / M-Ext instr\n")
                     self.log.write(f"\n< Exiting Execution >\n")
@@ -695,6 +743,7 @@ class Hart:
                     return False
 
                 self.incr_pc(4)
+                self.perf_counters.incr("stamofu instr")
 
             # SYS
             elif opcode5 == 0b11100:
@@ -709,12 +758,14 @@ class Hart:
                         if rs2 == 0b00000:
                             self.log.write(f"ECALL\n")
                             self.log.write(f"\n< Exiting Execution >\n")
+                            self.perf_counters.incr("sysu instr")
                             return False
                         
                         # EBREAK
                         elif rs2 == 0b00001:
                             self.log.write(f"EBREAK\n")
                             self.log.write(f"\n< Exiting Execution >\n")
+                            self.perf_counters.incr("sysu instr")
                             return False
                     
                         else:
@@ -728,6 +779,7 @@ class Hart:
                         if rs2 == 0b00010:
                             self.log.write(f"MRET\n")
                             self.log.write(f"\n< Exiting Execution >\n")
+                            self.perf_counters.incr("sysu instr")
                             return False
                     
                         else:
@@ -742,12 +794,14 @@ class Hart:
                         if rs2 == 0b00101:
                             self.log.write(f"WFI\n")
                             self.log.write(f"\n< Exiting Execution >\n")
+                            self.perf_counters.incr("sysu instr")
                             return False
                         
                         # SRET
                         elif rs2 == 0b00010:
                             self.log.write(f"SRET\n")
                             self.log.write(f"\n< Exiting Execution >\n")
+                            self.perf_counters.incr("sysu instr")
                             return False
                     
                         else:
@@ -759,6 +813,7 @@ class Hart:
                     elif funct7 == 0b0001001:
                         self.log.write(f"SFENCE.VMA x{rs1}, x{rs2}")
                         self.log.write(f"\n< Exiting Execution >\n")
+                        self.perf_counters.incr("stamofu instr")
                         return False
                     
                 # CSR
@@ -770,36 +825,42 @@ class Hart:
                     if funct3 == 0b001:
                         self.log.write(f"CSRRW x{rd}, 0x{csr:03X}, x{rs1}\n")
                         self.log.write(f"\n< Exiting Execution >\n")
+                        self.perf_counters.incr("sysu instr")
                         return False
                         
                     # CSRRS
                     elif funct3 == 0b010:
                         self.log.write(f"CSRRS x{rd}, 0x{csr:03X}, x{rs1}\n")
                         self.log.write(f"\n< Exiting Execution >\n")
+                        self.perf_counters.incr("sysu instr")
                         return False
                         
                     # CSRRC
                     elif funct3 == 0b011:
                         self.log.write(f"CSRRC x{rd}, 0x{csr:03X}, x{rs1}\n")
                         self.log.write(f"\n< Exiting Execution >\n")
+                        self.perf_counters.incr("sysu instr")
                         return False
                         
                     # CSRRWI
                     elif funct3 == 0b101:
                         self.log.write(f"CSRRWI x{rd}, 0x{csr:03X}, 0x{uimm:02X}\n")
                         self.log.write(f"\n< Exiting Execution >\n")
+                        self.perf_counters.incr("sysu instr")
                         return False
                         
                     # CSRRSI
                     elif funct3 == 0b110:
                         self.log.write(f"CSRRSI x{rd}, 0x{csr:03X}, 0x{uimm:02X}\n")
                         self.log.write(f"\n< Exiting Execution >\n")
+                        self.perf_counters.incr("sysu instr")
                         return False
                         
                     # CSRRCI
                     elif funct3 == 0b111:
                         self.log.write(f"CSRRCI x{rd}, 0x{csr:03X}, 0x{uimm:02X}\n")
                         self.log.write(f"\n< Exiting Execution >\n")
+                        self.perf_counters.incr("sysu instr")
                         return False
                 
                     else:
@@ -1005,6 +1066,7 @@ class Hart:
                 
                 self.write_arf(rd, read_value)
                 self.incr_pc(4)
+                self.perf_counters.incr("stamofu instr")
 
             else:
                 self.log.write(f"illegal uncompressed instr\n")
@@ -1034,6 +1096,7 @@ class Hart:
                     value = signed32(self.read_arf(2) + uimm)
                     self.write_arf(rd, value)
                     self.incr_pc(2)
+                    self.perf_counters.incr("alu_imm instr")
 
                 # C.LW
                 elif opcode3 == 0b010:
@@ -1047,6 +1110,7 @@ class Hart:
                     value = self.mem.read_data(addr, 4)
                     self.write_arf(rd, value)
                     self.incr_pc(2)
+                    self.perf_counters.incr("ldu instr")
 
                 # C.SW
                 elif opcode3 == 0b110:
@@ -1059,6 +1123,7 @@ class Hart:
                     addr = signed32(self.read_arf(rs1) + uimm)
                     self.mem.write_data(addr, self.read_arf(rs2), 4)
                     self.incr_pc(2)
+                    self.perf_counters.incr("stamofu instr")
 
                 else:
                     self.log.write(f"illegal compressed instr\n")
@@ -1077,6 +1142,7 @@ class Hart:
                     result = signed32(self.read_arf(rd) + imm32)
                     self.write_arf(rd, result)
                     self.incr_pc(2)
+                    self.perf_counters.incr("alu_imm instr")
 
                 # C.JAL
                 elif opcode3 == 0b001:
@@ -1093,6 +1159,7 @@ class Hart:
                     result = signed32(self.pc + 2)
                     self.write_arf(1, result)
                     self.incr_pc(imm32)
+                    self.perf_counters.incr("bru instr")
 
                 # C.LI
                 elif opcode3 == 0b010:
@@ -1104,6 +1171,7 @@ class Hart:
                     result = imm32
                     self.write_arf(rd, result)
                     self.incr_pc(2)
+                    self.perf_counters.incr("alu_imm instr")
 
                 # C.ADDI16SP/C.LUI
                 elif opcode3 == 0b011:
@@ -1119,6 +1187,7 @@ class Hart:
                         self.log.write(f"C.ADDI16SP 0x{imm:03X}\n")
                         result = signed32(self.read_arf(2) + imm32)
                         self.write_arf(2, result)
+                        self.perf_counters.incr("alu_imm instr")
 
                     # C.LUI
                     else:
@@ -1129,6 +1198,7 @@ class Hart:
                         self.log.write(f"C.LUI x{rd}, 0x{imm >> 12:02X}\n")
                         result = imm32
                         self.write_arf(rd, result)
+                        self.perf_counters.incr("bru instr")
 
                     self.incr_pc(2)
 
@@ -1142,12 +1212,14 @@ class Hart:
                         shamt = bits(instr, 6, 2)
                         self.log.write(f"C.SRLI x{rd}, 0x{shamt:02X}\n")
                         result = signed32(self.read_arf(rd) >> shamt)
+                        self.perf_counters.incr("alu_imm instr")
 
                     # C.SRAI
                     elif funct2 == 0b01:
                         shamt = bits(instr, 6, 2)
                         self.log.write(f"C.SRAI x{rd}, 0x{shamt:02X}\n")
                         result = signed32(self.read_arf(rd) >> shamt, 32-shamt)
+                        self.perf_counters.incr("alu_imm instr")
 
                     # C.ANDI
                     elif funct2 == 0b10:
@@ -1156,6 +1228,7 @@ class Hart:
                         imm32 = signed32(imm, 6)
                         self.log.write(f"C.ANDI x{rd}, 0x{imm:02X}\n")
                         result = signed32(self.read_arf(rd) & imm32)
+                        self.perf_counters.incr("alu_imm instr")
 
                     # C.SUB/C.XOR/C.OR/C.AND
                     elif funct2 == 0b11:
@@ -1187,6 +1260,8 @@ class Hart:
                             self.log.write(f"\n< Exiting Execution >\n")
                             return False
 
+                        self.perf_counters.incr("alu_reg instr")
+
                     else:
                         self.log.write(f"illegal compressed instr\n")
                         self.log.write(f"\n< Exiting Execution >\n")
@@ -1208,6 +1283,7 @@ class Hart:
                     imm32 = signed32(imm, 12)
                     self.log.write(f"C.J 0x{imm:03X}\n")
                     self.incr_pc(imm32)
+                    self.perf_counters.incr("bru instr")
                 
                 # C.BEQZ
                 elif opcode3 == 0b110:
@@ -1223,6 +1299,7 @@ class Hart:
                         self.incr_pc(imm32)
                     else:
                         self.incr_pc(2)
+                    self.perf_counters.incr("bru instr")
 
                 # C.BNEZ
                 elif opcode3 == 0b111:
@@ -1238,6 +1315,7 @@ class Hart:
                         self.incr_pc(imm32)
                     else:
                         self.incr_pc(2)
+                    self.perf_counters.incr("bru instr")
 
                 else:
                     self.log.write(f"illegal compressed instr\n")
@@ -1254,6 +1332,7 @@ class Hart:
                     result = signed32(self.read_arf(rd) << shamt)
                     self.write_arf(rd, result)
                     self.incr_pc(2)
+                    self.perf_counters.incr("alu_imm instr")
 
                 # C.LWSP
                 elif opcode3 == 0b010:
@@ -1266,6 +1345,7 @@ class Hart:
                     result = self.mem.read_data(addr, 4)
                     self.write_arf(rd, result)
                     self.incr_pc(2)
+                    self.perf_counters.incr("ldu instr")
 
                 # C.JR/C.MV/C.EBREAK/C.JALR/C.ADD
                 elif opcode3 == 0b100:
@@ -1280,12 +1360,14 @@ class Hart:
                             self.log.write(f"C.JR x{rd_rs1}\n")
                             npc = self.read_arf(rd_rs1)
                             self.write_pc(npc)
+                            self.perf_counters.incr("bru instr")
 
                         # C.MV:
                         else:
                             self.log.write(f"C.MV x{rd_rs1}, x{rs2}\n")
                             self.write_arf(rd_rs1, self.read_arf(rs2))
                             self.incr_pc(2)
+                            self.perf_counters.incr("alu_reg instr")
 
                     # C.EBREAK/C.JALR/C.ADD
                     elif bit(instr, 12) == 0b1:
@@ -1294,6 +1376,7 @@ class Hart:
                         if rd_rs1 == 0 and rs2 == 0:
                             self.log.write(f"C.EBREAK\n")
                             self.log.write(f"\n< Exiting Execution >\n")
+                            self.perf_counters.incr("sysu instr")
                             return False
 
                         # C.JALR
@@ -1302,6 +1385,7 @@ class Hart:
                             result = signed32(self.pc + 2)
                             self.write_arf(1, result)
                             self.write_pc(self.read_arf(rd_rs1))
+                            self.perf_counters.incr("bru instr")
 
                         # C.ADD
                         else:
@@ -1309,6 +1393,7 @@ class Hart:
                             result = signed32(self.read_arf(rd_rs1) + self.read_arf(rs2))
                             self.write_arf(rd_rs1, result)
                             self.incr_pc(2)
+                            self.perf_counters.incr("alu_reg instr")
 
                     else:
                         self.log.write(f"illegal compressed instr\n")
@@ -1325,6 +1410,7 @@ class Hart:
                     result = self.read_arf(rs2)
                     self.mem.write_data(addr, result, 4)
                     self.incr_pc(2)
+                    self.perf_counters.incr("stamofu instr")
                 
                 else:
                     self.log.write(f"illegal compressed instr\n")
@@ -1337,8 +1423,9 @@ class Hart:
                 return False
 
         self.instret += 1
+        self.perf_counters.incr("any instr")
         if self.trace:
-            self.log.print_log()
+            self.log.print()
         return True
     
     def read_arf(self, rs):
@@ -1359,7 +1446,7 @@ class Hart:
     def incr_pc(self, incr):
         self.write_pc(signed32(self.pc + incr))
 
-    def print_hart(self):
+    def print(self):
         print(f"Hart {self.hart_id}:")
         print(f"    PC = 0x{self.pc:08X}")
         print(f"    instret = {self.instret}")
@@ -1379,11 +1466,12 @@ if __name__ == "__main__":
 
     # init arch components
     log = Log()
+    perf_counters = PerfCounters()
     mem = Mem(args.input_mem_file_path, log)
-    hart = Hart(0, args.start_pc, mem, log, not args.silent)
+    hart = Hart(0, args.start_pc, log, perf_counters, mem, not args.silent)
 
     if not args.silent:
-        mem.print_mem()
+        mem.print()
 
     try:
         # execute program
@@ -1394,8 +1482,9 @@ if __name__ == "__main__":
         log.write(f"\nUser Stopped Execution Early\n")
 
     if not args.silent:
-        log.print_log()
-        hart.print_hart()
-        mem.print_mem()
+        log.print()
+        hart.print()
+        mem.print()
+        perf_counters.print()
 
     mem.write_mem_file(args.output_mem_file_path)
