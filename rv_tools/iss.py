@@ -291,6 +291,7 @@ class Hart:
 
                 else:
                     self.log.write(f"illegal B-Type instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
                     return False
 
             # L-Type
@@ -330,6 +331,7 @@ class Hart:
 
                 else:
                     self.log.write(f"illegal L-Type instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
                     return False
 
                 self.write_arf(rd, value)
@@ -364,6 +366,7 @@ class Hart:
 
                 else:
                     self.log.write(f"illegal S-Type instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
                     return False
 
                 self.incr_pc(4)
@@ -386,6 +389,7 @@ class Hart:
                         result = signed32(self.read_arf(rs1) << shamt)
                     else:
                         self.log.write(f"illegal I-Type instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
 
                 # SLTI
@@ -424,6 +428,7 @@ class Hart:
 
                     else:
                         self.log.write(f"illegal I-Type instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
 
                 # ORI
@@ -438,6 +443,7 @@ class Hart:
 
                 else:
                     self.log.write(f"illegal I-Type instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
                     return False
 
                 self.write_arf(rd, result)
@@ -464,12 +470,14 @@ class Hart:
 
                         else:
                             self.log.write(f"illegal R-Type instr\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
 
                     # SLL
                     elif funct3 == 0b001:
                         if funct7 != 0b0000000:
                             self.log.write(f"illegal R-Type instr\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         self.log.write(f"SLL x{rd}, x{rs1}, x{rs2}\n")
                         shamt = bits(self.read_arf(rs2), 4, 0)
@@ -480,6 +488,7 @@ class Hart:
                     elif funct3 == 0b010:
                         if funct7 != 0b0000000:
                             self.log.write(f"illegal R-Type instr\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         self.log.write(f"SLT x{rd}, x{rs1}, x{rs2}\n")
                         if make_signed(self.read_arf(rs1)) < make_signed(self.read_arf(rs2)):
@@ -491,6 +500,7 @@ class Hart:
                     elif funct3 == 0b011:
                         if funct7 != 0b0000000:
                             self.log.write(f"illegal R-Type instr\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         self.log.write(f"SLTU x{rd}, x{rs1}, x{rs2}\n")
                         if self.read_arf(rs1) < self.read_arf(rs2):
@@ -502,6 +512,7 @@ class Hart:
                     elif funct3 == 0b100:
                         if funct7 != 0b0000000:
                             self.log.write(f"illegal R-Type instr\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         self.log.write(f"XOR x{rd}, x{rs1}, x{rs2}\n")
                         result = signed32(self.read_arf(rs1) ^ self.read_arf(rs2))
@@ -525,12 +536,14 @@ class Hart:
 
                         else:
                             self.log.write(f"illegal R-Type instr\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         
                     # OR
                     elif funct3 == 0b110:
                         if funct7 != 0b0000000:
                             self.log.write(f"illegal R-Type instr\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         self.log.write(f"OR x{rd}, x{rs1}, x{rs2}\n")
                         result = signed32(self.read_arf(rs1) | self.read_arf(rs2))
@@ -539,12 +552,14 @@ class Hart:
                     elif funct3 == 0b111:
                         if funct7 != 0b0000000:
                             self.log.write(f"illegal R-Type instr\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         self.log.write(f"AND x{rd}, x{rs1}, x{rs2}\n")
                         result = signed32(self.read_arf(rs1) & self.read_arf(rs2))
 
                     else:
                         self.log.write(f"illegal R-Type instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
                     
                 # M-Ext
@@ -624,6 +639,7 @@ class Hart:
 
                 else:
                     self.log.write(f"illegal R-Type / M-Ext instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
                     return False
 
                 self.write_arf(rd, result)
@@ -644,6 +660,7 @@ class Hart:
 
                     else:
                         self.log.write(f"illegal FENCE instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
                     
                     if bit(instr, 27):
@@ -674,6 +691,7 @@ class Hart:
 
                 else:
                     self.log.write(f"illegal FENCE instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
                     return False
 
                 self.incr_pc(4)
@@ -690,15 +708,18 @@ class Hart:
                         # ECALL
                         if rs2 == 0b00000:
                             self.log.write(f"ECALL\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         
                         # EBREAK
                         elif rs2 == 0b00001:
                             self.log.write(f"EBREAK\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                     
                         else:
                             self.log.write(f"illegal SYS instr\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         
                     # MRET
@@ -706,10 +727,12 @@ class Hart:
 
                         if rs2 == 0b00010:
                             self.log.write(f"MRET\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                     
                         else:
                             self.log.write(f"illegal SYS instr\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         
                     # WFI/SRET
@@ -718,20 +741,24 @@ class Hart:
                         # WFI
                         if rs2 == 0b00101:
                             self.log.write(f"WFI\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         
                         # SRET
                         elif rs2 == 0b00010:
                             self.log.write(f"SRET\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                     
                         else:
                             self.log.write(f"illegal SYS instr\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         
                     # SFENCE.VMA
                     elif funct7 == 0b0001001:
                         self.log.write(f"SFENCE.VMA x{rs1}, x{rs2}")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
                     
                 # CSR
@@ -742,35 +769,42 @@ class Hart:
                     # CSRRW
                     if funct3 == 0b001:
                         self.log.write(f"CSRRW x{rd}, 0x{csr:03X}, x{rs1}\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
                         
                     # CSRRS
                     elif funct3 == 0b010:
                         self.log.write(f"CSRRS x{rd}, 0x{csr:03X}, x{rs1}\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
                         
                     # CSRRC
                     elif funct3 == 0b011:
                         self.log.write(f"CSRRC x{rd}, 0x{csr:03X}, x{rs1}\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
                         
                     # CSRRWI
                     elif funct3 == 0b101:
                         self.log.write(f"CSRRWI x{rd}, 0x{csr:03X}, 0x{uimm:02X}\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
                         
                     # CSRRSI
                     elif funct3 == 0b110:
                         self.log.write(f"CSRRSI x{rd}, 0x{csr:03X}, 0x{uimm:02X}\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
                         
                     # CSRRCI
                     elif funct3 == 0b111:
                         self.log.write(f"CSRRCI x{rd}, 0x{csr:03X}, 0x{uimm:02X}\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
                 
                     else:
                         self.log.write(f"illegal SYS instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
                     
                 self.incr_pc(4)
@@ -792,6 +826,7 @@ class Hart:
 
                 if funct3 != 0b010:
                     self.log.write(f"illegal A-Ext instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
                     return False
 
                 # LR.W
@@ -802,6 +837,7 @@ class Hart:
                     if R_rs1 % 4 != 0:
                         self.log.write(f"misaligned AMO\n")
                         self.log.write(f"    addr = 0x{R_rs1:08X}\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
                     self.mem.reserve_set(self.hart_id, R_rs1)
                     read_value = self.mem.read_data(R_rs1, 4)
@@ -814,6 +850,7 @@ class Hart:
                     if R_rs1 % 4 != 0:
                         self.log.write(f"misaligned AMO\n")
                         self.log.write(f"    addr = 0x{R_rs1:08X}\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
                     if self.mem.check_reserve_set(self.hart_id, R_rs1):
                         self.mem.write_data(R_rs1, R_rs2, 4)
@@ -831,6 +868,7 @@ class Hart:
                         if R_rs1 % 4 != 0:
                             self.log.write(f"misaligned AMO\n")
                             self.log.write(f"    addr = 0x{R_rs1:08X}\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         read_value = self.mem.read_data(R_rs1, 4)
                         write_value = R_rs2
@@ -844,6 +882,7 @@ class Hart:
                         if R_rs1 % 4 != 0:
                             self.log.write(f"misaligned AMO\n")
                             self.log.write(f"    addr = 0x{R_rs1:08X}\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         read_value = self.mem.read_data(R_rs1, 4)
                         write_value = signed32(read_value + R_rs2)
@@ -857,6 +896,7 @@ class Hart:
                         if R_rs1 % 4 != 0:
                             self.log.write(f"misaligned AMO\n")
                             self.log.write(f"    addr = 0x{R_rs1:08X}\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         read_value = self.mem.read_data(R_rs1, 4)
                         write_value = signed32(read_value ^ R_rs2)
@@ -870,6 +910,7 @@ class Hart:
                         if R_rs1 % 4 != 0:
                             self.log.write(f"misaligned AMO\n")
                             self.log.write(f"    addr = 0x{R_rs1:08X}\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         read_value = self.mem.read_data(R_rs1, 4)
                         write_value = signed32(read_value & R_rs2)
@@ -883,6 +924,7 @@ class Hart:
                         if R_rs1 % 4 != 0:
                             self.log.write(f"misaligned AMO\n")
                             self.log.write(f"    addr = 0x{R_rs1:08X}\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         read_value = self.mem.read_data(R_rs1, 4)
                         write_value = signed32(read_value | R_rs2)
@@ -896,6 +938,7 @@ class Hart:
                         if R_rs1 % 4 != 0:
                             self.log.write(f"misaligned AMO\n")
                             self.log.write(f"    addr = 0x{R_rs1:08X}\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         read_value = self.mem.read_data(R_rs1, 4)
                         if make_signed(R_rs2) < make_signed(read_value):
@@ -912,6 +955,7 @@ class Hart:
                         if R_rs1 % 4 != 0:
                             self.log.write(f"misaligned AMO\n")
                             self.log.write(f"    addr = 0x{R_rs1:08X}\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         read_value = self.mem.read_data(R_rs1, 4)
                         if make_signed(R_rs2) > make_signed(read_value):
@@ -928,6 +972,7 @@ class Hart:
                         if R_rs1 % 4 != 0:
                             self.log.write(f"misaligned AMO\n")
                             self.log.write(f"    addr = 0x{R_rs1:08X}\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         read_value = self.mem.read_data(R_rs1, 4)
                         if R_rs2 < read_value:
@@ -944,6 +989,7 @@ class Hart:
                         if R_rs1 % 4 != 0:
                             self.log.write(f"misaligned AMO\n")
                             self.log.write(f"    addr = 0x{R_rs1:08X}\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
                         read_value = self.mem.read_data(R_rs1, 4)
                         if R_rs2 > read_value:
@@ -954,6 +1000,7 @@ class Hart:
 
                     else:
                         self.log.write(f"illegal A-Ext instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
                 
                 self.write_arf(rd, read_value)
@@ -961,6 +1008,7 @@ class Hart:
 
             else:
                 self.log.write(f"illegal uncompressed instr\n")
+                self.log.write(f"\n< Exiting Execution >\n")
                 return False
 
         # compressed
@@ -979,6 +1027,7 @@ class Hart:
                     uimm += bit(instr, 5) << 3
                     if uimm == 0:
                         self.log.write(f"illegal all 0's instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
                     rd = bits(instr, 4, 2) + 8
                     self.log.write(f"C.ADDI4SPN x{rd}, 0x{uimm:03X}\n")
@@ -1013,6 +1062,7 @@ class Hart:
 
                 else:
                     self.log.write(f"illegal compressed instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
                     return False
             
             elif opcode2 == 0b01:
@@ -1134,10 +1184,12 @@ class Hart:
 
                         else:
                             self.log.write(f"illegal compressed instr\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
 
                     else:
                         self.log.write(f"illegal compressed instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
 
                     self.write_arf(rd, result)
@@ -1189,6 +1241,7 @@ class Hart:
 
                 else:
                     self.log.write(f"illegal compressed instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
                     return False
 
             elif opcode2 == 0b10:
@@ -1240,6 +1293,7 @@ class Hart:
                         # C.EBREAK
                         if rd_rs1 == 0 and rs2 == 0:
                             self.log.write(f"C.EBREAK\n")
+                            self.log.write(f"\n< Exiting Execution >\n")
                             return False
 
                         # C.JALR
@@ -1258,6 +1312,7 @@ class Hart:
 
                     else:
                         self.log.write(f"illegal compressed instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
                         return False
                     
                 # C.SWSP
@@ -1273,10 +1328,12 @@ class Hart:
                 
                 else:
                     self.log.write(f"illegal compressed instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
                     return False
                 
             else:
                 self.log.write(f"illegal compressed instr\n")
+                self.log.write(f"\n< Exiting Execution >\n")
                 return False
 
         self.instret += 1
@@ -1328,9 +1385,13 @@ if __name__ == "__main__":
     if not args.silent:
         mem.print_mem()
 
-    # execute program
-    while hart.exec_instr():
-        continue
+    try:
+        # execute program
+        while hart.exec_instr():
+            continue
+    
+    except KeyboardInterrupt:
+        log.write(f"\nUser Stopped Execution Early\n")
 
     if not args.silent:
         log.print_log()
