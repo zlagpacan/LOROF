@@ -81,11 +81,6 @@ module icache #(
     // tag array:
         // BRAM
 
-    // typedef struct packed {
-    //     logic [1:0]                         valid_by_way;
-    //     logic [1:0][ICACHE_TAG_WIDTH-1:0]   tag_by_way;
-    // } tag_entry_t;
-
     typedef struct packed {
         logic                                           valid;
         logic [((8-((ICACHE_TAG_WIDTH+1)%8))%8)-1:0]    byte_align_bits;

@@ -1385,7 +1385,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
             - 111: read-write-execute
         - if get leaf page at level 1, have superpage
             - must have PPN0 == '0, else misaligned superpage, page fault
-        - page fault of perform memory access and don't have required permissions
+        - page fault if perform memory access and don't have required permissions
     - U:
         - U-mode accessible
         - only relevant for leaf pages

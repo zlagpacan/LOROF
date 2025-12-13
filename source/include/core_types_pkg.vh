@@ -15,7 +15,7 @@ package core_types_pkg;
     parameter XLEN = 32;
     parameter AR_COUNT = 32;
     parameter LOG_AR_COUNT = 5;
-    parameter ASID_WIDTH = 9;
+    // parameter ASID_WIDTH = 9; // in system_types_pkg
 
     // ----------------------------------------------------------------
     // Environment:

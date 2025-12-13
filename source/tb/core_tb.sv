@@ -226,8 +226,8 @@ module core_tb #(
 
     // sfence invalidation to MMU
 	logic DUT_sfence_inv_valid, expected_sfence_inv_valid;
-	logic [VA_WIDTH-1:0] DUT_sfence_inv_VA, expected_sfence_inv_VA;
 	logic [ASID_WIDTH-1:0] DUT_sfence_inv_ASID, expected_sfence_inv_ASID;
+	logic [VA_WIDTH-1:0] DUT_sfence_inv_VA, expected_sfence_inv_VA;
 
     // sfence invalidation backpressure from MMU
 	logic tb_sfence_inv_ready;
@@ -448,8 +448,8 @@ module core_tb #(
 
 	    // sfence invalidation to MMU
 		.sfence_inv_valid(DUT_sfence_inv_valid),
-		.sfence_inv_VA(DUT_sfence_inv_VA),
 		.sfence_inv_ASID(DUT_sfence_inv_ASID),
+		.sfence_inv_VA(DUT_sfence_inv_VA),
 
 	    // sfence invalidation backpressure from MMU
 		.sfence_inv_ready(tb_sfence_inv_ready),
@@ -1009,16 +1009,16 @@ module core_tb #(
 			tb_error = 1'b1;
 		end
 
-		if (expected_sfence_inv_VA !== DUT_sfence_inv_VA) begin
-			$display("TB ERROR: expected_sfence_inv_VA (%h) != DUT_sfence_inv_VA (%h)",
-				expected_sfence_inv_VA, DUT_sfence_inv_VA);
+		if (expected_sfence_inv_ASID !== DUT_sfence_inv_ASID) begin
+			$display("TB ERROR: expected_sfence_inv_ASID (%h) != DUT_sfence_inv_ASID (%h)",
+				expected_sfence_inv_ASID, DUT_sfence_inv_ASID);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_sfence_inv_ASID !== DUT_sfence_inv_ASID) begin
-			$display("TB ERROR: expected_sfence_inv_ASID (%h) != DUT_sfence_inv_ASID (%h)",
-				expected_sfence_inv_ASID, DUT_sfence_inv_ASID);
+		if (expected_sfence_inv_VA !== DUT_sfence_inv_VA) begin
+			$display("TB ERROR: expected_sfence_inv_VA (%h) != DUT_sfence_inv_VA (%h)",
+				expected_sfence_inv_VA, DUT_sfence_inv_VA);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -1311,8 +1311,8 @@ module core_tb #(
 		expected_wr_buf_WB_ready = 1'b1;
 	    // sfence invalidation to MMU
 		expected_sfence_inv_valid = 1'b0;
-		expected_sfence_inv_VA = 20'h00000;
 		expected_sfence_inv_ASID = 9'h000;
+		expected_sfence_inv_VA = 20'h00000;
 	    // sfence invalidation backpressure from MMU
 		// ROB instret advertisement
 		expected_rob_instret = 32'h0;
@@ -1527,8 +1527,8 @@ module core_tb #(
 		expected_wr_buf_WB_ready = 1'b1;
 	    // sfence invalidation to MMU
 		expected_sfence_inv_valid = 1'b0;
-		expected_sfence_inv_VA = 20'h00000;
 		expected_sfence_inv_ASID = 9'h000;
+		expected_sfence_inv_VA = 20'h00000;
 	    // sfence invalidation backpressure from MMU
 		// ROB instret advertisement
 		expected_rob_instret = 32'h0;
@@ -1951,8 +1951,8 @@ module core_tb #(
 			expected_wr_buf_WB_ready = 1'b1;
 			// sfence invalidation to MMU
 			expected_sfence_inv_valid = 1'b0;
-			expected_sfence_inv_VA = 20'h00000;
 			expected_sfence_inv_ASID = 9'h000;
+			expected_sfence_inv_VA = 20'h00000;
 			// sfence invalidation backpressure from MMU
 			// ROB instret advertisement
 			expected_rob_instret = 0;

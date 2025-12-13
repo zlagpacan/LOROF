@@ -1,7 +1,7 @@
 /*
     Filename: itlb.sv
     Author: zlagpacan
-    Description: RTL for L1 Instruction TLB. Blocking, 2-way associative 4KB page array, direct-mapped 2MB page array, configurable set counts
+    Description: RTL for L1 Instruction TLB. Blocking, 4KB page array, 4MB page array, configurable way counts and set counts
     Spec: LOROF/spec/design/itlb.md
 */
 
@@ -9,13 +9,19 @@
 import system_types_pkg::*;
 
 module itlb #(
-    parameter ITLB_4KBPAGE_NUM_SETS = 16,
-    parameter ITLB_4KBPAGE_INDEX_WIDTH = $clog2(ITLB_4KBPAGE_NUM_SETS),
-    parameter ITLB_4KBPAGE_TAG_WIDTH = 16,
+    // 4KB page array
+    parameter ITLB_4KBPAGE_ENTRIES = 32, // 32-entry
+    parameter ITLB_4KBPAGE_ASSOC = 2, // 2x
+    parameter ITLB_4KBPAGE_NUM_SETS = ITLB_4KBPAGE_ENTRIES / ITLB_4KBPAGE_ASSOC, // 16x
+    parameter ITLB_4KBPAGE_INDEX_WIDTH = $clog2(ITLB_4KBPAGE_NUM_SETS), // 4b
+    parameter ITLB_4KBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4KBPAGE_INDEX_WIDTH - PO_WIDTH, // 16b
 
-    parameter ITLB_2MBPAGE_NUM_SETS = 4,
-    parameter ITLB_2MBPAGE_INDEX_WIDTH = $clog2(ITLB_2MBPAGE_NUM_SETS),
-    parameter ITLB_2MBPAGE_TAG_WIDTH = 10
+    // 4MB page array
+    parameter ITLB_4MBPAGE_ENTRIES = 8, // 4-entry
+    parameter ITLB_4MBPAGE_ASSOC = 2, // 1x
+    parameter ITLB_4MBPAGE_NUM_SETS = ITLB_4MBPAGE_ENTRIES / ITLB_4MBPAGE_ASSOC, // 4x
+    parameter ITLB_4MBPAGE_INDEX_WIDTH = $clog2(ITLB_4MBPAGE_NUM_SETS), // 2b
+    parameter ITLB_4MBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4MBPAGE_INDEX_WIDTH - VPN0_WIDTH - PO_WIDTH // 8b
 ) (
     // seq
     input logic CLK,
@@ -45,12 +51,29 @@ module itlb #(
     input logic [ASID_WIDTH-1:0]    l2_tlb_resp_ASID,
     input logic [VPN_WIDTH-1:0]     l2_tlb_resp_VPN,
     input pte_t                     l2_tlb_resp_pte,
+    input logic                     l2_tlb_resp_is_superpage,
 
     // l2 evict to L2 TLB
     output logic                    l2_tlb_evict_valid,
     output logic [ASID_WIDTH-1:0]   l2_tlb_evict_ASID,
     output logic [VPN_WIDTH-1:0]    l2_tlb_evict_VPN,
-    output pte_t                    l2_tlb_evict_pte
+    output pte_t                    l2_tlb_evict_pte,
+    output logic                    l2_tlb_resp_is_superpage,
+
+    // sfence invalidation
+    input logic                     sfence_inv_valid,
+    input logic [ASID_WIDTH-1:0]    sfence_inv_ASID,
+    input logic [VA_WIDTH-1:0]      sfence_inv_VA,
+
+    // sfence invalidation backpressure
+    output logic                    sfence_inv_ready
 );
+
+    // simple hit paradigm
+        // hit solely based on native array hit structures
+        // fine since uncommon case, not latency sensitive to misses
+
+    // ----------------------------------------------------------------
+    // Signals:
 
 endmodule

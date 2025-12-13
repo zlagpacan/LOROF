@@ -10,7 +10,7 @@
 package system_types_pkg;
 
     // ----------------------------------------------------------------
-    // General:
+    // Virtual Memory:
 
     parameter VA_WIDTH = 32;
     parameter VPN_WIDTH = 20;
@@ -23,6 +23,8 @@ package system_types_pkg;
     parameter PPN0_WIDTH = 10;
 
     parameter PO_WIDTH = 12;
+
+    parameter ASID_WIDTH = 9;
 
     // Sv32 Page Table Entry:
         // {PPN1[11:0], PPN0[9:0], RSW[1:0], D, A, G, U, X, W, R, V}
@@ -41,7 +43,7 @@ package system_types_pkg;
     } pte_t;
 
     // ----------------------------------------------------------------
-    // Caches:
+    // Memory System Components:
 
     // coherence granularity 
     parameter COH_BLOCK_SIZE = 64; // 64B
@@ -79,16 +81,16 @@ package system_types_pkg;
     // 4KB page array:
     parameter ITLB_4KBPAGE_ENTRIES = 32; // 32-entry
         // 1x TLB entry per TLB block
-    parameter ITLB_4KBPAGE_ASSOC = 2; // 2x, hardcoded
+    parameter ITLB_4KBPAGE_ASSOC = 2; // 2x
         // VA bit partitioning
             // {tag[15:0], index[3:0], PO[11:0]}
     parameter ITLB_4KBPAGE_NUM_SETS = ITLB_4KBPAGE_ENTRIES / ITLB_4KBPAGE_ASSOC; // 16x
     parameter ITLB_4KBPAGE_INDEX_WIDTH = $clog2(ITLB_4KBPAGE_NUM_SETS); // 4b
     parameter ITLB_4KBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4KBPAGE_INDEX_WIDTH - PO_WIDTH; // 16b
     // 4MB page array:
-    parameter ITLB_4MBPAGE_ENTRIES = 4; // 4-entry
+    parameter ITLB_4MBPAGE_ENTRIES = 8; // 4-entry
         // 1x TLB entry per TLB block
-    parameter ITLB_4MBPAGE_ASSOC = 1; // 1x, hardcoded
+    parameter ITLB_4MBPAGE_ASSOC = 2; // 1x
         // VA bit partitioning
             // {tag[7:0], index[1:0], VPN0[9:0], PO[11:0]}
     parameter ITLB_4MBPAGE_NUM_SETS = ITLB_4MBPAGE_ENTRIES / ITLB_4MBPAGE_ASSOC; // 4x

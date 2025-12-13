@@ -208,8 +208,8 @@ module core #(
 
     // sfence invalidation to MMU
     output logic                    sfence_inv_valid,
-    output logic [VA_WIDTH-1:0]     sfence_inv_VA,
     output logic [ASID_WIDTH-1:0]   sfence_inv_ASID,
+    output logic [VA_WIDTH-1:0]     sfence_inv_VA,
 
     // sfence invalidation backpressure from MMU
     input logic                     sfence_inv_ready,

@@ -8,6 +8,9 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
 module gbpt_index_hash (
     input logic [31:0] PC,
     input logic [GH_LENGTH-1:0] GH,
