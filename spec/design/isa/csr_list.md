@@ -1422,6 +1422,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
             - means MMU caches must be inclusive and follow 64B cache block granularity
                 - RIP if have page table sparsity
             - may get functionality issues with untimely TLB updates not controlled by SFENCE.VMA
+            real issue: need to access TLB using physical address -> would have to be associative access -> yuck
         - idea: BusInv + BusWB
             - MMU performs BusInv to invalidate any copies of PTE in coherent memory
             - MMU performs masked BusWB to write new PTE value to coherent memory (so essentially at L3)
@@ -1431,15 +1432,33 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
                     - already has to be unique since not at block granularity
             - issue: coherent memory could have a new value
                 - would be doing BusUpgrade/BusInv when it is possible coherent memory has the block in M. maybe unsupported case for bus. would need to grab M block value and RMW A/D bit set
-        - idea: L2 BusRdX
+        - idea: L2$ BusRdX
             - spec makes it seem like PTE A/D update must be fully coherent (due to atomic check for update of value at PTE when try to set A/D), so it needs coherent memory value of the PTE. if a new value is found, the translation process is even restarted given the updated PTE
                 - this seems like a little much
                 - just need atomic A/D sets and should be good to go
-            - MMU gives read exclusive request to L2 just like dcache would on a store
-                - L2 in E/M already, snoop dcache if in dcache, then good to go
-                - otherwise, L2 performs a BusRdX and gets the coherent block in M state
-            - perform A/D set for block in L2
+            - MMU gives read exclusive request to L2$ just like dcache would on a store
+                - L2$ in E/M already, snoop dcache if in dcache, then good to go
+                - otherwise, L2$ performs a BusRdX and gets the coherent block in M state
+            - perform A/D set for block in L2$
                 - don't clear any bits in case didn't have up-to-date PTE, only set
             - when done, TLB can be unblocked and allow access causing A/D set to complete
                 - iTLB would be blocked unless this process was interrupted
                 - dTLB could move on but acts as a dTLB miss for the load or store of interest until returns
+            - actually, rules are that A can be speculatively accessed, D must be accurate and ordered before write
+                - can freely updated A asynchronously on TLB access
+                    - prolly won't have issue with ordering since much before commit
+                - can update D on commit
+                    - this is tricky to do in itself as have TLB info during TLB access much before commit
+                    - can create D buffer of waiting PTE D updates
+                        - allocate D buffer entry OR coalesce with counter in older D buffer entry on TLB access of mem write where see PTE.D = 0
+                        - upon d$ wr_buf enq, clear allocated D buffer entry or decrement coalesced counter if killed, else perform 
+                        - D buffer enq is tagged by PPN, and does coalescing of same PPN
+                        - D buffer deq and update does associative search checking for allocated PPN
+                        - can modify stmaofu_cq and add new interface signals to give relevant info for killed vs. unkilled D buffer check
+        - idea: send req to AMO unit and move one
+            - coherence naturally handled by AMO unit functionality
+            - technically page table entry update not ordered with access since move on
+            - can't really just move on though as need to update PTE in TLB to prevent repeated sending of AMO's
+                - no that's stupid -> just write back the updated A/D into the PTE in the TLB before the AMO finishes
+            - not really that different from L2$ BusRdX
+                - just a matter of if want to make bunch of new L2$ functionality or try to make AMO unit to also deal with TLB updates

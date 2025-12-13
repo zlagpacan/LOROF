@@ -71,6 +71,7 @@ module itlb #(
 
     // simple hit paradigm
         // hit solely based on native array hit structures
+            // also single native PMA check structure (mem_map)
         // fine since uncommon case, not latency sensitive to misses
 
     // ----------------------------------------------------------------
