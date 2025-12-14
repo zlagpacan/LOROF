@@ -1,8 +1,8 @@
 /*
-    Filename: plru_wrapper.sv
+    Filename: plru_updater_wrapper.sv
     Author: zlagpacan
-    Description: RTL wrapper around plru module. 
-    Spec: LOROF/spec/design/plru.md
+    Description: RTL wrapper around plru_updater module. 
+    Spec: LOROF/spec/design/plru_updater.md
 */
 
 `timescale 1ns/100ps
@@ -13,7 +13,7 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-module plru_wrapper #(
+module plru_updater_wrapper #(
 	parameter NUM_ENTRIES = 8,
 	parameter LOG_NUM_ENTRIES = $clog2(NUM_ENTRIES)
 ) (
@@ -47,7 +47,7 @@ module plru_wrapper #(
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-	plru #(
+	plru_updater #(
 		.NUM_ENTRIES(NUM_ENTRIES),
 		.LOG_NUM_ENTRIES(LOG_NUM_ENTRIES)
 	) WRAPPED_MODULE (.*);

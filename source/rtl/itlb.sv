@@ -1,7 +1,7 @@
 /*
     Filename: itlb.sv
     Author: zlagpacan
-    Description: RTL for L1 Instruction TLB. Blocking, 4KB page array, 4MB page array, configurable way counts and set counts
+    Description: RTL for L1 Instruction TLB. Blocking, 4KB page array, 4MB page array, configurable associativity and set count
     Spec: LOROF/spec/design/itlb.md
 */
 
@@ -11,14 +11,15 @@ import system_types_pkg::*;
 module itlb #(
     // 4KB page array
     parameter ITLB_4KBPAGE_ENTRIES = 32, // 32-entry
-    parameter ITLB_4KBPAGE_ASSOC = 2, // 2x
-    parameter ITLB_4KBPAGE_NUM_SETS = ITLB_4KBPAGE_ENTRIES / ITLB_4KBPAGE_ASSOC, // 16x
-    parameter ITLB_4KBPAGE_INDEX_WIDTH = $clog2(ITLB_4KBPAGE_NUM_SETS), // 4b
-    parameter ITLB_4KBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4KBPAGE_INDEX_WIDTH - PO_WIDTH, // 16b
+    parameter ITLB_4KBPAGE_ASSOC = 4, // 4x
+    parameter LOG_ITLB_4KBPAGE_ASSOC = $clog2(ITLB_4KBPAGE_ASSOC), // 2b
+    parameter ITLB_4KBPAGE_NUM_SETS = ITLB_4KBPAGE_ENTRIES / ITLB_4KBPAGE_ASSOC, // 8x
+    parameter ITLB_4KBPAGE_INDEX_WIDTH = $clog2(ITLB_4KBPAGE_NUM_SETS), // 3b
+    parameter ITLB_4KBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4KBPAGE_INDEX_WIDTH - PO_WIDTH, // 17b
 
     // 4MB page array
-    parameter ITLB_4MBPAGE_ENTRIES = 8, // 4-entry
-    parameter ITLB_4MBPAGE_ASSOC = 2, // 1x
+    parameter ITLB_4MBPAGE_ENTRIES = 8, // 8-entry
+    parameter ITLB_4MBPAGE_ASSOC = 2, // 2x
     parameter ITLB_4MBPAGE_NUM_SETS = ITLB_4MBPAGE_ENTRIES / ITLB_4MBPAGE_ASSOC, // 4x
     parameter ITLB_4MBPAGE_INDEX_WIDTH = $clog2(ITLB_4MBPAGE_NUM_SETS), // 2b
     parameter ITLB_4MBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4MBPAGE_INDEX_WIDTH - VPN0_WIDTH - PO_WIDTH // 8b

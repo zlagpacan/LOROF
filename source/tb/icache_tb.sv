@@ -14,13 +14,16 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 module icache_tb #(
-	parameter ICACHE_NUM_SETS = 2**7,
-	parameter ICACHE_INDEX_WIDTH = $clog2(ICACHE_NUM_SETS),
-	parameter ICACHE_BLOCK_SIZE = 32,
-	parameter ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE),
-	parameter ICACHE_TAG_WIDTH = 22,
-	parameter ICACHE_FETCH_WIDTH = 16,
-	parameter ICACHE_FETCH_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE / ICACHE_FETCH_WIDTH)
+	parameter ICACHE_SIZE = 2**13, // 8KB, 4KB page per way,
+	parameter ICACHE_BLOCK_SIZE = L1_BLOCK_SIZE, // 32B,
+	parameter ICACHE_ASSOC = 2, // 2x,
+	parameter LOG_ICACHE_ASSOC = $clog2(ICACHE_ASSOC), // 1b,
+	parameter ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE), // 5b,
+	parameter ICACHE_NUM_SETS = ICACHE_SIZE / ICACHE_ASSOC / ICACHE_BLOCK_SIZE, // 128x,
+	parameter ICACHE_INDEX_WIDTH = $clog2(ICACHE_NUM_SETS), // 7b,
+	parameter ICACHE_TAG_WIDTH = PA_WIDTH - ICACHE_INDEX_WIDTH - ICACHE_BLOCK_OFFSET_WIDTH, // 34b - 7b - 5b = 22b,
+	parameter ICACHE_FETCH_WIDTH = 16, // 16B,
+	parameter ICACHE_FETCH_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE / ICACHE_FETCH_WIDTH) // 1b
 ) ();
 
     // ----------------------------------------------------------------
@@ -49,13 +52,13 @@ module icache_tb #(
 	logic [ICACHE_INDEX_WIDTH-1:0] tb_core_req_index;
 
     // resp to core
-	logic [1:0] DUT_core_resp_valid_by_way, expected_core_resp_valid_by_way;
-	logic [1:0][ICACHE_TAG_WIDTH-1:0] DUT_core_resp_tag_by_way, expected_core_resp_tag_by_way;
-	logic [1:0][ICACHE_FETCH_WIDTH-1:0][7:0] DUT_core_resp_instr_16B_by_way, expected_core_resp_instr_16B_by_way;
+	logic [ICACHE_ASSOC-1:0] DUT_core_resp_valid_by_way, expected_core_resp_valid_by_way;
+	logic [ICACHE_ASSOC-1:0][ICACHE_TAG_WIDTH-1:0] DUT_core_resp_tag_by_way, expected_core_resp_tag_by_way;
+	logic [ICACHE_ASSOC-1:0][ICACHE_FETCH_WIDTH-1:0][7:0] DUT_core_resp_instr_16B_by_way, expected_core_resp_instr_16B_by_way;
 
     // resp feedback from core
 	logic tb_core_resp_hit_valid;
-	logic tb_core_resp_hit_way;
+	logic [LOG_ICACHE_ASSOC-1:0] tb_core_resp_hit_way;
 	logic tb_core_resp_miss_valid;
 	logic [ICACHE_TAG_WIDTH-1:0] tb_core_resp_miss_tag;
 
@@ -77,10 +80,13 @@ module icache_tb #(
     // DUT instantiation:
 
 	icache #(
+		.ICACHE_SIZE(ICACHE_SIZE),
+		.ICACHE_BLOCK_SIZE(ICACHE_BLOCK_SIZE),
+		.ICACHE_ASSOC(ICACHE_ASSOC),
+		.LOG_ICACHE_ASSOC(LOG_ICACHE_ASSOC),
+		.ICACHE_BLOCK_OFFSET_WIDTH(ICACHE_BLOCK_OFFSET_WIDTH),
 		.ICACHE_NUM_SETS(ICACHE_NUM_SETS),
 		.ICACHE_INDEX_WIDTH(ICACHE_INDEX_WIDTH),
-		.ICACHE_BLOCK_SIZE(ICACHE_BLOCK_SIZE),
-		.ICACHE_BLOCK_OFFSET_WIDTH(ICACHE_BLOCK_OFFSET_WIDTH),
 		.ICACHE_TAG_WIDTH(ICACHE_TAG_WIDTH),
 		.ICACHE_FETCH_WIDTH(ICACHE_FETCH_WIDTH),
 		.ICACHE_FETCH_BLOCK_OFFSET_WIDTH(ICACHE_FETCH_BLOCK_OFFSET_WIDTH)

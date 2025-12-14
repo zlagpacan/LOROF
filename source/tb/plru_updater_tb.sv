@@ -1,8 +1,8 @@
 /*
-    Filename: plru_tb.sv
+    Filename: plru_updater_tb.sv
     Author: zlagpacan
-    Description: Testbench for plru module. 
-    Spec: LOROF/spec/design/plru.md
+    Description: Testbench for plru_updater module. 
+    Spec: LOROF/spec/design/plru_updater.md
 */
 
 `timescale 1ns/100ps
@@ -13,7 +13,7 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
-module plru_tb #(
+module plru_updater_tb #(
 	parameter NUM_ENTRIES = 8,
 	parameter LOG_NUM_ENTRIES = $clog2(NUM_ENTRIES)
 ) ();
@@ -50,7 +50,7 @@ module plru_tb #(
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	plru #(
+	plru_updater #(
 		.NUM_ENTRIES(NUM_ENTRIES),
 		.LOG_NUM_ENTRIES(LOG_NUM_ENTRIES)
 	) DUT (

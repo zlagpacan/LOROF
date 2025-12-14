@@ -1,7 +1,7 @@
 /*
     Filename: icache.sv
     Author: zlagpacan
-    Description: RTL for L1 Instruction Cache. Blocking, 2-way associative, configurable set count and block size
+    Description: RTL for L1 Instruction Cache. Blocking, configurable associativity, set count, and block size
     Spec: LOROF/spec/design/icache.md
 */
 
@@ -9,16 +9,17 @@
 import system_types_pkg::*;
 
 module icache #(
-    parameter ICACHE_NUM_SETS = 2**7,
-    parameter ICACHE_INDEX_WIDTH = $clog2(ICACHE_NUM_SETS),
+    parameter ICACHE_SIZE = 2**13, // 8KB, 4KB page per way
+    parameter ICACHE_BLOCK_SIZE = L1_BLOCK_SIZE, // 32B
+    parameter ICACHE_ASSOC = 2, // 2x
+    parameter LOG_ICACHE_ASSOC = $clog2(ICACHE_ASSOC), // 1b
+    parameter ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE), // 5b
+    parameter ICACHE_NUM_SETS = ICACHE_SIZE / ICACHE_ASSOC / ICACHE_BLOCK_SIZE, // 128x
+    parameter ICACHE_INDEX_WIDTH = $clog2(ICACHE_NUM_SETS), // 7b
+    parameter ICACHE_TAG_WIDTH = PA_WIDTH - ICACHE_INDEX_WIDTH - ICACHE_BLOCK_OFFSET_WIDTH, // 34b - 7b - 5b = 22b
 
-    parameter ICACHE_BLOCK_SIZE = 32,
-    parameter ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE),
-
-    parameter ICACHE_TAG_WIDTH = 22,
-
-    parameter ICACHE_FETCH_WIDTH = 16,
-    parameter ICACHE_FETCH_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE / ICACHE_FETCH_WIDTH)
+    parameter ICACHE_FETCH_WIDTH = 16, // 16B
+    parameter ICACHE_FETCH_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE / ICACHE_FETCH_WIDTH) // 1b
 ) (
     // seq
     input logic CLK,
@@ -35,10 +36,10 @@ module icache #(
     output logic [ICACHE_ASSOC-1:0][ICACHE_FETCH_WIDTH-1:0][7:0]     core_resp_instr_16B_by_way,
 
     // resp feedback from core
-    input logic                                         core_resp_hit_valid,
-    input logic [LOG_ICACHE_ASSOC-1:0]                  core_resp_hit_way,
-    input logic                                         core_resp_miss_valid,
-    input logic [ICACHE_TAG_WIDTH-1:0]                  core_resp_miss_tag,
+    input logic                         core_resp_hit_valid,
+    input logic [LOG_ICACHE_ASSOC-1:0]  core_resp_hit_way,
+    input logic                         core_resp_miss_valid,
+    input logic [ICACHE_TAG_WIDTH-1:0]  core_resp_miss_tag,
 
     // req to L2
     output logic                            l2_req_valid,
@@ -89,28 +90,27 @@ module icache #(
 
     logic                                                   tag_array_read_next_valid;
     logic [ICACHE_INDEX_WIDTH-1:0]                          tag_array_read_next_index;
-    tag_entry_t [ICACHE_ASSOC-1:0]                          tag_array_read_entry;
+    tag_entry_t [ICACHE_ASSOC-1:0]                          tag_array_read_set;
 
     logic [ICACHE_ASSOC-1:0][($bits(tag_entry_t)/8)-1:0]    tag_array_write_valid_mask;
     logic [ICACHE_INDEX_WIDTH-1:0]                          tag_array_write_index;
-    tag_entry_t [ICACHE_ASSOC-1:0]                          tag_array_write_entry;
+    tag_entry_t [ICACHE_ASSOC-1:0]                          tag_array_write_set;
 
-    // LRU array:
+    // PLRU array:
         // reg
     
     logic [ICACHE_NUM_SETS-1:0][ICACHE_ASSOC-2:0] plru_array;
-        // remember to set lru on inv
 
     // data array:
         // BRAM
 
     logic                                                           data_array_read_next_valid;
     logic [ICACHE_INDEX_WIDTH+ICACHE_FETCH_BLOCK_OFFSET_WIDTH-1:0]  data_array_read_next_index;
-    logic [1:0][ICACHE_FETCH_WIDTH*8-1:0]                           data_array_read_entry;
+    logic [ICACHE_ASSOC-1:0][ICACHE_FETCH_WIDTH*8-1:0]              data_array_read_set;
 
-    logic [1:0][ICACHE_FETCH_WIDTH-1:0]                             data_array_write_valid_mask;
+    logic [ICACHE_ASSOC-1:0][ICACHE_FETCH_WIDTH-1:0]                data_array_write_valid_mask;
     logic [ICACHE_INDEX_WIDTH+ICACHE_FETCH_BLOCK_OFFSET_WIDTH-1:0]  data_array_write_index;
-    logic [1:0][ICACHE_FETCH_WIDTH*8-1:0]                           data_array_write_entry;
+    logic [ICACHE_ASSOC-1:0][ICACHE_FETCH_WIDTH*8-1:0]              data_array_write_set;
 
     // read port usage:
         // core req
@@ -128,8 +128,8 @@ module icache #(
     logic                               snoop_inv_writing;
     logic [L1_BLOCK_ADDR_WIDTH-1:0]     snoop_inv_saved_PA29;
 
-    logic l2_snoop_hit;
-    logic l2_snoop_hit_way;
+    logic                           l2_snoop_hit;
+    logic [LOG_ICACHE_ASSOC-1:0]    l2_snoop_hit_way;
 
     logic                                           core_resp_valid;
     logic [ICACHE_FETCH_BLOCK_OFFSET_WIDTH-1:0]     core_resp_block_offset;
@@ -139,7 +139,7 @@ module icache #(
     logic                                                                       miss_reg_requested, next_miss_reg_requested;
     logic [ICACHE_INDEX_WIDTH-1:0]                                              miss_reg_missing_index, next_miss_reg_missing_index;
     logic [ICACHE_TAG_WIDTH-1:0]                                                miss_reg_missing_tag, next_miss_reg_missing_tag;
-    logic                                                                       miss_reg_old_lru_way, next_miss_reg_old_lru_way;
+    logic [LOG_ICACHE_ASSOC-1:0]                                                miss_reg_old_lru_way, next_miss_reg_old_lru_way;
     logic                                                                       miss_reg_data_valid, next_miss_reg_data_valid;
     logic [ICACHE_FETCH_BLOCK_OFFSET_WIDTH-1:0]                                 miss_reg_data_blkoff, next_miss_reg_data_blkoff;
     logic [2**ICACHE_FETCH_BLOCK_OFFSET_WIDTH-1:0][ICACHE_FETCH_WIDTH*8-1:0]    miss_reg_data_buffer, next_miss_reg_data_buffer;
@@ -147,6 +147,19 @@ module icache #(
 
     logic miss_index_matching_core;
     logic miss_index_and_tag_matching_core;
+
+    // PLRU updater
+    logic [ICACHE_ASSOC-2:0]        plru_updater_plru_in;
+    logic                           plru_updater_new_valid;
+    logic [LOG_ICACHE_ASSOC-1:0]    plru_updater_new_index;
+    logic                           plru_updater_touch_valid;
+    logic [LOG_ICACHE_ASSOC-1:0]    plru_updater_touch_index;
+    logic [ICACHE_ASSOC-2:0]        plru_updater_plru_out;
+
+    // empty way PE
+    logic [ICACHE_ASSOC-1:0]        empty_way_pe_req_vec;
+    logic                           empty_way_pe_req_present;
+    logic [LOG_ICACHE_ASSOC-1:0]    empty_way_pe_ack_index;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -168,24 +181,20 @@ module icache #(
     // write port logic
     always_comb begin
         l2_snoop_hit = 1'b0;
-        l2_snoop_hit_way = 1'b0;
+        l2_snoop_hit_way = 0;
 
         tag_array_write_valid_mask = '0;
         if (snoop_inv_writing) begin
             tag_array_write_index = snoop_inv_saved_PA29[ICACHE_INDEX_WIDTH-1:0];
 
-            if (tag_array_read_entry[0].tag == snoop_inv_saved_PA29[ICACHE_TAG_WIDTH+ICACHE_INDEX_WIDTH-1:ICACHE_INDEX_WIDTH]) begin
-                tag_array_write_valid_mask[0] = '1;
-                l2_snoop_hit = 1'b1;
-                l2_snoop_hit_way = 1'b0;
+            for (int way = 0; way < ICACHE_ASSOC; way++) begin
+                if (tag_array_read_set[way].tag == snoop_inv_saved_PA29[ICACHE_TAG_WIDTH+ICACHE_INDEX_WIDTH-1:ICACHE_INDEX_WIDTH]) begin
+                    tag_array_write_valid_mask[way] = '1;
+                    l2_snoop_hit = 1'b1;
+                    l2_snoop_hit_way = way;
+                end
+                tag_array_write_set[way].valid = 1'b0;
             end
-            if (tag_array_read_entry[1].tag == snoop_inv_saved_PA29[ICACHE_TAG_WIDTH+ICACHE_INDEX_WIDTH-1:ICACHE_INDEX_WIDTH]) begin
-                tag_array_write_valid_mask[1] = '1;
-                l2_snoop_hit = 1'b1;
-                l2_snoop_hit_way = 1'b1;
-            end
-            tag_array_write_entry[0].valid = 1'b0;
-            tag_array_write_entry[1].valid = 1'b0;
         end
         else begin
             tag_array_write_index = miss_reg_missing_index;
@@ -193,25 +202,48 @@ module icache #(
             if (miss_reg_valid & miss_reg_data_valid) begin
                 tag_array_write_valid_mask[miss_reg_old_lru_way] = '1;
             end
-            tag_array_write_entry[0].valid = (miss_reg_data_blkoff == '1);
-            tag_array_write_entry[1].valid = (miss_reg_data_blkoff == '1);
+
+            for (int way = 0; way < ICACHE_ASSOC; way++) begin
+                tag_array_write_set[way].valid = (miss_reg_data_blkoff == '1);
+            end
         end
-        tag_array_write_entry[0].byte_align_bits = '0;
-        tag_array_write_entry[1].byte_align_bits = '0;
-        tag_array_write_entry[0].tag = miss_reg_missing_tag;
-        tag_array_write_entry[1].tag = miss_reg_missing_tag;
-            // duplicate for both ways, write valid mask will make so only write to one
-            // for snooping, don't care what tag is written
+
+        for (int way = 0; way < ICACHE_ASSOC; way++) begin
+            tag_array_write_set[way].byte_align_bits = '0;
+            tag_array_write_set[way].tag = miss_reg_missing_tag;
+                // duplicate for all ways, write valid mask will make so only write to one
+                // for snooping, don't care what tag is written
+        end
 
         data_array_write_valid_mask = '0;
         if (miss_reg_valid & miss_reg_data_valid & ~snoop_inv_writing) begin
             data_array_write_valid_mask[miss_reg_old_lru_way] = '1;
         end
         data_array_write_index = {miss_reg_missing_index, miss_reg_data_blkoff};
-        data_array_write_entry[0] = miss_reg_data_buffer[miss_reg_data_blkoff];
-        data_array_write_entry[1] = miss_reg_data_buffer[miss_reg_data_blkoff];
-            // duplicate for both ways, write valid mask will make so only write to one
+
+        for (int way = 0; way < ICACHE_ASSOC; way++) begin
+            data_array_write_set[way] = miss_reg_data_buffer[miss_reg_data_blkoff];
+            // duplicate for all ways, write valid mask will make so only write to one
+        end
     end
+
+    // Way PLRU + PE
+    plru #(
+        .NUM_ENTRIES(ICACHE_ASSOC)
+    ) WAY_PLRU (
+        .plru_in(plru_updater_plru_in),
+        .new_valid(plru_updater_new_valid),
+        .new_index(plru_updater_new_index),
+        .touch_valid(plru_updater_touch_valid),
+        .touch_index(plru_updater_touch_index),
+        .plru_out(plru_updater_plru_out)
+    );
+    pe_lsb #(
+        .WIDTH(ICACHE_ASSOC)
+    ) WAY_PE (
+        .req_vec(empty_way_pe_req_vec),
+        .ack_index(empty_way_pe_ack_index)
+    );
 
     // miss logic
     always_comb begin
@@ -238,6 +270,14 @@ module icache #(
         miss_index_and_tag_matching_core =
             miss_index_matching_core
             & (core_resp_miss_tag == miss_reg_missing_tag);
+
+        plru_updater_plru_in = plru_array[core_resp_index];
+        plru_updater_new_valid = 1'b0;
+        plru_updater_touch_valid = core_resp_hit_valid;
+        plru_updater_touch_index = core_resp_hit_way;
+
+        empty_way_pe_req_vec = ~core_resp_valid_by_way;
+        empty_way_pe_req_present = |empty_way_pe_req_vec;
 
         // check for l2 snoop of miss reg
         if (
@@ -268,10 +308,17 @@ module icache #(
             next_miss_reg_requested = 1'b0;
             next_miss_reg_missing_index = core_resp_index;
             next_miss_reg_missing_tag = core_resp_miss_tag;
-            next_miss_reg_old_lru_way = plru_array[core_resp_index];
+            if (empty_way_pe_req_present) begin
+                next_miss_reg_old_lru_way = empty_way_pe_ack_index;
+            end
+            else begin
+                next_miss_reg_old_lru_way = plru_updater_new_index;
+            end
             next_miss_reg_data_valid = 1'b0;
             next_miss_reg_data_blkoff = 0;
             next_miss_reg_delay_cycle = 1'b0;
+
+            plru_updater_new_valid = 1'b1;
         end
         // check for miss with last data fill
         else if (
@@ -316,7 +363,7 @@ module icache #(
             miss_reg_requested <= 1'b0;
             miss_reg_missing_index <= 0;
             miss_reg_missing_tag <= 0;
-            miss_reg_old_lru_way <= 1'b0;
+            miss_reg_old_lru_way <= 0;
             miss_reg_data_valid <= 1'b0;
             miss_reg_data_blkoff <= 0;
             miss_reg_data_buffer <= '0;
@@ -360,12 +407,11 @@ module icache #(
     always_comb begin
 
         // defaults
-        core_resp_valid_by_way[0] = tag_array_read_entry[0].valid & ~snoop_inv_writing;
-        core_resp_valid_by_way[1] = tag_array_read_entry[1].valid & ~snoop_inv_writing;
-        core_resp_tag_by_way[0] = tag_array_read_entry[0].tag;
-        core_resp_tag_by_way[1] = tag_array_read_entry[1].tag;
-        core_resp_instr_16B_by_way[0] = data_array_read_entry[0];
-        core_resp_instr_16B_by_way[1] = data_array_read_entry[1];
+        for (int way = 0; way < ICACHE_ASSOC; way++) begin
+            core_resp_valid_by_way[way] = tag_array_read_set[way].valid & ~snoop_inv_writing;
+            core_resp_tag_by_way[way] = tag_array_read_set[way].tag;
+            core_resp_instr_16B_by_way[way] = data_array_read_set[way];
+        end
 
         // miss return bypass (only index has to match, bring in new tags based on miss reg)
         if (miss_index_matching_core & (miss_reg_data_valid | miss_reg_delay_cycle)) begin
@@ -395,10 +441,10 @@ module icache #(
         .nRST(nRST),
         .ren(tag_array_read_next_valid),
         .rindex(tag_array_read_next_index),
-        .rdata(tag_array_read_entry),
+        .rdata(tag_array_read_set),
         .wen_byte(tag_array_write_valid_mask),
         .windex(tag_array_write_index),
-        .wdata(tag_array_write_entry)        
+        .wdata(tag_array_write_set)        
     );
     
     bram_1rport_1wport #(
@@ -409,10 +455,10 @@ module icache #(
         .nRST(nRST),
         .ren(data_array_read_next_valid),
         .rindex(data_array_read_next_index),
-        .rdata(data_array_read_entry),
+        .rdata(data_array_read_set),
         .wen_byte(data_array_write_valid_mask),
         .windex(data_array_write_index),
-        .wdata(data_array_write_entry)
+        .wdata(data_array_write_set)
     );
 
     always_ff @ (posedge CLK, negedge nRST) begin : PLRU_ARRAY_REG
@@ -420,13 +466,9 @@ module icache #(
             plru_array <= '0;
         end
         else begin
-            // on core hit, make opposite way LRU
+            // on core hit, updater PLRU
             if (core_resp_hit_valid) begin
-                plru_array[core_resp_index] <= ~core_resp_hit_way;
-            end
-            // on l2 snoop hit, make this way LRU
-            if (l2_snoop_hit) begin
-                plru_array[snoop_inv_saved_PA29[ICACHE_INDEX_WIDTH-1:0]] <= l2_snoop_hit_way;
+                plru_array[core_resp_index] <= plru_updater_plru_out;
             end
         end
     end

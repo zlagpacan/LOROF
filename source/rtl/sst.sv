@@ -85,9 +85,9 @@ module sst #(
     // assign new_SSID[1] = plru1[new_SSID[5:2]];
     // assign new_SSID[0] = plru0[new_SSID[5:1]];
 
-    plru #(
+    plru_updater #(
         .NUM_ENTRIES(STORE_SET_COUNT)
-    ) PLRU (
+    ) PLRU_UPDATER (
         .plru_in(plru_array),
         .new_valid(new_SSID_valid),
         .new_index(new_SSID),

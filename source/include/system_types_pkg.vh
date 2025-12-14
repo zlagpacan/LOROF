@@ -82,7 +82,7 @@ package system_types_pkg;
     // 4KB page array:
     parameter ITLB_4KBPAGE_ENTRIES = 32; // 32-entry
         // 1x TLB entry per TLB block
-    parameter ITLB_4KBPAGE_ASSOC = 2; // 4x
+    parameter ITLB_4KBPAGE_ASSOC = 4; // 4x
     parameter LOG_ITLB_4KBPAGE_ASSOC = $clog2(ITLB_4KBPAGE_ASSOC); // 2b
         // VA bit partitioning
             // {tag[15:0], index[3:0], PO[11:0]}
