@@ -29,13 +29,7 @@ module sst #(
     // Signals:
 
     // PLRU Arrays:
-    // logic                               plru5, next_plru5;  // index bit 5
-    // logic [1:0]                         plru4, next_plru4;  // index bit 4
-    // logic [1:0][1:0]                    plru3, next_plru3;  // index bit 3
-    // logic [1:0][1:0][1:0]               plru2, next_plru2;  // index bit 2
-    // logic [1:0][1:0][1:0][1:0]          plru1, next_plru1;  // index bit 1
-    // logic [1:0][1:0][1:0][1:0][1:0]     plru0, next_plru0;  // index bit 0
-    
+
     // logic [0:0]     plru5;  // index bit 5
     // logic [1:0]     plru4;  // index bit 4
     // logic [3:0]     plru3;  // index bit 3
@@ -82,13 +76,7 @@ module sst #(
     //     end
     // end
 
-    // advertise current plru
-    // assign new_SSID[5] = plru5;
-    // assign new_SSID[4] = plru4[new_SSID[5]];
-    // assign new_SSID[3] = plru3[new_SSID[5]][new_SSID[4]];
-    // assign new_SSID[2] = plru2[new_SSID[5]][new_SSID[4]][new_SSID[3]];
-    // assign new_SSID[1] = plru1[new_SSID[5]][new_SSID[4]][new_SSID[3]][new_SSID[2]];
-    // assign new_SSID[0] = plru0[new_SSID[5]][new_SSID[4]][new_SSID[3]][new_SSID[2]][new_SSID[1]];
+    // Advertise Current PLRU
 
     // assign new_SSID[5] = plru5;
     // assign new_SSID[4] = plru4[new_SSID[5]];
