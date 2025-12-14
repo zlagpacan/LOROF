@@ -77,19 +77,44 @@ module itlb #(
     // ----------------------------------------------------------------
     // Signals:
 
-    // 4KB page tag array:
+    // 4KB page array:
         // reg
     
     typedef struct packed {
         logic                               valid;
         logic [ITLB_4KBPAGE_TAG_WIDTH-1:0]  tag;
-    } tag_entry_t;
+        logic [ASID_WIDTH-1:0]              ASID;
 
-    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    tag_array_4KB_read_index;
-    tag_entry_t [ITLB_4KBPAGE_ASSOC-1:0]    tag_array_4KB_read_entry;
+        // PTE components:
+        logic [11:0]                        PPN1;
+        logic [9:0]                         PPN0;
+                                            // RSW don't care
+        logic                               Dirty; // in case have self-modifying code and evict from dTLB 
+                                            // Accessed guaranteed if in any TLB
+        logic                               Global; // also relevant for VTM to bypass ASID match
+        logic                               User;
+        logic                               eXecutable;
+        logic                               Writeable;
+        logic                               Readable;
+        logic                               Valid;
 
-    logic                                   
-    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    tag_array_write_index;
-    tag_entry_t [ITLB_4KBPAGE_ASSOC-1:0]    tag_array_write_entry;
+        // other components:
+        logic                               is_mem;
+    } array_4KB_entry_t;
+
+    typedef struct packed {
+        array_4KB_entry_t [ITLB_4KBPAGE_ASSOC-1:0]  entry_by_way;
+        logic [ITLB_4KBPAGE_ASSOC-2:0]              plru;
+    } array_4KB_set_t;
+
+    array_4KB_set_t [ITLB_4KBPAGE_NUM_SETS-1:0] array_4KB_by_set_by_way;
+
+    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    array_4KB_read_index;
+    array_4KB_entry_t                       array_4KB_read_data;
+
+    logic                                   array_4KB_write_valid;
+    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    array_4KB_write_index;
+    logic [$clog2(ITLB_4KBPAGE_ASSOC)-1:0]  array_4KB_write_way;
+    array_4KB_entry_t                       array_4KB_write_data;
 
 endmodule

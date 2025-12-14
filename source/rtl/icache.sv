@@ -30,13 +30,13 @@ module icache #(
     input logic [ICACHE_INDEX_WIDTH-1:0]                core_req_index,
 
     // resp to core
-    output logic [1:0]                                  core_resp_valid_by_way,
-    output logic [1:0][ICACHE_TAG_WIDTH-1:0]            core_resp_tag_by_way,
-    output logic [1:0][ICACHE_FETCH_WIDTH-1:0][7:0]     core_resp_instr_16B_by_way,
+    output logic [ICACHE_ASSOC-1:0]                                  core_resp_valid_by_way,
+    output logic [ICACHE_ASSOC-1:0][ICACHE_TAG_WIDTH-1:0]            core_resp_tag_by_way,
+    output logic [ICACHE_ASSOC-1:0][ICACHE_FETCH_WIDTH-1:0][7:0]     core_resp_instr_16B_by_way,
 
     // resp feedback from core
     input logic                                         core_resp_hit_valid,
-    input logic                                         core_resp_hit_way,
+    input logic [LOG_ICACHE_ASSOC-1:0]                  core_resp_hit_way,
     input logic                                         core_resp_miss_valid,
     input logic [ICACHE_TAG_WIDTH-1:0]                  core_resp_miss_tag,
 
@@ -87,18 +87,18 @@ module icache #(
         logic [ICACHE_TAG_WIDTH-1:0]                    tag;
     } tag_entry_t;
 
-    logic                                       tag_array_read_next_valid;
-    logic [ICACHE_INDEX_WIDTH-1:0]              tag_array_read_next_index;
-    tag_entry_t [1:0]                           tag_array_read_entry;
+    logic                                                   tag_array_read_next_valid;
+    logic [ICACHE_INDEX_WIDTH-1:0]                          tag_array_read_next_index;
+    tag_entry_t [ICACHE_ASSOC-1:0]                          tag_array_read_entry;
 
-    logic [1:0][($bits(tag_entry_t)/8)-1:0]     tag_array_write_valid_mask;
-    logic [ICACHE_INDEX_WIDTH-1:0]              tag_array_write_index;
-    tag_entry_t [1:0]                           tag_array_write_entry;
+    logic [ICACHE_ASSOC-1:0][($bits(tag_entry_t)/8)-1:0]    tag_array_write_valid_mask;
+    logic [ICACHE_INDEX_WIDTH-1:0]                          tag_array_write_index;
+    tag_entry_t [ICACHE_ASSOC-1:0]                          tag_array_write_entry;
 
     // LRU array:
         // reg
     
-    logic [ICACHE_NUM_SETS-1:0] lru_array;
+    logic [ICACHE_NUM_SETS-1:0][ICACHE_ASSOC-2:0] plru_array;
         // remember to set lru on inv
 
     // data array:
@@ -268,7 +268,7 @@ module icache #(
             next_miss_reg_requested = 1'b0;
             next_miss_reg_missing_index = core_resp_index;
             next_miss_reg_missing_tag = core_resp_miss_tag;
-            next_miss_reg_old_lru_way = lru_array[core_resp_index];
+            next_miss_reg_old_lru_way = plru_array[core_resp_index];
             next_miss_reg_data_valid = 1'b0;
             next_miss_reg_data_blkoff = 0;
             next_miss_reg_delay_cycle = 1'b0;
@@ -415,18 +415,18 @@ module icache #(
         .wdata(data_array_write_entry)
     );
 
-    always_ff @ (posedge CLK, negedge nRST) begin : LRU_ARRAY_REG
+    always_ff @ (posedge CLK, negedge nRST) begin : PLRU_ARRAY_REG
         if (~nRST) begin
-            lru_array <= '0;
+            plru_array <= '0;
         end
         else begin
             // on core hit, make opposite way LRU
             if (core_resp_hit_valid) begin
-                lru_array[core_resp_index] <= ~core_resp_hit_way;
+                plru_array[core_resp_index] <= ~core_resp_hit_way;
             end
             // on l2 snoop hit, make this way LRU
             if (l2_snoop_hit) begin
-                lru_array[snoop_inv_saved_PA29[ICACHE_INDEX_WIDTH-1:0]] <= l2_snoop_hit_way;
+                plru_array[snoop_inv_saved_PA29[ICACHE_INDEX_WIDTH-1:0]] <= l2_snoop_hit_way;
             end
         end
     end

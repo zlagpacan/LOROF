@@ -43,13 +43,13 @@ module fetch_unit #(
     output logic [ICACHE_INDEX_WIDTH-1:0]               icache_req_index,
 
     // icache resp
-    input logic [1:0]                               icache_resp_valid_by_way,
-    input logic [1:0][ICACHE_TAG_WIDTH-1:0]         icache_resp_tag_by_way,
-    input logic [1:0][ICACHE_FETCH_WIDTH-1:0][7:0]  icache_resp_instr_16B_by_way,
+    input logic [ICACHE_ASSOC-1:0]                                  icache_resp_valid_by_way,
+    input logic [ICACHE_ASSOC-1:0][ICACHE_TAG_WIDTH-1:0]            icache_resp_tag_by_way,
+    input logic [ICACHE_ASSOC-1:0][ICACHE_FETCH_WIDTH-1:0][7:0]     icache_resp_instr_16B_by_way,
 
     // icache resp feedback
     output logic                            icache_resp_hit_valid,
-    output logic                            icache_resp_hit_way,
+    output logic [LOG_ICACHE_ASSOC-1:0]     icache_resp_hit_way,
     output logic                            icache_resp_miss_valid,
     output logic [ICACHE_TAG_WIDTH-1:0]     icache_resp_miss_tag,
 
@@ -686,7 +686,7 @@ module fetch_unit #(
         fetch_resp_selected_instr_16B = icache_resp_instr_16B_by_way[0];
 
         icache_resp_hit_valid = 1'b0;
-        icache_resp_hit_way = 1'b0;
+        icache_resp_hit_way = 0;
         icache_resp_miss_valid = 1'b0;
         icache_resp_miss_tag = fetch_resp_PC_PA[PA_WIDTH-1:PA_WIDTH-ICACHE_TAG_WIDTH];
 
@@ -702,39 +702,68 @@ module fetch_unit #(
                 ihit = 1'b1;
             end
 
-            // cache hit check way 0
-            else if (icache_resp_valid_by_way[0] & 
-                icache_resp_tag_by_way[0] == fetch_resp_PC_PA[PA_WIDTH-1:PA_WIDTH-ICACHE_TAG_WIDTH]
-            ) begin
-                ihit = 1'b1;
-                fetch_resp_selected_instr_16B = icache_resp_instr_16B_by_way[0];
-
-                icache_resp_hit_valid = 1'b1;
-                icache_resp_hit_way = 1'b0;
-            end
-        
-            // cache hit check way 1
-            else if (icache_resp_valid_by_way[1] & 
-                icache_resp_tag_by_way[1] == fetch_resp_PC_PA[PA_WIDTH-1:PA_WIDTH-ICACHE_TAG_WIDTH]
-            ) begin
-                ihit = 1'b1;
-                fetch_resp_selected_instr_16B = icache_resp_instr_16B_by_way[1];
-
-                icache_resp_hit_valid = 1'b1;
-                icache_resp_hit_way = 1'b1;
-            end
-
-            // otherwise, cache miss
+            // otherwise, follow VTM
             else begin
-                ihit = 1'b0;
+                ihit = 1'b0; // start 0
 
-                // only send cache miss on first time missing
-                    // can be in ACTIVE, COMPLEX_BRANCH, or ITLB_MISS state
-                // icache_resp_miss_valid = fetch_resp_state != FETCH_RESP_ICACHE_MISS;
-                    // can resend icache misses no problem
-                icache_resp_miss_valid = 1'b1;
-                icache_resp_miss_tag = fetch_resp_PC_PA[PA_WIDTH-1:PA_WIDTH-ICACHE_TAG_WIDTH];
+                for (int way = 0; way < ICACHE_ASSOC; way++) begin
+                    if (
+                        icache_resp_valid_by_way[way]
+                        & icache_resp_tag_by_way[way] == fetch_resp_PC_PA[PA_WIDTH-1:PA_WIDTH-ICACHE_TAG_WIDTH]
+                    ) begin
+                        ihit = 1'b1;
+                        fetch_resp_selected_instr_16B = icache_resp_instr_16B_by_way[way];
+
+                        icache_resp_hit_valid = 1'b1;
+                        icache_resp_hit_way = way;
+                    end
+                end
+
+                // if got no hits from ways ^, cache miss
+                if (~ihit) begin
+
+                    // only send cache miss on first time missing
+                        // can be in ACTIVE, COMPLEX_BRANCH, or ITLB_MISS state
+                    // icache_resp_miss_valid = fetch_resp_state != FETCH_RESP_ICACHE_MISS;
+                        // can resend icache misses no problem
+                    icache_resp_miss_valid = 1'b1;
+                    icache_resp_miss_tag = fetch_resp_PC_PA[PA_WIDTH-1:PA_WIDTH-ICACHE_TAG_WIDTH];
+                end
             end
+
+            // // cache hit check way 0
+            // else if (icache_resp_valid_by_way[0] & 
+            //     icache_resp_tag_by_way[0] == fetch_resp_PC_PA[PA_WIDTH-1:PA_WIDTH-ICACHE_TAG_WIDTH]
+            // ) begin
+            //     ihit = 1'b1;
+            //     fetch_resp_selected_instr_16B = icache_resp_instr_16B_by_way[0];
+
+            //     icache_resp_hit_valid = 1'b1;
+            //     icache_resp_hit_way = 1'b0;
+            // end
+        
+            // // cache hit check way 1
+            // else if (icache_resp_valid_by_way[1] & 
+            //     icache_resp_tag_by_way[1] == fetch_resp_PC_PA[PA_WIDTH-1:PA_WIDTH-ICACHE_TAG_WIDTH]
+            // ) begin
+            //     ihit = 1'b1;
+            //     fetch_resp_selected_instr_16B = icache_resp_instr_16B_by_way[1];
+
+            //     icache_resp_hit_valid = 1'b1;
+            //     icache_resp_hit_way = 1'b1;
+            // end
+
+            // // otherwise, cache miss
+            // else begin
+            //     ihit = 1'b0;
+
+            //     // only send cache miss on first time missing
+            //         // can be in ACTIVE, COMPLEX_BRANCH, or ITLB_MISS state
+            //     // icache_resp_miss_valid = fetch_resp_state != FETCH_RESP_ICACHE_MISS;
+            //         // can resend icache misses no problem
+            //     icache_resp_miss_valid = 1'b1;
+            //     icache_resp_miss_tag = fetch_resp_PC_PA[PA_WIDTH-1:PA_WIDTH-ICACHE_TAG_WIDTH];
+            // end
         end
 
         // otherwise, TLB miss

@@ -45,13 +45,13 @@ module fetch_unit_wrapper #(
 	output logic [ICACHE_INDEX_WIDTH-1:0] last_icache_req_index,
 
     // icache resp
-	input logic [1:0] next_icache_resp_valid_by_way,
-	input logic [1:0][ICACHE_TAG_WIDTH-1:0] next_icache_resp_tag_by_way,
-	input logic [1:0][ICACHE_FETCH_WIDTH-1:0][7:0] next_icache_resp_instr_16B_by_way,
+	input logic [ICACHE_ASSOC-1:0] next_icache_resp_valid_by_way,
+	input logic [ICACHE_ASSOC-1:0][ICACHE_TAG_WIDTH-1:0] next_icache_resp_tag_by_way,
+	input logic [ICACHE_ASSOC-1:0][ICACHE_FETCH_WIDTH-1:0][7:0] next_icache_resp_instr_16B_by_way,
 
     // icache resp feedback
 	output logic last_icache_resp_hit_valid,
-	output logic last_icache_resp_hit_way,
+	output logic [LOG_ICACHE_ASSOC-1:0] last_icache_resp_hit_way,
 	output logic last_icache_resp_miss_valid,
 	output logic [ICACHE_TAG_WIDTH-1:0] last_icache_resp_miss_tag,
 
@@ -131,13 +131,13 @@ module fetch_unit_wrapper #(
 	logic [ICACHE_INDEX_WIDTH-1:0] icache_req_index;
 
     // icache resp
-	logic [1:0] icache_resp_valid_by_way;
-	logic [1:0][ICACHE_TAG_WIDTH-1:0] icache_resp_tag_by_way;
-	logic [1:0][ICACHE_FETCH_WIDTH-1:0][7:0] icache_resp_instr_16B_by_way;
+	logic [ICACHE_ASSOC-1:0] icache_resp_valid_by_way;
+	logic [ICACHE_ASSOC-1:0][ICACHE_TAG_WIDTH-1:0] icache_resp_tag_by_way;
+	logic [ICACHE_ASSOC-1:0][ICACHE_FETCH_WIDTH-1:0][7:0] icache_resp_instr_16B_by_way;
 
     // icache resp feedback
 	logic icache_resp_hit_valid;
-	logic icache_resp_hit_way;
+	logic [LOG_ICACHE_ASSOC-1:0] icache_resp_hit_way;
 	logic icache_resp_miss_valid;
 	logic [ICACHE_TAG_WIDTH-1:0] icache_resp_miss_tag;
 

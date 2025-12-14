@@ -67,13 +67,13 @@ module core_tb #(
 	logic [ICACHE_INDEX_WIDTH-1:0] DUT_icache_req_index, expected_icache_req_index;
 
     // icache resp
-	logic [1:0] tb_icache_resp_valid_by_way;
-	logic [1:0][ICACHE_TAG_WIDTH-1:0] tb_icache_resp_tag_by_way;
-	logic [1:0][ICACHE_FETCH_WIDTH-1:0][7:0] tb_icache_resp_instr_16B_by_way;
+	logic [ICACHE_ASSOC-1:0] tb_icache_resp_valid_by_way;
+	logic [ICACHE_ASSOC-1:0][ICACHE_TAG_WIDTH-1:0] tb_icache_resp_tag_by_way;
+	logic [ICACHE_ASSOC-1:0][ICACHE_FETCH_WIDTH-1:0][7:0] tb_icache_resp_instr_16B_by_way;
 
     // icache resp feedback
 	logic DUT_icache_resp_hit_valid, expected_icache_resp_hit_valid;
-	logic DUT_icache_resp_hit_way, expected_icache_resp_hit_way;
+	logic [LOG_ICACHE_ASSOC-1:0] DUT_icache_resp_hit_way, expected_icache_resp_hit_way;
 	logic DUT_icache_resp_miss_valid, expected_icache_resp_miss_valid;
 	logic [ICACHE_TAG_WIDTH-1:0] DUT_icache_resp_miss_tag, expected_icache_resp_miss_tag;
 

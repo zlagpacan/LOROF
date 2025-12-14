@@ -65,7 +65,8 @@ package system_types_pkg;
         // sizing
     parameter ICACHE_SIZE = 2**13; // 8KB, 4KB page per way
     parameter ICACHE_BLOCK_SIZE = L1_BLOCK_SIZE; // 32B
-    parameter ICACHE_ASSOC = 2; // 2x, hardcoded
+    parameter ICACHE_ASSOC = 2; // 2x
+    parameter LOG_ICACHE_ASSOC = $clog2(ICACHE_ASSOC); // 1b
         // PA bit partitioning
             // 16B*2-way fetch width
             // {tag[21:0], index[6:0], block_offset[0], fetch_offset[3:0]}
@@ -81,7 +82,8 @@ package system_types_pkg;
     // 4KB page array:
     parameter ITLB_4KBPAGE_ENTRIES = 32; // 32-entry
         // 1x TLB entry per TLB block
-    parameter ITLB_4KBPAGE_ASSOC = 2; // 2x
+    parameter ITLB_4KBPAGE_ASSOC = 2; // 4x
+    parameter LOG_ITLB_4KBPAGE_ASSOC = $clog2(ITLB_4KBPAGE_ASSOC); // 2b
         // VA bit partitioning
             // {tag[15:0], index[3:0], PO[11:0]}
     parameter ITLB_4KBPAGE_NUM_SETS = ITLB_4KBPAGE_ENTRIES / ITLB_4KBPAGE_ASSOC; // 16x
@@ -90,12 +92,13 @@ package system_types_pkg;
     // 4MB page array:
     parameter ITLB_4MBPAGE_ENTRIES = 8; // 4-entry
         // 1x TLB entry per TLB block
-    parameter ITLB_4MBPAGE_ASSOC = 2; // 1x
+    parameter ITLB_4MBPAGE_ASSOC = 2; // 2x
+    parameter LOG_ITLB_4MBPAGE_ASSOC = $clog2(ITLB_4MBPAGE_ASSOC); // 1b
         // VA bit partitioning
             // {tag[7:0], index[1:0], VPN0[9:0], PO[11:0]}
     parameter ITLB_4MBPAGE_NUM_SETS = ITLB_4MBPAGE_ENTRIES / ITLB_4MBPAGE_ASSOC; // 4x
     parameter ITLB_4MBPAGE_INDEX_WIDTH = $clog2(ITLB_4MBPAGE_NUM_SETS); // 2b
-    parameter ITLB_4MBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4MBPAGE_INDEX_WIDTH - VPN0_WIDTH - PO_WIDTH; // 8b
+    parameter ITLB_4MBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4MBPAGE_INDEX_WIDTH - PO_WIDTH - VPN0_WIDTH; // 8b
 
     // dcache_write_buffer
 
@@ -103,8 +106,8 @@ package system_types_pkg;
 
     // dcache
     parameter DCACHE_SIZE = 2**13; // 8 KB
-    parameter DCACHE_BLOCK_SIZE = 32;
-    parameter DCACHE_ASSOC = 2;
+    parameter DCACHE_BLOCK_SIZE = L1_BLOCK_SIZE; // 32B
+    parameter DCACHE_ASSOC = 2; // 2x
     // hardcoded 2 banks, partitioned based on lowest index bit
     parameter DCACHE_BLOCK_OFFSET_WIDTH = $clog2(DCACHE_BLOCK_SIZE);
     parameter DCACHE_NUM_SETS = DCACHE_SIZE / DCACHE_ASSOC / DCACHE_BLOCK_SIZE;

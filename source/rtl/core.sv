@@ -49,15 +49,15 @@ module core #(
     output logic [ICACHE_INDEX_WIDTH-1:0]               icache_req_index,
 
     // icache resp
-    input logic [1:0]                                   icache_resp_valid_by_way,
-    input logic [1:0][ICACHE_TAG_WIDTH-1:0]             icache_resp_tag_by_way,
-    input logic [1:0][ICACHE_FETCH_WIDTH-1:0][7:0]      icache_resp_instr_16B_by_way,
+    input logic [ICACHE_ASSOC-1:0]                                  icache_resp_valid_by_way,
+    input logic [ICACHE_ASSOC-1:0][ICACHE_TAG_WIDTH-1:0]            icache_resp_tag_by_way,
+    input logic [ICACHE_ASSOC-1:0][ICACHE_FETCH_WIDTH-1:0][7:0]     icache_resp_instr_16B_by_way,
 
     // icache resp feedback
-    output logic                                        icache_resp_hit_valid,
-    output logic                                        icache_resp_hit_way,
-    output logic                                        icache_resp_miss_valid,
-    output logic [ICACHE_TAG_WIDTH-1:0]                 icache_resp_miss_tag,
+    output logic                            icache_resp_hit_valid,
+    output logic [LOG_ICACHE_ASSOC-1:0]     icache_resp_hit_way,
+    output logic                            icache_resp_miss_valid,
+    output logic [ICACHE_TAG_WIDTH-1:0]     icache_resp_miss_tag,
 
     // dtlb req
     output logic                    dtlb_req_bank0_valid,
