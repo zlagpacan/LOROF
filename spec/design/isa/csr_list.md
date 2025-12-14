@@ -1454,7 +1454,21 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
                         - upon d$ wr_buf enq, clear allocated D buffer entry or decrement coalesced counter if killed, else perform 
                         - D buffer enq is tagged by PPN, and does coalescing of same PPN
                         - D buffer deq and update does associative search checking for allocated PPN
+                        - add backpressure at TLB access if D buffer full
                         - can modify stmaofu_cq and add new interface signals to give relevant info for killed vs. unkilled D buffer check
+                    - D buffer downsides
+                        - can't get misaligned component if killed as-is right now
+                            - would have to manually check PPN + 1 at same time unless want to add backpressure -> yuck
+                        - also would need a very very big D buffer, essentially as big as the stamofu_cq since theoretically all entries could have PTE.D = 0
+                            - big buffer which has to hold VPN (so know which PTE to update) and PPN (so core can communicate which one updated)
+                    - can fix associative PPN check by using separate D buffer tags which core has to track
+                        - D buffer only has to hold VPN for relevant 
+                        - still nasty adding bunch of stamofu_cq/mq entry info
+                        - still need to change stamofu_cq/mq deq process to give misaligned component D buffer tag along with central component on killed accesses
+                - can just update D asynchronously on TLB access
+                    - will be speculative but whatever, not the most massive deal in the world if page marked dirty by accident
+                    - prolly will be ordered before store/amo commit
+                    - not worth dealing with nastiness of D buffer to wait for commit
         - idea: send req to AMO unit and move one
             - coherence naturally handled by AMO unit functionality
             - technically page table entry update not ordered with access since move on
@@ -1462,3 +1476,9 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
                 - no that's stupid -> just write back the updated A/D into the PTE in the TLB before the AMO finishes
             - not really that different from L2$ BusRdX
                 - just a matter of if want to make bunch of new L2$ functionality or try to make AMO unit to also deal with TLB updates
+        - idea: L2TLB miss always BusRdX
+            - all L2TLB accesses always do BusRdx so can immediately speculatively set the Accessed bit on all PTE reads
+                - obviously should do this as would have to just replicate the behavior in both the iTLB and dTLB anyway
+                - minimal if any performance loss even with high PTE sharing because TLB entries not invalidated on BusRdX, only L2$ blocks
+                    - worst case can get PTE cache block via a snoop into other L2$ if need them again
+            - just a matter of choosing how to deal with Dirty bit
