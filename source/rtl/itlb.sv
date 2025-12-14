@@ -77,4 +77,19 @@ module itlb #(
     // ----------------------------------------------------------------
     // Signals:
 
+    // 4KB page tag array:
+        // reg
+    
+    typedef struct packed {
+        logic                               valid;
+        logic [ITLB_4KBPAGE_TAG_WIDTH-1:0]  tag;
+    } tag_entry_t;
+
+    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    tag_array_4KB_read_index;
+    tag_entry_t [ITLB_4KBPAGE_ASSOC-1:0]    tag_array_4KB_read_entry;
+
+    logic                                   
+    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    tag_array_write_index;
+    tag_entry_t [ITLB_4KBPAGE_ASSOC-1:0]    tag_array_write_entry;
+
 endmodule
