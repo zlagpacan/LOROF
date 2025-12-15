@@ -31,15 +31,15 @@ package system_types_pkg;
     typedef struct packed {
         logic [11:0]    PPN1;
         logic [9:0]     PPN0;
-        logic [1:0]     RSW;
-        logic           Dirty;
-        logic           Accessed;
-        logic           Global;
-        logic           User;
-        logic           eXecutable;
-        logic           Writeable;
-        logic           Readable;
-        logic           Valid;
+        logic [1:0]     RSW; // reserved
+        logic           D; // Dirty
+        logic           A; // Accessed
+        logic           G; // Global
+        logic           U; // User
+        logic           X; // eXecutable
+        logic           W; // Writeable
+        logic           R; // Readable
+        logic           V; // Valid
     } pte_t;
 
     // ----------------------------------------------------------------
@@ -80,25 +80,25 @@ package system_types_pkg;
 
     // itlb
     // 4KB page array:
-    parameter ITLB_4KBPAGE_ENTRIES = 32; // 32-entry
+    parameter ITLB_4KBPAGE_ENTRIES = 16; // 16-entry
         // 1x TLB entry per TLB block
     parameter ITLB_4KBPAGE_ASSOC = 4; // 4x
     parameter LOG_ITLB_4KBPAGE_ASSOC = $clog2(ITLB_4KBPAGE_ASSOC); // 2b
         // VA bit partitioning
-            // {tag[15:0], index[3:0], PO[11:0]}
-    parameter ITLB_4KBPAGE_NUM_SETS = ITLB_4KBPAGE_ENTRIES / ITLB_4KBPAGE_ASSOC; // 16x
-    parameter ITLB_4KBPAGE_INDEX_WIDTH = $clog2(ITLB_4KBPAGE_NUM_SETS); // 4b
-    parameter ITLB_4KBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4KBPAGE_INDEX_WIDTH - PO_WIDTH; // 16b
+            // {tag[17:0], index[1:0], PO[11:0]}
+    parameter ITLB_4KBPAGE_NUM_SETS = ITLB_4KBPAGE_ENTRIES / ITLB_4KBPAGE_ASSOC; // 4x
+    parameter ITLB_4KBPAGE_INDEX_WIDTH = $clog2(ITLB_4KBPAGE_NUM_SETS); // 2b
+    parameter ITLB_4KBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4KBPAGE_INDEX_WIDTH - PO_WIDTH; // 18b
     // 4MB page array:
-    parameter ITLB_4MBPAGE_ENTRIES = 8; // 4-entry
+    parameter ITLB_4MBPAGE_ENTRIES = 4; // 4-entry
         // 1x TLB entry per TLB block
     parameter ITLB_4MBPAGE_ASSOC = 2; // 2x
     parameter LOG_ITLB_4MBPAGE_ASSOC = $clog2(ITLB_4MBPAGE_ASSOC); // 1b
         // VA bit partitioning
-            // {tag[7:0], index[1:0], VPN0[9:0], PO[11:0]}
-    parameter ITLB_4MBPAGE_NUM_SETS = ITLB_4MBPAGE_ENTRIES / ITLB_4MBPAGE_ASSOC; // 4x
-    parameter ITLB_4MBPAGE_INDEX_WIDTH = $clog2(ITLB_4MBPAGE_NUM_SETS); // 2b
-    parameter ITLB_4MBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4MBPAGE_INDEX_WIDTH - PO_WIDTH - VPN0_WIDTH; // 8b
+            // {tag[8:0], index[0], VPN0[9:0], PO[11:0]}
+    parameter ITLB_4MBPAGE_NUM_SETS = ITLB_4MBPAGE_ENTRIES / ITLB_4MBPAGE_ASSOC; // 2x
+    parameter ITLB_4MBPAGE_INDEX_WIDTH = $clog2(ITLB_4MBPAGE_NUM_SETS); // 1b
+    parameter ITLB_4MBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4MBPAGE_INDEX_WIDTH - PO_WIDTH - VPN0_WIDTH; // 9b
 
     // dcache_write_buffer
 

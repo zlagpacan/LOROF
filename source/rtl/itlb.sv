@@ -10,19 +10,20 @@ import system_types_pkg::*;
 
 module itlb #(
     // 4KB page array
-    parameter ITLB_4KBPAGE_ENTRIES = 32, // 32-entry
+    parameter ITLB_4KBPAGE_ENTRIES = 16, // 16-entry
     parameter ITLB_4KBPAGE_ASSOC = 4, // 4x
     parameter LOG_ITLB_4KBPAGE_ASSOC = $clog2(ITLB_4KBPAGE_ASSOC), // 2b
-    parameter ITLB_4KBPAGE_NUM_SETS = ITLB_4KBPAGE_ENTRIES / ITLB_4KBPAGE_ASSOC, // 8x
-    parameter ITLB_4KBPAGE_INDEX_WIDTH = $clog2(ITLB_4KBPAGE_NUM_SETS), // 3b
-    parameter ITLB_4KBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4KBPAGE_INDEX_WIDTH - PO_WIDTH, // 17b
+    parameter ITLB_4KBPAGE_NUM_SETS = ITLB_4KBPAGE_ENTRIES / ITLB_4KBPAGE_ASSOC, // 4x
+    parameter ITLB_4KBPAGE_INDEX_WIDTH = $clog2(ITLB_4KBPAGE_NUM_SETS), // 2b
+    parameter ITLB_4KBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4KBPAGE_INDEX_WIDTH - PO_WIDTH, // 18b
 
     // 4MB page array
-    parameter ITLB_4MBPAGE_ENTRIES = 8, // 8-entry
+    parameter ITLB_4MBPAGE_ENTRIES = 4, // 4-entry
     parameter ITLB_4MBPAGE_ASSOC = 2, // 2x
-    parameter ITLB_4MBPAGE_NUM_SETS = ITLB_4MBPAGE_ENTRIES / ITLB_4MBPAGE_ASSOC, // 4x
-    parameter ITLB_4MBPAGE_INDEX_WIDTH = $clog2(ITLB_4MBPAGE_NUM_SETS), // 2b
-    parameter ITLB_4MBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4MBPAGE_INDEX_WIDTH - VPN0_WIDTH - PO_WIDTH // 8b
+    parameter LOG_ITLB_4MBPAGE_ASSOC = $clog2(ITLB_4MBPAGE_ASSOC), // 1b
+    parameter ITLB_4MBPAGE_NUM_SETS = ITLB_4MBPAGE_ENTRIES / ITLB_4MBPAGE_ASSOC, // 2x
+    parameter ITLB_4MBPAGE_INDEX_WIDTH = $clog2(ITLB_4MBPAGE_NUM_SETS), // 1b
+    parameter ITLB_4MBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4MBPAGE_INDEX_WIDTH - VPN0_WIDTH - PO_WIDTH // 9b
 ) (
     // seq
     input logic CLK,
@@ -59,12 +60,13 @@ module itlb #(
     output logic [ASID_WIDTH-1:0]   l2_tlb_evict_ASID,
     output logic [VPN_WIDTH-1:0]    l2_tlb_evict_VPN,
     output pte_t                    l2_tlb_evict_pte,
-    output logic                    l2_tlb_resp_is_superpage,
+    output logic                    l2_tlb_evict_is_superpage,
+    input logic                     l2_tlb_evict_ready,
 
     // sfence invalidation
     input logic                     sfence_inv_valid,
     input logic [ASID_WIDTH-1:0]    sfence_inv_ASID,
-    input logic [VA_WIDTH-1:0]      sfence_inv_VA,
+    input logic [VPN_WIDTH-1:0]     sfence_inv_VPN,
 
     // sfence invalidation backpressure
     output logic                    sfence_inv_ready
@@ -82,25 +84,28 @@ module itlb #(
         // reg
     
     typedef struct packed {
+
+        // access components:
         logic                               valid;
         logic [ITLB_4KBPAGE_TAG_WIDTH-1:0]  tag;
         logic [ASID_WIDTH-1:0]              ASID;
 
         // PTE components:
-        logic [11:0]                        PPN1;
-        logic [9:0]                         PPN0;
-                                            // RSW don't care
-        logic                               Dirty; // in case have self-modifying code and evict from dTLB 
-                                            // Accessed guaranteed if in any TLB
-        logic                               Global; // also relevant for VTM to bypass ASID match
-        logic                               User;
-        logic                               eXecutable;
-        logic                               Writeable;
-        logic                               Readable;
-        logic                               Valid;
+        logic [11:0]                        pte_PPN1;
+        logic [9:0]                         pte_PPN0;
+                                            // RSW; don't care
+        logic                               pte_D; // Dirty; no guarantees on value (e.g. self-modifying codes)
+                                            // Accessed; guaranteed 1 if in any TLB
+        logic                               pte_G; // Global; also relevant for VTM to bypass ASID match
+        logic                               pte_U; // User
+        logic                               pte_X; // eXecutable
+        logic                               pte_W; // Writeable
+        logic                               pte_R; // Readable
+        logic                               pte_V; // Valid
 
         // other components:
         logic                               is_mem;
+
     } array_4KB_entry_t;
 
     typedef struct packed {
@@ -111,11 +116,54 @@ module itlb #(
     array_4KB_set_t [ITLB_4KBPAGE_NUM_SETS-1:0] array_4KB_by_set_by_way;
 
     logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    array_4KB_read_index;
-    array_4KB_entry_t                       array_4KB_read_data;
+    array_4KB_set_t                         array_4KB_read_set;
 
     logic                                   array_4KB_write_valid;
     logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    array_4KB_write_index;
     logic [$clog2(ITLB_4KBPAGE_ASSOC)-1:0]  array_4KB_write_way;
     array_4KB_entry_t                       array_4KB_write_data;
+
+    // 4MB page array:
+        // reg
+    
+    typedef struct packed {
+
+        // access components:
+        logic                               valid;
+        logic [ITLB_4MBPAGE_TAG_WIDTH-1:0]  tag;
+        logic [ASID_WIDTH-1:0]              ASID;
+
+        // PTE components:
+        logic [11:0]                        pte_PPN1;
+        logic [9:0]                         pte_PPN0;
+                                            // RSW; don't care
+        logic                               pte_D; // Dirty; no guarantees on value (e.g. self-modifying codes)
+                                            // Accessed; guaranteed 1 if in any TLB
+        logic                               pte_G; // Global; also relevant for VTM to bypass ASID match
+        logic                               pte_U; // User
+        logic                               pte_X; // eXecutable
+        logic                               pte_W; // Writeable
+        logic                               pte_R; // Readable
+        logic                               pte_V; // Valid
+
+        // other components:
+        logic                               is_mem;
+
+    } array_4MB_entry_t;
+
+    typedef struct packed {
+        array_4MB_entry_t [ITLB_4MBPAGE_ASSOC-1:0]  entry_by_way;
+        logic [ITLB_4MBPAGE_ASSOC-2:0]              plru;
+    } array_4MB_set_t;
+
+    array_4MB_set_t [ITLB_4MBPAGE_NUM_SETS-1:0] array_4MB_by_set_by_way;
+
+    logic [ITLB_4MBPAGE_INDEX_WIDTH-1:0]    array_4MB_read_index;
+    array_4MB_set_t                         array_4MB_read_set;
+
+    logic                                   array_4MB_write_valid;
+    logic [ITLB_4MBPAGE_INDEX_WIDTH-1:0]    array_4MB_write_index;
+    logic [$clog2(ITLB_4MBPAGE_ASSOC)-1:0]  array_4MB_write_way;
+    array_4MB_entry_t                       array_4MB_write_data;
 
 endmodule

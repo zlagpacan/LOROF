@@ -251,8 +251,8 @@ module stamofu_cq #(
 
     // sfence invalidation to MMU
     output logic                    sfence_inv_valid,
-    output logic [VA_WIDTH-1:0]     sfence_inv_VA,
     output logic [ASID_WIDTH-1:0]   sfence_inv_ASID,
+    output logic [VPN_WIDTH-1:0]    sfence_inv_VPN,
 
     // sfence invalidation backpressure from MMU
     input logic                     sfence_inv_ready,
@@ -1484,15 +1484,8 @@ module stamofu_cq #(
         wr_buf_enq_bank1_op = entry_array[deq_ptr].op;
         wr_buf_enq_bank1_dest_PR = entry_array[deq_ptr].dest_PR;
 
-        sfence_inv_VA[31:2] = entry_array[deq_ptr].PA_word[PA_WIDTH-2-2-1:0];
-        casez (entry_array[deq_ptr].byte_mask)
-            4'b0000:    sfence_inv_VA[1:0] = 2'h0;
-            4'b???1:    sfence_inv_VA[1:0] = 2'h0;
-            4'b??10:    sfence_inv_VA[1:0] = 2'h1;
-            4'b?100:    sfence_inv_VA[1:0] = 2'h2;
-            4'b1000:    sfence_inv_VA[1:0] = 2'h3;
-        endcase
         sfence_inv_ASID = entry_array[deq_ptr].data[ASID_WIDTH-1:0];
+        sfence_inv_VPN = entry_array[deq_ptr].PA_word[VA_WIDTH-2-1:PO_WIDTH-2];
 
         // check for killed or exception deq
         if (

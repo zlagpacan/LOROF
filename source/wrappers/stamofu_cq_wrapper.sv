@@ -254,7 +254,7 @@ module stamofu_cq_wrapper #(
 
     // sfence invalidation to MMU
 	output logic last_sfence_inv_valid,
-	output logic [VA_WIDTH-1:0] last_sfence_inv_VA,
+	output logic [VPN_WIDTH-1:0] last_sfence_inv_VPN,
 	output logic [ASID_WIDTH-1:0] last_sfence_inv_ASID,
 
     // sfence invalidation backpressure from MMU
@@ -555,7 +555,7 @@ module stamofu_cq_wrapper #(
 
     // sfence invalidation to MMU
 	logic sfence_inv_valid;
-	logic [VA_WIDTH-1:0] sfence_inv_VA;
+	logic [VPN_WIDTH-1:0] sfence_inv_VPN;
 	logic [ASID_WIDTH-1:0] sfence_inv_ASID;
 
     // sfence invalidation backpressure from MMU
@@ -866,7 +866,7 @@ module stamofu_cq_wrapper #(
 
 		    // sfence invalidation to MMU
 			last_sfence_inv_valid <= '0;
-			last_sfence_inv_VA <= '0;
+			last_sfence_inv_VPN <= '0;
 			last_sfence_inv_ASID <= '0;
 
 		    // sfence invalidation backpressure from MMU
@@ -1165,7 +1165,7 @@ module stamofu_cq_wrapper #(
 
 		    // sfence invalidation to MMU
 			last_sfence_inv_valid <= sfence_inv_valid;
-			last_sfence_inv_VA <= sfence_inv_VA;
+			last_sfence_inv_VPN <= sfence_inv_VPN;
 			last_sfence_inv_ASID <= sfence_inv_ASID;
 
 		    // sfence invalidation backpressure from MMU
