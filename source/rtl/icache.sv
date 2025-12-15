@@ -128,6 +128,8 @@ module icache #(
     logic                               snoop_inv_writing;
     logic [L1_BLOCK_ADDR_WIDTH-1:0]     snoop_inv_saved_PA29;
 
+    logic snoop_inv_writing_delay_cycle;
+
     logic                           l2_snoop_hit;
     logic [LOG_ICACHE_ASSOC-1:0]    l2_snoop_hit_way;
 
@@ -239,7 +241,8 @@ module icache #(
         .plru_out(plru_updater_plru_out)
     );
     pe_lsb #(
-        .WIDTH(ICACHE_ASSOC)
+        .WIDTH(ICACHE_ASSOC),
+        .USE_INDEX(1)
     ) WAY_PE (
         .req_vec(empty_way_pe_req_vec),
         .ack_index(empty_way_pe_ack_index)
@@ -276,7 +279,9 @@ module icache #(
         plru_updater_touch_valid = core_resp_hit_valid;
         plru_updater_touch_index = core_resp_hit_way;
 
-        empty_way_pe_req_vec = ~core_resp_valid_by_way;
+        for (int way = 0; way < ICACHE_ASSOC; way++) begin
+            empty_way_pe_req_vec[way] = ~tag_array_read_set[way].valid;
+        end
         empty_way_pe_req_present = |empty_way_pe_req_vec;
 
         // check for l2 snoop of miss reg
@@ -303,6 +308,7 @@ module icache #(
             core_resp_miss_valid
             & (~miss_reg_valid | ~miss_index_and_tag_matching_core)
             & ~snoop_inv_writing
+            & ~snoop_inv_writing_delay_cycle
         ) begin
             next_miss_reg_valid = 1'b1;
             next_miss_reg_requested = 1'b0;
@@ -393,6 +399,7 @@ module icache #(
             core_resp_index <= 0;
 
             snoop_inv_writing <= 1'b0;
+            snoop_inv_writing_delay_cycle <= 1'b0;
         end
         else begin
             core_resp_valid <= core_req_valid;
@@ -400,6 +407,7 @@ module icache #(
             core_resp_index <= core_req_index;
 
             snoop_inv_writing <= snoop_inv_next_reading;
+            snoop_inv_writing_delay_cycle <= snoop_inv_writing;
         end
     end
 
@@ -434,7 +442,7 @@ module icache #(
     // Arrays:
 
     bram_1rport_1wport #(
-        .INNER_WIDTH($bits(tag_entry_t) * 2),
+        .INNER_WIDTH($bits(tag_entry_t) * ICACHE_ASSOC),
         .OUTER_WIDTH(ICACHE_NUM_SETS)
     ) TAG_ARRAY_BRAM (
         .CLK(CLK),
@@ -444,11 +452,11 @@ module icache #(
         .rdata(tag_array_read_set),
         .wen_byte(tag_array_write_valid_mask),
         .windex(tag_array_write_index),
-        .wdata(tag_array_write_set)        
+        .wdata(tag_array_write_set)
     );
     
     bram_1rport_1wport #(
-        .INNER_WIDTH(ICACHE_FETCH_WIDTH * 8 * 2),
+        .INNER_WIDTH(ICACHE_FETCH_WIDTH * 8 * ICACHE_ASSOC),
         .OUTER_WIDTH(ICACHE_NUM_SETS * 2**ICACHE_FETCH_BLOCK_OFFSET_WIDTH)
     ) DATA_ARRAY_BRAM (
         .CLK(CLK),
