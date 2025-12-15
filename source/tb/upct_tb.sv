@@ -10,7 +10,13 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module upct_tb ();
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
+module upct_tb #(
+	parameter UPCT_ENTRIES = 8,
+	parameter LOG_UPCT_ENTRIES = $clog2(UPCT_ENTRIES)
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:
@@ -37,7 +43,7 @@ module upct_tb ();
 	logic tb_read_valid_RESP;
 	logic [LOG_UPCT_ENTRIES-1:0] tb_read_index_RESP;
 
-   	logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] DUT_upct_array, expected_upct_array;
+	logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] DUT_upct_array, expected_upct_array;
 
     // Update 0
 	logic tb_update0_valid;
@@ -49,10 +55,14 @@ module upct_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	upct DUT (
+	upct #(
+		.UPCT_ENTRIES(UPCT_ENTRIES),
+		.LOG_UPCT_ENTRIES(LOG_UPCT_ENTRIES)
+	) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
+
 
 	    // RESP stage
 		.read_valid_RESP(tb_read_valid_RESP),

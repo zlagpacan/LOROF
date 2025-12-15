@@ -230,7 +230,7 @@ module icache #(
     end
 
     // Way PLRU + PE
-    plru #(
+    plru_updater #(
         .NUM_ENTRIES(ICACHE_ASSOC)
     ) WAY_PLRU (
         .plru_in(plru_updater_plru_in),

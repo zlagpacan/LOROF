@@ -10,7 +10,13 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module upct_wrapper (
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
+module upct_wrapper #(
+	parameter UPCT_ENTRIES = 8,
+	parameter LOG_UPCT_ENTRIES = $clog2(UPCT_ENTRIES)
+) (
 
     // seq
     input logic CLK,
@@ -51,7 +57,10 @@ module upct_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    upct WRAPPED_MODULE (.*);
+	upct #(
+		.UPCT_ENTRIES(UPCT_ENTRIES),
+		.LOG_UPCT_ENTRIES(LOG_UPCT_ENTRIES)
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:

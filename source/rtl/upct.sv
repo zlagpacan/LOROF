@@ -8,7 +8,10 @@
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 
-module upct (
+module upct #(
+    parameter UPCT_ENTRIES = 8,
+    parameter LOG_UPCT_ENTRIES = $clog2(UPCT_ENTRIES)
+) (
 
     // seq
     input logic CLK,
@@ -32,13 +35,15 @@ module upct (
     // Signals:
 
     // FF Array:
-    // logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] upct_array, next_upct_array;
     logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] next_upct_array;
 
-    // PLRU Arrays:
-    logic               plru2, next_plru2;  // index bit 2
-    logic [1:0]         plru1, next_plru1;  // index bit 1
-    logic [1:0][1:0]    plru0, next_plru0;  // index bit 0
+    // PLRU:
+    logic [UPCT_ENTRIES-2:0]        plru, next_plru;
+
+    logic                           plru_new_valid;
+    logic [LOG_UPCT_ENTRIES-1:0]    plru_new_index;
+    logic                           plru_touch_valid;
+    logic [LOG_UPCT_ENTRIES-1:0]    plru_touch_index;
 
     // Update 0:
     logic [UPPER_PC_WIDTH-1:0]  update0_upper_PC;
@@ -60,9 +65,7 @@ module upct (
         if (~nRST) begin
             upct_array <= '0;
 
-            plru0 <= '0;
-            plru1 <= '0;
-            plru2 <= '0;
+            plru <= '0;
 
             update1_valid <= 1'b0;
             update1_upper_PC <= '0;
@@ -71,9 +74,7 @@ module upct (
         else begin
             upct_array <= next_upct_array;
             
-            plru0 <= next_plru0;
-            plru1 <= next_plru1;
-            plru2 <= next_plru2;
+            plru <= next_plru;
 
             update1_valid <= update0_valid;
             update1_upper_PC <= update0_upper_PC;
@@ -95,9 +96,6 @@ module upct (
 
     // Update 1 and RESP logic:
 
-    // assign observer0_upper_PC_RESP = upct_array[observer0_index_RESP];
-    // assign observer1_upper_PC_RESP = upct_array[observer1_index_RESP];
-
     assign update1_have_match = |update1_matching_upper_PC_by_entry;
 
     pe_lsb #(
@@ -109,16 +107,29 @@ module upct (
         .ack_index(update1_matching_index)
     );
 
+    plru_updater #(
+        .NUM_ENTRIES(8)
+    ) PLRU (
+        .plru_in(plru),
+        .new_valid(plru_new_valid),
+        .new_index(plru_new_index),
+        .touch_valid(plru_touch_valid),
+        .touch_index(plru_touch_index),
+        .plru_out(next_plru)
+    );
+
     always_comb begin
 
         // hold array and pointers by default
         next_upct_array = upct_array;
-        next_plru2 = plru2;
-        next_plru1 = plru1;
-        next_plru0 = plru0;
+
+        // hold plru by default
+        plru_new_valid = 1'b0;
+        plru_touch_valid = 1'b0;
+        plru_touch_index = update1_matching_index;
 
         // advertize PLRU index by default
-        update1_upct_index = {plru2, plru1[plru2], plru0[plru2][plru1[plru2]]};
+        update1_upct_index = plru_new_index;
 
         // check update 1 hit
         if (update1_valid & update1_have_match) begin
@@ -127,33 +138,29 @@ module upct (
             update1_upct_index = update1_matching_index;
 
             // adjust PLRU following matching index
-            next_plru2 = ~update1_matching_index[2];
-            next_plru1[update1_matching_index[2]] = ~update1_matching_index[1];
-            next_plru0[update1_matching_index[2]][update1_matching_index[1]] = ~update1_matching_index[0];
+            plru_touch_valid = 1'b1;
+            plru_touch_index = update1_matching_index;
         end
 
         // check update 1 miss
         else if (update1_valid & ~update1_have_match) begin
 
             // advertize PLRU index
-            update1_upct_index = {plru2, plru1[plru2], plru0[plru2][plru1[plru2]]};
+            update1_upct_index = plru_new_index;
 
             // update PLRU array entry
             next_upct_array[update1_upct_index] = update1_upper_PC;
 
             // adjust PLRU following current PLRU
-            next_plru2 = ~plru2;
-            next_plru1[plru2] = ~plru1[plru2];
-            next_plru0[plru2][plru1[plru2]] = ~plru0[plru2][plru1[plru2]];
+            plru_new_valid = 1'b1;
         end
 
         // check RESP access
         else if (read_valid_RESP) begin
 
             // adjust PLRU following RESP index
-            next_plru2 = ~read_index_RESP[2];
-            next_plru1[read_index_RESP[2]] = ~read_index_RESP[1];
-            next_plru0[read_index_RESP[2]][read_index_RESP[1]] = ~read_index_RESP[0];
+            plru_touch_valid = 1'b1;
+            plru_touch_index = read_index_RESP;
         end
     end
 

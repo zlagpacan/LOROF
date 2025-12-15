@@ -28,80 +28,29 @@ module sst #(
     // ----------------------------------------------------------------
     // Signals:
 
-    // PLRU Arrays:
-
-    // logic [0:0]     plru5;  // index bit 5
-    // logic [1:0]     plru4;  // index bit 4
-    // logic [3:0]     plru3;  // index bit 3
-    // logic [7:0]     plru2;  // index bit 2
-    // logic [15:0]    plru1;  // index bit 1
-    // logic [31:0]    plru0;  // index bit 0
-
-    logic [STORE_SET_COUNT-2:0] plru_array, next_plru_array;
+    // PLRU:
+    logic [STORE_SET_COUNT-2:0] plru, next_plru;
 
     // ----------------------------------------------------------------
     // Logic: 
 
-    // always_ff @ (posedge CLK, negedge nRST) begin
-    // // always_ff @ (posedge CLK) begin
-    //     if (~nRST) begin
-    //         plru5 <= '0;
-    //         plru4 <= '0;
-    //         plru3 <= '0;
-    //         plru2 <= '0;
-    //         plru1 <= '0;
-    //         plru0 <= '0;
-    //     end
-    //     else begin
-
-    //         // update following new SSID
-    //         if (new_SSID_valid) begin
-    //             plru5 <= ~plru5;
-    //             plru4[new_SSID[5]] <= ~plru4[new_SSID[5]];
-    //             plru3[new_SSID[5:4]] <= ~plru3[new_SSID[5:4]];
-    //             plru2[new_SSID[5:3]] <= ~plru2[new_SSID[5:3]];
-    //             plru1[new_SSID[5:2]] <= ~plru1[new_SSID[5:2]];
-    //             plru0[new_SSID[5:1]] <= ~plru0[new_SSID[5:1]];
-    //         end
-
-    //         // update following touch
-    //         else if (touch_SSID_valid) begin
-    //             plru5 <= ~touch_SSID[5];
-    //             plru4[touch_SSID[5]] <= ~touch_SSID[4];
-    //             plru3[touch_SSID[5:4]] <= ~touch_SSID[3];                
-    //             plru2[touch_SSID[5:3]] <= ~touch_SSID[2];
-    //             plru1[touch_SSID[5:2]] <= ~touch_SSID[1];
-    //             plru0[touch_SSID[5:1]] <= ~touch_SSID[0];
-    //         end
-    //     end
-    // end
-
-    // Advertise Current PLRU
-
-    // assign new_SSID[5] = plru5;
-    // assign new_SSID[4] = plru4[new_SSID[5]];
-    // assign new_SSID[3] = plru3[new_SSID[5:4]];
-    // assign new_SSID[2] = plru2[new_SSID[5:3]];
-    // assign new_SSID[1] = plru1[new_SSID[5:2]];
-    // assign new_SSID[0] = plru0[new_SSID[5:1]];
-
     plru_updater #(
         .NUM_ENTRIES(STORE_SET_COUNT)
     ) PLRU_UPDATER (
-        .plru_in(plru_array),
+        .plru_in(plru),
         .new_valid(new_SSID_valid),
         .new_index(new_SSID),
         .touch_valid(touch_SSID_valid),
         .touch_index(touch_SSID),
-        .plru_out(next_plru_array)
+        .plru_out(next_plru)
     );
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            plru_array <= '0;
+            plru <= '0;
         end
         else begin
-            plru_array <= next_plru_array;
+            plru <= next_plru;
         end
     end
 
