@@ -15,7 +15,6 @@ module itlb #(
     parameter LOG_ITLB_4KBPAGE_ASSOC = $clog2(ITLB_4KBPAGE_ASSOC), // 2b
     parameter ITLB_4KBPAGE_NUM_SETS = ITLB_4KBPAGE_ENTRIES / ITLB_4KBPAGE_ASSOC, // 4x
     parameter ITLB_4KBPAGE_INDEX_WIDTH = $clog2(ITLB_4KBPAGE_NUM_SETS), // 2b
-    parameter ITLB_4KBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4KBPAGE_INDEX_WIDTH - PO_WIDTH, // 18b
 
     // 4MB page array
     parameter ITLB_4MBPAGE_ENTRIES = 4, // 4-entry
@@ -23,7 +22,6 @@ module itlb #(
     parameter LOG_ITLB_4MBPAGE_ASSOC = $clog2(ITLB_4MBPAGE_ASSOC), // 1b
     parameter ITLB_4MBPAGE_NUM_SETS = ITLB_4MBPAGE_ENTRIES / ITLB_4MBPAGE_ASSOC, // 2x
     parameter ITLB_4MBPAGE_INDEX_WIDTH = $clog2(ITLB_4MBPAGE_NUM_SETS), // 1b
-    parameter ITLB_4MBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4MBPAGE_INDEX_WIDTH - VPN0_WIDTH - PO_WIDTH // 9b
 ) (
     // seq
     input logic CLK,
@@ -77,6 +75,9 @@ module itlb #(
             // also single native PMA check structure (mem_map)
         // fine since uncommon case, not latency sensitive to misses
 
+    // index hashing: lower VPN ^ ASID
+        // due to PTE replacement w/ L2 TLB, have to needlessly store index bits in lower VPN in entry
+
     // ----------------------------------------------------------------
     // Signals:
 
@@ -87,8 +88,8 @@ module itlb #(
 
         // access components:
         logic                               valid;
-        logic [ITLB_4KBPAGE_TAG_WIDTH-1:0]  tag;
         logic [ASID_WIDTH-1:0]              ASID;
+        logic [ITLB_4KBPAGE_TAG_WIDTH-1:0]  tag;
 
         // PTE components:
         logic [11:0]                        pte_PPN1;
@@ -120,7 +121,7 @@ module itlb #(
 
     logic                                   array_4KB_write_valid;
     logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    array_4KB_write_index;
-    logic [$clog2(ITLB_4KBPAGE_ASSOC)-1:0]  array_4KB_write_way;
+    logic [LOG_ITLB_4KBPAGE_ASSOC-1:0]      array_4KB_write_way;
     array_4KB_entry_t                       array_4KB_write_data;
 
     // 4MB page array:
@@ -163,7 +164,88 @@ module itlb #(
 
     logic                                   array_4MB_write_valid;
     logic [ITLB_4MBPAGE_INDEX_WIDTH-1:0]    array_4MB_write_index;
-    logic [$clog2(ITLB_4MBPAGE_ASSOC)-1:0]  array_4MB_write_way;
+    logic [LOG_ITLB_4MBPAGE_ASSOC-1:0]      array_4MB_write_way;
     array_4MB_entry_t                       array_4MB_write_data;
+
+    // read port usage:
+        // arbitration b/w:
+            // sfence inv
+            // core req
+        // use 4KB array and 4MB array together
+        // core backpressure is only implicit so prioritize sfence inv
+
+    logic                                   read_port_sfence_inv_using;
+    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    read_port_sfence_inv_4KB_read_index;
+    logic [ITLB_4MBPAGE_INDEX_WIDTH-1:0]    read_port_sfence_inv_4MB_read_index;
+
+    logic                                   read_port_core_req_using;
+    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    read_port_core_req_4KB_read_index;
+    logic [ITLB_4MBPAGE_INDEX_WIDTH-1:0]    read_port_core_req_4MB_read_index;
+
+    // write port usage:
+        // arbitration b/w:
+            // miss resp
+            // sfence inv
+        // use 4KB array and 4MB array together
+        // sfence can easily backpressure so prioritize miss resp
+
+    logic                                   write_port_miss_resp_using;
+    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    write_port_miss_resp_write_index;
+    logic [LOG_ITLB_4KBPAGE_ASSOC]
+    array_4KB_entry_t                       write_port_miss_resp
+
+    // core resp
+    logic                   core_resp_stage_valid;
+    logic                   core_resp_stage_missing;
+    logic [ASID_WIDTH-1:0]  core_resp_stage_ASID;
+    logic [VPN_WIDTH-1:0]   core_resp_stage_VPN;
+
+    // miss reg
+    logic                   miss_reg_valid;
+    logic                   miss_reg_requested;
+    logic [ASID_WIDTH-1:0]  miss_reg_ASID;
+    logic [VPN_WIDTH-1:0]   miss_reg_VPN;
+
+    // sfence inv
+    logic                                   sfence_inv_second_stage_valid;
+
+    logic [ITLB_4KBPAGE_ASSOC-1:0]          sfence_inv_second_stage_4KB_hit_by_way;
+    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    sfence_inv_second_stage_4KB_hit_index_by_way;
+
+    logic [ITLB_4MBPAGE_ASSOC-1:0]          sfence_inv_second_stage_4MB_hit_by_way;
+    logic [ITLB_4MBPAGE_INDEX_WIDTH-1:0]    sfence_inv_second_stage_4MB_hit_index_by_way;
+
+    // ----------------------------------------------------------------
+    // Logic:
+
+    // read port logic
+    always_comb begin
+        if ()
+    end
+
+    // write port logic
+    always_comb begin
+
+    end
+
+    // array logic
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            array_4KB_by_set_by_way <= '0;
+            array_4MB_by_set_by_way <= '0;
+        end
+        else begin
+            if (array_4KB_write_valid) begin
+                array_4KB_by_set_by_way[array_4KB_write_index][array_4KB_write_way] <= array_4KB_write_data;
+            end
+            if (array_4MB_write_valid) begin
+                array_4MB_by_set_by_way[array_4MB_write_index][array_4MB_write_way] <= array_4MB_write_data;
+            end
+        end
+    end
+    always_comb begin
+        array_4KB_read_set = array_4KB_by_set_by_way[array_4KB_read_index];
+        array_4MB_read_set = array_4MB_by_set_by_way[array_4MB_read_index];
+    end
 
 endmodule

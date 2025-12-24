@@ -38,6 +38,9 @@ module btb (
     input logic [31:0]                      update1_target_full_PC
 );
 
+    // direct lower bit index hashing
+        // TODO: XOR w/ ASID
+
     // ----------------------------------------------------------------
     // Signals:
 

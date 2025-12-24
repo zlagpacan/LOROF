@@ -56,6 +56,9 @@ module icache #(
     input logic [L1_BLOCK_ADDR_WIDTH-1:0]   l2_snoop_inv_PA29
 );
 
+    // direct lower bit index hashing
+        // TODO: XOR w/ ASID
+
     // interfaces
         // req from core
             // unstoppable
