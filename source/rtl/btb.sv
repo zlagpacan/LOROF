@@ -39,13 +39,13 @@ module btb (
 );
 
     // direct lower bit index hashing
-        // TODO: XOR w/ ASID
+        // virtually tagged and have ASID so might as well prevent VPN aliasing
 
     // ----------------------------------------------------------------
     // Signals:
 
     // REQ Stage:
-    logic [BTB_INDEX_WIDTH-1:0]             index_REQ;
+    logic [BTB_INDEX_WIDTH-1:0]             hashed_index_REQ;
     logic [BTB_TAG_WIDTH-1:0]               hashed_tag_REQ;
     logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0]  array_pred_lru_by_instr_REQ;
 
@@ -70,14 +70,14 @@ module btb (
     logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][1:0] vtm_by_instr_by_way_RESP;
 
     // Update 0:
-    logic [BTB_INDEX_WIDTH-1:0]                 update0_index;
+    logic [BTB_INDEX_WIDTH-1:0]                 update0_hashed_index;
     logic [BTB_TAG_WIDTH-1:0]                   update0_hashed_tag;
     logic [LOG_BTB_NWAY_ENTRIES_PER_BLOCK-1:0]  update0_instr;
     logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0]      update0_old_pred_lru_by_instr;
 
     // Update 1:
     logic                                       update1_valid;
-    logic [BTB_INDEX_WIDTH-1:0]                 update1_index;
+    logic [BTB_INDEX_WIDTH-1:0]                 update1_hashed_index;
     logic [BTB_TAG_WIDTH-1:0]                   update1_hashed_tag;
     logic [LOG_BTB_NWAY_ENTRIES_PER_BLOCK-1:0]  update1_instr;
     logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0]      update1_old_pred_lru_by_instr;
@@ -93,7 +93,11 @@ module btb (
     // ----------------------------------------------------------------
     // REQ Stage Logic:
 
-    assign index_REQ = full_PC_REQ[BTB_INDEX_WIDTH+LOG_BTB_NWAY_ENTRIES_PER_BLOCK+1-1 : LOG_BTB_NWAY_ENTRIES_PER_BLOCK+1];
+    btb_index_hash BTB_REQ_INDEX_HASH (
+        .PC(full_PC_REQ),
+        .ASID(ASID_REQ),
+        .tag(hashed_index_REQ)
+    );
 
     btb_tag_hash BTB_REQ_TAG_HASH (
         .PC(full_PC_REQ),
@@ -197,7 +201,12 @@ module btb (
     // ----------------------------------------------------------------
     // Update 0 Logic:
 
-    assign update0_index = update0_start_full_PC[BTB_INDEX_WIDTH+LOG_BTB_NWAY_ENTRIES_PER_BLOCK+1-1 : LOG_BTB_NWAY_ENTRIES_PER_BLOCK+1];
+    btb_tag_hash BTB_UPDATE0_INDEX_HASH (
+        .PC(update0_start_full_PC),
+        .ASID(update0_ASID),
+        .index(update0_hashed_index)
+    );
+
     assign update0_instr = update0_start_full_PC[LOG_BTB_NWAY_ENTRIES_PER_BLOCK+1-1 : 1];
 
     btb_tag_hash BTB_UPDATE0_TAG_HASH (
@@ -213,7 +222,7 @@ module btb (
     // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             update1_valid <= 1'b0;
-            update1_index <= '0;
+            update1_hashed_index <= '0;
             update1_hashed_tag <= '0;
             update1_instr <= '0;
             update1_old_pred_lru_by_instr <= '0;
@@ -223,12 +232,12 @@ module btb (
         end
         else begin
             update1_valid <= update0_valid;
-            update1_index <= update0_index;
+            update1_hashed_index <= update0_hashed_index;
             update1_hashed_tag <= update0_hashed_tag;
             update1_instr <= update0_instr;
             update1_old_pred_lru_by_instr <= update0_old_pred_lru_by_instr;
 
-            last_update1_conflict <= update0_valid & update1_valid & update0_index == update1_index;
+            last_update1_conflict <= update0_valid & update1_valid & update0_hashed_index == update1_hashed_index;
             last_update1_new_pred_lru_by_instr <= update1_new_pred_lru_by_instr;
         end
     end
@@ -272,41 +281,13 @@ module btb (
         .nRST(nRST),
 
         .ren(valid_REQ),
-        .rindex(index_REQ),
+        .rindex(hashed_index_REQ),
         .rdata(array_pred_info_tag_target_by_instr_by_way_RESP),
 
         .wen_byte(update1_byte_mask_pred_info_tag_target_by_instr_by_way),
-        .windex(update1_index),
+        .windex(update1_hashed_index),
         .wdata({(BTB_NWAY_ENTRIES_PER_BLOCK*BTB_ENTRY_ASSOC){update1_pred_info, update1_hashed_tag, update1_target_PC}})
     );
-
-    // //////////////////////////
-    // // BRAM Array per Instr //
-    // //////////////////////////
-
-    // // pred info + tag + target BRAM array
-    // genvar bram_instr;
-    // generate
-    // for (bram_instr = 0; bram_instr < BTB_NWAY_ENTRIES_PER_BLOCK; bram_instr++)
-    
-    //     bram_1rport_1wport #(
-    //         .INNER_WIDTH( // 2 * 32
-    //             BTB_ENTRY_ASSOC * 
-    //             (BTB_PRED_INFO_WIDTH + BTB_TAG_WIDTH + BTB_TARGET_WIDTH)
-    //         ),
-    //         .OUTER_WIDTH(BTB_SETS)
-    //     ) PRED_INFO_TAG_TARGET_BRAM_ARRAY (
-    //         .CLK(CLK),
-    //         .nRST(nRST),
-
-    //         .ren(valid_REQ),
-    //         .rindex(index_REQ),
-    //         .rdata(array_pred_info_tag_target_by_instr_by_way_RESP[bram_instr]),
-
-    //         .wen_byte(update1_byte_mask_pred_info_tag_target_by_instr_by_way[bram_instr]),
-    //         .windex(update1_index),
-    //         .wdata({2{update1_pred_info, update1_hashed_tag, update1_target_PC}})
-    //     );
 
     // endgenerate
 
@@ -321,14 +302,14 @@ module btb (
     ) LRU_DISTRRAM_ARRAY (
         .CLK(CLK),
 
-        .port0_rindex(index_REQ),
+        .port0_rindex(hashed_index_REQ),
         .port0_rdata(array_pred_lru_by_instr_REQ),
 
-        .port1_rindex(update0_index),
+        .port1_rindex(update0_hashed_index),
         .port1_rdata(update0_old_pred_lru_by_instr),
 
         .wen(update1_valid),
-        .windex(update1_index),
+        .windex(update1_hashed_index),
         .wdata(update1_new_pred_lru_by_instr)
     );
 

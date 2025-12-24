@@ -1,0 +1,32 @@
+/*
+    Filename: itlb_4MB_index_hash.sv
+    Author: zlagpacan
+    Description: RTL for ITLB 4MB Page Array Index Hash Function
+    Spec: LOROF/spec/design/itlb_4MB_index_hash.md
+*/
+
+`include "core_types_pkg.vh"
+import core_types_pkg::*;
+
+`include "system_types_pkg.vh"
+import system_types_pkg::*;
+
+module itlb_4MB_index_hash (
+    input logic [VPN_WIDTH-1:0] VPN,
+    input logic [ASID_WIDTH-1:0] ASID,
+    output logic [ITLB_4MBPAGE_INDEX_WIDTH-1:0] index
+);
+
+    logic [63:0] wide_PC;
+    
+    assign wide_PC = PC;
+
+    // lowest VPN ^ next lowest VPN ^ lowest ASID ^ next lowest ASID
+    always_comb begin
+        index = VPN[ITLB_4MBPAGE_INDEX_WIDTH-1:0];
+        index ^= VPN[ITLB_4MBPAGE_INDEX_WIDTH*2-1:ITLB_4MBPAGE_INDEX_WIDTH];
+        index ^= ASID[ITLB_4MBPAGE_INDEX_WIDTH-1:0];
+        index ^= ASID[ITLB_4MBPAGE_INDEX_WIDTH*2-1:ITLB_4MBPAGE_INDEX_WIDTH];
+    end
+
+endmodule

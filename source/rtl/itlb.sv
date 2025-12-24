@@ -75,7 +75,8 @@ module itlb #(
             // also single native PMA check structure (mem_map)
         // fine since uncommon case, not latency sensitive to misses
 
-    // index hashing: lower VPN ^ ASID
+    // index hashing: lowest VPN ^ next lowest VPN ^ lowest ASID ^ next lowest ASID
+        // virtually tagged and have ASID so might as well prevent VPN aliasing
         // due to PTE replacement w/ L2 TLB, have to needlessly store index bits in lower VPN in entry
 
     // ----------------------------------------------------------------
@@ -187,12 +188,27 @@ module itlb #(
             // miss resp
             // sfence inv
         // use 4KB array and 4MB array together
-        // sfence can easily backpressure so prioritize miss resp
+        // sfence can be easily backpressured and don't want to buffer miss resp data so prioritize miss resp
 
     logic                                   write_port_miss_resp_using;
-    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    write_port_miss_resp_write_index;
-    logic [LOG_ITLB_4KBPAGE_ASSOC]
-    array_4KB_entry_t                       write_port_miss_resp
+    logic                                   write_port_miss_resp_4KB_valid;
+    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    write_port_miss_resp_4KB_index;
+    logic [LOG_ITLB_4KBPAGE_ASSOC]          write_port_miss_resp_4KB_way;
+    array_4KB_entry_t                       write_port_miss_resp_4KB_data;
+    logic                                   write_port_miss_resp_4MB_valid;
+    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    write_port_miss_resp_4MB_index;
+    logic [LOG_ITLB_4KBPAGE_ASSOC]          write_port_miss_resp_4MB_way;
+    array_4KB_entry_t                       write_port_miss_resp_4MB_data;
+
+    logic                                   write_port_sfence_inv_using;
+    logic                                   write_port_sfence_inv_4KB_valid;
+    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    write_port_sfence_inv_4KB_index;
+    logic [LOG_ITLB_4KBPAGE_ASSOC]          write_port_sfence_inv_4KB_way;
+    array_4KB_entry_t                       write_port_sfence_inv_4KB_data;
+    logic                                   write_port_sfence_inv_4MB_valid;
+    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    write_port_sfence_inv_4MB_index;
+    logic [LOG_ITLB_4KBPAGE_ASSOC]          write_port_sfence_inv_4MB_way;
+    array_4KB_entry_t                       write_port_sfence_inv_4MB_data;
 
     // core resp
     logic                   core_resp_stage_valid;
@@ -208,6 +224,7 @@ module itlb #(
 
     // sfence inv
     logic                                   sfence_inv_second_stage_valid;
+    logic                                   sfence_inv_second_stage_stall;
 
     logic [ITLB_4KBPAGE_ASSOC-1:0]          sfence_inv_second_stage_4KB_hit_by_way;
     logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    sfence_inv_second_stage_4KB_hit_index_by_way;
