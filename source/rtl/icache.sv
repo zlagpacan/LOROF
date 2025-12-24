@@ -57,7 +57,7 @@ module icache #(
 );
 
     // direct lower bit index hashing
-        // TODO: XOR w/ ASID
+        // phyiscally tagged so no need to XOR w/ ASID
 
     // interfaces
         // req from core
