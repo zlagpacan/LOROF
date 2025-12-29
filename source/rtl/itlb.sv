@@ -105,7 +105,7 @@ module itlb #(
         logic                               pte_R; // Readable
         logic                               pte_V; // Valid
 
-        // other components:
+        // PMA components:
         logic                               is_mem;
 
     } array_4KB_entry_t;
@@ -226,21 +226,108 @@ module itlb #(
     logic                                   sfence_inv_second_stage_valid;
     logic                                   sfence_inv_second_stage_stall;
 
+    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    sfence_inv_second_stage_4KB_index;
     logic [ITLB_4KBPAGE_ASSOC-1:0]          sfence_inv_second_stage_4KB_hit_by_way;
-    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    sfence_inv_second_stage_4KB_hit_index_by_way;
 
+    logic [ITLB_4MBPAGE_INDEX_WIDTH-1:0]    sfence_inv_second_stage_4MB_index;
     logic [ITLB_4MBPAGE_ASSOC-1:0]          sfence_inv_second_stage_4MB_hit_by_way;
-    logic [ITLB_4MBPAGE_INDEX_WIDTH-1:0]    sfence_inv_second_stage_4MB_hit_index_by_way;
 
     // ----------------------------------------------------------------
     // Logic:
 
     // read port logic
+        // arbitration b/w:
+            // sfence inv
+            // core req
+        // use 4KB array and 4MB array together
+        // core backpressure is only implicit so prioritize sfence inv
+    itlb_4KB_index_hash ITLB_SFENCE_INV_4KB_INDEX_HASH (
+        .VPN(sfence_inv_VPN),
+        .ASID(sfence_inv_ASID),
+        .index(read_port_sfence_inv_4KB_read_index)
+    );
+    itlb_4MB_index_hash ITLB_SFENCE_INV_4MB_INDEX_HASH (
+        .VPN(sfence_inv_VPN),
+        .ASID(sfence_inv_ASID),
+        .index(read_port_sfence_inv_4MB_read_index)
+    );
+    itlb_4KB_index_hash ITLB_CORE_REQ_4KB_INDEX_HASH (
+        .VPN(core_req_VPN),
+        .ASID(core_req_ASID),
+        .index(read_port_core_req_4KB_read_index)
+    );
+    itlb_4MB_index_hash ITLB_CORE_REQ_4MB_INDEX_HASH (
+        .VPN(core_req_VPN),
+        .ASID(core_req_ASID),
+        .index(read_port_core_req_4MB_read_index)
+    );
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+
+        end
+        else begin
+
+        end
+    end
     always_comb begin
-        if ()
+        read_port_sfence_inv_using = sfence_inv_valid;
+        read_port_core_req_using = core_req_valid & ~read_port_sfence_inv_using;
+
+        if (read_port_sfence_inv_using) begin
+            array_4KB_read_index = read_port_sfence_inv_4KB_read_index;
+            array_4MB_read_index = read_port_sfence_inv_4MB_read_index;
+        end
+        else begin
+            array_4KB_read_index = read_port_core_req_4KB_read_index;
+            array_4MB_read_index = read_port_core_req_4MB_read_index;
+        end
     end
 
     // write port logic
+        // arbitration b/w:
+            // miss resp
+            // sfence inv
+        // use 4KB array and 4MB array together
+        // sfence can be easily backpressured and don't want to buffer miss resp data so prioritize miss resp
+    always_comb begin
+
+    end
+
+    // core resp mini pipeline logic
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+
+        end
+        else begin
+
+        end
+    end
+    always_comb begin
+
+    end
+
+    // miss reg logic
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+
+        end
+        else begin
+
+        end
+    end
+    always_comb begin
+
+    end
+
+    // sfence inv mini pipeline logic
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+
+        end
+        else begin
+
+        end
+    end
     always_comb begin
 
     end

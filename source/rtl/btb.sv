@@ -96,7 +96,7 @@ module btb (
     btb_index_hash BTB_REQ_INDEX_HASH (
         .PC(full_PC_REQ),
         .ASID(ASID_REQ),
-        .tag(hashed_index_REQ)
+        .index(hashed_index_REQ)
     );
 
     btb_tag_hash BTB_REQ_TAG_HASH (
@@ -201,7 +201,7 @@ module btb (
     // ----------------------------------------------------------------
     // Update 0 Logic:
 
-    btb_tag_hash BTB_UPDATE0_INDEX_HASH (
+    btb_index_hash BTB_UPDATE0_INDEX_HASH (
         .PC(update0_start_full_PC),
         .ASID(update0_ASID),
         .index(update0_hashed_index)
