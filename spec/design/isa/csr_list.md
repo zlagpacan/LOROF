@@ -1355,7 +1355,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - PPN0 = leaf level 0 PTE.PPN0
     - PO = VA.PO
 - Bare VA -> PA:
-    - PPN1 = {2'b00, VA.VPN1}
+    - PPN1 = {2'b11, VA.VPN1}
     - PPN0 = VA.VPN0
     - PO = VA.PO
 
