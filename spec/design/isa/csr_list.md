@@ -1378,7 +1378,7 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
                 - page fault if already at level 0 leaf
             - 001: read-only
             - 010: reserved -> page fault
-            - 011: read-write -> page fault
+            - 011: read-write
             - 100: execute-only
             - 101: read-execute
             - 110: reserved -> page fault

@@ -11,36 +11,54 @@ import system_types_pkg::*;
 module mem_map (
 
     // input
-    input logic [PPN_WIDTH-1:0] ppn,
+    input logic [PPN_WIDTH-1:0] PPN,
 
     // output
-    output logic valid,
-    output logic is_mem
+    output logic DRAM,
+    output logic ROM,
+    output logic IO
 );
 
-    logic is_io;
+    // DRAM region:
+        // 2 GB
+        // addresses:
+            // [0x3_FFFF_FFFF : 0x3_8000_0000]
+            // [33:31] = 3'b111
+            // [30:0] = 31'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        // attributes:
+            // executable
+            // writeable
+            // readable
+            // cacheable
+            // idempotent
+    assign DRAM = PPN[33-PO_WIDTH:31-PO_WIDTH] == 3'b111;
 
-    // io region:
+    // ROM region:
+        // 64 KB
+        // addresses:
+            // [0x0_0001_FFFF : 0x0_0001_0000]
+            // [33:16] = 18'b00000000000000001
+            // [15:0] = 16'bxxxxxxxxxxxxxxxx
+        // attributes:
+            // executable
+            // NOT writeable
+            // readable
+            // cacheable
+            // idempotent
+    assign ROM = PPN[33-PO_WIDTH:16-PO_WIDTH] == 18'b00000000000000001;
+
+    // IO region:
+        // 64 KB
         // addresses:
             // [0x0_0000_FFFF : 0x0_0000_0000]
             // [33:16] = 18'b000000000000000000
             // [15:0] = 16'bxxxxxxxxxxxxxxxx
-        // non-cacheable, non-idempotent
-
-    assign is_io = ppn[33:16] == '0;
-
-    // regular mem region:
-        // addresses:
-            // [0x2_FFFF_FFFF : 0x2_0000_0000]
-            // [33:32] = 2'b10
-            // [31:0] = 32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-        // cacheable, idempotent
-
-    assign is_mem = ppn[33:32] == 2'b10;
-
-    // valid region:
-        // mem region + io region
-
-    assign valid = is_mem | is_io;
+        // attributes:
+            // NOT executable
+            // writeable
+            // readable
+            // NOT cacheable
+            // NOT idempotent
+    assign IO = PPN[33-PO_WIDTH:16-PO_WIDTH] == 18'b000000000000000000;
 
 endmodule

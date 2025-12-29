@@ -88,6 +88,7 @@ package system_types_pkg;
             // {tag[17:0], index[1:0], PO[11:0]}
     parameter ITLB_4KBPAGE_NUM_SETS = ITLB_4KBPAGE_ENTRIES / ITLB_4KBPAGE_ASSOC; // 4x
     parameter ITLB_4KBPAGE_INDEX_WIDTH = $clog2(ITLB_4KBPAGE_NUM_SETS); // 2b
+    parameter ITLB_4KBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4KBPAGE_INDEX_WIDTH - PO_WIDTH; // 18b
     // 4MB page array:
     parameter ITLB_4MBPAGE_ENTRIES = 4; // 4-entry
         // 1x TLB entry per TLB block
@@ -97,6 +98,7 @@ package system_types_pkg;
             // {tag[8:0], index[0], VPN0[9:0], PO[11:0]}
     parameter ITLB_4MBPAGE_NUM_SETS = ITLB_4MBPAGE_ENTRIES / ITLB_4MBPAGE_ASSOC; // 2x
     parameter ITLB_4MBPAGE_INDEX_WIDTH = $clog2(ITLB_4MBPAGE_NUM_SETS); // 1b
+    parameter ITLB_4MBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4MBPAGE_INDEX_WIDTH - VPN0_WIDTH - PO_WIDTH; // 9b
 
     // dcache_write_buffer
 
