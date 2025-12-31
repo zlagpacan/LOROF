@@ -1,7 +1,7 @@
 """
     Filename: tb_generator.py
     Author: zlagpacan
-    Description: Script to automatically generate simple testbenches for a target module.
+    Description: Script to automatically generate simple cycle-by-cycle testbenches for a target module.
     Notes:
         - need to manually set struct fields
             - if use struct, also need to manually enumerate connections in TB for synthesized
@@ -14,6 +14,8 @@
 """
 
 import argparse
+import os
+import re
 
 PRINTS = False
 BLOCK_IS_SEQ = False
@@ -25,8 +27,9 @@ class Signal():
         self.name = name
 
 class Param():
-    def __init__(self, name, default_value):
+    def __init__(self, name, type, default_value):
         self.name = name
+        self.type = type
         self.default_value = default_value
 
 def parse_design(design_lines):
@@ -122,7 +125,12 @@ def parse_design(design_lines):
         if inside_param:
             # expect non-empty lines to all be parameters
             if (line.lstrip().startswith("parameter")):
-                design_params.append(Param(line[line.index("parameter ")+len("parameter "):line.index(" = ")], line[line.index(" = ")+len(" = "):].rstrip().rstrip(",")))
+                # grab last string before " = " as param name
+                type_name_string = line[line.index("parameter ")+len("parameter "):line.index(" = ")]
+                res = re.search(r'(\S+)$', type_name_string)
+                param_name = res.group(1)
+                param_type = type_name_string[:type_name_string.index(param_name)].rstrip()
+                design_params.append(Param(param_name, param_type, line[line.index(" = ")+len(" = "):].rstrip().rstrip(",")))
             else:
                 print("WARNING: found unexpected parameter section line:", line)
 
@@ -234,11 +242,11 @@ def generate_tb(args, tb_base_lines, design_name, design_signals, design_params)
             for i, param in enumerate(design_params):
                 if i < len(design_params) - 1:
                     output_lines.extend([
-                        f"\tparameter {param.name} = {param.default_value},\n",
+                        f"\tparameter {param.type}{' ' if param.type else ''}{param.name} = {param.default_value},\n",
                     ])
                 else:
                     output_lines.extend([
-                        f"\tparameter {param.name} = {param.default_value}\n",
+                        f"\tparameter {param.type}{' ' if param.type else ''}{param.name} = {param.default_value}\n",
                     ])
 
             num_found += 1
@@ -567,7 +575,11 @@ if __name__ == "__main__":
     if args.prints:
         PRINTS = True
 
+    # get this script dir so can get tb_base.txt and output to /tb
+    this_script_dir = os.path.dirname(os.path.abspath(__file__))
+
     # get input design file
+        # don't modify given path
     try:
         with open(args.design_file_path, "r") as fp:
             design_lines = fp.readlines()
@@ -575,8 +587,10 @@ if __name__ == "__main__":
         assert False, f"could not find {args.design_file_path}"
 
     # get tb base
+        # modify to relative to this script
+    tb_base_path = os.path.join(this_script_dir, "tb_base.txt")
     try:
-        with open("tb_base.txt", "r") as fp:
+        with open(tb_base_path, "r") as fp:
             tb_base_lines = fp.readlines()
     except:
         assert False, "could not find tb_base.txt"
@@ -587,10 +601,12 @@ if __name__ == "__main__":
     output_lines = generate_tb(args, tb_base_lines, design_name, design_signals, design_params)
 
     # write output file
+        # modify to relative to this script
     if args.output_to_tb_file:
-        output_file_path = f"{design_name}_tb.sv"
+        output_file_name = f"{design_name}_tb.sv"
     else:
-        output_file_path = "tb_output.txt"
+        output_file_name = "tb_output.txt"
+    output_file_path = os.path.join(this_script_dir, output_file_name)
     with open(output_file_path, "w") as fp:
         fp.writelines(output_lines)
 
