@@ -27,6 +27,10 @@ module itlb #(
     parameter ITLB_4MBPAGE_NUM_SETS = ITLB_4MBPAGE_ENTRIES / ITLB_4MBPAGE_ASSOC, // 2x
     parameter ITLB_4MBPAGE_INDEX_WIDTH = $clog2(ITLB_4MBPAGE_NUM_SETS), // 1b
     parameter ITLB_4MBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4MBPAGE_INDEX_WIDTH - VPN0_WIDTH - PO_WIDTH // 9b
+
+    // L2 TLB req tags
+    parameter ITLB_L2_TLB_REQ_TAG_COUNT = 4,
+    parameter ITLB_L2_TLB_REQ_TAG_WIDTH = $clog2(ITLB_L2_TLB_REQ_TAG_COUNT)
 ) (
     // seq
     input logic CLK,
@@ -46,18 +50,19 @@ module itlb #(
     output logic                    core_resp_access_fault,
 
     // req to L2 TLB
-    output logic                    l2_tlb_req_valid,
-    output logic [ASID_WIDTH-1:0]   l2_tlb_req_ASID,
-    output logic [VPN_WIDTH-1:0]    l2_tlb_req_VPN,
-    input logic                     l2_tlb_req_ready,
+    output logic                                    l2_tlb_req_valid,
+    output logic [ITLB_L2_TLB_REQ_TAG_WIDTH-1:0]    l2_tlb_req_tag,
+    output logic [ASID_WIDTH-1:0]                   l2_tlb_req_ASID,
+    output logic [VPN_WIDTH-1:0]                    l2_tlb_req_VPN,
+
+    input logic                                     l2_tlb_req_ready,
 
     // resp from L2 TLB
-    input logic                     l2_tlb_resp_valid,
-    input logic [ASID_WIDTH-1:0]    l2_tlb_resp_ASID,
-    input logic [VPN_WIDTH-1:0]     l2_tlb_resp_VPN,
-    input pte_t                     l2_tlb_resp_pte,
-    input logic                     l2_tlb_resp_is_superpage,
-    input logic                     l2_tlb_resp_access_fault,
+    input logic                                 l2_tlb_resp_valid,
+    output logic [L2_TLB_REQ_TAG_WIDTH-1:0]     l2_tlb_resp_tag,
+    input pte_t                                 l2_tlb_resp_pte,
+    input logic                                 l2_tlb_resp_is_superpage,
+    input logic                                 l2_tlb_resp_access_fault,
 
     // evict to L2 TLB
     output logic                    l2_tlb_evict_valid,
@@ -92,6 +97,10 @@ module itlb #(
         // this greatly simplifies miss resp state machine guaranteeing only perform eviction on cycle when it's needing, 
             // neatly requiring no entry buffering in or out
 
+    // tagged L2 TLB req's
+        // need to make sure get most recently updated version of PTE's
+        // old req with same ASID+VPN could have stale PTE with old resp arriving after newer req's resp
+
     // ----------------------------------------------------------------
     // Signals:
 
@@ -119,7 +128,7 @@ module itlb #(
         logic                               pte_V; // Valid
 
         // PMA components:
-        logic                               pma_executable;
+        logic                               pma_access_fault;
 
     } array_4KB_entry_t;
 
@@ -162,7 +171,7 @@ module itlb #(
         logic                               pte_V; // Valid
 
         // PMA components:
-        logic                               pma_executable;
+        logic                               pma_access_fault;
 
     } array_4MB_entry_t;
 
@@ -181,7 +190,68 @@ module itlb #(
     logic [ITLB_4MBPAGE_INDEX_WIDTH-1:0]    array_4MB_write_index;
     array_4MB_set_t                         array_4MB_write_set;
 
+    // core resp
+    logic                                   core_resp_stage_valid;
+    logic [1:0]                             core_resp_stage_exec_mode;
+    logic                                   core_resp_stage_virtual_mode;
+    logic                                   core_resp_stage_hit;
+    logic                                   core_resp_stage_miss;
+    logic                                   core_resp_stage_l2_req_sent;
+    logic                                   core_resp_stage_l2_req_tag;
 
+    // first stage
+    logic [ASID_WIDTH-1:0]                  first_stage_ASID;
+    logic [VPN_WIDTH-1:0]                   first_stage_VPN;
+
+    // second stage
+    logic [ASID_WIDTH-1:0]                  second_stage_ASID;
+    logic [VPN_WIDTH-1:0]                   second_stage_VPN;
+
+    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    second_stage_4KB_read_index;
+    logic [ITLB_4KBPAGE_ASSOC-1:0]          second_stage_4KB_valid_by_way;
+    logic [LOG_ITLB_4KBPAGE_ASSOC-1:0]      second_stage_4KB_invalid_way;
+    logic [ITLB_4KBPAGE_ASSOC-1:0]          second_stage_4KB_hit_by_way;
+    logic [LOG_ITLB_4KBPAGE_ASSOC-1:0]      second_stage_4KB_hitting_way;
+    logic [ITLB_4KBPAGE_ASSOC-2:0]          second_stage_4KB_old_plru;
+    logic [LOG_ITLB_4KBPAGE_ASSOC-1:0]      second_stage_4KB_new_way;
+    logic [ITLB_4KBPAGE_ASSOC-2:0]          second_stage_4KB_new_plru;
+
+    logic [ITLB_4MBPAGE_INDEX_WIDTH-1:0]    second_stage_4MB_read_index;
+    logic [ITLB_4MBPAGE_ASSOC-1:0]          second_stage_4MB_valid_by_way;
+    logic [LOG_ITLB_4MBPAGE_ASSOC-1:0]      second_stage_4MB_invalid_way;
+    logic [ITLB_4MBPAGE_ASSOC-1:0]          second_stage_4MB_hit_by_way;
+    logic [LOG_ITLB_4MBPAGE_ASSOC-1:0]      second_stage_4MB_hitting_way;
+    logic [ITLB_4MBPAGE_ASSOC-2:0]          second_stage_4MB_old_plru;
+    logic [LOG_ITLB_4MBPAGE_ASSOC-1:0]      second_stage_4MB_new_way;
+    logic [ITLB_4MBPAGE_ASSOC-2:0]          second_stage_4MB_new_plru;
+
+    // miss request
+    logic [ITLB_L2_TLB_REQ_TAG_COUNT-1:0]   miss_req_tag_vec;
+    logic [ITLB_L2_TLB_REQ_TAG_WIDTH-1:0]   miss_req_new_tag;
+
+    logic tag_tracker_new_tag_ready;
+
+    // miss return
+    logic miss_return_valid;
+    logic miss_return_4KB_valid;
+    logic miss_return_4MB_valid;
+
+    // sfence inv FSM
+    typedef enum logic [1:0] {
+        IDLE,
+        INV_SINGLE_SET,
+        INV_ALL_SETS
+    } sfence_fsm_state_t;
+    sfence_fsm_state_t sfence_fsm_state, next_sfence_fsm_state;
+    
+    logic [$clog2(ITLB_4KBPAGE_ENTRIES+ITLB_4MBPAGE_ENTRIES)-2:0] sfence_fsm_index;
+        // want to have enough bits for index of larger array
+        // 8 + 2 = 10 -> 4b - 1b = 3b for 8
+        // 8 + 8 = 16 -> 4b - 1b = 3b for 8
+        // 8 + 16 = 24 -> 5b - 1b = 4b for 16
+
+    logic sfence_fsm_active;
+    logic sfence_fsm_exiting;
 
     // mem map
     logic [PPN_WIDTH-1:0]   mem_map_PPN;
@@ -191,7 +261,175 @@ module itlb #(
     // ----------------------------------------------------------------
     // Logic:
 
+    // read port logic:
+    always_comb begin
+        // new sfence inv
+        if (sfence_inv_valid & sfence_inv_ready) begin
+            array_4KB_read_next_valid = 1'b1;
+            array_4MB_read_next_valid = 1'b1;
+            first_stage_ASID = sfence_inv_ASID;
+            first_stage_VPN = sfence_inv_VPN;
+        end
+        // new core req
+        else if (
+            core_req_valid
+            & ~sfence_inv_valid
+            & ~(sfence_fsm_active & ~sfence_fsm_exiting)
+        ) begin
+            array_4KB_read_next_valid = 1'b1;
+            array_4MB_read_next_valid = 1'b1;
+            first_stage_ASID = core_req_ASID;
+            first_stage_VPN = core_req_VPN;
+        end
+        else begin
+            array_4KB_read_next_valid = 1'b0;
+            array_4MB_read_next_valid = 1'b0;
+            first_stage_ASID = core_req_ASID; // don't care
+            first_stage_VPN = core_req_VPN; // don't care
+        end
+    end
 
+    // second stage logic:
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            second_stage_ASID <= 0;
+            second_stage_VPN <= 0;
+            second_stage_4KB_read_index <= 0;
+            second_stage_4MB_read_index <= 0;
+        end
+        else begin
+            second_stage_ASID <= first_stage_ASID;
+            second_stage_VPN <= first_stage_VPN;
+            second_stage_4KB_read_index <= array_4KB_read_next_index;
+            second_stage_4MB_read_index <= array_4MB_read_next_index;
+        end
+    end
+    always_comb begin
+        second_stage_4KB_valid_by_way = '0;
+        second_stage_4KB_invalid_way = 0;
+        second_stage_4KB_hit_by_way = '0;
+        second_stage_4KB_hitting_way = 0;
+        for (int way = 0; way < ITLB_4KBPAGE_ASSOC; way++) begin
+
+        end
+    end
+    plru_updater #(
+        .NUM_ENTRIES(ITLB_4KBPAGE_ASSOC)
+    ) PLRU_UPDATER_4KB (
+        .plru_in(second_stage_4KB_old_plru),
+        .new_valid(miss_return_4KB_valid),
+        .new_index(second_stage_4KB_new_way),
+        .touch_valid(
+            core_resp_stage_valid
+            & |core_resp_stage_4KB_hit_by_way
+        ),
+        .touch_index(second_stage_4KB_hitting_way),
+        .plru_out(second_stage_4KB_new_plru)
+    );
+    plru_updater #(
+        .NUM_ENTRIES(ITLB_4MBPAGE_ASSOC)
+    ) PLRU_UPDATER_4MB (
+        .plru_in(second_stage_4MB_old_plru),
+        .new_valid(miss_return_4MB_valid),
+        .new_index(second_stage_4MB_new_way),
+        .touch_valid(
+            core_resp_stage_valid
+            & |core_resp_stage_4MB_hit_by_way
+        ),
+        .touch_index(second_stage_4MB_hitting_way),
+        .plru_out(second_stage_4MB_new_plru)
+    );
+
+    // core resp logic:
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            core_resp_stage_valid <= 1'b0;
+            core_resp_stage_exec_mode <= INIT_EXEC_MODE;
+            core_resp_stage_virtual_mode <= INIT_VIRTUAL_MODE;
+            core_resp_stage_l2_req_sent <= 1'b0;
+        end
+        else begin
+            if (sfence_inv_valid | (sfence_fsm_active & ~sfence_fsm_exiting)) begin
+                core_resp_stage_valid <= 1'b0;
+                core_resp_stage_l2_req_sent <= 1'b0;
+            end
+            else if (core_req_valid) begin
+                core_resp_stage_valid <= 1'b1;
+                core_resp_stage_exec_mode <= core_req_exec_mode;
+                core_resp_stage_virtual_mode <= core_req_virtual_mode;
+                core_resp_stage_l2_req_sent <= 
+                    (core_resp_stage_l2_req_sent | l2_tlb_req_valid & l2_tlb_req_ready)
+                    & core_req_ASID == second_stage_ASID
+                    & core_req_VPN == second_stage_VPN;
+            end
+            else begin
+                core_resp_stage_valid <= 1'b0;
+                core_resp_stage_l2_req_sent <= 1'b0;
+            end
+        end
+    end
+    always_comb begin
+        core_resp_stage_hit = |second_stage_4KB_hit_by_way | |second_stage_4MB_hit_by_way;
+        core_resp_stage_miss = ~core_resp_stage_hit;
+
+
+    end
+
+    // miss request logic
+    always_comb begin
+        l2_tlb_req_valid = 
+            core_resp_stage_valid
+            & core_resp_stage_miss
+            & ~core_resp_stage_l2_req_sent
+            & tag_tracker_new_tag_ready
+        ;
+    end
+    tag_tracker #(
+        .TAG_COUNT(ITLB_L2_TLB_REQ_TAG_COUNT)
+    ) L2_TLB_REQ_TAG_TRACKER (
+        .CLK(CLK),
+        .nRST(nRST),
+        .new_tag_consume(l2_tlb_req_valid & l2_tlb_req_ready),
+        .new_tag_ready(tag_tracker_new_tag_ready),
+        .new_tag(l2_tlb_req_tag),
+        .old_tag_done(l2_tlb_resp_valid),
+        .old_tag(l2_tlb_resp_tag)
+    );
+
+    // miss return logic
+    always_comb begin
+        miss_return_valid = 
+            core_resp_stage_valid
+            & core_resp_stage_miss
+                // no double filling 
+            & core_resp_stage_l2_req_sent
+            & l2_tlb_resp_valid
+            & l2_tlb_resp_tag == core_resp_stage_l2_req_tag
+        ;
+
+        miss_return_4KB_valid = miss_return_valid & ~l2_tlb_resp_is_superpage;
+        miss_return_4MB_valid = miss_return_valid & l2_tlb_resp_is_superpage;
+    end
+
+    // TODO: l2 evict logic
+
+    // sfence fsm logic
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            
+        end
+        else begin
+
+        end
+    end
+    always_comb begin
+
+    end
+
+    // write port logic:
+    always_comb begin
+
+    end
 
     // array logic
     always_ff @ (posedge CLK, negedge nRST) begin

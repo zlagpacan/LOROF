@@ -1,7 +1,7 @@
 /*
     Filename: mem_map.sv
     Author: zlagpacan
-    Description: RTL for Memory Map
+    Description: RTL for Hardcoded Memory Map
     Spec: LOROF/spec/design/mem_map.md
 */
 
