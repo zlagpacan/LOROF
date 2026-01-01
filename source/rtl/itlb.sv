@@ -26,7 +26,7 @@ module itlb #(
     parameter LOG_ITLB_4MBPAGE_ASSOC = $clog2(ITLB_4MBPAGE_ASSOC), // 1b
     parameter ITLB_4MBPAGE_NUM_SETS = ITLB_4MBPAGE_ENTRIES / ITLB_4MBPAGE_ASSOC, // 2x
     parameter ITLB_4MBPAGE_INDEX_WIDTH = $clog2(ITLB_4MBPAGE_NUM_SETS), // 1b
-    parameter ITLB_4MBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4MBPAGE_INDEX_WIDTH - VPN0_WIDTH - PO_WIDTH // 9b
+    parameter ITLB_4MBPAGE_TAG_WIDTH = VA_WIDTH - ITLB_4MBPAGE_INDEX_WIDTH - VPN0_WIDTH - PO_WIDTH, // 9b
 
     // L2 TLB req tags
     parameter ITLB_L2_TLB_REQ_TAG_COUNT = 4,
@@ -58,11 +58,11 @@ module itlb #(
     input logic                                     l2_tlb_req_ready,
 
     // resp from L2 TLB
-    input logic                                 l2_tlb_resp_valid,
-    output logic [L2_TLB_REQ_TAG_WIDTH-1:0]     l2_tlb_resp_tag,
-    input pte_t                                 l2_tlb_resp_pte,
-    input logic                                 l2_tlb_resp_is_superpage,
-    input logic                                 l2_tlb_resp_access_fault,
+    input logic                                     l2_tlb_resp_valid,
+    input logic [ITLB_L2_TLB_REQ_TAG_WIDTH-1:0]     l2_tlb_resp_tag,
+    input pte_t                                     l2_tlb_resp_pte,
+    input logic                                     l2_tlb_resp_is_superpage,
+    input logic                                     l2_tlb_resp_access_fault,
 
     // evict to L2 TLB
     output logic                    l2_tlb_evict_valid,
@@ -110,31 +110,31 @@ module itlb #(
     typedef struct packed {
 
         // access components:
-        logic                               valid;
-        logic [ASID_WIDTH-1:0]              ASID;
-        logic [ITLB_4KBPAGE_TAG_WIDTH-1:0]  tag;
+        logic                   valid;
+        logic [ASID_WIDTH-1:0]  ASID;
+        logic [VPN_WIDTH-1:0]   VPN;
 
         // PTE components:
-        logic [11:0]                        pte_PPN1;
-        logic [9:0]                         pte_PPN0;
-        logic [1:0]                         pte_RSW; // RSW; preserve SW value
-        logic                               pte_D; // Dirty; no guarantees on value (e.g. self-modifying codes)
-                                            // Accessed; guaranteed 1 if in any TLB
-        logic                               pte_G; // Global; also relevant for VTM to bypass ASID match
-        logic                               pte_U; // User
-        logic                               pte_X; // eXecutable
-        logic                               pte_W; // Writeable
-        logic                               pte_R; // Readable
-        logic                               pte_V; // Valid
+        logic [11:0]            pte_PPN1;
+        logic [9:0]             pte_PPN0;
+        logic [1:0]             pte_RSW; // RSW; preserve SW value
+        logic                   pte_D; // Dirty; no guarantees on value (e.g. self-modifying codes)
+                                // Accessed; guaranteed 1 if in any TLB
+        logic                   pte_G; // Global; also relevant for VTM to bypass ASID match
+        logic                   pte_U; // User
+        logic                   pte_X; // eXecutable
+        logic                   pte_W; // Writeable
+        logic                   pte_R; // Readable
+        logic                   pte_V; // Valid
 
         // PMA components:
-        logic                               pma_access_fault;
+        logic                   pma_access_fault;
 
-    } array_4KB_entry_t;
+    } array_entry_t;
 
     typedef struct packed {
-        array_4KB_entry_t [ITLB_4KBPAGE_ASSOC-1:0]  entry_by_way;
-        logic [ITLB_4KBPAGE_ASSOC-2:0]              plru;
+        array_entry_t [ITLB_4KBPAGE_ASSOC-1:0]  entry_by_way;
+        logic [ITLB_4KBPAGE_ASSOC-2:0]          plru;
     } array_4KB_set_t;
 
     array_4KB_set_t [ITLB_4KBPAGE_NUM_SETS-1:0] array_4KB_by_set;
@@ -149,35 +149,12 @@ module itlb #(
 
     // 4MB page array:
         // reg
-    
-    typedef struct packed {
 
-        // access components:
-        logic                               valid;
-        logic [ASID_WIDTH-1:0]              ASID;
-        logic [ITLB_4MBPAGE_TAG_WIDTH-1:0]  tag;
-
-        // PTE components:
-        logic [11:0]                        pte_PPN1;
-        logic [9:0]                         pte_PPN0;
-        logic [1:0]                         pte_RSW; // RSW; preserve SW value
-        logic                               pte_D; // Dirty; no guarantees on value (e.g. self-modifying codes)
-                                            // Accessed; guaranteed 1 if in any TLB
-        logic                               pte_G; // Global; also relevant for VTM to bypass ASID match
-        logic                               pte_U; // User
-        logic                               pte_X; // eXecutable
-        logic                               pte_W; // Writeable
-        logic                               pte_R; // Readable
-        logic                               pte_V; // Valid
-
-        // PMA components:
-        logic                               pma_access_fault;
-
-    } array_4MB_entry_t;
+    // same array_entry_t as 4KB page array
 
     typedef struct packed {
-        array_4MB_entry_t [ITLB_4MBPAGE_ASSOC-1:0]  entry_by_way;
-        logic [ITLB_4MBPAGE_ASSOC-2:0]              plru;
+        array_entry_t [ITLB_4MBPAGE_ASSOC-1:0]  entry_by_way;
+        logic [ITLB_4MBPAGE_ASSOC-2:0]          plru;
     } array_4MB_set_t;
 
     array_4MB_set_t [ITLB_4MBPAGE_NUM_SETS-1:0] array_4MB_by_set;
@@ -197,7 +174,7 @@ module itlb #(
     logic                                   core_resp_stage_hit;
     logic                                   core_resp_stage_miss;
     logic                                   core_resp_stage_l2_req_sent;
-    logic                                   core_resp_stage_l2_req_tag;
+    logic [ITLB_L2_TLB_REQ_TAG_WIDTH-1:0]   core_resp_stage_l2_req_tag;
 
     // first stage
     logic [ASID_WIDTH-1:0]                  first_stage_ASID;
@@ -226,9 +203,6 @@ module itlb #(
     logic [ITLB_4MBPAGE_ASSOC-2:0]          second_stage_4MB_new_plru;
 
     // miss request
-    logic [ITLB_L2_TLB_REQ_TAG_COUNT-1:0]   miss_req_tag_vec;
-    logic [ITLB_L2_TLB_REQ_TAG_WIDTH-1:0]   miss_req_new_tag;
-
     logic tag_tracker_new_tag_ready;
 
     // miss return
@@ -305,24 +279,53 @@ module itlb #(
         end
     end
     always_comb begin
-        second_stage_4KB_valid_by_way = '0;
         second_stage_4KB_invalid_way = 0;
-        second_stage_4KB_hit_by_way = '0;
         second_stage_4KB_hitting_way = 0;
-        for (int way = 0; way < ITLB_4KBPAGE_ASSOC; way++) begin
-
+        // prioritize lower way -> iterate backwards
+        for (int way = ITLB_4KBPAGE_ASSOC-1; way >= 0; way--) begin
+            second_stage_4KB_valid_by_way[way] = array_4KB_read_set.entry_by_way[way].valid;
+            if (~second_stage_4KB_valid_by_way[way]) begin
+                second_stage_4KB_invalid_way = way;
+            end
+            second_stage_4KB_hit_by_way[way] = 
+                array_4KB_read_set.entry_by_way[way].valid
+                & array_4KB_read_set.entry_by_way[way].ASID == second_stage_ASID
+                & array_4KB_read_set.entry_by_way[way].VPN == second_stage_VPN;
+            if (second_stage_4KB_hit_by_way[way]) begin
+                second_stage_4KB_hitting_way = way;
+            end
         end
+        second_stage_4KB_old_plru = array_4KB_read_set.plru;
+    end
+    always_comb begin
+        second_stage_4MB_invalid_way = 0;
+        second_stage_4MB_hitting_way = 0;
+        // prioritize lower way -> iterate backwards
+        for (int way = ITLB_4MBPAGE_ASSOC-1; way >= 0; way--) begin
+            second_stage_4MB_valid_by_way[way] = array_4MB_read_set.entry_by_way[way].valid;
+            if (~second_stage_4MB_valid_by_way[way]) begin
+                second_stage_4MB_invalid_way = way;
+            end
+            second_stage_4MB_hit_by_way[way] = 
+                array_4MB_read_set.entry_by_way[way].valid
+                & (
+                    array_4MB_read_set.entry_by_way[way].ASID == second_stage_ASID
+                    | array_4MB_read_set.entry_by_way[way].pte_G
+                )
+                & array_4MB_read_set.entry_by_way[way].VPN == second_stage_VPN;
+            if (second_stage_4MB_hit_by_way[way]) begin
+                second_stage_4MB_hitting_way = way;
+            end
+        end
+        second_stage_4MB_old_plru = array_4MB_read_set.plru;
     end
     plru_updater #(
         .NUM_ENTRIES(ITLB_4KBPAGE_ASSOC)
     ) PLRU_UPDATER_4KB (
         .plru_in(second_stage_4KB_old_plru),
-        .new_valid(miss_return_4KB_valid),
+        .new_valid(1'b0), // only update plru on hits
         .new_index(second_stage_4KB_new_way),
-        .touch_valid(
-            core_resp_stage_valid
-            & |core_resp_stage_4KB_hit_by_way
-        ),
+        .touch_valid(core_resp_stage_valid & |second_stage_4KB_hit_by_way),
         .touch_index(second_stage_4KB_hitting_way),
         .plru_out(second_stage_4KB_new_plru)
     );
@@ -330,12 +333,9 @@ module itlb #(
         .NUM_ENTRIES(ITLB_4MBPAGE_ASSOC)
     ) PLRU_UPDATER_4MB (
         .plru_in(second_stage_4MB_old_plru),
-        .new_valid(miss_return_4MB_valid),
+        .new_valid(1'b0), // only update plru on hits
         .new_index(second_stage_4MB_new_way),
-        .touch_valid(
-            core_resp_stage_valid
-            & |core_resp_stage_4MB_hit_by_way
-        ),
+        .touch_valid(core_resp_stage_valid & |second_stage_4MB_hit_by_way),
         .touch_index(second_stage_4MB_hitting_way),
         .plru_out(second_stage_4MB_new_plru)
     );
@@ -347,6 +347,7 @@ module itlb #(
             core_resp_stage_exec_mode <= INIT_EXEC_MODE;
             core_resp_stage_virtual_mode <= INIT_VIRTUAL_MODE;
             core_resp_stage_l2_req_sent <= 1'b0;
+            core_resp_stage_l2_req_tag <= 0;
         end
         else begin
             if (sfence_inv_valid | (sfence_fsm_active & ~sfence_fsm_exiting)) begin
@@ -360,7 +361,15 @@ module itlb #(
                 core_resp_stage_l2_req_sent <= 
                     (core_resp_stage_l2_req_sent | l2_tlb_req_valid & l2_tlb_req_ready)
                     & core_req_ASID == second_stage_ASID
-                    & core_req_VPN == second_stage_VPN;
+                    & core_req_VPN == second_stage_VPN
+                ;
+                if (
+                    l2_tlb_req_valid & l2_tlb_req_ready
+                    & core_req_ASID == second_stage_ASID
+                    & core_req_VPN == second_stage_VPN
+                ) begin
+                    core_resp_stage_l2_req_tag <= l2_tlb_req_tag;
+                end
             end
             else begin
                 core_resp_stage_valid <= 1'b0;
@@ -371,8 +380,84 @@ module itlb #(
     always_comb begin
         core_resp_stage_hit = |second_stage_4KB_hit_by_way | |second_stage_4MB_hit_by_way;
         core_resp_stage_miss = ~core_resp_stage_hit;
-
-
+    end
+    always_comb begin
+        core_resp_PPN = '0;
+        core_resp_page_fault = 1'b0;
+        core_resp_access_fault = 1'b0;
+        // TLB lookup
+        if (core_resp_stage_virtual_mode) begin
+            core_resp_valid = core_resp_stage_valid & core_resp_stage_hit;
+            // 4KB array hit
+            if (|second_stage_4KB_hit_by_way) begin
+                for (int way = 0; way < ITLB_4KBPAGE_ASSOC; way++) begin
+                    if (second_stage_4KB_hit_by_way[i]) begin
+                        // PPN components:
+                            // PPN1: array entry
+                            // PPN0: array entry
+                        core_resp_PPN |= {
+                            array_4KB_read_set.entry_by_way[way].pte_PPN1,
+                            array_4KB_read_set.entry_by_way[way].pte_PPN0
+                        };
+                        // page fault conditions:
+                            // ~V
+                            // ~X
+                            // X & W & ~R
+                            // U_MODE & ~U
+                        core_resp_page_fault |= 
+                            ~array_4KB_read_set.entry_by_way[way].pte_V
+                            | ~array_4KB_read_set.entry_by_way[way].pte_X
+                            | (array_4KB_read_set.entry_by_way[way].pte_W & ~array_4KB_read_set.entry_by_way[way].pte_R)
+                            | (core_resp_stage_exec_mode == U_MODE & array_4KB_read_set.entry_by_way[way].pte_U)
+                        ;
+                        // access fault conditions:
+                            // no PMA access fault (in TLB entry)
+                            // given access fault from l2 resp
+                        core_resp_access_fault |= array_4KB_read_set.entry_by_way[way].pma_access_fault;
+                    end
+                end
+            end
+            // 4MB array hit
+            else begin
+                for (int way = 0; way < ITLB_4MBPAGE_ASSOC; way++) begin
+                    if (second_stage_4MB_hit_by_way[i]) begin
+                        // PPN components:
+                            // PPN1: array entry
+                            // PPN0: core req VPN0
+                        core_resp_PPN |= {
+                            array_4MB_read_set.entry_by_way[way].pte_PPN1,
+                        };
+                        // page fault conditions:
+                            // ~V
+                            // ~X
+                            // X & W & ~R
+                            // U_MODE & ~U
+                            // PPN0 != 0
+                        core_resp_page_fault |= 
+                            ~array_4MB_read_set.entry_by_way[way].pte_V
+                            | ~array_4MB_read_set.entry_by_way[way].pte_X
+                            | (array_4MB_read_set.entry_by_way[way].pte_W & ~array_4MB_read_set.entry_by_way[way].pte_R)
+                            | (core_resp_stage_exec_mode == U_MODE & array_4MB_read_set.entry_by_way[way].pte_U)
+                            | array_4MB_read_set.entry_by_way[way].PPN0 != 0
+                        ;
+                        // access fault conditions:
+                            // no PMA access fault
+                            // given access fault from l2 resp
+                            // these conditions are condensed into array entry access fault 
+                        core_resp_access_fault |= array_4MB_read_set.entry_by_way[way].pma_access_fault;
+                    end
+                end
+            end
+        end
+        // baremetal
+        else begin
+            core_resp_valid = core_resp_stage_valid;
+                // guaranteed hit for baremetal, only have to do PMA checks
+            core_resp_PPN = $signed(core_resp_stage_VPN);
+                // sign extend VPN -> PPN
+            core_resp_page_fault = 1'b0;
+            core_resp_access_fault = ~(mem_map_DRAM | mem_map_ROB);
+        end
     end
 
     // miss request logic
@@ -383,6 +468,8 @@ module itlb #(
             & ~core_resp_stage_l2_req_sent
             & tag_tracker_new_tag_ready
         ;
+        l2_tlb_req_ASID = second_stage_ASID;
+        l2_tlb_req_VPN = second_stage_VPN;
     end
     tag_tracker #(
         .TAG_COUNT(ITLB_L2_TLB_REQ_TAG_COUNT)
@@ -406,14 +493,78 @@ module itlb #(
             & l2_tlb_resp_valid
             & l2_tlb_resp_tag == core_resp_stage_l2_req_tag
         ;
-
         miss_return_4KB_valid = miss_return_valid & ~l2_tlb_resp_is_superpage;
         miss_return_4MB_valid = miss_return_valid & l2_tlb_resp_is_superpage;
     end
 
-    // TODO: l2 evict logic
+    // l2 evict logic
+    always_comb begin
+        // 4KB array eviction
+        if (miss_return_4KB_valid) begin
+            l2_tlb_evict_valid = &second_stage_4KB_valid_by_way;
+            // get ASID, VPN, pte from new way
+            l2_tlb_evict_ASID = array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].ASID;
+            l2_tlb_evict_VPN = array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].VPN;
+            l2_tlb_evict_pte = {
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_PPN1,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_PPN0,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_RSW,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_D,
+                1'b1,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_G,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_U,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_X,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_W,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_R,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_V,
+            };
+            l2_tlb_evict_is_superpage = 1'b0;
+        end
+        // 4MB array eviction
+        else if (miss_return_4MB_valid) begin
+            l2_tlb_evict_valid = &second_stage_4MB_valid_by_way;
+            // get ASID, VPN, pte from new way
+            l2_tlb_evict_ASID = array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].ASID;
+            l2_tlb_evict_VPN = array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].VPN;
+            l2_tlb_evict_pte = {
+                array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].pte_PPN1,
+                array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].pte_PPN0,
+                array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].pte_RSW,
+                array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].pte_D,
+                1'b1,
+                array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].pte_G,
+                array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].pte_U,
+                array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].pte_X,
+                array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].pte_W,
+                array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].pte_R,
+                array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].pte_V,
+            };
+            l2_tlb_evict_is_superpage = 1'b1;
+        end
+        else begin
+            l2_tlb_evict_valid = 1'b0;
+            // rest don't cares from 4KB array
+            l2_tlb_evict_ASID = array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].ASID;
+            l2_tlb_evict_VPN = array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].VPN;
+            l2_tlb_evict_pte = {
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_PPN1,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_PPN0,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_RSW,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_D,
+                1'b1,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_G,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_U,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_X,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_W,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_R,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_V,
+            };
+            l2_tlb_evict_is_superpage = 1'b0;
+        end
+    end
 
     // sfence fsm logic
+        // TODO
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             
@@ -428,8 +579,28 @@ module itlb #(
 
     // write port logic:
     always_comb begin
-
+        // TODO
     end
+
+    // mem map logic:
+    always_comb begin
+        if (core_resp_stage_virtual_mode) begin
+            // need mem map for tlb entry fill
+            mem_map_PPN = {
+                l2_tlb_resp_pte.PPN1,
+                l2_tlb_resp_pte.PPN0
+            };
+        end
+        else begin
+            // need mem map for baremetal access addr
+            mem_map_PPN = $signed(core_resp_stage_VPN);
+        end
+    end
+    mem_map MEM_MAP (
+        .PPN(mem_map_PPN),
+        .DRAM(mem_map_DRAM),
+        .ROM(mem_map_ROM)
+    );
 
     // array logic
     always_ff @ (posedge CLK, negedge nRST) begin

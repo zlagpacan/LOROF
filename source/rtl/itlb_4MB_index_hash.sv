@@ -16,21 +16,19 @@ module itlb_4MB_index_hash (
     input logic [ASID_WIDTH-1:0] ASID,
     output logic [ITLB_4MBPAGE_INDEX_WIDTH-1:0] index
 );
-    // lowest VPN ^ next lowest VPN ^ lowest ASID ^ next lowest ASID
-    always_comb begin
-        index = VPN[ITLB_4MBPAGE_INDEX_WIDTH-1:0];
-        index ^= VPN[ITLB_4MBPAGE_INDEX_WIDTH*2-1:ITLB_4MBPAGE_INDEX_WIDTH];
-        index ^= ASID[ITLB_4MBPAGE_INDEX_WIDTH-1:0];
-        index ^= ASID[ITLB_4MBPAGE_INDEX_WIDTH*2-1:ITLB_4MBPAGE_INDEX_WIDTH];
-    end
-
-    // // lowest VPN ^ next lowest VPN
-    //     // can't mix up ASID's to different index's due to Global mapping
-    //     // SFENCE.VMA must be able to access all possible VPN mappings in single set
-    //         // actually have to iterate through whole array anyway if rs1 == 0
+    // // lowest VPN ^ next lowest VPN ^ lowest ASID ^ next lowest ASID
     // always_comb begin
     //     index = VPN[ITLB_4MBPAGE_INDEX_WIDTH-1:0];
     //     index ^= VPN[ITLB_4MBPAGE_INDEX_WIDTH*2-1:ITLB_4MBPAGE_INDEX_WIDTH];
+    //     index ^= ASID[ITLB_4MBPAGE_INDEX_WIDTH-1:0];
+    //     index ^= ASID[ITLB_4MBPAGE_INDEX_WIDTH*2-1:ITLB_4MBPAGE_INDEX_WIDTH];
     // end
+
+    // lowest VPN ^ next lowest VPN
+        // can't mix up ASID's to different index's due to Global mapping
+    always_comb begin
+        index = VPN[ITLB_4MBPAGE_INDEX_WIDTH-1:0];
+        index ^= VPN[ITLB_4MBPAGE_INDEX_WIDTH*2-1:ITLB_4MBPAGE_INDEX_WIDTH];
+    end
 
 endmodule
