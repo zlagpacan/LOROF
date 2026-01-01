@@ -300,6 +300,7 @@ module itlb_tb #(
 		tb_l2_tlb_resp_pte = {
 			12'h000, 10'h000,
 			2'b00,
+			// D     A     G     U     X     W     R     V
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
@@ -334,6 +335,7 @@ module itlb_tb #(
 		expected_l2_tlb_evict_pte = {
 			12'h000, 10'h000,
 			2'b00,
+			// D     A     G     U     X     W     R     V
 			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		expected_l2_tlb_evict_is_superpage = 1'b0;
@@ -364,6 +366,7 @@ module itlb_tb #(
 		tb_l2_tlb_resp_pte = {
 			12'h000, 10'h000,
 			2'b00,
+			// D     A     G     U     X     W     R     V
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
@@ -398,6 +401,7 @@ module itlb_tb #(
 		expected_l2_tlb_evict_pte = {
 			12'h000, 10'h000,
 			2'b00,
+			// D     A     G     U     X     W     R     V
 			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		expected_l2_tlb_evict_is_superpage = 1'b0;
@@ -416,7 +420,7 @@ module itlb_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"baremetal 0",
+		sub_test_case = {"baremetal",
 			"\n\t\t", " first: 000,00000", 
 			"\n\t\t", "second: ",
 			"\n\t\t", " other: "
@@ -440,6 +444,7 @@ module itlb_tb #(
 		tb_l2_tlb_resp_pte = {
 			12'h000, 10'h000,
 			2'b00,
+			// D     A     G     U     X     W     R     V
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
@@ -474,6 +479,7 @@ module itlb_tb #(
 		expected_l2_tlb_evict_pte = {
 			12'h000, 10'h000,
 			2'b00,
+			// D     A     G     U     X     W     R     V
 			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		expected_l2_tlb_evict_is_superpage = 1'b0;
@@ -486,7 +492,7 @@ module itlb_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"baremetal 1",
+		sub_test_case = {"baremetal",
 			"\n\t\t", " first: 111,11111", 
 			"\n\t\t", "second: 000,00000",
 			"\n\t\t", " other: "
@@ -510,6 +516,7 @@ module itlb_tb #(
 		tb_l2_tlb_resp_pte = {
 			12'h000, 10'h000,
 			2'b00,
+			// D     A     G     U     X     W     R     V
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
@@ -544,6 +551,7 @@ module itlb_tb #(
 		expected_l2_tlb_evict_pte = {
 			12'h000, 10'h000,
 			2'b00,
+			// D     A     G     U     X     W     R     V
 			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		expected_l2_tlb_evict_is_superpage = 1'b0;
@@ -556,7 +564,7 @@ module itlb_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"baremetal 2",
+		sub_test_case = {"baremetal",
 			"\n\t\t", " first: 888,88888", 
 			"\n\t\t", "second: 111,11111",
 			"\n\t\t", " other: "
@@ -580,6 +588,7 @@ module itlb_tb #(
 		tb_l2_tlb_resp_pte = {
 			12'h000, 10'h000,
 			2'b00,
+			// D     A     G     U     X     W     R     V
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
@@ -614,6 +623,7 @@ module itlb_tb #(
 		expected_l2_tlb_evict_pte = {
 			12'h000, 10'h000,
 			2'b00,
+			// D     A     G     U     X     W     R     V
 			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		expected_l2_tlb_evict_is_superpage = 1'b0;
@@ -626,7 +636,7 @@ module itlb_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"baremetal 3",
+		sub_test_case = {"baremetal",
 			"\n\t\t", " first: 001,00001", 
 			"\n\t\t", "second: 888,88888",
 			"\n\t\t", " other: "
@@ -650,6 +660,7 @@ module itlb_tb #(
 		tb_l2_tlb_resp_pte = {
 			12'h000, 10'h000,
 			2'b00,
+			// D     A     G     U     X     W     R     V
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
@@ -684,6 +695,7 @@ module itlb_tb #(
 		expected_l2_tlb_evict_pte = {
 			12'h000, 10'h000,
 			2'b00,
+			// D     A     G     U     X     W     R     V
 			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		expected_l2_tlb_evict_is_superpage = 1'b0;
@@ -696,7 +708,7 @@ module itlb_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"baremetal 4",
+		sub_test_case = {"baremetal",
 			"\n\t\t", " first: ",
 			"\n\t\t", "second: 001,00001",
 			"\n\t\t", " other: "
@@ -720,6 +732,7 @@ module itlb_tb #(
 		tb_l2_tlb_resp_pte = {
 			12'h000, 10'h000,
 			2'b00,
+			// D     A     G     U     X     W     R     V
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
@@ -754,6 +767,661 @@ module itlb_tb #(
 		expected_l2_tlb_evict_pte = {
 			12'h000, 10'h000,
 			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+		};
+		expected_l2_tlb_evict_is_superpage = 1'b0;
+	    // sfence invalidation
+	    // sfence invalidation backpressure
+		expected_sfence_inv_ready = 1'b1;
+
+		check_outputs();
+
+        // ------------------------------------------------------------
+        // U mode:
+        test_case = "U mode";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"U mode",
+			"\n\t\t", " first: 0f0,0f0f0", 
+			"\n\t\t", "second: ",
+			"\n\t\t", " other: "
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // core req
+		tb_core_req_valid = 1'b1;
+		tb_core_req_exec_mode = U_MODE;
+		tb_core_req_virtual_mode = 1'b1;
+		tb_core_req_ASID = 9'h0f0;
+		tb_core_req_VPN = 20'h0f0f0;
+	    // core resp
+	    // req to L2 TLB
+		tb_l2_tlb_req_ready = 1'b1;
+	    // resp from L2 TLB
+		tb_l2_tlb_resp_valid = 1'b0;
+		tb_l2_tlb_resp_tag = 2'h0;
+		tb_l2_tlb_resp_pte = {
+			12'h000, 10'h000,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+		};
+		tb_l2_tlb_resp_is_superpage = 1'b0;
+		tb_l2_tlb_resp_access_fault = 1'b0;
+	    // evict to L2 TLB
+	    // sfence invalidation
+		tb_sfence_inv_valid = 1'b0;
+		tb_sfence_inv_ASID = 9'h000;
+		tb_sfence_inv_VPN = 20'h00000;
+	    // sfence invalidation backpressure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // core req
+	    // core resp
+		expected_core_resp_valid = 1'b0;
+		expected_core_resp_PPN = 22'h000000;
+		expected_core_resp_page_fault = 1'b0;
+		expected_core_resp_access_fault = 1'b1;
+	    // req to L2 TLB
+		expected_l2_tlb_req_valid = 1'b0;
+		expected_l2_tlb_req_tag = 2'h0;
+		expected_l2_tlb_req_ASID = 9'h000;
+		expected_l2_tlb_req_VPN = 20'h00000;
+	    // resp from L2 TLB
+	    // evict to L2 TLB
+		expected_l2_tlb_evict_valid = 1'b0;
+		expected_l2_tlb_evict_ASID = 9'h000;
+		expected_l2_tlb_evict_VPN = 20'h00000;
+		expected_l2_tlb_evict_pte = {
+			12'h000, 10'h000,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+		};
+		expected_l2_tlb_evict_is_superpage = 1'b0;
+	    // sfence invalidation
+	    // sfence invalidation backpressure
+		expected_sfence_inv_ready = 1'b1;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"U mode",
+			"\n\t\t", " first: 0f0,0f0f0", 
+			"\n\t\t", "second: 0f0,0f0f0 (l2 req not ready)",
+			"\n\t\t", " other: "
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // core req
+		tb_core_req_valid = 1'b1;
+		tb_core_req_exec_mode = U_MODE;
+		tb_core_req_virtual_mode = 1'b1;
+		tb_core_req_ASID = 9'h0f0;
+		tb_core_req_VPN = 20'h0f0f0;
+	    // core resp
+	    // req to L2 TLB
+		tb_l2_tlb_req_ready = 1'b0;
+	    // resp from L2 TLB
+		tb_l2_tlb_resp_valid = 1'b0;
+		tb_l2_tlb_resp_tag = 2'h0;
+		tb_l2_tlb_resp_pte = {
+			12'h000, 10'h000,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+		};
+		tb_l2_tlb_resp_is_superpage = 1'b0;
+		tb_l2_tlb_resp_access_fault = 1'b0;
+	    // evict to L2 TLB
+	    // sfence invalidation
+		tb_sfence_inv_valid = 1'b0;
+		tb_sfence_inv_ASID = 9'h000;
+		tb_sfence_inv_VPN = 20'h00000;
+	    // sfence invalidation backpressure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // core req
+	    // core resp
+		expected_core_resp_valid = 1'b0;
+		expected_core_resp_PPN = 22'h000000;
+		expected_core_resp_page_fault = 1'b0;
+		expected_core_resp_access_fault = 1'b0;
+	    // req to L2 TLB
+		expected_l2_tlb_req_valid = 1'b1;
+		expected_l2_tlb_req_tag = 2'h0;
+		expected_l2_tlb_req_ASID = 9'h0f0;
+		expected_l2_tlb_req_VPN = 20'h0f0f0;
+	    // resp from L2 TLB
+	    // evict to L2 TLB
+		expected_l2_tlb_evict_valid = 1'b0;
+		expected_l2_tlb_evict_ASID = 9'h000;
+		expected_l2_tlb_evict_VPN = 20'h00000;
+		expected_l2_tlb_evict_pte = {
+			12'h000, 10'h000,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+		};
+		expected_l2_tlb_evict_is_superpage = 1'b0;
+	    // sfence invalidation
+	    // sfence invalidation backpressure
+		expected_sfence_inv_ready = 1'b1;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"U mode",
+			"\n\t\t", " first: 0f0,0f0f0", 
+			"\n\t\t", "second: 0f0,0f0f0 (l2 req tag 0)",
+			"\n\t\t", " other: "
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // core req
+		tb_core_req_valid = 1'b1;
+		tb_core_req_exec_mode = U_MODE;
+		tb_core_req_virtual_mode = 1'b1;
+		tb_core_req_ASID = 9'h0f0;
+		tb_core_req_VPN = 20'h0f0f0;
+	    // core resp
+	    // req to L2 TLB
+		tb_l2_tlb_req_ready = 1'b1;
+	    // resp from L2 TLB
+		tb_l2_tlb_resp_valid = 1'b0;
+		tb_l2_tlb_resp_tag = 2'h0;
+		tb_l2_tlb_resp_pte = {
+			12'h000, 10'h000,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+		};
+		tb_l2_tlb_resp_is_superpage = 1'b0;
+		tb_l2_tlb_resp_access_fault = 1'b0;
+	    // evict to L2 TLB
+	    // sfence invalidation
+		tb_sfence_inv_valid = 1'b0;
+		tb_sfence_inv_ASID = 9'h000;
+		tb_sfence_inv_VPN = 20'h00000;
+	    // sfence invalidation backpressure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // core req
+	    // core resp
+		expected_core_resp_valid = 1'b0;
+		expected_core_resp_PPN = 22'h000000;
+		expected_core_resp_page_fault = 1'b0;
+		expected_core_resp_access_fault = 1'b0;
+	    // req to L2 TLB
+		expected_l2_tlb_req_valid = 1'b1;
+		expected_l2_tlb_req_tag = 2'h0;
+		expected_l2_tlb_req_ASID = 9'h0f0;
+		expected_l2_tlb_req_VPN = 20'h0f0f0;
+	    // resp from L2 TLB
+	    // evict to L2 TLB
+		expected_l2_tlb_evict_valid = 1'b0;
+		expected_l2_tlb_evict_ASID = 9'h000;
+		expected_l2_tlb_evict_VPN = 20'h00000;
+		expected_l2_tlb_evict_pte = {
+			12'h000, 10'h000,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+		};
+		expected_l2_tlb_evict_is_superpage = 1'b0;
+	    // sfence invalidation
+	    // sfence invalidation backpressure
+		expected_sfence_inv_ready = 1'b1;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"U mode",
+			"\n\t\t", " first: f0f,f0f0f", 
+			"\n\t\t", "second: 0f0,0f0f0",
+			"\n\t\t", " other: tag 0 waiting"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // core req
+		tb_core_req_valid = 1'b1;
+		tb_core_req_exec_mode = U_MODE;
+		tb_core_req_virtual_mode = 1'b1;
+		tb_core_req_ASID = 9'hf0f;
+		tb_core_req_VPN = 20'hf0f0f;
+	    // core resp
+	    // req to L2 TLB
+		tb_l2_tlb_req_ready = 1'b1;
+	    // resp from L2 TLB
+		tb_l2_tlb_resp_valid = 1'b0;
+		tb_l2_tlb_resp_tag = 2'h0;
+		tb_l2_tlb_resp_pte = {
+			12'h000, 10'h000,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+		};
+		tb_l2_tlb_resp_is_superpage = 1'b0;
+		tb_l2_tlb_resp_access_fault = 1'b0;
+	    // evict to L2 TLB
+	    // sfence invalidation
+		tb_sfence_inv_valid = 1'b0;
+		tb_sfence_inv_ASID = 9'h000;
+		tb_sfence_inv_VPN = 20'h00000;
+	    // sfence invalidation backpressure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // core req
+	    // core resp
+		expected_core_resp_valid = 1'b0;
+		expected_core_resp_PPN = 22'h000000;
+		expected_core_resp_page_fault = 1'b0;
+		expected_core_resp_access_fault = 1'b0;
+	    // req to L2 TLB
+		expected_l2_tlb_req_valid = 1'b0;
+		expected_l2_tlb_req_tag = 2'h1;
+		expected_l2_tlb_req_ASID = 9'h0f0;
+		expected_l2_tlb_req_VPN = 20'h0f0f0;
+	    // resp from L2 TLB
+	    // evict to L2 TLB
+		expected_l2_tlb_evict_valid = 1'b0;
+		expected_l2_tlb_evict_ASID = 9'h000;
+		expected_l2_tlb_evict_VPN = 20'h00000;
+		expected_l2_tlb_evict_pte = {
+			12'h000, 10'h000,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+		};
+		expected_l2_tlb_evict_is_superpage = 1'b0;
+	    // sfence invalidation
+	    // sfence invalidation backpressure
+		expected_sfence_inv_ready = 1'b1;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"U mode",
+			"\n\t\t", " first: f0f,f0f0f", 
+			"\n\t\t", "second: f0f,f0f0f (l2 req tag 1)",
+			"\n\t\t", " other: tag 0 waiting"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // core req
+		tb_core_req_valid = 1'b1;
+		tb_core_req_exec_mode = U_MODE;
+		tb_core_req_virtual_mode = 1'b1;
+		tb_core_req_ASID = 9'hf0f;
+		tb_core_req_VPN = 20'hf0f0f;
+	    // core resp
+	    // req to L2 TLB
+		tb_l2_tlb_req_ready = 1'b1;
+	    // resp from L2 TLB
+		tb_l2_tlb_resp_valid = 1'b0;
+		tb_l2_tlb_resp_tag = 2'h0;
+		tb_l2_tlb_resp_pte = {
+			12'h000, 10'h000,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+		};
+		tb_l2_tlb_resp_is_superpage = 1'b0;
+		tb_l2_tlb_resp_access_fault = 1'b0;
+	    // evict to L2 TLB
+	    // sfence invalidation
+		tb_sfence_inv_valid = 1'b0;
+		tb_sfence_inv_ASID = 9'h000;
+		tb_sfence_inv_VPN = 20'h00000;
+	    // sfence invalidation backpressure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // core req
+	    // core resp
+		expected_core_resp_valid = 1'b0;
+		expected_core_resp_PPN = 22'h000000;
+		expected_core_resp_page_fault = 1'b0;
+		expected_core_resp_access_fault = 1'b0;
+	    // req to L2 TLB
+		expected_l2_tlb_req_valid = 1'b1;
+		expected_l2_tlb_req_tag = 2'h1;
+		expected_l2_tlb_req_ASID = 9'hf0f;
+		expected_l2_tlb_req_VPN = 20'hf0f0f;
+	    // resp from L2 TLB
+	    // evict to L2 TLB
+		expected_l2_tlb_evict_valid = 1'b0;
+		expected_l2_tlb_evict_ASID = 9'h000;
+		expected_l2_tlb_evict_VPN = 20'h00000;
+		expected_l2_tlb_evict_pte = {
+			12'h000, 10'h000,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+		};
+		expected_l2_tlb_evict_is_superpage = 1'b0;
+	    // sfence invalidation
+	    // sfence invalidation backpressure
+		expected_sfence_inv_ready = 1'b1;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"U mode",
+			"\n\t\t", " first: f0f,f0f0f", 
+			"\n\t\t", "second: f0f,f0f0f",
+			"\n\t\t", " other: tag 0 waiting, tag 1 waiting"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // core req
+		tb_core_req_valid = 1'b1;
+		tb_core_req_exec_mode = U_MODE;
+		tb_core_req_virtual_mode = 1'b1;
+		tb_core_req_ASID = 9'hf0f;
+		tb_core_req_VPN = 20'hf0f0f;
+	    // core resp
+	    // req to L2 TLB
+		tb_l2_tlb_req_ready = 1'b1;
+	    // resp from L2 TLB
+		tb_l2_tlb_resp_valid = 1'b0;
+		tb_l2_tlb_resp_tag = 2'h0;
+		tb_l2_tlb_resp_pte = {
+			12'h000, 10'h000,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+		};
+		tb_l2_tlb_resp_is_superpage = 1'b0;
+		tb_l2_tlb_resp_access_fault = 1'b0;
+	    // evict to L2 TLB
+	    // sfence invalidation
+		tb_sfence_inv_valid = 1'b0;
+		tb_sfence_inv_ASID = 9'h000;
+		tb_sfence_inv_VPN = 20'h00000;
+	    // sfence invalidation backpressure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // core req
+	    // core resp
+		expected_core_resp_valid = 1'b0;
+		expected_core_resp_PPN = 22'h000000;
+		expected_core_resp_page_fault = 1'b0;
+		expected_core_resp_access_fault = 1'b0;
+	    // req to L2 TLB
+		expected_l2_tlb_req_valid = 1'b0;
+		expected_l2_tlb_req_tag = 2'h2;
+		expected_l2_tlb_req_ASID = 9'hf0f;
+		expected_l2_tlb_req_VPN = 20'hf0f0f;
+	    // resp from L2 TLB
+	    // evict to L2 TLB
+		expected_l2_tlb_evict_valid = 1'b0;
+		expected_l2_tlb_evict_ASID = 9'h000;
+		expected_l2_tlb_evict_VPN = 20'h00000;
+		expected_l2_tlb_evict_pte = {
+			12'h000, 10'h000,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+		};
+		expected_l2_tlb_evict_is_superpage = 1'b0;
+	    // sfence invalidation
+	    // sfence invalidation backpressure
+		expected_sfence_inv_ready = 1'b1;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"U mode",
+			"\n\t\t", " first: f0f,f0f0f", 
+			"\n\t\t", "second: f0f,f0f0f",
+			"\n\t\t", " other: tag 0 resp, tag 1 waiting"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // core req
+		tb_core_req_valid = 1'b1;
+		tb_core_req_exec_mode = U_MODE;
+		tb_core_req_virtual_mode = 1'b1;
+		tb_core_req_ASID = 9'hf0f;
+		tb_core_req_VPN = 20'hf0f0f;
+	    // core resp
+	    // req to L2 TLB
+		tb_l2_tlb_req_ready = 1'b1;
+	    // resp from L2 TLB
+		tb_l2_tlb_resp_valid = 1'b1;
+		tb_l2_tlb_resp_tag = 2'h0;
+		tb_l2_tlb_resp_pte = {
+			22'h30f30f,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b1, 1'b0, 1'b1, 1'b0, 1'b1, 1'b0, 1'b1
+		};
+		tb_l2_tlb_resp_is_superpage = 1'b1;
+		tb_l2_tlb_resp_access_fault = 1'b0;
+	    // evict to L2 TLB
+	    // sfence invalidation
+		tb_sfence_inv_valid = 1'b0;
+		tb_sfence_inv_ASID = 9'h000;
+		tb_sfence_inv_VPN = 20'h00000;
+	    // sfence invalidation backpressure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // core req
+	    // core resp
+		expected_core_resp_valid = 1'b0;
+		expected_core_resp_PPN = 22'h000000;
+		expected_core_resp_page_fault = 1'b0;
+		expected_core_resp_access_fault = 1'b0;
+	    // req to L2 TLB
+		expected_l2_tlb_req_valid = 1'b0;
+		expected_l2_tlb_req_tag = 2'h2;
+		expected_l2_tlb_req_ASID = 9'hf0f;
+		expected_l2_tlb_req_VPN = 20'hf0f0f;
+	    // resp from L2 TLB
+	    // evict to L2 TLB
+		expected_l2_tlb_evict_valid = 1'b0;
+		expected_l2_tlb_evict_ASID = 9'h000;
+		expected_l2_tlb_evict_VPN = 20'h00000;
+		expected_l2_tlb_evict_pte = {
+			12'h000, 10'h000,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+		};
+		expected_l2_tlb_evict_is_superpage = 1'b0;
+	    // sfence invalidation
+	    // sfence invalidation backpressure
+		expected_sfence_inv_ready = 1'b1;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"U mode",
+			"\n\t\t", " first: f0f,f0f0f", 
+			"\n\t\t", "second: f0f,f0f0f",
+			"\n\t\t", " other: tag 1 resp"
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // core req
+		tb_core_req_valid = 1'b1;
+		tb_core_req_exec_mode = U_MODE;
+		tb_core_req_virtual_mode = 1'b1;
+		tb_core_req_ASID = 9'hf0f;
+		tb_core_req_VPN = 20'hf0f0f;
+	    // core resp
+	    // req to L2 TLB
+		tb_l2_tlb_req_ready = 1'b1;
+	    // resp from L2 TLB
+		tb_l2_tlb_resp_valid = 1'b1;
+		tb_l2_tlb_resp_tag = 2'h1;
+		tb_l2_tlb_resp_pte = {
+			22'h3f03f0,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b1, 1'b0, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1
+		};
+		tb_l2_tlb_resp_is_superpage = 1'b0;
+		tb_l2_tlb_resp_access_fault = 1'b0;
+	    // evict to L2 TLB
+	    // sfence invalidation
+		tb_sfence_inv_valid = 1'b0;
+		tb_sfence_inv_ASID = 9'h000;
+		tb_sfence_inv_VPN = 20'h00000;
+	    // sfence invalidation backpressure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // core req
+	    // core resp
+		expected_core_resp_valid = 1'b0;
+		expected_core_resp_PPN = 22'h000000;
+		expected_core_resp_page_fault = 1'b0;
+		expected_core_resp_access_fault = 1'b0;
+	    // req to L2 TLB
+		expected_l2_tlb_req_valid = 1'b0;
+		expected_l2_tlb_req_tag = 2'h0;
+		expected_l2_tlb_req_ASID = 9'hf0f;
+		expected_l2_tlb_req_VPN = 20'hf0f0f;
+	    // resp from L2 TLB
+	    // evict to L2 TLB
+		expected_l2_tlb_evict_valid = 1'b0;
+		expected_l2_tlb_evict_ASID = 9'h000;
+		expected_l2_tlb_evict_VPN = 20'h00000;
+		expected_l2_tlb_evict_pte = {
+			12'h000, 10'h000,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+		};
+		expected_l2_tlb_evict_is_superpage = 1'b0;
+	    // sfence invalidation
+	    // sfence invalidation backpressure
+		expected_sfence_inv_ready = 1'b1;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"U mode",
+			"\n\t\t", " first: e1e,e1e1e", 
+			"\n\t\t", "second: f0f,f0f0f (hit (forwarded))",
+			"\n\t\t", " other: "
+		};
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // core req
+		tb_core_req_valid = 1'b1;
+		tb_core_req_exec_mode = U_MODE;
+		tb_core_req_virtual_mode = 1'b1;
+		tb_core_req_ASID = 9'he1e;
+		tb_core_req_VPN = 20'he1e1e;
+	    // core resp
+	    // req to L2 TLB
+		tb_l2_tlb_req_ready = 1'b1;
+	    // resp from L2 TLB
+		tb_l2_tlb_resp_valid = 1'b0;
+		tb_l2_tlb_resp_tag = 2'h0;
+		tb_l2_tlb_resp_pte = {
+			22'h000000,
+			2'b00,
+			// D     A     G     U     X     W     R     V
+			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+		};
+		tb_l2_tlb_resp_is_superpage = 1'b0;
+		tb_l2_tlb_resp_access_fault = 1'b0;
+	    // evict to L2 TLB
+	    // sfence invalidation
+		tb_sfence_inv_valid = 1'b0;
+		tb_sfence_inv_ASID = 9'h000;
+		tb_sfence_inv_VPN = 20'h00000;
+	    // sfence invalidation backpressure
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // core req
+	    // core resp
+		expected_core_resp_valid = 1'b0;
+		expected_core_resp_PPN = 22'h000000;
+		expected_core_resp_page_fault = 1'b0;
+		expected_core_resp_access_fault = 1'b0;
+	    // req to L2 TLB
+		expected_l2_tlb_req_valid = 1'b0;
+		expected_l2_tlb_req_tag = 2'h0;
+		expected_l2_tlb_req_ASID = 9'hf0f;
+		expected_l2_tlb_req_VPN = 20'hf0f0f;
+	    // resp from L2 TLB
+	    // evict to L2 TLB
+		expected_l2_tlb_evict_valid = 1'b0;
+		expected_l2_tlb_evict_ASID = 9'h000;
+		expected_l2_tlb_evict_VPN = 20'h00000;
+		expected_l2_tlb_evict_pte = {
+			12'h000, 10'h000,
+			2'b00,
+			// D     A     G     U     X     W     R     V
 			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		expected_l2_tlb_evict_is_superpage = 1'b0;
