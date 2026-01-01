@@ -44,13 +44,22 @@ def parse_design(design_lines):
     assert design_name, "could not find design name"
     print(f"design_name = {design_name}") if PRINTS else None
 
-    # iterate through design lines looking for design signals
+    # iterate through design lines looking for design components
     design_signals = []
     design_params = []
+    design_includes_and_imports = []
     inside_multiline_comment = False
     inside_io = False
     inside_param = False
     for line_index, line in enumerate(design_lines):
+
+        # include or import
+        if line.lstrip().startswith("`include"):
+            design_includes_and_imports.append(line)
+            continue
+        if line.lstrip().startswith("import"):
+            design_includes_and_imports.append(line)
+            continue
 
         # try to exit io
         if line.lstrip().rstrip() == ");":
@@ -144,9 +153,9 @@ def parse_design(design_lines):
 
     assert design_signals, "could not find any signals in design"
 
-    return design_name, design_signals, design_params
+    return design_name, design_signals, design_params, design_includes_and_imports
 
-def generate_wrapper(wrapper_base_lines, design_name, design_signals, design_params):
+def generate_wrapper(wrapper_base_lines, design_name, design_signals, design_params, design_includes_and_imports):
     
     output_lines = []
 
@@ -162,6 +171,16 @@ def generate_wrapper(wrapper_base_lines, design_name, design_signals, design_par
             print(f"replaced line: {replaced_line}") if PRINTS else None
 
             output_lines.append(replaced_line)
+
+            num_found += 1
+            continue
+
+        # check for <includes and imports> line
+        if "<includes and imports>" in line:
+            print(f"found <includes and imports> at line {line_index}") if PRINTS else None
+
+            # insert includes and imports lines
+            output_lines.extend(design_includes_and_imports)
 
             num_found += 1
             continue
@@ -385,7 +404,7 @@ def generate_wrapper(wrapper_base_lines, design_name, design_signals, design_par
         # otherwise, regular wrapper base line, add as-is
         output_lines.append(line)
 
-    assert num_found == 10, f"did not find all entries to replace in wrapper_base.txt. num_found = {num_found}\n" + \
+    assert num_found == 11, f"did not find all entries to replace in wrapper_base.txt. num_found = {num_found}\n" + \
         "(may have added more and not updated required num_found in this script)"
 
     return output_lines
@@ -421,10 +440,11 @@ if __name__ == "__main__":
     except:
         assert False, "could not find wrapper_base.txt"
             
-    # run generator algo
-    design_name, design_signals, design_params = parse_design(design_lines)
+    # parse design
+    design_name, design_signals, design_params, design_includes_and_imports = parse_design(design_lines)
 
-    output_lines = generate_wrapper(wrapper_base_lines, design_name, design_signals, design_params)
+    # generate wrapper
+    output_lines = generate_wrapper(wrapper_base_lines, design_name, design_signals, design_params, design_includes_and_imports)
 
     # write output file
         # modify to relative to this script
