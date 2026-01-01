@@ -503,6 +503,7 @@ module itlb #(
     always_comb begin
         l2_tlb_req_valid = 
             core_resp_stage_valid
+            & core_resp_stage_virtual_mode
             & core_resp_stage_miss
             & ~core_resp_stage_l2_req_sent
             & tag_tracker_new_tag_ready

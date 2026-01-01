@@ -37,7 +37,7 @@ module mem_map (
         // 64 KB
         // addresses:
             // [0x0_0001_FFFF : 0x0_0001_0000]
-            // [33:16] = 18'b00000000000000001
+            // [33:16] = 18'b000000000000000001
             // [15:0] = 16'bxxxxxxxxxxxxxxxx
         // attributes:
             // executable
@@ -45,7 +45,7 @@ module mem_map (
             // readable
             // cacheable
             // idempotent
-    assign ROM = PPN[33-PO_WIDTH:16-PO_WIDTH] == 18'b00000000000000001;
+    assign ROM = PPN[33-PO_WIDTH:16-PO_WIDTH] == 18'b000000000000000001;
 
     // IO region:
         // 64 KB
