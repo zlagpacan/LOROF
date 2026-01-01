@@ -179,6 +179,8 @@ module itlb #(
     // first stage
     logic [ASID_WIDTH-1:0]                  first_stage_ASID;
     logic [VPN_WIDTH-1:0]                   first_stage_VPN;
+    logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0]    first_stage_4KB_read_next_index;
+    logic [ITLB_4MBPAGE_INDEX_WIDTH-1:0]    first_stage_4MB_read_next_index;
 
     // second stage
     logic [ASID_WIDTH-1:0]                  second_stage_ASID;
@@ -192,6 +194,7 @@ module itlb #(
     logic [ITLB_4KBPAGE_ASSOC-2:0]          second_stage_4KB_old_plru;
     logic [LOG_ITLB_4KBPAGE_ASSOC-1:0]      second_stage_4KB_new_way;
     logic [ITLB_4KBPAGE_ASSOC-2:0]          second_stage_4KB_new_plru;
+    logic [LOG_ITLB_4KBPAGE_ASSOC-1:0]      second_stage_4KB_fill_way;
 
     logic [ITLB_4MBPAGE_INDEX_WIDTH-1:0]    second_stage_4MB_read_index;
     logic [ITLB_4MBPAGE_ASSOC-1:0]          second_stage_4MB_valid_by_way;
@@ -201,6 +204,7 @@ module itlb #(
     logic [ITLB_4MBPAGE_ASSOC-2:0]          second_stage_4MB_old_plru;
     logic [LOG_ITLB_4MBPAGE_ASSOC-1:0]      second_stage_4MB_new_way;
     logic [ITLB_4MBPAGE_ASSOC-2:0]          second_stage_4MB_new_plru;
+    logic [LOG_ITLB_4MBPAGE_ASSOC-1:0]      second_stage_4MB_fill_way;
 
     // miss request
     logic tag_tracker_new_tag_ready;
@@ -218,13 +222,14 @@ module itlb #(
     } sfence_fsm_state_t;
     sfence_fsm_state_t sfence_fsm_state, next_sfence_fsm_state;
     
-    logic [$clog2(ITLB_4KBPAGE_ENTRIES+ITLB_4MBPAGE_ENTRIES)-2:0] sfence_fsm_index;
+    logic [$clog2(ITLB_4KBPAGE_ENTRIES+ITLB_4MBPAGE_ENTRIES)-2:0] sfence_fsm_index, next_sfence_fsm_index;
         // want to have enough bits for index of larger array
         // 8 + 2 = 10 -> 4b - 1b = 3b for 8
         // 8 + 8 = 16 -> 4b - 1b = 3b for 8
         // 8 + 16 = 24 -> 5b - 1b = 4b for 16
 
     logic sfence_fsm_active;
+    logic sfence_fsm_use_index;
     logic sfence_fsm_exiting;
 
     // mem map
@@ -262,6 +267,26 @@ module itlb #(
             first_stage_VPN = core_req_VPN; // don't care
         end
     end
+    itlb_4KB_index_hash ITLB_4KB_INDEX_HASH (
+        .ASID(first_stage_ASID),
+        .VPN(first_stage_VPN),
+        .index(first_stage_4KB_read_next_index)
+    );
+    itlb_4MB_index_hash ITLB_4MB_INDEX_HASH (
+        .ASID(first_stage_ASID),
+        .VPN(first_stage_VPN),
+        .index(first_stage_4MB_read_next_index)
+    );
+    always_comb begin
+        if (sfence_fsm_use_index) begin
+            array_4KB_read_next_index = sfence_fsm_index[ITLB_4KBPAGE_INDEX_WIDTH-1:0];
+            array_4MB_read_next_index = sfence_fsm_index[ITLB_4MBPAGE_INDEX_WIDTH-1:0];
+        end
+        else begin
+            array_4KB_read_next_index = first_stage_4KB_read_next_index;
+            array_4MB_read_next_index = first_stage_4MB_read_next_index;
+        end
+    end
 
     // second stage logic:
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -289,8 +314,16 @@ module itlb #(
             end
             second_stage_4KB_hit_by_way[way] = 
                 array_4KB_read_set.entry_by_way[way].valid
-                & array_4KB_read_set.entry_by_way[way].ASID == second_stage_ASID
-                & array_4KB_read_set.entry_by_way[way].VPN == second_stage_VPN;
+                & (
+                    array_4KB_read_set.entry_by_way[way].ASID == second_stage_ASID
+                    | array_4KB_read_set.entry_by_way[way].pte_G
+                    | sfence_fsm_active & (second_stage_ASID == 0)
+                )
+                & (
+                    array_4KB_read_set.entry_by_way[way].VPN == second_stage_VPN
+                    | sfence_fsm_active & (second_stage_VPN == 0)
+                )
+            ;
             if (second_stage_4KB_hit_by_way[way]) begin
                 second_stage_4KB_hitting_way = way;
             end
@@ -311,8 +344,13 @@ module itlb #(
                 & (
                     array_4MB_read_set.entry_by_way[way].ASID == second_stage_ASID
                     | array_4MB_read_set.entry_by_way[way].pte_G
+                    | sfence_fsm_active & (second_stage_ASID == 0)
                 )
-                & array_4MB_read_set.entry_by_way[way].VPN == second_stage_VPN;
+                & (
+                    array_4MB_read_set.entry_by_way[way].VPN == second_stage_VPN
+                    | sfence_fsm_active & (second_stage_VPN == 0)
+                )
+            ;
             if (second_stage_4MB_hit_by_way[way]) begin
                 second_stage_4MB_hitting_way = way;
             end
@@ -325,7 +363,7 @@ module itlb #(
         .plru_in(second_stage_4KB_old_plru),
         .new_valid(1'b0), // only update plru on hits
         .new_index(second_stage_4KB_new_way),
-        .touch_valid(core_resp_stage_valid & |second_stage_4KB_hit_by_way),
+        .touch_valid(core_resp_stage_valid & core_resp_stage_virtual_mode & |second_stage_4KB_hit_by_way),
         .touch_index(second_stage_4KB_hitting_way),
         .plru_out(second_stage_4KB_new_plru)
     );
@@ -335,7 +373,7 @@ module itlb #(
         .plru_in(second_stage_4MB_old_plru),
         .new_valid(1'b0), // only update plru on hits
         .new_index(second_stage_4MB_new_way),
-        .touch_valid(core_resp_stage_valid & |second_stage_4MB_hit_by_way),
+        .touch_valid(core_resp_stage_valid & core_resp_stage_virtual_mode & |second_stage_4MB_hit_by_way),
         .touch_index(second_stage_4MB_hitting_way),
         .plru_out(second_stage_4MB_new_plru)
     );
@@ -391,7 +429,7 @@ module itlb #(
             // 4KB array hit
             if (|second_stage_4KB_hit_by_way) begin
                 for (int way = 0; way < ITLB_4KBPAGE_ASSOC; way++) begin
-                    if (second_stage_4KB_hit_by_way[i]) begin
+                    if (second_stage_4KB_hit_by_way[way]) begin
                         // PPN components:
                             // PPN1: array entry
                             // PPN0: array entry
@@ -420,12 +458,13 @@ module itlb #(
             // 4MB array hit
             else begin
                 for (int way = 0; way < ITLB_4MBPAGE_ASSOC; way++) begin
-                    if (second_stage_4MB_hit_by_way[i]) begin
+                    if (second_stage_4MB_hit_by_way[way]) begin
                         // PPN components:
                             // PPN1: array entry
                             // PPN0: core req VPN0
                         core_resp_PPN |= {
                             array_4MB_read_set.entry_by_way[way].pte_PPN1,
+                            core_req_VPN[VPN0_WIDTH-1:0]
                         };
                         // page fault conditions:
                             // ~V
@@ -438,7 +477,7 @@ module itlb #(
                             | ~array_4MB_read_set.entry_by_way[way].pte_X
                             | (array_4MB_read_set.entry_by_way[way].pte_W & ~array_4MB_read_set.entry_by_way[way].pte_R)
                             | (core_resp_stage_exec_mode == U_MODE & array_4MB_read_set.entry_by_way[way].pte_U)
-                            | array_4MB_read_set.entry_by_way[way].PPN0 != 0
+                            | array_4MB_read_set.entry_by_way[way].pte_PPN0 != 0
                         ;
                         // access fault conditions:
                             // no PMA access fault
@@ -453,10 +492,10 @@ module itlb #(
         else begin
             core_resp_valid = core_resp_stage_valid;
                 // guaranteed hit for baremetal, only have to do PMA checks
-            core_resp_PPN = $signed(core_resp_stage_VPN);
+            core_resp_PPN = $signed(second_stage_VPN);
                 // sign extend VPN -> PPN
             core_resp_page_fault = 1'b0;
-            core_resp_access_fault = ~(mem_map_DRAM | mem_map_ROB);
+            core_resp_access_fault = ~(mem_map_DRAM | mem_map_ROM);
         end
     end
 
@@ -516,7 +555,7 @@ module itlb #(
                 array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_X,
                 array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_W,
                 array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_R,
-                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_V,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_V
             };
             l2_tlb_evict_is_superpage = 1'b0;
         end
@@ -537,7 +576,7 @@ module itlb #(
                 array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].pte_X,
                 array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].pte_W,
                 array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].pte_R,
-                array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].pte_V,
+                array_4MB_read_set.entry_by_way[second_stage_4MB_new_way].pte_V
             };
             l2_tlb_evict_is_superpage = 1'b1;
         end
@@ -557,29 +596,180 @@ module itlb #(
                 array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_X,
                 array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_W,
                 array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_R,
-                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_V,
+                array_4KB_read_set.entry_by_way[second_stage_4KB_new_way].pte_V
             };
             l2_tlb_evict_is_superpage = 1'b0;
         end
     end
 
     // sfence fsm logic
-        // TODO
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            
+            sfence_fsm_state <= IDLE;
+            sfence_fsm_index <= 0;
         end
         else begin
-
+            sfence_fsm_state <= next_sfence_fsm_state;
+            sfence_fsm_index <= next_sfence_fsm_index;
         end
     end
     always_comb begin
+        case (sfence_fsm_state)
 
+            INV_SINGLE_SET: begin
+                sfence_fsm_active = 1'b1;
+                sfence_fsm_use_index = 1'b0;
+                sfence_fsm_exiting = 1'b1;
+                next_sfence_fsm_state = IDLE;
+                next_sfence_fsm_index = 0;
+            end
+
+            INV_ALL_SETS: begin
+                sfence_fsm_active = 1'b1;
+                if (sfence_fsm_index == '1) begin
+                    sfence_fsm_use_index = 1'b0;
+                    sfence_fsm_exiting = 1'b1;
+                    next_sfence_fsm_state = IDLE;
+                    next_sfence_fsm_index = 0;
+                end
+                else begin
+                    sfence_fsm_use_index = 1'b1;
+                    sfence_fsm_exiting = 1'b0;
+                    next_sfence_fsm_state = INV_ALL_SETS;
+                    next_sfence_fsm_index = sfence_fsm_index + 1;
+                end
+            end
+            
+            default: begin // IDLE
+                sfence_fsm_active = 1'b0;
+                sfence_fsm_exiting = 1'b0;
+
+                // inv all sets if all VPN's
+                if (sfence_inv_valid & sfence_inv_VPN == 0) begin
+                    sfence_fsm_use_index = 1'b1;
+                    next_sfence_fsm_state = INV_ALL_SETS;
+                    next_sfence_fsm_index = sfence_fsm_index + 1;
+                end
+                // inv only single set if only single VPN
+                else if (sfence_inv_valid) begin
+                    sfence_fsm_use_index = 1'b0;
+                    next_sfence_fsm_state = INV_SINGLE_SET;
+                    next_sfence_fsm_index = 0;
+                end
+                else begin
+                    sfence_fsm_use_index = 1'b0;
+                    next_sfence_fsm_state = IDLE;
+                    next_sfence_fsm_index = 0;
+                end
+            end
+        endcase
+    end
+    always_comb begin
+        sfence_inv_ready = ~(sfence_fsm_active & ~sfence_fsm_exiting);
     end
 
     // write port logic:
     always_comb begin
-        // TODO
+        if (&second_stage_4KB_valid_by_way) begin
+            second_stage_4KB_fill_way = second_stage_4KB_new_way;
+        end
+        else begin
+            second_stage_4KB_fill_way = second_stage_4KB_invalid_way;
+        end
+    end
+    always_comb begin
+        array_4KB_write_index = second_stage_4KB_read_index;
+        array_4KB_write_set = array_4KB_read_set;
+
+        // miss fill
+        if (miss_return_4KB_valid) begin
+            array_4KB_write_valid = 1'b1;
+
+            // fill in miss way
+            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].valid = 1'b1;
+            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].ASID = second_stage_ASID;
+            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].VPN = second_stage_VPN;
+
+            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].pte_PPN1 = l2_tlb_resp_pte.PPN1;
+            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].pte_PPN0 = l2_tlb_resp_pte.PPN0;
+            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].pte_RSW = l2_tlb_resp_pte.RSW;
+            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].pte_D = l2_tlb_resp_pte.D;
+            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].pte_G = l2_tlb_resp_pte.G;
+            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].pte_U = l2_tlb_resp_pte.U;
+            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].pte_X = l2_tlb_resp_pte.X;
+            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].pte_W = l2_tlb_resp_pte.W;
+            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].pte_R = l2_tlb_resp_pte.R;
+            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].pte_V = l2_tlb_resp_pte.V;
+
+            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].pma_access_fault = l2_tlb_resp_access_fault | ~(mem_map_DRAM | mem_map_ROM);
+        end
+        // sfence inv
+        else if (sfence_fsm_active) begin
+            array_4KB_write_valid = 1'b1;
+
+            // invalidate hitting ways
+            for (int way = 0; way < ITLB_4KBPAGE_ASSOC; way++) begin
+                if (second_stage_4KB_hit_by_way[way]) begin
+                    array_4KB_write_set.entry_by_way[way].valid = 1'b0;
+                end
+            end
+        end
+        // hit plru update
+        else begin
+            array_4KB_write_valid = 
+                core_resp_stage_valid
+                & core_resp_stage_virtual_mode
+                & |second_stage_4KB_hit_by_way
+            ;
+            array_4KB_write_set.plru = second_stage_4KB_new_plru;
+        end
+    end
+    always_comb begin
+        array_4MB_write_index = second_stage_4MB_read_index;
+        array_4MB_write_set = array_4MB_read_set;
+
+        // miss fill
+        if (miss_return_4MB_valid) begin
+            array_4MB_write_valid = 1'b1;
+
+            // fill in miss way
+            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].valid = 1'b1;
+            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].ASID = second_stage_ASID;
+            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].VPN = second_stage_VPN;
+
+            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].pte_PPN1 = l2_tlb_resp_pte.PPN1;
+            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].pte_PPN0 = l2_tlb_resp_pte.PPN0;
+            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].pte_RSW = l2_tlb_resp_pte.RSW;
+            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].pte_D = l2_tlb_resp_pte.D;
+            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].pte_G = l2_tlb_resp_pte.G;
+            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].pte_U = l2_tlb_resp_pte.U;
+            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].pte_X = l2_tlb_resp_pte.X;
+            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].pte_W = l2_tlb_resp_pte.W;
+            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].pte_R = l2_tlb_resp_pte.R;
+            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].pte_V = l2_tlb_resp_pte.V;
+
+            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].pma_access_fault = l2_tlb_resp_access_fault | ~(mem_map_DRAM | mem_map_ROM);
+        end
+        // sfence inv
+        else if (sfence_fsm_active) begin
+            array_4MB_write_valid = 1'b1;
+
+            // invalidate hitting ways
+            for (int way = 0; way < ITLB_4MBPAGE_ASSOC; way++) begin
+                if (second_stage_4MB_hit_by_way[way]) begin
+                    array_4MB_write_set.entry_by_way[way].valid = 1'b0;
+                end
+            end
+        end
+        // hit plru update
+        else begin
+            array_4MB_write_valid = 
+                core_resp_stage_valid
+                & core_resp_stage_virtual_mode
+                & |second_stage_4MB_hit_by_way
+            ;
+            array_4MB_write_set.plru = second_stage_4MB_new_plru;
+        end
     end
 
     // mem map logic:
@@ -593,7 +783,7 @@ module itlb #(
         end
         else begin
             // need mem map for baremetal access addr
-            mem_map_PPN = $signed(core_resp_stage_VPN);
+            mem_map_PPN = $signed(second_stage_VPN);
         end
     end
     mem_map MEM_MAP (
@@ -612,17 +802,39 @@ module itlb #(
             array_4MB_read_set <= '0; 
         end
         else begin
+            // 4KB array write
             if (array_4KB_write_valid) begin
                 array_4KB_by_set[array_4KB_write_index] <= array_4KB_write_set;
             end
+
+            // 4MB array write
             if (array_4MB_write_valid) begin
                 array_4MB_by_set[array_4MB_write_index] <= array_4MB_write_set;
             end
 
-            if (array_4KB_read_next_valid) begin
+            // 4KB array write to read forward
+            if (
+                array_4KB_read_next_valid
+                & array_4KB_write_valid
+                & array_4KB_read_next_index == array_4KB_write_index
+            ) begin
+                array_4KB_read_set <= array_4KB_write_set;
+            end
+            // otherwise regular 4KB array read
+            else if (array_4KB_read_next_valid) begin
                 array_4KB_read_set <= array_4KB_by_set[array_4KB_read_next_index];
             end
-            if (array_4MB_read_next_valid) begin
+
+            // 4MB array write to read forward
+            if (
+                array_4MB_read_next_valid
+                & array_4MB_write_valid
+                & array_4MB_read_next_index == array_4MB_write_index
+            ) begin
+                array_4MB_read_set <= array_4MB_write_set;
+            end
+            // otherwise regular 4MB array read
+            else if (array_4MB_read_next_valid) begin
                 array_4MB_read_set <= array_4MB_by_set[array_4MB_read_next_index];
             end
         end

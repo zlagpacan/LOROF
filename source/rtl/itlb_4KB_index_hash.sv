@@ -12,8 +12,8 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 module itlb_4KB_index_hash (
-    input logic [VPN_WIDTH-1:0] VPN,
     input logic [ASID_WIDTH-1:0] ASID,
+    input logic [VPN_WIDTH-1:0] VPN,
     output logic [ITLB_4KBPAGE_INDEX_WIDTH-1:0] index
 );
     // // lowest VPN ^ next lowest VPN ^ lowest ASID ^ next lowest ASID
