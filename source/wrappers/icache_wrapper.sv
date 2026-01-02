@@ -8,19 +8,19 @@
 `timescale 1ns/100ps
 
 `include "system_types_pkg.vh"
-import system_types_pkg::*;
+import system_types_pkg as stp;
 
 module icache_wrapper #(
-	parameter ICACHE_SIZE = 2**13, // 8KB, 4KB page per way,
-	parameter ICACHE_BLOCK_SIZE = L1_BLOCK_SIZE, // 32B,
-	parameter ICACHE_ASSOC = 2, // 2x,
-	parameter LOG_ICACHE_ASSOC = $clog2(ICACHE_ASSOC), // 1b,
-	parameter ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE), // 5b,
-	parameter ICACHE_NUM_SETS = ICACHE_SIZE / ICACHE_ASSOC / ICACHE_BLOCK_SIZE, // 128x,
-	parameter ICACHE_INDEX_WIDTH = $clog2(ICACHE_NUM_SETS), // 7b,
-	parameter ICACHE_TAG_WIDTH = PA_WIDTH - ICACHE_INDEX_WIDTH - ICACHE_BLOCK_OFFSET_WIDTH, // 34b - 7b - 5b = 22b,
-	parameter ICACHE_FETCH_WIDTH = 16, // 16B,
-	parameter ICACHE_FETCH_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE / ICACHE_FETCH_WIDTH) // 1b
+	parameter int unsigned ICACHE_SIZE = 2**13, // 8KB, 4KB page per way,
+	parameter int unsigned ICACHE_BLOCK_SIZE = stp::L1_BLOCK_SIZE, // 32B,
+	parameter int unsigned ICACHE_ASSOC = 2, // 2x,
+	parameter int unsigned LOG_ICACHE_ASSOC = $clog2(ICACHE_ASSOC), // 1b,
+	parameter int unsigned ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE), // 5b,
+	parameter int unsigned ICACHE_NUM_SETS = ICACHE_SIZE / ICACHE_ASSOC / ICACHE_BLOCK_SIZE, // 128x,
+	parameter int unsigned ICACHE_INDEX_WIDTH = $clog2(ICACHE_NUM_SETS), // 7b,
+	parameter int unsigned ICACHE_TAG_WIDTH = PA_WIDTH - ICACHE_INDEX_WIDTH - ICACHE_BLOCK_OFFSET_WIDTH, // 34b - 7b - 5b = 22b,
+	parameter int unsigned ICACHE_FETCH_WIDTH = 16, // 16B,
+	parameter int unsigned ICACHE_FETCH_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE / ICACHE_FETCH_WIDTH) // 1b
 ) (
 
     // seq
@@ -45,17 +45,17 @@ module icache_wrapper #(
 
     // req to L2
 	output logic last_l2_req_valid,
-	output logic [L1_BLOCK_ADDR_WIDTH-1:0] last_l2_req_PA29,
+	output logic [stp::L1_BLOCK_ADDR_WIDTH-1:0] last_l2_req_PA29,
 	input logic next_l2_req_ready,
 
     // resp from L2
 	input logic next_l2_resp_valid,
-	input logic [L1_BLOCK_ADDR_WIDTH-1:0] next_l2_resp_PA29,
-	input logic [L1_BLOCK_SIZE_BITS-1:0] next_l2_resp_data256,
+	input logic [stp::L1_BLOCK_ADDR_WIDTH-1:0] next_l2_resp_PA29,
+	input logic [stp::L1_BLOCK_SIZE_BITS-1:0] next_l2_resp_data256,
 
     // L2 snoop inv
 	input logic next_l2_snoop_inv_valid,
-	input logic [L1_BLOCK_ADDR_WIDTH-1:0] next_l2_snoop_inv_PA29
+	input logic [stp::L1_BLOCK_ADDR_WIDTH-1:0] next_l2_snoop_inv_PA29
 );
 
     // ----------------------------------------------------------------
@@ -79,17 +79,17 @@ module icache_wrapper #(
 
     // req to L2
 	logic l2_req_valid;
-	logic [L1_BLOCK_ADDR_WIDTH-1:0] l2_req_PA29;
+	logic [stp::L1_BLOCK_ADDR_WIDTH-1:0] l2_req_PA29;
 	logic l2_req_ready;
 
     // resp from L2
 	logic l2_resp_valid;
-	logic [L1_BLOCK_ADDR_WIDTH-1:0] l2_resp_PA29;
-	logic [L1_BLOCK_SIZE_BITS-1:0] l2_resp_data256;
+	logic [stp::L1_BLOCK_ADDR_WIDTH-1:0] l2_resp_PA29;
+	logic [stp::L1_BLOCK_SIZE_BITS-1:0] l2_resp_data256;
 
     // L2 snoop inv
 	logic l2_snoop_inv_valid;
-	logic [L1_BLOCK_ADDR_WIDTH-1:0] l2_snoop_inv_PA29;
+	logic [stp::L1_BLOCK_ADDR_WIDTH-1:0] l2_snoop_inv_PA29;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
