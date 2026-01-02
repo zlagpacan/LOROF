@@ -5,17 +5,17 @@
     Spec: LOROF/spec/design/icache.md
 */
 
-`include "system_types_pkg.vh"
+`include "system_types.vh"
 
 module icache #(
     parameter int unsigned ICACHE_SIZE = 2**13, // 8KB, 4KB page per way
-    parameter int unsigned ICACHE_BLOCK_SIZE = system_types_pkg::L1_BLOCK_SIZE, // 32B
+    parameter int unsigned ICACHE_BLOCK_SIZE = system_types::L1_BLOCK_SIZE, // 32B
     parameter int unsigned ICACHE_ASSOC = 2, // 2x
     parameter int unsigned LOG_ICACHE_ASSOC = $clog2(ICACHE_ASSOC), // 1b
     parameter int unsigned ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE), // 5b
     parameter int unsigned ICACHE_NUM_SETS = ICACHE_SIZE / ICACHE_ASSOC / ICACHE_BLOCK_SIZE, // 128x
     parameter int unsigned ICACHE_INDEX_WIDTH = $clog2(ICACHE_NUM_SETS), // 7b
-    parameter int unsigned ICACHE_TAG_WIDTH = system_types_pkg::PA_WIDTH - ICACHE_INDEX_WIDTH - ICACHE_BLOCK_OFFSET_WIDTH, // 34b - 7b - 5b = 22b
+    parameter int unsigned ICACHE_TAG_WIDTH = system_types::PA_WIDTH - ICACHE_INDEX_WIDTH - ICACHE_BLOCK_OFFSET_WIDTH, // 34b - 7b - 5b = 22b
 
     parameter int unsigned ICACHE_FETCH_WIDTH = 16, // 16B
     parameter int unsigned ICACHE_FETCH_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE / ICACHE_FETCH_WIDTH) // 1b
@@ -41,18 +41,18 @@ module icache #(
     input logic [ICACHE_TAG_WIDTH-1:0]  core_resp_miss_tag,
 
     // req to L2
-    output logic                                    l2_req_valid,
-    output logic [system_types_pkg::L1_BLOCK_ADDR_WIDTH-1:0]     l2_req_PA29,
-    input logic                                     l2_req_ready,
+    output logic                                            l2_req_valid,
+    output logic [system_types::L1_BLOCK_ADDR_WIDTH-1:0]    l2_req_PA29,
+    input logic                                             l2_req_ready,
 
     // resp from L2
-    input logic                                 l2_resp_valid,
-    input logic [system_types_pkg::L1_BLOCK_ADDR_WIDTH-1:0]  l2_resp_PA29,
-    input logic [system_types_pkg::L1_BLOCK_SIZE_BITS-1:0]   l2_resp_data256,
+    input logic                                             l2_resp_valid,
+    input logic [system_types::L1_BLOCK_ADDR_WIDTH-1:0]     l2_resp_PA29,
+    input logic [system_types::L1_BLOCK_SIZE_BITS-1:0]      l2_resp_data256,
 
     // L2 snoop inv
-    input logic                                 l2_snoop_inv_valid,
-    input logic [system_types_pkg::L1_BLOCK_ADDR_WIDTH-1:0]  l2_snoop_inv_PA29
+    input logic                                             l2_snoop_inv_valid,
+    input logic [system_types::L1_BLOCK_ADDR_WIDTH-1:0]     l2_snoop_inv_PA29
 );
 
     // direct lower bit index hashing
@@ -126,9 +126,9 @@ module icache #(
         // l2 snoop inv
             // tag
 
-    logic                                   snoop_inv_next_reading;
-    logic                                   snoop_inv_writing;
-    logic [system_types_pkg::L1_BLOCK_ADDR_WIDTH-1:0]    snoop_inv_saved_PA29;
+    logic                                           snoop_inv_next_reading;
+    logic                                           snoop_inv_writing;
+    logic [system_types::L1_BLOCK_ADDR_WIDTH-1:0]   snoop_inv_saved_PA29;
 
     logic snoop_inv_writing_delay_cycle;
 

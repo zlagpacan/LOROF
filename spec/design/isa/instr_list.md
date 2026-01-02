@@ -1,7 +1,7 @@
 # Instruction List
-ISA: RV32IMAC_Zicsr_Zifencei Sv32
+ISA: RV64GC_Zicsr_Zifencei Sv39
 
-## RV32I
+## RV64I
 - LUI rd, imm
     - {imm[31:12], rd[4:0], 5'b01101, 2'b11}
     - FU: bru
@@ -54,6 +54,10 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - {imm[11:0], rs1[4:0], 3'b010, rd[4:0], 5'b00000, 2'b11}
     - FU: ldu
     - op: 4'bx010
+- LD rd, imm(rs1)
+    - {imm[11:0], rs1[4:0], 3'b011, rd[4:0], 5'b00000, 2'b11}
+    - FU: ldu
+    - op: 4'bx011
 - LBU rd, imm(rs1)
     - {imm[11:0], rs1[4:0], 3'b100, rd[4:0], 5'b00000, 2'b11}
     - FU: ldu
@@ -62,6 +66,10 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - {imm[11:0], rs1[4:0], 3'b101, rd[4:0], 5'b00000, 2'b11}
     - FU: ldu
     - op: 4'bx101
+- LWU rd, imm(rs1)
+    - {imm[11:0], rs1[4:0], 3'b110, rd[4:0], 5'b00000, 2'b11}
+    - FU: ldu
+    - op: 4'bx110
 - SB rs2, imm(rs1)
     - {imm[11:5], rs2[4:0], rs1[4:0], 3'b000, imm[4:0], 5'b01000, 2'b11}
     - FU: stamofu
@@ -74,12 +82,16 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - {imm[11:5], rs2[4:0], rs1[4:0], 3'b010, imm[4:0], 5'b01000, 2'b11}
     - FU: stamofu
     - op: 4'bxx10
+- SD rs2, imm(rs1)
+    - {imm[11:5], rs2[4:0], rs1[4:0], 3'b011, imm[4:0], 5'b01000, 2'b11}
+    - FU: stamofu
+    - op: 4'bxx11
 - ADDI rd, rs1, imm
     - {imm[11:0], rs1[4:0], 3'b000, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'b0000
 - SLLI rd, rs1, shamt
-    - {7'b0000000, shamt[4:0], rs1[4:0], 3'b001, rd[4:0], 5'b00100, 2'b11}
+    - {6'b000000, shamt[5:0], rs1[4:0], 3'b001, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'bx001
 - SLTI rd, rs1, imm
@@ -95,11 +107,11 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - FU: alu_imm
     - op: 4'bx100
 - SRLI rd, rs1, shamt
-    - {7'b0<mark>0</mark>00000, shamt[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b00100, 2'b11}
+    - {6'b0<mark>0</mark>0000, shamt[5:0], rs1[4:0], 3'b101, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'b0101
 - SRAI rd, rs1, shamt
-    - {7'b0<mark>1</mark>00000, shamt[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b00100, 2'b11}
+    - {6'b0<mark>1</mark>0000, shamt[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'b1101
 - ORI rd, rs1, imm
@@ -110,6 +122,22 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - {imm[11:0], rs1[4:0], 3'b111, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
     - op: 4'bx111
+- ADDIW rd, rs1, imm
+    - {imm[11:0], rs1[4:0], 3'b000, rd[4:0], 5'b00110, 2'b11}
+    - FU: alu_imm
+    - op: TODO
+- SLLIW rd, rs1, imm
+    - {7'b0000000, shamt[4:0], rs1[4:0], 3'b001, rd[4:0], 5'b00110, 2'b11}
+    - FU: alu_imm
+    - op: TODO
+- SRLIW rd, rs1, imm
+    - {7'b0<mark>0</mark>00000, shamt[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b00110, 2'b11}
+    - FU: alu_imm
+    - op: TODO
+- SRAIW rd, rs1, imm
+    - {7'b0<mark>1</mark>00000, shamt[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b00110, 2'b11}
+    - FU: alu_imm
+    - op: TODO
 - ADD rd, rs1, rs2
     - {7'b0<mark>0</mark>00000, rs2[4:0], rs1[4:0], 3'b000, rd[4:0], 5'b01100, 2'b11}
     - FU: alu_reg
@@ -150,6 +178,26 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - {7'b0000000, rs2[4:0], rs1[4:0], 3'b111, rd[4:0], 5'b01100, 2'b11}
     - FU: alu_reg
     - op: 4'bx111
+- ADDW rd, rs1, rs2
+    - {7'b0<mark>0</mark>00000, rs2[4:0], rs1[4:0], 3'b000, rd[4:0], 5'b01110, 2'b11}
+    - FU: alu_reg
+    - op: TODO
+- SUBW rd, rs1, rs2
+    - {7'b0<mark>1</mark>00000, rs2[4:0], rs1[4:0], 3'b000, rd[4:0], 5'b01110, 2'b11}
+    - FU: alu_reg
+    - op: TODO
+- SLLW rd, rs1, rs2
+    - {7'b0000000, rs2[4:0], rs1[4:0], 3'b001, rd[4:0], 5'b01110, 2'b11}
+    - FU: alu_reg
+    - op: TODO
+- SRLW rd, rs1, rs2
+    - {7'b0<mark>0</mark>00000, rs2[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b01110, 2'b11}
+    - FU: alu_reg
+    - op: TODO
+- SRAW rd, rs1, rs2
+    - {7'b0<mark>1</mark>00000, rs2[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b01110, 2'b11}
+    - FU: alu_reg
+    - op: TODO
 - FENCE iorw, iorw
     - {fm[3:0], pred[3:0], succ[3:0], rs1[4:0], 3'b000, rd[4:0], 5'b00011, 2'b11}
         - only fm[3:0] = 4'b0000 used
@@ -237,6 +285,26 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - {7'b0000001, rs2[4:0], rs1[4:0], 3'b111, rd[4:0], 5'b01100, 2'b11}
     - FU: mdu
     - op: 4'bx111
+- MULW rd, rs1, rs2
+    - {7'b0000001, rs2[4:0], rs1[4:0], 3'b000, rd[4:0], 5'b01110, 2'b11}
+    - FU: mdu
+    - op: TODO
+- DIVW rd, rs1, rs2
+    - {7'b0000001, rs2[4:0], rs1[4:0], 3'b100, rd[4:0], 5'b01110, 2'b11}
+    - FU: mdu
+    - op: TODO
+- DIVUW rd, rs1, rs2
+    - {7'b0000001, rs2[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b01110, 2'b11}
+    - FU: mdu
+    - op: TODO
+- REMW rd, rs1, rs2
+    - {7'b0000001, rs2[4:0], rs1[4:0], 3'b110, rd[4:0], 5'b01110, 2'b11}
+    - FU: mdu
+    - op: TODO
+- REMUW rd, rs1, rs2
+    - {7'b0000001, rs2[4:0], rs1[4:0], 3'b111, rd[4:0], 5'b01110, 2'b11}
+    - FU: mdu
+    - op: TODO
 
 ## A Extension
 - LR.W[.[AQ][RL]] rd, (rs1)
@@ -307,6 +375,199 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
     - op: 4'b0101
     - if not regular memory, raise access fault
     - acquire and release always order regular memory, not I/O
+- LR.D[.[AQ][RL]] rd, (rs1)
+    - {5'b00010, aq, rl, 5'b00000, rs1[4:0], 3'b011, rd[4:0], 5'b01011, 2'b11}
+    - FU: stamofu
+    - op: TODO
+    - raise misaligned exception
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
+- SC.D[.[AQ][RL]] rd, rs2, (rs1)
+    - {5'b00011, aq, rl, rs2[4:0], rs1[4:0], 3'b011, rd[4:0], 5'b01011, 2'b11}
+    - FU: stamofu
+    - op: TODO
+    - raise misaligned exception
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
+- AMOSWAP.D[.[AQ][RL]] rd, rs2, (rs1)
+    - {5'b00001, aq, rl, rs2[4:0], rs1[4:0], 3'b011, rd[4:0], 5'b01011, 2'b11}
+    - FU: stamofu
+    - op: TODO
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
+- AMOADD.D[.[AQ][RL]] rd, rs2, (rs1)
+    - {5'b00000, aq, rl, rs2[4:0], rs1[4:0], 3'b011, rd[4:0], 5'b01011, 2'b11}
+    - FU: stamofu
+    - op: TODO
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
+- AMOXOR.D[.[AQ][RL]] rd, rs2, (rs1)
+    - {5'b00100, aq, rl, rs2[4:0], rs1[4:0], 3'b011, rd[4:0], 5'b01011, 2'b11}
+    - FU: stamofu
+    - op: TODO
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
+- AMOAND.D[.[AQ][RL]] rd, rs2, (rs1)
+    - {5'b01100, aq, rl, rs2[4:0], rs1[4:0], 3'b011, rd[4:0], 5'b01011, 2'b11}
+    - FU: stamofu
+    - op: TODO
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
+- AMOOR.D[.[AQ][RL]] rd, rs2, (rs1)
+    - {5'b01000, aq, rl, rs2[4:0], rs1[4:0], 3'b011, rd[4:0], 5'b01011, 2'b11}
+    - FU: stamofu
+    - op: TODO
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
+- AMOMIN.D[.[AQ][RL]] rd, rs2, (rs1)
+    - {5'b10000, aq, rl, rs2[4:0], rs1[4:0], 3'b011, rd[4:0], 5'b01011, 2'b11}
+    - FU: stamofu
+    - op: TODO
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
+- AMOMAX.D[.[AQ][RL]] rd, rs2, (rs1)
+    - {5'b10100, aq, rl, rs2[4:0], rs1[4:0], 3'b011, rd[4:0], 5'b01011, 2'b11}
+    - FU: stamofu
+    - op: TODO
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
+- AMOMINU.D[.[AQ][RL]] rd, rs2, (rs1)
+    - {5'b11000, aq, rl, rs2[4:0], rs1[4:0], 3'b011, rd[4:0], 5'b01011, 2'b11}
+    - FU: stamofu
+    - op: TODO
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
+- AMOMAXU.D[.[AQ][RL]] rd, rs2, (rs1)
+    - {5'b11100, aq, rl, rs2[4:0], rs1[4:0], 3'b011, rd[4:0], 5'b01011, 2'b11}
+    - FU: stamofu
+    - op: TODO
+    - if not regular memory, raise access fault
+    - acquire and release always order regular memory, not I/O
+
+## F Extension
+- FLW frd, imm(rs1)
+    - {imm[11:0], rs1[4:0], 3'b010, frd[4:0], 5'b00001, 2'b11}
+    - FU: ldu
+    - op: 4'bx010
+- FSW frs2, imm(rs1)
+    - {imm[11:5], frs2[4:0], rs1[4:0], 3'b010, imm[4:0], 5'b01001, 2'b11}
+    - FU: stamofu
+    - op: 4'bxx10
+- FMADD.S frd, frs1, frs2, frs3, rm
+    - {frs3[4:0], 2'b00, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10000, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FMSUB.S frd, frs1, frs2, frs3, rm
+    - {frs3[4:0], 2'b00, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10001, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FNMSUB.S frd, frs1, frs2, frs3, rm
+    - {frs3[4:0], 2'b00, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10010, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FNMADD.S frd, frs1, frs2, frs3, rm
+    - {frs3[4:0], 2'b00, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10011, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FADD.S frd, frs1, frs2, rm
+    - {7'b0000000, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FSUB.S frd, frs1, frs2, rm
+    - {7'b0000100, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FMUL.S frd, frs1, frs2, rm
+    - {7'b0001000, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FDIV.S frd, frs1, frs2, rm
+    - {7'b0001100, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FSQRT.S frd, frs1, rm
+    - {7'b0001100, 5'b00000, frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FSGNJ.S frd, frs1, frs2
+    - {7'b0010000, frs2[4:0], frs1[4:0], 3'b000, frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FSGNJN.S frd, frs1, frs2
+    - {7'b0010000, frs2[4:0], frs1[4:0], 3'b001, frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FSGNJX.S frd, frs1, frs2
+    - {7'b0010000, frs2[4:0], frs1[4:0], 3'b010, frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FMIN.S frd, frs1, frs2
+    - {7'b0010100, frs2[4:0], frs1[4:0], 3'b000, frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FMAX.S frd, frs1, frs2
+    - {7'b0010100, frs2[4:0], frs1[4:0], 3'b001, frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.W.S rd, frs1, rm
+    - {7'b1100000, 5'b00000, frs1[4:0], rm[2:0], rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.WU.S rd, frs1, rm
+    - {7'b1100000, 5'b00001, frs1[4:0], rm[2:0], rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.L.S rd, frs1, rm
+    - {7'b1100000, 5'b00010, frs1[4:0], rm[2:0], rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.LU.S rd, frs1, rm
+    - {7'b1100000, 5'b00011, frs1[4:0], rm[2:0], rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FMV.X.W rd, frs1
+    - aka FMV.X.S
+    - {7'b1110000, 5'b00000, frs1[4:0], 3'b000, rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FEQ.S rd, frs1, frs2
+    - {7'b1010000, frs2[4:0], frs1[4:0], 3'b010, rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FLT.S rd, frs1, frs2
+    - {7'b1010000, frs2[4:0], frs1[4:0], 3'b001, rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FLE.S rd, frs1, frs2
+    - {7'b1010000, frs2[4:0], frs1[4:0], 3'b000, rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCLASS.S rd, frs1
+    - {7'b1110000, 5'b00000, frs1[4:0], 3'b001, rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.S.W frd, rs1, rm
+    - {7'b1101000, 5'b00000, rs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.S.WU frd, rs1, rm
+    - {7'b1101000, 5'b00001, rs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.S.L frd, rs1, rm
+    - {7'b1101000, 5'b00010, rs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.S.LU frd, rs1, rm
+    - {7'b1101000, 5'b00011, rs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FMV.W.X frd, rs1
+    - aka FMV.S.X
+    - {7'b1111000, 5'b00000, rs1[4:0], 3'b000, frd[4:0], 5'b10100, 2'b11}
+
+## D Extension
+- 
 
 ## C Extension
 rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}

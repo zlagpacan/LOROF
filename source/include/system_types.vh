@@ -1,13 +1,13 @@
 /*
-    Filename: system_types_pkg.vh
+    Filename: system_types.vh
     Author: zlagpacan
     Description: Package Header File for System-Level Types
 */
 
-`ifndef SYSTEM_TYPES_PKG_VH
-`define SYSTEM_TYPES_PKG_VH
+`ifndef SYSTEM_TYPES_VH
+`define SYSTEM_TYPES_VH
 
-package system_types_pkg;
+package system_types;
 
     // ----------------------------------------------------------------
     // Virtual Memory:
@@ -24,7 +24,7 @@ package system_types_pkg;
 
     parameter int unsigned PO_WIDTH = 12;
 
-    parameter int unsigned ASID_WIDTH = 9;
+    parameter int unsigned ASID_WIDTH = 16;
 
     // Sv32 Page Table Entry:
         // {PPN1[11:0], PPN0[9:0], RSW[1:0], D, A, G, U, X, W, R, V}
@@ -146,4 +146,4 @@ package system_types_pkg;
 
 endpackage
 
-`endif // SYSTEM_TYPES_PKG_VH
+`endif // SYSTEM_TYPES_VH

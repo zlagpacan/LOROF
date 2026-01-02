@@ -7,14 +7,10 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
-
-`include "system_types_pkg.vh"
-import system_types_pkg::*;
+`include "core_types.vh"
 
 module alu_imm_dq_tb #(
-	parameter ALU_IMM_DQ_ENTRIES = 4
+	parameter int unsigned ALU_IMM_DQ_ENTRIES = 4
 ) ();
 
     // ----------------------------------------------------------------
@@ -42,28 +38,28 @@ module alu_imm_dq_tb #(
 	logic [3:0] tb_dispatch_valid_by_way;
 	logic [3:0][3:0] tb_dispatch_op_by_way;
 	logic [3:0][11:0] tb_dispatch_imm12_by_way;
-	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_A_PR_by_way;
+	core_types::PR_t [3:0] tb_dispatch_A_PR_by_way;
 	logic [3:0] tb_dispatch_A_ready_by_way;
 	logic [3:0] tb_dispatch_A_is_zero_by_way;
-	logic [3:0][LOG_PR_COUNT-1:0] tb_dispatch_dest_PR_by_way;
-	logic [3:0][LOG_ROB_ENTRIES-1:0] tb_dispatch_ROB_index_by_way;
+	core_types::PR_t [3:0] tb_dispatch_dest_PR_by_way;
+	core_types::ROB_index_t [3:0] tb_dispatch_ROB_index_by_way;
 
     // op dispatch feedback
 	logic [3:0] DUT_dispatch_ack_by_way, expected_dispatch_ack_by_way;
 
     // writeback bus by bank
-	logic [PRF_BANK_COUNT-1:0] tb_WB_bus_valid_by_bank;
-	logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] tb_WB_bus_upper_PR_by_bank;
+	logic [core_types::PRF_BANK_COUNT-1:0] tb_WB_bus_valid_by_bank;
+	core_types::upper_PR_t [core_types::PRF_BANK_COUNT-1:0] tb_WB_bus_upper_PR_by_bank;
 
     // op enqueue to issue queue
 	logic DUT_iq_enq_valid, expected_iq_enq_valid;
 	logic [3:0] DUT_iq_enq_op, expected_iq_enq_op;
 	logic [11:0] DUT_iq_enq_imm12, expected_iq_enq_imm12;
-	logic [LOG_PR_COUNT-1:0] DUT_iq_enq_A_PR, expected_iq_enq_A_PR;
+	core_types::PR_t DUT_iq_enq_A_PR, expected_iq_enq_A_PR;
 	logic DUT_iq_enq_A_ready, expected_iq_enq_A_ready;
 	logic DUT_iq_enq_A_is_zero, expected_iq_enq_A_is_zero;
-	logic [LOG_PR_COUNT-1:0] DUT_iq_enq_dest_PR, expected_iq_enq_dest_PR;
-	logic [LOG_ROB_ENTRIES-1:0] DUT_iq_enq_ROB_index, expected_iq_enq_ROB_index;
+	core_types::PR_t DUT_iq_enq_dest_PR, expected_iq_enq_dest_PR;
+	core_types::ROB_index_t DUT_iq_enq_ROB_index, expected_iq_enq_ROB_index;
 
     // issue queue enqueue feedback
 	logic tb_iq_enq_ready;

@@ -7,10 +7,9 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
 
-module alu_wrapper (
+module alu_wrapper #(
+) (
 
     // seq
     input logic CLK,
@@ -33,7 +32,8 @@ module alu_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    alu WRAPPED_MODULE (.*);
+	alu #(
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:

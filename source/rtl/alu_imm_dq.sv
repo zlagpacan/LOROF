@@ -5,11 +5,10 @@
     Spec: LOROF/spec/design/alu_imm_dq.md
 */
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
+`include "core_types.vh"
 
 module alu_imm_dq #(
-    parameter ALU_IMM_DQ_ENTRIES = 4
+    parameter int unsigned ALU_IMM_DQ_ENTRIES = 4
 ) (
     // seq
     input logic CLK,
@@ -20,58 +19,58 @@ module alu_imm_dq #(
     input logic [3:0]                       dispatch_valid_by_way,
     input logic [3:0][3:0]                  dispatch_op_by_way,
     input logic [3:0][11:0]                 dispatch_imm12_by_way,
-    input logic [3:0][LOG_PR_COUNT-1:0]     dispatch_A_PR_by_way,
+    input core_types::PR_t [3:0]            dispatch_A_PR_by_way,
     input logic [3:0]                       dispatch_A_ready_by_way,
     input logic [3:0]                       dispatch_A_is_zero_by_way,
-    input logic [3:0][LOG_PR_COUNT-1:0]     dispatch_dest_PR_by_way,
-    input logic [3:0][LOG_ROB_ENTRIES-1:0]  dispatch_ROB_index_by_way,
+    input core_types::PR_t [3:0]            dispatch_dest_PR_by_way,
+    input core_types::ROB_index_t [3:0]     dispatch_ROB_index_by_way,
 
     // op dispatch feedback
-    output logic [3:0] dispatch_ack_by_way,
+    output logic [3:0]                      dispatch_ack_by_way,
 
     // writeback bus by bank
-    input logic [PRF_BANK_COUNT-1:0]                                        WB_bus_valid_by_bank,
-    input logic [PRF_BANK_COUNT-1:0][LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]   WB_bus_upper_PR_by_bank,
+    input logic [core_types::PRF_BANK_COUNT-1:0]                    WB_bus_valid_by_bank,
+    input core_types::upper_PR_t [core_types::PRF_BANK_COUNT-1:0]   WB_bus_upper_PR_by_bank,
 
     // op enqueue to issue queue
-    output logic                        iq_enq_valid,
-    output logic [3:0]                  iq_enq_op,
-    output logic [11:0]                 iq_enq_imm12,
-    output logic [LOG_PR_COUNT-1:0]     iq_enq_A_PR,
-    output logic                        iq_enq_A_ready,
-    output logic                        iq_enq_A_is_zero,
-    output logic [LOG_PR_COUNT-1:0]     iq_enq_dest_PR,
-    output logic [LOG_ROB_ENTRIES-1:0]  iq_enq_ROB_index,
+    output logic                    iq_enq_valid,
+    output logic [3:0]              iq_enq_op,
+    output logic [11:0]             iq_enq_imm12,
+    output core_types::PR_t         iq_enq_A_PR,
+    output logic                    iq_enq_A_ready,
+    output logic                    iq_enq_A_is_zero,
+    output core_types::PR_t         iq_enq_dest_PR,
+    output core_types::ROB_index_t  iq_enq_ROB_index,
 
     // issue queue enqueue feedback
-    input logic                         iq_enq_ready
+    input logic             iq_enq_ready
 );
 
     // ----------------------------------------------------------------
     // Signals:
 
     // DQ entries
-    logic [ALU_IMM_DQ_ENTRIES-1:0]                          valid_by_entry;
-    logic [ALU_IMM_DQ_ENTRIES-1:0][3:0]                     op_by_entry;
-    logic [ALU_IMM_DQ_ENTRIES-1:0][11:0]                    imm12_by_entry;
-    logic [ALU_IMM_DQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]        A_PR_by_entry;
-    logic [ALU_IMM_DQ_ENTRIES-1:0]                          A_ready_by_entry;
-    logic [ALU_IMM_DQ_ENTRIES-1:0]                          A_is_zero_by_entry;
-    logic [ALU_IMM_DQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]        dest_PR_by_entry;
-    logic [ALU_IMM_DQ_ENTRIES-1:0][LOG_ROB_ENTRIES-1:0]     ROB_index_by_entry;
+    logic [ALU_IMM_DQ_ENTRIES-1:0]                      valid_by_entry;
+    logic [ALU_IMM_DQ_ENTRIES-1:0][3:0]                 op_by_entry;
+    logic [ALU_IMM_DQ_ENTRIES-1:0][11:0]                imm12_by_entry;
+    core_types::PR_t [ALU_IMM_DQ_ENTRIES-1:0]           A_PR_by_entry;
+    logic [ALU_IMM_DQ_ENTRIES-1:0]                      A_ready_by_entry;
+    logic [ALU_IMM_DQ_ENTRIES-1:0]                      A_is_zero_by_entry;
+    core_types::PR_t [ALU_IMM_DQ_ENTRIES-1:0]           dest_PR_by_entry;
+    core_types::ROB_index_t [ALU_IMM_DQ_ENTRIES-1:0]    ROB_index_by_entry;
 
     // new ready check
     logic [ALU_IMM_DQ_ENTRIES-1:0] new_A_ready_by_entry;
 
     // incoming dispatch crossbar by entry
-    logic [ALU_IMM_DQ_ENTRIES-1:0]                          dispatch_valid_by_entry;
-    logic [ALU_IMM_DQ_ENTRIES-1:0][3:0]                     dispatch_op_by_entry;
-    logic [ALU_IMM_DQ_ENTRIES-1:0][11:0]                    dispatch_imm12_by_entry;
-    logic [ALU_IMM_DQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]        dispatch_A_PR_by_entry;
-    logic [ALU_IMM_DQ_ENTRIES-1:0]                          dispatch_A_ready_by_entry;
-    logic [ALU_IMM_DQ_ENTRIES-1:0]                          dispatch_A_is_zero_by_entry;
-    logic [ALU_IMM_DQ_ENTRIES-1:0][LOG_PR_COUNT-1:0]        dispatch_dest_PR_by_entry;
-    logic [ALU_IMM_DQ_ENTRIES-1:0][LOG_ROB_ENTRIES-1:0]     dispatch_ROB_index_by_entry;
+    logic [ALU_IMM_DQ_ENTRIES-1:0]                      dispatch_valid_by_entry;
+    logic [ALU_IMM_DQ_ENTRIES-1:0][3:0]                 dispatch_op_by_entry;
+    logic [ALU_IMM_DQ_ENTRIES-1:0][11:0]                dispatch_imm12_by_entry;
+    core_types::PR_t [ALU_IMM_DQ_ENTRIES-1:0]           dispatch_A_PR_by_entry;
+    logic [ALU_IMM_DQ_ENTRIES-1:0]                      dispatch_A_ready_by_entry;
+    logic [ALU_IMM_DQ_ENTRIES-1:0]                      dispatch_A_is_zero_by_entry;
+    core_types::PR_t [ALU_IMM_DQ_ENTRIES-1:0]           dispatch_dest_PR_by_entry;
+    core_types::ROB_index_t [ALU_IMM_DQ_ENTRIES-1:0]    dispatch_ROB_index_by_entry;
 
     // incoming dispatch req masks for each of 4 possible dispatch ways
     logic [3:0][ALU_IMM_DQ_ENTRIES-1:0] dispatch_open_mask_by_way;
@@ -89,7 +88,7 @@ module alu_imm_dq #(
     // new ready check
     always_comb begin
         for (int i = 0; i < ALU_IMM_DQ_ENTRIES; i++) begin
-            new_A_ready_by_entry[i] = (A_PR_by_entry[i][LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT] == WB_bus_upper_PR_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]]) & WB_bus_valid_by_bank[A_PR_by_entry[i][LOG_PRF_BANK_COUNT-1:0]];
+            new_A_ready_by_entry[i] = (core_types::upper_PR_bits(A_PR_by_entry[i]) == WB_bus_upper_PR_by_bank[core_types::PR_bank_bits(A_PR_by_entry[i])]) & WB_bus_valid_by_bank[core_types::PR_bank_bits(A_PR_by_entry[i])];
         end
     end
 

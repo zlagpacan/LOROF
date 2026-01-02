@@ -7,10 +7,9 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
 
-module alu_tb ();
+module alu_tb #(
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:
@@ -40,7 +39,8 @@ module alu_tb ();
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	alu DUT (
+	alu #(
+	) DUT (
 		.op(tb_op),
 		.A(tb_A),
 		.B(tb_B),

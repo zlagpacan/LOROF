@@ -5,15 +5,22 @@
     Spec: LOROF/spec/design/alu.md
 */
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
+// TODO: 64-bit ALU ops
+    // should have total of 15x ops now, can keep op[3:0]
+
+// TODO: consider split ALU pipes
+    // e.g. Arithmetic pipe + Logic pipe
+    // can still share DQ, IQ
+    // split for both Reg-Reg, and Reg-Imm
+        // would be silly for this to be limiting bandwidth
+    // especially valuable for 64-bit as adds may take more than 1 cycle
 
 module alu (
     input logic [3:0]   op,
-    input logic [31:0]  A,
-    input logic [31:0]  B,
+    input XLEN_t        A,
+    input XLEN_t        B,
 
-    output logic [31:0] out
+    output XLEN_t       out
 );
 
     always_comb begin

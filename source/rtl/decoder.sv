@@ -5,6 +5,11 @@
     Spec: LOROF/spec/design/decoder.md
 */
 
+// TODO: update for 64-bit
+// TODO: update for floating point
+    // big issue right now is rs3 for fuse instr's
+		// only fp side of ar map table has to support 4x reads per instr
+
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 

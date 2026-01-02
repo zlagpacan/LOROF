@@ -1,32 +1,46 @@
 /*
-    Filename: core_types_pkg.vh
+    Filename: core_types.vh
     Author: zlagpacan
     Description: Package Header File for CPU Core Types
 */
 
-`ifndef CORE_TYPES_PKG_VH
-`define CORE_TYPES_PKG_VH
+`ifndef CORE_TYPES_VH
+`define CORE_TYPES_VH
 
-package core_types_pkg;
+package core_types;
 
     // ----------------------------------------------------------------
     // General:
 
-    parameter int unsigned XLEN = 32;
-    parameter int unsigned AR_COUNT = 32;
-    parameter int unsigned LOG_AR_COUNT = 5;
-    parameter int unsigned ASID_WIDTH = 9;
+    parameter int unsigned XLEN = 64;
+    parameter int unsigned AR5_COUNT = 32; // {x0:x31}, {f0:f31}
+    parameter int unsigned LOG_AR5_COUNT = 5;
+    parameter int unsigned AR6_COUNT = 64; // {x0:x31} U {f0:f31}
+    parameter int unsigned LOG_AR6_COUNT = 6;
+
+    typedef logic [XLEN-1:0] XLEN_t;
+    typedef logic [LOG_AR5_COUNT-1:0] AR5_t;
+    typedef struct packed {
+        logic   is_fp;
+        AR5_t   AR5;
+    } AR6_t;
+
+    parameter int unsigned ASID_WIDTH = 16;
+
+    typedef logic [ASID_WIDTH-1:0] ASID_t;
 
     // ----------------------------------------------------------------
     // Environment:
 
-    parameter logic [1:0] U_MODE = 2'b00;
-    parameter logic [1:0] S_MODE = 2'b01;
-    parameter logic [1:0] M_MODE = 2'b11;
+    typedef logic [1:0] EXEC_MODE_t;
 
-    parameter logic [31:0] INIT_PC = 32'h0;
-    parameter logic [8:0] INIT_ASID = 9'h0;
-    parameter logic [1:0] INIT_EXEC_MODE = M_MODE;
+    parameter EXEC_MODE_t U_MODE = 2'b00;
+    parameter EXEC_MODE_t S_MODE = 2'b01;
+    parameter EXEC_MODE_t M_MODE = 2'b11;
+
+    parameter XLEN_t INIT_PC = 64'h0;
+    parameter ASID_t INIT_ASID = 9'h0;
+    parameter EXEC_MODE_t INIT_EXEC_MODE = M_MODE;
     parameter logic INIT_VIRTUAL_MODE = 1'b0;
     parameter logic INIT_MXR = 1'b0;
     parameter logic INIT_SUM = 1'b0;
@@ -45,6 +59,18 @@ package core_types_pkg;
     parameter int unsigned LOG_PR_COUNT = $clog2(PR_COUNT);
     parameter int unsigned PRF_BANK_COUNT = 4;
     parameter int unsigned LOG_PRF_BANK_COUNT = $clog2(PRF_BANK_COUNT);
+
+    typedef logic [LOG_PR_COUNT-1:0] PR_t;
+    typedef logic [LOG_PRF_BANK_COUNT-1:0] PR_bank_t;
+    typedef logic [LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] upper_PR_t;
+
+    function logic [LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0] upper_PR_bits (logic [LOG_PR_COUNT-1:0] PR);
+        return PR[LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT];
+    endfunction
+
+    function logic [LOG_PRF_BANK_COUNT-1:0] PR_bank_bits (logic [LOG_PR_COUNT-1:0] PR);
+        return PR[LOG_PRF_BANK_COUNT-1:0];
+    endfunction
 
     parameter int unsigned IS_OC_BUFFER_SIZE = 2;
     parameter int unsigned FAST_FORWARD_PIPE_COUNT = 4;
@@ -81,6 +107,8 @@ package core_types_pkg;
     // rob
     parameter int unsigned ROB_ENTRIES = 128;
     parameter int unsigned LOG_ROB_ENTRIES = $clog2(ROB_ENTRIES);
+
+    typedef logic [LOG_ROB_ENTRIES-1:0] ROB_index_t;
 
     parameter int unsigned ROB_MISPRED_Q_ENTRIES = 2;
     parameter int unsigned ROB_PR_FREE_Q_ENTRIES = 2;
@@ -242,4 +270,4 @@ package core_types_pkg;
 
 endpackage
 
-`endif // CORE_TYPES_PKG_VH
+`endif // CORE_TYPES_VH

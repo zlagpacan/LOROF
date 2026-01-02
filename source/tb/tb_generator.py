@@ -168,26 +168,14 @@ def generate_tb(args, tb_base_lines, design_name, design_signals, design_params,
         
         # input signal
         if input_comment_signal.io == "input":
-            # if typedef'd, add typecast
-            if not ("logic" in input_comment_signal.type):
-                if args.zeroes:
-                    input_signal_lines.extend([
-                        f"\t\ttb_{input_comment_signal.name} = {input_comment_signal.type}'('0);\n",
-                    ])
-                else:
-                    input_signal_lines.extend([
-                        f"\t\ttb_{input_comment_signal.name} = {input_comment_signal.type}'(\n",
-                    ])
-            # otherwise leave at = 
+            if args.zeroes:
+                input_signal_lines.extend([
+                    f"\t\ttb_{input_comment_signal.name} = '0;\n",
+                ])
             else:
-                if args.zeroes:
-                    input_signal_lines.extend([
-                        f"\t\ttb_{input_comment_signal.name} = '0;\n",
-                    ])
-                else:
-                    input_signal_lines.extend([
-                        f"\t\ttb_{input_comment_signal.name} = \n",
-                    ])
+                input_signal_lines.extend([
+                    f"\t\ttb_{input_comment_signal.name} = \n",
+                ])
 
         # only top level comments
         elif input_comment_signal.type == "comment" and input_comment_signal.name.index("//") <= 4:
