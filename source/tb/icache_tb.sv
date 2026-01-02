@@ -8,7 +8,6 @@
 `timescale 1ns/100ps
 
 `include "system_types_pkg.vh"
-import system_types_pkg;
 
 module icache_tb #(
 	parameter int unsigned ICACHE_SIZE = 2**13, // 8KB, 4KB page per way,
@@ -18,7 +17,7 @@ module icache_tb #(
 	parameter int unsigned ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE), // 5b,
 	parameter int unsigned ICACHE_NUM_SETS = ICACHE_SIZE / ICACHE_ASSOC / ICACHE_BLOCK_SIZE, // 128x,
 	parameter int unsigned ICACHE_INDEX_WIDTH = $clog2(ICACHE_NUM_SETS), // 7b,
-	parameter int unsigned ICACHE_TAG_WIDTH = PA_WIDTH - ICACHE_INDEX_WIDTH - ICACHE_BLOCK_OFFSET_WIDTH, // 34b - 7b - 5b = 22b,
+	parameter int unsigned ICACHE_TAG_WIDTH = system_types_pkg::PA_WIDTH - ICACHE_INDEX_WIDTH - ICACHE_BLOCK_OFFSET_WIDTH, // 34b - 7b - 5b = 22b,
 	parameter int unsigned ICACHE_FETCH_WIDTH = 16, // 16B,
 	parameter int unsigned ICACHE_FETCH_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE / ICACHE_FETCH_WIDTH) // 1b
 ) ();
