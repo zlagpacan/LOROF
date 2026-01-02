@@ -1129,16 +1129,13 @@ ISA: RV32IMAC_Zicsr_Zifencei Sv32
 - 0x001: fflags
     - FPU accrued exceptions
     - URW
-    - F extension unsupported, illegal instr
 - 0x002: frm
     - FPU dynamic rounding mode
     - URW
-    - F extension unsupported, illegal instr
 - 0x003: fcsr
     - FPU control and status register
         - superset of equivalent bits when read fflags, frm individually
     - URW
-    - F extension unsupported, illegal instr
 
 #### Counters, Timers
 - 0xC00: cycle

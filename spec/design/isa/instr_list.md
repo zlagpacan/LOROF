@@ -483,6 +483,7 @@ ISA: RV64GC_Zicsr_Zifencei Sv39
     - op: TODO
 - FDIV.S frd, frs1, frs2, rm
     - {7'b0001100, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+        - (frs2 == 5'b00000) -> FSQRT.S
     - FU: fpu
     - op: TODO
 - FSQRT.S frd, frs1, rm
@@ -565,9 +566,139 @@ ISA: RV64GC_Zicsr_Zifencei Sv39
 - FMV.W.X frd, rs1
     - aka FMV.S.X
     - {7'b1111000, 5'b00000, rs1[4:0], 3'b000, frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
 
 ## D Extension
-- 
+- FLD frd, imm(rs1)
+    - {imm[11:0], rs1[4:0], 3'b010, frd[4:0], 5'b00001, 2'b11}
+    - FU: ldu
+    - op: 4'bx011
+- FSD frs2, imm(rs1)
+    - {imm[11:5], frs2[4:0], rs1[4:0], 3'b010, imm[4:0], 5'b01001, 2'b11}
+    - FU: stamofu
+    - op: 4'bxx11
+- FMADD.D frd, frs1, frs2, frs3, rm
+    - {frs3[4:0], 2'b01, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10000, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FMSUB.D frd, frs1, frs2, frs3, rm
+    - {frs3[4:0], 2'b01, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10001, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FNMSUB.D frd, frs1, frs2, frs3, rm
+    - {frs3[4:0], 2'b01, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10010, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FNMADD.D frd, frs1, frs2, frs3, rm
+    - {frs3[4:0], 2'b01, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10011, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FADD.D frd, frs1, frs2, rm
+    - {7'b0000001, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FSUB.D frd, frs1, frs2, rm
+    - {7'b0000101, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FMUL.D frd, frs1, frs2, rm
+    - {7'b0001001, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FDIV.D frd, frs1, frs2, rm
+    - {7'b0001101, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+        - (frs2 == 5'b00000) -> FSQRT.D
+    - FU: fpu
+    - op: TODO
+- FSQRT.D frd, frs1, rm
+    - {7'b0001101, 5'b00000, frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FSGNJ.D frd, frs1, frs2
+    - {7'b0010001, frs2[4:0], frs1[4:0], 3'b000, frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FSGNJN.D frd, frs1, frs2
+    - {7'b0010001, frs2[4:0], frs1[4:0], 3'b001, frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FSGNJX.D frd, frs1, frs2
+    - {7'b0010001, frs2[4:0], frs1[4:0], 3'b010, frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FMIN.D frd, frs1, frs2
+    - {7'b0010101, frs2[4:0], frs1[4:0], 3'b000, frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FMAX.D frd, frs1, frs2
+    - {7'b0010101, frs2[4:0], frs1[4:0], 3'b001, frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.W.D rd, frs1, rm
+    - {7'b1100001, 5'b00000, frs1[4:0], rm[2:0], rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.WU.D rd, frs1, rm
+    - {7'b1100001, 5'b00001, frs1[4:0], rm[2:0], rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.L.D rd, frs1, rm
+    - {7'b1100001, 5'b00010, frs1[4:0], rm[2:0], rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.LU.D rd, frs1, rm
+    - {7'b1100001, 5'b00011, frs1[4:0], rm[2:0], rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.S.D frd, frs1, rm
+    - {7'b0100000, 5'b00001, frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.D.S frd, frs1, rm
+    - {7'b0100001, 5'b00000, frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FMV.X.D rd, frs1
+    - {7'b1110001, 5'b00000, frs1[4:0], 3'b000, rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FEQ.D rd, frs1, frs2
+    - {7'b1010001, frs2[4:0], frs1[4:0], 3'b010, rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FLT.D rd, frs1, frs2
+    - {7'b1010001, frs2[4:0], frs1[4:0], 3'b001, rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FLE.D rd, frs1, frs2
+    - {7'b1010001, frs2[4:0], frs1[4:0], 3'b000, rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCLASS.D rd, frs1
+    - {7'b1110001, 5'b00000, frs1[4:0], 3'b001, rd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.D.W frd, rs1, rm
+    - {7'b1101001, 5'b00000, rs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.D.WU frd, rs1, rm
+    - {7'b1101001, 5'b00001, rs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.D.L frd, rs1, rm
+    - {7'b1101001, 5'b00010, rs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FCVT.D.LU frd, rs1, rm
+    - {7'b1101001, 5'b00011, rs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
+- FMV.D.X frd, rs1
+    - {7'b1111001, 5'b00000, rs1[4:0], 3'b000, frd[4:0], 5'b10100, 2'b11}
+    - FU: fpu
+    - op: TODO
 
 ## C Extension
 rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
@@ -577,16 +708,36 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
     - {3'b000, uimm[5:4|9:6|2|3], rd'[2:0], 2'b00}
     - FU: alu_imm
     - op: 4'b0000
+- C.FLD frd', uimm(rs1')
+    - FLD frd', uimm(rs1')
+    - {3'b001, uimm[5:3], rs1'[2:0], uimm[7:6], rd'[2:0], 2'b00}
+    - FU: ldu
+    - op: 4'bx011
 - C.LW rd', uimm(rs1')
     - LW rd', uimm(rs1')
     - {3'b010, uimm[5:3], rs1'[2:0], uimm[2|6], rd'[2:0], 2'b00}
     - FU: ldu
     - op: 4'bx010
+- C.LD rd', uimm(rs1')
+    - LD rd', uimm(rs1')
+    - {3'b011, uimm[5:3], rs1'[2:0], uimm[7:6], rd'[2:0], 2'b00}
+    - FU: ldu
+    - op: 4'bx011
+- C.FSD frs2', uimm(rs1')
+    - FSD rs2', uimm(rs1')
+    - {3'b101, uimm[5:3], rs1'[2:0], uimm[7:6], rs2'[2:0], 2'b00}
+    - FU: stamofu
+    - op: 4'bxx11
 - C.SW rs2', uimm(rs1')
     - SW rs2', uimm(rs1')
     - {3'b110, uimm[5:3], rs1'[2:0], uimm[2|6], rs2'[2:0], 2'b00}
     - FU: stamofu
     - op: 4'bxx10
+- C.SD rs2', uimm(rs1')
+    - SD rs2', uimm(rs1')
+    - {3'b111, uimm[5:3], rs1'[2:0], uimm[7:6], rs2'[2:0], 2'b00}
+    - FU: stamofu
+    - op: 4'bxx11
 - C.NOP
     - ADDI x0, x0, imm
     - {3'b000, imm[5], 5'b00000, imm[4:0], 2'b01}
@@ -603,6 +754,11 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
     - {3'b001, imm[11|4|9:8|10|6|7|3:1|5], 2'b01}
     - FU: bru
     - op: 4'b0011
+- C.ADDIW rd, imm
+    - ADDIW rd, rd, imm
+    - {3'b001, imm[5], rd[4:0], imm[4:0], 2'b01}
+    - FU: alu_imm
+    - op: TODO
 - C.LI rd, imm
     - ADDI rd, x0, imm
     - {3'b010, imm[5], rd[4:0], imm[4:0], 2'b01}
@@ -654,6 +810,16 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
     - {3'b100, 1'b0, 2'b11, rs1'/rd'[2:0], 2'b11, rs2'[2:0], 2'b01}
     - FU: alu_reg
     - op: 4'bx111
+- C.SUBW rd', rs2'
+    - SUBW rd', rd', rs2'
+    - {3'b100, 1'b1, 2'b11, rs1'/rd'[2:0], 2'b00, rs2'[2:0], 2'b01}
+    - FU: alu_reg
+    - op: TODO
+- C.ADDW rd', rs2'
+    - ADDW rd', rd', rs2'
+    - {3'b100, 1'b1, 2'b11, rs1'/rd'[2:0], 2'b01, rs2'[2:0], 2'b01}
+    - FU: alu_reg
+    - op: TODO
 - C.J imm
     - JAL x0, imm
     - {3'b101, imm[11|4|9:8|10|6|7|3:1|5], 2'b01}
@@ -674,11 +840,21 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
     - {3'b000, shamt[5], rs1/rd[4:0], shamt[4:0], 2'b10}
     - FU: alu_imm
     - op: 4'bx001
+- C.FLDSP rd, uimm
+    - FLD frd, uimm(sp/x2)
+    - {3'b001, uimm[5], rd[4:0], uimm[4:3|8:6], 2'b10}
+    - FU: ldu
+    - op: 4'bx011
 - C.LWSP rd, uimm
     - LW rd, uimm(sp/x2)
     - {3'b010, uimm[5], rd[4:0], uimm[4:2|7:6], 2'b10}
     - FU: ldu
     - op: 4'bx010
+- C.LDSP rd, uimm
+    - LD rd, uimm(sp/x2)
+    - {3'b011, uimm[5], rd[4:0], uimm[4:3|8:6], 2'b10}
+    - FU: ldu
+    - op: 4'bx011
 - C.JR rs1
     - JALR x0, 0(rs1)
     - {3'b100, 1'b0, rs1[4:0], 5'b00000, 2'b10}
@@ -708,11 +884,21 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
         - (rs2 == 0) -> C.JALR
     - FU: alu_reg
     - op: 4'b0000
+- C.FSDSP frs2, uimm
+    - FSD frs2, uimm(sp/x2)
+    - {3'b101, uimm[5:3|8:6], rs2[4:0], 2'b10}
+    - FU: stamofu
+    - op: 4'bxx11
 - C.SWSP rs2, uimm
     - SW rs2, uimm(sp/x2)
     - {3'b110, uimm[5:2|7:6], rs2[4:0], 2'b10}
     - FU: stamofu
     - op: 4'bxx10
+- C.SDSP rs2, uimm
+    - SD rs2, uimm(sp/x2)
+    - {3'b111, uimm[5:3|8:6], rs2[4:0], 2'b10}
+    - FU: stamofu
+    - op: 4'bxx11
 
 ## Machine-Mode Privileged Instructions
 - MRET
