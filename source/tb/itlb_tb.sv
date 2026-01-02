@@ -9,11 +9,13 @@
 
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
-
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
 module itlb_tb #(
+	parameter ASID_WIDTH = 9,
+	parameter VPN_WIDTH = 20,
+	parameter PPN_WIDTH = 22,
 	parameter ITLB_4KBPAGE_ENTRIES = 16, // 16-entry,
 	parameter ITLB_4KBPAGE_ASSOC = 4, // 4x,
 	parameter LOG_ITLB_4KBPAGE_ASSOC = $clog2(ITLB_4KBPAGE_ASSOC), // 2b,
@@ -76,7 +78,7 @@ module itlb_tb #(
 	logic [ITLB_L2_TLB_REQ_TAG_WIDTH-1:0] tb_l2_tlb_resp_tag;
 	pte_t tb_l2_tlb_resp_pte;
 	logic tb_l2_tlb_resp_is_superpage;
-	logic tb_l2_tlb_resp_access_fault;
+	logic tb_l2_tlb_resp_access_fault_pt_access;
 
     // evict to L2 TLB
 	logic DUT_l2_tlb_evict_valid, expected_l2_tlb_evict_valid;
@@ -97,6 +99,9 @@ module itlb_tb #(
     // DUT instantiation:
 
 	itlb #(
+		.ASID_WIDTH(ASID_WIDTH),
+		.VPN_WIDTH(VPN_WIDTH),
+		.PPN_WIDTH(PPN_WIDTH),
 		.ITLB_4KBPAGE_ENTRIES(ITLB_4KBPAGE_ENTRIES),
 		.ITLB_4KBPAGE_ASSOC(ITLB_4KBPAGE_ASSOC),
 		.LOG_ITLB_4KBPAGE_ASSOC(LOG_ITLB_4KBPAGE_ASSOC),
@@ -142,7 +147,7 @@ module itlb_tb #(
 		.l2_tlb_resp_tag(tb_l2_tlb_resp_tag),
 		.l2_tlb_resp_pte(tb_l2_tlb_resp_pte),
 		.l2_tlb_resp_is_superpage(tb_l2_tlb_resp_is_superpage),
-		.l2_tlb_resp_access_fault(tb_l2_tlb_resp_access_fault),
+		.l2_tlb_resp_access_fault_pt_access(tb_l2_tlb_resp_access_fault_pt_access),
 
 	    // evict to L2 TLB
 		.l2_tlb_evict_valid(DUT_l2_tlb_evict_valid),
@@ -304,7 +309,7 @@ module itlb_tb #(
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
-		tb_l2_tlb_resp_access_fault = 1'b0;
+		tb_l2_tlb_resp_access_fault_pt_access = 1'b0;
 	    // evict to L2 TLB
 	    // sfence invalidation
 		tb_sfence_inv_valid = 1'b0;
@@ -370,7 +375,7 @@ module itlb_tb #(
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
-		tb_l2_tlb_resp_access_fault = 1'b0;
+		tb_l2_tlb_resp_access_fault_pt_access = 1'b0;
 	    // evict to L2 TLB
 	    // sfence invalidation
 		tb_sfence_inv_valid = 1'b0;
@@ -448,7 +453,7 @@ module itlb_tb #(
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
-		tb_l2_tlb_resp_access_fault = 1'b0;
+		tb_l2_tlb_resp_access_fault_pt_access = 1'b0;
 	    // evict to L2 TLB
 	    // sfence invalidation
 		tb_sfence_inv_valid = 1'b0;
@@ -520,7 +525,7 @@ module itlb_tb #(
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
-		tb_l2_tlb_resp_access_fault = 1'b0;
+		tb_l2_tlb_resp_access_fault_pt_access = 1'b0;
 	    // evict to L2 TLB
 	    // sfence invalidation
 		tb_sfence_inv_valid = 1'b0;
@@ -592,7 +597,7 @@ module itlb_tb #(
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
-		tb_l2_tlb_resp_access_fault = 1'b0;
+		tb_l2_tlb_resp_access_fault_pt_access = 1'b0;
 	    // evict to L2 TLB
 	    // sfence invalidation
 		tb_sfence_inv_valid = 1'b0;
@@ -664,7 +669,7 @@ module itlb_tb #(
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
-		tb_l2_tlb_resp_access_fault = 1'b0;
+		tb_l2_tlb_resp_access_fault_pt_access = 1'b0;
 	    // evict to L2 TLB
 	    // sfence invalidation
 		tb_sfence_inv_valid = 1'b0;
@@ -736,7 +741,7 @@ module itlb_tb #(
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
-		tb_l2_tlb_resp_access_fault = 1'b0;
+		tb_l2_tlb_resp_access_fault_pt_access = 1'b0;
 	    // evict to L2 TLB
 	    // sfence invalidation
 		tb_sfence_inv_valid = 1'b0;
@@ -814,7 +819,7 @@ module itlb_tb #(
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
-		tb_l2_tlb_resp_access_fault = 1'b0;
+		tb_l2_tlb_resp_access_fault_pt_access = 1'b0;
 	    // evict to L2 TLB
 	    // sfence invalidation
 		tb_sfence_inv_valid = 1'b0;
@@ -886,7 +891,7 @@ module itlb_tb #(
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
-		tb_l2_tlb_resp_access_fault = 1'b0;
+		tb_l2_tlb_resp_access_fault_pt_access = 1'b0;
 	    // evict to L2 TLB
 	    // sfence invalidation
 		tb_sfence_inv_valid = 1'b0;
@@ -958,7 +963,7 @@ module itlb_tb #(
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
-		tb_l2_tlb_resp_access_fault = 1'b0;
+		tb_l2_tlb_resp_access_fault_pt_access = 1'b0;
 	    // evict to L2 TLB
 	    // sfence invalidation
 		tb_sfence_inv_valid = 1'b0;
@@ -1030,7 +1035,7 @@ module itlb_tb #(
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
-		tb_l2_tlb_resp_access_fault = 1'b0;
+		tb_l2_tlb_resp_access_fault_pt_access = 1'b0;
 	    // evict to L2 TLB
 	    // sfence invalidation
 		tb_sfence_inv_valid = 1'b0;
@@ -1102,7 +1107,7 @@ module itlb_tb #(
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
-		tb_l2_tlb_resp_access_fault = 1'b0;
+		tb_l2_tlb_resp_access_fault_pt_access = 1'b0;
 	    // evict to L2 TLB
 	    // sfence invalidation
 		tb_sfence_inv_valid = 1'b0;
@@ -1174,7 +1179,7 @@ module itlb_tb #(
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
-		tb_l2_tlb_resp_access_fault = 1'b0;
+		tb_l2_tlb_resp_access_fault_pt_access = 1'b0;
 	    // evict to L2 TLB
 	    // sfence invalidation
 		tb_sfence_inv_valid = 1'b0;
@@ -1246,7 +1251,7 @@ module itlb_tb #(
 			1'b0, 1'b1, 1'b0, 1'b1, 1'b0, 1'b1, 1'b0, 1'b1
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b1;
-		tb_l2_tlb_resp_access_fault = 1'b0;
+		tb_l2_tlb_resp_access_fault_pt_access = 1'b0;
 	    // evict to L2 TLB
 	    // sfence invalidation
 		tb_sfence_inv_valid = 1'b0;
@@ -1318,7 +1323,7 @@ module itlb_tb #(
 			1'b0, 1'b1, 1'b0, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
-		tb_l2_tlb_resp_access_fault = 1'b0;
+		tb_l2_tlb_resp_access_fault_pt_access = 1'b0;
 	    // evict to L2 TLB
 	    // sfence invalidation
 		tb_sfence_inv_valid = 1'b0;
@@ -1347,7 +1352,7 @@ module itlb_tb #(
 		expected_l2_tlb_evict_ASID = 9'h000;
 		expected_l2_tlb_evict_VPN = 20'h00000;
 		expected_l2_tlb_evict_pte = {
-			12'h000, 10'h000,
+			22'h000000,
 			2'b00,
 			// D     A     G     U     X     W     R     V
 			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
@@ -1390,7 +1395,7 @@ module itlb_tb #(
 			1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
 		};
 		tb_l2_tlb_resp_is_superpage = 1'b0;
-		tb_l2_tlb_resp_access_fault = 1'b0;
+		tb_l2_tlb_resp_access_fault_pt_access = 1'b0;
 	    // evict to L2 TLB
 	    // sfence invalidation
 		tb_sfence_inv_valid = 1'b0;
@@ -1404,8 +1409,8 @@ module itlb_tb #(
 
 	    // core req
 	    // core resp
-		expected_core_resp_valid = 1'b0;
-		expected_core_resp_PPN = 22'h000000;
+		expected_core_resp_valid = 1'b1;
+		expected_core_resp_PPN = 22'h3f03f0;
 		expected_core_resp_page_fault = 1'b0;
 		expected_core_resp_access_fault = 1'b0;
 	    // req to L2 TLB
@@ -1416,13 +1421,13 @@ module itlb_tb #(
 	    // resp from L2 TLB
 	    // evict to L2 TLB
 		expected_l2_tlb_evict_valid = 1'b0;
-		expected_l2_tlb_evict_ASID = 9'h000;
-		expected_l2_tlb_evict_VPN = 20'h00000;
+		expected_l2_tlb_evict_ASID = 9'hf0f;
+		expected_l2_tlb_evict_VPN = 20'hf0f0f;
 		expected_l2_tlb_evict_pte = {
-			12'h000, 10'h000,
+			22'h3f03f0,
 			2'b00,
 			// D     A     G     U     X     W     R     V
-			1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0
+			1'b0, 1'b1, 1'b0, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1
 		};
 		expected_l2_tlb_evict_is_superpage = 1'b0;
 	    // sfence invalidation

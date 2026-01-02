@@ -9,11 +9,13 @@
 
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
-
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
 module itlb_wrapper #(
+	parameter ASID_WIDTH = 9,
+	parameter VPN_WIDTH = 20,
+	parameter PPN_WIDTH = 22,
 	parameter ITLB_4KBPAGE_ENTRIES = 16, // 16-entry,
 	parameter ITLB_4KBPAGE_ASSOC = 4, // 4x,
 	parameter LOG_ITLB_4KBPAGE_ASSOC = $clog2(ITLB_4KBPAGE_ASSOC), // 2b,
@@ -60,7 +62,7 @@ module itlb_wrapper #(
 	input logic [ITLB_L2_TLB_REQ_TAG_WIDTH-1:0] next_l2_tlb_resp_tag,
 	input pte_t next_l2_tlb_resp_pte,
 	input logic next_l2_tlb_resp_is_superpage,
-	input logic next_l2_tlb_resp_access_fault,
+	input logic next_l2_tlb_resp_access_fault_pt_access,
 
     // evict to L2 TLB
 	output logic last_l2_tlb_evict_valid,
@@ -107,7 +109,7 @@ module itlb_wrapper #(
 	logic [ITLB_L2_TLB_REQ_TAG_WIDTH-1:0] l2_tlb_resp_tag;
 	pte_t l2_tlb_resp_pte;
 	logic l2_tlb_resp_is_superpage;
-	logic l2_tlb_resp_access_fault;
+	logic l2_tlb_resp_access_fault_pt_access;
 
     // evict to L2 TLB
 	logic l2_tlb_evict_valid;
@@ -128,6 +130,9 @@ module itlb_wrapper #(
     // Module Instantiation:
 
 	itlb #(
+		.ASID_WIDTH(ASID_WIDTH),
+		.VPN_WIDTH(VPN_WIDTH),
+		.PPN_WIDTH(PPN_WIDTH),
 		.ITLB_4KBPAGE_ENTRIES(ITLB_4KBPAGE_ENTRIES),
 		.ITLB_4KBPAGE_ASSOC(ITLB_4KBPAGE_ASSOC),
 		.LOG_ITLB_4KBPAGE_ASSOC(LOG_ITLB_4KBPAGE_ASSOC),
@@ -176,7 +181,7 @@ module itlb_wrapper #(
 			l2_tlb_resp_tag <= '0;
 			l2_tlb_resp_pte <= '0;
 			l2_tlb_resp_is_superpage <= '0;
-			l2_tlb_resp_access_fault <= '0;
+			l2_tlb_resp_access_fault_pt_access <= '0;
 
 		    // evict to L2 TLB
 			last_l2_tlb_evict_valid <= '0;
@@ -221,7 +226,7 @@ module itlb_wrapper #(
 			l2_tlb_resp_tag <= next_l2_tlb_resp_tag;
 			l2_tlb_resp_pte <= next_l2_tlb_resp_pte;
 			l2_tlb_resp_is_superpage <= next_l2_tlb_resp_is_superpage;
-			l2_tlb_resp_access_fault <= next_l2_tlb_resp_access_fault;
+			l2_tlb_resp_access_fault_pt_access <= next_l2_tlb_resp_access_fault_pt_access;
 
 		    // evict to L2 TLB
 			last_l2_tlb_evict_valid <= l2_tlb_evict_valid;

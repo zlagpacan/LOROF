@@ -12,6 +12,11 @@ import core_types_pkg::*;
 import system_types_pkg::*;
 
 module itlb #(
+    // TODO: remove these after RV32IMAC Sv32 -> RV64GC Sv39 conversion
+    parameter ASID_WIDTH = 9,
+    parameter VPN_WIDTH = 20,
+    parameter PPN_WIDTH = 22,
+
     // 4KB page array
     parameter ITLB_4KBPAGE_ENTRIES = 16, // 16-entry
     parameter ITLB_4KBPAGE_ASSOC = 4, // 4x
@@ -62,7 +67,7 @@ module itlb #(
     input logic [ITLB_L2_TLB_REQ_TAG_WIDTH-1:0]     l2_tlb_resp_tag,
     input pte_t                                     l2_tlb_resp_pte,
     input logic                                     l2_tlb_resp_is_superpage,
-    input logic                                     l2_tlb_resp_access_fault,
+    input logic                                     l2_tlb_resp_access_fault_pt_access,
 
     // evict to L2 TLB
     output logic                    l2_tlb_evict_valid,
@@ -128,7 +133,8 @@ module itlb #(
         logic                   pte_V; // Valid
 
         // PMA components:
-        logic                   pma_access_fault;
+        logic                   pma_access_fault_ppn;
+        logic                   pma_access_fault_pt_access;
 
     } array_entry_t;
 
@@ -437,21 +443,32 @@ module itlb #(
                             array_4KB_read_set.entry_by_way[way].pte_PPN1,
                             array_4KB_read_set.entry_by_way[way].pte_PPN0
                         };
-                        // page fault conditions:
-                            // ~V
-                            // ~X
-                            // X & W & ~R
-                            // U_MODE & ~U
-                        core_resp_page_fault |= 
-                            ~array_4KB_read_set.entry_by_way[way].pte_V
-                            | ~array_4KB_read_set.entry_by_way[way].pte_X
-                            | (array_4KB_read_set.entry_by_way[way].pte_W & ~array_4KB_read_set.entry_by_way[way].pte_R)
-                            | (core_resp_stage_exec_mode == U_MODE & array_4KB_read_set.entry_by_way[way].pte_U)
-                        ;
-                        // access fault conditions:
-                            // no PMA access fault (in TLB entry)
-                            // given access fault from l2 resp
-                        core_resp_access_fault |= array_4KB_read_set.entry_by_way[way].pma_access_fault;
+                        // prioritize access fault on pt access
+                        if (array_4KB_read_set.entry_by_way[way].pma_access_fault_pt_access) begin
+                            core_resp_page_fault |= 1'b0;
+                            core_resp_access_fault |= 1'b1;
+                        end
+                        // otherwise, prioritize page fault
+                        else begin
+                            // page fault conditions:
+                                // ~V
+                                // ~X
+                                // X & W & ~R
+                                // U_MODE & ~U
+                            core_resp_page_fault |= 
+                                ~array_4KB_read_set.entry_by_way[way].pte_V
+                                | ~array_4KB_read_set.entry_by_way[way].pte_X
+                                | (array_4KB_read_set.entry_by_way[way].pte_W & ~array_4KB_read_set.entry_by_way[way].pte_R)
+                                | (core_resp_stage_exec_mode == U_MODE & ~array_4KB_read_set.entry_by_way[way].pte_U)
+                            ;
+                            // access fault conditions:
+                                // PMA access fault on PPN
+                                // no page fault
+                            core_resp_access_fault |= 
+                                array_4KB_read_set.entry_by_way[way].pma_access_fault_ppn
+                                & ~core_resp_page_fault
+                            ;
+                        end
                     end
                 end
             end
@@ -466,24 +483,34 @@ module itlb #(
                             array_4MB_read_set.entry_by_way[way].pte_PPN1,
                             core_req_VPN[VPN0_WIDTH-1:0]
                         };
-                        // page fault conditions:
-                            // ~V
-                            // ~X
-                            // X & W & ~R
-                            // U_MODE & ~U
-                            // PPN0 != 0
-                        core_resp_page_fault |= 
-                            ~array_4MB_read_set.entry_by_way[way].pte_V
-                            | ~array_4MB_read_set.entry_by_way[way].pte_X
-                            | (array_4MB_read_set.entry_by_way[way].pte_W & ~array_4MB_read_set.entry_by_way[way].pte_R)
-                            | (core_resp_stage_exec_mode == U_MODE & array_4MB_read_set.entry_by_way[way].pte_U)
-                            | array_4MB_read_set.entry_by_way[way].pte_PPN0 != 0
-                        ;
-                        // access fault conditions:
-                            // no PMA access fault
-                            // given access fault from l2 resp
-                            // these conditions are condensed into array entry access fault 
-                        core_resp_access_fault |= array_4MB_read_set.entry_by_way[way].pma_access_fault;
+                        // prioritize access fault on pt access
+                        if (array_4MB_read_set.entry_by_way[way].pma_access_fault_pt_access) begin
+                            core_resp_page_fault |= 1'b0;
+                            core_resp_access_fault |= 1'b1;
+                        end
+                        // otherwise, prioritize page fault
+                        else begin
+                            // page fault conditions:
+                                // ~V
+                                // ~X
+                                // X & W & ~R
+                                // U_MODE & ~U
+                                // PPN0 != 0
+                            core_resp_page_fault |= 
+                                ~array_4MB_read_set.entry_by_way[way].pte_V
+                                | ~array_4MB_read_set.entry_by_way[way].pte_X
+                                | (array_4MB_read_set.entry_by_way[way].pte_W & ~array_4MB_read_set.entry_by_way[way].pte_R)
+                                | (core_resp_stage_exec_mode == U_MODE & ~array_4MB_read_set.entry_by_way[way].pte_U)
+                                | array_4MB_read_set.entry_by_way[way].pte_PPN0 != 0
+                            ;
+                            // access fault conditions:
+                                // PMA access fault on PPN
+                                // no page fault
+                            core_resp_access_fault |=
+                                array_4MB_read_set.entry_by_way[way].pma_access_fault_ppn
+                                & ~core_resp_page_fault
+                            ;
+                        end
                     end
                 end
             end
@@ -702,7 +729,8 @@ module itlb #(
             array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].pte_R = l2_tlb_resp_pte.R;
             array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].pte_V = l2_tlb_resp_pte.V;
 
-            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].pma_access_fault = l2_tlb_resp_access_fault | ~(mem_map_DRAM | mem_map_ROM);
+            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].pma_access_fault_ppn = ~(mem_map_DRAM | mem_map_ROM);
+            array_4KB_write_set.entry_by_way[second_stage_4KB_fill_way].pma_access_fault_pt_access = l2_tlb_resp_access_fault_pt_access;
         end
         // sfence inv
         else if (sfence_fsm_active) begin
@@ -749,7 +777,8 @@ module itlb #(
             array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].pte_R = l2_tlb_resp_pte.R;
             array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].pte_V = l2_tlb_resp_pte.V;
 
-            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].pma_access_fault = l2_tlb_resp_access_fault | ~(mem_map_DRAM | mem_map_ROM);
+            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].pma_access_fault_ppn = ~(mem_map_DRAM | mem_map_ROM);
+            array_4MB_write_set.entry_by_way[second_stage_4MB_fill_way].pma_access_fault_pt_access = l2_tlb_resp_access_fault_pt_access;
         end
         // sfence inv
         else if (sfence_fsm_active) begin
