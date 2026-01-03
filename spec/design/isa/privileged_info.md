@@ -109,14 +109,16 @@ Privleged info for ISA: RV64GC_Zicsr_Zifencei Sv39
                 - {satp.PPN (PTBR), VPN2 * 8}
         - 9b for 2^9 * 8B = 2^12 B = 4KB root page table
     - VPN1:
-        - root level 1 VPN
+        - level 1 VPN
             - use VPN1 to access level 1 PTE PA
                 - {level 2 PTE.PPN1, level 2 PTE.PPN0, VPN1 * 8}
+            - OR if root level 2 PTE is leaf, more page offset bits
         - 9b for 2^9 * 8B = 2^12 B = 4KB level 1 page table
     - VPN0:
-        - leaf level 0 VPN
-            - use VPN0 to access leaf level 0 PTE PA
+        - level 0 VPN
+            - use VPN0 to access level 0 PTE PA
                 - {level 1 PTE.PPN1, level 1 PTE.PPN0, VPN0 * 8}
+            - OR if root level 2 PTE or level 1 PTE is leaf, more page offset bits
         - 9b for 2^9 * 8B = 2^12 B = 4KB level 0 page table
     - PO:
         - Page Offset
@@ -218,6 +220,7 @@ Privleged info for ISA: RV64GC_Zicsr_Zifencei Sv39
             - can load or LR.W from page
         - case (X, W, R):
             - 000: pointer to next level of page table
+                - essentially, non-leaf page
                 - page fault if already at level 0 leaf
             - 001: read-only
             - 010: reserved -> page fault
@@ -226,7 +229,9 @@ Privleged info for ISA: RV64GC_Zicsr_Zifencei Sv39
             - 101: read-execute
             - 110: reserved -> page fault
             - 111: read-write-execute
-        - if get leaf page at level 1, have superpage
+        - if get leaf page at root level 2 PTE, have 1GB gigapage
+            - must have PPN1 == 0 and PPN0 == 0, else misaligned superpage, page fault
+        - if get leaf page at level 1 PTE, have 2MB megapage
             - must have PPN0 == 0, else misaligned superpage, page fault
         - page fault if perform memory access and don't have required permissions
     - U:
@@ -241,7 +246,7 @@ Privleged info for ISA: RV64GC_Zicsr_Zifencei Sv39
     - G:
         - Global mapping
         - mapping true for all ASID's
-        - if non-leaf PTE is G, all leaves under this are G
+        - if non-leaf PTE is G, all leaves under this must be G
         - can share TLB entry between ASID's
         - don't have to flush G TLB entries on SFENCE.VMA if rs2 doesn't pick x0, so only targetting ASID instead of all
     - A, D:

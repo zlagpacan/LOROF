@@ -18,16 +18,25 @@ Quad-Core, so 4 of each:
     - 32B block
     - private, per-core
     - coherent
-        - receives snoops from L2 Cache
+        - receives snoop invalidations from L2 Cache
     - {valid, invalid} cache block states
 - L1 Instruction TLB
-    - 32-entry
-    - 2-way associative
+    - 4KB page array
+        - 32-entry
+        - 4-way associative
+    - 2MB megapage array
+        - 8-entry
+        - 2-way associative
+    - 1GB gigapage array
+        - 2-entry
+        - fully associative
     - private, per-core
     - incoherent
         - SFENCE.VMA instruction triggers relevant TLB entry flush
         - inter-processor interrupts used to notify other cores of page table updates
     - {valid, invalid} page table entry states
+    - only store leaf pages
+        - non-leaf pages in L2 TLB
 - L1 Data Cache
     - 8KB
     - 2-way associative
@@ -36,12 +45,19 @@ Quad-Core, so 4 of each:
     - private, per-core
     - coherent
         - receives snoops from L2 Cache
-    - MOESIF cache block states
+    - MOESIF cache block states inherited from L2 Cache
     - write-back
     - supports atomics
 - L1 Data TLB
-    - 32-entry
-    - 2-way associative
+    - 4KB page array
+        - 64-entry
+        - 4-way associative
+    - 2MB megapage array
+        - 16-entry
+        - 2-way associative
+    - 1GB gigapage array
+        - 2-entry
+        - fully associative
     - private, per-core
     - incoherent
         - SFENCE.VMA instruction triggers relevant TLB entry flush
@@ -53,7 +69,7 @@ Quad-Core, so 4 of each:
     - 64B block
     - unified instruction + data
     - private, per-core
-    - inclusive with L1 Data Cache
+    - inclusive with L1 Instruction Cache and L1 Data Cache
     - coherent
         - receives snoops from Bus
         - sends snoops to L1 Instruction Cache
@@ -61,8 +77,15 @@ Quad-Core, so 4 of each:
     - MOESIF cache block states
     - write-back
 - L2 TLB
-    - 64-entry
-    - 2-way associative
+    - 4KB page array
+        - 512-entry
+        - 8-way associative
+    - 2MB megapage array
+        - 128-entry
+        - 4-way associative
+    - 1GB gigapage array
+        - 8-entry
+        - 4-way associative
     - unified instruction + data
     - private, per-core
     - non-inclusive non-exclusive with L1 Instruction TLB and L1 Data TLB
