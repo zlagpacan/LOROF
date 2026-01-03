@@ -11,6 +11,8 @@ import core_types_pkg::*;
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
+// TODO: fix Baremetal mode -> VA gets zero-extended to get PA
+
 module itlb #(
     // TODO: remove these after RV32IMAC Sv32 -> RV64GC Sv39 conversion
     parameter ASID_WIDTH = 9,

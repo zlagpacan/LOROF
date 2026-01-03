@@ -1,0 +1,335 @@
+# Privileged Information
+Privleged info for ISA: RV64GC_Zicsr_Zifencei Sv39
+
+## Privileged Instructions
+
+### Environment Call and Breakpoint
+- ECALL
+    - in U-mode: raise environment-call-from-U-mode exception
+    - in S-mode: raise environment-call-from-S-mode exception
+    - in M-mode: raise environment-call-from-M-mode exception
+    - if exception delegated to S-mode:
+        - set sepc with address of ECALL
+    - if exception to M-mode:
+        - set mepc with address of ECALL
+- EBREAK, C.EBREAK
+    - raise breakpoint exception
+    - if exception delegated to S-mode:
+        - set sepc with address of ECALL
+    - if exception to M-mode:
+        - set mpec with address of ECALL
+
+### Trap Return
+- MRET
+    - pop M-mode privilege stack
+        - set execution mode <= MPP
+        - set MIE <= MPIE
+        - set MPIE <= 1'b1
+        - set MPP <= 2'b00 (U-mode)
+        - set MPRV <= 1'b0 if MPP != 2'b11 (M-mode)
+    - set PC <= mepc
+    - permitted in M-mode
+- SRET
+    - pop S-mode privilege stack
+        - set execution mode <= SPP
+        - set SIE <= SPIE
+        - set SPIE <= 1'b1
+        - set SPP <= 1'b0 (U-mode)
+        - set MPRV <= 1'b0
+    - set PC <= sepc
+    - permitted in M-mode 
+    - permitted in S-mode if mstatus.TSR = 0
+
+### Wait for Interrupt
+- WFI
+    - permitted in M-mode
+    - permitted in S-mode if mstatus.TW = 0
+    - permitted in S-mode but with HW time limit if mstatus.TW = 1
+    - permitted in U-mode but with HW time limit
+    - can use to signal to PLIC that this hart prime for external interrupts
+    - WFI wakeup ignores mstatus.MIE, mstatus.SIE, always resuming execution after the WFI even if an interrupt won't be taken due to enable's being off for this mode
+        - allows spooky in-current-code interrupt handling as opposed to trap jump
+    - WFI wakeup ignores mideleg settings, always resuming execution after the WFI even if the interrupt wouldn't be taken in M-mode
+    - WFI wakeup doesn't occur if the individual interrupt is not enabled via mie
+        - allows mie to be true mask over mip functionality
+    - if take interrupt, set mpec <= pc + 4, instr after WFI
+
+
+## Excepting Instructions
+- what CSR's to set
+- PC following mtvec/stvec
+
+
+## Interrupts
+- what CSR's to set
+- PC following mtvec/stvec
+
+
+## Reset Functionality
+- start execution in M-mode
+- mstatus
+    - mstatus.MIE <= 0
+    - mstatus.MPRV <= 0
+    - hardwired vals good-to-go
+- misa
+    - hardwired vals good-to-go
+- inv reservation set
+- PC <= platform-defined reset
+- mcause
+    - give reset condition
+    - can use platform-specific conditions (e.g. interrupt=1, [16:30] causes)
+    - can be 32'h0 for no special interpretation of reset
+- everything else undefined, seems like just choose logical reset val
+    - WARL's must be legal value
+
+
+## Sv39 Paging
+- Sv39 Mode
+    - satp.MODE = 4'b1000
+    - use paging in S-mode or U-mode
+        - never use paging in M-mode, M-mode always acts like Bare Mode
+    - 39b VA -> 56b PA
+    - 27b VPN -> 44b PPN
+    - 12b PO = 12b PO
+- Bare Mode
+    - satp.MODE = 4'b0000
+    - no paging in any modes
+    - 39b VA -> 56b PA = {17'h0, 32b VA}
+    - 27b VPN -> 44b PPN = {17'h0, 27b VPN}
+    - 12b PO = 12b PO
+- satp.PPN is PPN of root page table
+    - PTBR
+
+### Sv39 Virtual Address
+- 39-bit VA
+- {VPN2[8:0], VPN1[8:0], VPN0[8:0], PO[11:0]}
+    - VPN2:
+        - root level 2 VPN
+            - use VPN2 to access root level 2 PTE PA
+                - {satp.PPN (PTBR), VPN2 * 8}
+        - 9b for 2^9 * 8B = 2^12 B = 4KB root page table
+    - VPN1:
+        - root level 1 VPN
+            - use VPN1 to access level 1 PTE PA
+                - {level 2 PTE.PPN1, level 2 PTE.PPN0, VPN1 * 8}
+        - 9b for 2^9 * 8B = 2^12 B = 4KB level 1 page table
+    - VPN0:
+        - leaf level 0 VPN
+            - use VPN0 to access leaf level 0 PTE PA
+                - {level 1 PTE.PPN1, level 1 PTE.PPN0, VPN0 * 8}
+        - 9b for 2^9 * 8B = 2^12 B = 4KB level 0 page table
+    - PO:
+        - Page Offset
+        - 12b for 2^12 B = 4KB page
+    - essentially, when using 64-bit value as 39-bit VA, ignore upper 25 bits
+        - can be used by SW for various purposes
+        - for access concerns, HW ignores
+
+### Sv39 Physical Address
+- 56-bit PA
+- {PPN2[25:0], PPN1[8:0], PPN0[8:0], PO[11:0]}
+    - PPN2:
+        - for PA for root level 2 PTE: satp.PPN[43:18] / satp.PPN2
+        - for PA of level 1 PTE: root level 2 PTE.PPN2
+        - for PA of level 0 PTE: level 1 PTE.PPN2
+        - for PA of VA:
+            - 1GB ultrapage: root level 2 PTE.PPN2
+            - 2MB superpage: level 1 PTE.PPN2
+            - 4KB page: level 0 PTE.PPN2
+        - for PA of Bare VA: {17'h0, VA.VPN2}
+    - PPN1:
+        - for PA of root level 2 PTE: satp.PPN[17:9] / satp.PPN1
+        - for PA of level 1 PTE: root level 2 PTE.PPN1
+        - for PA of level 0 PTE: level 1 PTE.PPN1
+        - for PA of VA: level 0 PTE.PPN1
+            - 1GB ultrapage: VA.VPN1
+            - 2MB superpage: level 1 PTE.PPN1
+            - 4KB page: level 0 PTE.PPN0
+        - for PA of Bare VA: VA.VPN1
+    - PPN0:
+        - for PA of root level 2 PTE: satp.PPN[8:0] / satp.PPN0
+        - for PA of level 1 PTE: root level 2 PTE.PPN0
+        - for PA of level 0 PTE: level 1 PTE.PPN0
+        - for PA of VA:
+            - 1GB ultrapage: VA.VPN0
+            - 2MB superpage: VA.VPN0
+            - 4KB page: level 0 PTE.PPN0
+        - for PA of Bare VA: VA.VPN0
+    - PO:
+        - Page Offset
+        - 12b for 2^12 B = 4KB page
+        - for PA of root level 2 PTE: {VA.VPN2, 3'b000}
+        - for PA of level 1 PTE: {VA.VPN1, 3'b000}
+        - for PA of level 0 PTE: {VA.VPN0, 3'b000}
+        - for PA of VA: VA.PO
+        - for PA of Bare VA: VA.PO
+- accessing root level 2 PTE:
+    - PPN2 = satp.PPN[43:18] / satp.PPN2
+    - PPN1 = satp.PPN[17:9] / satp.PPN1
+    - PPN0 = satp.PPN[8:0] / satp.PPN0
+    - PO = {VA.VPN2, 3'b000}
+- accessing level 1 PTE:
+    - PPN2 = root level 2 PTE.PPN2
+    - PPN1 = root level 2 PTE.PPN1
+    - PPN0 = root level 2 PTE.PPN0
+    - PO = {VA.VPN1, 3'b000}
+- accessing level 0 PTE:
+    - PPN2 = level 1 PTE.PPN2
+    - PPN1 = level 1 PTE.PPN1
+    - PPN0 = level 1 PTE.PPN0
+    - PO = {VA.VPN0, 3'b000}
+- VA -> PA:
+    - 1GB ultrapage:
+        - PPN2 = root level 2 PTE.PPN2
+        - PPN1 = VA.VPN1
+        - PPN0 = VA.VPN0
+        - PO = VA.PO
+    - 2MB superpage:
+        - PPN2 = level 1 PTE.PPN2
+        - PPN1 = level 1 PTE.PPN1
+        - PPN0 = VA.VPN0
+        - PO = VA.PO
+    - 4KB page:
+        - PPN2 = level 0 PTE.PPN2
+        - PPN1 = level 0 PTE.PPN1
+        - PPN0 = level 0 PTE.PPN0
+        - PO = VA.PO
+- Bare VA -> PA:
+    - PPN2 = {17'h0, VA.VPN2}
+        - ignore upper bits of VA after VPN2
+    - PPN1 = VA.VPN1
+    - PPN0 = VA.VPN0
+    - PO = VA.PO
+
+### Sv39 Page Table Entry
+- 64b = 8B PTE
+- {N, PBMT[1:0], Reserved[6:0], PPN2[25:0], PPN1[8:0], PPN0[8:0], RSW[1:0], D, A, G, U, X, W, R, V}
+    - V: valid
+        - true valid when V = 1
+        - all other bits don't cares if V = 0
+        - if access PTE with V = 0, page fault
+    - X, W, R:
+        - X: execute permissions
+            - can fetch instructions from page
+            - can also load or LR.W from page if m/sstatus.MXR = 1
+        - W: write permissions
+            - can store, SC.W, or AMO to page
+        - R: read permissions
+            - can load or LR.W from page
+        - case (X, W, R):
+            - 000: pointer to next level of page table
+                - page fault if already at level 0 leaf
+            - 001: read-only
+            - 010: reserved -> page fault
+            - 011: read-write
+            - 100: execute-only
+            - 101: read-execute
+            - 110: reserved -> page fault
+            - 111: read-write-execute
+        - if get leaf page at level 1, have superpage
+            - must have PPN0 == 0, else misaligned superpage, page fault
+        - page fault if perform memory access and don't have required permissions
+    - U:
+        - U-mode accessible
+        - only relevant for leaf pages
+        - U = 1:
+            - U-mode can access
+            - if sstatus.SUM = 1, S-mode can access
+        - U = 0:
+            - U-mode cannot access
+            - S-mode can access
+    - G:
+        - Global mapping
+        - mapping true for all ASID's
+        - if non-leaf PTE is G, all leaves under this are G
+        - can share TLB entry between ASID's
+        - don't have to flush G TLB entries on SFENCE.VMA if rs2 doesn't pick x0, so only targetting ASID instead of all
+    - A, D:
+        - A: 
+            - Accessed
+            - set on instruction fetch, data read, or data write
+                - sets for fetches and reads can be speculative
+        - D: 
+            - Dirty
+            - set on write
+        - only relevant for leaf pages
+        - updates to these must be ordered before the access causing the update
+            - TLB miss until update is visible
+        - functionality requirements:
+            - updates must be performed as coherent writes
+            - ideally don't need to snoop into TLB's and page table walkers, as these already have software synchronization via SFENCE.VMA
+        - idea: full MMU coherence
+            - gets performance benefit of sharing TLB capacity among cores if there is sharing
+            - means MMU caches must be inclusive and follow 64B cache block granularity
+                - RIP if have page table sparsity
+            - may get functionality issues with untimely TLB updates not controlled by SFENCE.VMA
+            real issue: need to access TLB using physical address -> would have to be associative access -> yuck
+        - idea: BusInv + BusWB
+            - MMU performs BusInv to invalidate any copies of PTE in coherent memory
+            - MMU performs masked BusWB to write new PTE value to coherent memory (so essentially at L3)
+            - issue: if PTE entry currently in other core's MMU, then the update would be missed. if the first update is A & D, and the second update is A & !D, then the second update will ruin the first
+                - racey fix: broadcast PTE entry update to other MMU's
+                - maybe amazing fix: only perform bit set's at L3 for PTE update BusWB
+                    - already has to be unique since not at block granularity
+            - issue: coherent memory could have a new value
+                - would be doing BusUpgrade/BusInv when it is possible coherent memory has the block in M. maybe unsupported case for bus. would need to grab M block value and RMW A/D bit set
+        - idea: L2$ BusRdX
+            - spec makes it seem like PTE A/D update must be fully coherent (due to atomic check for update of value at PTE when try to set A/D), so it needs coherent memory value of the PTE. if a new value is found, the translation process is even restarted given the updated PTE
+                - this seems like a little much
+                - just need atomic A/D sets and should be good to go
+            - MMU gives read exclusive request to L2$ just like dcache would on a store
+                - L2$ in E/M already, snoop dcache if in dcache, then good to go
+                - otherwise, L2$ performs a BusRdX and gets the coherent block in M state
+            - perform A/D set for block in L2$
+                - don't clear any bits in case didn't have up-to-date PTE, only set
+            - when done, TLB can be unblocked and allow access causing A/D set to complete
+                - iTLB would be blocked unless this process was interrupted
+                - dTLB could move on but acts as a dTLB miss for the load or store of interest until returns
+            - actually, rules are that A can be speculatively accessed, D must be accurate and ordered before write
+                - can freely updated A asynchronously on TLB access
+                    - prolly won't have issue with ordering since much before commit
+                - can update D on commit
+                    - this is tricky to do in itself as have TLB info during TLB access much before commit
+                    - can create D buffer of waiting PTE D updates
+                        - allocate D buffer entry OR coalesce with counter in older D buffer entry on TLB access of mem write where see PTE.D = 0
+                        - upon d$ wr_buf enq, clear allocated D buffer entry or decrement coalesced counter if killed, else perform 
+                        - D buffer enq is tagged by PPN, and does coalescing of same PPN
+                        - D buffer deq and update does associative search checking for allocated PPN
+                        - add backpressure at TLB access if D buffer full
+                        - can modify stmaofu_cq and add new interface signals to give relevant info for killed vs. unkilled D buffer check
+                    - D buffer downsides
+                        - can't get misaligned component if killed as-is right now
+                            - would have to manually check PPN + 1 at same time unless want to add backpressure -> yuck
+                        - also would need a very very big D buffer, essentially as big as the stamofu_cq since theoretically all entries could have PTE.D = 0
+                            - big buffer which has to hold VPN (so know which PTE to update) and PPN (so core can communicate which one updated)
+                    - can fix associative PPN check by using separate D buffer tags which core has to track
+                        - D buffer only has to hold VPN for relevant 
+                        - still nasty adding bunch of stamofu_cq/mq entry info
+                        - still need to change stamofu_cq/mq deq process to give misaligned component D buffer tag along with central component on killed accesses
+                - can just update D asynchronously on TLB access
+                    - will be speculative but whatever, not the most massive deal in the world if page marked dirty by accident
+                    - prolly will be ordered before store/amo commit
+                    - not worth dealing with nastiness of D buffer to wait for commit
+        - idea: send req to AMO unit and move one
+            - coherence naturally handled by AMO unit functionality
+            - technically page table entry update not ordered with access since move on
+            - can't really just move on though as need to update PTE in TLB to prevent repeated sending of AMO's
+                - no that's stupid -> just write back the updated A/D into the PTE in the TLB before the AMO finishes
+            - not really that different from L2$ BusRdX
+                - just a matter of if want to make bunch of new L2$ functionality or try to make AMO unit to also deal with TLB updates
+        - idea: L2TLB miss always BusRdX
+            - all L2TLB accesses always do BusRdx so can immediately speculatively set the Accessed bit on all PTE reads
+                - obviously should do this as would have to just replicate the behavior in both the iTLB and dTLB anyway
+                - minimal if any performance loss even with high PTE sharing because TLB entries not invalidated on BusRdX, only L2$ blocks
+                    - worst case can get PTE cache block via a snoop into other L2$ if need them again
+            - just a matter of choosing how to deal with Dirty bit
+    - RSW = 2'b00
+        - reserved
+    - Reserved = 7'b0000000
+        - reserved
+    - PBMT = 2'b00
+        - for Svpbmt extension
+        - unsupported
+    - N = 1'b0
+        - for Svnapot extension
+        - unsupported

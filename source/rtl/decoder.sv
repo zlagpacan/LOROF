@@ -20,6 +20,8 @@ module decoder (
     input logic         env_trap_sfence,
     input logic         env_trap_wfi,
     input logic         env_trap_sret,
+    input logic         env_menvconfig_FIOM,
+    input logic         env_senvconfig_FIOM,
 
     // instr info
     input logic                             uncompressed,
@@ -1021,6 +1023,15 @@ module decoder (
                         if (uncinstr_succ_set[1]) mem_aq = 1'b1;
                         // I in succ set
                         if (uncinstr_succ_set[3]) io_aq = 1'b1;
+                        // FIOM
+                        if (
+                            uncinstr_succ_set[3]
+                            & (
+                                (env_exec_mode == S_MODE) & (env_menvconfig_FIOM)
+                                | (env_exec_mode == U_MODE) & (env_menvconfig_FIOM | env_senvconfig_FIOM)
+                            )        
+                        ) mem_aq = 1'b1;
+
                         // W in pred set
                         if (uncinstr_pred_set[0]) mem_rl = 1'b1;
                         // O in pred set

@@ -1,5 +1,5 @@
 # Instruction List
-ISA: RV64GC_Zicsr_Zifencei Sv39
+Instruction List for ISA: RV64GC_Zicsr_Zifencei Sv39
 
 ## RV64I
 - LUI rd, imm
