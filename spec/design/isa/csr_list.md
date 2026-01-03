@@ -567,7 +567,7 @@ Control/Status Register List for ISA: RV64GC_Zicsr_Zifencei Sv39
             - unratified Zicbom extension unsupported
         - PMM = 1'b0:
             - unratified Smnpm extension unsupported
-    - all read-only zero
+    - only control FIOM, else read-only zero
 - 0x747: mseccfg
     - machine security config
     - MRW
@@ -912,6 +912,7 @@ Control/Status Register List for ISA: RV64GC_Zicsr_Zifencei Sv39
             - unratified Zicbom extension unsupported
         - PMM = 2'b00:
             - unratified Smnpm extension unsupported
+    - only control FIOM, else read-only zero
 
 #### Counter Setup
 - 0x120: scountinhibit
