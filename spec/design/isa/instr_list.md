@@ -251,6 +251,51 @@ Instruction List for ISA: RV64GC_Zicsr_Zifencei Sv39
     - {csr[11:0], uimm[4:0], 3'b111, rd[4:0], 5'b11100, 2'b11}
     - FU: sysu
     - op: 4'bx111
+- RDCYCLE rd
+    - CSRRS rd, 0xC00, x0
+    - {12'hC00, 5'b00000, 3'b010, rd[4:0], 5'b11100, 2'b11}
+    - FU: sysu
+    - op: 4'bx010
+- RDTIME rd
+    - CSRRS rd, 0xC01, x0
+    - {12'hC01, 5'b00000, 3'b010, rd[4:0], 5'b11100, 2'b11}
+    - FU: sysu
+    - op: 4'bx010
+- RDINSTRET rd
+    - CSRRS rd, 0xC02, x0
+    - {12'hC02, 5'b00000, 3'b010, rd[4:0], 5'b11100, 2'b11}
+    - FU: sysu
+    - op: 4'bx010
+- FRFLAGS rd
+    - CSRRS rd, 0x001, x0
+    - {12'h001, 5'b00000, 3'b010, rd[4:0], 5'b11100, 2'b11}
+    - FU: sysu
+    - op: 4'bx010
+- FSFLAGS rd, rs1
+    - CSRRW rd, 0x001, rs1
+    - {12'h001, rs1[4:0], 3'b010, rd[4:0], 5'b11100, 2'b11}
+    - FU: sysu
+    - op: 4'bx010
+- FRRM rd
+    - CSRRS rd, 0x002, x0
+    - {12'h002, 5'b00000, 3'b010, rd[4:0], 5'b11100, 2'b11}
+    - FU: sysu
+    - op: 4'bx010
+- FSRM rd, rs1
+    - CSRRW rd, 0x002, rs1
+    - {12'h002, rs1[4:0], 3'b010, rd[4:0], 5'b11100, 2'b11}
+    - FU: sysu
+    - op: 4'bx010
+- FRCSR rd
+    - CSRRS rd, 0x003, x0
+    - {12'h003, 5'b00000, 3'b010, rd[4:0], 5'b11100, 2'b11}
+    - FU: sysu
+    - op: 4'bx010
+- FSCSR rd, rs1
+    - CSRRW rd, 0x003, rs1
+    - {12'h003, rs1[4:0], 3'b010, rd[4:0], 5'b11100, 2'b11}
+    - FU: sysu
+    - op: 4'bx010
 
 ## M Extension
 - MUL rd, rs1, rs2
@@ -571,11 +616,11 @@ Instruction List for ISA: RV64GC_Zicsr_Zifencei Sv39
 
 ## D Extension
 - FLD frd, imm(rs1)
-    - {imm[11:0], rs1[4:0], 3'b010, frd[4:0], 5'b00001, 2'b11}
+    - {imm[11:0], rs1[4:0], 3'b011, frd[4:0], 5'b00001, 2'b11}
     - FU: ldu
     - op: 4'bx011
 - FSD frs2, imm(rs1)
-    - {imm[11:5], frs2[4:0], rs1[4:0], 3'b010, imm[4:0], 5'b01001, 2'b11}
+    - {imm[11:5], frs2[4:0], rs1[4:0], 3'b011, imm[4:0], 5'b01001, 2'b11}
     - FU: stamofu
     - op: 4'bxx11
 - FMADD.D frd, frs1, frs2, frs3, rm
@@ -749,14 +794,9 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
     - {3'b000, imm[5], rs1/rd[4:0], imm[4:0], 2'b01}
     - FU: alu_imm
     - op: 4'b0000
-- C.JAL imm
-    - JAL ra/x1, imm
-    - {3'b001, imm[11|4|9:8|10|6|7|3:1|5], 2'b01}
-    - FU: bru
-    - op: 4'b0011
 - C.ADDIW rd, imm
     - ADDIW rd, rd, imm
-    - {3'b001, imm[5], rd[4:0], imm[4:0], 2'b01}
+    - {3'b001, imm[5], rs1/rd[4:0], imm[4:0], 2'b01}
     - FU: alu_imm
     - op: TODO
 - C.LI rd, imm

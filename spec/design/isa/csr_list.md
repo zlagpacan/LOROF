@@ -1106,13 +1106,82 @@ Control/Status Register List for ISA: RV64GC_Zicsr_Zifencei Sv39
 - 0x001: fflags
     - FPU accrued exceptions
     - URW
+    - {Reserved[58:0], NV, DZ, OF, UF, NX}
+        - NX
+            - Inexact
+        - UF
+            - Underflow
+        - OF
+            - Overflow
+        - DZ
+            - Divide by Zero
+        - NV
+            - Invalid Operation
+        - Reserved[58:0] = 59'h0
+    - can access with FRFLAGS, FSFLAGS pseudoinstructions
 - 0x002: frm
     - FPU dynamic rounding mode
     - URW
+    - {Reserved[60:0], RM[2:0]}
+        - RM[2:0]
+            - dynamic rounding mode
+            - RM = 3'b000:
+                - RNE: Round to Nearest Even
+            - RM = 3'b001:
+                - RTZ: Round towards Zero
+            - RM = 3'b010:
+                - RDN: Round Down towards -inf
+            - RM = 3'b011:
+                - RUP: Round Up towards +inf
+            - RM = 3'b100:
+                - RMM: Round to Nearest, ties to Max Magnitude
+            - RM = 3'b101:
+                - Reserved
+            - RM = 3'b110:
+                - Reserved
+            - RM = 3'b111:
+                - DYN: Dynamic Rounding Mode 
+                    - if in rm of instr: use dynamic rounding mode in fcsr.RM / frm.RM
+                    - if in fcsr.RM / frm.RM: Reserved
+        - Reserved[60:0] = 61'h0
+    - can access with FRRM, FSRM pseudoinstructions
 - 0x003: fcsr
     - FPU control and status register
         - superset of equivalent bits when read fflags, frm individually
     - URW
+    - {Reserved[55:0], RM[2:0], NV, DZ, OF, UF, NX}
+        - NX
+            - inexact
+        - UF
+            - underflow
+        - OF
+            - overflow
+        - DZ
+            - divide by zero
+        - NV
+            - invalid operation
+        - RM[2:0]
+            - dynamic rounding mode
+            - RM = 3'b000:
+                - RNE: Round to Nearest Even
+            - RM = 3'b001:
+                - RTZ: Round towards Zero
+            - RM = 3'b010:
+                - RDN: Round Down towards -inf
+            - RM = 3'b011:
+                - RUP: Round Up towards +inf
+            - RM = 3'b100:
+                - RMM: Round to Nearest, ties to Max Magnitude
+            - RM = 3'b101:
+                - Reserved
+            - RM = 3'b110:
+                - Reserved
+            - RM = 3'b111:
+                - DYN: Dynamic Rounding Mode 
+                    - if in rm of instr: use dynamic rounding mode in fcsr.RM / frm.RM
+                    - if in fcsr.RM / frm.RM: Reserved
+        - Reserved[55:0] = 56'h0
+    - can access with FRCSR, FSCSR pseudoinstructions
 
 #### Counters, Timers
 - 0xC00: cycle
@@ -1120,6 +1189,7 @@ Control/Status Register List for ISA: RV64GC_Zicsr_Zifencei Sv39
     - cycles since arbitrary time in past
     - URO
     - alias to mcycle
+    - can access with RDCYCLE pseudoinstruction
 - 0xC01: time
     - user time
     - real time since arbitrary time in past
@@ -1127,6 +1197,7 @@ Control/Status Register List for ISA: RV64GC_Zicsr_Zifencei Sv39
         - when implement real time clock, probably some multiple of seconds or milliseconds or microseconds
     - URO
     - alias to read of mtime MMCSR
+    - can access with RDTIME pseudoinstruction
 - 0xC02: instret
     - user instructions retired
     - instructions retired since arbitrary time in past
@@ -1134,6 +1205,7 @@ Control/Status Register List for ISA: RV64GC_Zicsr_Zifencei Sv39
     - don't increment for instructions causing synchronous exceptions
         - ECALL, EBREAK, illegal instr, etc.
     - alias to minstret
+    - can access with RDINSTRET pseudoinstruction
 - 0xC03:0xC1F: hpmcounter3:31
     - perf monitoring counters
     - URO
