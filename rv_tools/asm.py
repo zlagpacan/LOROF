@@ -917,7 +917,7 @@ def instr_to_hex(instr):
         interpreted_instr += f" x{rd}"
         csr = get_num(instr, second, 11, 0, unsigned=True)
         binary += csr << 20
-        interpreted_instr += f", {csr}"
+        interpreted_instr += f", {hex(csr)}"
         rs1 = get_reg(instr, last)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
@@ -931,7 +931,7 @@ def instr_to_hex(instr):
         interpreted_instr += f" x{rd}"
         csr = get_num(instr, second, 11, 0, unsigned=True)
         binary += csr << 20
-        interpreted_instr += f", {csr}"
+        interpreted_instr += f", {hex(csr)}"
         rs1 = get_reg(instr, last)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
@@ -945,7 +945,7 @@ def instr_to_hex(instr):
         interpreted_instr += f" x{rd}"
         csr = get_num(instr, second, 11, 0, unsigned=True)
         binary += csr << 20
-        interpreted_instr += f", {csr}"
+        interpreted_instr += f", {hex(csr)}"
         rs1 = get_reg(instr, last)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
@@ -959,7 +959,7 @@ def instr_to_hex(instr):
         interpreted_instr += f" x{rd}"
         csr = get_num(instr, second, 11, 0, unsigned=True)
         binary += csr << 20
-        interpreted_instr += f", {csr}"
+        interpreted_instr += f", {hex(csr)}"
         uimm = get_num(instr, last, 4, 0, unsigned=True)
         binary += bits(uimm, 4, 0) << 15
         interpreted_instr += f", {bits(uimm, 4, 0)}"
@@ -973,7 +973,7 @@ def instr_to_hex(instr):
         interpreted_instr += f" x{rd}"
         csr = get_num(instr, second, 11, 0, unsigned=True)
         binary += csr << 20
-        interpreted_instr += f", {csr}"
+        interpreted_instr += f", {hex(csr)}"
         uimm = get_num(instr, last, 4, 0, unsigned=True)
         binary += bits(uimm, 4, 0) << 15
         interpreted_instr += f", {bits(uimm, 4, 0)}"
@@ -987,7 +987,7 @@ def instr_to_hex(instr):
         interpreted_instr += f" x{rd}"
         csr = get_num(instr, second, 11, 0, unsigned=True)
         binary += csr << 20
-        interpreted_instr += f", {csr}"
+        interpreted_instr += f", {hex(csr)}"
         uimm = get_num(instr, last, 4, 0, unsigned=True)
         binary += bits(uimm, 4, 0) << 15
         interpreted_instr += f", {bits(uimm, 4, 0)}"
@@ -997,12 +997,12 @@ def instr_to_hex(instr):
         binary += 0b_11100_11
         interpreted_instr += "RDCYCLE: CSRRS"
         binary += 0b010 << 12
-        rd = get_reg(instr, first)
+        rd = get_reg(instr, only)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
         csr = 0xC00
         binary += csr << 20
-        interpreted_instr += f", {csr}"
+        interpreted_instr += f", {hex(csr)}"
         rs1 = 0
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
@@ -1012,12 +1012,12 @@ def instr_to_hex(instr):
         binary += 0b_11100_11
         interpreted_instr += "RDTIME: CSRRS"
         binary += 0b010 << 12
-        rd = get_reg(instr, first)
+        rd = get_reg(instr, only)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
         csr = 0xC01
         binary += csr << 20
-        interpreted_instr += f", {csr}"
+        interpreted_instr += f", {hex(csr)}"
         rs1 = 0
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
@@ -1027,12 +1027,12 @@ def instr_to_hex(instr):
         binary += 0b_11100_11
         interpreted_instr += "RDINSTRET: CSRRS"
         binary += 0b010 << 12
-        rd = get_reg(instr, first)
+        rd = get_reg(instr, only)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
         csr = 0xC02
         binary += csr << 20
-        interpreted_instr += f", {csr}"
+        interpreted_instr += f", {hex(csr)}"
         rs1 = 0
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
@@ -1042,12 +1042,12 @@ def instr_to_hex(instr):
         binary += 0b_11100_11
         interpreted_instr += "FRFLAGS: CSRRS"
         binary += 0b010 << 12
-        rd = get_reg(instr, first)
+        rd = get_reg(instr, only)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
         csr = 0x001
         binary += csr << 20
-        interpreted_instr += f", {csr}"
+        interpreted_instr += f", {hex(csr)}"
         rs1 = 0
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
@@ -1062,7 +1062,7 @@ def instr_to_hex(instr):
         interpreted_instr += f" x{rd}"
         csr = 0x001
         binary += csr << 20
-        interpreted_instr += f", {csr}"
+        interpreted_instr += f", {hex(csr)}"
         rs1 = get_reg(instr, last)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
@@ -1072,12 +1072,12 @@ def instr_to_hex(instr):
         binary += 0b_11100_11
         interpreted_instr += "FRRM: CSRRS"
         binary += 0b010 << 12
-        rd = get_reg(instr, first)
+        rd = get_reg(instr, only)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
         csr = 0x002
         binary += csr << 20
-        interpreted_instr += f", {csr}"
+        interpreted_instr += f", {hex(csr)}"
         rs1 = 0
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
@@ -1092,7 +1092,7 @@ def instr_to_hex(instr):
         interpreted_instr += f" x{rd}"
         csr = 0x002
         binary += csr << 20
-        interpreted_instr += f", {csr}"
+        interpreted_instr += f", {hex(csr)}"
         rs1 = get_reg(instr, last)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
@@ -1102,12 +1102,12 @@ def instr_to_hex(instr):
         binary += 0b_11100_11
         interpreted_instr += "FRCSR: CSRRS"
         binary += 0b010 << 12
-        rd = get_reg(instr, first)
+        rd = get_reg(instr, only)
         binary += bin_rd(rd)
         interpreted_instr += f" x{rd}"
         csr = 0x003
         binary += csr << 20
-        interpreted_instr += f", {csr}"
+        interpreted_instr += f", {hex(csr)}"
         rs1 = 0
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
@@ -1122,7 +1122,7 @@ def instr_to_hex(instr):
         interpreted_instr += f" x{rd}"
         csr = 0x003
         binary += csr << 20
-        interpreted_instr += f", {csr}"
+        interpreted_instr += f", {hex(csr)}"
         rs1 = get_reg(instr, last)
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
@@ -1850,7 +1850,7 @@ def instr_to_hex(instr):
         binary += 0b010 << 12
         frd = get_freg(instr, first)
         binary += bin_frd(frd)
-        interpreted_instr += f" x{rd}"
+        interpreted_instr += f" f{frd}"
         imm = get_num(instr, before_paren, 11, 0, signed=True)
         binary += bits(imm, 11, 0) << 20
         interpreted_instr += f", {imm}"
@@ -1864,7 +1864,7 @@ def instr_to_hex(instr):
         binary += 0b010 << 12
         frs2 = get_freg(instr, first)
         binary += bin_frs2(frs2)
-        interpreted_instr += f" x{rs2}"
+        interpreted_instr += f" f{frs2}"
         imm = get_num(instr, before_paren, 11, 0, signed=True)
         binary += bits(imm, 4, 0) << 7
         binary += bits(imm, 11, 5) << 25
@@ -1890,7 +1890,7 @@ def instr_to_hex(instr):
         binary += bin_frs3(frs3)
         interpreted_instr += f", f{frs3}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
 
     elif instr.startswith("fmsub.s "):
@@ -1910,7 +1910,7 @@ def instr_to_hex(instr):
         binary += bin_frs3(frs3)
         interpreted_instr += f", f{frs3}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
 
     elif instr.startswith("fnmsub.s "):
@@ -1930,7 +1930,7 @@ def instr_to_hex(instr):
         binary += bin_frs3(frs3)
         interpreted_instr += f", f{frs3}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
 
     elif instr.startswith("fnmadd.s "):
@@ -1950,7 +1950,7 @@ def instr_to_hex(instr):
         binary += bin_frs3(frs3)
         interpreted_instr += f", f{frs3}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fadd.s "):
@@ -1967,7 +1967,7 @@ def instr_to_hex(instr):
         binary += bin_frs2(frs2)
         interpreted_instr += f", f{frs2}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fsub.s "):
@@ -1984,7 +1984,7 @@ def instr_to_hex(instr):
         binary += bin_frs2(frs2)
         interpreted_instr += f", f{frs2}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fmul.s "):
@@ -2001,7 +2001,7 @@ def instr_to_hex(instr):
         binary += bin_frs2(frs2)
         interpreted_instr += f", f{frs2}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fdiv.s "):
@@ -2018,7 +2018,7 @@ def instr_to_hex(instr):
         binary += bin_frs2(frs2)
         interpreted_instr += f", f{frs2}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fsqrt.s "):
@@ -2033,7 +2033,7 @@ def instr_to_hex(instr):
         binary += bin_frs1(frs1)
         interpreted_instr += f", f{frs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fsgnj.s "):
@@ -2123,7 +2123,7 @@ def instr_to_hex(instr):
         binary += bin_frs1(frs1)
         interpreted_instr += f", f{frs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fcvt.wu.s "):
@@ -2138,7 +2138,7 @@ def instr_to_hex(instr):
         binary += bin_frs1(frs1)
         interpreted_instr += f", f{frs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fcvt.l.s "):
@@ -2153,7 +2153,7 @@ def instr_to_hex(instr):
         binary += bin_frs1(frs1)
         interpreted_instr += f", f{frs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fcvt.lu.s "):
@@ -2168,7 +2168,7 @@ def instr_to_hex(instr):
         binary += bin_frs1(frs1)
         interpreted_instr += f", f{frs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fmv.x.w ") or instr.startswith("fmv.x.s "):
@@ -2253,7 +2253,7 @@ def instr_to_hex(instr):
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fcvt.s.wu "):
@@ -2268,7 +2268,7 @@ def instr_to_hex(instr):
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fcvt.s.l "):
@@ -2283,7 +2283,7 @@ def instr_to_hex(instr):
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fcvt.s.lu "):
@@ -2298,7 +2298,7 @@ def instr_to_hex(instr):
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fmv.w.x ") or instr.startswith("fmv.s.x "):
@@ -2320,7 +2320,7 @@ def instr_to_hex(instr):
         binary += 0b011 << 12
         frd = get_freg(instr, first)
         binary += bin_frd(frd)
-        interpreted_instr += f" x{rd}"
+        interpreted_instr += f" f{frd}"
         imm = get_num(instr, before_paren, 11, 0, signed=True)
         binary += bits(imm, 11, 0) << 20
         interpreted_instr += f", {imm}"
@@ -2334,7 +2334,7 @@ def instr_to_hex(instr):
         binary += 0b011 << 12
         frs2 = get_freg(instr, first)
         binary += bin_frs2(frs2)
-        interpreted_instr += f" x{rs2}"
+        interpreted_instr += f" f{frs2}"
         imm = get_num(instr, before_paren, 11, 0, signed=True)
         binary += bits(imm, 4, 0) << 7
         binary += bits(imm, 11, 5) << 25
@@ -2360,7 +2360,7 @@ def instr_to_hex(instr):
         binary += bin_frs3(frs3)
         interpreted_instr += f", f{frs3}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
 
     elif instr.startswith("fmsub.d "):
@@ -2380,7 +2380,7 @@ def instr_to_hex(instr):
         binary += bin_frs3(frs3)
         interpreted_instr += f", f{frs3}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
 
     elif instr.startswith("fnmsub.d "):
@@ -2400,7 +2400,7 @@ def instr_to_hex(instr):
         binary += bin_frs3(frs3)
         interpreted_instr += f", f{frs3}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
 
     elif instr.startswith("fnmadd.d "):
@@ -2420,7 +2420,7 @@ def instr_to_hex(instr):
         binary += bin_frs3(frs3)
         interpreted_instr += f", f{frs3}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fadd.d "):
@@ -2437,7 +2437,7 @@ def instr_to_hex(instr):
         binary += bin_frs2(frs2)
         interpreted_instr += f", f{frs2}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fsub.d "):
@@ -2454,7 +2454,7 @@ def instr_to_hex(instr):
         binary += bin_frs2(frs2)
         interpreted_instr += f", f{frs2}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fmul.d "):
@@ -2471,7 +2471,7 @@ def instr_to_hex(instr):
         binary += bin_frs2(frs2)
         interpreted_instr += f", f{frs2}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fdiv.d "):
@@ -2488,7 +2488,7 @@ def instr_to_hex(instr):
         binary += bin_frs2(frs2)
         interpreted_instr += f", f{frs2}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fsqrt.d "):
@@ -2503,7 +2503,7 @@ def instr_to_hex(instr):
         binary += bin_frs1(frs1)
         interpreted_instr += f", f{frs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fsgnj.d "):
@@ -2593,7 +2593,7 @@ def instr_to_hex(instr):
         binary += bin_frs1(frs1)
         interpreted_instr += f", f{frs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fcvt.wu.d "):
@@ -2608,7 +2608,7 @@ def instr_to_hex(instr):
         binary += bin_frs1(frs1)
         interpreted_instr += f", f{frs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fcvt.l.d "):
@@ -2623,7 +2623,7 @@ def instr_to_hex(instr):
         binary += bin_frs1(frs1)
         interpreted_instr += f", f{frs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fcvt.lu.d "):
@@ -2638,7 +2638,7 @@ def instr_to_hex(instr):
         binary += bin_frs1(frs1)
         interpreted_instr += f", f{frs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fcvt.s.d "):
@@ -2653,7 +2653,7 @@ def instr_to_hex(instr):
         binary += bin_frs1(frs1)
         interpreted_instr += f", f{frs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fcvt.d.s "):
@@ -2668,7 +2668,7 @@ def instr_to_hex(instr):
         binary += bin_frs1(frs1)
         interpreted_instr += f", f{frs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fmv.x.d "):
@@ -2753,7 +2753,7 @@ def instr_to_hex(instr):
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fcvt.d.wu "):
@@ -2768,7 +2768,7 @@ def instr_to_hex(instr):
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fcvt.d.l "):
@@ -2783,7 +2783,7 @@ def instr_to_hex(instr):
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fcvt.d.lu "):
@@ -2798,7 +2798,7 @@ def instr_to_hex(instr):
         binary += bin_rs1(rs1)
         interpreted_instr += f", x{rs1}"
         rm_num, rm_str = get_rm(instr, last)
-        binary += rm << 12
+        binary += rm_num << 12
         interpreted_instr += f", {rm_str}"
     
     elif instr.startswith("fmv.d.x "):
@@ -2839,7 +2839,7 @@ def instr_to_hex(instr):
         interpreted_instr += f" f{frdp}"
         uimm = get_num(instr, before_paren, 7, 3, unsigned=True)
         binary += bits(uimm, 5, 3) << 10
-        binary += bit(uimm, 7, 6) << 5
+        binary += bits(uimm, 7, 6) << 5
         interpreted_instr += f", {uimm}"
         rs1p = get_regp(instr, in_paren)
         binary += bits(rs1p, 2, 0) << 7
@@ -2872,7 +2872,7 @@ def instr_to_hex(instr):
         interpreted_instr += f" x{rdp}"
         uimm = get_num(instr, before_paren, 7, 3, unsigned=True)
         binary += bits(uimm, 5, 3) << 10
-        binary += bit(uimm, 7, 6) << 5
+        binary += bits(uimm, 7, 6) << 5
         interpreted_instr += f", {uimm}"
         rs1p = get_regp(instr, in_paren)
         binary += bits(rs1p, 2, 0) << 7
@@ -2888,7 +2888,7 @@ def instr_to_hex(instr):
         interpreted_instr += f" f{frs2p}"
         uimm = get_num(instr, before_paren, 7, 3, unsigned=True)
         binary += bits(uimm, 5, 3) << 10
-        binary += bit(uimm, 7, 6) << 5
+        binary += bits(uimm, 7, 6) << 5
         interpreted_instr += f", {uimm}"
         rs1p = get_regp(instr, in_paren)
         binary += bits(rs1p, 2, 0) << 7
@@ -2921,7 +2921,7 @@ def instr_to_hex(instr):
         interpreted_instr += f" x{rs2p}"
         uimm = get_num(instr, before_paren, 7, 3, unsigned=True)
         binary += bits(uimm, 5, 3) << 10
-        binary += bit(uimm, 7, 6) << 5
+        binary += bits(uimm, 7, 6) << 5
         interpreted_instr += f", {uimm}"
         rs1p = get_regp(instr, in_paren)
         binary += bits(rs1p, 2, 0) << 7
