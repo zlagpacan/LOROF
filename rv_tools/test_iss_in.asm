@@ -8,7 +8,7 @@ c.swsp s6, 0x88
 addi zero, s6, 246
 lw a1, 0x702(s0)
 addi s4, a1, -222
-sw s4, 0x723(s1)
+sd s4, 0x723(s1)
 jal x0, 0x1000
 
 @2000

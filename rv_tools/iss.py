@@ -1,5 +1,6 @@
 import sys
 import argparse
+import numpy as np
 
 def bits(num, upper_index, lower_index):
     return (num >> lower_index) & (2**(upper_index - lower_index + 1) - 1)
@@ -13,7 +14,13 @@ def signed32(num, size=32):
     else:
         return bits(num, size-1, 0)
     
-def make_signed(num, size=32):
+def signed64(num, size=64):
+    if bit(num, size-1):
+        return bits((0xFFFFFFFF_FFFFFFFF << size) + num, 63, 0)
+    else:
+        return bits(num, size-1, 0)
+
+def make_signed(num, size=64):
     if bit(num, size-1):
         return -1 * 2**(size-1) + bits(num, size-2, 0)
     else:
@@ -40,10 +47,10 @@ class PerfCounters:
         "ldu instr",
         "stamofu instr",
         "sysu instr",
+        "fpu instr",
     ]
 
     def __init__(self):
-
         self.perf_counter_dict = dict()
         for perf_counter_name in self.perf_counter_name_list:
             self.perf_counter_dict[perf_counter_name] = 0
@@ -109,40 +116,40 @@ class Mem:
     def read_data(self, addr, num_bytes):
         value = 0
         for i in range(num_bytes):
-            sub_addr = signed32(addr + i)
+            sub_addr = signed64(addr + i)
             try:
                 sub_value = self.mem_dict[sub_addr]
             except KeyError as e:
                 sub_value = 0x00
-            self.log.write(f"    MEM[0x{sub_addr:08X}] = 0x{sub_value:02X}\n")
+            self.log.write(f"    MEM[0x{sub_addr:016X}] = 0x{sub_value:02X}\n")
             value += sub_value << 8 * i
         return value
 
     def write_data(self, addr, value, num_bytes):
         for i in range(num_bytes):
-            sub_addr = signed32(addr + i)
+            sub_addr = signed64(addr + i)
             delete_id_list = []
-            for hart_id, word_addr in self.reserve_set_dict.items():
-                if sub_addr >> 2 == word_addr:
-                    self.log.write(f"    invalidating reservation set for Hart {hart_id}: 0x{word_addr << 2:08X}\n")
+            for hart_id, doubleword_addr in self.reserve_set_dict.items():
+                if sub_addr >> 3 == doubleword_addr:
+                    self.log.write(f"    invalidating reservation set for Hart {hart_id}: 0x{doubleword_addr << 3:016X}\n")
                     delete_id_list.append(hart_id)
             for hart_id in delete_id_list:
                 self.reserve_set_dict.pop(hart_id)
             sub_value = bits(value, 8*i+7, 8*i)
-            self.log.write(f"    MEM[0x{sub_addr:08X}] <= 0x{sub_value:02X}\n")
+            self.log.write(f"    MEM[0x{sub_addr:016X}] <= 0x{sub_value:02X}\n")
             self.mem_dict[sub_addr] = sub_value
 
     def reserve_set(self, hart_id, byte_addr):
-        self.reserve_set_dict[hart_id] = byte_addr >> 2 # word addr granularity
-        self.log.write(f"    new reservation set for Hart {hart_id}: 0x{byte_addr:08X}\n")
+        self.reserve_set_dict[hart_id] = byte_addr >> 3 # doubleword addr granularity
+        self.log.write(f"    new reservation set for Hart {hart_id}: 0x{byte_addr:016X}\n")
 
     def check_reserve_set(self, hart_id, byte_addr):
-        self.log.write(f"    check reservation set for Hart {hart_id} for addr: 0x{byte_addr:08X}\n")
+        self.log.write(f"    check reservation set for Hart {hart_id} for addr: 0x{byte_addr:016X}\n")
 
         valid = False
         if hart_id in self.reserve_set_dict.keys():
-            self.log.write(f"    reservation set: 0x{self.reserve_set_dict[hart_id] << 2:08X}\n")
-            if self.reserve_set_dict[hart_id] == byte_addr >> 2: # word addr granularity
+            self.log.write(f"    reservation set: 0x{self.reserve_set_dict[hart_id] << 3:016X}\n")
+            if self.reserve_set_dict[hart_id] == byte_addr >> 3: # doubleword addr granularity
                 valid = True
         else:
             self.log.write(f"    reservation set: invalid\n")
@@ -154,54 +161,55 @@ class Mem:
             
         return valid
 
-    def get_word_list(self):
-        word_dict = dict()
+    def get_doubleword_list(self):
+        doubleword_dict = dict()
         for byte_addr, byte_value in self.mem_dict.items():
             try:
-                word_dict[byte_addr >> 2][byte_addr & 0x3] = byte_value
+                doubleword_dict[byte_addr >> 3][byte_addr & 0x7] = byte_value
             except KeyError:
-                word_dict[byte_addr >> 2] = [0x0, 0x0, 0x0, 0x0]
-                word_dict[byte_addr >> 2][byte_addr & 0x3] = byte_value
+                doubleword_dict[byte_addr >> 3] = [0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0]
+                doubleword_dict[byte_addr >> 3][byte_addr & 0x7] = byte_value
 
-        word_list = []
-        for word_addr, word_value in word_dict.items():
-            if any(word_value):
-                word_list.append((word_addr, word_value))
+        doubleword_list = []
+        for doubleword_addr, doubleword_value in doubleword_dict.items():
+            if any(doubleword_value):
+                doubleword_list.append((doubleword_addr, doubleword_value))
 
-        return sorted(word_list, key=lambda x: x[0])
+        return sorted(doubleword_list, key=lambda x: x[0])
 
     def print(self):
-        word_list = self.get_word_list()
+        doubleword_list = self.get_doubleword_list()
 
         print("\nMEM:")
-        for word_addr, word_value in word_list:
-            word_value_str = " ".join([f"{x:02X}" for x in word_value])
-            print(f"    0x{word_addr << 2:08X}: {word_value_str}")
+        for doubleword_addr, doubleword_value in doubleword_list:
+            doubleword_value_str = " ".join([f"{x:02X}" for x in doubleword_value])
+            print(f"    0x{doubleword_addr << 3:016X}: {doubleword_value_str}")
         print()
 
     def write_mem_file(self, mem_file_path):
         with open(mem_file_path, "w") as fp:
-            word_list = self.get_word_list()
+            doubleword_list = self.get_doubleword_list()
 
             first = True
-            ptr_word_addr = -1
-            for word_addr, word_value in word_list:
-                word_value_str = " ".join([f"{x:02X}" for x in word_value])
-                if word_addr != ptr_word_addr:
+            ptr_doubleword_addr = -1
+            for doubleword_addr, doubleword_value in doubleword_list:
+                doubleword_value_str = " ".join([f"{x:02X}" for x in doubleword_value])
+                if doubleword_addr != ptr_doubleword_addr:
                     if not first:
                         fp.write("\n")
                     else:
                         first = False
-                    fp.write(f"@{word_addr << 2:X}\n")
-                    ptr_word_addr = word_addr
-                fp.write(word_value_str + "\n")
-                ptr_word_addr += 1
+                    fp.write(f"@{doubleword_addr << 3:X}\n")
+                    ptr_doubleword_addr = doubleword_addr
+                fp.write(doubleword_value_str + "\n")
+                ptr_doubleword_addr += 1
 
 class Hart:
     def __init__(self, hart_id, start_pc, log, perf_counters, mem, trace):
         self.hart_id = hart_id
-        self.pc = signed32(start_pc)
+        self.pc = signed64(start_pc)
         self.arf = [0x0 for x in range(32)]
+        self.farf = [np.float32(0) for x in range(32)]
         self.instret = 0
         self.log = log
         self.perf_counters = perf_counters
@@ -209,7 +217,7 @@ class Hart:
         self.trace = trace
 
     def exec_instr(self):
-        self.log.write(f"Hart {self.hart_id}: PC = 0x{self.pc:08X}:\n")
+        self.log.write(f"Hart {self.hart_id}: PC = 0x{self.pc:016X}:\n")
 
         # read instr
         instr = self.mem.read_instr(self.pc)
@@ -217,7 +225,7 @@ class Hart:
 
         # uncompressed
         if opcode2 == 0b11:
-            self.log.write(f"    MEM[0x{self.pc:08X}] = 0x{instr:08X}: ")
+            self.log.write(f"    MEM[0x{self.pc:016X}] = 0x{instr:08X}: ")
             opcode5 = bits(instr, 6, 2)
             funct3 = bits(instr, 14, 12)
             funct7 = bits(instr, 31, 25)
@@ -229,7 +237,7 @@ class Hart:
             if opcode5 == 0b01101:
                 imm20 = bits(instr, 31, 12)
                 self.log.write(f"LUI x{rd}, 0x{imm20:05X}\n")
-                result = imm20 << 12
+                result = signed64(imm20 << 12, size=32)
                 self.write_arf(rd, result)
                 self.incr_pc(4)
                 self.perf_counters.incr("bru instr")
@@ -237,9 +245,9 @@ class Hart:
             # AUIPC
             elif opcode5 == 0b00101:
                 imm20 = bits(instr, 31, 12)
-                imm32 = imm20 << 12
+                imm64 = signed64(imm20 << 12, size=32)
                 self.log.write(f"AUIPC x{rd}, 0x{imm20:05X}\n")
-                result = signed32(self.pc + imm32)
+                result = signed64(self.pc + imm64)
                 self.write_arf(rd, result)
                 self.incr_pc(4)
                 self.perf_counters.incr("bru instr")
@@ -274,7 +282,7 @@ class Hart:
                 imm13 += bits(instr, 30, 25) << 5
                 imm13 += bits(instr, 11, 8) << 1
                 imm13 += bit(instr, 7) << 11
-                imm32 = signed32(imm13, 13)
+                imm32 = signed64(imm13, 13)
                 
                 # BEQ
                 if funct3 == 0b000:
@@ -1076,7 +1084,7 @@ class Hart:
         # compressed
         else:
             instr = bits(instr, 15, 0)
-            self.log.write(f"    MEM[0x{self.pc:08X}] = 0x{instr:04X}: ")
+            self.log.write(f"    MEM[0x{self.pc:016X}] = 0x{instr:04X}: ")
             opcode3 = bits(instr, 15, 13)
 
             if opcode2 == 0b00:
@@ -1429,30 +1437,41 @@ class Hart:
         return True
     
     def read_arf(self, rs):
-        self.log.write(f"    ARF[x{rs}] = 0x{self.arf[rs]:08X}\n")
+        self.log.write(f"    ARF[x{rs}] = 0x{self.arf[rs]:016X}\n")
         return self.arf[rs]
+
+    def read_farf(self, frs):
+        self.log.write(f"    FARF[f{frs}] = {self.farf[rs]}\n")
+        return self.farf[rs]
     
     def write_arf(self, dest, value):
         if dest == 0:
-            self.log.write(f"    ARF[x0] = 0x00000000 <=/= 0x{value:08X}\n")
+            self.log.write(f"    ARF[x0] = 0x00000000_00000000 <=/= 0x{value:016X}\n")
         else:
-            self.log.write(f"    ARF[x{dest}] <= 0x{value:08X}\n")
-            self.arf[dest] = signed32(value)
+            self.log.write(f"    ARF[x{dest}] <= 0x{value:016X}\n")
+            self.arf[dest] = value
+
+    def write_farf(self, dest, value):
+        self.log.write(f"    FARF[f{dest}] <= {value}\n")
+        self.farf[dest] = value
 
     def write_pc(self, value):
-        self.log.write(f"    PC <= 0x{value:08X}\n")
-        self.pc = signed32(value)
+        self.log.write(f"    PC <= 0x{value:016X}\n")
+        self.pc = signed64(value)
     
     def incr_pc(self, incr):
-        self.write_pc(signed32(self.pc + incr))
+        self.write_pc(signed64(self.pc + incr))
 
     def print(self):
         print(f"Hart {self.hart_id}:")
-        print(f"    PC = 0x{self.pc:08X}")
+        print(f"    PC = 0x{self.pc:016X}")
         print(f"    instret = {self.instret}")
         print(f"    ARF:")
         for ar, value in enumerate(self.arf):
-            print(f"        {ar:2d}: 0x{value:08X}")
+            print(f"        x{ar:2d}: 0x{value:016X}")
+        print(f"    FARF:")
+        for far, value in enumerate(self.farf):
+            print(f"        f{far:2d}: {value}")
 
 if __name__ == "__main__":
     print(" ".join(sys.argv))
