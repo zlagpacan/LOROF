@@ -11,14 +11,14 @@ def bit(num, index):
 def signed32(num, size=32):
     num = int(num)
     if bit(num, size-1):
-        return bits((0xFFFFFFFF << size) + num, 31, 0)
+        return bits((0xFFFFFFFF << size) + bits(num, size-1, 0), 31, 0)
     else:
         return bits(num, size-1, 0)
     
 def signed64(num, size=64):
     num = int(num)
     if bit(num, size-1):
-        return bits((0xFFFFFFFF_FFFFFFFF << size) + num, 63, 0)
+        return bits((0xFFFFFFFF_FFFFFFFF << size) + bits(num, size-1, 0), 63, 0)
     else:
         return bits(num, size-1, 0)
 
@@ -154,7 +154,7 @@ class Mem:
                 sub_value = self.mem_dict[sub_addr]
             except KeyError as e:
                 sub_value = 0x00
-            self.log.write(f"    MEM[0x{sub_addr:016X}] => 0x{sub_value:02X}\n")
+            self.log.write(f"    MEM[0x{sub_addr:016X}] = 0x{sub_value:02X}\n")
             value += sub_value << 8 * i
         return value
 
@@ -258,7 +258,7 @@ class Hart:
 
         # uncompressed
         if opcode2 == 0b11:
-            self.log.write(f"    MEM[0x{self.pc:016X}] => 0x{instr:08X}: ")
+            self.log.write(f"    MEM[0x{self.pc:016X}] = 0x{instr:08X}: ")
             opcode5 = bits(instr, 6, 2)
             funct3 = bits(instr, 14, 12)
             funct7 = bits(instr, 31, 25)
@@ -564,7 +564,7 @@ class Hart:
                 self.perf_counters.incr("alu_imm instr")
 
             # IW-Type
-            elif opcode5 == 0b00100:
+            elif opcode5 == 0b00110:
                 imm12 = bits(instr, 31, 20)
                 imm32 = signed32(imm12, 12)
                 shamt = bits(instr, 24, 20)
@@ -903,9 +903,9 @@ class Hart:
                         else:
                             result = signed64(make_signed(R_rs1, 32) / make_signed(R_rs2, 32), 32)
 
-                    # DIVU
+                    # DIVUW
                     elif funct3 == 0b101:
-                        self.log.write(f"DIVU x{rd}, x{rs1}, x{rs2}\n")
+                        self.log.write(f"DIVUW x{rd}, x{rs1}, x{rs2}\n")
                         R_rs1 = signed32(self.read_arf(rs1))
                         R_rs2 = signed32(self.read_arf(rs2))
                         if R_rs2 == 0:
@@ -913,9 +913,9 @@ class Hart:
                         else:
                             result = signed64(R_rs1 // R_rs2, 32)
 
-                    # REM
+                    # REMW
                     elif funct3 == 0b110:
-                        self.log.write(f"REM x{rd}, x{rs1}, x{rs2}\n")
+                        self.log.write(f"REMW x{rd}, x{rs1}, x{rs2}\n")
                         R_rs1 = signed32(self.read_arf(rs1))
                         R_rs2 = signed32(self.read_arf(rs2))
                         if R_rs2 == 0:
@@ -924,9 +924,9 @@ class Hart:
                             quotient = int(make_signed(R_rs1, 32) / make_signed(R_rs2, 32)) # round towards 0
                             result = signed64(make_signed(R_rs1, 32) - (quotient * make_signed(R_rs2, 32)), 32)
 
-                    # REMU
+                    # REMUW
                     elif funct3 == 0b111:
-                        self.log.write(f"REMU x{rd}, x{rs1}, x{rs2}\n")
+                        self.log.write(f"REMUW x{rd}, x{rs1}, x{rs2}\n")
                         R_rs1 = signed32(self.read_arf(rs1))
                         R_rs2 = signed32(self.read_arf(rs2))
                         if R_rs2 == 0:
@@ -2167,7 +2167,7 @@ class Hart:
         # compressed
         else:
             instr = bits(instr, 15, 0)
-            self.log.write(f"    MEM[0x{self.pc:016X}] => 0x{instr:04X}: ")
+            self.log.write(f"    MEM[0x{self.pc:016X}] = 0x{instr:04X}: ")
             opcode3 = bits(instr, 15, 13)
 
             if opcode2 == 0b00:
@@ -2642,16 +2642,16 @@ class Hart:
         return True
     
     def read_arf(self, rs):
-        self.log.write(f"    ARF[x{rs}] => 0x{self.arf[rs]:016X}\n")
+        self.log.write(f"    ARF[x{rs}] = 0x{self.arf[rs]:016X}\n")
         return self.arf[rs]
 
     def read_farf(self, frs):
-        self.log.write(f"    FARF[f{frs}] => {self.farf[rs]}\n")
+        self.log.write(f"    FARF[f{frs}] = {self.farf[frs]}\n")
         return self.farf[frs]
     
     def write_arf(self, dest, value):
         if dest == 0:
-            self.log.write(f"    ARF[x0] => 0x00000000_00000000 <=/= 0x{value:016X}\n")
+            self.log.write(f"    ARF[x0] = 0x00000000_00000000 <=/= 0x{value:016X}\n")
         else:
             self.log.write(f"    ARF[x{dest}] <= 0x{value:016X}\n")
             self.arf[dest] = value
@@ -2673,10 +2673,16 @@ class Hart:
         print(f"    instret = {self.instret}")
         print(f"    ARF:")
         for ar, value in enumerate(self.arf):
-            print(f"        x{ar:2d}: 0x{value:016X}")
+            if ar <= 9:
+                print(f"         x{ar:1d}: 0x{value:016X}")
+            else:
+                print(f"        x{ar:2d}: 0x{value:016X}")
         print(f"    FARF:")
         for far, value in enumerate(self.farf):
-            print(f"        f{far:2d}: {value}")
+            if far <= 9:
+                print(f"         f{far:1d}: {value}")
+            else:    
+                print(f"        f{far:2d}: {value}")
 
 if __name__ == "__main__":
     print(" ".join(sys.argv))

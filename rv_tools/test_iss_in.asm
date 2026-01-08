@@ -6,7 +6,7 @@ c.swsp a3, 0x84
 addi sp, a3, 24
 c.swsp s6, 0x88
 addi zero, s6, 246
-lw a1, 0x702(s0)
+ld a1, 0x702(s0)
 addi s4, a1, -222
 sd s4, 0x723(s1)
 jal x0, 0x1000
@@ -298,7 +298,118 @@ sw x18, 0x744(x21)
 sw x19, 0x748(x21)
 sw x20, 0x74C(x21)
 
+// go to RV64GC section
+addi x21, zero, 0x64
+slli x21, x21, 32
+sd x21, 0(x21)
+lui x22, 0x00005
+jalr x0, 4(x22)
+
 @4000
 c.mv x19, x18
 // c.ebreak
 c.jr x1
+
+// RV64GC section
+@5000
+sd x16, 8(x21)
+lui x23, 0x00001
+addi x23, x23, 0x030
+ld x1, 0x000(x23)
+ld x2, 0x008(x23)
+ld x3, 0x010(x23)
+ld x4, 0x018(x23)
+ld x5, 0x020(x23)
+ld x6, 0x028(x23)
+ld x7, 0x030(x23)
+ld x8, 0x038(x23)
+ld x9, 0x040(x23)
+ld x10, 0x048(x23)
+ld x11, 0x050(x23)
+ld x12, 0x058(x23)
+ld x13, 0x060(x23)
+ld x14, 0x068(x23)
+ld x15, 0x070(x23)
+ld x16, 0x078(x23)
+ld x17, 0x080(x23)
+ld x18, 0x088(x23)
+ld x19, 0x090(x23)
+ld x20, 0x098(x23)
+
+addiw x1, x1, 0x111
+slliw x2, x2, 2
+srliw x3, x3, 3
+sraiw x4, x4, 4
+addw x5, x5, x6
+subw x6, x6, x7
+sllw x7, x7, x8
+srlw x8, x2, x9
+sraw x9, x2, x9
+
+mulw x10, x10, x10
+divw x11, x11, x12
+divuw x12, x13, x12
+remw x13, x13, x14
+remuw x14, x14, x15
+
+lui x24, 0x7000
+sd x1, 0x000(x24)
+sd x2, 0x008(x24)
+sd x3, 0x010(x24)
+sd x4, 0x018(x24)
+sd x5, 0x020(x24)
+sd x6, 0x028(x24)
+sd x7, 0x030(x24)
+sd x8, 0x038(x24)
+sd x9, 0x040(x24)
+sd x10, 0x048(x24)
+sd x11, 0x050(x24)
+sd x12, 0x058(x24)
+sd x13, 0x060(x24)
+sd x14, 0x068(x24)
+
+lr.d.aq x25, (x23)
+addi x23, x23, 8
+sc.d.rl x25, x26, (x23)
+
+lr.d x15, (x24)
+xor x15, x15, x16
+sc.d.aq x16, x15, (x24)
+addi x24, x24, 8
+amoswap.d.rl x1, x1, (x24)
+addi x24, x24, 8
+amoadd.d.aqrl x2, x2, (x24)
+addi x24, x24, 8
+amoxor.d x3, x3, (x24)
+addi x24, x24, 8
+amoand.d.aq x4, x4, (x24)
+addi x24, x24, 8
+amoor.d.rl x5, x5, (x24)
+addi x24, x24, 8
+amomin.d.aqrl x6, x6, (x24)
+addi x24, x24, 8
+amomax.d x7, x7, (x24)
+addi x24, x24, 8
+amominu.d.aq x8, x8, (x24)
+addi x24, x24, 8
+amomaxu.d.rl x9, x9, (x24)
+
+// TODO: FPU
+
+// TODO: new C-Ext
+
+csrrw x0, 0x000, s0
+csrrs x1, 0x111, t1
+csrrc x2, 0x222, s2
+csrrwi x3, 0x333, 0x3
+csrrsi x4, 0x444, 0x4
+csrrci x5, 0x555, 0x5
+rdcycle x6
+rdtime x7
+rdinstret x8
+frflags x9
+fsflags x10, x11
+frrm x12
+fsrm x13, x14
+frcsr x15
+fscsr x16, x17
