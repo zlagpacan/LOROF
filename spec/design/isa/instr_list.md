@@ -880,7 +880,7 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
     - {3'b000, shamt[5], rs1/rd[4:0], shamt[4:0], 2'b10}
     - FU: alu_imm
     - op: 4'bx001
-- C.FLDSP rd, uimm
+- C.FLDSP frd, uimm
     - FLD frd, uimm(sp/x2)
     - {3'b001, uimm[5], rd[4:0], uimm[4:3|8:6], 2'b10}
     - FU: ldu

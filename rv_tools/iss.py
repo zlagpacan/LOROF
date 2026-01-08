@@ -9,22 +9,55 @@ def bit(num, index):
     return num >> index & 0b1
 
 def signed32(num, size=32):
+    num = int(num)
     if bit(num, size-1):
         return bits((0xFFFFFFFF << size) + num, 31, 0)
     else:
         return bits(num, size-1, 0)
     
 def signed64(num, size=64):
+    num = int(num)
     if bit(num, size-1):
         return bits((0xFFFFFFFF_FFFFFFFF << size) + num, 63, 0)
     else:
         return bits(num, size-1, 0)
 
 def make_signed(num, size=64):
+    num = int(num)
     if bit(num, size-1):
         return -1 * 2**(size-1) + bits(num, size-2, 0)
     else:
         return bits(num, size-1, 0)
+    
+def fmake_pos32(num):
+    uint = np.float32(num).view(np.uint32)
+    pos_uint = uint & 0x7FFFFFFF
+    return pos_uint.view(np.float32)
+
+def fmake_neg32(num):
+    uint = np.float32(num).view(np.uint32)
+    pos_uint = uint | 0x80000000
+    return pos_uint.view(np.float32)
+
+def fnegate32(num):
+    uint = np.float32(num).view(np.uint32)
+    pos_uint = uint ^ 0x80000000
+    return pos_uint.view(np.float32)
+    
+def fmake_pos64(num):
+    uint = np.float64(num).view(np.uint64)
+    pos_uint = uint & 0x7FFFFFFF_FFFFFFFF
+    return pos_uint.view(np.float64)
+
+def fmake_neg64(num):
+    uint = np.float64(num).view(np.uint64)
+    pos_uint = uint | 0x80000000_00000000
+    return pos_uint.view(np.float64)
+
+def fnegate64(num):
+    uint = np.float64(num).view(np.uint64)
+    pos_uint = uint ^ 0x80000000_00000000
+    return pos_uint.view(np.float64)
     
 class Log:
     def __init__(self):
@@ -233,6 +266,15 @@ class Hart:
             rd = bits(instr, 11, 7)
             rs1 = bits(instr, 19, 15)
             rs2 = bits(instr, 24, 20)
+
+            ffunct2 = bits(instr, 26, 25)
+            ffunct5 = bits(instr, 24, 20)
+            frd = rd
+            frs1 = rs1
+            frs2 = rs2
+            frs3 = bits(instr, 31, 27)
+            rm_num = bits(instr, 15, 13)
+            rm_str = ("RNE", "RTZ", "RDN", "RUP", "RMM", "Reserved", "Reserved", "DYN")[rm_num]
 
             # LUI
             if opcode5 == 0b01101:
@@ -726,7 +768,7 @@ class Hart:
                         #     result = 0x80000000
                             # default case handles this overflow, get 0x80000000 regardless
                         else:
-                            result = signed64(int(make_signed(R_rs1) / make_signed(R_rs2)))
+                            result = signed64(make_signed(R_rs1) / make_signed(R_rs2))
 
                     # DIVU
                     elif funct3 == 0b101:
@@ -859,7 +901,7 @@ class Hart:
                         #     result = 0x80000000
                             # default case handles this overflow, get 0x80000000 regardless
                         else:
-                            result = signed64(int(make_signed(R_rs1, 32) / make_signed(R_rs2, 32)), 32)
+                            result = signed64(make_signed(R_rs1, 32) / make_signed(R_rs2, 32), 32)
 
                     # DIVU
                     elif funct3 == 0b101:
@@ -1460,6 +1502,663 @@ class Hart:
                 self.incr_pc(4)
                 self.perf_counters.incr("stamofu instr")
 
+            # FL*:
+            elif opcode5 == 0b00001:
+                imm12 = bits(instr, 31, 20)
+                imm64 = signed64(imm12, 12)
+
+                # FLW
+                if funct3 == 0b010:
+                    self.log.write(f"FLW f{frd}, 0x{imm12:03X}(x{rs1})\n")
+                    addr = signed64(self.read_arf(rs1) + imm64)
+                    value = np.uint32(self.mem.read_data(addr, 4)).view(np.float32)
+
+                # FLD
+                elif funct3 == 0b011:
+                    self.log.write(f"FLD f{frd}, 0x{imm12:03X}(x{rs1})\n")
+                    addr = signed64(self.read_arf(rs1) + imm64)
+                    value = np.uint64(self.mem.read_data(addr, 8)).view(np.float64)
+
+                else:
+                    self.log.write(f"illegal FL* instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
+                    return False
+
+                self.write_farf(frd, value)
+                self.incr_pc(4)
+                self.perf_counters.incr("ldu instr")
+
+            # FS*
+            elif opcode5 == 0b01000:
+                imm12 = bits(instr, 11, 7)
+                imm12 += bits(instr, 31, 25) << 5
+                imm64 = signed64(imm12, 12)
+
+                # FSW
+                if funct3 == 0b010:
+                    self.log.write(f"FSW f{frs2}, 0x{imm12:03X}(x{rs1})\n")
+                    addr = signed64(self.read_arf(rs1) + imm64)
+                    value = signed32(np.float32(self.read_farf(frs2)).view(np.uint32))
+                    self.mem.write_data(addr, value, 4)
+
+                # FSD
+                elif funct3 == 0b011:
+                    self.log.write(f"FSD f{frs2}, 0x{imm12:03X}(x{rs1})\n")
+                    addr = signed64(self.read_arf(rs1) + imm64)
+                    value = signed64(np.float64(self.read_farf(frs2)).view(np.uint64))
+                    self.mem.write_data(addr, value, 8)
+
+                else:
+                    self.log.write(f"illegal FS* instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
+                    return False
+
+                self.incr_pc(4)
+                self.perf_counters.incr("stamofu instr")
+            
+            # FMADD.*
+            elif opcode5 == 0b10000:
+
+                # FMADD.S
+                if ffunct2 == 0b00:
+                    self.log.write(f"FMADD.S f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}")
+                    mul = np.float32(self.read_farf(frs1)) * np.float32(self.read_farf(frs2))
+                    result = mul + np.float32(self.read_farf(frs3))
+
+                # FMADD.D
+                elif ffunct2 == 0b01:
+                    self.log.write(f"FMADD.D f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}")
+                    mul = np.float64(self.read_farf(frs1)) * np.float64(self.read_farf(frs2))
+                    result = mul + np.float64(self.read_farf(frs3))
+                    
+                else:
+                    self.log.write(f"illegal FMADD.* instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
+                    return False
+                
+                self.write_farf(frd, result)
+                self.incr_pc(4)
+                self.perf_counters.incr("fpu instr")
+            
+            # FMSUB.*
+            elif opcode5 == 0b10001:
+
+                # FMSUB.S
+                if ffunct2 == 0b00:
+                    self.log.write(f"FMSUB.S f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}")
+                    mul = np.float32(self.read_farf(frs1)) * np.float32(self.read_farf(frs2))
+                    result = mul - np.float32(self.read_farf(frs3))
+
+                # FMSUB.D
+                elif ffunct2 == 0b01:
+                    self.log.write(f"FMSUB.D f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}")
+                    mul = np.float64(self.read_farf(frs1)) * np.float64(self.read_farf(frs2))
+                    result = mul - np.float64(self.read_farf(frs3))
+                    
+                else:
+                    self.log.write(f"illegal FMSUB.* instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
+                    return False
+                
+                self.write_farf(frd, result)
+                self.incr_pc(4)
+                self.perf_counters.incr("fpu instr")
+            
+            # FNMSUB.*
+            elif opcode5 == 0b10001:
+
+                # FNMSUB.S
+                if ffunct2 == 0b00:
+                    self.log.write(f"FNMSUB.S f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}")
+                    mul = np.float32(self.read_farf(frs1)) * np.float32(self.read_farf(frs2))
+                    result = fnegate32(mul - np.float32(self.read_farf(frs3)))
+
+                # FNMSUB.D
+                elif ffunct2 == 0b01:
+                    self.log.write(f"FNMSUB.D f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}")
+                    mul = np.float64(self.read_farf(frs1)) * np.float64(self.read_farf(frs2))
+                    result = fnegate64(mul - np.float64(self.read_farf(frs3)))
+                    
+                else:
+                    self.log.write(f"illegal FNMSUB.* instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
+                    return False
+                
+                self.write_farf(frd, result)
+                self.incr_pc(4)
+                self.perf_counters.incr("fpu instr")
+            
+            # FNMADD.*
+            elif opcode5 == 0b10001:
+
+                # FNMADD.S
+                if ffunct2 == 0b00:
+                    self.log.write(f"FNMADD.S f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}")
+                    mul = np.float32(self.read_farf(frs1)) * np.float32(self.read_farf(frs2))
+                    result = fnegate32(mul + np.float32(self.read_farf(frs3)))
+
+                # FNMADD.D
+                elif ffunct2 == 0b01:
+                    self.log.write(f"FNMADD.D f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}")
+                    mul = np.float64(self.read_farf(frs1)) * np.float64(self.read_farf(frs2))
+                    result = fnegate64(mul + np.float64(self.read_farf(frs3)))
+                    
+                else:
+                    self.log.write(f"illegal FNMADD.* instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
+                    return False
+                
+                self.write_farf(frd, result)
+                self.incr_pc(4)
+                self.perf_counters.incr("fpu instr")
+
+            # F*.*
+            elif opcode5 == 0b10100:
+
+                # FADD.S
+                if funct7 == 0b0000000:
+                    self.log.write(f"FADD.S f{frd}, f{frs1}, f{frs2}, {rm_str}")
+                    result = np.float32(self.read_farf(frs1)) + np.float32(self.read_farf(frs2))
+                    self.write_farf(frd, result)
+
+                # FADD.D
+                elif funct7 == 0b0000001:
+                    self.log.write(f"FADD.D f{frd}, f{frs1}, f{frs2}, {rm_str}")
+                    result = np.float64(self.read_farf(frs1)) + np.float64(self.read_farf(frs2))
+                    self.write_farf(frd, result)
+
+                # FSUB.S
+                elif funct7 == 0b0000100:
+                    self.log.write(f"FSUB.S f{frd}, f{frs1}, f{frs2}, {rm_str}")
+                    result = np.float32(self.read_farf(frs1)) - np.float32(self.read_farf(frs2))
+                    self.write_farf(frd, result)
+
+                # FSUB.D
+                elif funct7 == 0b0000101:
+                    self.log.write(f"FSUB.D f{frd}, f{frs1}, f{frs2}, {rm_str}")
+                    result = np.float64(self.read_farf(frs1)) - np.float64(self.read_farf(frs2))
+                    self.write_farf(frd, result)
+
+                # FMUL.S
+                elif funct7 == 0b0001000:
+                    self.log.write(f"FMUL.S f{frd}, f{frs1}, f{frs2}, {rm_str}")
+                    result = np.float32(self.read_farf(frs1)) * np.float32(self.read_farf(frs2))
+                    self.write_farf(frd, result)
+
+                # FMUL.D
+                elif funct7 == 0b0001001:
+                    self.log.write(f"FMUL.D f{frd}, f{frs1}, f{frs2}, {rm_str}")
+                    result = np.float64(self.read_farf(frs1)) * np.float64(self.read_farf(frs2))
+                    self.write_farf(frd, result)
+
+                # FDIV.S, FSQRT.S
+                elif funct7 == 0b0001100:
+
+                    # FSQRT.S
+                    if frs2 == 0b00000:
+                        self.log.write(f"FSQRT.S f{frd}, f{frs1}, {rm_str}")
+                        result = np.sqrt(np.float32(self.read_farf(frs1)))
+                        self.write_farf(frd, result)
+
+                    # FDIV.S
+                    else:
+                        self.log.write(f"FDIV.S f{frd}, f{frs1}, f{frs2}, {rm_str}")
+                        result = np.float32(self.read_farf(frs1)) / np.float32(self.read_farf(frs2))
+                        self.write_farf(frd, result)
+
+                # FDIV.D, FSQRT.D
+                elif funct7 == 0b0001101:
+
+                    # FSQRT.D
+                    if frs2 == 0b00000:
+                        self.log.write(f"FSQRT.D f{frd}, f{frs1}, {rm_str}")
+                        result = np.sqrt(np.float64(self.read_farf(frs1)))
+                        self.write_farf(frd, result)
+
+                    # FDIV.D
+                    else:
+                        self.log.write(f"FDIV.D f{frd}, f{frs1}, f{frs2}, {rm_str}")
+                        result = np.float64(self.read_farf(frs1)) / np.float64(self.read_farf(frs2))
+                        self.write_farf(frd, result)
+
+                # FSGNJ*.S
+                elif funct7 == 0b0010000:
+
+                    # FSGNJ.S
+                    if funct3 == 0b000:
+                        self.log.write(f"FSGNJ.S f{frd}, f{frs1}, f{frs2}")
+                        if np.signbit(np.float32(self.read_farf(frs2))):
+                            result = fmake_neg32(np.float32(self.read_farf(frs1)))
+                        else:
+                            result = fmake_pos32(np.float32(self.read_farf(frs1)))
+                        self.write_farf(frd, result)
+
+                    # FSGNJN.S
+                    elif funct3 == 0b001:
+                        self.log.write(f"FSGNJN.S f{frd}, f{frs1}, f{frs2}")
+                        if np.signbit(np.float32(self.read_farf(frs2))):
+                            result = fmake_pos32(np.float32(self.read_farf(frs1)))
+                        else:
+                            result = fmake_neg32(np.float32(self.read_farf(frs1)))
+                        self.write_farf(frd, result)
+
+                    # FSGNJX.S
+                    elif funct3 == 0b010:
+                        self.log.write(f"FSGNJX.S f{frd}, f{frs1}, f{frs2}")
+                        result = np.float32(self.read_farf(frs1))
+                        if np.signbit(np.float32(self.read_farf(frs2))):
+                            result = fnegate32(result)
+                        self.write_farf(frd, result)
+                        
+                    else:
+                        self.log.write(f"illegal FSGNJ*.S instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+
+                # FSGNJ*.D
+                elif funct7 == 0b0010001:
+
+                    # FSGNJ.D
+                    if funct3 == 0b000:
+                        self.log.write(f"FSGNJ.D f{frd}, f{frs1}, f{frs2}")
+                        if np.signbit(np.float64(self.read_farf(frs2))):
+                            result = fmake_neg64(np.float64(self.read_farf(frs1)))
+                        else:
+                            result = fmake_pos64(np.float64(self.read_farf(frs1)))
+                        self.write_farf(frd, result)
+
+                    # FSGNJN.D
+                    elif funct3 == 0b001:
+                        self.log.write(f"FSGNJN.D f{frd}, f{frs1}, f{frs2}")
+                        if np.signbit(np.float64(self.read_farf(frs2))):
+                            result = fmake_pos64(np.float64(self.read_farf(frs1)))
+                        else:
+                            result = fmake_neg64(np.float64(self.read_farf(frs1)))
+                        self.write_farf(frd, result)
+
+                    # FSGNJX.D
+                    elif funct3 == 0b010:
+                        self.log.write(f"FSGNJX.D f{frd}, f{frs1}, f{frs2}")
+                        result = np.float64(self.read_farf(frs1))
+                        if np.signbit(np.float64(self.read_farf(frs2))):
+                            result = fnegate64(result)
+                        self.write_farf(frd, result)
+                        
+                    else:
+                        self.log.write(f"illegal FSGNJ*.D instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+
+                # FMIN.S, FMAX.S
+                elif funct7 == 0b0010100:
+
+                    # FMIN.S
+                    if funct3 == 0b000:
+                        self.log.write(f"FMIN.S f{frd}, f{frs1}, {frs2}")
+                        result = np.float32(self.read_farf(frs1))
+                        R_frs2 = np.float32(self.read_farf(frs2))
+                        if R_frs2 < result:
+                            result = R_frs2
+                        self.write_farf(frd, result)
+
+                    # FMAX.S
+                    elif funct3 == 0b000:
+                        self.log.write(f"FMAX.S f{frd}, f{frs1}, {frs2}")
+                        result = np.float32(self.read_farf(frs1))
+                        R_frs2 = np.float32(self.read_farf(frs2))
+                        if R_frs2 > result:
+                            result = R_frs2
+                        self.write_farf(frd, result)
+                        
+                    else:
+                        self.log.write(f"illegal FMIN.S, FMAX.S instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+
+                # FMIN.D, FMAX.D
+                elif funct7 == 0b0010101:
+
+                    # FMIN.D
+                    if funct3 == 0b000:
+                        self.log.write(f"FMIN.D f{frd}, f{frs1}, {frs2}")
+                        result = np.float64(self.read_farf(frs1))
+                        R_frs2 = np.float64(self.read_farf(frs2))
+                        if R_frs2 < result:
+                            result = R_frs2
+                        self.write_farf(frd, result)
+
+                    # FMAX.D
+                    elif funct3 == 0b000:
+                        self.log.write(f"FMAX.D f{frd}, f{frs1}, {frs2}")
+                        result = np.float64(self.read_farf(frs1))
+                        R_frs2 = np.float64(self.read_farf(frs2))
+                        if R_frs2 > result:
+                            result = R_frs2
+                        self.write_farf(frd, result)
+                        
+                    else:
+                        self.log.write(f"illegal FMIN.D, FMAX.D instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+                    
+                # FCVT.*.S
+                elif funct7 == 0b1100000:
+
+                    # FCVT.W.S
+                    if ffunct5 == 0b00000:
+                        self.log.write(f"FCVT.W.S x{rd}, f{frs1}, {rm_str}")
+                        result = signed64(np.int32(np.round(np.float32(self.read_farf(frs1)))), 32)
+                        self.write_arf(rd, result)
+
+                    # FCVT.WU.S
+                    elif ffunct5 == 0b00001:
+                        self.log.write(f"FCVT.WU.S x{rd}, f{frs1}, {rm_str}")
+                        num = np.int32(np.round(np.float32(self.read_farf(frs1))))
+                        if num < 0:
+                            result = 0
+                        else:
+                            result = signed64(num, 32)
+                        self.write_arf(rd, result)
+
+                    # FCVT.L.S
+                    elif ffunct5 == 0b00010:
+                        self.log.write(f"FCVT.L.S x{rd}, f{frs1}, {rm_str}")
+                        result = signed64(np.int64(np.round(np.float32(self.read_farf(frs1)))))
+                        self.write_arf(rd, result)
+
+                    # FCVT.LU.S
+                    elif ffunct5 == 0b00001:
+                        self.log.write(f"FCVT.LU.S x{rd}, f{frs1}, {rm_str}")
+                        num = np.int64(np.round(np.float32(self.read_farf(frs1))))
+                        if num < 0:
+                            result = 0
+                        else:
+                            result = signed64(num)
+                        self.write_arf(rd, result)
+                        
+                    else:
+                        self.log.write(f"illegal FCVT.*.S instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+                    
+                # FCVT.*.D
+                elif funct7 == 0b1100001:
+
+                    # FCVT.W.D
+                    if ffunct5 == 0b00000:
+                        self.log.write(f"FCVT.W.D x{rd}, f{frs1}, {rm_str}")
+                        result = signed64(np.int32(np.round(np.float64(self.read_farf(frs1)))), 32)
+                        self.write_arf(rd, result)
+
+                    # FCVT.WU.D
+                    elif ffunct5 == 0b00001:
+                        self.log.write(f"FCVT.WU.D x{rd}, f{frs1}, {rm_str}")
+                        num = np.int32(np.round(np.float64(self.read_farf(frs1))))
+                        if num < 0:
+                            result = 0
+                        else:
+                            result = signed64(num, 32)
+                        self.write_arf(rd, result)
+
+                    # FCVT.L.D
+                    elif ffunct5 == 0b00010:
+                        self.log.write(f"FCVT.L.D x{rd}, f{frs1}, {rm_str}")
+                        result = signed64(np.int64(np.round(np.float64(self.read_farf(frs1)))))
+                        self.write_arf(rd, result)
+
+                    # FCVT.LU.D
+                    elif ffunct5 == 0b00001:
+                        self.log.write(f"FCVT.LU.D x{rd}, f{frs1}, {rm_str}")
+                        num = np.int64(np.round(np.float64(self.read_farf(frs1))))
+                        if num < 0:
+                            result = 0
+                        else:
+                            result = signed64(num)
+                        self.write_arf(rd, result)
+                        
+                    else:
+                        self.log.write(f"illegal FCVT.*.D instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+                
+                # FCVT.S.D
+                elif funct7 == 0b0100000:
+
+                    if funct5 != 0b00001:
+                        self.log.write(f"illegal FCVT.S.D instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+                    
+                    self.log.write(f"FCVT.S.D f{frd}, f{frs1}, {rm_str}")
+                    result = np.float32(np.float64(self.read_farf(frs1)))
+                    self.write_farf(frd, result)
+                
+                # FCVT.D.S
+                elif funct7 == 0b0100001:
+
+                    if funct5 != 0b00000:
+                        self.log.write(f"illegal FCVT.D.S instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+                    
+                    self.log.write(f"FCVT.D.S f{frd}, f{frs1}, {rm_str}")
+                    result = np.float64(np.float32(self.read_farf(frs1)))
+                    self.write_farf(frd, result)
+                    
+                # FMV.X.W
+                elif funct7 == 0b1110000:
+
+                    if ffunct5 != 0b00000 or funct3 != 0b000:
+                        self.log.write(f"illegal FMV.X.W instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+
+                    self.log.write(f"FMV.X.W x{rd}, f{frs1}")
+                    result = signed64(np.float32(self.read_farf(frs1)).view(np.int32), 32)
+                    self.write_arf(rd, result)
+                    
+                # FMV.X.D
+                elif funct7 == 0b1110001:
+
+                    if ffunct5 != 0b00000 or funct3 != 0b000:
+                        self.log.write(f"illegal FMV.X.D instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+
+                    self.log.write(f"FMV.X.D x{rd}, f{frs1}")
+                    result = signed64(np.float64(self.read_farf(frs1)).view(np.int64))
+                    self.write_arf(rd, result)
+
+                # FEQ.S, FLT.S, FLE.S
+                elif funct7 == 0b1010000:
+
+                    # FEQ.S
+                    if funct3 == 0b010:
+                        self.log.write(f"FEQ.S x{rd}, f{frs1}, f{frs2}")
+                        if np.float32(self.read_farf(frs1)) == np.float32(self.read_farf(frs2)):
+                            result = 1
+                        else:
+                            result = 0
+                        self.write_arf(rd, result)
+
+                    # FLT.S
+                    elif funct3 == 0b001:
+                        self.log.write(f"FLT.S x{rd}, f{frs1}, f{frs2}")
+                        if np.float32(self.read_farf(frs1)) < np.float32(self.read_farf(frs2)):
+                            result = 1
+                        else:
+                            result = 0
+                        self.write_arf(rd, result)
+
+                    # FLE.S
+                    elif funct3 == 0b000:
+                        self.log.write(f"FLE.S x{rd}, f{frs1}, f{frs2}")
+                        if np.float32(self.read_farf(frs1)) <= np.float32(self.read_farf(frs2)):
+                            result = 1
+                        else:
+                            result = 0
+                        self.write_arf(rd, result)
+                    
+                    else:
+                        self.log.write(f"illegal FEQ.S, FLT.S, FLE.S instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+
+                # FEQ.D, FLT.D, FLE.D
+                elif funct7 == 0b1010001:
+
+                    # FEQ.D
+                    if funct3 == 0b010:
+                        self.log.write(f"FEQ.D x{rd}, f{frs1}, f{frs2}")
+                        if np.float64(self.read_farf(frs1)) == np.float64(self.read_farf(frs2)):
+                            result = 1
+                        else:
+                            result = 0
+                        self.write_arf(rd, result)
+
+                    # FLT.D
+                    elif funct3 == 0b001:
+                        self.log.write(f"FLT.D x{rd}, f{frs1}, f{frs2}")
+                        if np.float64(self.read_farf(frs1)) < np.float64(self.read_farf(frs2)):
+                            result = 1
+                        else:
+                            result = 0
+                        self.write_arf(rd, result)
+
+                    # FLE.D
+                    elif funct3 == 0b000:
+                        self.log.write(f"FLE.D x{rd}, f{frs1}, f{frs2}")
+                        if np.float64(self.read_farf(frs1)) <= np.float64(self.read_farf(frs2)):
+                            result = 1
+                        else:
+                            result = 0
+                        self.write_arf(rd, result)
+                    
+                    else:
+                        self.log.write(f"illegal FEQ.D, FLT.D, FLE.D instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+                    
+                # FCLASS.S
+                elif funct7 == 0b1110000:
+
+                    if ffunct5 != 0b00000 or funct3 != 0b001:
+                        self.log.write(f"illegal FCLASS.S instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+
+                    self.log.write(f"FCLASS.S x{rd}, f{frs1}\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
+                    return False
+                    
+                # FCLASS.D
+                elif funct7 == 0b1110001:
+
+                    if ffunct5 != 0b00000 or funct3 != 0b001:
+                        self.log.write(f"illegal FCLASS.D instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+                    
+                    self.log.write(f"FCLASS.D x{rd}, f{frs1}\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
+                    return False
+                
+                # FCVT.S.*
+                elif funct7 == 0b1101000:
+
+                    # FCVT.S.W
+                    if ffunct5 == 0b00000:
+                        self.log.write(f"FCVT.S.W f{frd}, x{rs1}, {rm_str}")
+                        result = np.float32(make_signed(self.read_arf(rs1), 32))
+                        self.write_arf(rd, result)
+
+                    # FCVT.S.WU
+                    elif ffunct5 == 0b00001:
+                        self.log.write(f"FCVT.S.WU f{frd}, x{rs1}, {rm_str}")
+                        result = np.float32(signed32(self.read_arf(rs1)))
+                        self.write_arf(rd, result)
+
+                    # FCVT.S.L
+                    elif ffunct5 == 0b00010:
+                        self.log.write(f"FCVT.S.L f{frd}, x{rs1}, {rm_str}")
+                        result = np.float32(make_signed(self.read_arf(rs1)))
+                        self.write_arf(rd, result)
+
+                    # FCVT.S.LU
+                    elif ffunct5 == 0b00011:
+                        self.log.write(f"FCVT.S.LU f{frd}, x{rs1}, {rm_str}")
+                        result = np.float32(signed64(self.read_arf(rs1)))
+                        self.write_arf(rd, result)
+
+                    else:
+                        self.log.write(f"illegal FCVT.S.* instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+                
+                # FCVT.D.*
+                elif funct7 == 0b1101001:
+
+                    # FCVT.D.W
+                    if ffunct5 == 0b00000:
+                        self.log.write(f"FCVT.D.W f{frd}, x{rs1}, {rm_str}")
+                        result = np.float64(make_signed(self.read_arf(rs1), 32))
+                        self.write_arf(rd, result)
+
+                    # FCVT.D.WU
+                    elif ffunct5 == 0b00001:
+                        self.log.write(f"FCVT.D.WU f{frd}, x{rs1}, {rm_str}")
+                        result = np.float64(signed32(self.read_arf(rs1)))
+                        self.write_arf(rd, result)
+
+                    # FCVT.D.L
+                    elif ffunct5 == 0b00010:
+                        self.log.write(f"FCVT.D.L f{frd}, x{rs1}, {rm_str}")
+                        result = np.float64(make_signed(self.read_arf(rs1)))
+                        self.write_arf(rd, result)
+
+                    # FCVT.D.LU
+                    elif ffunct5 == 0b00011:
+                        self.log.write(f"FCVT.D.LU f{frd}, x{rs1}, {rm_str}")
+                        result = np.float64(signed64(self.read_arf(rs1)))
+                        self.write_arf(rd, result)
+
+                    else:
+                        self.log.write(f"illegal FCVT.D.* instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+                    
+                # FMV.W.X
+                elif funct7 == 0b1111000:
+                    
+                    if ffunct5 != 0b00000 or funct3 != 0b000:
+                        self.log.write(f"illegal FMV.W.X instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+
+                    self.log.write(f"FMV.W.X f{frd}, x{rs1}")
+                    result = signed32(self.read_arf(rs1)).view(np.float32)
+                    self.write_farf(frd, result)
+                    
+                # FMV.D.X
+                elif funct7 == 0b1111001:
+                    
+                    if ffunct5 != 0b00000 or funct3 != 0b000:
+                        self.log.write(f"illegal FMV.D.X instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+
+                    self.log.write(f"FMV.D.X f{frd}, x{rs1}")
+                    result = signed32(self.read_arf(rs1)).view(np.float32)
+                    self.write_farf(frd, result)
+
+                else:
+                    self.log.write(f"illegal F*.* instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
+                    return False
+                
+                self.incr_pc(4)
+                self.perf_counters.incr("fpu instr")
+
             else:
                 self.log.write(f"illegal uncompressed instr\n")
                 self.log.write(f"\n< Exiting Execution >\n")
@@ -1485,10 +2184,23 @@ class Hart:
                         return False
                     rd = bits(instr, 4, 2) + 8
                     self.log.write(f"C.ADDI4SPN x{rd}, 0x{uimm:03X}\n")
-                    value = signed32(self.read_arf(2) + uimm)
+                    value = signed64(self.read_arf(2) + uimm)
                     self.write_arf(rd, value)
                     self.incr_pc(2)
                     self.perf_counters.incr("alu_imm instr")
+
+                # C.FLD
+                elif opcode3 == 0b001:
+                    uimm = bits(instr, 12, 10) << 3
+                    uimm += bits(instr, 6, 5) << 6
+                    rs1 = bits(instr, 9, 7) + 8
+                    frd = bits(instr, 4, 2) + 8
+                    self.log.write(f"C.FLD f{frd}, 0x{uimm:02X}(x{rs1})\n")
+                    addr = signed64(self.read_arf(rs1) + uimm)
+                    value = np.uint64(self.mem.read_data(addr, 8)).view(np.float64)
+                    self.write_farf(frd, value)
+                    self.incr_pc(2)
+                    self.perf_counters.incr("ldu instr")
 
                 # C.LW
                 elif opcode3 == 0b010:
@@ -1497,12 +2209,38 @@ class Hart:
                     uimm += bit(instr, 5) << 6
                     rs1 = bits(instr, 9, 7) + 8
                     rd = bits(instr, 4, 2) + 8
-                    self.log.write(f"C.LW x{rd}, 0x{uimm:02X}\n")
-                    addr = signed32(self.read_arf(rs1) + uimm)
-                    value = self.mem.read_data(addr, 4)
+                    self.log.write(f"C.LW x{rd}, 0x{uimm:02X}(x{rs1})\n")
+                    addr = signed64(self.read_arf(rs1) + uimm)
+                    value = signed64(self.mem.read_data(addr, 4), 32)
                     self.write_arf(rd, value)
                     self.incr_pc(2)
                     self.perf_counters.incr("ldu instr")
+
+                # C.LD
+                elif opcode3 == 0b011:
+                    uimm = bits(instr, 12, 10) << 3
+                    uimm += bits(instr, 6, 5) << 6
+                    rs1 = bits(instr, 9, 7) + 8
+                    rd = bits(instr, 4, 2) + 8
+                    self.log.write(f"C.LD x{rd}, 0x{uimm:02X}(x{rs1})\n")
+                    addr = signed64(self.read_arf(rs1) + uimm)
+                    value = self.mem.read_data(addr, 8)
+                    self.write_arf(rd, value)
+                    self.incr_pc(2)
+                    self.perf_counters.incr("ldu instr")
+
+                # C.FSD
+                elif opcode3 == 0b101:
+                    uimm = bits(instr, 12, 10) << 3
+                    uimm += bits(instr, 6, 5) << 6
+                    rs1 = bits(instr, 9, 7) + 8
+                    frs2 = bits(instr, 4, 2) + 8
+                    self.log.write(f"C.FSD f{frs2}, 0x{uimm:02X}(x{rs1})\n")
+                    addr = signed64(self.read_arf(rs1) + uimm)
+                    value = signed64(np.float64(self.read_farf(frs2)).view(np.uint64))
+                    self.mem.write_data(addr, value, 8)
+                    self.incr_pc(2)
+                    self.perf_counters.incr("stamofu instr")
 
                 # C.SW
                 elif opcode3 == 0b110:
@@ -1511,9 +2249,23 @@ class Hart:
                     uimm += bit(instr, 5) << 6
                     rs1 = bits(instr, 9, 7) + 8
                     rs2 = bits(instr, 4, 2) + 8
-                    self.log.write(f"C.SW x{rs2}, 0x{uimm:02X}\n")
-                    addr = signed32(self.read_arf(rs1) + uimm)
-                    self.mem.write_data(addr, self.read_arf(rs2), 4)
+                    self.log.write(f"C.SW x{rs2}, 0x{uimm:02X}(x{rs1})\n")
+                    addr = signed64(self.read_arf(rs1) + uimm)
+                    value = self.read_arf(rs2)
+                    self.mem.write_data(addr, value, 4)
+                    self.incr_pc(2)
+                    self.perf_counters.incr("stamofu instr")
+
+                # C.SD
+                elif opcode3 == 0b111:
+                    uimm = bits(instr, 12, 10) << 3
+                    uimm += bits(instr, 6, 5) << 6
+                    rs1 = bits(instr, 9, 7) + 8
+                    rs2 = bits(instr, 4, 2) + 8
+                    self.log.write(f"C.SD x{rs2}, 0x{uimm:02X}(x{rs1})\n")
+                    addr = signed64(self.read_arf(rs1) + uimm)
+                    value = self.read_arf(rs2)
+                    self.mem.write_data(addr, value, 8)
                     self.incr_pc(2)
                     self.perf_counters.incr("stamofu instr")
 
@@ -1528,39 +2280,34 @@ class Hart:
                 if opcode3 == 0b000:
                     imm = bit(instr, 12) << 5
                     imm += bits(instr, 6, 2)
-                    imm32 = signed32(imm, 6)
+                    imm64 = signed64(imm, 6)
                     rd = bits(instr, 11, 7)
                     self.log.write(f"C.ADDI x{rd}, 0x{imm:02X}\n")
-                    result = signed32(self.read_arf(rd) + imm32)
+                    result = signed64(self.read_arf(rd) + imm64)
                     self.write_arf(rd, result)
                     self.incr_pc(2)
                     self.perf_counters.incr("alu_imm instr")
 
-                # C.JAL
+                # C.ADDIW
                 elif opcode3 == 0b001:
-                    imm = bit(instr, 12) << 11
-                    imm += bit(instr, 11) << 4
-                    imm += bits(instr, 10, 9) << 8
-                    imm += bit(instr, 8) << 10
-                    imm += bit(instr, 7) << 6
-                    imm += bit(instr, 6) << 7
-                    imm += bits(instr, 5, 3) << 1
-                    imm += bit(instr, 2) << 5
-                    imm32 = signed32(imm, 12)
-                    self.log.write(f"C.JAL 0x{imm:03X}\n")
-                    result = signed32(self.pc + 2)
-                    self.write_arf(1, result)
-                    self.incr_pc(imm32)
-                    self.perf_counters.incr("bru instr")
+                    imm = bit(instr, 12) << 5
+                    imm += bits(instr, 6, 2)
+                    imm32 = signed32(imm, 6)
+                    rd = bits(instr, 11, 7)
+                    self.log.write(f"C.ADDIW x{rd}, 0x{imm:02X}\n")
+                    result = signed64(signed32(self.read_arf(rd)) + imm32, 32)
+                    self.write_arf(rd, result)
+                    self.incr_pc(2)
+                    self.perf_counters.incr("alu_imm instr")
 
                 # C.LI
                 elif opcode3 == 0b010:
                     imm = bit(instr, 12) << 5
                     imm += bits(instr, 6, 2)
-                    imm32 = signed32(imm, 6)
+                    imm64 = signed64(imm, 6)
                     rd = bits(instr, 11, 7)
                     self.log.write(f"C.LI x{rd}, 0x{imm:02X}\n")
-                    result = imm32
+                    result = imm64
                     self.write_arf(rd, result)
                     self.incr_pc(2)
                     self.perf_counters.incr("alu_imm instr")
@@ -1575,9 +2322,9 @@ class Hart:
                         imm += bit(instr, 5) << 6
                         imm += bits(instr, 4, 3) << 7
                         imm += bit(instr, 2) << 5
-                        imm32 = signed32(imm, 10)
+                        imm64 = signed64(imm, 10)
                         self.log.write(f"C.ADDI16SP 0x{imm:03X}\n")
-                        result = signed32(self.read_arf(2) + imm32)
+                        result = signed64(self.read_arf(2) + imm64)
                         self.write_arf(2, result)
                         self.perf_counters.incr("alu_imm instr")
 
@@ -1585,10 +2332,10 @@ class Hart:
                     else:
                         imm = bit(instr, 12) << 17
                         imm += bits(instr, 6, 2) << 12
-                        imm32 = signed32(imm, 18)
+                        imm64 = signed64(imm, 18)
                         rd = bits(instr, 11, 7)
                         self.log.write(f"C.LUI x{rd}, 0x{imm >> 12:02X}\n")
-                        result = imm32
+                        result = imm64
                         self.write_arf(rd, result)
                         self.perf_counters.incr("bru instr")
 
@@ -1602,55 +2349,78 @@ class Hart:
                     # C.SRLI
                     if funct2 == 0b00:
                         shamt = bits(instr, 6, 2)
+                        shamt += bit(instr, 12) << 5
                         self.log.write(f"C.SRLI x{rd}, 0x{shamt:02X}\n")
-                        result = signed32(self.read_arf(rd) >> shamt)
+                        result = signed64(self.read_arf(rd) >> shamt)
                         self.perf_counters.incr("alu_imm instr")
 
                     # C.SRAI
                     elif funct2 == 0b01:
                         shamt = bits(instr, 6, 2)
+                        shamt += bit(instr, 12) << 5
                         self.log.write(f"C.SRAI x{rd}, 0x{shamt:02X}\n")
-                        result = signed32(self.read_arf(rd) >> shamt, 32-shamt)
+                        result = signed64(self.read_arf(rd) >> shamt, 64-shamt)
                         self.perf_counters.incr("alu_imm instr")
 
                     # C.ANDI
                     elif funct2 == 0b10:
                         imm = bit(instr, 12) << 5
                         imm += bits(instr, 6, 2)
-                        imm32 = signed32(imm, 6)
+                        imm64 = signed64(imm, 6)
                         self.log.write(f"C.ANDI x{rd}, 0x{imm:02X}\n")
-                        result = signed32(self.read_arf(rd) & imm32)
+                        result = signed64(self.read_arf(rd) & imm64)
                         self.perf_counters.incr("alu_imm instr")
 
-                    # C.SUB/C.XOR/C.OR/C.AND
+                    # C.SUB/C.XOR/C.OR/C.AND/C.SUBW/C.ADDW
                     elif funct2 == 0b11:
                         funct2_2 = bits(instr, 6, 5)
                         rs2 = bits(instr, 4, 2) + 8
+
+                        # C.SUB/C.XOR/C.OR/C.AND
+                        if bit(instr, 12) == 0b0:
                         
-                        # C.SUB
-                        if funct2_2 == 0b00:
-                            self.log.write(f"C.SUB x{rd}, x{rs2}\n")
-                            result = signed32(self.read_arf(rd) - self.read_arf(rs2))
+                            # C.SUB
+                            if funct2_2 == 0b00:
+                                self.log.write(f"C.SUB x{rd}, x{rs2}\n")
+                                result = signed64(self.read_arf(rd) - self.read_arf(rs2))
 
-                        # C.XOR
-                        elif funct2_2 == 0b01:
-                            self.log.write(f"C.XOR x{rd}, x{rs2}\n")
-                            result = signed32(self.read_arf(rd) ^ self.read_arf(rs2))
+                            # C.XOR
+                            elif funct2_2 == 0b01:
+                                self.log.write(f"C.XOR x{rd}, x{rs2}\n")
+                                result = signed64(self.read_arf(rd) ^ self.read_arf(rs2))
 
-                        # C.OR
-                        elif funct2_2 == 0b10:
-                            self.log.write(f"C.OR x{rd}, x{rs2}\n")
-                            result = signed32(self.read_arf(rd) | self.read_arf(rs2))
+                            # C.OR
+                            elif funct2_2 == 0b10:
+                                self.log.write(f"C.OR x{rd}, x{rs2}\n")
+                                result = signed64(self.read_arf(rd) | self.read_arf(rs2))
 
-                        # C.AND
-                        elif funct2_2 == 0b11:
-                            self.log.write(f"C.AND x{rd}, x{rs2}\n")
-                            result = signed32(self.read_arf(rd) & self.read_arf(rs2))
+                            # C.AND
+                            elif funct2_2 == 0b11:
+                                self.log.write(f"C.AND x{rd}, x{rs2}\n")
+                                result = signed64(self.read_arf(rd) & self.read_arf(rs2))
 
+                            else:
+                                self.log.write(f"illegal compressed instr\n")
+                                self.log.write(f"\n< Exiting Execution >\n")
+                                return False
+
+                        # C.SUBW/C.ADDW 
                         else:
-                            self.log.write(f"illegal compressed instr\n")
-                            self.log.write(f"\n< Exiting Execution >\n")
-                            return False
+
+                            # C.SUBW
+                            if funct2_2 == 0b00:
+                                self.log.write(f"C.SUBW x{rd}, x{rs2}\n")
+                                result = signed64(signed32(self.read_arf(rd)) - signed32(self.read_arf(rs2)))
+
+                            # C.ADDW
+                            elif funct2_2 == 0b01:
+                                self.log.write(f"C.ADDW x{rd}, x{rs2}\n")
+                                result = signed64(signed32(self.read_arf(rd)) + signed32(self.read_arf(rs2)))
+
+                            else:
+                                self.log.write(f"illegal compressed instr\n")
+                                self.log.write(f"\n< Exiting Execution >\n")
+                                return False
 
                         self.perf_counters.incr("alu_reg instr")
 
@@ -1672,9 +2442,9 @@ class Hart:
                     imm += bit(instr, 6) << 7
                     imm += bits(instr, 5, 3) << 1
                     imm += bit(instr, 2) << 5
-                    imm32 = signed32(imm, 12)
+                    imm64 = signed64(imm, 12)
                     self.log.write(f"C.J 0x{imm:03X}\n")
-                    self.incr_pc(imm32)
+                    self.incr_pc(imm64)
                     self.perf_counters.incr("bru instr")
                 
                 # C.BEQZ
@@ -1684,11 +2454,11 @@ class Hart:
                     imm += bits(instr, 6, 5) << 6
                     imm += bits(instr, 4, 3) << 1
                     imm += bit(instr, 2) << 5
-                    imm32 = signed32(imm, 9)
+                    imm64 = signed64(imm, 9)
                     rs1 = bits(instr, 9, 7) + 8
                     self.log.write(f"C.BEQZ x{rs1}, 0x{imm:03X}\n")
                     if self.read_arf(rs1) == 0:
-                        self.incr_pc(imm32)
+                        self.incr_pc(imm64)
                     else:
                         self.incr_pc(2)
                     self.perf_counters.incr("bru instr")
@@ -1700,11 +2470,11 @@ class Hart:
                     imm += bits(instr, 6, 5) << 6
                     imm += bits(instr, 4, 3) << 1
                     imm += bit(instr, 2) << 5
-                    imm32 = signed32(imm, 9)
+                    imm64 = signed64(imm, 9)
                     rs1 = bits(instr, 9, 7) + 8
                     self.log.write(f"C.BNEZ x{rs1}, 0x{imm:03X}\n")
                     if self.read_arf(rs1) != 0:
-                        self.incr_pc(imm32)
+                        self.incr_pc(imm64)
                     else:
                         self.incr_pc(2)
                     self.perf_counters.incr("bru instr")
@@ -1719,12 +2489,26 @@ class Hart:
                 # C.SLLI
                 if opcode3 == 0b000:
                     shamt = bits(instr, 6, 2)
+                    shamt += bit(instr, 12) << 5
                     rd = bits(instr, 11, 7)
                     self.log.write(f"C.SLLI x{rd}, 0x{shamt:02X}\n")
-                    result = signed32(self.read_arf(rd) << shamt)
+                    result = signed64(self.read_arf(rd) << shamt)
                     self.write_arf(rd, result)
                     self.incr_pc(2)
                     self.perf_counters.incr("alu_imm instr")
+
+                # C.FLDSP
+                elif opcode3 == 0b001:
+                    uimm = bit(instr, 12) << 5
+                    uimm += bits(instr, 6, 5) << 3
+                    uimm += bits(instr, 4, 2) << 6
+                    frd = bits(instr, 11, 7)
+                    self.log.write(f"C.FLDSP f{frd}, 0x{uimm:03X}\n")
+                    addr = signed64(self.read_arf(2) + uimm)
+                    result = np.uint64(self.mem.read_data(addr, 8)).view(np.float64)
+                    self.write_farf(frd, result)
+                    self.incr_pc(2)
+                    self.perf_counters.incr("ldu instr")
 
                 # C.LWSP
                 elif opcode3 == 0b010:
@@ -1733,8 +2517,21 @@ class Hart:
                     uimm += bits(instr, 3, 2) << 6
                     rd = bits(instr, 11, 7)
                     self.log.write(f"C.LWSP x{rd}, 0x{uimm:02X}\n")
-                    addr = signed32(self.read_arf(2) + uimm)
-                    result = self.mem.read_data(addr, 4)
+                    addr = signed64(self.read_arf(2) + uimm)
+                    result = signed64(self.mem.read_data(addr, 4), 32)
+                    self.write_arf(rd, result)
+                    self.incr_pc(2)
+                    self.perf_counters.incr("ldu instr")
+
+                # C.LDSP
+                elif opcode3 == 0b011:
+                    uimm = bit(instr, 12) << 5
+                    uimm += bits(instr, 6, 5) << 3
+                    uimm += bits(instr, 4, 2) << 6
+                    rd = bits(instr, 11, 7)
+                    self.log.write(f"C.LDSP x{rd}, 0x{uimm:03X}\n")
+                    addr = signed64(self.read_arf(2) + uimm)
+                    result = self.mem.read_data(addr, 8)
                     self.write_arf(rd, result)
                     self.incr_pc(2)
                     self.perf_counters.incr("ldu instr")
@@ -1792,6 +2589,18 @@ class Hart:
                         self.log.write(f"\n< Exiting Execution >\n")
                         return False
                     
+                # C.FSDSP
+                elif opcode3 == 0b101:
+                    uimm = bits(instr, 12, 10) << 3
+                    uimm += bits(instr, 9, 7) << 6
+                    frs2 = bits(instr, 6, 2)
+                    self.log.write(f"C.FSDSP f{frs2}, 0x{uimm:03X}\n")
+                    addr = signed64(self.read_arf(2) + uimm)
+                    value = signed64(np.float64(self.read_farf(frs2)).view(np.uint64))
+                    self.mem.write_data(addr, value, 8)
+                    self.incr_pc(2)
+                    self.perf_counters.incr("stamofu instr")
+                    
                 # C.SWSP
                 elif opcode3 == 0b110:
                     uimm = bits(instr, 12, 9) << 2
@@ -1799,8 +2608,20 @@ class Hart:
                     rs2 = bits(instr, 6, 2)
                     self.log.write(f"C.SWSP x{rs2}, 0x{uimm:02X}\n")
                     addr = signed32(self.read_arf(2) + uimm)
-                    result = self.read_arf(rs2)
-                    self.mem.write_data(addr, result, 4)
+                    value = self.read_arf(rs2)
+                    self.mem.write_data(addr, value, 4)
+                    self.incr_pc(2)
+                    self.perf_counters.incr("stamofu instr")
+                    
+                # C.SDSP
+                elif opcode3 == 0b111:
+                    uimm = bits(instr, 12, 10) << 3
+                    uimm += bits(instr, 9, 7) << 6
+                    rs2 = bits(instr, 6, 2)
+                    self.log.write(f"C.SDSP x{rs2}, 0x{uimm:03X}\n")
+                    addr = signed64(self.read_arf(2) + uimm)
+                    value = self.read_arf(rs2)
+                    self.mem.write_data(addr, value, 8)
                     self.incr_pc(2)
                     self.perf_counters.incr("stamofu instr")
                 

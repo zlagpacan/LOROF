@@ -233,7 +233,7 @@ c.lw x10, 0x4(x8)
 c.sw x10, 0x34(x8)
 c.nop
 c.addi x2, 15
-c.jal 6
+c.j 6
 addi x1, x1, 0x123
 c.li x3, 0x21
 c.addi16sp -496
