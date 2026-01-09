@@ -509,7 +509,109 @@ sd x22, 0x260(x24)
 sd x23, 0x268(x24)
 
 // D-Ext
+fld f0, 0x15(x24)
+fld f1, 0x18(x24)
+fld f2, 0x0D(x24)
+fld f3, 0x20(x24)
+fcvt.d.w f4, x4, rne
+fcvt.d.wu f5, x5, rtz
+fcvt.d.l f6, x6, rdn
+fcvt.d.lu f7, x7, rup
+fmv.d.x f8, x17
 
+fmadd.s f9, f0, f1, f5, rmm
+fmsub.s f10, f6, f7, f8, dyn
+fnmsub.s f11, f6, f7, f8, rne
+fnmadd.s f12, f0, f1, f5, rtz
+
+fadd.s f13, f0, f1, rdn
+fsub.s f14, f1, f5, rup
+fmul.s f15, f5, f6, rmm
+fsqrt.s f16, f7, rne
+fdiv.s f17, f13, f16, dyn
+
+fsgnj.s f18, f0, f0
+fsgnj.s f19, f0, f1
+fsgnj.s f20, f1, f0
+fsgnj.s f21, f1, f1
+
+fsgnjn.s f22, f0, f0
+fsgnjn.s f23, f0, f1
+fsgnjn.s f24, f1, f0
+fsgnjn.s f25, f1, f1
+
+fsgnjx.s f26, f0, f0
+fsgnjx.s f27, f0, f1
+fsgnjx.s f28, f1, f0
+fsgnjx.s f29, f1, f1
+
+fmin.s f30, f5, f6
+fmax.s f31, f7, f8
+
+fsw f0, 0x100(x24)
+fsw f1, 0x104(x24)
+fsw f2, 0x108(x24)
+fsw f3, 0x10C(x24)
+fsw f4, 0x110(x24)
+fsw f5, 0x114(x24)
+fsw f6, 0x118(x24)
+fsw f7, 0x11C(x24)
+fsw f8, 0x120(x24)
+fsw f9, 0x124(x24)
+fsw f10, 0x128(x24)
+fsw f11, 0x12C(x24)
+fsw f12, 0x130(x24)
+fsw f13, 0x134(x24)
+fsw f14, 0x138(x24)
+fsw f15, 0x13C(x24)
+fsw f16, 0x140(x24)
+fsw f17, 0x144(x24)
+fsw f18, 0x148(x24)
+fsw f19, 0x14C(x24)
+fsw f20, 0x150(x24)
+fsw f21, 0x154(x24)
+fsw f22, 0x158(x24)
+fsw f23, 0x15C(x24)
+fsw f24, 0x160(x24)
+fsw f25, 0x164(x24)
+fsw f26, 0x168(x24)
+fsw f27, 0x16C(x24)
+fsw f28, 0x170(x24)
+fsw f29, 0x174(x24)
+fsw f30, 0x178(x24)
+fsw f31, 0x17C(x24)
+
+fcvt.w.s x10, f17, rdn
+fcvt.wu.s x11, f17, rup
+fcvt.l.s x12, f11, rmm
+fcvt.lu.s x13, f11, dyn
+fmv.x.w x14, f14
+
+feq.s x15, f17, f17
+feq.s x16, f17, f18
+feq.s x17, f18, f17
+flt.s x18, f17, f17
+flt.s x19, f17, f18
+flt.s x20, f18, f17
+fle.s x21, f17, f17
+fle.s x22, f17, f18
+fle.s x23, f18, f17
+// fclass.s x24, f18
+
+sd x10, 0x200(x24)
+sd x11, 0x208(x24)
+sd x12, 0x210(x24)
+sd x13, 0x218(x24)
+sd x14, 0x220(x24)
+sd x15, 0x228(x24)
+sd x16, 0x230(x24)
+sd x17, 0x238(x24)
+sd x18, 0x240(x24)
+sd x19, 0x248(x24)
+sd x20, 0x250(x24)
+sd x21, 0x258(x24)
+sd x22, 0x260(x24)
+sd x23, 0x268(x24)
 
 // TODO: new C-Ext
 
