@@ -509,109 +509,136 @@ sd x22, 0x260(x24)
 sd x23, 0x268(x24)
 
 // D-Ext
-fld f0, 0x15(x24)
-fld f1, 0x18(x24)
-fld f2, 0x0D(x24)
-fld f3, 0x20(x24)
+fld f0, 0x100(x24)
+fld f1, 0x104(x24)
+fld f2, 0x108(x24)
+fld f3, 0x10C(x24)
 fcvt.d.w f4, x4, rne
 fcvt.d.wu f5, x5, rtz
 fcvt.d.l f6, x6, rdn
 fcvt.d.lu f7, x7, rup
-fmv.d.x f8, x17
 
-fmadd.s f9, f0, f1, f5, rmm
-fmsub.s f10, f6, f7, f8, dyn
-fnmsub.s f11, f6, f7, f8, rne
-fnmadd.s f12, f0, f1, f5, rtz
+lui x1, 0xC0573
+addi x1, x1, 0x5a5
+slli x1, x1, 32
+addi x1, x1, 0xa5a
+fmv.d.x f0, x1
+slli x2, x1, 1
+srli x2, x2, 1
+srli x3, x2, 7
+xor x2, x3, x2
+fmv.d.x f1, x2
 
-fadd.s f13, f0, f1, rdn
-fsub.s f14, f1, f5, rup
-fmul.s f15, f5, f6, rmm
-fsqrt.s f16, f7, rne
-fdiv.s f17, f13, f16, dyn
+fmadd.d f9, f4, f5, f6, rmm
+fmsub.d f10, f6, f7, f8, dyn
+fnmsub.d f11, f6, f7, f8, rne
+fnmadd.d f12, f4, f5, f6, rtz
 
-fsgnj.s f18, f0, f0
-fsgnj.s f19, f0, f1
-fsgnj.s f20, f1, f0
-fsgnj.s f21, f1, f1
+fadd.d f13, f0, f1, rdn
+fsub.d f14, f1, f5, rup
+fmul.d f15, f5, f6, rmm
+fsqrt.d f16, f7, rne
+fdiv.d f17, f13, f16, dyn
 
-fsgnjn.s f22, f0, f0
-fsgnjn.s f23, f0, f1
-fsgnjn.s f24, f1, f0
-fsgnjn.s f25, f1, f1
+fsgnj.d f18, f0, f0
+fsgnj.d f19, f0, f1
+fsgnj.d f20, f1, f0
+fsgnj.d f21, f1, f1
 
-fsgnjx.s f26, f0, f0
-fsgnjx.s f27, f0, f1
-fsgnjx.s f28, f1, f0
-fsgnjx.s f29, f1, f1
+fsgnjn.d f22, f0, f0
+fsgnjn.d f23, f0, f1
+fsgnjn.d f24, f1, f0
+fsgnjn.d f25, f1, f1
 
-fmin.s f30, f5, f6
-fmax.s f31, f7, f8
+fsgnjx.d f26, f0, f0
+fsgnjx.d f27, f0, f1
+fsgnjx.d f28, f1, f0
+fsgnjx.d f29, f1, f1
 
-fsw f0, 0x100(x24)
-fsw f1, 0x104(x24)
-fsw f2, 0x108(x24)
-fsw f3, 0x10C(x24)
-fsw f4, 0x110(x24)
-fsw f5, 0x114(x24)
-fsw f6, 0x118(x24)
-fsw f7, 0x11C(x24)
-fsw f8, 0x120(x24)
-fsw f9, 0x124(x24)
-fsw f10, 0x128(x24)
-fsw f11, 0x12C(x24)
-fsw f12, 0x130(x24)
-fsw f13, 0x134(x24)
-fsw f14, 0x138(x24)
-fsw f15, 0x13C(x24)
-fsw f16, 0x140(x24)
-fsw f17, 0x144(x24)
-fsw f18, 0x148(x24)
-fsw f19, 0x14C(x24)
-fsw f20, 0x150(x24)
-fsw f21, 0x154(x24)
-fsw f22, 0x158(x24)
-fsw f23, 0x15C(x24)
-fsw f24, 0x160(x24)
-fsw f25, 0x164(x24)
-fsw f26, 0x168(x24)
-fsw f27, 0x16C(x24)
-fsw f28, 0x170(x24)
-fsw f29, 0x174(x24)
-fsw f30, 0x178(x24)
-fsw f31, 0x17C(x24)
+fmin.d f30, f5, f6
+fmax.d f31, f7, f8
 
-fcvt.w.s x10, f17, rdn
-fcvt.wu.s x11, f17, rup
-fcvt.l.s x12, f11, rmm
-fcvt.lu.s x13, f11, dyn
-fmv.x.w x14, f14
+fsd f0, 0x300(x24)
+fsd f1, 0x308(x24)
+fsd f2, 0x310(x24)
+fsd f3, 0x318(x24)
+fsd f4, 0x320(x24)
+fsd f5, 0x328(x24)
+fsd f6, 0x330(x24)
+fsd f7, 0x338(x24)
+fsd f8, 0x340(x24)
+fsd f9, 0x348(x24)
+fsd f10, 0x350(x24)
+fsd f11, 0x358(x24)
+fsd f12, 0x360(x24)
+fsd f13, 0x368(x24)
+fsd f14, 0x370(x24)
+fsd f15, 0x378(x24)
+fsd f16, 0x380(x24)
+fsd f17, 0x388(x24)
+fsd f18, 0x390(x24)
+fsd f19, 0x398(x24)
+fsd f20, 0x3A0(x24)
+fsd f21, 0x3A8(x24)
+fsd f22, 0x3B0(x24)
+fsd f23, 0x3B8(x24)
+fsd f24, 0x3C0(x24)
+fsd f25, 0x3C8(x24)
+fsd f26, 0x3D0(x24)
+fsd f27, 0x3D8(x24)
+fsd f28, 0x3E0(x24)
+fsd f29, 0x3E8(x24)
+fsd f30, 0x3F0(x24)
+fsd f31, 0x3F8(x24)
 
-feq.s x15, f17, f17
-feq.s x16, f17, f18
-feq.s x17, f18, f17
-flt.s x18, f17, f17
-flt.s x19, f17, f18
-flt.s x20, f18, f17
-fle.s x21, f17, f17
-fle.s x22, f17, f18
-fle.s x23, f18, f17
-// fclass.s x24, f18
+fcvt.w.d x10, f17, rdn
+fcvt.wu.d x11, f17, rup
+fcvt.l.d x12, f11, rmm
+fcvt.lu.d x13, f11, dyn
+fmv.x.d x14, f14
 
-sd x10, 0x200(x24)
-sd x11, 0x208(x24)
-sd x12, 0x210(x24)
-sd x13, 0x218(x24)
-sd x14, 0x220(x24)
-sd x15, 0x228(x24)
-sd x16, 0x230(x24)
-sd x17, 0x238(x24)
-sd x18, 0x240(x24)
-sd x19, 0x248(x24)
-sd x20, 0x250(x24)
-sd x21, 0x258(x24)
-sd x22, 0x260(x24)
-sd x23, 0x268(x24)
+feq.d x15, f17, f17
+feq.d x16, f17, f18
+feq.d x17, f18, f17
+flt.d x18, f17, f17
+flt.d x19, f17, f18
+flt.d x20, f18, f17
+fle.d x21, f17, f17
+fle.d x22, f17, f18
+fle.d x23, f18, f17
+// fclass.d x24, f18
+
+sd x10, 0x400(x24)
+sd x11, 0x408(x24)
+sd x12, 0x410(x24)
+sd x13, 0x418(x24)
+sd x14, 0x420(x24)
+sd x15, 0x428(x24)
+sd x16, 0x430(x24)
+sd x17, 0x438(x24)
+sd x18, 0x440(x24)
+sd x19, 0x448(x24)
+sd x20, 0x450(x24)
+sd x21, 0x458(x24)
+sd x22, 0x460(x24)
+sd x23, 0x468(x24)
+
+lui x1, 0xC0573
+addi x1, x1, 0x5a5
+fmv.s.x f0, x1
+
+lui x2, 0xC0573
+addi x2, x2, 0x5a5
+slli x2, x2, 32
+addi x2, x2, 0xa5a
+slli x2, x2, 1
+srli x2, x2, 1
+srli x3, x2, 7
+xor x2, x3, x2
+fmv.d.x f1, x2
+
+fcvt.d.s f2, f0, rup
+fcvt.s.d f3, f1, rdn
 
 // TODO: new C-Ext
 

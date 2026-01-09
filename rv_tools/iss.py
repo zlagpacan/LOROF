@@ -1924,7 +1924,7 @@ class Hart:
                 # FCVT.S.D
                 elif funct7 == 0b0100000:
 
-                    if funct5 != 0b00001:
+                    if ffunct5 != 0b00001:
                         self.log.write(f"illegal FCVT.S.D instr\n")
                         self.log.write(f"\n< Exiting Execution >\n")
                         return False
@@ -1936,7 +1936,7 @@ class Hart:
                 # FCVT.D.S
                 elif funct7 == 0b0100001:
 
-                    if funct5 != 0b00000:
+                    if ffunct5 != 0b00000:
                         self.log.write(f"illegal FCVT.D.S instr\n")
                         self.log.write(f"\n< Exiting Execution >\n")
                         return False
