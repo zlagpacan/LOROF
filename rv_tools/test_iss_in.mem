@@ -641,7 +641,31 @@ D3 00 01 F2 // 0xF20100D3: FMV.D.X f1, x2
 D3 A1 10 40 // 0x4010A1D3: FCVT.S.D f3, f1, RDN
 
 // TODO: new C-Ext
+62 84       //     0x8462: C.MV x8, x24
+13 04 04 30 // 0x30040413: ADDI x8, x8, 768
+20 20       //     0x2020: C.FLD f8, 64(x8)
+13 04 44 06 // 0x06440413: ADDI x8, x8, 100
+04 7C       //     0x7C04: C.LD x9, 56(x8)
+2C AC       //     0xAC2C: C.FSD f11, 88(x8)
+6C A4       //     0xA46C: C.SD x11, 200(x8)
+59 36       //     0x3659: C.ADDIW x12, 54
+2D 93       //     0x932D: C.SRLI x14, 43
+D1 94       //     0x94D1: C.SRAI x9, 52
 
+13 05 50 5A // 0x5A500513: ADDI x10, x0, 1445
+06 15       //     0x1506: C.SLLI x10, 33
+13 05 45 4B // 0x4B450513: ADDI x10, x10, 1204
+
+89 9F       //     0x9F89: C.SUBW x15, x10
+29 9F       //     0x9F29: C.ADDW x14, x10
+
+// c.mv sp, x8
+// c.fldsp f31, 0x20
+// c.ldsp x31, 0x28
+// c.fsdsp f31, 0x28
+// c.sdsp x31, 0x30
+
+// Zicsr (exits execution for now)
 73 10 04 00 // 0x00041073: CSRRW x0, 0x0, x8
 F3 20 13 11 // 0x111320F3: CSRRS x1, 0x111, x6
 73 31 29 22 // 0x22293173: CSRRC x2, 0x222, x18

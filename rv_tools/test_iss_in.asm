@@ -641,7 +641,31 @@ fcvt.d.s f2, f0, rup
 fcvt.s.d f3, f1, rdn
 
 // TODO: new C-Ext
+c.mv x8, x24
+addi x8, x8, 0x300
+c.fld f8, 0x40(x8)
+addi x8, x8, 100
+c.ld x9, 0x38(x8)
+c.fsd f11, 0x58(x8)
+c.sd x11, 0xC8(x8)
+c.addiw x12, x12, 0x36
+c.srli x14, x14, 43
+c.srai x9, x9, 52
 
+addi x10, zero, 0x5a5
+c.slli x10, 33
+addi x10, x10, 0x4b4
+
+c.subw x15, x10
+c.addw x14, x10
+
+// c.mv sp, x8
+// c.fldsp f31, 0x20
+// c.ldsp x31, 0x28
+// c.fsdsp f31, 0x28
+// c.sdsp x31, 0x30
+
+// Zicsr (exits execution for now)
 csrrw x0, 0x000, s0
 csrrs x1, 0x111, t1
 csrrc x2, 0x222, s2
