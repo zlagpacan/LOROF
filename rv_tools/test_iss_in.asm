@@ -1,3 +1,4 @@
+// setup
 @0000
 addi a3, zero, -15
 sw a3, 0x78(sp)
@@ -39,6 +40,7 @@ jal x0, 0x1000
 0xa5a5a5a5
 0xb4b4b4b4
 
+// RV64I (32b)
 @1024
 lui x1, 0xfedcb
 auipc x2, 0xa9876
@@ -126,6 +128,7 @@ sw x27, 0x668(x5)
 sw x28, 0x66C(x5)
 sw x29, 0x670(x5)
 
+// M-Ext (32b)
 add x1, x0, x10
 add x2, x0, x28
 sub x3, x0, x10
@@ -171,6 +174,7 @@ sw x19, 0x748(x22)
 sw x20, 0x74C(x22)
 sw x21, 0x750(x22)
 
+// A-Ext (32b)
 lui x2, 0x3
 
 lr.w.aq x3, (x2)
@@ -227,6 +231,7 @@ sw x17, 0x740(x20)
 sw x18, 0x744(x20)
 sw x19, 0x748(x20)
 
+// C-Ext (32b)
 addi x8, x0, 0x6FE
 c.addi4spn x9, 0x3B4
 c.lw x10, 0x4(x8)
@@ -310,7 +315,9 @@ c.mv x19, x18
 // c.ebreak
 c.jr x1
 
-// RV64GC section
+// RV64GC section:
+
+// RV64I (64b)
 @5000
 sd x16, 8(x21)
 lui x23, 0x00001
@@ -346,6 +353,7 @@ sllw x7, x7, x8
 srlw x8, x2, x9
 sraw x9, x2, x9
 
+// M-Ext (64b)
 mulw x10, x10, x10
 divw x11, x11, x12
 divuw x12, x13, x12
@@ -368,6 +376,7 @@ sd x12, 0x058(x24)
 sd x13, 0x060(x24)
 sd x14, 0x068(x24)
 
+// A-Ext (64b)
 lr.d.aq x25, (x23)
 addi x23, x23, 8
 sc.d.rl x25, x26, (x23)
@@ -394,7 +403,113 @@ amominu.d.aq x8, x8, (x24)
 addi x24, x24, 8
 amomaxu.d.rl x9, x9, (x24)
 
-// TODO: FPU
+// F-Ext
+flw f0, 0x15(x24)
+flw f1, 0x18(x24)
+flw f2, 0x0D(x24)
+flw f3, 0x20(x24)
+fcvt.s.w f4, x4, rne
+fcvt.s.wu f5, x5, rtz
+fcvt.s.l f6, x6, rdn
+fcvt.s.lu f7, x7, rup
+fmv.w.x f8, x17
+
+fmadd.s f9, f0, f1, f5, rmm
+fmsub.s f10, f6, f7, f8, dyn
+fnmsub.s f11, f6, f7, f8, rne
+fnmadd.s f12, f0, f1, f5, rtz
+
+fadd.s f13, f0, f1, rdn
+fsub.s f14, f1, f5, rup
+fmul.s f15, f5, f6, rmm
+fsqrt.s f16, f7, rne
+fdiv.s f17, f13, f16, dyn
+
+fsgnj.s f18, f0, f0
+fsgnj.s f19, f0, f1
+fsgnj.s f20, f1, f0
+fsgnj.s f21, f1, f1
+
+fsgnjn.s f22, f0, f0
+fsgnjn.s f23, f0, f1
+fsgnjn.s f24, f1, f0
+fsgnjn.s f25, f1, f1
+
+fsgnjx.s f26, f0, f0
+fsgnjx.s f27, f0, f1
+fsgnjx.s f28, f1, f0
+fsgnjx.s f29, f1, f1
+
+fmin.s f30, f5, f6
+fmax.s f31, f7, f8
+
+fsw f0, 0x100(x24)
+fsw f1, 0x104(x24)
+fsw f2, 0x108(x24)
+fsw f3, 0x10C(x24)
+fsw f4, 0x110(x24)
+fsw f5, 0x114(x24)
+fsw f6, 0x118(x24)
+fsw f7, 0x11C(x24)
+fsw f8, 0x120(x24)
+fsw f9, 0x124(x24)
+fsw f10, 0x128(x24)
+fsw f11, 0x12C(x24)
+fsw f12, 0x130(x24)
+fsw f13, 0x134(x24)
+fsw f14, 0x138(x24)
+fsw f15, 0x13C(x24)
+fsw f16, 0x140(x24)
+fsw f17, 0x144(x24)
+fsw f18, 0x148(x24)
+fsw f19, 0x14C(x24)
+fsw f20, 0x150(x24)
+fsw f21, 0x154(x24)
+fsw f22, 0x158(x24)
+fsw f23, 0x15C(x24)
+fsw f24, 0x160(x24)
+fsw f25, 0x164(x24)
+fsw f26, 0x168(x24)
+fsw f27, 0x16C(x24)
+fsw f28, 0x170(x24)
+fsw f29, 0x174(x24)
+fsw f30, 0x178(x24)
+fsw f31, 0x17C(x24)
+
+fcvt.w.s x10, f17, rdn
+fcvt.wu.s x11, f17, rup
+fcvt.l.s x12, f11, rmm
+fcvt.lu.s x13, f11, dyn
+fmv.x.w x14, f14
+
+feq.s x15, f17, f17
+feq.s x16, f17, f18
+feq.s x17, f18, f17
+flt.s x18, f17, f17
+flt.s x19, f17, f18
+flt.s x20, f18, f17
+fle.s x21, f17, f17
+fle.s x22, f17, f18
+fle.s x23, f18, f17
+// fclass.s x24, f18
+
+sd x10, 0x200(x24)
+sd x11, 0x208(x24)
+sd x12, 0x210(x24)
+sd x13, 0x218(x24)
+sd x14, 0x220(x24)
+sd x15, 0x228(x24)
+sd x16, 0x230(x24)
+sd x17, 0x238(x24)
+sd x18, 0x240(x24)
+sd x19, 0x248(x24)
+sd x20, 0x250(x24)
+sd x21, 0x258(x24)
+sd x22, 0x260(x24)
+sd x23, 0x268(x24)
+
+// D-Ext
+
 
 // TODO: new C-Ext
 

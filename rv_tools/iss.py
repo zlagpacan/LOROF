@@ -1067,7 +1067,7 @@ class Hart:
                         
                     # SFENCE.VMA
                     elif funct7 == 0b0001001:
-                        self.log.write(f"SFENCE.VMA x{rs1}, x{rs2}")
+                        self.log.write(f"SFENCE.VMA x{rs1}, x{rs2}\n")
                         self.log.write(f"\n< Exiting Execution >\n")
                         self.perf_counters.incr("stamofu instr")
                         return False
@@ -1529,7 +1529,7 @@ class Hart:
                 self.perf_counters.incr("ldu instr")
 
             # FS*
-            elif opcode5 == 0b01000:
+            elif opcode5 == 0b01001:
                 imm12 = bits(instr, 11, 7)
                 imm12 += bits(instr, 31, 25) << 5
                 imm64 = signed64(imm12, 12)
@@ -1561,13 +1561,13 @@ class Hart:
 
                 # FMADD.S
                 if ffunct2 == 0b00:
-                    self.log.write(f"FMADD.S f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}")
+                    self.log.write(f"FMADD.S f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}\n")
                     mul = np.float32(self.read_farf(frs1)) * np.float32(self.read_farf(frs2))
                     result = mul + np.float32(self.read_farf(frs3))
 
                 # FMADD.D
                 elif ffunct2 == 0b01:
-                    self.log.write(f"FMADD.D f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}")
+                    self.log.write(f"FMADD.D f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}\n")
                     mul = np.float64(self.read_farf(frs1)) * np.float64(self.read_farf(frs2))
                     result = mul + np.float64(self.read_farf(frs3))
                     
@@ -1585,13 +1585,13 @@ class Hart:
 
                 # FMSUB.S
                 if ffunct2 == 0b00:
-                    self.log.write(f"FMSUB.S f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}")
+                    self.log.write(f"FMSUB.S f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}\n")
                     mul = np.float32(self.read_farf(frs1)) * np.float32(self.read_farf(frs2))
                     result = mul - np.float32(self.read_farf(frs3))
 
                 # FMSUB.D
                 elif ffunct2 == 0b01:
-                    self.log.write(f"FMSUB.D f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}")
+                    self.log.write(f"FMSUB.D f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}\n")
                     mul = np.float64(self.read_farf(frs1)) * np.float64(self.read_farf(frs2))
                     result = mul - np.float64(self.read_farf(frs3))
                     
@@ -1605,17 +1605,17 @@ class Hart:
                 self.perf_counters.incr("fpu instr")
             
             # FNMSUB.*
-            elif opcode5 == 0b10001:
+            elif opcode5 == 0b10010:
 
                 # FNMSUB.S
                 if ffunct2 == 0b00:
-                    self.log.write(f"FNMSUB.S f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}")
+                    self.log.write(f"FNMSUB.S f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}\n")
                     mul = np.float32(self.read_farf(frs1)) * np.float32(self.read_farf(frs2))
                     result = fnegate32(mul - np.float32(self.read_farf(frs3)))
 
                 # FNMSUB.D
                 elif ffunct2 == 0b01:
-                    self.log.write(f"FNMSUB.D f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}")
+                    self.log.write(f"FNMSUB.D f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}\n")
                     mul = np.float64(self.read_farf(frs1)) * np.float64(self.read_farf(frs2))
                     result = fnegate64(mul - np.float64(self.read_farf(frs3)))
                     
@@ -1629,17 +1629,17 @@ class Hart:
                 self.perf_counters.incr("fpu instr")
             
             # FNMADD.*
-            elif opcode5 == 0b10001:
+            elif opcode5 == 0b10011:
 
                 # FNMADD.S
                 if ffunct2 == 0b00:
-                    self.log.write(f"FNMADD.S f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}")
+                    self.log.write(f"FNMADD.S f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}\n")
                     mul = np.float32(self.read_farf(frs1)) * np.float32(self.read_farf(frs2))
                     result = fnegate32(mul + np.float32(self.read_farf(frs3)))
 
                 # FNMADD.D
                 elif ffunct2 == 0b01:
-                    self.log.write(f"FNMADD.D f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}")
+                    self.log.write(f"FNMADD.D f{frd}, f{frs1}, f{frs2}, f{frs3}, {rm_str}\n")
                     mul = np.float64(self.read_farf(frs1)) * np.float64(self.read_farf(frs2))
                     result = fnegate64(mul + np.float64(self.read_farf(frs3)))
                     
@@ -1657,37 +1657,37 @@ class Hart:
 
                 # FADD.S
                 if funct7 == 0b0000000:
-                    self.log.write(f"FADD.S f{frd}, f{frs1}, f{frs2}, {rm_str}")
+                    self.log.write(f"FADD.S f{frd}, f{frs1}, f{frs2}, {rm_str}\n")
                     result = np.float32(self.read_farf(frs1)) + np.float32(self.read_farf(frs2))
                     self.write_farf(frd, result)
 
                 # FADD.D
                 elif funct7 == 0b0000001:
-                    self.log.write(f"FADD.D f{frd}, f{frs1}, f{frs2}, {rm_str}")
+                    self.log.write(f"FADD.D f{frd}, f{frs1}, f{frs2}, {rm_str}\n")
                     result = np.float64(self.read_farf(frs1)) + np.float64(self.read_farf(frs2))
                     self.write_farf(frd, result)
 
                 # FSUB.S
                 elif funct7 == 0b0000100:
-                    self.log.write(f"FSUB.S f{frd}, f{frs1}, f{frs2}, {rm_str}")
+                    self.log.write(f"FSUB.S f{frd}, f{frs1}, f{frs2}, {rm_str}\n")
                     result = np.float32(self.read_farf(frs1)) - np.float32(self.read_farf(frs2))
                     self.write_farf(frd, result)
 
                 # FSUB.D
                 elif funct7 == 0b0000101:
-                    self.log.write(f"FSUB.D f{frd}, f{frs1}, f{frs2}, {rm_str}")
+                    self.log.write(f"FSUB.D f{frd}, f{frs1}, f{frs2}, {rm_str}\n")
                     result = np.float64(self.read_farf(frs1)) - np.float64(self.read_farf(frs2))
                     self.write_farf(frd, result)
 
                 # FMUL.S
                 elif funct7 == 0b0001000:
-                    self.log.write(f"FMUL.S f{frd}, f{frs1}, f{frs2}, {rm_str}")
+                    self.log.write(f"FMUL.S f{frd}, f{frs1}, f{frs2}, {rm_str}\n")
                     result = np.float32(self.read_farf(frs1)) * np.float32(self.read_farf(frs2))
                     self.write_farf(frd, result)
 
                 # FMUL.D
                 elif funct7 == 0b0001001:
-                    self.log.write(f"FMUL.D f{frd}, f{frs1}, f{frs2}, {rm_str}")
+                    self.log.write(f"FMUL.D f{frd}, f{frs1}, f{frs2}, {rm_str}\n")
                     result = np.float64(self.read_farf(frs1)) * np.float64(self.read_farf(frs2))
                     self.write_farf(frd, result)
 
@@ -1696,13 +1696,13 @@ class Hart:
 
                     # FSQRT.S
                     if frs2 == 0b00000:
-                        self.log.write(f"FSQRT.S f{frd}, f{frs1}, {rm_str}")
+                        self.log.write(f"FSQRT.S f{frd}, f{frs1}, {rm_str}\n")
                         result = np.sqrt(np.float32(self.read_farf(frs1)))
                         self.write_farf(frd, result)
 
                     # FDIV.S
                     else:
-                        self.log.write(f"FDIV.S f{frd}, f{frs1}, f{frs2}, {rm_str}")
+                        self.log.write(f"FDIV.S f{frd}, f{frs1}, f{frs2}, {rm_str}\n")
                         result = np.float32(self.read_farf(frs1)) / np.float32(self.read_farf(frs2))
                         self.write_farf(frd, result)
 
@@ -1711,13 +1711,13 @@ class Hart:
 
                     # FSQRT.D
                     if frs2 == 0b00000:
-                        self.log.write(f"FSQRT.D f{frd}, f{frs1}, {rm_str}")
+                        self.log.write(f"FSQRT.D f{frd}, f{frs1}, {rm_str}\n")
                         result = np.sqrt(np.float64(self.read_farf(frs1)))
                         self.write_farf(frd, result)
 
                     # FDIV.D
                     else:
-                        self.log.write(f"FDIV.D f{frd}, f{frs1}, f{frs2}, {rm_str}")
+                        self.log.write(f"FDIV.D f{frd}, f{frs1}, f{frs2}, {rm_str}\n")
                         result = np.float64(self.read_farf(frs1)) / np.float64(self.read_farf(frs2))
                         self.write_farf(frd, result)
 
@@ -1726,7 +1726,7 @@ class Hart:
 
                     # FSGNJ.S
                     if funct3 == 0b000:
-                        self.log.write(f"FSGNJ.S f{frd}, f{frs1}, f{frs2}")
+                        self.log.write(f"FSGNJ.S f{frd}, f{frs1}, f{frs2}\n")
                         if np.signbit(np.float32(self.read_farf(frs2))):
                             result = fmake_neg32(np.float32(self.read_farf(frs1)))
                         else:
@@ -1735,7 +1735,7 @@ class Hart:
 
                     # FSGNJN.S
                     elif funct3 == 0b001:
-                        self.log.write(f"FSGNJN.S f{frd}, f{frs1}, f{frs2}")
+                        self.log.write(f"FSGNJN.S f{frd}, f{frs1}, f{frs2}\n")
                         if np.signbit(np.float32(self.read_farf(frs2))):
                             result = fmake_pos32(np.float32(self.read_farf(frs1)))
                         else:
@@ -1744,7 +1744,7 @@ class Hart:
 
                     # FSGNJX.S
                     elif funct3 == 0b010:
-                        self.log.write(f"FSGNJX.S f{frd}, f{frs1}, f{frs2}")
+                        self.log.write(f"FSGNJX.S f{frd}, f{frs1}, f{frs2}\n")
                         result = np.float32(self.read_farf(frs1))
                         if np.signbit(np.float32(self.read_farf(frs2))):
                             result = fnegate32(result)
@@ -1760,7 +1760,7 @@ class Hart:
 
                     # FSGNJ.D
                     if funct3 == 0b000:
-                        self.log.write(f"FSGNJ.D f{frd}, f{frs1}, f{frs2}")
+                        self.log.write(f"FSGNJ.D f{frd}, f{frs1}, f{frs2}\n")
                         if np.signbit(np.float64(self.read_farf(frs2))):
                             result = fmake_neg64(np.float64(self.read_farf(frs1)))
                         else:
@@ -1769,7 +1769,7 @@ class Hart:
 
                     # FSGNJN.D
                     elif funct3 == 0b001:
-                        self.log.write(f"FSGNJN.D f{frd}, f{frs1}, f{frs2}")
+                        self.log.write(f"FSGNJN.D f{frd}, f{frs1}, f{frs2}\n")
                         if np.signbit(np.float64(self.read_farf(frs2))):
                             result = fmake_pos64(np.float64(self.read_farf(frs1)))
                         else:
@@ -1778,7 +1778,7 @@ class Hart:
 
                     # FSGNJX.D
                     elif funct3 == 0b010:
-                        self.log.write(f"FSGNJX.D f{frd}, f{frs1}, f{frs2}")
+                        self.log.write(f"FSGNJX.D f{frd}, f{frs1}, f{frs2}\n")
                         result = np.float64(self.read_farf(frs1))
                         if np.signbit(np.float64(self.read_farf(frs2))):
                             result = fnegate64(result)
@@ -1794,7 +1794,7 @@ class Hart:
 
                     # FMIN.S
                     if funct3 == 0b000:
-                        self.log.write(f"FMIN.S f{frd}, f{frs1}, {frs2}")
+                        self.log.write(f"FMIN.S f{frd}, f{frs1}, f{frs2}\n")
                         result = np.float32(self.read_farf(frs1))
                         R_frs2 = np.float32(self.read_farf(frs2))
                         if R_frs2 < result:
@@ -1802,8 +1802,8 @@ class Hart:
                         self.write_farf(frd, result)
 
                     # FMAX.S
-                    elif funct3 == 0b000:
-                        self.log.write(f"FMAX.S f{frd}, f{frs1}, {frs2}")
+                    elif funct3 == 0b001:
+                        self.log.write(f"FMAX.S f{frd}, f{frs1}, f{frs2}\n")
                         result = np.float32(self.read_farf(frs1))
                         R_frs2 = np.float32(self.read_farf(frs2))
                         if R_frs2 > result:
@@ -1820,7 +1820,7 @@ class Hart:
 
                     # FMIN.D
                     if funct3 == 0b000:
-                        self.log.write(f"FMIN.D f{frd}, f{frs1}, {frs2}")
+                        self.log.write(f"FMIN.D f{frd}, f{frs1}, f{frs2}\n")
                         result = np.float64(self.read_farf(frs1))
                         R_frs2 = np.float64(self.read_farf(frs2))
                         if R_frs2 < result:
@@ -1828,8 +1828,8 @@ class Hart:
                         self.write_farf(frd, result)
 
                     # FMAX.D
-                    elif funct3 == 0b000:
-                        self.log.write(f"FMAX.D f{frd}, f{frs1}, {frs2}")
+                    elif funct3 == 0b001:
+                        self.log.write(f"FMAX.D f{frd}, f{frs1}, f{frs2}\n")
                         result = np.float64(self.read_farf(frs1))
                         R_frs2 = np.float64(self.read_farf(frs2))
                         if R_frs2 > result:
@@ -1846,13 +1846,13 @@ class Hart:
 
                     # FCVT.W.S
                     if ffunct5 == 0b00000:
-                        self.log.write(f"FCVT.W.S x{rd}, f{frs1}, {rm_str}")
+                        self.log.write(f"FCVT.W.S x{rd}, f{frs1}, {rm_str}\n")
                         result = signed64(np.int32(np.round(np.float32(self.read_farf(frs1)))), 32)
                         self.write_arf(rd, result)
 
                     # FCVT.WU.S
                     elif ffunct5 == 0b00001:
-                        self.log.write(f"FCVT.WU.S x{rd}, f{frs1}, {rm_str}")
+                        self.log.write(f"FCVT.WU.S x{rd}, f{frs1}, {rm_str}\n")
                         num = np.int32(np.round(np.float32(self.read_farf(frs1))))
                         if num < 0:
                             result = 0
@@ -1862,13 +1862,13 @@ class Hart:
 
                     # FCVT.L.S
                     elif ffunct5 == 0b00010:
-                        self.log.write(f"FCVT.L.S x{rd}, f{frs1}, {rm_str}")
+                        self.log.write(f"FCVT.L.S x{rd}, f{frs1}, {rm_str}\n")
                         result = signed64(np.int64(np.round(np.float32(self.read_farf(frs1)))))
                         self.write_arf(rd, result)
 
                     # FCVT.LU.S
-                    elif ffunct5 == 0b00001:
-                        self.log.write(f"FCVT.LU.S x{rd}, f{frs1}, {rm_str}")
+                    elif ffunct5 == 0b00011:
+                        self.log.write(f"FCVT.LU.S x{rd}, f{frs1}, {rm_str}\n")
                         num = np.int64(np.round(np.float32(self.read_farf(frs1))))
                         if num < 0:
                             result = 0
@@ -1886,13 +1886,13 @@ class Hart:
 
                     # FCVT.W.D
                     if ffunct5 == 0b00000:
-                        self.log.write(f"FCVT.W.D x{rd}, f{frs1}, {rm_str}")
+                        self.log.write(f"FCVT.W.D x{rd}, f{frs1}, {rm_str}\n")
                         result = signed64(np.int32(np.round(np.float64(self.read_farf(frs1)))), 32)
                         self.write_arf(rd, result)
 
                     # FCVT.WU.D
                     elif ffunct5 == 0b00001:
-                        self.log.write(f"FCVT.WU.D x{rd}, f{frs1}, {rm_str}")
+                        self.log.write(f"FCVT.WU.D x{rd}, f{frs1}, {rm_str}\n")
                         num = np.int32(np.round(np.float64(self.read_farf(frs1))))
                         if num < 0:
                             result = 0
@@ -1902,13 +1902,13 @@ class Hart:
 
                     # FCVT.L.D
                     elif ffunct5 == 0b00010:
-                        self.log.write(f"FCVT.L.D x{rd}, f{frs1}, {rm_str}")
+                        self.log.write(f"FCVT.L.D x{rd}, f{frs1}, {rm_str}\n")
                         result = signed64(np.int64(np.round(np.float64(self.read_farf(frs1)))))
                         self.write_arf(rd, result)
 
                     # FCVT.LU.D
-                    elif ffunct5 == 0b00001:
-                        self.log.write(f"FCVT.LU.D x{rd}, f{frs1}, {rm_str}")
+                    elif ffunct5 == 0b00011:
+                        self.log.write(f"FCVT.LU.D x{rd}, f{frs1}, {rm_str}\n")
                         num = np.int64(np.round(np.float64(self.read_farf(frs1))))
                         if num < 0:
                             result = 0
@@ -1929,7 +1929,7 @@ class Hart:
                         self.log.write(f"\n< Exiting Execution >\n")
                         return False
                     
-                    self.log.write(f"FCVT.S.D f{frd}, f{frs1}, {rm_str}")
+                    self.log.write(f"FCVT.S.D f{frd}, f{frs1}, {rm_str}\n")
                     result = np.float32(np.float64(self.read_farf(frs1)))
                     self.write_farf(frd, result)
                 
@@ -1941,40 +1941,66 @@ class Hart:
                         self.log.write(f"\n< Exiting Execution >\n")
                         return False
                     
-                    self.log.write(f"FCVT.D.S f{frd}, f{frs1}, {rm_str}")
+                    self.log.write(f"FCVT.D.S f{frd}, f{frs1}, {rm_str}\n")
                     result = np.float64(np.float32(self.read_farf(frs1)))
                     self.write_farf(frd, result)
                     
-                # FMV.X.W
+                # FMV.X.W, FCLASS.S
                 elif funct7 == 0b1110000:
 
-                    if ffunct5 != 0b00000 or funct3 != 0b000:
-                        self.log.write(f"illegal FMV.X.W instr\n")
+                    if ffunct5 != 0b00000:
+                        self.log.write(f"illegal FMV.X.W/FCLASS.S instr\n")
                         self.log.write(f"\n< Exiting Execution >\n")
                         return False
 
-                    self.log.write(f"FMV.X.W x{rd}, f{frs1}")
-                    result = signed64(np.float32(self.read_farf(frs1)).view(np.int32), 32)
-                    self.write_arf(rd, result)
+                    # FMV.X.W
+                    if funct3 == 0b000:
+                        self.log.write(f"FMV.X.W x{rd}, f{frs1}\n")
+                        result = signed64(np.float32(self.read_farf(frs1)).view(np.int32), 32)
+                        self.write_arf(rd, result)
                     
-                # FMV.X.D
+                    # FCLASS.S
+                    elif funct7 == 0b001:
+                        self.log.write(f"FCLASS.S x{rd}, f{frs1}\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+                    
+                    else:
+                        self.log.write(f"illegal FMV.X.W/FCLASS.S instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+                    
+                # FMV.X.D, FCLASS.D
                 elif funct7 == 0b1110001:
 
-                    if ffunct5 != 0b00000 or funct3 != 0b000:
-                        self.log.write(f"illegal FMV.X.D instr\n")
+                    if ffunct5 != 0b00000:
+                        self.log.write(f"illegal FMV.X.D/FCLASS.D instr\n")
                         self.log.write(f"\n< Exiting Execution >\n")
                         return False
 
-                    self.log.write(f"FMV.X.D x{rd}, f{frs1}")
-                    result = signed64(np.float64(self.read_farf(frs1)).view(np.int64))
-                    self.write_arf(rd, result)
+                    # FMV.X.D
+                    if funct3 == 0b000:
+                        self.log.write(f"FMV.X.D x{rd}, f{frs1}\n")
+                        result = signed64(np.float64(self.read_farf(frs1)).view(np.int64))
+                        self.write_arf(rd, result)
+                    
+                    # FCLASS.D
+                    elif funct3 == 0b001:
+                        self.log.write(f"FCLASS.D x{rd}, f{frs1}\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
+                    
+                    else:
+                        self.log.write(f"illegal FMV.X.D/FCLASS.D instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
 
                 # FEQ.S, FLT.S, FLE.S
                 elif funct7 == 0b1010000:
 
                     # FEQ.S
                     if funct3 == 0b010:
-                        self.log.write(f"FEQ.S x{rd}, f{frs1}, f{frs2}")
+                        self.log.write(f"FEQ.S x{rd}, f{frs1}, f{frs2}\n")
                         if np.float32(self.read_farf(frs1)) == np.float32(self.read_farf(frs2)):
                             result = 1
                         else:
@@ -1983,7 +2009,7 @@ class Hart:
 
                     # FLT.S
                     elif funct3 == 0b001:
-                        self.log.write(f"FLT.S x{rd}, f{frs1}, f{frs2}")
+                        self.log.write(f"FLT.S x{rd}, f{frs1}, f{frs2}\n")
                         if np.float32(self.read_farf(frs1)) < np.float32(self.read_farf(frs2)):
                             result = 1
                         else:
@@ -1992,7 +2018,7 @@ class Hart:
 
                     # FLE.S
                     elif funct3 == 0b000:
-                        self.log.write(f"FLE.S x{rd}, f{frs1}, f{frs2}")
+                        self.log.write(f"FLE.S x{rd}, f{frs1}, f{frs2}\n")
                         if np.float32(self.read_farf(frs1)) <= np.float32(self.read_farf(frs2)):
                             result = 1
                         else:
@@ -2009,7 +2035,7 @@ class Hart:
 
                     # FEQ.D
                     if funct3 == 0b010:
-                        self.log.write(f"FEQ.D x{rd}, f{frs1}, f{frs2}")
+                        self.log.write(f"FEQ.D x{rd}, f{frs1}, f{frs2}\n")
                         if np.float64(self.read_farf(frs1)) == np.float64(self.read_farf(frs2)):
                             result = 1
                         else:
@@ -2018,7 +2044,7 @@ class Hart:
 
                     # FLT.D
                     elif funct3 == 0b001:
-                        self.log.write(f"FLT.D x{rd}, f{frs1}, f{frs2}")
+                        self.log.write(f"FLT.D x{rd}, f{frs1}, f{frs2}\n")
                         if np.float64(self.read_farf(frs1)) < np.float64(self.read_farf(frs2)):
                             result = 1
                         else:
@@ -2027,7 +2053,7 @@ class Hart:
 
                     # FLE.D
                     elif funct3 == 0b000:
-                        self.log.write(f"FLE.D x{rd}, f{frs1}, f{frs2}")
+                        self.log.write(f"FLE.D x{rd}, f{frs1}, f{frs2}\n")
                         if np.float64(self.read_farf(frs1)) <= np.float64(self.read_farf(frs2)):
                             result = 1
                         else:
@@ -2038,57 +2064,33 @@ class Hart:
                         self.log.write(f"illegal FEQ.D, FLT.D, FLE.D instr\n")
                         self.log.write(f"\n< Exiting Execution >\n")
                         return False
-                    
-                # FCLASS.S
-                elif funct7 == 0b1110000:
-
-                    if ffunct5 != 0b00000 or funct3 != 0b001:
-                        self.log.write(f"illegal FCLASS.S instr\n")
-                        self.log.write(f"\n< Exiting Execution >\n")
-                        return False
-
-                    self.log.write(f"FCLASS.S x{rd}, f{frs1}\n")
-                    self.log.write(f"\n< Exiting Execution >\n")
-                    return False
-                    
-                # FCLASS.D
-                elif funct7 == 0b1110001:
-
-                    if ffunct5 != 0b00000 or funct3 != 0b001:
-                        self.log.write(f"illegal FCLASS.D instr\n")
-                        self.log.write(f"\n< Exiting Execution >\n")
-                        return False
-                    
-                    self.log.write(f"FCLASS.D x{rd}, f{frs1}\n")
-                    self.log.write(f"\n< Exiting Execution >\n")
-                    return False
                 
                 # FCVT.S.*
                 elif funct7 == 0b1101000:
 
                     # FCVT.S.W
                     if ffunct5 == 0b00000:
-                        self.log.write(f"FCVT.S.W f{frd}, x{rs1}, {rm_str}")
+                        self.log.write(f"FCVT.S.W f{frd}, x{rs1}, {rm_str}\n")
                         result = np.float32(make_signed(self.read_arf(rs1), 32))
-                        self.write_arf(rd, result)
+                        self.write_farf(frd, result)
 
                     # FCVT.S.WU
                     elif ffunct5 == 0b00001:
-                        self.log.write(f"FCVT.S.WU f{frd}, x{rs1}, {rm_str}")
+                        self.log.write(f"FCVT.S.WU f{frd}, x{rs1}, {rm_str}\n")
                         result = np.float32(signed32(self.read_arf(rs1)))
-                        self.write_arf(rd, result)
+                        self.write_farf(frd, result)
 
                     # FCVT.S.L
                     elif ffunct5 == 0b00010:
-                        self.log.write(f"FCVT.S.L f{frd}, x{rs1}, {rm_str}")
+                        self.log.write(f"FCVT.S.L f{frd}, x{rs1}, {rm_str}\n")
                         result = np.float32(make_signed(self.read_arf(rs1)))
-                        self.write_arf(rd, result)
+                        self.write_farf(frd, result)
 
                     # FCVT.S.LU
                     elif ffunct5 == 0b00011:
-                        self.log.write(f"FCVT.S.LU f{frd}, x{rs1}, {rm_str}")
+                        self.log.write(f"FCVT.S.LU f{frd}, x{rs1}, {rm_str}\n")
                         result = np.float32(signed64(self.read_arf(rs1)))
-                        self.write_arf(rd, result)
+                        self.write_farf(frd, result)
 
                     else:
                         self.log.write(f"illegal FCVT.S.* instr\n")
@@ -2100,27 +2102,27 @@ class Hart:
 
                     # FCVT.D.W
                     if ffunct5 == 0b00000:
-                        self.log.write(f"FCVT.D.W f{frd}, x{rs1}, {rm_str}")
+                        self.log.write(f"FCVT.D.W f{frd}, x{rs1}, {rm_str}\n")
                         result = np.float64(make_signed(self.read_arf(rs1), 32))
-                        self.write_arf(rd, result)
+                        self.write_farf(frd, result)
 
                     # FCVT.D.WU
                     elif ffunct5 == 0b00001:
-                        self.log.write(f"FCVT.D.WU f{frd}, x{rs1}, {rm_str}")
+                        self.log.write(f"FCVT.D.WU f{frd}, x{rs1}, {rm_str}\n")
                         result = np.float64(signed32(self.read_arf(rs1)))
-                        self.write_arf(rd, result)
+                        self.write_farf(frd, result)
 
                     # FCVT.D.L
                     elif ffunct5 == 0b00010:
-                        self.log.write(f"FCVT.D.L f{frd}, x{rs1}, {rm_str}")
+                        self.log.write(f"FCVT.D.L f{frd}, x{rs1}, {rm_str}\n")
                         result = np.float64(make_signed(self.read_arf(rs1)))
-                        self.write_arf(rd, result)
+                        self.write_farf(frd, result)
 
                     # FCVT.D.LU
                     elif ffunct5 == 0b00011:
-                        self.log.write(f"FCVT.D.LU f{frd}, x{rs1}, {rm_str}")
+                        self.log.write(f"FCVT.D.LU f{frd}, x{rs1}, {rm_str}\n")
                         result = np.float64(signed64(self.read_arf(rs1)))
-                        self.write_arf(rd, result)
+                        self.write_farf(frd, result)
 
                     else:
                         self.log.write(f"illegal FCVT.D.* instr\n")
@@ -2135,8 +2137,8 @@ class Hart:
                         self.log.write(f"\n< Exiting Execution >\n")
                         return False
 
-                    self.log.write(f"FMV.W.X f{frd}, x{rs1}")
-                    result = signed32(self.read_arf(rs1)).view(np.float32)
+                    self.log.write(f"FMV.W.X f{frd}, x{rs1}\n")
+                    result = np.uint32(signed32(self.read_arf(rs1))).view(np.float32)
                     self.write_farf(frd, result)
                     
                 # FMV.D.X
@@ -2147,8 +2149,8 @@ class Hart:
                         self.log.write(f"\n< Exiting Execution >\n")
                         return False
 
-                    self.log.write(f"FMV.D.X f{frd}, x{rs1}")
-                    result = signed32(self.read_arf(rs1)).view(np.float32)
+                    self.log.write(f"FMV.D.X f{frd}, x{rs1}\n")
+                    result = np.uint64(signed64(self.read_arf(rs1))).view(np.float64)
                     self.write_farf(frd, result)
 
                 else:
