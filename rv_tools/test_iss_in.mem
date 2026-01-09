@@ -659,11 +659,11 @@ D1 94       //     0x94D1: C.SRAI x9, 52
 89 9F       //     0x9F89: C.SUBW x15, x10
 29 9F       //     0x9F29: C.ADDW x14, x10
 
-// c.mv sp, x8
-// c.fldsp f31, 0x20
-// c.ldsp x31, 0x28
-// c.fsdsp f31, 0x28
-// c.sdsp x31, 0x30
+22 81       //     0x8122: C.MV x2, x8
+82 3F       //     0x3F82: C.FLDSP f31, 32
+A2 7F       //     0x7FA2: C.LDSP x31, 40
+7E B4       //     0xB47E: C.FSDSP f31, 40
+7E EC       //     0xEC7E: C.SDSP x31, 48
 
 // Zicsr (exits execution for now)
 73 10 04 00 // 0x00041073: CSRRW x0, 0x0, x8

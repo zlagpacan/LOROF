@@ -81,6 +81,7 @@ sra x27, x8, x16
 or x28, x27, x8
 and x29, x27, x8
 
+// sysu instr's, many of which exit for now
 FENCE iw, or
 fence ORW, IOR
 fence.tso
@@ -659,11 +660,11 @@ addi x10, x10, 0x4b4
 c.subw x15, x10
 c.addw x14, x10
 
-// c.mv sp, x8
-// c.fldsp f31, 0x20
-// c.ldsp x31, 0x28
-// c.fsdsp f31, 0x28
-// c.sdsp x31, 0x30
+c.mv sp, x8
+c.fldsp f31, 0x20
+c.ldsp x31, 0x28
+c.fsdsp f31, 0x28
+c.sdsp x31, 0x30
 
 // Zicsr (exits execution for now)
 csrrw x0, 0x000, s0
