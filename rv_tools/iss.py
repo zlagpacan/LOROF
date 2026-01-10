@@ -31,32 +31,32 @@ def make_signed(num, size=64):
     
 def fmake_pos32(num):
     uint = np.float32(num).view(np.uint32)
-    pos_uint = uint & 0x7FFFFFFF
+    pos_uint = uint & np.uint32(0x7FFFFFFF)
     return pos_uint.view(np.float32)
 
 def fmake_neg32(num):
     uint = np.float32(num).view(np.uint32)
-    pos_uint = uint | 0x80000000
+    pos_uint = uint | np.uint32(0x80000000)
     return pos_uint.view(np.float32)
 
 def fnegate32(num):
     uint = np.float32(num).view(np.uint32)
-    pos_uint = uint ^ 0x80000000
+    pos_uint = uint ^ np.uint32(0x80000000)
     return pos_uint.view(np.float32)
     
 def fmake_pos64(num):
     uint = np.float64(num).view(np.uint64)
-    pos_uint = uint & 0x7FFFFFFF_FFFFFFFF
+    pos_uint = uint & np.uint64(0x7FFFFFFF_FFFFFFFF)
     return pos_uint.view(np.float64)
 
 def fmake_neg64(num):
     uint = np.float64(num).view(np.uint64)
-    pos_uint = uint | 0x80000000_00000000
+    pos_uint = uint | np.uint64(0x80000000_00000000)
     return pos_uint.view(np.float64)
 
 def fnegate64(num):
     uint = np.float64(num).view(np.uint64)
-    pos_uint = uint ^ 0x80000000_00000000
+    pos_uint = uint ^ np.uint64(0x80000000_00000000)
     return pos_uint.view(np.float64)
     
 class Log:

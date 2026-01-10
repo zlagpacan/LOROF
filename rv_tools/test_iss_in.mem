@@ -81,6 +81,7 @@ B3 5D 04 41 // 0x41045DB3: SRA x27, x8, x16
 33 EE 8D 00 // 0x008DEE33: OR x28, x27, x8
 B3 FE 8D 00 // 0x008DFEB3: AND x29, x27, x8
 
+// sysu instr's, many of which exit for now
 0F 00 60 09 // 0x0960000F: FENCE iw, or
 0F 00 E0 07 // 0x07E0000F: FENCE orw, ior
 0F 00 30 83 // 0x8330000F: FENCE.TSO
