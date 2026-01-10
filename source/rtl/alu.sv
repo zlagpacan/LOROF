@@ -15,12 +15,14 @@
         // would be silly for this to be limiting bandwidth
     // especially valuable for 64-bit as adds may take more than 1 cycle
 
-module alu (
-    input logic [3:0]   op,
-    input XLEN_t        A,
-    input XLEN_t        B,
+`include "core_types.vh"
 
-    output XLEN_t       out
+module alu (
+    input logic [3:0]           op,
+    input core_types::XLEN_t    A,
+    input core_types::XLEN_t    B,
+
+    output core_types::XLEN_t   out
 );
 
     always_comb begin
