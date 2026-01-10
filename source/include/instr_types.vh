@@ -7,7 +7,7 @@
 `ifndef INSTR_TYPES_VH
 `define INSTR_TYPES_VH
 
-package core_types;
+package instr_types;
 
     // ----------------------------------------------------------------
     // Custom op decoding:
