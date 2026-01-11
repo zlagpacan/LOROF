@@ -7,7 +7,7 @@
 
 `timescale 1ns/100ps
 
-`include "core_types.vh"
+`include "instr_types.vh"
 
 module alu_tb #(
 ) ();
@@ -32,10 +32,10 @@ module alu_tb #(
     // ----------------------------------------------------------------
     // DUT signals:
 	logic [3:0] tb_op;
-	core_types::XLEN_t tb_A;
-	core_types::XLEN_t tb_B;
+	logic [63:0] tb_A;
+	logic [63:0] tb_B;
 
-	core_types::XLEN_t DUT_out, expected_out;
+	logic [63:0] DUT_out, expected_out;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -91,7 +91,7 @@ module alu_tb #(
 
 		// outputs:
 
-		expected_out = core_types::XLEN_t'('0);
+		expected_out = '0;
 
 		check_outputs();
 
@@ -109,33 +109,553 @@ module alu_tb #(
 
 		// outputs:
 
-		expected_out = core_types::XLEN_t'('0);
+		expected_out = '0;
 
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // manual ops:
+        test_case = "manual ops";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "default";
+		sub_test_case = "ADD 0";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-		tb_op = '0;
-		tb_A = '0;
-		tb_B = '0;
+		tb_op = instr_types::ALU_ADD;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'h123456789abcdef0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_out = core_types::XLEN_t'('0);
+		expected_out = 64'h13579be02468acdf;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "ADD 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_ADD;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'hffffffffffffffff;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h0123456789abcdee;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SLL 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SLL;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'h5;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h2468acf13579bde0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SLL 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SLL;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'h3535353535353535;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'hbde0000000000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SLT 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SLT;
+		tb_A = 64'hff000000000000ff;
+		tb_B = 64'h00ffffffffffff00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h0000000000000001;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SLT 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SLT;
+		tb_A = 64'h00ffffffffffff00;
+		tb_B = 64'hff000000000000ff;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h0000000000000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SLTU 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SLTU;
+		tb_A = 64'hff000000000000ff;
+		tb_B = 64'h00ffffffffffff00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h0000000000000000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SLTU 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SLTU;
+		tb_A = 64'h00ffffffffffff00;
+		tb_B = 64'hff000000000000ff;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h0000000000000001;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "XOR 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_XOR;
+		tb_A = 64'h3535353535353535;
+		tb_B = 64'h5353535353535353;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h6666666666666666;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SRL 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SRL;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'h5;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h00091a2b3c4d5e6f;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SRL 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SRL;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'h3535353535353535;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h0000000000000009;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "OR 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_OR;
+		tb_A = 64'h3535353535353535;
+		tb_B = 64'h5353535353535353;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h7777777777777777;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "AND 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_AND;
+		tb_A = 64'h3535353535353535;
+		tb_B = 64'h5353535353535353;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h1111111111111111;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SUB 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SUB;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'h123456789abcdef0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'heeeeeeeeeeeeeeff;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SUB 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SUB;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'hffffffffffffffff;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h0123456789abcdf0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SRA 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SRA;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'h5;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h00091a2b3c4d5e6f;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SRA 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SRA;
+		tb_A = 64'h8123456789abcdef;
+		tb_B = 64'h3535353535353535;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'hfffffffffffffc09;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "ADDW 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_ADDW;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'h123456789abcdef0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h000000002468acdf;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "ADDW 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_ADDW;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'hffffffffffffffff;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'hffffffff89abcdee;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SUBW 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SUBW;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'h123456789abcdef0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'hffffffffeeeeeeff;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SUBW 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SUBW;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'hffffffff0fffffff;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h0000000079abcdf0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SLLW 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SLLW;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'h5;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h000000003579bde0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SLLW 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SLLW;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'h3535353535353535;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'hffffffffbde00000;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SRLW 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SRLW;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'h5;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h00000000044d5e6f;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SRLW 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SRLW;
+		tb_A = 64'h0123456789abcdef;
+		tb_B = 64'h3535353535353535;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h000000000000044d;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SRAW 0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SRAW;
+		tb_A = 64'h00123456789abcde;
+		tb_B = 64'h5;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'h0000000003c4d5e6;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "SRAW 1";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+		tb_op = instr_types::ALU_SRAW;
+		tb_A = 64'h8123456789abcdef;
+		tb_B = 64'h3535353535353535;
+
+		@(negedge CLK);
+
+		// outputs:
+
+		expected_out = 64'hfffffffffffffc4d;
 
 		check_outputs();
 

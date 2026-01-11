@@ -8,35 +8,49 @@
 // TODO: 64-bit ALU ops
     // should have total of 15x ops now, can keep op[3:0]
 
-// TODO: consider split ALU pipes
-    // e.g. Arithmetic pipe + Logic pipe
-    // can still share DQ, IQ
-    // split for both Reg-Reg, and Reg-Imm
-        // would be silly for this to be limiting bandwidth
-    // especially valuable for 64-bit as adds may take more than 1 cycle
-
-`include "core_types.vh"
+`include "instr_types.vh"
 
 module alu (
-    input logic [3:0]           op,
-    input core_types::XLEN_t    A,
-    input core_types::XLEN_t    B,
+    input logic [3:0]       op,
+    input logic [63:0]      A,
+    input logic [63:0]      B,
 
-    output core_types::XLEN_t   out
+    output logic [63:0]     out
 );
 
     always_comb begin
-        casez (op)
-            4'b0000:    out = A + B;
-            4'b1000:    out = A - B;
-            4'b?001:    out = A << B[4:0];
-            4'b?010:    out = $signed(A) < $signed(B) ? 32'h1 : 32'h0;
-            4'b?011:    out = A < B ? 32'h1 : 32'h0;
-            4'b?100:    out = A ^ B;
-            4'b0101:    out = A >> B[4:0];
-            4'b1101:    out = $signed(A) >>> B[4:0];
-            4'b?110:    out = A | B;
-            4'b?111:    out = A & B;
+        unique casez (op)
+            instr_types::ALU_ADD:   out = A + B;
+            instr_types::ALU_SLL:   out = A << B[5:0];
+            instr_types::ALU_SLT:   out = $signed(A) < $signed(B) ? 64'h1 : 64'h0;
+            instr_types::ALU_SLTU:  out = A < B ? 64'h1 : 64'h0;
+            instr_types::ALU_XOR:   out = A ^ B;
+            instr_types::ALU_SRL:   out = A >> B[5:0];
+            instr_types::ALU_OR:    out = A | B;
+            instr_types::ALU_AND:   out = A & B;
+            instr_types::ALU_SUB:   out = A - B;
+            instr_types::ALU_SRA:   out = $signed(A) >>> B[5:0];
+            instr_types::ALU_ADDW: begin
+                out[31:0] = A[31:0] + B[31:0];
+                out[63:32] = {32{out[31]}};
+            end
+            instr_types::ALU_SUBW: begin
+                out[31:0] = A[31:0] - B[31:0];
+                out[63:32] = {32{out[31]}};
+            end
+            instr_types::ALU_SLLW: begin
+                out[31:0] = A[31:0] << B[4:0];
+                out[63:32] = {32{out[31]}};
+            end
+            instr_types::ALU_SRLW: begin
+                out[31:0] = A[31:0] >> B[4:0];
+                out[63:32] = {32{out[31]}};
+            end
+            instr_types::ALU_SRAW: begin
+                out[31:0] = $signed(A[31:0]) >>> B[4:0];
+                out[63:32] = {32{out[31]}};
+            end
+            default:                out = A + B;
         endcase
     end
 

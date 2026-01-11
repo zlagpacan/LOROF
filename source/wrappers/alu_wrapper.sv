@@ -7,7 +7,7 @@
 
 `timescale 1ns/100ps
 
-`include "core_types.vh"
+`include "instr_types.vh"
 
 module alu_wrapper #(
 ) (
@@ -16,19 +16,19 @@ module alu_wrapper #(
     input logic CLK,
     input logic nRST,
 	input logic [3:0] next_op,
-	input core_types::XLEN_t next_A,
-	input core_types::XLEN_t next_B,
+	input logic [63:0] next_A,
+	input logic [63:0] next_B,
 
-	output core_types::XLEN_t last_out
+	output logic [63:0] last_out
 );
 
     // ----------------------------------------------------------------
     // Direct Module Connections:
 	logic [3:0] op;
-	core_types::XLEN_t A;
-	core_types::XLEN_t B;
+	logic [63:0] A;
+	logic [63:0] B;
 
-	core_types::XLEN_t out;
+	logic [63:0] out;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
