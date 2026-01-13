@@ -7,16 +7,15 @@
 
 // TODO: update for 64-bit
 // TODO: update for floating point
-    // big issue right now is rs3 for fuse instr's
+    // big issue right now is frs3 for fuse instr's
 		// only fp side of ar map table has to support 4x reads per instr
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
+`include "core_types.vh"
 
 module decoder (
 
     // environment info
-    input logic [1:0]   env_exec_mode,
+    input EXEC_MODE_t   env_exec_mode,
     input logic         env_trap_sfence,
     input logic         env_trap_wfi,
     input logic         env_trap_sret,

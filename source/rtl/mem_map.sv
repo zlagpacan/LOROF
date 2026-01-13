@@ -8,6 +8,9 @@
 `include "system_types_pkg.vh"
 import system_types_pkg::*;
 
+// TODO: correct for RV64GC update
+    // FPGA has 256 MB DRAM
+
 module mem_map (
 
     // input
