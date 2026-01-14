@@ -143,7 +143,10 @@ package core_types;
     // ----------------------------------------------------------------
     // Fetch Predictors:
 
-    // fetch access
+    // 2-bit saturating counter:
+    typedef logic [1:0] TBC_t;
+
+    // fetch access:
     parameter int unsigned FETCH_WIDTH_B = 16;
     parameter int unsigned FETCH_WIDTH_2B = 8;
     parameter int unsigned LOG_FETCH_WIDTH_2B = $clog2(FETCH_WIDTH_2B);
@@ -156,6 +159,7 @@ package core_types;
 
     // btb entry:
         // {action, use_upct, big_target, tag}
+        // 8-wide access into associative tagged entries
     parameter int unsigned BTB_ACTION_WIDTH = 3;
     parameter int unsigned BTB_BIG_TARGET_WIDTH = 15;
     parameter int unsigned BTB_SMALL_TARGET_WIDTH = 12;
@@ -177,7 +181,6 @@ package core_types;
         BTB_tag_t           tag;
     } BTB_entry_t;
     typedef BTB_entry_t [FETCH_WIDTH_2B-1:0][BTB_ASSOC-1:0] BTB_set_t;
-        // entry indexed by fetch idx
 
     parameter BTB_action_t BTB_ACTION_NONE;
     parameter BTB_action_t BTB_ACTION_BRANCH;
@@ -189,6 +192,7 @@ package core_types;
     parameter BTB_action_t BTB_ACTION_INDIRECT_L;
 
     // btb:
+        // 8-wide access into associative tagged entries
         // index: PC, ASID
         // tag: PC, ASID
     parameter int unsigned BTB_ENTRIES = 1024;
@@ -196,17 +200,17 @@ package core_types;
     parameter int unsigned BTB_SETS = BTB_ENTRIES / BTB_ASSOC / FETCH_WIDTH_2B;
     parameter int unsigned LOG_BTB_SETS = $clog2(BTB_SETS);
     
-    typedef logic [LOG_BTB_SETS-1:0] BTB_idx_t;
+    typedef logic [LOG_BTB_SETS-1:0]    BTB_idx_t;
+    typedef logic [BTB_ASSOC-2:0]       BTB_lru_t;
 
     // gbpt entry:
         // 2BC
-    parameter int unsigned GBPT_ENTRY_WIDTH = 2;
-    
-    typedef logic [GBPT_ENTRY_WIDTH-1:0]        GBPT_entry_t;
-    typedef GBPT_entry_t [FETCH_WIDTH_2B-1:0]   GBPT_set_t; 
+        // 8-wide access into direct-mapped, untagged entries
+    typedef TBC_t                               GBPT_entry_t;
+    typedef GBPT_entry_t [FETCH_WIDTH_2B-1:0]   GBPT_set_t;
 
     // gbpt:
-        // direct-mapped, no tags
+        // 8-wide access into direct-mapped, untagged entries
         // index: PC, GHR, ASID
     parameter int unsigned GH_LENGTH = 10;
     parameter int unsigned GBPT_SETS = 2**GH_LENGTH;
@@ -216,20 +220,44 @@ package core_types;
     typedef GH_t                    GBPT_idx_t;
 
     // ras:
+        // 1-wide stack
     parameter int unsigned RAS_ENTRIES = 16;
     parameter int unsigned LOG_RAS_ENTRIES = $clog2(RAS_ENTRIES);
 
     typedef logic [LOG_RAS_ENTRIES-1:0] RAS_idx_t;
 
     // upct:
+        // PLRU-allocated array
     // LOG_UPCT_ENTRIES defined ^
     // UPCT_idx_t defined ^
     parameter int unsigned UPCT_ENTRIES = 2**LOG_UPCT_ENTRIES;
     parameter int unsigned UPPER_PC_WIDTH = 39 - BTB_SMALL_TARGET_WIDTH - 1;
         // PC38 = {upper_PC, small_target}
 
+    // ibtb entry:
+        // {use_upct, big_target}
+        // 8-wide access into direct-mapped, untagged entries
+    typedef struct packed {
+        logic               use_upct;
+        BTB_big_target_t    big_target;
+    } IBTB_entry_t;
+    
+    typedef logic [GBPT_ENTRY_WIDTH-1:0]        IBTB_entry_t;
+    typedef IBTB_entry_t [FETCH_WIDTH_2B-1:0]   IBTB_set_t;
+
+    // ibtb:
+        // 1-wide access into direct-mapped, untagged entries
+        // index: PC, GHR, ASID
+    parameter int unsigned IBTB_ENTRIES = 64;
+    parameter int unsigned IBTB_GH_WIDTH = $clog2(IBTB_ENTRIES);
+    parameter int unsigned IBTB_SETS = IBTB_ENTRIES / FETCH_WIDTH_2B;
+    parameter int unsigned LOG_IBTB_SETS = $clog2(IBTB_SETS);
+
+    typedef logic [IBTB_GH_WIDTH-1:0]   IBTB_GH_t;
+    typedef IBTB_GH_t                   IBTB_idx_t;
+
     // sst:
-        // info needed for mdpt entry
+        // sst params needed for mdpt entry
     parameter int unsigned STORE_SET_COUNT = 64;
     parameter int unsigned SSID_WIDTH = $clog2(STORE_SET_COUNT);
 
@@ -238,10 +266,10 @@ package core_types;
     // mdpt entry:
         // 2BC + SSID
     typedef struct packed {
-        logic [1:0]     tbc;
-        SSID_t          ssid;
+        TBC_t   tbc;
+        SSID_t  ssid;
     } MDPT_entry_t;
-    typedef GBPT_entry_t [FETCH_WIDTH_2B-1:0]   MDPT_set_t; 
+    typedef MDPT_entry_t [FETCH_WIDTH_2B-1:0] MDPT_set_t;
 
     // mdpt:
         // direct-mapped, no tags
@@ -274,6 +302,9 @@ package core_types;
     // map_table
     parameter int unsigned MAP_TABLE_ARF_READ_PORT_COUNT = 12;
     parameter int unsigned MAP_TABLE_ARF_WRITE_PORT_COUNT = 4;
+        // for FARF, most likely want to limit the ports and force 2-beat
+            // dense FP is very uncommon
+           // map_table complexity increases very quickly
     parameter int unsigned MAP_TABLE_FARF_READ_PORT_COUNT = 16;
     parameter int unsigned MAP_TABLE_FARF_WRITE_PORT_COUNT = 4;
 
