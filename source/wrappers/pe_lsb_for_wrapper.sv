@@ -9,7 +9,7 @@
 
 
 module pe_lsb_for_wrapper #(
-	parameter WIDTH = 8
+	parameter int unsigned WIDTH = 8
 ) (
 
     // seq

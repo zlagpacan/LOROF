@@ -1,15 +1,16 @@
 /*
-    Filename: pe_lsb_add_wrapper.sv
+    Filename: pe_lsb_tree_wrapper.sv
     Author: zlagpacan
-    Description: RTL wrapper around pe_lsb_add module. 
-    Spec: LOROF/spec/design/pe_lsb_add.md
+    Description: RTL wrapper around pe_lsb_tree module. 
+    Spec: LOROF/spec/design/pe_lsb_tree.md
 */
 
 `timescale 1ns/100ps
 
 
-module pe_lsb_add_wrapper #(
-	parameter int unsigned WIDTH = 8
+module pe_lsb_tree_wrapper #(
+	parameter int unsigned WIDTH = 8,
+	parameter int unsigned LEVELS = $clog2(WIDTH)
 ) (
 
     // seq
@@ -17,20 +18,23 @@ module pe_lsb_add_wrapper #(
     input logic nRST,
 	input logic [WIDTH-1:0] next_req_vec,
 
-	output logic [WIDTH-1:0] last_ack_one_hot
+	output logic last_ack_valid,
+	output logic [LEVELS-1:0] last_ack_index
 );
 
     // ----------------------------------------------------------------
     // Direct Module Connections:
 	logic [WIDTH-1:0] req_vec;
 
-	logic [WIDTH-1:0] ack_one_hot;
+	logic ack_valid;
+	logic [LEVELS-1:0] ack_index;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-	pe_lsb_add #(
-		.WIDTH(WIDTH)
+	pe_lsb_tree #(
+		.WIDTH(WIDTH),
+		.LEVELS(LEVELS)
 	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
@@ -40,12 +44,14 @@ module pe_lsb_add_wrapper #(
         if (~nRST) begin
 			req_vec <= '0;
 
-			last_ack_one_hot <= '0;
+			last_ack_valid <= '0;
+			last_ack_index <= '0;
         end
         else begin
 			req_vec <= next_req_vec;
 
-			last_ack_one_hot <= ack_one_hot;
+			last_ack_valid <= ack_valid;
+			last_ack_index <= ack_index;
         end
     end
 

@@ -135,7 +135,7 @@ def parse_design(design_lines):
             # expect non-empty lines to all be parameters
             if (line.lstrip().startswith("parameter")):
                 # grab last string before " = " as param name
-                type_name_string = line[line.index("parameter ")+len("parameter "):line.index(" = ")]
+                type_name_string = line[line.index("parameter ")+len("parameter "):line.index(" = ")].rstrip()
                 res = re.search(r'(\S+)$', type_name_string)
                 param_name = res.group(1)
                 param_type = type_name_string[:type_name_string.index(param_name)].rstrip()

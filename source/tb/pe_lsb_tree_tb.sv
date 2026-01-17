@@ -1,17 +1,16 @@
 /*
-    Filename: pe_lsb_tb.sv
+    Filename: pe_lsb_tree_tb.sv
     Author: zlagpacan
-    Description: Testbench for pe_lsb module. 
-    Spec: LOROF/spec/design/pe_lsb.md
+    Description: Testbench for pe_lsb_tree module. 
+    Spec: LOROF/spec/design/pe_lsb_tree.md
 */
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
 
-module pe_lsb_tb #(
-	parameter WIDTH = 8
+module pe_lsb_tree_tb #(
+	parameter int unsigned WIDTH = 8,
+	parameter int unsigned LEVELS = $clog2(WIDTH)
 ) ();
 
     // ----------------------------------------------------------------
@@ -34,23 +33,20 @@ module pe_lsb_tb #(
     // ----------------------------------------------------------------
     // DUT signals:
 	logic [WIDTH-1:0] tb_req_vec;
-    
-	logic [WIDTH-1:0] DUT_ack_one_hot, expected_ack_one_hot;
-	logic [WIDTH-1:0] DUT_ack_mask, expected_ack_mask;
-	logic [WIDTH-1:0] DUT_cold_ack_mask, expected_cold_ack_mask;
-	logic [$clog2(WIDTH)-1:0] DUT_ack_index, expected_ack_index;
+
+	logic DUT_ack_valid, expected_ack_valid;
+	logic [LEVELS-1:0] DUT_ack_index, expected_ack_index;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	pe_lsb #(
-		.WIDTH(WIDTH)
+	pe_lsb_tree #(
+		.WIDTH(WIDTH),
+		.LEVELS(LEVELS)
 	) DUT (
 		.req_vec(tb_req_vec),
 
-		.ack_one_hot(DUT_ack_one_hot),
-		.ack_mask(DUT_ack_mask),
-		.cold_ack_mask(DUT_cold_ack_mask),
+		.ack_valid(DUT_ack_valid),
 		.ack_index(DUT_ack_index)
 	);
 
@@ -59,29 +55,15 @@ module pe_lsb_tb #(
 
     task check_outputs();
     begin
-		if (expected_ack_one_hot !== DUT_ack_one_hot) begin
-			$display("TB ERROR: expected_ack_one_hot (%b) != DUT_ack_one_hot (%b)",
-				expected_ack_one_hot, DUT_ack_one_hot);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_ack_mask !== DUT_ack_mask) begin
-			$display("TB ERROR: expected_ack_mask (%b) != DUT_ack_mask (%b)",
-				expected_ack_mask, DUT_ack_mask);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_cold_ack_mask !== DUT_cold_ack_mask) begin
-			$display("TB ERROR: expected_cold_ack_mask (%b) != DUT_cold_ack_mask (%b)",
-				expected_cold_ack_mask, DUT_cold_ack_mask);
+		if (expected_ack_valid !== DUT_ack_valid) begin
+			$display("TB ERROR: expected_ack_valid (%h) != DUT_ack_valid (%h)",
+				expected_ack_valid, DUT_ack_valid);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
 		if (expected_ack_index !== DUT_ack_index) begin
-			$display("TB ERROR: expected_ack_index (%b) != DUT_ack_index (%b)",
+			$display("TB ERROR: expected_ack_index (%h) != DUT_ack_index (%h)",
 				expected_ack_index, DUT_ack_index);
 			num_errors++;
 			tb_error = 1'b1;
@@ -109,16 +91,14 @@ module pe_lsb_tb #(
 
 		// reset
 		nRST = 1'b0;
-		tb_req_vec = 8'b00000000;
+		tb_req_vec = '0;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-		expected_ack_one_hot = 8'b00000000;
-		expected_ack_mask = 8'b00000000;
-		expected_cold_ack_mask = 8'b00000000;
-		expected_ack_index = 3'h0;
+		expected_ack_valid = 1'b0;
+		expected_ack_index = 3'b111;
 
 		check_outputs();
 
@@ -128,16 +108,14 @@ module pe_lsb_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_req_vec = 8'b00000000;
+		tb_req_vec = '0;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-		expected_ack_one_hot = 8'b00000000;
-		expected_ack_mask = 8'b00000000;
-		expected_cold_ack_mask = 8'b00000000;
-		expected_ack_index = 3'h0;
+		expected_ack_valid = 1'b0;
+		expected_ack_index = 3'b111;
 
 		check_outputs();
 
@@ -162,22 +140,19 @@ module pe_lsb_tb #(
             @(negedge CLK);
 
             // outputs:
-            expected_ack_one_hot = '0;
-            expected_ack_mask = '0;
-            expected_cold_ack_mask = '0;
-            expected_ack_index = '0;
+            expected_ack_valid = 1'b1;
+            expected_ack_index = 0;
             for (int j = 0; j < WIDTH; j++) begin
                 if (i[j]) begin
-                    expected_ack_one_hot[j] = 1'b1;
+                    expected_ack_valid = 1'b1;
                     expected_ack_index = j;
-                    for (int k = j; k < WIDTH; k++) begin
-                        expected_ack_mask[k] = 1'b1;
-                    end
-                    for (int l = j+1; l < WIDTH; l++) begin
-                        expected_cold_ack_mask[l] = 1'b1;
-                    end
                     break;
                 end
+            end
+
+            if (tb_req_vec == 0) begin
+                expected_ack_valid = 1'b0;
+                expected_ack_index = '1;
             end
 
             check_outputs();
@@ -195,7 +170,7 @@ module pe_lsb_tb #(
 
         $display();
         if (num_errors) begin
-            $display("FAIL: %d tests fail", num_errors);
+            $display("FAIL: %0d tests fail", num_errors);
         end
         else begin
             $display("SUCCESS: all tests pass");

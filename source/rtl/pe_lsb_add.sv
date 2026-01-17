@@ -5,11 +5,11 @@
 */
 
 module pe_lsb_add #(
-    parameter WIDTH = 8
+    parameter int unsigned WIDTH = 8
 )(
-    input logic [WIDTH-1:0]             req_vec,
+    input logic [WIDTH-1:0]     req_vec,
 
-    output logic [WIDTH-1:0]            ack_one_hot
+    output logic [WIDTH-1:0]    ack_one_hot
 );
 
     always_comb begin

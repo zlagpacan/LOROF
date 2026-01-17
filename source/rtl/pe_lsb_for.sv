@@ -5,7 +5,7 @@
 */
 
 module pe_lsb_for #(
-    parameter WIDTH = 8
+    parameter int unsigned WIDTH = 8
 )(
     input logic [WIDTH-1:0]             req_vec,
 
