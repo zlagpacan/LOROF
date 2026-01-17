@@ -29,7 +29,7 @@ module pe_lsb_for #(
             if (req_vec[0]) begin
                 ack_mask[0] = 1'b1;
                 ack_one_hot[0] = 1'b1;
-                // ack_index = 0;
+                ack_index = 0;
             end
             // otherwise, nothing hot yet
             else begin
@@ -37,7 +37,7 @@ module pe_lsb_for #(
                 ack_one_hot[0] = 1'b0;
             end
             // guaranteed cold
-            // cold_ack_mask[0] = 1'b0;
+            cold_ack_mask[0] = 1'b0;
         end
 
         // go through req vec bits after lsb
@@ -46,20 +46,20 @@ module pe_lsb_for #(
             if (ack_mask[i-1]) begin
                 ack_mask[i] = 1'b1;
                 ack_one_hot[i] = 1'b0;
-                // cold_ack_mask[i] = 1'b1;
+                cold_ack_mask[i] = 1'b1;
             end
             // otherwise, check this req hot
             else if (req_vec[i]) begin
                 ack_mask[i] = 1'b1;
                 ack_one_hot[i] = 1'b1;
-                // cold_ack_mask[i] = 1'b0;
-                // ack_index = i;
+                cold_ack_mask[i] = 1'b0;
+                ack_index = i;
             end
             // otherwise, nothing hot yet
             else begin
                 ack_mask[i] = 1'b0;
                 ack_one_hot[i] = 1'b0;
-                // cold_ack_mask[i] = 1'b0;
+                cold_ack_mask[i] = 1'b0;
             end
         end
     end
