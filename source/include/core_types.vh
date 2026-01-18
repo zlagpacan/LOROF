@@ -151,11 +151,16 @@ package core_types;
     parameter int unsigned FETCH_WIDTH_2B = 8;
     parameter int unsigned LOG_FETCH_WIDTH_2B = $clog2(FETCH_WIDTH_2B);
 
-    typedef logic [LOG_FETCH_WIDTH_2B-1:0] fetch_idx_t;
+    typedef logic [LOG_FETCH_WIDTH_2B-1:0] inner_fetch_idx_t;
+    typedef logic [39-LOG_FETCH_WIDTH_2B-1:0] outer_fetch_idx_t;
 
-    function fetch_idx_t fetch_idx_bits(PC38_t PC38);
-        return PC38[LOG_FETCH_WIDTH_2B:1];
+    function inner_fetch_idx_t inner_fetch_idx_bits(PC38_t PC38);
+        return PC38[LOG_FETCH_WIDTH_2B-1:0];
     endfunction
+
+    function outer_fetch_idx_t outer_fetch_idx_bits(PC38_t PC38);
+        return PC38[37:LOG_FETCH_WIDTH_2B]
+    endfunction 
 
     // btb entry:
         // {action, use_upct, big_target, tag}

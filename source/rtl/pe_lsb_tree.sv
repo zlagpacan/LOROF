@@ -5,14 +5,15 @@
 */
 
 module pe_lsb_tree #(
-    parameter int unsigned WIDTH    = 8,
-    parameter int unsigned LEVELS   = $clog2(WIDTH)
+    parameter int unsigned WIDTH = 8
 ) (
-    input  logic [WIDTH-1:0]    req_vec,
+    input  logic [WIDTH-1:0]            req_vec,
 
-    output logic                ack_valid,
-    output logic [LEVELS-1:0]   ack_index
+    output logic                        ack_valid,
+    output logic [$clog2(WIDTH)-1:0]    ack_index
 );
+
+    localparam int unsigned LEVELS = $clog2(WIDTH);
 
     // ack_valid[level][node]
     logic [LEVELS:0][WIDTH-1:0]             v;

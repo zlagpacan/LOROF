@@ -17,10 +17,7 @@ module pe_lsb_for_wrapper #(
     input logic nRST,
 	input logic [WIDTH-1:0] next_req_vec,
 
-	output logic [WIDTH-1:0] last_ack_one_hot,
-	output logic [WIDTH-1:0] last_ack_mask,
-	output logic [WIDTH-1:0] last_cold_ack_mask,
-	output logic [$clog2(WIDTH)-1:0] last_ack_index
+	output logic [WIDTH-1:0] last_ack_one_hot
 );
 
     // ----------------------------------------------------------------
@@ -28,9 +25,6 @@ module pe_lsb_for_wrapper #(
 	logic [WIDTH-1:0] req_vec;
 
 	logic [WIDTH-1:0] ack_one_hot;
-	logic [WIDTH-1:0] ack_mask;
-	logic [WIDTH-1:0] cold_ack_mask;
-	logic [$clog2(WIDTH)-1:0] ack_index;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -47,17 +41,11 @@ module pe_lsb_for_wrapper #(
 			req_vec <= '0;
 
 			last_ack_one_hot <= '0;
-			last_ack_mask <= '0;
-			last_cold_ack_mask <= '0;
-			last_ack_index <= '0;
         end
         else begin
 			req_vec <= next_req_vec;
 
 			last_ack_one_hot <= ack_one_hot;
-			last_ack_mask <= ack_mask;
-			last_cold_ack_mask <= cold_ack_mask;
-			last_ack_index <= ack_index;
         end
     end
 

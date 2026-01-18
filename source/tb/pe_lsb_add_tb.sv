@@ -107,8 +107,8 @@ module pe_lsb_add_tb #(
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // enumerate:
+        test_case = "enumerate";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
