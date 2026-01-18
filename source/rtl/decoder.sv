@@ -9,6 +9,8 @@
 // TODO: update for floating point
     // big issue right now is frs3 for fuse instr's
 		// only fp side of ar map table has to support 4x reads per instr
+        // rework so decoder tells which renames need to check, and can massively limit ports to common case
+            // use register priority arbitration scheme in rename stage
 
 `include "core_types.vh"
 
