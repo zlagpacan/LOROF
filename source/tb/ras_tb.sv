@@ -7,10 +7,10 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
+`include "corep.vh"
 
-module ras_tb ();
+module ras_tb #(
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:
@@ -33,36 +33,41 @@ module ras_tb ();
     // DUT signals:
 
 
-    // RESP stage
-	logic tb_link_RESP;
-	logic [31:0] tb_link_full_PC_RESP;
-	logic tb_ret_RESP;
-	logic [31:0] DUT_ret_full_PC_RESP, expected_ret_full_PC_RESP;
-	logic [RAS_INDEX_WIDTH-1:0] DUT_ras_index_RESP, expected_ras_index_RESP;
+    // pc_gen link control
+	logic tb_link_valid;
+	corep::PC38_t tb_link_pc38;
 
-    // Update 0
-	logic tb_update0_valid;
-	logic [RAS_INDEX_WIDTH-1:0] tb_update0_ras_index;
+    // pc_gen return control
+	logic tb_ret_valid;
+	corep::PC38_t DUT_ret_pc38, expected_ret_pc38;
+	corep::RAS_idx_t DUT_ret_ras_index, expected_ret_ras_index;
+
+    // update control
+	logic tb_update_valid;
+	corep::RAS_idx_t tb_update_ras_index;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	ras DUT (
+	ras #(
+	) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
 
 
-	    // RESP stage
-		.link_RESP(tb_link_RESP),
-		.link_full_PC_RESP(tb_link_full_PC_RESP),
-		.ret_RESP(tb_ret_RESP),
-		.ret_full_PC_RESP(DUT_ret_full_PC_RESP),
-		.ras_index_RESP(DUT_ras_index_RESP),
+	    // pc_gen link control
+		.link_valid(tb_link_valid),
+		.link_pc38(tb_link_pc38),
 
-	    // Update 0
-		.update0_valid(tb_update0_valid),
-		.update0_ras_index(tb_update0_ras_index)
+	    // pc_gen return control
+		.ret_valid(tb_ret_valid),
+		.ret_pc38(DUT_ret_pc38),
+		.ret_ras_index(DUT_ret_ras_index),
+
+	    // update control
+		.update_valid(tb_update_valid),
+		.update_ras_index(tb_update_ras_index)
 	);
 
     // ----------------------------------------------------------------
@@ -70,16 +75,16 @@ module ras_tb ();
 
     task check_outputs();
     begin
-		if (expected_ret_full_PC_RESP !== DUT_ret_full_PC_RESP) begin
-			$display("TB ERROR: expected_ret_full_PC_RESP (%h) != DUT_ret_full_PC_RESP (%h)",
-				expected_ret_full_PC_RESP, DUT_ret_full_PC_RESP);
+		if (expected_ret_pc38 !== DUT_ret_pc38) begin
+			$display("TB ERROR: expected_ret_pc38 (%h) != DUT_ret_pc38 (%h)",
+				expected_ret_pc38, DUT_ret_pc38);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_ras_index_RESP !== DUT_ras_index_RESP) begin
-			$display("TB ERROR: expected_ras_index_RESP (%h) != DUT_ras_index_RESP (%h)",
-				expected_ras_index_RESP, DUT_ras_index_RESP);
+		if (expected_ret_ras_index !== DUT_ret_ras_index) begin
+			$display("TB ERROR: expected_ret_ras_index (%h) != DUT_ret_ras_index (%h)",
+				expected_ret_ras_index, DUT_ret_ras_index);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -106,22 +111,24 @@ module ras_tb ();
 
 		// reset
 		nRST = 1'b0;
-	    // RESP stage
-		tb_link_RESP = 1'b0;
-		tb_link_full_PC_RESP = 32'h0;
-		tb_ret_RESP = 1'b0;
-	    // Update 0
-		tb_update0_valid = 1'b0;
-		tb_update0_ras_index = 3'h0;
+	    // pc_gen link control
+		tb_link_valid = 1'b0;
+		tb_link_pc38 = 38'h0000000000;
+	    // pc_gen return control
+		tb_ret_valid = 1'b0;
+	    // update control
+		tb_update_valid = 1'b0;
+		tb_update_ras_index = 4'h0;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-	    // RESP stage
-		expected_ret_full_PC_RESP = 32'h0;
-		expected_ras_index_RESP = 3'h0;
-	    // Update 0
+	    // pc_gen link control
+	    // pc_gen return control
+		expected_ret_pc38 = 38'h0000000000;
+		expected_ret_ras_index = 4'h0;
+	    // update control
 
 		check_outputs();
 
@@ -131,22 +138,24 @@ module ras_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // RESP stage
-		tb_link_RESP = 1'b0;
-		tb_link_full_PC_RESP = 32'h0;
-		tb_ret_RESP = 1'b0;
-	    // Update 0
-		tb_update0_valid = 1'b0;
-		tb_update0_ras_index = 3'h0;
+	    // pc_gen link control
+		tb_link_valid = 1'b0;
+		tb_link_pc38 = 38'h0000000000;
+	    // pc_gen return control
+		tb_ret_valid = 1'b0;
+	    // update control
+		tb_update_valid = 1'b0;
+		tb_update_ras_index = 4'h0;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-	    // RESP stage
-		expected_ret_full_PC_RESP = 32'h0;
-		expected_ras_index_RESP = 3'h0;
-	    // Update 0
+	    // pc_gen link control
+	    // pc_gen return control
+		expected_ret_pc38 = 38'h0000000000;
+		expected_ret_ras_index = 4'h0;
+	    // update control
 
 		check_outputs();
 
@@ -164,22 +173,24 @@ module ras_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // RESP stage
-		tb_link_RESP = 1'b1;
-		tb_link_full_PC_RESP = 32'h11111111;
-		tb_ret_RESP = 1'b0;
-	    // Update 0
-		tb_update0_valid = 1'b0;
-		tb_update0_ras_index = 3'h0;
+	    // pc_gen link control
+		tb_link_valid = 1'b1;
+		tb_link_pc38 = 38'h1111111111;
+	    // pc_gen return control
+		tb_ret_valid = 1'b0;
+	    // update control
+		tb_update_valid = 1'b0;
+		tb_update_ras_index = 4'h0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // RESP stage
-		expected_ret_full_PC_RESP = 32'h0;
-		expected_ras_index_RESP = 3'h0;
-	    // Update 0
+	    // pc_gen link control
+	    // pc_gen return control
+		expected_ret_pc38 = 38'h0000000000;
+		expected_ret_ras_index = 4'h0;
+	    // update control
 
 		check_outputs();
 
@@ -192,21 +203,24 @@ module ras_tb ();
 		// reset
 		nRST = 1'b1;
 	    // RESP stage
-		tb_link_RESP = 1'b1;
-		tb_link_full_PC_RESP = 32'h22222222;
-		tb_ret_RESP = 1'b0;
-	    // Update 0
-		tb_update0_valid = 1'b0;
-		tb_update0_ras_index = 3'h0;
+	    // pc_gen link control
+		tb_link_valid = 1'b1;
+		tb_link_pc38 = 38'h2222222222;
+	    // pc_gen return control
+		tb_ret_valid = 1'b0;
+	    // update control
+		tb_update_valid = 1'b0;
+		tb_update_ras_index = 4'h0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // RESP stage
-		expected_ret_full_PC_RESP = 32'h11111110;
-		expected_ras_index_RESP = 3'h1;
-	    // Update 0
+	    // pc_gen link control
+	    // pc_gen return control
+		expected_ret_pc38 = 38'h1111111111;
+		expected_ret_ras_index = 4'h1;
+	    // update control
 
 		check_outputs();
 
@@ -218,22 +232,24 @@ module ras_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // RESP stage
-		tb_link_RESP = 1'b0;
-		tb_link_full_PC_RESP = 32'h33333333;
-		tb_ret_RESP = 1'b1;
-	    // Update 0
-		tb_update0_valid = 1'b0;
-		tb_update0_ras_index = 3'h0;
+	    // pc_gen link control
+		tb_link_valid = 1'b0;
+		tb_link_pc38 = 38'h3333333333;
+	    // pc_gen return control
+		tb_ret_valid = 1'b1;
+	    // update control
+		tb_update_valid = 1'b0;
+		tb_update_ras_index = 4'h0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // RESP stage
-		expected_ret_full_PC_RESP = 32'h22222222;
-		expected_ras_index_RESP = 3'h2;
-	    // Update 0
+	    // pc_gen link control
+	    // pc_gen return control
+		expected_ret_pc38 = 38'h2222222222;
+		expected_ret_ras_index = 4'h2;
+	    // update control
 
 		check_outputs();
 
@@ -245,49 +261,53 @@ module ras_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // RESP stage
-		tb_link_RESP = 1'b1;
-		tb_link_full_PC_RESP = 32'h55555555;
-		tb_ret_RESP = 1'b1;
-	    // Update 0
-		tb_update0_valid = 1'b0;
-		tb_update0_ras_index = 3'h0;
+	    // pc_gen link control
+		tb_link_valid = 1'b1;
+		tb_link_pc38 = 38'h5555555555;
+	    // pc_gen return control
+		tb_ret_valid = 1'b1;
+	    // update control
+		tb_update_valid = 1'b0;
+		tb_update_ras_index = 4'h0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // RESP stage
-		expected_ret_full_PC_RESP = 32'h11111110;
-		expected_ras_index_RESP = 3'h1;
-	    // Update 0
+	    // pc_gen link control
+	    // pc_gen return control
+		expected_ret_pc38 = 38'h1111111111;
+		expected_ret_ras_index = 4'h1;
+	    // update control
 
 		check_outputs();
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "update to 7";
+		sub_test_case = "update to A";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
-	    // RESP stage
-		tb_link_RESP = 1'b0;
-		tb_link_full_PC_RESP = 32'h0;
-		tb_ret_RESP = 1'b0;
-	    // Update 0
-		tb_update0_valid = 1'b1;
-		tb_update0_ras_index = 3'h7;
+	    // pc_gen link control
+		tb_link_valid = 1'b0;
+		tb_link_pc38 = 38'h0000000000;
+	    // pc_gen return control
+		tb_ret_valid = 1'b0;
+	    // update control
+		tb_update_valid = 1'b1;
+		tb_update_ras_index = 4'hA;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // RESP stage
-		expected_ret_full_PC_RESP = 32'h55555554;
-		expected_ras_index_RESP = 3'h1;
-	    // Update 0
+	    // pc_gen link control
+	    // pc_gen return control
+		expected_ret_pc38 = 38'h5555555555;
+		expected_ret_ras_index = 4'h1;
+	    // update control
 
 		check_outputs();
 
@@ -299,22 +319,24 @@ module ras_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // RESP stage
-		tb_link_RESP = 1'b0;
-		tb_link_full_PC_RESP = 32'h0;
-		tb_ret_RESP = 1'b0;
-	    // Update 0
-		tb_update0_valid = 1'b1;
-		tb_update0_ras_index = 3'h3;
+	    // pc_gen link control
+		tb_link_valid = 1'b0;
+		tb_link_pc38 = 38'h0000000000;
+	    // pc_gen return control
+		tb_ret_valid = 1'b0;
+	    // update control
+		tb_update_valid = 1'b1;
+		tb_update_ras_index = 4'h3;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // RESP stage
-		expected_ret_full_PC_RESP = 32'h0;
-		expected_ras_index_RESP = 3'h7;
-	    // Update 0
+	    // pc_gen link control
+	    // pc_gen return control
+		expected_ret_pc38 = 38'h0000000000;
+		expected_ret_ras_index = 4'hA;
+	    // update control
 
 		check_outputs();
 
@@ -326,22 +348,24 @@ module ras_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // RESP stage
-		tb_link_RESP = 1'b0;
-		tb_link_full_PC_RESP = 32'h0;
-		tb_ret_RESP = 1'b1;
-	    // Update 0
-		tb_update0_valid = 1'b0;
-		tb_update0_ras_index = 3'h0;
+	    // pc_gen link control
+		tb_link_valid = 1'b0;
+		tb_link_pc38 = 38'h0000000000;
+	    // pc_gen return control
+		tb_ret_valid = 1'b1;
+	    // update control
+		tb_update_valid = 1'b0;
+		tb_update_ras_index = 4'h0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // RESP stage
-		expected_ret_full_PC_RESP = 32'h0;
-		expected_ras_index_RESP = 3'h3;
-	    // Update 0
+	    // pc_gen link control
+	    // pc_gen return control
+		expected_ret_pc38 = 38'h0000000000;
+		expected_ret_ras_index = 4'h3;
+	    // update control
 
 		check_outputs();
 
@@ -353,22 +377,24 @@ module ras_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // RESP stage
-		tb_link_RESP = 1'b0;
-		tb_link_full_PC_RESP = 32'h0;
-		tb_ret_RESP = 1'b1;
-	    // Update 0
-		tb_update0_valid = 1'b0;
-		tb_update0_ras_index = 3'h0;
+	    // pc_gen link control
+		tb_link_valid = 1'b0;
+		tb_link_pc38 = 38'h0000000000;
+	    // pc_gen return control
+		tb_ret_valid = 1'b1;
+	    // update control
+		tb_update_valid = 1'b0;
+		tb_update_ras_index = 4'h0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // RESP stage
-		expected_ret_full_PC_RESP = 32'h22222222;
-		expected_ras_index_RESP = 3'h2;
-	    // Update 0
+	    // pc_gen link control
+	    // pc_gen return control
+		expected_ret_pc38 = 38'h2222222222;
+		expected_ret_ras_index = 4'h2;
+	    // update control
 
 		check_outputs();
 
@@ -380,22 +406,24 @@ module ras_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // RESP stage
-		tb_link_RESP = 1'b0;
-		tb_link_full_PC_RESP = 32'h0;
-		tb_ret_RESP = 1'b1;
-	    // Update 0
-		tb_update0_valid = 1'b0;
-		tb_update0_ras_index = 3'h0;
+	    // pc_gen link control
+		tb_link_valid = 1'b0;
+		tb_link_pc38 = 38'h0000000000;
+	    // pc_gen return control
+		tb_ret_valid = 1'b1;
+	    // update control
+		tb_update_valid = 1'b0;
+		tb_update_ras_index = 4'h0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // RESP stage
-		expected_ret_full_PC_RESP = 32'h55555554;
-		expected_ras_index_RESP = 3'h1;
-	    // Update 0
+	    // pc_gen link control
+	    // pc_gen return control
+		expected_ret_pc38 = 38'h5555555555;
+		expected_ret_ras_index = 4'h1;
+	    // update control
 
 		check_outputs();
 
@@ -407,22 +435,24 @@ module ras_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // RESP stage
-		tb_link_RESP = 1'b0;
-		tb_link_full_PC_RESP = 32'h0;
-		tb_ret_RESP = 1'b0;
-	    // Update 0
-		tb_update0_valid = 1'b0;
-		tb_update0_ras_index = 3'h0;
+	    // pc_gen link control
+		tb_link_valid = 1'b0;
+		tb_link_pc38 = 38'h0000000000;
+	    // pc_gen return control
+		tb_ret_valid = 1'b0;
+	    // update control
+		tb_update_valid = 1'b0;
+		tb_update_ras_index = 4'h0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // RESP stage
-		expected_ret_full_PC_RESP = 32'h0;
-		expected_ras_index_RESP = 3'h0;
-	    // Update 0
+	    // pc_gen link control
+	    // pc_gen return control
+		expected_ret_pc38 = 38'h0000000000;
+		expected_ret_ras_index = 4'h0;
+	    // update control
 
 		check_outputs();
 
