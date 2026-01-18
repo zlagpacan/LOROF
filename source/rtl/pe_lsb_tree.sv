@@ -15,36 +15,28 @@ module pe_lsb_tree #(
 
     localparam int unsigned LEVELS = $clog2(WIDTH);
 
-    // ack_valid[level][node]
-    logic [LEVELS:0][WIDTH-1:0]             v;
-    logic [LEVELS:0][WIDTH-1:0][LEVELS-1:0] i;
+    logic [LEVELS:0][WIDTH-1:0]                 valids;
+    logic [LEVELS:0][WIDTH-1:0][LEVELS-1:0]     indexes;
 
-    genvar l, j;
+    always_comb begin
 
-    // Leaf level (level 0)
-    generate
-        for (j = 0; j < WIDTH; j++) begin : LEAF
-            assign v[0][j] = req_vec[j];
-            assign i[0][j] = j[LEVELS-1:0];
+        // level 0
+        for (int j = 0; j < WIDTH; j++) begin
+            valids[0][j] = req_vec[j];
+            indexes[0][j] = j[LEVELS-1:0];
         end
-    endgenerate
-
-    // Reduction levels
-    generate
-        for (l = 0; l < LEVELS; l++) begin : LEVEL
-            localparam int WIDTH = WIDTH >> l;
-            for (j = 0; j < WIDTH/2; j++) begin : WIDTHODE
-                assign v[l+1][j] =
-                    v[l][2*j] | v[l][2*j+1];
-
-                assign i[l+1][j] =
-                    v[l][2*j] ? i[l][2*j]
-                              : i[l][2*j+1];
+        
+        // reduction levels
+        for (int l = 0; l < LEVELS; l++) begin
+            for (int j = 0; j < (WIDTH >> (l + 1)); j++) begin
+                valids[l+1][j] = valids[l][2*j] | valids[l][2*j+1];
+                indexes[l+1][j] = valids[l][2*j] ? indexes[l][2*j] : indexes[l][2*j+1];
             end
         end
-    endgenerate
+    end
 
-    assign ack_valid = v[LEVELS][0];
-    assign ack_index = i[LEVELS][0];
+    // assign ack_valid = valids[LEVELS][0];
+    assign ack_valid = |req_vec;
+    assign ack_index = indexes[LEVELS][0];
 
 endmodule
