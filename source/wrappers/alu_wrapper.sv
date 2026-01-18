@@ -7,7 +7,7 @@
 
 `timescale 1ns/100ps
 
-`include "instr_types.vh"
+`include "instrp.vh"
 
 module alu_wrapper #(
 ) (

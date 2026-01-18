@@ -5,119 +5,91 @@
     Spec: LOROF/spec/design/upct.md
 */
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
+`include "corep.vh"
 
-module upct #(
-    parameter UPCT_ENTRIES = 8,
-    parameter LOG_UPCT_ENTRIES = $clog2(UPCT_ENTRIES)
-) (
+module upct (
 
     // seq
     input logic CLK,
     input logic nRST,
 
-    // RESP stage
-    input logic                         read_valid_RESP,
-    input logic [LOG_UPCT_ENTRIES-1:0]  read_index_RESP,
+    // pc_gen read in
+    input logic                 pc_gen_read_valid,
+    input corep::UPCT_idx_t     pc_gen_read_index,
 
-    output logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] upct_array,
+    // pc_gen read out
+    output corep::UPC_t         pc_gen_read_upc,
 
-    // Update 0
-    input logic         update0_valid,
-    input logic [31:0]  update0_target_full_PC,
+    // update in
+    input logic                 update_valid,
+    input corep::UPC_t          update_upc,
 
-    // Update 1
-    output logic [LOG_UPCT_ENTRIES-1:0] update1_upct_index
+    // update out
+    output corep::UPCT_idx_t    update_upct_index
 );
 
     // ----------------------------------------------------------------
     // Signals:
 
     // FF Array:
-    logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] next_upct_array;
+    corep::UPC_t [corep::UPCT_ENTRIES-1:0] upct_array, next_upct_array;
 
     // PLRU:
-    logic [UPCT_ENTRIES-2:0]        plru, next_plru;
+    logic [corep::UPCT_ENTRIES-2:0] plru, next_plru;
 
-    logic                           plru_new_valid;
-    logic [LOG_UPCT_ENTRIES-1:0]    plru_new_index;
-    logic                           plru_touch_valid;
-    logic [LOG_UPCT_ENTRIES-1:0]    plru_touch_index;
+    logic               plru_new_valid;
+    corep::UPCT_idx_t   plru_new_index;
+    logic               plru_touch_valid;
+    corep::UPCT_idx_t   plru_touch_index;
 
-    // Update 0:
-    logic [UPPER_PC_WIDTH-1:0]  update0_upper_PC;
-    logic [UPCT_ENTRIES-1:0]    update0_matching_upper_PC_by_entry;
-
-    // Update 1:
-    logic                           update1_valid;
-    logic [UPPER_PC_WIDTH-1:0]      update1_upper_PC;
-    logic                           update1_have_match;
-    logic [UPCT_ENTRIES-1:0]        update1_matching_upper_PC_by_entry;
-    logic [LOG_UPCT_ENTRIES-1:0]    update1_matching_index;
+    // Updater:
+    logic [corep::UPCT_ENTRIES-1:0]     update_matching_upc_by_entry;
+    logic                               update_have_match;
+    corep::UPCT_idx_t                   update_matching_index;
 
     // ----------------------------------------------------------------
     // Logic: 
 
     // FF's:
     always_ff @ (posedge CLK, negedge nRST) begin
-    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             upct_array <= '0;
-
             plru <= '0;
-
-            update1_valid <= 1'b0;
-            update1_upper_PC <= '0;
-            update1_matching_upper_PC_by_entry <= '1;
         end
         else begin
             upct_array <= next_upct_array;
-            
             plru <= next_plru;
-
-            update1_valid <= update0_valid;
-            update1_upper_PC <= update0_upper_PC;
-            update1_matching_upper_PC_by_entry <= update0_matching_upper_PC_by_entry;
         end
     end
 
-    // Update 0 Logic:
-
-    assign update0_upper_PC = update0_target_full_PC[31:32-UPPER_PC_WIDTH];
-
+    // pc_gen read logic
     always_comb begin
-
-        // CAM over entries
-        for (int i = 0; i < UPCT_ENTRIES; i++) begin
-            update0_matching_upper_PC_by_entry[i] = upct_array[i] == update0_upper_PC;
-        end
+        pc_gen_read_upc = upct_array[pc_gen_read_index];
     end
 
-    // Update 1 and RESP logic:
-
-    assign update1_have_match = |update1_matching_upper_PC_by_entry;
-
-    pe_lsb #(
-        .WIDTH(8),
-        .USE_ONE_HOT(0),
-        .USE_INDEX(1)
-    ) CAM_PE (
-        .req_vec(update1_matching_upper_PC_by_entry),
-        .ack_index(update1_matching_index)
+    // update logic:
+    always_comb begin
+        // CAM over entries
+        for (int i = 0; i < corep::UPCT_ENTRIES; i++) begin
+            update_matching_upc_by_entry[i] = upct_array[i] == update_upc;
+        end
+    end
+    // pe_lsb_tree #(
+    //     .WIDTH(corep::UPCT_ENTRIES)
+    // ) CAM_PE (
+    //     .req_vec(update_matching_upc_by_entry),
+    //     .ack_valid(update_have_match),
+    //     .ack_index(update_matching_index)
+    // );
+    one_hot_enc #(
+        .WIDTH(corep::UPCT_ENTRIES)
+    ) CAM_ONE_HOT_ENC (
+        .one_hot_in(update_matching_upc_by_entry),
+        .valid_out(update_have_match),
+        .index_out(update_matching_index)
     );
 
-    plru_updater #(
-        .NUM_ENTRIES(8)
-    ) PLRU (
-        .plru_in(plru),
-        .new_valid(plru_new_valid),
-        .new_index(plru_new_index),
-        .touch_valid(plru_touch_valid),
-        .touch_index(plru_touch_index),
-        .plru_out(next_plru)
-    );
-
+    // array control:
     always_comb begin
 
         // hold array and pointers by default
@@ -126,42 +98,53 @@ module upct #(
         // hold plru by default
         plru_new_valid = 1'b0;
         plru_touch_valid = 1'b0;
-        plru_touch_index = update1_matching_index;
+        plru_touch_index = update_matching_index;
 
         // advertize PLRU index by default
-        update1_upct_index = plru_new_index;
+        update_upct_index = plru_new_index;
 
-        // check update 1 hit
-        if (update1_valid & update1_have_match) begin
+        // check update hit
+        if (update_valid & update_have_match) begin
 
             // advertize CAM matching index
-            update1_upct_index = update1_matching_index;
+            update_upct_index = update_matching_index;
 
             // adjust PLRU following matching index
             plru_touch_valid = 1'b1;
-            plru_touch_index = update1_matching_index;
+            plru_touch_index = update_matching_index;
         end
 
-        // check update 1 miss
-        else if (update1_valid & ~update1_have_match) begin
+        // check update miss
+        else if (update_valid) begin
 
-            // advertize PLRU index
-            update1_upct_index = plru_new_index;
+            // advertize new PLRU index
+            update_upct_index = plru_new_index;
 
             // update PLRU array entry
-            next_upct_array[update1_upct_index] = update1_upper_PC;
+            next_upct_array[plru_new_index] = update_upc;
 
             // adjust PLRU following current PLRU
             plru_new_valid = 1'b1;
         end
 
-        // check RESP access
-        else if (read_valid_RESP) begin
+        // check pc_gen access
+        else if (pc_gen_read_valid) begin
 
-            // adjust PLRU following RESP index
+            // adjust PLRU following pc_gen access index
             plru_touch_valid = 1'b1;
-            plru_touch_index = read_index_RESP;
+            plru_touch_index = pc_gen_read_index;
         end
     end
+
+    plru_updater #(
+        .NUM_ENTRIES(8)
+    ) PLRU_UPDATER (
+        .plru_in(plru),
+        .new_valid(plru_new_valid),
+        .new_index(plru_new_index),
+        .touch_valid(plru_touch_valid),
+        .touch_index(plru_touch_index),
+        .plru_out(next_plru)
+    );
 
 endmodule

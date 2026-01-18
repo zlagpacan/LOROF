@@ -1,13 +1,13 @@
 /*
-    Filename: core_types.vh
+    Filename: corep.vh
     Author: zlagpacan
     Description: Package Header File for CPU Core Types
 */
 
-`ifndef CORE_TYPES_VH
-`define CORE_TYPES_VH
+`ifndef COREP_VH
+`define COREP_VH
 
-package core_types;
+package corep;
 
     // ----------------------------------------------------------------
     // General:
@@ -159,7 +159,7 @@ package core_types;
     endfunction
 
     function outer_fetch_idx_t outer_fetch_idx_bits(PC38_t PC38);
-        return PC38[37:LOG_FETCH_WIDTH_2B]
+        return PC38[37:LOG_FETCH_WIDTH_2B];
     endfunction 
 
     // btb entry:
@@ -170,6 +170,7 @@ package core_types;
     parameter int unsigned BTB_SMALL_TARGET_WIDTH = 12;
     parameter int unsigned LOG_UPCT_ENTRIES = BTB_BIG_TARGET_WIDTH - BTB_SMALL_TARGET_WIDTH;
     parameter int unsigned BTB_TAG_WIDTH = 5;
+    parameter int unsigned BTB_ASSOC = 2;
 
     typedef logic [BTB_ACTION_WIDTH-1:0]        BTB_action_t;
     typedef logic [BTB_SMALL_TARGET_WIDTH-1:0]  BTB_small_target_t;
@@ -187,21 +188,20 @@ package core_types;
     } BTB_entry_t;
     typedef BTB_entry_t [FETCH_WIDTH_2B-1:0][BTB_ASSOC-1:0] BTB_set_t;
 
-    parameter BTB_action_t BTB_ACTION_NONE;
-    parameter BTB_action_t BTB_ACTION_BRANCH;
-    parameter BTB_action_t BTB_ACTION_JUMP;
-    parameter BTB_action_t BTB_ACTION_JUMP_L;
-    parameter BTB_action_t BTB_ACTION_RET;
-    parameter BTB_action_t BTB_ACTION_RET_L;
-    parameter BTB_action_t BTB_ACTION_INDIRECT;
-    parameter BTB_action_t BTB_ACTION_INDIRECT_L;
+    parameter BTB_action_t BTB_ACTION_NONE          = 3'b000;
+    parameter BTB_action_t BTB_ACTION_BRANCH        = 3'b001;
+    parameter BTB_action_t BTB_ACTION_JUMP          = 3'b010;
+    parameter BTB_action_t BTB_ACTION_JUMP_L        = 3'b011;
+    parameter BTB_action_t BTB_ACTION_RET           = 3'b100;
+    parameter BTB_action_t BTB_ACTION_RET_L         = 3'b101;
+    parameter BTB_action_t BTB_ACTION_INDIRECT      = 3'b110;
+    parameter BTB_action_t BTB_ACTION_INDIRECT_L    = 3'b111;
 
     // btb:
         // 8-wide access into associative tagged entries
         // index: PC, ASID
         // tag: PC, ASID
     parameter int unsigned BTB_ENTRIES = 1024;
-    parameter int unsigned BTB_ASSOC = 2;
     parameter int unsigned BTB_SETS = BTB_ENTRIES / BTB_ASSOC / FETCH_WIDTH_2B;
     parameter int unsigned LOG_BTB_SETS = $clog2(BTB_SETS);
     
@@ -237,7 +237,9 @@ package core_types;
     // UPCT_idx_t defined ^
     parameter int unsigned UPCT_ENTRIES = 2**LOG_UPCT_ENTRIES;
     parameter int unsigned UPPER_PC_WIDTH = 39 - BTB_SMALL_TARGET_WIDTH - 1;
-        // PC38 = {upper_PC, small_target}
+        // PC38 = {UPC, small_target}
+
+    typedef logic [UPPER_PC_WIDTH-1:0] UPC_t;
 
     // ibtb entry:
         // {use_upct, big_target}
@@ -246,8 +248,6 @@ package core_types;
         logic               use_upct;
         BTB_big_target_t    big_target;
     } IBTB_entry_t;
-    
-    typedef logic [GBPT_ENTRY_WIDTH-1:0]        IBTB_entry_t;
     typedef IBTB_entry_t [FETCH_WIDTH_2B-1:0]   IBTB_set_t;
 
     // ibtb:
@@ -289,7 +289,7 @@ package core_types;
 
     // ibuffer:
     parameter int unsigned IBUFFER_SETS = 8;
-    parameter int unsigned LOG_IBUFFER_SETS = $clog2(ISTREAM_SETS);
+    parameter int unsigned LOG_IBUFFER_SETS = $clog2(IBUFFER_SETS);
 
     typedef logic [LOG_IBUFFER_SETS-1:0] IBUFFER_idx_t;
 
@@ -362,4 +362,4 @@ package core_types;
 
 endpackage
 
-`endif // CORE_TYPES_VH
+`endif // COREP_VH

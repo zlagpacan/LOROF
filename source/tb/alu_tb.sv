@@ -7,7 +7,7 @@
 
 `timescale 1ns/100ps
 
-`include "instr_types.vh"
+`include "instrp.vh"
 
 module alu_tb #(
 ) ();
@@ -127,7 +127,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_ADD;
+		tb_op = instrp::ALU_ADD;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'h123456789abcdef0;
 
@@ -147,7 +147,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_ADD;
+		tb_op = instrp::ALU_ADD;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'hffffffffffffffff;
 
@@ -167,7 +167,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SLL;
+		tb_op = instrp::ALU_SLL;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'h5;
 
@@ -187,7 +187,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SLL;
+		tb_op = instrp::ALU_SLL;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'h3535353535353535;
 
@@ -207,7 +207,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SLT;
+		tb_op = instrp::ALU_SLT;
 		tb_A = 64'hff000000000000ff;
 		tb_B = 64'h00ffffffffffff00;
 
@@ -227,7 +227,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SLT;
+		tb_op = instrp::ALU_SLT;
 		tb_A = 64'h00ffffffffffff00;
 		tb_B = 64'hff000000000000ff;
 
@@ -247,7 +247,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SLTU;
+		tb_op = instrp::ALU_SLTU;
 		tb_A = 64'hff000000000000ff;
 		tb_B = 64'h00ffffffffffff00;
 
@@ -267,7 +267,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SLTU;
+		tb_op = instrp::ALU_SLTU;
 		tb_A = 64'h00ffffffffffff00;
 		tb_B = 64'hff000000000000ff;
 
@@ -287,7 +287,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_XOR;
+		tb_op = instrp::ALU_XOR;
 		tb_A = 64'h3535353535353535;
 		tb_B = 64'h5353535353535353;
 
@@ -307,7 +307,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SRL;
+		tb_op = instrp::ALU_SRL;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'h5;
 
@@ -327,7 +327,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SRL;
+		tb_op = instrp::ALU_SRL;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'h3535353535353535;
 
@@ -347,7 +347,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_OR;
+		tb_op = instrp::ALU_OR;
 		tb_A = 64'h3535353535353535;
 		tb_B = 64'h5353535353535353;
 
@@ -367,7 +367,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_AND;
+		tb_op = instrp::ALU_AND;
 		tb_A = 64'h3535353535353535;
 		tb_B = 64'h5353535353535353;
 
@@ -387,7 +387,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SUB;
+		tb_op = instrp::ALU_SUB;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'h123456789abcdef0;
 
@@ -407,7 +407,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SUB;
+		tb_op = instrp::ALU_SUB;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'hffffffffffffffff;
 
@@ -427,7 +427,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SRA;
+		tb_op = instrp::ALU_SRA;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'h5;
 
@@ -447,7 +447,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SRA;
+		tb_op = instrp::ALU_SRA;
 		tb_A = 64'h8123456789abcdef;
 		tb_B = 64'h3535353535353535;
 
@@ -467,7 +467,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_ADDW;
+		tb_op = instrp::ALU_ADDW;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'h123456789abcdef0;
 
@@ -487,7 +487,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_ADDW;
+		tb_op = instrp::ALU_ADDW;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'hffffffffffffffff;
 
@@ -507,7 +507,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SUBW;
+		tb_op = instrp::ALU_SUBW;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'h123456789abcdef0;
 
@@ -527,7 +527,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SUBW;
+		tb_op = instrp::ALU_SUBW;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'hffffffff0fffffff;
 
@@ -547,7 +547,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SLLW;
+		tb_op = instrp::ALU_SLLW;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'h5;
 
@@ -567,7 +567,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SLLW;
+		tb_op = instrp::ALU_SLLW;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'h3535353535353535;
 
@@ -587,7 +587,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SRLW;
+		tb_op = instrp::ALU_SRLW;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'h5;
 
@@ -607,7 +607,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SRLW;
+		tb_op = instrp::ALU_SRLW;
 		tb_A = 64'h0123456789abcdef;
 		tb_B = 64'h3535353535353535;
 
@@ -627,7 +627,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SRAW;
+		tb_op = instrp::ALU_SRAW;
 		tb_A = 64'h00123456789abcde;
 		tb_B = 64'h5;
 
@@ -647,7 +647,7 @@ module alu_tb #(
 
 		// reset
 		nRST = 1'b1;
-		tb_op = instr_types::ALU_SRAW;
+		tb_op = instrp::ALU_SRAW;
 		tb_A = 64'h8123456789abcdef;
 		tb_B = 64'h3535353535353535;
 

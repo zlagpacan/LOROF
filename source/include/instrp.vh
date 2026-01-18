@@ -1,13 +1,13 @@
 /*
-    Filename: instr_types.vh
+    Filename: instrp.vh
     Author: zlagpacan
     Description: Package Header File for Instruction Types
 */
 
-`ifndef INSTR_TYPES_VH
-`define INSTR_TYPES_VH
+`ifndef INSTRP_VH
+`define INSTRP_VH
 
-package instr_types;
+package instrp;
 
     // ----------------------------------------------------------------
     // instr decoding:
@@ -152,4 +152,4 @@ package instr_types;
 
 endpackage
 
-`endif // CORE_TYPES_VH
+`endif // INSTRP_VH

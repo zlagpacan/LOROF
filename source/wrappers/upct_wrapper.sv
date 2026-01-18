@@ -7,15 +7,9 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
-
-`include "system_types_pkg.vh"
-import system_types_pkg::*;
+`include "corep.vh"
 
 module upct_wrapper #(
-	parameter UPCT_ENTRIES = 8,
-	parameter LOG_UPCT_ENTRIES = $clog2(UPCT_ENTRIES)
 ) (
 
     // seq
@@ -23,43 +17,43 @@ module upct_wrapper #(
     input logic nRST,
 
 
-    // RESP stage
-	input logic next_read_valid_RESP,
-	input logic [LOG_UPCT_ENTRIES-1:0] next_read_index_RESP,
+    // pc_gen read in
+	input logic next_pc_gen_read_valid,
+	input corep::UPCT_idx_t next_pc_gen_read_index,
 
-	output logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] last_upct_array,
+    // pc_gen read out
+	output corep::UPC_t last_pc_gen_read_upc,
 
-    // Update 0
-	input logic next_update0_valid,
-	input logic [31:0] next_update0_target_full_PC,
+    // update in
+	input logic next_update_valid,
+	input corep::UPC_t next_update_upc,
 
-    // Update 1
-	output logic [LOG_UPCT_ENTRIES-1:0] last_update1_upct_index
+    // update out
+	output corep::UPCT_idx_t last_update_upct_index
 );
 
     // ----------------------------------------------------------------
     // Direct Module Connections:
 
 
-    // RESP stage
-	logic read_valid_RESP;
-	logic [LOG_UPCT_ENTRIES-1:0] read_index_RESP;
+    // pc_gen read in
+	logic pc_gen_read_valid;
+	corep::UPCT_idx_t pc_gen_read_index;
 
-	logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] upct_array;
+    // pc_gen read out
+	corep::UPC_t pc_gen_read_upc;
 
-    // Update 0
-	logic update0_valid;
-	logic [31:0] update0_target_full_PC;
+    // update in
+	logic update_valid;
+	corep::UPC_t update_upc;
 
-    // Update 1
-	logic [LOG_UPCT_ENTRIES-1:0] update1_upct_index;
+    // update out
+	corep::UPCT_idx_t update_upct_index;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
 
 	upct #(
-		.UPCT_ENTRIES(UPCT_ENTRIES),
-		.LOG_UPCT_ENTRIES(LOG_UPCT_ENTRIES)
 	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
@@ -69,34 +63,36 @@ module upct_wrapper #(
         if (~nRST) begin
 
 
-		    // RESP stage
-			read_valid_RESP <= '0;
-			read_index_RESP <= '0;
+		    // pc_gen read in
+			pc_gen_read_valid <= '0;
+			pc_gen_read_index <= '0;
 
-			last_upct_array <= '0;
+		    // pc_gen read out
+			last_pc_gen_read_upc <= '0;
 
-		    // Update 0
-			update0_valid <= '0;
-			update0_target_full_PC <= '0;
+		    // update in
+			update_valid <= '0;
+			update_upc <= '0;
 
-		    // Update 1
-			last_update1_upct_index <= '0;
+		    // update out
+			last_update_upct_index <= '0;
         end
         else begin
 
 
-		    // RESP stage
-			read_valid_RESP <= next_read_valid_RESP;
-			read_index_RESP <= next_read_index_RESP;
+		    // pc_gen read in
+			pc_gen_read_valid <= next_pc_gen_read_valid;
+			pc_gen_read_index <= next_pc_gen_read_index;
 
-			last_upct_array <= upct_array;
+		    // pc_gen read out
+			last_pc_gen_read_upc <= pc_gen_read_upc;
 
-		    // Update 0
-			update0_valid <= next_update0_valid;
-			update0_target_full_PC <= next_update0_target_full_PC;
+		    // update in
+			update_valid <= next_update_valid;
+			update_upc <= next_update_upc;
 
-		    // Update 1
-			last_update1_upct_index <= update1_upct_index;
+		    // update out
+			last_update_upct_index <= update_upct_index;
         end
     end
 

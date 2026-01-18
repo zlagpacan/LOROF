@@ -7,15 +7,9 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
-
-`include "system_types_pkg.vh"
-import system_types_pkg::*;
+`include "corep.vh"
 
 module upct_tb #(
-	parameter UPCT_ENTRIES = 8,
-	parameter LOG_UPCT_ENTRIES = $clog2(UPCT_ENTRIES)
 ) ();
 
     // ----------------------------------------------------------------
@@ -39,43 +33,43 @@ module upct_tb #(
     // DUT signals:
 
 
-    // RESP stage
-	logic tb_read_valid_RESP;
-	logic [LOG_UPCT_ENTRIES-1:0] tb_read_index_RESP;
+    // pc_gen read in
+	logic tb_pc_gen_read_valid;
+	corep::UPCT_idx_t tb_pc_gen_read_index;
 
-	logic [UPCT_ENTRIES-1:0][UPPER_PC_WIDTH-1:0] DUT_upct_array, expected_upct_array;
+    // pc_gen read out
+	corep::UPC_t DUT_pc_gen_read_upc, expected_pc_gen_read_upc;
 
-    // Update 0
-	logic tb_update0_valid;
-	logic [31:0] tb_update0_target_full_PC;
+    // update in
+	logic tb_update_valid;
+	corep::UPC_t tb_update_upc;
 
-    // Update 1
-	logic [LOG_UPCT_ENTRIES-1:0] DUT_update1_upct_index, expected_update1_upct_index;
+    // update out
+	corep::UPCT_idx_t DUT_update_upct_index, expected_update_upct_index;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
 
 	upct #(
-		.UPCT_ENTRIES(UPCT_ENTRIES),
-		.LOG_UPCT_ENTRIES(LOG_UPCT_ENTRIES)
 	) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
 
 
-	    // RESP stage
-		.read_valid_RESP(tb_read_valid_RESP),
-		.read_index_RESP(tb_read_index_RESP),
+	    // pc_gen read in
+		.pc_gen_read_valid(tb_pc_gen_read_valid),
+		.pc_gen_read_index(tb_pc_gen_read_index),
 
-		.upct_array(DUT_upct_array),
+	    // pc_gen read out
+		.pc_gen_read_upc(DUT_pc_gen_read_upc),
 
-	    // Update 0
-		.update0_valid(tb_update0_valid),
-		.update0_target_full_PC(tb_update0_target_full_PC),
+	    // update in
+		.update_valid(tb_update_valid),
+		.update_upc(tb_update_upc),
 
-	    // Update 1
-		.update1_upct_index(DUT_update1_upct_index)
+	    // update out
+		.update_upct_index(DUT_update_upct_index)
 	);
 
     // ----------------------------------------------------------------
@@ -83,16 +77,16 @@ module upct_tb #(
 
     task check_outputs();
     begin
-		if (expected_upct_array !== DUT_upct_array) begin
-			$display("TB ERROR: expected_upct_array (%h) != DUT_upct_array (%h)",
-				expected_upct_array, DUT_upct_array);
+		if (expected_pc_gen_read_upc !== DUT_pc_gen_read_upc) begin
+			$display("TB ERROR: expected_pc_gen_read_upc (%h) != DUT_pc_gen_read_upc (%h)",
+				expected_pc_gen_read_upc, DUT_pc_gen_read_upc);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_update1_upct_index !== DUT_update1_upct_index) begin
-			$display("TB ERROR: expected_update1_upct_index (%h) != DUT_update1_upct_index (%h)",
-				expected_update1_upct_index, DUT_update1_upct_index);
+		if (expected_update_upct_index !== DUT_update_upct_index) begin
+			$display("TB ERROR: expected_update_upct_index (%h) != DUT_update_upct_index (%h)",
+				expected_update_upct_index, DUT_update_upct_index);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -101,8 +95,6 @@ module upct_tb #(
         tb_error = 1'b0;
     end
     endtask
-
-	logic [0:7][2:0] first_pass_plru_mapping = {3'h0, 3'h4, 3'h2, 3'h6, 3'h1, 3'h5, 3'h3, 3'h7};
 
     // ----------------------------------------------------------------
     // initial block:
@@ -121,35 +113,27 @@ module upct_tb #(
 
 		// reset
 		nRST = 1'b0;
-	    // RESP stage
-		tb_read_valid_RESP = 1'b0;
-		tb_read_index_RESP = 3'h0;
-	    // Update 0
-		tb_update0_valid = 1'b0;
-		tb_update0_target_full_PC = {
-			21'h0,
-			11'h0
-		};
-	    // Update 1
+	    // pc_gen read in
+		tb_pc_gen_read_valid = 1'b0;
+		tb_pc_gen_read_index = 0;
+	    // pc_gen read out
+	    // update in
+		tb_update_valid = 1'b0;
+		tb_update_upc = 26'h0000000;
+	    // update out
+
+        $display("$bits(tb_update_upc) = %0d", $bits(tb_update_upc));
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-	    // RESP stage
-		expected_upct_array = {
-			21'h0,
-			21'h0,
-			21'h0,
-			21'h0,
-			21'h0,
-			21'h0,
-			21'h0,
-			21'h0
-		};
-	    // Update 0
-	    // Update 1
-		expected_update1_upct_index = 3'h0;
+	    // pc_gen read in
+	    // pc_gen read out
+		expected_pc_gen_read_upc = '0;
+	    // update in
+	    // update out
+		expected_update_upct_index = 0;
 
 		check_outputs();
 
@@ -159,169 +143,66 @@ module upct_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // RESP stage
-		tb_read_valid_RESP = 1'b0;
-		tb_read_index_RESP = 3'h0;
-	    // Update 0
-		tb_update0_valid = 1'b0;
-		tb_update0_target_full_PC = {
-			21'h0,
-			11'h0
-		};
-	    // Update 1
+	    // pc_gen read in
+		tb_pc_gen_read_valid = 1'b0;
+		tb_pc_gen_read_index = 0;
+	    // pc_gen read out
+	    // update in
+		tb_update_valid = 1'b0;
+		tb_update_upc = 26'h0000000;
+	    // update out
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-	    // RESP stage
-		expected_upct_array = {
-			21'h0,
-			21'h0,
-			21'h0,
-			21'h0,
-			21'h0,
-			21'h0,
-			21'h0,
-			21'h0
-		};
-	    // Update 0
-	    // Update 1
-		expected_update1_upct_index = 3'h0;
+	    // pc_gen read in
+	    // pc_gen read out
+		expected_pc_gen_read_upc = '0;
+	    // update in
+	    // update out
+		expected_update_upct_index = 0;
 
 		check_outputs();
 
         // ------------------------------------------------------------
-        // update miss chain:
-        test_case = "update miss chain";
+        // update chain:
+        test_case = "update chain";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		@(posedge CLK); #(PERIOD/10);
+        for (int i = 0; i < 8; i++) begin
 
-		// inputs
-		sub_test_case = $sformatf("update0: 0x0, update1: NOP");
-		$display("\t- sub_test: %s", sub_test_case);
+            @(posedge CLK); #(PERIOD/10);
 
-		// reset
-		nRST = 1'b1;
-		// RESP stage
-		tb_read_valid_RESP = 1'b0;
-		tb_read_index_RESP = 3'h0;
-		// Update 0
-		tb_update0_valid = 1'b1;
-		tb_update0_target_full_PC = {
-			3'h0, {3{3'h7, 3'h0}},
-			11'h0
-		};
-		// Update 1
+            // inputs
+            sub_test_case = $sformatf("update chain %0d", i);
+            $display("\t- sub_test: %s", sub_test_case);
 
-		@(negedge CLK);
+            // reset
+            nRST = 1'b1;
+            // pc_gen read in
+            tb_pc_gen_read_valid = 1'b0;
+            tb_pc_gen_read_index = 0;
+            // pc_gen read out
+            // update in
+            tb_update_valid = 1'b1;
+    		tb_update_upc = {9{i[2:0]}};
+            // update out
 
-		// outputs:
+            @(negedge CLK);
 
-		// RESP stage
-		// expected_observer0_upper_PC_RESP = 21'h0;
-		// expected_observer1_upper_PC_RESP = 21'h0;
-		expected_upct_array = {
-			21'h0,
-			21'h0,
-			21'h0,
-			21'h0,
-			21'h0,
-			21'h0,
-			21'h0,
-			21'h0
-		};
-		// Update 0
-		// Update 1
-		expected_update1_upct_index = 3'h0;
+            // outputs:
 
-		check_outputs();
+            // pc_gen read in
+            // pc_gen read out
+            expected_pc_gen_read_upc = '0;
+            // update in
+            // update out
+            expected_update_upct_index = i;
 
-		for (int i = 1; i < 8; i++) begin
-
-			@(posedge CLK); #(PERIOD/10);
-
-			// inputs
-			sub_test_case = $sformatf("update0: 0x%1h, update1: 0x%1h", i, i - 1);
-			$display("\t- sub_test: %s", sub_test_case);
-
-			// reset
-			nRST = 1'b1;
-			// RESP stage
-			tb_read_valid_RESP = 1'b0;
-			tb_read_index_RESP = 3'h0;
-			// Update 0
-			tb_update0_valid = 1'b1;
-			tb_update0_target_full_PC = {
-				i[2:0], {3{~i[2:0], i[2:0]}},
-				11'h0
-			};
-			// Update 1
-
-			@(negedge CLK);
-
-			// outputs:
-
-			// RESP stage
-			// expected_upper_PC_RESP = i == 1 ? 21'h0 : {3'h0, {3{3'h7, 3'h0}}};
-			expected_upct_array = {
-				21'h0,
-				(i > 4) ? 21'b011100011100011100011 : 21'h0,
-				(i > 6) ? 21'b101010101010101010101 : 21'h0,
-				(i > 2) ? 21'b001110001110001110001 : 21'h0,
-				21'h0,
-				(i > 3) ? 21'b010101010101010101010 : 21'h0,
-				(i > 5) ? 21'b100011100011100011100 : 21'h0,
-				(i > 1) ? 21'b000111000111000111000 : 21'h0
-			};
-			// Update 0
-			// Update 1
-			expected_update1_upct_index = first_pass_plru_mapping[i-1];
-
-			check_outputs();
-		end
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = $sformatf("update0: NOP, update1: 0x7");
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-		// RESP stage
-		tb_read_valid_RESP = 1'b0;
-		tb_read_index_RESP = 3'h0;
-		// Update 0
-		tb_update0_valid = 1'b0;
-		tb_update0_target_full_PC = {
-			21'h0,
-			11'h0
-		};
-		// Update 1
-
-		@(negedge CLK);
-
-		// outputs:
-
-		// RESP stage
-		expected_upct_array = {
-			21'h0,
-			21'b011100011100011100011,
-			21'b101010101010101010101,
-			21'b001110001110001110001,
-			21'b110001110001110001110,
-			21'b010101010101010101010,
-			21'b100011100011100011100,
-			21'b000111000111000111000
-		};
-		// Update 0
-		// Update 1
-		expected_update1_upct_index = first_pass_plru_mapping[7];
-
-		check_outputs();
+            check_outputs();
+        end
 
         // ------------------------------------------------------------
         // read chain:
@@ -329,185 +210,155 @@ module upct_tb #(
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		for (int i = 7; i >= 0; i--) begin
+        for (int i = 7; i >= 0; i--) begin
 
-			@(posedge CLK); #(PERIOD/10);
+            @(posedge CLK); #(PERIOD/10);
 
-			// inputs
-			sub_test_case = $sformatf("RESP: 0x%1h", i[2:0]);
-			$display("\t- sub_test: %s", sub_test_case);
+            // inputs
+            sub_test_case = $sformatf("read chain %0d", i);
+            $display("\t- sub_test: %s", sub_test_case);
 
-			// reset
-			nRST = 1'b1;
-			// RESP stage
-			tb_read_valid_RESP = 1'b1;
-			tb_read_index_RESP = i[2:0];
-			// Update 0
-			tb_update0_valid = 1'b0;
-			tb_update0_target_full_PC = {
-				21'h0,
-				11'h0
-			};
-			// Update 1
+            // reset
+            nRST = 1'b1;
+            // pc_gen read in
+            tb_pc_gen_read_valid = 1'b1;
+            tb_pc_gen_read_index = i;
+            // pc_gen read out
+            // update in
+            tb_update_valid = 1'b0;
+    		tb_update_upc = 0;
+            // update out
 
-			@(negedge CLK);
+            @(negedge CLK);
 
-			// outputs:
+            // outputs:
 
-			// RESP stage
-			// expected_observer0_upper_PC_RESP = {first_pass_plru_mapping[i][2:0], {3{~first_pass_plru_mapping[i][2:0], first_pass_plru_mapping[i][2:0]}}};
-			// expected_observer1_upper_PC_RESP = {first_pass_plru_mapping[i][2:0], {3{~first_pass_plru_mapping[i][2:0], first_pass_plru_mapping[i][2:0]}}};
-			expected_upct_array = {
-				21'b111000111000111000111,
-				21'b011100011100011100011,
-				21'b101010101010101010101,
-				21'b001110001110001110001,
-				21'b110001110001110001110,
-				21'b010101010101010101010,
-				21'b100011100011100011100,
-				21'b000111000111000111000
-			};
-			// Update 0
-			// Update 1
-			expected_update1_upct_index = i > 2 ? 3'h0 : 3'h7;
+            // pc_gen read in
+            // pc_gen read out
+            expected_pc_gen_read_upc = {9{i[2:0]}};
+            // update in
+            // update out
+            expected_update_upct_index = {3'h0, 3'h0, 3'h1, 3'h0, 3'h3, 3'h2, 3'h1, 3'h0} >> i*3;
 
-			check_outputs();
-		end
+            check_outputs();
+        end
 
         // ------------------------------------------------------------
-        // update hit chain:
-        test_case = "update hit chain";
+        // update w/ existing chain:
+        test_case = "update w/ existing chain";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		@(posedge CLK); #(PERIOD/10);
+        for (int i = 0; i < 8; i++) begin
 
-		// inputs
-		sub_test_case = $sformatf("update0: 0x0, update1: NOP");
-		$display("\t- sub_test: %s", sub_test_case);
+            @(posedge CLK); #(PERIOD/10);
 
-		// reset
-		nRST = 1'b1;
-		// RESP stage
-		tb_read_valid_RESP = 1'b0;
-		tb_read_index_RESP = 3'h0;
-		// Update 0
-		tb_update0_valid = 1'b1;
-		tb_update0_target_full_PC = {
-			3'h0, {3{3'h7, 3'h0}},
-			11'h0
-		};
-		// Update 1
+            // inputs
+            sub_test_case = $sformatf("update w/ existing chain %0d", i);
+            $display("\t- sub_test: %s", sub_test_case);
 
-		@(negedge CLK);
+            // reset
+            nRST = 1'b1;
+            // pc_gen read in
+            tb_pc_gen_read_valid = 1'b0;
+            tb_pc_gen_read_index = 0;
+            // pc_gen read out
+            // update in
+            tb_update_valid = 1'b1;
+    		tb_update_upc = {9{i[2:0]}};
+            // update out
 
-		// outputs:
+            @(negedge CLK);
 
-		// RESP stage
-		// expected_observer0_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
-		// expected_observer1_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
-		expected_upct_array = {
-			21'b111000111000111000111,
-			21'b011100011100011100011,
-			21'b101010101010101010101,
-			21'b001110001110001110001,
-			21'b110001110001110001110,
-			21'b010101010101010101010,
-			21'b100011100011100011100,
-			21'b000111000111000111000
-		};
-		// Update 0
-		// Update 1
-		expected_update1_upct_index = 3'h7;
+            // outputs:
 
-		check_outputs();
+            // pc_gen read in
+            // pc_gen read out
+            expected_pc_gen_read_upc = '0;
+            // update in
+            // update out
+            expected_update_upct_index = i;
 
-		for (int i = 1; i < 8; i++) begin
+            check_outputs();
+        end
 
-			@(posedge CLK); #(PERIOD/10);
+        // ------------------------------------------------------------
+        // update w/ new chain:
+        test_case = "update w/ new chain";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
 
-			// inputs
-			sub_test_case = $sformatf("update0: 0x%1h, update1: 0x%1h", i, i - 1);
-			$display("\t- sub_test: %s", sub_test_case);
+        for (int i = 7; i >= 4; i--) begin
 
-			// reset
-			nRST = 1'b1;
-			// RESP stage
-			tb_read_valid_RESP = 1'b0;
-			tb_read_index_RESP = 3'h0;
-			// Update 0
-			tb_update0_valid = 1'b1;
-			tb_update0_target_full_PC = {
-				i[2:0], {3{~i[2:0], i[2:0]}},
-				11'h0
-			};
-			// Update 1
+            @(posedge CLK); #(PERIOD/10);
 
-			@(negedge CLK);
+            // inputs
+            sub_test_case = $sformatf("update w/ new chain %0d", i);
+            $display("\t- sub_test: %s", sub_test_case);
 
-			// outputs:
+            // reset
+            nRST = 1'b1;
+            // pc_gen read in
+            tb_pc_gen_read_valid = 1'b0;
+            tb_pc_gen_read_index = 0;
+            // pc_gen read out
+            // update in
+            tb_update_valid = 1'b1;
+    		tb_update_upc = {7{i[3:0]}};
+            // update out
 
-			// RESP stage
-			// expected_observer0_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
-			// expected_observer1_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
-			expected_upct_array = {
-				21'b111000111000111000111,
-				21'b011100011100011100011,
-				21'b101010101010101010101,
-				21'b001110001110001110001,
-				21'b110001110001110001110,
-				21'b010101010101010101010,
-				21'b100011100011100011100,
-				21'b000111000111000111000
-			};
-			// Update 0
-			// Update 1
-			expected_update1_upct_index = first_pass_plru_mapping[i-1];
+            @(negedge CLK);
 
-			check_outputs();
-		end
+            // outputs:
 
-		@(posedge CLK); #(PERIOD/10);
+            // pc_gen read in
+            // pc_gen read out
+            expected_pc_gen_read_upc = (i == 7) ? 26'h0000000 : 26'h3777777;
+            // update in
+            // update out
+            expected_update_upct_index = {3'h0, 3'h1, 3'h2, 3'h3} >> (i-4)*3;
 
-		// inputs
-		sub_test_case = $sformatf("update0: NOP, update1: 0x7");
-		$display("\t- sub_test: %s", sub_test_case);
+            check_outputs();
+        end
 
-		// reset
-		nRST = 1'b1;
-		// RESP stage
-		tb_read_valid_RESP = 1'b0;
-		tb_read_index_RESP = 3'h0;
-		// Update 0
-		tb_update0_valid = 1'b0;
-		tb_update0_target_full_PC = {
-			21'h0,
-			11'h0
-		};
-		// Update 1
+        // ------------------------------------------------------------
+        // final read chain:
+        test_case = "final read chain";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
 
-		@(negedge CLK);
+        for (int i = 0; i < 8; i++) begin
 
-		// outputs:
+            @(posedge CLK); #(PERIOD/10);
 
-		// RESP stage
-		// expected_observer0_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
-		// expected_observer1_upper_PC_RESP = {3'h0, {3{3'h7, 3'h0}}};
-		expected_upct_array = {
-			21'b111000111000111000111,
-			21'b011100011100011100011,
-			21'b101010101010101010101,
-			21'b001110001110001110001,
-			21'b110001110001110001110,
-			21'b010101010101010101010,
-			21'b100011100011100011100,
-			21'b000111000111000111000
-		};
-		// Update 0
-		// Update 1
-		expected_update1_upct_index = first_pass_plru_mapping[7];
+            // inputs
+            sub_test_case = $sformatf("final read chain %0d", i);
+            $display("\t- sub_test: %s", sub_test_case);
 
-		check_outputs();
+            // reset
+            nRST = 1'b1;
+            // pc_gen read in
+            tb_pc_gen_read_valid = 1'b1;
+            tb_pc_gen_read_index = i;
+            // pc_gen read out
+            // update in
+            tb_update_valid = 1'b0;
+    		tb_update_upc = 26'h0000000;
+            // update out
+
+            @(negedge CLK);
+
+            // outputs:
+
+            // pc_gen read in
+            // pc_gen read out
+            expected_pc_gen_read_upc = (i < 4) ? {7{{7-i}[3:0]}} : {9{i[2:0]}};
+            // update in
+            // update out
+            expected_update_upct_index = (i < 4) ? i + 4 : i;
+
+            check_outputs();
+        end
 
         // ------------------------------------------------------------
         // finish:
@@ -521,7 +372,7 @@ module upct_tb #(
 
         $display();
         if (num_errors) begin
-            $display("FAIL: %d tests fail", num_errors);
+            $display("FAIL: %0d tests fail", num_errors);
         end
         else begin
             $display("SUCCESS: all tests pass");

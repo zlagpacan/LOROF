@@ -1,13 +1,13 @@
 /*
-    Filename: system_types.vh
+    Filename: sysp.vh
     Author: zlagpacan
     Description: Package Header File for System-Level Types
 */
 
-`ifndef SYSTEM_TYPES_VH
-`define SYSTEM_TYPES_VH
+`ifndef SYSP_VH
+`define SYSP_VH
 
-package system_types;
+package sysp;
 
     // ----------------------------------------------------------------
     // Virtual Memory:
@@ -146,4 +146,4 @@ package system_types;
 
 endpackage
 
-`endif // SYSTEM_TYPES_VH
+`endif // SYSP_VH
