@@ -37,7 +37,6 @@ module arbiter2_rr #(
     logic unmasked_found_second;
 
     always_ff @ (posedge CLK, negedge nRST) begin
-    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
             req_mask <= '0;
         end
