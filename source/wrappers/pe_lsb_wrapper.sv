@@ -9,10 +9,7 @@
 
 
 module pe_lsb_wrapper #(
-	parameter WIDTH = 8,
-	parameter USE_ONE_HOT = 1,
-	parameter USE_COLD = 0,
-	parameter USE_INDEX = 0
+	parameter int unsigned WIDTH = 8
 ) (
 
     // seq
@@ -39,10 +36,7 @@ module pe_lsb_wrapper #(
     // Module Instantiation:
 
 	pe_lsb #(
-		.WIDTH(WIDTH),
-		.USE_ONE_HOT(USE_ONE_HOT),
-		.USE_COLD(USE_COLD),
-		.USE_INDEX(USE_INDEX)
+		.WIDTH(WIDTH)
 	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------

@@ -11,10 +11,7 @@
 import core_types_pkg::*;
 
 module pe_lsb_tb #(
-	parameter WIDTH = 8,
-	parameter USE_ONE_HOT = 1,
-	parameter USE_COLD = 1,
-	parameter USE_INDEX = 1
+	parameter WIDTH = 8
 ) ();
 
     // ----------------------------------------------------------------
@@ -47,10 +44,7 @@ module pe_lsb_tb #(
     // DUT instantiation:
 
 	pe_lsb #(
-		.WIDTH(WIDTH),
-		.USE_ONE_HOT(USE_ONE_HOT),
-		.USE_COLD(USE_COLD),
-		.USE_INDEX(USE_INDEX)
+		.WIDTH(WIDTH)
 	) DUT (
 		.req_vec(tb_req_vec),
 
