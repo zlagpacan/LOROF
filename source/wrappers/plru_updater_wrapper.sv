@@ -7,11 +7,6 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
-
-`include "system_types_pkg.vh"
-import system_types_pkg::*;
 
 module plru_updater_wrapper #(
 	parameter NUM_ENTRIES = 8,

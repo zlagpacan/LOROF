@@ -17,33 +17,33 @@ module alu (
 
     always_comb begin
         unique casez (op)
-            instr_p::ALU_ADD:   out = A + B;
-            instr_p::ALU_SLL:   out = A << B[5:0];
-            instr_p::ALU_SLT:   out = $signed(A) < $signed(B) ? 64'h1 : 64'h0;
-            instr_p::ALU_SLTU:  out = A < B ? 64'h1 : 64'h0;
-            instr_p::ALU_XOR:   out = A ^ B;
-            instr_p::ALU_SRL:   out = A >> B[5:0];
-            instr_p::ALU_OR:    out = A | B;
-            instr_p::ALU_AND:   out = A & B;
-            instr_p::ALU_SUB:   out = A - B;
-            instr_p::ALU_SRA:   out = $signed(A) >>> B[5:0];
-            instr_p::ALU_ADDW: begin
+            instrp::ALU_ADD:   out = A + B;
+            instrp::ALU_SLL:   out = A << B[5:0];
+            instrp::ALU_SLT:   out = $signed(A) < $signed(B) ? 64'h1 : 64'h0;
+            instrp::ALU_SLTU:  out = A < B ? 64'h1 : 64'h0;
+            instrp::ALU_XOR:   out = A ^ B;
+            instrp::ALU_SRL:   out = A >> B[5:0];
+            instrp::ALU_OR:    out = A | B;
+            instrp::ALU_AND:   out = A & B;
+            instrp::ALU_SUB:   out = A - B;
+            instrp::ALU_SRA:   out = $signed(A) >>> B[5:0];
+            instrp::ALU_ADDW: begin
                 out[31:0] = A[31:0] + B[31:0];
                 out[63:32] = {32{out[31]}};
             end
-            instr_p::ALU_SUBW: begin
+            instrp::ALU_SUBW: begin
                 out[31:0] = A[31:0] - B[31:0];
                 out[63:32] = {32{out[31]}};
             end
-            instr_p::ALU_SLLW: begin
+            instrp::ALU_SLLW: begin
                 out[31:0] = A[31:0] << B[4:0];
                 out[63:32] = {32{out[31]}};
             end
-            instr_p::ALU_SRLW: begin
+            instrp::ALU_SRLW: begin
                 out[31:0] = A[31:0] >> B[4:0];
                 out[63:32] = {32{out[31]}};
             end
-            instr_p::ALU_SRAW: begin
+            instrp::ALU_SRAW: begin
                 out[31:0] = $signed(A[31:0]) >>> B[4:0];
                 out[63:32] = {32{out[31]}};
             end
