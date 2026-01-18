@@ -123,7 +123,7 @@ module one_hot_enc_tb #(
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-        for (int i = 0; i < 8; i++) begin
+        for (int i = 0; i < WIDTH; i++) begin
 
             @(posedge CLK); #(PERIOD/10);
 

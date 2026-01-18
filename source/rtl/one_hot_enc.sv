@@ -21,6 +21,7 @@ module one_hot_enc #(
             //     index_out = i;
             // end
             index_out ^= i[$clog2(WIDTH)-1:0] & {$clog2(WIDTH){one_hot_in[i]}};
+                // requires true on hot, avoids priority logic
         end
     end
 
