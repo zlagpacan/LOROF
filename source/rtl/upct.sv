@@ -32,7 +32,8 @@ module upct (
     // Signals:
 
     // FF Array:
-    corep::UPC_t [corep::UPCT_ENTRIES-1:0] upct_array, next_upct_array;
+    corep::UPC_t    upct_array         [corep::UPCT_ENTRIES-1:0];
+    corep::UPC_t    next_upct_array    [corep::UPCT_ENTRIES-1:0];
 
     // PLRU:
     logic [corep::UPCT_ENTRIES-2:0] plru, next_plru;
@@ -53,7 +54,9 @@ module upct (
     // FF's:
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            upct_array <= '0;
+            for (int i = 0; i < corep::UPCT_ENTRIES; i++) begin
+                upct_array[i] <= '0;
+            end
             plru <= '0;
         end
         else begin

@@ -22,6 +22,7 @@ package corep;
     parameter int unsigned LOG_AR6_COUNT = 6;
 
     typedef logic [LOG_AR5_COUNT-1:0] AR5_t;
+    
     typedef struct packed {
         logic   is_fp;
         AR5_t   ar5;
@@ -143,6 +144,14 @@ package corep;
     // ----------------------------------------------------------------
     // Fetch Predictors:
 
+    // PC38 possibilities:
+        // last_pc38
+        // last_pc38 + 8
+        // {last_pc38[37:12], big_target[11:0]}
+        // {upc.upper[25:0], small_target[8:0], upc.lane[2:0]}
+        // ras ret pc38
+        // ibtb pc38
+
     // 2-bit saturating counter:
     typedef logic [1:0] TBC_t;
 
@@ -169,7 +178,7 @@ package corep;
     parameter int unsigned BTB_BIG_TARGET_WIDTH = 12;
     parameter int unsigned BTB_SMALL_TARGET_WIDTH = 9;
         // want BTB_BIG_TARGET_WIDTH - BTB_SMALL_TARGET_WIDTH == LOG_FETCH_LANES
-        // so upper bits of big target and small target are in same place
+        // so upper bits of big target and small target are in same place for fast redirect
     parameter int unsigned LOG_UPCT_ENTRIES = BTB_BIG_TARGET_WIDTH - BTB_SMALL_TARGET_WIDTH;
     parameter int unsigned BTB_TAG_WIDTH = 8;
     parameter int unsigned BTB_ASSOC = 2;
@@ -178,24 +187,24 @@ package corep;
     typedef logic [BTB_SMALL_TARGET_WIDTH-1:0]  BTB_small_target_t;
     typedef logic [LOG_UPCT_ENTRIES-1:0]        UPCT_idx_t;
     typedef logic [BTB_TAG_WIDTH-1:0]           BTB_tag_t;
+
     typedef struct packed {
         BTB_small_target_t  small_target;
         UPCT_idx_t          upct_idx;
     } BTB_big_target_t;
+    
     typedef struct packed {
         BTB_action_t        action;
         logic               use_upct;
         BTB_big_target_t    big_target;
-        BTB_tag_t           tag;
-    } BTB_entry_t;
-    typedef BTB_entry_t [FETCH_LANES-1:0][BTB_ASSOC-1:0] BTB_set_t;
+    } BTB_info_t;
 
-    // PC38:
-        // last_PC38 + 8
-        // {last_PC38[37:12], big_target[11:0]}
-        // {upc.upper[25:0], small_target[8:0], upc.lane[2:0]}
-        // ras TOS
-        // ibtb out
+    typedef struct packed {
+        BTB_info_t  info;
+        BTB_tag_t   tag;
+    } BTB_entry_t;
+
+    typedef BTB_entry_t [FETCH_LANES-1:0][BTB_ASSOC-1:0] BTB_set_t;
 
     parameter BTB_action_t BTB_ACTION_NONE          = 3'b000;
     parameter BTB_action_t BTB_ACTION_BRANCH        = 3'b001;
@@ -227,7 +236,7 @@ package corep;
     // gbpt:
         // 8-wide access into direct-mapped, untagged entries
         // index: PC, GHR, ASID
-    parameter int unsigned GH_LENGTH = 10;
+    parameter int unsigned GH_LENGTH = 9; // == BTB_SMALL_TARGET_WIDTH for fast redirect
     parameter int unsigned GBPT_SETS = 2**GH_LENGTH;
     parameter int unsigned GBPT_ENTRIES = GBPT_SETS * FETCH_LANES;
 
@@ -239,7 +248,8 @@ package corep;
     parameter int unsigned RAS_ENTRIES = 16;
     parameter int unsigned LOG_RAS_ENTRIES = $clog2(RAS_ENTRIES);
 
-    typedef logic [LOG_RAS_ENTRIES-1:0] RAS_idx_t;
+    typedef logic [LOG_RAS_ENTRIES-1:0]     RAS_idx_t;
+    typedef logic [LOG_RAS_ENTRIES+1-1:0]   RAS_count_t;
 
     // upct:
         // PLRU-allocated array
@@ -254,12 +264,9 @@ package corep;
         // PC38 = {upc.upper[25:0], small_target[8:0], upc.lane[2:0]}
 
     // ibtb entry:
-        // {use_upct, big_target}
+        // {pc38}
         // 1-wide access into direct-mapped, untagged entries
-    typedef struct packed {
-        logic               use_upct;
-        BTB_big_target_t    big_target;
-    } IBTB_entry_t;
+    typedef PC38_t IBTB_entry_t;
 
     // ibtb:
         // 1-wide access into direct-mapped, untagged entries
@@ -284,6 +291,7 @@ package corep;
         TBC_t   tbc;
         SSID_t  ssid;
     } MDPT_entry_t;
+
     typedef MDPT_entry_t [FETCH_LANES-1:0] MDPT_set_t;
 
     // mdpt:

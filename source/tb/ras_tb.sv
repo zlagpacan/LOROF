@@ -285,7 +285,7 @@ module ras_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "update to A";
+		sub_test_case = "update to E";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -297,7 +297,7 @@ module ras_tb #(
 		tb_ret_valid = 1'b0;
 	    // update control
 		tb_update_valid = 1'b1;
-		tb_update_ras_index = 4'hA;
+		tb_update_ras_index = 4'hE;
 
 		@(negedge CLK);
 
@@ -335,7 +335,7 @@ module ras_tb #(
 	    // pc_gen link control
 	    // pc_gen return control
 		expected_ret_pc38 = 38'h0000000000;
-		expected_ret_ras_index = 4'hA;
+		expected_ret_ras_index = 4'hE;
 	    // update control
 
 		check_outputs();

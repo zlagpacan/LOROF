@@ -31,7 +31,8 @@ module ras (
     // Signals:
 
     // FF Array:
-    corep::PC38_t [corep::RAS_ENTRIES-1:0] ras_array, next_ras_array;
+    corep::PC38_t   ras_array         [corep::RAS_ENTRIES-1:0];
+    corep::PC38_t   next_ras_array    [corep::RAS_ENTRIES-1:0];
 
     // RESP Stage:
     corep::RAS_idx_t sp, next_sp, sp_plus_1, sp_minus_1;
@@ -41,7 +42,9 @@ module ras (
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            ras_array <= '0;
+            for (int i = 0; i < corep::RAS_ENTRIES; i++) begin
+                ras_array[i] <= '0;
+            end
             sp <= 0;
         end
         else begin
