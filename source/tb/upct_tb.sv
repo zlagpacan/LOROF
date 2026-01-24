@@ -343,7 +343,7 @@ module upct_tb #(
             // pc_gen read out
             // update in
             tb_update_valid = 1'b0;
-    		tb_update_upc = 26'h00000000;
+    		tb_update_upc = 29'h00000000;
             // update out
 
             @(negedge CLK);

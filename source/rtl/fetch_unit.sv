@@ -5,6 +5,25 @@
     Spec: LOROF/spec/design/fetch_unit.md
 */
 
+// TODO: RV64GC changes
+// TODO: fast redirect
+    // pipelined pc_gen which resolves details quickly if can else defer to third stage
+    // can quickly redirect by only needing BTB_small_target or ras TOS
+    // pipeline: REQ, RESP, LATE
+        // REQ:
+            // btb, gbpt, mdpt req
+            // itlb, icache req
+        // RESP:
+            // btb, gbpt, mdpt resp
+            // itlb, icache resp
+            // ras read/write
+            // btb hit check
+            // fast redirect -> REQ
+            // yield PC index bits
+        // LATE:
+            // upct, ibtb lookup
+            // yield full PC
+
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 

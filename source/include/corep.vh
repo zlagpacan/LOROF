@@ -148,26 +148,28 @@ package corep;
 
     // fetch access:
     parameter int unsigned FETCH_WIDTH_B = 16;
-    parameter int unsigned FETCH_WIDTH_2B = 8;
-    parameter int unsigned LOG_FETCH_WIDTH_2B = $clog2(FETCH_WIDTH_2B);
+    parameter int unsigned FETCH_LANES = 8;
+    parameter int unsigned LOG_FETCH_LANES = $clog2(FETCH_LANES);
 
-    typedef logic [LOG_FETCH_WIDTH_2B-1:0] inner_fetch_idx_t;
-    typedef logic [39-LOG_FETCH_WIDTH_2B-1:0] outer_fetch_idx_t;
+    typedef logic [LOG_FETCH_LANES-1:0] fetch_lane_t;
+    typedef logic [39-LOG_FETCH_LANES-1:0] fetch_idx_t;
 
-    function inner_fetch_idx_t inner_fetch_idx_bits(PC38_t PC38);
-        return PC38[LOG_FETCH_WIDTH_2B-1:0];
+    function fetch_lane_t fetch_lane_bits(PC38_t PC38);
+        return PC38[LOG_FETCH_LANES-1:0];
     endfunction
 
-    function outer_fetch_idx_t outer_fetch_idx_bits(PC38_t PC38);
-        return PC38[37:LOG_FETCH_WIDTH_2B];
+    function fetch_idx_t fetch_idx_bits(PC38_t PC38);
+        return PC38[37:LOG_FETCH_LANES];
     endfunction 
 
     // btb entry:
         // {action, use_upct, big_target, tag}
-        // 8-wide access into associative tagged entries
+        // 8-wide / 8x fetch lane access into associative tagged entries
     parameter int unsigned BTB_ACTION_WIDTH = 3;
     parameter int unsigned BTB_BIG_TARGET_WIDTH = 12;
     parameter int unsigned BTB_SMALL_TARGET_WIDTH = 9;
+        // want BTB_BIG_TARGET_WIDTH - BTB_SMALL_TARGET_WIDTH == LOG_FETCH_LANES
+        // so upper bits of big target and small target are in same place
     parameter int unsigned LOG_UPCT_ENTRIES = BTB_BIG_TARGET_WIDTH - BTB_SMALL_TARGET_WIDTH;
     parameter int unsigned BTB_TAG_WIDTH = 8;
     parameter int unsigned BTB_ASSOC = 2;
@@ -177,8 +179,8 @@ package corep;
     typedef logic [LOG_UPCT_ENTRIES-1:0]        UPCT_idx_t;
     typedef logic [BTB_TAG_WIDTH-1:0]           BTB_tag_t;
     typedef struct packed {
-        UPCT_idx_t          upct_idx;
         BTB_small_target_t  small_target;
+        UPCT_idx_t          upct_idx;
     } BTB_big_target_t;
     typedef struct packed {
         BTB_action_t        action;
@@ -186,7 +188,14 @@ package corep;
         BTB_big_target_t    big_target;
         BTB_tag_t           tag;
     } BTB_entry_t;
-    typedef BTB_entry_t [FETCH_WIDTH_2B-1:0][BTB_ASSOC-1:0] BTB_set_t;
+    typedef BTB_entry_t [FETCH_LANES-1:0][BTB_ASSOC-1:0] BTB_set_t;
+
+    // PC38:
+        // last_PC38 + 8
+        // {last_PC38[37:12], big_target[11:0]}
+        // {upc.upper[25:0], small_target[8:0], upc.lane[2:0]}
+        // ras TOS
+        // ibtb out
 
     parameter BTB_action_t BTB_ACTION_NONE          = 3'b000;
     parameter BTB_action_t BTB_ACTION_BRANCH        = 3'b001;
@@ -202,8 +211,8 @@ package corep;
         // index: PC, ASID
         // tag: PC, ASID
     parameter int unsigned BTB_ENTRIES = 1024;
-    parameter int unsigned BTB_SETS = BTB_ENTRIES / BTB_ASSOC / FETCH_WIDTH_2B;
-    parameter int unsigned LOG_BTB_SETS = $clog2(BTB_SETS);
+    parameter int unsigned BTB_SETS = BTB_ENTRIES / BTB_ASSOC / FETCH_LANES;
+    parameter int unsigned LOG_BTB_SETS = $clog2(BTB_SETS); // must be <= BTB_SMALL_TARGET_WIDTH for fast redirect
     
     typedef logic [LOG_BTB_SETS-1:0]        BTB_idx_t;
     typedef logic [BTB_ASSOC-2:0]           BTB_plru_t;
@@ -212,15 +221,15 @@ package corep;
     // gbpt entry:
         // 2BC
         // 8-wide access into direct-mapped, untagged entries
-    typedef TBC_t                               GBPT_entry_t;
-    typedef GBPT_entry_t [FETCH_WIDTH_2B-1:0]   GBPT_set_t;
+    typedef TBC_t                           GBPT_entry_t;
+    typedef GBPT_entry_t [FETCH_LANES-1:0]  GBPT_set_t;
 
     // gbpt:
         // 8-wide access into direct-mapped, untagged entries
         // index: PC, GHR, ASID
     parameter int unsigned GH_LENGTH = 10;
     parameter int unsigned GBPT_SETS = 2**GH_LENGTH;
-    parameter int unsigned GBPT_ENTRIES = GBPT_SETS * FETCH_WIDTH_2B;
+    parameter int unsigned GBPT_ENTRIES = GBPT_SETS * FETCH_LANES;
 
     typedef logic [GH_LENGTH-1:0]   GH_t;
     typedef GH_t                    GBPT_idx_t;
@@ -237,27 +246,27 @@ package corep;
     // LOG_UPCT_ENTRIES defined ^
     // UPCT_idx_t defined ^
     parameter int unsigned UPCT_ENTRIES = 2**LOG_UPCT_ENTRIES;
-    parameter int unsigned UPPER_PC_WIDTH = 39 - BTB_SMALL_TARGET_WIDTH - 1;
-        // PC38 = {UPC, small_target}
 
-    typedef logic [UPPER_PC_WIDTH-1:0] UPC_t;
+    typedef struct packed {
+        logic [38-BTB_SMALL_TARGET_WIDTH-LOG_FETCH_LANES-1:0]   upper;
+        fetch_lane_t                                            lane;
+    } UPC_t;
+        // PC38 = {upc.upper[25:0], small_target[8:0], upc.lane[2:0]}
 
     // ibtb entry:
         // {use_upct, big_target}
-        // 8-wide access into direct-mapped, untagged entries
+        // 1-wide access into direct-mapped, untagged entries
     typedef struct packed {
         logic               use_upct;
         BTB_big_target_t    big_target;
     } IBTB_entry_t;
-    typedef IBTB_entry_t [FETCH_WIDTH_2B-1:0]   IBTB_set_t;
 
     // ibtb:
         // 1-wide access into direct-mapped, untagged entries
         // index: PC, GHR, ASID
-    parameter int unsigned IBTB_ENTRIES = 64;
+    parameter int unsigned IBTB_ENTRIES = 32;
     parameter int unsigned IBTB_GH_WIDTH = $clog2(IBTB_ENTRIES);
-    parameter int unsigned IBTB_SETS = IBTB_ENTRIES / FETCH_WIDTH_2B;
-    parameter int unsigned LOG_IBTB_SETS = $clog2(IBTB_SETS);
+    parameter int unsigned LOG_IBTB_ENTRIES = $clog2(IBTB_ENTRIES);
 
     typedef logic [IBTB_GH_WIDTH-1:0]   IBTB_GH_t;
     typedef IBTB_GH_t                   IBTB_idx_t;
@@ -275,12 +284,13 @@ package corep;
         TBC_t   tbc;
         SSID_t  ssid;
     } MDPT_entry_t;
-    typedef MDPT_entry_t [FETCH_WIDTH_2B-1:0] MDPT_set_t;
+    typedef MDPT_entry_t [FETCH_LANES-1:0] MDPT_set_t;
 
     // mdpt:
-        // direct-mapped, no tags
+        // 8-wide access into direct-mapped, untagged entries
+        // index: PC, ASID
     parameter int unsigned MDPT_ENTRIES = 1024;
-    parameter int unsigned MDPT_SETS = MDPT_ENTRIES / FETCH_WIDTH_2B;
+    parameter int unsigned MDPT_SETS = MDPT_ENTRIES / FETCH_LANES;
     parameter int unsigned LOG_MDPT_SETS = $clog2(MDPT_SETS);
 
     typedef logic [LOG_MDPT_SETS-1:0] MDPT_idx_t;
