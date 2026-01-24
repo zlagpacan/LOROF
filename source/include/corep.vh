@@ -152,7 +152,7 @@ package corep;
     parameter int unsigned LOG_FETCH_LANES = $clog2(FETCH_LANES);
 
     typedef logic [LOG_FETCH_LANES-1:0] fetch_lane_t;
-    typedef logic [39-LOG_FETCH_LANES-1:0] fetch_idx_t;
+    typedef logic [38-LOG_FETCH_LANES-1:0] fetch_idx_t;
 
     function fetch_lane_t fetch_lane_bits(PC38_t PC38);
         return PC38[LOG_FETCH_LANES-1:0];

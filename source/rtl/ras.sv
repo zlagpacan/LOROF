@@ -96,7 +96,9 @@ module ras (
     end
 
     // always read out current sp and current addr and sp
-    assign ret_ras_index = sp;
-    assign ret_pc38 = ras_array[sp];
+    always_comb begin
+        ret_ras_index = sp;
+        ret_pc38 = ras_array[sp];
+    end
 
 endmodule

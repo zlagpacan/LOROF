@@ -14,7 +14,7 @@ module btb (
     input logic nRST,
 
     // arch state
-    input corep::ASID_t arch_ASID,
+    input corep::ASID_t arch_asid,
     
     // read req in
     input logic                                                 read_req_valid,
@@ -32,6 +32,19 @@ module btb (
     input logic                 update_hit,
     input corep::BTB_way_idx_t  update_hit_way
 );
+
+    // ----------------------------------------------------------------
+    // Functions:
+
+    function BTB_idx_t index_hash(corep::PC38_t pc38, corep::ASID_t asid);
+        index_hash = corep::fetch_idx_bits(pc38);
+        index_hash ^= asid;
+    endfunction
+
+    function BTB_tag_t tag_hash(corep::PC38_t pc38, corep::ASID_t asid);
+        tag_hash = pc38[37 : corep::LOG_BTB_SETS+corep::LOG_FETCH_LANES];
+        tag_hash ^= asid[corep::ASID_WIDTH-1 : corep::LOG_BTB_SETS];
+    endfunction
 
     // ----------------------------------------------------------------
     // Signals:
@@ -55,6 +68,16 @@ module btb (
 
     // ----------------------------------------------------------------
     // Logic:
+
+    // index hash
+
+    // tag hash
+
+    // read logic
+    always_comb begin
+
+        // hit defined as non-zero action and tag match
+    end
 
     // bram
     bram_1rport_1wport #(
