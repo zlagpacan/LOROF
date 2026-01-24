@@ -166,10 +166,10 @@ package corep;
         // {action, use_upct, big_target, tag}
         // 8-wide access into associative tagged entries
     parameter int unsigned BTB_ACTION_WIDTH = 3;
-    parameter int unsigned BTB_BIG_TARGET_WIDTH = 15;
-    parameter int unsigned BTB_SMALL_TARGET_WIDTH = 12;
+    parameter int unsigned BTB_BIG_TARGET_WIDTH = 12;
+    parameter int unsigned BTB_SMALL_TARGET_WIDTH = 9;
     parameter int unsigned LOG_UPCT_ENTRIES = BTB_BIG_TARGET_WIDTH - BTB_SMALL_TARGET_WIDTH;
-    parameter int unsigned BTB_TAG_WIDTH = 5;
+    parameter int unsigned BTB_TAG_WIDTH = 8;
     parameter int unsigned BTB_ASSOC = 2;
 
     typedef logic [BTB_ACTION_WIDTH-1:0]        BTB_action_t;
@@ -207,7 +207,7 @@ package corep;
     
     typedef logic [LOG_BTB_SETS-1:0]        BTB_idx_t;
     typedef logic [BTB_ASSOC-2:0]           BTB_plru_t;
-    typedef logic [$clog2(BTB_ASSOC)-1:0]   BTB_plru_idx_t;
+    typedef logic [$clog2(BTB_ASSOC)-1:0]   BTB_way_idx_t;
 
     // gbpt entry:
         // 2BC

@@ -119,7 +119,7 @@ module upct_tb #(
 	    // pc_gen read out
 	    // update in
 		tb_update_valid = 1'b0;
-		tb_update_upc = 26'h0000000;
+		tb_update_upc = 29'h00000000;
 	    // update out
 
         $display("$bits(tb_update_upc) = %0d", $bits(tb_update_upc));
@@ -149,7 +149,7 @@ module upct_tb #(
 	    // pc_gen read out
 	    // update in
 		tb_update_valid = 1'b0;
-		tb_update_upc = 26'h0000000;
+		tb_update_upc = 29'h00000000;
 	    // update out
 
 		@(posedge CLK); #(PERIOD/10);
@@ -304,7 +304,7 @@ module upct_tb #(
             // pc_gen read out
             // update in
             tb_update_valid = 1'b1;
-    		tb_update_upc = {7{i[3:0]}};
+    		tb_update_upc = {8{i[3:0]}};
             // update out
 
             @(negedge CLK);
@@ -313,7 +313,7 @@ module upct_tb #(
 
             // pc_gen read in
             // pc_gen read out
-            expected_read_upc = (i == 7) ? 26'h0000000 : 26'h3777777;
+            expected_read_upc = (i == 7) ? 29'h00000000 : 29'h77777777;
             // update in
             // update out
             expected_update_upct_index = {3'h0, 3'h1, 3'h2, 3'h3} >> (i-4)*3;
@@ -343,7 +343,7 @@ module upct_tb #(
             // pc_gen read out
             // update in
             tb_update_valid = 1'b0;
-    		tb_update_upc = 26'h0000000;
+    		tb_update_upc = 26'h00000000;
             // update out
 
             @(negedge CLK);
@@ -352,7 +352,7 @@ module upct_tb #(
 
             // pc_gen read in
             // pc_gen read out
-            expected_read_upc = (i < 4) ? {7{{7-i}[3:0]}} : {9{i[2:0]}};
+            expected_read_upc = (i < 4) ? {8{{7-i}[3:0]}} : {9{i[2:0]}};
             // update in
             // update out
             expected_update_upct_index = (i < 4) ? i + 4 : i;
