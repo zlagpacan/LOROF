@@ -18,11 +18,11 @@ module upct_wrapper #(
 
 
     // pc_gen read in
-	input logic next_pc_gen_read_valid,
-	input corep::UPCT_idx_t next_pc_gen_read_index,
+	input logic next_read_valid,
+	input corep::UPCT_idx_t next_read_index,
 
     // pc_gen read out
-	output corep::UPC_t last_pc_gen_read_upc,
+	output corep::UPC_t last_read_upc,
 
     // update in
 	input logic next_update_valid,
@@ -37,11 +37,11 @@ module upct_wrapper #(
 
 
     // pc_gen read in
-	logic pc_gen_read_valid;
-	corep::UPCT_idx_t pc_gen_read_index;
+	logic read_valid;
+	corep::UPCT_idx_t read_index;
 
     // pc_gen read out
-	corep::UPC_t pc_gen_read_upc;
+	corep::UPC_t read_upc;
 
     // update in
 	logic update_valid;
@@ -64,11 +64,11 @@ module upct_wrapper #(
 
 
 		    // pc_gen read in
-			pc_gen_read_valid <= '0;
-			pc_gen_read_index <= '0;
+			read_valid <= '0;
+			read_index <= '0;
 
 		    // pc_gen read out
-			last_pc_gen_read_upc <= '0;
+			last_read_upc <= '0;
 
 		    // update in
 			update_valid <= '0;
@@ -81,11 +81,11 @@ module upct_wrapper #(
 
 
 		    // pc_gen read in
-			pc_gen_read_valid <= next_pc_gen_read_valid;
-			pc_gen_read_index <= next_pc_gen_read_index;
+			read_valid <= next_read_valid;
+			read_index <= next_read_index;
 
 		    // pc_gen read out
-			last_pc_gen_read_upc <= pc_gen_read_upc;
+			last_read_upc <= read_upc;
 
 		    // update in
 			update_valid <= next_update_valid;

@@ -205,8 +205,9 @@ package corep;
     parameter int unsigned BTB_SETS = BTB_ENTRIES / BTB_ASSOC / FETCH_WIDTH_2B;
     parameter int unsigned LOG_BTB_SETS = $clog2(BTB_SETS);
     
-    typedef logic [LOG_BTB_SETS-1:0]    BTB_idx_t;
-    typedef logic [BTB_ASSOC-2:0]       BTB_lru_t;
+    typedef logic [LOG_BTB_SETS-1:0]        BTB_idx_t;
+    typedef logic [BTB_ASSOC-2:0]           BTB_plru_t;
+    typedef logic [$clog2(BTB_ASSOC)-1:0]   BTB_plru_idx_t;
 
     // gbpt entry:
         // 2BC

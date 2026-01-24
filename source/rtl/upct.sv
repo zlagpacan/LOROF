@@ -13,12 +13,12 @@ module upct (
     input logic CLK,
     input logic nRST,
 
-    // pc_gen read in
-    input logic                 pc_gen_read_valid,
-    input corep::UPCT_idx_t     pc_gen_read_index,
+    // read in
+    input logic                 read_valid,
+    input corep::UPCT_idx_t     read_index,
 
-    // pc_gen read out
-    output corep::UPC_t         pc_gen_read_upc,
+    // read out
+    output corep::UPC_t         read_upc,
 
     // update in
     input logic                 update_valid,
@@ -64,7 +64,7 @@ module upct (
 
     // pc_gen read logic
     always_comb begin
-        pc_gen_read_upc = upct_array[pc_gen_read_index];
+        read_upc = upct_array[read_index];
     end
 
     // update logic:
@@ -128,11 +128,11 @@ module upct (
         end
 
         // check pc_gen access
-        else if (pc_gen_read_valid) begin
+        else if (read_valid) begin
 
             // adjust PLRU following pc_gen access index
             plru_touch_valid = 1'b1;
-            plru_touch_index = pc_gen_read_index;
+            plru_touch_index = read_index;
         end
     end
 
