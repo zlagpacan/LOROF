@@ -1,19 +1,14 @@
 /*
-    Filename: tag_tracker_wrapper.sv
+    Filename: id_tracker_wrapper.sv
     Author: zlagpacan
-    Description: RTL wrapper around tag_tracker module. 
-    Spec: LOROF/spec/design/tag_tracker.md
+    Description: RTL wrapper around id_tracker module. 
+    Spec: LOROF/spec/design/id_tracker.md
 */
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
 
-`include "system_types_pkg.vh"
-import system_types_pkg::*;
-
-module tag_tracker_wrapper #(
+module id_tracker_wrapper #(
 	parameter int unsigned TAG_COUNT = 4,
 	parameter int unsigned TAG_WIDTH = $clog2(TAG_COUNT)
 ) (
@@ -47,7 +42,7 @@ module tag_tracker_wrapper #(
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-	tag_tracker #(
+	id_tracker #(
 		.TAG_COUNT(TAG_COUNT),
 		.TAG_WIDTH(TAG_WIDTH)
 	) WRAPPED_MODULE (.*);

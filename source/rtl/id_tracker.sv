@@ -1,11 +1,11 @@
 /*
-    Filename: tag_tracker.sv
+    Filename: id_tracker.sv
     Author: zlagpacan
     Description: RTL for Transaction Tag Tracker
-    Spec: LOROF/spec/design/tag_tracker.md
+    Spec: LOROF/spec/design/id_tracker.md
 */
 
-module tag_tracker #(
+module id_tracker #(
     parameter int unsigned TAG_COUNT = 4,
     parameter int unsigned TAG_WIDTH = $clog2(TAG_COUNT)
 ) (
@@ -27,19 +27,13 @@ module tag_tracker #(
     logic [TAG_COUNT-1:0] bit_vec;
 
     // for now, simple linear priority for tags
-    pe_lsb #(
-        .WIDTH(TAG_COUNT),
-        .USE_ONE_HOT(0),
-        .USE_COLD(0),
-        .USE_INDEX(1)
-    ) PE_LSB (
+    pe_lsb_tree #(
+        .WIDTH(TAG_COUNT)
+    ) PE_LSB_TREE (
         .req_vec(bit_vec),
+        .ack_valid(new_tag_ready),
         .ack_index(new_tag)
     );
-
-    always_comb begin
-        new_tag_ready = |bit_vec;
-    end
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin

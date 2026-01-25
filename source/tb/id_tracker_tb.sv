@@ -1,19 +1,14 @@
 /*
-    Filename: tag_tracker_tb.sv
+    Filename: id_tracker_tb.sv
     Author: zlagpacan
-    Description: Testbench for tag_tracker module. 
-    Spec: LOROF/spec/design/tag_tracker.md
+    Description: Testbench for id_tracker module. 
+    Spec: LOROF/spec/design/id_tracker.md
 */
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
 
-`include "system_types_pkg.vh"
-import system_types_pkg::*;
-
-module tag_tracker_tb #(
+module id_tracker_tb #(
 	parameter int unsigned TAG_COUNT = 4,
 	parameter int unsigned TAG_WIDTH = $clog2(TAG_COUNT)
 ) ();
@@ -22,7 +17,7 @@ module tag_tracker_tb #(
     // TB setup:
 
     // parameters
-    parameter PERIOD = 10;
+    parameter int unsigned PERIOD = 10;
 
     // TB signals:
     logic CLK = 1'b1, nRST;
@@ -50,7 +45,7 @@ module tag_tracker_tb #(
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	tag_tracker #(
+	id_tracker #(
 		.TAG_COUNT(TAG_COUNT),
 		.TAG_WIDTH(TAG_WIDTH)
 	) DUT (
@@ -300,7 +295,7 @@ module tag_tracker_tb #(
 
 	    // new tag dispatch
 		expected_new_tag_ready = 1'b0;
-		expected_new_tag = 0;
+		expected_new_tag = 3; // none present -> '1
 	    // old tag retirement
 
 		check_outputs();
@@ -325,7 +320,7 @@ module tag_tracker_tb #(
 
 	    // new tag dispatch
 		expected_new_tag_ready = 1'b0;
-		expected_new_tag = 0;
+		expected_new_tag = 3; // none present -> '1
 	    // old tag retirement
 
 		check_outputs();
@@ -450,7 +445,7 @@ module tag_tracker_tb #(
 
 	    // new tag dispatch
 		expected_new_tag_ready = 1'b0;
-		expected_new_tag = 0;
+		expected_new_tag = 3; // none present -> '1
 	    // old tag retirement
 
 		check_outputs();
@@ -458,7 +453,7 @@ module tag_tracker_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "{i, i, i, i}, consume 0";
+		sub_test_case = "{i, i, i, v}, consume 0";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
