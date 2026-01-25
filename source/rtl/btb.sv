@@ -53,18 +53,24 @@ module btb (
     // ----------------------------------------------------------------
     // Signals:
 
-    // bram IO
-    logic               bram_read_next_valid;
-    corep::BTB_idx_t    bram_read_next_index;
-    corep::BTB_set_t    bram_read_set;
+    // btb array bram IO
+        // index w/ BTB index
+    logic               btb_array_bram_read_next_valid;
+    corep::BTB_idx_t    btb_array_bram_read_next_index;
+    corep::BTB_set_t    btb_array_bram_read_set;
 
-    logic [corep::FETCH_LANES-1:0][corep::BTB_ASSOC-1:0][$bits(corep::BTB_entry_t)/8-1:0]   bram_write_byten;
-    corep::BTB_idx_t                                                                        bram_write_index;
-    corep::BTB_set_t                                                                        bram_write_set;
+    logic [corep::FETCH_LANES-1:0][corep::BTB_ASSOC-1:0][$bits(corep::BTB_entry_t)/8-1:0]   btb_array_bram_write_byten;
+    corep::BTB_idx_t                                                                        btb_array_bram_write_index;
+    corep::BTB_set_t                                                                        btb_array_bram_write_set;
 
-    // plru array
+    // plru array distram IO
         // index w/ {BTB index, fetch lane}
-    corep::BTB_plru_t   plru_array  [corep::BTB_SETS-1:0][corep::FETCH_LANES-1:0];
+    logic [corep::LOG_BTB_SETS+corep::LOG_FETCH_LANES-1:0]  plru_array_distram_read_index;
+    corep::BTB_plru_t                                       plru_array_distram_read_data;
+
+    logic                                                   plru_array_distram_write_valid;
+    logic [corep::LOG_BTB_SETS+corep::LOG_FETCH_LANES-1:0]  plru_array_distram_write_index;
+    corep::BTB_plru_t                                       plru_array_distram_write_data;
 
     // update indexing
     corep::BTB_idx_t        update_index;
@@ -84,8 +90,8 @@ module btb (
 
     // read next logic
     always_comb begin
-        bram_read_next_valid = read_req_valid;
-        bram_read_next_index = index_hash({read_req_fetch_index, {corep::LOG_FETCH_LANES{1'b0}}}, arch_asid);
+        btb_array_bram_read_next_valid = read_req_valid;
+        btb_array_bram_read_next_index = index_hash({read_req_fetch_index, {corep::LOG_FETCH_LANES{1'b0}}}, arch_asid);
     end
 
     // hit logic
@@ -95,7 +101,7 @@ module btb (
         for (int lane = 0; lane < corep::FETCH_LANES; lane++) begin
 
             // default output way 0
-            resp_resp_btb_info_by_lane[lane] = bram_read_set[lane][0].info;
+            resp_resp_btb_info_by_lane[lane] = btb_array_bram_read_set[lane][0].info;
             read_resp_hit_by_lane[lane] = 1'b0;
             read_resp_hit_way_by_lane[lane] = 0;
 
@@ -104,10 +110,10 @@ module btb (
 
                 // hit defined as non-zero action and tag match
                 if (
-                    |bram_read_set[lane][way].info.action
-                    & (bram_read_set[lane][way].tag == tag_hash(read_resp_pc38, arch_asid))
+                    |btb_array_bram_read_set[lane][way].info.action
+                    & (btb_array_bram_read_set[lane][way].tag == tag_hash(read_resp_pc38, arch_asid))
                 ) begin
-                    resp_resp_btb_info_by_lane[lane] = bram_read_set[lane][way].info;
+                    resp_resp_btb_info_by_lane[lane] = btb_array_bram_read_set[lane][way].info;
                     read_resp_hit_by_lane[lane] = 1'b1;
                     read_resp_hit_way_by_lane[lane] = way;
                 end
@@ -126,20 +132,20 @@ module btb (
             update_selected_way = plru_updater_new_way;
         end
 
-        plru_updater_plru_in = plru_array[update_index][update_lane];
+        plru_updater_plru_in = plru_array_distram_read_data;
         plru_updater_new_valid = update_valid & ~update_hit;
         plru_updater_touch_valid = update_valid & update_hit;
         plru_updater_touch_way = update_hit_way;
 
-        bram_write_byten = '0;
+        btb_array_bram_write_byten = '0;
         if (update_valid) begin
-            bram_write_byten[update_lane][update_selected_way] = '1;
+            btb_array_bram_write_byten[update_lane][update_selected_way] = '1;
         end
-        bram_write_index = update_index;
+        btb_array_bram_write_index = update_index;
         for (int lane = 0; lane < corep::FETCH_LANES; lane++) begin
             for (int way = 0; way < corep::BTB_ASSOC; way++) begin
-                bram_write_set[lane][way].info = update_btb_info;
-                bram_write_set[lane][way].tag = tag_hash(update_pc38, arch_asid);
+                btb_array_bram_write_set[lane][way].info = update_btb_info;
+                btb_array_bram_write_set[lane][way].tag = tag_hash(update_pc38, arch_asid);
             end
         end
     end
@@ -156,33 +162,39 @@ module btb (
         .plru_out(plru_updater_plru_out)
     );
 
-    // plru array
-    always_ff @ (posedge CLK, negedge nRST) begin
-        if (~nRST) begin
-            for (int index = 0; index < corep::BTB_SETS; index++) begin
-                for (int lane = 0; lane < corep::FETCH_LANES; lane++) begin
-                    plru_array[index][lane] <= '0;
-                end
-            end
-        end
-        else if (update_valid) begin
-            plru_array[update_index][update_lane] <= plru_updater_plru_out;
-        end
+    // plru array distram
+    distram_1rport_1wport #(
+        .INNER_WIDTH($bits(corep::BTB_plru_t)),
+        .OUTER_WIDTH(corep::BTB_SETS * corep::FETCH_LANES)
+    ) PLRU_ARRAY_DISTRAM (
+        .CLK(CLK),
+        .rindex(plru_array_distram_read_index),
+        .rdata(plru_array_distram_read_data),
+        .wen(plru_array_distram_write_valid),
+        .windex(plru_array_distram_write_index),
+        .wdata(plru_array_distram_write_data)
+    );
+    always_comb begin
+        plru_array_distram_read_index = {update_index, update_lane};
+
+        plru_array_distram_write_valid = update_valid;
+        plru_array_distram_write_index = {update_index, update_lane};
+        plru_array_distram_write_data = plru_updater_plru_out;
     end
 
-    // bram
+    // btb array bram
     bram_1rport_1wport #(
-        .INNER_WIDTH($bits(bram_read_set)),
+        .INNER_WIDTH($bits(btb_array_bram_read_set)),
         .OUTER_WIDTH(corep::BTB_SETS)
-    ) BRAM (
+    ) BTB_ARRAY_BRAM (
         .CLK(CLK),
         .nRST(nRST),
-        .ren(bram_read_next_valid),
-        .rindex(bram_read_next_index),
-        .rdata(bram_read_set),
-        .wen_byte(bram_write_byten),
-        .windex(bram_write_index),
-        .wdata(bram_write_set)
+        .ren(btb_array_bram_read_next_valid),
+        .rindex(btb_array_bram_read_next_index),
+        .rdata(btb_array_bram_read_set),
+        .wen_byte(btb_array_bram_write_byten),
+        .windex(btb_array_bram_write_index),
+        .wdata(btb_array_bram_write_set)
     );
 
 endmodule
