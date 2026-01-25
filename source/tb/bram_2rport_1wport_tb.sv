@@ -7,9 +7,6 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
-
 module bram_2rport_1wport_tb #(
 	parameter INNER_WIDTH = 32,
 	parameter OUTER_WIDTH = 32,

@@ -7,10 +7,12 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
 
-module distram_2rport_1wport_wrapper (
+module distram_2rport_1wport_wrapper #(
+	parameter INNER_WIDTH = 32,
+	parameter OUTER_WIDTH = 32,
+	parameter INIT_FILE = ""
+) (
 
     // seq
     input logic CLK,
@@ -26,9 +28,6 @@ module distram_2rport_1wport_wrapper (
 	input logic [$clog2(OUTER_WIDTH)-1:0] next_windex,
 	input logic [INNER_WIDTH-1:0] next_wdata
 );
-
-    parameter OUTER_WIDTH = 32;
-    parameter INNER_WIDTH = 32;
 
     // ----------------------------------------------------------------
     // Direct Module Connections:
@@ -46,9 +45,10 @@ module distram_2rport_1wport_wrapper (
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    distram_2rport_1wport #(
-		.OUTER_WIDTH(OUTER_WIDTH), 
-		.INNER_WIDTH(INNER_WIDTH)
+	distram_2rport_1wport #(
+		.INNER_WIDTH(INNER_WIDTH),
+		.OUTER_WIDTH(OUTER_WIDTH),
+		.INIT_FILE(INIT_FILE)
 	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
