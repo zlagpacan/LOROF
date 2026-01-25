@@ -85,7 +85,7 @@ module btb (
     // read next logic
     always_comb begin
         bram_read_next_valid = read_req_valid;
-        bram_read_next_index = index_hash(read_req_fetch_index, arch_asid);
+        bram_read_next_index = index_hash({read_req_fetch_index, {corep::LOG_FETCH_LANES{1'b0}}}, arch_asid);
     end
 
     // hit logic
