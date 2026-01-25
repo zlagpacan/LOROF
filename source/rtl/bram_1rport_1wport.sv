@@ -63,6 +63,8 @@ module bram_1rport_1wport #(
     
     // read port to output connection
         // if register these, get better freq
-    assign rdata = rreg;
+    always_comb begin
+        rdata = rreg;
+    end
 
 endmodule

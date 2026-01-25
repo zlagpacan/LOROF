@@ -220,8 +220,8 @@ package corep;
         // index: PC, ASID
         // tag: PC, ASID
     parameter int unsigned BTB_ENTRIES = 1024;
-    parameter int unsigned BTB_SETS = BTB_ENTRIES / BTB_ASSOC / FETCH_LANES;
-    parameter int unsigned LOG_BTB_SETS = $clog2(BTB_SETS); // must be <= BTB_SMALL_TARGET_WIDTH for fast redirect
+    parameter int unsigned BTB_SETS = BTB_ENTRIES / BTB_ASSOC / FETCH_LANES; // 1024 / 2 / 8 = 64
+    parameter int unsigned LOG_BTB_SETS = $clog2(BTB_SETS); // log2(64) = 6. must be <= BTB_SMALL_TARGET_WIDTH for fast redirect
     
     typedef logic [LOG_BTB_SETS-1:0]        BTB_idx_t;
     typedef logic [BTB_ASSOC-2:0]           BTB_plru_t;

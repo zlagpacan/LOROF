@@ -7,65 +7,68 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
+`include "corep.vh"
 
-module btb_wrapper (
+module btb_wrapper #(
+) (
 
     // seq
     input logic CLK,
     input logic nRST,
 
 
-    // REQ stage
-	input logic next_valid_REQ,
-	input logic [31:0] next_full_PC_REQ,
-	input logic [ASID_WIDTH-1:0] next_ASID_REQ,
+    // arch state
+	input corep::ASID_t next_arch_asid,
 
-    // RESP stage
-	output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_PRED_INFO_WIDTH-1:0] last_pred_info_by_instr_RESP,
-	output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0] last_pred_lru_by_instr_RESP,
-	output logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TARGET_WIDTH-1:0] last_target_by_instr_RESP,
+    // read req stage
+	input logic next_read_req_valid,
+	input corep::fetch_idx_t next_read_req_fetch_index,
 
-    // Update 0
-	input logic next_update0_valid,
-	input logic [31:0] next_update0_start_full_PC,
-	input logic [ASID_WIDTH-1:0] next_update0_ASID,
+    // read resp stage
+	input corep::PC38_t next_read_resp_pc38,
 
-    // Update 1
-	input logic [BTB_PRED_INFO_WIDTH-1:0] next_update1_pred_info,
-	input logic next_update1_pred_lru,
-	input logic [31:0] next_update1_target_full_PC
+	output corep::BTB_info_t [corep::FETCH_LANES-1:0] last_resp_resp_btb_info_by_lane,
+	output logic [corep::FETCH_LANES-1:0] last_read_resp_hit_by_lane,
+	output corep::BTB_way_idx_t [corep::FETCH_LANES-1:0] last_read_resp_hit_way_by_lane,
+
+    // update
+	input logic next_update_valid,
+	input corep::PC38_t next_update_pc38,
+	input corep::BTB_info_t next_update_btb_info,
+	input logic next_update_hit,
+	input corep::BTB_way_idx_t next_update_hit_way
 );
 
     // ----------------------------------------------------------------
     // Direct Module Connections:
 
 
-    // REQ stage
-	logic valid_REQ;
-	logic [31:0] full_PC_REQ;
-	logic [ASID_WIDTH-1:0] ASID_REQ;
+    // arch state
+	corep::ASID_t arch_asid;
 
-    // RESP stage
-	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_PRED_INFO_WIDTH-1:0] pred_info_by_instr_RESP;
-	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0] pred_lru_by_instr_RESP;
-	logic [BTB_NWAY_ENTRIES_PER_BLOCK-1:0][BTB_TARGET_WIDTH-1:0] target_by_instr_RESP;
+    // read req stage
+	logic read_req_valid;
+	corep::fetch_idx_t read_req_fetch_index;
 
-    // Update 0
-	logic update0_valid;
-	logic [31:0] update0_start_full_PC;
-	logic [ASID_WIDTH-1:0] update0_ASID;
+    // read resp stage
+	corep::PC38_t read_resp_pc38;
 
-    // Update 1
-	logic [BTB_PRED_INFO_WIDTH-1:0] update1_pred_info;
-	logic update1_pred_lru;
-	logic [31:0] update1_target_full_PC;
+	corep::BTB_info_t [corep::FETCH_LANES-1:0] resp_resp_btb_info_by_lane;
+	logic [corep::FETCH_LANES-1:0] read_resp_hit_by_lane;
+	corep::BTB_way_idx_t [corep::FETCH_LANES-1:0] read_resp_hit_way_by_lane;
+
+    // update
+	logic update_valid;
+	corep::PC38_t update_pc38;
+	corep::BTB_info_t update_btb_info;
+	logic update_hit;
+	corep::BTB_way_idx_t update_hit_way;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    btb WRAPPED_MODULE (.*);
+	btb #(
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -74,48 +77,50 @@ module btb_wrapper (
         if (~nRST) begin
 
 
-		    // REQ stage
-			valid_REQ <= '0;
-			full_PC_REQ <= '0;
-			ASID_REQ <= '0;
+		    // arch state
+			arch_asid <= '0;
 
-		    // RESP stage
-			last_pred_info_by_instr_RESP <= '0;
-			last_pred_lru_by_instr_RESP <= '0;
-			last_target_by_instr_RESP <= '0;
+		    // read req stage
+			read_req_valid <= '0;
+			read_req_fetch_index <= '0;
 
-		    // Update 0
-			update0_valid <= '0;
-			update0_start_full_PC <= '0;
-			update0_ASID <= '0;
+		    // read resp stage
+			read_resp_pc38 <= '0;
 
-		    // Update 1
-			update1_pred_info <= '0;
-			update1_pred_lru <= '0;
-			update1_target_full_PC <= '0;
+			last_resp_resp_btb_info_by_lane <= '0;
+			last_read_resp_hit_by_lane <= '0;
+			last_read_resp_hit_way_by_lane <= '0;
+
+		    // update
+			update_valid <= '0;
+			update_pc38 <= '0;
+			update_btb_info <= '0;
+			update_hit <= '0;
+			update_hit_way <= '0;
         end
         else begin
 
 
-		    // REQ stage
-			valid_REQ <= next_valid_REQ;
-			full_PC_REQ <= next_full_PC_REQ;
-			ASID_REQ <= next_ASID_REQ;
+		    // arch state
+			arch_asid <= next_arch_asid;
 
-		    // RESP stage
-			last_pred_info_by_instr_RESP <= pred_info_by_instr_RESP;
-			last_pred_lru_by_instr_RESP <= pred_lru_by_instr_RESP;
-			last_target_by_instr_RESP <= target_by_instr_RESP;
+		    // read req stage
+			read_req_valid <= next_read_req_valid;
+			read_req_fetch_index <= next_read_req_fetch_index;
 
-		    // Update 0
-			update0_valid <= next_update0_valid;
-			update0_start_full_PC <= next_update0_start_full_PC;
-			update0_ASID <= next_update0_ASID;
+		    // read resp stage
+			read_resp_pc38 <= next_read_resp_pc38;
 
-		    // Update 1
-			update1_pred_info <= next_update1_pred_info;
-			update1_pred_lru <= next_update1_pred_lru;
-			update1_target_full_PC <= next_update1_target_full_PC;
+			last_resp_resp_btb_info_by_lane <= resp_resp_btb_info_by_lane;
+			last_read_resp_hit_by_lane <= read_resp_hit_by_lane;
+			last_read_resp_hit_way_by_lane <= read_resp_hit_way_by_lane;
+
+		    // update
+			update_valid <= next_update_valid;
+			update_pc38 <= next_update_pc38;
+			update_btb_info <= next_update_btb_info;
+			update_hit <= next_update_hit;
+			update_hit_way <= next_update_hit_way;
         end
     end
 

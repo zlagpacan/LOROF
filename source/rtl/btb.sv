@@ -30,7 +30,7 @@ module btb (
     // update
     input logic                 update_valid,
     input corep::PC38_t         update_pc38,
-    input corep::BTB_info_t     update_entry,
+    input corep::BTB_info_t     update_btb_info,
     input logic                 update_hit,
     input corep::BTB_way_idx_t  update_hit_way
 );
@@ -40,7 +40,7 @@ module btb (
 
     function corep::BTB_idx_t index_hash(corep::PC38_t pc38, corep::ASID_t asid);
         // low fetch index ^ low asid
-        index_hash = corep::fetch_idx_bits(pc38);
+        index_hash = pc38[37 : corep::LOG_FETCH_LANES];
         index_hash ^= asid;
     endfunction
 
@@ -66,10 +66,18 @@ module btb (
         // index w/ {BTB index, fetch lane}
     corep::BTB_plru_t   plru_array  [corep::BTB_SETS-1:0][corep::FETCH_LANES-1:0];
 
-    logic                   plru_array_update_valid;
-    corep::BTB_idx_t        plru_array_update_index;
-    corep::fetch_lane_t     plru_array_update_lane;
-    corep::BTB_plru_t       plru_array_update_plru;
+    // update indexing
+    corep::BTB_idx_t        update_index;
+    corep::fetch_lane_t     update_lane;
+    corep::BTB_way_idx_t    update_selected_way;
+
+    // plru updater
+    corep::BTB_plru_t       plru_updater_plru_in;
+    logic                   plru_updater_new_valid;
+    corep::BTB_way_idx_t    plru_updater_new_way;
+    logic                   plru_updater_touch_valid;
+    corep::BTB_way_idx_t    plru_updater_touch_way;
+    corep::BTB_plru_t       plru_updater_plru_out;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -109,7 +117,57 @@ module btb (
 
     // write logic
     always_comb begin
+        update_index = index_hash(update_pc38, arch_asid);
+        update_lane = corep::fetch_lane_bits(update_pc38);
+        if (update_hit) begin
+            update_selected_way = update_hit_way;
+        end
+        else begin
+            update_selected_way = plru_updater_new_way;
+        end
 
+        plru_updater_plru_in = plru_array[update_index][update_lane];
+        plru_updater_new_valid = update_valid & ~update_hit;
+        plru_updater_touch_valid = update_valid & update_hit;
+        plru_updater_touch_way = update_hit_way;
+
+        bram_write_byten = '0;
+        if (update_valid) begin
+            bram_write_byten[update_lane][update_selected_way] = '1;
+        end
+        bram_write_index = update_index;
+        for (int lane = 0; lane < corep::FETCH_LANES; lane++) begin
+            for (int way = 0; way < corep::BTB_ASSOC; way++) begin
+                bram_write_set[lane][way].info = update_btb_info;
+                bram_write_set[lane][way].tag = tag_hash(update_pc38, arch_asid);
+            end
+        end
+    end
+
+    // plru updater
+    plru_updater #(
+        .NUM_ENTRIES(corep::BTB_ASSOC)
+    ) PLRU_UPDATER (
+        .plru_in(plru_updater_plru_in),
+        .new_valid(plru_updater_new_valid),
+        .new_way(plru_updater_new_way),
+        .touch_valid(plru_updater_touch_valid),
+        .touch_way(plru_updater_touch_way),
+        .plru_out(plru_updater_plru_out)
+    );
+
+    // plru array
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            for (int index = 0; index < corep::BTB_SETS; index++) begin
+                for (int lane = 0; lane < corep::FETCH_LANES; lane++) begin
+                    plru_array[index][lane] <= '0;
+                end
+            end
+        end
+        else if (update_valid) begin
+            plru_array[update_index][update_lane] <= plru_updater_plru_out;
+        end
     end
 
     // bram

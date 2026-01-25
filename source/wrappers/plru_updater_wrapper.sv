@@ -9,8 +9,8 @@
 
 
 module plru_updater_wrapper #(
-	parameter NUM_ENTRIES = 8,
-	parameter LOG_NUM_ENTRIES = $clog2(NUM_ENTRIES)
+	parameter int unsigned NUM_ENTRIES = 8,
+	parameter int unsigned LOG_NUM_ENTRIES = $clog2(NUM_ENTRIES)
 ) (
 
     // seq
@@ -19,10 +19,10 @@ module plru_updater_wrapper #(
 	input logic [NUM_ENTRIES-2:0] next_plru_in,
 
 	input logic next_new_valid,
-	output logic [LOG_NUM_ENTRIES-1:0] last_new_index,
+	output logic [LOG_NUM_ENTRIES-1:0] last_new_way,
 
 	input logic next_touch_valid,
-	input logic [LOG_NUM_ENTRIES-1:0] next_touch_index,
+	input logic [LOG_NUM_ENTRIES-1:0] next_touch_way,
 
 	output logic [NUM_ENTRIES-2:0] last_plru_out
 );
@@ -32,10 +32,10 @@ module plru_updater_wrapper #(
 	logic [NUM_ENTRIES-2:0] plru_in;
 
 	logic new_valid;
-	logic [LOG_NUM_ENTRIES-1:0] new_index;
+	logic [LOG_NUM_ENTRIES-1:0] new_way;
 
 	logic touch_valid;
-	logic [LOG_NUM_ENTRIES-1:0] touch_index;
+	logic [LOG_NUM_ENTRIES-1:0] touch_way;
 
 	logic [NUM_ENTRIES-2:0] plru_out;
 
@@ -55,10 +55,10 @@ module plru_updater_wrapper #(
 			plru_in <= '0;
 
 			new_valid <= '0;
-			last_new_index <= '0;
+			last_new_way <= '0;
 
 			touch_valid <= '0;
-			touch_index <= '0;
+			touch_way <= '0;
 
 			last_plru_out <= '0;
         end
@@ -66,10 +66,10 @@ module plru_updater_wrapper #(
 			plru_in <= next_plru_in;
 
 			new_valid <= next_new_valid;
-			last_new_index <= new_index;
+			last_new_way <= new_way;
 
 			touch_valid <= next_touch_valid;
-			touch_index <= next_touch_index;
+			touch_way <= next_touch_way;
 
 			last_plru_out <= plru_out;
         end
