@@ -7,63 +7,60 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
+`include "corep.vh"
 
-module gbpt_wrapper (
+module gbpt_wrapper #(
+) (
 
     // seq
     input logic CLK,
     input logic nRST,
 
 
-    // RESP stage
-	input logic next_valid_RESP,
-	input logic [31:0] next_full_PC_RESP,
-	input logic [GH_LENGTH-1:0] next_GH_RESP,
-	input logic [ASID_WIDTH-1:0] next_ASID_RESP,
+    // arch state
+	input corep::ASID_t next_arch_asid,
 
-    // RESTART stage
-	output logic last_pred_taken_RESTART,
+    // read req stage
+	input logic next_read_req_valid,
+	input corep::fetch_idx_t next_read_req_fetch_index,
+	input corep::GH_t next_read_req_gh,
 
-    // Update 0
-	input logic next_update0_valid,
-	input logic [31:0] next_update0_start_full_PC,
-	input logic [GH_LENGTH-1:0] next_update0_GH,
-	input logic [ASID_WIDTH-1:0] next_update0_ASID,
-	input logic next_update0_taken,
+    // read resp stage
+	output logic [corep::FETCH_LANES-1:0] last_read_resp_taken_by_lane,
 
-    // Update 1
-	output logic last_update1_correct
+    // update
+	input logic next_update_valid,
+	input corep::PC38_t next_update_pc38,
+	input corep::GH_t next_update_gh,
+	input logic next_update_taken
 );
 
     // ----------------------------------------------------------------
     // Direct Module Connections:
 
 
-    // RESP stage
-	logic valid_RESP;
-	logic [31:0] full_PC_RESP;
-	logic [GH_LENGTH-1:0] GH_RESP;
-	logic [ASID_WIDTH-1:0] ASID_RESP;
+    // arch state
+	corep::ASID_t arch_asid;
 
-    // RESTART stage
-	logic pred_taken_RESTART;
+    // read req stage
+	logic read_req_valid;
+	corep::fetch_idx_t read_req_fetch_index;
+	corep::GH_t read_req_gh;
 
-    // Update 0
-	logic update0_valid;
-	logic [31:0] update0_start_full_PC;
-	logic [GH_LENGTH-1:0] update0_GH;
-	logic [ASID_WIDTH-1:0] update0_ASID;
-	logic update0_taken;
+    // read resp stage
+	logic [corep::FETCH_LANES-1:0] read_resp_taken_by_lane;
 
-    // Update 1
-	logic update1_correct;
+    // update
+	logic update_valid;
+	corep::PC38_t update_pc38;
+	corep::GH_t update_gh;
+	logic update_taken;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    gbpt WRAPPED_MODULE (.*);
+	gbpt #(
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -72,46 +69,42 @@ module gbpt_wrapper (
         if (~nRST) begin
 
 
-		    // RESP stage
-			valid_RESP <= '0;
-			full_PC_RESP <= '0;
-			GH_RESP <= '0;
-			ASID_RESP <= '0;
+		    // arch state
+			arch_asid <= '0;
 
-		    // RESTART stage
-			last_pred_taken_RESTART <= '0;
+		    // read req stage
+			read_req_valid <= '0;
+			read_req_fetch_index <= '0;
+			read_req_gh <= '0;
 
-		    // Update 0
-			update0_valid <= '0;
-			update0_start_full_PC <= '0;
-			update0_GH <= '0;
-			update0_ASID <= '0;
-			update0_taken <= '0;
+		    // read resp stage
+			last_read_resp_taken_by_lane <= '0;
 
-		    // Update 1
-			last_update1_correct <= '0;
+		    // update
+			update_valid <= '0;
+			update_pc38 <= '0;
+			update_gh <= '0;
+			update_taken <= '0;
         end
         else begin
 
 
-		    // RESP stage
-			valid_RESP <= next_valid_RESP;
-			full_PC_RESP <= next_full_PC_RESP;
-			GH_RESP <= next_GH_RESP;
-			ASID_RESP <= next_ASID_RESP;
+		    // arch state
+			arch_asid <= next_arch_asid;
 
-		    // RESTART stage
-			last_pred_taken_RESTART <= pred_taken_RESTART;
+		    // read req stage
+			read_req_valid <= next_read_req_valid;
+			read_req_fetch_index <= next_read_req_fetch_index;
+			read_req_gh <= next_read_req_gh;
 
-		    // Update 0
-			update0_valid <= next_update0_valid;
-			update0_start_full_PC <= next_update0_start_full_PC;
-			update0_GH <= next_update0_GH;
-			update0_ASID <= next_update0_ASID;
-			update0_taken <= next_update0_taken;
+		    // read resp stage
+			last_read_resp_taken_by_lane <= read_resp_taken_by_lane;
 
-		    // Update 1
-			last_update1_correct <= update1_correct;
+		    // update
+			update_valid <= next_update_valid;
+			update_pc38 <= next_update_pc38;
+			update_gh <= next_update_gh;
+			update_taken <= next_update_taken;
         end
     end
 
