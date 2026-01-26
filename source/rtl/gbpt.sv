@@ -79,6 +79,7 @@ module gbpt (
     // update write stage
     corep::fetch_lane_t     update_write_lane;
     logic                   update_write_taken;
+    logic                   update_write_last_valid;
     logic                   update_write_forward;
     corep::GBPT_set_t       update_write_old_set;
     corep::GBPT_set_t       update_selected_old_set;
@@ -112,6 +113,7 @@ module gbpt (
 
             update_write_lane <= 0;
             update_write_taken <= 1'b0;
+            update_write_last_valid <= 1'b0;
             update_write_forward <= 1'b0;
             update_write_old_set <= '0;
         end
@@ -121,7 +123,8 @@ module gbpt (
 
             update_write_lane <= corep::fetch_lane_bits(update_pc38);
             update_write_taken <= update_taken;
-            update_write_forward <= update_valid & (gbpt_array_bram_read_port1_next_index == gbpt_array_bram_write_index);
+            update_write_last_valid <= update_valid;
+            update_write_forward <= update_write_last_valid & (gbpt_array_bram_read_port1_next_index == gbpt_array_bram_write_index);
             update_write_old_set <= gbpt_array_bram_write_set;
         end
     end

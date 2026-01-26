@@ -256,7 +256,7 @@ module gbpt_tb #(
             @(posedge CLK); #(PERIOD/10);
 
             // inputs
-            sub_test_case = $sformatf("req index = 0x%03h, resp index = 0x%01h", index, index+1);
+            sub_test_case = $sformatf("req index = 0x%03h, resp index = 0x%03h", index, index+1);
             $display("\t- sub_test: %s", sub_test_case);
 
             // reset
@@ -265,8 +265,8 @@ module gbpt_tb #(
             tb_arch_asid = 16'hffff;
             // read req stage
             tb_read_req_valid = 1'b1;
-            tb_read_req_fetch_index = {index[8:5], 5'h0};
-            tb_read_req_gh = {4'h0, index[4:0]};
+            tb_read_req_fetch_index = {~index[8:5], 5'h0};
+            tb_read_req_gh = {4'h0, ~index[4:0]};
             // read resp stage
             // update
             tb_update_valid = 1'b0;
@@ -296,11 +296,11 @@ module gbpt_tb #(
         // reset
         nRST = 1'b1;
         // arch state
-        tb_arch_asid = 16'hffff;
+        tb_arch_asid = 16'h0000;
         // read req stage
-        tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = {4'hf, 5'h0};
-        tb_read_req_gh = {4'h0, 5'h1f};
+        tb_read_req_valid = 1'b0;
+        tb_read_req_fetch_index = 9'h000;
+        tb_read_req_gh = 9'h000;
         // read resp stage
         // update
         tb_update_valid = 1'b0;
