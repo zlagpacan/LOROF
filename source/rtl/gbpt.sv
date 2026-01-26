@@ -79,6 +79,9 @@ module gbpt (
     // update write stage
     corep::fetch_lane_t     update_write_lane;
     logic                   update_write_taken;
+    logic                   update_write_forward;
+    corep::GBPT_set_t       update_write_old_set;
+    corep::GBPT_set_t       update_selected_old_set;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -109,6 +112,8 @@ module gbpt (
 
             update_write_lane <= 0;
             update_write_taken <= 1'b0;
+            update_write_forward <= 1'b0;
+            update_write_old_set <= '0;
         end
         else begin
             gbpt_array_bram_write_byten <= {$bits(gbpt_array_bram_write_byten){update_valid}};
@@ -116,13 +121,24 @@ module gbpt (
 
             update_write_lane <= corep::fetch_lane_bits(update_pc38);
             update_write_taken <= update_taken;
+            update_write_forward <= update_valid & (gbpt_array_bram_read_port1_next_index == gbpt_array_bram_write_index);
+            update_write_old_set <= gbpt_array_bram_write_set;
         end
     end
     always_comb begin
-        // read in old set
-        gbpt_array_bram_write_set = gbpt_array_bram_read_port1_set;
+        // check forward old set
+        if (update_write_forward) begin
+            update_selected_old_set = update_write_old_set;
+        end
+        else begin
+            update_selected_old_set = gbpt_array_bram_read_port1_set;
+        end
+
+        // default old set values
+        gbpt_array_bram_write_set = update_selected_old_set;
+
         // update lane of interest
-        gbpt_array_bram_write_set[update_write_lane] = tbc_updater(gbpt_array_bram_read_port1_set[update_write_lane], update_write_taken);
+        gbpt_array_bram_write_set[update_write_lane] = tbc_updater(update_selected_old_set[update_write_lane], update_write_taken);
     end
 
     // gbpt array bram

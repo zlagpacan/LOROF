@@ -236,7 +236,7 @@ package corep;
     // gbpt:
         // 8-wide access into direct-mapped, untagged entries
         // index: PC, GHR, ASID
-    parameter int unsigned GH_LENGTH = 9; // <= BTB_SMALL_TARGET_WIDTH for fast redirect
+    parameter int unsigned GH_LENGTH = 9;
     parameter int unsigned GBPT_SETS = 2**GH_LENGTH;
     parameter int unsigned GBPT_ENTRIES = GBPT_SETS * FETCH_LANES;
 
