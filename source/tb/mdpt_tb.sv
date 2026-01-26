@@ -7,16 +7,16 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
+`include "corep.vh"
 
-module mdpt_tb ();
+module mdpt_tb #(
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:
 
     // parameters
-    parameter PERIOD = 10;
+    parameter int unsigned PERIOD = 10;
 
     // TB signals:
     logic CLK = 1'b1, nRST;
@@ -33,42 +33,45 @@ module mdpt_tb ();
     // DUT signals:
 
 
-    // REQ stage
-	logic tb_valid_REQ;
-	logic [31:0] tb_full_PC_REQ;
-	logic [ASID_WIDTH-1:0] tb_ASID_REQ;
+    // arch state
+	corep::ASID_t tb_arch_asid;
 
-    // RESP stage
-	logic [MDPT_ENTRIES_PER_BLOCK-1:0][MDPT_INFO_WIDTH-1:0] DUT_mdp_info_by_instr_RESP, expected_mdp_info_by_instr_RESP;
+    // read req stage
+	logic tb_read_req_valid;
+	corep::fetch_idx_t tb_read_req_fetch_index;
 
-    // MDPT Update 0 stage
-	logic tb_mdpt_update0_valid;
-	logic [31:0] tb_mdpt_update0_start_full_PC;
-	logic [ASID_WIDTH-1:0] tb_mdpt_update0_ASID;
-	logic [MDPT_INFO_WIDTH-1:0] tb_mdpt_update0_mdp_info;
+    // read resp stage
+	corep::MDPT_set_t DUT_read_resp_mdp_by_lane, expected_read_resp_mdp_by_lane;
+
+    // update
+	logic tb_update_valid;
+	corep::PC38_t tb_update_pc38;
+	corep::MDP_t tb_update_mdp;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	mdpt DUT (
+	mdpt #(
+	) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
 
 
-	    // REQ stage
-		.valid_REQ(tb_valid_REQ),
-		.full_PC_REQ(tb_full_PC_REQ),
-		.ASID_REQ(tb_ASID_REQ),
+	    // arch state
+		.arch_asid(tb_arch_asid),
 
-	    // RESP stage
-		.mdp_info_by_instr_RESP(DUT_mdp_info_by_instr_RESP),
+	    // read req stage
+		.read_req_valid(tb_read_req_valid),
+		.read_req_fetch_index(tb_read_req_fetch_index),
 
-	    // MDPT Update 0 stage
-		.mdpt_update0_valid(tb_mdpt_update0_valid),
-		.mdpt_update0_start_full_PC(tb_mdpt_update0_start_full_PC),
-		.mdpt_update0_ASID(tb_mdpt_update0_ASID),
-		.mdpt_update0_mdp_info(tb_mdpt_update0_mdp_info)
+	    // read resp stage
+		.read_resp_mdp_by_lane(DUT_read_resp_mdp_by_lane),
+
+	    // update
+		.update_valid(tb_update_valid),
+		.update_pc38(tb_update_pc38),
+		.update_mdp(tb_update_mdp)
 	);
 
     // ----------------------------------------------------------------
@@ -76,9 +79,9 @@ module mdpt_tb ();
 
     task check_outputs();
     begin
-		if (expected_mdp_info_by_instr_RESP !== DUT_mdp_info_by_instr_RESP) begin
-			$display("TB ERROR: expected_mdp_info_by_instr_RESP (%h) != DUT_mdp_info_by_instr_RESP (%h)",
-				expected_mdp_info_by_instr_RESP, DUT_mdp_info_by_instr_RESP);
+		if (expected_read_resp_mdp_by_lane !== DUT_read_resp_mdp_by_lane) begin
+			$display("TB ERROR: expected_read_resp_mdp_by_lane (%h) != DUT_read_resp_mdp_by_lane (%h)",
+				expected_read_resp_mdp_by_lane, DUT_read_resp_mdp_by_lane);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -105,44 +108,35 @@ module mdpt_tb ();
 
 		// reset
 		nRST = 1'b0;
-	    // REQ stage
-		tb_valid_REQ = 1'b0;
-		tb_full_PC_REQ = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-		tb_ASID_REQ = 9'h0;
-	    // RESP stage
-	    // MDPT Update 0 stage
-		tb_mdpt_update0_valid = 1'b0;
-		tb_mdpt_update0_start_full_PC = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-		tb_mdpt_update0_ASID = 9'h0;
-		tb_mdpt_update0_mdp_info = 8'h0;
+	    // arch state
+		tb_arch_asid = 16'h0000;
+	    // read req stage
+		tb_read_req_valid = 1'b0;
+		tb_read_req_fetch_index = 7'h00;
+	    // read resp stage
+	    // update
+		tb_update_valid = 1'b0;
+		tb_update_pc38 = {28'h0000000, 7'h00, 3'h0};
+		tb_update_mdp = 8'h00;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-	    // REQ stage
-	    // RESP stage
-		expected_mdp_info_by_instr_RESP = {
-            8'h0,
-            8'h0,
-            8'h0,
-            8'h0,
-            8'h0,
-            8'h0,
-            8'h0,
-            8'h0
+	    // arch state
+	    // read req stage
+	    // read resp stage
+		expected_read_resp_mdp_by_lane = {
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00
         };
-	    // MDPT Update 0 stage
+	    // update
 
 		check_outputs();
 
@@ -152,260 +146,83 @@ module mdpt_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // REQ stage
-		tb_valid_REQ = 1'b0;
-		tb_full_PC_REQ = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-		tb_ASID_REQ = 9'h0;
-	    // RESP stage
-	    // MDPT Update 0 stage
-		tb_mdpt_update0_valid = 1'b0;
-		tb_mdpt_update0_start_full_PC = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-		tb_mdpt_update0_ASID = 9'h0;
-		tb_mdpt_update0_mdp_info = 8'h0;
+	    // arch state
+		tb_arch_asid = 16'h0000;
+	    // read req stage
+		tb_read_req_valid = 1'b0;
+		tb_read_req_fetch_index = 7'h00;
+	    // read resp stage
+	    // update
+		tb_update_valid = 1'b0;
+		tb_update_pc38 = {28'h0000000, 7'h00, 3'h0};
+		tb_update_mdp = 8'h00;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-	    // REQ stage
-	    // RESP stage
-		expected_mdp_info_by_instr_RESP = {
-            8'h0,
-            8'h0,
-            8'h0,
-            8'h0,
-            8'h0,
-            8'h0,
-            8'h0,
-            8'h0
+	    // arch state
+	    // read req stage
+	    // read resp stage
+		expected_read_resp_mdp_by_lane = {
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00
         };
-	    // MDPT Update 0 stage
+	    // update
 
 		check_outputs();
 
         // ------------------------------------------------------------
-        // update chain:
-        test_case = "update chain";
+        // default:
+        test_case = "default";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-        for (int i = 0; i < MDPT_ENTRIES; i++) begin
+		@(posedge CLK); #(PERIOD/10);
 
-            @(posedge CLK); #(PERIOD/10);
+		// inputs
+		sub_test_case = "default";
+		$display("\t- sub_test: %s", sub_test_case);
 
-            // inputs
-            sub_test_case = $sformatf("update 0x%3h", i);
-            $display("\t- sub_test: %s", sub_test_case);
+		// reset
+		nRST = 1'b1;
+	    // arch state
+		tb_arch_asid = 16'h0000;
+	    // read req stage
+		tb_read_req_valid = 1'b0;
+		tb_read_req_fetch_index = 7'h00;
+	    // read resp stage
+	    // update
+		tb_update_valid = 1'b0;
+		tb_update_pc38 = {28'h0000000, 7'h00, 3'h0};
+		tb_update_mdp = 8'h00;
 
-            // reset
-            nRST = 1'b1;
-            // REQ stage
-            tb_valid_REQ = 1'b0;
-            tb_full_PC_REQ = {
-                19'h0,
-                9'h0,
-                3'h0,
-                1'b0
-            };
-            tb_ASID_REQ = 9'h0;
-            // RESP stage
-            // MDPT Update 0 stage
-            tb_mdpt_update0_valid = 1'b1;
-            tb_mdpt_update0_start_full_PC = {
-                19'h0,
-                ~i[11:3],
-                i[2:0],
-                1'b0
-            };
-            tb_mdpt_update0_ASID = 9'b111111111;
-            tb_mdpt_update0_mdp_info = i[7:0];
+		@(negedge CLK);
 
-            @(negedge CLK);
+		// outputs:
 
-            // outputs:
-
-            // REQ stage
-            // RESP stage
-            expected_mdp_info_by_instr_RESP = {
-                8'h0,
-                8'h0,
-                8'h0,
-                8'h0,
-                8'h0,
-                8'h0,
-                8'h0,
-                8'h0
-            };
-            // MDPT Update 0 stage
-
-            check_outputs();
-        end
-
-        // ------------------------------------------------------------
-        // read chain:
-        test_case = "read chain";
-        $display("\ntest %0d: %s", test_num, test_case);
-        test_num++;
-
-        @(posedge CLK); #(PERIOD/10);
-
-        // inputs
-        sub_test_case = $sformatf("REQ: 0x000, RESP: NOP");
-        $display("\t- sub_test: %s", sub_test_case);
-
-        // reset
-        nRST = 1'b1;
-        // REQ stage
-        tb_valid_REQ = 1'b1;
-        tb_full_PC_REQ = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
+	    // arch state
+	    // read req stage
+	    // read resp stage
+		expected_read_resp_mdp_by_lane = {
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00
         };
-        tb_ASID_REQ = 9'h0;
-        // RESP stage
-        // MDPT Update 0 stage
-        tb_mdpt_update0_valid = 1'b0;
-        tb_mdpt_update0_start_full_PC = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-        tb_mdpt_update0_ASID = 9'h0;
-        tb_mdpt_update0_mdp_info = 8'h0;
+	    // update
 
-        @(negedge CLK);
-
-        // outputs:
-
-        // REQ stage
-        // RESP stage
-		expected_mdp_info_by_instr_RESP = {
-            8'h0,
-            8'h0,
-            8'h0,
-            8'h0,
-            8'h0,
-            8'h0,
-            8'h0,
-            8'h0
-        };
-        // MDPT Update 0 stage
-
-        check_outputs();
-
-        for (int i = 8; i < MDPT_ENTRIES; i+=8) begin
-
-            @(posedge CLK); #(PERIOD/10);
-
-            // inputs
-            sub_test_case = $sformatf("REQ: 0x%3h, RESP: 0x%3h", i, i-8);
-            $display("\t- sub_test: %s", sub_test_case);
-
-            // reset
-            nRST = 1'b1;
-            // REQ stage
-            tb_valid_REQ = 1'b1;
-            tb_full_PC_REQ = {
-                19'h0,
-                9'h0,
-                i[2:0],
-                1'b0
-            };
-            tb_ASID_REQ = i[11:3];
-            // RESP stage
-            // MDPT Update 0 stage
-            tb_mdpt_update0_valid = 1'b0;
-            tb_mdpt_update0_start_full_PC = {
-                19'h0,
-                9'h0,
-                3'h0,
-                1'b0
-            };
-            tb_mdpt_update0_ASID = 9'h0;
-            tb_mdpt_update0_mdp_info = 8'h0;
-
-            @(negedge CLK);
-
-            // outputs:
-
-            // REQ stage
-            // RESP stage
-            expected_mdp_info_by_instr_RESP = {
-                {i - 8 + 7}[7:0],
-                {i - 8 + 6}[7:0],
-                {i - 8 + 5}[7:0],
-                {i - 8 + 4}[7:0],
-                {i - 8 + 3}[7:0],
-                {i - 8 + 2}[7:0],
-                {i - 8 + 1}[7:0],
-                {i - 8 + 0}[7:0]
-            };
-            // MDPT Update 0 stage
-
-            check_outputs();
-        end
-
-        @(posedge CLK); #(PERIOD/10);
-
-        // inputs
-        sub_test_case = $sformatf("REQ: NOP, RESP: 0xff8");
-        $display("\t- sub_test: %s", sub_test_case);
-
-        // reset
-        nRST = 1'b1;
-        // REQ stage
-        tb_valid_REQ = 1'b1;
-        tb_full_PC_REQ = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-        tb_ASID_REQ = 9'h0;
-        // RESP stage
-        // MDPT Update 0 stage
-        tb_mdpt_update0_valid = 1'b0;
-        tb_mdpt_update0_start_full_PC = {
-            19'h0,
-            9'h0,
-            3'h0,
-            1'b0
-        };
-        tb_mdpt_update0_ASID = 9'h0;
-        tb_mdpt_update0_mdp_info = 8'h0;
-
-        @(negedge CLK);
-
-        // outputs:
-
-        // REQ stage
-        // RESP stage
-        expected_mdp_info_by_instr_RESP = {
-            8'hff,
-            8'hfe,
-            8'hfd,
-            8'hfc,
-            8'hfb,
-            8'hfa,
-            8'hf9,
-            8'hf8
-        };
-        // MDPT Update 0 stage
-
-        check_outputs();
+		check_outputs();
 
         // ------------------------------------------------------------
         // finish:
@@ -419,7 +236,7 @@ module mdpt_tb ();
 
         $display();
         if (num_errors) begin
-            $display("FAIL: %d tests fail", num_errors);
+            $display("FAIL: %0d tests fail", num_errors);
         end
         else begin
             $display("SUCCESS: all tests pass");

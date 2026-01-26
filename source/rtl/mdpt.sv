@@ -5,11 +5,7 @@
     Spec: LOROF/spec/design/mdpt.md
 */
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
-
-`include "system_types_pkg.vh"
-import system_types_pkg::*;
+`include "corep.vh"
 
 module mdpt (
 
@@ -17,81 +13,86 @@ module mdpt (
     input logic CLK,
     input logic nRST,
 
-    // REQ stage
-    input logic                     valid_REQ,
-    input logic [31:0]              full_PC_REQ,
-    input logic [ASID_WIDTH-1:0]    ASID_REQ,
+    // arch state
+    input corep::ASID_t arch_asid,
 
-    // RESP stage
-    output logic [MDPT_ENTRIES_PER_BLOCK-1:0][MDPT_INFO_WIDTH-1:0] mdp_info_by_instr_RESP,
+    // read req stage
+    input logic                 read_req_valid,
+    input corep::fetch_idx_t    read_req_fetch_index,
 
-    // MDPT Update 0 stage
-    input logic                         mdpt_update0_valid,
-    input logic [31:0]                  mdpt_update0_start_full_PC,
-    input logic [ASID_WIDTH-1:0]        mdpt_update0_ASID,
-    input logic [MDPT_INFO_WIDTH-1:0]   mdpt_update0_mdp_info
+    // read resp stage
+    output corep::MDPT_set_t    read_resp_mdp_by_lane,
+
+    // update
+    input logic             update_valid,
+    input corep::PC38_t     update_pc38,
+    input corep::MDP_t      update_mdp
 );
+
+    // ----------------------------------------------------------------
+    // Functions:
+
+    function corep::MDPT_idx_t index_hash(corep::PC38_t pc38, corep::ASID_t asid);
+        // low fetch index ^ low asid
+        index_hash = pc38[37 : corep::LOG_FETCH_LANES];
+        index_hash ^= asid;
+    endfunction
 
     // ----------------------------------------------------------------
     // Signals:
 
-    // REQ Stage:
-    logic [MDPT_INDEX_WIDTH-1:0] hashed_index_REQ;
+    // mdpt array bram IO
+    logic               mdpt_array_bram_read_next_valid;
+    corep::MDPT_idx_t   mdpt_array_bram_read_next_index;
+    corep::MDPT_set_t   mdpt_array_bram_read_set;
 
-    // Dep Update 0:
-    logic [MDPT_INDEX_WIDTH-1:0]                                mdpt_update0_hashed_index;
-    logic [LOG_MDPT_ENTRIES_PER_BLOCK-1:0]                      mdpt_update0_instr;
-    logic [MDPT_ENTRIES_PER_BLOCK-1:0][MDPT_INFO_WIDTH/8-1:0]   mdpt_update0_byte_mask_by_instr;
+    logic [corep::FETCH_LANES-1:0][$bits(corep::MDPT_entry_t)/8-1:0]    mdpt_array_bram_write_byten;
+    corep::MDPT_idx_t                                                   mdpt_array_bram_write_index;
+    corep::MDPT_set_t                                                   mdpt_array_bram_write_set;
 
-    // ----------------------------------------------------------------
-    // REQ Stage Logic:
-
-    mdpt_index_hash MDPT_REQ_INDEX_HASH (
-        .PC(full_PC_REQ),
-        .ASID(ASID_REQ),
-        .index(hashed_index_REQ)
-    );
+    // update indexing
+    corep::MDPT_idx_t       update_index;
+    corep::fetch_lane_t     update_lane;
 
     // ----------------------------------------------------------------
-    // Dep Update 0 Logic:
+    // Logic:
 
-    assign mdpt_update0_instr = mdpt_update0_start_full_PC[LOG_MDPT_ENTRIES_PER_BLOCK + 1 - 1: 1];
-
-    mdpt_index_hash MDPT_mdpt_UPDATE0_INDEX_HASH(
-        .PC(mdpt_update0_start_full_PC),
-        .ASID(mdpt_update0_ASID),
-        .index(mdpt_update0_hashed_index)
-    );
-
+    // read logic
     always_comb begin
-        mdpt_update0_byte_mask_by_instr = '0;
-        mdpt_update0_byte_mask_by_instr[mdpt_update0_instr] = mdpt_update0_valid ? '1 : '0;
+        mdpt_array_bram_read_next_valid = read_req_valid;
+        mdpt_array_bram_read_next_index = index_hash({read_req_fetch_index, {corep::LOG_FETCH_LANES{1'b0}}}, arch_asid);
+
+        read_resp_mdp_by_lane = mdpt_array_bram_read_set;
     end
 
-    // ----------------------------------------------------------------
-    // RAM Arrays:
+    // write logic
+    always_comb begin
+        update_index = index_hash(update_pc38, arch_asid);
+        update_lane = corep::fetch_lane_bits(update_pc38);
 
-    /////////////////////////////////////
-    // BRAM Array shared over Entries: //
-    /////////////////////////////////////
+        mdpt_array_bram_write_byten = '0;
+        if (update_valid) begin
+            mdpt_array_bram_write_byten[update_lane] = '1;
+        end
+        mdpt_array_bram_write_index = update_index;
+        for (int lane = 0; lane < corep::FETCH_LANES; lane++) begin
+            mdpt_array_bram_write_set[lane] = update_mdp;
+        end
+    end
 
+    // mdpt array bram
     bram_1rport_1wport #(
-        .INNER_WIDTH(
-            MDPT_ENTRIES_PER_BLOCK *
-            MDPT_INFO_WIDTH
-        ),
-        .OUTER_WIDTH(MDPT_SETS)
-    ) MDPT_BRAM_ARRAY (
+        .INNER_WIDTH($bits(corep::MDPT_set_t)),
+        .OUTER_WIDTH(corep::MDPT_SETS)
+    ) MDPT_ARRAY_BRAM (
         .CLK(CLK),
         .nRST(nRST),
-        
-        .ren(valid_REQ),
-        .rindex(hashed_index_REQ),
-        .rdata(mdp_info_by_instr_RESP),
-
-        .wen_byte(mdpt_update0_byte_mask_by_instr),
-        .windex(mdpt_update0_hashed_index),
-        .wdata({MDPT_ENTRIES_PER_BLOCK{mdpt_update0_mdp_info}})
+        .ren(mdpt_array_bram_read_next_valid),
+        .rindex(mdpt_array_bram_read_next_index),
+        .rdata(mdpt_array_bram_read_set),
+        .wen_byte(mdpt_array_bram_write_byten),
+        .windex(mdpt_array_bram_write_index),
+        .wdata(mdpt_array_bram_write_set)
     );
 
 endmodule

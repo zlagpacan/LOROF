@@ -7,53 +7,56 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
+`include "corep.vh"
 
-module mdpt_wrapper (
+module mdpt_wrapper #(
+) (
 
     // seq
     input logic CLK,
     input logic nRST,
 
 
-    // REQ stage
-	input logic next_valid_REQ,
-	input logic [31:0] next_full_PC_REQ,
-	input logic [ASID_WIDTH-1:0] next_ASID_REQ,
+    // arch state
+	input corep::ASID_t next_arch_asid,
 
-    // RESP stage
-	output logic [MDPT_ENTRIES_PER_BLOCK-1:0][MDPT_INFO_WIDTH-1:0] last_mdp_info_by_instr_RESP,
+    // read req stage
+	input logic next_read_req_valid,
+	input corep::fetch_idx_t next_read_req_fetch_index,
 
-    // MDPT Update 0 stage
-	input logic next_mdpt_update0_valid,
-	input logic [31:0] next_mdpt_update0_start_full_PC,
-	input logic [ASID_WIDTH-1:0] next_mdpt_update0_ASID,
-	input logic [MDPT_INFO_WIDTH-1:0] next_mdpt_update0_mdp_info
+    // read resp stage
+	output corep::MDPT_set_t last_read_resp_mdp_by_lane,
+
+    // update
+	input logic next_update_valid,
+	input corep::PC38_t next_update_pc38,
+	input corep::MDP_t next_update_mdp
 );
 
     // ----------------------------------------------------------------
     // Direct Module Connections:
 
 
-    // REQ stage
-	logic valid_REQ;
-	logic [31:0] full_PC_REQ;
-	logic [ASID_WIDTH-1:0] ASID_REQ;
+    // arch state
+	corep::ASID_t arch_asid;
 
-    // RESP stage
-	logic [MDPT_ENTRIES_PER_BLOCK-1:0][MDPT_INFO_WIDTH-1:0] mdp_info_by_instr_RESP;
+    // read req stage
+	logic read_req_valid;
+	corep::fetch_idx_t read_req_fetch_index;
 
-    // MDPT Update 0 stage
-	logic mdpt_update0_valid;
-	logic [31:0] mdpt_update0_start_full_PC;
-	logic [ASID_WIDTH-1:0] mdpt_update0_ASID;
-	logic [MDPT_INFO_WIDTH-1:0] mdpt_update0_mdp_info;
+    // read resp stage
+	corep::MDPT_set_t read_resp_mdp_by_lane;
+
+    // update
+	logic update_valid;
+	corep::PC38_t update_pc38;
+	corep::MDP_t update_mdp;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    mdpt WRAPPED_MODULE (.*);
+	mdpt #(
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -62,36 +65,38 @@ module mdpt_wrapper (
         if (~nRST) begin
 
 
-		    // REQ stage
-			valid_REQ <= '0;
-			full_PC_REQ <= '0;
-			ASID_REQ <= '0;
+		    // arch state
+			arch_asid <= '0;
 
-		    // RESP stage
-			last_mdp_info_by_instr_RESP <= '0;
+		    // read req stage
+			read_req_valid <= '0;
+			read_req_fetch_index <= '0;
 
-		    // MDPT Update 0 stage
-			mdpt_update0_valid <= '0;
-			mdpt_update0_start_full_PC <= '0;
-			mdpt_update0_ASID <= '0;
-			mdpt_update0_mdp_info <= '0;
+		    // read resp stage
+			last_read_resp_mdp_by_lane <= '0;
+
+		    // update
+			update_valid <= '0;
+			update_pc38 <= '0;
+			update_mdp <= '0;
         end
         else begin
 
 
-		    // REQ stage
-			valid_REQ <= next_valid_REQ;
-			full_PC_REQ <= next_full_PC_REQ;
-			ASID_REQ <= next_ASID_REQ;
+		    // arch state
+			arch_asid <= next_arch_asid;
 
-		    // RESP stage
-			last_mdp_info_by_instr_RESP <= mdp_info_by_instr_RESP;
+		    // read req stage
+			read_req_valid <= next_read_req_valid;
+			read_req_fetch_index <= next_read_req_fetch_index;
 
-		    // MDPT Update 0 stage
-			mdpt_update0_valid <= next_mdpt_update0_valid;
-			mdpt_update0_start_full_PC <= next_mdpt_update0_start_full_PC;
-			mdpt_update0_ASID <= next_mdpt_update0_ASID;
-			mdpt_update0_mdp_info <= next_mdpt_update0_mdp_info;
+		    // read resp stage
+			last_read_resp_mdp_by_lane <= read_resp_mdp_by_lane;
+
+		    // update
+			update_valid <= next_update_valid;
+			update_pc38 <= next_update_pc38;
+			update_mdp <= next_update_mdp;
         end
     end
 

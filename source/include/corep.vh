@@ -290,9 +290,10 @@ package corep;
     typedef struct packed {
         TBC_t   tbc;
         SSID_t  ssid;
-    } MDPT_entry_t;
+    } MDP_t;
 
-    typedef MDPT_entry_t [FETCH_LANES-1:0] MDPT_set_t;
+    typedef MDP_t                           MDPT_entry_t;
+    typedef MDPT_entry_t [FETCH_LANES-1:0]  MDPT_set_t;
 
     // mdpt:
         // 8-wide access into direct-mapped, untagged entries

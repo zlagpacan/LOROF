@@ -184,7 +184,7 @@ module btb (
 
     // btb array bram
     bram_1rport_1wport #(
-        .INNER_WIDTH($bits(btb_array_bram_read_set)),
+        .INNER_WIDTH($bits(corep::BTB_set_t)),
         .OUTER_WIDTH(corep::BTB_SETS)
     ) BTB_ARRAY_BRAM (
         .CLK(CLK),
