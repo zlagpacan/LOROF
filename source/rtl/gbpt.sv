@@ -108,7 +108,6 @@ module gbpt (
     end
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            gbpt_array_bram_write_byten <= '0;
             gbpt_array_bram_write_index <= 0;
 
             update_write_lane <= 0;
@@ -118,7 +117,6 @@ module gbpt (
             update_write_old_set <= '0;
         end
         else begin
-            gbpt_array_bram_write_byten <= {$bits(gbpt_array_bram_write_byten){update_valid}};
             gbpt_array_bram_write_index <= gbpt_array_bram_read_port1_next_index;
 
             update_write_lane <= corep::fetch_lane_bits(update_pc38);
@@ -129,6 +127,8 @@ module gbpt (
         end
     end
     always_comb begin
+        gbpt_array_bram_write_byten = {$bits(gbpt_array_bram_write_byten){update_write_last_valid}};
+
         // check forward old set
         if (update_write_forward) begin
             update_selected_old_set = update_write_old_set;
@@ -137,10 +137,8 @@ module gbpt (
             update_selected_old_set = gbpt_array_bram_read_port1_set;
         end
 
-        // default old set values
+        // default old set values and update lane of interest
         gbpt_array_bram_write_set = update_selected_old_set;
-
-        // update lane of interest
         gbpt_array_bram_write_set[update_write_lane] = tbc_updater(update_selected_old_set[update_write_lane], update_write_taken);
     end
 
