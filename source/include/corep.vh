@@ -178,7 +178,7 @@ package corep;
     parameter int unsigned BTB_BIG_TARGET_WIDTH = 12;
     parameter int unsigned BTB_SMALL_TARGET_WIDTH = 9;
     parameter int unsigned LOG_UPCT_ENTRIES = BTB_BIG_TARGET_WIDTH - BTB_SMALL_TARGET_WIDTH;
-    parameter int unsigned BTB_TAG_WIDTH = 16;
+    parameter int unsigned BTB_TAG_WIDTH = 8;
     parameter int unsigned BTB_ASSOC = 2;
 
     typedef logic [BTB_ACTION_WIDTH-1:0]        BTB_action_t;
