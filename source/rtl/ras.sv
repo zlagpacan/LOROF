@@ -30,11 +30,15 @@ module ras (
     // ----------------------------------------------------------------
     // Signals:
 
-    // FF Array:
-    corep::PC38_t   ras_array         [corep::RAS_ENTRIES-1:0];
-    corep::PC38_t   next_ras_array    [corep::RAS_ENTRIES-1:0];
+    // ras array distram IO
+    corep::RAS_idx_t    ras_array_distram_read_index;
+    corep::PC38_t       ras_array_distram_read_data;
 
-    // RESP Stage:
+    logic               ras_array_distram_write_valid;
+    corep::RAS_idx_t    ras_array_distram_write_index;
+    corep::PC38_t       ras_array_distram_write_data;
+
+    // sp control
     corep::RAS_idx_t sp, next_sp, sp_plus_1, sp_minus_1;
 
     // ----------------------------------------------------------------
@@ -42,13 +46,9 @@ module ras (
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            for (int i = 0; i < corep::RAS_ENTRIES; i++) begin
-                ras_array[i] <= '0;
-            end
             sp <= 0;
         end
         else begin
-            ras_array <= next_ras_array;
             sp <= next_sp;
         end
     end
@@ -58,13 +58,16 @@ module ras (
         sp_minus_1 = sp - 1;
     end
 
+    // sp control
     always_comb begin
-
-        // hold array by default
-        next_ras_array = ras_array;
 
         // default hold sp
         next_sp = sp;
+
+        // default write
+        ras_array_distram_write_valid = 1'b0;
+        ras_array_distram_write_index = sp;
+        ras_array_distram_write_data = link_pc38;
 
         // first priority: update
         if (update_valid) begin
@@ -77,14 +80,16 @@ module ras (
         else if (link_valid & ret_valid) begin
 
             // link addr at current sp
-            next_ras_array[sp] = link_pc38;
+            ras_array_distram_write_valid = 1'b1;
+            ras_array_distram_write_index = sp;
         end
 
         // otherwise, check for just link
         else if (link_valid) begin
 
             // link addr at next sp
-            next_ras_array[sp_plus_1] = link_pc38;
+            ras_array_distram_write_valid = 1'b1;
+            ras_array_distram_write_index = sp_plus_1;
 
             // incr sp
             next_sp = sp_plus_1;
@@ -100,8 +105,22 @@ module ras (
 
     // always read out current sp and current addr and sp
     always_comb begin
+        ras_array_distram_read_index = sp;
+
         ret_ras_index = sp;
-        ret_pc38 = ras_array[sp];
+        ret_pc38 = ras_array_distram_read_data;
     end
 
+    // ras array distram
+    distram_1rport_1wport #(
+        .INNER_WIDTH($bits(corep::PC38_t)),
+        .OUTER_WIDTH(corep::RAS_ENTRIES)
+    ) PLRU_ARRAY_DISTRAM (
+        .CLK(CLK),
+        .rindex(ras_array_distram_read_index),
+        .rdata(ras_array_distram_read_data),
+        .wen(ras_array_distram_write_valid),
+        .windex(ras_array_distram_write_index),
+        .wdata(ras_array_distram_write_data)
+    );
 endmodule

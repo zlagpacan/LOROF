@@ -24,13 +24,13 @@ module ibtb_wrapper #(
 	input corep::PC38_t next_read_src_pc38,
 	input corep::IBTB_GH_t next_read_ibtb_gh,
 
-	output corep::PC38_t last_read_tgt_pc38,
+	output corep::IBTB_info_t last_read_tgt_ibtb_info,
 
     // update
 	input logic next_update_valid,
 	input corep::PC38_t next_update_src_pc38,
 	input corep::PC38_t next_update_ibtb_gh,
-	input corep::PC38_t next_update_tgt_pc38
+	input corep::IBTB_info_t next_update_tgt_ibtb_info
 );
 
     // ----------------------------------------------------------------
@@ -44,13 +44,13 @@ module ibtb_wrapper #(
 	corep::PC38_t read_src_pc38;
 	corep::IBTB_GH_t read_ibtb_gh;
 
-	corep::PC38_t read_tgt_pc38;
+	corep::IBTB_info_t read_tgt_ibtb_info;
 
     // update
 	logic update_valid;
 	corep::PC38_t update_src_pc38;
 	corep::PC38_t update_ibtb_gh;
-	corep::PC38_t update_tgt_pc38;
+	corep::IBTB_info_t update_tgt_ibtb_info;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -72,13 +72,13 @@ module ibtb_wrapper #(
 			read_src_pc38 <= '0;
 			read_ibtb_gh <= '0;
 
-			last_read_tgt_pc38 <= '0;
+			last_read_tgt_ibtb_info <= '0;
 
 		    // update
 			update_valid <= '0;
 			update_src_pc38 <= '0;
 			update_ibtb_gh <= '0;
-			update_tgt_pc38 <= '0;
+			update_tgt_ibtb_info <= '0;
         end
         else begin
 
@@ -90,13 +90,13 @@ module ibtb_wrapper #(
 			read_src_pc38 <= next_read_src_pc38;
 			read_ibtb_gh <= next_read_ibtb_gh;
 
-			last_read_tgt_pc38 <= read_tgt_pc38;
+			last_read_tgt_ibtb_info <= read_tgt_ibtb_info;
 
 		    // update
 			update_valid <= next_update_valid;
 			update_src_pc38 <= next_update_src_pc38;
 			update_ibtb_gh <= next_update_ibtb_gh;
-			update_tgt_pc38 <= next_update_tgt_pc38;
+			update_tgt_ibtb_info <= next_update_tgt_ibtb_info;
         end
     end
 

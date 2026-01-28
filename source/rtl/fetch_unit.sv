@@ -5,10 +5,11 @@
     Spec: LOROF/spec/design/fetch_unit.md
 */
 
-// TODO: RV64GC changes
+// TODO: RV64GC, Sv39 changes
 // TODO: fast redirect
     // pipelined pc_gen which resolves details quickly if can else defer to third stage
-    // can quickly redirect by only needing BTB_small_target or ras TOS
+    // can quickly redirect by only needing BTB_big_target or ras TOS
+    // fast vs. slow redirect for upct case depends on if BTB_small_target is big enough to build REQ index
     // pipeline: REQ, RESP, LATE
         // REQ:
             // btb, gbpt, mdpt req
@@ -18,11 +19,32 @@
             // itlb, icache resp
             // ras read/write
             // btb hit check
+            // yield PC index bits if fast redirect
             // fast redirect -> REQ
-            // yield PC index bits
         // LATE:
             // upct, ibtb lookup
-            // yield full PC
+            // yield full pc
+            // slow redirect -> REQ
+// TODO: prediction <-> fetch interaction
+    // idea: index Q + tag Q
+        // probably want to rename something like index Q + tag Q
+        // can asynchronously and non-lock-step enQ index and tag for given wide fetch access as info comes
+        // this naturally decouples prediction pipeline and fetch pipeline so easier control:
+            // simple individual pipeline control
+            // simple interface
+        // loss is Q size
+        // index yield
+            // RESP no redirect to REQ -> pc38 + 8
+            // RESP fast redirect to REQ -> fast redirect pc index bits
+            // LATE slow redirect to REQ -> full pc bits
+        // tag yield
+            // RESP fast redirect
+            // LATE slow redirect
+    // idea: prediction and fetch directly coupled
+        // was overthinking how tough the FSM would be ^ for index yield but no tag yield
+            // both pipelines would stall in this case anyway
+            // no benefit from 1-cycle early index lookup as miss req's aren't initiated until have tag
+                // it could even be worse as have 1-cycle stale data
 
 `include "core_types_pkg.vh"
 import core_types_pkg::*;

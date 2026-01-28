@@ -40,13 +40,13 @@ module ibtb_tb #(
 	corep::PC38_t tb_read_src_pc38;
 	corep::IBTB_GH_t tb_read_ibtb_gh;
 
-	corep::PC38_t DUT_read_tgt_pc38, expected_read_tgt_pc38;
+	corep::IBTB_info_t DUT_read_tgt_ibtb_info, expected_read_tgt_ibtb_info;
 
     // update
 	logic tb_update_valid;
 	corep::PC38_t tb_update_src_pc38;
 	corep::PC38_t tb_update_ibtb_gh;
-	corep::PC38_t tb_update_tgt_pc38;
+	corep::IBTB_info_t tb_update_tgt_ibtb_info;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -65,13 +65,13 @@ module ibtb_tb #(
 		.read_src_pc38(tb_read_src_pc38),
 		.read_ibtb_gh(tb_read_ibtb_gh),
 
-		.read_tgt_pc38(DUT_read_tgt_pc38),
+		.read_tgt_ibtb_info(DUT_read_tgt_ibtb_info),
 
 	    // update
 		.update_valid(tb_update_valid),
 		.update_src_pc38(tb_update_src_pc38),
 		.update_ibtb_gh(tb_update_ibtb_gh),
-		.update_tgt_pc38(tb_update_tgt_pc38)
+		.update_tgt_ibtb_info(tb_update_tgt_ibtb_info)
 	);
 
     // ----------------------------------------------------------------
@@ -79,9 +79,9 @@ module ibtb_tb #(
 
     task check_outputs();
     begin
-		if (expected_read_tgt_pc38 !== DUT_read_tgt_pc38) begin
-			$display("TB ERROR: expected_read_tgt_pc38 (%h) != DUT_read_tgt_pc38 (%h)",
-				expected_read_tgt_pc38, DUT_read_tgt_pc38);
+		if (expected_read_tgt_ibtb_info !== DUT_read_tgt_ibtb_info) begin
+			$display("TB ERROR: expected_read_tgt_ibtb_info (%h) != DUT_read_tgt_ibtb_info (%h)",
+				expected_read_tgt_ibtb_info, DUT_read_tgt_ibtb_info);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -117,7 +117,7 @@ module ibtb_tb #(
 		tb_update_valid = 1'b0;
 		tb_update_src_pc38 = 38'h0000000000;
 		tb_update_ibtb_gh = 5'h00;
-		tb_update_tgt_pc38 = 38'h0000000000;
+		tb_update_tgt_ibtb_info = 38'h0000000000;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -125,7 +125,7 @@ module ibtb_tb #(
 
 	    // arch state
 	    // read
-		expected_read_tgt_pc38 = 38'h0000000000;
+		expected_read_tgt_ibtb_info = 38'h0000000000;
 	    // update
 
 		check_outputs();
@@ -145,7 +145,7 @@ module ibtb_tb #(
 		tb_update_valid = 1'b0;
 		tb_update_src_pc38 = 38'h0000000000;
 		tb_update_ibtb_gh = 5'h00;
-		tb_update_tgt_pc38 = 38'h0000000000;
+		tb_update_tgt_ibtb_info = 38'h0000000000;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -153,7 +153,7 @@ module ibtb_tb #(
 
 	    // arch state
 	    // read
-		expected_read_tgt_pc38 = 38'h0000000000;
+		expected_read_tgt_ibtb_info = 38'h0000000000;
 	    // update
 
 		check_outputs();
@@ -183,7 +183,7 @@ module ibtb_tb #(
             tb_update_valid = 1'b1;
             tb_update_src_pc38 = {33'h000000000, i[4], 1'b0, i[2], 1'b0, i[0]};
             tb_update_ibtb_gh = {1'b0, i[3], 1'b0, i[1], 1'b0};
-            tb_update_tgt_pc38 = {4{~i[4:0], i[4:0]}};
+            tb_update_tgt_ibtb_info = {4{~i[4:0], i[4:0]}};
 
             @(negedge CLK);
 
@@ -191,7 +191,7 @@ module ibtb_tb #(
 
             // arch state
             // read
-            expected_read_tgt_pc38 = i > 0 ? {4{5'h1f, 5'h00}} : 38'h0000000000;
+            expected_read_tgt_ibtb_info = i > 0 ? {4{5'h1f, 5'h00}} : 38'h0000000000;
             // update
 
             check_outputs();
@@ -222,7 +222,7 @@ module ibtb_tb #(
             tb_update_valid = 1'b1;
             tb_update_src_pc38 = {33'h000000000, 5'h00};
             tb_update_ibtb_gh = 5'h00;
-            tb_update_tgt_pc38 = 38'h0000000000;
+            tb_update_tgt_ibtb_info = 38'h0000000000;
 
             @(negedge CLK);
 
@@ -230,7 +230,7 @@ module ibtb_tb #(
 
             // arch state
             // read
-            expected_read_tgt_pc38 = {4{i[4:0], ~i[4:0]}};
+            expected_read_tgt_ibtb_info = {4{i[4:0], ~i[4:0]}};
             // update
 
             check_outputs();

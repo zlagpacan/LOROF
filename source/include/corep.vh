@@ -177,10 +177,8 @@ package corep;
     parameter int unsigned BTB_ACTION_WIDTH = 3;
     parameter int unsigned BTB_BIG_TARGET_WIDTH = 12;
     parameter int unsigned BTB_SMALL_TARGET_WIDTH = 9;
-        // want BTB_BIG_TARGET_WIDTH - BTB_SMALL_TARGET_WIDTH == LOG_FETCH_LANES
-        // so upper bits of big target and small target are in same place for fast redirect
     parameter int unsigned LOG_UPCT_ENTRIES = BTB_BIG_TARGET_WIDTH - BTB_SMALL_TARGET_WIDTH;
-    parameter int unsigned BTB_TAG_WIDTH = 8;
+    parameter int unsigned BTB_TAG_WIDTH = 16;
     parameter int unsigned BTB_ASSOC = 2;
 
     typedef logic [BTB_ACTION_WIDTH-1:0]        BTB_action_t;
@@ -189,8 +187,8 @@ package corep;
     typedef logic [BTB_TAG_WIDTH-1:0]           BTB_tag_t;
 
     typedef struct packed {
-        BTB_small_target_t  small_target;
         UPCT_idx_t          upct_idx;
+        BTB_small_target_t  small_target;
     } BTB_big_target_t;
     
     typedef struct packed {
@@ -221,7 +219,7 @@ package corep;
         // tag: PC, ASID
     parameter int unsigned BTB_ENTRIES = 1024;
     parameter int unsigned BTB_SETS = BTB_ENTRIES / BTB_ASSOC / FETCH_LANES; // 1024 / 2 / 8 = 64
-    parameter int unsigned LOG_BTB_SETS = $clog2(BTB_SETS); // log2(64) = 6. must be <= BTB_SMALL_TARGET_WIDTH for fast redirect
+    parameter int unsigned LOG_BTB_SETS = $clog2(BTB_SETS);
     
     typedef logic [LOG_BTB_SETS-1:0]        BTB_idx_t;
     typedef logic [BTB_ASSOC-2:0]           BTB_plru_t;
@@ -257,16 +255,18 @@ package corep;
     // UPCT_idx_t defined ^
     parameter int unsigned UPCT_ENTRIES = 2**LOG_UPCT_ENTRIES;
 
-    typedef struct packed {
-        logic [38-BTB_SMALL_TARGET_WIDTH-LOG_FETCH_LANES-1:0]   upper;
-        fetch_lane_t                                            lane;
-    } UPC_t;
-        // PC38 = {upc.upper[25:0], small_target[8:0], upc.lane[2:0]}
+    typedef logic [38-BTB_SMALL_TARGET_WIDTH-1:0] UPC_t;
+        // PC38 = {upc.upper[27:0], small_target[8:0]}
 
     // ibtb entry:
-        // {pc38}
+        // {use_upct, big_target}
         // 1-wide access into direct-mapped, untagged entries
-    typedef PC38_t IBTB_entry_t;
+    typedef struct packed {
+        logic               use_upct;
+        BTB_big_target_t    big_target;
+    } IBTB_info_t;
+
+    typedef IBTB_info_t IBTB_entry_t;
 
     // ibtb:
         // 1-wide access into direct-mapped, untagged entries
@@ -281,16 +281,16 @@ package corep;
     // sst:
         // sst params needed for mdpt entry
     parameter int unsigned STORE_SET_COUNT = 64;
-    parameter int unsigned SSID_WIDTH = $clog2(STORE_SET_COUNT);
+    parameter int unsigned SSID_WIDTH = $clog2(STORE_SET_COUNT); // 6
 
     typedef logic [SSID_WIDTH-1:0] SSID_t;
 
     // mdpt entry:
         // 2BC + SSID
     typedef struct packed {
-        TBC_t   tbc;
-        SSID_t  ssid;
-    } MDP_t;
+        TBC_t   tbc;    // 2b
+        SSID_t  ssid;   // 6b
+    } MDP_t;            // 8b = 1B
 
     typedef MDP_t                           MDPT_entry_t;
     typedef MDPT_entry_t [FETCH_LANES-1:0]  MDPT_set_t;

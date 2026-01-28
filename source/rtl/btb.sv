@@ -80,9 +80,9 @@ module btb (
     // plru updater
     corep::BTB_plru_t       plru_updater_plru_in;
     logic                   plru_updater_new_valid;
-    corep::BTB_way_idx_t    plru_updater_new_way;
+    corep::BTB_way_idx_t    plru_updater_new_index;
     logic                   plru_updater_touch_valid;
-    corep::BTB_way_idx_t    plru_updater_touch_way;
+    corep::BTB_way_idx_t    plru_updater_touch_index;
     corep::BTB_plru_t       plru_updater_plru_out;
 
     // ----------------------------------------------------------------
@@ -129,13 +129,13 @@ module btb (
             update_selected_way = update_hit_way;
         end
         else begin
-            update_selected_way = plru_updater_new_way;
+            update_selected_way = plru_updater_new_index;
         end
 
         plru_updater_plru_in = plru_array_distram_read_data;
         plru_updater_new_valid = update_valid & ~update_hit;
         plru_updater_touch_valid = update_valid & update_hit;
-        plru_updater_touch_way = update_hit_way;
+        plru_updater_touch_index = update_hit_way;
 
         btb_array_bram_write_byten = '0;
         if (update_valid) begin
@@ -156,9 +156,9 @@ module btb (
     ) PLRU_UPDATER (
         .plru_in(plru_updater_plru_in),
         .new_valid(plru_updater_new_valid),
-        .new_way(plru_updater_new_way),
+        .new_index(plru_updater_new_index),
         .touch_valid(plru_updater_touch_valid),
-        .touch_way(plru_updater_touch_way),
+        .touch_index(plru_updater_touch_index),
         .plru_out(plru_updater_plru_out)
     );
 

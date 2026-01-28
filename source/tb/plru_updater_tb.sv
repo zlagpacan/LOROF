@@ -34,10 +34,10 @@ module plru_updater_tb #(
 	logic [NUM_ENTRIES-2:0] tb_plru_in;
 
 	logic tb_new_valid;
-	logic [LOG_NUM_ENTRIES-1:0] DUT_new_way, expected_new_way;
+	logic [LOG_NUM_ENTRIES-1:0] DUT_new_index, expected_new_index;
 
 	logic tb_touch_valid;
-	logic [LOG_NUM_ENTRIES-1:0] tb_touch_way;
+	logic [LOG_NUM_ENTRIES-1:0] tb_touch_index;
 
 	logic [NUM_ENTRIES-2:0] DUT_plru_out, expected_plru_out;
 
@@ -51,10 +51,10 @@ module plru_updater_tb #(
 		.plru_in(tb_plru_in),
 
 		.new_valid(tb_new_valid),
-		.new_way(DUT_new_way),
+		.new_index(DUT_new_index),
 
 		.touch_valid(tb_touch_valid),
-		.touch_way(tb_touch_way),
+		.touch_index(tb_touch_index),
 
 		.plru_out(DUT_plru_out)
 	);
@@ -64,9 +64,9 @@ module plru_updater_tb #(
 
     task check_outputs();
     begin
-		if (expected_new_way !== DUT_new_way) begin
-			$display("TB ERROR: expected_new_way (%h) != DUT_new_way (%h)",
-				expected_new_way, DUT_new_way);
+		if (expected_new_index !== DUT_new_index) begin
+			$display("TB ERROR: expected_new_index (%h) != DUT_new_index (%h)",
+				expected_new_index, DUT_new_index);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -103,13 +103,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b0000, 2'b00, 1'b0};
 		tb_new_valid = 1'b0;
 		tb_touch_valid = 1'b0;
-		tb_touch_way = 3'b000;
+		tb_touch_index = 3'b000;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-		expected_new_way = 3'b000;
+		expected_new_index = 3'b000;
 		expected_plru_out = {4'b0000, 2'b00, 1'b0};
 
 		check_outputs();
@@ -123,13 +123,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b0000, 2'b00, 1'b0};
 		tb_new_valid = 1'b0;
 		tb_touch_valid = 1'b0;
-		tb_touch_way = 3'b000;
+		tb_touch_index = 3'b000;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-		expected_new_way = 3'b000;
+		expected_new_index = 3'b000;
 		expected_plru_out = {4'b0000, 2'b00, 1'b0};
 
 		check_outputs();
@@ -151,13 +151,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b0000, 2'b00, 1'b0};
 		tb_new_valid = 1'b1;
 		tb_touch_valid = 1'b0;
-		tb_touch_way = 3'b000;
+		tb_touch_index = 3'b000;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b000;
+		expected_new_index = 3'b000;
 		expected_plru_out = {4'b0001, 2'b01, 1'b1};
 
 		check_outputs();
@@ -173,13 +173,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b0001, 2'b01, 1'b1};
 		tb_new_valid = 1'b1;
 		tb_touch_valid = 1'b0;
-		tb_touch_way = 3'b000;
+		tb_touch_index = 3'b000;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b001;
+		expected_new_index = 3'b001;
 		expected_plru_out = {4'b0011, 2'b11, 1'b0};
 
 		check_outputs();
@@ -195,13 +195,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b0011, 2'b11, 1'b0};
 		tb_new_valid = 1'b1;
 		tb_touch_valid = 1'b0;
-		tb_touch_way = 3'b000;
+		tb_touch_index = 3'b000;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b010;
+		expected_new_index = 3'b010;
 		expected_plru_out = {4'b0111, 2'b10, 1'b1};
 
 		check_outputs();
@@ -217,13 +217,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b0111, 2'b10, 1'b1};
 		tb_new_valid = 1'b0;
 		tb_touch_valid = 1'b0;
-		tb_touch_way = 3'b000;
+		tb_touch_index = 3'b000;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b011;
+		expected_new_index = 3'b011;
 		expected_plru_out = {4'b0111, 2'b10, 1'b1};
 
 		check_outputs();
@@ -239,13 +239,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b0111, 2'b10, 1'b1};
 		tb_new_valid = 1'b1;
 		tb_touch_valid = 1'b0;
-		tb_touch_way = 3'b000;
+		tb_touch_index = 3'b000;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b011;
+		expected_new_index = 3'b011;
 		expected_plru_out = {4'b1111, 2'b00, 1'b0};
 
 		check_outputs();
@@ -261,13 +261,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b1111, 2'b00, 1'b0};
 		tb_new_valid = 1'b1;
 		tb_touch_valid = 1'b0;
-		tb_touch_way = 3'b000;
+		tb_touch_index = 3'b000;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b100;
+		expected_new_index = 3'b100;
 		expected_plru_out = {4'b1110, 2'b01, 1'b1};
 
 		check_outputs();
@@ -283,13 +283,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b1110, 2'b01, 1'b1};
 		tb_new_valid = 1'b1;
 		tb_touch_valid = 1'b0;
-		tb_touch_way = 3'b000;
+		tb_touch_index = 3'b000;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b101;
+		expected_new_index = 3'b101;
 		expected_plru_out = {4'b1100, 2'b11, 1'b0};
 
 		check_outputs();
@@ -305,13 +305,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b1100, 2'b11, 1'b0};
 		tb_new_valid = 1'b1;
 		tb_touch_valid = 1'b0;
-		tb_touch_way = 3'b000;
+		tb_touch_index = 3'b000;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b110;
+		expected_new_index = 3'b110;
 		expected_plru_out = {4'b1000, 2'b10, 1'b1};
 
 		check_outputs();
@@ -327,13 +327,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b1000, 2'b10, 1'b1};
 		tb_new_valid = 1'b1;
 		tb_touch_valid = 1'b0;
-		tb_touch_way = 3'b000;
+		tb_touch_index = 3'b000;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b111;
+		expected_new_index = 3'b111;
 		expected_plru_out = {4'b0000, 2'b00, 1'b0};
 
 		check_outputs();
@@ -349,13 +349,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b0000, 2'b00, 1'b0};
 		tb_new_valid = 1'b0;
 		tb_touch_valid = 1'b1;
-		tb_touch_way = 3'b111;
+		tb_touch_index = 3'b111;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b000;
+		expected_new_index = 3'b000;
 		expected_plru_out = {4'b0000, 2'b00, 1'b0};
 
 		check_outputs();
@@ -371,13 +371,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b0000, 2'b00, 1'b0};
 		tb_new_valid = 1'b0;
 		tb_touch_valid = 1'b1;
-		tb_touch_way = 3'b101;
+		tb_touch_index = 3'b101;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b000;
+		expected_new_index = 3'b000;
 		expected_plru_out = {4'b0000, 2'b10, 1'b0};
 
 		check_outputs();
@@ -393,13 +393,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b0000, 2'b10, 1'b0};
 		tb_new_valid = 1'b0;
 		tb_touch_valid = 1'b1;
-		tb_touch_way = 3'b011;
+		tb_touch_index = 3'b011;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b000;
+		expected_new_index = 3'b000;
 		expected_plru_out = {4'b1000, 2'b00, 1'b0};
 
 		check_outputs();
@@ -415,13 +415,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b1000, 2'b00, 1'b0};
 		tb_new_valid = 1'b0;
 		tb_touch_valid = 1'b1;
-		tb_touch_way = 3'b001;
+		tb_touch_index = 3'b001;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b000;
+		expected_new_index = 3'b000;
 		expected_plru_out = {4'b1010, 2'b10, 1'b0};
 
 		check_outputs();
@@ -437,13 +437,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b1010, 2'b10, 1'b0};
 		tb_new_valid = 1'b0;
 		tb_touch_valid = 1'b1;
-		tb_touch_way = 3'b110;
+		tb_touch_index = 3'b110;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b000;
+		expected_new_index = 3'b000;
 		expected_plru_out = {4'b1010, 2'b10, 1'b1};
 
 		check_outputs();
@@ -459,13 +459,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b1010, 2'b10, 1'b1};
 		tb_new_valid = 1'b0;
 		tb_touch_valid = 1'b1;
-		tb_touch_way = 3'b100;
+		tb_touch_index = 3'b100;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b111;
+		expected_new_index = 3'b111;
 		expected_plru_out = {4'b1010, 2'b11, 1'b1};
 
 		check_outputs();
@@ -481,13 +481,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b1010, 2'b11, 1'b1};
 		tb_new_valid = 1'b0;
 		tb_touch_valid = 1'b1;
-		tb_touch_way = 3'b010;
+		tb_touch_index = 3'b010;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b111;
+		expected_new_index = 3'b111;
 		expected_plru_out = {4'b1110, 2'b10, 1'b1};
 
 		check_outputs();
@@ -503,13 +503,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b1110, 2'b10, 1'b1};
 		tb_new_valid = 1'b0;
 		tb_touch_valid = 1'b1;
-		tb_touch_way = 3'b000;
+		tb_touch_index = 3'b000;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b111;
+		expected_new_index = 3'b111;
 		expected_plru_out = {4'b1111, 2'b11, 1'b1};
 
 		check_outputs();
@@ -525,13 +525,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b1111, 2'b11, 1'b1};
 		tb_new_valid = 1'b1;
 		tb_touch_valid = 1'b0;
-		tb_touch_way = 3'b000;
+		tb_touch_index = 3'b000;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b111;
+		expected_new_index = 3'b111;
 		expected_plru_out = {4'b0111, 2'b01, 1'b0};
 
 		check_outputs();
@@ -547,13 +547,13 @@ module plru_updater_tb #(
 		tb_plru_in = {4'b0111, 2'b01, 1'b0};
 		tb_new_valid = 1'b1;
 		tb_touch_valid = 1'b0;
-		tb_touch_way = 3'b000;
+		tb_touch_index = 3'b000;
 
 		@(negedge CLK);
 
 		// outputs:
 
-		expected_new_way = 3'b110;
+		expected_new_index = 3'b110;
 		expected_plru_out = {4'b0011, 2'b00, 1'b1};
 
 		check_outputs();
