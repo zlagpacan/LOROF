@@ -247,7 +247,7 @@ package corep;
     parameter int unsigned LOG_RAS_ENTRIES = $clog2(RAS_ENTRIES);
 
     typedef logic [LOG_RAS_ENTRIES-1:0]     RAS_idx_t;
-    typedef logic [LOG_RAS_ENTRIES+1-1:0]   RAS_count_t;
+    typedef logic [LOG_RAS_ENTRIES+1-1:0]   RAS_cnt_t;
 
     // upct:
         // PLRU-allocated array

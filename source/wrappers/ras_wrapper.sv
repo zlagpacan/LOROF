@@ -23,12 +23,16 @@ module ras_wrapper #(
 
     // pc_gen return control
 	input logic next_ret_valid,
+
+	output logic last_ret_fallback,
 	output corep::PC38_t last_ret_pc38,
 	output corep::RAS_idx_t last_ret_ras_index,
+	output corep::RAS_cnt_t last_ret_ras_count,
 
     // update control
 	input logic next_update_valid,
-	input corep::RAS_idx_t next_update_ras_index
+	input corep::RAS_idx_t next_update_ras_index,
+	input corep::RAS_cnt_t next_update_ras_count
 );
 
     // ----------------------------------------------------------------
@@ -41,12 +45,16 @@ module ras_wrapper #(
 
     // pc_gen return control
 	logic ret_valid;
+
+	logic ret_fallback;
 	corep::PC38_t ret_pc38;
 	corep::RAS_idx_t ret_ras_index;
+	corep::RAS_cnt_t ret_ras_count;
 
     // update control
 	logic update_valid;
 	corep::RAS_idx_t update_ras_index;
+	corep::RAS_cnt_t update_ras_count;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -67,12 +75,16 @@ module ras_wrapper #(
 
 		    // pc_gen return control
 			ret_valid <= '0;
+
+			last_ret_fallback <= '0;
 			last_ret_pc38 <= '0;
 			last_ret_ras_index <= '0;
+			last_ret_ras_count <= '0;
 
 		    // update control
 			update_valid <= '0;
 			update_ras_index <= '0;
+			update_ras_count <= '0;
         end
         else begin
 
@@ -83,12 +95,16 @@ module ras_wrapper #(
 
 		    // pc_gen return control
 			ret_valid <= next_ret_valid;
+
+			last_ret_fallback <= ret_fallback;
 			last_ret_pc38 <= ret_pc38;
 			last_ret_ras_index <= ret_ras_index;
+			last_ret_ras_count <= ret_ras_count;
 
 		    // update control
 			update_valid <= next_update_valid;
 			update_ras_index <= next_update_ras_index;
+			update_ras_count <= next_update_ras_count;
         end
     end
 

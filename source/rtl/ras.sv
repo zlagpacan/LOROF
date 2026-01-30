@@ -19,12 +19,16 @@ module ras (
 
     // pc_gen return control
     input logic                 ret_valid,
+
+    output logic                ret_fallback,
     output corep::PC38_t        ret_pc38,
     output corep::RAS_idx_t     ret_ras_index,
+    output corep::RAS_cnt_t     ret_ras_count,
 
     // update control
     input logic                 update_valid,
-    input corep::RAS_idx_t      update_ras_index
+    input corep::RAS_idx_t      update_ras_index,
+    input corep::RAS_cnt_t      update_ras_count
 );
 
     // ----------------------------------------------------------------
@@ -41,28 +45,43 @@ module ras (
     // sp control
     corep::RAS_idx_t sp, next_sp, sp_plus_1, sp_minus_1;
 
+    // count control
+    corep::RAS_cnt_t count, next_count, count_plus_1, count_minus_1;
+
     // ----------------------------------------------------------------
     // Logic:
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             sp <= 0;
+            count <= 0;
         end
         else begin
             sp <= next_sp;
+            count <= next_count;
         end
     end
 
     always_comb begin
         sp_plus_1 = sp + 1;
         sp_minus_1 = sp - 1;
+
+        // count saturates
+        if (count == corep::RAS_ENTRIES) begin
+            count_plus_1 = corep::RAS_ENTRIES;
+        end
+        else begin
+            count_plus_1 = count + 1;
+        end
+        count_minus_1 = count - 1;
     end
 
     // sp control
     always_comb begin
 
-        // default hold sp
+        // default hold sp, count
         next_sp = sp;
+        next_count = count;
 
         // default write
         ras_array_distram_write_valid = 1'b0;
@@ -72,16 +91,29 @@ module ras (
         // first priority: update
         if (update_valid) begin
 
-            // take update sp
+            // take update sp, count
             next_sp = update_ras_index;
+            next_count = update_ras_count;
         end
 
         // otherwise, check for link and ret
         else if (link_valid & ret_valid) begin
 
-            // link addr at current sp
-            ras_array_distram_write_valid = 1'b1;
-            ras_array_distram_write_index = sp;
+            // check fallback
+            if (ret_fallback) begin
+                // link addr at next sp
+                ras_array_distram_write_valid = 1'b1;
+                ras_array_distram_write_index = sp_plus_1;
+
+                // incr sp, count
+                next_sp = sp_plus_1;
+                next_count = count_plus_1;
+            end
+            else begin
+                // link addr at current sp
+                ras_array_distram_write_valid = 1'b1;
+                ras_array_distram_write_index = sp;
+            end
         end
 
         // otherwise, check for just link
@@ -91,15 +123,20 @@ module ras (
             ras_array_distram_write_valid = 1'b1;
             ras_array_distram_write_index = sp_plus_1;
 
-            // incr sp
+            // incr sp, count
             next_sp = sp_plus_1;
+            next_count = count_plus_1;
         end
 
         // otherwise, check for just ret
         else if (ret_valid) begin
 
-            // decr sp
-            next_sp = sp_minus_1;
+            // check no fallback
+            if (~ret_fallback) begin
+                // decr sp, count
+                next_sp = sp_minus_1;
+                next_count = count_minus_1;
+            end
         end
     end
 
@@ -107,8 +144,11 @@ module ras (
     always_comb begin
         ras_array_distram_read_index = sp;
 
-        ret_ras_index = sp;
         ret_pc38 = ras_array_distram_read_data;
+
+        ret_fallback = (count == 0);
+        ret_ras_index = sp;
+        ret_ras_count = count;
     end
 
     // ras array distram
