@@ -32,9 +32,9 @@ module mdpt (
     // ----------------------------------------------------------------
     // Functions:
 
-    function corep::MDPT_idx_t index_hash(corep::PC38_t pc38, corep::ASID_t asid);
+    function corep::MDPT_idx_t index_hash(corep::fetch_idx_t fetch_index, corep::ASID_t asid);
         // low fetch index ^ low asid
-        index_hash = pc38[37 : corep::LOG_FETCH_LANES];
+        index_hash = fetch_index;
         index_hash ^= asid;
     endfunction
 
@@ -60,14 +60,14 @@ module mdpt (
     // read logic
     always_comb begin
         mdpt_array_bram_read_next_valid = read_req_valid;
-        mdpt_array_bram_read_next_index = index_hash({read_req_fetch_index, {corep::LOG_FETCH_LANES{1'b0}}}, arch_asid);
+        mdpt_array_bram_read_next_index = index_hash(read_req_fetch_index, arch_asid);
 
         read_resp_mdp_by_lane = mdpt_array_bram_read_set;
     end
 
     // write logic
     always_comb begin
-        update_index = index_hash(update_pc38, arch_asid);
+        update_index = index_hash(corep::fetch_idx_bits(update_pc38), arch_asid);
         update_lane = corep::fetch_lane_bits(update_pc38);
 
         mdpt_array_bram_write_byten = '0;

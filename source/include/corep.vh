@@ -69,12 +69,12 @@ package corep;
     typedef logic [LOG_PRF_BANK_COUNT-1:0]                  PR_bank_t;
     typedef logic [LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     upper_PR_t;
 
-    function upper_PR_t upper_PR_bits (PR_t PR);
-        return PR[LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT];
+    function upper_PR_t upper_PR_bits (PR_t pr);
+        return pr[LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT];
     endfunction
 
-    function PR_bank_t PR_bank_bits (PR_t PR);
-        return PR[LOG_PRF_BANK_COUNT-1:0];
+    function PR_bank_t PR_bank_bits (PR_t pr);
+        return pr[LOG_PRF_BANK_COUNT-1:0];
     endfunction
 
     parameter int unsigned IS_OC_BUFFER_SIZE = 2;
@@ -159,15 +159,20 @@ package corep;
     parameter int unsigned FETCH_LANES = 8;
     parameter int unsigned LOG_FETCH_LANES = $clog2(FETCH_LANES);
 
-    typedef logic [LOG_FETCH_LANES-1:0]     fetch_lane_t;
-    typedef logic [38-LOG_FETCH_LANES-1:0]  fetch_idx_t;
+    parameter int unsigned BTB_SMALL_TARGET_WIDTH = 12;
 
-    function fetch_lane_t fetch_lane_bits(PC38_t PC38);
-        return PC38[LOG_FETCH_LANES-1:0];
+    typedef logic [LOG_FETCH_LANES-1:0]                         fetch_lane_t;
+    typedef logic [BTB_SMALL_TARGET_WIDTH-LOG_FETCH_LANES-1:0]  fetch_idx_t;
+        // fetch_index can be built in back-to-back cycles for fast redirect
+        // limited by how far the small_target can reach
+        // all predict and fetch structures must be fully indexable by the fetch_index
+
+    function fetch_lane_t fetch_lane_bits(PC38_t pc38);
+        return pc38[LOG_FETCH_LANES-1:0];
     endfunction
 
-    function fetch_idx_t fetch_idx_bits(PC38_t PC38);
-        return PC38[37:LOG_FETCH_LANES];
+    function fetch_idx_t fetch_idx_bits(PC38_t pc38);
+        return pc38[37:LOG_FETCH_LANES];
     endfunction 
 
     // btb entry: 40b
@@ -185,10 +190,10 @@ package corep;
         // 1-wide access into associative tagged entries
     parameter int unsigned BTB_ACTION_WIDTH = 3;
     parameter int unsigned BTB_BIG_TARGET_WIDTH = 15;
-    parameter int unsigned BTB_SMALL_TARGET_WIDTH = 12;
+    // parameter int unsigned BTB_SMALL_TARGET_WIDTH = 12; // defined ^ since determines fetch index width
     parameter int unsigned LOG_UPCT_ENTRIES = BTB_BIG_TARGET_WIDTH - BTB_SMALL_TARGET_WIDTH;
     parameter int unsigned BTB_TAG_WIDTH = 18;
-    parameter int unsigned BTB_ASSOC = 2;
+    parameter int unsigned BTB_ASSOC = 2; // hardcoded. have to do explicit lower hitting lane greater than input lane check
 
     typedef logic [BTB_ACTION_WIDTH-1:0]        BTB_action_t;
     typedef logic [BTB_SMALL_TARGET_WIDTH-1:0]  BTB_small_target_t;
@@ -212,7 +217,7 @@ package corep;
         fetch_lane_t    lane;
     } BTB_entry_t;
 
-    typedef BTB_entry_t [FETCH_LANES-1:0][BTB_ASSOC-1:0] BTB_set_t;
+    typedef BTB_entry_t [BTB_ASSOC-1:0] BTB_set_t;
 
     parameter BTB_action_t BTB_ACTION_NONE          = 3'b000;
     parameter BTB_action_t BTB_ACTION_BRANCH        = 3'b001;
@@ -228,7 +233,7 @@ package corep;
         // index: fetch index, asid
         // tag: fetch index, asid
     parameter int unsigned BTB_ENTRIES = 1024;
-    parameter int unsigned BTB_SETS = BTB_ENTRIES / BTB_ASSOC / FETCH_LANES; // 1024 / 2 / 8 = 64
+    parameter int unsigned BTB_SETS = BTB_ENTRIES / BTB_ASSOC;
     parameter int unsigned LOG_BTB_SETS = $clog2(BTB_SETS);
     
     typedef logic [LOG_BTB_SETS-1:0]        BTB_idx_t;

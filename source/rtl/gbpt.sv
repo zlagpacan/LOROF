@@ -34,9 +34,9 @@ module gbpt (
     // ----------------------------------------------------------------
     // Functions:
 
-    function corep::GBPT_idx_t index_hash(corep::PC38_t pc38, corep::GH_t gh, corep::ASID_t asid);
+    function corep::GBPT_idx_t index_hash(corep::fetch_idx_t fetch_index, corep::GH_t gh, corep::ASID_t asid);
         // low fetch index ^ gh ^ low asid
-        index_hash = pc38[37 : corep::LOG_FETCH_LANES];
+        index_hash = fetch_index;
         index_hash ^= gh;
         index_hash ^= asid;
     endfunction
@@ -90,7 +90,7 @@ module gbpt (
     // read req logic
     always_comb begin
         gbpt_array_bram_read_port0_next_valid = read_req_valid;
-        gbpt_array_bram_read_port0_next_index = index_hash({read_req_fetch_index, {corep::LOG_FETCH_LANES{1'b0}}}, read_req_gh, arch_asid);
+        gbpt_array_bram_read_port0_next_index = index_hash(read_req_fetch_index, read_req_gh, arch_asid);
     end
 
     // read resp logic
@@ -104,7 +104,7 @@ module gbpt (
     // update logic
     always_comb begin
         gbpt_array_bram_read_port1_next_valid = update_valid;
-        gbpt_array_bram_read_port1_next_index = index_hash(update_pc38, update_gh, arch_asid);
+        gbpt_array_bram_read_port1_next_index = index_hash(corep::fetch_idx_bits(update_pc38), update_gh, arch_asid);
     end
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
