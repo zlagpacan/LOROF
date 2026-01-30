@@ -331,6 +331,22 @@ package corep;
 
     typedef logic [LOG_MDPT_SETS-1:0] MDPT_idx_t;
 
+    // bcb entry:
+        // {ghr, ras_index, ras_count}
+    typedef struct packed {
+        GH_t        ghr;
+        RAS_idx_t   ras_index;
+        RAS_cnt_t   ras_count;
+    } BCB_entry_t;
+
+    // bcb:
+        // 1-wide access
+        // index: bcb_index
+    parameter int unsigned BCB_ENTRIES = 16;
+    parameter int unsigned LOG_BCB_ENTRIES = $clog2(BCB_ENTRIES);
+
+    typedef logic [LOG_BCB_ENTRIES-1:0] BCB_idx_t;
+
     // ----------------------------------------------------------------
     // Frontend:
 
