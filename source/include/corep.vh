@@ -354,7 +354,9 @@ package corep;
         GH_t        ghr;
         RAS_idx_t   ras_index;
         RAS_cnt_t   ras_count;
-    } BCB_entry_t;
+    } BCB_info_t;
+
+    typedef BCB_info_t BCB_entry_t;
 
     // bcb:
         // 1-wide access
