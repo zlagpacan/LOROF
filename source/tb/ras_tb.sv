@@ -47,8 +47,8 @@ module ras_tb #(
 
     // update control
 	logic tb_update_valid;
-	corep::ras_idx_t tb_update_ras_index;
-	corep::ras_cnt_t tb_update_ras_count;
+	corep::ras_idx_t tb_update_ras_idx;
+	corep::ras_cnt_t tb_update_ras_cnt;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -74,8 +74,8 @@ module ras_tb #(
 
 	    // update control
 		.update_valid(tb_update_valid),
-		.update_ras_index(tb_update_ras_index),
-		.update_ras_count(tb_update_ras_count)
+		.update_ras_idx(tb_update_ras_idx),
+		.update_ras_cnt(tb_update_ras_cnt)
 	);
 
     // ----------------------------------------------------------------
@@ -140,8 +140,8 @@ module ras_tb #(
 		tb_ret_valid = 1'b0;
 	    // update control
 		tb_update_valid = 1'b0;
-		tb_update_ras_index = 4'h0;
-		tb_update_ras_count = 0;
+		tb_update_ras_idx = 4'h0;
+		tb_update_ras_cnt = 0;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -170,8 +170,8 @@ module ras_tb #(
 		tb_ret_valid = 1'b0;
 	    // update control
 		tb_update_valid = 1'b0;
-		tb_update_ras_index = 4'h0;
-		tb_update_ras_count = 0;
+		tb_update_ras_idx = 4'h0;
+		tb_update_ras_cnt = 0;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -208,8 +208,8 @@ module ras_tb #(
 		tb_ret_valid = 1'b0;
 	    // update control
 		tb_update_valid = 1'b0;
-		tb_update_ras_index = 4'h0;
-		tb_update_ras_count = 0;
+		tb_update_ras_idx = 4'h0;
+		tb_update_ras_cnt = 0;
 
 		@(negedge CLK);
 
@@ -242,7 +242,7 @@ module ras_tb #(
 	    // update control
 		expected_ret_fallback = 1'b0;
 		tb_update_valid = 1'b0;
-		tb_update_ras_count = 0;
+		tb_update_ras_cnt = 0;
 
 		@(negedge CLK);
 
@@ -273,8 +273,8 @@ module ras_tb #(
 		tb_ret_valid = 1'b1;
 	    // update control
 		tb_update_valid = 1'b0;
-		tb_update_ras_index = 4'h0;
-		tb_update_ras_count = 0;
+		tb_update_ras_idx = 4'h0;
+		tb_update_ras_cnt = 0;
 
 		@(negedge CLK);
 
@@ -305,8 +305,8 @@ module ras_tb #(
 		tb_ret_valid = 1'b1;
 	    // update control
 		tb_update_valid = 1'b0;
-		tb_update_ras_index = 4'h0;
-		tb_update_ras_count = 0;
+		tb_update_ras_idx = 4'h0;
+		tb_update_ras_cnt = 0;
 
 		@(negedge CLK);
 
@@ -337,8 +337,8 @@ module ras_tb #(
 		tb_ret_valid = 1'b0;
 	    // update control
 		tb_update_valid = 1'b1;
-		tb_update_ras_index = 4'hE;
-		tb_update_ras_count = 0;
+		tb_update_ras_idx = 4'hE;
+		tb_update_ras_cnt = 0;
 
 		@(negedge CLK);
 
@@ -369,8 +369,8 @@ module ras_tb #(
 		tb_ret_valid = 1'b0;
 	    // update control
 		tb_update_valid = 1'b1;
-		tb_update_ras_index = 4'h3;
-		tb_update_ras_count = 3;
+		tb_update_ras_idx = 4'h3;
+		tb_update_ras_cnt = 3;
 
 		@(negedge CLK);
 
@@ -401,8 +401,8 @@ module ras_tb #(
 		tb_ret_valid = 1'b1;
 	    // update control
 		tb_update_valid = 1'b0;
-		tb_update_ras_index = 4'h0;
-		tb_update_ras_count = 0;
+		tb_update_ras_idx = 4'h0;
+		tb_update_ras_cnt = 0;
 
 		@(negedge CLK);
 
@@ -433,8 +433,8 @@ module ras_tb #(
 		tb_ret_valid = 1'b1;
 	    // update control
 		tb_update_valid = 1'b0;
-		tb_update_ras_index = 4'h0;
-		tb_update_ras_count = 0;
+		tb_update_ras_idx = 4'h0;
+		tb_update_ras_cnt = 0;
 
 		@(negedge CLK);
 
@@ -465,8 +465,8 @@ module ras_tb #(
 		tb_ret_valid = 1'b1;
 	    // update control
 		tb_update_valid = 1'b0;
-		tb_update_ras_index = 4'h0;
-		tb_update_ras_count = 0;
+		tb_update_ras_idx = 4'h0;
+		tb_update_ras_cnt = 0;
 
 		@(negedge CLK);
 
@@ -497,8 +497,8 @@ module ras_tb #(
 		tb_ret_valid = 1'b1;
 	    // update control
 		tb_update_valid = 1'b0;
-		tb_update_ras_index = 4'h0;
-		tb_update_ras_count = 0;
+		tb_update_ras_idx = 4'h0;
+		tb_update_ras_cnt = 0;
 
 		@(negedge CLK);
 
@@ -529,8 +529,8 @@ module ras_tb #(
 		tb_ret_valid = 1'b1;
 	    // update control
 		tb_update_valid = 1'b0;
-		tb_update_ras_index = 4'h0;
-		tb_update_ras_count = 0;
+		tb_update_ras_idx = 4'h0;
+		tb_update_ras_cnt = 0;
 
 		@(negedge CLK);
 
@@ -561,8 +561,8 @@ module ras_tb #(
 		tb_ret_valid = 1'b1;
 	    // update control
 		tb_update_valid = 1'b0;
-		tb_update_ras_index = 4'h0;
-		tb_update_ras_count = 0;
+		tb_update_ras_idx = 4'h0;
+		tb_update_ras_cnt = 0;
 
 		@(negedge CLK);
 
@@ -573,6 +573,108 @@ module ras_tb #(
 		expected_ret_fallback = 1'b1;
 		expected_ret_pc38 = 38'h0000000000;
 		expected_ret_ras_idx = 4'h0;
+		expected_ret_ras_cnt = 0;
+	    // update control
+
+		check_outputs();
+
+        for (int i = 0; i < 21; i++) begin
+
+            @(posedge CLK); #(PERIOD/10);
+
+            // inputs
+            sub_test_case = $sformatf("link to overflow 0x%2h", i);
+            $display("\t- sub_test: %s", sub_test_case);
+
+            // reset
+            nRST = 1'b1;
+            // pc_gen link control
+            tb_link_valid = 1'b1;
+            tb_link_pc38 = {8{i[4:0]}};
+            // pc_gen return control
+            tb_ret_valid = 1'b0;
+            // update control
+            tb_update_valid = 1'b0;
+            tb_update_ras_idx = 4'h0;
+            tb_update_ras_cnt = 0;
+
+            @(negedge CLK);
+
+            // outputs:
+
+            // pc_gen link control
+            // pc_gen return control
+            expected_ret_fallback = i > 0 ? 1'b0 : 1'b1;
+            expected_ret_pc38 = i > 0 ? {8{{i-1}[4:0]}} : 38'h0000000000;
+            expected_ret_ras_idx = i[3:0];
+            expected_ret_ras_cnt = i <= 16 ? i : 16;
+            // update control
+
+            check_outputs();
+        end
+
+        for (int i = 20; i >= 5; i--) begin
+
+            @(posedge CLK); #(PERIOD/10);
+
+            // inputs
+            sub_test_case = $sformatf("ret back from overflow 0x%2h", i);
+            $display("\t- sub_test: %s", sub_test_case);
+
+            // reset
+            nRST = 1'b1;
+            // pc_gen link control
+            tb_link_valid = 1'b0;
+            tb_link_pc38 = 38'h0000000000;
+            // pc_gen return control
+            tb_ret_valid = 1'b1;
+            // update control
+            tb_update_valid = 1'b0;
+            tb_update_ras_idx = 4'h0;
+            tb_update_ras_cnt = 0;
+
+            @(negedge CLK);
+
+            // outputs:
+
+            // pc_gen link control
+            // pc_gen return control
+            expected_ret_fallback = i > 0 ? 1'b0 : 1'b1;
+            expected_ret_pc38 = {8{i[4:0]}};
+            expected_ret_ras_idx = {i+1}[3:0];
+            expected_ret_ras_cnt = i - 4;
+            // update control
+
+            check_outputs();
+        end
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "ret fallback at overflow stop 5";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // pc_gen link control
+		tb_link_valid = 1'b0;
+		tb_link_pc38 = 38'h0000000000;
+	    // pc_gen return control
+		tb_ret_valid = 1'b0;
+	    // update control
+		tb_update_valid = 1'b0;
+		tb_update_ras_idx = 4'h0;
+		tb_update_ras_cnt = 0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // pc_gen link control
+	    // pc_gen return control
+		expected_ret_fallback = 1'b1;
+		expected_ret_pc38 = {8{5'h14}};
+		expected_ret_ras_idx = 4'h5;
 		expected_ret_ras_cnt = 0;
 	    // update control
 
@@ -593,8 +695,8 @@ module ras_tb #(
 		tb_ret_valid = 1'b0;
 	    // update control
 		tb_update_valid = 1'b0;
-		tb_update_ras_index = 4'h0;
-		tb_update_ras_count = 0;
+		tb_update_ras_idx = 4'h0;
+		tb_update_ras_cnt = 0;
 
 		@(negedge CLK);
 
@@ -603,8 +705,8 @@ module ras_tb #(
 	    // pc_gen link control
 	    // pc_gen return control
 		expected_ret_fallback = 1'b1;
-		expected_ret_pc38 = 38'h0000000000;
-		expected_ret_ras_idx = 4'h0;
+		expected_ret_pc38 = {8{5'h14}};
+		expected_ret_ras_idx = 4'h5;
 		expected_ret_ras_cnt = 0;
 	    // update control
 

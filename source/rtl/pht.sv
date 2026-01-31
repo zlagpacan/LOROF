@@ -36,9 +36,9 @@ module pht (
     // ----------------------------------------------------------------
     // Functions:
 
-    function corep::pht_idx_t index_hash(corep::fetch_idx_t fetch_index, corep::gh_t gh, corep::asid_t asid);
+    function corep::pht_idx_t index_hash(corep::fetch_idx_t fetch_idx, corep::gh_t gh, corep::asid_t asid);
         // low fetch index ^ low gh bits above lane ^ low reversed asid aligned to msb
-        index_hash = fetch_index;
+        index_hash = fetch_idx;
         index_hash ^= gh[corep::GH_LENGTH-1 : corep::LOG_FETCH_LANES];
         // reversing asid from index msb
             // go down from msb until run out of pht index or asid bits

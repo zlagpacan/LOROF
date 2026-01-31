@@ -38,7 +38,7 @@ module mdpt_tb #(
 
     // read req stage
 	logic tb_read_req_valid;
-	corep::fetch_idx_t tb_read_req_fetch_index;
+	corep::fetch_idx_t tb_read_req_fetch_idx;
 
     // read resp stage
 	corep::mdpt_set_t DUT_read_resp_mdp_by_lane, expected_read_resp_mdp_by_lane;
@@ -63,7 +63,7 @@ module mdpt_tb #(
 
 	    // read req stage
 		.read_req_valid(tb_read_req_valid),
-		.read_req_fetch_index(tb_read_req_fetch_index),
+		.read_req_fetch_idx(tb_read_req_fetch_idx),
 
 	    // read resp stage
 		.read_resp_mdp_by_lane(DUT_read_resp_mdp_by_lane),
@@ -112,7 +112,7 @@ module mdpt_tb #(
 		tb_arch_asid = 16'h0000;
 	    // read req stage
 		tb_read_req_valid = 1'b0;
-		tb_read_req_fetch_index = 7'h00;
+		tb_read_req_fetch_idx = 7'h00;
 	    // read resp stage
 	    // update
 		tb_update_valid = 1'b0;
@@ -150,7 +150,7 @@ module mdpt_tb #(
 		tb_arch_asid = 16'h0000;
 	    // read req stage
 		tb_read_req_valid = 1'b0;
-		tb_read_req_fetch_index = 7'h00;
+		tb_read_req_fetch_idx = 7'h00;
 	    // read resp stage
 	    // update
 		tb_update_valid = 1'b0;
@@ -199,7 +199,7 @@ module mdpt_tb #(
                 tb_arch_asid = 16'h0000;
                 // read req stage
                 tb_read_req_valid = 1'b0;
-                tb_read_req_fetch_index = 7'h00;
+                tb_read_req_fetch_idx = 7'h00;
                 // read resp stage
                 // update
                 tb_update_valid = 1'b1;
@@ -247,7 +247,7 @@ module mdpt_tb #(
         tb_arch_asid = 16'h007f;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 7'h00;
+        tb_read_req_fetch_idx = 7'h00;
         // read resp stage
         // update
         tb_update_valid = 1'b0;
@@ -289,7 +289,7 @@ module mdpt_tb #(
             tb_arch_asid = 16'h007f;
             // read req stage
             tb_read_req_valid = 1'b1;
-            tb_read_req_fetch_index = ~index[6:0];
+            tb_read_req_fetch_idx = ~index[6:0];
             // read resp stage
             // update
             tb_update_valid = 1'b0;
@@ -330,7 +330,7 @@ module mdpt_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b0;
-        tb_read_req_fetch_index = 7'h00;
+        tb_read_req_fetch_idx = 7'h00;
         // read resp stage
         // update
         tb_update_valid = 1'b0;

@@ -42,7 +42,9 @@ package corep;
     parameter exec_mode_t EXEC_MODE_M = 2'b11;
 
     typedef logic [37:0] pc38_t;
-        // legal 64b fetch addr: {{25{pc38[38]}}, pc38[37:0], 1'b0}
+        // legal 64b fetch addr: {{25{pc38[37]}}, pc38[37:0], 1'b0}
+    typedef logic [34:0] pc35_t;
+        // legal 64b fetch addr: {{25{pc35[34]}}, pc35[34:0], 3'b000, 1'b0}
 
     parameter pc38_t INIT_PC38 = 38'h0;
     parameter asid_t INIT_ASID = 16'h0;

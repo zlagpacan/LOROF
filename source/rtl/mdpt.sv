@@ -18,7 +18,7 @@ module mdpt (
 
     // read req stage
     input logic                 read_req_valid,
-    input corep::fetch_idx_t    read_req_fetch_index,
+    input corep::fetch_idx_t    read_req_fetch_idx,
 
     // read resp stage
     output corep::mdpt_set_t    read_resp_mdp_by_lane,
@@ -32,9 +32,9 @@ module mdpt (
     // ----------------------------------------------------------------
     // Functions:
 
-    function corep::mdpt_idx_t index_hash(corep::fetch_idx_t fetch_index, corep::asid_t asid);
+    function corep::mdpt_idx_t index_hash(corep::fetch_idx_t fetch_idx, corep::asid_t asid);
         // low fetch index ^ low asid
-        index_hash = fetch_index;
+        index_hash = fetch_idx;
         index_hash ^= asid;
     endfunction
 
@@ -60,7 +60,7 @@ module mdpt (
     // read logic
     always_comb begin
         mdpt_array_bram_read_next_valid = read_req_valid;
-        mdpt_array_bram_read_next_index = index_hash(read_req_fetch_index, arch_asid);
+        mdpt_array_bram_read_next_index = index_hash(read_req_fetch_idx, arch_asid);
 
         read_resp_mdp_by_lane = mdpt_array_bram_read_set;
     end

@@ -45,6 +45,9 @@
             // both pipelines would stall in this case anyway
             // no benefit from 1-cycle early index lookup as miss req's aren't initiated until have tag
                 // it could even be worse as have 1-cycle stale data
+// TODO: blocking itlb interface for simplicity
+    // stall read resp stage if no itlb hit
+    // always know if icache hit and send miss in read resp stage
 
 `include "core_types_pkg.vh"
 import core_types_pkg::*;

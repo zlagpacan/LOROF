@@ -24,7 +24,7 @@ module btb (
     input corep::pc38_t             read_resp_pc38,
 
     output logic                    read_resp_hit,
-    output corep::btb_way_t     read_resp_hit_way,
+    output corep::btb_way_t         read_resp_hit_way,
     output corep::fetch_lane_t      read_resp_hit_lane,
     output logic                    read_resp_double_hit,
     output corep::btb_info_t        read_resp_btb_info,
@@ -34,15 +34,15 @@ module btb (
     input corep::pc38_t         update_pc38,
     input corep::btb_info_t     update_btb_info,
     input logic                 update_hit,
-    input corep::btb_way_t  update_hit_way
+    input corep::btb_way_t      update_hit_way
 );
 
     // ----------------------------------------------------------------
     // Functions:
 
-    function corep::btb_idx_t index_hash(corep::fetch_idx_t fetch_index, corep::asid_t asid);
+    function corep::btb_idx_t index_hash(corep::fetch_idx_t fetch_idx, corep::asid_t asid);
         // low fetch index ^ low asid
-        index_hash = fetch_index;
+        index_hash = fetch_idx;
         index_hash ^= asid;
     endfunction
 

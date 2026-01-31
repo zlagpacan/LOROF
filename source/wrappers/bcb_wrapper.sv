@@ -21,10 +21,10 @@ module bcb_wrapper #(
 	input logic next_save_valid,
 	input corep::bcb_info_t next_save_bcb_info,
 
-	output corep::bcb_idx_t last_save_bcb_index,
+	output corep::bcb_idx_t last_save_bcb_idx,
 
     // restore control
-	input corep::bcb_idx_t next_restore_bcb_index,
+	input corep::bcb_idx_t next_restore_bcb_idx,
 
 	output corep::bcb_info_t last_restore_bcb_info
 );
@@ -37,10 +37,10 @@ module bcb_wrapper #(
 	logic save_valid;
 	corep::bcb_info_t save_bcb_info;
 
-	corep::bcb_idx_t save_bcb_index;
+	corep::bcb_idx_t save_bcb_idx;
 
     // restore control
-	corep::bcb_idx_t restore_bcb_index;
+	corep::bcb_idx_t restore_bcb_idx;
 
 	corep::bcb_info_t restore_bcb_info;
 
@@ -61,10 +61,10 @@ module bcb_wrapper #(
 			save_valid <= '0;
 			save_bcb_info <= '0;
 
-			last_save_bcb_index <= '0;
+			last_save_bcb_idx <= '0;
 
 		    // restore control
-			restore_bcb_index <= '0;
+			restore_bcb_idx <= '0;
 
 			last_restore_bcb_info <= '0;
         end
@@ -75,10 +75,10 @@ module bcb_wrapper #(
 			save_valid <= next_save_valid;
 			save_bcb_info <= next_save_bcb_info;
 
-			last_save_bcb_index <= save_bcb_index;
+			last_save_bcb_idx <= save_bcb_idx;
 
 		    // restore control
-			restore_bcb_index <= next_restore_bcb_index;
+			restore_bcb_idx <= next_restore_bcb_idx;
 
 			last_restore_bcb_info <= restore_bcb_info;
         end

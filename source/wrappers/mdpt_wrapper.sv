@@ -22,7 +22,7 @@ module mdpt_wrapper #(
 
     // read req stage
 	input logic next_read_req_valid,
-	input corep::fetch_idx_t next_read_req_fetch_index,
+	input corep::fetch_idx_t next_read_req_fetch_idx,
 
     // read resp stage
 	output corep::mdpt_set_t last_read_resp_mdp_by_lane,
@@ -42,7 +42,7 @@ module mdpt_wrapper #(
 
     // read req stage
 	logic read_req_valid;
-	corep::fetch_idx_t read_req_fetch_index;
+	corep::fetch_idx_t read_req_fetch_idx;
 
     // read resp stage
 	corep::mdpt_set_t read_resp_mdp_by_lane;
@@ -70,7 +70,7 @@ module mdpt_wrapper #(
 
 		    // read req stage
 			read_req_valid <= '0;
-			read_req_fetch_index <= '0;
+			read_req_fetch_idx <= '0;
 
 		    // read resp stage
 			last_read_resp_mdp_by_lane <= '0;
@@ -88,7 +88,7 @@ module mdpt_wrapper #(
 
 		    // read req stage
 			read_req_valid <= next_read_req_valid;
-			read_req_fetch_index <= next_read_req_fetch_index;
+			read_req_fetch_idx <= next_read_req_fetch_idx;
 
 		    // read resp stage
 			last_read_resp_mdp_by_lane <= read_resp_mdp_by_lane;

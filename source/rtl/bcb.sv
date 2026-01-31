@@ -17,10 +17,10 @@ module bcb (
     input logic                 save_valid,
     input corep::bcb_info_t     save_bcb_info,
 
-    output corep::bcb_idx_t     save_bcb_index,
+    output corep::bcb_idx_t     save_bcb_idx,
 
     // restore control
-    input corep::bcb_idx_t      restore_bcb_index,
+    input corep::bcb_idx_t      restore_bcb_idx,
 
     output corep::bcb_info_t    restore_bcb_info
 );
@@ -28,7 +28,7 @@ module bcb (
     // ----------------------------------------------------------------
     // Signals:
 
-    corep::bcb_idx_t save_bcb_index_plus_1;
+    corep::bcb_idx_t save_bcb_idx_plus_1;
 
     // ----------------------------------------------------------------
     // Logic: 
@@ -36,17 +36,17 @@ module bcb (
     generate
         // power-of-2 # entries can use simple +1 for ptr
         if (corep::BCB_ENTRIES & (corep::BCB_ENTRIES - 1) == 0) begin
-            assign save_bcb_index_plus_1 = save_bcb_index + 1;
+            assign save_bcb_idx_plus_1 = save_bcb_idx + 1;
         end
 
         // otherwise, manual wraparound for ptr
         else begin
             always_comb begin
-                if (save_bcb_index == corep::BCB_ENTRIES - 1) begin
-                    save_bcb_index_plus_1 = 0;
+                if (save_bcb_idx == corep::BCB_ENTRIES - 1) begin
+                    save_bcb_idx_plus_1 = 0;
                 end
                 else begin
-                    save_bcb_index_plus_1 = save_bcb_index + 1;
+                    save_bcb_idx_plus_1 = save_bcb_idx + 1;
                 end
             end
         end
@@ -54,11 +54,11 @@ module bcb (
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            save_bcb_index <= 0;
+            save_bcb_idx <= 0;
         end
         else begin
             if (save_valid) begin
-                save_bcb_index <= save_bcb_index_plus_1;
+                save_bcb_idx <= save_bcb_idx_plus_1;
             end
         end
     end
@@ -68,10 +68,10 @@ module bcb (
         .OUTER_WIDTH(corep::BCB_ENTRIES)
     ) DISTRAM_BUFFER (
         .CLK(CLK),
-        .rindex(restore_bcb_index),
+        .rindex(restore_bcb_idx),
         .rdata(restore_bcb_info),
         .wen(save_valid),
-        .windex(save_bcb_index),
+        .windex(save_bcb_idx),
         .wdata(save_bcb_info)
     );
 

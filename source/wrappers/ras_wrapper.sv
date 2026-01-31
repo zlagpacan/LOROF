@@ -31,8 +31,8 @@ module ras_wrapper #(
 
     // update control
 	input logic next_update_valid,
-	input corep::ras_idx_t next_update_ras_index,
-	input corep::ras_cnt_t next_update_ras_count
+	input corep::ras_idx_t next_update_ras_idx,
+	input corep::ras_cnt_t next_update_ras_cnt
 );
 
     // ----------------------------------------------------------------
@@ -53,8 +53,8 @@ module ras_wrapper #(
 
     // update control
 	logic update_valid;
-	corep::ras_idx_t update_ras_index;
-	corep::ras_cnt_t update_ras_count;
+	corep::ras_idx_t update_ras_idx;
+	corep::ras_cnt_t update_ras_cnt;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -83,8 +83,8 @@ module ras_wrapper #(
 
 		    // update control
 			update_valid <= '0;
-			update_ras_index <= '0;
-			update_ras_count <= '0;
+			update_ras_idx <= '0;
+			update_ras_cnt <= '0;
         end
         else begin
 
@@ -103,8 +103,8 @@ module ras_wrapper #(
 
 		    // update control
 			update_valid <= next_update_valid;
-			update_ras_index <= next_update_ras_index;
-			update_ras_count <= next_update_ras_count;
+			update_ras_idx <= next_update_ras_idx;
+			update_ras_cnt <= next_update_ras_cnt;
         end
     end
 

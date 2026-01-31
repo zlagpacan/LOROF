@@ -27,8 +27,8 @@ module ras (
 
     // update control
     input logic                 update_valid,
-    input corep::ras_idx_t      update_ras_index,
-    input corep::ras_cnt_t      update_ras_count
+    input corep::ras_idx_t      update_ras_idx,
+    input corep::ras_cnt_t      update_ras_cnt
 );
 
     // ----------------------------------------------------------------
@@ -92,8 +92,8 @@ module ras (
         if (update_valid) begin
 
             // take update sp, count
-            next_sp = update_ras_index;
-            next_count = update_ras_count;
+            next_sp = update_ras_idx;
+            next_count = update_ras_cnt;
         end
 
         // otherwise, check for link and ret

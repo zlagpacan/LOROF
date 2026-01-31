@@ -37,10 +37,10 @@ module bcb_tb #(
 	logic tb_save_valid;
 	corep::bcb_info_t tb_save_bcb_info;
 
-	corep::bcb_idx_t DUT_save_bcb_index, expected_save_bcb_index;
+	corep::bcb_idx_t DUT_save_bcb_idx, expected_save_bcb_idx;
 
     // restore control
-	corep::bcb_idx_t tb_restore_bcb_index;
+	corep::bcb_idx_t tb_restore_bcb_idx;
 
 	corep::bcb_info_t DUT_restore_bcb_info, expected_restore_bcb_info;
 
@@ -58,10 +58,10 @@ module bcb_tb #(
 		.save_valid(tb_save_valid),
 		.save_bcb_info(tb_save_bcb_info),
 
-		.save_bcb_index(DUT_save_bcb_index),
+		.save_bcb_idx(DUT_save_bcb_idx),
 
 	    // restore control
-		.restore_bcb_index(tb_restore_bcb_index),
+		.restore_bcb_idx(tb_restore_bcb_idx),
 
 		.restore_bcb_info(DUT_restore_bcb_info)
 	);
@@ -71,9 +71,9 @@ module bcb_tb #(
 
     task check_outputs();
     begin
-		if (expected_save_bcb_index !== DUT_save_bcb_index) begin
-			$display("TB ERROR: expected_save_bcb_index (%h) != DUT_save_bcb_index (%h)",
-				expected_save_bcb_index, DUT_save_bcb_index);
+		if (expected_save_bcb_idx !== DUT_save_bcb_idx) begin
+			$display("TB ERROR: expected_save_bcb_idx (%h) != DUT_save_bcb_idx (%h)",
+				expected_save_bcb_idx, DUT_save_bcb_idx);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -111,14 +111,14 @@ module bcb_tb #(
 		tb_save_valid = 1'b0;
 		tb_save_bcb_info = 0;
 	    // restore control
-		tb_restore_bcb_index = 4'h0;
+		tb_restore_bcb_idx = 4'h0;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
 	    // save control
-		expected_save_bcb_index = 4'h0;
+		expected_save_bcb_idx = 4'h0;
 	    // restore control
 		expected_restore_bcb_info = 0;
 
@@ -134,14 +134,14 @@ module bcb_tb #(
 		tb_save_valid = 1'b0;
 		tb_save_bcb_info = 0;
 	    // restore control
-		tb_restore_bcb_index = 4'h0;
+		tb_restore_bcb_idx = 4'h0;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
 	    // save control
-		expected_save_bcb_index = 4'h0;
+		expected_save_bcb_idx = 4'h0;
 	    // restore control
 		expected_restore_bcb_info = 0;
 
@@ -167,14 +167,14 @@ module bcb_tb #(
             tb_save_valid = 1'b1;
             tb_save_bcb_info = {8{~i[3:0], i[3:0]}};
             // restore control
-            tb_restore_bcb_index = 4'h0;
+            tb_restore_bcb_idx = 4'h0;
 
             @(negedge CLK);
 
             // outputs:
 
             // save control
-            expected_save_bcb_index = i[3:0];
+            expected_save_bcb_idx = i[3:0];
             // restore control
             expected_restore_bcb_info = i > 0 ? 32'hf0f0f0f0 : 0;
 
@@ -195,14 +195,14 @@ module bcb_tb #(
             tb_save_valid = 1'b1;
             tb_save_bcb_info = {{2{~{i+16}[3:0], {i+16}[3:0]}}, ~{i+16}[3:0], {i+16}[3:0]};
             // restore control
-            tb_restore_bcb_index = i[3:0];
+            tb_restore_bcb_idx = i[3:0];
 
             @(negedge CLK);
 
             // outputs:
 
             // save control
-            expected_save_bcb_index = i[3:0];
+            expected_save_bcb_idx = i[3:0];
             // restore control
             expected_restore_bcb_info = {{2{~i[3:0], i[3:0]}}, ~i[3:0], i[3:0]};
 
@@ -223,14 +223,14 @@ module bcb_tb #(
             tb_save_valid = 1'b1;
             tb_save_bcb_info = {13'h0000, 4'h0, 4'h0};
             // restore control
-            tb_restore_bcb_index = i[3:0];
+            tb_restore_bcb_idx = i[3:0];
 
             @(negedge CLK);
 
             // outputs:
 
             // save control
-            expected_save_bcb_index = i[3:0];
+            expected_save_bcb_idx = i[3:0];
             // restore control
             expected_restore_bcb_info = {{2{~{i+16}[3:0], {i+16}[3:0]}}, ~{i+16}[3:0], {i+16}[3:0]};
 
