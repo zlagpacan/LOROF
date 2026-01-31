@@ -268,7 +268,7 @@ package corep;
         // 8-wide access into direct-mapped, untagged entries
         // index: fetch index, ghr, backward asid
         // lane: redirect lane, ghr
-    parameter int unsigned GH_LENGTH = 14;
+    parameter int unsigned GH_LENGTH = 13;
     parameter int unsigned PHT_ENTRIES = 2**GH_LENGTH;
     parameter int unsigned PHT_SETS = PHT_ENTRIES / FETCH_LANES;
     parameter int unsigned LOG_PHT_SETS = $clog2(PHT_SETS);
