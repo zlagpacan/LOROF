@@ -359,6 +359,8 @@ package corep;
         gh_t        gh;
         ras_idx_t   ras_idx;
         ras_cnt_t   ras_cnt;
+        logic       btb_hit;
+        btb_way_t   btb_hit_way;
     } bcb_info_t;
 
     typedef bcb_info_t bcb_entry_t;
