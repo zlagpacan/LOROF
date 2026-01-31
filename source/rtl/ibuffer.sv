@@ -14,34 +14,45 @@ module ibuffer (
     input logic nRST,
 
     // enq
-    input logic                                         enq_valid,
-    input logic [corep::FETCH_LANES-1:0]                enq_lane_mask,
-    input logic                                         enq_btb_hit,
-    input logic                                         enq_redirect_taken, // can have not taken branch, so redirect doesn't happen
-    input corep::fetch_lane_t                           enq_redirect_lane,
-    input corep::bcb_idx_t                              enq_bcb_idx,
-    input corep::pc35_t                                 enq_src_pc35,
-    input corep::pc35_t                                 enq_tgt_pc35,
-    input logic                                         enq_page_fault,
-    input logic                                         enq_access_fault,
-    input logic                                         enq_icache_hit,
-    input corep::fetch_unit_t [corep::FETCH_LANES-1:0]  enq_fetch_unit_by_lane,
-    input corep::mdp_t [corep::FETCH_LANES-1:0]         enq_mdp_by_lane,
+    input logic                         enq_valid,
+    input corep::ibuffer_enq_entry_t    enq_entry,
 
-    // enq backpressure
-    output logic                                        enq_ready,
-
-    // miss id advertisement
-
+    // enq feedback
+    output logic                        enq_ready,
+    output corep::fmid_t                enq_fmid,
 
     // miss return
-
+    input logic                                         miss_return_valid,
+    input corep::fmid_t                                 miss_return_fmid,
+    input corep::fetch2B_t [corep::FETCH_LANES-1:0]     miss_return_fetch2B_by_lane,
 
     // deq
+    output logic                                deq_valid,
+    output corep::ibuffer_deq_entry_t [3:0]     deq_entry_by_way,
 
+    // def feedback
+    input logic                                 deq_ready,
 
     // restart
     input logic restart_valid
 );
+
+    // to allow distram w/ 1 write port, can only do one of miss return or hit return on same-cycle
+        // icache's choice if want to use
+            // i.e. can use read port for miss access replay
+
+    // ----------------------------------------------------------------
+    // Signals:
+
+    // main buffer
+    corep::ibuffer_idx_t        distram_rindex;
+    corep::ibuffer_enq_entry_t  distram_rdata;
+
+    logic                       distram_wen;
+    corep::ibuffer_idx_t        distram_windex;
+    corep::ibuffer_enq_entry_t  distram_wdata;
+
+    // 2x entry shift reg for dynamic deq
+
 
 endmodule
