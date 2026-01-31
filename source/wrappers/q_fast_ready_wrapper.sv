@@ -90,7 +90,7 @@ module q_fast_ready_wrapper #(
 
 		    // deq
 			last_deq_valid <= deq_valid;
-			last_deq_data <= deq_data;
+			last_deq_data <= deq_data ^ {16{deq_valid, ~deq_valid}};
 
 		    // deq feedback
 			deq_ready <= next_deq_ready;
