@@ -7,7 +7,7 @@
 
 module cb #(
     parameter DATA_WIDTH = 32,
-    parameter NUM_ENTRIES = 4,
+    parameter NUM_ENTRIES = 32,
     parameter LOG_NUM_ENTRIES = $clog2(NUM_ENTRIES)
 ) (
     // seq
@@ -29,49 +29,73 @@ module cb #(
     // ----------------------------------------------------------------
     // Signals: 
 
-    logic [NUM_ENTRIES-1:0][DATA_WIDTH-1:0] cb_entries;
-
-    logic [NUM_ENTRIES-1:0] valid_by_entry;
-
     logic [LOG_NUM_ENTRIES-1:0] enq_ptr, enq_ptr_plus_1;
     logic [LOG_NUM_ENTRIES-1:0] deq_ptr, deq_ptr_plus_1;
 
     // ----------------------------------------------------------------
     // Logic: 
 
-    assign deq_data = cb_entries[deq_ptr];
+    generate
+        // power-of-2 # entries can use simple +1 for ptr's
+        if (NUM_ENTRIES & (NUM_ENTRIES - 1) == 0) begin
+            assign enq_ptr_plus_1 = enq_ptr + 1;
+            assign deq_ptr_plus_1 = deq_ptr + 1;
+        end
 
-    assign deq_valid = valid_by_entry[deq_ptr];
-
-    assign enq_ptr_plus_1 = enq_ptr + 1;
-    assign deq_ptr_plus_1 = deq_ptr + 1;
+        // otherwise, manual wraparound for ptr's
+        else begin
+            always_comb begin
+                if (enq_ptr == NUM_ENTRIES - 1) begin
+                    enq_ptr_plus_1 = 0;
+                end
+                else begin
+                    enq_ptr_plus_1 = enq_ptr + 1;
+                end
+                if (deq_ptr == NUM_ENTRIES - 1) begin
+                    deq_ptr_plus_1 = 0;
+                end
+                else begin
+                    deq_ptr_plus_1 = deq_ptr + 1;
+                end
+            end
+        end
+    endgenerate
 
     always_ff @ (posedge CLK, negedge nRST) begin
-    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
-            cb_entries <= '0;
-
-            valid_by_entry <= '0;
-            
             enq_ptr <= 0;
             deq_ptr <= 0;
+            deq_valid <= 1'b0;
         end
         else begin
-            if (deq_ready & deq_valid) begin
-                
-                valid_by_entry[deq_ptr] <= 1'b0;
+            if (enq_valid) begin
+                enq_ptr <= enq_ptr_plus_1;
+            end
 
+            if (deq_ready & deq_valid) begin
                 deq_ptr <= deq_ptr_plus_1;
             end
 
-            if (enq_valid) begin
-                cb_entries[enq_ptr] <= enq_data;
+            if (enq_valid & ~(deq_ready & deq_valid)) begin
+                deq_valid <= 1'b1;
+            end
 
-                valid_by_entry[enq_ptr] <= 1'b1;
-                
-                enq_ptr <= enq_ptr_plus_1;
+            if ((deq_ready & deq_valid) & ~enq_valid) begin
+                deq_valid <= deq_ptr_plus_1 != enq_ptr;
             end
         end
     end
+
+    distram_1rport_1wport #(
+        .INNER_WIDTH(DATA_WIDTH),
+        .OUTER_WIDTH(NUM_ENTRIES)
+    ) DISTRAM_BUFFER (
+        .CLK(CLK),
+        .rindex(deq_ptr),
+        .rdata(deq_data),
+        .wen(enq_valid),
+        .windex(enq_ptr),
+        .wdata(enq_data)
+    );
 
 endmodule

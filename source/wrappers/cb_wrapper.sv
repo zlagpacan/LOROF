@@ -7,15 +7,10 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
-
-`include "system_types_pkg.vh"
-import system_types_pkg::*;
 
 module cb_wrapper #(
 	parameter DATA_WIDTH = 32,
-	parameter NUM_ENTRIES = 4,
+	parameter NUM_ENTRIES = 32,
 	parameter LOG_NUM_ENTRIES = $clog2(NUM_ENTRIES)
 ) (
 

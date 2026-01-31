@@ -7,7 +7,7 @@
 
 module q_fast_ready #(
     parameter DATA_WIDTH = 32,
-    parameter NUM_ENTRIES = 4,
+    parameter NUM_ENTRIES = 32,
     parameter LOG_NUM_ENTRIES = $clog2(NUM_ENTRIES)
 ) (
     // seq
@@ -32,15 +32,11 @@ module q_fast_ready #(
     // ----------------------------------------------------------------
     // Signals: 
 
-    logic [NUM_ENTRIES-1:0][DATA_WIDTH-1:0] q_entries;
-
     logic [LOG_NUM_ENTRIES-1:0] enq_ptr, enq_ptr_plus_1;
     logic [LOG_NUM_ENTRIES-1:0] deq_ptr, deq_ptr_plus_1;
 
     // ----------------------------------------------------------------
     // Logic: 
-
-    assign deq_data = q_entries[deq_ptr];
 
     generate
         // power-of-2 # entries can use simple +1 for ptr's
@@ -69,9 +65,7 @@ module q_fast_ready #(
     endgenerate
 
     always_ff @ (posedge CLK, negedge nRST) begin
-    // always_ff @ (posedge CLK) begin
         if (~nRST) begin
-            q_entries <= '0;
             enq_ptr <= 0;
             deq_ptr <= 0;
             enq_ready <= 1'b1;
@@ -79,7 +73,6 @@ module q_fast_ready #(
         end
         else begin
             if (enq_ready & enq_valid) begin
-                q_entries[enq_ptr] <= enq_data;
                 enq_ptr <= enq_ptr_plus_1;
             end
 
@@ -98,5 +91,17 @@ module q_fast_ready #(
             end
         end
     end
+
+    distram_1rport_1wport #(
+        .INNER_WIDTH(DATA_WIDTH),
+        .OUTER_WIDTH(NUM_ENTRIES)
+    ) DISTRAM_BUFFER (
+        .CLK(CLK),
+        .rindex(deq_ptr),
+        .rdata(deq_data),
+        .wen(enq_ready & enq_valid),
+        .windex(enq_ptr),
+        .wdata(enq_data)
+    );
 
 endmodule
