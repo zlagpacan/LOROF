@@ -42,6 +42,7 @@ package corep;
     parameter EXEC_MODE_t EXEC_MODE_M = 2'b11;
 
     typedef logic [37:0] PC38_t;
+        // legal 64b fetch addr: {{25{pc38[38]}}, pc38[37:0], 1'b0}
 
     parameter PC38_t INIT_PC38 = 38'h0;
     parameter ASID_t INIT_ASID = 16'h0;
@@ -146,26 +147,40 @@ package corep;
 
     // pc38 possibilities:
         // last_pc38
+            // stall or btb double hit
         // last_pc38 + 8
+            // default
         // {last_pc38[37:15], btb big_target[14:0]}
+            // fast redirect
         // {upc[25:0], btb small_target[11:0]}
-        // {last_pc38[37:15], ibtb big_target[14:0]}
-        // {upc[25:0], ibtb small_target[11:0]}
+            // fast redirect
         // ret_pc38
+            // fast redirect
+        // {last_pc38[37:15], ibtb big_target[14:0]}
+            // slow redirect
+        // {upc[25:0], ibtb small_target[11:0]}
+            // slow redirect
         // restart_pc38
+            // restart
 
     // fetch access:
     parameter int unsigned FETCH_WIDTH_B = 16;
     parameter int unsigned FETCH_LANES = 8;
-    parameter int unsigned LOG_FETCH_LANES = $clog2(FETCH_LANES);
+    parameter int unsigned LOG_FETCH_LANES = $clog2(FETCH_LANES); // 3b
 
     parameter int unsigned BTB_SMALL_TARGET_WIDTH = 12;
 
-    typedef logic [LOG_FETCH_LANES-1:0]                         fetch_lane_t;
-    typedef logic [BTB_SMALL_TARGET_WIDTH-LOG_FETCH_LANES-1:0]  fetch_idx_t;
+    parameter int unsigned FETCH_IDX_WIDTH = BTB_SMALL_TARGET_WIDTH - LOG_FETCH_LANES; // 9b
+
+    typedef logic [LOG_FETCH_LANES-1:0]     fetch_lane_t;
+    typedef logic [FETCH_IDX_WIDTH-1:0]     fetch_idx_t;
         // fetch_index can be built in back-to-back cycles for fast redirect
         // limited by how far the small_target can reach
         // all predict and fetch structures must be fully indexable by the fetch_index
+            // itlb, icache indexing will be truly limited
+            // fetch structures may not strictly require all valid pc bits in access index
+                // structures naturally deal with aliasing
+                // notably the pht, which can have bits exclusively indexed by gh
 
     function fetch_lane_t fetch_lane_bits(PC38_t pc38);
         return pc38[LOG_FETCH_LANES-1:0];
@@ -243,21 +258,23 @@ package corep;
     // 2-bit saturating counter:
     typedef logic [1:0] TBC_t;
 
-    // gbpt entry:
+    // pht entry:
         // 2BC
         // 8-wide access into direct-mapped, untagged entries
-    typedef TBC_t                           GBPT_entry_t;
-    typedef GBPT_entry_t [FETCH_LANES-1:0]  GBPT_set_t;
+    typedef TBC_t                           PHT_entry_t;
+    typedef PHT_entry_t [FETCH_LANES-1:0]   PHT_set_t;
 
-    // gbpt:
+    // pht:
         // 8-wide access into direct-mapped, untagged entries
-        // index: fetch index, ghr, asid
-    parameter int unsigned GH_LENGTH = 9;
-    parameter int unsigned GBPT_SETS = 2**GH_LENGTH;
-    parameter int unsigned GBPT_ENTRIES = GBPT_SETS * FETCH_LANES;
+        // index: fetch index, ghr, backward asid
+        // lane: redirect lane, ghr
+    parameter int unsigned GH_LENGTH = 14;
+    parameter int unsigned PHT_ENTRIES = 2**GH_LENGTH;
+    parameter int unsigned PHT_SETS = PHT_ENTRIES / FETCH_LANES;
+    parameter int unsigned LOG_PHT_SETS = $clog2(PHT_SETS);
 
-    typedef logic [GH_LENGTH-1:0]   GH_t;
-    typedef GH_t                    GBPT_idx_t;
+    typedef logic [GH_LENGTH-1:0]       GH_t;
+    typedef logic [LOG_PHT_SETS-1:0]    PHT_idx_t;
 
     // ras:
         // 1-wide stack

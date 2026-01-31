@@ -1,15 +1,15 @@
 /*
-    Filename: gbpt_wrapper.sv
+    Filename: pht_wrapper.sv
     Author: zlagpacan
-    Description: RTL wrapper around gbpt module. 
-    Spec: LOROF/spec/design/gbpt.md
+    Description: RTL wrapper around pht module. 
+    Spec: LOROF/spec/design/pht.md
 */
 
 `timescale 1ns/100ps
 
 `include "corep.vh"
 
-module gbpt_wrapper #(
+module pht_wrapper #(
 ) (
 
     // seq
@@ -26,7 +26,9 @@ module gbpt_wrapper #(
 	input corep::GH_t next_read_req_gh,
 
     // read resp stage
-	output logic [corep::FETCH_LANES-1:0] last_read_resp_taken_by_lane,
+	input corep::fetch_lane_t next_read_resp_redirect_lane,
+
+	output logic last_read_resp_taken,
 
     // update
 	input logic next_update_valid,
@@ -48,7 +50,9 @@ module gbpt_wrapper #(
 	corep::GH_t read_req_gh;
 
     // read resp stage
-	logic [corep::FETCH_LANES-1:0] read_resp_taken_by_lane;
+	corep::fetch_lane_t read_resp_redirect_lane;
+
+	logic read_resp_taken;
 
     // update
 	logic update_valid;
@@ -59,7 +63,7 @@ module gbpt_wrapper #(
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-	gbpt #(
+	pht #(
 	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
@@ -78,7 +82,9 @@ module gbpt_wrapper #(
 			read_req_gh <= '0;
 
 		    // read resp stage
-			last_read_resp_taken_by_lane <= '0;
+			read_resp_redirect_lane <= '0;
+
+			last_read_resp_taken <= '0;
 
 		    // update
 			update_valid <= '0;
@@ -98,7 +104,9 @@ module gbpt_wrapper #(
 			read_req_gh <= next_read_req_gh;
 
 		    // read resp stage
-			last_read_resp_taken_by_lane <= read_resp_taken_by_lane;
+			read_resp_redirect_lane <= next_read_resp_redirect_lane;
+
+			last_read_resp_taken <= read_resp_taken;
 
 		    // update
 			update_valid <= next_update_valid;

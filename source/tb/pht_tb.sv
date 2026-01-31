@@ -1,15 +1,15 @@
 /*
-    Filename: gbpt_tb.sv
+    Filename: pht_tb.sv
     Author: zlagpacan
-    Description: Testbench for gbpt module. 
-    Spec: LOROF/spec/design/gbpt.md
+    Description: Testbench for pht module. 
+    Spec: LOROF/spec/design/pht.md
 */
 
 `timescale 1ns/100ps
 
 `include "corep.vh"
 
-module gbpt_tb #(
+module pht_tb #(
 ) ();
 
     // ----------------------------------------------------------------
@@ -42,7 +42,9 @@ module gbpt_tb #(
 	corep::GH_t tb_read_req_gh;
 
     // read resp stage
-	logic [corep::FETCH_LANES-1:0] DUT_read_resp_taken_by_lane, expected_read_resp_taken_by_lane;
+	corep::fetch_lane_t tb_read_resp_redirect_lane;
+
+	logic DUT_read_resp_taken, expected_read_resp_taken;
 
     // update
 	logic tb_update_valid;
@@ -53,7 +55,7 @@ module gbpt_tb #(
     // ----------------------------------------------------------------
     // DUT instantiation:
 
-	gbpt #(
+	pht #(
 	) DUT (
 		// seq
 		.CLK(CLK),
@@ -69,7 +71,9 @@ module gbpt_tb #(
 		.read_req_gh(tb_read_req_gh),
 
 	    // read resp stage
-		.read_resp_taken_by_lane(DUT_read_resp_taken_by_lane),
+		.read_resp_redirect_lane(tb_read_resp_redirect_lane),
+
+		.read_resp_taken(DUT_read_resp_taken),
 
 	    // update
 		.update_valid(tb_update_valid),
@@ -83,9 +87,9 @@ module gbpt_tb #(
 
     task check_outputs();
     begin
-		if (expected_read_resp_taken_by_lane !== DUT_read_resp_taken_by_lane) begin
-			$display("TB ERROR: expected_read_resp_taken_by_lane (%h) != DUT_read_resp_taken_by_lane (%h)",
-				expected_read_resp_taken_by_lane, DUT_read_resp_taken_by_lane);
+		if (expected_read_resp_taken !== DUT_read_resp_taken) begin
+			$display("TB ERROR: expected_read_resp_taken (%h) != DUT_read_resp_taken (%h)",
+				expected_read_resp_taken, DUT_read_resp_taken);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -117,12 +121,13 @@ module gbpt_tb #(
 	    // read req stage
 		tb_read_req_valid = 1'b0;
 		tb_read_req_fetch_index = 9'h000;
-		tb_read_req_gh = 9'h000;
+		tb_read_req_gh = {2'h0, 9'h000, 3'h0};
 	    // read resp stage
+		tb_read_resp_redirect_lane = 3'h0;
 	    // update
 		tb_update_valid = 1'b0;
 		tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
-		tb_update_gh = 9'h000;
+		tb_update_gh = {2'h0, 9'h000, 3'h0};
 		tb_update_taken = 1'b0;
 
 		@(posedge CLK); #(PERIOD/10);
@@ -132,7 +137,7 @@ module gbpt_tb #(
 	    // arch state
 	    // read req stage
 	    // read resp stage
-		expected_read_resp_taken_by_lane = 8'b00000000;
+		expected_read_resp_taken = 1'b0;
 	    // update
 
 		check_outputs();
@@ -148,12 +153,13 @@ module gbpt_tb #(
 	    // read req stage
 		tb_read_req_valid = 1'b0;
 		tb_read_req_fetch_index = 9'h000;
-		tb_read_req_gh = 9'h000;
+		tb_read_req_gh = {2'h0, 9'h000, 3'h0};
 	    // read resp stage
+		tb_read_resp_redirect_lane = 3'h0;
 	    // update
 		tb_update_valid = 1'b0;
 		tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
-		tb_update_gh = 9'h000;
+		tb_update_gh = {2'h0, 9'h000, 3'h0};
 		tb_update_taken = 1'b0;
 
 		@(posedge CLK); #(PERIOD/10);
@@ -163,7 +169,7 @@ module gbpt_tb #(
 	    // arch state
 	    // read req stage
 	    // read resp stage
-		expected_read_resp_taken_by_lane = 8'b00000000;
+		expected_read_resp_taken = 1'b0;
 	    // update
 
 		check_outputs();
@@ -174,13 +180,13 @@ module gbpt_tb #(
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-        for (int index = 0; index < corep::GBPT_SETS; index++) begin
+        for (int index = 0; index < corep::PHT_SETS; index++) begin
             for (int lane = 0; lane < corep::FETCH_LANES; lane++) begin
 
                 @(posedge CLK); #(PERIOD/10);
 
                 // inputs
-                sub_test_case = $sformatf("index = 0x%03h, lane = 0x%1h", index, lane);
+                sub_test_case = $sformatf("index = 0x%03h, lane = %1h", index, lane);
                 $display("\t- sub_test: %s", sub_test_case);
 
                 // reset
@@ -190,13 +196,14 @@ module gbpt_tb #(
                 // read req stage
                 tb_read_req_valid = 1'b0;
                 tb_read_req_fetch_index = 9'h000;
-                tb_read_req_gh = 9'h000;
+                tb_read_req_gh = {2'h0, 9'h000, 3'h0};
                 // read resp stage
+		        tb_read_resp_redirect_lane = 3'h0;
                 // update
                 tb_update_valid = 1'b1;
-                tb_update_pc38 = {26'h0000000, {4'h0, index[4:0]}, lane[2:0]};
-                tb_update_gh = {index[8:5], 5'h0};
-                tb_update_taken = ~lane[0] ? 1'b1 : 1'b0;
+                tb_update_pc38 = {26'h0000000, {4'h0, index[4:0]}, lane[2], 1'b0, lane[0]};
+                tb_update_gh = {index[10:9], {index[8:5], 5'h0}, 1'b0, lane[1], 1'b0};
+                tb_update_taken = lane[2:0] >= index[2:0];
 
                 @(negedge CLK);
 
@@ -205,7 +212,7 @@ module gbpt_tb #(
                 // arch state
                 // read req stage
                 // read resp stage
-                expected_read_resp_taken_by_lane = 8'b00000000;
+		        expected_read_resp_taken = 1'b0;
                 // update
 
                 check_outputs();
@@ -221,7 +228,7 @@ module gbpt_tb #(
         @(posedge CLK); #(PERIOD/10);
 
         // inputs
-        sub_test_case = $sformatf("req index = 0x%03h", 9'h1ff);
+        sub_test_case = $sformatf("req index = 0x%03h lane = %1h", 9'h000, 3'h0);
         $display("\t- sub_test: %s", sub_test_case);
 
         // reset
@@ -230,14 +237,15 @@ module gbpt_tb #(
         tb_arch_asid = 16'hffff;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h000;
-        tb_read_req_gh = 9'h000;
+        tb_read_req_fetch_index = ~9'h000;
+        tb_read_req_gh = {2'h3, 9'h000, 3'h0};
         // read resp stage
+		tb_read_resp_redirect_lane = 3'h0;
         // update
         tb_update_valid = 1'b0;
         tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
-        tb_update_gh = 9'h000;
-        tb_update_taken =1'b0;
+        tb_update_gh = {2'h0, 9'h000, 3'h0};
+        tb_update_taken = 1'b0;
 
         @(negedge CLK);
 
@@ -246,67 +254,72 @@ module gbpt_tb #(
         // arch state
         // read req stage
         // read resp stage
-        expected_read_resp_taken_by_lane = 8'b00000000;
+		expected_read_resp_taken = 1'b0;
         // update
 
         check_outputs();
 
-        for (int index = corep::GBPT_SETS-2; index >= 0; index--) begin
+        for (int index = 0; index < corep::PHT_SETS; index++) begin
 
-            @(posedge CLK); #(PERIOD/10);
+            for (int lane = (index == 0 ? 1 : 0); lane < corep::FETCH_LANES; lane++) begin
 
-            // inputs
-            sub_test_case = $sformatf("req index = 0x%03h, resp index = 0x%03h", index, index+1);
-            $display("\t- sub_test: %s", sub_test_case);
+                @(posedge CLK); #(PERIOD/10);
 
-            // reset
-            nRST = 1'b1;
-            // arch state
-            tb_arch_asid = 16'hffff;
-            // read req stage
-            tb_read_req_valid = 1'b1;
-            tb_read_req_fetch_index = {~index[8:5], 5'h0};
-            tb_read_req_gh = {4'h0, ~index[4:0]};
-            // read resp stage
-            // update
-            tb_update_valid = 1'b0;
-            tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
-            tb_update_gh = 9'h000;
-            tb_update_taken = 1'b0;
+                // inputs
+                sub_test_case = $sformatf("req index = 0x%03h lane = %1h, resp index = 0x%03h lane = %1h", index, lane, (lane == 0) ? index-1 : index, {lane-1}[2:0]);
+                $display("\t- sub_test: %s", sub_test_case);
 
-            @(negedge CLK);
+                // reset
+                nRST = 1'b1;
+                // arch state
+                tb_arch_asid = 16'hffff;
+                // read req stage
+                tb_read_req_valid = 1'b1;
+                tb_read_req_fetch_index = ~{index[8:5], 5'h0};
+                tb_read_req_gh = {~index[10:9], {4'h0, index[4:0]}, lane[2], 1'b0, lane[0]};
+                // read resp stage
+		        tb_read_resp_redirect_lane = {1'b0, {lane-1}[1], 1'b0};
+                // update
+                tb_update_valid = 1'b0;
+                tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
+                tb_update_gh = {2'h0, 9'h000, 3'h0};
+                tb_update_taken = 1'b0;
 
-            // outputs:
+                @(negedge CLK);
 
-            // arch state
-            // read req stage
-            // read resp stage
-            expected_read_resp_taken_by_lane = 8'b01010101;
-            // update
+                // outputs:
 
-            check_outputs();
+                // arch state
+                // read req stage
+                // read resp stage
+                expected_read_resp_taken = {lane-1}[2:0] >= {(lane == 0) ? index-1 : index}[2:0];
+                // update
+
+                check_outputs();
+            end
         end
 
         @(posedge CLK); #(PERIOD/10);
 
         // inputs
-        sub_test_case = $sformatf("resp index = 0x%03h", 9'h000);
+        sub_test_case = $sformatf("resp index = 0x%03h lane = %1h", 9'h1ff, 3'h7);
         $display("\t- sub_test: %s", sub_test_case);
 
         // reset
         nRST = 1'b1;
         // arch state
-        tb_arch_asid = 16'h0000;
+        tb_arch_asid = 16'hffff;
         // read req stage
         tb_read_req_valid = 1'b0;
         tb_read_req_fetch_index = 9'h000;
-        tb_read_req_gh = 9'h000;
+        tb_read_req_gh = {2'h0, 9'h000, 3'h0};
         // read resp stage
+		tb_read_resp_redirect_lane = 3'b010;
         // update
         tb_update_valid = 1'b0;
         tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
-        tb_update_gh = 9'h000;
-        tb_update_taken =1'b0;
+        tb_update_gh = {2'h0, 9'h000, 3'h0};
+        tb_update_taken = 1'b0;
 
         @(negedge CLK);
 
@@ -315,7 +328,7 @@ module gbpt_tb #(
         // arch state
         // read req stage
         // read resp stage
-        expected_read_resp_taken_by_lane = 8'b01010101;
+        expected_read_resp_taken = 1'b1;
         // update
 
         check_outputs();

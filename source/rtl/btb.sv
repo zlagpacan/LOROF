@@ -25,6 +25,8 @@ module btb (
 
     output logic                    read_resp_hit,
     output corep::BTB_way_idx_t     read_resp_hit_way,
+    output corep::fetch_lane_t      read_resp_hit_lane,
+    output logic                    read_resp_double_hit,
     output corep::BTB_info_t        read_resp_btb_info,
 
     // update
@@ -114,6 +116,7 @@ module btb (
             & (btb_array_bram_read_set[1].lane >= corep::fetch_lane_bits(read_resp_pc38))
         ;
         read_resp_hit = read_resp_hit_way0 | read_resp_hit_way1;
+        read_resp_double_hit = read_resp_hit_way0 & read_resp_hit_way1;
 
         // both ways hit
         if (read_resp_hit_way0 & read_resp_hit_way1) begin
@@ -122,10 +125,12 @@ module btb (
             if (btb_array_bram_read_set[1].lane <= btb_array_bram_read_set[0].lane) begin
                 read_resp_hit_way = 1;
                 read_resp_btb_info = btb_array_bram_read_set[1].info;
+                read_resp_hit_lane = btb_array_bram_read_set[1].lane;
             end
             else begin
                 read_resp_hit_way = 0;
                 read_resp_btb_info = btb_array_bram_read_set[0].info;
+                read_resp_hit_lane = btb_array_bram_read_set[0].lane;
             end
         end
 
@@ -133,12 +138,14 @@ module btb (
         else if (read_resp_hit_way1) begin
             read_resp_hit_way = 1;
             read_resp_btb_info = btb_array_bram_read_set[1].info;
+            read_resp_hit_lane = btb_array_bram_read_set[1].lane;
         end
 
         // otherwise, default way 0 data
         else begin
             read_resp_hit_way = 0;
             read_resp_btb_info = btb_array_bram_read_set[0].info;
+            read_resp_hit_lane = btb_array_bram_read_set[0].lane;
         end
     end
 

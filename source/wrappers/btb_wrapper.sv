@@ -29,6 +29,8 @@ module btb_wrapper #(
 
 	output logic last_read_resp_hit,
 	output corep::BTB_way_idx_t last_read_resp_hit_way,
+	output corep::fetch_lane_t last_read_resp_hit_lane,
+	output logic last_read_resp_double_hit,
 	output corep::BTB_info_t last_read_resp_btb_info,
 
     // update
@@ -55,6 +57,8 @@ module btb_wrapper #(
 
 	logic read_resp_hit;
 	corep::BTB_way_idx_t read_resp_hit_way;
+	corep::fetch_lane_t read_resp_hit_lane;
+	logic read_resp_double_hit;
 	corep::BTB_info_t read_resp_btb_info;
 
     // update
@@ -89,6 +93,8 @@ module btb_wrapper #(
 
 			last_read_resp_hit <= '0;
 			last_read_resp_hit_way <= '0;
+			last_read_resp_hit_lane <= '0;
+			last_read_resp_double_hit <= '0;
 			last_read_resp_btb_info <= '0;
 
 		    // update
@@ -113,6 +119,8 @@ module btb_wrapper #(
 
 			last_read_resp_hit <= read_resp_hit;
 			last_read_resp_hit_way <= read_resp_hit_way;
+			last_read_resp_hit_lane <= read_resp_hit_lane;
+			last_read_resp_double_hit <= read_resp_double_hit;
 			last_read_resp_btb_info <= read_resp_btb_info;
 
 		    // update
