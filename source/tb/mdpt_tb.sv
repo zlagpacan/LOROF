@@ -34,19 +34,19 @@ module mdpt_tb #(
 
 
     // arch state
-	corep::ASID_t tb_arch_asid;
+	corep::asid_t tb_arch_asid;
 
     // read req stage
 	logic tb_read_req_valid;
 	corep::fetch_idx_t tb_read_req_fetch_index;
 
     // read resp stage
-	corep::MDPT_set_t DUT_read_resp_mdp_by_lane, expected_read_resp_mdp_by_lane;
+	corep::mdpt_set_t DUT_read_resp_mdp_by_lane, expected_read_resp_mdp_by_lane;
 
     // update
 	logic tb_update_valid;
-	corep::PC38_t tb_update_pc38;
-	corep::MDP_t tb_update_mdp;
+	corep::pc38_t tb_update_pc38;
+	corep::mdp_t tb_update_mdp;
 
     // ----------------------------------------------------------------
     // DUT instantiation:

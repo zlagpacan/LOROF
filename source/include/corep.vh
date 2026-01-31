@@ -14,39 +14,39 @@ package corep;
 
     parameter int unsigned XLEN = 64;
 
-    typedef logic [XLEN-1:0] XLEN_t;
+    typedef logic [XLEN-1:0] xlen_t;
 
     parameter int unsigned AR5_COUNT = 32; // {x0:x31}, {f0:f31}
     parameter int unsigned LOG_AR5_COUNT = 5;
     parameter int unsigned AR6_COUNT = 64; // {x0:x31} U {f0:f31}
     parameter int unsigned LOG_AR6_COUNT = 6;
 
-    typedef logic [LOG_AR5_COUNT-1:0] AR5_t;
+    typedef logic [LOG_AR5_COUNT-1:0] ar5_t;
     
     typedef struct packed {
         logic   is_fp;
-        AR5_t   ar5;
-    } AR6_t;
+        ar5_t   ar5;
+    } ar6_t;
 
     parameter int unsigned ASID_WIDTH = 16;
 
-    typedef logic [ASID_WIDTH-1:0] ASID_t;
+    typedef logic [ASID_WIDTH-1:0] asid_t;
 
     // ----------------------------------------------------------------
     // Environment:
 
-    typedef logic [1:0] EXEC_MODE_t;
+    typedef logic [1:0] exec_mode_t;
 
-    parameter EXEC_MODE_t EXEC_MODE_U = 2'b00;
-    parameter EXEC_MODE_t EXEC_MODE_S = 2'b01;
-    parameter EXEC_MODE_t EXEC_MODE_M = 2'b11;
+    parameter exec_mode_t EXEC_MODE_U = 2'b00;
+    parameter exec_mode_t EXEC_MODE_S = 2'b01;
+    parameter exec_mode_t EXEC_MODE_M = 2'b11;
 
-    typedef logic [37:0] PC38_t;
+    typedef logic [37:0] pc38_t;
         // legal 64b fetch addr: {{25{pc38[38]}}, pc38[37:0], 1'b0}
 
-    parameter PC38_t INIT_PC38 = 38'h0;
-    parameter ASID_t INIT_ASID = 16'h0;
-    parameter EXEC_MODE_t INIT_EXEC_MODE = EXEC_MODE_M;
+    parameter pc38_t INIT_PC38 = 38'h0;
+    parameter asid_t INIT_ASID = 16'h0;
+    parameter exec_mode_t INIT_EXEC_MODE = EXEC_MODE_M;
     parameter logic INIT_VIRTUAL_MODE = 1'b0;
     parameter logic INIT_MXR = 1'b0;
     parameter logic INIT_SUM = 1'b0;
@@ -66,15 +66,15 @@ package corep;
     parameter int unsigned PRF_BANK_COUNT = 4;
     parameter int unsigned LOG_PRF_BANK_COUNT = $clog2(PRF_BANK_COUNT);
 
-    typedef logic [LOG_PR_COUNT-1:0]                        PR_t;
-    typedef logic [LOG_PRF_BANK_COUNT-1:0]                  PR_bank_t;
-    typedef logic [LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     upper_PR_t;
+    typedef logic [LOG_PR_COUNT-1:0]                        pr_t;
+    typedef logic [LOG_PRF_BANK_COUNT-1:0]                  pr_bank_t;
+    typedef logic [LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     upper_pr_t;
 
-    function upper_PR_t upper_PR_bits (PR_t pr);
+    function upper_pr_t upper_pr_bits (pr_t pr);
         return pr[LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT];
     endfunction
 
-    function PR_bank_t PR_bank_bits (PR_t pr);
+    function pr_bank_t pr_bank_bits (pr_t pr);
         return pr[LOG_PRF_BANK_COUNT-1:0];
     endfunction
 
@@ -114,7 +114,7 @@ package corep;
     parameter int unsigned ROB_ENTRIES = 128;
     parameter int unsigned LOG_ROB_ENTRIES = $clog2(ROB_ENTRIES);
 
-    typedef logic [LOG_ROB_ENTRIES-1:0] ROB_idx_t;
+    typedef logic [LOG_ROB_ENTRIES-1:0] rob_idx_t;
 
     parameter int unsigned ROB_MISPRED_Q_ENTRIES = 2;
     parameter int unsigned ROB_PR_FREE_Q_ENTRIES = 2;
@@ -143,7 +143,7 @@ package corep;
     parameter int unsigned SYSU_DQ_ENTRIES = 4;
 
     // ----------------------------------------------------------------
-    // Fetch Predictors:
+    // Fetch Unit:
 
     // pc38 possibilities:
         // last_pc38
@@ -165,8 +165,11 @@ package corep;
 
     // fetch access:
     parameter int unsigned FETCH_WIDTH_B = 16;
-    parameter int unsigned FETCH_LANES = 8;
+    parameter int unsigned FETCH_WIDTH_2B = 8;
+    parameter int unsigned FETCH_LANES = FETCH_WIDTH_2B;
     parameter int unsigned LOG_FETCH_LANES = $clog2(FETCH_LANES); // 3b
+
+    typedef logic [15:0] fetch_unit_t; // 2B hardcoded
 
     parameter int unsigned BTB_SMALL_TARGET_WIDTH = 12;
 
@@ -174,19 +177,19 @@ package corep;
 
     typedef logic [LOG_FETCH_LANES-1:0]     fetch_lane_t;
     typedef logic [FETCH_IDX_WIDTH-1:0]     fetch_idx_t;
-        // fetch_index can be built in back-to-back cycles for fast redirect
+        // fetch_idx can be built in back-to-back cycles for fast redirect
         // limited by how far the small_target can reach
-        // all predict and fetch structures must be fully indexable by the fetch_index
+        // all predict and fetch structures must be fully indexable by the fetch_idx
             // itlb, icache indexing will be truly limited
             // fetch structures may not strictly require all valid pc bits in access index
                 // structures naturally deal with aliasing
                 // notably the pht, which can have bits exclusively indexed by gh
 
-    function fetch_lane_t fetch_lane_bits(PC38_t pc38);
+    function fetch_lane_t fetch_lane_bits(pc38_t pc38);
         return pc38[LOG_FETCH_LANES-1:0];
     endfunction
 
-    function fetch_idx_t fetch_idx_bits(PC38_t pc38);
+    function fetch_idx_t fetch_idx_bits(pc38_t pc38);
         return pc38[37:LOG_FETCH_LANES];
     endfunction 
 
@@ -197,84 +200,84 @@ package corep;
             // action: 3b
             // use_upct: 1b
             // big_target: 15b
-                // {upct_index, small_target}
-                // upct_index: 3b
+                // {upct_idx, small_target}
+                // upct_idx: 3b
                 // small_target: 12b
         // tag: 18b
         // lane: 3b
         // 1-wide access into associative tagged entries
     parameter int unsigned BTB_ACTION_WIDTH = 3;
     parameter int unsigned BTB_BIG_TARGET_WIDTH = 15;
-    // parameter int unsigned BTB_SMALL_TARGET_WIDTH = 12; // defined ^ since determines fetch index width
+    // parameter int unsigned BTB_SMALL_TARGET_WIDTH = 12; // defined ^ since determines fetch idx width
     parameter int unsigned LOG_UPCT_ENTRIES = BTB_BIG_TARGET_WIDTH - BTB_SMALL_TARGET_WIDTH;
     parameter int unsigned BTB_TAG_WIDTH = 18;
     parameter int unsigned BTB_ASSOC = 2; // hardcoded. have to do explicit lower hitting lane greater than input lane check
 
-    typedef logic [BTB_ACTION_WIDTH-1:0]        BTB_action_t;
-    typedef logic [BTB_SMALL_TARGET_WIDTH-1:0]  BTB_small_target_t;
-    typedef logic [LOG_UPCT_ENTRIES-1:0]        UPCT_idx_t;
-    typedef logic [BTB_TAG_WIDTH-1:0]           BTB_tag_t;
+    typedef logic [BTB_ACTION_WIDTH-1:0]        btb_action_t;
+    typedef logic [BTB_SMALL_TARGET_WIDTH-1:0]  btb_small_target_t;
+    typedef logic [LOG_UPCT_ENTRIES-1:0]        upct_idx_t;
+    typedef logic [BTB_TAG_WIDTH-1:0]           btb_tag_t;
 
     typedef struct packed {
-        UPCT_idx_t          upct_index;
-        BTB_small_target_t  small_target;
-    } BTB_big_target_t;
+        upct_idx_t          upct_idx;
+        btb_small_target_t  small_target;
+    } btb_big_target_t;
     
     typedef struct packed {
-        BTB_action_t        action;
+        btb_action_t        action;
         logic               use_upct;
-        BTB_big_target_t    big_target;
-    } BTB_info_t;
+        btb_big_target_t    big_target;
+    } btb_info_t;
 
     typedef struct packed {
-        BTB_info_t      info;
-        BTB_tag_t       tag;
+        btb_info_t      info;
+        btb_tag_t       tag;
         fetch_lane_t    lane;
-    } BTB_entry_t;
+    } btb_entry_t;
 
-    typedef BTB_entry_t [BTB_ASSOC-1:0] BTB_set_t;
+    typedef btb_entry_t [BTB_ASSOC-1:0] btb_set_t;
 
-    parameter BTB_action_t BTB_ACTION_NONE          = 3'b000;
-    parameter BTB_action_t BTB_ACTION_BRANCH        = 3'b001;
-    parameter BTB_action_t BTB_ACTION_JUMP          = 3'b010;
-    parameter BTB_action_t BTB_ACTION_JUMP_L        = 3'b011;
-    parameter BTB_action_t BTB_ACTION_RET           = 3'b100;
-    parameter BTB_action_t BTB_ACTION_RET_L         = 3'b101;
-    parameter BTB_action_t BTB_ACTION_INDIRECT      = 3'b110;
-    parameter BTB_action_t BTB_ACTION_INDIRECT_L    = 3'b111;
+    parameter btb_action_t BTB_ACTION_NONE          = 3'b000;
+    parameter btb_action_t BTB_ACTION_BRANCH        = 3'b001;
+    parameter btb_action_t BTB_ACTION_JUMP          = 3'b010;
+    parameter btb_action_t BTB_ACTION_JUMP_L        = 3'b011;
+    parameter btb_action_t BTB_ACTION_RET           = 3'b100;
+    parameter btb_action_t BTB_ACTION_RET_L         = 3'b101;
+    parameter btb_action_t BTB_ACTION_INDIRECT      = 3'b110;
+    parameter btb_action_t BTB_ACTION_INDIRECT_L    = 3'b111;
 
     // btb:
         // 8-wide access into associative tagged entries
-        // index: fetch index, asid
-        // tag: fetch index, asid
+        // index: fetch idx, asid
+        // tag: fetch idx, asid
     parameter int unsigned BTB_ENTRIES = 1024;
     parameter int unsigned BTB_SETS = BTB_ENTRIES / BTB_ASSOC;
     parameter int unsigned LOG_BTB_SETS = $clog2(BTB_SETS);
     
-    typedef logic [LOG_BTB_SETS-1:0]        BTB_idx_t;
-    typedef logic [BTB_ASSOC-2:0]           BTB_plru_t;
-    typedef logic [$clog2(BTB_ASSOC)-1:0]   BTB_way_idx_t;
+    typedef logic [LOG_BTB_SETS-1:0]        btb_idx_t;
+    typedef logic [BTB_ASSOC-2:0]           btb_plru_t;
+    typedef logic [$clog2(BTB_ASSOC)-1:0]   btb_way_t;
 
     // 2-bit saturating counter:
-    typedef logic [1:0] TBC_t;
+    typedef logic [1:0] tbc_t;
 
     // pht entry:
         // 2BC
         // 8-wide access into direct-mapped, untagged entries
-    typedef TBC_t                           PHT_entry_t;
-    typedef PHT_entry_t [FETCH_LANES-1:0]   PHT_set_t;
+    typedef tbc_t                           pht_entry_t;
+    typedef pht_entry_t [FETCH_LANES-1:0]   pht_set_t;
 
     // pht:
         // 8-wide access into direct-mapped, untagged entries
-        // index: fetch index, ghr, backward asid
+        // index: fetch idx, ghr, backward asid
         // lane: redirect lane, ghr
     parameter int unsigned GH_LENGTH = 13;
     parameter int unsigned PHT_ENTRIES = 2**GH_LENGTH;
     parameter int unsigned PHT_SETS = PHT_ENTRIES / FETCH_LANES;
     parameter int unsigned LOG_PHT_SETS = $clog2(PHT_SETS);
 
-    typedef logic [GH_LENGTH-1:0]       GH_t;
-    typedef logic [LOG_PHT_SETS-1:0]    PHT_idx_t;
+    typedef logic [GH_LENGTH-1:0]       gh_t;
+    typedef logic [LOG_PHT_SETS-1:0]    pht_idx_t;
 
     // ras:
         // 1-wide stack
@@ -282,33 +285,33 @@ package corep;
     parameter int unsigned RAS_ENTRIES = 16;
     parameter int unsigned LOG_RAS_ENTRIES = $clog2(RAS_ENTRIES);
 
-    typedef logic [LOG_RAS_ENTRIES-1:0]     RAS_idx_t;
-    typedef logic [LOG_RAS_ENTRIES+1-1:0]   RAS_cnt_t;
+    typedef logic [LOG_RAS_ENTRIES-1:0]     ras_idx_t;
+    typedef logic [LOG_RAS_ENTRIES+1-1:0]   ras_cnt_t;
 
     // upct:
         // PLRU-allocated associative array
-        // index: upct_index
+        // index: upct_idx
     // LOG_UPCT_ENTRIES defined ^
-    // UPCT_idx_t defined ^
+    // upct_idx_t defined ^
     parameter int unsigned UPCT_ENTRIES = 2**LOG_UPCT_ENTRIES;
 
-    typedef logic [38-BTB_SMALL_TARGET_WIDTH-1:0] UPC_t;
+    typedef logic [38-BTB_SMALL_TARGET_WIDTH-1:0] upc_t;
         // PC38 = {upc[25:0], small_target[11:0]}
 
     // ibtb entry: 16b
         // {use_upct, big_target}
         // use_upct: 1b
         // big_target: 15b
-            // {upct_index, small_target}
-            // upct_index: 3b
+            // {upct_idx, small_target}
+            // upct_idx: 3b
             // small_target: 12b
         // 1-wide access into direct-mapped, untagged entries
     typedef struct packed {
         logic               use_upct;
-        BTB_big_target_t    big_target;
-    } IBTB_info_t;
+        btb_big_target_t    big_target;
+    } ibtb_info_t;
 
-    typedef IBTB_info_t IBTB_entry_t;
+    typedef ibtb_info_t ibtb_entry_t;
 
     // ibtb:
         // 1-wide access into direct-mapped, untagged entries
@@ -317,63 +320,63 @@ package corep;
     parameter int unsigned IBTB_GH_WIDTH = $clog2(IBTB_ENTRIES);
     parameter int unsigned LOG_IBTB_ENTRIES = $clog2(IBTB_ENTRIES);
 
-    typedef logic [IBTB_GH_WIDTH-1:0]   IBTB_GH_t;
-    typedef IBTB_GH_t                   IBTB_idx_t;
+    typedef logic [IBTB_GH_WIDTH-1:0]   ibtb_gh_t;
+    typedef ibtb_gh_t                   ibtb_idx_t;
 
     // sst:
         // sst params needed for mdpt entry
     parameter int unsigned STORE_SET_COUNT = 64;
     parameter int unsigned SSID_WIDTH = $clog2(STORE_SET_COUNT); // 6
 
-    typedef logic [SSID_WIDTH-1:0] SSID_t;
+    typedef logic [SSID_WIDTH-1:0] ssid_t;
 
     // mdpt entry: 8b
         // {tbc, ssid}
         // tbc: 2b
         // ssid: 6b
     typedef struct packed {
-        TBC_t   tbc;    // 2b
-        SSID_t  ssid;   // 6b
-    } MDP_t;            // 8b = 1B
+        tbc_t   tbc;    // 2b
+        ssid_t  ssid;   // 6b
+    } mdp_t;            // 8b = 1B
 
-    typedef MDP_t                           MDPT_entry_t;
-    typedef MDPT_entry_t [FETCH_LANES-1:0]  MDPT_set_t;
+    typedef mdp_t                           mdpt_entry_t;
+    typedef mdpt_entry_t [FETCH_LANES-1:0]  mdpt_set_t;
 
     // mdpt:
         // 8-wide access into direct-mapped, untagged entries
-        // index: fetch index, asid
+        // index: fetch idx, asid
     parameter int unsigned MDPT_ENTRIES = 1024;
     parameter int unsigned MDPT_SETS = MDPT_ENTRIES / FETCH_LANES;
     parameter int unsigned LOG_MDPT_SETS = $clog2(MDPT_SETS);
 
-    typedef logic [LOG_MDPT_SETS-1:0] MDPT_idx_t;
+    typedef logic [LOG_MDPT_SETS-1:0] mdpt_idx_t;
 
     // bcb entry:
-        // {ghr, ras_index, ras_count}
+        // {gh, ras_idx, ras_cnt}
     typedef struct packed {
-        GH_t        ghr;
-        RAS_idx_t   ras_index;
-        RAS_cnt_t   ras_count;
-    } BCB_info_t;
+        gh_t        gh;
+        ras_idx_t   ras_idx;
+        ras_cnt_t   ras_cnt;
+    } bcb_info_t;
 
-    typedef BCB_info_t BCB_entry_t;
+    typedef bcb_info_t bcb_entry_t;
 
     // bcb:
         // 1-wide access
-        // index: bcb_index
+        // index: bcb_idx
     parameter int unsigned BCB_ENTRIES = 16;
     parameter int unsigned LOG_BCB_ENTRIES = $clog2(BCB_ENTRIES);
 
-    typedef logic [LOG_BCB_ENTRIES-1:0] BCB_idx_t;
-
-    // ----------------------------------------------------------------
-    // Frontend:
+    typedef logic [LOG_BCB_ENTRIES-1:0] bcb_idx_t;
 
     // ibuffer:
     parameter int unsigned IBUFFER_SETS = 8;
     parameter int unsigned LOG_IBUFFER_SETS = $clog2(IBUFFER_SETS);
 
-    typedef logic [LOG_IBUFFER_SETS-1:0] IBUFFER_idx_t;
+    typedef logic [LOG_IBUFFER_SETS-1:0] ibuffer_idx_t;
+
+    // ----------------------------------------------------------------
+    // Decode Unit:
 
     // free_list:
     parameter int unsigned FREE_LIST_BANK_COUNT = PRF_BANK_COUNT;
@@ -396,11 +399,10 @@ package corep;
     parameter int unsigned MAP_TABLE_FARF_WRITE_PORT_COUNT = 4;
 
     // checkpoint array:
-    parameter int unsigned CHECKPOINT_COUNT = 8;
-    parameter int unsigned LOG_CHECKPOINT_COUNT = $clog2(CHECKPOINT_COUNT);
-    parameter int unsigned CHECKPOINT_THRESHOLD = 3;
+    parameter int unsigned MTCB_ENTRIES = 8;
+    parameter int unsigned LOG_MTCB_ENTRIES = $clog2(MTCB_ENTRIES);
 
-    typedef logic [LOG_CHECKPOINT_COUNT-1:0] CHECKPOINT_idx_t;
+    typedef logic [LOG_MTCB_ENTRIES-1:0] mtcb_idx_t;
 
     // ----------------------------------------------------------------
     // MDU:
@@ -415,7 +417,7 @@ package corep;
     parameter int unsigned LDU_CQ_ENTRIES = 40;
     parameter int unsigned LOG_LDU_CQ_ENTRIES = $clog2(LDU_CQ_ENTRIES);
 
-    typedef logic [LOG_LDU_CQ_ENTRIES-1:0] LDU_CQ_idx_t;
+    typedef logic [LOG_LDU_CQ_ENTRIES-1:0] ldu_cq_idx_t;
 
     // stamofu
     parameter int unsigned STAMOFU_CQ_ENTRIES = 24;
@@ -424,8 +426,8 @@ package corep;
     parameter int unsigned LOG_STAMOFU_AQ_ENTRIES = $clog2(STAMOFU_AQ_ENTRIES);
     parameter int unsigned STAMOFU_LQ_ENTRIES_PER_BANK = 2;
 
-    typedef logic [LOG_STAMOFU_CQ_ENTRIES-1:0] STAMOFU_CQ_idx_t;
-    typedef logic [LOG_STAMOFU_AQ_ENTRIES-1:0] STAMOFU_AQ_idx_t;
+    typedef logic [LOG_STAMOFU_CQ_ENTRIES-1:0] stamofu_cq_idx_t;
+    typedef logic [LOG_STAMOFU_AQ_ENTRIES-1:0] stamofu_aq_idx_t;
 
     // ssu
     parameter int unsigned SSU_INPUT_BUFFER_ENTRIES = 2;

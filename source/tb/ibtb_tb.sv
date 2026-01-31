@@ -34,19 +34,19 @@ module ibtb_tb #(
 
 
     // arch state
-	corep::ASID_t tb_arch_asid;
+	corep::asid_t tb_arch_asid;
 
     // read
-	corep::PC38_t tb_read_src_pc38;
-	corep::IBTB_GH_t tb_read_ibtb_gh;
+	corep::pc38_t tb_read_src_pc38;
+	corep::ibtb_gh_t tb_read_ibtb_gh;
 
-	corep::IBTB_info_t DUT_read_tgt_ibtb_info, expected_read_tgt_ibtb_info;
+	corep::ibtb_info_t DUT_read_tgt_ibtb_info, expected_read_tgt_ibtb_info;
 
     // update
 	logic tb_update_valid;
-	corep::PC38_t tb_update_src_pc38;
-	corep::PC38_t tb_update_ibtb_gh;
-	corep::IBTB_info_t tb_update_tgt_ibtb_info;
+	corep::pc38_t tb_update_src_pc38;
+	corep::pc38_t tb_update_ibtb_gh;
+	corep::ibtb_info_t tb_update_tgt_ibtb_info;
 
     // ----------------------------------------------------------------
     // DUT instantiation:

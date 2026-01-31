@@ -14,39 +14,39 @@ module btb (
     input logic nRST,
 
     // arch state
-    input corep::ASID_t arch_asid,
+    input corep::asid_t arch_asid,
     
     // read req stage
     input logic                     read_req_valid,
-    input corep::fetch_idx_t        read_req_fetch_index,
+    input corep::fetch_idx_t        read_req_fetch_idx,
 
     // read resp stage
-    input corep::PC38_t             read_resp_pc38,
+    input corep::pc38_t             read_resp_pc38,
 
     output logic                    read_resp_hit,
-    output corep::BTB_way_idx_t     read_resp_hit_way,
+    output corep::btb_way_t     read_resp_hit_way,
     output corep::fetch_lane_t      read_resp_hit_lane,
     output logic                    read_resp_double_hit,
-    output corep::BTB_info_t        read_resp_btb_info,
+    output corep::btb_info_t        read_resp_btb_info,
 
     // update
     input logic                 update_valid,
-    input corep::PC38_t         update_pc38,
-    input corep::BTB_info_t     update_btb_info,
+    input corep::pc38_t         update_pc38,
+    input corep::btb_info_t     update_btb_info,
     input logic                 update_hit,
-    input corep::BTB_way_idx_t  update_hit_way
+    input corep::btb_way_t  update_hit_way
 );
 
     // ----------------------------------------------------------------
     // Functions:
 
-    function corep::BTB_idx_t index_hash(corep::fetch_idx_t fetch_index, corep::ASID_t asid);
+    function corep::btb_idx_t index_hash(corep::fetch_idx_t fetch_index, corep::asid_t asid);
         // low fetch index ^ low asid
         index_hash = fetch_index;
         index_hash ^= asid;
     endfunction
 
-    function corep::BTB_tag_t tag_hash(corep::PC38_t pc38, corep::ASID_t asid);
+    function corep::btb_tag_t tag_hash(corep::pc38_t pc38, corep::asid_t asid);
         // low pc38 above btb index ^ low asid
         tag_hash = pc38[37 : corep::LOG_BTB_SETS+corep::LOG_FETCH_LANES];
         tag_hash ^= asid;
@@ -58,37 +58,37 @@ module btb (
     // btb array bram IO
         // index w/ BTB index
     logic               btb_array_bram_read_next_valid;
-    corep::BTB_idx_t    btb_array_bram_read_next_index;
-    corep::BTB_set_t    btb_array_bram_read_set;
+    corep::btb_idx_t    btb_array_bram_read_next_index;
+    corep::btb_set_t    btb_array_bram_read_set;
 
-    logic [1:0][$bits(corep::BTB_entry_t)/8-1:0]    btb_array_bram_write_byten; // hardwired corep::BTB_ASSOC = 2
-    corep::BTB_idx_t                                btb_array_bram_write_index;
-    corep::BTB_set_t                                btb_array_bram_write_set;
+    logic [1:0][$bits(corep::btb_entry_t)/8-1:0]    btb_array_bram_write_byten; // hardwired corep::BTB_ASSOC = 2
+    corep::btb_idx_t                                btb_array_bram_write_index;
+    corep::btb_set_t                                btb_array_bram_write_set;
 
     // plru array distram IO
         // index w/ {BTB index, fetch lane}
     logic [corep::LOG_BTB_SETS-1:0]     plru_array_distram_read_index;
-    corep::BTB_plru_t                   plru_array_distram_read_data;
+    corep::btb_plru_t                   plru_array_distram_read_data;
 
     logic                               plru_array_distram_write_valid;
     logic [corep::LOG_BTB_SETS-1:0]     plru_array_distram_write_index;
-    corep::BTB_plru_t                   plru_array_distram_write_data;
+    corep::btb_plru_t                   plru_array_distram_write_data;
 
     // read resp
     logic                   read_resp_hit_way0;
     logic                   read_resp_hit_way1;
 
     // update indexing
-    corep::BTB_idx_t        update_index;
-    corep::BTB_way_idx_t    update_selected_way;
+    corep::btb_idx_t        update_index;
+    corep::btb_way_t    update_selected_way;
 
     // plru updater
-    corep::BTB_plru_t       plru_updater_plru_in;
+    corep::btb_plru_t       plru_updater_plru_in;
     logic                   plru_updater_new_valid;
-    corep::BTB_way_idx_t    plru_updater_new_index;
+    corep::btb_way_t    plru_updater_new_index;
     logic                   plru_updater_touch_valid;
-    corep::BTB_way_idx_t    plru_updater_touch_index;
-    corep::BTB_plru_t       plru_updater_plru_out;
+    corep::btb_way_t    plru_updater_touch_index;
+    corep::btb_plru_t       plru_updater_plru_out;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -96,7 +96,7 @@ module btb (
     // read next logic
     always_comb begin
         btb_array_bram_read_next_valid = read_req_valid;
-        btb_array_bram_read_next_index = index_hash(read_req_fetch_index, arch_asid);
+        btb_array_bram_read_next_index = index_hash(read_req_fetch_idx, arch_asid);
     end
 
     // hit logic
@@ -190,7 +190,7 @@ module btb (
 
     // plru array distram
     distram_1rport_1wport #(
-        .INNER_WIDTH($bits(corep::BTB_plru_t)),
+        .INNER_WIDTH($bits(corep::btb_plru_t)),
         .OUTER_WIDTH(corep::BTB_SETS)
     ) PLRU_ARRAY_DISTRAM (
         .CLK(CLK),
@@ -210,7 +210,7 @@ module btb (
 
     // btb array bram
     bram_1rport_1wport #(
-        .INNER_WIDTH($bits(corep::BTB_set_t)),
+        .INNER_WIDTH($bits(corep::btb_set_t)),
         .OUTER_WIDTH(corep::BTB_SETS)
     ) BTB_ARRAY_BRAM (
         .CLK(CLK),

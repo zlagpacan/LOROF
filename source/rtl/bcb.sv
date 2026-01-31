@@ -15,20 +15,20 @@ module bcb (
 
     // save control
     input logic                 save_valid,
-    input corep::BTB_info_t     save_bcb_info,
+    input corep::bcb_info_t     save_bcb_info,
 
-    output corep::BCB_idx_t     save_bcb_index,
+    output corep::bcb_idx_t     save_bcb_index,
 
     // restore control
-    input corep::BCB_idx_t      restore_bcb_index,
+    input corep::bcb_idx_t      restore_bcb_index,
 
-    output corep::BTB_info_t    restore_bcb_info
+    output corep::bcb_info_t    restore_bcb_info
 );
 
     // ----------------------------------------------------------------
     // Signals:
 
-    corep::BCB_idx_t save_bcb_index_plus_1;
+    corep::bcb_idx_t save_bcb_index_plus_1;
 
     // ----------------------------------------------------------------
     // Logic: 
@@ -64,7 +64,7 @@ module bcb (
     end
 
     distram_1rport_1wport #(
-        .INNER_WIDTH($bits(corep::BCB_info_t)),
+        .INNER_WIDTH($bits(corep::bcb_info_t)),
         .OUTER_WIDTH(corep::BCB_ENTRIES)
     ) DISTRAM_BUFFER (
         .CLK(CLK),

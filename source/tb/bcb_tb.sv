@@ -35,14 +35,14 @@ module bcb_tb #(
 
     // save control
 	logic tb_save_valid;
-	corep::BTB_info_t tb_save_bcb_info;
+	corep::bcb_info_t tb_save_bcb_info;
 
-	corep::BCB_idx_t DUT_save_bcb_index, expected_save_bcb_index;
+	corep::bcb_idx_t DUT_save_bcb_index, expected_save_bcb_index;
 
     // restore control
-	corep::BCB_idx_t tb_restore_bcb_index;
+	corep::bcb_idx_t tb_restore_bcb_index;
 
-	corep::BTB_info_t DUT_restore_bcb_info, expected_restore_bcb_info;
+	corep::bcb_info_t DUT_restore_bcb_info, expected_restore_bcb_info;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -109,7 +109,7 @@ module bcb_tb #(
 		nRST = 1'b0;
 	    // save control
 		tb_save_valid = 1'b0;
-		tb_save_bcb_info = {13'h0000, 4'h0, 4'h0};
+		tb_save_bcb_info = 0;
 	    // restore control
 		tb_restore_bcb_index = 4'h0;
 
@@ -120,7 +120,7 @@ module bcb_tb #(
 	    // save control
 		expected_save_bcb_index = 4'h0;
 	    // restore control
-		expected_restore_bcb_info = {13'h0000, 4'h0, 4'h0};
+		expected_restore_bcb_info = 0;
 
 		check_outputs();
 
@@ -132,7 +132,7 @@ module bcb_tb #(
 		nRST = 1'b1;
 	    // save control
 		tb_save_valid = 1'b0;
-		tb_save_bcb_info = {13'h0000, 4'h0, 4'h0};
+		tb_save_bcb_info = 0;
 	    // restore control
 		tb_restore_bcb_index = 4'h0;
 
@@ -143,7 +143,7 @@ module bcb_tb #(
 	    // save control
 		expected_save_bcb_index = 4'h0;
 	    // restore control
-		expected_restore_bcb_info = {13'h0000, 4'h0, 4'h0};
+		expected_restore_bcb_info = 0;
 
 		check_outputs();
 
@@ -165,7 +165,7 @@ module bcb_tb #(
             nRST = 1'b1;
             // save control
             tb_save_valid = 1'b1;
-            tb_save_bcb_info = {{2{~i[3:0], i[3:0]}}, ~i[3:0], i[3:0]};
+            tb_save_bcb_info = {8{~i[3:0], i[3:0]}};
             // restore control
             tb_restore_bcb_index = 4'h0;
 
@@ -176,7 +176,7 @@ module bcb_tb #(
             // save control
             expected_save_bcb_index = i[3:0];
             // restore control
-            expected_restore_bcb_info = i > 0 ? {13'hf0f0, 4'hf, 4'h0} : {13'h0000, 4'h0, 4'h0};
+            expected_restore_bcb_info = i > 0 ? 32'hf0f0f0f0 : 0;
 
             check_outputs();
         end

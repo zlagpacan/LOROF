@@ -8,7 +8,7 @@
 `include "instrp.vh"
 
 module alu (
-    input logic [3:0]       op,
+    input instrp::alu_op_t  op,
     input logic [63:0]      A,
     input logic [63:0]      B,
 
@@ -27,10 +27,12 @@ module alu (
     logic [63:0] srl64_6b;
     logic [63:0] sra64_6b;
 
+    // shared comparator
     always_comb begin
         lower63b_lt = A[62:0] < B[62:0];
     end
 
+    // shared shifts
     always_comb begin
         if (op == instrp::ALU_SLLW | op == instrp::ALU_SRLW | op == instrp::ALU_SRAW) begin
             shift_in = {{32{A[31] & (op == instrp::ALU_SRAW)}}, A[31:0]};
@@ -55,7 +57,7 @@ module alu (
         end
     end
 
-    // case with shared intermediates:
+    // case with shared intermediates
     always_comb begin
         unique casez (op)
             instrp::ALU_ADD:    out = A + B;

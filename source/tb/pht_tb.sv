@@ -34,12 +34,12 @@ module pht_tb #(
 
 
     // arch state
-	corep::ASID_t tb_arch_asid;
+	corep::asid_t tb_arch_asid;
 
     // read req stage
 	logic tb_read_req_valid;
-	corep::fetch_idx_t tb_read_req_fetch_index;
-	corep::GH_t tb_read_req_gh;
+	corep::fetch_idx_t tb_read_req_fetch_idx;
+	corep::gh_t tb_read_req_gh;
 
     // read resp stage
 	corep::fetch_lane_t tb_read_resp_redirect_lane;
@@ -48,8 +48,8 @@ module pht_tb #(
 
     // update
 	logic tb_update_valid;
-	corep::PC38_t tb_update_pc38;
-	corep::GH_t tb_update_gh;
+	corep::pc38_t tb_update_pc38;
+	corep::gh_t tb_update_gh;
 	logic tb_update_taken;
 
     // ----------------------------------------------------------------
@@ -67,7 +67,7 @@ module pht_tb #(
 
 	    // read req stage
 		.read_req_valid(tb_read_req_valid),
-		.read_req_fetch_index(tb_read_req_fetch_index),
+		.read_req_fetch_idx(tb_read_req_fetch_idx),
 		.read_req_gh(tb_read_req_gh),
 
 	    // read resp stage
@@ -120,7 +120,7 @@ module pht_tb #(
 		tb_arch_asid = 16'h0000;
 	    // read req stage
 		tb_read_req_valid = 1'b0;
-		tb_read_req_fetch_index = 9'h000;
+		tb_read_req_fetch_idx = 9'h000;
 		tb_read_req_gh = {2'h0, 9'h000, 3'h0};
 	    // read resp stage
 		tb_read_resp_redirect_lane = 3'h0;
@@ -152,7 +152,7 @@ module pht_tb #(
 		tb_arch_asid = 16'h0000;
 	    // read req stage
 		tb_read_req_valid = 1'b0;
-		tb_read_req_fetch_index = 9'h000;
+		tb_read_req_fetch_idx = 9'h000;
 		tb_read_req_gh = {2'h0, 9'h000, 3'h0};
 	    // read resp stage
 		tb_read_resp_redirect_lane = 3'h0;
@@ -195,7 +195,7 @@ module pht_tb #(
                 tb_arch_asid = 16'h0000;
                 // read req stage
                 tb_read_req_valid = 1'b0;
-                tb_read_req_fetch_index = 9'h000;
+                tb_read_req_fetch_idx = 9'h000;
                 tb_read_req_gh = {2'h0, 9'h000, 3'h0};
                 // read resp stage
 		        tb_read_resp_redirect_lane = 3'h0;
@@ -237,7 +237,7 @@ module pht_tb #(
         tb_arch_asid = 16'hffff;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = ~9'h000;
+        tb_read_req_fetch_idx = ~9'h000;
         tb_read_req_gh = {2'h3, 9'h000, 3'h0};
         // read resp stage
 		tb_read_resp_redirect_lane = 3'h0;
@@ -275,7 +275,7 @@ module pht_tb #(
                 tb_arch_asid = 16'hffff;
                 // read req stage
                 tb_read_req_valid = 1'b1;
-                tb_read_req_fetch_index = ~{index[8:5], 5'h0};
+                tb_read_req_fetch_idx = ~{index[8:5], 5'h0};
                 tb_read_req_gh = {~index[10:9], {4'h0, index[4:0]}, lane[2], 1'b0, lane[0]};
                 // read resp stage
 		        tb_read_resp_redirect_lane = {1'b0, {lane-1}[1], 1'b0};
@@ -311,7 +311,7 @@ module pht_tb #(
         tb_arch_asid = 16'hffff;
         // read req stage
         tb_read_req_valid = 1'b0;
-        tb_read_req_fetch_index = 9'h000;
+        tb_read_req_fetch_idx = 9'h000;
         tb_read_req_gh = {2'h0, 9'h000, 3'h0};
         // read resp stage
 		tb_read_resp_redirect_lane = 3'b010;

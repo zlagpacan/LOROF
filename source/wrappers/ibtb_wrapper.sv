@@ -18,19 +18,19 @@ module ibtb_wrapper #(
 
 
     // arch state
-	input corep::ASID_t next_arch_asid,
+	input corep::asid_t next_arch_asid,
 
     // read
-	input corep::PC38_t next_read_src_pc38,
-	input corep::IBTB_GH_t next_read_ibtb_gh,
+	input corep::pc38_t next_read_src_pc38,
+	input corep::ibtb_gh_t next_read_ibtb_gh,
 
-	output corep::IBTB_info_t last_read_tgt_ibtb_info,
+	output corep::ibtb_info_t last_read_tgt_ibtb_info,
 
     // update
 	input logic next_update_valid,
-	input corep::PC38_t next_update_src_pc38,
-	input corep::PC38_t next_update_ibtb_gh,
-	input corep::IBTB_info_t next_update_tgt_ibtb_info
+	input corep::pc38_t next_update_src_pc38,
+	input corep::pc38_t next_update_ibtb_gh,
+	input corep::ibtb_info_t next_update_tgt_ibtb_info
 );
 
     // ----------------------------------------------------------------
@@ -38,19 +38,19 @@ module ibtb_wrapper #(
 
 
     // arch state
-	corep::ASID_t arch_asid;
+	corep::asid_t arch_asid;
 
     // read
-	corep::PC38_t read_src_pc38;
-	corep::IBTB_GH_t read_ibtb_gh;
+	corep::pc38_t read_src_pc38;
+	corep::ibtb_gh_t read_ibtb_gh;
 
-	corep::IBTB_info_t read_tgt_ibtb_info;
+	corep::ibtb_info_t read_tgt_ibtb_info;
 
     // update
 	logic update_valid;
-	corep::PC38_t update_src_pc38;
-	corep::PC38_t update_ibtb_gh;
-	corep::IBTB_info_t update_tgt_ibtb_info;
+	corep::pc38_t update_src_pc38;
+	corep::pc38_t update_ibtb_gh;
+	corep::ibtb_info_t update_tgt_ibtb_info;
 
     // ----------------------------------------------------------------
     // Module Instantiation:

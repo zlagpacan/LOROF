@@ -18,12 +18,12 @@ module pht_wrapper #(
 
 
     // arch state
-	input corep::ASID_t next_arch_asid,
+	input corep::asid_t next_arch_asid,
 
     // read req stage
 	input logic next_read_req_valid,
-	input corep::fetch_idx_t next_read_req_fetch_index,
-	input corep::GH_t next_read_req_gh,
+	input corep::fetch_idx_t next_read_req_fetch_idx,
+	input corep::gh_t next_read_req_gh,
 
     // read resp stage
 	input corep::fetch_lane_t next_read_resp_redirect_lane,
@@ -32,8 +32,8 @@ module pht_wrapper #(
 
     // update
 	input logic next_update_valid,
-	input corep::PC38_t next_update_pc38,
-	input corep::GH_t next_update_gh,
+	input corep::pc38_t next_update_pc38,
+	input corep::gh_t next_update_gh,
 	input logic next_update_taken
 );
 
@@ -42,12 +42,12 @@ module pht_wrapper #(
 
 
     // arch state
-	corep::ASID_t arch_asid;
+	corep::asid_t arch_asid;
 
     // read req stage
 	logic read_req_valid;
-	corep::fetch_idx_t read_req_fetch_index;
-	corep::GH_t read_req_gh;
+	corep::fetch_idx_t read_req_fetch_idx;
+	corep::gh_t read_req_gh;
 
     // read resp stage
 	corep::fetch_lane_t read_resp_redirect_lane;
@@ -56,8 +56,8 @@ module pht_wrapper #(
 
     // update
 	logic update_valid;
-	corep::PC38_t update_pc38;
-	corep::GH_t update_gh;
+	corep::pc38_t update_pc38;
+	corep::gh_t update_gh;
 	logic update_taken;
 
     // ----------------------------------------------------------------
@@ -78,7 +78,7 @@ module pht_wrapper #(
 
 		    // read req stage
 			read_req_valid <= '0;
-			read_req_fetch_index <= '0;
+			read_req_fetch_idx <= '0;
 			read_req_gh <= '0;
 
 		    // read resp stage
@@ -100,7 +100,7 @@ module pht_wrapper #(
 
 		    // read req stage
 			read_req_valid <= next_read_req_valid;
-			read_req_fetch_index <= next_read_req_fetch_index;
+			read_req_fetch_idx <= next_read_req_fetch_idx;
 			read_req_gh <= next_read_req_gh;
 
 		    // read resp stage

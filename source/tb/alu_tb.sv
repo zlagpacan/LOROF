@@ -16,7 +16,7 @@ module alu_tb #(
     // TB setup:
 
     // parameters
-    parameter PERIOD = 10;
+    parameter int unsigned PERIOD = 10;
 
     // TB signals:
     logic CLK = 1'b1, nRST;
@@ -31,7 +31,7 @@ module alu_tb #(
 
     // ----------------------------------------------------------------
     // DUT signals:
-	logic [3:0] tb_op;
+	instrp::alu_op_t tb_op;
 	logic [63:0] tb_A;
 	logic [63:0] tb_B;
 

@@ -34,27 +34,27 @@ module btb_tb #(
 
 
     // arch state
-	corep::ASID_t tb_arch_asid;
+	corep::asid_t tb_arch_asid;
 
     // read req stage
 	logic tb_read_req_valid;
-	corep::fetch_idx_t tb_read_req_fetch_index;
+	corep::fetch_idx_t tb_read_req_fetch_idx;
 
     // read resp stage
-	corep::PC38_t tb_read_resp_pc38;
+	corep::pc38_t tb_read_resp_pc38;
 
 	logic DUT_read_resp_hit, expected_read_resp_hit;
-	corep::BTB_way_idx_t DUT_read_resp_hit_way, expected_read_resp_hit_way;
+	corep::btb_way_t DUT_read_resp_hit_way, expected_read_resp_hit_way;
 	corep::fetch_lane_t DUT_read_resp_hit_lane, expected_read_resp_hit_lane;
 	logic DUT_read_resp_double_hit, expected_read_resp_double_hit;
-	corep::BTB_info_t DUT_read_resp_btb_info, expected_read_resp_btb_info;
+	corep::btb_info_t DUT_read_resp_btb_info, expected_read_resp_btb_info;
 
     // update
 	logic tb_update_valid;
-	corep::PC38_t tb_update_pc38;
-	corep::BTB_info_t tb_update_btb_info;
+	corep::pc38_t tb_update_pc38;
+	corep::btb_info_t tb_update_btb_info;
 	logic tb_update_hit;
-	corep::BTB_way_idx_t tb_update_hit_way;
+	corep::btb_way_t tb_update_hit_way;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -71,7 +71,7 @@ module btb_tb #(
 
 	    // read req stage
 		.read_req_valid(tb_read_req_valid),
-		.read_req_fetch_index(tb_read_req_fetch_index),
+		.read_req_fetch_idx(tb_read_req_fetch_idx),
 
 	    // read resp stage
 		.read_resp_pc38(tb_read_resp_pc38),
@@ -156,7 +156,7 @@ module btb_tb #(
 		tb_arch_asid = 16'h0000;
 	    // read req stage
 		tb_read_req_valid = 1'b0;
-		tb_read_req_fetch_index = 9'h000;
+		tb_read_req_fetch_idx = 9'h000;
 	    // read resp stage
 		tb_read_resp_pc38 = {26'h0000000, 9'h000, 3'h0};
 	    // update
@@ -192,7 +192,7 @@ module btb_tb #(
 		tb_arch_asid = 16'h0000;
 	    // read req stage
 		tb_read_req_valid = 1'b0;
-		tb_read_req_fetch_index = 9'h000;
+		tb_read_req_fetch_idx = 9'h000;
 	    // read resp stage
 		tb_read_resp_pc38 = {26'h0000000, 9'h000, 3'h0};
 	    // update
@@ -239,7 +239,7 @@ module btb_tb #(
                 tb_arch_asid = 16'h0000;
                 // read req stage
                 tb_read_req_valid = 1'b0;
-                tb_read_req_fetch_index = 9'h000;
+                tb_read_req_fetch_idx = 9'h000;
                 // read resp stage
                 tb_read_resp_pc38 = {26'h0000000, 9'h000, 3'h0};
                 // update
@@ -283,7 +283,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h000;
+        tb_read_req_fetch_idx = 9'h000;
         // read resp stage
 		tb_read_resp_pc38 = {26'h0000000, 9'h000, 3'h0};
         // update
@@ -321,7 +321,7 @@ module btb_tb #(
             tb_arch_asid = 16'h0000;
             // read req stage
             tb_read_req_valid = 1'b1;
-            tb_read_req_fetch_index = index[8:0];
+            tb_read_req_fetch_idx = index[8:0];
             // read resp stage
             tb_read_resp_pc38 = {26'hf0f0f0f, {index-1}[8:0], index[3] ? 3'h3 : 3'h0}; // purposelly miss on index[2:0] = 0,1,2 for index[3] == 1
             // update
@@ -358,7 +358,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b0;
-		tb_read_req_fetch_index = 9'h000;
+		tb_read_req_fetch_idx = 9'h000;
         // read resp stage
         tb_read_resp_pc38 = {26'hf0f0f0f, 9'h1ff, 3'h0};
         // update
@@ -400,7 +400,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-		tb_read_req_fetch_index = 9'h000;
+		tb_read_req_fetch_idx = 9'h000;
         // read resp stage
         tb_read_resp_pc38 = {26'hf0f0f0f, 9'h1ff, 3'h0};
         // update
@@ -438,7 +438,7 @@ module btb_tb #(
             tb_arch_asid = 16'h0000;
             // read req stage
             tb_read_req_valid = 1'b1;
-            tb_read_req_fetch_index = index[8:0];
+            tb_read_req_fetch_idx = index[8:0];
             // read resp stage
             tb_read_resp_pc38 = {26'he1e1e1e, {index-1}[8:0], index[4] ? 3'h5 : 3'h0}; // purposelly miss on index[2:0] = 0,1,2,3,4 for index[3] == 1
             // update
@@ -475,7 +475,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b0;
-        tb_read_req_fetch_index = 9'h000;
+        tb_read_req_fetch_idx = 9'h000;
         // read resp stage
         tb_read_resp_pc38 = {26'he1e1e1e, 9'h1ff, 3'h0};
         // update
@@ -519,7 +519,7 @@ module btb_tb #(
             tb_arch_asid = 16'h0000;
             // read req stage
             tb_read_req_valid = 1'b0;
-            tb_read_req_fetch_index = 9'h000;
+            tb_read_req_fetch_idx = 9'h000;
             // read resp stage
             tb_read_resp_pc38 = {26'he1e1e1e, 9'h1ff, 3'h0};
             // update
@@ -564,7 +564,7 @@ module btb_tb #(
             tb_arch_asid = 16'h0000;
             // read req stage
             tb_read_req_valid = 1'b0;
-            tb_read_req_fetch_index = 9'h000;
+            tb_read_req_fetch_idx = 9'h000;
             // read resp stage
             tb_read_resp_pc38 = {26'he1e1e1e, 9'h1ff, 3'h0};
             // update
@@ -607,7 +607,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h000;
+        tb_read_req_fetch_idx = 9'h000;
         // read resp stage
         tb_read_resp_pc38 = {26'he1e1e1e, 9'h1ff, 3'h0};
         // update
@@ -645,7 +645,7 @@ module btb_tb #(
             tb_arch_asid = 16'h0000;
             // read req stage
             tb_read_req_valid = 1'b1;
-            tb_read_req_fetch_index = index[8:0];
+            tb_read_req_fetch_idx = index[8:0];
             // read resp stage
             tb_read_resp_pc38 = {26'h2222222, {index-1}[8:0], 3'h0};
             // update
@@ -682,7 +682,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b0;
-        tb_read_req_fetch_index = 9'h000;
+        tb_read_req_fetch_idx = 9'h000;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h1ff, 3'h0};
         // update
@@ -724,7 +724,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b0;
-        tb_read_req_fetch_index = 9'h000;
+        tb_read_req_fetch_idx = 9'h000;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h1ff, 3'h0};
         // update
@@ -760,7 +760,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b0;
-        tb_read_req_fetch_index = 9'h000;
+        tb_read_req_fetch_idx = 9'h000;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h1ff, 3'h0};
         // update
@@ -796,7 +796,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h006;
+        tb_read_req_fetch_idx = 9'h006;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h000, 3'h0};
         // update
@@ -832,7 +832,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h006;
+        tb_read_req_fetch_idx = 9'h006;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h006, 3'h0};
         // update
@@ -868,7 +868,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h006;
+        tb_read_req_fetch_idx = 9'h006;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h006, 3'h1};
         // update
@@ -904,7 +904,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h006;
+        tb_read_req_fetch_idx = 9'h006;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h006, 3'h2};
         // update
@@ -940,7 +940,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h006;
+        tb_read_req_fetch_idx = 9'h006;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h006, 3'h3};
         // update
@@ -976,7 +976,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h006;
+        tb_read_req_fetch_idx = 9'h006;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h006, 3'h4};
         // update
@@ -1012,7 +1012,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h006;
+        tb_read_req_fetch_idx = 9'h006;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h006, 3'h5};
         // update
@@ -1048,7 +1048,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h006;
+        tb_read_req_fetch_idx = 9'h006;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h006, 3'h6};
         // update
@@ -1084,7 +1084,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h009;
+        tb_read_req_fetch_idx = 9'h009;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h006, 3'h7};
         // update
@@ -1120,7 +1120,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h009;
+        tb_read_req_fetch_idx = 9'h009;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h009, 3'h0};
         // update
@@ -1156,7 +1156,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h009;
+        tb_read_req_fetch_idx = 9'h009;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h009, 3'h1};
         // update
@@ -1192,7 +1192,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h009;
+        tb_read_req_fetch_idx = 9'h009;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h009, 3'h2};
         // update
@@ -1228,7 +1228,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h009;
+        tb_read_req_fetch_idx = 9'h009;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h009, 3'h3};
         // update
@@ -1264,7 +1264,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h009;
+        tb_read_req_fetch_idx = 9'h009;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h009, 3'h4};
         // update
@@ -1300,7 +1300,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h009;
+        tb_read_req_fetch_idx = 9'h009;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h009, 3'h5};
         // update
@@ -1336,7 +1336,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b1;
-        tb_read_req_fetch_index = 9'h009;
+        tb_read_req_fetch_idx = 9'h009;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h009, 3'h6};
         // update
@@ -1372,7 +1372,7 @@ module btb_tb #(
         tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b0;
-        tb_read_req_fetch_index = 9'h000;
+        tb_read_req_fetch_idx = 9'h000;
         // read resp stage
         tb_read_resp_pc38 = {26'h2222222, 9'h009, 3'h7};
         // update

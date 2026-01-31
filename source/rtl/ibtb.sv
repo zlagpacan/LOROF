@@ -14,25 +14,25 @@ module ibtb (
     input logic nRST,
 
     // arch state
-    input corep::ASID_t arch_asid,
+    input corep::asid_t arch_asid,
 
     // read
-    input corep::PC38_t         read_src_pc38,
-    input corep::IBTB_GH_t      read_ibtb_gh,
+    input corep::pc38_t         read_src_pc38,
+    input corep::ibtb_gh_t      read_ibtb_gh,
 
-    output corep::IBTB_info_t   read_tgt_ibtb_info,
+    output corep::ibtb_info_t   read_tgt_ibtb_info,
 
     // update
     input logic                 update_valid,
-    input corep::PC38_t         update_src_pc38,
-    input corep::PC38_t         update_ibtb_gh,
-    input corep::IBTB_info_t    update_tgt_ibtb_info
+    input corep::pc38_t         update_src_pc38,
+    input corep::pc38_t         update_ibtb_gh,
+    input corep::ibtb_info_t    update_tgt_ibtb_info
 );
 
     // ----------------------------------------------------------------
     // Functions:
 
-    function corep::IBTB_idx_t index_hash(corep::PC38_t pc38, corep::IBTB_GH_t ibtb_gh, corep::ASID_t asid);
+    function corep::ibtb_idx_t index_hash(corep::pc38_t pc38, corep::ibtb_gh_t ibtb_gh, corep::asid_t asid);
         // low pc38 (including lane) ^ ibtb gh (low gh) ^ low asid
         index_hash = pc38;
         index_hash ^= ibtb_gh;
@@ -44,12 +44,12 @@ module ibtb (
 
     // ibtb array distram IO
         // index w/ ibtb index
-    corep::IBTB_idx_t   ibtb_array_distram_read_index;
-    corep::IBTB_info_t  ibtb_array_distram_read_data;
+    corep::ibtb_idx_t   ibtb_array_distram_read_index;
+    corep::ibtb_info_t  ibtb_array_distram_read_data;
 
     logic               ibtb_array_distram_write_valid;
-    corep::IBTB_idx_t   ibtb_array_distram_write_index;
-    corep::IBTB_info_t  ibtb_array_distram_write_data;
+    corep::ibtb_idx_t   ibtb_array_distram_write_index;
+    corep::ibtb_info_t  ibtb_array_distram_write_data;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -70,7 +70,7 @@ module ibtb (
 
     // ibtb array distram
     distram_1rport_1wport #(
-        .INNER_WIDTH($bits(corep::IBTB_info_t)),
+        .INNER_WIDTH($bits(corep::ibtb_info_t)),
         .OUTER_WIDTH(corep::IBTB_ENTRIES)
     ) IBTB_ARRAY_DISTRAM (
         .CLK(CLK),

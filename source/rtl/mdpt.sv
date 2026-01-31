@@ -14,25 +14,25 @@ module mdpt (
     input logic nRST,
 
     // arch state
-    input corep::ASID_t arch_asid,
+    input corep::asid_t arch_asid,
 
     // read req stage
     input logic                 read_req_valid,
     input corep::fetch_idx_t    read_req_fetch_index,
 
     // read resp stage
-    output corep::MDPT_set_t    read_resp_mdp_by_lane,
+    output corep::mdpt_set_t    read_resp_mdp_by_lane,
 
     // update
     input logic             update_valid,
-    input corep::PC38_t     update_pc38,
-    input corep::MDP_t      update_mdp
+    input corep::pc38_t     update_pc38,
+    input corep::mdp_t      update_mdp
 );
 
     // ----------------------------------------------------------------
     // Functions:
 
-    function corep::MDPT_idx_t index_hash(corep::fetch_idx_t fetch_index, corep::ASID_t asid);
+    function corep::mdpt_idx_t index_hash(corep::fetch_idx_t fetch_index, corep::asid_t asid);
         // low fetch index ^ low asid
         index_hash = fetch_index;
         index_hash ^= asid;
@@ -43,15 +43,15 @@ module mdpt (
 
     // mdpt array bram IO
     logic               mdpt_array_bram_read_next_valid;
-    corep::MDPT_idx_t   mdpt_array_bram_read_next_index;
-    corep::MDPT_set_t   mdpt_array_bram_read_set;
+    corep::mdpt_idx_t   mdpt_array_bram_read_next_index;
+    corep::mdpt_set_t   mdpt_array_bram_read_set;
 
-    logic [corep::FETCH_LANES-1:0][$bits(corep::MDPT_entry_t)/8-1:0]    mdpt_array_bram_write_byten;
-    corep::MDPT_idx_t                                                   mdpt_array_bram_write_index;
-    corep::MDPT_set_t                                                   mdpt_array_bram_write_set;
+    logic [corep::FETCH_LANES-1:0][$bits(corep::mdpt_entry_t)/8-1:0]    mdpt_array_bram_write_byten;
+    corep::mdpt_idx_t                                                   mdpt_array_bram_write_index;
+    corep::mdpt_set_t                                                   mdpt_array_bram_write_set;
 
     // update indexing
-    corep::MDPT_idx_t       update_index;
+    corep::mdpt_idx_t       update_index;
     corep::fetch_lane_t     update_lane;
 
     // ----------------------------------------------------------------
@@ -82,7 +82,7 @@ module mdpt (
 
     // mdpt array bram
     bram_1rport_1wport #(
-        .INNER_WIDTH($bits(corep::MDPT_set_t)),
+        .INNER_WIDTH($bits(corep::mdpt_set_t)),
         .OUTER_WIDTH(corep::MDPT_SETS)
     ) MDPT_ARRAY_BRAM (
         .CLK(CLK),

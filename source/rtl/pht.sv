@@ -14,12 +14,12 @@ module pht (
     input logic nRST,
 
     // arch state
-    input corep::ASID_t arch_asid,
+    input corep::asid_t arch_asid,
 
     // read req stage
     input logic                 read_req_valid,
-    input corep::fetch_idx_t    read_req_fetch_index,
-    input corep::GH_t           read_req_gh,
+    input corep::fetch_idx_t    read_req_fetch_idx,
+    input corep::gh_t           read_req_gh,
 
     // read resp stage
     input corep::fetch_lane_t   read_resp_redirect_lane,
@@ -28,15 +28,15 @@ module pht (
 
     // update
     input logic             update_valid,
-    input corep::PC38_t     update_pc38,
-    input corep::GH_t       update_gh,
+    input corep::pc38_t     update_pc38,
+    input corep::gh_t       update_gh,
     input logic             update_taken
 );
 
     // ----------------------------------------------------------------
     // Functions:
 
-    function corep::PHT_idx_t index_hash(corep::fetch_idx_t fetch_index, corep::GH_t gh, corep::ASID_t asid);
+    function corep::pht_idx_t index_hash(corep::fetch_idx_t fetch_index, corep::gh_t gh, corep::asid_t asid);
         // low fetch index ^ low gh bits above lane ^ low reversed asid aligned to msb
         index_hash = fetch_index;
         index_hash ^= gh[corep::GH_LENGTH-1 : corep::LOG_FETCH_LANES];
@@ -47,7 +47,7 @@ module pht (
         end
     endfunction
 
-    function corep::fetch_lane_t lane_hash(corep::fetch_lane_t fetch_lane, corep::GH_t gh);
+    function corep::fetch_lane_t lane_hash(corep::fetch_lane_t fetch_lane, corep::gh_t gh);
         // fetch lane ^ low gh bits
         lane_hash = fetch_lane;
         lane_hash ^= gh;
@@ -77,27 +77,27 @@ module pht (
     // pht array bram IO
         // index w/ pht index
     logic               pht_array_bram_read_port0_next_valid;
-    corep::PHT_idx_t    pht_array_bram_read_port0_next_index;
-    corep::PHT_set_t    pht_array_bram_read_port0_set;
+    corep::pht_idx_t    pht_array_bram_read_port0_next_index;
+    corep::pht_set_t    pht_array_bram_read_port0_set;
 
     logic               pht_array_bram_read_port1_next_valid;
-    corep::PHT_idx_t    pht_array_bram_read_port1_next_index;
-    corep::PHT_set_t    pht_array_bram_read_port1_set;
+    corep::pht_idx_t    pht_array_bram_read_port1_next_index;
+    corep::pht_set_t    pht_array_bram_read_port1_set;
 
-    logic [$bits(corep::PHT_set_t)/8-1:0]   pht_array_bram_write_byten;
-    corep::PHT_idx_t                        pht_array_bram_write_index;
-    corep::PHT_set_t                        pht_array_bram_write_set;
+    logic [$bits(corep::pht_set_t)/8-1:0]   pht_array_bram_write_byten;
+    corep::pht_idx_t                        pht_array_bram_write_index;
+    corep::pht_set_t                        pht_array_bram_write_set;
 
     // read resp stage
-    corep::GH_t read_resp_gh;
+    corep::gh_t read_resp_gh;
 
     // update write stage
     corep::fetch_lane_t     update_write_lane;
     logic                   update_write_taken;
     logic                   update_write_last_valid;
     logic                   update_write_forward;
-    corep::PHT_set_t        update_write_old_set;
-    corep::PHT_set_t        update_selected_old_set;
+    corep::pht_set_t        update_write_old_set;
+    corep::pht_set_t        update_selected_old_set;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -105,7 +105,7 @@ module pht (
     // read req logic
     always_comb begin
         pht_array_bram_read_port0_next_valid = read_req_valid;
-        pht_array_bram_read_port0_next_index = index_hash(read_req_fetch_index, read_req_gh, arch_asid);
+        pht_array_bram_read_port0_next_index = index_hash(read_req_fetch_idx, read_req_gh, arch_asid);
     end
 
     // read resp logic
@@ -165,7 +165,7 @@ module pht (
 
     // pht array bram
     bram_2rport_1wport #(
-        .INNER_WIDTH($bits(corep::PHT_set_t)),
+        .INNER_WIDTH($bits(corep::pht_set_t)),
         .OUTER_WIDTH(corep::PHT_SETS)
     ) pht_array_bram (
         .CLK(CLK),

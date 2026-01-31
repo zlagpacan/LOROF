@@ -55,7 +55,7 @@ package instrp;
     parameter alu_op_t ALU_AND      = 4'b0111;
     parameter alu_op_t ALU_SUB      = 4'b1000;
     parameter alu_op_t ALU_SRA      = 4'b1101;
-    // non-funct3 following:
+    // non funct3 following:
     parameter alu_op_t ALU_ADDW     = 4'b1001;
     parameter alu_op_t ALU_SUBW     = 4'b1010;
     parameter alu_op_t ALU_SLLW     = 4'b1011;

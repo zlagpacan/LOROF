@@ -14,14 +14,14 @@ module one_hot_enc #(
 );
     always_comb begin
         valid_out = |one_hot_in;
-        
+
         index_out = 0;
         for (int i = 0; i < WIDTH; i++) begin
             // if (one_hot_in[i]) begin
             //     index_out = i;
             // end
             index_out ^= i[$clog2(WIDTH)-1:0] & {$clog2(WIDTH){one_hot_in[i]}};
-                // requires true on hot, avoids priority logic
+                // requires true one hot, avoids priority logic
         end
     end
 

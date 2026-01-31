@@ -15,7 +15,7 @@ module alu_wrapper #(
     // seq
     input logic CLK,
     input logic nRST,
-	input logic [3:0] next_op,
+	input instrp::alu_op_t next_op,
 	input logic [63:0] next_A,
 	input logic [63:0] next_B,
 
@@ -24,7 +24,7 @@ module alu_wrapper #(
 
     // ----------------------------------------------------------------
     // Direct Module Connections:
-	logic [3:0] op;
+	instrp::alu_op_t op;
 	logic [63:0] A;
 	logic [63:0] B;
 

@@ -18,27 +18,27 @@ module btb_wrapper #(
 
 
     // arch state
-	input corep::ASID_t next_arch_asid,
+	input corep::asid_t next_arch_asid,
 
     // read req stage
 	input logic next_read_req_valid,
-	input corep::fetch_idx_t next_read_req_fetch_index,
+	input corep::fetch_idx_t next_read_req_fetch_idx,
 
     // read resp stage
-	input corep::PC38_t next_read_resp_pc38,
+	input corep::pc38_t next_read_resp_pc38,
 
 	output logic last_read_resp_hit,
-	output corep::BTB_way_idx_t last_read_resp_hit_way,
+	output corep::btb_way_t last_read_resp_hit_way,
 	output corep::fetch_lane_t last_read_resp_hit_lane,
 	output logic last_read_resp_double_hit,
-	output corep::BTB_info_t last_read_resp_btb_info,
+	output corep::btb_info_t last_read_resp_btb_info,
 
     // update
 	input logic next_update_valid,
-	input corep::PC38_t next_update_pc38,
-	input corep::BTB_info_t next_update_btb_info,
+	input corep::pc38_t next_update_pc38,
+	input corep::btb_info_t next_update_btb_info,
 	input logic next_update_hit,
-	input corep::BTB_way_idx_t next_update_hit_way
+	input corep::btb_way_t next_update_hit_way
 );
 
     // ----------------------------------------------------------------
@@ -46,27 +46,27 @@ module btb_wrapper #(
 
 
     // arch state
-	corep::ASID_t arch_asid;
+	corep::asid_t arch_asid;
 
     // read req stage
 	logic read_req_valid;
-	corep::fetch_idx_t read_req_fetch_index;
+	corep::fetch_idx_t read_req_fetch_idx;
 
     // read resp stage
-	corep::PC38_t read_resp_pc38;
+	corep::pc38_t read_resp_pc38;
 
 	logic read_resp_hit;
-	corep::BTB_way_idx_t read_resp_hit_way;
+	corep::btb_way_t read_resp_hit_way;
 	corep::fetch_lane_t read_resp_hit_lane;
 	logic read_resp_double_hit;
-	corep::BTB_info_t read_resp_btb_info;
+	corep::btb_info_t read_resp_btb_info;
 
     // update
 	logic update_valid;
-	corep::PC38_t update_pc38;
-	corep::BTB_info_t update_btb_info;
+	corep::pc38_t update_pc38;
+	corep::btb_info_t update_btb_info;
 	logic update_hit;
-	corep::BTB_way_idx_t update_hit_way;
+	corep::btb_way_t update_hit_way;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -86,7 +86,7 @@ module btb_wrapper #(
 
 		    // read req stage
 			read_req_valid <= '0;
-			read_req_fetch_index <= '0;
+			read_req_fetch_idx <= '0;
 
 		    // read resp stage
 			read_resp_pc38 <= '0;
@@ -112,7 +112,7 @@ module btb_wrapper #(
 
 		    // read req stage
 			read_req_valid <= next_read_req_valid;
-			read_req_fetch_index <= next_read_req_fetch_index;
+			read_req_fetch_idx <= next_read_req_fetch_idx;
 
 		    // read resp stage
 			read_resp_pc38 <= next_read_resp_pc38;

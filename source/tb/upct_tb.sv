@@ -35,17 +35,17 @@ module upct_tb #(
 
     // pc_gen read in
 	logic tb_read_valid;
-	corep::UPCT_idx_t tb_read_index;
+	corep::upct_idx_t tb_read_idx;
 
     // pc_gen read out
-	corep::UPC_t DUT_read_upc, expected_read_upc;
+	corep::upc_t DUT_read_upc, expected_read_upc;
 
     // update in
 	logic tb_update_valid;
-	corep::UPC_t tb_update_upc;
+	corep::upc_t tb_update_upc;
 
     // update out
-	corep::UPCT_idx_t DUT_update_upct_index, expected_update_upct_index;
+	corep::upct_idx_t DUT_update_upct_idx, expected_update_upct_idx;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -59,7 +59,7 @@ module upct_tb #(
 
 	    // pc_gen read in
 		.read_valid(tb_read_valid),
-		.read_index(tb_read_index),
+		.read_idx(tb_read_idx),
 
 	    // pc_gen read out
 		.read_upc(DUT_read_upc),
@@ -69,7 +69,7 @@ module upct_tb #(
 		.update_upc(tb_update_upc),
 
 	    // update out
-		.update_upct_index(DUT_update_upct_index)
+		.update_upct_idx(DUT_update_upct_idx)
 	);
 
     // ----------------------------------------------------------------
@@ -84,9 +84,9 @@ module upct_tb #(
 			tb_error = 1'b1;
 		end
 
-		if (expected_update_upct_index !== DUT_update_upct_index) begin
-			$display("TB ERROR: expected_update_upct_index (%h) != DUT_update_upct_index (%h)",
-				expected_update_upct_index, DUT_update_upct_index);
+		if (expected_update_upct_idx !== DUT_update_upct_idx) begin
+			$display("TB ERROR: expected_update_upct_idx (%h) != DUT_update_upct_idx (%h)",
+				expected_update_upct_idx, DUT_update_upct_idx);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -115,7 +115,7 @@ module upct_tb #(
 		nRST = 1'b0;
 	    // pc_gen read in
 		tb_read_valid = 1'b0;
-		tb_read_index = 0;
+		tb_read_idx = 0;
 	    // pc_gen read out
 	    // update in
 		tb_update_valid = 1'b0;
@@ -133,7 +133,7 @@ module upct_tb #(
 		expected_read_upc = '0;
 	    // update in
 	    // update out
-		expected_update_upct_index = 0;
+		expected_update_upct_idx = 0;
 
 		check_outputs();
 
@@ -145,7 +145,7 @@ module upct_tb #(
 		nRST = 1'b1;
 	    // pc_gen read in
 		tb_read_valid = 1'b0;
-		tb_read_index = 0;
+		tb_read_idx = 0;
 	    // pc_gen read out
 	    // update in
 		tb_update_valid = 1'b0;
@@ -161,7 +161,7 @@ module upct_tb #(
 		expected_read_upc = '0;
 	    // update in
 	    // update out
-		expected_update_upct_index = 0;
+		expected_update_upct_idx = 0;
 
 		check_outputs();
 
@@ -183,7 +183,7 @@ module upct_tb #(
             nRST = 1'b1;
             // pc_gen read in
             tb_read_valid = 1'b0;
-            tb_read_index = 0;
+            tb_read_idx = 0;
             // pc_gen read out
             // update in
             tb_update_valid = 1'b1;
@@ -199,7 +199,7 @@ module upct_tb #(
             expected_read_upc = '0;
             // update in
             // update out
-            expected_update_upct_index = i;
+            expected_update_upct_idx = i;
 
             check_outputs();
         end
@@ -222,7 +222,7 @@ module upct_tb #(
             nRST = 1'b1;
             // pc_gen read in
             tb_read_valid = 1'b1;
-            tb_read_index = i;
+            tb_read_idx = i;
             // pc_gen read out
             // update in
             tb_update_valid = 1'b0;
@@ -238,7 +238,7 @@ module upct_tb #(
             expected_read_upc = {9{i[2:0]}};
             // update in
             // update out
-            expected_update_upct_index = {3'h0, 3'h0, 3'h1, 3'h0, 3'h3, 3'h2, 3'h1, 3'h0} >> i*3;
+            expected_update_upct_idx = {3'h0, 3'h0, 3'h1, 3'h0, 3'h3, 3'h2, 3'h1, 3'h0} >> i*3;
 
             check_outputs();
         end
@@ -261,7 +261,7 @@ module upct_tb #(
             nRST = 1'b1;
             // pc_gen read in
             tb_read_valid = 1'b0;
-            tb_read_index = 0;
+            tb_read_idx = 0;
             // pc_gen read out
             // update in
             tb_update_valid = 1'b1;
@@ -277,7 +277,7 @@ module upct_tb #(
             expected_read_upc = '0;
             // update in
             // update out
-            expected_update_upct_index = i;
+            expected_update_upct_idx = i;
 
             check_outputs();
         end
@@ -300,7 +300,7 @@ module upct_tb #(
             nRST = 1'b1;
             // pc_gen read in
             tb_read_valid = 1'b0;
-            tb_read_index = 0;
+            tb_read_idx = 0;
             // pc_gen read out
             // update in
             tb_update_valid = 1'b1;
@@ -316,7 +316,7 @@ module upct_tb #(
             expected_read_upc = (i == 7) ? 29'h00000000 : 29'h77777777;
             // update in
             // update out
-            expected_update_upct_index = {3'h0, 3'h1, 3'h2, 3'h3} >> (i-4)*3;
+            expected_update_upct_idx = {3'h0, 3'h1, 3'h2, 3'h3} >> (i-4)*3;
 
             check_outputs();
         end
@@ -339,7 +339,7 @@ module upct_tb #(
             nRST = 1'b1;
             // pc_gen read in
             tb_read_valid = 1'b1;
-            tb_read_index = i;
+            tb_read_idx = i;
             // pc_gen read out
             // update in
             tb_update_valid = 1'b0;
@@ -355,7 +355,7 @@ module upct_tb #(
             expected_read_upc = (i < 4) ? {8{{7-i}[3:0]}} : {9{i[2:0]}};
             // update in
             // update out
-            expected_update_upct_index = (i < 4) ? i + 4 : i;
+            expected_update_upct_idx = (i < 4) ? i + 4 : i;
 
             check_outputs();
         end
