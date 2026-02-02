@@ -168,7 +168,7 @@ module ibuffer (
     always_comb begin
         instr_distram_rindex = distram_deq_ptr;
 
-        instr_distram_wen = fetch_hit_fill_valid | fetch_hit_fill_valid_valid;
+        instr_distram_wen = fetch_miss_fill_valid | fetch_hit_fill_valid;
         instr_distram_windex = fetch_miss_fill_valid ? fetch_miss_fill_idx : distram_enq_ptr;
         instr_distram_wdata = fetch_miss_fill_valid ? fetch_miss_return_fetch16B : enq_icache_hit_fetch16B;
     end
@@ -241,6 +241,7 @@ module ibuffer (
             distram_enq_ready
             & (~fetch_miss_fill_valid | ~enq_icache_hit_valid)
             & (enq_icache_hit_valid | fmid_tracker_new_id_ready)
+        ;
         enq_fmid = fmid_tracker_new_id;
 
         fetch_hit_fill_valid = enq_valid & enq_ready & enq_icache_hit_valid;
@@ -259,7 +260,7 @@ module ibuffer (
         .old_id(fmid_tracker_old_id)
     );
     always_comb begin
-        fmid_new_id_consume = enq_valid & enq_ready & ~enq_icache_hit_valid;
+        fmid_tracker_new_id_consume = enq_valid & enq_ready & ~enq_icache_hit_valid;
 
         fmid_tracker_old_id_done = fetch_miss_return_valid;
         fmid_tracker_old_id = fetch_miss_return_fmid;
