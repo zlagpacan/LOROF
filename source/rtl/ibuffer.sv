@@ -91,10 +91,11 @@ module ibuffer (
     corep::fmid_t   fmid_tracker_old_id;
 
     // 2x entry shift reg for dynamic deq
-    corep::ibuffer_enq_info_t   info_by_reg     [1:0];
-    corep::fetch16B_t           instr16_by_reg  [1:0];
+    corep::ibuffer_enq_info_t   info_by_reg         [1:0];
+    corep::fetch16B_t           instr16B_by_reg     [1:0];
 
-    logic shift_valid;
+    logic shift0_valid;
+    logic shift1_valid;
 
     // 2x8 entry shift reg helper signals
     logic [1:0]                             valid_by_reg;
@@ -102,9 +103,14 @@ module ibuffer (
     logic [1:0][corep::FETCH_LANES-1:0]     uncompressed_vec_by_reg;
 
     logic [1:0][corep::FETCH_LANES-1:0]     marker_vec_by_reg;
+    logic [1:0][corep::FETCH_LANES-1:0]     deqing_attempt_vec_by_reg;
     logic [1:0][corep::FETCH_LANES-1:0]     deqing_vec_by_reg;
 
     // deq control
+    logic [3:0]                                 deq_valid_by_way;
+    logic [3:0][1:0][corep::FETCH_LANES-1:0]    deq_ack_one_hot_by_way;
+    logic [3:0][corep::FETCH_LANES+1-1:0]       deq_first2B_idx_by_way;
+    logic [3:0][corep::FETCH_LANES+1-1:0]       deq_second2B_idx_by_way;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -159,6 +165,14 @@ module ibuffer (
             if ((distram_deq_ready & distram_deq_valid) & ~(distram_enq_valid)) begin
                 distram_enq_ready <= 1'b1;
                 distram_ptr_says_deq_valid <= distram_deq_ptr_plus_1 != distram_enq_ptr;
+            end
+
+            // top priority restart
+            if (restart_valid) begin
+                distram_enq_ptr <= 0;
+                distram_deq_ptr <= 0;
+                distram_enq_ready <= 1'b1;
+                distram_ptr_says_deq_valid <= 1'b0;
             end
         end
     end
@@ -290,62 +304,162 @@ module ibuffer (
             info_by_reg[0] <= '0;
             info_by_reg[1] <= '0;
 
-            instr16_by_reg[0] <= '0;
-            instr16_by_reg[1] <= '0;
+            instr16B_by_reg[0] <= '0;
+            instr16B_by_reg[1] <= '0;
 
             valid_by_reg <= 2'b00;
             valid_vec_by_reg <= '0;
             uncompressed_vec_by_reg <= '0;
         end
         else begin
-            if (shift_valid) begin
+            if (shift1_valid) begin
                 info_by_reg[1] <= info_distram_rdata;
-                info_by_reg[0] <= info_by_reg[1];
-
-                instr16_by_reg[1] <= instr_distram_rdata;
-                instr16_by_reg[0] <= instr16_by_reg[1];
+                instr16B_by_reg[1] <= instr_distram_rdata;
 
                 valid_by_reg[1] <= distram_deq_valid & distram_deq_ready;
-                valid_vec_by_reg[1] <= info_distram_rdata.valid_by_lane;
+                valid_vec_by_reg[1] <= {corep::FETCH_LANES{distram_deq_valid & distram_deq_ready}} & info_distram_rdata.valid_by_lane;
                 for (int i = 0; i < corep::FETCH_LANES; i++) begin
                     uncompressed_vec_by_reg[1][i] <= instr_distram_rdata[i][1:0] == 2'b11;
                 end
-                valid_by_reg[0] <= valid_by_reg[1] & |(valid_vec_by_reg[1] & ~deqing_vec_by_reg[1]);
-                valid_vec_by_reg[0] <= valid_vec_by_reg[1] & ~deqing_vec_by_reg[1];
-                uncompressed_vec_by_reg[0] <= uncompressed_vec_by_reg[1];
             end
             else begin
                 valid_by_reg[1] <= valid_by_reg[1] & |(valid_vec_by_reg[1] & ~deqing_vec_by_reg[1]);
                 valid_vec_by_reg[1] <= valid_vec_by_reg[1] & ~deqing_vec_by_reg[1];
                 uncompressed_vec_by_reg[1] <= uncompressed_vec_by_reg[1];
+            end
 
+            if (shift0_valid) begin
+                info_by_reg[0] <= info_by_reg[1];
+                instr16B_by_reg[0] <= instr16B_by_reg[1];
+
+                valid_by_reg[0] <= valid_by_reg[1] & |(valid_vec_by_reg[1] & ~deqing_vec_by_reg[1]);
+                valid_vec_by_reg[0] <= valid_vec_by_reg[1] & ~deqing_vec_by_reg[1];
+                uncompressed_vec_by_reg[0] <= uncompressed_vec_by_reg[1];
+            end
+            else begin
                 valid_by_reg[0] <= valid_by_reg[0] & |(valid_vec_by_reg[0] & ~deqing_vec_by_reg[0]);
                 valid_vec_by_reg[0] <= valid_vec_by_reg[0] & ~deqing_vec_by_reg[0];
                 uncompressed_vec_by_reg[0] <= uncompressed_vec_by_reg[0];
             end
+
+            // top priority restart
+            if (restart_valid) begin
+                valid_by_reg <= '0;
+                valid_vec_by_reg <= '0;
+            end
         end
-    end
-    always_comb begin
-        // deq from distram on shift reg 1 available next cycle
-        distram_deq_ready = ~valid_by_reg[1] | shift_valid;
     end
 
     // shift reg deq logic
     always_comb begin
         deq_valid = |valid_by_reg;
 
-        // markers:
-            // in general, marker if valid and previous not uncompressed
-        marker_vec_by_reg[0][0] = valid_vec_by_reg[0][0];
-        for (int i = 1; i <= 7; i++) begin
-            marker_vec_by_reg[1]
-        end
-        for (int i = 1; i <= 6; i++) begin
-            
-        end
+        deqing_vec_by_reg =
+            {$bits(deqing_vec_by_reg){deq_ready}} & (
+                deq_ack_one_hot_by_way[0]
+                | deq_ack_one_hot_by_way[1]
+                | deq_ack_one_hot_by_way[2]
+                | deq_ack_one_hot_by_way[3]
+            )
+        ;
 
-        // shift on shift reg 0 available next cycle
-        shift_valid = ~valid_by_reg[0] | ~&(valid_vec_by_reg[0] & ~deqing_vec_by_reg[0]);
+        // shift0 on shift reg 0 available next cycle
+        shift0_valid = 
+            ~valid_by_reg[0]
+            | ~&(valid_vec_by_reg[0] & ~deqing_vec_by_reg[0])
+        ;
+
+        // shift1 on shift reg 1 available next cycle
+        shift1_valid = ~valid_by_reg[1] | shift0_valid;
+
+        distram_deq_ready = shift1_valid;
+    end
+
+    // markers:
+        // TODO: if too slow
+            // can use regular ibuffer_marker for shift reg 0 + 2x lookahead ibuffer_marker's for shift reg 1
+            // also can precompute marker vec's
+            // can also pipeline steps: marker generation, peN, data by select
+    ibuffer_marker #(.WIDTH(16)) IBUFFER_16X_MARKER (
+        .valid_vec(valid_vec_by_reg),
+        .uncompressed_vec(uncompressed_vec_by_reg),
+        .marker_vec(marker_vec_by_reg)
+    );
+
+    // deq peN
+    peN_lsb_add #(
+        .WIDTH(16),
+        .N(4)
+    ) DEQ_PEN_LSB_ADD (
+        .req_vec(marker_vec_by_reg),
+        .ack_valid_by_n(deq_valid_by_way),
+        .ack_one_hot_by_n(deq_ack_one_hot_by_way)
+    );
+    genvar way;
+    generate
+        for (way = 0; way < 4; way++) begin
+            one_hot_enc #(
+                .WIDTH(16)
+            ) ONE_HOT_TO_IDX_FIRST2B (
+                .one_hot_in(deq_ack_one_hot_by_way[way]),
+                .index_out(deq_first2B_idx_by_way[way])
+            );
+            one_hot_enc #(
+                .WIDTH(16)
+            ) ONE_HOT_TO_IDX_SECOND2B (
+                .one_hot_in(deq_ack_one_hot_by_way[way] << 1),
+                .index_out(deq_second2B_idx_by_way[way])
+            );
+        end
+    endgenerate
+
+    // deq muxing
+    always_comb begin
+        for (int way = 0; way < 4; way++) begin
+            deq_entry_by_way[way].valid = deq_valid_by_way[way];
+
+            if (uncompressed_vec_by_reg[deq_first2B_idx_by_way]) begin
+                deq_entry_by_way[way].btb_hit = info_by_reg[deq_second2B_idx_by_way[3]].btb_hit_by_lane[deq_second2B_idx_by_way[2:0]];
+                deq_entry_by_way[way].redirect_taken = info_by_reg[deq_second2B_idx_by_way[3]].redirect_taken_by_lane[deq_second2B_idx_by_way[2:0]];
+                deq_entry_by_way[way].mid_instr_redirect = info_by_reg[deq_first2B_idx_by_way[3]].redirect_taken_by_lane[deq_first2B_idx_by_way[2:0]];
+                deq_entry_by_way[way].bcb_idx = info_by_reg[deq_second2B_idx_by_way[3]].bcb_idx;
+                if (
+                    info_by_reg[deq_second2B_idx_by_way[3]].redirect_taken_by_lane[deq_second2B_idx_by_way[2:0]]
+                    | deq_second2B_idx_by_way[2:0] == 3'h7
+                ) begin
+                    deq_entry_by_way[way].tgt_pc38 = info_by_reg[deq_second2B_idx_by_way[3]].tgt_pc38;
+                end
+                else begin
+                    deq_entry_by_way[way].tgt_pc38 = {info_by_reg[deq_second2B_idx_by_way[3]].src_pc35, {deq_second2B_idx_by_way[2:0] + 3'b001}[2:0]};
+                end
+                deq_entry_by_way[way].page_fault = info_by_reg[deq_first2B_idx_by_way[3]].page_fault | info_by_reg[deq_second2B_idx_by_way[3]].page_fault;
+                deq_entry_by_way[way].access_fault = info_by_reg[deq_first2B_idx_by_way[3]].access_fault | info_by_reg[deq_second2B_idx_by_way[3]].access_fault;
+            end
+            else begin
+                deq_entry_by_way[way].btb_hit = info_by_reg[deq_first2B_idx_by_way[3]].btb_hit_by_lane[deq_first2B_idx_by_way[2:0]];
+                deq_entry_by_way[way].redirect_taken = info_by_reg[deq_first2B_idx_by_way[3]].redirect_taken_by_lane[deq_first2B_idx_by_way[2:0]];
+                deq_entry_by_way[way].mid_instr_redirect = 1'b0;
+                deq_entry_by_way[way].bcb_idx = info_by_reg[deq_first2B_idx_by_way[3]].bcb_idx;
+                if (
+                    info_by_reg[deq_first2B_idx_by_way[3]].redirect_taken_by_lane[deq_first2B_idx_by_way[2:0]]
+                    | deq_first2B_idx_by_way[2:0] == 3'h7
+                ) begin
+                    deq_entry_by_way[way].tgt_pc38 = info_by_reg[deq_first2B_idx_by_way[3]].tgt_pc38;
+                end
+                else begin
+                    deq_entry_by_way[way].tgt_pc38 = {info_by_reg[deq_first2B_idx_by_way[3]].src_pc35, {deq_first2B_idx_by_way[2:0] + 3'b001}[2:0]};
+                end
+                deq_entry_by_way[way].page_fault = info_by_reg[deq_first2B_idx_by_way[3]].page_fault;
+                deq_entry_by_way[way].access_fault = info_by_reg[deq_first2B_idx_by_way[3]].access_fault;
+            end
+
+            deq_entry_by_way[way].src_pc38 = {info_by_reg[deq_first2B_idx_by_way[3]].src_pc35, deq_first2B_idx_by_way[2:0]};
+            deq_entry_by_way[way].mdp = info_by_reg[deq_first2B_idx_by_way[3]].mdp_by_lane[deq_first2B_idx_by_way[2:0]];
+            deq_entry_by_way[way].fetch4B = {
+                instr16B_by_reg[deq_second2B_idx_by_way[3]][deq_second2B_idx_by_way[2:0]],
+                instr16B_by_reg[deq_first2B_idx_by_way[3]][deq_first2B_idx_by_way[2:0]]
+            };
+        end
     end
 
 endmodule

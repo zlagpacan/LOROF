@@ -394,10 +394,9 @@ package corep;
         logic [FETCH_LANES-1:0]         redirect_taken_by_lane;
         bcb_idx_t                       bcb_idx;
         pc35_t                          src_pc35;
-        pc35_t                          tgt_pc35;
+        pc38_t                          tgt_pc38;
         logic                           page_fault;
         logic                           access_fault;
-        logic                           icache_hit;
         mdp_t [FETCH_LANES-1:0]         mdp_by_lane;
     } ibuffer_enq_info_t;
 
@@ -411,8 +410,8 @@ package corep;
         pc38_t      tgt_pc38;
         logic       page_fault;
         logic       access_fault;
-        fetch4B_t   fetch4B;
         mdp_t       mdp;
+        fetch4B_t   fetch4B;
     } ibuffer_deq_entry_t;
 
     // ----------------------------------------------------------------
