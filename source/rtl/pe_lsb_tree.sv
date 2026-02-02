@@ -2,6 +2,7 @@
     Filename: pe_lsb_tree.sv
     Author: zlagpacan
     Description: RTL for Priority Encoder prioritizing lsb using tree logic
+        - ChatGPT help
 */
 
 module pe_lsb_tree #(
