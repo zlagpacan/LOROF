@@ -16,8 +16,8 @@ module ibuffer (
     // enq
     input logic                         enq_valid,
     input corep::ibuffer_enq_info_t     enq_info,
-    input logic                         enq_icache_hit_valid,
-    input corep::fetch16B_t             enq_icache_hit_fetch16B,
+    input logic                         enq_fetch_hit_valid,
+    input corep::fetch16B_t             enq_fetch_hit_fetch16B,
 
     // enq feedback
     output logic                        enq_ready,
@@ -90,8 +90,16 @@ module ibuffer (
     corep::fmid_t   fmid_tracker_old_id;
 
     // 2x entry shift reg for dynamic deq
-    corep::ibuffer_enq_info_t   info_shift_reg_entries [1:0];
-    corep::fetch16B_t           instr_shift_reg_entries [1:0];
+    corep::ibuffer_enq_info_t   info_by_reg     [1:0];
+    corep::fetch16B_t           instr16_by_reg  [1:0];
+
+    logic shift;
+
+    // 2x8 entry shift reg helper signals
+    logic [1:0]                             valid_by_reg;
+    logic [1:0][corep::FETCH_LANES-1:0]     valid_vec_by_reg;
+    logic [1:0][corep::FETCH_LANES-1:0]     uncompressed_vec_by_reg;
+    logic [1:0][corep::FETCH_LANES-1:0]     marker_vec_by_reg;
 
     // deq control
 
@@ -170,7 +178,7 @@ module ibuffer (
 
         instr_distram_wen = fetch_miss_fill_valid | fetch_hit_fill_valid;
         instr_distram_windex = fetch_miss_fill_valid ? fetch_miss_fill_idx : distram_enq_ptr;
-        instr_distram_wdata = fetch_miss_fill_valid ? fetch_miss_return_fetch16B : enq_icache_hit_fetch16B;
+        instr_distram_wdata = fetch_miss_fill_valid ? fetch_miss_return_fetch16B : enq_fetch_hit_fetch16B;
     end
 
     // distram's
@@ -228,7 +236,7 @@ module ibuffer (
         end
         else begin
             if (distram_enq_valid) begin
-                fetch_miss_valid_by_entry[distram_enq_ptr] <= ~enq_icache_hit_valid;
+                fetch_miss_valid_by_entry[distram_enq_ptr] <= ~enq_fetch_hit_valid;
                 fetch_miss_fmid_by_entry[distram_enq_ptr] <= fmid_tracker_new_id;
             end
             if (fetch_miss_fill_valid) begin
@@ -239,12 +247,12 @@ module ibuffer (
     always_comb begin
         enq_ready = 
             distram_enq_ready
-            & (~fetch_miss_fill_valid | ~enq_icache_hit_valid)
-            & (enq_icache_hit_valid | fmid_tracker_new_id_ready)
+            & (~fetch_miss_fill_valid | ~enq_fetch_hit_valid)
+            & (enq_fetch_hit_valid | fmid_tracker_new_id_ready)
         ;
         enq_fmid = fmid_tracker_new_id;
 
-        fetch_hit_fill_valid = enq_valid & enq_ready & enq_icache_hit_valid;
+        fetch_hit_fill_valid = enq_valid & enq_ready & enq_fetch_hit_valid;
     end
 
     // id_tracker
@@ -260,16 +268,15 @@ module ibuffer (
         .old_id(fmid_tracker_old_id)
     );
     always_comb begin
-        fmid_tracker_new_id_consume = enq_valid & enq_ready & ~enq_icache_hit_valid;
+        fmid_tracker_new_id_consume = enq_valid & enq_ready & ~enq_fetch_hit_valid;
 
         fmid_tracker_old_id_done = fetch_miss_return_valid;
         fmid_tracker_old_id = fetch_miss_return_fmid;
     end
 
-    // distram deq logic
-        // TODO: distram_deq_ready logic here
+    // distram deq -> shift reg enq logic
     always_comb begin
-
+        distram_deq_ready = ~valid_by_reg[1] | shift;
     end
 
     // shift reg deq logic
