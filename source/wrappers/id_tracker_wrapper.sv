@@ -9,42 +9,42 @@
 
 
 module id_tracker_wrapper #(
-	parameter int unsigned TAG_COUNT = 4,
-	parameter int unsigned TAG_WIDTH = $clog2(TAG_COUNT)
+	parameter int unsigned ID_COUNT = 4,
+	parameter int unsigned ID_WIDTH = $clog2(ID_COUNT)
 ) (
 
     // seq
     input logic CLK,
     input logic nRST,
 
-    // new tag dispatch
-	input logic next_new_tag_consume,
-	output logic last_new_tag_ready,
-	output logic [TAG_WIDTH-1:0] last_new_tag,
+    // new id dispatch
+	input logic next_new_id_consume,
+	output logic last_new_id_ready,
+	output logic [ID_WIDTH-1:0] last_new_id,
 
-    // old tag retirement
-	input logic next_old_tag_done,
-	input logic [TAG_WIDTH-1:0] next_old_tag
+    // old id retirement
+	input logic next_old_id_done,
+	input logic [ID_WIDTH-1:0] next_old_id
 );
 
     // ----------------------------------------------------------------
     // Direct Module Connections:
 
-    // new tag dispatch
-	logic new_tag_consume;
-	logic new_tag_ready;
-	logic [TAG_WIDTH-1:0] new_tag;
+    // new id dispatch
+	logic new_id_consume;
+	logic new_id_ready;
+	logic [ID_WIDTH-1:0] new_id;
 
-    // old tag retirement
-	logic old_tag_done;
-	logic [TAG_WIDTH-1:0] old_tag;
+    // old id retirement
+	logic old_id_done;
+	logic [ID_WIDTH-1:0] old_id;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
 
 	id_tracker #(
-		.TAG_COUNT(TAG_COUNT),
-		.TAG_WIDTH(TAG_WIDTH)
+		.ID_COUNT(ID_COUNT),
+		.ID_WIDTH(ID_WIDTH)
 	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
@@ -53,25 +53,25 @@ module id_tracker_wrapper #(
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
 
-		    // new tag dispatch
-			new_tag_consume <= '0;
-			last_new_tag_ready <= '0;
-			last_new_tag <= '0;
+		    // new id dispatch
+			new_id_consume <= '0;
+			last_new_id_ready <= '0;
+			last_new_id <= '0;
 
-		    // old tag retirement
-			old_tag_done <= '0;
-			old_tag <= '0;
+		    // old id retirement
+			old_id_done <= '0;
+			old_id <= '0;
         end
         else begin
 
-		    // new tag dispatch
-			new_tag_consume <= next_new_tag_consume;
-			last_new_tag_ready <= new_tag_ready;
-			last_new_tag <= new_tag;
+		    // new id dispatch
+			new_id_consume <= next_new_id_consume;
+			last_new_id_ready <= new_id_ready;
+			last_new_id <= new_id;
 
-		    // old tag retirement
-			old_tag_done <= next_old_tag_done;
-			old_tag <= next_old_tag;
+		    // old id retirement
+			old_id_done <= next_old_id_done;
+			old_id <= next_old_id;
         end
     end
 

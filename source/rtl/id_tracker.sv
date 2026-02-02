@@ -1,38 +1,38 @@
 /*
     Filename: id_tracker.sv
     Author: zlagpacan
-    Description: RTL for Transaction Tag Tracker
+    Description: RTL for Transaction ID Tracker
     Spec: LOROF/spec/design/id_tracker.md
 */
 
 module id_tracker #(
-    parameter int unsigned TAG_COUNT = 4,
-    parameter int unsigned TAG_WIDTH = $clog2(TAG_COUNT)
+    parameter int unsigned ID_COUNT = 4,
+    parameter int unsigned ID_WIDTH = $clog2(ID_COUNT)
 ) (
     // seq
     input logic CLK,
     input logic nRST,
 
-    // new tag dispatch
-    input logic                     new_tag_consume,
-    output logic                    new_tag_ready,
-    output logic [TAG_WIDTH-1:0]    new_tag,
+    // new id dispatch
+    input logic                     new_id_consume,
+    output logic                    new_id_ready,
+    output logic [ID_WIDTH-1:0]    new_id,
 
-    // old tag retirement
-    input logic                     old_tag_done,
-    input logic [TAG_WIDTH-1:0]     old_tag
+    // old id retirement
+    input logic                     old_id_done,
+    input logic [ID_WIDTH-1:0]     old_id
 );
 
-    // bit vec of ready-to-use tags
-    logic [TAG_COUNT-1:0] bit_vec;
+    // bit vec of ready-to-use ids
+    logic [ID_COUNT-1:0] bit_vec;
 
-    // for now, simple linear priority for tags
+    // for now, simple linear priority for ids
     pe_lsb_tree #(
-        .WIDTH(TAG_COUNT)
+        .WIDTH(ID_COUNT)
     ) PE_LSB_TREE (
         .req_vec(bit_vec),
-        .ack_valid(new_tag_ready),
-        .ack_index(new_tag)
+        .ack_valid(new_id_ready),
+        .ack_index(new_id)
     );
 
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -40,11 +40,11 @@ module id_tracker #(
             bit_vec <= '1;
         end
         else begin
-            if (new_tag_consume & new_tag_ready) begin
-                bit_vec[new_tag] <= 1'b0;
+            if (new_id_consume & new_id_ready) begin
+                bit_vec[new_id] <= 1'b0;
             end
-            if (old_tag_done) begin
-                bit_vec[old_tag] <= 1'b1;
+            if (old_id_done) begin
+                bit_vec[old_id] <= 1'b1;
             end
         end
     end

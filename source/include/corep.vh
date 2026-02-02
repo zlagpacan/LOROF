@@ -171,8 +171,9 @@ package corep;
     parameter int unsigned FETCH_LANES = FETCH_WIDTH_2B;
     parameter int unsigned LOG_FETCH_LANES = $clog2(FETCH_LANES); // 3b
 
-    typedef logic [15:0] fetch2B_t;
-    typedef logic [31:0] fetch4B_t;
+    typedef logic [15:0]                    fetch2B_t;
+    typedef logic [31:0]                    fetch4B_t;
+    typedef fetch2B_t [FETCH_LANES-1:0]     fetch16B_t;
 
     parameter int unsigned BTB_SMALL_TARGET_WIDTH = 12;
 
@@ -375,15 +376,15 @@ package corep;
     typedef logic [LOG_BCB_ENTRIES-1:0] bcb_idx_t;
 
     // ibuffer:
-    parameter int unsigned IBUFFER_SETS = 8;
-    parameter int unsigned LOG_IBUFFER_SETS = $clog2(IBUFFER_SETS);
+    parameter int unsigned IBUFFER_ENTRIES = 8;
+    parameter int unsigned LOG_IBUFFER_ENTRIES = $clog2(IBUFFER_ENTRIES);
 
-    typedef logic [LOG_IBUFFER_SETS-1:0]    ibuffer_idx_t;
+    typedef logic [LOG_IBUFFER_ENTRIES-1:0] ibuffer_idx_t;
     
     parameter int unsigned FMID_COUNT = 16;
     parameter int unsigned LOG_FMID_COUNT = $clog2(FMID_COUNT);
 
-    typedef logic [LOG_FMID_COUNT-1:0]      fmid_t;
+    typedef logic [LOG_FMID_COUNT-1:0] fmid_t;
 
     // ibuffer entries:
         // all in one place so can easily modify
@@ -397,9 +398,8 @@ package corep;
         logic                           page_fault;
         logic                           access_fault;
         logic                           icache_hit;
-        fetch2B_t [FETCH_LANES-1:0]     fetch2B_by_lane;
         mdp_t [FETCH_LANES-1:0]         mdp_by_lane;
-    } ibuffer_enq_entry_t;
+    } ibuffer_enq_info_t;
 
     typedef struct packed {
         logic       valid;
@@ -411,6 +411,7 @@ package corep;
         logic       page_fault;
         logic       access_fault;
         fetch4B_t   fetch4B;
+        mdp_t       mdp;
     } ibuffer_deq_entry_t;
 
     // ----------------------------------------------------------------

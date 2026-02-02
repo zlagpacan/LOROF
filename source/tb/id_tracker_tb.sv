@@ -9,8 +9,8 @@
 
 
 module id_tracker_tb #(
-	parameter int unsigned TAG_COUNT = 4,
-	parameter int unsigned TAG_WIDTH = $clog2(TAG_COUNT)
+	parameter int unsigned ID_COUNT = 4,
+	parameter int unsigned ID_WIDTH = $clog2(ID_COUNT)
 ) ();
 
     // ----------------------------------------------------------------
@@ -33,34 +33,34 @@ module id_tracker_tb #(
     // ----------------------------------------------------------------
     // DUT signals:
 
-    // new tag dispatch
-	logic tb_new_tag_consume;
-	logic DUT_new_tag_ready, expected_new_tag_ready;
-	logic [TAG_WIDTH-1:0] DUT_new_tag, expected_new_tag;
+    // new id dispatch
+	logic tb_new_id_consume;
+	logic DUT_new_id_ready, expected_new_id_ready;
+	logic [ID_WIDTH-1:0] DUT_new_id, expected_new_id;
 
-    // old tag retirement
-	logic tb_old_tag_done;
-	logic [TAG_WIDTH-1:0] tb_old_tag;
+    // old id retirement
+	logic tb_old_id_done;
+	logic [ID_WIDTH-1:0] tb_old_id;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
 
 	id_tracker #(
-		.TAG_COUNT(TAG_COUNT),
-		.TAG_WIDTH(TAG_WIDTH)
+		.ID_COUNT(ID_COUNT),
+		.ID_WIDTH(ID_WIDTH)
 	) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
 
-	    // new tag dispatch
-		.new_tag_consume(tb_new_tag_consume),
-		.new_tag_ready(DUT_new_tag_ready),
-		.new_tag(DUT_new_tag),
+	    // new id dispatch
+		.new_id_consume(tb_new_id_consume),
+		.new_id_ready(DUT_new_id_ready),
+		.new_id(DUT_new_id),
 
-	    // old tag retirement
-		.old_tag_done(tb_old_tag_done),
-		.old_tag(tb_old_tag)
+	    // old id retirement
+		.old_id_done(tb_old_id_done),
+		.old_id(tb_old_id)
 	);
 
     // ----------------------------------------------------------------
@@ -68,16 +68,16 @@ module id_tracker_tb #(
 
     task check_outputs();
     begin
-		if (expected_new_tag_ready !== DUT_new_tag_ready) begin
-			$display("TB ERROR: expected_new_tag_ready (%h) != DUT_new_tag_ready (%h)",
-				expected_new_tag_ready, DUT_new_tag_ready);
+		if (expected_new_id_ready !== DUT_new_id_ready) begin
+			$display("TB ERROR: expected_new_id_ready (%h) != DUT_new_id_ready (%h)",
+				expected_new_id_ready, DUT_new_id_ready);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_new_tag !== DUT_new_tag) begin
-			$display("TB ERROR: expected_new_tag (%h) != DUT_new_tag (%h)",
-				expected_new_tag, DUT_new_tag);
+		if (expected_new_id !== DUT_new_id) begin
+			$display("TB ERROR: expected_new_id (%h) != DUT_new_id (%h)",
+				expected_new_id, DUT_new_id);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -104,20 +104,20 @@ module id_tracker_tb #(
 
 		// reset
 		nRST = 1'b0;
-	    // new tag dispatch
-		tb_new_tag_consume = 1'b0;
-	    // old tag retirement
-		tb_old_tag_done = 1'b0;
-		tb_old_tag = 0;
+	    // new id dispatch
+		tb_new_id_consume = 1'b0;
+	    // old id retirement
+		tb_old_id_done = 1'b0;
+		tb_old_id = 0;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-	    // new tag dispatch
-		expected_new_tag_ready = 1'b1;
-		expected_new_tag = 0;
-	    // old tag retirement
+	    // new id dispatch
+		expected_new_id_ready = 1'b1;
+		expected_new_id = 0;
+	    // old id retirement
 
 		check_outputs();
 
@@ -127,20 +127,20 @@ module id_tracker_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // new tag dispatch
-		tb_new_tag_consume = 1'b0;
-	    // old tag retirement
-		tb_old_tag_done = 1'b0;
-		tb_old_tag = 0;
+	    // new id dispatch
+		tb_new_id_consume = 1'b0;
+	    // old id retirement
+		tb_old_id_done = 1'b0;
+		tb_old_id = 0;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-	    // new tag dispatch
-		expected_new_tag_ready = 1'b1;
-		expected_new_tag = 0;
-	    // old tag retirement
+	    // new id dispatch
+		expected_new_id_ready = 1'b1;
+		expected_new_id = 0;
+	    // old id retirement
 
 		check_outputs();
 
@@ -158,20 +158,20 @@ module id_tracker_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // new tag dispatch
-		tb_new_tag_consume = 1'b1;
-	    // old tag retirement
-		tb_old_tag_done = 1'b0;
-		tb_old_tag = 0;
+	    // new id dispatch
+		tb_new_id_consume = 1'b1;
+	    // old id retirement
+		tb_old_id_done = 1'b0;
+		tb_old_id = 0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // new tag dispatch
-		expected_new_tag_ready = 1'b1;
-		expected_new_tag = 0;
-	    // old tag retirement
+	    // new id dispatch
+		expected_new_id_ready = 1'b1;
+		expected_new_id = 0;
+	    // old id retirement
 
 		check_outputs();
 
@@ -183,20 +183,20 @@ module id_tracker_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // new tag dispatch
-		tb_new_tag_consume = 1'b1;
-	    // old tag retirement
-		tb_old_tag_done = 1'b0;
-		tb_old_tag = 0;
+	    // new id dispatch
+		tb_new_id_consume = 1'b1;
+	    // old id retirement
+		tb_old_id_done = 1'b0;
+		tb_old_id = 0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // new tag dispatch
-		expected_new_tag_ready = 1'b1;
-		expected_new_tag = 1;
-	    // old tag retirement
+	    // new id dispatch
+		expected_new_id_ready = 1'b1;
+		expected_new_id = 1;
+	    // old id retirement
 
 		check_outputs();
 
@@ -208,20 +208,20 @@ module id_tracker_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // new tag dispatch
-		tb_new_tag_consume = 1'b1;
-	    // old tag retirement
-		tb_old_tag_done = 1'b1;
-		tb_old_tag = 1;
+	    // new id dispatch
+		tb_new_id_consume = 1'b1;
+	    // old id retirement
+		tb_old_id_done = 1'b1;
+		tb_old_id = 1;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // new tag dispatch
-		expected_new_tag_ready = 1'b1;
-		expected_new_tag = 2;
-	    // old tag retirement
+	    // new id dispatch
+		expected_new_id_ready = 1'b1;
+		expected_new_id = 2;
+	    // old id retirement
 
 		check_outputs();
 
@@ -233,20 +233,20 @@ module id_tracker_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // new tag dispatch
-		tb_new_tag_consume = 1'b1;
-	    // old tag retirement
-		tb_old_tag_done = 1'b0;
-		tb_old_tag = 0;
+	    // new id dispatch
+		tb_new_id_consume = 1'b1;
+	    // old id retirement
+		tb_old_id_done = 1'b0;
+		tb_old_id = 0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // new tag dispatch
-		expected_new_tag_ready = 1'b1;
-		expected_new_tag = 1;
-	    // old tag retirement
+	    // new id dispatch
+		expected_new_id_ready = 1'b1;
+		expected_new_id = 1;
+	    // old id retirement
 
 		check_outputs();
 
@@ -258,20 +258,20 @@ module id_tracker_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // new tag dispatch
-		tb_new_tag_consume = 1'b1;
-	    // old tag retirement
-		tb_old_tag_done = 1'b0;
-		tb_old_tag = 0;
+	    // new id dispatch
+		tb_new_id_consume = 1'b1;
+	    // old id retirement
+		tb_old_id_done = 1'b0;
+		tb_old_id = 0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // new tag dispatch
-		expected_new_tag_ready = 1'b1;
-		expected_new_tag = 3;
-	    // old tag retirement
+	    // new id dispatch
+		expected_new_id_ready = 1'b1;
+		expected_new_id = 3;
+	    // old id retirement
 
 		check_outputs();
 
@@ -283,20 +283,20 @@ module id_tracker_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // new tag dispatch
-		tb_new_tag_consume = 1'b1;
-	    // old tag retirement
-		tb_old_tag_done = 1'b0;
-		tb_old_tag = 0;
+	    // new id dispatch
+		tb_new_id_consume = 1'b1;
+	    // old id retirement
+		tb_old_id_done = 1'b0;
+		tb_old_id = 0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // new tag dispatch
-		expected_new_tag_ready = 1'b0;
-		expected_new_tag = 3; // none present -> '1
-	    // old tag retirement
+	    // new id dispatch
+		expected_new_id_ready = 1'b0;
+		expected_new_id = 3; // none present -> '1
+	    // old id retirement
 
 		check_outputs();
 
@@ -308,20 +308,20 @@ module id_tracker_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // new tag dispatch
-		tb_new_tag_consume = 1'b1;
-	    // old tag retirement
-		tb_old_tag_done = 1'b1;
-		tb_old_tag = 3;
+	    // new id dispatch
+		tb_new_id_consume = 1'b1;
+	    // old id retirement
+		tb_old_id_done = 1'b1;
+		tb_old_id = 3;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // new tag dispatch
-		expected_new_tag_ready = 1'b0;
-		expected_new_tag = 3; // none present -> '1
-	    // old tag retirement
+	    // new id dispatch
+		expected_new_id_ready = 1'b0;
+		expected_new_id = 3; // none present -> '1
+	    // old id retirement
 
 		check_outputs();
 
@@ -333,20 +333,20 @@ module id_tracker_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // new tag dispatch
-		tb_new_tag_consume = 1'b0;
-	    // old tag retirement
-		tb_old_tag_done = 1'b1;
-		tb_old_tag = 0;
+	    // new id dispatch
+		tb_new_id_consume = 1'b0;
+	    // old id retirement
+		tb_old_id_done = 1'b1;
+		tb_old_id = 0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // new tag dispatch
-		expected_new_tag_ready = 1'b1;
-		expected_new_tag = 3;
-	    // old tag retirement
+	    // new id dispatch
+		expected_new_id_ready = 1'b1;
+		expected_new_id = 3;
+	    // old id retirement
 
 		check_outputs();
 
@@ -358,20 +358,20 @@ module id_tracker_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // new tag dispatch
-		tb_new_tag_consume = 1'b1;
-	    // old tag retirement
-		tb_old_tag_done = 1'b1;
-		tb_old_tag = 2;
+	    // new id dispatch
+		tb_new_id_consume = 1'b1;
+	    // old id retirement
+		tb_old_id_done = 1'b1;
+		tb_old_id = 2;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // new tag dispatch
-		expected_new_tag_ready = 1'b1;
-		expected_new_tag = 0;
-	    // old tag retirement
+	    // new id dispatch
+		expected_new_id_ready = 1'b1;
+		expected_new_id = 0;
+	    // old id retirement
 
 		check_outputs();
 
@@ -383,20 +383,20 @@ module id_tracker_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // new tag dispatch
-		tb_new_tag_consume = 1'b1;
-	    // old tag retirement
-		tb_old_tag_done = 1'b0;
-		tb_old_tag = 2;
+	    // new id dispatch
+		tb_new_id_consume = 1'b1;
+	    // old id retirement
+		tb_old_id_done = 1'b0;
+		tb_old_id = 2;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // new tag dispatch
-		expected_new_tag_ready = 1'b1;
-		expected_new_tag = 2;
-	    // old tag retirement
+	    // new id dispatch
+		expected_new_id_ready = 1'b1;
+		expected_new_id = 2;
+	    // old id retirement
 
 		check_outputs();
 
@@ -408,20 +408,20 @@ module id_tracker_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // new tag dispatch
-		tb_new_tag_consume = 1'b1;
-	    // old tag retirement
-		tb_old_tag_done = 1'b0;
-		tb_old_tag = 2;
+	    // new id dispatch
+		tb_new_id_consume = 1'b1;
+	    // old id retirement
+		tb_old_id_done = 1'b0;
+		tb_old_id = 2;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // new tag dispatch
-		expected_new_tag_ready = 1'b1;
-		expected_new_tag = 3;
-	    // old tag retirement
+	    // new id dispatch
+		expected_new_id_ready = 1'b1;
+		expected_new_id = 3;
+	    // old id retirement
 
 		check_outputs();
 
@@ -433,20 +433,20 @@ module id_tracker_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // new tag dispatch
-		tb_new_tag_consume = 1'b1;
-	    // old tag retirement
-		tb_old_tag_done = 1'b1;
-		tb_old_tag = 0;
+	    // new id dispatch
+		tb_new_id_consume = 1'b1;
+	    // old id retirement
+		tb_old_id_done = 1'b1;
+		tb_old_id = 0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // new tag dispatch
-		expected_new_tag_ready = 1'b0;
-		expected_new_tag = 3; // none present -> '1
-	    // old tag retirement
+	    // new id dispatch
+		expected_new_id_ready = 1'b0;
+		expected_new_id = 3; // none present -> '1
+	    // old id retirement
 
 		check_outputs();
 
@@ -458,20 +458,20 @@ module id_tracker_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // new tag dispatch
-		tb_new_tag_consume = 1'b1;
-	    // old tag retirement
-		tb_old_tag_done = 1'b0;
-		tb_old_tag = 0;
+	    // new id dispatch
+		tb_new_id_consume = 1'b1;
+	    // old id retirement
+		tb_old_id_done = 1'b0;
+		tb_old_id = 0;
 
 		@(negedge CLK);
 
 		// outputs:
 
-	    // new tag dispatch
-		expected_new_tag_ready = 1'b1;
-		expected_new_tag = 0;
-	    // old tag retirement
+	    // new id dispatch
+		expected_new_id_ready = 1'b1;
+		expected_new_id = 0;
+	    // old id retirement
 
 		check_outputs();
 
