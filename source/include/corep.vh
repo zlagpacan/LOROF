@@ -391,7 +391,7 @@ package corep;
     typedef struct packed {
         logic [FETCH_LANES-1:0]         valid_by_lane;
         logic [FETCH_LANES-1:0]         btb_hit_by_lane;
-        logic [FETCH_LANES-1:0]         btb_redirect_taken_by_lane;
+        logic [FETCH_LANES-1:0]         redirect_taken_by_lane;
         bcb_idx_t                       bcb_idx;
         pc35_t                          src_pc35;
         pc35_t                          tgt_pc35;
@@ -404,7 +404,8 @@ package corep;
     typedef struct packed {
         logic       valid;
         logic       btb_hit;
-        logic       btb_redirect_taken;
+        logic       redirect_taken;
+        logic       mid_instr_redirect;
         bcb_idx_t   bcb_idx;
         pc38_t      src_pc38;
         pc38_t      tgt_pc38;

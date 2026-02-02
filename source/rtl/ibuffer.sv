@@ -66,13 +66,14 @@ module ibuffer (
     logic distram_enq_valid;
     logic distram_enq_ready;
     logic distram_deq_valid;
+    logic distram_ptr_says_deq_valid;
     logic distram_deq_ready;
 
     corep::ibuffer_idx_t    distram_enq_ptr, distram_enq_ptr_plus_1;
     corep::ibuffer_idx_t    distram_deq_ptr, distram_deq_ptr_plus_1;
 
     // fetch miss control
-    logic [corep::IBUFFER_ENTRIES-1:0]          fetch_miss_valid_by_entry;
+    logic [corep::IBUFFER_ENTRIES-1:0]          fetch_miss_waiting_by_entry;
     corep::fmid_t [corep::IBUFFER_ENTRIES-1:0]  fetch_miss_fmid_by_entry;
 
     logic [corep::IBUFFER_ENTRIES-1:0]  fetch_miss_fill_valid_by_entry;
@@ -93,13 +94,15 @@ module ibuffer (
     corep::ibuffer_enq_info_t   info_by_reg     [1:0];
     corep::fetch16B_t           instr16_by_reg  [1:0];
 
-    logic shift;
+    logic shift_valid;
 
     // 2x8 entry shift reg helper signals
     logic [1:0]                             valid_by_reg;
     logic [1:0][corep::FETCH_LANES-1:0]     valid_vec_by_reg;
     logic [1:0][corep::FETCH_LANES-1:0]     uncompressed_vec_by_reg;
+
     logic [1:0][corep::FETCH_LANES-1:0]     marker_vec_by_reg;
+    logic [1:0][corep::FETCH_LANES-1:0]     deqing_vec_by_reg;
 
     // deq control
 
@@ -137,7 +140,7 @@ module ibuffer (
             distram_enq_ptr <= 0;
             distram_deq_ptr <= 0;
             distram_enq_ready <= 1'b1;
-            distram_deq_valid <= 1'b0;
+            distram_ptr_says_deq_valid <= 1'b0;
         end
         else begin
             if (distram_enq_valid) begin
@@ -150,17 +153,21 @@ module ibuffer (
 
             if ((distram_enq_valid) & ~(distram_deq_ready & distram_deq_valid)) begin
                 distram_enq_ready <= distram_enq_ptr_plus_1 != distram_deq_ptr;
-                distram_deq_valid <= 1'b1;
+                distram_ptr_says_deq_valid <= 1'b1;
             end
 
             if ((distram_deq_ready & distram_deq_valid) & ~(distram_enq_valid)) begin
                 distram_enq_ready <= 1'b1;
-                distram_deq_valid <= distram_deq_ptr_plus_1 != distram_enq_ptr;
+                distram_ptr_says_deq_valid <= distram_deq_ptr_plus_1 != distram_enq_ptr;
             end
         end
     end
     always_comb begin
+        // only enq into distram on true enq condition
         distram_enq_valid = enq_valid & enq_ready;
+
+        // only deq from distram if entry not waiting on miss fill
+        distram_deq_valid = distram_ptr_says_deq_valid & ~fetch_miss_waiting_by_entry[distram_deq_ptr];
     end
 
     // info distram IO
@@ -210,7 +217,7 @@ module ibuffer (
         for (int i = 0; i < corep::IBUFFER_ENTRIES; i++) begin
             if (
                 fetch_miss_return_valid
-                & fetch_miss_valid_by_entry[i]
+                & fetch_miss_waiting_by_entry[i]
                 & (fetch_miss_return_fmid == fetch_miss_fmid_by_entry[i])
             ) begin
                 fetch_miss_fill_valid_by_entry[i] = 1'b1;
@@ -223,32 +230,35 @@ module ibuffer (
     one_hot_enc #(
         .WIDTH(corep::IBUFFER_ENTRIES)
     ) FETCH_MISS_FILL_IDX_ONE_HOT_ENC (
-        .one_hot_in(fetch_miss_valid_by_entry),
+        .one_hot_in(fetch_miss_fill_valid_by_entry),
         .valid_out(fetch_miss_fill_valid),
         .index_out(fetch_miss_fill_idx)
     );
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             for (int i = 0; i < corep::IBUFFER_ENTRIES; i++) begin
-                fetch_miss_valid_by_entry[i] <= 1'b0;
+                fetch_miss_waiting_by_entry[i] <= 1'b0;
                 fetch_miss_fmid_by_entry[i] <= 0;
             end
         end
         else begin
             if (distram_enq_valid) begin
-                fetch_miss_valid_by_entry[distram_enq_ptr] <= ~enq_fetch_hit_valid;
+                fetch_miss_waiting_by_entry[distram_enq_ptr] <= ~enq_fetch_hit_valid;
                 fetch_miss_fmid_by_entry[distram_enq_ptr] <= fmid_tracker_new_id;
             end
             if (fetch_miss_fill_valid) begin
-                fetch_miss_valid_by_entry[fetch_miss_fill_idx] <= 1'b0;
+                fetch_miss_waiting_by_entry[fetch_miss_fill_idx] <= 1'b0;
             end
         end
     end
     always_comb begin
         enq_ready = 
+            // underlying distram must be ready
             distram_enq_ready
+            // no miss fill this cycle or no hit fill this cycle
             & (~fetch_miss_fill_valid | ~enq_fetch_hit_valid)
-            & (enq_fetch_hit_valid | fmid_tracker_new_id_ready)
+            // new fmid available or have hit so don't need one
+            & (fmid_tracker_new_id_ready | enq_fetch_hit_valid)
         ;
         enq_fmid = fmid_tracker_new_id;
 
@@ -275,14 +285,67 @@ module ibuffer (
     end
 
     // distram deq -> shift reg enq logic
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            info_by_reg[0] <= '0;
+            info_by_reg[1] <= '0;
+
+            instr16_by_reg[0] <= '0;
+            instr16_by_reg[1] <= '0;
+
+            valid_by_reg <= 2'b00;
+            valid_vec_by_reg <= '0;
+            uncompressed_vec_by_reg <= '0;
+        end
+        else begin
+            if (shift_valid) begin
+                info_by_reg[1] <= info_distram_rdata;
+                info_by_reg[0] <= info_by_reg[1];
+
+                instr16_by_reg[1] <= instr_distram_rdata;
+                instr16_by_reg[0] <= instr16_by_reg[1];
+
+                valid_by_reg[1] <= distram_deq_valid & distram_deq_ready;
+                valid_vec_by_reg[1] <= info_distram_rdata.valid_by_lane;
+                for (int i = 0; i < corep::FETCH_LANES; i++) begin
+                    uncompressed_vec_by_reg[1][i] <= instr_distram_rdata[i][1:0] == 2'b11;
+                end
+                valid_by_reg[0] <= valid_by_reg[1] & |(valid_vec_by_reg[1] & ~deqing_vec_by_reg[1]);
+                valid_vec_by_reg[0] <= valid_vec_by_reg[1] & ~deqing_vec_by_reg[1];
+                uncompressed_vec_by_reg[0] <= uncompressed_vec_by_reg[1];
+            end
+            else begin
+                valid_by_reg[1] <= valid_by_reg[1] & |(valid_vec_by_reg[1] & ~deqing_vec_by_reg[1]);
+                valid_vec_by_reg[1] <= valid_vec_by_reg[1] & ~deqing_vec_by_reg[1];
+                uncompressed_vec_by_reg[1] <= uncompressed_vec_by_reg[1];
+
+                valid_by_reg[0] <= valid_by_reg[0] & |(valid_vec_by_reg[0] & ~deqing_vec_by_reg[0]);
+                valid_vec_by_reg[0] <= valid_vec_by_reg[0] & ~deqing_vec_by_reg[0];
+                uncompressed_vec_by_reg[0] <= uncompressed_vec_by_reg[0];
+            end
+        end
+    end
     always_comb begin
-        distram_deq_ready = ~valid_by_reg[1] | shift;
+        // deq from distram on shift reg 1 available next cycle
+        distram_deq_ready = ~valid_by_reg[1] | shift_valid;
     end
 
     // shift reg deq logic
-        // TODO: deq_valid logic here
     always_comb begin
+        deq_valid = |valid_by_reg;
 
+        // markers:
+            // in general, marker if valid and previous not uncompressed
+        marker_vec_by_reg[0][0] = valid_vec_by_reg[0][0];
+        for (int i = 1; i <= 7; i++) begin
+            marker_vec_by_reg[1]
+        end
+        for (int i = 1; i <= 6; i++) begin
+            
+        end
+
+        // shift on shift reg 0 available next cycle
+        shift_valid = ~valid_by_reg[0] | ~&(valid_vec_by_reg[0] & ~deqing_vec_by_reg[0]);
     end
 
 endmodule
