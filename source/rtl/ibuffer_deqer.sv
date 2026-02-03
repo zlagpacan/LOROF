@@ -24,7 +24,7 @@ module ibuffer_deqer (
     always_comb begin
         count_out_vec[0] = valid_vec[0] ? 5'h1 : 5'h0;
 
-        for (int i = 1; i < 14; i++) begin
+        for (int i = 1; i <= 14; i++) begin
             count_out_vec[i] = count_out_vec[i-1] + ((valid_vec[i] & (~valid_vec[i-1] | ~uncompressed_vec[i-1])) ? 5'h1 : 5'h0);
         end
 
