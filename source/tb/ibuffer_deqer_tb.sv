@@ -37,6 +37,10 @@ module ibuffer_deqer_tb #(
 	logic [15:0][4:0] DUT_count_vec, expected_count_vec;
 	logic [15:0] DUT_deqing_vec, expected_deqing_vec;
 
+	logic [3:0] DUT_valid_by_way, expected_valid_by_way;
+	logic [3:0][3:0] DUT_first_index_by_way, expected_first_index_by_way;
+	logic [3:0][3:0] DUT_second_index_by_way, expected_second_index_by_way;
+
     // ----------------------------------------------------------------
     // DUT instantiation:
 
@@ -47,7 +51,11 @@ module ibuffer_deqer_tb #(
 		.uncompressed_vec(tb_uncompressed_vec),
 
 		.count_vec(DUT_count_vec),
-		.deqing_vec(DUT_deqing_vec)
+		.deqing_vec(DUT_deqing_vec),
+
+		.valid_by_way(DUT_valid_by_way),
+		.first_index_by_way(DUT_first_index_by_way),
+		.second_index_by_way(DUT_second_index_by_way)
 	);
 
     // ----------------------------------------------------------------
@@ -69,6 +77,27 @@ module ibuffer_deqer_tb #(
 		if (expected_deqing_vec !== DUT_deqing_vec) begin
 			$display("TB ERROR: expected_deqing_vec (%h) != DUT_deqing_vec (%h)",
 				expected_deqing_vec, DUT_deqing_vec);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_valid_by_way !== DUT_valid_by_way) begin
+			$display("TB ERROR: expected_valid_by_way (%h) != DUT_valid_by_way (%h)",
+				expected_valid_by_way, DUT_valid_by_way);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_first_index_by_way !== DUT_first_index_by_way) begin
+			$display("TB ERROR: expected_first_index_by_way (%h) != DUT_first_index_by_way (%h)",
+				expected_first_index_by_way, DUT_first_index_by_way);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_second_index_by_way !== DUT_second_index_by_way) begin
+			$display("TB ERROR: expected_second_index_by_way (%h) != DUT_second_index_by_way (%h)",
+				expected_second_index_by_way, DUT_second_index_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -121,6 +150,9 @@ module ibuffer_deqer_tb #(
             5'h0
         };
 		expected_deqing_vec = 16'b0000000000000000;
+		expected_valid_by_way = 4'b0000;
+		expected_first_index_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
+		expected_second_index_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
 
 		check_outputs();
 
@@ -156,6 +188,9 @@ module ibuffer_deqer_tb #(
             5'h0
         };
 		expected_deqing_vec = 16'b0000000000000000;
+		expected_valid_by_way = 4'b0000;
+		expected_first_index_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
+		expected_second_index_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
 
 		check_outputs();
 
@@ -200,7 +235,10 @@ module ibuffer_deqer_tb #(
                 5'h0,
                 5'h0
             };
-		    expected_deqing_vec = 16'b0000000000000000;
+            expected_deqing_vec = 16'b0000000000000000;
+            expected_valid_by_way = 4'b0000;
+            expected_first_index_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
+            expected_second_index_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
 
 		    check_outputs();
         end

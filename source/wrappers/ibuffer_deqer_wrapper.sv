@@ -19,7 +19,11 @@ module ibuffer_deqer_wrapper #(
 	input logic [15:0] next_uncompressed_vec,
 
 	output logic [15:0][4:0] last_count_vec,
-	output logic [15:0] last_deqing_vec
+	output logic [15:0] last_deqing_vec,
+
+	output logic [3:0] last_valid_by_way,
+	output logic [3:0][3:0] last_first_index_by_way,
+	output logic [3:0][3:0] last_second_index_by_way
 );
 
     // ----------------------------------------------------------------
@@ -30,6 +34,10 @@ module ibuffer_deqer_wrapper #(
 
 	logic [15:0][4:0] count_vec;
 	logic [15:0] deqing_vec;
+
+	logic [3:0] valid_by_way;
+	logic [3:0][3:0] first_index_by_way;
+	logic [3:0][3:0] second_index_by_way;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -48,6 +56,10 @@ module ibuffer_deqer_wrapper #(
 
 			last_count_vec <= '0;
 			last_deqing_vec <= '0;
+
+			last_valid_by_way <= '0;
+			last_first_index_by_way <= '0;
+			last_second_index_by_way <= '0;
         end
         else begin
 
@@ -56,6 +68,10 @@ module ibuffer_deqer_wrapper #(
 
 			last_count_vec <= count_vec;
 			last_deqing_vec <= deqing_vec;
+
+			last_valid_by_way <= valid_by_way;
+			last_first_index_by_way <= first_index_by_way;
+			last_second_index_by_way <= second_index_by_way;
         end
     end
 
