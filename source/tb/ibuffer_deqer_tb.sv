@@ -34,7 +34,8 @@ module ibuffer_deqer_tb #(
 	logic [15:0] tb_valid_vec;
 	logic [15:0] tb_uncompressed_vec;
 
-	logic [15:0][4:0] DUT_count_out_vec, expected_count_out_vec;
+	logic [15:0][4:0] DUT_count_vec, expected_count_vec;
+	logic [15:0] DUT_deqing_vec, expected_deqing_vec;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -45,7 +46,8 @@ module ibuffer_deqer_tb #(
 		.valid_vec(tb_valid_vec),
 		.uncompressed_vec(tb_uncompressed_vec),
 
-		.count_out_vec(DUT_count_out_vec)
+		.count_vec(DUT_count_vec),
+		.deqing_vec(DUT_deqing_vec)
 	);
 
     // ----------------------------------------------------------------
@@ -53,13 +55,20 @@ module ibuffer_deqer_tb #(
 
     task check_outputs();
     begin
-		if (expected_count_out_vec !== DUT_count_out_vec) begin
-			$display("TB ERROR: expected_count_out_vec (%h) != DUT_count_out_vec (%h)",
-				expected_count_out_vec, DUT_count_out_vec);
+		if (expected_count_vec !== DUT_count_vec) begin
+			$display("TB ERROR: expected_count_vec (%h) != DUT_count_vec (%h)",
+				expected_count_vec, DUT_count_vec);
             for (int i = 15; i >= 0; i--) begin
                 $display("\t[%2d]: v = %1b, unc = %1b, expected = %0h \t%s\t DUT = %0h",
-                    i, tb_valid_vec[i], tb_uncompressed_vec[i], expected_count_out_vec[i], expected_count_out_vec[i] == DUT_count_out_vec[i] ? "==" : "!=", DUT_count_out_vec[i]);
+                    i, tb_valid_vec[i], tb_uncompressed_vec[i], expected_count_vec[i], expected_count_vec[i] == DUT_count_vec[i] ? "==" : "!=", DUT_count_vec[i]);
             end
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_deqing_vec !== DUT_deqing_vec) begin
+			$display("TB ERROR: expected_deqing_vec (%h) != DUT_deqing_vec (%h)",
+				expected_deqing_vec, DUT_deqing_vec);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -93,7 +102,7 @@ module ibuffer_deqer_tb #(
 
 		// outputs:
 
-		expected_count_out_vec = {
+		expected_count_vec = {
             5'h0,
             5'h0,
             5'h0,
@@ -111,6 +120,7 @@ module ibuffer_deqer_tb #(
             5'h0,
             5'h0
         };
+		expected_deqing_vec = 16'b0000000000000000;
 
 		check_outputs();
 
@@ -127,7 +137,7 @@ module ibuffer_deqer_tb #(
 
 		// outputs:
 
-		expected_count_out_vec = {
+		expected_count_vec = {
             5'h0,
             5'h0,
             5'h0,
@@ -145,6 +155,7 @@ module ibuffer_deqer_tb #(
             5'h0,
             5'h0
         };
+		expected_deqing_vec = 16'b0000000000000000;
 
 		check_outputs();
 
@@ -171,7 +182,7 @@ module ibuffer_deqer_tb #(
 
             // outputs:
 
-            expected_count_out_vec = {
+            expected_count_vec = {
                 5'h0,
                 5'h0,
                 5'h0,
@@ -189,6 +200,7 @@ module ibuffer_deqer_tb #(
                 5'h0,
                 5'h0
             };
+		    expected_deqing_vec = 16'b0000000000000000;
 
 		    check_outputs();
         end

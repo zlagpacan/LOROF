@@ -18,7 +18,8 @@ module ibuffer_deqer_wrapper #(
 	input logic [15:0] next_valid_vec,
 	input logic [15:0] next_uncompressed_vec,
 
-	output logic [15:0][4:0] last_count_out_vec
+	output logic [15:0][4:0] last_count_vec,
+	output logic [15:0] last_deqing_vec
 );
 
     // ----------------------------------------------------------------
@@ -27,7 +28,8 @@ module ibuffer_deqer_wrapper #(
 	logic [15:0] valid_vec;
 	logic [15:0] uncompressed_vec;
 
-	logic [15:0][4:0] count_out_vec;
+	logic [15:0][4:0] count_vec;
+	logic [15:0] deqing_vec;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -44,14 +46,16 @@ module ibuffer_deqer_wrapper #(
 			valid_vec <= '0;
 			uncompressed_vec <= '0;
 
-			last_count_out_vec <= '0;
+			last_count_vec <= '0;
+			last_deqing_vec <= '0;
         end
         else begin
 
 			valid_vec <= next_valid_vec;
 			uncompressed_vec <= next_uncompressed_vec;
 
-			last_count_out_vec <= count_out_vec;
+			last_count_vec <= count_vec;
+			last_deqing_vec <= deqing_vec;
         end
     end
 
