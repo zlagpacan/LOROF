@@ -62,14 +62,18 @@ module ibuffer_deqer (
             end
             pe_lsb_tree #(
                 .WIDTH(16)
-            ) PE_LSB_BY_WAY (
+            ) FIRST_PE_LSB_BY_WAY (
                 .req_vec(mask_by_way[way]),
                 .ack_valid(valid_by_way[way]),
                 .ack_index(first_index_by_way[way])
             );
-            always_comb begin
-                second_index_by_way[way] = first_index_by_way[way] + 1;
-            end
+            pe_lsb_tree #(
+                .WIDTH(16)
+            ) SECOND_PE_LSB_BY_WAY (
+                .req_vec(mask_by_way[way] << 1),
+                .ack_valid(),
+                .ack_index(second_index_by_way[way])
+            );
         end
     endgenerate
 
