@@ -33,6 +33,7 @@ module ibuffer_deqer_tb #(
 
 	logic [15:0] tb_valid_vec;
 	logic [15:0] tb_uncompressed_vec;
+	logic [15:0] tb_redirect_vec;
 
 	logic [15:0][4:0] DUT_count_vec, expected_count_vec;
 	logic [15:0] DUT_deqing_vec, expected_deqing_vec;
@@ -49,6 +50,7 @@ module ibuffer_deqer_tb #(
 
 		.valid_vec(tb_valid_vec),
 		.uncompressed_vec(tb_uncompressed_vec),
+		.redirect_vec(tb_redirect_vec),
 
 		.count_vec(DUT_count_vec),
 		.deqing_vec(DUT_deqing_vec),
@@ -126,6 +128,7 @@ module ibuffer_deqer_tb #(
 		nRST = 1'b0;
 		tb_valid_vec = 16'b0000000000000000;
 		tb_uncompressed_vec = 16'b0000000000000000;
+		tb_redirect_vec = 16'b0000000000000000;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -149,10 +152,10 @@ module ibuffer_deqer_tb #(
             5'h0,
             5'h0
         };
-		expected_deqing_vec = 16'b0000000000000000;
+		expected_deqing_vec = 16'b1111111111111111;
 		expected_valid_by_way = 4'b0000;
-		expected_first_index_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
-		expected_second_index_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
+		expected_first_index_by_way = {4'hf, 4'hf, 4'hf, 4'hf};
+		expected_second_index_by_way = {4'hf, 4'hf, 4'hf, 4'hf};
 
 		check_outputs();
 
@@ -164,6 +167,7 @@ module ibuffer_deqer_tb #(
 		nRST = 1'b1;
 		tb_valid_vec = 16'b0000000000000000;
 		tb_uncompressed_vec = 16'b0000000000000000;
+		tb_redirect_vec = 16'b0000000000000000;
 
 		@(posedge CLK); #(PERIOD/10);
 
@@ -187,61 +191,428 @@ module ibuffer_deqer_tb #(
             5'h0,
             5'h0
         };
-		expected_deqing_vec = 16'b0000000000000000;
+		expected_deqing_vec = 16'b1111111111111111;
 		expected_valid_by_way = 4'b0000;
-		expected_first_index_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
-		expected_second_index_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
+		expected_first_index_by_way = {4'hf, 4'hf, 4'hf, 4'hf};
+		expected_second_index_by_way = {4'hf, 4'hf, 4'hf, 4'hf};
 
 		check_outputs();
 
         // ------------------------------------------------------------
-        // every 999th:
-        test_case = "every 999th";
+        // interesting cases:
+        test_case = "interesting cases";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-        for (int i = 0; i < 2**16; i += 999) begin
+        @(posedge CLK); #(PERIOD/10);
 
-            @(posedge CLK); #(PERIOD/10);
+        // inputs
+        sub_test_case = "case 0";
+        $display("\t- sub_test: %s", sub_test_case);
 
-            // inputs
-            sub_test_case = $sformatf("i = %16b", i);
-            $display("\t- sub_test: %s", sub_test_case);
+        // reset
+        nRST = 1'b1;
+        tb_valid_vec = 16'b1111111111111111;
+        tb_uncompressed_vec = 16'b0000000000000000;
+		tb_redirect_vec = 16'b0000000000000000;
 
-            // reset
-            nRST = 1'b1;
-            tb_valid_vec = i[15:0];
-            tb_uncompressed_vec = {4{i[3:0]}};
+        @(negedge CLK);
 
-            @(negedge CLK);
+        // outputs:
 
-            // outputs:
+        expected_count_vec = {
+            5'h10,
+            5'h0F,
+            5'h0E,
+            5'h0D,
+            5'h0C,
+            5'h0B,
+            5'h0A,
+            5'h09,
+            5'h08,
+            5'h07,
+            5'h06,
+            5'h05,
+            5'h04,
+            5'h03,
+            5'h02,
+            5'h01
+        };
+        expected_deqing_vec = 16'b0000000000001111;
+        expected_valid_by_way = 4'b1111;
+        expected_first_index_by_way = {4'h3, 4'h2, 4'h1, 4'h0};
+        expected_second_index_by_way = {4'h4, 4'h3, 4'h2, 4'h1};
 
-            expected_count_vec = {
-                5'h0,
-                5'h0,
-                5'h0,
-                5'h0,
-                5'h0,
-                5'h0,
-                5'h0,
-                5'h0,
-                5'h0,
-                5'h0,
-                5'h0,
-                5'h0,
-                5'h0,
-                5'h0,
-                5'h0,
-                5'h0
-            };
-            expected_deqing_vec = 16'b0000000000000000;
-            expected_valid_by_way = 4'b0000;
-            expected_first_index_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
-            expected_second_index_by_way = {4'h0, 4'h0, 4'h0, 4'h0};
+        check_outputs();
 
-		    check_outputs();
-        end
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = "case 1";
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        tb_valid_vec = 16'b1111111111111111;
+        tb_uncompressed_vec = 16'b1111111111111111;
+		tb_redirect_vec = 16'b0000000000000000;
+
+        @(negedge CLK);
+
+        // outputs:
+
+        expected_count_vec = {
+            5'h08,
+            5'h08,
+            5'h07,
+            5'h07,
+            5'h06,
+            5'h06,
+            5'h05,
+            5'h05,
+            5'h04,
+            5'h04,
+            5'h03,
+            5'h03,
+            5'h02,
+            5'h02,
+            5'h01,
+            5'h01
+        };
+        expected_deqing_vec = 16'b0000000011111111;
+        expected_valid_by_way = 4'b1111;
+        expected_first_index_by_way = {4'h6, 4'h4, 4'h2, 4'h0};
+        expected_second_index_by_way = {4'h7, 4'h5, 4'h3, 4'h1};
+
+        check_outputs();
+
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = "case 2";
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        tb_valid_vec = 16'b1111111111111111;
+        tb_uncompressed_vec = 16'b0101010101010101;
+		tb_redirect_vec = 16'b0000000000000000;
+
+        @(negedge CLK);
+
+        // outputs:
+
+        expected_count_vec = {
+            5'h08,
+            5'h08,
+            5'h07,
+            5'h07,
+            5'h06,
+            5'h06,
+            5'h05,
+            5'h05,
+            5'h04,
+            5'h04,
+            5'h03,
+            5'h03,
+            5'h02,
+            5'h02,
+            5'h01,
+            5'h01
+        };
+        expected_deqing_vec = 16'b0000000011111111;
+        expected_valid_by_way = 4'b1111;
+        expected_first_index_by_way = {4'h6, 4'h4, 4'h2, 4'h0};
+        expected_second_index_by_way = {4'h7, 4'h5, 4'h3, 4'h1};
+
+        check_outputs();
+
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = "case 3";
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        tb_valid_vec = 16'b1111111111111111;
+        tb_uncompressed_vec = 16'b1010101010101010;
+		tb_redirect_vec = 16'b0000000000000000;
+
+        @(negedge CLK);
+
+        // outputs:
+
+        expected_count_vec = {
+            5'h08,
+            5'h08,
+            5'h08,
+            5'h07,
+            5'h07,
+            5'h06,
+            5'h06,
+            5'h05,
+            5'h05,
+            5'h04,
+            5'h04,
+            5'h03,
+            5'h03,
+            5'h02,
+            5'h02,
+            5'h01
+        };
+        expected_deqing_vec = 16'b0000000001111111;
+        expected_valid_by_way = 4'b1111;
+        expected_first_index_by_way = {4'h5, 4'h3, 4'h1, 4'h0};
+        expected_second_index_by_way = {4'h6, 4'h4, 4'h2, 4'h1};
+
+        check_outputs();
+
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = "case 4";
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        tb_valid_vec = 16'b0000000011110000;
+        tb_uncompressed_vec = 16'b0000000010000000;
+		tb_redirect_vec = 16'b0000000000000000;
+
+        @(negedge CLK);
+
+        // outputs:
+
+        expected_count_vec = {
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h02,
+            5'h01,
+            5'h00,
+            5'h00,
+            5'h00,
+            5'h00
+        };
+        expected_deqing_vec = 16'b1111111111111111;
+        expected_valid_by_way = 4'b0111;
+        expected_first_index_by_way = {4'hf, 4'h6, 4'h5, 4'h4};
+        expected_second_index_by_way = {4'hf, 4'h7, 4'h6, 4'h5};
+
+        check_outputs();
+
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = "case 5";
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        tb_valid_vec = 16'b0000000111110000;
+        tb_uncompressed_vec = 16'b0000000010000000;
+		tb_redirect_vec = 16'b0000000000000000;
+
+        @(negedge CLK);
+
+        // outputs:
+
+        expected_count_vec = {
+            5'h04,
+            5'h04,
+            5'h04,
+            5'h04,
+            5'h04,
+            5'h04,
+            5'h04,
+            5'h04,
+            5'h04,
+            5'h03,
+            5'h02,
+            5'h01,
+            5'h00,
+            5'h00,
+            5'h00,
+            5'h00
+        };
+        expected_deqing_vec = 16'b1111111111111111;
+        expected_valid_by_way = 4'b1111;
+        expected_first_index_by_way = {4'h7, 4'h6, 4'h5, 4'h4};
+        expected_second_index_by_way = {4'h8, 4'h7, 4'h6, 4'h5};
+
+        check_outputs();
+
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = "case 6";
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        tb_valid_vec = 16'b0000000011110000;
+        tb_uncompressed_vec = 16'b0000000010000000;
+		tb_redirect_vec = 16'b0000000010000000;
+
+        @(negedge CLK);
+
+        // outputs:
+
+        expected_count_vec = {
+            5'h04,
+            5'h04,
+            5'h04,
+            5'h04,
+            5'h04,
+            5'h04,
+            5'h04,
+            5'h04,
+            5'h04,
+            5'h03,
+            5'h02,
+            5'h01,
+            5'h00,
+            5'h00,
+            5'h00,
+            5'h00
+        };
+        expected_deqing_vec = 16'b1111111111111111;
+        expected_valid_by_way = 4'b1111;
+        expected_first_index_by_way = {4'h7, 4'h6, 4'h5, 4'h4};
+        expected_second_index_by_way = {4'h8, 4'h7, 4'h6, 4'h5};
+
+        check_outputs();
+
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = "case 7";
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        tb_valid_vec = 16'b1000000111100000;
+        tb_uncompressed_vec = 16'b0000000010000000;
+		tb_redirect_vec = 16'b0000000000000000;
+
+        @(negedge CLK);
+
+        // outputs:
+
+        expected_count_vec = {
+            5'h04,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h02,
+            5'h01,
+            5'h00,
+            5'h00,
+            5'h00,
+            5'h00,
+            5'h00
+        };
+        expected_deqing_vec = 16'b1111111111111111;
+        expected_valid_by_way = 4'b1111;
+        expected_first_index_by_way = {4'hf, 4'h7, 4'h6, 4'h5};
+        expected_second_index_by_way = {4'hf, 4'h8, 4'h7, 4'h6};
+
+        check_outputs();
+
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = "case 8";
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        tb_valid_vec = 16'b1000000111100000;
+        tb_uncompressed_vec = 16'b1000000010000000;
+		tb_redirect_vec = 16'b0000000000000000;
+
+        @(negedge CLK);
+
+        // outputs:
+
+        expected_count_vec = {
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h02,
+            5'h01,
+            5'h00,
+            5'h00,
+            5'h00,
+            5'h00,
+            5'h00
+        };
+        expected_deqing_vec = 16'b1111111111111111;
+        expected_valid_by_way = 4'b0111;
+        expected_first_index_by_way = {4'hf, 4'h7, 4'h6, 4'h5};
+        expected_second_index_by_way = {4'hf, 4'h8, 4'h7, 4'h6};
+
+        check_outputs();
+
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = "case 9";
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        tb_valid_vec = 16'b1000000111100000;
+        tb_uncompressed_vec = 16'b1000000010000000;
+		tb_redirect_vec = 16'b1000000000000000;
+
+        @(negedge CLK);
+
+        // outputs:
+
+        expected_count_vec = {
+            5'h04,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h03,
+            5'h02,
+            5'h01,
+            5'h00,
+            5'h00,
+            5'h00,
+            5'h00,
+            5'h00
+        };
+        expected_deqing_vec = 16'b1111111111111111;
+        expected_valid_by_way = 4'b1111;
+        expected_first_index_by_way = {4'hf, 4'h7, 4'h6, 4'h5};
+        expected_second_index_by_way = {4'hf, 4'h8, 4'h7, 4'h6};
+
+        check_outputs();
 
         // ------------------------------------------------------------
         // finish:

@@ -9,6 +9,7 @@ module ibuffer_deqer (
 
     input logic [15:0]          valid_vec,
     input logic [15:0]          uncompressed_vec,
+    input logic [15:0]          redirect_vec,
 
     output logic [15:0][4:0]    count_vec,
     output logic [15:0]         deqing_vec,
@@ -29,12 +30,26 @@ module ibuffer_deqer (
     // Logic:
 
     always_comb begin
+        // special case first entry
         count_up_vec[0] = valid_vec[0];
-        for (int i = 1; i <= 14; i++) begin
+
+        // general case
+        for (int i = 1; i <= 6; i++) begin
             count_up_vec[i] = valid_vec[i] & (~count_up_vec[i-1] | ~uncompressed_vec[i-1]);
         end
-        count_up_vec[15] = valid_vec[15] & ~uncompressed_vec[15] & (~count_up_vec[14] | ~uncompressed_vec[14]);
 
+        // special case at shift reg boundary -> can only be uncompressed if [8] valid or redirect
+        count_up_vec[7] = valid_vec[7] & (~uncompressed_vec[7] | valid_vec[8] | redirect_vec[7]) & (~count_up_vec[6] | ~uncompressed_vec[6]);
+
+        // general case
+        for (int i = 8; i <= 14; i++) begin
+            count_up_vec[i] = valid_vec[i] & (~count_up_vec[i-1] | ~uncompressed_vec[i-1]);
+        end
+
+        // special case last entry -> can only be uncompressed if redirect
+        count_up_vec[15] = valid_vec[15] & (~uncompressed_vec[15] | redirect_vec[15]) & (~count_up_vec[14] | ~uncompressed_vec[14]);
+
+        // apply count up
         count_vec[0] = count_up_vec[0];
         for (int i = 1; i <= 15; i++) begin
             count_vec[i] = count_vec[i-1] + count_up_vec[i];
@@ -67,6 +82,8 @@ module ibuffer_deqer (
                 .ack_valid(valid_by_way[way]),
                 .ack_index(first_index_by_way[way])
             );
+            // can guarantee second priority by way will be exact next bit after first,
+            // so can just to pe on shifted vec
             pe_lsb_tree #(
                 .WIDTH(16)
             ) SECOND_PE_LSB_BY_WAY (
