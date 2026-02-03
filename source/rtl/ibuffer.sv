@@ -101,16 +101,15 @@ module ibuffer (
     logic [1:0]                             valid_by_reg;
     logic [1:0][corep::FETCH_LANES-1:0]     valid_vec_by_reg;
     logic [1:0][corep::FETCH_LANES-1:0]     uncompressed_vec_by_reg;
+    logic [1:0][corep::FETCH_LANES-1:0]     redirect_vec_by_reg;
 
     logic [1:0][corep::FETCH_LANES-1:0]     marker_vec_by_reg;
-    logic [1:0][corep::FETCH_LANES-1:0]     deqing_attempt_vec_by_reg;
     logic [1:0][corep::FETCH_LANES-1:0]     deqing_vec_by_reg;
 
     // deq control
     logic [3:0]                                 deq_valid_by_way;
-    logic [3:0][1:0][corep::FETCH_LANES-1:0]    deq_ack_one_hot_by_way;
-    logic [3:0][corep::FETCH_LANES+1-1:0]       deq_first2B_idx_by_way;
-    logic [3:0][corep::FETCH_LANES+1-1:0]       deq_second2B_idx_by_way;
+    logic [3:0][corep::LOG_FETCH_LANES+1-1:0]   deq_first2B_idx_by_way;
+    logic [3:0][corep::LOG_FETCH_LANES+1-1:0]   deq_second2B_idx_by_way;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -310,6 +309,7 @@ module ibuffer (
             valid_by_reg <= 2'b00;
             valid_vec_by_reg <= '0;
             uncompressed_vec_by_reg <= '0;
+            redirect_vec_by_reg <= '0;
         end
         else begin
             if (shift1_valid) begin
@@ -321,11 +321,13 @@ module ibuffer (
                 for (int i = 0; i < corep::FETCH_LANES; i++) begin
                     uncompressed_vec_by_reg[1][i] <= instr_distram_rdata[i][1:0] == 2'b11;
                 end
+                redirect_vec_by_reg[1] <= info_distram_rdata.redirect_taken_by_lane;
             end
             else begin
                 valid_by_reg[1] <= valid_by_reg[1] & |(valid_vec_by_reg[1] & ~deqing_vec_by_reg[1]);
                 valid_vec_by_reg[1] <= valid_vec_by_reg[1] & ~deqing_vec_by_reg[1];
                 uncompressed_vec_by_reg[1] <= uncompressed_vec_by_reg[1];
+                redirect_vec_by_reg[1] <= redirect_vec_by_reg[1];
             end
 
             if (shift0_valid) begin
@@ -335,11 +337,13 @@ module ibuffer (
                 valid_by_reg[0] <= valid_by_reg[1] & |(valid_vec_by_reg[1] & ~deqing_vec_by_reg[1]);
                 valid_vec_by_reg[0] <= valid_vec_by_reg[1] & ~deqing_vec_by_reg[1];
                 uncompressed_vec_by_reg[0] <= uncompressed_vec_by_reg[1];
+                redirect_vec_by_reg[0] <= redirect_vec_by_reg[1];
             end
             else begin
                 valid_by_reg[0] <= valid_by_reg[0] & |(valid_vec_by_reg[0] & ~deqing_vec_by_reg[0]);
                 valid_vec_by_reg[0] <= valid_vec_by_reg[0] & ~deqing_vec_by_reg[0];
                 uncompressed_vec_by_reg[0] <= uncompressed_vec_by_reg[0];
+                redirect_vec_by_reg[0] <= redirect_vec_by_reg[0];
             end
 
             // top priority restart
@@ -354,15 +358,6 @@ module ibuffer (
     always_comb begin
         deq_valid = |valid_by_reg;
 
-        deqing_vec_by_reg =
-            {$bits(deqing_vec_by_reg){deq_ready}} & (
-                deq_ack_one_hot_by_way[0]
-                | deq_ack_one_hot_by_way[1]
-                | deq_ack_one_hot_by_way[2]
-                | deq_ack_one_hot_by_way[3]
-            )
-        ;
-
         // shift0 on shift reg 0 available next cycle
         shift0_valid = 
             ~valid_by_reg[0]
@@ -374,90 +369,70 @@ module ibuffer (
 
         distram_deq_ready = shift1_valid;
     end
-
-    // markers:
-        // TODO: if too slow
-            // can use regular ibuffer_marker for shift reg 0 + 2x lookahead ibuffer_marker's for shift reg 1
-            // also can precompute marker vec's
-            // can also pipeline steps: marker generation, peN, data by select
+        
     ibuffer_marker #(.WIDTH(16)) IBUFFER_16X_MARKER (
         .valid_vec(valid_vec_by_reg),
         .uncompressed_vec(uncompressed_vec_by_reg),
         .marker_vec(marker_vec_by_reg)
     );
 
-    // deq peN
-    peN_lsb_add #(
-        .WIDTH(16),
-        .N(4)
-    ) DEQ_PEN_LSB_ADD (
-        .req_vec(marker_vec_by_reg),
-        .ack_valid_by_n(deq_valid_by_way),
-        .ack_one_hot_by_n(deq_ack_one_hot_by_way)
+    // ibuffer_deqer for instr demuxing to 4 ways and deqing vec
+    ibuffer_deqer IBUFFER_DEQER (
+        .valid_vec(valid_vec_by_reg),
+        .uncompressed_vec(uncompressed_vec_by_reg),
+        .redirect_vec(redirect_vec_by_reg),
+        .count_vec(),
+        .deqing_vec(deqing_vec_by_reg),
+        .valid_by_way(deq_valid_by_way),
+        .first_idx_by_way(deq_first2B_idx_by_way),
+        .second_idx_by_way(deq_second2B_idx_by_way)
     );
-    genvar way;
-    generate
-        for (way = 0; way < 4; way++) begin
-            one_hot_enc #(
-                .WIDTH(16)
-            ) ONE_HOT_TO_IDX_FIRST2B (
-                .one_hot_in(deq_ack_one_hot_by_way[way]),
-                .index_out(deq_first2B_idx_by_way[way])
-            );
-            one_hot_enc #(
-                .WIDTH(16)
-            ) ONE_HOT_TO_IDX_SECOND2B (
-                .one_hot_in(deq_ack_one_hot_by_way[way] << 1),
-                .index_out(deq_second2B_idx_by_way[way])
-            );
-        end
-    endgenerate
 
     // deq muxing
     always_comb begin
         for (int way = 0; way < 4; way++) begin
             deq_entry_by_way[way].valid = deq_valid_by_way[way];
 
-            if (uncompressed_vec_by_reg[deq_first2B_idx_by_way]) begin
-                deq_entry_by_way[way].btb_hit = info_by_reg[deq_second2B_idx_by_way[3]].btb_hit_by_lane[deq_second2B_idx_by_way[2:0]];
-                deq_entry_by_way[way].redirect_taken = info_by_reg[deq_second2B_idx_by_way[3]].redirect_taken_by_lane[deq_second2B_idx_by_way[2:0]];
-                deq_entry_by_way[way].mid_instr_redirect = info_by_reg[deq_first2B_idx_by_way[3]].redirect_taken_by_lane[deq_first2B_idx_by_way[2:0]];
-                deq_entry_by_way[way].bcb_idx = info_by_reg[deq_second2B_idx_by_way[3]].bcb_idx;
+            if (uncompressed_vec_by_reg[deq_first2B_idx_by_way[way][3]][deq_first2B_idx_by_way[way][2:0]]) begin
+                deq_entry_by_way[way].btb_hit = info_by_reg[deq_second2B_idx_by_way[way][3]].btb_hit_by_lane[deq_second2B_idx_by_way[way][2:0]];
+                deq_entry_by_way[way].redirect_taken = info_by_reg[deq_second2B_idx_by_way[way][3]].redirect_taken_by_lane[deq_second2B_idx_by_way[way][2:0]];
+                deq_entry_by_way[way].mid_instr_redirect = info_by_reg[deq_first2B_idx_by_way[way][3]].redirect_taken_by_lane[deq_first2B_idx_by_way[way][2:0]];
+                deq_entry_by_way[way].bcb_idx = info_by_reg[deq_second2B_idx_by_way[way][3]].bcb_idx;
                 if (
-                    info_by_reg[deq_second2B_idx_by_way[3]].redirect_taken_by_lane[deq_second2B_idx_by_way[2:0]]
-                    | deq_second2B_idx_by_way[2:0] == 3'h7
+                    info_by_reg[deq_second2B_idx_by_way[way][3]].redirect_taken_by_lane[deq_second2B_idx_by_way[way][2:0]]
+                    | deq_second2B_idx_by_way[way][2:0] == 3'h7
                 ) begin
-                    deq_entry_by_way[way].tgt_pc38 = info_by_reg[deq_second2B_idx_by_way[3]].tgt_pc38;
+                    deq_entry_by_way[way].tgt_pc38 = info_by_reg[deq_second2B_idx_by_way[way][3]].tgt_pc38;
                 end
                 else begin
-                    deq_entry_by_way[way].tgt_pc38 = {info_by_reg[deq_second2B_idx_by_way[3]].src_pc35, {deq_second2B_idx_by_way[2:0] + 3'b001}[2:0]};
+                    deq_entry_by_way[way].tgt_pc38 = {info_by_reg[deq_second2B_idx_by_way[way][3]].src_pc35, {deq_second2B_idx_by_way[way][2:0] + 3'b001}[2:0]};
                 end
-                deq_entry_by_way[way].page_fault = info_by_reg[deq_first2B_idx_by_way[3]].page_fault | info_by_reg[deq_second2B_idx_by_way[3]].page_fault;
-                deq_entry_by_way[way].access_fault = info_by_reg[deq_first2B_idx_by_way[3]].access_fault | info_by_reg[deq_second2B_idx_by_way[3]].access_fault;
+                deq_entry_by_way[way].page_fault = info_by_reg[deq_first2B_idx_by_way[way][3]].page_fault | info_by_reg[deq_second2B_idx_by_way[way][3]].page_fault;
+                deq_entry_by_way[way].access_fault = info_by_reg[deq_first2B_idx_by_way[way][3]].access_fault | info_by_reg[deq_second2B_idx_by_way[way][3]].access_fault;
             end
             else begin
-                deq_entry_by_way[way].btb_hit = info_by_reg[deq_first2B_idx_by_way[3]].btb_hit_by_lane[deq_first2B_idx_by_way[2:0]];
-                deq_entry_by_way[way].redirect_taken = info_by_reg[deq_first2B_idx_by_way[3]].redirect_taken_by_lane[deq_first2B_idx_by_way[2:0]];
+                deq_entry_by_way[way].btb_hit = info_by_reg[deq_first2B_idx_by_way[way][3]].btb_hit_by_lane[deq_first2B_idx_by_way[way][2:0]];
+                deq_entry_by_way[way].redirect_taken = info_by_reg[deq_first2B_idx_by_way[way][3]].redirect_taken_by_lane[deq_first2B_idx_by_way[way][2:0]];
                 deq_entry_by_way[way].mid_instr_redirect = 1'b0;
-                deq_entry_by_way[way].bcb_idx = info_by_reg[deq_first2B_idx_by_way[3]].bcb_idx;
+                deq_entry_by_way[way].bcb_idx = info_by_reg[deq_first2B_idx_by_way[way][3]].bcb_idx;
                 if (
-                    info_by_reg[deq_first2B_idx_by_way[3]].redirect_taken_by_lane[deq_first2B_idx_by_way[2:0]]
-                    | deq_first2B_idx_by_way[2:0] == 3'h7
+                    info_by_reg[deq_first2B_idx_by_way[way][3]].redirect_taken_by_lane[deq_first2B_idx_by_way[way][2:0]]
+                    | deq_first2B_idx_by_way[way][2:0] == 3'h7
                 ) begin
-                    deq_entry_by_way[way].tgt_pc38 = info_by_reg[deq_first2B_idx_by_way[3]].tgt_pc38;
+                    deq_entry_by_way[way].tgt_pc38 = info_by_reg[deq_first2B_idx_by_way[way][3]].tgt_pc38;
                 end
                 else begin
-                    deq_entry_by_way[way].tgt_pc38 = {info_by_reg[deq_first2B_idx_by_way[3]].src_pc35, {deq_first2B_idx_by_way[2:0] + 3'b001}[2:0]};
+                    deq_entry_by_way[way].tgt_pc38 = {info_by_reg[deq_first2B_idx_by_way[way][3]].src_pc35, {deq_first2B_idx_by_way[way][2:0] + 3'b001}[2:0]};
                 end
-                deq_entry_by_way[way].page_fault = info_by_reg[deq_first2B_idx_by_way[3]].page_fault;
-                deq_entry_by_way[way].access_fault = info_by_reg[deq_first2B_idx_by_way[3]].access_fault;
+                deq_entry_by_way[way].page_fault = info_by_reg[deq_first2B_idx_by_way[way][3]].page_fault;
+                deq_entry_by_way[way].access_fault = info_by_reg[deq_first2B_idx_by_way[way][3]].access_fault;
             end
 
-            deq_entry_by_way[way].src_pc38 = {info_by_reg[deq_first2B_idx_by_way[3]].src_pc35, deq_first2B_idx_by_way[2:0]};
-            deq_entry_by_way[way].mdp = info_by_reg[deq_first2B_idx_by_way[3]].mdp_by_lane[deq_first2B_idx_by_way[2:0]];
+            deq_entry_by_way[way].src_pc38 = {info_by_reg[deq_first2B_idx_by_way[way][3]].src_pc35, deq_first2B_idx_by_way[way][2:0]};
+            deq_entry_by_way[way].mdp = info_by_reg[deq_first2B_idx_by_way[way][3]].mdp_by_lane[deq_first2B_idx_by_way[way][2:0]];
             deq_entry_by_way[way].fetch4B = {
-                instr16B_by_reg[deq_second2B_idx_by_way[3]][deq_second2B_idx_by_way[2:0]],
-                instr16B_by_reg[deq_first2B_idx_by_way[3]][deq_first2B_idx_by_way[2:0]]
+                instr16B_by_reg[deq_second2B_idx_by_way[way][3]][deq_second2B_idx_by_way[way][2:0]],
+                instr16B_by_reg[deq_first2B_idx_by_way[way][3]][deq_first2B_idx_by_way[way][2:0]]
             };
         end
     end

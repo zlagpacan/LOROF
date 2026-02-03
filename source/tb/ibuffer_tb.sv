@@ -303,14 +303,16 @@ module ibuffer_tb #(
 		expected_enq_fmid = 4'h0;
 	    // fetch miss return
 	    // deq
+            // default: shift reg 1, lane 7
+
 		expected_deq_valid = 1'b0;
 		expected_deq_entry_by_way[0].valid = 1'b0;
 		expected_deq_entry_by_way[0].btb_hit = 1'b0;
 		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
 		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
 		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h000000000, 3'h1};
+		expected_deq_entry_by_way[0].src_pc38 = {35'h000000000, 3'h7};
+		expected_deq_entry_by_way[0].tgt_pc38 = {35'h000000000, 3'h0};
 		expected_deq_entry_by_way[0].page_fault = 1'b0;
 		expected_deq_entry_by_way[0].access_fault = 1'b0;
 		expected_deq_entry_by_way[0].mdp = 8'h00;
@@ -321,8 +323,8 @@ module ibuffer_tb #(
 		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
 		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
 		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h000000000, 3'h1};
+		expected_deq_entry_by_way[1].src_pc38 = {35'h000000000, 3'h7};
+		expected_deq_entry_by_way[1].tgt_pc38 = {35'h000000000, 3'h0};
 		expected_deq_entry_by_way[1].page_fault = 1'b0;
 		expected_deq_entry_by_way[1].access_fault = 1'b0;
 		expected_deq_entry_by_way[1].mdp = 8'h00;
@@ -333,8 +335,8 @@ module ibuffer_tb #(
 		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
 		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
 		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h000000000, 3'h1};
+		expected_deq_entry_by_way[2].src_pc38 = {35'h000000000, 3'h7};
+		expected_deq_entry_by_way[2].tgt_pc38 = {35'h000000000, 3'h0};
 		expected_deq_entry_by_way[2].page_fault = 1'b0;
 		expected_deq_entry_by_way[2].access_fault = 1'b0;
 		expected_deq_entry_by_way[2].mdp = 8'h00;
@@ -345,8 +347,8 @@ module ibuffer_tb #(
 		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
 		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
 		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h000000000, 3'h1};
+		expected_deq_entry_by_way[3].src_pc38 = {35'h000000000, 3'h7};
+		expected_deq_entry_by_way[3].tgt_pc38 = {35'h000000000, 3'h0};
 		expected_deq_entry_by_way[3].page_fault = 1'b0;
 		expected_deq_entry_by_way[3].access_fault = 1'b0;
 		expected_deq_entry_by_way[3].mdp = 8'h00;
@@ -429,8 +431,8 @@ module ibuffer_tb #(
 		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
 		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
 		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h000000000, 3'h1};
+		expected_deq_entry_by_way[0].src_pc38 = {35'h000000000, 3'h7};
+		expected_deq_entry_by_way[0].tgt_pc38 = {35'h000000000, 3'h0};
 		expected_deq_entry_by_way[0].page_fault = 1'b0;
 		expected_deq_entry_by_way[0].access_fault = 1'b0;
 		expected_deq_entry_by_way[0].mdp = 8'h00;
@@ -441,8 +443,8 @@ module ibuffer_tb #(
 		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
 		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
 		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h000000000, 3'h1};
+		expected_deq_entry_by_way[1].src_pc38 = {35'h000000000, 3'h7};
+		expected_deq_entry_by_way[1].tgt_pc38 = {35'h000000000, 3'h0};
 		expected_deq_entry_by_way[1].page_fault = 1'b0;
 		expected_deq_entry_by_way[1].access_fault = 1'b0;
 		expected_deq_entry_by_way[1].mdp = 8'h00;
@@ -453,8 +455,8 @@ module ibuffer_tb #(
 		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
 		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
 		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h000000000, 3'h1};
+		expected_deq_entry_by_way[2].src_pc38 = {35'h000000000, 3'h7};
+		expected_deq_entry_by_way[2].tgt_pc38 = {35'h000000000, 3'h0};
 		expected_deq_entry_by_way[2].page_fault = 1'b0;
 		expected_deq_entry_by_way[2].access_fault = 1'b0;
 		expected_deq_entry_by_way[2].mdp = 8'h00;
@@ -465,8 +467,8 @@ module ibuffer_tb #(
 		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
 		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
 		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h000000000, 3'h1};
+		expected_deq_entry_by_way[3].src_pc38 = {35'h000000000, 3'h7};
+		expected_deq_entry_by_way[3].tgt_pc38 = {35'h000000000, 3'h0};
 		expected_deq_entry_by_way[3].page_fault = 1'b0;
 		expected_deq_entry_by_way[3].access_fault = 1'b0;
 		expected_deq_entry_by_way[3].mdp = 8'h00;
@@ -557,8 +559,8 @@ module ibuffer_tb #(
 		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
 		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
 		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h000000000, 3'h1};
+		expected_deq_entry_by_way[0].src_pc38 = {35'h000000000, 3'h7};
+		expected_deq_entry_by_way[0].tgt_pc38 = {35'h000000000, 3'h0};
 		expected_deq_entry_by_way[0].page_fault = 1'b0;
 		expected_deq_entry_by_way[0].access_fault = 1'b0;
 		expected_deq_entry_by_way[0].mdp = 8'h00;
@@ -569,8 +571,8 @@ module ibuffer_tb #(
 		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
 		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
 		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h000000000, 3'h1};
+		expected_deq_entry_by_way[1].src_pc38 = {35'h000000000, 3'h7};
+		expected_deq_entry_by_way[1].tgt_pc38 = {35'h000000000, 3'h0};
 		expected_deq_entry_by_way[1].page_fault = 1'b0;
 		expected_deq_entry_by_way[1].access_fault = 1'b0;
 		expected_deq_entry_by_way[1].mdp = 8'h00;
@@ -581,8 +583,8 @@ module ibuffer_tb #(
 		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
 		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
 		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h000000000, 3'h1};
+		expected_deq_entry_by_way[2].src_pc38 = {35'h000000000, 3'h7};
+		expected_deq_entry_by_way[2].tgt_pc38 = {35'h000000000, 3'h0};
 		expected_deq_entry_by_way[2].page_fault = 1'b0;
 		expected_deq_entry_by_way[2].access_fault = 1'b0;
 		expected_deq_entry_by_way[2].mdp = 8'h00;
@@ -593,8 +595,8 @@ module ibuffer_tb #(
 		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
 		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
 		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h000000000, 3'h1};
+		expected_deq_entry_by_way[3].src_pc38 = {35'h000000000, 3'h7};
+		expected_deq_entry_by_way[3].tgt_pc38 = {35'h000000000, 3'h0};
 		expected_deq_entry_by_way[3].page_fault = 1'b0;
 		expected_deq_entry_by_way[3].access_fault = 1'b0;
 		expected_deq_entry_by_way[3].mdp = 8'h00;

@@ -15,8 +15,8 @@ module ibuffer_deqer (
     output logic [15:0]         deqing_vec,
 
     output logic [3:0]          valid_by_way,
-    output logic [3:0][3:0]     first_index_by_way,
-    output logic [3:0][3:0]     second_index_by_way
+    output logic [3:0][3:0]     first_idx_by_way,
+    output logic [3:0][3:0]     second_idx_by_way
 );
 
     // ----------------------------------------------------------------
@@ -80,16 +80,16 @@ module ibuffer_deqer (
             ) FIRST_PE_LSB_BY_WAY (
                 .req_vec(mask_by_way[way]),
                 .ack_valid(valid_by_way[way]),
-                .ack_index(first_index_by_way[way])
+                .ack_index(first_idx_by_way[way])
             );
             // can guarantee second priority by way will be exact next bit after first,
-            // so can just to pe on shifted vec
+            // so can just do pe on shifted vec
             pe_lsb_tree #(
                 .WIDTH(16)
             ) SECOND_PE_LSB_BY_WAY (
                 .req_vec(mask_by_way[way] << 1),
                 .ack_valid(),
-                .ack_index(second_index_by_way[way])
+                .ack_index(second_idx_by_way[way])
             );
         end
     endgenerate

@@ -39,8 +39,8 @@ module ibuffer_deqer_tb #(
 	logic [15:0] DUT_deqing_vec, expected_deqing_vec;
 
 	logic [3:0] DUT_valid_by_way, expected_valid_by_way;
-	logic [3:0][3:0] DUT_first_index_by_way, expected_first_index_by_way;
-	logic [3:0][3:0] DUT_second_index_by_way, expected_second_index_by_way;
+	logic [3:0][3:0] DUT_first_idx_by_way, expected_first_idx_by_way;
+	logic [3:0][3:0] DUT_second_idx_by_way, expected_second_idx_by_way;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -56,8 +56,8 @@ module ibuffer_deqer_tb #(
 		.deqing_vec(DUT_deqing_vec),
 
 		.valid_by_way(DUT_valid_by_way),
-		.first_index_by_way(DUT_first_index_by_way),
-		.second_index_by_way(DUT_second_index_by_way)
+		.first_idx_by_way(DUT_first_idx_by_way),
+		.second_idx_by_way(DUT_second_idx_by_way)
 	);
 
     // ----------------------------------------------------------------
@@ -90,16 +90,16 @@ module ibuffer_deqer_tb #(
 			tb_error = 1'b1;
 		end
 
-		if (expected_first_index_by_way !== DUT_first_index_by_way) begin
-			$display("TB ERROR: expected_first_index_by_way (%h) != DUT_first_index_by_way (%h)",
-				expected_first_index_by_way, DUT_first_index_by_way);
+		if (expected_first_idx_by_way !== DUT_first_idx_by_way) begin
+			$display("TB ERROR: expected_first_idx_by_way (%h) != DUT_first_idx_by_way (%h)",
+				expected_first_idx_by_way, DUT_first_idx_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_second_index_by_way !== DUT_second_index_by_way) begin
-			$display("TB ERROR: expected_second_index_by_way (%h) != DUT_second_index_by_way (%h)",
-				expected_second_index_by_way, DUT_second_index_by_way);
+		if (expected_second_idx_by_way !== DUT_second_idx_by_way) begin
+			$display("TB ERROR: expected_second_idx_by_way (%h) != DUT_second_idx_by_way (%h)",
+				expected_second_idx_by_way, DUT_second_idx_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -154,8 +154,8 @@ module ibuffer_deqer_tb #(
         };
 		expected_deqing_vec = 16'b1111111111111111;
 		expected_valid_by_way = 4'b0000;
-		expected_first_index_by_way = {4'hf, 4'hf, 4'hf, 4'hf};
-		expected_second_index_by_way = {4'hf, 4'hf, 4'hf, 4'hf};
+		expected_first_idx_by_way = {4'hf, 4'hf, 4'hf, 4'hf};
+		expected_second_idx_by_way = {4'hf, 4'hf, 4'hf, 4'hf};
 
 		check_outputs();
 
@@ -193,8 +193,8 @@ module ibuffer_deqer_tb #(
         };
 		expected_deqing_vec = 16'b1111111111111111;
 		expected_valid_by_way = 4'b0000;
-		expected_first_index_by_way = {4'hf, 4'hf, 4'hf, 4'hf};
-		expected_second_index_by_way = {4'hf, 4'hf, 4'hf, 4'hf};
+		expected_first_idx_by_way = {4'hf, 4'hf, 4'hf, 4'hf};
+		expected_second_idx_by_way = {4'hf, 4'hf, 4'hf, 4'hf};
 
 		check_outputs();
 
@@ -240,8 +240,8 @@ module ibuffer_deqer_tb #(
         };
         expected_deqing_vec = 16'b0000000000001111;
         expected_valid_by_way = 4'b1111;
-        expected_first_index_by_way = {4'h3, 4'h2, 4'h1, 4'h0};
-        expected_second_index_by_way = {4'h4, 4'h3, 4'h2, 4'h1};
+        expected_first_idx_by_way = {4'h3, 4'h2, 4'h1, 4'h0};
+        expected_second_idx_by_way = {4'h4, 4'h3, 4'h2, 4'h1};
 
         check_outputs();
 
@@ -281,8 +281,8 @@ module ibuffer_deqer_tb #(
         };
         expected_deqing_vec = 16'b0000000011111111;
         expected_valid_by_way = 4'b1111;
-        expected_first_index_by_way = {4'h6, 4'h4, 4'h2, 4'h0};
-        expected_second_index_by_way = {4'h7, 4'h5, 4'h3, 4'h1};
+        expected_first_idx_by_way = {4'h6, 4'h4, 4'h2, 4'h0};
+        expected_second_idx_by_way = {4'h7, 4'h5, 4'h3, 4'h1};
 
         check_outputs();
 
@@ -322,8 +322,8 @@ module ibuffer_deqer_tb #(
         };
         expected_deqing_vec = 16'b0000000011111111;
         expected_valid_by_way = 4'b1111;
-        expected_first_index_by_way = {4'h6, 4'h4, 4'h2, 4'h0};
-        expected_second_index_by_way = {4'h7, 4'h5, 4'h3, 4'h1};
+        expected_first_idx_by_way = {4'h6, 4'h4, 4'h2, 4'h0};
+        expected_second_idx_by_way = {4'h7, 4'h5, 4'h3, 4'h1};
 
         check_outputs();
 
@@ -363,8 +363,8 @@ module ibuffer_deqer_tb #(
         };
         expected_deqing_vec = 16'b0000000001111111;
         expected_valid_by_way = 4'b1111;
-        expected_first_index_by_way = {4'h5, 4'h3, 4'h1, 4'h0};
-        expected_second_index_by_way = {4'h6, 4'h4, 4'h2, 4'h1};
+        expected_first_idx_by_way = {4'h5, 4'h3, 4'h1, 4'h0};
+        expected_second_idx_by_way = {4'h6, 4'h4, 4'h2, 4'h1};
 
         check_outputs();
 
@@ -404,8 +404,8 @@ module ibuffer_deqer_tb #(
         };
         expected_deqing_vec = 16'b1111111111111111;
         expected_valid_by_way = 4'b0111;
-        expected_first_index_by_way = {4'hf, 4'h6, 4'h5, 4'h4};
-        expected_second_index_by_way = {4'hf, 4'h7, 4'h6, 4'h5};
+        expected_first_idx_by_way = {4'hf, 4'h6, 4'h5, 4'h4};
+        expected_second_idx_by_way = {4'hf, 4'h7, 4'h6, 4'h5};
 
         check_outputs();
 
@@ -445,8 +445,8 @@ module ibuffer_deqer_tb #(
         };
         expected_deqing_vec = 16'b1111111111111111;
         expected_valid_by_way = 4'b1111;
-        expected_first_index_by_way = {4'h7, 4'h6, 4'h5, 4'h4};
-        expected_second_index_by_way = {4'h8, 4'h7, 4'h6, 4'h5};
+        expected_first_idx_by_way = {4'h7, 4'h6, 4'h5, 4'h4};
+        expected_second_idx_by_way = {4'h8, 4'h7, 4'h6, 4'h5};
 
         check_outputs();
 
@@ -486,8 +486,8 @@ module ibuffer_deqer_tb #(
         };
         expected_deqing_vec = 16'b1111111111111111;
         expected_valid_by_way = 4'b1111;
-        expected_first_index_by_way = {4'h7, 4'h6, 4'h5, 4'h4};
-        expected_second_index_by_way = {4'h8, 4'h7, 4'h6, 4'h5};
+        expected_first_idx_by_way = {4'h7, 4'h6, 4'h5, 4'h4};
+        expected_second_idx_by_way = {4'h8, 4'h7, 4'h6, 4'h5};
 
         check_outputs();
 
@@ -527,8 +527,8 @@ module ibuffer_deqer_tb #(
         };
         expected_deqing_vec = 16'b1111111111111111;
         expected_valid_by_way = 4'b1111;
-        expected_first_index_by_way = {4'hf, 4'h7, 4'h6, 4'h5};
-        expected_second_index_by_way = {4'hf, 4'h8, 4'h7, 4'h6};
+        expected_first_idx_by_way = {4'hf, 4'h7, 4'h6, 4'h5};
+        expected_second_idx_by_way = {4'hf, 4'h8, 4'h7, 4'h6};
 
         check_outputs();
 
@@ -568,8 +568,8 @@ module ibuffer_deqer_tb #(
         };
         expected_deqing_vec = 16'b1111111111111111;
         expected_valid_by_way = 4'b0111;
-        expected_first_index_by_way = {4'hf, 4'h7, 4'h6, 4'h5};
-        expected_second_index_by_way = {4'hf, 4'h8, 4'h7, 4'h6};
+        expected_first_idx_by_way = {4'hf, 4'h7, 4'h6, 4'h5};
+        expected_second_idx_by_way = {4'hf, 4'h8, 4'h7, 4'h6};
 
         check_outputs();
 
@@ -609,8 +609,8 @@ module ibuffer_deqer_tb #(
         };
         expected_deqing_vec = 16'b1111111111111111;
         expected_valid_by_way = 4'b1111;
-        expected_first_index_by_way = {4'hf, 4'h7, 4'h6, 4'h5};
-        expected_second_index_by_way = {4'hf, 4'h8, 4'h7, 4'h6};
+        expected_first_idx_by_way = {4'hf, 4'h7, 4'h6, 4'h5};
+        expected_second_idx_by_way = {4'hf, 4'h8, 4'h7, 4'h6};
 
         check_outputs();
 
