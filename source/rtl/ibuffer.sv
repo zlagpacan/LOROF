@@ -369,12 +369,6 @@ module ibuffer (
 
         distram_deq_ready = shift1_valid;
     end
-        
-    ibuffer_marker #(.WIDTH(16)) IBUFFER_16X_MARKER (
-        .valid_vec(valid_vec_by_reg),
-        .uncompressed_vec(uncompressed_vec_by_reg),
-        .marker_vec(marker_vec_by_reg)
-    );
 
     // ibuffer_deqer for instr demuxing to 4 ways and deqing vec
     ibuffer_deqer IBUFFER_DEQER (

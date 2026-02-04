@@ -58,7 +58,7 @@ module ibuffer_deqer (
 
     always_comb begin
         for (int i = 0; i <= 15; i++) begin
-            if (count_vec[i] <= 4) begin
+            if ((count_vec[i][4:2] == 3'b000) | (count_vec[i] == 5'b00100)) begin
                 deqing_vec[i] = 1'b1;
             end
             else begin
@@ -67,14 +67,18 @@ module ibuffer_deqer (
         end
     end
 
+    always_comb begin
+        for (int i = 0; i <= 15; i++) begin
+            mask_by_way[0][i] = count_vec[i][0];
+            mask_by_way[1][i] = count_vec[i][1];
+            mask_by_way[2][i] = count_vec[i][1:0] == 2'b11;
+            mask_by_way[3][i] = count_vec[i][2];
+        end
+    end
+
     genvar way;
     generate
         for (way = 0; way < 4; way++) begin
-            always_comb begin
-                for (int i = 0; i <= 15; i++) begin
-                    mask_by_way[way][i] = (count_vec[i] == (way + 1));
-                end
-            end
             pe_lsb_tree #(
                 .WIDTH(16)
             ) FIRST_PE_LSB_BY_WAY (
