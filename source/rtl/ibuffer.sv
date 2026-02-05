@@ -103,7 +103,6 @@ module ibuffer (
     logic [1:0][corep::FETCH_LANES-1:0]     uncompressed_vec_by_reg;
     logic [1:0][corep::FETCH_LANES-1:0]     redirect_vec_by_reg;
 
-    logic [1:0][corep::FETCH_LANES-1:0]     marker_vec_by_reg;
     logic [1:0][corep::FETCH_LANES-1:0]     deqing_vec_by_reg;
 
     // deq control
