@@ -25,6 +25,12 @@ module bcb (
     output corep::bcb_info_t    restore_bcb_info
 );
 
+    // branch present means move to next bcb entry
+        // any non-branches before this can share bcb entry
+            // valid since components don't change until branch:
+                // {gh, ras_idx, ras_cnt, btb_hit_way}
+            // so essentially, always write into bcb, move onto next entry on branch
+
     // ----------------------------------------------------------------
     // Signals:
 
@@ -70,7 +76,7 @@ module bcb (
         .CLK(CLK),
         .rindex(restore_bcb_idx),
         .rdata(restore_bcb_info),
-        .wen(save_valid),
+        .wen(1'b1),
         .windex(save_bcb_idx),
         .wdata(save_bcb_info)
     );

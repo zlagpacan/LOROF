@@ -148,6 +148,62 @@ module bcb_tb #(
 		check_outputs();
 
         // ------------------------------------------------------------
+        // read before first save:
+        test_case = "read before first save";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = $sformatf("read and set 0 to A5");
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        // save control
+        tb_save_valid = 1'b0;
+        tb_save_bcb_info = 32'hA5A5A5A5;
+        // restore control
+        tb_restore_bcb_idx = 4'h0;
+
+        @(negedge CLK);
+
+        // outputs:
+
+        // save control
+        expected_save_bcb_idx = 4'h0;
+        // restore control
+        expected_restore_bcb_info = 32'h00000000;
+
+        check_outputs();
+
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = $sformatf("read and set 0 to B4");
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        // save control
+        tb_save_valid = 1'b0;
+        tb_save_bcb_info = 32'hB4B4B4B4;
+        // restore control
+        tb_restore_bcb_idx = 4'h0;
+
+        @(negedge CLK);
+
+        // outputs:
+
+        // save control
+        expected_save_bcb_idx = 4'h0;
+        // restore control
+        expected_restore_bcb_info = 32'hA5A5A5A5;
+
+        check_outputs();
+
+        // ------------------------------------------------------------
         // save 0:15:
         test_case = "save 0:15";
         $display("\ntest %0d: %s", test_num, test_case);
@@ -176,7 +232,7 @@ module bcb_tb #(
             // save control
             expected_save_bcb_idx = i[3:0];
             // restore control
-            expected_restore_bcb_info = i > 0 ? 32'hf0f0f0f0 : 0;
+            expected_restore_bcb_info = i > 0 ? 32'hf0f0f0f0 : 32'hB4B4B4B4;;
 
             check_outputs();
         end

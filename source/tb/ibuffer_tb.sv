@@ -479,22 +479,29 @@ module ibuffer_tb #(
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // repeated all compressed/uncompressed:
+        test_case = "repeated all compressed/uncompressed";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "default";
+		sub_test_case = {
+            "cycle 0",
+            "\n\t\tenq:         0",
+            "\n\t\tbuffer:      {}",
+            "\n\t\tshift reg 0: i",
+            "\n\t\tshift reg 1: i",
+            "\n\t\tdeq:         {i,i,i,i}"
+        };
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
 		nRST = 1'b1;
 	    // enq
-		tb_enq_valid = 1'b0;
-		tb_enq_info.valid_by_lane = 8'b00000000;
+		tb_enq_valid = 1'b1;
+		tb_enq_info.valid_by_lane = 8'b11111111;
 		tb_enq_info.btb_hit_by_lane = 8'b00000000;
 		tb_enq_info.redirect_taken_by_lane = 8'b00000000;
 		tb_enq_info.bcb_idx = 4'h0;
