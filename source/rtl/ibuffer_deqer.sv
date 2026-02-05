@@ -19,6 +19,8 @@ module ibuffer_deqer (
     output logic [3:0][3:0]     second_idx_by_way
 );
 
+    // will deq incomplete uncompressed instr's if at 8 lane boundary and have redirect
+
     // ----------------------------------------------------------------
     // Signals:
 
@@ -57,13 +59,12 @@ module ibuffer_deqer (
     end
 
     always_comb begin
-        for (int i = 0; i <= 15; i++) begin
-            if ((count_vec[i][4:2] == 3'b000) | (count_vec[i] == 5'b00100)) begin
-                deqing_vec[i] = 1'b1;
-            end
-            else begin
-                deqing_vec[i] = 1'b0;
-            end
+        deqing_vec[0] = valid_vec[0];
+        for (int i = 1; i <= 15; i++) begin
+            deqing_vec[i] = 
+                (count_up_vec[i] | (valid_vec[i] & count_up_vec[i-1] & uncompressed_vec[i-1]))
+                & ((count_vec[i][4:2] == 3'b000) | (count_vec[i] == 5'b00100))
+            ;
         end
     end
 

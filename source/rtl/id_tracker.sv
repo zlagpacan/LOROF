@@ -16,11 +16,11 @@ module id_tracker #(
     // new id dispatch
     input logic                     new_id_consume,
     output logic                    new_id_ready,
-    output logic [ID_WIDTH-1:0]    new_id,
+    output logic [ID_WIDTH-1:0]     new_id,
 
     // old id retirement
     input logic                     old_id_done,
-    input logic [ID_WIDTH-1:0]     old_id
+    input logic [ID_WIDTH-1:0]      old_id
 );
 
     // bit vec of ready-to-use ids
