@@ -322,11 +322,9 @@ module ibuffer (
                 end
                 redirect_vec_by_reg[1] <= info_distram_rdata.redirect_taken_by_lane;
             end
-            else begin
+            else if (deq_ready) begin
                 valid_by_reg[1] <= valid_by_reg[1] & |(valid_vec_by_reg[1] & ~deqing_vec_by_reg[1]);
                 valid_vec_by_reg[1] <= valid_vec_by_reg[1] & ~deqing_vec_by_reg[1];
-                uncompressed_vec_by_reg[1] <= uncompressed_vec_by_reg[1];
-                redirect_vec_by_reg[1] <= redirect_vec_by_reg[1];
             end
 
             if (shift0_valid) begin
@@ -338,11 +336,9 @@ module ibuffer (
                 uncompressed_vec_by_reg[0] <= uncompressed_vec_by_reg[1];
                 redirect_vec_by_reg[0] <= redirect_vec_by_reg[1];
             end
-            else begin
+            else if (deq_ready) begin
                 valid_by_reg[0] <= valid_by_reg[0] & |(valid_vec_by_reg[0] & ~deqing_vec_by_reg[0]);
                 valid_vec_by_reg[0] <= valid_vec_by_reg[0] & ~deqing_vec_by_reg[0];
-                uncompressed_vec_by_reg[0] <= uncompressed_vec_by_reg[0];
-                redirect_vec_by_reg[0] <= redirect_vec_by_reg[0];
             end
 
             // top priority restart
@@ -355,16 +351,18 @@ module ibuffer (
 
     // shift reg deq logic
     always_comb begin
-        deq_valid = |valid_by_reg;
+        deq_valid = |deq_valid_by_way;
 
         // shift0 on shift reg 0 available next cycle
         shift0_valid = 
-            ~valid_by_reg[0]
-            | ~&(valid_vec_by_reg[0] & ~deqing_vec_by_reg[0])
-        ;
+            deq_ready & (
+                ~valid_by_reg[0]
+                | &(~valid_vec_by_reg[0] | deqing_vec_by_reg[0])
+            );
 
         // shift1 on shift reg 1 available next cycle
         shift1_valid = ~valid_by_reg[1] | shift0_valid;
+            // deq invalidation of reg 1 impossible without shift0_valid, so shift0_valid covers it
 
         distram_deq_ready = shift1_valid;
     end
