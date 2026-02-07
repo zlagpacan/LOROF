@@ -614,6 +614,47 @@ module ibuffer_deqer_tb #(
 
         check_outputs();
 
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = "case A";
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        tb_valid_vec = 16'b0000011111111100;
+        tb_uncompressed_vec = 16'b0000010010001000;
+		tb_redirect_vec = 16'b0000010000000000;
+
+        @(negedge CLK);
+
+        // outputs:
+
+        expected_count_vec = {
+            5'h07,
+            5'h07,
+            5'h07,
+            5'h07,
+            5'h07,
+            5'h07,
+            5'h06,
+            5'h05,
+            5'h05,
+            5'h04,
+            5'h03,
+            5'h02,
+            5'h02,
+            5'h01,
+            5'h00,
+            5'h00
+        };
+        expected_deqing_vec = 16'b0000000001111100;
+        expected_valid_by_way = 4'b1111;
+        expected_first_idx_by_way = {4'h6, 4'h5, 4'h3, 4'h2};
+        expected_second_idx_by_way = {4'h7, 4'h6, 4'h4, 4'h3};
+
+        check_outputs();
+
         // ------------------------------------------------------------
         // finish:
         @(posedge CLK); #(PERIOD/10);

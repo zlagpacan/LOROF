@@ -1670,12 +1670,12 @@ module ibuffer_tb #(
 		nRST = 1'b1;
 	    // enq
 		tb_enq_valid = 1'b1;
-		tb_enq_info.valid_by_lane = 8'b11111111;
-		tb_enq_info.btb_hit_by_lane = 8'b00000000;
-		tb_enq_info.redirect_taken_by_lane = 8'b00000000;
+		tb_enq_info.valid_by_lane = 8'b00000111;
+		tb_enq_info.btb_hit_by_lane = 8'b00000100;
+		tb_enq_info.redirect_taken_by_lane = 8'b00000100;
 		tb_enq_info.bcb_idx = 4'h2;
-		tb_enq_info.src_pc35 = {35'h969696969};
-		tb_enq_info.tgt_pc38 = {35'h787878787, 3'h0};
+		tb_enq_info.src_pc35 = {35'h878787878};
+		tb_enq_info.tgt_pc38 = {35'h000000000, 3'h0};
 		tb_enq_info.page_fault = 1'b0;
 		tb_enq_info.access_fault = 1'b0;
 		tb_enq_info.mdp_by_lane = {
@@ -1801,12 +1801,12 @@ module ibuffer_tb #(
 		nRST = 1'b1;
 	    // enq
 		tb_enq_valid = 1'b1;
-		tb_enq_info.valid_by_lane = 8'b11111111;
-		tb_enq_info.btb_hit_by_lane = 8'b00000000;
-		tb_enq_info.redirect_taken_by_lane = 8'b00000000;
+		tb_enq_info.valid_by_lane = 8'b00000111;
+		tb_enq_info.btb_hit_by_lane = 8'b00000100;
+		tb_enq_info.redirect_taken_by_lane = 8'b00000100;
 		tb_enq_info.bcb_idx = 4'h2;
-		tb_enq_info.src_pc35 = {35'h969696969};
-		tb_enq_info.tgt_pc38 = {35'h787878787, 3'h0};
+		tb_enq_info.src_pc35 = {35'h878787878};
+		tb_enq_info.tgt_pc38 = {35'h000000000, 3'h0};
 		tb_enq_info.page_fault = 1'b0;
 		tb_enq_info.access_fault = 1'b0;
 		tb_enq_info.mdp_by_lane = {
@@ -1932,12 +1932,12 @@ module ibuffer_tb #(
 		nRST = 1'b1;
 	    // enq
 		tb_enq_valid = 1'b1;
-		tb_enq_info.valid_by_lane = 8'b11111111;
-		tb_enq_info.btb_hit_by_lane = 8'b00000000;
-		tb_enq_info.redirect_taken_by_lane = 8'b00000000;
+		tb_enq_info.valid_by_lane = 8'b00000111;
+		tb_enq_info.btb_hit_by_lane = 8'b00000100;
+		tb_enq_info.redirect_taken_by_lane = 8'b00000100;
 		tb_enq_info.bcb_idx = 4'h2;
-		tb_enq_info.src_pc35 = {35'h969696969};
-		tb_enq_info.tgt_pc38 = {35'h787878787, 3'h0};
+		tb_enq_info.src_pc35 = {35'h878787878};
+		tb_enq_info.tgt_pc38 = {35'h000000000, 3'h0};
 		tb_enq_info.page_fault = 1'b0;
 		tb_enq_info.access_fault = 1'b0;
 		tb_enq_info.mdp_by_lane = {
@@ -2063,12 +2063,12 @@ module ibuffer_tb #(
 		nRST = 1'b1;
 	    // enq
 		tb_enq_valid = 1'b1;
-		tb_enq_info.valid_by_lane = 8'b11111111;
-		tb_enq_info.btb_hit_by_lane = 8'b00000000;
-		tb_enq_info.redirect_taken_by_lane = 8'b00000000;
+		tb_enq_info.valid_by_lane = 8'b00000111;
+		tb_enq_info.btb_hit_by_lane = 8'b00000100;
+		tb_enq_info.redirect_taken_by_lane = 8'b00000100;
 		tb_enq_info.bcb_idx = 4'h2;
-		tb_enq_info.src_pc35 = {35'h969696969};
-		tb_enq_info.tgt_pc38 = {35'h787878787, 3'h0};
+		tb_enq_info.src_pc35 = {35'h878787878};
+		tb_enq_info.tgt_pc38 = {35'h000000000, 3'h0};
 		tb_enq_info.page_fault = 1'b0;
 		tb_enq_info.access_fault = 1'b0;
 		tb_enq_info.mdp_by_lane = {
@@ -2228,14 +2228,14 @@ module ibuffer_tb #(
 		tb_fetch_miss_return_valid = 1'b1;
 		tb_fetch_miss_return_fmid = 4'h3;
 		tb_fetch_miss_return_fetch16B = {
-            16'h877F,
-            16'h876E,
-            16'h875D,
-            16'h8747,
+            16'h877C,
+            16'h876D,
+            16'h875E,
+            16'h874F,
             16'h8737,
             16'h8726,
             16'h8715,
-            16'h8703
+            16'h8704
         };
 	    // deq
 	    // def feedback
@@ -2359,12 +2359,12 @@ module ibuffer_tb #(
 		tb_fetch_miss_return_valid = 1'b1;
 		tb_fetch_miss_return_fmid = 4'h0;
 		tb_fetch_miss_return_fetch16B = {
-            16'h6971,
-            16'h6961,
-            16'h6951,
-            16'h6941,
-            16'h6931,
-            16'h6921,
+            16'h6970,
+            16'h6960,
+            16'h6950,
+            16'h6940,
+            16'h6930,
+            16'h6923,
             16'h6911,
             16'h6901
         };
@@ -2445,7 +2445,7 @@ module ibuffer_tb #(
 		sub_test_case = {
             "\n\t\tenq:         i",
             "\n\t\tmiss ret:    i",
-            "\n\t\tbuffer:      {C3h,B4h,A5h,96h,87h,78h,69h}",
+            "\n\t\tbuffer:      {B4h,A5h,96h,87h,78h,69h}",
             "\n\t\tshift reg 1: C3 {0,0,0,0,3,7,i,i}",
             "\n\t\tshift reg 0: D2 {i,i,i,i,B,A,9,8}",
             "\n\t\tdeq:         {D24B,D269,D278,C300}"
@@ -2576,10 +2576,10 @@ module ibuffer_tb #(
 		sub_test_case = {
             "\n\t\tenq:         i",
             "\n\t\tmiss ret:    i",
-            "\n\t\tbuffer:      {C3h,B4h,A5h,96h,87h,78h,69h}",
-            "\n\t\tshift reg 1: C3 {0,0,0,0,3,7,i,i}",
-            "\n\t\tshift reg 0: D2 {i,i,i,i,B,A,9,8}",
-            "\n\t\tdeq:         {D24B,D269,D278,C300}"
+            "\n\t\tbuffer:      {A5h,96h,87h,78h,69h}",
+            "\n\t\tshift reg 1: B4 {i,i,i,3,4,5,6,7}",
+            "\n\t\tshift reg 0: C3 {i,0,0,0,3,7,i,i}",
+            "\n\t\tdeq:         {C310,C320,C330,C340}"
         };
 		$display("\t- sub_test: %s", sub_test_case);
 
@@ -2654,26 +2654,1336 @@ module ibuffer_tb #(
 		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
 		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
 		expected_deq_entry_by_way[0].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h2D2D2D2D2, 3'h4};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h2D2D2D2D2, 3'h6};
+		expected_deq_entry_by_way[0].src_pc38 = {35'h2D2D2D2D3, 3'h1};
+		expected_deq_entry_by_way[0].tgt_pc38 = {35'h2D2D2D2D3, 3'h2};
 		expected_deq_entry_by_way[0].page_fault = 1'b0;
 		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hD4;
-		expected_deq_entry_by_way[0].fetch4B = {16'hD25A, 16'hD24B};
+		expected_deq_entry_by_way[0].mdp = 8'hC1;
+		expected_deq_entry_by_way[0].fetch4B = {16'hC320, 16'hC310};
 
 		expected_deq_entry_by_way[1].valid = 1'b1;
 		expected_deq_entry_by_way[1].btb_hit = 1'b0;
 		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
 		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
 		expected_deq_entry_by_way[1].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h2D2D2D2D2, 3'h6};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_deq_entry_by_way[1].src_pc38 = {35'h2D2D2D2D3, 3'h2};
+		expected_deq_entry_by_way[1].tgt_pc38 = {35'h2D2D2D2D3, 3'h3};
 		expected_deq_entry_by_way[1].page_fault = 1'b0;
 		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hD6;
-		expected_deq_entry_by_way[1].fetch4B = {16'hD278, 16'hD269};
+		expected_deq_entry_by_way[1].mdp = 8'hC2;
+		expected_deq_entry_by_way[1].fetch4B = {16'hC330, 16'hC320};
 
 		expected_deq_entry_by_way[2].valid = 1'b1;
+		expected_deq_entry_by_way[2].btb_hit = 1'b0;
+		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[2].bcb_idx = 4'h1;
+		expected_deq_entry_by_way[2].src_pc38 = {35'h2D2D2D2D3, 3'h3};
+		expected_deq_entry_by_way[2].tgt_pc38 = {35'h2D2D2D2D3, 3'h4};
+		expected_deq_entry_by_way[2].page_fault = 1'b0;
+		expected_deq_entry_by_way[2].access_fault = 1'b0;
+		expected_deq_entry_by_way[2].mdp = 8'hC3;
+		expected_deq_entry_by_way[2].fetch4B = {16'hC343, 16'hC330};
+
+		expected_deq_entry_by_way[3].valid = 1'b1;
+		expected_deq_entry_by_way[3].btb_hit = 1'b1;
+		expected_deq_entry_by_way[3].redirect_taken = 1'b1;
+		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[3].bcb_idx = 4'h1;
+		expected_deq_entry_by_way[3].src_pc38 = {35'h2D2D2D2D3, 3'h4};
+		expected_deq_entry_by_way[3].tgt_pc38 = {35'h3C3C3C3C3, 3'h3};
+		expected_deq_entry_by_way[3].page_fault = 1'b0;
+		expected_deq_entry_by_way[3].access_fault = 1'b0;
+		expected_deq_entry_by_way[3].mdp = 8'hC4;
+		expected_deq_entry_by_way[3].fetch4B = {16'hC357, 16'hC343};
+	    // def feedback
+	    // restart
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\tenq:         i",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tbuffer:      {96h,87h,78h,69h}",
+            "\n\t\tshift reg 1: A5 {0,3,3,0,3,3,0,3}",
+            "\n\t\tshift reg 0: B4 {i,i,i,3,4,5,6,7}",
+            "\n\t\tdeq:         {B433,B455,B466,B477}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // enq
+		tb_enq_valid = 1'b0;
+		tb_enq_info.valid_by_lane = 8'b00000000;
+		tb_enq_info.btb_hit_by_lane = 8'b00000000;
+		tb_enq_info.redirect_taken_by_lane = 8'b00000000;
+		tb_enq_info.bcb_idx = 4'h0;
+		tb_enq_info.src_pc35 = {35'h000000000};
+		tb_enq_info.tgt_pc38 = {35'h000000000, 3'h0};
+		tb_enq_info.page_fault = 1'b0;
+		tb_enq_info.access_fault = 1'b0;
+		tb_enq_info.mdp_by_lane = {
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00
+        };
+		tb_enq_fetch_hit_valid = 1'b0;
+		tb_enq_fetch_hit_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // enq feedback
+	    // fetch miss return
+		tb_fetch_miss_return_valid = 1'b0;
+		tb_fetch_miss_return_fmid = 4'h0;
+		tb_fetch_miss_return_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // deq
+	    // def feedback
+		tb_deq_ready = 1'b1;
+	    // restart
+		tb_restart_valid = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // enq
+	    // enq feedback
+		expected_enq_ready = 1'b1;
+		expected_enq_fmid = 4'h0;
+	    // fetch miss return
+	    // deq
+            // default: shift reg 1, lane 7
+		expected_deq_valid = 1'b1;
+
+		expected_deq_entry_by_way[0].valid = 1'b1;
+		expected_deq_entry_by_way[0].btb_hit = 1'b0;
+		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[0].src_pc38 = {35'h3C3C3C3C3, 3'h3};
+		expected_deq_entry_by_way[0].tgt_pc38 = {35'h3C3C3C3C3, 3'h5};
+		expected_deq_entry_by_way[0].page_fault = 1'b0;
+		expected_deq_entry_by_way[0].access_fault = 1'b0;
+		expected_deq_entry_by_way[0].mdp = 8'hB3;
+		expected_deq_entry_by_way[0].fetch4B = {16'hB444, 16'hB433};
+
+		expected_deq_entry_by_way[1].valid = 1'b1;
+		expected_deq_entry_by_way[1].btb_hit = 1'b0;
+		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[1].src_pc38 = {35'h3C3C3C3C3, 3'h5};
+		expected_deq_entry_by_way[1].tgt_pc38 = {35'h3C3C3C3C3, 3'h6};
+		expected_deq_entry_by_way[1].page_fault = 1'b0;
+		expected_deq_entry_by_way[1].access_fault = 1'b0;
+		expected_deq_entry_by_way[1].mdp = 8'hB5;
+		expected_deq_entry_by_way[1].fetch4B = {16'hB466, 16'hB455};
+
+		expected_deq_entry_by_way[2].valid = 1'b1;
+		expected_deq_entry_by_way[2].btb_hit = 1'b0;
+		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[2].src_pc38 = {35'h3C3C3C3C3, 3'h6};
+		expected_deq_entry_by_way[2].tgt_pc38 = {35'h3C3C3C3C3, 3'h7};
+		expected_deq_entry_by_way[2].page_fault = 1'b0;
+		expected_deq_entry_by_way[2].access_fault = 1'b0;
+		expected_deq_entry_by_way[2].mdp = 8'hB6;
+		expected_deq_entry_by_way[2].fetch4B = {16'hB477, 16'hB466};
+
+		expected_deq_entry_by_way[3].valid = 1'b1;
+		expected_deq_entry_by_way[3].btb_hit = 1'b0;
+		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[3].src_pc38 = {35'h3C3C3C3C3, 3'h7};
+		expected_deq_entry_by_way[3].tgt_pc38 = {35'h4B4B4B4B4, 3'h1};
+		expected_deq_entry_by_way[3].page_fault = 1'b1;
+		expected_deq_entry_by_way[3].access_fault = 1'b1;
+		expected_deq_entry_by_way[3].mdp = 8'hB7;
+		expected_deq_entry_by_way[3].fetch4B = {16'hA500, 16'hB477};
+	    // def feedback
+	    // restart
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\tenq:         i",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tbuffer:      {87h,78h,69h}",
+            "\n\t\tshift reg 1: 96 {7,6,5,4,3,2,1,0}",
+            "\n\t\tshift reg 0: A5 {i,3,3,0,3,3,0,3}",
+            "\n\t\tdeq:         {A513,A530,A543,A560}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // enq
+		tb_enq_valid = 1'b0;
+		tb_enq_info.valid_by_lane = 8'b00000000;
+		tb_enq_info.btb_hit_by_lane = 8'b00000000;
+		tb_enq_info.redirect_taken_by_lane = 8'b00000000;
+		tb_enq_info.bcb_idx = 4'h0;
+		tb_enq_info.src_pc35 = {35'h000000000};
+		tb_enq_info.tgt_pc38 = {35'h000000000, 3'h0};
+		tb_enq_info.page_fault = 1'b0;
+		tb_enq_info.access_fault = 1'b0;
+		tb_enq_info.mdp_by_lane = {
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00
+        };
+		tb_enq_fetch_hit_valid = 1'b0;
+		tb_enq_fetch_hit_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // enq feedback
+	    // fetch miss return
+		tb_fetch_miss_return_valid = 1'b0;
+		tb_fetch_miss_return_fmid = 4'h0;
+		tb_fetch_miss_return_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // deq
+	    // def feedback
+		tb_deq_ready = 1'b1;
+	    // restart
+		tb_restart_valid = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // enq
+	    // enq feedback
+		expected_enq_ready = 1'b1;
+		expected_enq_fmid = 4'h0;
+	    // fetch miss return
+	    // deq
+            // default: shift reg 1, lane 7
+		expected_deq_valid = 1'b1;
+
+		expected_deq_entry_by_way[0].valid = 1'b1;
+		expected_deq_entry_by_way[0].btb_hit = 1'b0;
+		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[0].src_pc38 = {35'h4B4B4B4B4, 3'h1};
+		expected_deq_entry_by_way[0].tgt_pc38 = {35'h4B4B4B4B4, 3'h3};
+		expected_deq_entry_by_way[0].page_fault = 1'b1;
+		expected_deq_entry_by_way[0].access_fault = 1'b1;
+		expected_deq_entry_by_way[0].mdp = 8'hA1;
+		expected_deq_entry_by_way[0].fetch4B = {16'hA523, 16'hA513};
+
+		expected_deq_entry_by_way[1].valid = 1'b1;
+		expected_deq_entry_by_way[1].btb_hit = 1'b0;
+		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[1].src_pc38 = {35'h4B4B4B4B4, 3'h3};
+		expected_deq_entry_by_way[1].tgt_pc38 = {35'h4B4B4B4B4, 3'h4};
+		expected_deq_entry_by_way[1].page_fault = 1'b1;
+		expected_deq_entry_by_way[1].access_fault = 1'b1;
+		expected_deq_entry_by_way[1].mdp = 8'hA3;
+		expected_deq_entry_by_way[1].fetch4B = {16'hA543, 16'hA530};
+
+		expected_deq_entry_by_way[2].valid = 1'b1;
+		expected_deq_entry_by_way[2].btb_hit = 1'b0;
+		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[2].src_pc38 = {35'h4B4B4B4B4, 3'h4};
+		expected_deq_entry_by_way[2].tgt_pc38 = {35'h4B4B4B4B4, 3'h6};
+		expected_deq_entry_by_way[2].page_fault = 1'b1;
+		expected_deq_entry_by_way[2].access_fault = 1'b1;
+		expected_deq_entry_by_way[2].mdp = 8'hA4;
+		expected_deq_entry_by_way[2].fetch4B = {16'hA553, 16'hA543};
+
+		expected_deq_entry_by_way[3].valid = 1'b1;
+		expected_deq_entry_by_way[3].btb_hit = 1'b0;
+		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[3].src_pc38 = {35'h4B4B4B4B4, 3'h6};
+		expected_deq_entry_by_way[3].tgt_pc38 = {35'h4B4B4B4B4, 3'h7};
+		expected_deq_entry_by_way[3].page_fault = 1'b1;
+		expected_deq_entry_by_way[3].access_fault = 1'b1;
+		expected_deq_entry_by_way[3].mdp = 8'hA6;
+		expected_deq_entry_by_way[3].fetch4B = {16'hA573, 16'hA560};
+	    // def feedback
+	    // restart
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\tenq:         i",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tbuffer:      {87h,78h,69h}",
+            "\n\t\tshift reg 1: 96 {7,6,5,4,3,2,1,0}",
+            "\n\t\tshift reg 0: A5 {i,i,i,i,i,i,i,3}",
+            "\n\t\tdeq:         {A573,9616,9625,9634} (stall)"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // enq
+		tb_enq_valid = 1'b0;
+		tb_enq_info.valid_by_lane = 8'b00000000;
+		tb_enq_info.btb_hit_by_lane = 8'b00000000;
+		tb_enq_info.redirect_taken_by_lane = 8'b00000000;
+		tb_enq_info.bcb_idx = 4'h0;
+		tb_enq_info.src_pc35 = {35'h000000000};
+		tb_enq_info.tgt_pc38 = {35'h000000000, 3'h0};
+		tb_enq_info.page_fault = 1'b0;
+		tb_enq_info.access_fault = 1'b0;
+		tb_enq_info.mdp_by_lane = {
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00
+        };
+		tb_enq_fetch_hit_valid = 1'b0;
+		tb_enq_fetch_hit_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // enq feedback
+	    // fetch miss return
+		tb_fetch_miss_return_valid = 1'b0;
+		tb_fetch_miss_return_fmid = 4'h0;
+		tb_fetch_miss_return_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // deq
+	    // def feedback
+		tb_deq_ready = 1'b0;
+	    // restart
+		tb_restart_valid = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // enq
+	    // enq feedback
+		expected_enq_ready = 1'b1;
+		expected_enq_fmid = 4'h0;
+	    // fetch miss return
+	    // deq
+            // default: shift reg 1, lane 7
+		expected_deq_valid = 1'b1;
+
+		expected_deq_entry_by_way[0].valid = 1'b1;
+		expected_deq_entry_by_way[0].btb_hit = 1'b0;
+		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[0].src_pc38 = {35'h4B4B4B4B4, 3'h7};
+		expected_deq_entry_by_way[0].tgt_pc38 = {35'h5A5A5A5A5, 3'h1};
+		expected_deq_entry_by_way[0].page_fault = 1'b1;
+		expected_deq_entry_by_way[0].access_fault = 1'b1;
+		expected_deq_entry_by_way[0].mdp = 8'hA7;
+		expected_deq_entry_by_way[0].fetch4B = {16'h9607, 16'hA573};
+
+		expected_deq_entry_by_way[1].valid = 1'b1;
+		expected_deq_entry_by_way[1].btb_hit = 1'b0;
+		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[1].src_pc38 = {35'h5A5A5A5A5, 3'h1};
+		expected_deq_entry_by_way[1].tgt_pc38 = {35'h5A5A5A5A5, 3'h2};
+		expected_deq_entry_by_way[1].page_fault = 1'b0;
+		expected_deq_entry_by_way[1].access_fault = 1'b0;
+		expected_deq_entry_by_way[1].mdp = 8'h91;
+		expected_deq_entry_by_way[1].fetch4B = {16'h9625, 16'h9616};
+
+		expected_deq_entry_by_way[2].valid = 1'b1;
+		expected_deq_entry_by_way[2].btb_hit = 1'b0;
+		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[2].src_pc38 = {35'h5A5A5A5A5, 3'h2};
+		expected_deq_entry_by_way[2].tgt_pc38 = {35'h5A5A5A5A5, 3'h3};
+		expected_deq_entry_by_way[2].page_fault = 1'b0;
+		expected_deq_entry_by_way[2].access_fault = 1'b0;
+		expected_deq_entry_by_way[2].mdp = 8'h92;
+		expected_deq_entry_by_way[2].fetch4B = {16'h9634, 16'h9625};
+
+		expected_deq_entry_by_way[3].valid = 1'b1;
+		expected_deq_entry_by_way[3].btb_hit = 1'b0;
+		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[3].src_pc38 = {35'h5A5A5A5A5, 3'h3};
+		expected_deq_entry_by_way[3].tgt_pc38 = {35'h5A5A5A5A5, 3'h4};
+		expected_deq_entry_by_way[3].page_fault = 1'b0;
+		expected_deq_entry_by_way[3].access_fault = 1'b0;
+		expected_deq_entry_by_way[3].mdp = 8'h93;
+		expected_deq_entry_by_way[3].fetch4B = {16'h9643, 16'h9634};
+	    // def feedback
+	    // restart
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\tenq:         i",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tbuffer:      {87h,78h,69h}",
+            "\n\t\tshift reg 1: 96 {7,6,5,4,3,2,1,0}",
+            "\n\t\tshift reg 0: A5 {i,i,i,i,i,i,i,3}",
+            "\n\t\tdeq:         {A573,9616,9625,9634}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // enq
+		tb_enq_valid = 1'b0;
+		tb_enq_info.valid_by_lane = 8'b00000000;
+		tb_enq_info.btb_hit_by_lane = 8'b00000000;
+		tb_enq_info.redirect_taken_by_lane = 8'b00000000;
+		tb_enq_info.bcb_idx = 4'h0;
+		tb_enq_info.src_pc35 = {35'h000000000};
+		tb_enq_info.tgt_pc38 = {35'h000000000, 3'h0};
+		tb_enq_info.page_fault = 1'b0;
+		tb_enq_info.access_fault = 1'b0;
+		tb_enq_info.mdp_by_lane = {
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00
+        };
+		tb_enq_fetch_hit_valid = 1'b0;
+		tb_enq_fetch_hit_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // enq feedback
+	    // fetch miss return
+		tb_fetch_miss_return_valid = 1'b0;
+		tb_fetch_miss_return_fmid = 4'h0;
+		tb_fetch_miss_return_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // deq
+	    // def feedback
+		tb_deq_ready = 1'b1;
+	    // restart
+		tb_restart_valid = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // enq
+	    // enq feedback
+		expected_enq_ready = 1'b1;
+		expected_enq_fmid = 4'h0;
+	    // fetch miss return
+	    // deq
+            // default: shift reg 1, lane 7
+		expected_deq_valid = 1'b1;
+
+		expected_deq_entry_by_way[0].valid = 1'b1;
+		expected_deq_entry_by_way[0].btb_hit = 1'b0;
+		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[0].src_pc38 = {35'h4B4B4B4B4, 3'h7};
+		expected_deq_entry_by_way[0].tgt_pc38 = {35'h5A5A5A5A5, 3'h1};
+		expected_deq_entry_by_way[0].page_fault = 1'b1;
+		expected_deq_entry_by_way[0].access_fault = 1'b1;
+		expected_deq_entry_by_way[0].mdp = 8'hA7;
+		expected_deq_entry_by_way[0].fetch4B = {16'h9607, 16'hA573};
+
+		expected_deq_entry_by_way[1].valid = 1'b1;
+		expected_deq_entry_by_way[1].btb_hit = 1'b0;
+		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[1].src_pc38 = {35'h5A5A5A5A5, 3'h1};
+		expected_deq_entry_by_way[1].tgt_pc38 = {35'h5A5A5A5A5, 3'h2};
+		expected_deq_entry_by_way[1].page_fault = 1'b0;
+		expected_deq_entry_by_way[1].access_fault = 1'b0;
+		expected_deq_entry_by_way[1].mdp = 8'h91;
+		expected_deq_entry_by_way[1].fetch4B = {16'h9625, 16'h9616};
+
+		expected_deq_entry_by_way[2].valid = 1'b1;
+		expected_deq_entry_by_way[2].btb_hit = 1'b0;
+		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[2].src_pc38 = {35'h5A5A5A5A5, 3'h2};
+		expected_deq_entry_by_way[2].tgt_pc38 = {35'h5A5A5A5A5, 3'h3};
+		expected_deq_entry_by_way[2].page_fault = 1'b0;
+		expected_deq_entry_by_way[2].access_fault = 1'b0;
+		expected_deq_entry_by_way[2].mdp = 8'h92;
+		expected_deq_entry_by_way[2].fetch4B = {16'h9634, 16'h9625};
+
+		expected_deq_entry_by_way[3].valid = 1'b1;
+		expected_deq_entry_by_way[3].btb_hit = 1'b0;
+		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[3].src_pc38 = {35'h5A5A5A5A5, 3'h3};
+		expected_deq_entry_by_way[3].tgt_pc38 = {35'h5A5A5A5A5, 3'h4};
+		expected_deq_entry_by_way[3].page_fault = 1'b0;
+		expected_deq_entry_by_way[3].access_fault = 1'b0;
+		expected_deq_entry_by_way[3].mdp = 8'h93;
+		expected_deq_entry_by_way[3].fetch4B = {16'h9643, 16'h9634};
+	    // def feedback
+	    // restart
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\tenq:         i",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tbuffer:      {78h,69h}",
+            "\n\t\tshift reg 1: 87 {4,5,6,7,F,E,D,C}",
+            "\n\t\tshift reg 0: 96 {i,i,i,i,3,2,1,0}",
+            "\n\t\tdeq:         {9643,9661,9670,8704}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // enq
+		tb_enq_valid = 1'b0;
+		tb_enq_info.valid_by_lane = 8'b00000000;
+		tb_enq_info.btb_hit_by_lane = 8'b00000000;
+		tb_enq_info.redirect_taken_by_lane = 8'b00000000;
+		tb_enq_info.bcb_idx = 4'h0;
+		tb_enq_info.src_pc35 = {35'h000000000};
+		tb_enq_info.tgt_pc38 = {35'h000000000, 3'h0};
+		tb_enq_info.page_fault = 1'b0;
+		tb_enq_info.access_fault = 1'b0;
+		tb_enq_info.mdp_by_lane = {
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00
+        };
+		tb_enq_fetch_hit_valid = 1'b0;
+		tb_enq_fetch_hit_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // enq feedback
+	    // fetch miss return
+		tb_fetch_miss_return_valid = 1'b0;
+		tb_fetch_miss_return_fmid = 4'h0;
+		tb_fetch_miss_return_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // deq
+	    // def feedback
+		tb_deq_ready = 1'b1;
+	    // restart
+		tb_restart_valid = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // enq
+	    // enq feedback
+		expected_enq_ready = 1'b1;
+		expected_enq_fmid = 4'h0;
+	    // fetch miss return
+	    // deq
+            // default: shift reg 1, lane 7
+		expected_deq_valid = 1'b1;
+
+		expected_deq_entry_by_way[0].valid = 1'b1;
+		expected_deq_entry_by_way[0].btb_hit = 1'b0;
+		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[0].src_pc38 = {35'h5A5A5A5A5, 3'h4};
+		expected_deq_entry_by_way[0].tgt_pc38 = {35'h5A5A5A5A5, 3'h6};
+		expected_deq_entry_by_way[0].page_fault = 1'b0;
+		expected_deq_entry_by_way[0].access_fault = 1'b0;
+		expected_deq_entry_by_way[0].mdp = 8'h94;
+		expected_deq_entry_by_way[0].fetch4B = {16'h9652, 16'h9643};
+
+		expected_deq_entry_by_way[1].valid = 1'b1;
+		expected_deq_entry_by_way[1].btb_hit = 1'b0;
+		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[1].src_pc38 = {35'h5A5A5A5A5, 3'h6};
+		expected_deq_entry_by_way[1].tgt_pc38 = {35'h5A5A5A5A5, 3'h7};
+		expected_deq_entry_by_way[1].page_fault = 1'b0;
+		expected_deq_entry_by_way[1].access_fault = 1'b0;
+		expected_deq_entry_by_way[1].mdp = 8'h96;
+		expected_deq_entry_by_way[1].fetch4B = {16'h9670, 16'h9661};
+
+		expected_deq_entry_by_way[2].valid = 1'b1;
+		expected_deq_entry_by_way[2].btb_hit = 1'b0;
+		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[2].src_pc38 = {35'h5A5A5A5A5, 3'h7};
+		expected_deq_entry_by_way[2].tgt_pc38 = {35'h696969696, 3'h0};
+		expected_deq_entry_by_way[2].page_fault = 1'b0;
+		expected_deq_entry_by_way[2].access_fault = 1'b0;
+		expected_deq_entry_by_way[2].mdp = 8'h97;
+		expected_deq_entry_by_way[2].fetch4B = {16'h8704, 16'h9670};
+
+		expected_deq_entry_by_way[3].valid = 1'b1;
+		expected_deq_entry_by_way[3].btb_hit = 1'b0;
+		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[3].src_pc38 = {35'h696969696, 3'h0};
+		expected_deq_entry_by_way[3].tgt_pc38 = {35'h696969696, 3'h1};
+		expected_deq_entry_by_way[3].page_fault = 1'b0;
+		expected_deq_entry_by_way[3].access_fault = 1'b0;
+		expected_deq_entry_by_way[3].mdp = 8'h80;
+		expected_deq_entry_by_way[3].fetch4B = {16'h8715, 16'h8704};
+	    // def feedback
+	    // restart
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\tenq:         i",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tbuffer:      {69h}",
+            "\n\t\tshift reg 1: 78 {8,9,A,B,C,D,E,F}",
+            "\n\t\tshift reg 0: 87 {i,5,6,7,F,E,D,C}",
+            "\n\t\tdeq:         {8715,8726,8737,875E}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // enq
+		tb_enq_valid = 1'b0;
+		tb_enq_info.valid_by_lane = 8'b00000000;
+		tb_enq_info.btb_hit_by_lane = 8'b00000000;
+		tb_enq_info.redirect_taken_by_lane = 8'b00000000;
+		tb_enq_info.bcb_idx = 4'h0;
+		tb_enq_info.src_pc35 = {35'h000000000};
+		tb_enq_info.tgt_pc38 = {35'h000000000, 3'h0};
+		tb_enq_info.page_fault = 1'b0;
+		tb_enq_info.access_fault = 1'b0;
+		tb_enq_info.mdp_by_lane = {
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00
+        };
+		tb_enq_fetch_hit_valid = 1'b0;
+		tb_enq_fetch_hit_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // enq feedback
+	    // fetch miss return
+		tb_fetch_miss_return_valid = 1'b0;
+		tb_fetch_miss_return_fmid = 4'h0;
+		tb_fetch_miss_return_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // deq
+	    // def feedback
+		tb_deq_ready = 1'b1;
+	    // restart
+		tb_restart_valid = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // enq
+	    // enq feedback
+		expected_enq_ready = 1'b1;
+		expected_enq_fmid = 4'h0;
+	    // fetch miss return
+	    // deq
+            // default: shift reg 1, lane 7
+		expected_deq_valid = 1'b1;
+
+		expected_deq_entry_by_way[0].valid = 1'b1;
+		expected_deq_entry_by_way[0].btb_hit = 1'b0;
+		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[0].src_pc38 = {35'h696969696, 3'h1};
+		expected_deq_entry_by_way[0].tgt_pc38 = {35'h696969696, 3'h2};
+		expected_deq_entry_by_way[0].page_fault = 1'b0;
+		expected_deq_entry_by_way[0].access_fault = 1'b0;
+		expected_deq_entry_by_way[0].mdp = 8'h81;
+		expected_deq_entry_by_way[0].fetch4B = {16'h8726, 16'h8715};
+
+		expected_deq_entry_by_way[1].valid = 1'b1;
+		expected_deq_entry_by_way[1].btb_hit = 1'b0;
+		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[1].src_pc38 = {35'h696969696, 3'h2};
+		expected_deq_entry_by_way[1].tgt_pc38 = {35'h696969696, 3'h3};
+		expected_deq_entry_by_way[1].page_fault = 1'b0;
+		expected_deq_entry_by_way[1].access_fault = 1'b0;
+		expected_deq_entry_by_way[1].mdp = 8'h82;
+		expected_deq_entry_by_way[1].fetch4B = {16'h8737, 16'h8726};
+
+		expected_deq_entry_by_way[2].valid = 1'b1;
+		expected_deq_entry_by_way[2].btb_hit = 1'b0;
+		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[2].src_pc38 = {35'h696969696, 3'h3};
+		expected_deq_entry_by_way[2].tgt_pc38 = {35'h696969696, 3'h5};
+		expected_deq_entry_by_way[2].page_fault = 1'b0;
+		expected_deq_entry_by_way[2].access_fault = 1'b0;
+		expected_deq_entry_by_way[2].mdp = 8'h83;
+		expected_deq_entry_by_way[2].fetch4B = {16'h874F, 16'h8737};
+
+		expected_deq_entry_by_way[3].valid = 1'b1;
+		expected_deq_entry_by_way[3].btb_hit = 1'b0;
+		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[3].src_pc38 = {35'h696969696, 3'h5};
+		expected_deq_entry_by_way[3].tgt_pc38 = {35'h696969696, 3'h6};
+		expected_deq_entry_by_way[3].page_fault = 1'b0;
+		expected_deq_entry_by_way[3].access_fault = 1'b0;
+		expected_deq_entry_by_way[3].mdp = 8'h85;
+		expected_deq_entry_by_way[3].fetch4B = {16'h876D, 16'h875E};
+	    // def feedback
+	    // restart
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\tenq:         i",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tbuffer:      {69h}",
+            "\n\t\tshift reg 1: 78 {8,9,A,B,C,D,E,F}",
+            "\n\t\tshift reg 0: 87 {i,i,i,i,i,i,D,C}",
+            "\n\t\tdeq:         {876D,877C,7808,7819}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // enq
+		tb_enq_valid = 1'b0;
+		tb_enq_info.valid_by_lane = 8'b00000000;
+		tb_enq_info.btb_hit_by_lane = 8'b00000000;
+		tb_enq_info.redirect_taken_by_lane = 8'b00000000;
+		tb_enq_info.bcb_idx = 4'h0;
+		tb_enq_info.src_pc35 = {35'h000000000};
+		tb_enq_info.tgt_pc38 = {35'h000000000, 3'h0};
+		tb_enq_info.page_fault = 1'b0;
+		tb_enq_info.access_fault = 1'b0;
+		tb_enq_info.mdp_by_lane = {
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00
+        };
+		tb_enq_fetch_hit_valid = 1'b0;
+		tb_enq_fetch_hit_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // enq feedback
+	    // fetch miss return
+		tb_fetch_miss_return_valid = 1'b0;
+		tb_fetch_miss_return_fmid = 4'h0;
+		tb_fetch_miss_return_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // deq
+	    // def feedback
+		tb_deq_ready = 1'b1;
+	    // restart
+		tb_restart_valid = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // enq
+	    // enq feedback
+		expected_enq_ready = 1'b1;
+		expected_enq_fmid = 4'h0;
+	    // fetch miss return
+	    // deq
+            // default: shift reg 1, lane 7
+		expected_deq_valid = 1'b1;
+
+		expected_deq_entry_by_way[0].valid = 1'b1;
+		expected_deq_entry_by_way[0].btb_hit = 1'b0;
+		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[0].src_pc38 = {35'h696969696, 3'h6};
+		expected_deq_entry_by_way[0].tgt_pc38 = {35'h696969696, 3'h7};
+		expected_deq_entry_by_way[0].page_fault = 1'b0;
+		expected_deq_entry_by_way[0].access_fault = 1'b0;
+		expected_deq_entry_by_way[0].mdp = 8'h86;
+		expected_deq_entry_by_way[0].fetch4B = {16'h877C, 16'h876D};
+
+		expected_deq_entry_by_way[1].valid = 1'b1;
+		expected_deq_entry_by_way[1].btb_hit = 1'b0;
+		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[1].src_pc38 = {35'h696969696, 3'h7};
+		expected_deq_entry_by_way[1].tgt_pc38 = {35'h787878787, 3'h0};
+		expected_deq_entry_by_way[1].page_fault = 1'b0;
+		expected_deq_entry_by_way[1].access_fault = 1'b0;
+		expected_deq_entry_by_way[1].mdp = 8'h87;
+		expected_deq_entry_by_way[1].fetch4B = {16'h7808, 16'h877C};
+
+		expected_deq_entry_by_way[2].valid = 1'b1;
+		expected_deq_entry_by_way[2].btb_hit = 1'b0;
+		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[2].src_pc38 = {35'h787878787, 3'h0};
+		expected_deq_entry_by_way[2].tgt_pc38 = {35'h787878787, 3'h1};
+		expected_deq_entry_by_way[2].page_fault = 1'b0;
+		expected_deq_entry_by_way[2].access_fault = 1'b0;
+		expected_deq_entry_by_way[2].mdp = 8'h70;
+		expected_deq_entry_by_way[2].fetch4B = {16'h7819, 16'h7808};
+
+		expected_deq_entry_by_way[3].valid = 1'b1;
+		expected_deq_entry_by_way[3].btb_hit = 1'b0;
+		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[3].src_pc38 = {35'h787878787, 3'h1};
+		expected_deq_entry_by_way[3].tgt_pc38 = {35'h787878787, 3'h2};
+		expected_deq_entry_by_way[3].page_fault = 1'b0;
+		expected_deq_entry_by_way[3].access_fault = 1'b0;
+		expected_deq_entry_by_way[3].mdp = 8'h71;
+		expected_deq_entry_by_way[3].fetch4B = {16'h782A, 16'h7819};
+	    // def feedback
+	    // restart
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\tenq:         i",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tbuffer:      {}",
+            "\n\t\tshift reg 1: 69 {1,1,3,i,i,i,i,i}",
+            "\n\t\tshift reg 0: 78 {i,i,A,B,C,D,E,F}",
+            "\n\t\tdeq:         {782A,783B,785D,786E}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // enq
+		tb_enq_valid = 1'b0;
+		tb_enq_info.valid_by_lane = 8'b00000000;
+		tb_enq_info.btb_hit_by_lane = 8'b00000000;
+		tb_enq_info.redirect_taken_by_lane = 8'b00000000;
+		tb_enq_info.bcb_idx = 4'h0;
+		tb_enq_info.src_pc35 = {35'h000000000};
+		tb_enq_info.tgt_pc38 = {35'h000000000, 3'h0};
+		tb_enq_info.page_fault = 1'b0;
+		tb_enq_info.access_fault = 1'b0;
+		tb_enq_info.mdp_by_lane = {
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00
+        };
+		tb_enq_fetch_hit_valid = 1'b0;
+		tb_enq_fetch_hit_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // enq feedback
+	    // fetch miss return
+		tb_fetch_miss_return_valid = 1'b0;
+		tb_fetch_miss_return_fmid = 4'h0;
+		tb_fetch_miss_return_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // deq
+	    // def feedback
+		tb_deq_ready = 1'b1;
+	    // restart
+		tb_restart_valid = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // enq
+	    // enq feedback
+		expected_enq_ready = 1'b1;
+		expected_enq_fmid = 4'h0;
+	    // fetch miss return
+	    // deq
+            // default: shift reg 1, lane 7
+		expected_deq_valid = 1'b1;
+
+		expected_deq_entry_by_way[0].valid = 1'b1;
+		expected_deq_entry_by_way[0].btb_hit = 1'b0;
+		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[0].src_pc38 = {35'h787878787, 3'h2};
+		expected_deq_entry_by_way[0].tgt_pc38 = {35'h787878787, 3'h3};
+		expected_deq_entry_by_way[0].page_fault = 1'b0;
+		expected_deq_entry_by_way[0].access_fault = 1'b0;
+		expected_deq_entry_by_way[0].mdp = 8'h72;
+		expected_deq_entry_by_way[0].fetch4B = {16'h783B, 16'h782A};
+
+		expected_deq_entry_by_way[1].valid = 1'b1;
+		expected_deq_entry_by_way[1].btb_hit = 1'b0;
+		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[1].src_pc38 = {35'h787878787, 3'h3};
+		expected_deq_entry_by_way[1].tgt_pc38 = {35'h787878787, 3'h5};
+		expected_deq_entry_by_way[1].page_fault = 1'b0;
+		expected_deq_entry_by_way[1].access_fault = 1'b0;
+		expected_deq_entry_by_way[1].mdp = 8'h73;
+		expected_deq_entry_by_way[1].fetch4B = {16'h784C, 16'h783B};
+
+		expected_deq_entry_by_way[2].valid = 1'b1;
+		expected_deq_entry_by_way[2].btb_hit = 1'b0;
+		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[2].src_pc38 = {35'h787878787, 3'h5};
+		expected_deq_entry_by_way[2].tgt_pc38 = {35'h787878787, 3'h6};
+		expected_deq_entry_by_way[2].page_fault = 1'b0;
+		expected_deq_entry_by_way[2].access_fault = 1'b0;
+		expected_deq_entry_by_way[2].mdp = 8'h75;
+		expected_deq_entry_by_way[2].fetch4B = {16'h786E, 16'h785D};
+
+		expected_deq_entry_by_way[3].valid = 1'b1;
+		expected_deq_entry_by_way[3].btb_hit = 1'b0;
+		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[3].src_pc38 = {35'h787878787, 3'h6};
+		expected_deq_entry_by_way[3].tgt_pc38 = {35'h787878787, 3'h7};
+		expected_deq_entry_by_way[3].page_fault = 1'b0;
+		expected_deq_entry_by_way[3].access_fault = 1'b0;
+		expected_deq_entry_by_way[3].mdp = 8'h76;
+		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h786E};
+	    // def feedback
+	    // restart
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\tenq:         i",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tbuffer:      {}",
+            "\n\t\tshift reg 1: 69 {1,1,3,i,i,i,i,i}",
+            "\n\t\tshift reg 0: 78 {i,i,i,i,i,i,i,F}",
+            "\n\t\tdeq:         {787F,6911,6922,i}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // enq
+		tb_enq_valid = 1'b0;
+		tb_enq_info.valid_by_lane = 8'b00000000;
+		tb_enq_info.btb_hit_by_lane = 8'b00000000;
+		tb_enq_info.redirect_taken_by_lane = 8'b00000000;
+		tb_enq_info.bcb_idx = 4'h0;
+		tb_enq_info.src_pc35 = {35'h000000000};
+		tb_enq_info.tgt_pc38 = {35'h000000000, 3'h0};
+		tb_enq_info.page_fault = 1'b0;
+		tb_enq_info.access_fault = 1'b0;
+		tb_enq_info.mdp_by_lane = {
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00
+        };
+		tb_enq_fetch_hit_valid = 1'b0;
+		tb_enq_fetch_hit_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // enq feedback
+	    // fetch miss return
+		tb_fetch_miss_return_valid = 1'b0;
+		tb_fetch_miss_return_fmid = 4'h0;
+		tb_fetch_miss_return_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // deq
+	    // def feedback
+		tb_deq_ready = 1'b1;
+	    // restart
+		tb_restart_valid = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // enq
+	    // enq feedback
+		expected_enq_ready = 1'b1;
+		expected_enq_fmid = 4'h0;
+	    // fetch miss return
+	    // deq
+            // default: shift reg 1, lane 7
+		expected_deq_valid = 1'b1;
+
+		expected_deq_entry_by_way[0].valid = 1'b1;
+		expected_deq_entry_by_way[0].btb_hit = 1'b0;
+		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[0].src_pc38 = {35'h787878787, 3'h7};
+		expected_deq_entry_by_way[0].tgt_pc38 = {35'h878787878, 3'h1};
+		expected_deq_entry_by_way[0].page_fault = 1'b0;
+		expected_deq_entry_by_way[0].access_fault = 1'b0;
+		expected_deq_entry_by_way[0].mdp = 8'h77;
+		expected_deq_entry_by_way[0].fetch4B = {16'h6901, 16'h787F};
+
+		expected_deq_entry_by_way[1].valid = 1'b1;
+		expected_deq_entry_by_way[1].btb_hit = 1'b0;
+		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[1].src_pc38 = {35'h878787878, 3'h1};
+		expected_deq_entry_by_way[1].tgt_pc38 = {35'h878787878, 3'h2};
+		expected_deq_entry_by_way[1].page_fault = 1'b0;
+		expected_deq_entry_by_way[1].access_fault = 1'b0;
+		expected_deq_entry_by_way[1].mdp = 8'h61;
+		expected_deq_entry_by_way[1].fetch4B = {16'h6923, 16'h6911};
+
+		expected_deq_entry_by_way[2].valid = 1'b1;
+		expected_deq_entry_by_way[2].btb_hit = 1'b0;
+		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b1;
+		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[2].src_pc38 = {35'h878787878, 3'h2};
+		expected_deq_entry_by_way[2].tgt_pc38 = {35'h878787878, 3'h4}; // don't care on mid_instr_redirect
+		expected_deq_entry_by_way[2].page_fault = 1'b0;
+		expected_deq_entry_by_way[2].access_fault = 1'b0;
+		expected_deq_entry_by_way[2].mdp = 8'h62;
+		expected_deq_entry_by_way[2].fetch4B = {16'h6930, 16'h6923};
+
+		expected_deq_entry_by_way[3].valid = 1'b0;
+		expected_deq_entry_by_way[3].btb_hit = 1'b0;
+		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
+		expected_deq_entry_by_way[3].src_pc38 = {35'h878787878, 3'h7};
+		expected_deq_entry_by_way[3].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_deq_entry_by_way[3].page_fault = 1'b0;
+		expected_deq_entry_by_way[3].access_fault = 1'b0;
+		expected_deq_entry_by_way[3].mdp = 8'h67;
+		expected_deq_entry_by_way[3].fetch4B = {16'h6970, 16'h6970};
+	    // def feedback
+	    // restart
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\tenq:         i",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tbuffer:      {}",
+            "\n\t\tshift reg 1: _ {i,i,i,i,i,i,i,i}",
+            "\n\t\tshift reg 0: _ {i,i,i,i,i,i,i,i}",
+            "\n\t\tdeq:         {i,i,i,i}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // enq
+		tb_enq_valid = 1'b0;
+		tb_enq_info.valid_by_lane = 8'b00000000;
+		tb_enq_info.btb_hit_by_lane = 8'b00000000;
+		tb_enq_info.redirect_taken_by_lane = 8'b00000000;
+		tb_enq_info.bcb_idx = 4'h0;
+		tb_enq_info.src_pc35 = {35'h000000000};
+		tb_enq_info.tgt_pc38 = {35'h000000000, 3'h0};
+		tb_enq_info.page_fault = 1'b0;
+		tb_enq_info.access_fault = 1'b0;
+		tb_enq_info.mdp_by_lane = {
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00,
+            8'h00
+        };
+		tb_enq_fetch_hit_valid = 1'b0;
+		tb_enq_fetch_hit_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // enq feedback
+	    // fetch miss return
+		tb_fetch_miss_return_valid = 1'b0;
+		tb_fetch_miss_return_fmid = 4'h0;
+		tb_fetch_miss_return_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // deq
+	    // def feedback
+		tb_deq_ready = 1'b1;
+	    // restart
+		tb_restart_valid = 1'b0;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // enq
+	    // enq feedback
+		expected_enq_ready = 1'b1;
+		expected_enq_fmid = 4'h0;
+	    // fetch miss return
+	    // deq
+            // default: shift reg 1, lane 7
+		expected_deq_valid = 1'b0;
+
+		expected_deq_entry_by_way[0].valid = 1'b0;
+		expected_deq_entry_by_way[0].btb_hit = 1'b0;
+		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[0].bcb_idx = 4'h1;
+		expected_deq_entry_by_way[0].src_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_deq_entry_by_way[0].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
+		expected_deq_entry_by_way[0].page_fault = 1'b0;
+		expected_deq_entry_by_way[0].access_fault = 1'b0;
+		expected_deq_entry_by_way[0].mdp = 8'hD7;
+		expected_deq_entry_by_way[0].fetch4B = {16'hD278, 16'hD278};
+
+		expected_deq_entry_by_way[1].valid = 1'b0;
+		expected_deq_entry_by_way[1].btb_hit = 1'b0;
+		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
+		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
+		expected_deq_entry_by_way[1].bcb_idx = 4'h1;
+		expected_deq_entry_by_way[1].src_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_deq_entry_by_way[1].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
+		expected_deq_entry_by_way[1].page_fault = 1'b0;
+		expected_deq_entry_by_way[1].access_fault = 1'b0;
+		expected_deq_entry_by_way[1].mdp = 8'hD7;
+		expected_deq_entry_by_way[1].fetch4B = {16'hD278, 16'hD278};
+
+		expected_deq_entry_by_way[2].valid = 1'b0;
 		expected_deq_entry_by_way[2].btb_hit = 1'b0;
 		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
 		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
@@ -2683,19 +3993,19 @@ module ibuffer_tb #(
 		expected_deq_entry_by_way[2].page_fault = 1'b0;
 		expected_deq_entry_by_way[2].access_fault = 1'b0;
 		expected_deq_entry_by_way[2].mdp = 8'hD7;
-		expected_deq_entry_by_way[2].fetch4B = {16'hC300, 16'hD278};
+		expected_deq_entry_by_way[2].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[3].valid = 1'b1;
+		expected_deq_entry_by_way[3].valid = 1'b0;
 		expected_deq_entry_by_way[3].btb_hit = 1'b0;
 		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
 		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
 		expected_deq_entry_by_way[3].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h2D2D2D2D3, 3'h0};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h2D2D2D2D3, 3'h1};
+		expected_deq_entry_by_way[3].src_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_deq_entry_by_way[3].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
 		expected_deq_entry_by_way[3].page_fault = 1'b0;
 		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hC0;
-		expected_deq_entry_by_way[3].fetch4B = {16'hC310, 16'hC300};
+		expected_deq_entry_by_way[3].mdp = 8'hD7;
+		expected_deq_entry_by_way[3].fetch4B = {16'hD278, 16'hD278};
 	    // def feedback
 	    // restart
 
