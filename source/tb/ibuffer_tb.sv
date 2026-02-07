@@ -4011,6 +4011,8 @@ module ibuffer_tb #(
 
 		check_outputs();
 
+        // TODO: run out of fmid's, restart
+
         // ------------------------------------------------------------
         // finish:
         @(posedge CLK); #(PERIOD/10);
