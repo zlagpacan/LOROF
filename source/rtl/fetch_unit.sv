@@ -95,14 +95,14 @@ module fetch_unit (
     input corep::fetch16B_t     icache_miss_return_fetch16B,
 
     // ibuffer enq
-    input logic                         enq_valid,
-    input corep::ibuffer_enq_info_t     enq_info,
-    input logic                         enq_fetch_hit_valid,
-    input corep::fetch16B_t             enq_fetch_hit_fetch16B,
+    input logic                         ibuffer_enq_valid,
+    input corep::ibuffer_enq_info_t     ibuffer_enq_info,
+    input logic                         ibuffer_enq_fetch_hit_valid,
+    input corep::fetch16B_t             ibuffer_enq_fetch_hit_fetch16B,
 
     // ibuffer enq feedback
-    output logic                        enq_ready,
-    output corep::fmid_t                enq_fmid,
+    output logic                        ibuffer_enq_ready,
+    output corep::fmid_t                ibuffer_enq_fmid,
 
     // fetch + decode restart from ROB
     input logic                 rob_restart_valid,
