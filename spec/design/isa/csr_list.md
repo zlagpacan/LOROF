@@ -967,7 +967,7 @@ Control/Status Register List for ISA: RV64GC_Zicsr_Zifencei Sv39
                     - maybe [16] for power-on reset
             - Interrupt = 0:
                 - [0]: instr addr misaligned = 1'b0
-                    - IALIGN=16, so won't happen
+                    - PC64[0] == 1'b0 else misaligned
                 - [1]: instr access fault
                     - PMA (supported) or PMP (unsupported)
                 - [2]: illegal instr
