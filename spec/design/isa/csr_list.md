@@ -434,18 +434,21 @@ Control/Status Register List for ISA: RV64GC_Zicsr_Zifencei Sv39
                     - maybe [16] for power-on reset
             - Interrupt = 0:
                 - [0]: instr addr misaligned = 1'b0
-                    - IALIGN=16, so won't happen
+                    - PC64[0] == 1'b0 else misaligned
+                    - report on instruction whose target address is misaligned
+                        - jumps, branches
+                        - also mret, sret if write bad addr in mepc, sepc
                 - [1]: instr access fault
                     - PMA (supported) or PMP (unsupported)
                 - [2]: illegal instr
                 - [3]: breakpoint
                     - EBREAK
                 - [4]: load addr misaligned
-                    - will only be for misaligned LR.W
+                    - including LR.W
                 - [5]: load access fault = 1'b0
                     - PMA (supported) or PMP (unsupported)
                 - [6]: store/amo addr misaligned
-                    - will only be for misaligned SC.W, AMO*
+                    - including SC.W, AMO*.W misaligned
                 - [7]: store/amo access fault = 1'b0
                     - PMA (supported) or PMP (unsupported)
                 - [8]: ECALL from U-mode
@@ -968,17 +971,20 @@ Control/Status Register List for ISA: RV64GC_Zicsr_Zifencei Sv39
             - Interrupt = 0:
                 - [0]: instr addr misaligned = 1'b0
                     - PC64[0] == 1'b0 else misaligned
+                    - report on instruction whose target address is misaligned
+                        - jumps, branches
+                        - also mret, sret if write bad addr in mepc, sepc
                 - [1]: instr access fault
                     - PMA (supported) or PMP (unsupported)
                 - [2]: illegal instr
                 - [3]: breakpoint
                     - EBREAK
                 - [4]: load addr misaligned
-                    - need for LR.W misaligned
+                    - including LR.W
                 - [5]: load access fault = 1'b0
                     - PMA (supported) or PMP (unsupported)
                 - [6]: store/amo addr misaligned
-                    - need for SC.W, AMO*.W misaligned
+                    - including SC.W, AMO*.W misaligned
                 - [7]: store/amo access fault = 1'b0
                     - PMA (supported) or PMP (unsupported)
                 - [8]: ECALL from U-mode
