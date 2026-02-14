@@ -124,7 +124,7 @@ module pht (
     // update logic
     always_comb begin
         pht_array_bram_read_port1_next_valid = update_valid;
-        pht_array_bram_read_port1_next_index = index_hash(corep::fetch_idx_bits(update_pc38), update_gh, update_asid);
+        pht_array_bram_read_port1_next_index = index_hash(update_pc38.idx, update_gh, update_asid);
     end
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
@@ -139,7 +139,7 @@ module pht (
         else begin
             pht_array_bram_write_index <= pht_array_bram_read_port1_next_index;
 
-            update_write_lane <= lane_hash(corep::fetch_lane_bits(update_pc38), update_gh);
+            update_write_lane <= lane_hash(update_pc38.lane, update_gh);
             update_write_taken <= update_taken;
             update_write_last_valid <= update_valid;
             update_write_forward <= update_write_last_valid & (pht_array_bram_read_port1_next_index == pht_array_bram_write_index);

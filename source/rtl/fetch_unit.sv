@@ -22,9 +22,12 @@
             // yield PC index bits if fast redirect
             // fast redirect -> REQ
         // LATE:
-            // upct, ibtb lookup
+            // ibtb lookup
             // yield full pc
             // slow redirect -> REQ
+        // RESP2:
+            // upct
+            // yield full pc after fast redirect w/ small target + upct
 // TODO: prediction <-> fetch interaction
     // idea: index Q + tag Q
         // probably want to rename something like index Q + tag Q
@@ -136,8 +139,9 @@ module fetch_unit (
     input corep::mdp_t      mdpt_update_mdp
 );
 
-    // need to save LATE upct in RESP stage in case where previous instr needed upct to route to this instr
-        // and this instr needs LATE for ibtb
+    // pc:
+        // REQ, RESP, RESP2, LATE
+        // 
 
     // ----------------------------------------------------------------
     // Signals:
@@ -168,6 +172,8 @@ module fetch_unit (
     corep::pc38_t       REQ_latched_pc38;
     corep::pc38_t       REQ_pc38_next_8;
     corep::fetch_idx_t  REQ_broadcast_fetch_idx;
+    logic               REQ_received_upc_valid;
+    corep::upc_t        REQ_received_upc;
 
     corep::gh_t REQ_gh;
     corep::gh_t REQ_broadcast_gh;
@@ -177,7 +183,11 @@ module fetch_unit (
     /////////////////
 
     corep::pc38_t       RESP_latched_pc38;
-    corep::fetch_idx_t  RESP_fetch_idx;
+    corep::pc38_t       RESP_pc38_next_8;
+    corep::fetch_idx_t  RESP_broadcast_fetch_idx;
+    logic               RESP_received_pc38_valid;
+    corep::pc38_t       RESP_received_pc38;
+    corep::pc38_t       RESP_final_pc38;
 
     ////////////////
     // module IO: //

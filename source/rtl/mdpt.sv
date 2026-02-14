@@ -66,8 +66,8 @@ module mdpt (
 
     // write logic
     always_comb begin
-        update_index = index_hash(corep::fetch_idx_bits(update_pc38), update_asid);
-        update_lane = corep::fetch_lane_bits(update_pc38);
+        update_index = index_hash(update_pc38.idx, update_asid);
+        update_lane = update_pc38.lane;
 
         mdpt_array_bram_write_byten = '0;
         if (update_valid) begin

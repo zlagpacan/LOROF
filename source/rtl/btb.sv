@@ -117,12 +117,12 @@ module btb (
         read_resp_hit_way0 =
             |btb_array_bram_read_set[0].info.action
             & (btb_array_bram_read_set[0].tag == tag_hash(read_resp_pc38, read_resp_asid))
-            & (btb_array_bram_read_set[0].lane >= corep::fetch_lane_bits(read_resp_pc38))
+            & (btb_array_bram_read_set[0].lane >= read_resp_pc38.lane)
         ;
         read_resp_hit_way1 =
             |btb_array_bram_read_set[1].info.action
             & (btb_array_bram_read_set[1].tag == tag_hash(read_resp_pc38, read_resp_asid))
-            & (btb_array_bram_read_set[1].lane >= corep::fetch_lane_bits(read_resp_pc38))
+            & (btb_array_bram_read_set[1].lane >= read_resp_pc38.lane)
         ;
         read_resp_hit = read_resp_hit_way0 | read_resp_hit_way1;
         read_resp_double_hit = read_resp_hit_way0 & read_resp_hit_way1;
@@ -160,7 +160,7 @@ module btb (
 
     // write logic
     always_comb begin
-        update_index = index_hash(corep::fetch_idx_bits(update_pc38), update_asid);
+        update_index = index_hash(update_pc38.idx, update_asid);
         if (update_hit) begin
             update_selected_way = update_hit_way;
         end
@@ -181,7 +181,7 @@ module btb (
         for (int way = 0; way < corep::BTB_ASSOC; way++) begin
             btb_array_bram_write_set[way].info = update_btb_info;
             btb_array_bram_write_set[way].tag = tag_hash(update_pc38, update_asid);
-            btb_array_bram_write_set[way].lane = corep::fetch_lane_bits(update_pc38);
+            btb_array_bram_write_set[way].lane = update_pc38.lane;
         end
     end
 

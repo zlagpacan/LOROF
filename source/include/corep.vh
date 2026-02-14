@@ -41,12 +41,7 @@ package corep;
     parameter exec_mode_t EXEC_MODE_S = 2'b01;
     parameter exec_mode_t EXEC_MODE_M = 2'b11;
 
-    typedef logic [37:0] pc38_t;
-        // legal 64b fetch addr: {{25{pc38[37]}}, pc38[37:0], 1'b0}
-    typedef logic [34:0] pc35_t;
-        // legal 64b fetch addr: {{25{pc35[34]}}, pc35[34:0], 3'b000, 1'b0}
-
-    parameter pc38_t INIT_PC38 = 38'h0;
+    parameter logic [37:0] INIT_PC38 = 38'h0;
     parameter asid_t INIT_ASID = 16'h0;
     parameter exec_mode_t INIT_EXEC_MODE = EXEC_MODE_M;
     parameter logic INIT_VIRTUAL_MODE = 1'b0;
@@ -147,24 +142,6 @@ package corep;
     // ----------------------------------------------------------------
     // Fetch Unit:
 
-    // pc38 possibilities:
-        // last_pc38
-            // stall or btb double hit
-        // last_pc38 + 8
-            // default
-        // {last_pc38[37:15], btb big_target[14:0]}
-            // fast redirect
-        // {upc[25:0], btb small_target[11:0]}
-            // fast redirect
-        // ret_pc38
-            // fast redirect
-        // {last_pc38[37:15], ibtb big_target[14:0]}
-            // slow redirect
-        // {upc[25:0], ibtb small_target[11:0]}
-            // slow redirect
-        // restart_pc38
-            // restart
-
     // fetch access:
     parameter int unsigned FETCH_WIDTH_B = 16;
     parameter int unsigned FETCH_WIDTH_2B = 8;
@@ -175,68 +152,58 @@ package corep;
     typedef logic [31:0]                    fetch4B_t;
     typedef fetch2B_t [FETCH_LANES-1:0]     fetch16B_t;
 
-    parameter int unsigned BTB_SMALL_TARGET_WIDTH = 12;
+    // btb entry: 40b
+        // {info, tag, lane}
+        // info: 19b
+            // {action, use_upct, big_tgt}
+            // action: 3b
+            // use_upct: 1b
+            // big_tgt: 15b
+                // {upct_idx, small_tgt}
+                // upct_idx: 3b
+                // small_tgt: 12b
+        // tag: 18b
+        // lane: 3b
+        // 1-wide access into associative tagged entries
+    parameter int unsigned BTB_ACTION_WIDTH = 3;
+    parameter int unsigned BTB_SMALL_TGT_WIDTH = 12;
+    parameter int unsigned BTB_BIG_TGT_WIDTH = 15;
+    parameter int unsigned LOG_UPCT_ENTRIES = BTB_BIG_TGT_WIDTH - BTB_SMALL_TGT_WIDTH;
+    parameter int unsigned BTB_TAG_WIDTH = 18;
+    parameter int unsigned BTB_ASSOC = 2; // hardcoded. have to do explicit lower hitting lane greater than input lane check
 
-    parameter int unsigned FETCH_IDX_WIDTH = BTB_SMALL_TARGET_WIDTH - LOG_FETCH_LANES; // 9b
+    typedef logic [BTB_ACTION_WIDTH-1:0]        btb_action_t;   // 3b
+    typedef logic [BTB_SMALL_TGT_WIDTH-1:0]     small_tgt_t;    // 12b
+    typedef logic [LOG_UPCT_ENTRIES-1:0]        upct_idx_t;     // 3b
+    typedef logic [BTB_TAG_WIDTH-1:0]           btb_tag_t;      // 18b
 
-    typedef logic [LOG_FETCH_LANES-1:0]     fetch_lane_t;
-    typedef logic [FETCH_IDX_WIDTH-1:0]     fetch_idx_t;
+    parameter int unsigned FETCH_IDX_WIDTH = BTB_SMALL_TGT_WIDTH - LOG_FETCH_LANES; // 9b
+
+    typedef logic [LOG_FETCH_LANES-1:0]     fetch_lane_t;   // 3b
+    typedef logic [FETCH_IDX_WIDTH-1:0]     fetch_idx_t;    // 9b
         // fetch_idx can be built in back-to-back cycles for fast redirect
-        // limited by how far the small_target can reach
+        // limited by how far the small_tgt can reach
         // all predict and fetch structures must be fully indexable by the fetch_idx
             // itlb, icache indexing will be truly limited
             // fetch structures may not strictly require all valid pc bits in access index
                 // structures naturally deal with aliasing
                 // notably the pht, which can have bits exclusively indexed by gh
 
-    function fetch_lane_t fetch_lane_bits(pc38_t pc38);
-        return pc38[LOG_FETCH_LANES-1:0];
-    endfunction
-
-    function fetch_idx_t fetch_idx_bits(pc38_t pc38);
-        return pc38[37:LOG_FETCH_LANES];
-    endfunction 
-
-    // btb entry: 40b
-        // {info, tag, lane}
-        // info: 19b
-            // {action, use_upct, big_target}
-            // action: 3b
-            // use_upct: 1b
-            // big_target: 15b
-                // {upct_idx, small_target}
-                // upct_idx: 3b
-                // small_target: 12b
-        // tag: 18b
-        // lane: 3b
-        // 1-wide access into associative tagged entries
-    parameter int unsigned BTB_ACTION_WIDTH = 3;
-    parameter int unsigned BTB_BIG_TARGET_WIDTH = 15;
-    // parameter int unsigned BTB_SMALL_TARGET_WIDTH = 12; // defined ^ since determines fetch idx width
-    parameter int unsigned LOG_UPCT_ENTRIES = BTB_BIG_TARGET_WIDTH - BTB_SMALL_TARGET_WIDTH;
-    parameter int unsigned BTB_TAG_WIDTH = 18;
-    parameter int unsigned BTB_ASSOC = 2; // hardcoded. have to do explicit lower hitting lane greater than input lane check
-
-    typedef logic [BTB_ACTION_WIDTH-1:0]        btb_action_t;
-    typedef logic [BTB_SMALL_TARGET_WIDTH-1:0]  btb_small_target_t;
-    typedef logic [LOG_UPCT_ENTRIES-1:0]        upct_idx_t;
-    typedef logic [BTB_TAG_WIDTH-1:0]           btb_tag_t;
-
     typedef struct packed {
-        upct_idx_t          upct_idx;
-        btb_small_target_t  small_target;
-    } btb_big_target_t;
+        upct_idx_t      upct_idx;   // 3b
+        small_tgt_t     small_tgt;  // 12b
+    } big_tgt_t;
     
     typedef struct packed {
-        btb_action_t        action;
-        logic               use_upct;
-        btb_big_target_t    big_target;
+        btb_action_t    action;     // 3b
+        logic           use_upct;   // 1b
+        big_tgt_t       big_tgt;    // 15b
     } btb_info_t;
 
     typedef struct packed {
-        btb_info_t      info;
-        btb_tag_t       tag;
-        fetch_lane_t    lane;
+        btb_info_t      info;   // 19b
+        btb_tag_t       tag;    // 18b
+        fetch_lane_t    lane;   // 3b
     } btb_entry_t;
 
     typedef btb_entry_t [BTB_ASSOC-1:0] btb_set_t;
@@ -249,6 +216,44 @@ package corep;
     parameter btb_action_t BTB_ACTION_RET_L         = 3'b101;
     parameter btb_action_t BTB_ACTION_INDIRECT      = 3'b110;
     parameter btb_action_t BTB_ACTION_INDIRECT_L    = 3'b111;
+
+    // upc[25:0]
+        // msbs[22:0]
+        // big_tgt_msbs[2:0]
+            // == upct_idx
+    typedef struct packed {
+        logic [38-FETCH_IDX_WIDTH-LOG_FETCH_LANES-LOG_UPCT_ENTRIES-1:0]     msbs;
+        upct_idx_t                                                          big_tgt_msbs;
+    } upc_t;
+
+    // pc38
+        // possibilities:
+            // last_pc38
+                // stall or btb double hit
+            // {last_pc38[37:3] + 1, 3'h0}
+                // default
+            // {last_pc38[37:15], btb big_tgt[14:0]}
+                // fast redirect
+            // {upc[25:0], btb small_tgt[11:0]}
+                // fast redirect
+            // ret_pc38
+                // fast redirect
+            // ibtb pc38
+                // slow redirect
+            // {upc[25:0], ibtb small_tgt[11:0]}
+                // slow redirect
+            // restart_pc38
+                // restart
+    typedef struct packed {
+        upc_t           upc;
+        fetch_idx_t     idx;
+        fetch_lane_t    lane;
+    } pc38_t;
+
+    typedef struct packed {
+        upc_t           upc;
+        fetch_idx_t     idx;
+    } pc35_t;
 
     // btb:
         // 8-wide access into associative tagged entries
@@ -298,9 +303,6 @@ package corep;
     // LOG_UPCT_ENTRIES defined ^
     // upct_idx_t defined ^
     parameter int unsigned UPCT_ENTRIES = 2**LOG_UPCT_ENTRIES;
-
-    typedef logic [38-BTB_SMALL_TARGET_WIDTH-1:0] upc_t;
-        // PC38 = {upc[25:0], small_target[11:0]}
 
     // ibtb entry:
         // pc38
