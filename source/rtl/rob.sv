@@ -5,6 +5,9 @@
     Spec: LOROF/spec/design/rob.md
 */
 
+// TODO: RV64GC updates
+    // branch update from bru_pipeline just needs quick check for ~killed and which asid to use for update
+
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 

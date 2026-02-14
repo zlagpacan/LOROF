@@ -13,12 +13,10 @@ module mdpt (
     input logic CLK,
     input logic nRST,
 
-    // arch state
-    input corep::asid_t arch_asid,
-
     // read req stage
     input logic                 read_req_valid,
     input corep::fetch_idx_t    read_req_fetch_idx,
+    input corep::asid_t         read_req_asid,
 
     // read resp stage
     output corep::mdpt_set_t    read_resp_mdp_by_lane,
@@ -26,6 +24,7 @@ module mdpt (
     // update
     input logic             update_valid,
     input corep::pc38_t     update_pc38,
+    input corep::asid_t     update_asid,
     input corep::mdp_t      update_mdp
 );
 
@@ -60,14 +59,14 @@ module mdpt (
     // read logic
     always_comb begin
         mdpt_array_bram_read_next_valid = read_req_valid;
-        mdpt_array_bram_read_next_index = index_hash(read_req_fetch_idx, arch_asid);
+        mdpt_array_bram_read_next_index = index_hash(read_req_fetch_idx, read_req_asid);
 
         read_resp_mdp_by_lane = mdpt_array_bram_read_set;
     end
 
     // write logic
     always_comb begin
-        update_index = index_hash(corep::fetch_idx_bits(update_pc38), arch_asid);
+        update_index = index_hash(corep::fetch_idx_bits(update_pc38), update_asid);
         update_lane = corep::fetch_lane_bits(update_pc38);
 
         mdpt_array_bram_write_byten = '0;

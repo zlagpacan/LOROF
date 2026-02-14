@@ -33,13 +33,11 @@ module pht_tb #(
     // DUT signals:
 
 
-    // arch state
-	corep::asid_t tb_arch_asid;
-
     // read req stage
 	logic tb_read_req_valid;
 	corep::fetch_idx_t tb_read_req_fetch_idx;
 	corep::gh_t tb_read_req_gh;
+	corep::asid_t tb_read_req_asid;
 
     // read resp stage
 	corep::fetch_lane_t tb_read_resp_redirect_lane;
@@ -50,6 +48,7 @@ module pht_tb #(
 	logic tb_update_valid;
 	corep::pc38_t tb_update_pc38;
 	corep::gh_t tb_update_gh;
+	corep::asid_t tb_update_asid;
 	logic tb_update_taken;
 
     // ----------------------------------------------------------------
@@ -62,13 +61,11 @@ module pht_tb #(
 		.nRST(nRST),
 
 
-	    // arch state
-		.arch_asid(tb_arch_asid),
-
 	    // read req stage
 		.read_req_valid(tb_read_req_valid),
 		.read_req_fetch_idx(tb_read_req_fetch_idx),
 		.read_req_gh(tb_read_req_gh),
+		.read_req_asid(tb_read_req_asid),
 
 	    // read resp stage
 		.read_resp_redirect_lane(tb_read_resp_redirect_lane),
@@ -79,6 +76,7 @@ module pht_tb #(
 		.update_valid(tb_update_valid),
 		.update_pc38(tb_update_pc38),
 		.update_gh(tb_update_gh),
+		.update_asid(tb_update_asid),
 		.update_taken(tb_update_taken)
 	);
 
@@ -116,18 +114,18 @@ module pht_tb #(
 
 		// reset
 		nRST = 1'b0;
-	    // arch state
-		tb_arch_asid = 16'h0000;
 	    // read req stage
 		tb_read_req_valid = 1'b0;
 		tb_read_req_fetch_idx = 9'h000;
 		tb_read_req_gh = {2'h0, 9'h000, 3'h0};
+		tb_read_req_asid = 16'h0000;
 	    // read resp stage
 		tb_read_resp_redirect_lane = 3'h0;
 	    // update
 		tb_update_valid = 1'b0;
 		tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
 		tb_update_gh = {2'h0, 9'h000, 3'h0};
+		tb_update_asid = 16'h0000;
 		tb_update_taken = 1'b0;
 
 		@(posedge CLK); #(PERIOD/10);
@@ -148,18 +146,18 @@ module pht_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // arch state
-		tb_arch_asid = 16'h0000;
 	    // read req stage
 		tb_read_req_valid = 1'b0;
 		tb_read_req_fetch_idx = 9'h000;
 		tb_read_req_gh = {2'h0, 9'h000, 3'h0};
+		tb_read_req_asid = 16'h0000;
 	    // read resp stage
 		tb_read_resp_redirect_lane = 3'h0;
 	    // update
 		tb_update_valid = 1'b0;
 		tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
 		tb_update_gh = {2'h0, 9'h000, 3'h0};
+		tb_update_asid = 16'h0000;
 		tb_update_taken = 1'b0;
 
 		@(posedge CLK); #(PERIOD/10);
@@ -191,18 +189,18 @@ module pht_tb #(
 
                 // reset
                 nRST = 1'b1;
-                // arch state
-                tb_arch_asid = 16'h0000;
                 // read req stage
                 tb_read_req_valid = 1'b0;
                 tb_read_req_fetch_idx = 9'h000;
                 tb_read_req_gh = {2'h0, 9'h000, 3'h0};
+		        tb_read_req_asid = 16'h0000;
                 // read resp stage
 		        tb_read_resp_redirect_lane = 3'h0;
                 // update
                 tb_update_valid = 1'b1;
                 tb_update_pc38 = {26'h0000000, {4'h0, index[4:0]}, lane[2], 1'b0, lane[0]};
                 tb_update_gh = {index[10:9], {index[8:5], 5'h0}, 1'b0, lane[1], 1'b0};
+		        tb_update_asid = 16'h0000;
                 tb_update_taken = lane[2:0] >= index[2:0];
 
                 @(negedge CLK);
@@ -233,18 +231,18 @@ module pht_tb #(
 
         // reset
         nRST = 1'b1;
-        // arch state
-        tb_arch_asid = 16'hffff;
         // read req stage
         tb_read_req_valid = 1'b1;
         tb_read_req_fetch_idx = ~9'h000;
         tb_read_req_gh = {2'h3, 9'h000, 3'h0};
+		tb_read_req_asid = 16'hffff;
         // read resp stage
 		tb_read_resp_redirect_lane = 3'h0;
         // update
         tb_update_valid = 1'b0;
         tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
         tb_update_gh = {2'h0, 9'h000, 3'h0};
+		tb_update_asid = 16'h0000;
         tb_update_taken = 1'b0;
 
         @(negedge CLK);
@@ -271,18 +269,18 @@ module pht_tb #(
 
                 // reset
                 nRST = 1'b1;
-                // arch state
-                tb_arch_asid = 16'hffff;
                 // read req stage
                 tb_read_req_valid = 1'b1;
                 tb_read_req_fetch_idx = ~{index[8:5], 5'h0};
                 tb_read_req_gh = {~index[10:9], {4'h0, index[4:0]}, lane[2], 1'b0, lane[0]};
+                tb_read_req_asid = 16'hffff;
                 // read resp stage
 		        tb_read_resp_redirect_lane = {1'b0, {lane-1}[1], 1'b0};
                 // update
                 tb_update_valid = 1'b0;
                 tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
                 tb_update_gh = {2'h0, 9'h000, 3'h0};
+		        tb_update_asid = 16'h0000;
                 tb_update_taken = 1'b0;
 
                 @(negedge CLK);
@@ -307,18 +305,18 @@ module pht_tb #(
 
         // reset
         nRST = 1'b1;
-        // arch state
-        tb_arch_asid = 16'hffff;
         // read req stage
         tb_read_req_valid = 1'b0;
         tb_read_req_fetch_idx = 9'h000;
         tb_read_req_gh = {2'h0, 9'h000, 3'h0};
+		tb_read_req_asid = 16'hffff;
         // read resp stage
 		tb_read_resp_redirect_lane = 3'b010;
         // update
         tb_update_valid = 1'b0;
         tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
         tb_update_gh = {2'h0, 9'h000, 3'h0};
+		tb_update_asid = 16'h0000;
         tb_update_taken = 1'b0;
 
         @(negedge CLK);

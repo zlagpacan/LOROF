@@ -13,13 +13,11 @@ module pht (
     input logic CLK,
     input logic nRST,
 
-    // arch state
-    input corep::asid_t arch_asid,
-
     // read req stage
     input logic                 read_req_valid,
     input corep::fetch_idx_t    read_req_fetch_idx,
     input corep::gh_t           read_req_gh,
+    input corep::asid_t         read_req_asid,
 
     // read resp stage
     input corep::fetch_lane_t   read_resp_redirect_lane,
@@ -30,6 +28,7 @@ module pht (
     input logic             update_valid,
     input corep::pc38_t     update_pc38,
     input corep::gh_t       update_gh,
+    input corep::asid_t     update_asid,
     input logic             update_taken
 );
 
@@ -105,7 +104,7 @@ module pht (
     // read req logic
     always_comb begin
         pht_array_bram_read_port0_next_valid = read_req_valid;
-        pht_array_bram_read_port0_next_index = index_hash(read_req_fetch_idx, read_req_gh, arch_asid);
+        pht_array_bram_read_port0_next_index = index_hash(read_req_fetch_idx, read_req_gh, read_req_asid);
     end
 
     // read resp logic
@@ -125,7 +124,7 @@ module pht (
     // update logic
     always_comb begin
         pht_array_bram_read_port1_next_valid = update_valid;
-        pht_array_bram_read_port1_next_index = index_hash(corep::fetch_idx_bits(update_pc38), update_gh, arch_asid);
+        pht_array_bram_read_port1_next_index = index_hash(corep::fetch_idx_bits(update_pc38), update_gh, update_asid);
     end
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin

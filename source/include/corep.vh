@@ -362,7 +362,8 @@ package corep;
         ras_idx_t   ras_idx;
         ras_cnt_t   ras_cnt;
         // logic       btb_hit;
-            // btb_hit must be brought through pipeline so non-hitting branches can reuse entry
+            // btb_hit must be brought through pipeline so non-hitting branches can reuse entry on bcb wraparound
+            // need btb_hit in pipeline for determination of ibtb anyway
         btb_way_t   btb_hit_way;
     } bcb_info_t;
 

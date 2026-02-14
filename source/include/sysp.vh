@@ -132,6 +132,10 @@ package sysp;
 
     typedef logic [COH_BLOCK_ADDR_WIDTH-1:0] coh_pa33_t;
 
+    function coh_pa33 coh_pa33_bits (pa39_t pa39);
+        coh_pa33_bits = pa39[PA_WIDTH-1:COH_BLOCK_OFFSET];
+    endfunction
+
     // L1 granularity
     parameter int unsigned L1_BLOCK_SIZE = 32; // 32B
     parameter int unsigned L1_BLOCK_SIZE_BITS = L1_BLOCK_SIZE * 8; // 256b
@@ -142,6 +146,10 @@ package sysp;
     parameter int unsigned L1_BLOCK_ADDR_WIDTH = PA_WIDTH - L1_BLOCK_OFFSET; // 39b - 5b = 34b
 
     typedef logic [L1_BLOCK_ADDR_WIDTH-1:0] l1_pa34_t;
+
+    function l1_pa34_t l1_pa34_bits (pa39_t pa39);
+        l1_pa34_bits = pa39[PA_WIDTH-1:L1_BLOCK_OFFSET];
+    endfunction
 
     // icache
         // sizing

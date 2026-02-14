@@ -33,19 +33,18 @@ module ibtb_tb #(
     // DUT signals:
 
 
-    // arch state
-	corep::asid_t tb_arch_asid;
-
     // read
 	corep::pc38_t tb_read_src_pc38;
 	corep::ibtb_gh_t tb_read_ibtb_gh;
+	corep::asid_t tb_read_asid;
 
 	corep::ibtb_info_t DUT_read_tgt_ibtb_info, expected_read_tgt_ibtb_info;
 
     // update
 	logic tb_update_valid;
 	corep::pc38_t tb_update_src_pc38;
-	corep::pc38_t tb_update_ibtb_gh;
+	corep::ibtb_gh_t tb_update_ibtb_gh;
+	corep::asid_t tb_update_asid;
 	corep::ibtb_info_t tb_update_tgt_ibtb_info;
 
     // ----------------------------------------------------------------
@@ -58,12 +57,10 @@ module ibtb_tb #(
 		.nRST(nRST),
 
 
-	    // arch state
-		.arch_asid(tb_arch_asid),
-
 	    // read
 		.read_src_pc38(tb_read_src_pc38),
 		.read_ibtb_gh(tb_read_ibtb_gh),
+		.read_asid(tb_read_asid),
 
 		.read_tgt_ibtb_info(DUT_read_tgt_ibtb_info),
 
@@ -71,6 +68,7 @@ module ibtb_tb #(
 		.update_valid(tb_update_valid),
 		.update_src_pc38(tb_update_src_pc38),
 		.update_ibtb_gh(tb_update_ibtb_gh),
+		.update_asid(tb_update_asid),
 		.update_tgt_ibtb_info(tb_update_tgt_ibtb_info)
 	);
 
@@ -108,15 +106,15 @@ module ibtb_tb #(
 
 		// reset
 		nRST = 1'b0;
-	    // arch state
-		tb_arch_asid = 16'h0000;
 	    // read
 		tb_read_src_pc38 = 38'h0000000000;
 		tb_read_ibtb_gh = 5'h00;
+        tb_read_asid = {11'h000, 5'h00};
 	    // update
 		tb_update_valid = 1'b0;
 		tb_update_src_pc38 = 38'h0000000000;
 		tb_update_ibtb_gh = 5'h00;
+        tb_update_asid = {11'h000, 5'h00};
 		tb_update_tgt_ibtb_info = 38'h0000000000;
 
 		@(posedge CLK); #(PERIOD/10);
@@ -136,15 +134,15 @@ module ibtb_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // arch state
-		tb_arch_asid = 16'h0000;
 	    // read
 		tb_read_src_pc38 = 38'h0000000000;
 		tb_read_ibtb_gh = 5'h00;
+        tb_read_asid = {11'h000, 5'h00};
 	    // update
 		tb_update_valid = 1'b0;
 		tb_update_src_pc38 = 38'h0000000000;
 		tb_update_ibtb_gh = 5'h00;
+        tb_update_asid = {11'h000, 5'h00};
 		tb_update_tgt_ibtb_info = 38'h0000000000;
 
 		@(posedge CLK); #(PERIOD/10);
@@ -174,15 +172,15 @@ module ibtb_tb #(
 
             // reset
             nRST = 1'b1;
-            // arch state
-            tb_arch_asid = {11'h000, 5'h00};
             // read
             tb_read_src_pc38 = {33'h000000000, 5'h00};
             tb_read_ibtb_gh = 5'h00;
+		    tb_read_asid = {11'h000, 5'h00};
             // update
             tb_update_valid = 1'b1;
             tb_update_src_pc38 = {33'h000000000, i[4], 1'b0, i[2], 1'b0, i[0]};
             tb_update_ibtb_gh = {1'b0, i[3], 1'b0, i[1], 1'b0};
+		    tb_update_asid = {11'h000, 5'h00};
             tb_update_tgt_ibtb_info = {4{~i[4:0], i[4:0]}};
 
             @(negedge CLK);
@@ -213,15 +211,15 @@ module ibtb_tb #(
 
             // reset
             nRST = 1'b1;
-            // arch state
-            tb_arch_asid = {11'h000, 5'h1f};
             // read
-            tb_read_src_pc38 = {33'h000000000, 1'b0, i[3], 1'b0, i[1], 1'b0};
-            tb_read_ibtb_gh = {i[4], 1'b0, i[2], 1'b0, i[0]};
+            tb_read_src_pc38 = {33'h000000000, 1'b1, i[3], 1'b1, i[1], 1'b1};
+            tb_read_ibtb_gh = {i[4], 1'b1, i[2], 1'b1, i[0]};
+            tb_read_asid = {11'h000, 5'h1f};
             // update
             tb_update_valid = 1'b1;
             tb_update_src_pc38 = {33'h000000000, 5'h00};
             tb_update_ibtb_gh = 5'h00;
+            tb_update_asid = {11'h000, 5'h00};
             tb_update_tgt_ibtb_info = 38'h0000000000;
 
             @(negedge CLK);
@@ -230,7 +228,7 @@ module ibtb_tb #(
 
             // arch state
             // read
-            expected_read_tgt_ibtb_info = {4{i[4:0], ~i[4:0]}};
+            expected_read_tgt_ibtb_info = {4{~i[4:0], i[4:0]}};
             // update
 
             check_outputs();

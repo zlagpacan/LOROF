@@ -12,13 +12,11 @@ module btb (
     // seq
     input logic CLK,
     input logic nRST,
-
-    // arch state
-    input corep::asid_t arch_asid,
     
     // read req stage
     input logic                     read_req_valid,
     input corep::fetch_idx_t        read_req_fetch_idx,
+    input corep::asid_t             read_req_asid,
 
     // read resp stage
     input corep::pc38_t             read_resp_pc38,
@@ -32,6 +30,7 @@ module btb (
     // update
     input logic                 update_valid,
     input corep::pc38_t         update_pc38,
+    input corep::asid_t         update_asid,
     input corep::btb_info_t     update_btb_info,
     input logic                 update_hit,
     input corep::btb_way_t      update_hit_way
@@ -75,20 +74,21 @@ module btb (
     corep::btb_plru_t                   plru_array_distram_write_data;
 
     // read resp
-    logic                   read_resp_hit_way0;
-    logic                   read_resp_hit_way1;
+    corep::asid_t       read_resp_asid;
+    logic               read_resp_hit_way0;
+    logic               read_resp_hit_way1;
 
     // update indexing
-    corep::btb_idx_t        update_index;
+    corep::btb_idx_t    update_index;
     corep::btb_way_t    update_selected_way;
 
     // plru updater
-    corep::btb_plru_t       plru_updater_plru_in;
-    logic                   plru_updater_new_valid;
+    corep::btb_plru_t   plru_updater_plru_in;
+    logic               plru_updater_new_valid;
     corep::btb_way_t    plru_updater_new_index;
-    logic                   plru_updater_touch_valid;
+    logic               plru_updater_touch_valid;
     corep::btb_way_t    plru_updater_touch_index;
-    corep::btb_plru_t       plru_updater_plru_out;
+    corep::btb_plru_t   plru_updater_plru_out;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -96,7 +96,16 @@ module btb (
     // read next logic
     always_comb begin
         btb_array_bram_read_next_valid = read_req_valid;
-        btb_array_bram_read_next_index = index_hash(read_req_fetch_idx, arch_asid);
+        btb_array_bram_read_next_index = index_hash(read_req_fetch_idx, read_req_asid);
+    end
+
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            read_resp_asid <= 0;
+        end
+        else if (read_req_valid) begin
+            read_resp_asid <= read_req_asid;
+        end
     end
 
     // hit logic
@@ -107,12 +116,12 @@ module btb (
             // non-zero action + tag match + lane at or beyond fetch lane
         read_resp_hit_way0 =
             |btb_array_bram_read_set[0].info.action
-            & (btb_array_bram_read_set[0].tag == tag_hash(read_resp_pc38, arch_asid))
+            & (btb_array_bram_read_set[0].tag == tag_hash(read_resp_pc38, read_resp_asid))
             & (btb_array_bram_read_set[0].lane >= corep::fetch_lane_bits(read_resp_pc38))
         ;
         read_resp_hit_way1 =
             |btb_array_bram_read_set[1].info.action
-            & (btb_array_bram_read_set[1].tag == tag_hash(read_resp_pc38, arch_asid))
+            & (btb_array_bram_read_set[1].tag == tag_hash(read_resp_pc38, read_resp_asid))
             & (btb_array_bram_read_set[1].lane >= corep::fetch_lane_bits(read_resp_pc38))
         ;
         read_resp_hit = read_resp_hit_way0 | read_resp_hit_way1;
@@ -151,7 +160,7 @@ module btb (
 
     // write logic
     always_comb begin
-        update_index = index_hash(corep::fetch_idx_bits(update_pc38), arch_asid);
+        update_index = index_hash(corep::fetch_idx_bits(update_pc38), update_asid);
         if (update_hit) begin
             update_selected_way = update_hit_way;
         end
@@ -171,7 +180,7 @@ module btb (
         btb_array_bram_write_index = update_index;
         for (int way = 0; way < corep::BTB_ASSOC; way++) begin
             btb_array_bram_write_set[way].info = update_btb_info;
-            btb_array_bram_write_set[way].tag = tag_hash(update_pc38, arch_asid);
+            btb_array_bram_write_set[way].tag = tag_hash(update_pc38, update_asid);
             btb_array_bram_write_set[way].lane = corep::fetch_lane_bits(update_pc38);
         end
     end

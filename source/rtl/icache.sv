@@ -5,6 +5,13 @@
     Spec: LOROF/spec/design/icache.md
 */
 
+// TODO: RV64GC non-blocking updates
+    // to allow ibuffer distram w/ 1 write port, can only do one of miss return or hit return on same-cycle
+        // icache's choice if want to use
+            // i.e. can use read port for miss access replay
+    // fence.i must disallow icache MSHR linking (don't want fetches after fence to try to get stale miss data)
+    // can do 8x MSHR but 16x (all fmid's) linking entries which point to MSHR that will provide its data
+
 `include "system_types.vh"
 
 module icache #(

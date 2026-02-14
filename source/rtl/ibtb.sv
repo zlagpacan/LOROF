@@ -13,19 +13,18 @@ module ibtb (
     input logic CLK,
     input logic nRST,
 
-    // arch state
-    input corep::asid_t arch_asid,
-
     // read
     input corep::pc38_t         read_src_pc38,
     input corep::ibtb_gh_t      read_ibtb_gh,
+    input corep::asid_t         read_asid,
 
     output corep::ibtb_info_t   read_tgt_ibtb_info,
 
     // update
     input logic                 update_valid,
     input corep::pc38_t         update_src_pc38,
-    input corep::pc38_t         update_ibtb_gh,
+    input corep::ibtb_gh_t      update_ibtb_gh,
+    input corep::asid_t         update_asid,
     input corep::ibtb_info_t    update_tgt_ibtb_info
 );
 
@@ -56,7 +55,7 @@ module ibtb (
 
     // read logic
     always_comb begin
-        ibtb_array_distram_read_index = index_hash(read_src_pc38, read_ibtb_gh, arch_asid);
+        ibtb_array_distram_read_index = index_hash(read_src_pc38, read_ibtb_gh, read_asid);
         
         read_tgt_ibtb_info = ibtb_array_distram_read_data;
     end
@@ -64,7 +63,7 @@ module ibtb (
     // write logic
     always_comb begin
         ibtb_array_distram_write_valid = update_valid;
-        ibtb_array_distram_write_index = index_hash(update_src_pc38, update_ibtb_gh, arch_asid);
+        ibtb_array_distram_write_index = index_hash(update_src_pc38, update_ibtb_gh, update_asid);
         ibtb_array_distram_write_data = update_tgt_ibtb_info;
     end
 

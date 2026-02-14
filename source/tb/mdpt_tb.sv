@@ -33,12 +33,10 @@ module mdpt_tb #(
     // DUT signals:
 
 
-    // arch state
-	corep::asid_t tb_arch_asid;
-
     // read req stage
 	logic tb_read_req_valid;
 	corep::fetch_idx_t tb_read_req_fetch_idx;
+	corep::asid_t tb_read_req_asid;
 
     // read resp stage
 	corep::mdpt_set_t DUT_read_resp_mdp_by_lane, expected_read_resp_mdp_by_lane;
@@ -46,6 +44,7 @@ module mdpt_tb #(
     // update
 	logic tb_update_valid;
 	corep::pc38_t tb_update_pc38;
+	corep::asid_t tb_update_asid;
 	corep::mdp_t tb_update_mdp;
 
     // ----------------------------------------------------------------
@@ -58,12 +57,10 @@ module mdpt_tb #(
 		.nRST(nRST),
 
 
-	    // arch state
-		.arch_asid(tb_arch_asid),
-
 	    // read req stage
 		.read_req_valid(tb_read_req_valid),
 		.read_req_fetch_idx(tb_read_req_fetch_idx),
+		.read_req_asid(tb_read_req_asid),
 
 	    // read resp stage
 		.read_resp_mdp_by_lane(DUT_read_resp_mdp_by_lane),
@@ -71,6 +68,7 @@ module mdpt_tb #(
 	    // update
 		.update_valid(tb_update_valid),
 		.update_pc38(tb_update_pc38),
+		.update_asid(tb_update_asid),
 		.update_mdp(tb_update_mdp)
 	);
 
@@ -108,15 +106,15 @@ module mdpt_tb #(
 
 		// reset
 		nRST = 1'b0;
-	    // arch state
-		tb_arch_asid = 16'h0000;
 	    // read req stage
 		tb_read_req_valid = 1'b0;
 		tb_read_req_fetch_idx = 7'h00;
+		tb_read_req_asid = 16'h0000;
 	    // read resp stage
 	    // update
 		tb_update_valid = 1'b0;
 		tb_update_pc38 = {28'h0000000, 7'h00, 3'h0};
+		tb_update_asid = 16'h0000;
 		tb_update_mdp = 8'h00;
 
 		@(posedge CLK); #(PERIOD/10);
@@ -146,15 +144,15 @@ module mdpt_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // arch state
-		tb_arch_asid = 16'h0000;
 	    // read req stage
 		tb_read_req_valid = 1'b0;
 		tb_read_req_fetch_idx = 7'h00;
+		tb_read_req_asid = 16'h0000;
 	    // read resp stage
 	    // update
 		tb_update_valid = 1'b0;
 		tb_update_pc38 = {28'h0000000, 7'h00, 3'h0};
+		tb_update_asid = 16'h0000;
 		tb_update_mdp = 8'h00;
 
 		@(posedge CLK); #(PERIOD/10);
@@ -195,15 +193,15 @@ module mdpt_tb #(
 
                 // reset
                 nRST = 1'b1;
-                // arch state
-                tb_arch_asid = 16'h0000;
                 // read req stage
                 tb_read_req_valid = 1'b0;
                 tb_read_req_fetch_idx = 7'h00;
+		        tb_read_req_asid = 16'h0000;
                 // read resp stage
                 // update
                 tb_update_valid = 1'b1;
                 tb_update_pc38 = {28'h0000000, index[6:0], lane[2:0]};
+		        tb_update_asid = 16'h0000;
                 tb_update_mdp = {lane[0], index[6:0]};
 
                 @(negedge CLK);
@@ -243,15 +241,15 @@ module mdpt_tb #(
 
         // reset
         nRST = 1'b1;
-        // arch state
-        tb_arch_asid = 16'h007f;
         // read req stage
         tb_read_req_valid = 1'b1;
         tb_read_req_fetch_idx = 7'h00;
+		tb_read_req_asid = 16'h007f;
         // read resp stage
         // update
         tb_update_valid = 1'b0;
         tb_update_pc38 = {28'h0000000, 7'h00, 3'h0};
+		tb_update_asid = 16'h0000;
         tb_update_mdp = 8'h00;
 
         @(negedge CLK);
@@ -285,15 +283,15 @@ module mdpt_tb #(
 
             // reset
             nRST = 1'b1;
-            // arch state
-            tb_arch_asid = 16'h007f;
             // read req stage
             tb_read_req_valid = 1'b1;
             tb_read_req_fetch_idx = ~index[6:0];
+		    tb_read_req_asid = 16'h007f;
             // read resp stage
             // update
             tb_update_valid = 1'b0;
             tb_update_pc38 = {28'h0000000, 7'h00, 3'h0};
+		    tb_update_asid = 16'h0000;
             tb_update_mdp = 8'h00;
 
             @(negedge CLK);
@@ -326,15 +324,15 @@ module mdpt_tb #(
 
         // reset
         nRST = 1'b1;
-        // arch state
-        tb_arch_asid = 16'h0000;
         // read req stage
         tb_read_req_valid = 1'b0;
         tb_read_req_fetch_idx = 7'h00;
+		tb_read_req_asid = 16'h0000;
         // read resp stage
         // update
         tb_update_valid = 1'b0;
         tb_update_pc38 = {28'h0000000, 7'h00, 3'h0};
+		tb_update_asid = 16'h0000;
         tb_update_mdp = 8'h00;
 
         @(negedge CLK);
