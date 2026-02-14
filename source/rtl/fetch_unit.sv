@@ -145,12 +145,13 @@ module fetch_unit (
     // control signals
     logic stall_REQ;
     logic stall_RESP;
+    logic stall_RESP2;
     logic stall_LATE;
 
     logic REQ_valid;
     logic RESP_valid;
+    logic RESP2_valid;
     logic LATE_valid;
-    logic LATE_for_RESP;
 
     // wait for restart state
     logic wait_for_restart_state;
@@ -291,7 +292,7 @@ module fetch_unit (
     // ----------------------------------------------------------------
     // Logic:
 
-    
+
 
 endmodule
 
