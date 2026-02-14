@@ -302,20 +302,10 @@ package corep;
     typedef logic [38-BTB_SMALL_TARGET_WIDTH-1:0] upc_t;
         // PC38 = {upc[25:0], small_target[11:0]}
 
-    // ibtb entry: 16b
-        // {use_upct, big_target}
-        // use_upct: 1b
-        // big_target: 15b
-            // {upct_idx, small_target}
-            // upct_idx: 3b
-            // small_target: 12b
+    // ibtb entry:
+        // pc38
         // 1-wide access into direct-mapped, untagged entries
-    typedef struct packed {
-        logic               use_upct;
-        btb_big_target_t    big_target;
-    } ibtb_info_t;
-
-    typedef ibtb_info_t ibtb_entry_t;
+    typedef pc38_t ibtb_entry_t;
 
     // ibtb:
         // 1-wide access into direct-mapped, untagged entries

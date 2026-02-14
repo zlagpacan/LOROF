@@ -136,6 +136,9 @@ module fetch_unit (
     input corep::mdp_t      mdpt_update_mdp
 );
 
+    // need to save LATE upct in RESP stage in case where previous instr needed upct to route to this instr
+        // and this instr needs LATE for ibtb
+
     // ----------------------------------------------------------------
     // Signals:
 
@@ -157,19 +160,23 @@ module fetch_unit (
     corep::exec_mode_t  fetch_arch_exec_mode;
     logic               fetch_arch_virtual_mode;
 
-    ////////////////////////////
-    // fetch_unit components: //
-    ////////////////////////////
+    ////////////////
+    // REQ stage: //
+    ////////////////
 
     corep::pc38_t       REQ_latched_pc38;
     corep::pc38_t       REQ_pc38_next_8;
     corep::fetch_idx_t  REQ_broadcast_fetch_idx;
 
-    corep::pc38_t       RESP_src_pc38;
-
     corep::gh_t REQ_gh;
     corep::gh_t REQ_broadcast_gh;
-    corep::
+
+    /////////////////
+    // RESP stage: //
+    /////////////////
+
+    corep::pc38_t       RESP_latched_pc38;
+    corep::fetch_idx_t  RESP_fetch_idx;
 
     ////////////////
     // module IO: //
@@ -248,13 +255,13 @@ module fetch_unit (
     corep::pc38_t       ibtb_read_src_pc38;
     corep::ibtb_gh_t    ibtb_read_ibtb_gh;
     corep::asid_t       ibtb_read_asid;
-    corep::ibtb_info_t  ibtb_read_tgt_ibtb_info;
+    corep::pc38_t       ibtb_read_tgt_pc38;
     // update
     logic               ibtb_update_valid;
     corep::pc38_t       ibtb_update_src_pc38;
     corep::pc38_t       ibtb_update_ibtb_gh;
     corep::asid_t       ibtb_update_asid;
-    corep::ibtb_info_t  ibtb_update_tgt_ibtb_info;
+    corep::pc38_t       ibtb_update_tgt_pc38;
 
     // mdpt IO:
 
@@ -281,30 +288,10 @@ module fetch_unit (
     corep::bcb_idx_t    bcb_restore_bcb_idx;
     corep::bcb_info_t   bcb_restore_bcb_info;
 
-    // ibuffer IO:
-
-    // enq
-    logic                               ibuffer_enq_valid;
-    corep::ibuffer_enq_info_t           ibuffer_enq_info;
-    logic                               ibuffer_enq_fetch_hit_valid;
-    corep::fetch16B_t                   ibuffer_enq_fetch_hit_fetch16B;
-    // enq feedback
-    logic                               ibuffer_enq_ready;
-    corep::fmid_t                       ibuffer_enq_fmid;
-    // fetch miss return
-    logic                               ibuffer_fetch_miss_return_valid;
-    corep::fmid_t                       ibuffer_fetch_miss_return_fmid;
-    corep::fetch16B_t                   ibuffer_fetch_miss_return_fetch16B;
-    // deq
-    logic                               ibuffer_deq_valid;
-    corep::ibuffer_deq_entry_t [3:0]    ibuffer_deq_entry_by_way;
-    // def feedback
-    logic                               ibuffer_deq_ready;
-    // restart
-    logic                               ibuffer_restart_valid;
-
     // ----------------------------------------------------------------
     // Logic:
+
+    
 
 endmodule
 

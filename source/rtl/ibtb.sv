@@ -14,18 +14,18 @@ module ibtb (
     input logic nRST,
 
     // read
-    input corep::pc38_t         read_src_pc38,
-    input corep::ibtb_gh_t      read_ibtb_gh,
-    input corep::asid_t         read_asid,
+    input corep::pc38_t     read_src_pc38,
+    input corep::ibtb_gh_t  read_ibtb_gh,
+    input corep::asid_t     read_asid,
 
-    output corep::ibtb_info_t   read_tgt_ibtb_info,
+    output corep::pc38_t    read_tgt_pc38,
 
     // update
-    input logic                 update_valid,
-    input corep::pc38_t         update_src_pc38,
-    input corep::ibtb_gh_t      update_ibtb_gh,
-    input corep::asid_t         update_asid,
-    input corep::ibtb_info_t    update_tgt_ibtb_info
+    input logic             update_valid,
+    input corep::pc38_t     update_src_pc38,
+    input corep::ibtb_gh_t  update_ibtb_gh,
+    input corep::asid_t     update_asid,
+    input corep::pc38_t     update_tgt_pc38
 );
 
     // ----------------------------------------------------------------
@@ -44,11 +44,11 @@ module ibtb (
     // ibtb array distram IO
         // index w/ ibtb index
     corep::ibtb_idx_t   ibtb_array_distram_read_index;
-    corep::ibtb_info_t  ibtb_array_distram_read_data;
+    corep::pc38_t       ibtb_array_distram_read_data;
 
     logic               ibtb_array_distram_write_valid;
     corep::ibtb_idx_t   ibtb_array_distram_write_index;
-    corep::ibtb_info_t  ibtb_array_distram_write_data;
+    corep::pc38_t       ibtb_array_distram_write_data;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -57,19 +57,19 @@ module ibtb (
     always_comb begin
         ibtb_array_distram_read_index = index_hash(read_src_pc38, read_ibtb_gh, read_asid);
         
-        read_tgt_ibtb_info = ibtb_array_distram_read_data;
+        read_tgt_pc38 = ibtb_array_distram_read_data;
     end
 
     // write logic
     always_comb begin
         ibtb_array_distram_write_valid = update_valid;
         ibtb_array_distram_write_index = index_hash(update_src_pc38, update_ibtb_gh, update_asid);
-        ibtb_array_distram_write_data = update_tgt_ibtb_info;
+        ibtb_array_distram_write_data = update_tgt_pc38;
     end
 
     // ibtb array distram
     distram_1rport_1wport #(
-        .INNER_WIDTH($bits(corep::ibtb_info_t)),
+        .INNER_WIDTH($bits(corep::pc38_t)),
         .OUTER_WIDTH(corep::IBTB_ENTRIES)
     ) IBTB_ARRAY_DISTRAM (
         .CLK(CLK),

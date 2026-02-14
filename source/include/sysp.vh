@@ -132,7 +132,7 @@ package sysp;
 
     typedef logic [COH_BLOCK_ADDR_WIDTH-1:0] coh_pa33_t;
 
-    function coh_pa33 coh_pa33_bits (pa39_t pa39);
+    function coh_pa33_t coh_pa33_bits (pa39_t pa39);
         coh_pa33_bits = pa39[PA_WIDTH-1:COH_BLOCK_OFFSET];
     endfunction
 
