@@ -85,7 +85,7 @@ module ibtb_wrapper #(
 			read_ibtb_gh <= next_read_ibtb_gh;
 			read_asid <= next_read_asid;
 
-			last_read_tgt_pc38 <= read_tgt_pc38;
+			last_read_tgt_pc38 <= read_tgt_pc38 ^ {19{update_valid, ~update_valid}};
 
 		    // update
 			update_valid <= next_update_valid;
