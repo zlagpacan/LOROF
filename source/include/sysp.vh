@@ -171,6 +171,9 @@ package sysp;
     typedef logic [ICACHE_IDX_WIDTH-1:0]    icache_idx_t;
     typedef logic [ICACHE_TAG_WIDTH-1:0]    icache_tag_t;
 
+    function icache_tag_t icache_tag_from_pc38 (logic [37:0] pc38);
+        icache_tag_from_pc38 = pc38[38-1:38-ICACHE_TAG_WIDTH];
+    endfunction
 
     // itlb
         // TODO: fix for RV64GC

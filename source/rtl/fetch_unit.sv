@@ -85,12 +85,14 @@ module fetch_unit (
     input sysp::icache_tag_t    [sysp::ICACHE_ASSOC-1:0]    icache_resp_tag_by_way,
     input corep::fetch16B_t     [sysp::ICACHE_ASSOC-1:0]    icache_resp_fetch16B_by_way,
 
-    // icache resp feedback
+    // icache feedback hit
     output logic                icache_feedback_hit_valid,
     output sysp::icache_way_t   icache_feedback_hit_way,
+
+    // icache feedback miss
     output logic                icache_feedback_miss_valid,
-    output corep::fmid_t        icache_feedback_fmid,
-    output sysp::pa39_t         icache_feedback_pa39,
+    output corep::fmid_t        icache_feedback_miss_fmid,
+    output sysp::pa39_t         icache_feedback_miss_pa39,
 
     input logic                 icache_feedback_miss_ready,
 
@@ -112,7 +114,7 @@ module fetch_unit (
     // restart from ROB (non-branch restarts)
     input logic                 rob_restart_valid,
     input corep::bcb_idx_t      rob_restart_bcb_idx,
-    input corep::pc38_t         rob_restart_pc38,
+    input corep::pc38_t         rob_restart_final_pc38,
     input corep::asid_t         rob_restart_asid,
     input corep::exec_mode_t    rob_restart_exec_mode,
     input logic                 rob_restart_virtual_mode,
@@ -120,10 +122,10 @@ module fetch_unit (
     // wfr trigger from decode_unit
     input logic decode_unit_trigger_wfr,
 
-    // restart from decode_unit
+    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
     input logic             decode_unit_restart_valid,
     input corep::bcb_idx_t  decode_unit_restart_bcb_idx,
-    input corep::pc38_t     decode_unit_restart_pc38,
+    input corep::pc38_t     decode_unit_restart_final_pc38,
 
     // branch update (and also restart if mispred)
     input logic                 branch_update_valid,
@@ -135,6 +137,8 @@ module fetch_unit (
     input corep::pc38_t         branch_update_tgt_pc38,
     input logic                 branch_update_taken,
     input logic                 branch_update_btb_hit,
+
+    output logic                branch_update_ready,
 
     // mdpt update
     input logic             mdpt_update_valid,
@@ -182,15 +186,18 @@ module fetch_unit (
     logic RESP_valid;
     logic RESP_pass;
 
+    logic RESP_icache_hit;
+
     logic RESP_src_uses_upct;
     
     logic RESP_tgt_uses_ibtb;
     logic RESP_tgt_uses_upct;
 
-    corep::pc38_t   RESP_received_pc38;
-    logic           RESP_received_upc_valid;
-    corep::pc38_t   RESP_final_pc38;
-    corep::pc38_t   RESP_final_pc38_next_8;
+    corep::pc38_t       RESP_received_pc38;
+    logic               RESP_received_upc_valid;
+    corep::pc38_t       RESP_final_pc38;
+    corep::pc38_t       RESP_final_pc38_next_8;
+    sysp::icache_tag_t  RESP_final_icache_tag;
 
     corep::gh_t RESP_received_gh;
 
@@ -217,7 +224,9 @@ module fetch_unit (
     ///////////////////
 
     corep::btb_info_t   update_final_btb_info;
-    corep::gh_t         update_final_gh;
+
+    corep::gh_t         restart_final_gh;
+    corep::pc38_t       restart_final_pc38;
 
     ////////////////
     // module IO: //
@@ -360,7 +369,7 @@ module fetch_unit (
         any_restart =
             rob_restart_valid
             | decode_unit_restart_valid
-            | (branch_update_valid & branch_update_mispred)
+            | (branch_update_valid & branch_update_ready & branch_update_mispred)
         ;
     end
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -390,12 +399,33 @@ module fetch_unit (
     end
 
     // REQ logic
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            REQ_latched_pc38 <= corep::INIT_PC38;
+            REQ_latched_gh <= corep::INIT_GH;
+        end
+        else if (any_restart) begin
+            REQ_latched_pc38 <= restart_final_pc38;
+            REQ_latched_gh <= restart_final_gh;
+        end
+    end
     always_comb begin
         REQ_valid = ~wfr;
         REQ_pass = (~RESP_valid | RESP_pass);
 
-        REQ_received_pc38 = // TODO
+        // pass next pc38 back to REQ
+        if (RESP_valid) begin
+            // TODO
+        end
+        else begin
+            REQ_received_pc38 = REQ_latched_pc38;
+            REQ_received_upc_valid = 1'b1;
+        end
+
+        // pass next gh back to REQ
     end
+
+    // RESP logic
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
 
@@ -404,8 +434,13 @@ module fetch_unit (
 
         end
     end
+    always_comb begin
+        // TODO: RESP_pass
+            // depends on if hit or miss (e.g. check if have fmid ready and icache miss ready)
+            // depends on if need RESP2
 
-    // RESP logic
+        RESP_final_icache_tag = sysp::icache_tag_from_pc38(RESP_final_pc38);
+    end
 
     // RESP2 logic
 
@@ -414,38 +449,76 @@ module fetch_unit (
     // update logic
     always_comb begin
         update_final_btb_info = branch_update_btb_info;
-        if (branch_update_valid & branch_update_btb_info.use_upct) begin
-            update_final_btb_info.upct_idx = upct_update_upct_idx;
+        if (branch_update_btb_info.use_upct) begin
+            update_final_btb_info.big_tgt.upct_idx = upct_update_upct_idx;
         end
 
-        update_final_gh = bcb_restore_bcb_info.gh;
+        restart_final_gh = bcb_restore_bcb_info.gh;
         if (
-            branch_update_valid
+            ~rob_restart_valid
+            & branch_update_valid
+            & branch_update_ready
             & branch_update_mispred
             & (branch_update_btb_info.action == corep::BTB_ACTION_BRANCH)
         ) begin
-            update_final_gh = {bcb_restore_bcb_info.gh << 1, branch_update_taken};
+            restart_final_gh = {bcb_restore_bcb_info.gh << 1, branch_update_taken};
+        end
+
+        if (rob_restart_valid) begin
+            restart_final_pc38 = rob_restart_final_pc38; 
+        end
+        else if (decode_unit_restart_valid) begin
+            restart_final_pc38 = decode_unit_restart_final_pc38;
+        end
+        else begin
+            restart_final_pc38 = branch_update_tgt_pc38;
         end
     end
 
     // itlb req:
+    always_comb begin
+        itlb_req_valid = REQ_valid & REQ_pass;
+        itlb_req_asid = fetch_arch_asid;
+        itlb_req_exec_mode = fetch_arch_exec_mode;
+        itlb_req_virtual_mode = fetch_arch_virtual_mode;
+        itlb_req_fetch_idx = REQ_received_pc38.idx;
+    end
 
     // itlb resp:
+    always_comb begin
+        itlb_resp_vpn = RESP_final_pc38[38-1:sysp::PO_WIDTH-1];
+    end
 
     // icache req:
+    always_comb begin
+        icache_req_valid = REQ_valid & REQ_pass;
+        icache_req_fetch_idx = REQ_received_pc38.idx;
+    end
 
     // icache resp feedback:
+    always_comb begin
+        RESP_icache_hit = 1'b0;
+        icache_feedback_hit_way = 0;
+        // prioritize lowest way
+        for (int way = sysp::ICACHE_ASSOC-1; way >= 0; way--) begin
+            if (icache_resp_valid_by_way[way] & (icache_resp_tag_by_way[way] == RESP_final_icache_tag)) begin
+                RESP_icache_hit = 1'b1;
+                icache_feedback_hit_way = way;
+            end
+        end
+        icache_feedback_hit_valid = RESP_icache_hit & RESP_valid & RESP_pass;
 
-    // icache miss return:
-
-    // instr yield:
+        icache_feedback_miss_valid = ~RESP_icache_hit & RESP_valid & RESP_pass;
+        icache_feedback_miss_fmid = ibuffer_enq_fmid;
+        icache_feedback_miss_pa39 = {RESP_final_pc38, 1'b0};
+    end
 
     // upct:
     always_comb begin
         upct_read_valid = LATE_valid & LATE_pass;
         upct_read_idx = LATE_upct_idx;
 
-        upct_update_valid = branch_update_valid & branch_update_btb_info.use_upct;
+        upct_update_valid = branch_update_valid & branch_update_ready & branch_update_btb_info.use_upct;
         upct_update_upc = branch_update_tgt_pc38.upc;
     end
     upct UPCT (
@@ -481,7 +554,7 @@ module fetch_unit (
             & corep::btb_action_is_ret(btb_read_resp_btb_info.action)
         ;
         
-        ras_update_valid = branch_update_valid & branch_update_mispred;
+        ras_update_valid = any_restart;
         ras_update_ras_idx = bcb_restore_bcb_info.ras_idx;
         ras_update_ras_cnt = bcb_restore_bcb_info.ras_cnt;
     end
@@ -508,12 +581,24 @@ module fetch_unit (
 
         btb_read_resp_pc38 = RESP_final_pc38;
         
-        btb_update_valid = branch_update_valid;
-        btb_update_pc38 = branch_update_src_pc38;
-        btb_update_asid = branch_update_asid;
-        btb_update_btb_info = update_final_btb_info;
-        btb_update_hit = branch_update_btb_hit;
-        btb_update_hit_way = bcb_restore_bcb_info.btb_hit_way;
+        btb_update_valid = decode_unit_restart_valid | branch_update_valid;
+        if (decode_unit_restart_valid) begin
+            btb_update_pc38 = decode_unit_restart_final_pc38;
+            btb_update_asid = fetch_arch_asid; // can guarantee decode_unit and fetch_unit are on same asid since last restart
+            btb_update_btb_info = '0; // clear entry
+            btb_update_hit = 1'b1; // this forces clearing of correct entry but plru is unfortunately reversed
+            btb_update_hit_way = bcb_restore_bcb_info.btb_hit_way; // can be incorrect if rob_restart same cycle
+
+            branch_update_ready = 1'b0;
+        end else begin
+            btb_update_pc38 = branch_update_src_pc38;
+            btb_update_asid = branch_update_asid;
+            btb_update_btb_info = update_final_btb_info;
+            btb_update_hit = branch_update_btb_hit;
+            btb_update_hit_way = bcb_restore_bcb_info.btb_hit_way; // can be incorrect if rob_restart same cycle
+
+            branch_update_ready = 1'b1;
+        end
     end
     btb BTB (
         .CLK(CLK),
@@ -544,9 +629,9 @@ module fetch_unit (
 
         pht_read_resp_redirect_lane = btb_read_resp_hit_lane;
         
-        pht_update_valid = branch_update_valid & (branch_update_btb_info.action == corep::BTB_ACTION_BRANCH);
+        pht_update_valid = branch_update_valid & branch_update_ready & (branch_update_btb_info.action == corep::BTB_ACTION_BRANCH);
         pht_update_pc38 = branch_update_src_pc38;
-        pht_update_gh = bcb_restore_bcb_info.gh;
+        pht_update_gh = bcb_restore_bcb_info.gh; // can be incorrect if rob_restart same cycle
         pht_update_asid = branch_update_asid;
         pht_update_taken = branch_update_taken;
     end
@@ -572,9 +657,9 @@ module fetch_unit (
         ibtb_read_ibtb_gh = RESP_received_gh;
         ibtb_read_asid = fetch_arch_asid;
         
-        ibtb_update_valid = branch_update_valid & corep::btb_action_is_ibtb(branch_update_btb_info.action);
+        ibtb_update_valid = branch_update_valid & branch_update_ready & corep::btb_action_is_ibtb(branch_update_btb_info.action);
         ibtb_update_src_pc38 = branch_update_src_pc38;
-        ibtb_update_ibtb_gh = bcb_restore_bcb_info.gh;
+        ibtb_update_ibtb_gh = bcb_restore_bcb_info.gh; // can be incorrect if rob_restart same cycle
         ibtb_update_asid = branch_update_asid;
         ibtb_update_tgt_pc38 = branch_update_tgt_pc38;
     end
@@ -626,6 +711,9 @@ module fetch_unit (
         if (rob_restart_valid) begin
             bcb_restore_bcb_idx = rob_restart_bcb_idx;
         end
+        else if (branch_update_valid & branch_update_ready & branch_update_mispred) begin
+            bcb_restore_bcb_idx = branch_update_bcb_idx;
+        end
         else begin
             bcb_restore_bcb_idx = branch_update_bcb_idx;
         end
@@ -644,7 +732,7 @@ module fetch_unit (
     always_comb begin
         ibuffer_enq_valid = RESP_valid & RESP_pass;
         ibuffer_enq_info. // TODO
-        ibuffer_enq_fetch_hit_valid = icache_feedback_hit_valid;
+        ibuffer_enq_fetch_hit_valid = icache_feedback_hit_valid; // need to make sure = 1'b0 means miss that has been launched
         ibuffer_enq_fetch_hit_fetch16B = icache_resp_fetch16B_by_way[icache_feedback_hit_way];
 
         ibuffer_restart_valid = any_restart;

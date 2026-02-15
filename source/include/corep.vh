@@ -41,15 +41,14 @@ package corep;
     parameter exec_mode_t EXEC_MODE_S = 2'b01;
     parameter exec_mode_t EXEC_MODE_M = 2'b11;
 
-    parameter logic [37:0] INIT_PC38 = 38'h0;
-    parameter asid_t INIT_ASID = 16'h0;
-    parameter exec_mode_t INIT_EXEC_MODE = EXEC_MODE_M;
-    parameter logic INIT_VIRTUAL_MODE = 1'b0;
-    parameter logic INIT_MXR = 1'b0;
-    parameter logic INIT_SUM = 1'b0;
-	parameter logic INIT_TRAP_SFENCE = 1'b0;
-	parameter logic INIT_TRAP_WFI = 1'b0;
-	parameter logic INIT_TRAP_SRET = 1'b0;
+    parameter asid_t INIT_ASID              = 16'h0;
+    parameter exec_mode_t INIT_EXEC_MODE    = EXEC_MODE_M;
+    parameter logic INIT_VIRTUAL_MODE       = 1'b0;
+    parameter logic INIT_MXR                = 1'b0;
+    parameter logic INIT_SUM                = 1'b0;
+	parameter logic INIT_TRAP_SFENCE        = 1'b0;
+	parameter logic INIT_TRAP_WFI           = 1'b0;
+	parameter logic INIT_TRAP_SRET          = 1'b0;
 
     // ----------------------------------------------------------------
     // Central:
@@ -285,6 +284,8 @@ package corep;
         fetch_idx_t     idx;
     } pc35_t;
 
+    parameter pc38_t INIT_PC38 = 38'h0;
+
     // btb:
         // 8-wide access into associative tagged entries
         // index: fetch idx, asid
@@ -317,6 +318,8 @@ package corep;
 
     typedef logic [GH_LENGTH-1:0]       gh_t;
     typedef logic [LOG_PHT_SETS-1:0]    pht_idx_t;
+
+    parameter gh_t INIT_GH = '0;
 
     // ras:
         // 1-wide stack
