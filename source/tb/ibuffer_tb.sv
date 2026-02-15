@@ -48,12 +48,12 @@ module ibuffer_tb #(
 	corep::fmid_t tb_fetch_miss_return_fmid;
 	corep::fetch16B_t tb_fetch_miss_return_fetch16B;
 
-    // deq
-	logic DUT_deq_valid, expected_deq_valid;
-	corep::ibuffer_deq_entry_t [3:0] DUT_deq_entry_by_way, expected_deq_entry_by_way;
+    // instr yield
+	logic DUT_instr_yield_valid, expected_instr_yield_valid;
+	corep::instr_yield_t [3:0] DUT_instr_yield_by_way, expected_instr_yield_by_way;
 
-    // def feedback
-	logic tb_deq_ready;
+    // instr yield feedback
+	logic tb_instr_yield_ready;
 
     // restart
 	logic tb_restart_valid;
@@ -83,12 +83,12 @@ module ibuffer_tb #(
 		.fetch_miss_return_fmid(tb_fetch_miss_return_fmid),
 		.fetch_miss_return_fetch16B(tb_fetch_miss_return_fetch16B),
 
-	    // deq
-		.deq_valid(DUT_deq_valid),
-		.deq_entry_by_way(DUT_deq_entry_by_way),
+	    // instr yield
+		.instr_yield_valid(DUT_instr_yield_valid),
+		.instr_yield_by_way(DUT_instr_yield_by_way),
 
-	    // def feedback
-		.deq_ready(tb_deq_ready),
+	    // instr yield feedback
+		.instr_yield_ready(tb_instr_yield_ready),
 
 	    // restart
 		.restart_valid(tb_restart_valid)
@@ -113,106 +113,106 @@ module ibuffer_tb #(
 			tb_error = 1'b1;
 		end
 
-		if (expected_deq_valid !== DUT_deq_valid) begin
-			$display("TB ERROR: expected_deq_valid (%h) != DUT_deq_valid (%h)",
-				expected_deq_valid, DUT_deq_valid);
+		if (expected_instr_yield_valid !== DUT_instr_yield_valid) begin
+			$display("TB ERROR: expected_instr_yield_valid (%h) != DUT_instr_yield_valid (%h)",
+				expected_instr_yield_valid, DUT_instr_yield_valid);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_deq_entry_by_way !== DUT_deq_entry_by_way) begin
-			$display("TB ERROR: expected_deq_entry_by_way != DUT_deq_entry_by_way");
+		if (expected_instr_yield_by_way !== DUT_instr_yield_by_way) begin
+			$display("TB ERROR: expected_instr_yield_by_way != DUT_instr_yield_by_way");
 			$display("\t\t[0].valid (%0h)              \t%s\t [0].valid (%0h)",
-				expected_deq_entry_by_way[0].valid, expected_deq_entry_by_way[0].valid == DUT_deq_entry_by_way[0].valid ? "==" : "!=", DUT_deq_entry_by_way[0].valid);
+				expected_instr_yield_by_way[0].valid, expected_instr_yield_by_way[0].valid == DUT_instr_yield_by_way[0].valid ? "==" : "!=", DUT_instr_yield_by_way[0].valid);
 			$display("\t\t[0].btb_hit (%0h)            \t%s\t [0].btb_hit (%0h)",
-				expected_deq_entry_by_way[0].btb_hit, expected_deq_entry_by_way[0].btb_hit == DUT_deq_entry_by_way[0].btb_hit ? "==" : "!=", DUT_deq_entry_by_way[0].btb_hit);
+				expected_instr_yield_by_way[0].btb_hit, expected_instr_yield_by_way[0].btb_hit == DUT_instr_yield_by_way[0].btb_hit ? "==" : "!=", DUT_instr_yield_by_way[0].btb_hit);
 			$display("\t\t[0].redirect_taken (%0h)     \t%s\t [0].redirect_taken (%0h)",
-				expected_deq_entry_by_way[0].redirect_taken, expected_deq_entry_by_way[0].redirect_taken == DUT_deq_entry_by_way[0].redirect_taken ? "==" : "!=", DUT_deq_entry_by_way[0].redirect_taken);
+				expected_instr_yield_by_way[0].redirect_taken, expected_instr_yield_by_way[0].redirect_taken == DUT_instr_yield_by_way[0].redirect_taken ? "==" : "!=", DUT_instr_yield_by_way[0].redirect_taken);
 			$display("\t\t[0].mid_instr_redirect (%0h) \t%s\t [0].mid_instr_redirect (%0h)",
-				expected_deq_entry_by_way[0].mid_instr_redirect, expected_deq_entry_by_way[0].mid_instr_redirect == DUT_deq_entry_by_way[0].mid_instr_redirect ? "==" : "!=", DUT_deq_entry_by_way[0].mid_instr_redirect);
+				expected_instr_yield_by_way[0].mid_instr_redirect, expected_instr_yield_by_way[0].mid_instr_redirect == DUT_instr_yield_by_way[0].mid_instr_redirect ? "==" : "!=", DUT_instr_yield_by_way[0].mid_instr_redirect);
 			$display("\t\t[0].bcb_idx (%0h)            \t%s\t [0].bcb_idx (%0h)",
-				expected_deq_entry_by_way[0].bcb_idx, expected_deq_entry_by_way[0].bcb_idx == DUT_deq_entry_by_way[0].bcb_idx ? "==" : "!=", DUT_deq_entry_by_way[0].bcb_idx);
+				expected_instr_yield_by_way[0].bcb_idx, expected_instr_yield_by_way[0].bcb_idx == DUT_instr_yield_by_way[0].bcb_idx ? "==" : "!=", DUT_instr_yield_by_way[0].bcb_idx);
 			$display("\t\t[0].src_pc38 (%09h,%01h)   \t%s\t [0].src_pc38 (%09h,%01h)",
-				expected_deq_entry_by_way[0].src_pc38[37:3], expected_deq_entry_by_way[0].src_pc38[2:0], expected_deq_entry_by_way[0].src_pc38 == DUT_deq_entry_by_way[0].src_pc38 ? "==" : "!=", DUT_deq_entry_by_way[0].src_pc38[37:3], DUT_deq_entry_by_way[0].src_pc38[2:0]);
+				expected_instr_yield_by_way[0].src_pc38[37:3], expected_instr_yield_by_way[0].src_pc38[2:0], expected_instr_yield_by_way[0].src_pc38 == DUT_instr_yield_by_way[0].src_pc38 ? "==" : "!=", DUT_instr_yield_by_way[0].src_pc38[37:3], DUT_instr_yield_by_way[0].src_pc38[2:0]);
 			$display("\t\t[0].tgt_pc38 (%09h,%01h)   \t%s\t [0].tgt_pc38 (%09h,%01h)",
-				expected_deq_entry_by_way[0].tgt_pc38[37:3], expected_deq_entry_by_way[0].tgt_pc38[2:0], expected_deq_entry_by_way[0].tgt_pc38 == DUT_deq_entry_by_way[0].tgt_pc38 ? "==" : "!=", DUT_deq_entry_by_way[0].tgt_pc38[37:3], DUT_deq_entry_by_way[0].tgt_pc38[2:0]);
+				expected_instr_yield_by_way[0].tgt_pc38[37:3], expected_instr_yield_by_way[0].tgt_pc38[2:0], expected_instr_yield_by_way[0].tgt_pc38 == DUT_instr_yield_by_way[0].tgt_pc38 ? "==" : "!=", DUT_instr_yield_by_way[0].tgt_pc38[37:3], DUT_instr_yield_by_way[0].tgt_pc38[2:0]);
 			$display("\t\t[0].page_fault (%0h)         \t%s\t [0].page_fault (%0h)",
-				expected_deq_entry_by_way[0].page_fault, expected_deq_entry_by_way[0].page_fault == DUT_deq_entry_by_way[0].page_fault ? "==" : "!=", DUT_deq_entry_by_way[0].page_fault);
+				expected_instr_yield_by_way[0].page_fault, expected_instr_yield_by_way[0].page_fault == DUT_instr_yield_by_way[0].page_fault ? "==" : "!=", DUT_instr_yield_by_way[0].page_fault);
 			$display("\t\t[0].access_fault (%0h)       \t%s\t [0].access_fault (%0h)",
-				expected_deq_entry_by_way[0].access_fault, expected_deq_entry_by_way[0].access_fault == DUT_deq_entry_by_way[0].access_fault ? "==" : "!=", DUT_deq_entry_by_way[0].access_fault);
+				expected_instr_yield_by_way[0].access_fault, expected_instr_yield_by_way[0].access_fault == DUT_instr_yield_by_way[0].access_fault ? "==" : "!=", DUT_instr_yield_by_way[0].access_fault);
 			$display("\t\t[0].mdp (%02h)                \t%s\t [0].mdp (%02h)",
-				expected_deq_entry_by_way[0].mdp, expected_deq_entry_by_way[0].mdp == DUT_deq_entry_by_way[0].mdp ? "==" : "!=", DUT_deq_entry_by_way[0].mdp);
+				expected_instr_yield_by_way[0].mdp, expected_instr_yield_by_way[0].mdp == DUT_instr_yield_by_way[0].mdp ? "==" : "!=", DUT_instr_yield_by_way[0].mdp);
 			$display("\t\t[0].fetch4B (%08h)       \t%s\t [0].fetch4B (%08h)",
-				expected_deq_entry_by_way[0].fetch4B, expected_deq_entry_by_way[0].fetch4B == DUT_deq_entry_by_way[0].fetch4B ? "==" : "!=", DUT_deq_entry_by_way[0].fetch4B);
+				expected_instr_yield_by_way[0].fetch4B, expected_instr_yield_by_way[0].fetch4B == DUT_instr_yield_by_way[0].fetch4B ? "==" : "!=", DUT_instr_yield_by_way[0].fetch4B);
             $display();
 			$display("\t\t[1].valid (%0h)              \t%s\t [1].valid (%0h)",
-				expected_deq_entry_by_way[1].valid, expected_deq_entry_by_way[1].valid == DUT_deq_entry_by_way[1].valid ? "==" : "!=", DUT_deq_entry_by_way[1].valid);
+				expected_instr_yield_by_way[1].valid, expected_instr_yield_by_way[1].valid == DUT_instr_yield_by_way[1].valid ? "==" : "!=", DUT_instr_yield_by_way[1].valid);
 			$display("\t\t[1].btb_hit (%0h)            \t%s\t [1].btb_hit (%0h)",
-				expected_deq_entry_by_way[1].btb_hit, expected_deq_entry_by_way[1].btb_hit == DUT_deq_entry_by_way[1].btb_hit ? "==" : "!=", DUT_deq_entry_by_way[1].btb_hit);
+				expected_instr_yield_by_way[1].btb_hit, expected_instr_yield_by_way[1].btb_hit == DUT_instr_yield_by_way[1].btb_hit ? "==" : "!=", DUT_instr_yield_by_way[1].btb_hit);
 			$display("\t\t[1].redirect_taken (%0h)     \t%s\t [1].redirect_taken (%0h)",
-				expected_deq_entry_by_way[1].redirect_taken, expected_deq_entry_by_way[1].redirect_taken == DUT_deq_entry_by_way[1].redirect_taken ? "==" : "!=", DUT_deq_entry_by_way[1].redirect_taken);
+				expected_instr_yield_by_way[1].redirect_taken, expected_instr_yield_by_way[1].redirect_taken == DUT_instr_yield_by_way[1].redirect_taken ? "==" : "!=", DUT_instr_yield_by_way[1].redirect_taken);
 			$display("\t\t[1].mid_instr_redirect (%0h) \t%s\t [1].mid_instr_redirect (%0h)",
-				expected_deq_entry_by_way[1].mid_instr_redirect, expected_deq_entry_by_way[1].mid_instr_redirect == DUT_deq_entry_by_way[1].mid_instr_redirect ? "==" : "!=", DUT_deq_entry_by_way[1].mid_instr_redirect);
+				expected_instr_yield_by_way[1].mid_instr_redirect, expected_instr_yield_by_way[1].mid_instr_redirect == DUT_instr_yield_by_way[1].mid_instr_redirect ? "==" : "!=", DUT_instr_yield_by_way[1].mid_instr_redirect);
 			$display("\t\t[1].bcb_idx (%0h)            \t%s\t [1].bcb_idx (%0h)",
-				expected_deq_entry_by_way[1].bcb_idx, expected_deq_entry_by_way[1].bcb_idx == DUT_deq_entry_by_way[1].bcb_idx ? "==" : "!=", DUT_deq_entry_by_way[1].bcb_idx);
+				expected_instr_yield_by_way[1].bcb_idx, expected_instr_yield_by_way[1].bcb_idx == DUT_instr_yield_by_way[1].bcb_idx ? "==" : "!=", DUT_instr_yield_by_way[1].bcb_idx);
 			$display("\t\t[1].src_pc38 (%09h,%01h)   \t%s\t [1].src_pc38 (%09h,%01h)",
-				expected_deq_entry_by_way[1].src_pc38[37:3], expected_deq_entry_by_way[1].src_pc38[2:0], expected_deq_entry_by_way[1].src_pc38 == DUT_deq_entry_by_way[1].src_pc38 ? "==" : "!=", DUT_deq_entry_by_way[1].src_pc38[37:3], DUT_deq_entry_by_way[1].src_pc38[2:0]);
+				expected_instr_yield_by_way[1].src_pc38[37:3], expected_instr_yield_by_way[1].src_pc38[2:0], expected_instr_yield_by_way[1].src_pc38 == DUT_instr_yield_by_way[1].src_pc38 ? "==" : "!=", DUT_instr_yield_by_way[1].src_pc38[37:3], DUT_instr_yield_by_way[1].src_pc38[2:0]);
 			$display("\t\t[1].tgt_pc38 (%09h,%01h)   \t%s\t [1].tgt_pc38 (%09h,%01h)",
-				expected_deq_entry_by_way[1].tgt_pc38[37:3], expected_deq_entry_by_way[1].tgt_pc38[2:0], expected_deq_entry_by_way[1].tgt_pc38 == DUT_deq_entry_by_way[1].tgt_pc38 ? "==" : "!=", DUT_deq_entry_by_way[1].tgt_pc38[37:3], DUT_deq_entry_by_way[1].tgt_pc38[2:0]);
+				expected_instr_yield_by_way[1].tgt_pc38[37:3], expected_instr_yield_by_way[1].tgt_pc38[2:0], expected_instr_yield_by_way[1].tgt_pc38 == DUT_instr_yield_by_way[1].tgt_pc38 ? "==" : "!=", DUT_instr_yield_by_way[1].tgt_pc38[37:3], DUT_instr_yield_by_way[1].tgt_pc38[2:0]);
 			$display("\t\t[1].page_fault (%0h)         \t%s\t [1].page_fault (%0h)",
-				expected_deq_entry_by_way[1].page_fault, expected_deq_entry_by_way[1].page_fault == DUT_deq_entry_by_way[1].page_fault ? "==" : "!=", DUT_deq_entry_by_way[1].page_fault);
+				expected_instr_yield_by_way[1].page_fault, expected_instr_yield_by_way[1].page_fault == DUT_instr_yield_by_way[1].page_fault ? "==" : "!=", DUT_instr_yield_by_way[1].page_fault);
 			$display("\t\t[1].access_fault (%0h)       \t%s\t [1].access_fault (%0h)",
-				expected_deq_entry_by_way[1].access_fault, expected_deq_entry_by_way[1].access_fault == DUT_deq_entry_by_way[1].access_fault ? "==" : "!=", DUT_deq_entry_by_way[1].access_fault);
+				expected_instr_yield_by_way[1].access_fault, expected_instr_yield_by_way[1].access_fault == DUT_instr_yield_by_way[1].access_fault ? "==" : "!=", DUT_instr_yield_by_way[1].access_fault);
 			$display("\t\t[1].mdp (%02h)                \t%s\t [1].mdp (%02h)",
-				expected_deq_entry_by_way[1].mdp, expected_deq_entry_by_way[1].mdp == DUT_deq_entry_by_way[1].mdp ? "==" : "!=", DUT_deq_entry_by_way[1].mdp);
+				expected_instr_yield_by_way[1].mdp, expected_instr_yield_by_way[1].mdp == DUT_instr_yield_by_way[1].mdp ? "==" : "!=", DUT_instr_yield_by_way[1].mdp);
 			$display("\t\t[1].fetch4B (%08h)    \t%s\t [1].fetch4B (%08h)",
-				expected_deq_entry_by_way[1].fetch4B, expected_deq_entry_by_way[1].fetch4B == DUT_deq_entry_by_way[1].fetch4B ? "==" : "!=", DUT_deq_entry_by_way[1].fetch4B);
+				expected_instr_yield_by_way[1].fetch4B, expected_instr_yield_by_way[1].fetch4B == DUT_instr_yield_by_way[1].fetch4B ? "==" : "!=", DUT_instr_yield_by_way[1].fetch4B);
             $display();
 			$display("\t\t[2].valid (%0h)              \t%s\t [2].valid (%0h)",
-				expected_deq_entry_by_way[2].valid, expected_deq_entry_by_way[2].valid == DUT_deq_entry_by_way[2].valid ? "==" : "!=", DUT_deq_entry_by_way[2].valid);
+				expected_instr_yield_by_way[2].valid, expected_instr_yield_by_way[2].valid == DUT_instr_yield_by_way[2].valid ? "==" : "!=", DUT_instr_yield_by_way[2].valid);
 			$display("\t\t[2].btb_hit (%0h)            \t%s\t [2].btb_hit (%0h)",
-				expected_deq_entry_by_way[2].btb_hit, expected_deq_entry_by_way[2].btb_hit == DUT_deq_entry_by_way[2].btb_hit ? "==" : "!=", DUT_deq_entry_by_way[2].btb_hit);
+				expected_instr_yield_by_way[2].btb_hit, expected_instr_yield_by_way[2].btb_hit == DUT_instr_yield_by_way[2].btb_hit ? "==" : "!=", DUT_instr_yield_by_way[2].btb_hit);
 			$display("\t\t[2].redirect_taken (%0h)     \t%s\t [2].redirect_taken (%0h)",
-				expected_deq_entry_by_way[2].redirect_taken, expected_deq_entry_by_way[2].redirect_taken == DUT_deq_entry_by_way[2].redirect_taken ? "==" : "!=", DUT_deq_entry_by_way[2].redirect_taken);
+				expected_instr_yield_by_way[2].redirect_taken, expected_instr_yield_by_way[2].redirect_taken == DUT_instr_yield_by_way[2].redirect_taken ? "==" : "!=", DUT_instr_yield_by_way[2].redirect_taken);
 			$display("\t\t[2].mid_instr_redirect (%0h) \t%s\t [2].mid_instr_redirect (%0h)",
-				expected_deq_entry_by_way[2].mid_instr_redirect, expected_deq_entry_by_way[2].mid_instr_redirect == DUT_deq_entry_by_way[2].mid_instr_redirect ? "==" : "!=", DUT_deq_entry_by_way[2].mid_instr_redirect);
+				expected_instr_yield_by_way[2].mid_instr_redirect, expected_instr_yield_by_way[2].mid_instr_redirect == DUT_instr_yield_by_way[2].mid_instr_redirect ? "==" : "!=", DUT_instr_yield_by_way[2].mid_instr_redirect);
 			$display("\t\t[2].bcb_idx (%0h)            \t%s\t [2].bcb_idx (%0h)",
-				expected_deq_entry_by_way[2].bcb_idx, expected_deq_entry_by_way[2].bcb_idx == DUT_deq_entry_by_way[2].bcb_idx ? "==" : "!=", DUT_deq_entry_by_way[2].bcb_idx);
+				expected_instr_yield_by_way[2].bcb_idx, expected_instr_yield_by_way[2].bcb_idx == DUT_instr_yield_by_way[2].bcb_idx ? "==" : "!=", DUT_instr_yield_by_way[2].bcb_idx);
 			$display("\t\t[2].src_pc38 (%09h,%01h)   \t%s\t [2].src_pc38 (%09h,%01h)",
-				expected_deq_entry_by_way[2].src_pc38[37:3], expected_deq_entry_by_way[2].src_pc38[2:0], expected_deq_entry_by_way[2].src_pc38 == DUT_deq_entry_by_way[2].src_pc38 ? "==" : "!=", DUT_deq_entry_by_way[2].src_pc38[37:3], DUT_deq_entry_by_way[2].src_pc38[2:0]);
+				expected_instr_yield_by_way[2].src_pc38[37:3], expected_instr_yield_by_way[2].src_pc38[2:0], expected_instr_yield_by_way[2].src_pc38 == DUT_instr_yield_by_way[2].src_pc38 ? "==" : "!=", DUT_instr_yield_by_way[2].src_pc38[37:3], DUT_instr_yield_by_way[2].src_pc38[2:0]);
 			$display("\t\t[2].tgt_pc38 (%09h,%01h)   \t%s\t [2].tgt_pc38 (%09h,%01h)",
-				expected_deq_entry_by_way[2].tgt_pc38[37:3], expected_deq_entry_by_way[2].tgt_pc38[2:0], expected_deq_entry_by_way[2].tgt_pc38 == DUT_deq_entry_by_way[2].tgt_pc38 ? "==" : "!=", DUT_deq_entry_by_way[2].tgt_pc38[37:3], DUT_deq_entry_by_way[2].tgt_pc38[2:0]);
+				expected_instr_yield_by_way[2].tgt_pc38[37:3], expected_instr_yield_by_way[2].tgt_pc38[2:0], expected_instr_yield_by_way[2].tgt_pc38 == DUT_instr_yield_by_way[2].tgt_pc38 ? "==" : "!=", DUT_instr_yield_by_way[2].tgt_pc38[37:3], DUT_instr_yield_by_way[2].tgt_pc38[2:0]);
 			$display("\t\t[2].page_fault (%0h)         \t%s\t [2].page_fault (%0h)",
-				expected_deq_entry_by_way[2].page_fault, expected_deq_entry_by_way[2].page_fault == DUT_deq_entry_by_way[2].page_fault ? "==" : "!=", DUT_deq_entry_by_way[2].page_fault);
+				expected_instr_yield_by_way[2].page_fault, expected_instr_yield_by_way[2].page_fault == DUT_instr_yield_by_way[2].page_fault ? "==" : "!=", DUT_instr_yield_by_way[2].page_fault);
 			$display("\t\t[2].access_fault (%0h)       \t%s\t [2].access_fault (%0h)",
-				expected_deq_entry_by_way[2].access_fault, expected_deq_entry_by_way[2].access_fault == DUT_deq_entry_by_way[2].access_fault ? "==" : "!=", DUT_deq_entry_by_way[2].access_fault);
+				expected_instr_yield_by_way[2].access_fault, expected_instr_yield_by_way[2].access_fault == DUT_instr_yield_by_way[2].access_fault ? "==" : "!=", DUT_instr_yield_by_way[2].access_fault);
 			$display("\t\t[2].mdp (%02h)                \t%s\t [2].mdp (%02h)",
-				expected_deq_entry_by_way[2].mdp, expected_deq_entry_by_way[2].mdp == DUT_deq_entry_by_way[2].mdp ? "==" : "!=", DUT_deq_entry_by_way[2].mdp);
+				expected_instr_yield_by_way[2].mdp, expected_instr_yield_by_way[2].mdp == DUT_instr_yield_by_way[2].mdp ? "==" : "!=", DUT_instr_yield_by_way[2].mdp);
 			$display("\t\t[2].fetch4B (%08h)    \t%s\t [2].fetch4B (%08h)",
-				expected_deq_entry_by_way[2].fetch4B, expected_deq_entry_by_way[2].fetch4B == DUT_deq_entry_by_way[2].fetch4B ? "==" : "!=", DUT_deq_entry_by_way[2].fetch4B);
+				expected_instr_yield_by_way[2].fetch4B, expected_instr_yield_by_way[2].fetch4B == DUT_instr_yield_by_way[2].fetch4B ? "==" : "!=", DUT_instr_yield_by_way[2].fetch4B);
             $display();
 			$display("\t\t[3].valid (%0h)              \t%s\t [3].valid (%0h)",
-				expected_deq_entry_by_way[3].valid, expected_deq_entry_by_way[3].valid == DUT_deq_entry_by_way[3].valid ? "==" : "!=", DUT_deq_entry_by_way[3].valid);
+				expected_instr_yield_by_way[3].valid, expected_instr_yield_by_way[3].valid == DUT_instr_yield_by_way[3].valid ? "==" : "!=", DUT_instr_yield_by_way[3].valid);
 			$display("\t\t[3].btb_hit (%0h)            \t%s\t [3].btb_hit (%0h)",
-				expected_deq_entry_by_way[3].btb_hit, expected_deq_entry_by_way[3].btb_hit == DUT_deq_entry_by_way[3].btb_hit ? "==" : "!=", DUT_deq_entry_by_way[3].btb_hit);
+				expected_instr_yield_by_way[3].btb_hit, expected_instr_yield_by_way[3].btb_hit == DUT_instr_yield_by_way[3].btb_hit ? "==" : "!=", DUT_instr_yield_by_way[3].btb_hit);
 			$display("\t\t[3].redirect_taken (%0h)     \t%s\t [3].redirect_taken (%0h)",
-				expected_deq_entry_by_way[3].redirect_taken, expected_deq_entry_by_way[3].redirect_taken == DUT_deq_entry_by_way[3].redirect_taken ? "==" : "!=", DUT_deq_entry_by_way[3].redirect_taken);
+				expected_instr_yield_by_way[3].redirect_taken, expected_instr_yield_by_way[3].redirect_taken == DUT_instr_yield_by_way[3].redirect_taken ? "==" : "!=", DUT_instr_yield_by_way[3].redirect_taken);
 			$display("\t\t[3].mid_instr_redirect (%0h) \t%s\t [3].mid_instr_redirect (%0h)",
-				expected_deq_entry_by_way[3].mid_instr_redirect, expected_deq_entry_by_way[3].mid_instr_redirect == DUT_deq_entry_by_way[3].mid_instr_redirect ? "==" : "!=", DUT_deq_entry_by_way[3].mid_instr_redirect);
+				expected_instr_yield_by_way[3].mid_instr_redirect, expected_instr_yield_by_way[3].mid_instr_redirect == DUT_instr_yield_by_way[3].mid_instr_redirect ? "==" : "!=", DUT_instr_yield_by_way[3].mid_instr_redirect);
 			$display("\t\t[3].bcb_idx (%0h)            \t%s\t [3].bcb_idx (%0h)",
-				expected_deq_entry_by_way[3].bcb_idx, expected_deq_entry_by_way[3].bcb_idx == DUT_deq_entry_by_way[3].bcb_idx ? "==" : "!=", DUT_deq_entry_by_way[3].bcb_idx);
+				expected_instr_yield_by_way[3].bcb_idx, expected_instr_yield_by_way[3].bcb_idx == DUT_instr_yield_by_way[3].bcb_idx ? "==" : "!=", DUT_instr_yield_by_way[3].bcb_idx);
 			$display("\t\t[3].src_pc38 (%09h,%01h)   \t%s\t [3].src_pc38 (%09h,%01h)",
-				expected_deq_entry_by_way[3].src_pc38[37:3], expected_deq_entry_by_way[3].src_pc38[2:0], expected_deq_entry_by_way[3].src_pc38 == DUT_deq_entry_by_way[3].src_pc38 ? "==" : "!=", DUT_deq_entry_by_way[3].src_pc38[37:3], DUT_deq_entry_by_way[3].src_pc38[2:0]);
+				expected_instr_yield_by_way[3].src_pc38[37:3], expected_instr_yield_by_way[3].src_pc38[2:0], expected_instr_yield_by_way[3].src_pc38 == DUT_instr_yield_by_way[3].src_pc38 ? "==" : "!=", DUT_instr_yield_by_way[3].src_pc38[37:3], DUT_instr_yield_by_way[3].src_pc38[2:0]);
 			$display("\t\t[3].tgt_pc38 (%09h,%01h)   \t%s\t [3].tgt_pc38 (%09h,%01h)",
-				expected_deq_entry_by_way[3].tgt_pc38[37:3], expected_deq_entry_by_way[3].tgt_pc38[2:0], expected_deq_entry_by_way[3].tgt_pc38 == DUT_deq_entry_by_way[3].tgt_pc38 ? "==" : "!=", DUT_deq_entry_by_way[3].tgt_pc38[37:3], DUT_deq_entry_by_way[3].tgt_pc38[2:0]);
+				expected_instr_yield_by_way[3].tgt_pc38[37:3], expected_instr_yield_by_way[3].tgt_pc38[2:0], expected_instr_yield_by_way[3].tgt_pc38 == DUT_instr_yield_by_way[3].tgt_pc38 ? "==" : "!=", DUT_instr_yield_by_way[3].tgt_pc38[37:3], DUT_instr_yield_by_way[3].tgt_pc38[2:0]);
 			$display("\t\t[3].page_fault (%0h)         \t%s\t [3].page_fault (%0h)",
-				expected_deq_entry_by_way[3].page_fault, expected_deq_entry_by_way[3].page_fault == DUT_deq_entry_by_way[3].page_fault ? "==" : "!=", DUT_deq_entry_by_way[3].page_fault);
+				expected_instr_yield_by_way[3].page_fault, expected_instr_yield_by_way[3].page_fault == DUT_instr_yield_by_way[3].page_fault ? "==" : "!=", DUT_instr_yield_by_way[3].page_fault);
 			$display("\t\t[3].access_fault (%0h)       \t%s\t [3].access_fault (%0h)",
-				expected_deq_entry_by_way[3].access_fault, expected_deq_entry_by_way[3].access_fault == DUT_deq_entry_by_way[3].access_fault ? "==" : "!=", DUT_deq_entry_by_way[3].access_fault);
+				expected_instr_yield_by_way[3].access_fault, expected_instr_yield_by_way[3].access_fault == DUT_instr_yield_by_way[3].access_fault ? "==" : "!=", DUT_instr_yield_by_way[3].access_fault);
 			$display("\t\t[3].mdp (%02h)                \t%s\t [3].mdp (%02h)",
-				expected_deq_entry_by_way[3].mdp, expected_deq_entry_by_way[3].mdp == DUT_deq_entry_by_way[3].mdp ? "==" : "!=", DUT_deq_entry_by_way[3].mdp);
+				expected_instr_yield_by_way[3].mdp, expected_instr_yield_by_way[3].mdp == DUT_instr_yield_by_way[3].mdp ? "==" : "!=", DUT_instr_yield_by_way[3].mdp);
 			$display("\t\t[3].fetch4B (%08h)    \t%s\t [3].fetch4B (%08h)",
-				expected_deq_entry_by_way[3].fetch4B, expected_deq_entry_by_way[3].fetch4B == DUT_deq_entry_by_way[3].fetch4B ? "==" : "!=", DUT_deq_entry_by_way[3].fetch4B);
+				expected_instr_yield_by_way[3].fetch4B, expected_instr_yield_by_way[3].fetch4B == DUT_instr_yield_by_way[3].fetch4B ? "==" : "!=", DUT_instr_yield_by_way[3].fetch4B);
 
 			num_errors++;
 			tb_error = 1'b1;
@@ -287,7 +287,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -302,55 +302,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h000000000, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h00;
-		expected_deq_entry_by_way[0].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h000000000, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h00;
-		expected_deq_entry_by_way[1].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h000000000, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h00;
-		expected_deq_entry_by_way[2].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h000000000, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h00;
-		expected_deq_entry_by_way[3].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
 	    // def feedback
 	    // restart
 
@@ -409,7 +409,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -424,55 +424,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
         
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h000000000, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h00;
-		expected_deq_entry_by_way[0].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h000000000, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h00;
-		expected_deq_entry_by_way[1].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h000000000, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h00;
-		expected_deq_entry_by_way[2].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h000000000, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h00;
-		expected_deq_entry_by_way[3].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
 	    // def feedback
 	    // restart
 
@@ -545,7 +545,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -560,55 +560,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h000000000, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h00;
-		expected_deq_entry_by_way[0].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h000000000, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h00;
-		expected_deq_entry_by_way[1].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h000000000, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h00;
-		expected_deq_entry_by_way[2].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h000000000, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h00;
-		expected_deq_entry_by_way[3].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
 	    // def feedback
 	    // restart
 
@@ -675,7 +675,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -690,55 +690,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h000000000, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h00;
-		expected_deq_entry_by_way[0].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h000000000, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h00;
-		expected_deq_entry_by_way[1].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h000000000, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h00;
-		expected_deq_entry_by_way[2].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h000000000, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h00;
-		expected_deq_entry_by_way[3].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
 	    // def feedback
 	    // restart
 
@@ -805,7 +805,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -820,55 +820,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b1;
+		expected_instr_yield_valid = 1'b1;
 
-		expected_deq_entry_by_way[0].valid = 1'b1;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0F0F0F0F0, 3'h0};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0F0F0F0F0, 3'h1};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hF0;
-		expected_deq_entry_by_way[0].fetch4B = {16'hF011, 16'hF000};
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0F0F0F0F0, 3'h0};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0F0F0F0F0, 3'h1};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hF0;
+		expected_instr_yield_by_way[0].fetch4B = {16'hF011, 16'hF000};
 
-		expected_deq_entry_by_way[1].valid = 1'b1;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0F0F0F0F0, 3'h1};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0F0F0F0F0, 3'h2};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hF1;
-		expected_deq_entry_by_way[1].fetch4B = {16'hF022, 16'hF011};
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0F0F0F0F0, 3'h1};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0F0F0F0F0, 3'h2};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hF1;
+		expected_instr_yield_by_way[1].fetch4B = {16'hF022, 16'hF011};
 
-		expected_deq_entry_by_way[2].valid = 1'b1;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0F0F0F0F0, 3'h2};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0F0F0F0F0, 3'h3};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hF2;
-		expected_deq_entry_by_way[2].fetch4B = {16'hF033, 16'hF022};
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0F0F0F0F0, 3'h2};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0F0F0F0F0, 3'h3};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hF2;
+		expected_instr_yield_by_way[2].fetch4B = {16'hF033, 16'hF022};
 
-		expected_deq_entry_by_way[3].valid = 1'b1;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0F0F0F0F0, 3'h3};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0F0F0F0F0, 3'h5};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hF3;
-		expected_deq_entry_by_way[3].fetch4B = {16'hF044, 16'hF033};
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0F0F0F0F0, 3'h3};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0F0F0F0F0, 3'h5};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hF3;
+		expected_instr_yield_by_way[3].fetch4B = {16'hF044, 16'hF033};
 	    // def feedback
 	    // restart
 
@@ -935,7 +935,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -950,55 +950,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b1;
+		expected_instr_yield_valid = 1'b1;
 
-		expected_deq_entry_by_way[0].valid = 1'b1;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0F0F0F0F0, 3'h5};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0F0F0F0F0, 3'h6};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hF5;
-		expected_deq_entry_by_way[0].fetch4B = {16'hF066, 16'hF055};
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0F0F0F0F0, 3'h5};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0F0F0F0F0, 3'h6};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hF5;
+		expected_instr_yield_by_way[0].fetch4B = {16'hF066, 16'hF055};
 
-		expected_deq_entry_by_way[1].valid = 1'b1;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0F0F0F0F0, 3'h6};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0F0F0F0F0, 3'h7};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hF6;
-		expected_deq_entry_by_way[1].fetch4B = {16'hF077, 16'hF066};
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0F0F0F0F0, 3'h6};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0F0F0F0F0, 3'h7};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hF6;
+		expected_instr_yield_by_way[1].fetch4B = {16'hF077, 16'hF066};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hE7;
-		expected_deq_entry_by_way[2].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hE7;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hE7;
-		expected_deq_entry_by_way[3].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hE7;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
 	    // def feedback
 	    // restart
 
@@ -1065,7 +1065,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -1080,55 +1080,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hE7;
-		expected_deq_entry_by_way[0].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hE7;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hE7;
-		expected_deq_entry_by_way[1].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hE7;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hE7;
-		expected_deq_entry_by_way[2].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hE7;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hE7;
-		expected_deq_entry_by_way[3].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hE7;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
 	    // def feedback
 	    // restart
 
@@ -1195,7 +1195,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -1210,55 +1210,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hE7;
-		expected_deq_entry_by_way[0].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hE7;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hE7;
-		expected_deq_entry_by_way[1].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hE7;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hE7;
-		expected_deq_entry_by_way[2].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hE7;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hE7;
-		expected_deq_entry_by_way[3].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hE7;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
 	    // def feedback
 	    // restart
 
@@ -1325,7 +1325,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -1340,55 +1340,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hE7;
-		expected_deq_entry_by_way[0].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hE7;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hE7;
-		expected_deq_entry_by_way[1].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hE7;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hE7;
-		expected_deq_entry_by_way[2].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hE7;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hE7;
-		expected_deq_entry_by_way[3].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hE7;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
 	    // def feedback
 	    // restart
 
@@ -1455,7 +1455,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -1470,55 +1470,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hE7;
-		expected_deq_entry_by_way[0].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hE7;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hE7;
-		expected_deq_entry_by_way[1].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hE7;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hE7;
-		expected_deq_entry_by_way[2].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hE7;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hE7;
-		expected_deq_entry_by_way[3].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hE7;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
 	    // def feedback
 	    // restart
 
@@ -1585,7 +1585,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b0;
+		tb_instr_yield_ready = 1'b0;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -1600,55 +1600,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hE7;
-		expected_deq_entry_by_way[0].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hE7;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hE7;
-		expected_deq_entry_by_way[1].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hE7;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hE7;
-		expected_deq_entry_by_way[2].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hE7;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hE7;
-		expected_deq_entry_by_way[3].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hE7;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
 	    // def feedback
 	    // restart
 
@@ -1715,7 +1715,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -1730,55 +1730,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hE7;
-		expected_deq_entry_by_way[0].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hE7;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hE7;
-		expected_deq_entry_by_way[1].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hE7;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hE7;
-		expected_deq_entry_by_way[2].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hE7;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hE7;
-		expected_deq_entry_by_way[3].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hE7;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
 	    // def feedback
 	    // restart
 
@@ -1846,7 +1846,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -1861,55 +1861,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hE7;
-		expected_deq_entry_by_way[0].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hE7;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hE7;
-		expected_deq_entry_by_way[1].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hE7;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hE7;
-		expected_deq_entry_by_way[2].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hE7;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hE7;
-		expected_deq_entry_by_way[3].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hE7;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
 	    // def feedback
 	    // restart
 
@@ -1977,7 +1977,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -1992,55 +1992,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hE7;
-		expected_deq_entry_by_way[0].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hE7;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hE7;
-		expected_deq_entry_by_way[1].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hE7;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hE7;
-		expected_deq_entry_by_way[2].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hE7;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hE7;
-		expected_deq_entry_by_way[3].fetch4B = {16'h0000, 16'h0000};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h1E1E1E1E1, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hE7;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
 	    // def feedback
 	    // restart
 
@@ -2108,7 +2108,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b0;
+		tb_instr_yield_ready = 1'b0;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -2123,55 +2123,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b1;
+		expected_instr_yield_valid = 1'b1;
 
-		expected_deq_entry_by_way[0].valid = 1'b1;
-		expected_deq_entry_by_way[0].btb_hit = 1'b1;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0F0F0F0F0, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0F0F0F0F1, 3'h1};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hF7;
-		expected_deq_entry_by_way[0].fetch4B = {16'hE103, 16'hF077};
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b1;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0F0F0F0F0, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0F0F0F0F1, 3'h1};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hF7;
+		expected_instr_yield_by_way[0].fetch4B = {16'hE103, 16'hF077};
 
-		expected_deq_entry_by_way[1].valid = 1'b1;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h1};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0F0F0F0F1, 3'h3};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hE1;
-		expected_deq_entry_by_way[1].fetch4B = {16'hE123, 16'hE113};
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h1};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0F0F0F0F1, 3'h3};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hE1;
+		expected_instr_yield_by_way[1].fetch4B = {16'hE123, 16'hE113};
 
-		expected_deq_entry_by_way[2].valid = 1'b1;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h3};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0F0F0F0F1, 3'h5};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hE3;
-		expected_deq_entry_by_way[2].fetch4B = {16'hE143, 16'hE133};
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h3};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0F0F0F0F1, 3'h5};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hE3;
+		expected_instr_yield_by_way[2].fetch4B = {16'hE143, 16'hE133};
 
-		expected_deq_entry_by_way[3].valid = 1'b1;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h5};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hE5;
-		expected_deq_entry_by_way[3].fetch4B = {16'hE163, 16'hE153};
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h5};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hE5;
+		expected_instr_yield_by_way[3].fetch4B = {16'hE163, 16'hE153};
 	    // def feedback
 	    // restart
 
@@ -2239,7 +2239,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -2254,55 +2254,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b1;
+		expected_instr_yield_valid = 1'b1;
 
-		expected_deq_entry_by_way[0].valid = 1'b1;
-		expected_deq_entry_by_way[0].btb_hit = 1'b1;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0F0F0F0F0, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0F0F0F0F1, 3'h1};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hF7;
-		expected_deq_entry_by_way[0].fetch4B = {16'hE103, 16'hF077};
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b1;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0F0F0F0F0, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0F0F0F0F1, 3'h1};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hF7;
+		expected_instr_yield_by_way[0].fetch4B = {16'hE103, 16'hF077};
 
-		expected_deq_entry_by_way[1].valid = 1'b1;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h1};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0F0F0F0F1, 3'h3};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hE1;
-		expected_deq_entry_by_way[1].fetch4B = {16'hE123, 16'hE113};
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0F0F0F0F1, 3'h1};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0F0F0F0F1, 3'h3};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hE1;
+		expected_instr_yield_by_way[1].fetch4B = {16'hE123, 16'hE113};
 
-		expected_deq_entry_by_way[2].valid = 1'b1;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h3};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0F0F0F0F1, 3'h5};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hE3;
-		expected_deq_entry_by_way[2].fetch4B = {16'hE143, 16'hE133};
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0F0F0F0F1, 3'h3};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0F0F0F0F1, 3'h5};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hE3;
+		expected_instr_yield_by_way[2].fetch4B = {16'hE143, 16'hE133};
 
-		expected_deq_entry_by_way[3].valid = 1'b1;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h5};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hE5;
-		expected_deq_entry_by_way[3].fetch4B = {16'hE163, 16'hE153};
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0F0F0F0F1, 3'h5};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hE5;
+		expected_instr_yield_by_way[3].fetch4B = {16'hE163, 16'hE153};
 	    // def feedback
 	    // restart
 
@@ -2370,7 +2370,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -2385,55 +2385,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b1;
+		expected_instr_yield_valid = 1'b1;
 
-		expected_deq_entry_by_way[0].valid = 1'b1;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h2D2D2D2D2, 3'h1};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hE7;
-		expected_deq_entry_by_way[0].fetch4B = {16'hD20F, 16'hE173};
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0F0F0F0F1, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h2D2D2D2D2, 3'h1};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hE7;
+		expected_instr_yield_by_way[0].fetch4B = {16'hD20F, 16'hE173};
 
-		expected_deq_entry_by_way[1].valid = 1'b1;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h2D2D2D2D2, 3'h1};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h2D2D2D2D2, 3'h2};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hD1;
-		expected_deq_entry_by_way[1].fetch4B = {16'hD22D, 16'hD21E};
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h2D2D2D2D2, 3'h1};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h2D2D2D2D2, 3'h2};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hD1;
+		expected_instr_yield_by_way[1].fetch4B = {16'hD22D, 16'hD21E};
 
-		expected_deq_entry_by_way[2].valid = 1'b1;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h2D2D2D2D2, 3'h2};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h2D2D2D2D2, 3'h3};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hD2;
-		expected_deq_entry_by_way[2].fetch4B = {16'hD23C, 16'hD22D};
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h2D2D2D2D2, 3'h2};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h2D2D2D2D2, 3'h3};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hD2;
+		expected_instr_yield_by_way[2].fetch4B = {16'hD23C, 16'hD22D};
 
-		expected_deq_entry_by_way[3].valid = 1'b1;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h2D2D2D2D2, 3'h3};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h2D2D2D2D2, 3'h4};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hD3;
-		expected_deq_entry_by_way[3].fetch4B = {16'hD24B, 16'hD23C};
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h2D2D2D2D2, 3'h3};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h2D2D2D2D2, 3'h4};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hD3;
+		expected_instr_yield_by_way[3].fetch4B = {16'hD24B, 16'hD23C};
 	    // def feedback
 	    // restart
 
@@ -2501,7 +2501,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -2516,55 +2516,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b1;
+		expected_instr_yield_valid = 1'b1;
 
-		expected_deq_entry_by_way[0].valid = 1'b1;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h2D2D2D2D2, 3'h4};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h2D2D2D2D2, 3'h6};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hD4;
-		expected_deq_entry_by_way[0].fetch4B = {16'hD25A, 16'hD24B};
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h2D2D2D2D2, 3'h4};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h2D2D2D2D2, 3'h6};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hD4;
+		expected_instr_yield_by_way[0].fetch4B = {16'hD25A, 16'hD24B};
 
-		expected_deq_entry_by_way[1].valid = 1'b1;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h2D2D2D2D2, 3'h6};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h2D2D2D2D2, 3'h7};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hD6;
-		expected_deq_entry_by_way[1].fetch4B = {16'hD278, 16'hD269};
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h2D2D2D2D2, 3'h6};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hD6;
+		expected_instr_yield_by_way[1].fetch4B = {16'hD278, 16'hD269};
 
-		expected_deq_entry_by_way[2].valid = 1'b1;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h2D2D2D2D2, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hD7;
-		expected_deq_entry_by_way[2].fetch4B = {16'hC300, 16'hD278};
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hD7;
+		expected_instr_yield_by_way[2].fetch4B = {16'hC300, 16'hD278};
 
-		expected_deq_entry_by_way[3].valid = 1'b1;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h2D2D2D2D3, 3'h0};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h2D2D2D2D3, 3'h1};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hC0;
-		expected_deq_entry_by_way[3].fetch4B = {16'hC310, 16'hC300};
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h2D2D2D2D3, 3'h0};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h2D2D2D2D3, 3'h1};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hC0;
+		expected_instr_yield_by_way[3].fetch4B = {16'hC310, 16'hC300};
 	    // def feedback
 	    // restart
 
@@ -2632,7 +2632,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -2647,55 +2647,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b1;
+		expected_instr_yield_valid = 1'b1;
 
-		expected_deq_entry_by_way[0].valid = 1'b1;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h2D2D2D2D3, 3'h1};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h2D2D2D2D3, 3'h2};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hC1;
-		expected_deq_entry_by_way[0].fetch4B = {16'hC320, 16'hC310};
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h2D2D2D2D3, 3'h1};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h2D2D2D2D3, 3'h2};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hC1;
+		expected_instr_yield_by_way[0].fetch4B = {16'hC320, 16'hC310};
 
-		expected_deq_entry_by_way[1].valid = 1'b1;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h2D2D2D2D3, 3'h2};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h2D2D2D2D3, 3'h3};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hC2;
-		expected_deq_entry_by_way[1].fetch4B = {16'hC330, 16'hC320};
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h2D2D2D2D3, 3'h2};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h2D2D2D2D3, 3'h3};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hC2;
+		expected_instr_yield_by_way[1].fetch4B = {16'hC330, 16'hC320};
 
-		expected_deq_entry_by_way[2].valid = 1'b1;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h2D2D2D2D3, 3'h3};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h2D2D2D2D3, 3'h4};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hC3;
-		expected_deq_entry_by_way[2].fetch4B = {16'hC343, 16'hC330};
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h2D2D2D2D3, 3'h3};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h2D2D2D2D3, 3'h4};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hC3;
+		expected_instr_yield_by_way[2].fetch4B = {16'hC343, 16'hC330};
 
-		expected_deq_entry_by_way[3].valid = 1'b1;
-		expected_deq_entry_by_way[3].btb_hit = 1'b1;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b1;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h2D2D2D2D3, 3'h4};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h3C3C3C3C3, 3'h3};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hC4;
-		expected_deq_entry_by_way[3].fetch4B = {16'hC357, 16'hC343};
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b1;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b1;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h2D2D2D2D3, 3'h4};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h3C3C3C3C3, 3'h3};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hC4;
+		expected_instr_yield_by_way[3].fetch4B = {16'hC357, 16'hC343};
 	    // def feedback
 	    // restart
 
@@ -2763,7 +2763,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -2778,55 +2778,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b1;
+		expected_instr_yield_valid = 1'b1;
 
-		expected_deq_entry_by_way[0].valid = 1'b1;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h3C3C3C3C3, 3'h3};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h3C3C3C3C3, 3'h5};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hB3;
-		expected_deq_entry_by_way[0].fetch4B = {16'hB444, 16'hB433};
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h3C3C3C3C3, 3'h3};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h3C3C3C3C3, 3'h5};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hB3;
+		expected_instr_yield_by_way[0].fetch4B = {16'hB444, 16'hB433};
 
-		expected_deq_entry_by_way[1].valid = 1'b1;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h3C3C3C3C3, 3'h5};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h3C3C3C3C3, 3'h6};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hB5;
-		expected_deq_entry_by_way[1].fetch4B = {16'hB466, 16'hB455};
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h3C3C3C3C3, 3'h5};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h3C3C3C3C3, 3'h6};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hB5;
+		expected_instr_yield_by_way[1].fetch4B = {16'hB466, 16'hB455};
 
-		expected_deq_entry_by_way[2].valid = 1'b1;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h3C3C3C3C3, 3'h6};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h3C3C3C3C3, 3'h7};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hB6;
-		expected_deq_entry_by_way[2].fetch4B = {16'hB477, 16'hB466};
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h3C3C3C3C3, 3'h6};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h3C3C3C3C3, 3'h7};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hB6;
+		expected_instr_yield_by_way[2].fetch4B = {16'hB477, 16'hB466};
 
-		expected_deq_entry_by_way[3].valid = 1'b1;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h3C3C3C3C3, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h4B4B4B4B4, 3'h1};
-		expected_deq_entry_by_way[3].page_fault = 1'b1;
-		expected_deq_entry_by_way[3].access_fault = 1'b1;
-		expected_deq_entry_by_way[3].mdp = 8'hB7;
-		expected_deq_entry_by_way[3].fetch4B = {16'hA500, 16'hB477};
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h3C3C3C3C3, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h4B4B4B4B4, 3'h1};
+		expected_instr_yield_by_way[3].page_fault = 1'b1;
+		expected_instr_yield_by_way[3].access_fault = 1'b1;
+		expected_instr_yield_by_way[3].mdp = 8'hB7;
+		expected_instr_yield_by_way[3].fetch4B = {16'hA500, 16'hB477};
 	    // def feedback
 	    // restart
 
@@ -2894,7 +2894,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -2909,55 +2909,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b1;
+		expected_instr_yield_valid = 1'b1;
 
-		expected_deq_entry_by_way[0].valid = 1'b1;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h4B4B4B4B4, 3'h1};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h4B4B4B4B4, 3'h3};
-		expected_deq_entry_by_way[0].page_fault = 1'b1;
-		expected_deq_entry_by_way[0].access_fault = 1'b1;
-		expected_deq_entry_by_way[0].mdp = 8'hA1;
-		expected_deq_entry_by_way[0].fetch4B = {16'hA523, 16'hA513};
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h4B4B4B4B4, 3'h1};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h4B4B4B4B4, 3'h3};
+		expected_instr_yield_by_way[0].page_fault = 1'b1;
+		expected_instr_yield_by_way[0].access_fault = 1'b1;
+		expected_instr_yield_by_way[0].mdp = 8'hA1;
+		expected_instr_yield_by_way[0].fetch4B = {16'hA523, 16'hA513};
 
-		expected_deq_entry_by_way[1].valid = 1'b1;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h4B4B4B4B4, 3'h3};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h4B4B4B4B4, 3'h4};
-		expected_deq_entry_by_way[1].page_fault = 1'b1;
-		expected_deq_entry_by_way[1].access_fault = 1'b1;
-		expected_deq_entry_by_way[1].mdp = 8'hA3;
-		expected_deq_entry_by_way[1].fetch4B = {16'hA543, 16'hA530};
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h4B4B4B4B4, 3'h3};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h4B4B4B4B4, 3'h4};
+		expected_instr_yield_by_way[1].page_fault = 1'b1;
+		expected_instr_yield_by_way[1].access_fault = 1'b1;
+		expected_instr_yield_by_way[1].mdp = 8'hA3;
+		expected_instr_yield_by_way[1].fetch4B = {16'hA543, 16'hA530};
 
-		expected_deq_entry_by_way[2].valid = 1'b1;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h4B4B4B4B4, 3'h4};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h4B4B4B4B4, 3'h6};
-		expected_deq_entry_by_way[2].page_fault = 1'b1;
-		expected_deq_entry_by_way[2].access_fault = 1'b1;
-		expected_deq_entry_by_way[2].mdp = 8'hA4;
-		expected_deq_entry_by_way[2].fetch4B = {16'hA553, 16'hA543};
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h4B4B4B4B4, 3'h4};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h4B4B4B4B4, 3'h6};
+		expected_instr_yield_by_way[2].page_fault = 1'b1;
+		expected_instr_yield_by_way[2].access_fault = 1'b1;
+		expected_instr_yield_by_way[2].mdp = 8'hA4;
+		expected_instr_yield_by_way[2].fetch4B = {16'hA553, 16'hA543};
 
-		expected_deq_entry_by_way[3].valid = 1'b1;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h4B4B4B4B4, 3'h6};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h4B4B4B4B4, 3'h7};
-		expected_deq_entry_by_way[3].page_fault = 1'b1;
-		expected_deq_entry_by_way[3].access_fault = 1'b1;
-		expected_deq_entry_by_way[3].mdp = 8'hA6;
-		expected_deq_entry_by_way[3].fetch4B = {16'hA573, 16'hA560};
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h4B4B4B4B4, 3'h6};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h4B4B4B4B4, 3'h7};
+		expected_instr_yield_by_way[3].page_fault = 1'b1;
+		expected_instr_yield_by_way[3].access_fault = 1'b1;
+		expected_instr_yield_by_way[3].mdp = 8'hA6;
+		expected_instr_yield_by_way[3].fetch4B = {16'hA573, 16'hA560};
 	    // def feedback
 	    // restart
 
@@ -3025,7 +3025,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b0;
+		tb_instr_yield_ready = 1'b0;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -3040,55 +3040,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b1;
+		expected_instr_yield_valid = 1'b1;
 
-		expected_deq_entry_by_way[0].valid = 1'b1;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h4B4B4B4B4, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h5A5A5A5A5, 3'h1};
-		expected_deq_entry_by_way[0].page_fault = 1'b1;
-		expected_deq_entry_by_way[0].access_fault = 1'b1;
-		expected_deq_entry_by_way[0].mdp = 8'hA7;
-		expected_deq_entry_by_way[0].fetch4B = {16'h9607, 16'hA573};
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h4B4B4B4B4, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h5A5A5A5A5, 3'h1};
+		expected_instr_yield_by_way[0].page_fault = 1'b1;
+		expected_instr_yield_by_way[0].access_fault = 1'b1;
+		expected_instr_yield_by_way[0].mdp = 8'hA7;
+		expected_instr_yield_by_way[0].fetch4B = {16'h9607, 16'hA573};
 
-		expected_deq_entry_by_way[1].valid = 1'b1;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h5A5A5A5A5, 3'h1};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h5A5A5A5A5, 3'h2};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h91;
-		expected_deq_entry_by_way[1].fetch4B = {16'h9625, 16'h9616};
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h5A5A5A5A5, 3'h1};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h5A5A5A5A5, 3'h2};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h91;
+		expected_instr_yield_by_way[1].fetch4B = {16'h9625, 16'h9616};
 
-		expected_deq_entry_by_way[2].valid = 1'b1;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h5A5A5A5A5, 3'h2};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h5A5A5A5A5, 3'h3};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h92;
-		expected_deq_entry_by_way[2].fetch4B = {16'h9634, 16'h9625};
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h5A5A5A5A5, 3'h2};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h5A5A5A5A5, 3'h3};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h92;
+		expected_instr_yield_by_way[2].fetch4B = {16'h9634, 16'h9625};
 
-		expected_deq_entry_by_way[3].valid = 1'b1;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h5A5A5A5A5, 3'h3};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h5A5A5A5A5, 3'h4};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h93;
-		expected_deq_entry_by_way[3].fetch4B = {16'h9643, 16'h9634};
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h5A5A5A5A5, 3'h3};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h5A5A5A5A5, 3'h4};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h93;
+		expected_instr_yield_by_way[3].fetch4B = {16'h9643, 16'h9634};
 	    // def feedback
 	    // restart
 
@@ -3156,7 +3156,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -3171,55 +3171,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b1;
+		expected_instr_yield_valid = 1'b1;
 
-		expected_deq_entry_by_way[0].valid = 1'b1;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h4B4B4B4B4, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h5A5A5A5A5, 3'h1};
-		expected_deq_entry_by_way[0].page_fault = 1'b1;
-		expected_deq_entry_by_way[0].access_fault = 1'b1;
-		expected_deq_entry_by_way[0].mdp = 8'hA7;
-		expected_deq_entry_by_way[0].fetch4B = {16'h9607, 16'hA573};
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h4B4B4B4B4, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h5A5A5A5A5, 3'h1};
+		expected_instr_yield_by_way[0].page_fault = 1'b1;
+		expected_instr_yield_by_way[0].access_fault = 1'b1;
+		expected_instr_yield_by_way[0].mdp = 8'hA7;
+		expected_instr_yield_by_way[0].fetch4B = {16'h9607, 16'hA573};
 
-		expected_deq_entry_by_way[1].valid = 1'b1;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h5A5A5A5A5, 3'h1};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h5A5A5A5A5, 3'h2};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h91;
-		expected_deq_entry_by_way[1].fetch4B = {16'h9625, 16'h9616};
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h5A5A5A5A5, 3'h1};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h5A5A5A5A5, 3'h2};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h91;
+		expected_instr_yield_by_way[1].fetch4B = {16'h9625, 16'h9616};
 
-		expected_deq_entry_by_way[2].valid = 1'b1;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h5A5A5A5A5, 3'h2};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h5A5A5A5A5, 3'h3};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h92;
-		expected_deq_entry_by_way[2].fetch4B = {16'h9634, 16'h9625};
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h5A5A5A5A5, 3'h2};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h5A5A5A5A5, 3'h3};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h92;
+		expected_instr_yield_by_way[2].fetch4B = {16'h9634, 16'h9625};
 
-		expected_deq_entry_by_way[3].valid = 1'b1;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h5A5A5A5A5, 3'h3};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h5A5A5A5A5, 3'h4};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h93;
-		expected_deq_entry_by_way[3].fetch4B = {16'h9643, 16'h9634};
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h5A5A5A5A5, 3'h3};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h5A5A5A5A5, 3'h4};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h93;
+		expected_instr_yield_by_way[3].fetch4B = {16'h9643, 16'h9634};
 	    // def feedback
 	    // restart
 
@@ -3287,7 +3287,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -3302,55 +3302,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b1;
+		expected_instr_yield_valid = 1'b1;
 
-		expected_deq_entry_by_way[0].valid = 1'b1;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h5A5A5A5A5, 3'h4};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h5A5A5A5A5, 3'h6};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h94;
-		expected_deq_entry_by_way[0].fetch4B = {16'h9652, 16'h9643};
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h5A5A5A5A5, 3'h4};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h5A5A5A5A5, 3'h6};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h94;
+		expected_instr_yield_by_way[0].fetch4B = {16'h9652, 16'h9643};
 
-		expected_deq_entry_by_way[1].valid = 1'b1;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h5A5A5A5A5, 3'h6};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h5A5A5A5A5, 3'h7};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h96;
-		expected_deq_entry_by_way[1].fetch4B = {16'h9670, 16'h9661};
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h5A5A5A5A5, 3'h6};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h5A5A5A5A5, 3'h7};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h96;
+		expected_instr_yield_by_way[1].fetch4B = {16'h9670, 16'h9661};
 
-		expected_deq_entry_by_way[2].valid = 1'b1;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h5A5A5A5A5, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h696969696, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h97;
-		expected_deq_entry_by_way[2].fetch4B = {16'h8704, 16'h9670};
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h5A5A5A5A5, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h696969696, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h97;
+		expected_instr_yield_by_way[2].fetch4B = {16'h8704, 16'h9670};
 
-		expected_deq_entry_by_way[3].valid = 1'b1;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h696969696, 3'h0};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h696969696, 3'h1};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h80;
-		expected_deq_entry_by_way[3].fetch4B = {16'h8715, 16'h8704};
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h696969696, 3'h0};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h696969696, 3'h1};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h80;
+		expected_instr_yield_by_way[3].fetch4B = {16'h8715, 16'h8704};
 	    // def feedback
 	    // restart
 
@@ -3418,7 +3418,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -3433,55 +3433,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b1;
+		expected_instr_yield_valid = 1'b1;
 
-		expected_deq_entry_by_way[0].valid = 1'b1;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h696969696, 3'h1};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h696969696, 3'h2};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h81;
-		expected_deq_entry_by_way[0].fetch4B = {16'h8726, 16'h8715};
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h696969696, 3'h1};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h696969696, 3'h2};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h81;
+		expected_instr_yield_by_way[0].fetch4B = {16'h8726, 16'h8715};
 
-		expected_deq_entry_by_way[1].valid = 1'b1;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h696969696, 3'h2};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h696969696, 3'h3};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h82;
-		expected_deq_entry_by_way[1].fetch4B = {16'h8737, 16'h8726};
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h696969696, 3'h2};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h696969696, 3'h3};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h82;
+		expected_instr_yield_by_way[1].fetch4B = {16'h8737, 16'h8726};
 
-		expected_deq_entry_by_way[2].valid = 1'b1;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h696969696, 3'h3};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h696969696, 3'h5};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h83;
-		expected_deq_entry_by_way[2].fetch4B = {16'h874F, 16'h8737};
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h696969696, 3'h3};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h696969696, 3'h5};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h83;
+		expected_instr_yield_by_way[2].fetch4B = {16'h874F, 16'h8737};
 
-		expected_deq_entry_by_way[3].valid = 1'b1;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h696969696, 3'h5};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h696969696, 3'h6};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h85;
-		expected_deq_entry_by_way[3].fetch4B = {16'h876D, 16'h875E};
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h696969696, 3'h5};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h696969696, 3'h6};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h85;
+		expected_instr_yield_by_way[3].fetch4B = {16'h876D, 16'h875E};
 	    // def feedback
 	    // restart
 
@@ -3549,7 +3549,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -3564,55 +3564,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b1;
+		expected_instr_yield_valid = 1'b1;
 
-		expected_deq_entry_by_way[0].valid = 1'b1;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h696969696, 3'h6};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h696969696, 3'h7};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h86;
-		expected_deq_entry_by_way[0].fetch4B = {16'h877C, 16'h876D};
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h696969696, 3'h6};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h696969696, 3'h7};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h86;
+		expected_instr_yield_by_way[0].fetch4B = {16'h877C, 16'h876D};
 
-		expected_deq_entry_by_way[1].valid = 1'b1;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h696969696, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h787878787, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h87;
-		expected_deq_entry_by_way[1].fetch4B = {16'h7808, 16'h877C};
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h696969696, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h787878787, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h87;
+		expected_instr_yield_by_way[1].fetch4B = {16'h7808, 16'h877C};
 
-		expected_deq_entry_by_way[2].valid = 1'b1;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h787878787, 3'h0};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h787878787, 3'h1};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h70;
-		expected_deq_entry_by_way[2].fetch4B = {16'h7819, 16'h7808};
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h787878787, 3'h0};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h787878787, 3'h1};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h70;
+		expected_instr_yield_by_way[2].fetch4B = {16'h7819, 16'h7808};
 
-		expected_deq_entry_by_way[3].valid = 1'b1;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h787878787, 3'h1};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h787878787, 3'h2};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h71;
-		expected_deq_entry_by_way[3].fetch4B = {16'h782A, 16'h7819};
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h787878787, 3'h1};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h787878787, 3'h2};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h71;
+		expected_instr_yield_by_way[3].fetch4B = {16'h782A, 16'h7819};
 	    // def feedback
 	    // restart
 
@@ -3680,7 +3680,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -3695,55 +3695,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b1;
+		expected_instr_yield_valid = 1'b1;
 
-		expected_deq_entry_by_way[0].valid = 1'b1;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h787878787, 3'h2};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h787878787, 3'h3};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h72;
-		expected_deq_entry_by_way[0].fetch4B = {16'h783B, 16'h782A};
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h787878787, 3'h2};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h787878787, 3'h3};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h72;
+		expected_instr_yield_by_way[0].fetch4B = {16'h783B, 16'h782A};
 
-		expected_deq_entry_by_way[1].valid = 1'b1;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h787878787, 3'h3};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h787878787, 3'h5};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h73;
-		expected_deq_entry_by_way[1].fetch4B = {16'h784C, 16'h783B};
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h787878787, 3'h3};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h787878787, 3'h5};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h73;
+		expected_instr_yield_by_way[1].fetch4B = {16'h784C, 16'h783B};
 
-		expected_deq_entry_by_way[2].valid = 1'b1;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h787878787, 3'h5};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h787878787, 3'h6};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h75;
-		expected_deq_entry_by_way[2].fetch4B = {16'h786E, 16'h785D};
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h787878787, 3'h5};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h787878787, 3'h6};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h75;
+		expected_instr_yield_by_way[2].fetch4B = {16'h786E, 16'h785D};
 
-		expected_deq_entry_by_way[3].valid = 1'b1;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h787878787, 3'h6};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h787878787, 3'h7};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h76;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h786E};
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h787878787, 3'h6};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h787878787, 3'h7};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h76;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h786E};
 	    // def feedback
 	    // restart
 
@@ -3811,7 +3811,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -3826,55 +3826,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b1;
+		expected_instr_yield_valid = 1'b1;
 
-		expected_deq_entry_by_way[0].valid = 1'b1;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h787878787, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h878787878, 3'h1};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h77;
-		expected_deq_entry_by_way[0].fetch4B = {16'h6901, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h787878787, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h878787878, 3'h1};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h77;
+		expected_instr_yield_by_way[0].fetch4B = {16'h6901, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b1;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h878787878, 3'h1};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h878787878, 3'h2};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h61;
-		expected_deq_entry_by_way[1].fetch4B = {16'h6923, 16'h6911};
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h878787878, 3'h1};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h878787878, 3'h2};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h61;
+		expected_instr_yield_by_way[1].fetch4B = {16'h6923, 16'h6911};
 
-		expected_deq_entry_by_way[2].valid = 1'b1;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b1;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h878787878, 3'h2};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h878787878, 3'h4}; // don't care on mid_instr_redirect
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h62;
-		expected_deq_entry_by_way[2].fetch4B = {16'h6930, 16'h6923};
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b1;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h878787878, 3'h2};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h878787878, 3'h4}; // don't care on mid_instr_redirect
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h62;
+		expected_instr_yield_by_way[2].fetch4B = {16'h6930, 16'h6923};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h2;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h878787878, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h000000000, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h67;
-		expected_deq_entry_by_way[3].fetch4B = {16'h6970, 16'h6970};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h878787878, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h67;
+		expected_instr_yield_by_way[3].fetch4B = {16'h6970, 16'h6970};
 	    // def feedback
 	    // restart
 
@@ -3942,7 +3942,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -3957,55 +3957,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h2D2D2D2D2, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hD7;
-		expected_deq_entry_by_way[0].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hD7;
+		expected_instr_yield_by_way[0].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h2D2D2D2D2, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hD7;
-		expected_deq_entry_by_way[1].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hD7;
+		expected_instr_yield_by_way[1].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h2D2D2D2D2, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hD7;
-		expected_deq_entry_by_way[2].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hD7;
+		expected_instr_yield_by_way[2].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h2D2D2D2D2, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hD7;
-		expected_deq_entry_by_way[3].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hD7;
+		expected_instr_yield_by_way[3].fetch4B = {16'hD278, 16'hD278};
 	    // def feedback
 	    // restart
 
@@ -4079,7 +4079,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -4094,55 +4094,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h2D2D2D2D2, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hD7;
-		expected_deq_entry_by_way[0].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hD7;
+		expected_instr_yield_by_way[0].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h2D2D2D2D2, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hD7;
-		expected_deq_entry_by_way[1].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hD7;
+		expected_instr_yield_by_way[1].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h2D2D2D2D2, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hD7;
-		expected_deq_entry_by_way[2].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hD7;
+		expected_instr_yield_by_way[2].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h2D2D2D2D2, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hD7;
-		expected_deq_entry_by_way[3].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hD7;
+		expected_instr_yield_by_way[3].fetch4B = {16'hD278, 16'hD278};
 	    // def feedback
 	    // restart
 
@@ -4210,7 +4210,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -4225,55 +4225,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h2D2D2D2D2, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'hD7;
-		expected_deq_entry_by_way[0].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'hD7;
+		expected_instr_yield_by_way[0].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h2D2D2D2D2, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'hD7;
-		expected_deq_entry_by_way[1].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hD7;
+		expected_instr_yield_by_way[1].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h2D2D2D2D2, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'hD7;
-		expected_deq_entry_by_way[2].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hD7;
+		expected_instr_yield_by_way[2].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h1;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h2D2D2D2D2, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'hD7;
-		expected_deq_entry_by_way[3].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h2D2D2D2D2, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h2D2D2D2D3, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hD7;
+		expected_instr_yield_by_way[3].fetch4B = {16'hD278, 16'hD278};
 	    // def feedback
 	    // restart
 
@@ -4341,7 +4341,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -4356,55 +4356,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h07;
-		expected_deq_entry_by_way[0].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h07;
+		expected_instr_yield_by_way[0].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h07;
-		expected_deq_entry_by_way[1].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h07;
+		expected_instr_yield_by_way[1].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h07;
-		expected_deq_entry_by_way[2].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h07;
+		expected_instr_yield_by_way[2].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h07;
-		expected_deq_entry_by_way[3].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h07;
+		expected_instr_yield_by_way[3].fetch4B = {16'hD278, 16'hD278};
 	    // def feedback
 	    // restart
 
@@ -4472,7 +4472,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -4487,55 +4487,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h07;
-		expected_deq_entry_by_way[0].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h07;
+		expected_instr_yield_by_way[0].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h07;
-		expected_deq_entry_by_way[1].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h07;
+		expected_instr_yield_by_way[1].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h07;
-		expected_deq_entry_by_way[2].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h07;
+		expected_instr_yield_by_way[2].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h07;
-		expected_deq_entry_by_way[3].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h07;
+		expected_instr_yield_by_way[3].fetch4B = {16'hD278, 16'hD278};
 	    // def feedback
 	    // restart
 
@@ -4603,7 +4603,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -4618,55 +4618,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h07;
-		expected_deq_entry_by_way[0].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h07;
+		expected_instr_yield_by_way[0].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h07;
-		expected_deq_entry_by_way[1].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h07;
+		expected_instr_yield_by_way[1].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h07;
-		expected_deq_entry_by_way[2].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h07;
+		expected_instr_yield_by_way[2].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h07;
-		expected_deq_entry_by_way[3].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h07;
+		expected_instr_yield_by_way[3].fetch4B = {16'hD278, 16'hD278};
 	    // def feedback
 	    // restart
 
@@ -4734,7 +4734,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -4749,55 +4749,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h07;
-		expected_deq_entry_by_way[0].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h07;
+		expected_instr_yield_by_way[0].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h07;
-		expected_deq_entry_by_way[1].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h07;
+		expected_instr_yield_by_way[1].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h07;
-		expected_deq_entry_by_way[2].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h07;
+		expected_instr_yield_by_way[2].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h07;
-		expected_deq_entry_by_way[3].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h07;
+		expected_instr_yield_by_way[3].fetch4B = {16'hD278, 16'hD278};
 	    // def feedback
 	    // restart
 
@@ -4865,7 +4865,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -4880,55 +4880,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h07;
-		expected_deq_entry_by_way[0].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h07;
+		expected_instr_yield_by_way[0].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h07;
-		expected_deq_entry_by_way[1].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h07;
+		expected_instr_yield_by_way[1].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h07;
-		expected_deq_entry_by_way[2].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h07;
+		expected_instr_yield_by_way[2].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h07;
-		expected_deq_entry_by_way[3].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h07;
+		expected_instr_yield_by_way[3].fetch4B = {16'hD278, 16'hD278};
 	    // def feedback
 	    // restart
 
@@ -4996,7 +4996,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -5011,55 +5011,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h07;
-		expected_deq_entry_by_way[0].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h07;
+		expected_instr_yield_by_way[0].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h07;
-		expected_deq_entry_by_way[1].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h07;
+		expected_instr_yield_by_way[1].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h07;
-		expected_deq_entry_by_way[2].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h07;
+		expected_instr_yield_by_way[2].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h07;
-		expected_deq_entry_by_way[3].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h07;
+		expected_instr_yield_by_way[3].fetch4B = {16'hD278, 16'hD278};
 	    // def feedback
 	    // restart
 
@@ -5127,7 +5127,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -5142,55 +5142,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h07;
-		expected_deq_entry_by_way[0].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h07;
+		expected_instr_yield_by_way[0].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h07;
-		expected_deq_entry_by_way[1].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h07;
+		expected_instr_yield_by_way[1].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h07;
-		expected_deq_entry_by_way[2].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h07;
+		expected_instr_yield_by_way[2].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h07;
-		expected_deq_entry_by_way[3].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h07;
+		expected_instr_yield_by_way[3].fetch4B = {16'hD278, 16'hD278};
 	    // def feedback
 	    // restart
 
@@ -5258,7 +5258,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b1;
 
@@ -5273,55 +5273,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h07;
-		expected_deq_entry_by_way[0].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h07;
+		expected_instr_yield_by_way[0].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h07;
-		expected_deq_entry_by_way[1].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h07;
+		expected_instr_yield_by_way[1].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h07;
-		expected_deq_entry_by_way[2].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h07;
+		expected_instr_yield_by_way[2].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h07;
-		expected_deq_entry_by_way[3].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h07;
+		expected_instr_yield_by_way[3].fetch4B = {16'hD278, 16'hD278};
 	    // def feedback
 	    // restart
 
@@ -5389,7 +5389,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -5404,55 +5404,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h07;
-		expected_deq_entry_by_way[0].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h07;
+		expected_instr_yield_by_way[0].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h07;
-		expected_deq_entry_by_way[1].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h07;
+		expected_instr_yield_by_way[1].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h07;
-		expected_deq_entry_by_way[2].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h07;
+		expected_instr_yield_by_way[2].fetch4B = {16'hD278, 16'hD278};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h07;
-		expected_deq_entry_by_way[3].fetch4B = {16'hD278, 16'hD278};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h07;
+		expected_instr_yield_by_way[3].fetch4B = {16'hD278, 16'hD278};
 	    // def feedback
 	    // restart
 
@@ -5520,7 +5520,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -5535,55 +5535,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h699669966, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h699669966, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h67;
-		expected_deq_entry_by_way[0].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h699669966, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h699669966, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h67;
+		expected_instr_yield_by_way[0].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h699669966, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h699669966, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h67;
-		expected_deq_entry_by_way[1].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h699669966, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h699669966, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h67;
+		expected_instr_yield_by_way[1].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h699669966, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h699669966, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h67;
-		expected_deq_entry_by_way[2].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h699669966, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h699669966, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h67;
+		expected_instr_yield_by_way[2].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h699669966, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h699669966, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h67;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h699669966, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h699669966, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h67;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h787F};
 	    // def feedback
 	    // restart
 
@@ -5651,7 +5651,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -5666,55 +5666,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h87;
-		expected_deq_entry_by_way[0].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h87;
+		expected_instr_yield_by_way[0].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h87;
-		expected_deq_entry_by_way[1].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h87;
+		expected_instr_yield_by_way[1].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h87;
-		expected_deq_entry_by_way[2].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h87;
+		expected_instr_yield_by_way[2].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h87;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h87;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h787F};
 	    // def feedback
 	    // restart
 
@@ -5782,7 +5782,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -5797,55 +5797,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h87;
-		expected_deq_entry_by_way[0].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h87;
+		expected_instr_yield_by_way[0].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h87;
-		expected_deq_entry_by_way[1].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h87;
+		expected_instr_yield_by_way[1].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h87;
-		expected_deq_entry_by_way[2].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h87;
+		expected_instr_yield_by_way[2].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h87;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h87;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h787F};
 	    // def feedback
 	    // restart
 
@@ -5913,7 +5913,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -5928,55 +5928,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h87;
-		expected_deq_entry_by_way[0].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h87;
+		expected_instr_yield_by_way[0].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h87;
-		expected_deq_entry_by_way[1].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h87;
+		expected_instr_yield_by_way[1].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h87;
-		expected_deq_entry_by_way[2].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h87;
+		expected_instr_yield_by_way[2].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h87;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h87;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h787F};
 	    // def feedback
 	    // restart
 
@@ -6044,7 +6044,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -6059,55 +6059,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h87;
-		expected_deq_entry_by_way[0].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h87;
+		expected_instr_yield_by_way[0].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h87;
-		expected_deq_entry_by_way[1].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h87;
+		expected_instr_yield_by_way[1].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h87;
-		expected_deq_entry_by_way[2].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h87;
+		expected_instr_yield_by_way[2].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h87;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h87;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h787F};
 	    // def feedback
 	    // restart
 
@@ -6175,7 +6175,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -6190,55 +6190,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h87;
-		expected_deq_entry_by_way[0].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h87;
+		expected_instr_yield_by_way[0].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h87;
-		expected_deq_entry_by_way[1].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h87;
+		expected_instr_yield_by_way[1].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h87;
-		expected_deq_entry_by_way[2].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h87;
+		expected_instr_yield_by_way[2].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h87;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h87;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h787F};
 	    // def feedback
 	    // restart
 
@@ -6306,7 +6306,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -6321,55 +6321,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h87;
-		expected_deq_entry_by_way[0].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h87;
+		expected_instr_yield_by_way[0].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h87;
-		expected_deq_entry_by_way[1].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h87;
+		expected_instr_yield_by_way[1].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h87;
-		expected_deq_entry_by_way[2].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h87;
+		expected_instr_yield_by_way[2].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h87;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h87;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h787F};
 	    // def feedback
 	    // restart
 
@@ -6437,7 +6437,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b1;
 
@@ -6452,55 +6452,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h87;
-		expected_deq_entry_by_way[0].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h87;
+		expected_instr_yield_by_way[0].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h87;
-		expected_deq_entry_by_way[1].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h87;
+		expected_instr_yield_by_way[1].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h87;
-		expected_deq_entry_by_way[2].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h87;
+		expected_instr_yield_by_way[2].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h87;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h87;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h787F};
 	    // def feedback
 	    // restart
 
@@ -6568,7 +6568,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -6583,55 +6583,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h87;
-		expected_deq_entry_by_way[0].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h87;
+		expected_instr_yield_by_way[0].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h87;
-		expected_deq_entry_by_way[1].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h87;
+		expected_instr_yield_by_way[1].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h87;
-		expected_deq_entry_by_way[2].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h87;
+		expected_instr_yield_by_way[2].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h87;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h87;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h787F};
 	    // def feedback
 	    // restart
 
@@ -6699,7 +6699,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -6714,55 +6714,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h87;
-		expected_deq_entry_by_way[0].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h87;
+		expected_instr_yield_by_way[0].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h87;
-		expected_deq_entry_by_way[1].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h87;
+		expected_instr_yield_by_way[1].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h87;
-		expected_deq_entry_by_way[2].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h87;
+		expected_instr_yield_by_way[2].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h877887788, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h87;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h877887788, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h877887788, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h87;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h787F};
 	    // def feedback
 	    // restart
 
@@ -6830,7 +6830,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -6845,55 +6845,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h07;
-		expected_deq_entry_by_way[0].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h07;
+		expected_instr_yield_by_way[0].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h07;
-		expected_deq_entry_by_way[1].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h07;
+		expected_instr_yield_by_way[1].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h07;
-		expected_deq_entry_by_way[2].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h07;
+		expected_instr_yield_by_way[2].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h07;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h07;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h787F};
 	    // def feedback
 	    // restart
 
@@ -6961,7 +6961,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -6976,55 +6976,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h07;
-		expected_deq_entry_by_way[0].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h07;
+		expected_instr_yield_by_way[0].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h07;
-		expected_deq_entry_by_way[1].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h07;
+		expected_instr_yield_by_way[1].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h07;
-		expected_deq_entry_by_way[2].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h07;
+		expected_instr_yield_by_way[2].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h07;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h07;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h787F};
 	    // def feedback
 	    // restart
 
@@ -7092,7 +7092,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -7107,55 +7107,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h07;
-		expected_deq_entry_by_way[0].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h07;
+		expected_instr_yield_by_way[0].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h07;
-		expected_deq_entry_by_way[1].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h07;
+		expected_instr_yield_by_way[1].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h07;
-		expected_deq_entry_by_way[2].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h07;
+		expected_instr_yield_by_way[2].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h07;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h07;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h787F};
 	    // def feedback
 	    // restart
 
@@ -7223,7 +7223,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -7238,55 +7238,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h07;
-		expected_deq_entry_by_way[0].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h07;
+		expected_instr_yield_by_way[0].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h07;
-		expected_deq_entry_by_way[1].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h07;
+		expected_instr_yield_by_way[1].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h07;
-		expected_deq_entry_by_way[2].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h07;
+		expected_instr_yield_by_way[2].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h07;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h07;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h787F};
 	    // def feedback
 	    // restart
 
@@ -7354,7 +7354,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -7369,55 +7369,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h07;
-		expected_deq_entry_by_way[0].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h07;
+		expected_instr_yield_by_way[0].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h07;
-		expected_deq_entry_by_way[1].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h07;
+		expected_instr_yield_by_way[1].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h07;
-		expected_deq_entry_by_way[2].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h07;
+		expected_instr_yield_by_way[2].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h07;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h07;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h787F};
 	    // def feedback
 	    // restart
 
@@ -7485,7 +7485,7 @@ module ibuffer_tb #(
         };
 	    // deq
 	    // def feedback
-		tb_deq_ready = 1'b1;
+		tb_instr_yield_ready = 1'b1;
 	    // restart
 		tb_restart_valid = 1'b0;
 
@@ -7500,55 +7500,55 @@ module ibuffer_tb #(
 	    // fetch miss return
 	    // deq
             // default: shift reg 1, lane 7
-		expected_deq_valid = 1'b0;
+		expected_instr_yield_valid = 1'b0;
 
-		expected_deq_entry_by_way[0].valid = 1'b0;
-		expected_deq_entry_by_way[0].btb_hit = 1'b0;
-		expected_deq_entry_by_way[0].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[0].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[0].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[0].page_fault = 1'b0;
-		expected_deq_entry_by_way[0].access_fault = 1'b0;
-		expected_deq_entry_by_way[0].mdp = 8'h07;
-		expected_deq_entry_by_way[0].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h07;
+		expected_instr_yield_by_way[0].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[1].valid = 1'b0;
-		expected_deq_entry_by_way[1].btb_hit = 1'b0;
-		expected_deq_entry_by_way[1].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[1].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[1].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[1].page_fault = 1'b0;
-		expected_deq_entry_by_way[1].access_fault = 1'b0;
-		expected_deq_entry_by_way[1].mdp = 8'h07;
-		expected_deq_entry_by_way[1].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h07;
+		expected_instr_yield_by_way[1].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[2].valid = 1'b0;
-		expected_deq_entry_by_way[2].btb_hit = 1'b0;
-		expected_deq_entry_by_way[2].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[2].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[2].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[2].page_fault = 1'b0;
-		expected_deq_entry_by_way[2].access_fault = 1'b0;
-		expected_deq_entry_by_way[2].mdp = 8'h07;
-		expected_deq_entry_by_way[2].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h07;
+		expected_instr_yield_by_way[2].fetch4B = {16'h787F, 16'h787F};
 
-		expected_deq_entry_by_way[3].valid = 1'b0;
-		expected_deq_entry_by_way[3].btb_hit = 1'b0;
-		expected_deq_entry_by_way[3].redirect_taken = 1'b0;
-		expected_deq_entry_by_way[3].mid_instr_redirect = 1'b0;
-		expected_deq_entry_by_way[3].bcb_idx = 4'h0;
-		expected_deq_entry_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
-		expected_deq_entry_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
-		expected_deq_entry_by_way[3].page_fault = 1'b0;
-		expected_deq_entry_by_way[3].access_fault = 1'b0;
-		expected_deq_entry_by_way[3].mdp = 8'h07;
-		expected_deq_entry_by_way[3].fetch4B = {16'h787F, 16'h787F};
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h0FF00FF00, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h0FF00FF00, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h07;
+		expected_instr_yield_by_way[3].fetch4B = {16'h787F, 16'h787F};
 	    // def feedback
 	    // restart
 

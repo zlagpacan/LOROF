@@ -51,9 +51,6 @@ package corep;
 	parameter logic INIT_TRAP_WFI = 1'b0;
 	parameter logic INIT_TRAP_SRET = 1'b0;
 
-    // parameter INIT_WAIT_FOR_RESTART_STATE = 1'b0;
-        // depends on core
-
     // ----------------------------------------------------------------
     // Central:
 
@@ -216,6 +213,39 @@ package corep;
     parameter btb_action_t BTB_ACTION_RET_L         = 3'b101;
     parameter btb_action_t BTB_ACTION_INDIRECT      = 3'b110;
     parameter btb_action_t BTB_ACTION_INDIRECT_L    = 3'b111;
+
+    function logic btb_action_is_link (btb_action_t action);
+        return
+            (action == BTB_ACTION_JUMP_L)
+            | (action == BTB_ACTION_RET_L)
+            | (action == BTB_ACTION_INDIRECT_L)
+        ;
+    endfunction
+
+    function logic btb_action_is_ret (btb_action_t action);
+        return
+            (action == BTB_ACTION_RET)
+            | (action == BTB_ACTION_RET_L)
+        ;
+    endfunction
+
+    function logic btb_action_is_ibtb (btb_action_t action);
+        return
+            (action == BTB_ACTION_INDIRECT)
+            | (action == BTB_ACTION_INDIRECT_L)
+        ;
+    endfunction
+
+    function logic btb_action_saves_bcb (btb_action_t action);
+        // sensitive to changes in gh and ras -> branch, link, ret
+        return
+            (action == BTB_ACTION_BRANCH)
+            | (action == BTB_ACTION_JUMP_L)
+            | (action == BTB_ACTION_RET)
+            | (action == BTB_ACTION_RET_L)
+            | (action == BTB_ACTION_INDIRECT_L)
+        ;
+    endfunction
 
     // upc[25:0]
         // msbs[22:0]
@@ -406,7 +436,7 @@ package corep;
         logic       access_fault;
         mdp_t       mdp;
         fetch4B_t   fetch4B;
-    } ibuffer_deq_entry_t;
+    } instr_yield_t;
 
     // ----------------------------------------------------------------
     // Decode Unit:

@@ -6,7 +6,10 @@
 */
 
 // TODO: RV64GC updates
-    // branch update from bru_pipeline just needs quick check for ~killed and which asid to use for update
+    // branch update from bru_pipeline just needs quick check for ~killed, which asid to use, and bcb_idx
+    // unique rob per-core responsible for determining restart state (e.g. asid, exec_mode, virtual_mode)
+        // cores start in wfr
+        // this way can implement core wakeup as interrupt/MMCSR
 
 `include "core_types_pkg.vh"
 import core_types_pkg::*;

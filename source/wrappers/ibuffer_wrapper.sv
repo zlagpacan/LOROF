@@ -32,12 +32,12 @@ module ibuffer_wrapper #(
 	input corep::fmid_t next_fetch_miss_return_fmid,
 	input corep::fetch16B_t next_fetch_miss_return_fetch16B,
 
-    // deq
-	output logic last_deq_valid,
-	output corep::ibuffer_deq_entry_t [3:0] last_deq_entry_by_way,
+    // instr yield
+	output logic last_instr_yield_valid,
+	output corep::instr_yield_t [3:0] last_instr_yield_by_way,
 
-    // def feedback
-	input logic next_deq_ready,
+    // instr yield feedback
+	input logic next_instr_yield_ready,
 
     // restart
 	input logic next_restart_valid
@@ -62,12 +62,12 @@ module ibuffer_wrapper #(
 	corep::fmid_t fetch_miss_return_fmid;
 	corep::fetch16B_t fetch_miss_return_fetch16B;
 
-    // deq
-	logic deq_valid;
-	corep::ibuffer_deq_entry_t [3:0] deq_entry_by_way;
+    // instr yield
+	logic instr_yield_valid;
+	corep::instr_yield_t [3:0] instr_yield_by_way;
 
-    // def feedback
-	logic deq_ready;
+    // instr yield feedback
+	logic instr_yield_ready;
 
     // restart
 	logic restart_valid;
@@ -100,12 +100,12 @@ module ibuffer_wrapper #(
 			fetch_miss_return_fmid <= '0;
 			fetch_miss_return_fetch16B <= '0;
 
-		    // deq
-			last_deq_valid <= '0;
-			last_deq_entry_by_way <= '0;
+		    // instr yield
+			last_instr_yield_valid <= '0;
+			last_instr_yield_by_way <= '0;
 
-		    // def feedback
-			deq_ready <= '0;
+		    // instr yield feedback
+			instr_yield_ready <= '0;
 
 		    // restart
 			restart_valid <= '0;
@@ -128,12 +128,12 @@ module ibuffer_wrapper #(
 			fetch_miss_return_fmid <= next_fetch_miss_return_fmid;
 			fetch_miss_return_fetch16B <= next_fetch_miss_return_fetch16B;
 
-		    // deq
-			last_deq_valid <= deq_valid;
-			last_deq_entry_by_way <= deq_entry_by_way;
+		    // instr yield
+			last_instr_yield_valid <= instr_yield_valid;
+			last_instr_yield_by_way <= instr_yield_by_way;
 
-		    // def feedback
-			deq_ready <= next_deq_ready;
+		    // instr yield feedback
+			instr_yield_ready <= next_instr_yield_ready;
 
 		    // restart
 			restart_valid <= next_restart_valid;

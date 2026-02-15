@@ -5,6 +5,12 @@
     Spec: LOROF/spec/design/bru_pipeline.md
 */
 
+// TODO: RV64GC updates
+    // in order to mitigate waste of btb entries, especially since only 2x branches can be predicted per 16B,
+        // consider only sending branch updates on BTB_ACTION_BRANCH if btb miss and taken
+            // still update btb hit's since these have been taken before so want to utilize prediction structures
+            // don't need to update if btb miss and not taken since no mispred so far, no need to allocate in prediction structures
+
 `include "core_types_pkg.vh"
 import core_types_pkg::*;
 

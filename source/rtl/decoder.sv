@@ -11,6 +11,8 @@
 		// only fp side of ar map table has to support 4x reads per instr
         // rework so decoder tells which renames need to check, and can massively limit ports to common case
             // use register priority arbitration scheme in rename stage
+            // this gets nasty fast tho
+// TODO: decode if want checkpoint
 
 `include "core_types.vh"
 
