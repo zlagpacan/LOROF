@@ -269,19 +269,19 @@ package corep;
     // pc38
         // possibilities:
             // last_pc38
-                // stall or btb double hit
+                // stall
+            // {last_pc38[37:3], hit_lane + 1}
+                // double hit, first branch not taken
             // {last_pc38[37:3] + 1, 3'h0}
-                // default
+                // no action, not taken
             // {last_pc38[37:15], btb big_tgt[14:0]}
-                // fast redirect
+                // branch taken, jump
             // {upc[25:0], btb small_tgt[11:0]}
-                // fast redirect
+                // branch taken, jump
             // ret_pc38
-                // fast redirect
+                // ret
             // ibtb pc38
-                // slow redirect
-            // {upc[25:0], ibtb small_tgt[11:0]}
-                // slow redirect
+                // indirect jump
             // restart_pc38
                 // restart
     typedef struct packed {

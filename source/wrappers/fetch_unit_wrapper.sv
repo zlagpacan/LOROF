@@ -7,18 +7,10 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
-
-`include "system_types_pkg.vh"
-import system_types_pkg::*;
+`include "corep.vh"
+`include "sysp.vh"
 
 module fetch_unit_wrapper #(
-	parameter FETCH_UNIT_WAIT_FOR_RESTART_STATE = 1'b1,
-	parameter INIT_PC = 32'h0,
-	parameter INIT_ASID = 9'h0,
-	parameter INIT_EXEC_MODE = M_MODE,
-	parameter INIT_VIRTUAL_MODE = 1'b0
 ) (
 
     // seq
@@ -28,84 +20,88 @@ module fetch_unit_wrapper #(
 
     // itlb req
 	output logic last_itlb_req_valid,
-	output logic [1:0] last_itlb_req_exec_mode,
+	output corep::asid_t last_itlb_req_asid,
+	output corep::exec_mode_t last_itlb_req_exec_mode,
 	output logic last_itlb_req_virtual_mode,
-	output logic [ASID_WIDTH-1:0] last_itlb_req_ASID,
-	output logic [VPN_WIDTH-1:0] last_itlb_req_VPN,
+	output corep::fetch_idx_t last_itlb_req_fetch_idx,
 
     // itlb resp
+	output sysp::vpn_t last_itlb_resp_vpn,
+
 	input logic next_itlb_resp_valid,
-	input logic [PPN_WIDTH-1:0] next_itlb_resp_PPN,
+	input sysp::ppn_t next_itlb_resp_ppn,
 	input logic next_itlb_resp_page_fault,
 	input logic next_itlb_resp_access_fault,
 
     // icache req
 	output logic last_icache_req_valid,
-	output logic [ICACHE_FETCH_BLOCK_OFFSET_WIDTH-1:0] last_icache_req_block_offset,
-	output logic [ICACHE_INDEX_WIDTH-1:0] last_icache_req_index,
+	output corep::fetch_idx_t last_icache_req_fetch_idx,
 
     // icache resp
-	input logic [ICACHE_ASSOC-1:0] next_icache_resp_valid_by_way,
-	input logic [ICACHE_ASSOC-1:0][ICACHE_TAG_WIDTH-1:0] next_icache_resp_tag_by_way,
-	input logic [ICACHE_ASSOC-1:0][ICACHE_FETCH_WIDTH-1:0][7:0] next_icache_resp_instr_16B_by_way,
+	input logic [sysp::ICACHE_ASSOC-1:0] next_icache_resp_valid_by_way,
+	input sysp::icache_tag_t [sysp::ICACHE_ASSOC-1:0] next_icache_resp_tag_by_way,
+	input corep::fetch16B_t [sysp::ICACHE_ASSOC-1:0] next_icache_resp_fetch16B_by_way,
 
-    // icache resp feedback
-	output logic last_icache_resp_hit_valid,
-	output logic [LOG_ICACHE_ASSOC-1:0] last_icache_resp_hit_way,
-	output logic last_icache_resp_miss_valid,
-	output logic [ICACHE_TAG_WIDTH-1:0] last_icache_resp_miss_tag,
+    // icache feedback hit
+	output logic last_icache_feedback_hit_valid,
+	output sysp::icache_way_t last_icache_feedback_hit_way,
 
-    // output to istream
-	output logic last_istream_valid_SENQ,
-	output logic [7:0] last_istream_valid_by_fetch_2B_SENQ,
-	output logic [7:0] last_istream_one_hot_redirect_by_fetch_2B_SENQ,
-	output logic [7:0][15:0] last_istream_instr_2B_by_fetch_2B_SENQ,
-	output logic [7:0][BTB_PRED_INFO_WIDTH-1:0] last_istream_pred_info_by_fetch_2B_SENQ,
-	output logic [7:0] last_istream_pred_lru_by_fetch_2B_SENQ,
-	output logic [7:0][MDPT_INFO_WIDTH-1:0] last_istream_mdp_info_by_fetch_2B_SENQ,
-	output logic [31:0] last_istream_after_PC_SENQ,
-	output logic [LH_LENGTH-1:0] last_istream_LH_SENQ,
-	output logic [GH_LENGTH-1:0] last_istream_GH_SENQ,
-	output logic [RAS_INDEX_WIDTH-1:0] last_istream_ras_index_SENQ,
-	output logic last_istream_page_fault_SENQ,
-	output logic last_istream_access_fault_SENQ,
+    // icache feedback miss
+	output logic last_icache_feedback_miss_valid,
+	output corep::fmid_t last_icache_feedback_miss_fmid,
+	output sysp::pa39_t last_icache_feedback_miss_pa39,
 
-    // istream feedback
-	input logic next_istream_stall_SENQ,
+	input logic next_icache_feedback_miss_ready,
 
-    // fetch + decode restart from ROB
+    // icache miss return
+	input logic next_icache_miss_return_valid,
+	input corep::fmid_t next_icache_miss_return_fmid,
+	input corep::fetch16B_t next_icache_miss_return_fetch16B,
+
+    // instr yield
+	output logic last_instr_yield_valid,
+	output corep::instr_yield_t [3:0] last_instr_yield_by_way,
+
+    // instr yield feedback
+	input logic next_instr_yield_ready,
+
+    // wfr trigger from rob
+	input logic next_rob_trigger_wfr,
+
+    // restart from ROB (non-branch restarts)
 	input logic next_rob_restart_valid,
-	input logic [31:0] next_rob_restart_PC,
-	input logic [ASID_WIDTH-1:0] next_rob_restart_ASID,
-	input logic [1:0] next_rob_restart_exec_mode,
+	input corep::bcb_idx_t next_rob_restart_bcb_idx,
+	input corep::pc38_t next_rob_restart_pc38,
+	input corep::asid_t next_rob_restart_asid,
+	input corep::exec_mode_t next_rob_restart_exec_mode,
 	input logic next_rob_restart_virtual_mode,
 
-    // decode unit control
+    // wfr trigger from decode_unit
+	input logic next_decode_unit_trigger_wfr,
+
+    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
 	input logic next_decode_unit_restart_valid,
-	input logic [31:0] next_decode_unit_restart_PC,
+	input corep::bcb_idx_t next_decode_unit_restart_bcb_idx,
+	input corep::pc38_t next_decode_unit_restart_pc38,
 
-	input logic next_decode_unit_trigger_wait_for_restart,
+    // branch update (and also restart if mispred)
+	input logic next_branch_update_valid,
+	input logic next_branch_update_mispred,
+	input corep::bcb_idx_t next_branch_update_bcb_idx,
+	input corep::pc38_t next_branch_update_src_pc38,
+	input corep::asid_t next_branch_update_asid,
+	input corep::btb_info_t next_branch_update_btb_info,
+	input corep::pc38_t next_branch_update_tgt_pc38,
+	input logic next_branch_update_taken,
+	input logic next_branch_update_btb_hit,
 
-    // branch update from decode unit
-	input logic next_decode_unit_branch_update_valid,
-	input logic next_decode_unit_branch_update_has_checkpoint,
-	input logic next_decode_unit_branch_update_is_mispredict,
-	input logic next_decode_unit_branch_update_is_taken,
-	input logic next_decode_unit_branch_update_is_complex,
-	input logic next_decode_unit_branch_update_use_upct,
-	input logic [BTB_PRED_INFO_WIDTH-1:0] next_decode_unit_branch_update_intermediate_pred_info,
-	input logic next_decode_unit_branch_update_pred_lru,
-	input logic [31:0] next_decode_unit_branch_update_start_PC,
-	input logic [31:0] next_decode_unit_branch_update_target_PC,
-	input logic [LH_LENGTH-1:0] next_decode_unit_branch_update_LH,
-	input logic [GH_LENGTH-1:0] next_decode_unit_branch_update_GH,
-	input logic [RAS_INDEX_WIDTH-1:0] next_decode_unit_branch_update_ras_index,
+	output logic last_branch_update_ready,
 
     // mdpt update
 	input logic next_mdpt_update_valid,
-	input logic [31:0] next_mdpt_update_start_full_PC,
-	input logic [ASID_WIDTH-1:0] next_mdpt_update_ASID,
-	input logic [MDPT_INFO_WIDTH-1:0] next_mdpt_update_mdp_info
+	input corep::pc38_t next_mdpt_update_pc38,
+	input corep::asid_t next_mdpt_update_asid,
+	input corep::mdp_t next_mdpt_update_mdp
 );
 
     // ----------------------------------------------------------------
@@ -114,94 +110,93 @@ module fetch_unit_wrapper #(
 
     // itlb req
 	logic itlb_req_valid;
-	logic [1:0] itlb_req_exec_mode;
+	corep::asid_t itlb_req_asid;
+	corep::exec_mode_t itlb_req_exec_mode;
 	logic itlb_req_virtual_mode;
-	logic [ASID_WIDTH-1:0] itlb_req_ASID;
-	logic [VPN_WIDTH-1:0] itlb_req_VPN;
+	corep::fetch_idx_t itlb_req_fetch_idx;
 
     // itlb resp
+	sysp::vpn_t itlb_resp_vpn;
+
 	logic itlb_resp_valid;
-	logic [PPN_WIDTH-1:0] itlb_resp_PPN;
+	sysp::ppn_t itlb_resp_ppn;
 	logic itlb_resp_page_fault;
 	logic itlb_resp_access_fault;
 
     // icache req
 	logic icache_req_valid;
-	logic [ICACHE_FETCH_BLOCK_OFFSET_WIDTH-1:0] icache_req_block_offset;
-	logic [ICACHE_INDEX_WIDTH-1:0] icache_req_index;
+	corep::fetch_idx_t icache_req_fetch_idx;
 
     // icache resp
-	logic [ICACHE_ASSOC-1:0] icache_resp_valid_by_way;
-	logic [ICACHE_ASSOC-1:0][ICACHE_TAG_WIDTH-1:0] icache_resp_tag_by_way;
-	logic [ICACHE_ASSOC-1:0][ICACHE_FETCH_WIDTH-1:0][7:0] icache_resp_instr_16B_by_way;
+	logic [sysp::ICACHE_ASSOC-1:0] icache_resp_valid_by_way;
+	sysp::icache_tag_t [sysp::ICACHE_ASSOC-1:0] icache_resp_tag_by_way;
+	corep::fetch16B_t [sysp::ICACHE_ASSOC-1:0] icache_resp_fetch16B_by_way;
 
-    // icache resp feedback
-	logic icache_resp_hit_valid;
-	logic [LOG_ICACHE_ASSOC-1:0] icache_resp_hit_way;
-	logic icache_resp_miss_valid;
-	logic [ICACHE_TAG_WIDTH-1:0] icache_resp_miss_tag;
+    // icache feedback hit
+	logic icache_feedback_hit_valid;
+	sysp::icache_way_t icache_feedback_hit_way;
 
-    // output to istream
-	logic istream_valid_SENQ;
-	logic [7:0] istream_valid_by_fetch_2B_SENQ;
-	logic [7:0] istream_one_hot_redirect_by_fetch_2B_SENQ;
-	logic [7:0][15:0] istream_instr_2B_by_fetch_2B_SENQ;
-	logic [7:0][BTB_PRED_INFO_WIDTH-1:0] istream_pred_info_by_fetch_2B_SENQ;
-	logic [7:0] istream_pred_lru_by_fetch_2B_SENQ;
-	logic [7:0][MDPT_INFO_WIDTH-1:0] istream_mdp_info_by_fetch_2B_SENQ;
-	logic [31:0] istream_after_PC_SENQ;
-	logic [LH_LENGTH-1:0] istream_LH_SENQ;
-	logic [GH_LENGTH-1:0] istream_GH_SENQ;
-	logic [RAS_INDEX_WIDTH-1:0] istream_ras_index_SENQ;
-	logic istream_page_fault_SENQ;
-	logic istream_access_fault_SENQ;
+    // icache feedback miss
+	logic icache_feedback_miss_valid;
+	corep::fmid_t icache_feedback_miss_fmid;
+	sysp::pa39_t icache_feedback_miss_pa39;
 
-    // istream feedback
-	logic istream_stall_SENQ;
+	logic icache_feedback_miss_ready;
 
-    // fetch + decode restart from ROB
+    // icache miss return
+	logic icache_miss_return_valid;
+	corep::fmid_t icache_miss_return_fmid;
+	corep::fetch16B_t icache_miss_return_fetch16B;
+
+    // instr yield
+	logic instr_yield_valid;
+	corep::instr_yield_t [3:0] instr_yield_by_way;
+
+    // instr yield feedback
+	logic instr_yield_ready;
+
+    // wfr trigger from rob
+	logic rob_trigger_wfr;
+
+    // restart from ROB (non-branch restarts)
 	logic rob_restart_valid;
-	logic [31:0] rob_restart_PC;
-	logic [ASID_WIDTH-1:0] rob_restart_ASID;
-	logic [1:0] rob_restart_exec_mode;
+	corep::bcb_idx_t rob_restart_bcb_idx;
+	corep::pc38_t rob_restart_pc38;
+	corep::asid_t rob_restart_asid;
+	corep::exec_mode_t rob_restart_exec_mode;
 	logic rob_restart_virtual_mode;
 
-    // decode unit control
+    // wfr trigger from decode_unit
+	logic decode_unit_trigger_wfr;
+
+    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
 	logic decode_unit_restart_valid;
-	logic [31:0] decode_unit_restart_PC;
+	corep::bcb_idx_t decode_unit_restart_bcb_idx;
+	corep::pc38_t decode_unit_restart_pc38;
 
-	logic decode_unit_trigger_wait_for_restart;
+    // branch update (and also restart if mispred)
+	logic branch_update_valid;
+	logic branch_update_mispred;
+	corep::bcb_idx_t branch_update_bcb_idx;
+	corep::pc38_t branch_update_src_pc38;
+	corep::asid_t branch_update_asid;
+	corep::btb_info_t branch_update_btb_info;
+	corep::pc38_t branch_update_tgt_pc38;
+	logic branch_update_taken;
+	logic branch_update_btb_hit;
 
-    // branch update from decode unit
-	logic decode_unit_branch_update_valid;
-	logic decode_unit_branch_update_has_checkpoint;
-	logic decode_unit_branch_update_is_mispredict;
-	logic decode_unit_branch_update_is_taken;
-	logic decode_unit_branch_update_is_complex;
-	logic decode_unit_branch_update_use_upct;
-	logic [BTB_PRED_INFO_WIDTH-1:0] decode_unit_branch_update_intermediate_pred_info;
-	logic decode_unit_branch_update_pred_lru;
-	logic [31:0] decode_unit_branch_update_start_PC;
-	logic [31:0] decode_unit_branch_update_target_PC;
-	logic [LH_LENGTH-1:0] decode_unit_branch_update_LH;
-	logic [GH_LENGTH-1:0] decode_unit_branch_update_GH;
-	logic [RAS_INDEX_WIDTH-1:0] decode_unit_branch_update_ras_index;
+	logic branch_update_ready;
 
     // mdpt update
 	logic mdpt_update_valid;
-	logic [31:0] mdpt_update_start_full_PC;
-	logic [ASID_WIDTH-1:0] mdpt_update_ASID;
-	logic [MDPT_INFO_WIDTH-1:0] mdpt_update_mdp_info;
+	corep::pc38_t mdpt_update_pc38;
+	corep::asid_t mdpt_update_asid;
+	corep::mdp_t mdpt_update_mdp;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
 
 	fetch_unit #(
-		.FETCH_UNIT_WAIT_FOR_RESTART_STATE(FETCH_UNIT_WAIT_FOR_RESTART_STATE),
-		.INIT_PC(INIT_PC),
-		.INIT_ASID(INIT_ASID),
-		.INIT_EXEC_MODE(INIT_EXEC_MODE),
-		.INIT_VIRTUAL_MODE(INIT_VIRTUAL_MODE)
 	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
@@ -213,168 +208,176 @@ module fetch_unit_wrapper #(
 
 		    // itlb req
 			last_itlb_req_valid <= '0;
+			last_itlb_req_asid <= '0;
 			last_itlb_req_exec_mode <= '0;
 			last_itlb_req_virtual_mode <= '0;
-			last_itlb_req_ASID <= '0;
-			last_itlb_req_VPN <= '0;
+			last_itlb_req_fetch_idx <= '0;
 
 		    // itlb resp
+			last_itlb_resp_vpn <= '0;
+
 			itlb_resp_valid <= '0;
-			itlb_resp_PPN <= '0;
+			itlb_resp_ppn <= '0;
 			itlb_resp_page_fault <= '0;
 			itlb_resp_access_fault <= '0;
 
 		    // icache req
 			last_icache_req_valid <= '0;
-			last_icache_req_block_offset <= '0;
-			last_icache_req_index <= '0;
+			last_icache_req_fetch_idx <= '0;
 
 		    // icache resp
 			icache_resp_valid_by_way <= '0;
 			icache_resp_tag_by_way <= '0;
-			icache_resp_instr_16B_by_way <= '0;
+			icache_resp_fetch16B_by_way <= '0;
 
-		    // icache resp feedback
-			last_icache_resp_hit_valid <= '0;
-			last_icache_resp_hit_way <= '0;
-			last_icache_resp_miss_valid <= '0;
-			last_icache_resp_miss_tag <= '0;
+		    // icache feedback hit
+			last_icache_feedback_hit_valid <= '0;
+			last_icache_feedback_hit_way <= '0;
 
-		    // output to istream
-			last_istream_valid_SENQ <= '0;
-			last_istream_valid_by_fetch_2B_SENQ <= '0;
-			last_istream_one_hot_redirect_by_fetch_2B_SENQ <= '0;
-			last_istream_instr_2B_by_fetch_2B_SENQ <= '0;
-			last_istream_pred_info_by_fetch_2B_SENQ <= '0;
-			last_istream_pred_lru_by_fetch_2B_SENQ <= '0;
-			last_istream_mdp_info_by_fetch_2B_SENQ <= '0;
-			last_istream_after_PC_SENQ <= '0;
-			last_istream_LH_SENQ <= '0;
-			last_istream_GH_SENQ <= '0;
-			last_istream_ras_index_SENQ <= '0;
-			last_istream_page_fault_SENQ <= '0;
-			last_istream_access_fault_SENQ <= '0;
+		    // icache feedback miss
+			last_icache_feedback_miss_valid <= '0;
+			last_icache_feedback_miss_fmid <= '0;
+			last_icache_feedback_miss_pa39 <= '0;
 
-		    // istream feedback
-			istream_stall_SENQ <= '0;
+			icache_feedback_miss_ready <= '0;
 
-		    // fetch + decode restart from ROB
+		    // icache miss return
+			icache_miss_return_valid <= '0;
+			icache_miss_return_fmid <= '0;
+			icache_miss_return_fetch16B <= '0;
+
+		    // instr yield
+			last_instr_yield_valid <= '0;
+			last_instr_yield_by_way <= '0;
+
+		    // instr yield feedback
+			instr_yield_ready <= '0;
+
+		    // wfr trigger from rob
+			rob_trigger_wfr <= '0;
+
+		    // restart from ROB (non-branch restarts)
 			rob_restart_valid <= '0;
-			rob_restart_PC <= '0;
-			rob_restart_ASID <= '0;
+			rob_restart_bcb_idx <= '0;
+			rob_restart_pc38 <= '0;
+			rob_restart_asid <= '0;
 			rob_restart_exec_mode <= '0;
 			rob_restart_virtual_mode <= '0;
 
-		    // decode unit control
+		    // wfr trigger from decode_unit
+			decode_unit_trigger_wfr <= '0;
+
+		    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
 			decode_unit_restart_valid <= '0;
-			decode_unit_restart_PC <= '0;
+			decode_unit_restart_bcb_idx <= '0;
+			decode_unit_restart_pc38 <= '0;
 
-			decode_unit_trigger_wait_for_restart <= '0;
+		    // branch update (and also restart if mispred)
+			branch_update_valid <= '0;
+			branch_update_mispred <= '0;
+			branch_update_bcb_idx <= '0;
+			branch_update_src_pc38 <= '0;
+			branch_update_asid <= '0;
+			branch_update_btb_info <= '0;
+			branch_update_tgt_pc38 <= '0;
+			branch_update_taken <= '0;
+			branch_update_btb_hit <= '0;
 
-		    // branch update from decode unit
-			decode_unit_branch_update_valid <= '0;
-			decode_unit_branch_update_has_checkpoint <= '0;
-			decode_unit_branch_update_is_mispredict <= '0;
-			decode_unit_branch_update_is_taken <= '0;
-			decode_unit_branch_update_is_complex <= '0;
-			decode_unit_branch_update_use_upct <= '0;
-			decode_unit_branch_update_intermediate_pred_info <= '0;
-			decode_unit_branch_update_pred_lru <= '0;
-			decode_unit_branch_update_start_PC <= '0;
-			decode_unit_branch_update_target_PC <= '0;
-			decode_unit_branch_update_LH <= '0;
-			decode_unit_branch_update_GH <= '0;
-			decode_unit_branch_update_ras_index <= '0;
+			last_branch_update_ready <= '0;
 
 		    // mdpt update
 			mdpt_update_valid <= '0;
-			mdpt_update_start_full_PC <= '0;
-			mdpt_update_ASID <= '0;
-			mdpt_update_mdp_info <= '0;
+			mdpt_update_pc38 <= '0;
+			mdpt_update_asid <= '0;
+			mdpt_update_mdp <= '0;
         end
         else begin
 
 
 		    // itlb req
 			last_itlb_req_valid <= itlb_req_valid;
+			last_itlb_req_asid <= itlb_req_asid;
 			last_itlb_req_exec_mode <= itlb_req_exec_mode;
 			last_itlb_req_virtual_mode <= itlb_req_virtual_mode;
-			last_itlb_req_ASID <= itlb_req_ASID;
-			last_itlb_req_VPN <= itlb_req_VPN;
+			last_itlb_req_fetch_idx <= itlb_req_fetch_idx;
 
 		    // itlb resp
+			last_itlb_resp_vpn <= itlb_resp_vpn;
+
 			itlb_resp_valid <= next_itlb_resp_valid;
-			itlb_resp_PPN <= next_itlb_resp_PPN;
+			itlb_resp_ppn <= next_itlb_resp_ppn;
 			itlb_resp_page_fault <= next_itlb_resp_page_fault;
 			itlb_resp_access_fault <= next_itlb_resp_access_fault;
 
 		    // icache req
 			last_icache_req_valid <= icache_req_valid;
-			last_icache_req_block_offset <= icache_req_block_offset;
-			last_icache_req_index <= icache_req_index;
+			last_icache_req_fetch_idx <= icache_req_fetch_idx;
 
 		    // icache resp
 			icache_resp_valid_by_way <= next_icache_resp_valid_by_way;
 			icache_resp_tag_by_way <= next_icache_resp_tag_by_way;
-			icache_resp_instr_16B_by_way <= next_icache_resp_instr_16B_by_way;
+			icache_resp_fetch16B_by_way <= next_icache_resp_fetch16B_by_way;
 
-		    // icache resp feedback
-			last_icache_resp_hit_valid <= icache_resp_hit_valid;
-			last_icache_resp_hit_way <= icache_resp_hit_way;
-			last_icache_resp_miss_valid <= icache_resp_miss_valid;
-			last_icache_resp_miss_tag <= icache_resp_miss_tag;
+		    // icache feedback hit
+			last_icache_feedback_hit_valid <= icache_feedback_hit_valid;
+			last_icache_feedback_hit_way <= icache_feedback_hit_way;
 
-		    // output to istream
-			last_istream_valid_SENQ <= istream_valid_SENQ;
-			last_istream_valid_by_fetch_2B_SENQ <= istream_valid_by_fetch_2B_SENQ;
-			last_istream_one_hot_redirect_by_fetch_2B_SENQ <= istream_one_hot_redirect_by_fetch_2B_SENQ;
-			last_istream_instr_2B_by_fetch_2B_SENQ <= istream_instr_2B_by_fetch_2B_SENQ;
-			last_istream_pred_info_by_fetch_2B_SENQ <= istream_pred_info_by_fetch_2B_SENQ;
-			last_istream_pred_lru_by_fetch_2B_SENQ <= istream_pred_lru_by_fetch_2B_SENQ;
-			last_istream_mdp_info_by_fetch_2B_SENQ <= istream_mdp_info_by_fetch_2B_SENQ;
-			last_istream_after_PC_SENQ <= istream_after_PC_SENQ;
-			last_istream_LH_SENQ <= istream_LH_SENQ;
-			last_istream_GH_SENQ <= istream_GH_SENQ;
-			last_istream_ras_index_SENQ <= istream_ras_index_SENQ;
-			last_istream_page_fault_SENQ <= istream_page_fault_SENQ;
-			last_istream_access_fault_SENQ <= istream_access_fault_SENQ;
+		    // icache feedback miss
+			last_icache_feedback_miss_valid <= icache_feedback_miss_valid;
+			last_icache_feedback_miss_fmid <= icache_feedback_miss_fmid;
+			last_icache_feedback_miss_pa39 <= icache_feedback_miss_pa39;
 
-		    // istream feedback
-			istream_stall_SENQ <= next_istream_stall_SENQ;
+			icache_feedback_miss_ready <= next_icache_feedback_miss_ready;
 
-		    // fetch + decode restart from ROB
+		    // icache miss return
+			icache_miss_return_valid <= next_icache_miss_return_valid;
+			icache_miss_return_fmid <= next_icache_miss_return_fmid;
+			icache_miss_return_fetch16B <= next_icache_miss_return_fetch16B;
+
+		    // instr yield
+			last_instr_yield_valid <= instr_yield_valid;
+			last_instr_yield_by_way <= instr_yield_by_way;
+
+		    // instr yield feedback
+			instr_yield_ready <= next_instr_yield_ready;
+
+		    // wfr trigger from rob
+			rob_trigger_wfr <= next_rob_trigger_wfr;
+
+		    // restart from ROB (non-branch restarts)
 			rob_restart_valid <= next_rob_restart_valid;
-			rob_restart_PC <= next_rob_restart_PC;
-			rob_restart_ASID <= next_rob_restart_ASID;
+			rob_restart_bcb_idx <= next_rob_restart_bcb_idx;
+			rob_restart_pc38 <= next_rob_restart_pc38;
+			rob_restart_asid <= next_rob_restart_asid;
 			rob_restart_exec_mode <= next_rob_restart_exec_mode;
 			rob_restart_virtual_mode <= next_rob_restart_virtual_mode;
 
-		    // decode unit control
+		    // wfr trigger from decode_unit
+			decode_unit_trigger_wfr <= next_decode_unit_trigger_wfr;
+
+		    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
 			decode_unit_restart_valid <= next_decode_unit_restart_valid;
-			decode_unit_restart_PC <= next_decode_unit_restart_PC;
+			decode_unit_restart_bcb_idx <= next_decode_unit_restart_bcb_idx;
+			decode_unit_restart_pc38 <= next_decode_unit_restart_pc38;
 
-			decode_unit_trigger_wait_for_restart <= next_decode_unit_trigger_wait_for_restart;
+		    // branch update (and also restart if mispred)
+			branch_update_valid <= next_branch_update_valid;
+			branch_update_mispred <= next_branch_update_mispred;
+			branch_update_bcb_idx <= next_branch_update_bcb_idx;
+			branch_update_src_pc38 <= next_branch_update_src_pc38;
+			branch_update_asid <= next_branch_update_asid;
+			branch_update_btb_info <= next_branch_update_btb_info;
+			branch_update_tgt_pc38 <= next_branch_update_tgt_pc38;
+			branch_update_taken <= next_branch_update_taken;
+			branch_update_btb_hit <= next_branch_update_btb_hit;
 
-		    // branch update from decode unit
-			decode_unit_branch_update_valid <= next_decode_unit_branch_update_valid;
-			decode_unit_branch_update_has_checkpoint <= next_decode_unit_branch_update_has_checkpoint;
-			decode_unit_branch_update_is_mispredict <= next_decode_unit_branch_update_is_mispredict;
-			decode_unit_branch_update_is_taken <= next_decode_unit_branch_update_is_taken;
-			decode_unit_branch_update_is_complex <= next_decode_unit_branch_update_is_complex;
-			decode_unit_branch_update_use_upct <= next_decode_unit_branch_update_use_upct;
-			decode_unit_branch_update_intermediate_pred_info <= next_decode_unit_branch_update_intermediate_pred_info;
-			decode_unit_branch_update_pred_lru <= next_decode_unit_branch_update_pred_lru;
-			decode_unit_branch_update_start_PC <= next_decode_unit_branch_update_start_PC;
-			decode_unit_branch_update_target_PC <= next_decode_unit_branch_update_target_PC;
-			decode_unit_branch_update_LH <= next_decode_unit_branch_update_LH;
-			decode_unit_branch_update_GH <= next_decode_unit_branch_update_GH;
-			decode_unit_branch_update_ras_index <= next_decode_unit_branch_update_ras_index;
+			last_branch_update_ready <= branch_update_ready;
 
 		    // mdpt update
 			mdpt_update_valid <= next_mdpt_update_valid;
-			mdpt_update_start_full_PC <= next_mdpt_update_start_full_PC;
-			mdpt_update_ASID <= next_mdpt_update_ASID;
-			mdpt_update_mdp_info <= next_mdpt_update_mdp_info;
+			mdpt_update_pc38 <= next_mdpt_update_pc38;
+			mdpt_update_asid <= next_mdpt_update_asid;
+			mdpt_update_mdp <= next_mdpt_update_mdp;
         end
     end
 

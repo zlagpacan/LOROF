@@ -163,7 +163,7 @@ package sysp;
     parameter int unsigned ICACHE_BLOCK_OFFSET_WIDTH = $clog2(ICACHE_BLOCK_SIZE); // 5b
     parameter int unsigned ICACHE_NUM_SETS = ICACHE_SIZE / ICACHE_ASSOC / ICACHE_BLOCK_SIZE; // 128x
     parameter int unsigned ICACHE_IDX_WIDTH = $clog2(ICACHE_NUM_SETS); // 7b
-    parameter int unsigned ICACHE_TAG_WIDTH = PA_WIDTH - ICACHE_IDX_WIDTH - ICACHE_BLOCK_OFFSET_WIDTH; // 34b - 7b - 5b = 22b
+    parameter int unsigned ICACHE_TAG_WIDTH = PA_WIDTH - ICACHE_IDX_WIDTH - ICACHE_BLOCK_OFFSET_WIDTH; // 39b - 7b - 5b = 27b
         // fetch side interface
             // take from corep
 
