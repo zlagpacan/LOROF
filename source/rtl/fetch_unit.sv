@@ -188,8 +188,6 @@ module fetch_unit (
 
     logic RESP_icache_hit;
 
-    logic RESP_src_uses_upct;
-    
     logic RESP_tgt_uses_ibtb;
     logic RESP_tgt_uses_upct;
 
@@ -412,26 +410,24 @@ module fetch_unit (
     always_comb begin
         REQ_valid = ~wfr;
         REQ_pass = (~RESP_valid | RESP_pass);
-
-        // pass next pc38 back to REQ
-        if (RESP_valid) begin
-            // TODO
-        end
-        else begin
-            REQ_received_pc38 = REQ_latched_pc38;
-            REQ_received_upc_valid = 1'b1;
-        end
-
-        // pass next gh back to REQ
     end
 
     // RESP logic
+        // also info pass back to REQ
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-
+            RESP_valid <= 1'b0;
+            RESP_received_pc38 <= 38'h0;
+            RESP_received_upc_valid <= 1'b1;
+            RESP_received_gh <= '0;
+            RESP_src_uses_upct <= 1'b0;
         end
-        else begin
-
+        else if (RESP_pass) begin
+            RESP_valid <= REQ_valid;
+            RESP_received_pc38 <= REQ_received_pc38;
+            RESP_received_upc_valid <= REQ_received_upc_valid;
+            RESP_received_gh <= REQ_received_gh;
+            RESP_src_uses_upct <= btb_read_resp_btb_info.use_upct;
         end
     end
     always_comb begin
@@ -439,12 +435,54 @@ module fetch_unit (
             // depends on if hit or miss (e.g. check if have fmid ready and icache miss ready)
             // depends on if need RESP2
 
+        RESP_tgt_uses_ibtb = 
+        RESP_tgt_uses_upct = 
+
+        // pass next pc38 back to REQ
+        if (RESP_valid) begin
+            if (btb_)
+
+            // TODO
+        end
+        else begin
+            REQ_received_pc38 = REQ_latched_pc38;
+            REQ_received_upc_valid = 1'b1;
+
+            RESP_pass = 1'b1;
+        end
+
+        // pass next gh back to REQ
+        // TODO
+
+        RESP_final_pc38.idx = RESP_received_pc38.idx;
+        RESP_final_pc38.lane = RESP_received_pc38.lane;
+        if (RESP_received_upc_valid) begin
+            RESP_final_pc38.upc = LATE_tgt_upc;
+        end
+        else begin
+            RESP_final_pc38.upc = RESP_final_pc38.upc;
+        end
+
+        {RESP_final_pc38_next_8.upc, RESP_final_pc38_next_8.idx} = {RESP_final_pc38.upc, RESP_final_pc38.idx} + 35'h1;
+        RESP_final_pc38_next_8.lane = 3'h0;
+
         RESP_final_icache_tag = sysp::icache_tag_from_pc38(RESP_final_pc38);
     end
 
     // RESP2 logic
 
     // LATE logic
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            LATE_valid <= 1'b0;
+        end
+        else begin
+
+        end
+    end
+    always_comb begin
+        LATE_pass = RESP_pass;
+    end
 
     // update logic
     always_comb begin

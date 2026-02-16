@@ -228,6 +228,13 @@ package corep;
         ;
     endfunction
 
+    function logic btb_action_is_jump (btb_action_t action);
+        return
+            (action == BTB_ACTION_JUMP)
+            | (action == BTB_ACTION_JUMP_L)
+        ;
+    endfunction
+
     function logic btb_action_is_ibtb (btb_action_t action);
         return
             (action == BTB_ACTION_INDIRECT)
