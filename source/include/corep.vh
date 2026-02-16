@@ -169,21 +169,25 @@ package corep;
     parameter int unsigned BTB_ASSOC = 2; // hardcoded. have to do explicit lower hitting lane greater than input lane check
 
     typedef logic [BTB_ACTION_WIDTH-1:0]        btb_action_t;   // 3b
-    typedef logic [BTB_SMALL_TGT_WIDTH-1:0]     small_tgt_t;    // 12b
     typedef logic [LOG_UPCT_ENTRIES-1:0]        upct_idx_t;     // 3b
     typedef logic [BTB_TAG_WIDTH-1:0]           btb_tag_t;      // 18b
 
     parameter int unsigned FETCH_IDX_WIDTH = BTB_SMALL_TGT_WIDTH - LOG_FETCH_LANES; // 9b
 
-    typedef logic [LOG_FETCH_LANES-1:0]     fetch_lane_t;   // 3b
     typedef logic [FETCH_IDX_WIDTH-1:0]     fetch_idx_t;    // 9b
-        // fetch_idx can be built in back-to-back cycles for fast redirect
+    typedef logic [LOG_FETCH_LANES-1:0]     fetch_lane_t;   // 3b
+        // fetch_idx + fetch_lane can be built in back-to-back cycles for fast redirect
         // limited by how far the small_tgt can reach
         // all predict and fetch structures must be fully indexable by the fetch_idx
             // itlb, icache indexing will be truly limited
             // fetch structures may not strictly require all valid pc bits in access index
                 // structures naturally deal with aliasing
                 // notably the pht, which can have bits exclusively indexed by gh
+
+    typedef struct packed {
+        fetch_idx_t     idx;
+        fetch_lane_t    lane;
+    } small_tgt_t;
 
     typedef struct packed {
         upct_idx_t      upct_idx;   // 3b
