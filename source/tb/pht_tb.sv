@@ -40,9 +40,11 @@ module pht_tb #(
 	corep::asid_t tb_read_req_asid;
 
     // read resp stage
-	corep::fetch_lane_t tb_read_resp_redirect_lane;
+	corep::fetch_lane_t tb_read_resp_redirect_lane_way0;
+	corep::fetch_lane_t tb_read_resp_redirect_lane_way1;
 
-	logic DUT_read_resp_taken, expected_read_resp_taken;
+	logic DUT_read_resp_taken_way0, expected_read_resp_taken_way0;
+	logic DUT_read_resp_taken_way1, expected_read_resp_taken_way1;
 
     // update
 	logic tb_update_valid;
@@ -68,9 +70,11 @@ module pht_tb #(
 		.read_req_asid(tb_read_req_asid),
 
 	    // read resp stage
-		.read_resp_redirect_lane(tb_read_resp_redirect_lane),
+		.read_resp_redirect_lane_way0(tb_read_resp_redirect_lane_way0),
+		.read_resp_redirect_lane_way1(tb_read_resp_redirect_lane_way1),
 
-		.read_resp_taken(DUT_read_resp_taken),
+		.read_resp_taken_way0(DUT_read_resp_taken_way0),
+		.read_resp_taken_way1(DUT_read_resp_taken_way1),
 
 	    // update
 		.update_valid(tb_update_valid),
@@ -85,9 +89,16 @@ module pht_tb #(
 
     task check_outputs();
     begin
-		if (expected_read_resp_taken !== DUT_read_resp_taken) begin
-			$display("TB ERROR: expected_read_resp_taken (%h) != DUT_read_resp_taken (%h)",
-				expected_read_resp_taken, DUT_read_resp_taken);
+		if (expected_read_resp_taken_way0 !== DUT_read_resp_taken_way0) begin
+			$display("TB ERROR: expected_read_resp_taken_way0 (%h) != DUT_read_resp_taken_way0 (%h)",
+				expected_read_resp_taken_way0, DUT_read_resp_taken_way0);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_read_resp_taken_way1 !== DUT_read_resp_taken_way1) begin
+			$display("TB ERROR: expected_read_resp_taken_way1 (%h) != DUT_read_resp_taken_way1 (%h)",
+				expected_read_resp_taken_way1, DUT_read_resp_taken_way1);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -120,7 +131,8 @@ module pht_tb #(
 		tb_read_req_gh = {2'h0, 9'h000, 3'h0};
 		tb_read_req_asid = 16'h0000;
 	    // read resp stage
-		tb_read_resp_redirect_lane = 3'h0;
+		tb_read_resp_redirect_lane_way0 = 3'h0;
+		tb_read_resp_redirect_lane_way1 = 3'h0;
 	    // update
 		tb_update_valid = 1'b0;
 		tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
@@ -135,7 +147,8 @@ module pht_tb #(
 	    // arch state
 	    // read req stage
 	    // read resp stage
-		expected_read_resp_taken = 1'b0;
+		expected_read_resp_taken_way0 = 1'b0;
+		expected_read_resp_taken_way1 = 1'b0;
 	    // update
 
 		check_outputs();
@@ -152,7 +165,8 @@ module pht_tb #(
 		tb_read_req_gh = {2'h0, 9'h000, 3'h0};
 		tb_read_req_asid = 16'h0000;
 	    // read resp stage
-		tb_read_resp_redirect_lane = 3'h0;
+		tb_read_resp_redirect_lane_way0 = 3'h0;
+		tb_read_resp_redirect_lane_way1 = 3'h0;
 	    // update
 		tb_update_valid = 1'b0;
 		tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
@@ -167,7 +181,8 @@ module pht_tb #(
 	    // arch state
 	    // read req stage
 	    // read resp stage
-		expected_read_resp_taken = 1'b0;
+		expected_read_resp_taken_way0 = 1'b0;
+		expected_read_resp_taken_way1 = 1'b0;
 	    // update
 
 		check_outputs();
@@ -195,7 +210,8 @@ module pht_tb #(
                 tb_read_req_gh = {2'h0, 9'h000, 3'h0};
 		        tb_read_req_asid = 16'h0000;
                 // read resp stage
-		        tb_read_resp_redirect_lane = 3'h0;
+                tb_read_resp_redirect_lane_way0 = 3'h0;
+                tb_read_resp_redirect_lane_way1 = 3'h0;
                 // update
                 tb_update_valid = 1'b1;
                 tb_update_pc38 = {26'h0000000, {4'h0, index[4:0]}, lane[2], 1'b0, lane[0]};
@@ -210,7 +226,8 @@ module pht_tb #(
                 // arch state
                 // read req stage
                 // read resp stage
-		        expected_read_resp_taken = 1'b0;
+                expected_read_resp_taken_way0 = 1'b0;
+                expected_read_resp_taken_way1 = 1'b0;
                 // update
 
                 check_outputs();
@@ -237,7 +254,8 @@ module pht_tb #(
         tb_read_req_gh = {2'h3, 9'h000, 3'h0};
 		tb_read_req_asid = 16'hffff;
         // read resp stage
-		tb_read_resp_redirect_lane = 3'h0;
+		tb_read_resp_redirect_lane_way0 = 3'h0;
+		tb_read_resp_redirect_lane_way1 = 3'h7;
         // update
         tb_update_valid = 1'b0;
         tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
@@ -252,7 +270,8 @@ module pht_tb #(
         // arch state
         // read req stage
         // read resp stage
-		expected_read_resp_taken = 1'b0;
+		expected_read_resp_taken_way0 = 1'b0;
+		expected_read_resp_taken_way1 = 1'b0;
         // update
 
         check_outputs();
@@ -275,7 +294,8 @@ module pht_tb #(
                 tb_read_req_gh = {~index[10:9], {4'h0, index[4:0]}, lane[2], 1'b0, lane[0]};
                 tb_read_req_asid = 16'hffff;
                 // read resp stage
-		        tb_read_resp_redirect_lane = {1'b0, {lane-1}[1], 1'b0};
+		        tb_read_resp_redirect_lane_way0 = {1'b0, {lane-1}[1], 1'b0};
+		        tb_read_resp_redirect_lane_way1 = {1'b1, ~{lane-1}[1], 1'b1};
                 // update
                 tb_update_valid = 1'b0;
                 tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
@@ -290,7 +310,8 @@ module pht_tb #(
                 // arch state
                 // read req stage
                 // read resp stage
-                expected_read_resp_taken = {lane-1}[2:0] >= {(lane == 0) ? index-1 : index}[2:0];
+                expected_read_resp_taken_way0 = {lane-1}[2:0] >= {(lane == 0) ? index-1 : index}[2:0];
+                expected_read_resp_taken_way1 = ~{lane-1}[2:0] >= {(lane == 0) ? index-1 : index}[2:0];
                 // update
 
                 check_outputs();
@@ -311,7 +332,8 @@ module pht_tb #(
         tb_read_req_gh = {2'h0, 9'h000, 3'h0};
 		tb_read_req_asid = 16'hffff;
         // read resp stage
-		tb_read_resp_redirect_lane = 3'b010;
+		tb_read_resp_redirect_lane_way0 = 3'b010;
+		tb_read_resp_redirect_lane_way1 = 3'b101;
         // update
         tb_update_valid = 1'b0;
         tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
@@ -326,7 +348,8 @@ module pht_tb #(
         // arch state
         // read req stage
         // read resp stage
-        expected_read_resp_taken = 1'b1;
+        expected_read_resp_taken_way0 = 1'b1;
+        expected_read_resp_taken_way1 = 1'b0;
         // update
 
         check_outputs();

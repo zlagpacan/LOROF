@@ -24,9 +24,11 @@ module pht_wrapper #(
 	input corep::asid_t next_read_req_asid,
 
     // read resp stage
-	input corep::fetch_lane_t next_read_resp_redirect_lane,
+	input corep::fetch_lane_t next_read_resp_redirect_lane_way0,
+	input corep::fetch_lane_t next_read_resp_redirect_lane_way1,
 
-	output logic last_read_resp_taken,
+	output logic last_read_resp_taken_way0,
+	output logic last_read_resp_taken_way1,
 
     // update
 	input logic next_update_valid,
@@ -47,9 +49,11 @@ module pht_wrapper #(
 	corep::asid_t read_req_asid;
 
     // read resp stage
-	corep::fetch_lane_t read_resp_redirect_lane;
+	corep::fetch_lane_t read_resp_redirect_lane_way0;
+	corep::fetch_lane_t read_resp_redirect_lane_way1;
 
-	logic read_resp_taken;
+	logic read_resp_taken_way0;
+	logic read_resp_taken_way1;
 
     // update
 	logic update_valid;
@@ -78,9 +82,11 @@ module pht_wrapper #(
 			read_req_asid <= '0;
 
 		    // read resp stage
-			read_resp_redirect_lane <= '0;
+			read_resp_redirect_lane_way0 <= '0;
+			read_resp_redirect_lane_way1 <= '0;
 
-			last_read_resp_taken <= '0;
+			last_read_resp_taken_way0 <= '0;
+			last_read_resp_taken_way1 <= '0;
 
 		    // update
 			update_valid <= '0;
@@ -99,9 +105,11 @@ module pht_wrapper #(
 			read_req_asid <= next_read_req_asid;
 
 		    // read resp stage
-			read_resp_redirect_lane <= next_read_resp_redirect_lane;
+			read_resp_redirect_lane_way0 <= next_read_resp_redirect_lane_way0;
+			read_resp_redirect_lane_way1 <= next_read_resp_redirect_lane_way1;
 
-			last_read_resp_taken <= read_resp_taken;
+			last_read_resp_taken_way0 <= read_resp_taken_way0;
+			last_read_resp_taken_way1 <= read_resp_taken_way1;
 
 		    // update
 			update_valid <= next_update_valid;

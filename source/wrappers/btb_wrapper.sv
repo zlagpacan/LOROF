@@ -26,10 +26,13 @@ module btb_wrapper #(
 	input corep::pc38_t next_read_resp_pc38,
 
 	output logic last_read_resp_hit,
-	output corep::btb_way_t last_read_resp_hit_way,
-	output corep::fetch_lane_t last_read_resp_hit_lane,
 	output logic last_read_resp_double_hit,
-	output corep::btb_info_t last_read_resp_btb_info,
+	output corep::btb_way_t last_read_resp_hit_way,
+
+	output corep::fetch_lane_t last_read_resp_hit_lane_way0,
+	output corep::fetch_lane_t last_read_resp_hit_lane_way1,
+	output corep::btb_info_t last_read_resp_btb_info_way0,
+	output corep::btb_info_t last_read_resp_btb_info_way1,
 
     // update
 	input logic next_update_valid,
@@ -53,10 +56,13 @@ module btb_wrapper #(
 	corep::pc38_t read_resp_pc38;
 
 	logic read_resp_hit;
-	corep::btb_way_t read_resp_hit_way;
-	corep::fetch_lane_t read_resp_hit_lane;
 	logic read_resp_double_hit;
-	corep::btb_info_t read_resp_btb_info;
+	corep::btb_way_t read_resp_hit_way;
+
+	corep::fetch_lane_t read_resp_hit_lane_way0;
+	corep::fetch_lane_t read_resp_hit_lane_way1;
+	corep::btb_info_t read_resp_btb_info_way0;
+	corep::btb_info_t read_resp_btb_info_way1;
 
     // update
 	logic update_valid;
@@ -88,10 +94,13 @@ module btb_wrapper #(
 			read_resp_pc38 <= '0;
 
 			last_read_resp_hit <= '0;
-			last_read_resp_hit_way <= '0;
-			last_read_resp_hit_lane <= '0;
 			last_read_resp_double_hit <= '0;
-			last_read_resp_btb_info <= '0;
+			last_read_resp_hit_way <= '0;
+
+			last_read_resp_hit_lane_way0 <= '0;
+			last_read_resp_hit_lane_way1 <= '0;
+			last_read_resp_btb_info_way0 <= '0;
+			last_read_resp_btb_info_way1 <= '0;
 
 		    // update
 			update_valid <= '0;
@@ -113,10 +122,13 @@ module btb_wrapper #(
 			read_resp_pc38 <= next_read_resp_pc38;
 
 			last_read_resp_hit <= read_resp_hit;
-			last_read_resp_hit_way <= read_resp_hit_way;
-			last_read_resp_hit_lane <= read_resp_hit_lane;
 			last_read_resp_double_hit <= read_resp_double_hit;
-			last_read_resp_btb_info <= read_resp_btb_info;
+			last_read_resp_hit_way <= read_resp_hit_way;
+
+			last_read_resp_hit_lane_way0 <= read_resp_hit_lane_way0;
+			last_read_resp_hit_lane_way1 <= read_resp_hit_lane_way1;
+			last_read_resp_btb_info_way0 <= read_resp_btb_info_way0;
+			last_read_resp_btb_info_way1 <= read_resp_btb_info_way1;
 
 		    // update
 			update_valid <= next_update_valid;

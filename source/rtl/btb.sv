@@ -22,10 +22,13 @@ module btb (
     input corep::pc38_t             read_resp_pc38,
 
     output logic                    read_resp_hit,
-    output corep::btb_way_t         read_resp_hit_way,
-    output corep::fetch_lane_t      read_resp_hit_lane,
     output logic                    read_resp_double_hit,
-    output corep::btb_info_t        read_resp_btb_info,
+    output corep::btb_way_t         read_resp_hit_way,
+
+    output corep::fetch_lane_t      read_resp_hit_lane_way0,
+    output corep::fetch_lane_t      read_resp_hit_lane_way1,
+    output corep::btb_info_t        read_resp_btb_info_way0,
+    output corep::btb_info_t        read_resp_btb_info_way1,
 
     // update
     input logic                 update_valid,
@@ -127,34 +130,32 @@ module btb (
         read_resp_hit = read_resp_hit_way0 | read_resp_hit_way1;
         read_resp_double_hit = read_resp_hit_way0 & read_resp_hit_way1;
 
+        read_resp_btb_info_way0 = btb_array_bram_read_set[0].info;
+        read_resp_hit_lane_way0 = btb_array_bram_read_set[0].lane;
+
+        read_resp_btb_info_way1 = btb_array_bram_read_set[1].info;
+        read_resp_hit_lane_way1 = btb_array_bram_read_set[1].lane;
+
         // both ways hit
         if (read_resp_hit_way0 & read_resp_hit_way1) begin
 
             // give lower lane hit way, prioritizing way 1 on tie
             if (btb_array_bram_read_set[1].lane <= btb_array_bram_read_set[0].lane) begin
                 read_resp_hit_way = 1;
-                read_resp_btb_info = btb_array_bram_read_set[1].info;
-                read_resp_hit_lane = btb_array_bram_read_set[1].lane;
             end
             else begin
                 read_resp_hit_way = 0;
-                read_resp_btb_info = btb_array_bram_read_set[0].info;
-                read_resp_hit_lane = btb_array_bram_read_set[0].lane;
             end
         end
 
         // way 1 hit
         else if (read_resp_hit_way1) begin
             read_resp_hit_way = 1;
-            read_resp_btb_info = btb_array_bram_read_set[1].info;
-            read_resp_hit_lane = btb_array_bram_read_set[1].lane;
         end
 
         // otherwise, default way 0 data
         else begin
             read_resp_hit_way = 0;
-            read_resp_btb_info = btb_array_bram_read_set[0].info;
-            read_resp_hit_lane = btb_array_bram_read_set[0].lane;
         end
     end
 

@@ -172,18 +172,22 @@ module fetch_unit (
     logic REQ_valid;
     logic REQ_pass;
 
-    corep::pc38_t   REQ_latched_pc38;
-    corep::pc38_t   REQ_received_pc38;
+    corep::pc38_t           REQ_latched_pc38;
+    corep::pc38_t [1:0]     REQ_received_pc38_by_way;
+    corep::pc38_t           REQ_received_pc38;
 
-    corep::gh_t REQ_latched_gh;
-    corep::gh_t REQ_received_gh;
+    corep::gh_t         REQ_latched_gh;
+    corep::gh_t [1:0]   REQ_received_gh_by_way;
+    corep::gh_t         REQ_received_gh;
 
     /////////////////
     // RESP stage: //
     /////////////////
 
     logic RESP_valid;
-    logic RESP_pass;
+
+    logic [1:0]     RESP_pass_by_way;
+    logic           RESP_pass;
 
     logic RESP_icache_hit;
 
@@ -193,9 +197,16 @@ module fetch_unit (
 
     corep::gh_t RESP_received_gh;
 
-    logic                           RESP_redirect;
-    logic                           RESP_redirect_no_double_hit_not_taken;
-    logic [corep::FETCH_LANES-1:0]  RESP_valid_by_lane;
+    logic [1:0]     RESP_redirect_by_way;
+    logic           RESP_redirect;
+
+    logic [1:0]     RESP_redirect_no_double_hit_not_taken_by_way;
+    logic           RESP_redirect_no_double_hit_not_taken;
+
+    logic [1:0][corep::FETCH_LANES-1:0]     RESP_valid_by_lane_by_way; // way indexed first
+    logic [corep::FETCH_LANES-1:0]          RESP_valid_by_lane;
+
+    corep::btb_info_t selected_btb_read_resp_btb_info;
 
     //////////////////
     // RESP2 stage: //
@@ -234,9 +245,11 @@ module fetch_unit (
 
     // read in
     logic               upct_read_valid;
-    corep::upct_idx_t   upct_read_idx;
+    corep::upct_idx_t   upct_read_idx_way0;
+    corep::upct_idx_t   upct_read_idx_way1;
+    corep::upct_idx_t   upct_read_idx_touch;
     // read out
-    corep::upc_t        upct_read_upc;
+    corep::upc_t [1:0]  upct_read_upc_by_way;
     // update in
     logic               upct_update_valid;
     corep::upc_t        upct_update_upc;
@@ -262,23 +275,23 @@ module fetch_unit (
     // btb IO:
 
     // read req stage
-    logic                   btb_read_req_valid;
-    corep::fetch_idx_t      btb_read_req_fetch_idx;
-    corep::asid_t           btb_read_req_asid;
+    logic                       btb_read_req_valid;
+    corep::fetch_idx_t          btb_read_req_fetch_idx;
+    corep::asid_t               btb_read_req_asid;
     // read resp stage
-    corep::pc38_t           btb_read_resp_pc38;
-    logic                   btb_read_resp_hit;
-    corep::btb_way_t        btb_read_resp_hit_way;
-    corep::fetch_lane_t     btb_read_resp_hit_lane;
-    logic                   btb_read_resp_double_hit;
-    corep::btb_info_t       btb_read_resp_btb_info;
+    corep::pc38_t               btb_read_resp_pc38;
+    logic                       btb_read_resp_hit;
+    logic                       btb_read_resp_double_hit;
+    corep::btb_way_t            btb_read_resp_hit_way;
+    corep::fetch_lane_t [1:0]   btb_read_resp_hit_lane_by_way;
+    corep::btb_info_t [1:0]     btb_read_resp_btb_info_by_way;
     // update
-    logic                   btb_update_valid;
-    corep::pc38_t           btb_update_pc38;
-    corep::asid_t           btb_update_asid;
-    corep::btb_info_t       btb_update_btb_info;
-    logic                   btb_update_hit;
-    corep::btb_way_t        btb_update_hit_way;
+    logic                       btb_update_valid;
+    corep::pc38_t               btb_update_pc38;
+    corep::asid_t               btb_update_asid;
+    corep::btb_info_t           btb_update_btb_info;
+    logic                       btb_update_hit;
+    corep::btb_way_t            btb_update_hit_way;
 
     // pht IO:
 
@@ -288,8 +301,9 @@ module fetch_unit (
     corep::gh_t             pht_read_req_gh;
     corep::asid_t           pht_read_req_asid;
     // read resp stage
-    corep::fetch_lane_t     pht_read_resp_redirect_lane;
-    logic                   pht_read_resp_taken;
+    corep::fetch_lane_t     pht_read_resp_redirect_lane_way0;
+    corep::fetch_lane_t     pht_read_resp_redirect_lane_way1;
+    logic [1:0]             pht_read_resp_taken_by_way;
     // update
     logic                   pht_update_valid;
     corep::pc38_t           pht_update_pc38;
@@ -433,164 +447,183 @@ module fetch_unit (
         RESP_received_icache_tag = sysp::icache_tag_from_pc38(RESP_received_pc38);
     end
     always_comb begin
-        // build REQ pc38
+        // build REQ pc38 based on btb way
+        for (int way = 0; way < corep::BTB_ASSOC; way++) begin
 
-        // default: RESP empty, use all REQ latched
-        REQ_received_pc38 = REQ_latched_pc38;
+            // default: RESP empty, use all REQ latched
+            REQ_received_pc38_by_way[way] = REQ_latched_pc38;
 
-        REQ_received_gh = REQ_latched_gh;
+            REQ_received_gh_by_way[way] = REQ_latched_gh;
 
-        RESP_redirect = 1'b0;
-        RESP_redirect_no_double_hit_not_taken = 1'b0;
+            RESP_redirect_by_way[way] = 1'b0;
+            RESP_redirect_no_double_hit_not_taken_by_way[way] = 1'b0;
 
-        // default: non-btb-hit dependent pass requirements (can be further disabled later in logic)
-            // itlb hit
-        RESP_pass =
-            itlb_resp_valid
-            & (RESP_icache_hit | icache_feedback_miss_ready)
-            & ibuffer_enq_ready
-        ;
+            // default: non-btb-hit dependent pass requirements (can be further disabled later in logic)
+                // itlb hit
+            RESP_pass_by_way[way] =
+                itlb_resp_valid
+                & (RESP_icache_hit | icache_feedback_miss_ready)
+                & ibuffer_enq_ready
+            ;
 
-        // build REQ pc38 from RESP
-        if (RESP_valid) begin
+            // build REQ pc38 from RESP
+            if (RESP_valid) begin
 
-            // btb hit
-            if (btb_read_resp_hit) begin
+                // btb hit
+                if (btb_read_resp_hit) begin
 
-                // btb action cases
-                case (btb_read_resp_btb_info.action)
-                    corep::BTB_ACTION_NONE: begin
-                        REQ_received_pc38 = RESP_received_pc38_next_8;
-                        
-                        REQ_received_gh = RESP_received_gh;
+                    // btb action cases
+                    case (btb_read_resp_btb_info_by_way[way].action)
+                        corep::BTB_ACTION_NONE: begin
+                            REQ_received_pc38_by_way[way] = RESP_received_pc38_next_8;
+                            
+                            REQ_received_gh_by_way[way] = RESP_received_gh;
 
-                        RESP_redirect = 1'b0;
-                        RESP_redirect_no_double_hit_not_taken = 1'b0;
-                    end
-                    corep::BTB_ACTION_BRANCH: begin
-                        // taken
-                        if (pht_read_resp_taken) begin
-                            if (btb_read_resp_btb_info.use_upct) begin
-                                REQ_received_pc38.upc = upct_read_upc;
-                            end
-                            else begin
-                                REQ_received_pc38.upc.msbs = RESP_received_pc38.upc.msbs;
-                                REQ_received_pc38.upc.big_tgt_msbs = btb_read_resp_btb_info.big_tgt.upct_idx;
-                            end
-                            REQ_received_pc38.idx = btb_read_resp_btb_info.big_tgt.small_tgt.idx;
-                            REQ_received_pc38.lane = btb_read_resp_btb_info.big_tgt.small_tgt.lane;
-
-                            REQ_received_gh = {RESP_received_gh << 1, 1'b1};
-
-                            RESP_redirect = 1'b1;
-                            RESP_redirect_no_double_hit_not_taken = 1'b1;
+                            RESP_redirect_by_way[way] = 1'b0;
+                            RESP_redirect_no_double_hit_not_taken_by_way[way] = 1'b0;
                         end
-                        // otherwise, not taken
-                        else begin
-                            // double hit
-                            if (btb_read_resp_double_hit) begin
-                                // re-yield after not taken branch 
-                                if (btb_read_resp_hit_lane == 3'h7) begin
-                                    REQ_received_pc38 = RESP_received_pc38_next_8;
+                        corep::BTB_ACTION_BRANCH: begin
+                            // taken
+                            if (pht_read_resp_taken_by_way[way]) begin
+                                if (btb_read_resp_btb_info_by_way[way].use_upct) begin
+                                    REQ_received_pc38_by_way[way].upc = upct_read_upc_by_way[way];
                                 end
                                 else begin
-                                    REQ_received_pc38.upc = RESP_received_pc38.upc;
-                                    REQ_received_pc38.idx = RESP_received_pc38.idx;
-                                    REQ_received_pc38.lane = btb_read_resp_hit_lane + 3'h1;
+                                    REQ_received_pc38_by_way[way].upc.msbs = RESP_received_pc38.upc.msbs;
+                                    REQ_received_pc38_by_way[way].upc.big_tgt_msbs = btb_read_resp_btb_info_by_way[way].big_tgt.upct_idx;
                                 end
-                                
-                                REQ_received_gh = {RESP_received_gh << 1, 1'b0};
+                                REQ_received_pc38_by_way[way].idx = btb_read_resp_btb_info_by_way[way].big_tgt.small_tgt.idx;
+                                REQ_received_pc38_by_way[way].lane = btb_read_resp_btb_info_by_way[way].big_tgt.small_tgt.lane;
 
-                                RESP_redirect = 1'b1;
-                                RESP_redirect_no_double_hit_not_taken = 1'b0;
+                                REQ_received_gh_by_way[way] = {RESP_received_gh << 1, 1'b1};
+
+                                RESP_redirect_by_way[way] = 1'b1;
+                                RESP_redirect_no_double_hit_not_taken_by_way[way] = 1'b1;
                             end
-                            // move onto next 16B
+                            // otherwise, not taken
                             else begin
-                                REQ_received_pc38 = RESP_received_pc38_next_8;
-                                
-                                REQ_received_gh = {RESP_received_gh << 1, 1'b0};
+                                // double hit
+                                if (btb_read_resp_double_hit) begin
+                                    // re-yield after not taken branch 
+                                    if (btb_read_resp_hit_lane_by_way[way] == 3'h7) begin
+                                        REQ_received_pc38_by_way[way] = RESP_received_pc38_next_8;
+                                    end
+                                    else begin
+                                        REQ_received_pc38_by_way[way].upc = RESP_received_pc38.upc;
+                                        REQ_received_pc38_by_way[way].idx = RESP_received_pc38.idx;
+                                        REQ_received_pc38_by_way[way].lane = btb_read_resp_hit_lane_by_way[way] + 3'h1;
+                                    end
+                                    
+                                    REQ_received_gh_by_way[way] = {RESP_received_gh << 1, 1'b0};
 
-                                RESP_redirect = 1'b0;
-                                RESP_redirect_no_double_hit_not_taken = 1'b0;
+                                    RESP_redirect_by_way[way] = 1'b1;
+                                    RESP_redirect_no_double_hit_not_taken_by_way[way] = 1'b0;
+                                end
+                                // move onto next 16B
+                                else begin
+                                    REQ_received_pc38_by_way[way] = RESP_received_pc38_next_8;
+                                    
+                                    REQ_received_gh_by_way[way] = {RESP_received_gh << 1, 1'b0};
+
+                                    RESP_redirect_by_way[way] = 1'b0;
+                                    RESP_redirect_no_double_hit_not_taken_by_way[way] = 1'b0;
+                                end
                             end
                         end
-                    end
-                    corep::BTB_ACTION_JUMP, corep::BTB_ACTION_JUMP_L: begin
-                        // do big_tgt behavior by default, use_upct determines if only accept small_tgt bits
-                        if (btb_read_resp_btb_info.use_upct) begin
-                            REQ_received_pc38.upc = upct_read_upc;
+                        corep::BTB_ACTION_JUMP, corep::BTB_ACTION_JUMP_L: begin
+                            // do big_tgt behavior by default, use_upct determines if only accept small_tgt bits
+                            if (btb_read_resp_btb_info_by_way[way].use_upct) begin
+                                REQ_received_pc38_by_way[way].upc = upct_read_upc_by_way[way];
+                            end
+                            else begin
+                                REQ_received_pc38_by_way[way].upc.msbs = RESP_received_pc38.upc.msbs;
+                                REQ_received_pc38_by_way[way].upc.big_tgt_msbs = btb_read_resp_btb_info_by_way[way].big_tgt.upct_idx;
+                            end
+                            REQ_received_pc38_by_way[way].idx = btb_read_resp_btb_info_by_way[way].big_tgt.small_tgt.idx;
+                            REQ_received_pc38_by_way[way].lane = btb_read_resp_btb_info_by_way[way].big_tgt.small_tgt.lane;
+
+                            REQ_received_gh_by_way[way] = RESP_received_gh;
+
+                            RESP_redirect_by_way[way] = 1'b1;
+                            RESP_redirect_no_double_hit_not_taken_by_way[way] = 1'b1;
                         end
-                        else begin
-                            REQ_received_pc38.upc.msbs = RESP_received_pc38.upc.msbs;
-                            REQ_received_pc38.upc.big_tgt_msbs = btb_read_resp_btb_info.big_tgt.upct_idx;
+                        corep::BTB_ACTION_RET, corep::BTB_ACTION_RET_L: begin
+                            // take from ras
+                            REQ_received_pc38_by_way[way] = ras_ret_pc38;
+                            
+                            REQ_received_gh_by_way[way] = RESP_received_gh;
+
+                            RESP_redirect_by_way[way] = 1'b1;
+                            RESP_redirect_no_double_hit_not_taken_by_way[way] = 1'b1;
                         end
-                        REQ_received_pc38.idx = btb_read_resp_btb_info.big_tgt.small_tgt.idx;
-                        REQ_received_pc38.lane = btb_read_resp_btb_info.big_tgt.small_tgt.lane;
+                        corep::BTB_ACTION_INDIRECT, corep::BTB_ACTION_INDIRECT_L: begin
+                            // take from ibtb
+                            REQ_received_pc38_by_way[way] = RESP2_tgt_pc38;
+                            
+                            REQ_received_gh_by_way[way] = RESP_received_gh;
 
-                        REQ_received_gh = RESP_received_gh;
+                            RESP_redirect_by_way[way] = 1'b1;
+                            RESP_redirect_no_double_hit_not_taken_by_way[way] = 1'b1;
 
-                        RESP_redirect = 1'b1;
-                        RESP_redirect_no_double_hit_not_taken = 1'b1;
-                    end
-                    corep::BTB_ACTION_RET, corep::BTB_ACTION_RET_L: begin
-                        // take from ras
-                        REQ_received_pc38 = ras_ret_pc38;
-                        
-                        REQ_received_gh = RESP_received_gh;
-
-                        RESP_redirect = 1'b1;
-                        RESP_redirect_no_double_hit_not_taken = 1'b1;
-                    end
-                    corep::BTB_ACTION_INDIRECT, corep::BTB_ACTION_INDIRECT_L: begin
-                        // take from ibtb
-                        REQ_received_pc38 = RESP2_tgt_pc38;
-                        
-                        REQ_received_gh = RESP_received_gh;
-
-                        RESP_redirect = 1'b1;
-                        RESP_redirect_no_double_hit_not_taken = 1'b1;
-
-                        if (~RESP2_valid) begin
-                            RESP_pass = 1'b0;
+                            if (~RESP2_valid) begin
+                                RESP_pass_by_way[way] = 1'b0;
+                            end
                         end
-                    end
-                    default: begin // default is BTB_ACTION_NONE
-                        REQ_received_pc38 = RESP_received_pc38_next_8;
-                        
-                        REQ_received_gh = RESP_received_gh;
+                        default: begin // default is BTB_ACTION_NONE
+                            REQ_received_pc38_by_way[way] = RESP_received_pc38_next_8;
+                            
+                            REQ_received_gh_by_way[way] = RESP_received_gh;
 
-                        RESP_redirect = 1'b0;
-                        RESP_redirect_no_double_hit_not_taken = 1'b0;
-                    end
-                endcase
+                            RESP_redirect_by_way[way] = 1'b0;
+                            RESP_redirect_no_double_hit_not_taken_by_way[way] = 1'b0;
+                        end
+                    endcase
+                end
+                // otherwise, no action
+                else begin
+                    REQ_received_pc38_by_way[way] = RESP_received_pc38_next_8;
+                    
+                    REQ_received_gh_by_way[way] = RESP_received_gh;
+
+                    RESP_redirect_by_way[way] = 1'b0;
+                    RESP_redirect_no_double_hit_not_taken_by_way[way] = 1'b0;
+                end
             end
-            // otherwise, no action
+            // otherwise, stick with latched pc38 and gh
             else begin
-                REQ_received_pc38 = RESP_received_pc38_next_8;
-                
-                REQ_received_gh = RESP_received_gh;
+                REQ_received_pc38_by_way[way] = REQ_latched_pc38;
 
-                RESP_redirect = 1'b0;
-                RESP_redirect_no_double_hit_not_taken = 1'b0;
+                REQ_received_gh_by_way[way] = REQ_latched_gh;
+
+                RESP_redirect_by_way[way] = 1'b0;
+                RESP_redirect_no_double_hit_not_taken_by_way[way] = 1'b0;
             end
-        end
-        // otherwise, stick with latched pc38 and gh
-        else begin
-            REQ_received_pc38 = REQ_latched_pc38;
-
-            REQ_received_gh = REQ_latched_gh;
-
-            RESP_redirect = 1'b0;
-            RESP_redirect_no_double_hit_not_taken = 1'b0;
         end
     end
     always_comb begin
-        for (int lane = 0; lane < corep::FETCH_LANES; lane++) begin
-            RESP_valid_by_lane[lane] =
-                (lane >= RESP_received_pc38.lane)
-                & (~RESP_redirect | (lane <= btb_read_resp_hit_lane))
-            ;
+        for (int way = 0; way < corep::BTB_ASSOC; way++) begin
+            for (int lane = 0; lane < corep::FETCH_LANES; lane++) begin
+                RESP_valid_by_lane_by_way[way][lane] =
+                    (lane >= RESP_received_pc38.lane)
+                    & (~RESP_redirect_by_way[way] | (lane <= btb_read_resp_hit_lane_by_way[way]))
+                ;
+            end
         end
+    end
+    always_comb begin
+        REQ_received_pc38 = REQ_received_pc38_by_way[btb_read_resp_hit_way];
+
+        REQ_received_gh = REQ_received_gh_by_way[btb_read_resp_hit_way];
+
+        RESP_redirect = RESP_redirect_by_way[btb_read_resp_hit_way];
+        RESP_redirect_no_double_hit_not_taken = RESP_redirect_no_double_hit_not_taken_by_way[btb_read_resp_hit_way];
+
+        RESP_pass = RESP_pass_by_way[btb_read_resp_hit_way];
+
+        RESP_valid_by_lane = RESP_valid_by_lane_by_way[btb_read_resp_hit_way];
+    end
+    always_comb begin
+        selected_btb_read_resp_btb_info = btb_read_resp_btb_info_by_way[btb_read_resp_hit_way];
     end
 
     // RESP2 logic
@@ -603,7 +636,7 @@ module fetch_unit (
             RESP2_valid <= RESP_valid & ~RESP_pass;
             RESP2_src_pc38.upc <= RESP_received_pc38.upc;
             RESP2_src_pc38.idx <= RESP_received_pc38.idx;
-            RESP2_src_pc38.lane <= btb_read_resp_hit_lane;
+            RESP2_src_pc38.lane <= btb_read_resp_hit_lane_by_way[btb_read_resp_hit_way];
         end
     end
 
@@ -677,7 +710,9 @@ module fetch_unit (
     // upct:
     always_comb begin
         upct_read_valid = RESP_valid & RESP_pass;
-        upct_read_idx = btb_read_resp_btb_info.big_tgt.upct_idx;
+        upct_read_idx_way0 = btb_read_resp_btb_info_by_way[0].big_tgt.upct_idx;
+        upct_read_idx_way1 = btb_read_resp_btb_info_by_way[1].big_tgt.upct_idx;
+        upct_read_idx_touch = btb_read_resp_hit_way ? upct_read_idx_way1 : upct_read_idx_way0;
 
         upct_update_valid = branch_update_valid & branch_update_ready & branch_update_btb_info.use_upct;
         upct_update_upc = branch_update_tgt_pc38.upc;
@@ -686,8 +721,11 @@ module fetch_unit (
         .CLK(CLK),
         .nRST(nRST),
         .read_valid(upct_read_valid),
-        .read_idx(upct_read_idx),
-        .read_upc(upct_read_upc),
+        .read_idx_way0(upct_read_idx_way0),
+        .read_idx_way1(upct_read_idx_way1),
+        .read_idx_touch(upct_read_idx_touch),
+        .read_upc_way0(upct_read_upc_by_way[0]),
+        .read_upc_way1(upct_read_upc_by_way[1]),
         .update_valid(upct_update_valid),
         .update_upc(upct_update_upc),
         .update_upct_idx(upct_update_upct_idx)
@@ -699,22 +737,34 @@ module fetch_unit (
             RESP_valid
             & RESP_pass
             & btb_read_resp_hit
-            & corep::btb_action_is_link(btb_read_resp_btb_info.action)
+            & corep::btb_action_is_link(selected_btb_read_resp_btb_info.action)
         ;
-        if (btb_read_resp_hit_lane == 3'h7) begin
-            ras_link_pc38 = RESP_received_pc38_next_8;
+        if (btb_read_resp_hit_way) begin
+            if (btb_read_resp_hit_lane_by_way[1] == 3'h7) begin
+                ras_link_pc38 = RESP_received_pc38_next_8;
+            end
+            else begin
+                ras_link_pc38.upc = RESP_received_pc38.upc;
+                ras_link_pc38.idx = RESP_received_pc38.idx;
+                ras_link_pc38.lane = btb_read_resp_hit_lane_by_way[1] + 3'h1;
+            end
         end
         else begin
-            ras_link_pc38.upc = RESP_received_pc38.upc;
-            ras_link_pc38.idx = RESP_received_pc38.idx;
-            ras_link_pc38.lane = btb_read_resp_hit_lane + 3'h1;
+            if (btb_read_resp_hit_lane_by_way[0] == 3'h7) begin
+                ras_link_pc38 = RESP_received_pc38_next_8;
+            end
+            else begin
+                ras_link_pc38.upc = RESP_received_pc38.upc;
+                ras_link_pc38.idx = RESP_received_pc38.idx;
+                ras_link_pc38.lane = btb_read_resp_hit_lane_by_way[0] + 3'h1;
+            end
         end
 
         ras_ret_valid =
             RESP_valid
             & RESP_pass
             & btb_read_resp_hit
-            & corep::btb_action_is_ret(btb_read_resp_btb_info.action)
+            & corep::btb_action_is_ret(selected_btb_read_resp_btb_info.action)
         ;
         
         ras_update_valid = any_restart;
@@ -771,10 +821,12 @@ module fetch_unit (
         .read_req_asid(btb_read_req_asid),
         .read_resp_pc38(btb_read_resp_pc38),
         .read_resp_hit(btb_read_resp_hit),
-        .read_resp_hit_way(btb_read_resp_hit_way),
-        .read_resp_hit_lane(btb_read_resp_hit_lane),
         .read_resp_double_hit(btb_read_resp_double_hit),
-        .read_resp_btb_info(btb_read_resp_btb_info),
+        .read_resp_hit_way(btb_read_resp_hit_way),
+        .read_resp_hit_lane_way0(btb_read_resp_hit_lane_by_way[0]),
+        .read_resp_hit_lane_way1(btb_read_resp_hit_lane_by_way[1]),
+        .read_resp_btb_info_way0(btb_read_resp_btb_info_by_way[0]),
+        .read_resp_btb_info_way1(btb_read_resp_btb_info_by_way[1]),
         .update_valid(btb_update_valid),
         .update_pc38(btb_update_pc38),
         .update_asid(btb_update_asid),
@@ -790,8 +842,9 @@ module fetch_unit (
         pht_read_req_gh = REQ_received_gh;
         pht_read_req_asid = fetch_arch_asid;
 
-        pht_read_resp_redirect_lane = btb_read_resp_hit_lane;
-        
+        pht_read_resp_redirect_lane_way0 = btb_read_resp_hit_lane_by_way[0];
+        pht_read_resp_redirect_lane_way1 = btb_read_resp_hit_lane_by_way[1];
+
         pht_update_valid = branch_update_valid & branch_update_ready & (branch_update_btb_info.action == corep::BTB_ACTION_BRANCH);
         pht_update_pc38 = branch_update_src_pc38;
         pht_update_gh = bcb_restore_bcb_info.gh; // can be incorrect if rob_restart same cycle
@@ -805,8 +858,10 @@ module fetch_unit (
         .read_req_fetch_idx(pht_read_req_fetch_idx),
         .read_req_gh(pht_read_req_gh),
         .read_req_asid(pht_read_req_asid),
-        .read_resp_redirect_lane(pht_read_resp_redirect_lane),
-        .read_resp_taken(pht_read_resp_taken),
+        .read_resp_redirect_lane_way0(pht_read_resp_redirect_lane_way0),
+        .read_resp_redirect_lane_way1(pht_read_resp_redirect_lane_way1),
+        .read_resp_taken_way0(pht_read_resp_taken_by_way[0]),
+        .read_resp_taken_way1(pht_read_resp_taken_by_way[1]),
         .update_valid(pht_update_valid),
         .update_pc38(pht_update_pc38),
         .update_gh(pht_update_gh),
@@ -818,7 +873,7 @@ module fetch_unit (
     always_comb begin
         ibtb_read_src_pc38.upc = RESP_received_pc38.upc;
         ibtb_read_src_pc38.idx = RESP_received_pc38.idx;
-        ibtb_read_src_pc38.lane = btb_read_resp_hit_lane;
+        ibtb_read_src_pc38.lane = btb_read_resp_hit_lane_by_way[btb_read_resp_hit_way];
         ibtb_read_ibtb_gh = RESP_received_gh;
         ibtb_read_asid = fetch_arch_asid;
         
@@ -867,7 +922,7 @@ module fetch_unit (
             RESP_valid
             & RESP_pass
             & btb_read_resp_hit
-            & corep::btb_action_saves_bcb(btb_read_resp_btb_info.action)
+            & corep::btb_action_saves_bcb(selected_btb_read_resp_btb_info.action)
         ;
         bcb_save_bcb_info.gh = RESP_received_gh;
         bcb_save_bcb_info.ras_idx = ras_ret_ras_idx;

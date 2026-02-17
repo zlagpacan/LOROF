@@ -15,10 +15,13 @@ module upct (
 
     // read in
     input logic                 read_valid,
-    input corep::upct_idx_t     read_idx,
+    input corep::upct_idx_t     read_idx_way0,
+    input corep::upct_idx_t     read_idx_way1,
+    input corep::upct_idx_t     read_idx_touch,
 
     // read out
-    output corep::upc_t         read_upc,
+    output corep::upc_t         read_upc_way0,
+    output corep::upc_t         read_upc_way1,
 
     // update in
     input logic                 update_valid,
@@ -67,7 +70,8 @@ module upct (
 
     // pc_gen read logic
     always_comb begin
-        read_upc = upct_array[read_idx];
+        read_upc_way0 = upct_array[read_idx_way0];
+        read_upc_way1 = upct_array[read_idx_way1];
     end
 
     // update logic:
@@ -135,7 +139,7 @@ module upct (
 
             // adjust PLRU following pc_gen access index
             plru_touch_valid = 1'b1;
-            plru_touch_index = read_idx;
+            plru_touch_index = read_idx_touch;
         end
     end
 
