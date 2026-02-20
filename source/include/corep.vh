@@ -161,16 +161,23 @@ package corep;
         // tag: 18b
         // lane: 3b
         // 1-wide access into associative tagged entries
-    parameter int unsigned BTB_ACTION_WIDTH = 3;
+    parameter int unsigned BTB_ACTION_WIDTH = 5;
     parameter int unsigned BTB_SMALL_TGT_WIDTH = 12;
     parameter int unsigned BTB_BIG_TGT_WIDTH = 15;
     parameter int unsigned LOG_UPCT_ENTRIES = BTB_BIG_TGT_WIDTH - BTB_SMALL_TGT_WIDTH;
-    parameter int unsigned BTB_TAG_WIDTH = 18;
+    parameter int unsigned BTB_TAG_WIDTH = 16;
     parameter int unsigned BTB_ASSOC = 2; // hardcoded. have to do explicit lower hitting lane greater than input lane check
 
-    typedef logic [BTB_ACTION_WIDTH-1:0]        btb_action_t;   // 3b
-    typedef logic [LOG_UPCT_ENTRIES-1:0]        upct_idx_t;     // 3b
-    typedef logic [BTB_TAG_WIDTH-1:0]           btb_tag_t;      // 18b
+    typedef struct packed {
+        logic branch;
+        logic jump;
+        logic ret;
+        logic ibtb;
+        logic link;
+    } btb_action_t; // 5b
+
+    typedef logic [LOG_UPCT_ENTRIES-1:0]    upct_idx_t;     // 3b
+    typedef logic [BTB_TAG_WIDTH-1:0]       btb_tag_t;      // 16b
 
     parameter int unsigned FETCH_IDX_WIDTH = BTB_SMALL_TGT_WIDTH - LOG_FETCH_LANES; // 9b
 
@@ -195,66 +202,22 @@ package corep;
     } big_tgt_t;
     
     typedef struct packed {
-        btb_action_t    action;     // 3b
+        btb_action_t    action;     // 5b
         logic           use_upct;   // 1b
         big_tgt_t       big_tgt;    // 15b
     } btb_info_t;
 
     typedef struct packed {
-        btb_info_t      info;   // 19b
-        btb_tag_t       tag;    // 18b
+        btb_info_t      info;   // 21b
+        btb_tag_t       tag;    // 16b
         fetch_lane_t    lane;   // 3b
     } btb_entry_t;
 
     typedef btb_entry_t [BTB_ASSOC-1:0] btb_set_t;
 
-    parameter btb_action_t BTB_ACTION_NONE          = 3'b000;
-    parameter btb_action_t BTB_ACTION_BRANCH        = 3'b001;
-    parameter btb_action_t BTB_ACTION_JUMP          = 3'b010;
-    parameter btb_action_t BTB_ACTION_JUMP_L        = 3'b011;
-    parameter btb_action_t BTB_ACTION_RET           = 3'b100;
-    parameter btb_action_t BTB_ACTION_RET_L         = 3'b101;
-    parameter btb_action_t BTB_ACTION_INDIRECT      = 3'b110;
-    parameter btb_action_t BTB_ACTION_INDIRECT_L    = 3'b111;
-
-    function logic btb_action_is_link (btb_action_t action);
-        return
-            (action == BTB_ACTION_JUMP_L)
-            | (action == BTB_ACTION_RET_L)
-            | (action == BTB_ACTION_INDIRECT_L)
-        ;
-    endfunction
-
-    function logic btb_action_is_ret (btb_action_t action);
-        return
-            (action == BTB_ACTION_RET)
-            | (action == BTB_ACTION_RET_L)
-        ;
-    endfunction
-
-    function logic btb_action_is_jump (btb_action_t action);
-        return
-            (action == BTB_ACTION_JUMP)
-            | (action == BTB_ACTION_JUMP_L)
-        ;
-    endfunction
-
-    function logic btb_action_is_ibtb (btb_action_t action);
-        return
-            (action == BTB_ACTION_INDIRECT)
-            | (action == BTB_ACTION_INDIRECT_L)
-        ;
-    endfunction
-
     function logic btb_action_saves_bcb (btb_action_t action);
         // sensitive to changes in gh and ras -> branch, link, ret
-        return
-            (action == BTB_ACTION_BRANCH)
-            | (action == BTB_ACTION_JUMP_L)
-            | (action == BTB_ACTION_RET)
-            | (action == BTB_ACTION_RET_L)
-            | (action == BTB_ACTION_INDIRECT_L)
-        ;
+        return action.branch | action.link | action.ret;
     endfunction
 
     // upc[25:0]
