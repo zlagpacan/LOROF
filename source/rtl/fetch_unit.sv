@@ -468,6 +468,7 @@ module fetch_unit (
 
         RESP_received_icache_tag = sysp::icache_tag_from_pc38(RESP_received_pc38);
     end
+    // TODO: delete
     always_comb begin
         // build REQ pc38 based on btb way
         for (int way = 0; way < corep::BTB_ASSOC; way++) begin
@@ -1035,9 +1036,9 @@ module fetch_unit (
         .selected_data(REQ_received_pc38.lane)
     );
 
-    // one-hot GH mux:
-
+    // one-hot GH mux
     always_comb begin
+        // TODO: 
         // REQ_latched_gh
         // RESP_received_gh
         // {RESP_received_gh << 1, 1'b1}
@@ -1059,6 +1060,7 @@ module fetch_unit (
 
     // binary selects
     always_comb begin
+        // TODO:
         RESP_redirect =
 
         ;
