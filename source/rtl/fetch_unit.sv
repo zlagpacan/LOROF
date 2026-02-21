@@ -173,11 +173,9 @@ module fetch_unit (
     logic REQ_pass;
 
     corep::pc38_t           REQ_latched_pc38;
-    corep::pc38_t [1:0]     REQ_received_pc38_by_way;
     corep::pc38_t           REQ_received_pc38;
 
     corep::gh_t         REQ_latched_gh;
-    corep::gh_t [1:0]   REQ_received_gh_by_way;
     corep::gh_t         REQ_received_gh;
 
     /////////////////
@@ -186,8 +184,7 @@ module fetch_unit (
 
     logic RESP_valid;
 
-    logic [1:0]     RESP_pass_by_way;
-    logic           RESP_pass;
+    logic RESP_pass;
 
     logic RESP_icache_hit;
 
@@ -197,19 +194,10 @@ module fetch_unit (
 
     corep::gh_t RESP_received_gh;
 
-    logic [1:0]     RESP_redirect_by_way;
-    logic           RESP_redirect;
+    logic RESP_redirect;
+    logic RESP_redirect_no_double_hit_not_taken;
 
-    logic [1:0]     RESP_redirect_no_double_hit_not_taken_by_way;
-    logic           RESP_redirect_no_double_hit_not_taken;
-
-    logic [1:0][corep::FETCH_LANES-1:0]     RESP_valid_by_lane_by_way; // way indexed first
-    logic [corep::FETCH_LANES-1:0]          RESP_valid_by_lane;
-
-    logic [1:0]             potential_double_hit_by_way;
-    corep::pc38_t [1:0]     double_hit_REQ_received_pc38_by_way;
-
-    corep::btb_info_t selected_btb_read_resp_btb_info;
+    logic [corep::FETCH_LANES-1:0] RESP_valid_by_lane;
 
     //////////////////
     // RESP2 stage: //
@@ -220,16 +208,6 @@ module fetch_unit (
     corep::pc38_t RESP2_src_pc38;
 
     corep::pc38_t RESP2_tgt_pc38;
-
-    /////////////////
-    // LATE stage: //
-    /////////////////
-
-    logic LATE_valid;
-    logic LATE_pass;
-
-    corep::upct_idx_t   LATE_upct_idx;
-    corep::pc38_t       LATE_tgt_upc;
 
     ///////////////////
     // update stage: //
@@ -600,19 +578,6 @@ module fetch_unit (
     //     end
     // end
     // always_comb begin
-    //     for (int way = 0; way < corep::BTB_ASSOC; way++) begin
-    //         for (int lane = 0; lane < corep::FETCH_LANES; lane++) begin
-    //             RESP_valid_by_lane_by_way[way][lane] =
-    //                 (lane >= RESP_received_pc38.lane)
-    //                 & (~RESP_redirect_by_way[way] | (lane <= btb_read_resp_hit_lane_by_way[way]))
-    //             ;
-    //         end
-    //     end
-    // end
-    // always_comb begin
-    //     selected_btb_read_resp_btb_info = btb_read_resp_btb_info_by_way[btb_read_resp_hit_way];
-    // end
-    // always_comb begin
     //     if (RESP_valid) begin
     //         if (btb_read_resp_hit) begin
     //             // check for double hit, where use built double hit pc38
@@ -658,6 +623,19 @@ module fetch_unit (
     //     RESP_pass = RESP_pass_by_way[btb_read_resp_hit_way];
 
     //     RESP_valid_by_lane = RESP_valid_by_lane_by_way[btb_read_resp_hit_way];
+    // end
+    // always_comb begin
+    //     for (int way = 0; way < corep::BTB_ASSOC; way++) begin
+    //         for (int lane = 0; lane < corep::FETCH_LANES; lane++) begin
+    //             RESP_valid_by_lane_by_way[way][lane] =
+    //                 (lane >= RESP_received_pc38.lane)
+    //                 & (~RESP_redirect_by_way[way] | (lane <= btb_read_resp_hit_lane_by_way[way]))
+    //             ;
+    //         end
+    //     end
+    // end
+    // always_comb begin
+    //     selected_btb_read_resp_btb_info = btb_read_resp_btb_info_by_way[btb_read_resp_hit_way];
     // end
     //     // TODO: forgot ras fallback ^
 
@@ -1038,7 +1016,6 @@ module fetch_unit (
 
     // one-hot GH mux
     always_comb begin
-        // TODO: 
         // REQ_latched_gh
         REQ_received_gh_one_hot[3] =
             ~RESP_valid
@@ -1111,9 +1088,31 @@ module fetch_unit (
                 | btb_read_resp_btb_info_by_way[1].action.ibtb
             )
         ;
-        // simple selection of by btb way for pass's and valid's
-        RESP_pass = RESP_pass_by_way[btb_read_resp_hit_way];
-        RESP_valid_by_lane = RESP_valid_by_lane_by_way[btb_read_resp_hit_way];
+
+        RESP_pass =
+            itlb_resp_valid
+            & (RESP_icache_hit | icache_feedback_miss_ready)
+            & ibuffer_enq_ready
+            & ~(
+                btb_read_resp_hit & ~RESP2_valid & (
+                    ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.ibtb
+                    | btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.ibtb
+                )
+            )
+        ;
+
+        for (int lane = 0; lane < corep::FETCH_LANES; lane++) begin
+            RESP_valid_by_lane[lane] =
+                (lane >= RESP_received_pc38.lane)
+                & (
+                    ~RESP_redirect 
+                    | (
+                        ~btb_read_resp_hit_way & (lane <= btb_read_resp_hit_lane_by_way[0])
+                        | btb_read_resp_hit_way & (lane <= btb_read_resp_hit_lane_by_way[1])
+                    )
+                )
+            ;
+        end
     end
 
     // RESP2 logic
@@ -1128,6 +1127,9 @@ module fetch_unit (
             RESP2_src_pc38.idx <= RESP_received_pc38.idx;
             RESP2_src_pc38.lane <= btb_read_resp_hit_lane_by_way[btb_read_resp_hit_way];
         end
+    end
+    always_comb begin
+        RESP2_tgt_pc38 = ibtb_read_tgt_pc38;
     end
 
     // update logic
@@ -1227,7 +1229,10 @@ module fetch_unit (
             RESP_valid
             & RESP_pass
             & btb_read_resp_hit
-            & selected_btb_read_resp_btb_info.action.link
+            & (
+                ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.link
+                | btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.link
+            )
         ;
         if (btb_read_resp_hit_way) begin
             if (btb_read_resp_hit_lane_by_way[1] == 3'h7) begin
@@ -1254,7 +1259,10 @@ module fetch_unit (
             RESP_valid
             & RESP_pass
             & btb_read_resp_hit
-            & selected_btb_read_resp_btb_info.action.ret
+            & (
+                ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.ret
+                | btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.ret
+            )
             & ~ras_ret_fallback
         ;
         
@@ -1413,7 +1421,10 @@ module fetch_unit (
             RESP_valid
             & RESP_pass
             & btb_read_resp_hit
-            & corep::btb_action_saves_bcb(selected_btb_read_resp_btb_info.action)
+            & (
+                ~btb_read_resp_hit_way & corep::btb_action_saves_bcb(btb_read_resp_btb_info_by_way[0].action)
+                | btb_read_resp_hit_way & corep::btb_action_saves_bcb(btb_read_resp_btb_info_by_way[1].action)
+            )
         ;
         bcb_save_bcb_info.gh = RESP_received_gh;
         bcb_save_bcb_info.ras_idx = ras_ret_ras_idx;
