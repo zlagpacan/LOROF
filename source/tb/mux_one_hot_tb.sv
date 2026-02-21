@@ -7,11 +7,6 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
-
-`include "system_types_pkg.vh"
-import system_types_pkg::*;
 
 module mux_one_hot_tb #(
 	parameter COUNT = 4,
@@ -22,7 +17,7 @@ module mux_one_hot_tb #(
     // TB setup:
 
     // parameters
-    parameter PERIOD = 10;
+    parameter int unsigned PERIOD = 10;
 
     // TB signals:
     logic CLK = 1'b1, nRST;
