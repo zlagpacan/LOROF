@@ -169,7 +169,7 @@ module pht (
     bram_2rport_1wport #(
         .INNER_WIDTH($bits(corep::pht_set_t)),
         .OUTER_WIDTH(corep::PHT_SETS)
-    ) pht_array_bram (
+    ) PHT_ARRAY_BRAM (
         .CLK(CLK),
         .nRST(nRST),
         .port0_ren(pht_array_bram_read_port0_next_valid),

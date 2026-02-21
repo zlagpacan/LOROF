@@ -782,15 +782,15 @@ module fetch_unit_tb #(
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // simple chain:
+        test_case = "simple chain";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = "default";
+		sub_test_case = "rob restart";
 		$display("\t- sub_test: %s", sub_test_case);
 
 		// reset
@@ -822,6 +822,368 @@ module fetch_unit_tb #(
             16'h0000,
             16'h0000,
             16'h0000,
+            16'h0000
+        };
+	    // icache feedback hit
+	    // icache feedback miss
+		tb_icache_feedback_miss_ready = 1'b1;
+	    // icache miss return
+		tb_icache_miss_return_valid = 1'b0;
+		tb_icache_miss_return_fmid = 4'h0;
+		tb_icache_miss_return_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // instr yield
+	    // instr yield feedback
+		tb_instr_yield_ready = 1'b1;
+	    // wfr trigger from rob
+		tb_rob_trigger_wfr = 1'b0;
+	    // restart from ROB (non-branch restarts)
+		tb_rob_restart_valid = 1'b1;
+		tb_rob_restart_bcb_idx = 4'h0;
+		tb_rob_restart_pc38 = {23'h100000, 3'h0, 9'h000, 3'h0};
+		tb_rob_restart_asid = 16'h0000;
+		tb_rob_restart_exec_mode = corep::EXEC_MODE_M;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // wfr trigger from decode_unit
+		tb_decode_unit_trigger_wfr = 1'b0;
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_bcb_idx = 4'h0;
+		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+	    // branch update (and also restart if mispred)
+		tb_branch_update_valid = 1'b0;
+		tb_branch_update_mispred = 1'b0;
+		tb_branch_update_bcb_idx = 4'h0;
+		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_asid = 16'h0000;
+		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_taken = 1'b0;
+		tb_branch_update_btb_hit = 1'b0;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_asid = 16'h0000;
+		tb_mdpt_update_mdp = 8'h00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b0;
+		expected_itlb_req_asid = 16'h0000;
+		expected_itlb_req_exec_mode = corep::EXEC_MODE_M;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_fetch_idx = 9'h000;
+	    // itlb resp
+		expected_itlb_resp_vpn = {23'h000000, 3'h0};
+	    // icache req
+		expected_icache_req_valid = 1'b0;
+		expected_icache_req_fetch_idx = 9'h000;
+	    // icache resp
+	    // icache feedback hit
+		expected_icache_feedback_hit_valid = 1'b0;
+		expected_icache_feedback_hit_way = 1'b0;
+	    // icache feedback miss
+		expected_icache_feedback_miss_valid = 1'b0;
+		expected_icache_feedback_miss_fmid = 4'h0;
+		expected_icache_feedback_miss_pa39 = {23'h000000, 3'h0, 9'h000, 3'h0, 1'b0};
+	    // icache miss return
+	    // instr yield
+            // default: shift reg 1, lane 7
+		expected_instr_yield_valid = 1'b0;
+
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0000, 16'h0000};
+
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h0000};
+
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
+
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
+	    // instr yield feedback
+	    // wfr trigger from rob
+	    // restart from ROB (non-branch restarts)
+	    // wfr trigger from decode_unit
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+	    // branch update (and also restart if mispred)
+		expected_branch_update_ready = 1'b1;
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\tREQ:         0",
+            "\n\t\tRESP:        i",
+            "\n\t\tmiss ret:    i", 
+            "\n\t\tbuffer:      {}",
+            "\n\t\tshift reg 1: _ {i,i,i,i,i,i,i,i}",
+            "\n\t\tshift reg 0: _ {i,i,i,i,i,i,i,i}",
+            "\n\t\tdeq:         {i,i,i,i}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 27'h0f0f0f0;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b01;
+		tb_icache_resp_tag_by_way = {27'h0000000, 27'h0f0f0f0};
+		tb_icache_resp_fetch16B_by_way = {
+            16'h0070,
+            16'h0060,
+            16'h0050,
+            16'h0040,
+            16'h0030,
+            16'h0020,
+            16'h0010,
+            16'h0000,
+
+            16'hf070,
+            16'hf060,
+            16'hf050,
+            16'hf040,
+            16'hf030,
+            16'hf020,
+            16'hf010,
+            16'hf000
+        };
+	    // icache feedback hit
+	    // icache feedback miss
+		tb_icache_feedback_miss_ready = 1'b1;
+	    // icache miss return
+		tb_icache_miss_return_valid = 1'b0;
+		tb_icache_miss_return_fmid = 4'h0;
+		tb_icache_miss_return_fetch16B = {
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000,
+            16'h0000
+        };
+	    // instr yield
+	    // instr yield feedback
+		tb_instr_yield_ready = 1'b1;
+	    // wfr trigger from rob
+		tb_rob_trigger_wfr = 1'b0;
+	    // restart from ROB (non-branch restarts)
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_bcb_idx = 4'h0;
+		tb_rob_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_rob_restart_asid = 16'h0000;
+		tb_rob_restart_exec_mode = corep::EXEC_MODE_M;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // wfr trigger from decode_unit
+		tb_decode_unit_trigger_wfr = 1'b0;
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_bcb_idx = 4'h0;
+		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+	    // branch update (and also restart if mispred)
+		tb_branch_update_valid = 1'b0;
+		tb_branch_update_mispred = 1'b0;
+		tb_branch_update_bcb_idx = 4'h0;
+		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_asid = 16'h0000;
+		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_taken = 1'b0;
+		tb_branch_update_btb_hit = 1'b0;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_asid = 16'h0000;
+		tb_mdpt_update_mdp = 8'h00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_asid = 16'h0000;
+		expected_itlb_req_exec_mode = corep::EXEC_MODE_M;
+		expected_itlb_req_virtual_mode = 1'b0;
+		expected_itlb_req_fetch_idx = 9'h000;
+	    // itlb resp
+		expected_itlb_resp_vpn = {23'h000000, 3'h0};
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_fetch_idx = 9'h000;
+	    // icache resp
+	    // icache feedback hit
+		expected_icache_feedback_hit_valid = 1'b0;
+		expected_icache_feedback_hit_way = 1'b0;
+	    // icache feedback miss
+		expected_icache_feedback_miss_valid = 1'b0;
+		expected_icache_feedback_miss_fmid = 4'h0;
+		expected_icache_feedback_miss_pa39 = {23'h000000, 3'h0, 9'h000, 3'h0, 1'b0};
+	    // icache miss return
+	    // instr yield
+            // default: shift reg 1, lane 7
+		expected_instr_yield_valid = 1'b0;
+
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0000, 16'h0000};
+
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h0000};
+
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
+
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'h000000000, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'h000000000, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
+	    // instr yield feedback
+	    // wfr trigger from rob
+	    // restart from ROB (non-branch restarts)
+	    // wfr trigger from decode_unit
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+	    // branch update (and also restart if mispred)
+		expected_branch_update_ready = 1'b1;
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {
+            "\n\t\tREQ:         1",
+            "\n\t\tRESP:        0",
+            "\n\t\tmiss ret:    i", 
+            "\n\t\tbuffer:      {}",
+            "\n\t\tshift reg 1: _ {i,i,i,i,i,i,i,i}",
+            "\n\t\tshift reg 0: _ {i,i,i,i,i,i,i,i}",
+            "\n\t\tdeq:         {i,i,i,i}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 27'h1e1e1e1;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp
+		tb_icache_resp_valid_by_way = 2'b10;
+		tb_icache_resp_tag_by_way = {27'h1e1e1e1, 27'h0000000};
+		tb_icache_resp_fetch16B_by_way = {
+            16'he171,
+            16'he161,
+            16'he151,
+            16'he141,
+            16'he131,
+            16'he121,
+            16'he111,
+            16'he101,
+
+            16'h0070,
+            16'h0060,
+            16'h0050,
+            16'h0040,
+            16'h0030,
+            16'h0020,
+            16'h0010,
             16'h0000
         };
 	    // icache feedback hit
@@ -879,7 +1241,7 @@ module fetch_unit_tb #(
 		// outputs:
 
 	    // itlb req
-		expected_itlb_req_valid = 1'b0;
+		expected_itlb_req_valid = 1'b1;
 		expected_itlb_req_asid = 16'h0000;
 		expected_itlb_req_exec_mode = corep::EXEC_MODE_M;
 		expected_itlb_req_virtual_mode = 1'b0;
@@ -887,7 +1249,7 @@ module fetch_unit_tb #(
 	    // itlb resp
 		expected_itlb_resp_vpn = {23'h000000, 3'h0};
 	    // icache req
-		expected_icache_req_valid = 1'b0;
+		expected_icache_req_valid = 1'b1;
 		expected_icache_req_fetch_idx = 9'h000;
 	    // icache resp
 	    // icache feedback hit
