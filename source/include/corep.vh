@@ -213,7 +213,14 @@ package corep;
         fetch_lane_t    lane;   // 3b
     } btb_entry_t;
 
-    typedef btb_entry_t [BTB_ASSOC-1:0] btb_set_t;
+    typedef struct packed {
+        btb_info_t      info;   // 21b
+        fetch_lane_t    lane;   // 3b
+    } btb_info_lane_entry_t;
+
+    typedef btb_entry_t [BTB_ASSOC-1:0]             btb_set_t;
+    typedef btb_info_lane_entry_t [BTB_ASSOC-1:0]   btb_info_lane_set_t;
+    typedef btb_tag_t [BTB_ASSOC-1:0]               btb_tag_set_t;
 
     function logic btb_action_saves_bcb (btb_action_t action);
         // sensitive to changes in gh and ras -> branch, link, ret
