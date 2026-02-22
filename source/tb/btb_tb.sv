@@ -318,7 +318,7 @@ module btb_tb #(
         tb_read_req_fetch_idx = 9'h000;
 		tb_read_req_asid = 16'h0000;
         // read resp0 stage
-        tb_read_resp0_valid = 1'b1;
+        tb_read_resp0_valid = 1'b0;
 		tb_read_resp0_pc38 = {26'h0000000, 9'h000, 3'h0};
         // read resp1 stage
         // update
@@ -385,7 +385,7 @@ module btb_tb #(
 
         check_outputs();
 
-        for (int index = 2; index < 3; index++) begin
+        for (int index = 2; index < corep::BTB_SETS; index++) begin
 
             @(posedge CLK); #(PERIOD/10);
 
@@ -428,385 +428,597 @@ module btb_tb #(
             check_outputs();
         end
 
-        // @(posedge CLK); #(PERIOD/10);
+        @(posedge CLK); #(PERIOD/10);
 
-        // // inputs
-        // sub_test_case = $sformatf("resp0 index = 0x%03h, resp1 index = 0x%03h", 9'h1ff, 9'h1fe);
-        // $display("\t- sub_test: %s", sub_test_case);
+        // inputs
+        sub_test_case = $sformatf("resp0 index = 0x%03h, resp1 index = 0x%03h", 9'h1ff, 9'h1fe);
+        $display("\t- sub_test: %s", sub_test_case);
 
-        // // reset
-        // nRST = 1'b1;
-        // // read req stage
-        // tb_read_req_valid = 1'b0;
-		// tb_read_req_fetch_idx = 9'h000;
-		// tb_read_req_asid = 16'h0000;
-        // // read resp0 stage
-        // tb_read_resp0_valid = 1'b1;
-        // tb_read_resp0_pc38 = {26'hf0f0f0f, 9'h1ff, 3'h0};
-        // // read resp1 stage
-        // // update
-        // tb_update_valid = 1'b0;
-        // tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
-		// tb_update_asid = 16'h0000;
-        // tb_update_btb_info = {3'b000, 1'b0, 15'h000};
-        // tb_update_hit = 1'b0;
-        // tb_update_hit_way = 1'b0;
+        // reset
+        nRST = 1'b1;
+        // read req stage
+        tb_read_req_valid = 1'b0;
+		tb_read_req_fetch_idx = 9'h000;
+		tb_read_req_asid = 16'h0000;
+        // read resp0 stage
+        tb_read_resp0_valid = 1'b1;
+        tb_read_resp0_pc38 = {26'hf0f0f0f, 9'h1ff, 3'h0};
+        // read resp1 stage
+        // update
+        tb_update_valid = 1'b0;
+        tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
+		tb_update_asid = 16'h0000;
+        tb_update_btb_info = {3'b000, 1'b0, 15'h000};
+        tb_update_hit = 1'b0;
+        tb_update_hit_way = 1'b0;
 
-        // @(negedge CLK);
+        @(negedge CLK);
 
-        // // read req stage
-        // // read resp0 stage
-        // // read resp1 stage
-        // expected_read_resp1_hit = 1'b1;
-        // expected_read_resp1_double_hit = 1'b0;
-        // expected_read_resp1_hit_way = 1'b0;
-        // expected_read_resp1_hit_lane_way0 = 3'h7;
-        // expected_read_resp1_hit_lane_way1 = 3'h7;
-        // expected_read_resp1_btb_info_way0 = {3'b111, 1'b0, 15'h0f0f};
-        // expected_read_resp1_btb_info_way1 = {3'b111, 1'b1, 15'h1e1e};
-        // // update
+        // read req stage
+        // read resp0 stage
+        // read resp1 stage
+        expected_read_resp1_hit = 1'b1;
+        expected_read_resp1_double_hit = 1'b0;
+        expected_read_resp1_hit_way = 1'b0;
+        expected_read_resp1_hit_lane_way0 = 3'h6;
+        expected_read_resp1_hit_lane_way1 = 3'h6;
+        expected_read_resp1_btb_info_way0 = {3'b110, 1'b0, 15'h0f0f};
+        expected_read_resp1_btb_info_way1 = {3'b110, 1'b1, 15'h1e1e};
+        // update
 
-        // check_outputs();
+        check_outputs();
 
-        // // ------------------------------------------------------------
-        // // way 1 read:
-        // test_case = "way 1 read";
-        // $display("\ntest %0d: %s", test_num, test_case);
-        // test_num++;
+        @(posedge CLK); #(PERIOD/10);
 
-        // @(posedge CLK); #(PERIOD/10);
+        // inputs
+        sub_test_case = $sformatf("resp1 index = 0x%03h", 9'h1ff);
+        $display("\t- sub_test: %s", sub_test_case);
 
-        // // inputs
-        // sub_test_case = $sformatf("req index = 0x%03h", 9'h000);
-        // $display("\t- sub_test: %s", sub_test_case);
+        // reset
+        nRST = 1'b1;
+        // read req stage
+        tb_read_req_valid = 1'b0;
+		tb_read_req_fetch_idx = 9'h000;
+		tb_read_req_asid = 16'h0000;
+        // read resp0 stage
+        tb_read_resp0_valid = 1'b0;
+        tb_read_resp0_pc38 = {26'h0000000, 9'h000, 3'h0};
+        // read resp1 stage
+        // update
+        tb_update_valid = 1'b0;
+        tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
+		tb_update_asid = 16'h0000;
+        tb_update_btb_info = {3'b000, 1'b0, 15'h000};
+        tb_update_hit = 1'b0;
+        tb_update_hit_way = 1'b0;
 
-        // // reset
-        // nRST = 1'b1;
-        // // read req stage
-        // tb_read_req_valid = 1'b1;
-		// tb_read_req_fetch_idx = 9'h000;
-		// tb_read_req_asid = 16'h0000;
-        // // read resp stage
-        // tb_read_resp_pc38 = {26'hf0f0f0f, 9'h1ff, 3'h0};
-        // // update
-        // tb_update_valid = 1'b0;
-        // tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
-		// tb_update_asid = 16'h0000;
-        // tb_update_btb_info = {3'b000, 1'b0, 15'h000};
-        // tb_update_hit = 1'b0;
-        // tb_update_hit_way = 1'b0;
+        @(negedge CLK);
 
-        // @(negedge CLK);
+        // read req stage
+        // read resp0 stage
+        // read resp1 stage
+        expected_read_resp1_hit = 1'b1;
+        expected_read_resp1_double_hit = 1'b0;
+        expected_read_resp1_hit_way = 1'b0;
+        expected_read_resp1_hit_lane_way0 = 3'h7;
+        expected_read_resp1_hit_lane_way1 = 3'h7;
+        expected_read_resp1_btb_info_way0 = {3'b111, 1'b0, 15'h0f0f};
+        expected_read_resp1_btb_info_way1 = {3'b111, 1'b1, 15'h1e1e};
+        // update
 
-        // // arch state
-        // // read req stage
-        // // read resp stage
-        // expected_read_resp_hit = 1'b1;
-        // expected_read_resp_double_hit = 1'b0;
-        // expected_read_resp_hit_way = 1'b0;
-        // expected_read_resp_hit_lane_way0 = 3'h7;
-        // expected_read_resp_hit_lane_way1 = 3'h7;
-        // expected_read_resp_btb_info_way0 = {3'b111, 1'b0, 15'h0f0f};
-        // expected_read_resp_btb_info_way1 = {3'b111, 1'b1, 15'h1e1e};
-        // // update
+        check_outputs();
 
-        // check_outputs();
+        // ------------------------------------------------------------
+        // way 1 read:
+        test_case = "way 1 read";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
 
-        // for (int index = 1; index < corep::BTB_SETS; index++) begin
+        @(posedge CLK); #(PERIOD/10);
 
-        //     @(posedge CLK); #(PERIOD/10);
+        // inputs
+        sub_test_case = $sformatf("req index = 0x%03h", 9'h000);
+        $display("\t- sub_test: %s", sub_test_case);
 
-        //     // inputs
-        //     sub_test_case = $sformatf("req index = 0x%03h, resp index = 0x%03h", index, index-1);
-        //     $display("\t- sub_test: %s", sub_test_case);
+        // reset
+        nRST = 1'b1;
+        // read req stage
+        tb_read_req_valid = 1'b1;
+        tb_read_req_fetch_idx = 9'h000;
+		tb_read_req_asid = 16'h0000;
+        // read resp0 stage
+        tb_read_resp0_valid = 1'b0;
+        tb_read_resp0_pc38 = {26'h0000000, 9'h000, 3'h0};
+        // update
+        tb_update_valid = 1'b0;
+        tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
+		tb_update_asid = 16'h0000;
+        tb_update_btb_info = {3'b000, 1'b0, 15'h000};
+        tb_update_hit = 1'b0;
+        tb_update_hit_way = 1'b0;
 
-        //     // reset
-        //     nRST = 1'b1;
-        //     // read req stage
-        //     tb_read_req_valid = 1'b1;
-        //     tb_read_req_fetch_idx = index[8:0];
-		//     tb_read_req_asid = 16'h0000;
-        //     // read resp stage
-        //     tb_read_resp_pc38 = {26'he1e1e1e, {index-1}[8:0], index[4] ? 3'h5 : 3'h0}; // purposelly miss on index[2:0] = 0,1,2,3,4 for index[3] == 1
-        //     // update
-        //     tb_update_valid = 1'b0;
-		//     tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
-		//     tb_update_asid = 16'h0000;
-		//     tb_update_btb_info = {3'b000, 1'b0, 15'h000};
-        //     tb_update_hit = 1'b0;
-        //     tb_update_hit_way = 1'b0;
+        @(negedge CLK);
 
-        //     @(negedge CLK);
+        // read req stage
+        // read resp0 stage
+        // read resp1 stage
+        expected_read_resp1_hit = 1'b1;
+        expected_read_resp1_double_hit = 1'b0;
+        expected_read_resp1_hit_way = 1'b0;
+        expected_read_resp1_hit_lane_way0 = 3'h7;
+        expected_read_resp1_hit_lane_way1 = 3'h7;
+        expected_read_resp1_btb_info_way0 = {3'b111, 1'b0, 15'h0f0f};
+        expected_read_resp1_btb_info_way1 = {3'b111, 1'b1, 15'h1e1e};
+        // update
 
-        //     // arch state
-        //     // read req stage
-        //     // read resp stage
-        //     expected_read_resp_hit = {index-1}[4] ? {index-1}[2:0] >= 5 : {index-1}[2:0] > 0;
-        //     expected_read_resp_double_hit = 1'b0;
-        //     expected_read_resp_hit_way = expected_read_resp_hit ? 1'b1 : 1'b0;
-        //     expected_read_resp_hit_lane_way0 = {index-1}[2:0];
-        //     expected_read_resp_hit_lane_way1 = {index-1}[2:0];
-        //     expected_read_resp_btb_info_way0 = {{index-1}[2:0], 1'b0, 15'h0f0f};
-        //     expected_read_resp_btb_info_way1 = {{index-1}[2:0], 1'b1, 15'h1e1e};
-        //     // update
+        check_outputs();
 
-        //     check_outputs();
-        // end
+        @(posedge CLK); #(PERIOD/10);
 
-        // @(posedge CLK); #(PERIOD/10);
+        // inputs
+        sub_test_case = $sformatf("req index = 0x%03h, resp0 index = 0x%03h", 9'h001, 9'h000);
+        $display("\t- sub_test: %s", sub_test_case);
 
-        // // inputs
-        // sub_test_case = $sformatf("resp index = 0x%03h", 9'h1ff);
-        // $display("\t- sub_test: %s", sub_test_case);
+        // reset
+        nRST = 1'b1;
+        // read req stage
+        tb_read_req_valid = 1'b1;
+        tb_read_req_fetch_idx = 9'h001;
+		tb_read_req_asid = 16'h0000;
+        // read resp0 stage
+        tb_read_resp0_valid = 1'b1;
+        tb_read_resp0_pc38 = {26'he1e1e1e, 9'h000, 3'h0};
+        // update
+        tb_update_valid = 1'b0;
+        tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
+		tb_update_asid = 16'h0000;
+        tb_update_btb_info = {3'b000, 1'b0, 15'h000};
+        tb_update_hit = 1'b0;
+        tb_update_hit_way = 1'b0;
 
-        // // reset
-        // nRST = 1'b1;
-        // // read req stage
-        // tb_read_req_valid = 1'b0;
-        // tb_read_req_fetch_idx = 9'h000;
-		// tb_read_req_asid = 16'h0000;
-        // // read resp stage
-        // tb_read_resp_pc38 = {26'he1e1e1e, 9'h1ff, 3'h0};
-        // // update
-        // tb_update_valid = 1'b0;
-        // tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
-		// tb_update_asid = 16'h0000;
-        // tb_update_btb_info = {3'b000, 1'b0, 15'h000};
-        // tb_update_hit = 1'b0;
-        // tb_update_hit_way = 1'b0;
+        @(negedge CLK);
 
-        // @(negedge CLK);
+        // read req stage
+        // read resp0 stage
+        // read resp1 stage
+        expected_read_resp1_hit = 1'b1;
+        expected_read_resp1_double_hit = 1'b0;
+        expected_read_resp1_hit_way = 1'b0;
+        expected_read_resp1_hit_lane_way0 = 3'h7;
+        expected_read_resp1_hit_lane_way1 = 3'h7;
+        expected_read_resp1_btb_info_way0 = {3'b111, 1'b0, 15'h0f0f};
+        expected_read_resp1_btb_info_way1 = {3'b111, 1'b1, 15'h1e1e};
+        // update
 
-        // // arch state
-        // // read req stage
-        // // read resp stage
-        // expected_read_resp_hit = 1'b1;
-        // expected_read_resp_double_hit = 1'b0;
-        // expected_read_resp_hit_way = 1'b1;
-        // expected_read_resp_hit_lane_way0 = 3'h7;
-        // expected_read_resp_hit_lane_way1 = 3'h7;
-        // expected_read_resp_btb_info_way0 = {3'b111, 1'b0, 15'h0f0f};
-        // expected_read_resp_btb_info_way1 = {3'b111, 1'b1, 15'h1e1e};
-        // // update
+        check_outputs();
 
-        // check_outputs();
+        for (int index = 2; index < corep::BTB_SETS; index++) begin
 
-        // // ------------------------------------------------------------
-        // // touch way 0 for multiples of 5:
-        // test_case = "touch way 0 for multiples of 5";
-        // $display("\ntest %0d: %s", test_num, test_case);
-        // test_num++;
+            @(posedge CLK); #(PERIOD/10);
 
-        // for (int index = 0; index < corep::BTB_SETS; index += 5) begin
+            // inputs
+            sub_test_case = $sformatf("req index = 0x%03h, resp0 index = 0x%03h, resp1 index = 0x%03h", index, index-1, index-2);
+            $display("\t- sub_test: %s", sub_test_case);
 
-        //     @(posedge CLK); #(PERIOD/10);
+            // reset
+            nRST = 1'b1;
+            // read req stage
+            tb_read_req_valid = 1'b1;
+            tb_read_req_fetch_idx = index[8:0];
+		    tb_read_req_asid = 16'h0000;
+            // read resp0 stage
+            tb_read_resp0_valid = 1'b1;
+            tb_read_resp0_pc38 = {26'he1e1e1e, {index-1}[8:0], index[4] ? 3'h5 : 3'h0}; // purposelly miss on index[2:0] = 0,1,2,3,4 for index[3] == 1
+            // read resp1 stage
+            // update
+            tb_update_valid = 1'b0;
+		    tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
+		    tb_update_asid = 16'h0000;
+		    tb_update_btb_info = {3'b000, 1'b0, 15'h000};
+            tb_update_hit = 1'b0;
+            tb_update_hit_way = 1'b0;
 
-        //     // inputs
-        //     sub_test_case = $sformatf("index = 0x%03h", index[2:0]);
-        //     $display("\t- sub_test: %s", sub_test_case);
+            @(negedge CLK);
 
-        //     // reset
-        //     nRST = 1'b1;
-        //     // read req stage
-        //     tb_read_req_valid = 1'b0;
-        //     tb_read_req_fetch_idx = 9'h000;
-		//     tb_read_req_asid = 16'h0000;
-        //     // read resp stage
-        //     tb_read_resp_pc38 = {26'he1e1e1e, 9'h1ff, 3'h0};
-        //     // update
-        //     tb_update_valid = 1'b1;
-        //     tb_update_pc38 = {26'hf0f0f0f, index[8:0], index[2:0]};
-		//     tb_update_asid = 16'h0000;
-        //     tb_update_btb_info = {index[2:0], 1'b0, 15'h0f0f};
-        //     tb_update_hit = 1'b1;
-        //     tb_update_hit_way = 1'b0;
+            // read req stage
+            // read resp0 stage
+            // read resp1 stage
+            expected_read_resp1_hit = {index-2}[4] ? {index-2}[2:0] >= 5 : {index-2}[2:0] > 0;
+            expected_read_resp1_double_hit = 1'b0;
+            expected_read_resp1_hit_way = expected_read_resp1_hit ? 1'b1 : 1'b0;
+            expected_read_resp1_hit_lane_way0 = {index-2}[2:0];
+            expected_read_resp1_hit_lane_way1 = {index-2}[2:0];
+            expected_read_resp1_btb_info_way0 = {{index-2}[2:0], 1'b0, 15'h0f0f};
+            expected_read_resp1_btb_info_way1 = {{index-2}[2:0], 1'b1, 15'h1e1e};
+            // update
 
-        //     @(negedge CLK);
+            check_outputs();
+        end
 
-        //     // arch state
-        //     // read req stage
-        //     // read resp stage
-        //     expected_read_resp_hit = 1'b1;
-        //     expected_read_resp_double_hit = 1'b0;
-        //     expected_read_resp_hit_way = 1'b1;
-        //     expected_read_resp_hit_lane_way0 = 3'h7;
-        //     expected_read_resp_hit_lane_way1 = 3'h7;
-        //     expected_read_resp_btb_info_way0 = {3'b111, 1'b0, 15'h0f0f};
-        //     expected_read_resp_btb_info_way1 = {3'b111, 1'b1, 15'h1e1e};
-        //     // update
+        @(posedge CLK); #(PERIOD/10);
 
-        //     check_outputs();
-        // end
+        // inputs
+        sub_test_case = $sformatf("resp0 index = 0x%03h, resp1 index = 0x%03h", 9'h1ff, 9'h1fe);
+        $display("\t- sub_test: %s", sub_test_case);
 
-        // // ------------------------------------------------------------
-        // // new way fill:
-        // test_case = "new way fill";
-        // $display("\ntest %0d: %s", test_num, test_case);
-        // test_num++;
+        // reset
+        nRST = 1'b1;
+        // read req stage
+        tb_read_req_valid = 1'b0;
+        tb_read_req_fetch_idx = 9'h000;
+		tb_read_req_asid = 16'h0000;
+        // read resp0 stage
+        tb_read_resp0_valid = 1'b1;
+        tb_read_resp0_pc38 = {26'he1e1e1e, 9'h1ff, 3'h0};
+        // read resp1 stage
+        // update
+        tb_update_valid = 1'b0;
+        tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
+		tb_update_asid = 16'h0000;
+        tb_update_btb_info = {3'b000, 1'b0, 15'h000};
+        tb_update_hit = 1'b0;
+        tb_update_hit_way = 1'b0;
 
-        // for (int index = 0; index < corep::BTB_SETS; index++) begin
+        @(negedge CLK);
 
-        //     @(posedge CLK); #(PERIOD/10);
+        // read req stage
+        // read resp0 stage
+        // read resp1 stage
+        expected_read_resp1_hit = 1'b1;
+        expected_read_resp1_double_hit = 1'b0;
+        expected_read_resp1_hit_way = 1'b1;
+        expected_read_resp1_hit_lane_way0 = 3'h6;
+        expected_read_resp1_hit_lane_way1 = 3'h6;
+        expected_read_resp1_btb_info_way0 = {3'b110, 1'b0, 15'h0f0f};
+        expected_read_resp1_btb_info_way1 = {3'b110, 1'b1, 15'h1e1e};
+        // update
 
-        //     // inputs
-        //     sub_test_case = $sformatf("index = 0x%03h", index);
-        //     $display("\t- sub_test: %s", sub_test_case);
+        check_outputs();
 
-        //     // reset
-        //     nRST = 1'b1;
-        //     // read req stage
-        //     tb_read_req_valid = 1'b0;
-        //     tb_read_req_fetch_idx = 9'h000;
-		//     tb_read_req_asid = 16'h0000;
-        //     // read resp stage
-        //     tb_read_resp_pc38 = {26'he1e1e1e, 9'h1ff, 3'h0};
-        //     // update
-        //     tb_update_valid = 1'b1;
-        //     tb_update_pc38 = {26'h2222222, index[8:0], index[2:0]};
-		//     tb_update_asid = 16'h0000;
-        //     tb_update_btb_info = {~index[2:0], 1'b0, 15'h2222};
-        //     tb_update_hit = 1'b0;
-        //     tb_update_hit_way = 1'b0;
+        @(posedge CLK); #(PERIOD/10);
 
-        //     @(negedge CLK);
+        // inputs
+        sub_test_case = $sformatf("resp1 index = 0x%03h", 9'h1ff);
+        $display("\t- sub_test: %s", sub_test_case);
 
-        //     // arch state
-        //     // read req stage
-        //     // read resp stage
-        //     expected_read_resp_hit = 1'b1;
-        //     expected_read_resp_double_hit = 1'b0;
-        //     expected_read_resp_hit_way = 1'b1;
-        //     expected_read_resp_hit_lane_way0 = 3'h7;
-        //     expected_read_resp_hit_lane_way1 = 3'h7;
-        //     expected_read_resp_btb_info_way0 = {3'b111, 1'b0, 15'h0f0f};
-        //     expected_read_resp_btb_info_way1 = {3'b111, 1'b1, 15'h1e1e};
-        //     // update
+        // reset
+        nRST = 1'b1;
+        // read req stage
+        tb_read_req_valid = 1'b0;
+        tb_read_req_fetch_idx = 9'h000;
+		tb_read_req_asid = 16'h0000;
+        // read resp0 stage
+        tb_read_resp0_valid = 1'b0;
+        tb_read_resp0_pc38 = {26'h0000000, 9'h000, 3'h0};
+        // read resp1 stage
+        // update
+        tb_update_valid = 1'b0;
+        tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
+		tb_update_asid = 16'h0000;
+        tb_update_btb_info = {3'b000, 1'b0, 15'h000};
+        tb_update_hit = 1'b0;
+        tb_update_hit_way = 1'b0;
 
-        //     check_outputs();
-        // end
+        @(negedge CLK);
 
-        // // ------------------------------------------------------------
-        // // new way read:
-        // test_case = "new way read";
-        // $display("\ntest %0d: %s", test_num, test_case);
-        // test_num++;
+        // read req stage
+        // read resp0 stage
+        // read resp1 stage
+        expected_read_resp1_hit = 1'b1;
+        expected_read_resp1_double_hit = 1'b0;
+        expected_read_resp1_hit_way = 1'b1;
+        expected_read_resp1_hit_lane_way0 = 3'h7;
+        expected_read_resp1_hit_lane_way1 = 3'h7;
+        expected_read_resp1_btb_info_way0 = {3'b111, 1'b0, 15'h0f0f};
+        expected_read_resp1_btb_info_way1 = {3'b111, 1'b1, 15'h1e1e};
+        // update
 
-        // @(posedge CLK); #(PERIOD/10);
+        check_outputs();
 
-        // // inputs
-        // sub_test_case = $sformatf("req index = 0x%03h", 9'h000);
-        // $display("\t- sub_test: %s", sub_test_case);
+        // ------------------------------------------------------------
+        // touch way 0 for multiples of 5:
+        test_case = "touch way 0 for multiples of 5";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
 
-        // // reset
-        // nRST = 1'b1;
-        // // read req stage
-        // tb_read_req_valid = 1'b1;
-        // tb_read_req_fetch_idx = 9'h000;
-		// tb_read_req_asid = 16'h0000;
-        // // read resp stage
-        // tb_read_resp_pc38 = {26'he1e1e1e, 9'h1ff, 3'h0};
-        // // update
-        // tb_update_valid = 1'b0;
-        // tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
-		// tb_update_asid = 16'h0000;
-        // tb_update_btb_info = {3'b000, 1'b0, 15'h000};
-        // tb_update_hit = 1'b0;
-        // tb_update_hit_way = 1'b0;
+        for (int index = 0; index < corep::BTB_SETS; index += 5) begin
 
-        // @(negedge CLK);
+            @(posedge CLK); #(PERIOD/10);
 
-        // // arch state
-        // // read req stage
-        // // read resp stage
-        // expected_read_resp_hit = 1'b1;
-        // expected_read_resp_double_hit = 1'b0;
-        // expected_read_resp_hit_way = 1'b1;
-        // expected_read_resp_hit_lane_way0 = 3'h7;
-        // expected_read_resp_hit_lane_way1 = 3'h7;
-        // expected_read_resp_btb_info_way0 = {3'b111, 1'b0, 15'h0f0f};
-        // expected_read_resp_btb_info_way1 = {3'b111, 1'b1, 15'h1e1e};
-        // // update
+            // inputs
+            sub_test_case = $sformatf("index = 0x%03h", index[2:0]);
+            $display("\t- sub_test: %s", sub_test_case);
 
-        // check_outputs();
+            // reset
+            nRST = 1'b1;
+            // read req stage
+            tb_read_req_valid = 1'b0;
+            tb_read_req_fetch_idx = 9'h000;
+		    tb_read_req_asid = 16'h0000;
+            // read resp0 stage
+            tb_read_resp0_valid = 1'b0;
+            tb_read_resp0_pc38 = {26'h0000000, 9'h000, 3'h0};
+            // read resp1 stage
+            // update
+            tb_update_valid = 1'b1;
+            tb_update_pc38 = {26'hf0f0f0f, index[8:0], index[2:0]};
+		    tb_update_asid = 16'h0000;
+            tb_update_btb_info = {index[2:0], 1'b0, 15'h0f0f};
+            tb_update_hit = 1'b1;
+            tb_update_hit_way = 1'b0;
 
-        // for (int index = 1; index < corep::BTB_SETS; index++) begin
+            @(negedge CLK);
 
-        //     @(posedge CLK); #(PERIOD/10);
+            // read req stage
+            // read resp0 stage
+            // read resp1 stage
+            expected_read_resp1_hit = 1'b1;
+            expected_read_resp1_double_hit = 1'b0;
+            expected_read_resp1_hit_way = 1'b1;
+            expected_read_resp1_hit_lane_way0 = 3'h7;
+            expected_read_resp1_hit_lane_way1 = 3'h7;
+            expected_read_resp1_btb_info_way0 = {3'b111, 1'b0, 15'h0f0f};
+            expected_read_resp1_btb_info_way1 = {3'b111, 1'b1, 15'h1e1e};
+            // update
 
-        //     // inputs
-        //     sub_test_case = $sformatf("req index = 0x%03h, resp index = 0x%03h", index, index-1);
-        //     $display("\t- sub_test: %s", sub_test_case);
+            check_outputs();
+        end
 
-        //     // reset
-        //     nRST = 1'b1;
-        //     // read req stage
-        //     tb_read_req_valid = 1'b1;
-        //     tb_read_req_fetch_idx = index[8:0];
-		//     tb_read_req_asid = 16'h0000;
-        //     // read resp stage
-        //     tb_read_resp_pc38 = {26'h2222222, {index-1}[8:0], 3'h0};
-        //     // update
-        //     tb_update_valid = 1'b0;
-		//     tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
-		//     tb_update_asid = 16'h0000;
-		//     tb_update_btb_info = {3'b000, 1'b0, 15'h000};
-        //     tb_update_hit = 1'b0;
-        //     tb_update_hit_way = 1'b0;
+        // ------------------------------------------------------------
+        // new way fill:
+        test_case = "new way fill";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
 
-        //     @(negedge CLK);
+        for (int index = 0; index < corep::BTB_SETS; index++) begin
 
-        //     // arch state
-        //     // read req stage
-        //     // read resp stage
-        //     expected_read_resp_hit = {index-1}[2:0] != 7;
-        //     expected_read_resp_double_hit = 1'b0;
-        //     expected_read_resp_hit_way = expected_read_resp_hit & ({index-1} % 5 == 0) ? 1'b1 : 1'b0;
-        //     expected_read_resp_hit_lane_way0 = {index-1}[2:0];
-        //     expected_read_resp_hit_lane_way1 = {index-1}[2:0];
-        //     expected_read_resp_btb_info_way0 = ({index-1} % 5 != 0) ? {~{index-1}[2:0], 1'b0, 15'h2222} : {{index-1}[2:0], 1'b0, 15'h0f0f};
-        //     expected_read_resp_btb_info_way1 = ({index-1} % 5 != 0) ? {{index-1}[2:0], 1'b1, 15'h1e1e} : {~{index-1}[2:0], 1'b0, 15'h2222};
-        //     // update
+            @(posedge CLK); #(PERIOD/10);
 
-        //     check_outputs();
-        // end
+            // inputs
+            sub_test_case = $sformatf("index = 0x%03h", index);
+            $display("\t- sub_test: %s", sub_test_case);
 
-        // @(posedge CLK); #(PERIOD/10);
+            // reset
+            nRST = 1'b1;
+            // read req stage
+            tb_read_req_valid = 1'b0;
+            tb_read_req_fetch_idx = 9'h000;
+		    tb_read_req_asid = 16'h0000;
+            // read resp0 stage
+            tb_read_resp0_valid = 1'b0;
+            tb_read_resp0_pc38 = {26'h0000000, 9'h000, 3'h0};
+            // read resp1 stage
+            // update
+            tb_update_valid = 1'b1;
+            tb_update_pc38 = {26'h2222222, index[8:0], index[2:0]};
+		    tb_update_asid = 16'h0000;
+            tb_update_btb_info = {~index[2:0], 1'b0, 15'h2222};
+            tb_update_hit = 1'b0;
+            tb_update_hit_way = 1'b0;
 
-        // // inputs
-        // sub_test_case = $sformatf("resp index = 0x%03h", 9'h1ff);
-        // $display("\t- sub_test: %s", sub_test_case);
+            @(negedge CLK);
 
-        // // reset
-        // nRST = 1'b1;
-        // // read req stage
-        // tb_read_req_valid = 1'b0;
-        // tb_read_req_fetch_idx = 9'h000;
-		// tb_read_req_asid = 16'h0000;
-        // // read resp stage
-        // tb_read_resp_pc38 = {26'h2222222, 9'h1ff, 3'h0};
-        // // update
-        // tb_update_valid = 1'b0;
-        // tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
-		// tb_update_asid = 16'h0000;
-        // tb_update_btb_info = {3'b000, 1'b0, 15'h0000};
-        // tb_update_hit = 1'b0;
-        // tb_update_hit_way = 1'b0;
+            // read req stage
+            // read resp0 stage
+            // read resp1 stage
+            expected_read_resp1_hit = 1'b1;
+            expected_read_resp1_double_hit = 1'b0;
+            expected_read_resp1_hit_way = 1'b1;
+            expected_read_resp1_hit_lane_way0 = 3'h7;
+            expected_read_resp1_hit_lane_way1 = 3'h7;
+            expected_read_resp1_btb_info_way0 = {3'b111, 1'b0, 15'h0f0f};
+            expected_read_resp1_btb_info_way1 = {3'b111, 1'b1, 15'h1e1e};
+            // update
 
-        // @(negedge CLK);
+            check_outputs();
+        end
 
-        // // arch state
-        // // read req stage
-        // // read resp stage
-        // expected_read_resp_hit = 1'b0;
-        // expected_read_resp_double_hit = 1'b0;
-        // expected_read_resp_hit_way = 1'b0;
-        // expected_read_resp_hit_lane_way0 = 3'h7;
-        // expected_read_resp_hit_lane_way1 = 3'h7;
-        // expected_read_resp_btb_info_way0 = {3'h0, 1'b0, 15'h2222};
-        // expected_read_resp_btb_info_way1 = {3'h7, 1'b1, 15'h1e1e};
-        // // update
+        // ------------------------------------------------------------
+        // new way read:
+        test_case = "new way read";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
 
-        // check_outputs();
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = $sformatf("req index = 0x%03h", 9'h000);
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        // read req stage
+        tb_read_req_valid = 1'b1;
+        tb_read_req_fetch_idx = 9'h000;
+		tb_read_req_asid = 16'h0000;
+        // read resp0 stage
+        tb_read_resp0_valid = 1'b0;
+        tb_read_resp0_pc38 = {26'h0000000, 9'h000, 3'h0};
+        // update
+        tb_update_valid = 1'b0;
+        tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
+		tb_update_asid = 16'h0000;
+        tb_update_btb_info = {3'b000, 1'b0, 15'h000};
+        tb_update_hit = 1'b0;
+        tb_update_hit_way = 1'b0;
+
+        @(negedge CLK);
+
+        // read req stage
+        // read resp0 stage
+        // read resp1 stage
+        expected_read_resp1_hit = 1'b1;
+        expected_read_resp1_double_hit = 1'b0;
+        expected_read_resp1_hit_way = 1'b1;
+        expected_read_resp1_hit_lane_way0 = 3'h7;
+        expected_read_resp1_hit_lane_way1 = 3'h7;
+        expected_read_resp1_btb_info_way0 = {3'b111, 1'b0, 15'h0f0f};
+        expected_read_resp1_btb_info_way1 = {3'b111, 1'b1, 15'h1e1e};
+        // update
+
+        check_outputs();
+
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = $sformatf("req index = 0x%03h, resp0 index = 0x%03h", 9'h001, 9'h000);
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        // read req stage
+        tb_read_req_valid = 1'b1;
+        tb_read_req_fetch_idx = 9'h001;
+		tb_read_req_asid = 16'h0000;
+        // read resp0 stage
+        tb_read_resp0_valid = 1'b1;
+        tb_read_resp0_pc38 = {26'h2222222, 9'h000, 3'h0};
+        // update
+        tb_update_valid = 1'b0;
+        tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
+		tb_update_asid = 16'h0000;
+        tb_update_btb_info = {3'b000, 1'b0, 15'h000};
+        tb_update_hit = 1'b0;
+        tb_update_hit_way = 1'b0;
+
+        @(negedge CLK);
+
+        // read req stage
+        // read resp0 stage
+        // read resp1 stage
+        expected_read_resp1_hit = 1'b1;
+        expected_read_resp1_double_hit = 1'b0;
+        expected_read_resp1_hit_way = 1'b1;
+        expected_read_resp1_hit_lane_way0 = 3'h7;
+        expected_read_resp1_hit_lane_way1 = 3'h7;
+        expected_read_resp1_btb_info_way0 = {3'b111, 1'b0, 15'h0f0f};
+        expected_read_resp1_btb_info_way1 = {3'b111, 1'b1, 15'h1e1e};
+        // update
+
+        check_outputs();
+
+        for (int index = 2; index < corep::BTB_SETS; index++) begin
+
+            @(posedge CLK); #(PERIOD/10);
+
+            // inputs
+            sub_test_case = $sformatf("req index = 0x%03h, resp0 index = 0x%03h, resp1 index = 0x%03h", index, index-1, index-2);
+            $display("\t- sub_test: %s", sub_test_case);
+
+            // reset
+            nRST = 1'b1;
+            // read req stage
+            tb_read_req_valid = 1'b1;
+            tb_read_req_fetch_idx = index[8:0];
+		    tb_read_req_asid = 16'h0000;
+            // read resp0 stage
+            tb_read_resp0_valid = 1'b1;
+            tb_read_resp0_pc38 = {26'h2222222, {index-1}[8:0], 3'h0};
+            // read resp1 stage
+            // update
+            tb_update_valid = 1'b0;
+		    tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
+		    tb_update_asid = 16'h0000;
+		    tb_update_btb_info = {3'b000, 1'b0, 15'h000};
+            tb_update_hit = 1'b0;
+            tb_update_hit_way = 1'b0;
+
+            @(negedge CLK);
+
+            // read req stage
+            // read resp0 stage
+            // read resp1 stage
+            expected_read_resp1_hit = {index-2}[2:0] != 7;
+            expected_read_resp1_double_hit = 1'b0;
+            expected_read_resp1_hit_way = expected_read_resp1_hit & ({index-2} % 5 == 0) ? 1'b1 : 1'b0;
+            expected_read_resp1_hit_lane_way0 = {index-2}[2:0];
+            expected_read_resp1_hit_lane_way1 = {index-2}[2:0];
+            expected_read_resp1_btb_info_way0 = ({index-2} % 5 != 0) ? {~{index-2}[2:0], 1'b0, 15'h2222} : {{index-2}[2:0], 1'b0, 15'h0f0f};
+            expected_read_resp1_btb_info_way1 = ({index-2} % 5 != 0) ? {{index-2}[2:0], 1'b1, 15'h1e1e} : {~{index-2}[2:0], 1'b0, 15'h2222};
+            // update
+
+            check_outputs();
+        end
+
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = $sformatf("resp0 index = 0x%03h, resp1 index = 0x%03h", 9'h1ff, 9'h1fe);
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        // read req stage
+        tb_read_req_valid = 1'b0;
+        tb_read_req_fetch_idx = 9'h000;
+		tb_read_req_asid = 16'h0000;
+        // read resp0 stage
+        tb_read_resp0_valid = 1'b1;
+        tb_read_resp0_pc38 = {26'h2222222, 9'h1ff, 3'h0};
+        // read resp1 stage
+        // update
+        tb_update_valid = 1'b0;
+        tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
+		tb_update_asid = 16'h0000;
+        tb_update_btb_info = {3'b000, 1'b0, 15'h0000};
+        tb_update_hit = 1'b0;
+        tb_update_hit_way = 1'b0;
+
+        @(negedge CLK);
+
+        // read req stage
+        // read resp0 stage
+        // read resp1 stage
+        expected_read_resp1_hit = 1'b1;
+        expected_read_resp1_double_hit = 1'b0;
+        expected_read_resp1_hit_way = 1'b1;
+        expected_read_resp1_hit_lane_way0 = 3'h6;
+        expected_read_resp1_hit_lane_way1 = 3'h6;
+        expected_read_resp1_btb_info_way0 = {3'h6, 1'b0, 15'h0f0f};
+        expected_read_resp1_btb_info_way1 = {3'h1, 1'b0, 15'h2222};
+        // update
+
+        check_outputs();
+
+        @(posedge CLK); #(PERIOD/10);
+
+        // inputs
+        sub_test_case = $sformatf("resp index = 0x%03h", 9'h1ff);
+        $display("\t- sub_test: %s", sub_test_case);
+
+        // reset
+        nRST = 1'b1;
+        // read req stage
+        tb_read_req_valid = 1'b0;
+        tb_read_req_fetch_idx = 9'h000;
+		tb_read_req_asid = 16'h0000;
+        // read resp0 stage
+        tb_read_resp0_valid = 1'b0;
+        tb_read_resp0_pc38 = {26'h0000000, 9'h000, 3'h0};
+        // read resp1 stage
+        // update
+        tb_update_valid = 1'b0;
+        tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
+		tb_update_asid = 16'h0000;
+        tb_update_btb_info = {3'b000, 1'b0, 15'h0000};
+        tb_update_hit = 1'b0;
+        tb_update_hit_way = 1'b0;
+
+        @(negedge CLK);
+
+        // read req stage
+        // read resp0 stage
+        // read resp1 stage
+        expected_read_resp1_hit = 1'b0;
+        expected_read_resp1_double_hit = 1'b0;
+        expected_read_resp1_hit_way = 1'b0;
+        expected_read_resp1_hit_lane_way0 = 3'h7;
+        expected_read_resp1_hit_lane_way1 = 3'h7;
+        expected_read_resp1_btb_info_way0 = {3'h0, 1'b0, 15'h2222};
+        expected_read_resp1_btb_info_way1 = {3'h7, 1'b1, 15'h1e1e};
+        // update
+
+        check_outputs();
 
         // // ------------------------------------------------------------
         // // double hit cases:

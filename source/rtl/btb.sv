@@ -66,7 +66,7 @@ module btb (
     logic                       btb_info_lane_array_bram_read1_next_valid;
     corep::btb_info_lane_set_t  btb_info_lane_array_bram_read1_set;
 
-    logic [1:0][$bits(corep::btb_info_lane_set_t)/8-1:0]    btb_info_lane_array_bram_write_byten; // hardwired corep::BTB_ASSOC = 2
+    logic [1:0][$bits(corep::btb_info_lane_entry_t)/8-1:0]  btb_info_lane_array_bram_write_byten; // hardwired corep::BTB_ASSOC = 2
     corep::btb_idx_t                                        btb_info_lane_array_bram_write_index;
     corep::btb_info_lane_set_t                              btb_info_lane_array_bram_write_set;
     
@@ -74,9 +74,9 @@ module btb (
     corep::btb_idx_t        btb_tag_array_bram_read_next_index;
     corep::btb_tag_set_t    btb_tag_array_bram_read_set;
 
-    logic [1:0][$bits(corep::btb_tag_set_t)/8-1:0]  btb_tag_array_bram_write_byten; // hardwired corep::BTB_ASSOC = 2
-    corep::btb_idx_t                                btb_tag_array_bram_write_index;
-    corep::btb_tag_set_t                            btb_tag_array_bram_write_set;
+    logic [1:0][$bits(corep::btb_tag_t)/8-1:0]  btb_tag_array_bram_write_byten; // hardwired corep::BTB_ASSOC = 2
+    corep::btb_idx_t                            btb_tag_array_bram_write_index;
+    corep::btb_tag_set_t                        btb_tag_array_bram_write_set;
 
     // plru array distram IO
         // index w/ {BTB index, fetch lane}
