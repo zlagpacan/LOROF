@@ -22,6 +22,9 @@ module btb (
     input logic                     read_resp0_valid,
     input corep::pc38_t             read_resp0_pc38,
 
+    output corep::fetch_lane_t      read_resp0_hit_lane_way0,
+    output corep::fetch_lane_t      read_resp0_hit_lane_way1,
+
     // read resp1 stage
     output logic                    read_resp1_hit,
     output logic                    read_resp1_double_hit,
@@ -61,10 +64,10 @@ module btb (
 
     // btb array bram IO
         // index w/ BTB index
-    logic                       btb_info_lane_array_bram_read0_next_valid;
-    corep::btb_idx_t            btb_info_lane_array_bram_read0_next_index;
-    logic                       btb_info_lane_array_bram_read1_next_valid;
-    corep::btb_info_lane_set_t  btb_info_lane_array_bram_read1_set;
+    logic                       btb_info_lane_array_bram_read_next_valid;
+    corep::btb_idx_t            btb_info_lane_array_bram_read_next_index;
+    corep::btb_info_lane_set_t  btb_info_lane_array_bram_read_resp0_set;
+    corep::btb_info_lane_set_t  btb_info_lane_array_bram_read_resp1_set;
 
     logic [1:0][$bits(corep::btb_info_lane_entry_t)/8-1:0]  btb_info_lane_array_bram_write_byten; // hardwired corep::BTB_ASSOC = 2
     corep::btb_idx_t                                        btb_info_lane_array_bram_write_index;
@@ -118,9 +121,8 @@ module btb (
 
     // read next logic
     always_comb begin
-        btb_info_lane_array_bram_read0_next_valid = read_req_valid;
-        btb_info_lane_array_bram_read0_next_index = index_hash(read_req_fetch_idx, read_req_asid);
-        btb_info_lane_array_bram_read1_next_valid = read_resp0_valid;
+        btb_info_lane_array_bram_read_next_valid = read_req_valid;
+        btb_info_lane_array_bram_read_next_index = index_hash(read_req_fetch_idx, read_req_asid);
 
         btb_tag_array_bram_read_next_valid = read_req_valid;
         btb_tag_array_bram_read_next_index = index_hash(read_req_fetch_idx, read_req_asid);
@@ -148,44 +150,48 @@ module btb (
             read_resp1_tag_hit_way0 <= 0;
             read_resp1_tag_hit_way1 <= 0;
             read_resp1_lane <= 0;
+            btb_info_lane_array_bram_read_resp1_set <= '0;
         end
         else begin
             if (read_resp0_valid) begin
                 read_resp1_tag_hit_way0 <= read_resp0_tag_hit_way0;
                 read_resp1_tag_hit_way1 <= read_resp0_tag_hit_way1;
                 read_resp1_lane <= read_resp0_pc38.lane;
+                btb_info_lane_array_bram_read_resp1_set <= btb_info_lane_array_bram_read_resp0_set;
             end
         end
     end
     always_comb begin
+        read_resp0_hit_lane_way0 = btb_info_lane_array_bram_read_resp0_set[0].lane;
+        read_resp0_hit_lane_way1 = btb_info_lane_array_bram_read_resp0_set[1].lane;
 
         // check hit by way
             // hardwired corep::BTB_ASSOC = 2
             // non-zero action + tag match + lane at or beyond fetch lane
         read_resp1_hit_way0 =
-            |btb_info_lane_array_bram_read1_set[0].info.action
+            |btb_info_lane_array_bram_read_resp1_set[0].info.action
             & read_resp1_tag_hit_way0
-            & (btb_info_lane_array_bram_read1_set[0].lane >= read_resp1_lane)
+            & (btb_info_lane_array_bram_read_resp1_set[0].lane >= read_resp1_lane)
         ;
         read_resp1_hit_way1 =
-            |btb_info_lane_array_bram_read1_set[1].info.action
+            |btb_info_lane_array_bram_read_resp1_set[1].info.action
             & read_resp1_tag_hit_way1
-            & (btb_info_lane_array_bram_read1_set[1].lane >= read_resp1_lane)
+            & (btb_info_lane_array_bram_read_resp1_set[1].lane >= read_resp1_lane)
         ;
         read_resp1_hit = read_resp1_hit_way0 | read_resp1_hit_way1;
         read_resp1_double_hit = read_resp1_hit_way0 & read_resp1_hit_way1;
 
-        read_resp1_btb_info_way0 = btb_info_lane_array_bram_read1_set[0].info;
-        read_resp1_hit_lane_way0 = btb_info_lane_array_bram_read1_set[0].lane;
+        read_resp1_btb_info_way0 = btb_info_lane_array_bram_read_resp1_set[0].info;
+        read_resp1_hit_lane_way0 = btb_info_lane_array_bram_read_resp1_set[0].lane;
 
-        read_resp1_btb_info_way1 = btb_info_lane_array_bram_read1_set[1].info;
-        read_resp1_hit_lane_way1 = btb_info_lane_array_bram_read1_set[1].lane;
+        read_resp1_btb_info_way1 = btb_info_lane_array_bram_read_resp1_set[1].info;
+        read_resp1_hit_lane_way1 = btb_info_lane_array_bram_read_resp1_set[1].lane;
 
         // both ways hit
         if (read_resp1_hit_way0 & read_resp1_hit_way1) begin
 
             // give lower lane hit way, prioritizing way 1 on tie
-            if (btb_info_lane_array_bram_read1_set[1].lane <= btb_info_lane_array_bram_read1_set[0].lane) begin
+            if (btb_info_lane_array_bram_read_resp1_set[1].lane <= btb_info_lane_array_bram_read_resp1_set[0].lane) begin
                 read_resp1_hit_way = 1;
             end
             else begin
@@ -266,17 +272,16 @@ module btb (
         plru_array_distram_write_data = plru_updater_plru_out;
     end
 
-    // btb info lane array 1xdelay bram
-    bram_1xdelay_1rport_1wport #(
+    // btb info lane array bram
+    bram_1rport_1wport #(
         .INNER_WIDTH($bits(corep::btb_info_lane_set_t)),
         .OUTER_WIDTH(corep::BTB_SETS)
     ) BTB_INFO_LANE_ARRAY_BRAM (
         .CLK(CLK),
         .nRST(nRST),
-        .ren0(btb_info_lane_array_bram_read0_next_valid),
-        .ren1(btb_info_lane_array_bram_read1_next_valid),
-        .rindex(btb_info_lane_array_bram_read0_next_index),
-        .rdata(btb_info_lane_array_bram_read1_set),
+        .ren(btb_info_lane_array_bram_read_next_valid),
+        .rindex(btb_info_lane_array_bram_read_next_index),
+        .rdata(btb_info_lane_array_bram_read_resp0_set),
         .wen_byte(btb_info_lane_array_bram_write_byten),
         .windex(btb_info_lane_array_bram_write_index),
         .wdata(btb_info_lane_array_bram_write_set)

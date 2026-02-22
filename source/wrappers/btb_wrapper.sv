@@ -26,6 +26,9 @@ module btb_wrapper #(
 	input logic next_read_resp0_valid,
 	input corep::pc38_t next_read_resp0_pc38,
 
+	output corep::fetch_lane_t last_read_resp0_hit_lane_way0,
+	output corep::fetch_lane_t last_read_resp0_hit_lane_way1,
+
     // read resp1 stage
 	output logic last_read_resp1_hit,
 	output logic last_read_resp1_double_hit,
@@ -57,6 +60,9 @@ module btb_wrapper #(
     // read resp0 stage
 	logic read_resp0_valid;
 	corep::pc38_t read_resp0_pc38;
+
+	corep::fetch_lane_t read_resp0_hit_lane_way0;
+	corep::fetch_lane_t read_resp0_hit_lane_way1;
 
     // read resp1 stage
 	logic read_resp1_hit;
@@ -98,6 +104,9 @@ module btb_wrapper #(
 			read_resp0_valid <= '0;
 			read_resp0_pc38 <= '0;
 
+			last_read_resp0_hit_lane_way0 <= '0;
+			last_read_resp0_hit_lane_way1 <= '0;
+
 		    // read resp1 stage
 			last_read_resp1_hit <= '0;
 			last_read_resp1_double_hit <= '0;
@@ -127,6 +136,9 @@ module btb_wrapper #(
 		    // read resp0 stage
 			read_resp0_valid <= next_read_resp0_valid;
 			read_resp0_pc38 <= next_read_resp0_pc38;
+
+			last_read_resp0_hit_lane_way0 <= read_resp0_hit_lane_way0;
+			last_read_resp0_hit_lane_way1 <= read_resp0_hit_lane_way1;
 
 		    // read resp1 stage
 			last_read_resp1_hit <= read_resp1_hit;

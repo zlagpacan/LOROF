@@ -42,6 +42,9 @@ module btb_tb #(
 	logic tb_read_resp0_valid;
 	corep::pc38_t tb_read_resp0_pc38;
 
+	corep::fetch_lane_t DUT_read_resp0_hit_lane_way0, expected_read_resp0_hit_lane_way0;
+	corep::fetch_lane_t DUT_read_resp0_hit_lane_way1, expected_read_resp0_hit_lane_way1;
+
     // read resp1 stage
 	logic DUT_read_resp1_hit, expected_read_resp1_hit;
 	logic DUT_read_resp1_double_hit, expected_read_resp1_double_hit;
@@ -79,6 +82,9 @@ module btb_tb #(
 		.read_resp0_valid(tb_read_resp0_valid),
 		.read_resp0_pc38(tb_read_resp0_pc38),
 
+		.read_resp0_hit_lane_way0(DUT_read_resp0_hit_lane_way0),
+		.read_resp0_hit_lane_way1(DUT_read_resp0_hit_lane_way1),
+
 	    // read resp1 stage
 		.read_resp1_hit(DUT_read_resp1_hit),
 		.read_resp1_double_hit(DUT_read_resp1_double_hit),
@@ -103,6 +109,20 @@ module btb_tb #(
 
     task check_outputs();
     begin
+		if (expected_read_resp0_hit_lane_way0 !== DUT_read_resp0_hit_lane_way0) begin
+			$display("TB ERROR: expected_read_resp0_hit_lane_way0 (%h) != DUT_read_resp0_hit_lane_way0 (%h)",
+				expected_read_resp0_hit_lane_way0, DUT_read_resp0_hit_lane_way0);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_read_resp0_hit_lane_way1 !== DUT_read_resp0_hit_lane_way1) begin
+			$display("TB ERROR: expected_read_resp0_hit_lane_way1 (%h) != DUT_read_resp0_hit_lane_way1 (%h)",
+				expected_read_resp0_hit_lane_way1, DUT_read_resp0_hit_lane_way1);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
 		if (expected_read_resp1_hit !== DUT_read_resp1_hit) begin
 			$display("TB ERROR: expected_read_resp1_hit (%h) != DUT_read_resp1_hit (%h)",
 				expected_read_resp1_hit, DUT_read_resp1_hit);
@@ -196,6 +216,8 @@ module btb_tb #(
 
 	    // read req stage
 	    // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h0;
+		expected_read_resp0_hit_lane_way1 = 3'h0;
 	    // read resp1 stage
 		expected_read_resp1_hit = 1'b0;
         expected_read_resp1_double_hit = 1'b0;
@@ -236,6 +258,8 @@ module btb_tb #(
 
 	    // read req stage
 	    // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h0;
+		expected_read_resp0_hit_lane_way1 = 3'h0;
 	    // read resp1 stage
 		expected_read_resp1_hit = 1'b0;
         expected_read_resp1_double_hit = 1'b0;
@@ -285,6 +309,8 @@ module btb_tb #(
 
                 // read req stage
 	            // read resp0 stage
+                expected_read_resp0_hit_lane_way0 = 3'h0;
+                expected_read_resp0_hit_lane_way1 = 3'h0;
                 // read resp1 stage
                 expected_read_resp1_hit = 1'b0;
                 expected_read_resp1_double_hit = 1'b0;
@@ -333,6 +359,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h0;
+		expected_read_resp0_hit_lane_way1 = 3'h0;
         // read resp1 stage
 		expected_read_resp1_hit = 1'b0;
         expected_read_resp1_double_hit = 1'b0;
@@ -373,6 +401,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h0;
+		expected_read_resp0_hit_lane_way1 = 3'h0;
         // read resp1 stage
 		expected_read_resp1_hit = 1'b0;
         expected_read_resp1_double_hit = 1'b0;
@@ -415,6 +445,8 @@ module btb_tb #(
 
             // read req stage
             // read resp0 stage
+            expected_read_resp0_hit_lane_way0 = {index-1}[2:0];
+            expected_read_resp0_hit_lane_way1 = {index-1}[2:0];
             // read resp1 stage
             expected_read_resp1_hit = {index-2}[3] ? {index-2}[2:0] >= 3 : {index-2}[2:0] > 0;
             expected_read_resp1_double_hit = 1'b0;
@@ -456,6 +488,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h7;
+		expected_read_resp0_hit_lane_way1 = 3'h7;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b0;
@@ -496,6 +530,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h7;
+		expected_read_resp0_hit_lane_way1 = 3'h7;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b0;
@@ -541,6 +577,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h7;
+		expected_read_resp0_hit_lane_way1 = 3'h7;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b0;
@@ -580,6 +618,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h0;
+		expected_read_resp0_hit_lane_way1 = 3'h0;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b0;
@@ -622,6 +662,8 @@ module btb_tb #(
 
             // read req stage
             // read resp0 stage
+            expected_read_resp0_hit_lane_way0 = {index-1}[2:0];
+            expected_read_resp0_hit_lane_way1 = {index-1}[2:0];
             // read resp1 stage
             expected_read_resp1_hit = {index-2}[4] ? {index-2}[2:0] >= 5 : {index-2}[2:0] > 0;
             expected_read_resp1_double_hit = 1'b0;
@@ -663,6 +705,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h7;
+		expected_read_resp0_hit_lane_way1 = 3'h7;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b0;
@@ -703,6 +747,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h7;
+		expected_read_resp0_hit_lane_way1 = 3'h7;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b0;
@@ -751,6 +797,8 @@ module btb_tb #(
 
             // read req stage
             // read resp0 stage
+            expected_read_resp0_hit_lane_way0 = 3'h7;
+            expected_read_resp0_hit_lane_way1 = 3'h7;
             // read resp1 stage
             expected_read_resp1_hit = 1'b1;
             expected_read_resp1_double_hit = 1'b0;
@@ -800,6 +848,8 @@ module btb_tb #(
 
             // read req stage
             // read resp0 stage
+            expected_read_resp0_hit_lane_way0 = 3'h7;
+            expected_read_resp0_hit_lane_way1 = 3'h7;
             // read resp1 stage
             expected_read_resp1_hit = 1'b1;
             expected_read_resp1_double_hit = 1'b0;
@@ -846,6 +896,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h7;
+		expected_read_resp0_hit_lane_way1 = 3'h7;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b0;
@@ -885,6 +937,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h0;
+		expected_read_resp0_hit_lane_way1 = 3'h0;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b0;
@@ -927,6 +981,8 @@ module btb_tb #(
 
             // read req stage
             // read resp0 stage
+            expected_read_resp0_hit_lane_way0 = {index-1}[2:0];
+            expected_read_resp0_hit_lane_way1 = {index-1}[2:0];
             // read resp1 stage
             expected_read_resp1_hit = {index-2}[2:0] != 7;
             expected_read_resp1_double_hit = 1'b0;
@@ -968,6 +1024,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h7;
+		expected_read_resp0_hit_lane_way1 = 3'h7;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b0;
@@ -1008,6 +1066,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h7;
+		expected_read_resp0_hit_lane_way1 = 3'h7;
         // read resp1 stage
         expected_read_resp1_hit = 1'b0;
         expected_read_resp1_double_hit = 1'b0;
@@ -1054,6 +1114,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h7;
+		expected_read_resp0_hit_lane_way1 = 3'h7;
         // read resp1 stage
         expected_read_resp1_hit = 1'b0;
         expected_read_resp1_double_hit = 1'b0;
@@ -1094,6 +1156,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h7;
+		expected_read_resp0_hit_lane_way1 = 3'h7;
         // read resp1 stage
         expected_read_resp1_hit = 1'b0;
         expected_read_resp1_double_hit = 1'b0;
@@ -1134,6 +1198,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h7;
+		expected_read_resp0_hit_lane_way1 = 3'h7;
         // read resp1 stage
         expected_read_resp1_hit = 1'b0;
         expected_read_resp1_double_hit = 1'b0;
@@ -1174,6 +1240,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h6;
+		expected_read_resp0_hit_lane_way1 = 3'h2;
         // read resp1 stage
         expected_read_resp1_hit = 1'b0;
         expected_read_resp1_double_hit = 1'b0;
@@ -1214,6 +1282,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h6;
+		expected_read_resp0_hit_lane_way1 = 3'h2;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b1;
@@ -1254,6 +1324,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h6;
+		expected_read_resp0_hit_lane_way1 = 3'h2;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b1;
@@ -1294,6 +1366,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h6;
+		expected_read_resp0_hit_lane_way1 = 3'h2;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b1;
@@ -1334,6 +1408,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h6;
+		expected_read_resp0_hit_lane_way1 = 3'h2;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b0;
@@ -1374,6 +1450,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h6;
+		expected_read_resp0_hit_lane_way1 = 3'h2;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b0;
@@ -1414,6 +1492,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h6;
+		expected_read_resp0_hit_lane_way1 = 3'h2;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b0;
@@ -1454,6 +1534,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h6;
+		expected_read_resp0_hit_lane_way1 = 3'h2;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b0;
@@ -1494,6 +1576,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h1;
+		expected_read_resp0_hit_lane_way1 = 3'h4;
         // read resp1 stage
         expected_read_resp1_hit = 1'b0;
         expected_read_resp1_double_hit = 1'b0;
@@ -1534,6 +1618,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h1;
+		expected_read_resp0_hit_lane_way1 = 3'h4;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b1;
@@ -1574,6 +1660,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h1;
+		expected_read_resp0_hit_lane_way1 = 3'h4;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b1;
@@ -1614,6 +1702,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h1;
+		expected_read_resp0_hit_lane_way1 = 3'h4;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b0;
@@ -1654,6 +1744,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h1;
+		expected_read_resp0_hit_lane_way1 = 3'h4;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b0;
@@ -1694,6 +1786,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h1;
+		expected_read_resp0_hit_lane_way1 = 3'h4;
         // read resp1 stage
         expected_read_resp1_hit = 1'b1;
         expected_read_resp1_double_hit = 1'b0;
@@ -1734,6 +1828,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h1;
+		expected_read_resp0_hit_lane_way1 = 3'h4;
         // read resp1 stage
         expected_read_resp1_hit = 1'b0;
         expected_read_resp1_double_hit = 1'b0;
@@ -1774,6 +1870,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h1;
+		expected_read_resp0_hit_lane_way1 = 3'h4;
         // read resp1 stage
         expected_read_resp1_hit = 1'b0;
         expected_read_resp1_double_hit = 1'b0;
@@ -1814,6 +1912,8 @@ module btb_tb #(
 
         // read req stage
         // read resp0 stage
+		expected_read_resp0_hit_lane_way0 = 3'h1;
+		expected_read_resp0_hit_lane_way1 = 3'h4;
         // read resp1 stage
         expected_read_resp1_hit = 1'b0;
         expected_read_resp1_double_hit = 1'b0;
