@@ -14,11 +14,13 @@ module ibtb (
     input logic nRST,
 
     // read
-    input corep::pc38_t     read_src_pc38,
+    input corep::pc38_t     read_src_pc38_way0,
+    input corep::pc38_t     read_src_pc38_way1,
     input corep::ibtb_gh_t  read_ibtb_gh,
     input corep::asid_t     read_asid,
 
-    output corep::pc38_t    read_tgt_pc38,
+    output corep::pc38_t    read_tgt_pc38_way0,
+    output corep::pc38_t    read_tgt_pc38_way1,
 
     // update
     input logic             update_valid,
@@ -43,8 +45,10 @@ module ibtb (
 
     // ibtb array distram IO
         // index w/ ibtb index
-    corep::ibtb_idx_t   ibtb_array_distram_read_index;
-    corep::pc38_t       ibtb_array_distram_read_data;
+    corep::ibtb_idx_t   ibtb_array_distram_read_port0_index;
+    corep::pc38_t       ibtb_array_distram_read_port0_data;
+    corep::ibtb_idx_t   ibtb_array_distram_read_port1_index;
+    corep::pc38_t       ibtb_array_distram_read_port1_data;
 
     logic               ibtb_array_distram_write_valid;
     corep::ibtb_idx_t   ibtb_array_distram_write_index;
@@ -55,9 +59,11 @@ module ibtb (
 
     // read logic
     always_comb begin
-        ibtb_array_distram_read_index = index_hash(read_src_pc38, read_ibtb_gh, read_asid);
+        ibtb_array_distram_read_port0_index = index_hash(read_src_pc38_way0, read_ibtb_gh, read_asid);
+        ibtb_array_distram_read_port1_index = index_hash(read_src_pc38_way1, read_ibtb_gh, read_asid);
         
-        read_tgt_pc38 = ibtb_array_distram_read_data;
+        read_tgt_pc38_way0 = ibtb_array_distram_read_port0_data;
+        read_tgt_pc38_way1 = ibtb_array_distram_read_port1_data;
     end
 
     // write logic
@@ -68,13 +74,15 @@ module ibtb (
     end
 
     // ibtb array distram
-    distram_1rport_1wport #(
+    distram_2rport_1wport #(
         .INNER_WIDTH($bits(corep::pc38_t)),
         .OUTER_WIDTH(corep::IBTB_ENTRIES)
     ) IBTB_ARRAY_DISTRAM (
         .CLK(CLK),
-        .rindex(ibtb_array_distram_read_index),
-        .rdata(ibtb_array_distram_read_data),
+        .port0_rindex(ibtb_array_distram_read_port0_index),
+        .port0_rdata(ibtb_array_distram_read_port0_data),
+        .port1_rindex(ibtb_array_distram_read_port1_index),
+        .port1_rdata(ibtb_array_distram_read_port1_data),
         .wen(ibtb_array_distram_write_valid),
         .windex(ibtb_array_distram_write_index),
         .wdata(ibtb_array_distram_write_data)

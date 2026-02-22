@@ -18,11 +18,13 @@ module ibtb_wrapper #(
 
 
     // read
-	input corep::pc38_t next_read_src_pc38,
+	input corep::pc38_t next_read_src_pc38_way0,
+	input corep::pc38_t next_read_src_pc38_way1,
 	input corep::ibtb_gh_t next_read_ibtb_gh,
 	input corep::asid_t next_read_asid,
 
-	output corep::pc38_t last_read_tgt_pc38,
+	output corep::pc38_t last_read_tgt_pc38_way0,
+	output corep::pc38_t last_read_tgt_pc38_way1,
 
     // update
 	input logic next_update_valid,
@@ -37,11 +39,13 @@ module ibtb_wrapper #(
 
 
     // read
-	corep::pc38_t read_src_pc38;
+	corep::pc38_t read_src_pc38_way0;
+	corep::pc38_t read_src_pc38_way1;
 	corep::ibtb_gh_t read_ibtb_gh;
 	corep::asid_t read_asid;
 
-	corep::pc38_t read_tgt_pc38;
+	corep::pc38_t read_tgt_pc38_way0;
+	corep::pc38_t read_tgt_pc38_way1;
 
     // update
 	logic update_valid;
@@ -64,11 +68,13 @@ module ibtb_wrapper #(
 
 
 		    // read
-			read_src_pc38 <= '0;
+			read_src_pc38_way0 <= '0;
+			read_src_pc38_way1 <= '0;
 			read_ibtb_gh <= '0;
 			read_asid <= '0;
 
-			last_read_tgt_pc38 <= '0;
+			last_read_tgt_pc38_way0 <= '0;
+			last_read_tgt_pc38_way1 <= '0;
 
 		    // update
 			update_valid <= '0;
@@ -81,11 +87,13 @@ module ibtb_wrapper #(
 
 
 		    // read
-			read_src_pc38 <= next_read_src_pc38;
+			read_src_pc38_way0 <= next_read_src_pc38_way0;
+			read_src_pc38_way1 <= next_read_src_pc38_way1;
 			read_ibtb_gh <= next_read_ibtb_gh;
 			read_asid <= next_read_asid;
 
-			last_read_tgt_pc38 <= read_tgt_pc38 ^ {19{update_valid, ~update_valid}};
+			last_read_tgt_pc38_way0 <= read_tgt_pc38_way0;
+			last_read_tgt_pc38_way1 <= read_tgt_pc38_way1;
 
 		    // update
 			update_valid <= next_update_valid;
