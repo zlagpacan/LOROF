@@ -77,13 +77,16 @@ module fetch_unit (
     input logic                 itlb_resp_access_fault,
 
     // icache req
-    output logic                                            icache_req_valid,
-    output corep::fetch_idx_t                               icache_req_fetch_idx,
+    output logic                icache_req_valid,
+    output corep::fetch_idx_t   icache_req_fetch_idx,
 
-    // icache resp
-    input logic                 [sysp::ICACHE_ASSOC-1:0]    icache_resp_valid_by_way,
-    input sysp::icache_tag_t    [sysp::ICACHE_ASSOC-1:0]    icache_resp_tag_by_way,
-    input corep::fetch16B_t     [sysp::ICACHE_ASSOC-1:0]    icache_resp_fetch16B_by_way,
+    // icache resp0
+    output logic icache_resp0_valid,
+
+    // icache resp1
+    input logic                 [sysp::ICACHE_ASSOC-1:0]    icache_resp1_valid_by_way,
+    input sysp::icache_tag_t    [sysp::ICACHE_ASSOC-1:0]    icache_resp1_tag_by_way,
+    input corep::fetch16B_t     [sysp::ICACHE_ASSOC-1:0]    icache_resp1_fetch16B_by_way,
 
     // icache feedback hit
     output logic                icache_feedback_hit_valid,
@@ -185,29 +188,35 @@ module fetch_unit (
     logic RESP0_valid;
     logic RESP0_pass;
 
-    logic RESP0_icache_hit;
-
-    corep::pc38_t       RESP0_received_pc38;
-    corep::pc38_t       RESP0_received_pc38_next_8;
-    sysp::icache_tag_t  RESP0_received_icache_tag;
+    corep::pc38_t RESP0_received_pc38;
+    corep::pc38_t RESP0_received_pc38_next_8;
 
     corep::gh_t RESP0_received_gh;
-    corep::gh_t RESP0_updated_not_taken_gh;
+    corep::gh_t RESP0_updated_gh;
 
-    logic RESP0_redirect;
-    logic RESP0_redirect_no_double_hit_not_taken;
-
-    logic [corep::FETCH_LANES-1:0] RESP_valid_by_lane;
+    corep::pc38_t RESP0_ibtb_tgt_pc38;
 
     //////////////////
-    // RESP2 stage: //
+    // RESP1 stage: //
     //////////////////
 
-    logic RESP2_valid;
+    logic RESP1_valid;
+    logic RESP1_pass;
 
-    corep::pc38_t RESP2_src_pc38;
+    logic RESP1_redirect;
+    logic RESP1_redirect_no_double_hit_not_taken;
 
-    corep::pc38_t RESP2_tgt_pc38;
+    corep::pc38_t RESP1_received_pc38;
+    corep::pc38_t RESP1_received_pc38_next_8;
+
+    corep::gh_t RESP1_received_gh;
+
+    sysp::icache_tag_t  RESP1_icache_tag;
+    logic               RESP1_icache_hit;
+
+    corep::pc38_t RESP1_ibtb_tgt_pc38;
+
+    logic [corep::FETCH_LANES-1:0] RESP1_valid_by_lane;
 
     ///////////////////
     // update stage: //
@@ -278,13 +287,16 @@ module fetch_unit (
     logic                       btb_read_req_valid;
     corep::fetch_idx_t          btb_read_req_fetch_idx;
     corep::asid_t               btb_read_req_asid;
-    // read resp stage
-    corep::pc38_t               btb_read_resp_pc38;
-    logic                       btb_read_resp_hit;
-    logic                       btb_read_resp_double_hit;
-    corep::btb_way_t            btb_read_resp_hit_way;
-    corep::fetch_lane_t [1:0]   btb_read_resp_hit_lane_by_way;
-    corep::btb_info_t [1:0]     btb_read_resp_btb_info_by_way;
+    // read resp0 stage
+    logic                       btb_read_resp0_valid;
+    corep::pc38_t               btb_read_resp0_pc38;
+    corep::fetch_lane_t [1:0]   btb_read_resp0_hit_lane_by_way;
+    // read resp1 stage
+    logic                       btb_read_resp1_hit;
+    logic                       btb_read_resp1_double_hit;
+    corep::btb_way_t            btb_read_resp1_hit_way;
+    corep::fetch_lane_t [1:0]   btb_read_resp1_hit_lane_by_way;
+    corep::btb_info_t [1:0]     btb_read_resp1_btb_info_by_way;
     // update
     logic                       btb_update_valid;
     corep::pc38_t               btb_update_pc38;
@@ -880,8 +892,11 @@ module fetch_unit (
                 | btb_read_resp_btb_info_by_way[1].action.ret
                 | btb_read_resp_btb_info_by_way[1].action.ibtb
             )
+            | RESP_valid & btb_read_resp_double_hit & (
+                ~btb_read_resp_hit_way & (btb_read_resp_hit_lane_by_way[0] != 3'h7) & btb_read_resp_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0]
+                | btb_read_resp_hit_way & (btb_read_resp_hit_lane_by_way[1] != 3'h7) & btb_read_resp_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1]
+            )
         ;
-        // no difference vs. RESP_redirect right now
         RESP_redirect_no_double_hit_not_taken =
             RESP_valid & btb_read_resp_hit & ~btb_read_resp_hit_way & (
                 btb_read_resp_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
