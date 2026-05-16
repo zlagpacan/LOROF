@@ -81,7 +81,7 @@ module fetch_unit (
     output corep::fetch_idx_t   icache_req_fetch_idx,
 
     // icache resp0
-    output logic icache_resp0_valid,
+    output logic                                            icache_resp0_valid,
 
     // icache resp1
     input logic                 [sysp::ICACHE_ASSOC-1:0]    icache_resp1_valid_by_way,
