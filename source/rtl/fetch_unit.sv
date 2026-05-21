@@ -77,8 +77,8 @@ module fetch_unit (
     input logic                 itlb_resp_access_fault,
 
     // icache req
-    output logic                icache_req_valid,
-    output corep::fetch_idx_t   icache_req_fetch_idx,
+    output logic                                            icache_req_valid,
+    output corep::fetch_idx_t                               icache_req_fetch_idx,
 
     // icache resp0
     output logic                                            icache_resp0_valid,
@@ -114,7 +114,7 @@ module fetch_unit (
     // wfr trigger from rob
     input logic rob_trigger_wfr,
 
-    // restart from ROB (non-branch restarts)
+    // restart from rob (non-branch restarts)
     input logic                 rob_restart_valid,
     input corep::bcb_idx_t      rob_restart_bcb_idx,
     input corep::pc38_t         rob_restart_pc38,
@@ -326,10 +326,12 @@ module fetch_unit (
     // ibtb IO:
 
     // read
-    corep::pc38_t       ibtb_read_src_pc38;
+    corep::pc38_t       ibtb_read_src_pc38_way0; // separate way for hit lane by way so can lookup ibtb at beginning of resp1
+    corep::pc38_t       ibtb_read_src_pc38_way1;
     corep::ibtb_gh_t    ibtb_read_ibtb_gh;
     corep::asid_t       ibtb_read_asid;
-    corep::pc38_t       ibtb_read_tgt_pc38;
+    corep::pc38_t       ibtb_read_tgt_pc38_way0;
+    corep::pc38_t       ibtb_read_tgt_pc38_way1;
     // update
     logic               ibtb_update_valid;
     corep::pc38_t       ibtb_update_src_pc38;
