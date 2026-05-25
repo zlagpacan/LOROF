@@ -437,7 +437,7 @@ module fetch_unit (
     end
     always_comb begin
         REQ_valid = ~wfr;
-        REQ_pass = (~RESP_valid | RESP_pass);
+        REQ_pass = (~RESP0_valid | RESP0_pass);
     end
 
     // RESP logic
