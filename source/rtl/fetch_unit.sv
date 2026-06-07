@@ -6,51 +6,44 @@
 */
 
 // TODO: RV64GC, Sv39 changes
-// TODO: fast redirect
-    // pipelined pc_gen which resolves details quickly if can else defer to third stage
-    // can quickly redirect by only needing BTB_big_target or ras TOS
-    // fast vs. slow redirect for upct case depends on if BTB_small_target is big enough to build REQ index
-    // pipeline: REQ, RESP, LATE
-        // REQ:
-            // btb, pht, mdpt req
-            // itlb, icache req
-        // RESP:
-            // btb, pht, mdpt resp
-            // itlb, icache resp
-            // ras read/write
-            // btb hit check
-            // yield PC index bits if fast redirect
-            // fast redirect -> REQ
-        // LATE:
-            // ibtb lookup
-            // yield full pc
-            // slow redirect -> REQ
-        // RESP2:
-            // upct
-            // yield full pc after fast redirect w/ small target + upct
-// TODO: prediction <-> fetch interaction
-    // idea: index Q + tag Q
-        // probably want to rename something like index Q + tag Q
-        // can asynchronously and non-lock-step enQ index and tag for given wide fetch access as info comes
-        // this naturally decouples prediction pipeline and fetch pipeline so easier control:
-            // simple individual pipeline control
-            // simple interface
-        // loss is Q size
-        // index yield
-            // RESP no redirect to REQ -> pc38 + 8
-            // RESP fast redirect to REQ -> fast redirect pc index bits
-            // LATE slow redirect to REQ -> full pc bits
-        // tag yield
-            // RESP fast redirect
-            // LATE slow redirect
-    // idea: prediction and fetch directly coupled
-        // was overthinking how tough the FSM would be ^ for index yield but no tag yield
-            // both pipelines would stall in this case anyway
-            // no benefit from 1-cycle early index lookup as miss req's aren't initiated until have tag
-                // it could even be worse as have 1-cycle stale data
+// TODO: REQ -> RESP0 -> RESP1 pipeline
+    // REQ:
+        // btb read req (fetch idx, asid)
+        // icache read req (fetch idx)
+    // RESP0:
+        // btb read resp0 (full pc38, get hit lanes by way)
+        // pht read req (fetch idx, updated gh, asid)
+        // itlb read req (fetch idx, asid, vpn)
+    // RESP1:
+        // btb read resp1 (both btb ways)
+        // itlb read resp (ppn, faults)
+        // icache read resp (tags by way, fetch blocks by way)
+        // pht read resp (both btb ways, give hit lanes by way)
+        // upct read req (both btb ways)
+        // upct read resp (both btb ways)
+        // ibtb read req (both btb ways)
+        // ibtb read resp (both btb ways)
+        // ras link
+        // ras ret
+        // mdpt read req
+        // mdpt read resp
+        // bcb save
+        // ibuffer enq
+    // valid combos
+        // iii
+            // wfr
+        // vii
+            // post-restart
+        // vvi
+            // post-restart filling or post-redirect
+        // vvv
+            // any time have RESP1, fully "efficient"
 // TODO: blocking itlb interface for simplicity
     // stall read resp stage if no itlb hit
     // always know if icache hit and send miss in read resp stage
+// TODO: for perf, probably want small back-to-back taken predictor table
+    // predict highly taken branches so don't get bubble in RESP0 on RESP1 redirect
+    // analagous to TAGE smallest table containing quick predictions
 
 `include "corep.vh"
 `include "sysp.vh"
@@ -192,9 +185,9 @@ module fetch_unit (
     corep::pc38_t RESP0_received_pc38_next_8;
 
     corep::gh_t RESP0_received_gh;
-    corep::gh_t RESP0_updated_gh;
+    corep::gh_t RESP0_updated_gh; // want potential NT from RESP1
 
-    corep::pc38_t RESP0_ibtb_tgt_pc38;
+    corep::pc38_t RESP0_ibtb_tgt_pc38; // ?
 
     //////////////////
     // RESP1 stage: //
@@ -204,17 +197,21 @@ module fetch_unit (
     logic RESP1_pass;
 
     logic RESP1_redirect;
+        // this tells if ever need to bubble out RESP0, invalidate lanes
     logic RESP1_redirect_no_double_hit_not_taken;
+        // this tells if fetch_unit unit took a branch, info needed downstream
+    logic RESP1_not_taken;
+        // this tells if need to update gh in RESP0
 
     corep::pc38_t RESP1_received_pc38;
     corep::pc38_t RESP1_received_pc38_next_8;
 
-    corep::gh_t RESP1_received_gh;
+    corep::gh_t RESP1_updated_gh;
 
     sysp::icache_tag_t  RESP1_icache_tag;
     logic               RESP1_icache_hit;
 
-    corep::pc38_t RESP1_ibtb_tgt_pc38;
+    corep::pc38_t RESP1_ibtb_tgt_pc38; // ?
 
     logic [corep::FETCH_LANES-1:0] RESP1_valid_by_lane;
 
@@ -440,25 +437,52 @@ module fetch_unit (
         REQ_pass = (~RESP0_valid | RESP0_pass);
     end
 
-    // RESP logic
-        // also info pass back to REQ
+    // RESP0 logic
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            RESP_valid <= 1'b0;
-            RESP_received_pc38 <= 38'h0;
-            RESP_received_gh <= '0;
+            RESP0_valid <= 1'b0;
+            RESP0_received_pc38 <= 38'h0;
+            RESP0_received_gh <= '0;
         end
-        else if (~RESP_valid | RESP_pass) begin
-            RESP_valid <= REQ_valid;
-            RESP_received_pc38 <= REQ_received_pc38;
-            RESP_received_gh <= REQ_received_gh;
+        else begin
+            if (any_restart) begin
+                RESP0_valid <= 1'b0;
+            end
+            else if (~RESP0_valid | RESP0_pass) begin
+                RESP0_valid <= REQ_valid;
+                RESP0_received_pc38 <= REQ_received_pc38;
+                RESP0_received_gh <= REQ_received_gh;
+            end
         end
     end
     always_comb begin
-        {RESP_received_pc38_next_8.upc, RESP_received_pc38_next_8.idx} = {RESP_received_pc38.upc, RESP_received_pc38.idx} + 35'h1;
-        RESP_received_pc38_next_8.lane = 3'h0;
+        {RESP0_received_pc38_next_8.upc, RESP0_received_pc38_next_8.idx} = {RESP0_received_pc38.upc, RESP0_received_pc38.idx} + 35'h1;
+        RESP0_received_pc38_next_8.lane = 3'h0;
 
-        RESP_received_icache_tag = sysp::icache_tag_from_pc38(RESP_received_pc38);
+        RESP0_pass = (~RESP1_valid | RESP1_pass);
+    end
+
+    // RESP1 logic
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            RESP1_valid <= 1'b0;
+            RESP1_received_pc38 <= 38'h0;
+            RESP1_received_pc38_next_8 <= 38'h0;
+            RESP1_updated_gh <= '0;
+            RESP1_icache_tag <= '0;
+        end
+        else begin
+            if (any_restart) begin
+                RESP1_valid <= 1'b0;
+            end
+            else if (~RESP1_valid | RESP1_pass) begin
+                RESP1_valid <= RESP0_valid;
+                RESP1_received_pc38 <= RESP0_received_pc38;
+                RESP1_received_pc38_next_8 <= RESP0_received_pc38_next_8;
+                RESP1_updated_gh <= RESP0_updated_gh;
+                RESP1_icache_tag <= sysp::icache_tag_from_pc38(RESP0_received_pc38);
+            end
+        end
     end
 
     // one-hot PC mux:
@@ -515,21 +539,24 @@ module fetch_unit (
     always_comb begin
         // REQ_latched_pc38.upc.msbs
         REQ_received_pc38_upc_msbs_one_hot[6] =
-            ~RESP_valid
+            ~RESP0_valid & ~RESP1_valid
         ;
         // RESP_received_pc38_next_8.upc.msbs
         REQ_received_pc38_upc_msbs_one_hot[5] =
-            RESP_valid & (
-                ~btb_read_resp_hit
-                | (btb_read_resp_hit & (
-                    ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0] & (
-                        ~btb_read_resp_double_hit
-                        | btb_read_resp_double_hit & (btb_read_resp_hit_lane_by_way[0] == 3'h7)
-                    )
-                    | btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1] & (
-                        ~btb_read_resp_double_hit
-                        | btb_read_resp_double_hit & (btb_read_resp_hit_lane_by_way[1] == 3'h7)
-                    )
+            RESP0_valid & (
+                ~RESP1_valid
+                | (RESP1_valid & (
+                    ~btb_read_resp_hit
+                    | (btb_read_resp_hit & (
+                        ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0] & (
+                            ~btb_read_resp_double_hit
+                            | btb_read_resp_double_hit & (btb_read_resp_hit_lane_by_way[0] == 3'h7)
+                        )
+                        | btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1] & (
+                            ~btb_read_resp_double_hit
+                            | btb_read_resp_double_hit & (btb_read_resp_hit_lane_by_way[1] == 3'h7)
+                        )
+                    ))
                 ))
             )
         ;
