@@ -14,26 +14,21 @@ module btb (
     input logic nRST,
     
     // read req stage
-    input logic                     read_req_valid,
-    input corep::fetch_idx_t        read_req_fetch_idx,
-    input corep::asid_t             read_req_asid,
+    input logic                         read_req_valid,
+    input corep::fetch_idx_t            read_req_fetch_idx,
+    input corep::asid_t                 read_req_asid,
 
     // read resp0 stage
-    input logic                     read_resp0_valid,
-    input corep::pc38_t             read_resp0_pc38,
-
-    output corep::fetch_lane_t      read_resp0_hit_lane_way0,
-    output corep::fetch_lane_t      read_resp0_hit_lane_way1,
+    input logic                         read_resp0_valid,
+    input corep::pc38_t                 read_resp0_pc38,
 
     // read resp1 stage
-    output logic                    read_resp1_hit,
-    output logic                    read_resp1_double_hit,
-    output corep::btb_way_t         read_resp1_hit_way,
+    output logic                        read_resp1_hit,
+    output logic                        read_resp1_double_hit,
+    output corep::btb_way_t             read_resp1_hit_way,
 
-    output corep::fetch_lane_t      read_resp1_hit_lane_way0,
-    output corep::fetch_lane_t      read_resp1_hit_lane_way1,
-    output corep::btb_info_t        read_resp1_btb_info_way0,
-    output corep::btb_info_t        read_resp1_btb_info_way1,
+    output corep::fetch_lane_t [1:0]    read_resp1_hit_lane_by_way,
+    output corep::btb_info_t [1:0]      read_resp1_btb_info_by_way,
 
     // update
     input logic                 update_valid,
@@ -92,15 +87,12 @@ module btb (
 
     // read resp0
     corep::asid_t   read_resp0_asid;
-    logic           read_resp0_tag_hit_way0;
-    logic           read_resp0_tag_hit_way1;
+    logic [1:0]     read_resp0_tag_hit_by_way;
 
     // read resp1
-    logic           read_resp1_tag_hit_way0;
-    logic           read_resp1_tag_hit_way1;
+    logic [1:0]     read_resp1_tag_hit_by_way;
 
-    logic           read_resp1_hit_way0;
-    logic           read_resp1_hit_way1;
+    logic [1:0]     read_resp1_hit_by_way;
 
     corep::fetch_lane_t read_resp1_lane;
 
@@ -140,55 +132,51 @@ module btb (
         end
     end
     always_comb begin
-        read_resp0_tag_hit_way0 = (btb_tag_array_bram_read_set[0] == tag_hash(read_resp0_pc38, read_resp0_asid));
-        read_resp0_tag_hit_way1 = (btb_tag_array_bram_read_set[1] == tag_hash(read_resp0_pc38, read_resp0_asid));
+        read_resp0_tag_hit_by_way[0] = (btb_tag_array_bram_read_set[0] == tag_hash(read_resp0_pc38, read_resp0_asid));
+        read_resp0_tag_hit_by_way[1] = (btb_tag_array_bram_read_set[1] == tag_hash(read_resp0_pc38, read_resp0_asid));
     end
 
     // resp1 logic
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            read_resp1_tag_hit_way0 <= 0;
-            read_resp1_tag_hit_way1 <= 0;
+            read_resp1_tag_hit_by_way <= 2'b00;
             read_resp1_lane <= 0;
             btb_info_lane_array_bram_read_resp1_set <= '0;
         end
         else begin
             if (read_resp0_valid) begin
-                read_resp1_tag_hit_way0 <= read_resp0_tag_hit_way0;
-                read_resp1_tag_hit_way1 <= read_resp0_tag_hit_way1;
+                read_resp1_tag_hit_by_way <= read_resp0_tag_hit_by_way;
                 read_resp1_lane <= read_resp0_pc38.lane;
                 btb_info_lane_array_bram_read_resp1_set <= btb_info_lane_array_bram_read_resp0_set;
             end
         end
     end
     always_comb begin
-        read_resp0_hit_lane_way0 = btb_info_lane_array_bram_read_resp0_set[0].lane;
-        read_resp0_hit_lane_way1 = btb_info_lane_array_bram_read_resp0_set[1].lane;
-
+        
         // check hit by way
             // hardwired corep::BTB_ASSOC = 2
             // non-zero action + tag match + lane at or beyond fetch lane
-        read_resp1_hit_way0 =
+        read_resp1_hit_by_way[0] =
             |btb_info_lane_array_bram_read_resp1_set[0].info.action
-            & read_resp1_tag_hit_way0
+            & read_resp1_tag_hit_by_way[0]
             & (btb_info_lane_array_bram_read_resp1_set[0].lane >= read_resp1_lane)
         ;
-        read_resp1_hit_way1 =
+        read_resp1_hit_by_way[1] =
             |btb_info_lane_array_bram_read_resp1_set[1].info.action
-            & read_resp1_tag_hit_way1
+            & read_resp1_tag_hit_by_way[1]
             & (btb_info_lane_array_bram_read_resp1_set[1].lane >= read_resp1_lane)
         ;
-        read_resp1_hit = read_resp1_hit_way0 | read_resp1_hit_way1;
-        read_resp1_double_hit = read_resp1_hit_way0 & read_resp1_hit_way1;
+        read_resp1_hit = read_resp1_hit_by_way[0] | read_resp1_hit_by_way[1];
+        read_resp1_double_hit = read_resp1_hit_by_way[0] & read_resp1_hit_by_way[1];
 
-        read_resp1_btb_info_way0 = btb_info_lane_array_bram_read_resp1_set[0].info;
-        read_resp1_hit_lane_way0 = btb_info_lane_array_bram_read_resp1_set[0].lane;
+        read_resp1_btb_info_by_way[0] = btb_info_lane_array_bram_read_resp1_set[0].info;
+        read_resp1_hit_lane_by_way[0] = btb_info_lane_array_bram_read_resp1_set[0].lane;
 
-        read_resp1_btb_info_way1 = btb_info_lane_array_bram_read_resp1_set[1].info;
-        read_resp1_hit_lane_way1 = btb_info_lane_array_bram_read_resp1_set[1].lane;
+        read_resp1_btb_info_by_way[1] = btb_info_lane_array_bram_read_resp1_set[1].info;
+        read_resp1_hit_lane_by_way[1] = btb_info_lane_array_bram_read_resp1_set[1].lane;
 
         // both ways hit
-        if (read_resp1_hit_way0 & read_resp1_hit_way1) begin
+        if (read_resp1_hit_by_way[0] & read_resp1_hit_by_way[1]) begin
 
             // give lower lane hit way, prioritizing way 1 on tie
             if (btb_info_lane_array_bram_read_resp1_set[1].lane <= btb_info_lane_array_bram_read_resp1_set[0].lane) begin
@@ -200,7 +188,7 @@ module btb (
         end
 
         // way 1 hit
-        else if (read_resp1_hit_way1) begin
+        else if (read_resp1_hit_by_way[1]) begin
             read_resp1_hit_way = 1;
         end
 

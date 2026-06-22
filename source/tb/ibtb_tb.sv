@@ -34,13 +34,11 @@ module ibtb_tb #(
 
 
     // read
-	corep::pc38_t tb_read_src_pc38_way0;
-	corep::pc38_t tb_read_src_pc38_way1;
+	corep::pc38_t [1:0] tb_read_src_pc38_by_way;
 	corep::ibtb_gh_t tb_read_ibtb_gh;
 	corep::asid_t tb_read_asid;
 
-	corep::pc38_t DUT_read_tgt_pc38_way0, expected_read_tgt_pc38_way0;
-	corep::pc38_t DUT_read_tgt_pc38_way1, expected_read_tgt_pc38_way1;
+	corep::pc38_t [1:0] DUT_read_tgt_pc38_by_way, expected_read_tgt_pc38_by_way;
 
     // update
 	logic tb_update_valid;
@@ -60,13 +58,11 @@ module ibtb_tb #(
 
 
 	    // read
-		.read_src_pc38_way0(tb_read_src_pc38_way0),
-		.read_src_pc38_way1(tb_read_src_pc38_way1),
+		.read_src_pc38_by_way(tb_read_src_pc38_by_way),
 		.read_ibtb_gh(tb_read_ibtb_gh),
 		.read_asid(tb_read_asid),
 
-		.read_tgt_pc38_way0(DUT_read_tgt_pc38_way0),
-		.read_tgt_pc38_way1(DUT_read_tgt_pc38_way1),
+		.read_tgt_pc38_by_way(DUT_read_tgt_pc38_by_way),
 
 	    // update
 		.update_valid(tb_update_valid),
@@ -81,16 +77,16 @@ module ibtb_tb #(
 
     task check_outputs();
     begin
-		if (expected_read_tgt_pc38_way0 !== DUT_read_tgt_pc38_way0) begin
-			$display("TB ERROR: expected_read_tgt_pc38_way0 (%h) != DUT_read_tgt_pc38_way0 (%h)",
-				expected_read_tgt_pc38_way0, DUT_read_tgt_pc38_way0);
+		if (expected_read_tgt_pc38_by_way[0] !== DUT_read_tgt_pc38_by_way[0]) begin
+			$display("TB ERROR: expected_read_tgt_pc38_by_way[0] (%h) != DUT_read_tgt_pc38_by_way[0] (%h)",
+				expected_read_tgt_pc38_by_way[0], DUT_read_tgt_pc38_by_way[0]);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_read_tgt_pc38_way1 !== DUT_read_tgt_pc38_way1) begin
-			$display("TB ERROR: expected_read_tgt_pc38_way1 (%h) != DUT_read_tgt_pc38_way1 (%h)",
-				expected_read_tgt_pc38_way1, DUT_read_tgt_pc38_way1);
+		if (expected_read_tgt_pc38_by_way[1] !== DUT_read_tgt_pc38_by_way[1]) begin
+			$display("TB ERROR: expected_read_tgt_pc38_by_way[1] (%h) != DUT_read_tgt_pc38_by_way[1] (%h)",
+				expected_read_tgt_pc38_by_way[1], DUT_read_tgt_pc38_by_way[1]);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -118,8 +114,8 @@ module ibtb_tb #(
 		// reset
 		nRST = 1'b0;
 	    // read
-		tb_read_src_pc38_way0 = {33'h000000000, 5'h00};
-		tb_read_src_pc38_way1 = {33'h000000000, 5'h00};
+		tb_read_src_pc38_by_way[0] = {33'h000000000, 5'h00};
+		tb_read_src_pc38_by_way[1] = {33'h000000000, 5'h00};
 		tb_read_ibtb_gh = 5'h00;
         tb_read_asid = {11'h000, 5'h00};
 	    // update
@@ -135,8 +131,8 @@ module ibtb_tb #(
 
 	    // arch state
 	    // read
-		expected_read_tgt_pc38_way0 = 38'h0000000000;
-		expected_read_tgt_pc38_way1 = 38'h0000000000;
+		expected_read_tgt_pc38_by_way[0] = 38'h0000000000;
+		expected_read_tgt_pc38_by_way[1] = 38'h0000000000;
 	    // update
 
 		check_outputs();
@@ -148,8 +144,8 @@ module ibtb_tb #(
 		// reset
 		nRST = 1'b1;
 	    // read
-		tb_read_src_pc38_way0 = {33'h000000000, 5'h00};
-		tb_read_src_pc38_way1 = {33'h000000000, 5'h00};
+		tb_read_src_pc38_by_way[0] = {33'h000000000, 5'h00};
+		tb_read_src_pc38_by_way[1] = {33'h000000000, 5'h00};
 		tb_read_ibtb_gh = 5'h00;
         tb_read_asid = {11'h000, 5'h00};
 	    // update
@@ -165,8 +161,8 @@ module ibtb_tb #(
 
 	    // arch state
 	    // read
-		expected_read_tgt_pc38_way0 = 38'h0000000000;
-		expected_read_tgt_pc38_way1 = 38'h0000000000;
+		expected_read_tgt_pc38_by_way[0] = 38'h0000000000;
+		expected_read_tgt_pc38_by_way[1] = 38'h0000000000;
 	    // update
 
 		check_outputs();
@@ -188,8 +184,8 @@ module ibtb_tb #(
             // reset
             nRST = 1'b1;
             // read
-            tb_read_src_pc38_way0 = {33'h000000000, 5'h00};
-            tb_read_src_pc38_way1 = {33'h000000000, 5'h00};
+            tb_read_src_pc38_by_way[0] = {33'h000000000, 5'h00};
+            tb_read_src_pc38_by_way[1] = {33'h000000000, 5'h00};
             tb_read_ibtb_gh = 5'h00;
 		    tb_read_asid = {11'h000, 5'h00};
             // update
@@ -205,8 +201,8 @@ module ibtb_tb #(
 
             // arch state
             // read
-            expected_read_tgt_pc38_way0 = i > 0 ? {4{5'h1f, 5'h00}} : 38'h0000000000;
-            expected_read_tgt_pc38_way1 = i > 0 ? {4{5'h1f, 5'h00}} : 38'h0000000000;
+            expected_read_tgt_pc38_by_way[0] = i > 0 ? {4{5'h1f, 5'h00}} : 38'h0000000000;
+            expected_read_tgt_pc38_by_way[1] = i > 0 ? {4{5'h1f, 5'h00}} : 38'h0000000000;
             // update
 
             check_outputs();
@@ -229,8 +225,8 @@ module ibtb_tb #(
             // reset
             nRST = 1'b1;
             // read
-            tb_read_src_pc38_way0 = {33'h000000000, 1'b1, i[3], 1'b1, i[1], 1'b1};
-            tb_read_src_pc38_way1 = {33'h000000000, 1'b0, ~i[3], 1'b0, ~i[1], 1'b0};
+            tb_read_src_pc38_by_way[0] = {33'h000000000, 1'b1, i[3], 1'b1, i[1], 1'b1};
+            tb_read_src_pc38_by_way[1] = {33'h000000000, 1'b0, ~i[3], 1'b0, ~i[1], 1'b0};
             tb_read_ibtb_gh = {i[4], 1'b1, i[2], 1'b1, i[0]};
             tb_read_asid = {11'h000, 5'h1f};
             // update
@@ -246,8 +242,8 @@ module ibtb_tb #(
 
             // arch state
             // read
-            expected_read_tgt_pc38_way0 = {4{~i[4:0], i[4:0]}};
-            expected_read_tgt_pc38_way1 = {4{i[4:0], ~i[4:0]}};
+            expected_read_tgt_pc38_by_way[0] = {4{~i[4:0], i[4:0]}};
+            expected_read_tgt_pc38_by_way[1] = {4{i[4:0], ~i[4:0]}};
             // update
 
             check_outputs();

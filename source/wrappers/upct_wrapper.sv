@@ -19,13 +19,12 @@ module upct_wrapper #(
 
     // read in
 	input logic next_read_valid,
-	input corep::upct_idx_t next_read_idx_way0,
+	input corep::upct_idx_t [1:0] next_read_idx_by_way,
 	input corep::upct_idx_t next_read_idx_way1,
 	input corep::upct_idx_t next_read_idx_touch,
 
     // read out
-	output corep::upc_t last_read_upc_way0,
-	output corep::upc_t last_read_upc_way1,
+	output corep::upc_t [1:0] last_read_upc_by_way,
 
     // update in
 	input logic next_update_valid,
@@ -41,13 +40,12 @@ module upct_wrapper #(
 
     // read in
 	logic read_valid;
-	corep::upct_idx_t read_idx_way0;
+	corep::upct_idx_t [1:0] read_idx_by_way;
 	corep::upct_idx_t read_idx_way1;
 	corep::upct_idx_t read_idx_touch;
 
     // read out
-	corep::upc_t read_upc_way0;
-	corep::upc_t read_upc_way1;
+	corep::upc_t [1:0] read_upc_by_way;
 
     // update in
 	logic update_valid;
@@ -71,13 +69,12 @@ module upct_wrapper #(
 
 		    // read in
 			read_valid <= '0;
-			read_idx_way0 <= '0;
+			read_idx_by_way <= '0;
 			read_idx_way1 <= '0;
 			read_idx_touch <= '0;
 
 		    // read out
-			last_read_upc_way0 <= '0;
-			last_read_upc_way1 <= '0;
+			last_read_upc_by_way <= '0;
 
 		    // update in
 			update_valid <= '0;
@@ -91,13 +88,12 @@ module upct_wrapper #(
 
 		    // read in
 			read_valid <= next_read_valid;
-			read_idx_way0 <= next_read_idx_way0;
+			read_idx_by_way <= next_read_idx_by_way;
 			read_idx_way1 <= next_read_idx_way1;
 			read_idx_touch <= next_read_idx_touch;
 
 		    // read out
-			last_read_upc_way0 <= read_upc_way0;
-			last_read_upc_way1 <= read_upc_way1;
+			last_read_upc_by_way <= read_upc_by_way;
 
 		    // update in
 			update_valid <= next_update_valid;

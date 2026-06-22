@@ -35,13 +35,11 @@ module upct_tb #(
 
     // read in
 	logic tb_read_valid;
-	corep::upct_idx_t tb_read_idx_way0;
-	corep::upct_idx_t tb_read_idx_way1;
+	corep::upct_idx_t [1:0] tb_read_idx_by_way;
 	corep::upct_idx_t tb_read_idx_touch;
 
     // read out
-	corep::upc_t DUT_read_upc_way0, expected_read_upc_way0;
-	corep::upc_t DUT_read_upc_way1, expected_read_upc_way1;
+	corep::upc_t [1:0] DUT_read_upc_by_way, expected_read_upc_by_way;
 
     // update in
 	logic tb_update_valid;
@@ -62,13 +60,11 @@ module upct_tb #(
 
 	    // read in
 		.read_valid(tb_read_valid),
-		.read_idx_way0(tb_read_idx_way0),
-		.read_idx_way1(tb_read_idx_way1),
+		.read_idx_by_way(tb_read_idx_by_way),
 		.read_idx_touch(tb_read_idx_touch),
 
 	    // read out
-		.read_upc_way0(DUT_read_upc_way0),
-		.read_upc_way1(DUT_read_upc_way1),
+		.read_upc_by_way(DUT_read_upc_by_way),
 
 	    // update in
 		.update_valid(tb_update_valid),
@@ -83,16 +79,9 @@ module upct_tb #(
 
     task check_outputs();
     begin
-		if (expected_read_upc_way0 !== DUT_read_upc_way0) begin
-			$display("TB ERROR: expected_read_upc_way0 (%h) != DUT_read_upc_way0 (%h)",
-				expected_read_upc_way0, DUT_read_upc_way0);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_read_upc_way1 !== DUT_read_upc_way1) begin
-			$display("TB ERROR: expected_read_upc_way1 (%h) != DUT_read_upc_way1 (%h)",
-				expected_read_upc_way1, DUT_read_upc_way1);
+		if (expected_read_upc_by_way !== DUT_read_upc_by_way) begin
+			$display("TB ERROR: expected_read_upc_by_way (%h) != DUT_read_upc_by_way (%h)",
+				expected_read_upc_by_way, DUT_read_upc_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -128,8 +117,8 @@ module upct_tb #(
 		nRST = 1'b0;
 	    // pc_gen read in
 		tb_read_valid = 1'b0;
-		tb_read_idx_way0 = 0;
-		tb_read_idx_way1 = 0;
+		tb_read_idx_by_way[0] = 0;
+		tb_read_idx_by_way[1] = 0;
 		tb_read_idx_touch = 0;
 	    // pc_gen read out
 	    // update in
@@ -143,8 +132,8 @@ module upct_tb #(
 
 	    // pc_gen read in
 	    // pc_gen read out
-		expected_read_upc_way0 = 26'h0000000;
-		expected_read_upc_way1 = 26'h0000000;
+		expected_read_upc_by_way[0] = 26'h0000000;
+		expected_read_upc_by_way[1] = 26'h0000000;
 	    // update in
 	    // update out
 		expected_update_upct_idx = 0;
@@ -159,8 +148,8 @@ module upct_tb #(
 		nRST = 1'b1;
 	    // pc_gen read in
 		tb_read_valid = 1'b0;
-		tb_read_idx_way0 = 0;
-		tb_read_idx_way1 = 0;
+		tb_read_idx_by_way[0] = 0;
+		tb_read_idx_by_way[1] = 0;
 		tb_read_idx_touch = 0;
 	    // pc_gen read out
 	    // update in
@@ -174,8 +163,8 @@ module upct_tb #(
 
 	    // pc_gen read in
 	    // pc_gen read out
-		expected_read_upc_way0 = 26'h0000000;
-		expected_read_upc_way1 = 26'h0000000;
+		expected_read_upc_by_way[0] = 26'h0000000;
+		expected_read_upc_by_way[1] = 26'h0000000;
 	    // update in
 	    // update out
 		expected_update_upct_idx = 0;
@@ -200,8 +189,8 @@ module upct_tb #(
             nRST = 1'b1;
             // pc_gen read in
             tb_read_valid = 1'b0;
-            tb_read_idx_way0 = 0;
-            tb_read_idx_way1 = 7;
+            tb_read_idx_by_way[0] = 0;
+            tb_read_idx_by_way[1] = 7;
             tb_read_idx_touch = 0;
             // pc_gen read out
             // update in
@@ -215,8 +204,8 @@ module upct_tb #(
 
             // pc_gen read in
             // pc_gen read out
-            expected_read_upc_way0 = 26'h0000000;
-            expected_read_upc_way1 = 26'h0000000;
+            expected_read_upc_by_way[0] = 26'h0000000;
+            expected_read_upc_by_way[1] = 26'h0000000;
             // update in
             // update out
             expected_update_upct_idx = i;
@@ -242,8 +231,8 @@ module upct_tb #(
             nRST = 1'b1;
             // pc_gen read in
             tb_read_valid = 1'b1;
-            tb_read_idx_way0 = i;
-            tb_read_idx_way1 = ~i[2:0];
+            tb_read_idx_by_way[0] = i;
+            tb_read_idx_by_way[1] = ~i[2:0];
             tb_read_idx_touch = i;
             // pc_gen read out
             // update in
@@ -257,8 +246,8 @@ module upct_tb #(
 
             // pc_gen read in
             // pc_gen read out
-            expected_read_upc_way0 = {9{i[2:0]}};
-            expected_read_upc_way1 = {9{~i[2:0]}};
+            expected_read_upc_by_way[0] = {9{i[2:0]}};
+            expected_read_upc_by_way[1] = {9{~i[2:0]}};
             // update in
             // update out
             expected_update_upct_idx = {3'h0, 3'h0, 3'h1, 3'h0, 3'h3, 3'h2, 3'h1, 3'h0} >> i*3;
@@ -284,8 +273,8 @@ module upct_tb #(
             nRST = 1'b1;
             // pc_gen read in
             tb_read_valid = 1'b0;
-            tb_read_idx_way0 = 0;
-            tb_read_idx_way1 = 0;
+            tb_read_idx_by_way[0] = 0;
+            tb_read_idx_by_way[1] = 0;
             tb_read_idx_touch = 0;
             // pc_gen read out
             // update in
@@ -299,8 +288,8 @@ module upct_tb #(
 
             // pc_gen read in
             // pc_gen read out
-            expected_read_upc_way0 = 26'h0000000;
-            expected_read_upc_way1 = 26'h0000000;
+            expected_read_upc_by_way[0] = 26'h0000000;
+            expected_read_upc_by_way[1] = 26'h0000000;
             // update in
             // update out
             expected_update_upct_idx = i;
@@ -326,8 +315,8 @@ module upct_tb #(
             nRST = 1'b1;
             // pc_gen read in
             tb_read_valid = 1'b0;
-		    tb_read_idx_way0 = 0;
-            tb_read_idx_way1 = 7;
+		    tb_read_idx_by_way[0] = 0;
+            tb_read_idx_by_way[1] = 7;
             tb_read_idx_touch = 0;
             // pc_gen read out
             // update in
@@ -341,8 +330,8 @@ module upct_tb #(
 
             // pc_gen read in
             // pc_gen read out
-            expected_read_upc_way0 = (i == 7) ? 26'h0000000 : 26'h7777777;
-            expected_read_upc_way1 = 26'h3ffffff;
+            expected_read_upc_by_way[0] = (i == 7) ? 26'h0000000 : 26'h7777777;
+            expected_read_upc_by_way[1] = 26'h3ffffff;
             // update in
             // update out
             expected_update_upct_idx = {3'h0, 3'h1, 3'h2, 3'h3} >> (i-4)*3;
@@ -368,8 +357,8 @@ module upct_tb #(
             nRST = 1'b1;
             // pc_gen read in
             tb_read_valid = 1'b1;
-            tb_read_idx_way0 = ~i;
-            tb_read_idx_way1 = i;
+            tb_read_idx_by_way[0] = ~i;
+            tb_read_idx_by_way[1] = i;
             tb_read_idx_touch = i;
             // pc_gen read out
             // update in
@@ -383,8 +372,8 @@ module upct_tb #(
 
             // pc_gen read in
             // pc_gen read out
-            expected_read_upc_way0 = (i >= 4) ? {8{{i}[3:0]}} : {9{~i[2:0]}};
-            expected_read_upc_way1 = (i < 4) ? {8{{7-i}[3:0]}} : {9{i[2:0]}};
+            expected_read_upc_by_way[0] = (i >= 4) ? {8{{i}[3:0]}} : {9{~i[2:0]}};
+            expected_read_upc_by_way[1] = (i < 4) ? {8{{7-i}[3:0]}} : {9{i[2:0]}};
             // update in
             // update out
             expected_update_upct_idx = (i < 4) ? i + 4 : i;

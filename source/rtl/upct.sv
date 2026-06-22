@@ -14,14 +14,13 @@ module upct (
     input logic nRST,
 
     // read in
-    input logic                 read_valid,
-    input corep::upct_idx_t     read_idx_way0,
-    input corep::upct_idx_t     read_idx_way1,
-    input corep::upct_idx_t     read_idx_touch,
+    input logic                     read_valid,
+    input corep::upct_idx_t [1:0]   read_idx_by_way,
+    input corep::upct_idx_t         read_idx_way1,
+    input corep::upct_idx_t         read_idx_touch,
 
     // read out
-    output corep::upc_t         read_upc_way0,
-    output corep::upc_t         read_upc_way1,
+    output corep::upc_t [1:0]       read_upc_by_way,
 
     // update in
     input logic                 update_valid,
@@ -70,8 +69,8 @@ module upct (
 
     // pc_gen read logic
     always_comb begin
-        read_upc_way0 = upct_array[read_idx_way0];
-        read_upc_way1 = upct_array[read_idx_way1];
+        read_upc_by_way[0] = upct_array[read_idx_by_way[0]];
+        read_upc_by_way[1] = upct_array[read_idx_by_way[1]];
     end
 
     // update logic:

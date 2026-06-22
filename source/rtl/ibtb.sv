@@ -14,13 +14,11 @@ module ibtb (
     input logic nRST,
 
     // read
-    input corep::pc38_t     read_src_pc38_way0,
-    input corep::pc38_t     read_src_pc38_way1,
-    input corep::ibtb_gh_t  read_ibtb_gh,
-    input corep::asid_t     read_asid,
+    input corep::pc38_t [1:0]   read_src_pc38_by_way,
+    input corep::ibtb_gh_t      read_ibtb_gh,
+    input corep::asid_t         read_asid,
 
-    output corep::pc38_t    read_tgt_pc38_way0,
-    output corep::pc38_t    read_tgt_pc38_way1,
+    output corep::pc38_t [1:0]  read_tgt_pc38_by_way,
 
     // update
     input logic             update_valid,
@@ -59,11 +57,11 @@ module ibtb (
 
     // read logic
     always_comb begin
-        ibtb_array_distram_read_port0_index = index_hash(read_src_pc38_way0, read_ibtb_gh, read_asid);
-        ibtb_array_distram_read_port1_index = index_hash(read_src_pc38_way1, read_ibtb_gh, read_asid);
+        ibtb_array_distram_read_port0_index = index_hash(read_src_pc38_by_way[0], read_ibtb_gh, read_asid);
+        ibtb_array_distram_read_port1_index = index_hash(read_src_pc38_by_way[1], read_ibtb_gh, read_asid);
         
-        read_tgt_pc38_way0 = ibtb_array_distram_read_port0_data;
-        read_tgt_pc38_way1 = ibtb_array_distram_read_port1_data;
+        read_tgt_pc38_by_way[0] = ibtb_array_distram_read_port0_data;
+        read_tgt_pc38_by_way[1] = ibtb_array_distram_read_port1_data;
     end
 
     // write logic

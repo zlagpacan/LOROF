@@ -14,17 +14,15 @@ module pht (
     input logic nRST,
 
     // read req stage
-    input logic                 read_req_valid,
-    input corep::fetch_idx_t    read_req_fetch_idx,
-    input corep::gh_t           read_req_gh,
-    input corep::asid_t         read_req_asid,
+    input logic                         read_req_valid,
+    input corep::fetch_idx_t            read_req_fetch_idx,
+    input corep::gh_t                   read_req_gh,
+    input corep::asid_t                 read_req_asid,
 
     // read resp stage
-    input corep::fetch_lane_t   read_resp_redirect_lane_way0,
-    input corep::fetch_lane_t   read_resp_redirect_lane_way1,
+    input corep::fetch_lane_t [1:0]     read_resp_redirect_lane_by_way,
 
-    output logic                read_resp_taken_way0,
-    output logic                read_resp_taken_way1,
+    output logic [1:0]                  read_resp_taken_by_way,
 
     // update
     input logic             update_valid,
@@ -120,8 +118,8 @@ module pht (
     end
     always_comb begin
         // simple decode msb of redirect lane
-        read_resp_taken_way0 = pht_array_bram_read_port0_set[lane_hash(read_resp_redirect_lane_way0, read_resp_gh)][1];
-        read_resp_taken_way1 = pht_array_bram_read_port0_set[lane_hash(read_resp_redirect_lane_way1, read_resp_gh)][1];
+        read_resp_taken_by_way[0] = pht_array_bram_read_port0_set[lane_hash(read_resp_redirect_lane_by_way[0], read_resp_gh)][1];
+        read_resp_taken_by_way[1] = pht_array_bram_read_port0_set[lane_hash(read_resp_redirect_lane_by_way[1], read_resp_gh)][1];
     end
 
     // update logic

@@ -26,18 +26,13 @@ module btb_wrapper #(
 	input logic next_read_resp0_valid,
 	input corep::pc38_t next_read_resp0_pc38,
 
-	output corep::fetch_lane_t last_read_resp0_hit_lane_way0,
-	output corep::fetch_lane_t last_read_resp0_hit_lane_way1,
-
     // read resp1 stage
 	output logic last_read_resp1_hit,
 	output logic last_read_resp1_double_hit,
 	output corep::btb_way_t last_read_resp1_hit_way,
 
-	output corep::fetch_lane_t last_read_resp1_hit_lane_way0,
-	output corep::fetch_lane_t last_read_resp1_hit_lane_way1,
-	output corep::btb_info_t last_read_resp1_btb_info_way0,
-	output corep::btb_info_t last_read_resp1_btb_info_way1,
+	output corep::fetch_lane_t [1:0] last_read_resp1_hit_lane_by_way,
+	output corep::btb_info_t [1:0] last_read_resp1_btb_info_by_way,
 
     // update
 	input logic next_update_valid,
@@ -61,18 +56,13 @@ module btb_wrapper #(
 	logic read_resp0_valid;
 	corep::pc38_t read_resp0_pc38;
 
-	corep::fetch_lane_t read_resp0_hit_lane_way0;
-	corep::fetch_lane_t read_resp0_hit_lane_way1;
-
     // read resp1 stage
 	logic read_resp1_hit;
 	logic read_resp1_double_hit;
 	corep::btb_way_t read_resp1_hit_way;
 
-	corep::fetch_lane_t read_resp1_hit_lane_way0;
-	corep::fetch_lane_t read_resp1_hit_lane_way1;
-	corep::btb_info_t read_resp1_btb_info_way0;
-	corep::btb_info_t read_resp1_btb_info_way1;
+	corep::fetch_lane_t [1:0] read_resp1_hit_lane_by_way;
+	corep::btb_info_t [1:0] read_resp1_btb_info_by_way;
 
     // update
 	logic update_valid;
@@ -104,18 +94,13 @@ module btb_wrapper #(
 			read_resp0_valid <= '0;
 			read_resp0_pc38 <= '0;
 
-			last_read_resp0_hit_lane_way0 <= '0;
-			last_read_resp0_hit_lane_way1 <= '0;
-
 		    // read resp1 stage
 			last_read_resp1_hit <= '0;
 			last_read_resp1_double_hit <= '0;
 			last_read_resp1_hit_way <= '0;
 
-			last_read_resp1_hit_lane_way0 <= '0;
-			last_read_resp1_hit_lane_way1 <= '0;
-			last_read_resp1_btb_info_way0 <= '0;
-			last_read_resp1_btb_info_way1 <= '0;
+			last_read_resp1_hit_lane_by_way <= '0;
+			last_read_resp1_btb_info_by_way <= '0;
 
 		    // update
 			update_valid <= '0;
@@ -137,18 +122,13 @@ module btb_wrapper #(
 			read_resp0_valid <= next_read_resp0_valid;
 			read_resp0_pc38 <= next_read_resp0_pc38;
 
-			last_read_resp0_hit_lane_way0 <= read_resp0_hit_lane_way0;
-			last_read_resp0_hit_lane_way1 <= read_resp0_hit_lane_way1;
-
 		    // read resp1 stage
 			last_read_resp1_hit <= read_resp1_hit;
 			last_read_resp1_double_hit <= read_resp1_double_hit;
 			last_read_resp1_hit_way <= read_resp1_hit_way;
 
-			last_read_resp1_hit_lane_way0 <= read_resp1_hit_lane_way0;
-			last_read_resp1_hit_lane_way1 <= read_resp1_hit_lane_way1;
-			last_read_resp1_btb_info_way0 <= read_resp1_btb_info_way0;
-			last_read_resp1_btb_info_way1 <= read_resp1_btb_info_way1;
+			last_read_resp1_hit_lane_by_way <= read_resp1_hit_lane_by_way;
+			last_read_resp1_btb_info_by_way <= read_resp1_btb_info_by_way;
 
 		    // update
 			update_valid <= next_update_valid;

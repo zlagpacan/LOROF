@@ -24,11 +24,9 @@ module pht_wrapper #(
 	input corep::asid_t next_read_req_asid,
 
     // read resp stage
-	input corep::fetch_lane_t next_read_resp_redirect_lane_way0,
-	input corep::fetch_lane_t next_read_resp_redirect_lane_way1,
+	input corep::fetch_lane_t [1:0] next_read_resp_redirect_lane_by_way,
 
-	output logic last_read_resp_taken_way0,
-	output logic last_read_resp_taken_way1,
+	output logic [1:0] last_read_resp_taken_by_way,
 
     // update
 	input logic next_update_valid,
@@ -49,11 +47,9 @@ module pht_wrapper #(
 	corep::asid_t read_req_asid;
 
     // read resp stage
-	corep::fetch_lane_t read_resp_redirect_lane_way0;
-	corep::fetch_lane_t read_resp_redirect_lane_way1;
+	corep::fetch_lane_t [1:0] read_resp_redirect_lane_by_way;
 
-	logic read_resp_taken_way0;
-	logic read_resp_taken_way1;
+	logic [1:0] read_resp_taken_by_way;
 
     // update
 	logic update_valid;
@@ -82,11 +78,9 @@ module pht_wrapper #(
 			read_req_asid <= '0;
 
 		    // read resp stage
-			read_resp_redirect_lane_way0 <= '0;
-			read_resp_redirect_lane_way1 <= '0;
+			read_resp_redirect_lane_by_way <= '0;
 
-			last_read_resp_taken_way0 <= '0;
-			last_read_resp_taken_way1 <= '0;
+			last_read_resp_taken_by_way <= '0;
 
 		    // update
 			update_valid <= '0;
@@ -105,11 +99,9 @@ module pht_wrapper #(
 			read_req_asid <= next_read_req_asid;
 
 		    // read resp stage
-			read_resp_redirect_lane_way0 <= next_read_resp_redirect_lane_way0;
-			read_resp_redirect_lane_way1 <= next_read_resp_redirect_lane_way1;
+			read_resp_redirect_lane_by_way <= next_read_resp_redirect_lane_by_way;
 
-			last_read_resp_taken_way0 <= read_resp_taken_way0;
-			last_read_resp_taken_way1 <= read_resp_taken_way1;
+			last_read_resp_taken_by_way <= read_resp_taken_by_way;
 
 		    // update
 			update_valid <= next_update_valid;
