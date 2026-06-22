@@ -187,8 +187,6 @@ module fetch_unit (
     corep::gh_t RESP0_received_gh;
     corep::gh_t RESP0_updated_gh; // want potential NT from RESP1
 
-    corep::pc38_t RESP0_ibtb_tgt_pc38; // ?
-
     //////////////////
     // RESP1 stage: //
     //////////////////
@@ -210,8 +208,6 @@ module fetch_unit (
 
     sysp::icache_tag_t  RESP1_icache_tag;
     logic               RESP1_icache_hit;
-
-    corep::pc38_t RESP1_ibtb_tgt_pc38; // ?
 
     logic [corep::FETCH_LANES-1:0] RESP1_valid_by_lane;
 
@@ -250,17 +246,16 @@ module fetch_unit (
     // upct IO:
 
     // read in
-    logic               upct_read_valid;
-    corep::upct_idx_t   upct_read_idx_way0;
-    corep::upct_idx_t   upct_read_idx_way1;
-    corep::upct_idx_t   upct_read_idx_touch;
+    logic                       upct_read_valid;
+    corep::upct_idx_t [1:0]     upct_read_idx_by_way;
+    corep::upct_idx_t           upct_read_idx_touch;
     // read out
-    corep::upc_t [1:0]  upct_read_upc_by_way;
+    corep::upc_t [1:0]          upct_read_upc_by_way;
     // update in
-    logic               upct_update_valid;
-    corep::upc_t        upct_update_upc;
+    logic                       upct_update_valid;
+    corep::upc_t                upct_update_upc;
     // update out
-    corep::upct_idx_t   upct_update_upct_idx;
+    corep::upct_idx_t           upct_update_upct_idx;
 
     // ras IO:
 
@@ -287,7 +282,6 @@ module fetch_unit (
     // read resp0 stage
     logic                       btb_read_resp0_valid;
     corep::pc38_t               btb_read_resp0_pc38;
-    corep::fetch_lane_t [1:0]   btb_read_resp0_hit_lane_by_way;
     // read resp1 stage
     logic                       btb_read_resp1_hit;
     logic                       btb_read_resp1_double_hit;
@@ -305,36 +299,33 @@ module fetch_unit (
     // pht IO:
 
     // read req stage
-    logic                   pht_read_req_valid;
-    corep::fetch_idx_t      pht_read_req_fetch_idx;
-    corep::gh_t             pht_read_req_gh;
-    corep::asid_t           pht_read_req_asid;
+    logic                       pht_read_req_valid;
+    corep::fetch_idx_t          pht_read_req_fetch_idx;
+    corep::gh_t                 pht_read_req_gh;
+    corep::asid_t               pht_read_req_asid;
     // read resp stage
-    corep::fetch_lane_t     pht_read_resp_redirect_lane_way0;
-    corep::fetch_lane_t     pht_read_resp_redirect_lane_way1;
-    logic [1:0]             pht_read_resp_taken_by_way;
+    corep::fetch_lane_t [1:0]   pht_read_resp_redirect_lane_by_way;
+    logic [1:0]                 pht_read_resp_taken_by_way;
     // update
-    logic                   pht_update_valid;
-    corep::pc38_t           pht_update_pc38;
-    corep::gh_t             pht_update_gh;
-    corep::asid_t           pht_update_asid;
-    logic                   pht_update_taken;
+    logic                       pht_update_valid;
+    corep::pc38_t               pht_update_pc38;
+    corep::gh_t                 pht_update_gh;
+    corep::asid_t               pht_update_asid;
+    logic                       pht_update_taken;
 
     // ibtb IO:
 
     // read
-    corep::pc38_t       ibtb_read_src_pc38_way0; // separate way for hit lane by way so can lookup ibtb at beginning of resp1
-    corep::pc38_t       ibtb_read_src_pc38_way1;
-    corep::ibtb_gh_t    ibtb_read_ibtb_gh;
-    corep::asid_t       ibtb_read_asid;
-    corep::pc38_t       ibtb_read_tgt_pc38_way0;
-    corep::pc38_t       ibtb_read_tgt_pc38_way1;
+    corep::pc38_t [1:0]     ibtb_read_src_pc38_by_way; // separate way for hit lane by way so can lookup ibtb at beginning of resp1
+    corep::ibtb_gh_t        ibtb_read_ibtb_gh;
+    corep::asid_t           ibtb_read_asid;
+    corep::pc38_t [1:0]     ibtb_read_tgt_pc38_by_way;
     // update
-    logic               ibtb_update_valid;
-    corep::pc38_t       ibtb_update_src_pc38;
-    corep::pc38_t       ibtb_update_ibtb_gh;
-    corep::asid_t       ibtb_update_asid;
-    corep::pc38_t       ibtb_update_tgt_pc38;
+    logic                   ibtb_update_valid;
+    corep::pc38_t           ibtb_update_src_pc38;
+    corep::pc38_t           ibtb_update_ibtb_gh;
+    corep::asid_t           ibtb_update_asid;
+    corep::pc38_t           ibtb_update_tgt_pc38;
 
     // mdpt IO:
 
@@ -472,7 +463,7 @@ module fetch_unit (
             RESP1_icache_tag <= '0;
         end
         else begin
-            if (any_restart) begin
+            if (any_restart | RESP1_pass & RESP1_redirect) begin
                 RESP1_valid <= 1'b0;
             end
             else if (~RESP1_valid | RESP1_pass) begin
@@ -489,41 +480,44 @@ module fetch_unit (
 
         // REQ_received_pc38 possibilities:
             // REQ_latched_pc38
-            // RESP_received_pc38_next_8
+            // RESP0_received_pc38_next_8
             // {upct_read_upc_by_way[way], btb_read_resp_btb_info_by_way[way].big_tgt.small_tgt.idx, btb_read_resp_btb_info_by_way[way].big_tgt.small_tgt.lane}
-            // {RESP_received_pc38.upc.msbs, btb_read_resp_btb_info_by_way[way].big_tgt.upct_idx, btb_read_resp_btb_info_by_way[way].big_tgt.small_tgt.idx, btb_read_resp_btb_info_by_way[way].big_tgt.small_tgt.lane}
+            // {RESP1_received_pc38.upc.msbs, btb_read_resp_btb_info_by_way[way].big_tgt.upct_idx, btb_read_resp_btb_info_by_way[way].big_tgt.small_tgt.idx, btb_read_resp_btb_info_by_way[way].big_tgt.small_tgt.lane}
             // ras_ret_pc38
-            // RESP2_tgt_pc38
-            // {RESP_received_pc38.upc, RESP_received_pc38.idx, btb_read_resp_hit_lane_by_way[way] + 3'h1}
+            // ibtb_read_tgt_pc38_by_way[way]
+            // {RESP1_received_pc38.upc, RESP1_received_pc38.idx, btb_read_resp_hit_lane_by_way[way] + 3'h1}
 
         // REQ_received_pc38.upc.msbs
             // REQ_latched_pc38.upc.msbs
-            // RESP_received_pc38_next_8.upc.msbs
+            // RESP0_received_pc38_next_8.upc.msbs
             // upct_read_upc_by_way[0].msbs
             // upct_read_upc_by_way[1].msbs
-            // RESP_received_pc38.upc.msbs
+            // RESP1_received_pc38.upc.msbs
             // ras_ret_pc38.upc.msbs
-            // RESP2_tgt_pc38.upc.msbs
+            // ibtb_read_tgt_pc38_by_way[0].upc.msbs
+            // ibtb_read_tgt_pc38_by_way[1].upc.msbs
 
         // REQ_received_pc38.upc.big_tgt_msbs
             // REQ_latched_pc38.upc.big_tgt_msbs
-            // RESP_received_pc38_next_8.upc.big_tgt_msbs
+            // RESP0_received_pc38_next_8.upc.big_tgt_msbs
             // upct_read_upc_by_way[0].big_tgt_msbs
             // upct_read_upc_by_way[1].big_tgt_msbs
             // btb_read_resp_btb_info_by_way[0].big_tgt.upct_idx
             // btb_read_resp_btb_info_by_way[1].big_tgt.upct_idx
             // ras_ret_pc38.upc.big_tgt_msbs
-            // RESP2_tgt_pc38.upc.big_tgt_msbs
-            // RESP_received_pc38.upc.big_tgt_msbs
+            // ibtb_read_tgt_pc38_by_way[0].upc.big_tgt_msbs
+            // ibtb_read_tgt_pc38_by_way[1].upc.big_tgt_msbs
+            // RESP1_received_pc38.upc.big_tgt_msbs
 
         // REQ_received_pc38.idx
             // REQ_latched_pc38.idx
-            // RESP_received_pc38_next_8.idx
+            // RESP0_received_pc38_next_8.idx
             // btb_read_resp_btb_info_by_way[0].big_tgt.small_tgt.idx
             // btb_read_resp_btb_info_by_way[1].big_tgt.small_tgt.idx
             // ras_ret_pc38.idx
-            // RESP2_tgt_pc38.idx
-            // RESP_received_pc38.idx
+            // ibtb_read_tgt_pc38_by_way[0].idx
+            // ibtb_read_tgt_pc38_by_way[1].idx
+            // RESP1_received_pc38.idx
             
         // REQ_received_pc38.lane
             // REQ_latched_pc38.lane
@@ -531,7 +525,8 @@ module fetch_unit (
             // btb_read_resp_btb_info_by_way[0].big_tgt.small_tgt.lane
             // btb_read_resp_btb_info_by_way[1].big_tgt.small_tgt.lane
             // ras_ret_pc38.lane
-            // RESP2_tgt_pc38.lane
+            // ibtb_read_tgt_pc38_by_way[0].lane
+            // ibtb_read_tgt_pc38_by_way[1].lane
             // btb_read_resp_hit_lane_by_way[0] + 3'h1
             // btb_read_resp_hit_lane_by_way[1] + 3'h1
 
@@ -541,13 +536,13 @@ module fetch_unit (
         REQ_received_pc38_upc_msbs_one_hot[6] =
             ~RESP0_valid & ~RESP1_valid
         ;
-        // RESP_received_pc38_next_8.upc.msbs
+        // RESP0_received_pc38_next_8.upc.msbs
         REQ_received_pc38_upc_msbs_one_hot[5] =
             RESP0_valid & (
                 ~RESP1_valid
-                | (RESP1_valid & (
+                | (
                     ~btb_read_resp_hit
-                    | (btb_read_resp_hit & (
+                    | (
                         ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0] & (
                             ~btb_read_resp_double_hit
                             | btb_read_resp_double_hit & (btb_read_resp_hit_lane_by_way[0] == 3'h7)
@@ -556,13 +551,13 @@ module fetch_unit (
                             ~btb_read_resp_double_hit
                             | btb_read_resp_double_hit & (btb_read_resp_hit_lane_by_way[1] == 3'h7)
                         )
-                    ))
-                ))
+                    )
+                )
             )
         ;
         // upct_read_upc_by_way[0].msbs
         REQ_received_pc38_upc_msbs_one_hot[4] =
-            RESP_valid & btb_read_resp_hit & ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].use_upct & (
+            RESP1_valid & btb_read_resp_hit & ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].use_upct & (
                 btb_read_resp_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
                 | btb_read_resp_btb_info_by_way[0].action.jump
                 | btb_read_resp_btb_info_by_way[0].action.ret & ras_ret_fallback
@@ -570,7 +565,7 @@ module fetch_unit (
         ;
         // upct_read_upc_by_way[1].msbs
         REQ_received_pc38_upc_msbs_one_hot[3] =
-            RESP_valid & btb_read_resp_hit & btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].use_upct & (
+            RESP1_valid & btb_read_resp_hit & btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].use_upct & (
                 btb_read_resp_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
                 | btb_read_resp_btb_info_by_way[1].action.jump
                 | btb_read_resp_btb_info_by_way[1].action.ret & ras_ret_fallback
@@ -611,18 +606,19 @@ module fetch_unit (
         ;
     end
     mux_one_hot #(
-        .COUNT(7),
+        .COUNT(8),
         .WIDTH($bits(REQ_received_pc38.upc.msbs))
     ) REQ_RECEIVED_PC38_UPC_MSBS_ONE_HOT_MUX (
         .sel_one_hot(REQ_received_pc38_upc_msbs_one_hot),
         .data_by_requestor({
             REQ_latched_pc38.upc.msbs,
-            RESP_received_pc38_next_8.upc.msbs,
+            RESP0_received_pc38_next_8.upc.msbs,
             upct_read_upc_by_way[0].msbs,
             upct_read_upc_by_way[1].msbs,
             RESP_received_pc38.upc.msbs,
             ras_ret_pc38.upc.msbs,
-            RESP2_tgt_pc38.upc.msbs
+            ibtb_read_tgt_pc38_by_way[0].upc.msbs
+            ibtb_read_tgt_pc38_by_way[1].upc.msbs
         }),
         .selected_data(REQ_received_pc38.upc.msbs)
     );
@@ -704,20 +700,21 @@ module fetch_unit (
         ;
     end
     mux_one_hot #(
-        .COUNT(9),
+        .COUNT(10),
         .WIDTH($bits(REQ_received_pc38.upc.big_tgt_msbs))
     ) REQ_RECEIVED_PC38_UPC_BIG_TGT_MSBS_ONE_HOT_MUX (
         .sel_one_hot(REQ_received_pc38_upc_big_tgt_msbs_one_hot),
         .data_by_requestor({
             REQ_latched_pc38.upc.big_tgt_msbs,
-            RESP_received_pc38_next_8.upc.big_tgt_msbs,
+            RESP0_received_pc38_next_8.upc.big_tgt_msbs,
             upct_read_upc_by_way[0].big_tgt_msbs,
             upct_read_upc_by_way[1].big_tgt_msbs,
             btb_read_resp_btb_info_by_way[0].big_tgt.upct_idx,
             btb_read_resp_btb_info_by_way[1].big_tgt.upct_idx,
             ras_ret_pc38.upc.big_tgt_msbs,
-            RESP2_tgt_pc38.upc.big_tgt_msbs,
-            RESP_received_pc38.upc.big_tgt_msbs
+            ibtb_read_tgt_pc38_by_way[0].upc.big_tgt_msbs,
+            ibtb_read_tgt_pc38_by_way[1].upc.big_tgt_msbs,
+            RESP1_received_pc38.upc.big_tgt_msbs
         }),
         .selected_data(REQ_received_pc38.upc.big_tgt_msbs)
     );
@@ -783,19 +780,20 @@ module fetch_unit (
         ;
     end
     mux_one_hot #(
-        .COUNT(7),
+        .COUNT(8),
         .WIDTH($bits(REQ_received_pc38.idx))
     ) REQ_RECEIVED_PC38_IDX_ONE_HOT_MUX (
         .sel_one_hot(REQ_received_pc38_idx_one_hot),
         .data_by_requestor({
             REQ_latched_pc38.idx,
             // 3'b000 -> skip case
-            RESP_received_pc38_next_8.idx,
+            RESP0_received_pc38_next_8.idx,
             btb_read_resp_btb_info_by_way[0].big_tgt.small_tgt.idx,
             btb_read_resp_btb_info_by_way[1].big_tgt.small_tgt.idx,
             ras_ret_pc38.idx,
-            RESP2_tgt_pc38.idx,
-            RESP_received_pc38.idx
+            ibtb_read_tgt_pc38_by_way[0].idx,
+            ibtb_read_tgt_pc38_by_way[1].idx,
+            RESP1_received_pc38.idx
         }),
         .selected_data(REQ_received_pc38.idx)
     );
@@ -847,7 +845,7 @@ module fetch_unit (
         ;
     end
     mux_one_hot #(
-        .COUNT(7),
+        .COUNT(8),
         .WIDTH($bits(REQ_received_pc38.lane))
     ) REQ_RECEIVED_PC38_LANE_ONE_HOT_MUX (
         .sel_one_hot(REQ_received_pc38_lane_one_hot),
@@ -856,7 +854,8 @@ module fetch_unit (
             btb_read_resp_btb_info_by_way[0].big_tgt.small_tgt.lane,
             btb_read_resp_btb_info_by_way[1].big_tgt.small_tgt.lane,
             ras_ret_pc38.lane,
-            RESP2_tgt_pc38.lane,
+            ibtb_read_tgt_pc38_by_way[0].lane,
+            ibtb_read_tgt_pc38_by_way[1].lane,
             btb_read_resp_hit_lane_by_way[0] + 3'h1,
             btb_read_resp_hit_lane_by_way[1] + 3'h1
         }),
@@ -1054,9 +1053,9 @@ module fetch_unit (
     // upct:
     always_comb begin
         upct_read_valid = RESP_valid & RESP_pass;
-        upct_read_idx_way0 = btb_read_resp_btb_info_by_way[0].big_tgt.upct_idx;
-        upct_read_idx_way1 = btb_read_resp_btb_info_by_way[1].big_tgt.upct_idx;
-        upct_read_idx_touch = btb_read_resp_hit_way ? upct_read_idx_way1 : upct_read_idx_way0;
+        upct_read_idx_by_way[0] = btb_read_resp_btb_info_by_way[0].big_tgt.upct_idx;
+        upct_read_idx_by_way[1] = btb_read_resp_btb_info_by_way[1].big_tgt.upct_idx;
+        upct_read_idx_touch = btb_read_resp_hit_way ? upct_read_idx_by_way[1] : upct_read_idx_by_way[0];
 
         upct_update_valid = branch_update_valid & branch_update_ready & branch_update_btb_info.use_upct;
         upct_update_upc = branch_update_tgt_pc38.upc;
@@ -1065,11 +1064,9 @@ module fetch_unit (
         .CLK(CLK),
         .nRST(nRST),
         .read_valid(upct_read_valid),
-        .read_idx_way0(upct_read_idx_way0),
-        .read_idx_way1(upct_read_idx_way1),
+        .read_idx_by_way(upct_read_idx_by_way),
         .read_idx_touch(upct_read_idx_touch),
-        .read_upc_way0(upct_read_upc_by_way[0]),
-        .read_upc_way1(upct_read_upc_by_way[1]),
+        .read_upc_by_way(upct_read_upc_by_way),
         .update_valid(upct_update_valid),
         .update_upc(upct_update_upc),
         .update_upct_idx(upct_update_upct_idx)
@@ -1174,10 +1171,8 @@ module fetch_unit (
         .read_resp_hit(btb_read_resp_hit),
         .read_resp_double_hit(btb_read_resp_double_hit),
         .read_resp_hit_way(btb_read_resp_hit_way),
-        .read_resp_hit_lane_way0(btb_read_resp_hit_lane_by_way[0]),
-        .read_resp_hit_lane_way1(btb_read_resp_hit_lane_by_way[1]),
-        .read_resp_btb_info_way0(btb_read_resp_btb_info_by_way[0]),
-        .read_resp_btb_info_way1(btb_read_resp_btb_info_by_way[1]),
+        .read_resp_hit_lane_by_way(btb_read_resp_hit_lane_by_way),
+        .read_resp_btb_info_by_way(btb_read_resp_btb_info_by_way),
         .update_valid(btb_update_valid),
         .update_pc38(btb_update_pc38),
         .update_asid(btb_update_asid),
@@ -1193,8 +1188,8 @@ module fetch_unit (
         pht_read_req_gh = REQ_received_gh;
         pht_read_req_asid = fetch_arch_asid;
 
-        pht_read_resp_redirect_lane_way0 = btb_read_resp_hit_lane_by_way[0];
-        pht_read_resp_redirect_lane_way1 = btb_read_resp_hit_lane_by_way[1];
+        pht_read_resp_redirect_lane_by_way[0] = btb_read_resp_hit_lane_by_way[0];
+        pht_read_resp_redirect_lane_by_way[1] = btb_read_resp_hit_lane_by_way[1];
 
         pht_update_valid = branch_update_valid & branch_update_ready & branch_update_btb_info.action.branch;
         pht_update_pc38 = branch_update_src_pc38;
@@ -1209,10 +1204,8 @@ module fetch_unit (
         .read_req_fetch_idx(pht_read_req_fetch_idx),
         .read_req_gh(pht_read_req_gh),
         .read_req_asid(pht_read_req_asid),
-        .read_resp_redirect_lane_way0(pht_read_resp_redirect_lane_way0),
-        .read_resp_redirect_lane_way1(pht_read_resp_redirect_lane_way1),
-        .read_resp_taken_way0(pht_read_resp_taken_by_way[0]),
-        .read_resp_taken_way1(pht_read_resp_taken_by_way[1]),
+        .read_resp_redirect_lane_by_way(pht_read_resp_redirect_lane_by_way),
+        .read_resp_taken_by_way(pht_read_resp_taken_by_way),
         .update_valid(pht_update_valid),
         .update_pc38(pht_update_pc38),
         .update_gh(pht_update_gh),
