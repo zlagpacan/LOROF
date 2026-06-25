@@ -201,7 +201,7 @@ module fetch_unit (
     corep::pc38_t RESP1_received_pc38;
     corep::pc38_t RESP1_received_pc38_next_8;
 
-    corep::gh_t RESP1_updated_gh;
+    corep::gh_t RESP1_received_gh;
 
     sysp::icache_tag_t  RESP1_icache_tag;
     logic               RESP1_icache_hit;
@@ -413,11 +413,9 @@ module fetch_unit (
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             REQ_latched_pc38 <= corep::INIT_PC38;
-            REQ_latched_gh <= corep::INIT_GH;
         end
         else if (any_restart) begin
             REQ_latched_pc38 <= restart_final_pc38;
-            REQ_latched_gh <= restart_final_gh;
         end
     end
     always_comb begin
@@ -430,16 +428,16 @@ module fetch_unit (
         if (~nRST) begin
             RESP0_valid <= 1'b0;
             RESP0_received_pc38 <= 38'h0;
-            RESP0_received_gh <= '0;
+            RESP0_latched_gh <= corep::INIT_GH;
         end
         else begin
             if (any_restart) begin
                 RESP0_valid <= 1'b0;
+                RESP0_latched_gh <= restart_final_gh;
             end
             else if (~RESP0_valid | RESP0_pass) begin
                 RESP0_valid <= REQ_valid;
                 RESP0_received_pc38 <= REQ_received_pc38;
-                RESP0_received_gh <= REQ_received_gh;
             end
         end
     end
@@ -456,7 +454,7 @@ module fetch_unit (
             RESP1_valid <= 1'b0;
             RESP1_received_pc38 <= 38'h0;
             RESP1_received_pc38_next_8 <= 38'h0;
-            RESP1_updated_gh <= '0;
+            RESP1_received_gh <= '0;
             RESP1_icache_tag <= '0;
         end
         else begin
@@ -467,7 +465,7 @@ module fetch_unit (
                 RESP1_valid <= RESP0_valid;
                 RESP1_received_pc38 <= RESP0_received_pc38;
                 RESP1_received_pc38_next_8 <= RESP0_received_pc38_next_8;
-                RESP1_updated_gh <= RESP0_updated_gh;
+                RESP1_received_gh <= RESP0_received_gh;
                 RESP1_icache_tag <= sysp::icache_tag_from_pc38(RESP0_received_pc38);
             end
         end
@@ -478,11 +476,11 @@ module fetch_unit (
         // REQ_received_pc38 possibilities:
             // REQ_latched_pc38
             // RESP0_received_pc38_next_8
-            // {upct_read_upc_by_way[way], btb_read_resp_btb_info_by_way[way].big_tgt.small_tgt.idx, btb_read_resp_btb_info_by_way[way].big_tgt.small_tgt.lane}
-            // {RESP1_received_pc38.upc.msbs, btb_read_resp_btb_info_by_way[way].big_tgt.upct_idx, btb_read_resp_btb_info_by_way[way].big_tgt.small_tgt.idx, btb_read_resp_btb_info_by_way[way].big_tgt.small_tgt.lane}
+            // {upct_read_upc_by_way[way], btb_read_resp1_btb_info_by_way[way].big_tgt.small_tgt.idx, btb_read_resp1_btb_info_by_way[way].big_tgt.small_tgt.lane}
+            // {RESP1_received_pc38.upc.msbs, btb_read_resp1_btb_info_by_way[way].big_tgt.upct_idx, btb_read_resp1_btb_info_by_way[way].big_tgt.small_tgt.idx, btb_read_resp1_btb_info_by_way[way].big_tgt.small_tgt.lane}
             // ras_ret_pc38
             // ibtb_read_tgt_pc38_by_way[way]
-            // {RESP1_received_pc38.upc, RESP1_received_pc38.idx, btb_read_resp_hit_lane_by_way[way] + 3'h1}
+            // {RESP1_received_pc38.upc, RESP1_received_pc38.idx, btb_read_resp1_hit_lane_by_way[way] + 3'h1}
 
         // REQ_received_pc38.upc.msbs
             // REQ_latched_pc38.upc.msbs
@@ -499,8 +497,8 @@ module fetch_unit (
             // RESP0_received_pc38_next_8.upc.big_tgt_msbs
             // upct_read_upc_by_way[0].big_tgt_msbs
             // upct_read_upc_by_way[1].big_tgt_msbs
-            // btb_read_resp_btb_info_by_way[0].big_tgt.upct_idx
-            // btb_read_resp_btb_info_by_way[1].big_tgt.upct_idx
+            // btb_read_resp1_btb_info_by_way[0].big_tgt.upct_idx
+            // btb_read_resp1_btb_info_by_way[1].big_tgt.upct_idx
             // ras_ret_pc38.upc.big_tgt_msbs
             // ibtb_read_tgt_pc38_by_way[0].upc.big_tgt_msbs
             // ibtb_read_tgt_pc38_by_way[1].upc.big_tgt_msbs
@@ -509,8 +507,8 @@ module fetch_unit (
         // REQ_received_pc38.idx
             // REQ_latched_pc38.idx
             // RESP0_received_pc38_next_8.idx
-            // btb_read_resp_btb_info_by_way[0].big_tgt.small_tgt.idx
-            // btb_read_resp_btb_info_by_way[1].big_tgt.small_tgt.idx
+            // btb_read_resp1_btb_info_by_way[0].big_tgt.small_tgt.idx
+            // btb_read_resp1_btb_info_by_way[1].big_tgt.small_tgt.idx
             // ras_ret_pc38.idx
             // ibtb_read_tgt_pc38_by_way[0].idx
             // ibtb_read_tgt_pc38_by_way[1].idx
@@ -519,13 +517,13 @@ module fetch_unit (
         // REQ_received_pc38.lane
             // REQ_latched_pc38.lane
             // 3'b000 -> skip case
-            // btb_read_resp_btb_info_by_way[0].big_tgt.small_tgt.lane
-            // btb_read_resp_btb_info_by_way[1].big_tgt.small_tgt.lane
+            // btb_read_resp1_btb_info_by_way[0].big_tgt.small_tgt.lane
+            // btb_read_resp1_btb_info_by_way[1].big_tgt.small_tgt.lane
             // ras_ret_pc38.lane
             // ibtb_read_tgt_pc38_by_way[0].lane
             // ibtb_read_tgt_pc38_by_way[1].lane
-            // btb_read_resp_hit_lane_by_way[0] + 3'h1
-            // btb_read_resp_hit_lane_by_way[1] + 3'h1
+            // btb_read_resp1_hit_lane_by_way[0] + 3'h1
+            // btb_read_resp1_hit_lane_by_way[1] + 3'h1
 
     // REQ_received_pc38.upc.msbs
     always_comb begin
@@ -537,71 +535,71 @@ module fetch_unit (
         REQ_received_pc38_upc_msbs_one_hot[1] =
             RESP0_valid & (
                 ~RESP1_valid
-                | ~btb_read_resp_hit
+                | ~btb_read_resp1_hit
                 | (
-                    ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0] & (
-                        ~btb_read_resp_double_hit
-                        | btb_read_resp_double_hit & (btb_read_resp_hit_lane_by_way[0] == 3'h7)
+                    ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0] & (
+                        ~btb_read_resp1_double_hit
+                        | btb_read_resp1_double_hit & (btb_read_resp1_hit_lane_by_way[0] == 3'h7)
                     )
-                    | btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1] & (
-                        ~btb_read_resp_double_hit
-                        | btb_read_resp_double_hit & (btb_read_resp_hit_lane_by_way[1] == 3'h7)
+                    | btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1] & (
+                        ~btb_read_resp1_double_hit
+                        | btb_read_resp1_double_hit & (btb_read_resp1_hit_lane_by_way[1] == 3'h7)
                     )
                 )
             )
         ;
         // upct_read_upc_by_way[0].msbs
         REQ_received_pc38_upc_msbs_one_hot[2] =
-            RESP1_valid & btb_read_resp_hit & ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].use_upct & (
-                btb_read_resp_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
-                | btb_read_resp_btb_info_by_way[0].action.jump
-                | btb_read_resp_btb_info_by_way[0].action.ret & ras_ret_fallback
+            RESP1_valid & btb_read_resp1_hit & ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].use_upct & (
+                btb_read_resp1_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
+                | btb_read_resp1_btb_info_by_way[0].action.jump
+                | btb_read_resp1_btb_info_by_way[0].action.ret & ras_ret_fallback
             )
         ;
         // upct_read_upc_by_way[1].msbs
         REQ_received_pc38_upc_msbs_one_hot[3] =
-            RESP1_valid & btb_read_resp_hit & btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].use_upct & (
-                btb_read_resp_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
-                | btb_read_resp_btb_info_by_way[1].action.jump
-                | btb_read_resp_btb_info_by_way[1].action.ret & ras_ret_fallback
+            RESP1_valid & btb_read_resp1_hit & btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].use_upct & (
+                btb_read_resp1_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
+                | btb_read_resp1_btb_info_by_way[1].action.jump
+                | btb_read_resp1_btb_info_by_way[1].action.ret & ras_ret_fallback
             )
         ;
         // RESP1_received_pc38.upc.msbs
         REQ_received_pc38_upc_msbs_one_hot[4] =
             RESP1_valid & (
-                btb_read_resp_hit & ~btb_read_resp_hit_way & ~btb_read_resp_btb_info_by_way[0].use_upct & (
-                    btb_read_resp_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
-                    | btb_read_resp_btb_info_by_way[0].action.jump
-                    | btb_read_resp_btb_info_by_way[0].action.ret & ras_ret_fallback
+                btb_read_resp1_hit & ~btb_read_resp1_hit_way & ~btb_read_resp1_btb_info_by_way[0].use_upct & (
+                    btb_read_resp1_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
+                    | btb_read_resp1_btb_info_by_way[0].action.jump
+                    | btb_read_resp1_btb_info_by_way[0].action.ret & ras_ret_fallback
                 )
-                | btb_read_resp_hit & btb_read_resp_hit_way & ~btb_read_resp_btb_info_by_way[1].use_upct & (
-                    btb_read_resp_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
-                    | btb_read_resp_btb_info_by_way[1].action.jump
-                    | btb_read_resp_btb_info_by_way[1].action.ret & ras_ret_fallback
+                | btb_read_resp1_hit & btb_read_resp1_hit_way & ~btb_read_resp1_btb_info_by_way[1].use_upct & (
+                    btb_read_resp1_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
+                    | btb_read_resp1_btb_info_by_way[1].action.jump
+                    | btb_read_resp1_btb_info_by_way[1].action.ret & ras_ret_fallback
                 )
-                | btb_read_resp_double_hit & (
-                    ~btb_read_resp_hit_way & (btb_read_resp_hit_lane_by_way[0] != 3'h7) & btb_read_resp_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0]
-                    | btb_read_resp_hit_way & (btb_read_resp_hit_lane_by_way[1] != 3'h7) & btb_read_resp_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1]
+                | btb_read_resp1_double_hit & (
+                    ~btb_read_resp1_hit_way & (btb_read_resp1_hit_lane_by_way[0] != 3'h7) & btb_read_resp1_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0]
+                    | btb_read_resp1_hit_way & (btb_read_resp1_hit_lane_by_way[1] != 3'h7) & btb_read_resp1_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1]
                 )
             )
         ;
         // ras_ret_pc38.upc.msbs
         REQ_received_pc38_upc_msbs_one_hot[5] =
-            RESP1_valid & btb_read_resp_hit & ~ras_ret_fallback & (
-                ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.ret
-                | btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.ret
+            RESP1_valid & btb_read_resp1_hit & ~ras_ret_fallback & (
+                ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].action.ret
+                | btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].action.ret
             )
         ;
         // ibtb_read_tgt_pc38_by_way[0].upc.msbs
         REQ_received_pc38_upc_msbs_one_hot[6] =
-            RESP1_valid & btb_read_resp_hit & (
-                ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.ibtb
+            RESP1_valid & btb_read_resp1_hit & (
+                ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].action.ibtb
             )
         ;
         // ibtb_read_tgt_pc38_by_way[1].upc.msbs
         REQ_received_pc38_upc_msbs_one_hot[7] =
-            RESP1_valid & btb_read_resp_hit & (
-                btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.ibtb
+            RESP1_valid & btb_read_resp1_hit & (
+                btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].action.ibtb
             )
         ;
     end
@@ -614,7 +612,7 @@ module fetch_unit (
             ibtb_read_tgt_pc38_by_way[1].upc.msbs,
             ibtb_read_tgt_pc38_by_way[0].upc.msbs,
             ras_ret_pc38.upc.msbs,
-            RESP_received_pc38.upc.msbs,
+            RESP1_received_pc38.upc.msbs,
             upct_read_upc_by_way[1].msbs,
             upct_read_upc_by_way[0].msbs,
             RESP0_received_pc38_next_8.upc.msbs,
@@ -633,75 +631,75 @@ module fetch_unit (
         REQ_received_pc38_upc_big_tgt_msbs_one_hot[1] =
             RESP0_valid & (
                 ~RESP1_valid
-                | ~btb_read_resp_hit
-                | (btb_read_resp_hit & (
-                    ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0] & (
-                        ~btb_read_resp_double_hit
-                        | btb_read_resp_double_hit & (btb_read_resp_hit_lane_by_way[0] == 3'h7)
+                | ~btb_read_resp1_hit
+                | (btb_read_resp1_hit & (
+                    ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0] & (
+                        ~btb_read_resp1_double_hit
+                        | btb_read_resp1_double_hit & (btb_read_resp1_hit_lane_by_way[0] == 3'h7)
                     )
-                    | btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1] & (
-                        ~btb_read_resp_double_hit
-                        | btb_read_resp_double_hit & (btb_read_resp_hit_lane_by_way[1] == 3'h7)
+                    | btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1] & (
+                        ~btb_read_resp1_double_hit
+                        | btb_read_resp1_double_hit & (btb_read_resp1_hit_lane_by_way[1] == 3'h7)
                     )
                 ))
             )
         ;
         // upct_read_upc_by_way[0].big_tgt_msbs
         REQ_received_pc38_upc_big_tgt_msbs_one_hot[2] =
-            RESP1_valid & btb_read_resp_hit & ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].use_upct & (
-                btb_read_resp_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
-                | btb_read_resp_btb_info_by_way[0].action.jump
-                | btb_read_resp_btb_info_by_way[0].action.ret & ras_ret_fallback
+            RESP1_valid & btb_read_resp1_hit & ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].use_upct & (
+                btb_read_resp1_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
+                | btb_read_resp1_btb_info_by_way[0].action.jump
+                | btb_read_resp1_btb_info_by_way[0].action.ret & ras_ret_fallback
             )
         ;
         // upct_read_upc_by_way[1].big_tgt_msbs
         REQ_received_pc38_upc_big_tgt_msbs_one_hot[3] =
-            RESP1_valid & btb_read_resp_hit & btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].use_upct & (
-                btb_read_resp_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
-                | btb_read_resp_btb_info_by_way[1].action.jump
-                | btb_read_resp_btb_info_by_way[1].action.ret & ras_ret_fallback
+            RESP1_valid & btb_read_resp1_hit & btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].use_upct & (
+                btb_read_resp1_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
+                | btb_read_resp1_btb_info_by_way[1].action.jump
+                | btb_read_resp1_btb_info_by_way[1].action.ret & ras_ret_fallback
             )
         ;
-        // btb_read_resp_btb_info_by_way[0].big_tgt.upct_idx
+        // btb_read_resp1_btb_info_by_way[0].big_tgt.upct_idx
         REQ_received_pc38_upc_big_tgt_msbs_one_hot[4] =
-            RESP1_valid & btb_read_resp_hit & ~btb_read_resp_hit_way & ~btb_read_resp_btb_info_by_way[0].use_upct & (
-                btb_read_resp_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
-                | btb_read_resp_btb_info_by_way[0].action.jump
-                | btb_read_resp_btb_info_by_way[0].action.ret & ras_ret_fallback
+            RESP1_valid & btb_read_resp1_hit & ~btb_read_resp1_hit_way & ~btb_read_resp1_btb_info_by_way[0].use_upct & (
+                btb_read_resp1_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
+                | btb_read_resp1_btb_info_by_way[0].action.jump
+                | btb_read_resp1_btb_info_by_way[0].action.ret & ras_ret_fallback
             )
         ;
-        // btb_read_resp_btb_info_by_way[1].big_tgt.upct_idx
+        // btb_read_resp1_btb_info_by_way[1].big_tgt.upct_idx
         REQ_received_pc38_upc_big_tgt_msbs_one_hot[5] =
-            RESP1_valid & btb_read_resp_hit & btb_read_resp_hit_way & ~btb_read_resp_btb_info_by_way[1].use_upct & (
-                btb_read_resp_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
-                | btb_read_resp_btb_info_by_way[1].action.jump
-                | btb_read_resp_btb_info_by_way[1].action.ret & ras_ret_fallback
+            RESP1_valid & btb_read_resp1_hit & btb_read_resp1_hit_way & ~btb_read_resp1_btb_info_by_way[1].use_upct & (
+                btb_read_resp1_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
+                | btb_read_resp1_btb_info_by_way[1].action.jump
+                | btb_read_resp1_btb_info_by_way[1].action.ret & ras_ret_fallback
             )
         ;
         // ras_ret_pc38.upc.big_tgt_msbs
         REQ_received_pc38_upc_big_tgt_msbs_one_hot[6] =
-            RESP1_valid & btb_read_resp_hit & ~ras_ret_fallback & (
-                ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.ret
-                | btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.ret
+            RESP1_valid & btb_read_resp1_hit & ~ras_ret_fallback & (
+                ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].action.ret
+                | btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].action.ret
             )
         ;
         // ibtb_read_tgt_pc38_by_way[0].upc.big_tgt_msbs
         REQ_received_pc38_upc_big_tgt_msbs_one_hot[7] =
-            RESP1_valid & btb_read_resp_hit & (
-                ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.ibtb
+            RESP1_valid & btb_read_resp1_hit & (
+                ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].action.ibtb
             )
         ;
         // ibtb_read_tgt_pc38_by_way[1].upc.big_tgt_msbs
         REQ_received_pc38_upc_big_tgt_msbs_one_hot[8] =
-            RESP1_valid & btb_read_resp_hit & (
-                btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.ibtb
+            RESP1_valid & btb_read_resp1_hit & (
+                btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].action.ibtb
             )
         ;
         // RESP1_received_pc38.upc.big_tgt_msbs
         REQ_received_pc38_upc_big_tgt_msbs_one_hot[9] =
-            RESP1_valid & btb_read_resp_double_hit & (
-                ~btb_read_resp_hit_way & (btb_read_resp_hit_lane_by_way[0] != 3'h7) & btb_read_resp_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0]
-                | btb_read_resp_hit_way & (btb_read_resp_hit_lane_by_way[1] != 3'h7) & btb_read_resp_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1]
+            RESP1_valid & btb_read_resp1_double_hit & (
+                ~btb_read_resp1_hit_way & (btb_read_resp1_hit_lane_by_way[0] != 3'h7) & btb_read_resp1_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0]
+                | btb_read_resp1_hit_way & (btb_read_resp1_hit_lane_by_way[1] != 3'h7) & btb_read_resp1_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1]
             )
         ;
     end
@@ -715,8 +713,8 @@ module fetch_unit (
             ibtb_read_tgt_pc38_by_way[1].upc.big_tgt_msbs,
             ibtb_read_tgt_pc38_by_way[0].upc.big_tgt_msbs,
             ras_ret_pc38.upc.big_tgt_msbs,
-            btb_read_resp_btb_info_by_way[1].big_tgt.upct_idx,
-            btb_read_resp_btb_info_by_way[0].big_tgt.upct_idx,
+            btb_read_resp1_btb_info_by_way[1].big_tgt.upct_idx,
+            btb_read_resp1_btb_info_by_way[0].big_tgt.upct_idx,
             upct_read_upc_by_way[1].big_tgt_msbs,
             upct_read_upc_by_way[0].big_tgt_msbs,
             RESP0_received_pc38_next_8.upc.big_tgt_msbs,
@@ -735,59 +733,59 @@ module fetch_unit (
         REQ_received_pc38_idx_one_hot[1] =
             RESP0_valid & (
                 ~RESP1_valid
-                | ~btb_read_resp_hit
-                | (btb_read_resp_hit & (
-                    ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0] & (
-                        ~btb_read_resp_double_hit
-                        | btb_read_resp_double_hit & (btb_read_resp_hit_lane_by_way[0] == 3'h7)
+                | ~btb_read_resp1_hit
+                | (btb_read_resp1_hit & (
+                    ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0] & (
+                        ~btb_read_resp1_double_hit
+                        | btb_read_resp1_double_hit & (btb_read_resp1_hit_lane_by_way[0] == 3'h7)
                     )
-                    | btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1] & (
-                        ~btb_read_resp_double_hit
-                        | btb_read_resp_double_hit & (btb_read_resp_hit_lane_by_way[1] == 3'h7)
+                    | btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1] & (
+                        ~btb_read_resp1_double_hit
+                        | btb_read_resp1_double_hit & (btb_read_resp1_hit_lane_by_way[1] == 3'h7)
                     )
                 ))
             )
         ;
-        // btb_read_resp_btb_info_by_way[0].big_tgt.small_tgt.idx
+        // btb_read_resp1_btb_info_by_way[0].big_tgt.small_tgt.idx
         REQ_received_pc38_idx_one_hot[2] =
-            RESP1_valid & btb_read_resp_hit & ~btb_read_resp_hit_way & (
-                btb_read_resp_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
-                | btb_read_resp_btb_info_by_way[0].action.jump
-                | btb_read_resp_btb_info_by_way[0].action.ret & ras_ret_fallback
+            RESP1_valid & btb_read_resp1_hit & ~btb_read_resp1_hit_way & (
+                btb_read_resp1_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
+                | btb_read_resp1_btb_info_by_way[0].action.jump
+                | btb_read_resp1_btb_info_by_way[0].action.ret & ras_ret_fallback
             )
         ;
-        // btb_read_resp_btb_info_by_way[1].big_tgt.small_tgt.idx
+        // btb_read_resp1_btb_info_by_way[1].big_tgt.small_tgt.idx
         REQ_received_pc38_idx_one_hot[3] =
-            RESP1_valid & btb_read_resp_hit & btb_read_resp_hit_way & (
-                btb_read_resp_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
-                | btb_read_resp_btb_info_by_way[1].action.jump
-                | btb_read_resp_btb_info_by_way[1].action.ret & ras_ret_fallback
+            RESP1_valid & btb_read_resp1_hit & btb_read_resp1_hit_way & (
+                btb_read_resp1_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
+                | btb_read_resp1_btb_info_by_way[1].action.jump
+                | btb_read_resp1_btb_info_by_way[1].action.ret & ras_ret_fallback
             )
         ;
         // ras_ret_pc38.idx
         REQ_received_pc38_idx_one_hot[4] =
-            RESP1_valid & btb_read_resp_hit & ~ras_ret_fallback & (
-                ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.ret
-                | btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.ret
+            RESP1_valid & btb_read_resp1_hit & ~ras_ret_fallback & (
+                ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].action.ret
+                | btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].action.ret
             )
         ;
         // ibtb_read_tgt_pc38_by_way[0].idx
         REQ_received_pc38_idx_one_hot[5] =
-            RESP1_valid & btb_read_resp_hit & (
-                ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.ibtb
+            RESP1_valid & btb_read_resp1_hit & (
+                ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].action.ibtb
             )
         ;
         // ibtb_read_tgt_pc38_by_way[1].idx
         REQ_received_pc38_idx_one_hot[6] =
-            RESP1_valid & btb_read_resp_hit & (
-                btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.ibtb
+            RESP1_valid & btb_read_resp1_hit & (
+                btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].action.ibtb
             )
         ;
         // RESP1_received_pc38.idx
         REQ_received_pc38_idx_one_hot[7] =
-            RESP1_valid & btb_read_resp_double_hit & (
-                ~btb_read_resp_hit_way & (btb_read_resp_hit_lane_by_way[0] != 3'h7) & btb_read_resp_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0]
-                | btb_read_resp_hit_way & (btb_read_resp_hit_lane_by_way[1] != 3'h7) & btb_read_resp_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1]
+            RESP1_valid & btb_read_resp1_double_hit & (
+                ~btb_read_resp1_hit_way & (btb_read_resp1_hit_lane_by_way[0] != 3'h7) & btb_read_resp1_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0]
+                | btb_read_resp1_hit_way & (btb_read_resp1_hit_lane_by_way[1] != 3'h7) & btb_read_resp1_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1]
             )
         ;
     end
@@ -801,8 +799,8 @@ module fetch_unit (
             ibtb_read_tgt_pc38_by_way[1].idx,
             ibtb_read_tgt_pc38_by_way[0].idx,
             ras_ret_pc38.idx,
-            btb_read_resp_btb_info_by_way[1].big_tgt.small_tgt.idx,
-            btb_read_resp_btb_info_by_way[0].big_tgt.small_tgt.idx,
+            btb_read_resp1_btb_info_by_way[1].big_tgt.small_tgt.idx,
+            btb_read_resp1_btb_info_by_way[0].big_tgt.small_tgt.idx,
             RESP0_received_pc38_next_8.idx,
             REQ_latched_pc38.idx
         }),
@@ -816,48 +814,48 @@ module fetch_unit (
             ~RESP0_valid
         ;
         // 3'b000 -> skip case
-        // btb_read_resp_btb_info_by_way[0].big_tgt.small_tgt.lane
+        // btb_read_resp1_btb_info_by_way[0].big_tgt.small_tgt.lane
         REQ_received_pc38_lane_one_hot[1] =
-            RESP1_valid & btb_read_resp_hit & ~btb_read_resp_hit_way & (
-                btb_read_resp_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
-                | btb_read_resp_btb_info_by_way[0].action.jump
-                | btb_read_resp_btb_info_by_way[0].action.ret & ras_ret_fallback
+            RESP1_valid & btb_read_resp1_hit & ~btb_read_resp1_hit_way & (
+                btb_read_resp1_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
+                | btb_read_resp1_btb_info_by_way[0].action.jump
+                | btb_read_resp1_btb_info_by_way[0].action.ret & ras_ret_fallback
             )
         ;
-        // btb_read_resp_btb_info_by_way[1].big_tgt.small_tgt.lane
+        // btb_read_resp1_btb_info_by_way[1].big_tgt.small_tgt.lane
         REQ_received_pc38_lane_one_hot[2] =
-            RESP1_valid & btb_read_resp_hit & btb_read_resp_hit_way & (
-                btb_read_resp_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
-                | btb_read_resp_btb_info_by_way[1].action.jump
-                | btb_read_resp_btb_info_by_way[1].action.ret & ras_ret_fallback
+            RESP1_valid & btb_read_resp1_hit & btb_read_resp1_hit_way & (
+                btb_read_resp1_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
+                | btb_read_resp1_btb_info_by_way[1].action.jump
+                | btb_read_resp1_btb_info_by_way[1].action.ret & ras_ret_fallback
             )
         ;
         // ras_ret_pc38.lane
         REQ_received_pc38_lane_one_hot[3] =
-            RESP1_valid & btb_read_resp_hit & ~ras_ret_fallback & (
-                ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.ret
-                | btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.ret
+            RESP1_valid & btb_read_resp1_hit & ~ras_ret_fallback & (
+                ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].action.ret
+                | btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].action.ret
             )
         ;
         // ibtb_read_tgt_pc38_by_way[0].lane
         REQ_received_pc38_lane_one_hot[4] =
-            RESP1_valid & btb_read_resp_hit & (
-                ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.ibtb
+            RESP1_valid & btb_read_resp1_hit & (
+                ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].action.ibtb
             )
         ;
         // ibtb_read_tgt_pc38_by_way[1].lane
         REQ_received_pc38_lane_one_hot[5] =
-            RESP1_valid & btb_read_resp_hit & (
-                btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.ibtb
+            RESP1_valid & btb_read_resp1_hit & (
+                btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].action.ibtb
             )
         ;
-        // btb_read_resp_hit_lane_by_way[0] + 3'h1
+        // btb_read_resp1_hit_lane_by_way[0] + 3'h1
         REQ_received_pc38_lane_one_hot[6] =
-            RESP1_valid & btb_read_resp_double_hit & ~btb_read_resp_hit_way & (btb_read_resp_hit_lane_by_way[0] != 3'h7) & btb_read_resp_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0]
+            RESP1_valid & btb_read_resp1_double_hit & ~btb_read_resp1_hit_way & (btb_read_resp1_hit_lane_by_way[0] != 3'h7) & btb_read_resp1_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0]
         ;
-        // btb_read_resp_hit_lane_by_way[1] + 3'h1
+        // btb_read_resp1_hit_lane_by_way[1] + 3'h1
         REQ_received_pc38_lane_one_hot[7] =
-            RESP1_valid & btb_read_resp_double_hit & btb_read_resp_hit_way & (btb_read_resp_hit_lane_by_way[1] != 3'h7) & btb_read_resp_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1]
+            RESP1_valid & btb_read_resp1_double_hit & btb_read_resp1_hit_way & (btb_read_resp1_hit_lane_by_way[1] != 3'h7) & btb_read_resp1_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1]
         ;
     end
     mux_one_hot #(
@@ -866,13 +864,13 @@ module fetch_unit (
     ) REQ_RECEIVED_PC38_LANE_ONE_HOT_MUX (
         .sel_one_hot(REQ_received_pc38_lane_one_hot),
         .data_by_requestor({
-            btb_read_resp_hit_lane_by_way[1] + 3'h1,
-            btb_read_resp_hit_lane_by_way[0] + 3'h1,
+            btb_read_resp1_hit_lane_by_way[1] + 3'h1,
+            btb_read_resp1_hit_lane_by_way[0] + 3'h1,
             ibtb_read_tgt_pc38_by_way[1].lane,
             ibtb_read_tgt_pc38_by_way[0].lane,
             ras_ret_pc38.lane,
-            btb_read_resp_btb_info_by_way[1].big_tgt.small_tgt.lane,
-            btb_read_resp_btb_info_by_way[0].big_tgt.small_tgt.lane,
+            btb_read_resp1_btb_info_by_way[1].big_tgt.small_tgt.lane,
+            btb_read_resp1_btb_info_by_way[0].big_tgt.small_tgt.lane,
             // 3'b000 -> skip case
             REQ_latched_pc38.lane
         }),
@@ -885,26 +883,26 @@ module fetch_unit (
         RESP0_received_gh_one_hot[0] =
             ~RESP1_valid
         ;
-        // RESP1_updated_gh
+        // RESP1_received_gh
         RESP0_received_gh_one_hot[1] =
             RESP1_valid & (
-                ~btb_read_resp_hit
-                | ~btb_read_resp_hit_way & ~btb_read_resp_btb_info_by_way[0].action.branch
-                | btb_read_resp_hit_way & ~btb_read_resp_btb_info_by_way[1].action.branch
+                ~btb_read_resp1_hit
+                | ~btb_read_resp1_hit_way & ~btb_read_resp1_btb_info_by_way[0].action.branch
+                | btb_read_resp1_hit_way & ~btb_read_resp1_btb_info_by_way[1].action.branch
             )
         ;
-        // {RESP1_updated_gh << 1, 1'b1}
+        // {RESP1_received_gh << 1, 1'b1}
         RESP0_received_gh_one_hot[2] =
-            RESP1_valid & btb_read_resp_hit & (
-                ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
-                | btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
+            RESP1_valid & btb_read_resp1_hit & (
+                ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
+                | btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
             )
         ;
-        // {RESP1_updated_gh << 1, 1'b0}
+        // {RESP1_received_gh << 1, 1'b0}
         RESP0_received_gh_one_hot[3] =
-            RESP1_valid & btb_read_resp_hit & (
-                ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0]
-                | btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1]
+            RESP1_valid & btb_read_resp1_hit & (
+                ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0]
+                | btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1]
             )
         ;
     end
@@ -912,11 +910,11 @@ module fetch_unit (
         .COUNT(4),
         .WIDTH($bits(RESP0_received_gh))
     ) RESP0_RECEIVED_GH_ONE_HOT_MUX (
-        .sel_one_hot(RESP0_updated_gh_one_hot),
+        .sel_one_hot(RESP0_received_gh_one_hot),
         .data_by_requestor({
-            {RESP1_updated_gh << 1, 1'b0},
-            {RESP1_updated_gh << 1, 1'b1},
-            RESP1_updated_gh,
+            {RESP1_received_gh << 1, 1'b0},
+            {RESP1_received_gh << 1, 1'b1},
+            RESP1_received_gh,
             RESP0_latched_gh
         }),
         .selected_data(RESP0_received_gh)
@@ -925,35 +923,35 @@ module fetch_unit (
     // binary selects
     always_comb begin
         RESP1_redirect =
-            RESP1_valid & btb_read_resp_hit & ~btb_read_resp_hit_way & (
-                btb_read_resp_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
-                | btb_read_resp_btb_info_by_way[0].action.jump
-                | btb_read_resp_btb_info_by_way[0].action.ret
-                | btb_read_resp_btb_info_by_way[0].action.ibtb
+            RESP1_valid & btb_read_resp1_hit & ~btb_read_resp1_hit_way & (
+                btb_read_resp1_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
+                | btb_read_resp1_btb_info_by_way[0].action.jump
+                | btb_read_resp1_btb_info_by_way[0].action.ret
+                | btb_read_resp1_btb_info_by_way[0].action.ibtb
             )
-            | RESP1_valid & btb_read_resp_hit & btb_read_resp_hit_way & (
-                btb_read_resp_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
-                | btb_read_resp_btb_info_by_way[1].action.jump
-                | btb_read_resp_btb_info_by_way[1].action.ret
-                | btb_read_resp_btb_info_by_way[1].action.ibtb
+            | RESP1_valid & btb_read_resp1_hit & btb_read_resp1_hit_way & (
+                btb_read_resp1_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
+                | btb_read_resp1_btb_info_by_way[1].action.jump
+                | btb_read_resp1_btb_info_by_way[1].action.ret
+                | btb_read_resp1_btb_info_by_way[1].action.ibtb
             )
-            | RESP1_valid & btb_read_resp_double_hit & (
-                ~btb_read_resp_hit_way & (btb_read_resp_hit_lane_by_way[0] != 3'h7) & btb_read_resp_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0]
-                | btb_read_resp_hit_way & (btb_read_resp_hit_lane_by_way[1] != 3'h7) & btb_read_resp_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1]
+            | RESP1_valid & btb_read_resp1_double_hit & (
+                ~btb_read_resp1_hit_way & (btb_read_resp1_hit_lane_by_way[0] != 3'h7) & btb_read_resp1_btb_info_by_way[0].action.branch & ~pht_read_resp_taken_by_way[0]
+                | btb_read_resp1_hit_way & (btb_read_resp1_hit_lane_by_way[1] != 3'h7) & btb_read_resp1_btb_info_by_way[1].action.branch & ~pht_read_resp_taken_by_way[1]
             )
         ;
         RESP1_redirect_no_double_hit_not_taken =
-            RESP1_valid & btb_read_resp_hit & ~btb_read_resp_hit_way & (
-                btb_read_resp_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
-                | btb_read_resp_btb_info_by_way[0].action.jump
-                | btb_read_resp_btb_info_by_way[0].action.ret
-                | btb_read_resp_btb_info_by_way[0].action.ibtb
+            RESP1_valid & btb_read_resp1_hit & ~btb_read_resp1_hit_way & (
+                btb_read_resp1_btb_info_by_way[0].action.branch & pht_read_resp_taken_by_way[0]
+                | btb_read_resp1_btb_info_by_way[0].action.jump
+                | btb_read_resp1_btb_info_by_way[0].action.ret
+                | btb_read_resp1_btb_info_by_way[0].action.ibtb
             )
-            | RESP1_valid & btb_read_resp_hit & btb_read_resp_hit_way & (
-                btb_read_resp_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
-                | btb_read_resp_btb_info_by_way[1].action.jump
-                | btb_read_resp_btb_info_by_way[1].action.ret
-                | btb_read_resp_btb_info_by_way[1].action.ibtb
+            | RESP1_valid & btb_read_resp1_hit & btb_read_resp1_hit_way & (
+                btb_read_resp1_btb_info_by_way[1].action.branch & pht_read_resp_taken_by_way[1]
+                | btb_read_resp1_btb_info_by_way[1].action.jump
+                | btb_read_resp1_btb_info_by_way[1].action.ret
+                | btb_read_resp1_btb_info_by_way[1].action.ibtb
             )
         ;
 
@@ -969,8 +967,8 @@ module fetch_unit (
                 & (
                     ~RESP1_redirect 
                     | (
-                        ~btb_read_resp_hit_way & (lane <= btb_read_resp_hit_lane_by_way[0])
-                        | btb_read_resp_hit_way & (lane <= btb_read_resp_hit_lane_by_way[1])
+                        ~btb_read_resp1_hit_way & (lane <= btb_read_resp1_hit_lane_by_way[0])
+                        | btb_read_resp1_hit_way & (lane <= btb_read_resp1_hit_lane_by_way[1])
                     )
                 )
             ;
@@ -1020,38 +1018,41 @@ module fetch_unit (
         itlb_resp_vpn = RESP1_received_pc38[38-1:sysp::PO_WIDTH-1];
     end
 
-    // TODO: continue from here
-
     // icache req:
     always_comb begin
         icache_req_valid = REQ_valid & REQ_pass;
         icache_req_fetch_idx = REQ_received_pc38.idx;
     end
 
-    // icache resp feedback:
+    // icache resp0 feedback:
     always_comb begin
-        RESP_icache_hit = 1'b0;
+        icache_resp0_valid = RESP0_valid & RESP0_pass;
+    end
+
+    // icache resp1 feedback:
+    always_comb begin
+        RESP1_icache_hit = 1'b0;
         icache_feedback_hit_way = 0;
         // prioritize lowest way
         for (int way = sysp::ICACHE_ASSOC-1; way >= 0; way--) begin
-            if (icache_resp_valid_by_way[way] & (icache_resp_tag_by_way[way] == RESP_received_icache_tag)) begin
-                RESP_icache_hit = 1'b1;
+            if (icache_resp1_valid_by_way[way] & (icache_resp1_tag_by_way[way] == RESP1_icache_tag)) begin
+                RESP1_icache_hit = 1'b1;
                 icache_feedback_hit_way = way;
             end
         end
-        icache_feedback_hit_valid = RESP_icache_hit & RESP_valid & RESP_pass;
+        icache_feedback_hit_valid = RESP1_icache_hit & RESP1_valid & RESP1_pass;
 
-        icache_feedback_miss_valid = ~RESP_icache_hit & RESP_valid & RESP_pass;
+        icache_feedback_miss_valid = ~RESP1_icache_hit & RESP1_valid & RESP1_pass;
         icache_feedback_miss_fmid = ibuffer_enq_fmid;
-        icache_feedback_miss_pa39 = {RESP_received_pc38, 1'b0};
+        icache_feedback_miss_pa39 = {RESP1_received_pc38, 1'b0};
     end
 
     // upct:
     always_comb begin
-        upct_read_valid = RESP_valid & RESP_pass;
-        upct_read_idx_by_way[0] = btb_read_resp_btb_info_by_way[0].big_tgt.upct_idx;
-        upct_read_idx_by_way[1] = btb_read_resp_btb_info_by_way[1].big_tgt.upct_idx;
-        upct_read_idx_touch = btb_read_resp_hit_way ? upct_read_idx_by_way[1] : upct_read_idx_by_way[0];
+        upct_read_valid = RESP1_valid & RESP1_pass;
+        upct_read_idx_by_way[0] = btb_read_resp1_btb_info_by_way[0].big_tgt.upct_idx;
+        upct_read_idx_by_way[1] = btb_read_resp1_btb_info_by_way[1].big_tgt.upct_idx;
+        upct_read_idx_touch = btb_read_resp1_hit_way ? upct_read_idx_by_way[1] : upct_read_idx_by_way[0];
 
         upct_update_valid = branch_update_valid & branch_update_ready & branch_update_btb_info.use_upct;
         upct_update_upc = branch_update_tgt_pc38.upc;
@@ -1071,42 +1072,42 @@ module fetch_unit (
     // ras:
     always_comb begin
         ras_link_valid =
-            RESP_valid
-            & RESP_pass
-            & btb_read_resp_hit
+            RESP1_valid
+            & RESP1_pass
+            & btb_read_resp1_hit
             & (
-                ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.link
-                | btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.link
+                ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].action.link
+                | btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].action.link
             )
         ;
-        if (btb_read_resp_hit_way) begin
-            if (btb_read_resp_hit_lane_by_way[1] == 3'h7) begin
-                ras_link_pc38 = RESP_received_pc38_next_8;
+        if (btb_read_resp1_hit_way) begin
+            if (btb_read_resp1_hit_lane_by_way[1] == 3'h7) begin
+                ras_link_pc38 = RESP1_received_pc38_next_8;
             end
             else begin
-                ras_link_pc38.upc = RESP_received_pc38.upc;
-                ras_link_pc38.idx = RESP_received_pc38.idx;
-                ras_link_pc38.lane = btb_read_resp_hit_lane_by_way[1] + 3'h1;
+                ras_link_pc38.upc = RESP1_received_pc38.upc;
+                ras_link_pc38.idx = RESP1_received_pc38.idx;
+                ras_link_pc38.lane = btb_read_resp1_hit_lane_by_way[1] + 3'h1;
             end
         end
         else begin
-            if (btb_read_resp_hit_lane_by_way[0] == 3'h7) begin
-                ras_link_pc38 = RESP_received_pc38_next_8;
+            if (btb_read_resp1_hit_lane_by_way[0] == 3'h7) begin
+                ras_link_pc38 = RESP1_received_pc38_next_8;
             end
             else begin
-                ras_link_pc38.upc = RESP_received_pc38.upc;
-                ras_link_pc38.idx = RESP_received_pc38.idx;
-                ras_link_pc38.lane = btb_read_resp_hit_lane_by_way[0] + 3'h1;
+                ras_link_pc38.upc = RESP1_received_pc38.upc;
+                ras_link_pc38.idx = RESP1_received_pc38.idx;
+                ras_link_pc38.lane = btb_read_resp1_hit_lane_by_way[0] + 3'h1;
             end
         end
 
         ras_ret_valid =
-            RESP_valid
-            & RESP_pass
-            & btb_read_resp_hit
+            RESP1_valid
+            & RESP1_pass
+            & btb_read_resp1_hit
             & (
-                ~btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[0].action.ret
-                | btb_read_resp_hit_way & btb_read_resp_btb_info_by_way[1].action.ret
+                ~btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[0].action.ret
+                | btb_read_resp1_hit_way & btb_read_resp1_btb_info_by_way[1].action.ret
             )
             & ~ras_ret_fallback
         ;
@@ -1136,8 +1137,9 @@ module fetch_unit (
         btb_read_req_fetch_idx = REQ_received_pc38.idx;
         btb_read_req_asid = fetch_arch_asid;
 
-        btb_read_resp_pc38 = RESP_received_pc38;
-        
+        btb_read_resp0_valid = RESP0_valid & RESP0_pass;
+        btb_read_resp0_pc38 = RESP0_received_pc38;
+
         btb_update_valid = decode_unit_restart_valid | branch_update_valid;
         if (decode_unit_restart_valid) begin
             btb_update_pc38 = decode_unit_restart_pc38;
@@ -1163,12 +1165,13 @@ module fetch_unit (
         .read_req_valid(btb_read_req_valid),
         .read_req_fetch_idx(btb_read_req_fetch_idx),
         .read_req_asid(btb_read_req_asid),
-        .read_resp_pc38(btb_read_resp_pc38),
-        .read_resp_hit(btb_read_resp_hit),
-        .read_resp_double_hit(btb_read_resp_double_hit),
-        .read_resp_hit_way(btb_read_resp_hit_way),
-        .read_resp_hit_lane_by_way(btb_read_resp_hit_lane_by_way),
-        .read_resp_btb_info_by_way(btb_read_resp_btb_info_by_way),
+        .read_resp0_valid(btb_read_resp0_valid),
+        .read_resp0_pc38(btb_read_resp0_pc38),
+        .read_resp1_hit(btb_read_resp1_hit),
+        .read_resp1_double_hit(btb_read_resp1_double_hit),
+        .read_resp1_hit_way(btb_read_resp1_hit_way),
+        .read_resp1_hit_lane_by_way(btb_read_resp1_hit_lane_by_way),
+        .read_resp1_btb_info_by_way(btb_read_resp1_btb_info_by_way),
         .update_valid(btb_update_valid),
         .update_pc38(btb_update_pc38),
         .update_asid(btb_update_asid),
@@ -1179,13 +1182,13 @@ module fetch_unit (
 
     // pht:
     always_comb begin
-        pht_read_req_valid = REQ_valid & REQ_pass;
-        pht_read_req_fetch_idx = REQ_received_pc38.idx;
-        pht_read_req_gh = REQ_received_gh;
+        pht_read_req_valid = RESP0_valid & RESP0_pass;
+        pht_read_req_fetch_idx = RESP0_received_pc38.idx;
+        pht_read_req_gh = RESP0_received_gh;
         pht_read_req_asid = fetch_arch_asid;
 
-        pht_read_resp_redirect_lane_by_way[0] = btb_read_resp_hit_lane_by_way[0];
-        pht_read_resp_redirect_lane_by_way[1] = btb_read_resp_hit_lane_by_way[1];
+        pht_read_resp_redirect_lane_by_way[0] = btb_read_resp1_hit_lane_by_way[0];
+        pht_read_resp_redirect_lane_by_way[1] = btb_read_resp1_hit_lane_by_way[1];
 
         pht_update_valid = branch_update_valid & branch_update_ready & branch_update_btb_info.action.branch;
         pht_update_pc38 = branch_update_src_pc38;
@@ -1211,10 +1214,13 @@ module fetch_unit (
 
     // ibtb:
     always_comb begin
-        ibtb_read_src_pc38.upc = RESP_received_pc38.upc;
-        ibtb_read_src_pc38.idx = RESP_received_pc38.idx;
-        ibtb_read_src_pc38.lane = btb_read_resp_hit_lane_by_way[btb_read_resp_hit_way];
-        ibtb_read_ibtb_gh = RESP_received_gh;
+        ibtb_read_src_pc38_by_way[0].upc = RESP1_received_pc38.upc;
+        ibtb_read_src_pc38_by_way[0].idx = RESP1_received_pc38.idx;
+        ibtb_read_src_pc38_by_way[0].lane = btb_read_resp1_hit_lane_by_way[0];
+        ibtb_read_src_pc38_by_way[1].upc = RESP1_received_pc38.upc;
+        ibtb_read_src_pc38_by_way[1].idx = RESP1_received_pc38.idx;
+        ibtb_read_src_pc38_by_way[1].lane = btb_read_resp1_hit_lane_by_way[1];
+        ibtb_read_ibtb_gh = RESP1_received_gh;
         ibtb_read_asid = fetch_arch_asid;
         
         ibtb_update_valid = branch_update_valid & branch_update_ready & branch_update_btb_info.action.ibtb;
@@ -1226,10 +1232,10 @@ module fetch_unit (
     ibtb IBTB (
         .CLK(CLK),
         .nRST(nRST),
-        .read_src_pc38(ibtb_read_src_pc38),
+        .read_src_pc38_by_way(ibtb_read_src_pc38_by_way),
         .read_ibtb_gh(ibtb_read_ibtb_gh),
         .read_asid(ibtb_read_asid),
-        .read_tgt_pc38(ibtb_read_tgt_pc38),
+        .read_tgt_pc38_by_way(ibtb_read_tgt_pc38_by_way),
         .update_valid(ibtb_update_valid),
         .update_src_pc38(ibtb_update_src_pc38),
         .update_ibtb_gh(ibtb_update_ibtb_gh),
@@ -1239,8 +1245,8 @@ module fetch_unit (
 
     // mdpt:
     always_comb begin
-        mdpt_read_req_valid = REQ_valid & REQ_pass;
-        mdpt_read_req_fetch_idx = REQ_received_pc38.idx;
+        mdpt_read_req_valid = RESP1_valid & RESP1_pass;
+        mdpt_read_req_fetch_idx = RESP1_received_pc38.idx;
         mdpt_read_req_asid = fetch_arch_asid;
     end
     mdpt MDPT (
@@ -1259,18 +1265,18 @@ module fetch_unit (
     // bcb:
     always_comb begin
         bcb_save_valid = 
-            RESP_valid
-            & RESP_pass
-            & btb_read_resp_hit
+            RESP1_valid
+            & RESP1_pass
+            & btb_read_resp1_hit
             & (
-                ~btb_read_resp_hit_way & corep::btb_action_saves_bcb(btb_read_resp_btb_info_by_way[0].action)
-                | btb_read_resp_hit_way & corep::btb_action_saves_bcb(btb_read_resp_btb_info_by_way[1].action)
+                ~btb_read_resp1_hit_way & corep::btb_action_saves_bcb(btb_read_resp1_btb_info_by_way[0].action)
+                | btb_read_resp1_hit_way & corep::btb_action_saves_bcb(btb_read_resp1_btb_info_by_way[1].action)
             )
         ;
-        bcb_save_bcb_info.gh = RESP_received_gh;
+        bcb_save_bcb_info.gh = RESP1_received_gh;
         bcb_save_bcb_info.ras_idx = ras_ret_ras_idx;
         bcb_save_bcb_info.ras_cnt = ras_ret_ras_cnt;
-        bcb_save_bcb_info.btb_hit_way = btb_read_resp_hit_way;
+        bcb_save_bcb_info.btb_hit_way = btb_read_resp1_hit_way;
 
         if (rob_restart_valid) begin
             bcb_restore_bcb_idx = rob_restart_bcb_idx;
@@ -1294,14 +1300,14 @@ module fetch_unit (
 
     // ibuffer:
     always_comb begin
-        ibuffer_enq_valid = RESP_valid & RESP_pass;
+        ibuffer_enq_valid = RESP1_valid & RESP1_pass;
 
-        ibuffer_enq_info.valid_by_lane = RESP_valid_by_lane;
-        ibuffer_enq_info.btb_hit_by_lane = btb_read_resp_hit << btb_read_resp_hit_way;
-        ibuffer_enq_info.redirect_taken_by_lane = RESP_redirect_no_double_hit_not_taken << btb_read_resp_hit_way;
+        ibuffer_enq_info.valid_by_lane = RESP1_valid_by_lane;
+        ibuffer_enq_info.btb_hit_by_lane = btb_read_resp1_hit << btb_read_resp1_hit_way;
+        ibuffer_enq_info.redirect_taken_by_lane = RESP1_redirect_no_double_hit_not_taken << btb_read_resp1_hit_way;
         ibuffer_enq_info.bcb_idx = bcb_save_bcb_idx;
-        ibuffer_enq_info.src_pc35.upc = RESP_received_pc38.upc;
-        ibuffer_enq_info.src_pc35.idx = RESP_received_pc38.idx;
+        ibuffer_enq_info.src_pc35.upc = RESP1_received_pc38.upc;
+        ibuffer_enq_info.src_pc35.idx = RESP1_received_pc38.idx;
         ibuffer_enq_info.tgt_pc38.upc = REQ_received_pc38.upc;
         ibuffer_enq_info.tgt_pc38.idx = REQ_received_pc38.idx;
         ibuffer_enq_info.tgt_pc38.lane = REQ_received_pc38.lane;
@@ -1310,7 +1316,7 @@ module fetch_unit (
         ibuffer_enq_info.mdp_by_lane = mdpt_read_resp_mdp_by_lane;
 
         ibuffer_enq_fetch_hit_valid = icache_feedback_hit_valid; // need to make sure = 1'b0 means miss that has been launched
-        ibuffer_enq_fetch_hit_fetch16B = icache_resp_fetch16B_by_way[icache_feedback_hit_way];
+        ibuffer_enq_fetch_hit_fetch16B = icache_resp1_fetch16B_by_way[icache_feedback_hit_way];
 
         ibuffer_restart_valid = any_restart;
     end
