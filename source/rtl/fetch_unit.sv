@@ -195,16 +195,14 @@ module fetch_unit (
         // this tells if ever need to bubble out RESP0, invalidate lanes
     logic RESP1_redirect_no_double_hit_not_taken;
         // this tells if fetch_unit unit took a branch, info needed downstream
-    logic RESP1_not_taken;
-        // this tells if need to update gh in RESP0
 
     corep::pc38_t RESP1_received_pc38;
     corep::pc38_t RESP1_received_pc38_next_8;
 
     corep::gh_t RESP1_received_gh;
 
-    sysp::icache_tag_t  RESP1_icache_tag;
-    logic               RESP1_icache_hit;
+    corep::pc38_t   RESP1_pa_pc38;
+    logic           RESP1_icache_hit;
 
     logic [corep::FETCH_LANES-1:0] RESP1_valid_by_lane;
 
@@ -455,7 +453,6 @@ module fetch_unit (
             RESP1_received_pc38 <= 38'h0;
             RESP1_received_pc38_next_8 <= 38'h0;
             RESP1_received_gh <= '0;
-            RESP1_icache_tag <= '0;
         end
         else begin
             if (any_restart | RESP1_pass & RESP1_redirect) begin
@@ -466,7 +463,6 @@ module fetch_unit (
                 RESP1_received_pc38 <= RESP0_received_pc38;
                 RESP1_received_pc38_next_8 <= RESP0_received_pc38_next_8;
                 RESP1_received_gh <= RESP0_received_gh;
-                RESP1_icache_tag <= sysp::icache_tag_from_pc38(RESP0_received_pc38);
             end
         end
     end
@@ -1031,11 +1027,13 @@ module fetch_unit (
 
     // icache resp1 feedback:
     always_comb begin
+        RESP1_pa_pc38 = {itlb_resp_ppn, RESP1_received_pc38[10:0]};
+
         RESP1_icache_hit = 1'b0;
         icache_feedback_hit_way = 0;
         // prioritize lowest way
         for (int way = sysp::ICACHE_ASSOC-1; way >= 0; way--) begin
-            if (icache_resp1_valid_by_way[way] & (icache_resp1_tag_by_way[way] == RESP1_icache_tag)) begin
+            if (icache_resp1_valid_by_way[way] & (icache_resp1_tag_by_way[way] == sysp::icache_tag_from_pc38(RESP1_pa_pc38))) begin
                 RESP1_icache_hit = 1'b1;
                 icache_feedback_hit_way = way;
             end
