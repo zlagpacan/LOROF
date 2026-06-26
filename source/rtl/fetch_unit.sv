@@ -14,19 +14,19 @@
         // btb read resp0 (full pc38, get hit lanes by way)
         // pht read req (fetch idx, updated gh, asid)
         // itlb read req (fetch idx, asid, vpn)
+        // mdpt read req (fetch idx, asid)
     // RESP1:
         // btb read resp1 (both btb ways)
         // itlb read resp (ppn, faults)
         // icache read resp (tags by way, fetch blocks by way)
         // pht read resp (both btb ways, give hit lanes by way)
+        // mdpt read resp
         // upct read req (both btb ways)
         // upct read resp (both btb ways)
         // ibtb read req (both btb ways)
         // ibtb read resp (both btb ways)
         // ras link
         // ras ret
-        // mdpt read req
-        // mdpt read resp
         // bcb save
         // ibuffer enq
     // valid combos
@@ -1243,8 +1243,8 @@ module fetch_unit (
 
     // mdpt:
     always_comb begin
-        mdpt_read_req_valid = RESP1_valid & RESP1_pass;
-        mdpt_read_req_fetch_idx = RESP1_received_pc38.idx;
+        mdpt_read_req_valid = RESP0_valid & RESP0_pass;
+        mdpt_read_req_fetch_idx = RESP0_received_pc38.idx;
         mdpt_read_req_asid = fetch_arch_asid;
     end
     mdpt MDPT (
