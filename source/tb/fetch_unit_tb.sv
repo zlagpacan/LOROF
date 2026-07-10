@@ -544,7 +544,7 @@ module fetch_unit_tb #(
 		tb_branch_update_bcb_idx = 4'h0;
 		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
@@ -719,7 +719,7 @@ module fetch_unit_tb #(
 		tb_branch_update_bcb_idx = 4'h0;
 		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
@@ -831,10 +831,10 @@ module fetch_unit_tb #(
             "\n\t\tREQ:         i",
             "\n\t\tRESP0:       i",
             "\n\t\tRESP1:       i",
-            "\n\t\tmiss ret:    i", 
+            "\n\t\tmiss ret:    i",
             "\n\t\tbuffer:      {}",
-            "\n\t\tshift reg 1: _ {i,i,i,i,i,i,i,i}",
-            "\n\t\tshift reg 0: _ {i,i,i,i,i,i,i,i}",
+            "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
+            "\n\t\tshift reg 0: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {i,i,i,i}"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -905,21 +905,21 @@ module fetch_unit_tb #(
 		tb_decode_unit_restart_valid = 1'b0;
 		tb_decode_unit_restart_bcb_idx = 4'h0;
 		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
-	    // branch update (and also restart if mispred)
-		tb_branch_update_valid = 1'b0;
+	    // branch update (and also restart if mispred) // F0F0F0,0,0FC,3 B NT -> 111111,1,111,1
+		tb_branch_update_valid = 1'b1;
 		tb_branch_update_mispred = 1'b0;
 		tb_branch_update_bcb_idx = 4'h0;
-		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_src_pc38 = {23'hF0F0F0, 3'h0, 9'h0FC, 3'h3};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
-		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b10000, 1'b1, 3'h1, 9'h111, 3'h1};
+		tb_branch_update_tgt_pc38 = {23'h111111, 3'h1, 9'h111, 3'h1};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
 	    // mdpt update
-		tb_mdpt_update_valid = 1'b0;
-		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_valid = 1'b1;
+		tb_mdpt_update_pc38 = {23'hF0F0F0, 3'h0, 9'h0F1, 3'h1};
 		tb_mdpt_update_asid = 16'h0000;
-		tb_mdpt_update_mdp = 8'h00;
+		tb_mdpt_update_mdp = 8'hF1;
 
 		@(negedge CLK);
 
@@ -1013,14 +1013,14 @@ module fetch_unit_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"cycle 1",
+		sub_test_case = {"cycle 1 (update F0F0F0,0,0FC,3 B NT -> 111111,1,111,1)",
             "\n\t\tREQ:         v F0F0F0,0,0F0,0",
             "\n\t\tRESP0:       i",
             "\n\t\tRESP1:       i",
-            "\n\t\tmiss ret:    i", 
+            "\n\t\tmiss ret:    i",
             "\n\t\tbuffer:      {}",
-            "\n\t\tshift reg 1: _ {i,i,i,i,i,i,i,i}",
-            "\n\t\tshift reg 0: _ {i,i,i,i,i,i,i,i}",
+            "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
+            "\n\t\tshift reg 0: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {i,i,i,i}"
         };
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1092,20 +1092,20 @@ module fetch_unit_tb #(
 		tb_decode_unit_restart_bcb_idx = 4'h0;
 		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 	    // branch update (and also restart if mispred)
-		tb_branch_update_valid = 1'b0;
+		tb_branch_update_valid = 1'b1;
 		tb_branch_update_mispred = 1'b0;
 		tb_branch_update_bcb_idx = 4'h0;
-		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_src_pc38 = {23'hF0F0F0, 3'h0, 9'h0FD, 3'h5};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
-		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b00100, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_tgt_pc38 = {23'hE1E1E1, 3'h1, 9'h1E1, 3'h2};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
 	    // mdpt update
-		tb_mdpt_update_valid = 1'b0;
-		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_valid = 1'b1;
+		tb_mdpt_update_pc38 = {23'hF0F0F0, 3'h0, 9'h0F3, 3'h3};
 		tb_mdpt_update_asid = 16'h0000;
-		tb_mdpt_update_mdp = 8'h00;
+		tb_mdpt_update_mdp = 8'hF3;
 
 		@(negedge CLK);
 
@@ -1203,7 +1203,7 @@ module fetch_unit_tb #(
             "\n\t\tREQ:         v F0F0F0,0,0F1,0",
             "\n\t\tRESP0:       v F0F0F0,0,0F0,0",
             "\n\t\tRESP1:       i",
-            "\n\t\tmiss ret:    i", 
+            "\n\t\tmiss ret:    i",
             "\n\t\tbuffer:      {}",
             "\n\t\tshift reg 1: _ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: _ {i,i,i,i,i,i,i,i}",
@@ -1278,20 +1278,20 @@ module fetch_unit_tb #(
 		tb_decode_unit_restart_bcb_idx = 4'h0;
 		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 	    // branch update (and also restart if mispred)
-		tb_branch_update_valid = 1'b0;
+		tb_branch_update_valid = 1'b1;
 		tb_branch_update_mispred = 1'b0;
 		tb_branch_update_bcb_idx = 4'h0;
-		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_src_pc38 = {23'hE1E1E1, 3'h1, 9'h1E1, 3'h6};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
-		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b01000, 1'b1, 3'h2, 9'h2D2, 3'h7};
+		tb_branch_update_tgt_pc38 = {23'hD2D2D2, 3'h2, 9'h2D2, 3'h7};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
 	    // mdpt update
-		tb_mdpt_update_valid = 1'b0;
-		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_valid = 1'b1;
+		tb_mdpt_update_pc38 = {23'hF0F0F0, 3'h0, 9'h0F5, 3'h5};
 		tb_mdpt_update_asid = 16'h0000;
-		tb_mdpt_update_mdp = 8'h00;
+		tb_mdpt_update_mdp = 8'hF5;
 
 		@(negedge CLK);
 
@@ -1389,7 +1389,7 @@ module fetch_unit_tb #(
             "\n\t\tREQ:         v F0F0F0,0,0F2,0",
             "\n\t\tRESP0:       v F0F0F0,0,0F1,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F0,0",
-            "\n\t\tmiss ret:    i", 
+            "\n\t\tmiss ret:    i",
             "\n\t\tbuffer:      {}",
             "\n\t\tshift reg 1: _ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: _ {i,i,i,i,i,i,i,i}",
@@ -1464,20 +1464,20 @@ module fetch_unit_tb #(
 		tb_decode_unit_restart_bcb_idx = 4'h0;
 		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 	    // branch update (and also restart if mispred)
-		tb_branch_update_valid = 1'b0;
+		tb_branch_update_valid = 1'b1;
 		tb_branch_update_mispred = 1'b0;
 		tb_branch_update_bcb_idx = 4'h0;
-		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_src_pc38 = {23'hD2D2D2, 3'h2, 9'h2D3, 3'h4};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
-		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b01001, 1'b1, 3'h3, 9'h3C3, 3'h1};
+		tb_branch_update_tgt_pc38 = {23'hC3C3C3, 3'h3, 9'h3C3, 3'h1};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
 	    // mdpt update
-		tb_mdpt_update_valid = 1'b0;
-		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_valid = 1'b1;
+		tb_mdpt_update_pc38 = {23'hF0F0F0, 3'h0, 9'h0F7, 3'h7};
 		tb_mdpt_update_asid = 16'h0000;
-		tb_mdpt_update_mdp = 8'h00;
+		tb_mdpt_update_mdp = 8'hF7;
 
 		@(negedge CLK);
 
@@ -1575,7 +1575,7 @@ module fetch_unit_tb #(
             "\n\t\tREQ:         v F0F0F0,0,0F3,0",
             "\n\t\tRESP0:       v F0F0F0,0,0F2,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F1,0",
-            "\n\t\tmiss ret:    i", 
+            "\n\t\tmiss ret:    i",
             "\n\t\tbuffer:      {0F0h}",
             "\n\t\tshift reg 1: _ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: _ {i,i,i,i,i,i,i,i}",
@@ -1650,20 +1650,20 @@ module fetch_unit_tb #(
 		tb_decode_unit_restart_bcb_idx = 4'h0;
 		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 	    // branch update (and also restart if mispred)
-		tb_branch_update_valid = 1'b0;
+		tb_branch_update_valid = 1'b1;
 		tb_branch_update_mispred = 1'b0;
 		tb_branch_update_bcb_idx = 4'h0;
-		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_src_pc38 = {23'hC3C3C3, 3'h3, 9'h3C4, 3'h3};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b00011, 1'b0, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
 	    // mdpt update
-		tb_mdpt_update_valid = 1'b0;
-		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_valid = 1'b1;
+		tb_mdpt_update_pc38 = {23'hF0F0F0, 3'h0, 9'h0F9, 3'h1};
 		tb_mdpt_update_asid = 16'h0000;
-		tb_mdpt_update_mdp = 8'h00;
+		tb_mdpt_update_mdp = 8'hF9;
 
 		@(negedge CLK);
 
@@ -1761,7 +1761,7 @@ module fetch_unit_tb #(
             "\n\t\tREQ:         v F0F0F0,0,0F4,0",
             "\n\t\tRESP0:       v F0F0F0,0,0F3,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F2,0",
-            "\n\t\tmiss ret:    i", 
+            "\n\t\tmiss ret:    i",
             "\n\t\tbuffer:      {0F1h}",
             "\n\t\tshift reg 1: 0F0 {7,6,5,4,3,2,1,0}",
             "\n\t\tshift reg 0: _ {i,i,i,i,i,i,i,i}",
@@ -1836,20 +1836,20 @@ module fetch_unit_tb #(
 		tb_decode_unit_restart_bcb_idx = 4'h0;
 		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 	    // branch update (and also restart if mispred)
-		tb_branch_update_valid = 1'b0;
+		tb_branch_update_valid = 1'b1;
 		tb_branch_update_mispred = 1'b0;
 		tb_branch_update_bcb_idx = 4'h0;
-		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_src_pc38 = {23'hD2D2D2, 3'h2, 9'h2D3, 3'h7};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b00010, 1'b0, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
 	    // mdpt update
-		tb_mdpt_update_valid = 1'b0;
-		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_valid = 1'b1;
+		tb_mdpt_update_pc38 = {23'hF0F0F0, 3'h0, 9'h0FB, 3'h3};
 		tb_mdpt_update_asid = 16'h0000;
-		tb_mdpt_update_mdp = 8'h00;
+		tb_mdpt_update_mdp = 8'hF3;
 
 		@(negedge CLK);
 
@@ -1947,7 +1947,7 @@ module fetch_unit_tb #(
             "\n\t\tREQ:         v F0F0F0,0,0F5,0",
             "\n\t\tRESP0:       v F0F0F0,0,0F4,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F3,0",
-            "\n\t\tmiss ret:    i", 
+            "\n\t\tmiss ret:    i",
             "\n\t\tbuffer:      {0F2h}",
             "\n\t\tshift reg 1: 0F1 {F,E,D,C,B,A,9,8}",
             "\n\t\tshift reg 0: 0F0 {7,6,5,i,i,i,i,i}",
@@ -2022,20 +2022,20 @@ module fetch_unit_tb #(
 		tb_decode_unit_restart_bcb_idx = 4'h0;
 		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 	    // branch update (and also restart if mispred)
-		tb_branch_update_valid = 1'b0;
+		tb_branch_update_valid = 1'b1;
 		tb_branch_update_mispred = 1'b0;
 		tb_branch_update_bcb_idx = 4'h0;
-		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_src_pc38 = {23'hC3C3C3, 3'h3, 9'h3C5, 3'h1};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
-		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b10000, 1'b1, 3'h2, 9'h222, 3'h2};
+		tb_branch_update_tgt_pc38 = {23'h222222, 3'h2, 9'h222, 3'h2};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
 	    // mdpt update
-		tb_mdpt_update_valid = 1'b0;
-		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_valid = 1'b1;
+		tb_mdpt_update_pc38 = {23'hF0F0F0, 3'h0, 9'h0FD, 3'h5};
 		tb_mdpt_update_asid = 16'h0000;
-		tb_mdpt_update_mdp = 8'h00;
+		tb_mdpt_update_mdp = 8'hF5;
 
 		@(negedge CLK);
 
@@ -2112,7 +2112,7 @@ module fetch_unit_tb #(
 		expected_instr_yield_by_way[3].tgt_pc38 = {35'hF0F0F00F1, 3'hA};
 		expected_instr_yield_by_way[3].page_fault = 1'b0;
 		expected_instr_yield_by_way[3].access_fault = 1'b0;
-		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].mdp = 8'hF1;
 		expected_instr_yield_by_way[3].fetch4B = {16'h0f1A, 16'h0f19};
 
 	    // instr yield feedback
@@ -2133,7 +2133,7 @@ module fetch_unit_tb #(
             "\n\t\tREQ:         v F0F0F0,0,0F6,0",
             "\n\t\tRESP0:       v F0F0F0,0,0F5,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F4,0",
-            "\n\t\tmiss ret:    i", 
+            "\n\t\tmiss ret:    i",
             "\n\t\tbuffer:      {0F3m0}",
             "\n\t\tshift reg 1: 0F2 {7,6,5,4,3,2,1,0}",
             "\n\t\tshift reg 0: 0F1 {F,E,D,C,B,A,i,i}",
@@ -2208,13 +2208,13 @@ module fetch_unit_tb #(
 		tb_decode_unit_restart_bcb_idx = 4'h0;
 		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 	    // branch update (and also restart if mispred)
-		tb_branch_update_valid = 1'b0;
+		tb_branch_update_valid = 1'b1;
 		tb_branch_update_mispred = 1'b0;
 		tb_branch_update_bcb_idx = 4'h0;
-		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_src_pc38 = {23'hC3C3C3, 3'h3, 9'h3C5, 3'h6};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
-		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b10000, 1'b0, 3'h4, 9'h444, 3'h4};
+		tb_branch_update_tgt_pc38 = {23'hC3C3C3, 3'h4, 9'h444, 3'h4};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
 	    // mdpt update
@@ -2319,7 +2319,7 @@ module fetch_unit_tb #(
             "\n\t\tREQ:         v F0F0F0,0,0F7,0",
             "\n\t\tRESP0:       v F0F0F0,0,0F6,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F5,0",
-            "\n\t\tmiss ret:    i", 
+            "\n\t\tmiss ret:    i",
             "\n\t\tbuffer:      {0F4m1, 0F3m0}",
             "\n\t\tshift reg 1: 0F2 {7,6,5,4,3,2,1,0}",
             "\n\t\tshift reg 0: 0F1 {F,i,i,i,i,i,i,i}",
@@ -2399,7 +2399,7 @@ module fetch_unit_tb #(
 		tb_branch_update_bcb_idx = 4'h0;
 		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
@@ -2585,7 +2585,7 @@ module fetch_unit_tb #(
 		tb_branch_update_bcb_idx = 4'h0;
 		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
@@ -2771,7 +2771,7 @@ module fetch_unit_tb #(
 		tb_branch_update_bcb_idx = 4'h0;
 		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
@@ -2957,7 +2957,7 @@ module fetch_unit_tb #(
 		tb_branch_update_bcb_idx = 4'h0;
 		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
@@ -3143,7 +3143,7 @@ module fetch_unit_tb #(
 		tb_branch_update_bcb_idx = 4'h0;
 		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
@@ -3228,7 +3228,7 @@ module fetch_unit_tb #(
 		expected_instr_yield_by_way[3].tgt_pc38 = {35'hF0F0F00F3, 3'h5};
 		expected_instr_yield_by_way[3].page_fault = 1'b0;
 		expected_instr_yield_by_way[3].access_fault = 1'b0;
-		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].mdp = 8'hF3;
 		expected_instr_yield_by_way[3].fetch4B = {16'h0F3C, 16'h0F3B};
 
 	    // instr yield feedback
@@ -3329,7 +3329,7 @@ module fetch_unit_tb #(
 		tb_branch_update_bcb_idx = 4'h0;
 		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
@@ -3515,7 +3515,7 @@ module fetch_unit_tb #(
 		tb_branch_update_bcb_idx = 4'h0;
 		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
@@ -3701,7 +3701,7 @@ module fetch_unit_tb #(
 		tb_branch_update_bcb_idx = 4'h0;
 		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_asid = 16'h0000;
-		tb_branch_update_btb_info = {3'h0, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
 		tb_branch_update_taken = 1'b0;
 		tb_branch_update_btb_hit = 1'b0;
@@ -3799,6 +3799,16 @@ module fetch_unit_tb #(
 	    // mdpt update
 
 		check_outputs();
+
+        // TODO: modify cases ^ to add branch updates and mdpt updates
+            // F0F0F0,0,0FC,3 B NT -> 111111,1,111,1
+            // F0F0F0,0,0FD,5 IBTB -> E1E1E1,1,1E1,2
+            // E1E1E1,1,1E1,6 J -> D2D2D2,2,2D2,7
+            // D2D2D2,2,2D3,4 JAL -> C3C3C3,3,3C3,1
+            // C3C3C3,3,3C4,3 RETL -> D2D2D2,2,2D3,5
+            // D2D2D2,2,2D3,7 RET -> C3C3C3,3,3C4,4
+            // C3C3C3,3,3C5,1 B NT -> 222222,2,222,2
+            // C3C3C3,3,3C5,6 B T -> C3C3C3,4,444,4
 
         // ------------------------------------------------------------
         // finish:

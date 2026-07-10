@@ -1279,9 +1279,6 @@ module fetch_unit (
         if (rob_restart_valid) begin
             bcb_restore_bcb_idx = rob_restart_bcb_idx;
         end
-        else if (branch_update_valid & branch_update_ready & branch_update_mispred) begin
-            bcb_restore_bcb_idx = branch_update_bcb_idx;
-        end
         else begin
             bcb_restore_bcb_idx = branch_update_bcb_idx;
         end

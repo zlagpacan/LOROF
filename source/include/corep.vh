@@ -171,8 +171,8 @@ package corep;
     typedef struct packed {
         logic branch;
         logic jump;
-        logic ret;
         logic ibtb;
+        logic ret;
         logic link;
     } btb_action_t; // 5b
 
