@@ -37,10 +37,13 @@ module fetch_unit_wrapper #(
 	output logic last_icache_req_valid,
 	output corep::fetch_idx_t last_icache_req_fetch_idx,
 
-    // icache resp
-	input logic [sysp::ICACHE_ASSOC-1:0] next_icache_resp_valid_by_way,
-	input sysp::icache_tag_t [sysp::ICACHE_ASSOC-1:0] next_icache_resp_tag_by_way,
-	input corep::fetch16B_t [sysp::ICACHE_ASSOC-1:0] next_icache_resp_fetch16B_by_way,
+    // icache resp0
+	output logic last_icache_resp0_valid,
+
+    // icache resp1
+	input logic [sysp::ICACHE_ASSOC-1:0] next_icache_resp1_valid_by_way,
+	input sysp::icache_tag_t [sysp::ICACHE_ASSOC-1:0] next_icache_resp1_tag_by_way,
+	input corep::fetch16B_t [sysp::ICACHE_ASSOC-1:0] next_icache_resp1_fetch16B_by_way,
 
     // icache feedback hit
 	output logic last_icache_feedback_hit_valid,
@@ -68,7 +71,7 @@ module fetch_unit_wrapper #(
     // wfr trigger from rob
 	input logic next_rob_trigger_wfr,
 
-    // restart from ROB (non-branch restarts)
+    // restart from rob (non-branch restarts)
 	input logic next_rob_restart_valid,
 	input corep::bcb_idx_t next_rob_restart_bcb_idx,
 	input corep::pc38_t next_rob_restart_pc38,
@@ -127,10 +130,13 @@ module fetch_unit_wrapper #(
 	logic icache_req_valid;
 	corep::fetch_idx_t icache_req_fetch_idx;
 
-    // icache resp
-	logic [sysp::ICACHE_ASSOC-1:0] icache_resp_valid_by_way;
-	sysp::icache_tag_t [sysp::ICACHE_ASSOC-1:0] icache_resp_tag_by_way;
-	corep::fetch16B_t [sysp::ICACHE_ASSOC-1:0] icache_resp_fetch16B_by_way;
+    // icache resp0
+	logic icache_resp0_valid;
+
+    // icache resp1
+	logic [sysp::ICACHE_ASSOC-1:0] icache_resp1_valid_by_way;
+	sysp::icache_tag_t [sysp::ICACHE_ASSOC-1:0] icache_resp1_tag_by_way;
+	corep::fetch16B_t [sysp::ICACHE_ASSOC-1:0] icache_resp1_fetch16B_by_way;
 
     // icache feedback hit
 	logic icache_feedback_hit_valid;
@@ -158,7 +164,7 @@ module fetch_unit_wrapper #(
     // wfr trigger from rob
 	logic rob_trigger_wfr;
 
-    // restart from ROB (non-branch restarts)
+    // restart from rob (non-branch restarts)
 	logic rob_restart_valid;
 	corep::bcb_idx_t rob_restart_bcb_idx;
 	corep::pc38_t rob_restart_pc38;
@@ -225,10 +231,13 @@ module fetch_unit_wrapper #(
 			last_icache_req_valid <= '0;
 			last_icache_req_fetch_idx <= '0;
 
-		    // icache resp
-			icache_resp_valid_by_way <= '0;
-			icache_resp_tag_by_way <= '0;
-			icache_resp_fetch16B_by_way <= '0;
+		    // icache resp0
+			last_icache_resp0_valid <= '0;
+
+		    // icache resp1
+			icache_resp1_valid_by_way <= '0;
+			icache_resp1_tag_by_way <= '0;
+			icache_resp1_fetch16B_by_way <= '0;
 
 		    // icache feedback hit
 			last_icache_feedback_hit_valid <= '0;
@@ -256,7 +265,7 @@ module fetch_unit_wrapper #(
 		    // wfr trigger from rob
 			rob_trigger_wfr <= '0;
 
-		    // restart from ROB (non-branch restarts)
+		    // restart from rob (non-branch restarts)
 			rob_restart_valid <= '0;
 			rob_restart_bcb_idx <= '0;
 			rob_restart_pc38 <= '0;
@@ -313,10 +322,13 @@ module fetch_unit_wrapper #(
 			last_icache_req_valid <= icache_req_valid;
 			last_icache_req_fetch_idx <= icache_req_fetch_idx;
 
-		    // icache resp
-			icache_resp_valid_by_way <= next_icache_resp_valid_by_way;
-			icache_resp_tag_by_way <= next_icache_resp_tag_by_way;
-			icache_resp_fetch16B_by_way <= next_icache_resp_fetch16B_by_way;
+		    // icache resp0
+			last_icache_resp0_valid <= icache_resp0_valid;
+
+		    // icache resp1
+			icache_resp1_valid_by_way <= next_icache_resp1_valid_by_way;
+			icache_resp1_tag_by_way <= next_icache_resp1_tag_by_way;
+			icache_resp1_fetch16B_by_way <= next_icache_resp1_fetch16B_by_way;
 
 		    // icache feedback hit
 			last_icache_feedback_hit_valid <= icache_feedback_hit_valid;
@@ -344,7 +356,7 @@ module fetch_unit_wrapper #(
 		    // wfr trigger from rob
 			rob_trigger_wfr <= next_rob_trigger_wfr;
 
-		    // restart from ROB (non-branch restarts)
+		    // restart from rob (non-branch restarts)
 			rob_restart_valid <= next_rob_restart_valid;
 			rob_restart_bcb_idx <= next_rob_restart_bcb_idx;
 			rob_restart_pc38 <= next_rob_restart_pc38;
