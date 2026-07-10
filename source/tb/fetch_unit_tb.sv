@@ -827,7 +827,7 @@ module fetch_unit_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"cycle 0 (restart F0F0F0,0,0F0,0)",
+		sub_test_case = {"cycle 0 (restart F0F0F0,0,0F0,0; update F0F0F0,0,0FC,3 B NT -> 111111,1,111,1)",
             "\n\t\tREQ:         i",
             "\n\t\tRESP0:       i",
             "\n\t\tRESP1:       i",
@@ -1013,7 +1013,7 @@ module fetch_unit_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"cycle 1 (update F0F0F0,0,0FC,3 B NT -> 111111,1,111,1)",
+		sub_test_case = {"cycle 1 (update F0F0F0,0,0FD,5 IBTB -> E1E1E1,1,1E1,2)",
             "\n\t\tREQ:         v F0F0F0,0,0F0,0",
             "\n\t\tRESP0:       i",
             "\n\t\tRESP1:       i",
@@ -1091,7 +1091,7 @@ module fetch_unit_tb #(
 		tb_decode_unit_restart_valid = 1'b0;
 		tb_decode_unit_restart_bcb_idx = 4'h0;
 		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
-	    // branch update (and also restart if mispred)
+	    // branch update (and also restart if mispred) // F0F0F0,0,0FD,5 IBTB -> E1E1E1,1,1E1,2
 		tb_branch_update_valid = 1'b1;
 		tb_branch_update_mispred = 1'b0;
 		tb_branch_update_bcb_idx = 4'h0;
@@ -1199,7 +1199,7 @@ module fetch_unit_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"cycle 2",
+		sub_test_case = {"cycle 2 (update E1E1E1,1,1E1,6 J -> D2D2D2,2,2D2,7)",
             "\n\t\tREQ:         v F0F0F0,0,0F1,0",
             "\n\t\tRESP0:       v F0F0F0,0,0F0,0",
             "\n\t\tRESP1:       i",
@@ -1277,7 +1277,7 @@ module fetch_unit_tb #(
 		tb_decode_unit_restart_valid = 1'b0;
 		tb_decode_unit_restart_bcb_idx = 4'h0;
 		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
-	    // branch update (and also restart if mispred)
+	    // branch update (and also restart if mispred) // E1E1E1,1,1E1,6 J -> D2D2D2,2,2D2,7
 		tb_branch_update_valid = 1'b1;
 		tb_branch_update_mispred = 1'b0;
 		tb_branch_update_bcb_idx = 4'h0;
@@ -1385,7 +1385,7 @@ module fetch_unit_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"cycle 3",
+		sub_test_case = {"cycle 3 (update D2D2D2,2,2D3,4 JAL -> C3C3C3,3,3C3,1)",
             "\n\t\tREQ:         v F0F0F0,0,0F2,0",
             "\n\t\tRESP0:       v F0F0F0,0,0F1,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F0,0",
@@ -1463,7 +1463,7 @@ module fetch_unit_tb #(
 		tb_decode_unit_restart_valid = 1'b0;
 		tb_decode_unit_restart_bcb_idx = 4'h0;
 		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
-	    // branch update (and also restart if mispred)
+	    // branch update (and also restart if mispred) // D2D2D2,2,2D3,4 JAL -> C3C3C3,3,3C3,1
 		tb_branch_update_valid = 1'b1;
 		tb_branch_update_mispred = 1'b0;
 		tb_branch_update_bcb_idx = 4'h0;
@@ -1571,7 +1571,7 @@ module fetch_unit_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"cycle 4",
+		sub_test_case = {"cycle 4 (update C3C3C3,3,3C4,3 RETL -> D2D2D2,2,2D3,5)",
             "\n\t\tREQ:         v F0F0F0,0,0F3,0",
             "\n\t\tRESP0:       v F0F0F0,0,0F2,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F1,0",
@@ -1649,7 +1649,7 @@ module fetch_unit_tb #(
 		tb_decode_unit_restart_valid = 1'b0;
 		tb_decode_unit_restart_bcb_idx = 4'h0;
 		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
-	    // branch update (and also restart if mispred)
+	    // branch update (and also restart if mispred) // C3C3C3,3,3C4,3 RETL -> D2D2D2,2,2D3,5
 		tb_branch_update_valid = 1'b1;
 		tb_branch_update_mispred = 1'b0;
 		tb_branch_update_bcb_idx = 4'h0;
@@ -1757,7 +1757,7 @@ module fetch_unit_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"cycle 5",
+		sub_test_case = {"cycle 5 (update D2D2D2,2,2D3,7 RET -> C3C3C3,3,3C4,4)",
             "\n\t\tREQ:         v F0F0F0,0,0F4,0",
             "\n\t\tRESP0:       v F0F0F0,0,0F3,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F2,0",
@@ -1835,7 +1835,7 @@ module fetch_unit_tb #(
 		tb_decode_unit_restart_valid = 1'b0;
 		tb_decode_unit_restart_bcb_idx = 4'h0;
 		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
-	    // branch update (and also restart if mispred)
+	    // branch update (and also restart if mispred) // D2D2D2,2,2D3,7 RET -> C3C3C3,3,3C4,4
 		tb_branch_update_valid = 1'b1;
 		tb_branch_update_mispred = 1'b0;
 		tb_branch_update_bcb_idx = 4'h0;
@@ -1943,7 +1943,7 @@ module fetch_unit_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"cycle 6",
+		sub_test_case = {"cycle 6 (update C3C3C3,3,3C5,1 B NT -> 222222,2,222,2)",
             "\n\t\tREQ:         v F0F0F0,0,0F5,0",
             "\n\t\tRESP0:       v F0F0F0,0,0F4,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F3,0",
@@ -2021,7 +2021,7 @@ module fetch_unit_tb #(
 		tb_decode_unit_restart_valid = 1'b0;
 		tb_decode_unit_restart_bcb_idx = 4'h0;
 		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
-	    // branch update (and also restart if mispred)
+	    // branch update (and also restart if mispred) // C3C3C3,3,3C5,1 B NT -> 222222,2,222,2
 		tb_branch_update_valid = 1'b1;
 		tb_branch_update_mispred = 1'b0;
 		tb_branch_update_bcb_idx = 4'h0;
@@ -2129,7 +2129,7 @@ module fetch_unit_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"cycle 7",
+		sub_test_case = {"cycle 7 (update C3C3C3,3,3C5,6 B T -> C3C3C3,4,444,4)",
             "\n\t\tREQ:         v F0F0F0,0,0F6,0",
             "\n\t\tRESP0:       v F0F0F0,0,0F5,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F4,0",
@@ -2207,7 +2207,7 @@ module fetch_unit_tb #(
 		tb_decode_unit_restart_valid = 1'b0;
 		tb_decode_unit_restart_bcb_idx = 4'h0;
 		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
-	    // branch update (and also restart if mispred)
+	    // branch update (and also restart if mispred) // C3C3C3,3,3C5,6 B T -> C3C3C3,4,444,4
 		tb_branch_update_valid = 1'b1;
 		tb_branch_update_mispred = 1'b0;
 		tb_branch_update_bcb_idx = 4'h0;
@@ -3799,16 +3799,6 @@ module fetch_unit_tb #(
 	    // mdpt update
 
 		check_outputs();
-
-        // TODO: modify cases ^ to add branch updates and mdpt updates
-            // F0F0F0,0,0FC,3 B NT -> 111111,1,111,1
-            // F0F0F0,0,0FD,5 IBTB -> E1E1E1,1,1E1,2
-            // E1E1E1,1,1E1,6 J -> D2D2D2,2,2D2,7
-            // D2D2D2,2,2D3,4 JAL -> C3C3C3,3,3C3,1
-            // C3C3C3,3,3C4,3 RETL -> D2D2D2,2,2D3,5
-            // D2D2D2,2,2D3,7 RET -> C3C3C3,3,3C4,4
-            // C3C3C3,3,3C5,1 B NT -> 222222,2,222,2
-            // C3C3C3,3,3C5,6 B T -> C3C3C3,4,444,4
 
         // ------------------------------------------------------------
         // finish:
