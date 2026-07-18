@@ -220,19 +220,19 @@ module fetch_unit (
     /////////////
 
     // REQ_received_pc38.upc.msbs
-    logic [6:0] REQ_received_pc38_upc_msbs_one_hot;
+    logic [7:0] REQ_received_pc38_upc_msbs_one_hot;
 
     // REQ_received_pc38.upc.big_tgt_msbs
-    logic [8:0] REQ_received_pc38_upc_big_tgt_msbs_one_hot;
+    logic [9:0] REQ_received_pc38_upc_big_tgt_msbs_one_hot;
 
     // REQ_received_pc38.idx
-    logic [6:0] REQ_received_pc38_idx_one_hot;
+    logic [7:0] REQ_received_pc38_idx_one_hot;
 
     // REQ_received_pc38.lane
-    logic [6:0] REQ_received_pc38_lane_one_hot;
+    logic [7:0] REQ_received_pc38_lane_one_hot;
 
     // RESP0_received_gh
-    logic [1:0] RESP0_received_gh_one_hot;
+    logic [3:0] RESP0_received_gh_one_hot;
 
     ////////////////
     // module IO: //
@@ -1298,8 +1298,8 @@ module fetch_unit (
         ibuffer_enq_valid = RESP1_valid & RESP1_pass;
 
         ibuffer_enq_info.valid_by_lane = RESP1_valid_by_lane;
-        ibuffer_enq_info.btb_hit_by_lane = btb_read_resp1_hit << btb_read_resp1_hit_way;
-        ibuffer_enq_info.redirect_taken_by_lane = RESP1_redirect_no_double_hit_not_taken << btb_read_resp1_hit_way;
+        ibuffer_enq_info.btb_hit_by_lane = btb_read_resp1_hit << btb_read_resp1_hit_lane_by_way[btb_read_resp1_hit_way];
+        ibuffer_enq_info.redirect_taken_by_lane = RESP1_redirect_no_double_hit_not_taken << btb_read_resp1_hit_lane_by_way[btb_read_resp1_hit_way];
         ibuffer_enq_info.bcb_idx = bcb_save_bcb_idx;
         ibuffer_enq_info.src_pc35.upc = RESP1_received_pc38.upc;
         ibuffer_enq_info.src_pc35.idx = RESP1_received_pc38.idx;
@@ -1310,7 +1310,7 @@ module fetch_unit (
         ibuffer_enq_info.access_fault = itlb_resp_access_fault;
         ibuffer_enq_info.mdp_by_lane = mdpt_read_resp_mdp_by_lane;
 
-        ibuffer_enq_fetch_hit_valid = icache_feedback_hit_valid; // need to make sure = 1'b0 means miss that has been launched
+        ibuffer_enq_fetch_hit_valid = RESP1_icache_hit; // need to make sure = 1'b0 means miss that has been launched
         ibuffer_enq_fetch_hit_fetch16B = icache_resp1_fetch16B_by_way[icache_feedback_hit_way];
 
         ibuffer_restart_valid = any_restart;

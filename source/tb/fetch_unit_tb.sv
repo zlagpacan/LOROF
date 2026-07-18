@@ -832,7 +832,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       i",
             "\n\t\tRESP1:       i",
             "\n\t\tmiss ret:    i",
-            "\n\t\tbuffer:      {}",
+            "\n\t\tibuffer:     {}",
             "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {i,i,i,i}"
@@ -1018,7 +1018,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       i",
             "\n\t\tRESP1:       i",
             "\n\t\tmiss ret:    i",
-            "\n\t\tbuffer:      {}",
+            "\n\t\tibuffer:     {}",
             "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {i,i,i,i}"
@@ -1204,7 +1204,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       v F0F0F0,0,0F0,0",
             "\n\t\tRESP1:       i",
             "\n\t\tmiss ret:    i",
-            "\n\t\tbuffer:      {}",
+            "\n\t\tibuffer:     {}",
             "\n\t\tshift reg 1: _ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: _ {i,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {i,i,i,i}"
@@ -1390,7 +1390,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       v F0F0F0,0,0F1,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F0,0",
             "\n\t\tmiss ret:    i",
-            "\n\t\tbuffer:      {}",
+            "\n\t\tibuffer:     {}",
             "\n\t\tshift reg 1: _ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: _ {i,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {i,i,i,i}"
@@ -1576,7 +1576,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       v F0F0F0,0,0F2,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F1,0",
             "\n\t\tmiss ret:    i",
-            "\n\t\tbuffer:      {0F0h}",
+            "\n\t\tibuffer:     {0F0h}",
             "\n\t\tshift reg 1: _ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: _ {i,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {i,i,i,i}"
@@ -1762,7 +1762,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       v F0F0F0,0,0F3,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F2,0",
             "\n\t\tmiss ret:    i",
-            "\n\t\tbuffer:      {0F1h}",
+            "\n\t\tibuffer:     {0F1h}",
             "\n\t\tshift reg 1: 0F0 {7,6,5,4,3,2,1,0}",
             "\n\t\tshift reg 0: _ {i,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {0F03,0F02,0F01,0F00}"
@@ -1948,7 +1948,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       v F0F0F0,0,0F4,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F3,0",
             "\n\t\tmiss ret:    i",
-            "\n\t\tbuffer:      {0F2h}",
+            "\n\t\tibuffer:     {0F2h}",
             "\n\t\tshift reg 1: 0F1 {F,E,D,C,B,A,9,8}",
             "\n\t\tshift reg 0: 0F0 {7,6,5,i,i,i,i,i}",
             "\n\t\tdeq:         {0F19,0F07,0F06,0F05}"
@@ -2134,7 +2134,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       v F0F0F0,0,0F5,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F4,0",
             "\n\t\tmiss ret:    i",
-            "\n\t\tbuffer:      {0F3m0}",
+            "\n\t\tibuffer:     {0F3m0}",
             "\n\t\tshift reg 1: 0F2 {7,6,5,4,3,2,1,0}",
             "\n\t\tshift reg 0: 0F1 {F,E,D,C,B,A,i,i}",
             "\n\t\tdeq:         {0F1E,0F1D,0F1B,0F1A}"
@@ -2320,7 +2320,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       v F0F0F0,0,0F6,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F5,0",
             "\n\t\tmiss ret:    i",
-            "\n\t\tbuffer:      {0F4m1, 0F3m0}",
+            "\n\t\tibuffer:     {0F4m1, 0F3m0}",
             "\n\t\tshift reg 1: 0F2 {7,6,5,4,3,2,1,0}",
             "\n\t\tshift reg 0: 0F1 {F,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {0F23,0F22,0F21,0F1F}"
@@ -2506,7 +2506,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       v F0F0F0,0,0F7,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F6,0",
             "\n\t\tmiss ret:    0F4m1",
-            "\n\t\tbuffer:      {0F5m2, 0F4m1, 0F3m0}",
+            "\n\t\tibuffer:     {0F5m2, 0F4m1, 0F3m0}",
             "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: 0F2 {7,6,5,i,i,i,i,i}",
             "\n\t\tdeq:         {i,i,0F26,0F25}"
@@ -2692,7 +2692,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       v F0F0F0,0,0F8,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F7,0",
             "\n\t\tmiss ret:    0F3m0",
-            "\n\t\tbuffer:      {0F6m3, 0F5m2, 0F4, 0F3m0}",
+            "\n\t\tibuffer:     {0F6m3, 0F5m2, 0F4, 0F3m0}",
             "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: 0F2 {7,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {i,i,i,i}"
@@ -2878,7 +2878,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       v F0F0F0,0,0F9,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F8,0",
             "\n\t\tmiss ret:    i",
-            "\n\t\tbuffer:      {0F7m4, 0F6m3, 0F5m2, 0F4, 0F3}",
+            "\n\t\tibuffer:     {0F7m4, 0F6m3, 0F5m2, 0F4, 0F3}",
             "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: 0F2 {7,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {i,i,i,i}"
@@ -3064,7 +3064,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       v F0F0F0,0,0FA,0",
             "\n\t\tRESP1:       v F0F0F0,0,0F9,0",
             "\n\t\tmiss ret:    i",
-            "\n\t\tbuffer:      {0F8m0, 0F7m1, 0F6m3, 0F5m2, 0F4}",
+            "\n\t\tibuffer:     {0F8m0, 0F7m1, 0F6m3, 0F5m2, 0F4}",
             "\n\t\tshift reg 1: 0F3 {F,E,D,C,B,A,9,8}",
             "\n\t\tshift reg 0: 0F2 {7,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {0F3B,0F3A,0F39,0F27}"
@@ -3250,7 +3250,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       v F0F0F0,0,0FB,0",
             "\n\t\tRESP1:       v F0F0F0,0,0FA,0",
             "\n\t\tmiss ret:    i",
-            "\n\t\tbuffer:      {0F9m4, 0F8m0, 0F7m1, 0F6m3, 0F5m2}",
+            "\n\t\tibuffer:     {0F9m4, 0F8m0, 0F7m1, 0F6m3, 0F5m2}",
             "\n\t\tshift reg 1: 0F4 {7,6,5,4,3,2,1,0}",
             "\n\t\tshift reg 0: 0F3 {F,E,D,i,i,i,i,i}",
             "\n\t\tdeq:         {0F41,0F3F,0F3E,0F3D}"
@@ -3436,7 +3436,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       v F0F0F0,0,0FC,0",
             "\n\t\tRESP1:       v F0F0F0,0,0FB,0",
             "\n\t\tmiss ret:    i",
-            "\n\t\tbuffer:      {0FAm5, 0F9m4, 0F8m0, 0F7m1, 0F6m3, 0F5m2}",
+            "\n\t\tibuffer:     {0FAm5, 0F9m4, 0F8m0, 0F7m1, 0F6m3, 0F5m2}",
             "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: 0F4 {7,6,5,4,3,2,i,i}",
             "\n\t\tdeq:         {0F46,0F45,0F43,0F42}"
@@ -3622,7 +3622,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       v F0F0F0,0,0FD,0",
             "\n\t\tRESP1:       v F0F0F0,0,0FC,0",
             "\n\t\tmiss ret:    i",
-            "\n\t\tbuffer:      {0FBm6, 0FAm5, 0F9m4, 0F8m0, 0F7m1, 0F6m3, 0F5m2}",
+            "\n\t\tibuffer:     {0FBm6, 0FAm5, 0F9m4, 0F8m0, 0F7m1, 0F6m3, 0F5m2}",
             "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: 0F4 {7,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {i,i,i,i}"
@@ -3818,7 +3818,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       i",
             "\n\t\tRESP1:       i",
             "\n\t\tmiss ret:    v 7",
-            "\n\t\tbuffer:      {}",
+            "\n\t\tibuffer:     {}",
             "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {i,i,i,i}"
@@ -4004,7 +4004,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       v F0F0F0,0,0FC,1",
             "\n\t\tRESP1:       i",
             "\n\t\tmiss ret:    v 6",
-            "\n\t\tbuffer:      {}",
+            "\n\t\tibuffer:     {}",
             "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {i,i,i,i}"
@@ -4190,7 +4190,7 @@ module fetch_unit_tb #(
             "\n\t\tRESP0:       v F0F0F0,0,0FD,0",
             "\n\t\tRESP1:       v F0F0F0,0,0FC,1",
             "\n\t\tmiss ret:    v 5",
-            "\n\t\tbuffer:      {}",
+            "\n\t\tibuffer:     {}",
             "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {i,i,i,i}"
@@ -4371,12 +4371,12 @@ module fetch_unit_tb #(
 		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
-		sub_test_case = {"cycle 13",
+		sub_test_case = {"cycle 13 (miss ret blocking RESP1 hit)",
             "\n\t\tREQ:         v F0F0F0,0,0FE,0",
             "\n\t\tRESP0:       v F0F0F0,0,0FD,0",
             "\n\t\tRESP1:       v F0F0F0,0,0FC,1",
-            "\n\t\tmiss ret:    v 5",
-            "\n\t\tbuffer:      {}",
+            "\n\t\tmiss ret:    v 4",
+            "\n\t\tibuffer:     {}",
             "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tshift reg 0: ___ {i,i,i,i,i,i,i,i}",
             "\n\t\tdeq:         {i,i,i,i}"
@@ -4420,7 +4420,193 @@ module fetch_unit_tb #(
 		tb_icache_feedback_miss_ready = 1'b1;
 	    // icache miss return
 		tb_icache_miss_return_valid = 1'b1;
-		tb_icache_miss_return_fmid = 4'h5;
+		tb_icache_miss_return_fmid = 4'h4;
+		tb_icache_miss_return_fetch16B = {
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD
+        };
+	    // instr yield
+	    // instr yield feedback
+		tb_instr_yield_ready = 1'b1;
+	    // wfr trigger from rob
+		tb_rob_trigger_wfr = 1'b0;
+	    // restart from rob (non-branch restarts)
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_bcb_idx = 4'h0;
+		tb_rob_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_rob_restart_asid = 16'h0000;
+		tb_rob_restart_exec_mode = corep::EXEC_MODE_M;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // wfr trigger from decode_unit
+		tb_decode_unit_trigger_wfr = 1'b0;
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_bcb_idx = 4'h0;
+		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+	    // branch update (and also restart if mispred)
+		tb_branch_update_valid = 1'b0;
+		tb_branch_update_mispred = 1'b0;
+		tb_branch_update_bcb_idx = 4'h0;
+		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_asid = 16'h0000;
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_taken = 1'b0;
+		tb_branch_update_btb_hit = 1'b0;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_asid = 16'h0000;
+		tb_mdpt_update_mdp = 8'h00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b0;
+		expected_itlb_req_asid = 16'h0000;
+		expected_itlb_req_exec_mode = corep::EXEC_MODE_U;
+		expected_itlb_req_virtual_mode = 1'b1;
+		expected_itlb_req_fetch_idx = 9'h0FD;
+	    // itlb resp
+		expected_itlb_resp_vpn = {23'hF0F0F0, 3'h0, 1'b0};
+	    // icache req
+		expected_icache_req_valid = 1'b0;
+		expected_icache_req_fetch_idx = 9'h0FE;
+	    // icache resp0
+		expected_icache_resp0_valid = 1'b0;
+	    // icache resp1
+	    // icache feedback hit
+		expected_icache_feedback_hit_valid = 1'b0;
+		expected_icache_feedback_hit_way = 1'b0;
+	    // icache feedback miss
+		expected_icache_feedback_miss_valid = 1'b0;
+		expected_icache_feedback_miss_fmid = 4'h5;
+		expected_icache_feedback_miss_pa39 = {23'hF0F0F0, 3'h0, 9'h0FC, 3'h1, 1'b0};
+	    // icache miss return
+	    // instr yield
+            // default: shift reg 1, lane 7
+		expected_instr_yield_valid = 1'b0;
+
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'hF0F0F00F8, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'hF0F0F00FA, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0F07, 16'h0F07};
+
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'hF0F0F00F8, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'hF0F0F00FA, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0F07, 16'h0F07};
+
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'hF0F0F00F8, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'hF0F0F00FA, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0F07, 16'h0F07};
+
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'hF0F0F00F8, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'hF0F0F00FA, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0F07, 16'h0F07};
+
+	    // instr yield feedback
+	    // wfr trigger from rob
+	    // restart from rob (non-branch restarts)
+	    // wfr trigger from decode_unit
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+	    // branch update (and also restart if mispred)
+		expected_branch_update_ready = 1'b1;
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"cycle 14",
+            "\n\t\tREQ:         v F0F0F0,0,0FE,0",
+            "\n\t\tRESP0:       v F0F0F0,0,0FD,0",
+            "\n\t\tRESP1:       v F0F0F0,0,0FC,1",
+            "\n\t\tmiss ret:    v 4",
+            "\n\t\tibuffer:     {}",
+            "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
+            "\n\t\tshift reg 0: ___ {i,i,i,i,i,i,i,i}",
+            "\n\t\tdeq:         {i,i,i,i}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 27'h7654321;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp0
+	    // icache resp1
+		tb_icache_resp1_valid_by_way = 2'b11;
+		tb_icache_resp1_tag_by_way = {27'hFEDCBA9, 27'h7654321};
+		tb_icache_resp1_fetch16B_by_way = {
+            16'hFFFF,
+            16'hEEEE,
+            16'hDDDD,
+            16'hCCCC,
+            16'hBBBB,
+            16'hAAAA,
+            16'h9999,
+            16'h8888,
+
+            16'h7777,
+            16'h6666,
+            16'h5555,
+            16'h4444,
+            16'h3333,
+            16'h2222,
+            16'h1111,
+            16'h0000
+        };
+	    // icache feedback hit
+	    // icache feedback miss
+		tb_icache_feedback_miss_ready = 1'b1;
+	    // icache miss return
+		tb_icache_miss_return_valid = 1'b0;
+		tb_icache_miss_return_fmid = 4'h0;
 		tb_icache_miss_return_fetch16B = {
             16'hDEAD,
             16'hDEAD,
@@ -4488,7 +4674,7 @@ module fetch_unit_tb #(
 		expected_icache_feedback_hit_way = 1'b0;
 	    // icache feedback miss
 		expected_icache_feedback_miss_valid = 1'b0;
-		expected_icache_feedback_miss_fmid = 4'h5;
+		expected_icache_feedback_miss_fmid = 4'h4;
 		expected_icache_feedback_miss_pa39 = {23'hF0F0F0, 3'h0, 9'h0FC, 3'h1, 1'b0};
 	    // icache miss return
 	    // instr yield
@@ -4542,6 +4728,2238 @@ module fetch_unit_tb #(
 		expected_instr_yield_by_way[3].access_fault = 1'b0;
 		expected_instr_yield_by_way[3].mdp = 8'h00;
 		expected_instr_yield_by_way[3].fetch4B = {16'h0F07, 16'h0F07};
+
+	    // instr yield feedback
+	    // wfr trigger from rob
+	    // restart from rob (non-branch restarts)
+	    // wfr trigger from decode_unit
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+	    // branch update (and also restart if mispred)
+		expected_branch_update_ready = 1'b1;
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"cycle 15",
+            "\n\t\tREQ:         v E1E1E1,1,1E1,2",
+            "\n\t\tRESP0:       v F0F0F0,0,0FE,0",
+            "\n\t\tRESP1:       v F0F0F0,0,0FD,0",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tibuffer:     {0FC}",
+            "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
+            "\n\t\tshift reg 0: ___ {i,i,i,i,i,i,i,i}",
+            "\n\t\tdeq:         {i,i,i,i}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 27'h7654321;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp0
+	    // icache resp1
+		tb_icache_resp1_valid_by_way = 2'b11;
+		tb_icache_resp1_tag_by_way = {27'hFEDCBA9, 27'h7654321};
+		tb_icache_resp1_fetch16B_by_way = {
+            16'hFFFF,
+            16'hEEEE,
+            16'hDDDD,
+            16'hCCCC,
+            16'hBBBB,
+            16'hAAAA,
+            16'h9999,
+            16'h8888,
+
+            16'h7777,
+            16'h6666,
+            16'h5555,
+            16'h4444,
+            16'h3333,
+            16'h2222,
+            16'h1111,
+            16'h0000
+        };
+	    // icache feedback hit
+	    // icache feedback miss
+		tb_icache_feedback_miss_ready = 1'b1;
+	    // icache miss return
+		tb_icache_miss_return_valid = 1'b0;
+		tb_icache_miss_return_fmid = 4'h0;
+		tb_icache_miss_return_fetch16B = {
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD
+        };
+	    // instr yield
+	    // instr yield feedback
+		tb_instr_yield_ready = 1'b1;
+	    // wfr trigger from rob
+		tb_rob_trigger_wfr = 1'b0;
+	    // restart from rob (non-branch restarts)
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_bcb_idx = 4'h0;
+		tb_rob_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_rob_restart_asid = 16'h0000;
+		tb_rob_restart_exec_mode = corep::EXEC_MODE_M;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // wfr trigger from decode_unit
+		tb_decode_unit_trigger_wfr = 1'b0;
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_bcb_idx = 4'h0;
+		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+	    // branch update (and also restart if mispred)
+		tb_branch_update_valid = 1'b0;
+		tb_branch_update_mispred = 1'b0;
+		tb_branch_update_bcb_idx = 4'h0;
+		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_asid = 16'h0000;
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_taken = 1'b0;
+		tb_branch_update_btb_hit = 1'b0;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_asid = 16'h0000;
+		tb_mdpt_update_mdp = 8'h00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_asid = 16'h0000;
+		expected_itlb_req_exec_mode = corep::EXEC_MODE_U;
+		expected_itlb_req_virtual_mode = 1'b1;
+		expected_itlb_req_fetch_idx = 9'h0FE;
+	    // itlb resp
+		expected_itlb_resp_vpn = {23'hF0F0F0, 3'h0, 1'b0};
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_fetch_idx = 9'h1E1;
+	    // icache resp0
+		expected_icache_resp0_valid = 1'b1;
+	    // icache resp1
+	    // icache feedback hit
+		expected_icache_feedback_hit_valid = 1'b1;
+		expected_icache_feedback_hit_way = 1'b0;
+	    // icache feedback miss
+		expected_icache_feedback_miss_valid = 1'b0;
+		expected_icache_feedback_miss_fmid = 4'h4;
+		expected_icache_feedback_miss_pa39 = {23'hF0F0F0, 3'h0, 9'h0FD, 3'h0, 1'b0};
+	    // icache miss return
+	    // instr yield
+            // default: shift reg 1, lane 7
+		expected_instr_yield_valid = 1'b0;
+
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {35'hF0F0F00F8, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'hF0F0F00FA, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0F07, 16'h0F07};
+
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {35'hF0F0F00F8, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'hF0F0F00FA, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0F07, 16'h0F07};
+
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {35'hF0F0F00F8, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'hF0F0F00FA, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0F07, 16'h0F07};
+
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {35'hF0F0F00F8, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'hF0F0F00FA, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0F07, 16'h0F07};
+
+	    // instr yield feedback
+	    // wfr trigger from rob
+	    // restart from rob (non-branch restarts)
+	    // wfr trigger from decode_unit
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+	    // branch update (and also restart if mispred)
+		expected_branch_update_ready = 1'b1;
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"cycle 16",
+            "\n\t\tREQ:         v E1E1E1,1,1E2,0",
+            "\n\t\tRESP0:       v E1E1E1,1,1E1,2",
+            "\n\t\tRESP1:       i F0F0F0,0,0FE,0",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tibuffer:     {0FD}",
+            "\n\t\tshift reg 1: 0FC {7,6,5,4,3,2,1,i}",
+            "\n\t\tshift reg 0: ___ {i,i,i,i,i,i,i,i}",
+            "\n\t\tdeq:         {0FC5,0FC3,0FC2,0FC1}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 27'h7654321;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp0
+	    // icache resp1
+		tb_icache_resp1_valid_by_way = 2'b11;
+		tb_icache_resp1_tag_by_way = {27'hFEDCBA9, 27'h7654321};
+		tb_icache_resp1_fetch16B_by_way = {
+            16'hFFFF,
+            16'hEEEE,
+            16'hDDDD,
+            16'hCCCC,
+            16'hBBBB,
+            16'hAAAA,
+            16'h9999,
+            16'h8888,
+
+            16'h7777,
+            16'h6666,
+            16'h5555,
+            16'h4444,
+            16'h3333,
+            16'h2222,
+            16'h1111,
+            16'h0000
+        };
+	    // icache feedback hit
+	    // icache feedback miss
+		tb_icache_feedback_miss_ready = 1'b1;
+	    // icache miss return
+		tb_icache_miss_return_valid = 1'b0;
+		tb_icache_miss_return_fmid = 4'h0;
+		tb_icache_miss_return_fetch16B = {
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD
+        };
+	    // instr yield
+	    // instr yield feedback
+		tb_instr_yield_ready = 1'b1;
+	    // wfr trigger from rob
+		tb_rob_trigger_wfr = 1'b0;
+	    // restart from rob (non-branch restarts)
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_bcb_idx = 4'h0;
+		tb_rob_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_rob_restart_asid = 16'h0000;
+		tb_rob_restart_exec_mode = corep::EXEC_MODE_M;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // wfr trigger from decode_unit
+		tb_decode_unit_trigger_wfr = 1'b0;
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_bcb_idx = 4'h0;
+		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+	    // branch update (and also restart if mispred)
+		tb_branch_update_valid = 1'b0;
+		tb_branch_update_mispred = 1'b0;
+		tb_branch_update_bcb_idx = 4'h0;
+		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_asid = 16'h0000;
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_taken = 1'b0;
+		tb_branch_update_btb_hit = 1'b0;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_asid = 16'h0000;
+		tb_mdpt_update_mdp = 8'h00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_asid = 16'h0000;
+		expected_itlb_req_exec_mode = corep::EXEC_MODE_U;
+		expected_itlb_req_virtual_mode = 1'b1;
+		expected_itlb_req_fetch_idx = 9'h1E1;
+	    // itlb resp
+		expected_itlb_resp_vpn = {23'hF0F0F0, 3'h0, 1'b0};
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_fetch_idx = 9'h1E2;
+	    // icache resp0
+		expected_icache_resp0_valid = 1'b1;
+	    // icache resp1
+	    // icache feedback hit
+		expected_icache_feedback_hit_valid = 1'b0;
+		expected_icache_feedback_hit_way = 1'b0;
+	    // icache feedback miss
+		expected_icache_feedback_miss_valid = 1'b0;
+		expected_icache_feedback_miss_fmid = 4'h4;
+		expected_icache_feedback_miss_pa39 = {23'hF0F0F0, 3'h0, 9'h0FD, 3'h0, 1'b0};
+	    // icache miss return
+	    // instr yield
+            // default: shift reg 1, lane 7
+		expected_instr_yield_valid = 1'b1;
+
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[0].src_pc38 = {35'hF0F0F00FC, 3'h1};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'hF0F0F00FC, 3'h2};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h2222, 16'h1111};
+
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[1].src_pc38 = {35'hF0F0F00FC, 3'h2};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'hF0F0F00FC, 3'h3};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'h3333, 16'h2222};
+
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0; // ignoring B NT in middle of instr
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[2].src_pc38 = {35'hF0F0F00FC, 3'h3};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'hF0F0F00FC, 3'h5};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'h4444, 16'h3333};
+
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[3].src_pc38 = {35'hF0F0F00FC, 3'h5};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'hF0F0F00FC, 3'h6};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'h6666, 16'h5555};
+
+	    // instr yield feedback
+	    // wfr trigger from rob
+	    // restart from rob (non-branch restarts)
+	    // wfr trigger from decode_unit
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+	    // branch update (and also restart if mispred)
+		expected_branch_update_ready = 1'b1;
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"cycle 17",
+            "\n\t\tREQ:         v D2D2D2,2,2D2,7",
+            "\n\t\tRESP0:       v E1E1E1,1,1E2,0",
+            "\n\t\tRESP1:       v E1E1E1,1,1E1,2",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tibuffer:     {}",
+            "\n\t\tshift reg 1: 0FD {i,i,5,4,3,2,1,0}",
+            "\n\t\tshift reg 0: 0FC {7,6,i,i,i,i,i,i}",
+            "\n\t\tdeq:         {0FD2,0FD1,0FC7,0FC6}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 27'h7654321;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp0
+	    // icache resp1
+		tb_icache_resp1_valid_by_way = 2'b11;
+		tb_icache_resp1_tag_by_way = {27'hFEDCBA9, 27'h7654321};
+		tb_icache_resp1_fetch16B_by_way = {
+            16'hFFFF,
+            16'hEEEE,
+            16'hDDDD,
+            16'hCCCC,
+            16'hBBBB,
+            16'hAAAA,
+            16'h9999,
+            16'h8888,
+
+            16'h7777,
+            16'h6666,
+            16'h5555,
+            16'h4444,
+            16'h3333,
+            16'h2222,
+            16'h1111,
+            16'h0000
+        };
+	    // icache feedback hit
+	    // icache feedback miss
+		tb_icache_feedback_miss_ready = 1'b1;
+	    // icache miss return
+		tb_icache_miss_return_valid = 1'b0;
+		tb_icache_miss_return_fmid = 4'h0;
+		tb_icache_miss_return_fetch16B = {
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD
+        };
+	    // instr yield
+	    // instr yield feedback
+		tb_instr_yield_ready = 1'b1;
+	    // wfr trigger from rob
+		tb_rob_trigger_wfr = 1'b0;
+	    // restart from rob (non-branch restarts)
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_bcb_idx = 4'h0;
+		tb_rob_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_rob_restart_asid = 16'h0000;
+		tb_rob_restart_exec_mode = corep::EXEC_MODE_M;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // wfr trigger from decode_unit
+		tb_decode_unit_trigger_wfr = 1'b0;
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_bcb_idx = 4'h0;
+		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+	    // branch update (and also restart if mispred)
+		tb_branch_update_valid = 1'b0;
+		tb_branch_update_mispred = 1'b0;
+		tb_branch_update_bcb_idx = 4'h0;
+		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_asid = 16'h0000;
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_taken = 1'b0;
+		tb_branch_update_btb_hit = 1'b0;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_asid = 16'h0000;
+		tb_mdpt_update_mdp = 8'h00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_asid = 16'h0000;
+		expected_itlb_req_exec_mode = corep::EXEC_MODE_U;
+		expected_itlb_req_virtual_mode = 1'b1;
+		expected_itlb_req_fetch_idx = 9'h1E2;
+	    // itlb resp
+		expected_itlb_resp_vpn = {23'hE1E1E1, 3'h1, 1'b1};
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_fetch_idx = 9'h2D2;
+	    // icache resp0
+		expected_icache_resp0_valid = 1'b1;
+	    // icache resp1
+	    // icache feedback hit
+		expected_icache_feedback_hit_valid = 1'b1;
+		expected_icache_feedback_hit_way = 1'b0;
+	    // icache feedback miss
+		expected_icache_feedback_miss_valid = 1'b0;
+		expected_icache_feedback_miss_fmid = 4'h4;
+		expected_icache_feedback_miss_pa39 = {23'hE1E1E1, 3'h1, 9'h1E1, 3'h2, 1'b0};
+	    // icache miss return
+	    // instr yield
+            // default: shift reg 1, lane 7
+		expected_instr_yield_valid = 1'b1;
+
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h1;
+		expected_instr_yield_by_way[0].src_pc38 = {35'hF0F0F00FC, 3'h6};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'hF0F0F00FC, 3'h7};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h7777, 16'h6666};
+
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[1].src_pc38 = {35'hF0F0F00FC, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {35'hF0F0F00FD, 3'h1};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h7777};
+
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[2].src_pc38 = {35'hF0F0F00FD, 3'h1};
+		expected_instr_yield_by_way[2].tgt_pc38 = {35'hF0F0F00FD, 3'h2};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'h2222, 16'h1111};
+
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[3].src_pc38 = {35'hF0F0F00FD, 3'h2};
+		expected_instr_yield_by_way[3].tgt_pc38 = {35'hF0F0F00FD, 3'h3};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'h3333, 16'h2222};
+
+	    // instr yield feedback
+	    // wfr trigger from rob
+	    // restart from rob (non-branch restarts)
+	    // wfr trigger from decode_unit
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+	    // branch update (and also restart if mispred)
+		expected_branch_update_ready = 1'b1;
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"cycle 18",
+            "\n\t\tREQ:         v D2D2D2,2,2D3,0",
+            "\n\t\tRESP0:       v D2D2D2,2,2D2,7",
+            "\n\t\tRESP1:       i E1E1E1,1,1E2,0",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tibuffer:     {1E1}",
+            "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
+            "\n\t\tshift reg 0: 0FD {i,i,5,4,3,i,i,i}",
+            "\n\t\tdeq:         {i,i,0FD5,0FD3}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 27'h7654321;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp0
+	    // icache resp1
+		tb_icache_resp1_valid_by_way = 2'b11;
+		tb_icache_resp1_tag_by_way = {27'hFEDCBA9, 27'h7654321};
+		tb_icache_resp1_fetch16B_by_way = {
+            16'hFFFF,
+            16'hEEEE,
+            16'hDDDD,
+            16'hCCCC,
+            16'hBBBB,
+            16'hAAAA,
+            16'h9999,
+            16'h8888,
+
+            16'h7777,
+            16'h6666,
+            16'h5555,
+            16'h4444,
+            16'h3333,
+            16'h2222,
+            16'h1111,
+            16'h0000
+        };
+	    // icache feedback hit
+	    // icache feedback miss
+		tb_icache_feedback_miss_ready = 1'b1;
+	    // icache miss return
+		tb_icache_miss_return_valid = 1'b0;
+		tb_icache_miss_return_fmid = 4'h0;
+		tb_icache_miss_return_fetch16B = {
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD
+        };
+	    // instr yield
+	    // instr yield feedback
+		tb_instr_yield_ready = 1'b1;
+	    // wfr trigger from rob
+		tb_rob_trigger_wfr = 1'b0;
+	    // restart from rob (non-branch restarts)
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_bcb_idx = 4'h0;
+		tb_rob_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_rob_restart_asid = 16'h0000;
+		tb_rob_restart_exec_mode = corep::EXEC_MODE_M;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // wfr trigger from decode_unit
+		tb_decode_unit_trigger_wfr = 1'b0;
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_bcb_idx = 4'h0;
+		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+	    // branch update (and also restart if mispred)
+		tb_branch_update_valid = 1'b0;
+		tb_branch_update_mispred = 1'b0;
+		tb_branch_update_bcb_idx = 4'h0;
+		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_asid = 16'h0000;
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_taken = 1'b0;
+		tb_branch_update_btb_hit = 1'b0;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_asid = 16'h0000;
+		tb_mdpt_update_mdp = 8'h00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_asid = 16'h0000;
+		expected_itlb_req_exec_mode = corep::EXEC_MODE_U;
+		expected_itlb_req_virtual_mode = 1'b1;
+		expected_itlb_req_fetch_idx = 9'h2D2;
+	    // itlb resp
+		expected_itlb_resp_vpn = {23'hE1E1E1, 3'h1, 1'b1};
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_fetch_idx = 9'h2D3;
+	    // icache resp0
+		expected_icache_resp0_valid = 1'b1;
+	    // icache resp1
+	    // icache feedback hit
+		expected_icache_feedback_hit_valid = 1'b0;
+		expected_icache_feedback_hit_way = 1'b0;
+	    // icache feedback miss
+		expected_icache_feedback_miss_valid = 1'b0;
+		expected_icache_feedback_miss_fmid = 4'h4;
+		expected_icache_feedback_miss_pa39 = {23'hE1E1E1, 3'h1, 9'h1E1, 3'h2, 1'b0};
+	    // icache miss return
+	    // instr yield
+            // default: shift reg 1, lane 7
+		expected_instr_yield_valid = 1'b1;
+
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[0].src_pc38 = {35'hF0F0F00FD, 3'h3};
+		expected_instr_yield_by_way[0].tgt_pc38 = {35'hF0F0F00FD, 3'h5};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h4444, 16'h3333};
+
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b1;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b1;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[1].src_pc38 = {23'hF0F0F0, 3'h0, 9'h0FD, 3'h5};
+		expected_instr_yield_by_way[1].tgt_pc38 = {23'hE1E1E1, 3'h1, 9'h1E1, 3'h2};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hF5;
+		expected_instr_yield_by_way[1].fetch4B = {16'h6666, 16'h5555};
+
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {23'hF0F0F0, 3'h0, 9'h0FA, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {23'hF0F0F0, 3'h0, 9'h0FC, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'hDEAD, 16'hDEAD};
+
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {23'hF0F0F0, 3'h0, 9'h0FA, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {23'hF0F0F0, 3'h0, 9'h0FC, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'hDEAD, 16'hDEAD};
+
+	    // instr yield feedback
+	    // wfr trigger from rob
+	    // restart from rob (non-branch restarts)
+	    // wfr trigger from decode_unit
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+	    // branch update (and also restart if mispred)
+		expected_branch_update_ready = 1'b1;
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"cycle 19",
+            "\n\t\tREQ:         v D2D2D2,2,2D4,0",
+            "\n\t\tRESP0:       v D2D2D2,2,2D3,0",
+            "\n\t\tRESP1:       v D2D2D2,2,2D2,7",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tibuffer:     {}",
+            "\n\t\tshift reg 1: 1E1 {i,6,5,4,3,2,i,i}",
+            "\n\t\tshift reg 0: ___ {i,i,i,i,i,i,i,i}",
+            "\n\t\tdeq:         {1E16,1E15,1E13,1E12}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 27'h7654321;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp0
+	    // icache resp1
+		tb_icache_resp1_valid_by_way = 2'b11;
+		tb_icache_resp1_tag_by_way = {27'hFEDCBA9, 27'h7654321};
+		tb_icache_resp1_fetch16B_by_way = {
+            16'hFFFF,
+            16'hEEEE,
+            16'hDDDD,
+            16'hCCCC,
+            16'hBBBB,
+            16'hAAAA,
+            16'h9999,
+            16'h8888,
+
+            16'h7777,
+            16'h6666,
+            16'h5555,
+            16'h4444,
+            16'h3333,
+            16'h2222,
+            16'h1111,
+            16'h0000
+        };
+	    // icache feedback hit
+	    // icache feedback miss
+		tb_icache_feedback_miss_ready = 1'b1;
+	    // icache miss return
+		tb_icache_miss_return_valid = 1'b0;
+		tb_icache_miss_return_fmid = 4'h0;
+		tb_icache_miss_return_fetch16B = {
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD
+        };
+	    // instr yield
+	    // instr yield feedback
+		tb_instr_yield_ready = 1'b1;
+	    // wfr trigger from rob
+		tb_rob_trigger_wfr = 1'b0;
+	    // restart from rob (non-branch restarts)
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_bcb_idx = 4'h0;
+		tb_rob_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_rob_restart_asid = 16'h0000;
+		tb_rob_restart_exec_mode = corep::EXEC_MODE_M;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // wfr trigger from decode_unit
+		tb_decode_unit_trigger_wfr = 1'b0;
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_bcb_idx = 4'h0;
+		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+	    // branch update (and also restart if mispred)
+		tb_branch_update_valid = 1'b0;
+		tb_branch_update_mispred = 1'b0;
+		tb_branch_update_bcb_idx = 4'h0;
+		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_asid = 16'h0000;
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_taken = 1'b0;
+		tb_branch_update_btb_hit = 1'b0;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_asid = 16'h0000;
+		tb_mdpt_update_mdp = 8'h00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_asid = 16'h0000;
+		expected_itlb_req_exec_mode = corep::EXEC_MODE_U;
+		expected_itlb_req_virtual_mode = 1'b1;
+		expected_itlb_req_fetch_idx = 9'h2D3;
+	    // itlb resp
+		expected_itlb_resp_vpn = {23'hD2D2D2, 3'h2, 1'b0};
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_fetch_idx = 9'h2D4;
+	    // icache resp0
+		expected_icache_resp0_valid = 1'b1;
+	    // icache resp1
+	    // icache feedback hit
+		expected_icache_feedback_hit_valid = 1'b1;
+		expected_icache_feedback_hit_way = 1'b0;
+	    // icache feedback miss
+		expected_icache_feedback_miss_valid = 1'b0;
+		expected_icache_feedback_miss_fmid = 4'h4;
+		expected_icache_feedback_miss_pa39 = {23'hD2D2D2, 3'h2, 9'h2D2, 3'h7, 1'b0};
+	    // icache miss return
+	    // instr yield
+            // default: shift reg 1, lane 7
+		expected_instr_yield_valid = 1'b1;
+
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[0].src_pc38 = {23'hE1E1E1, 3'h1, 9'h1E1, 3'h2};
+		expected_instr_yield_by_way[0].tgt_pc38 = {23'hE1E1E1, 3'h1, 9'h1E1, 3'h3};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h3333, 16'h2222};
+
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[1].src_pc38 = {23'hE1E1E1, 3'h1, 9'h1E1, 3'h3};
+		expected_instr_yield_by_way[1].tgt_pc38 = {23'hE1E1E1, 3'h1, 9'h1E1, 3'h5};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'h4444, 16'h3333};
+
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[2].src_pc38 = {23'hE1E1E1, 3'h1, 9'h1E1, 3'h5};
+		expected_instr_yield_by_way[2].tgt_pc38 = {23'hE1E1E1, 3'h1, 9'h1E1, 3'h6};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'h6666, 16'h5555};
+
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b1;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b1;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[3].src_pc38 = {23'hE1E1E1, 3'h1, 9'h1E1, 3'h6};
+		expected_instr_yield_by_way[3].tgt_pc38 = {23'hD2D2D2, 3'h2, 9'h2D2, 3'h7};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'h7777, 16'h6666};
+
+	    // instr yield feedback
+	    // wfr trigger from rob
+	    // restart from rob (non-branch restarts)
+	    // wfr trigger from decode_unit
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+	    // branch update (and also restart if mispred)
+		expected_branch_update_ready = 1'b1;
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"cycle 1A",
+            "\n\t\tREQ:         v C3C3C3,3,3C3,1",
+            "\n\t\tRESP0:       v D2D2D2,2,2D4,0",
+            "\n\t\tRESP1:       v D2D2D2,2,2D3,0",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tibuffer:     {2D2}",
+            "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
+            "\n\t\tshift reg 0: ___ {i,i,i,i,i,i,i,i}",
+            "\n\t\tdeq:         {i,i,i,i}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 27'h7654321;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp0
+	    // icache resp1
+		tb_icache_resp1_valid_by_way = 2'b11;
+		tb_icache_resp1_tag_by_way = {27'hFEDCBA9, 27'h7654321};
+		tb_icache_resp1_fetch16B_by_way = {
+            16'hFFFF,
+            16'hEEEE,
+            16'hDDDD,
+            16'hCCCC,
+            16'hBBBB,
+            16'hAAAA,
+            16'h9999,
+            16'h8888,
+
+            16'h7777,
+            16'h6666,
+            16'h5555,
+            16'h4444,
+            16'h3333,
+            16'h2222,
+            16'h1111,
+            16'h0000
+        };
+	    // icache feedback hit
+	    // icache feedback miss
+		tb_icache_feedback_miss_ready = 1'b1;
+	    // icache miss return
+		tb_icache_miss_return_valid = 1'b0;
+		tb_icache_miss_return_fmid = 4'h0;
+		tb_icache_miss_return_fetch16B = {
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD
+        };
+	    // instr yield
+	    // instr yield feedback
+		tb_instr_yield_ready = 1'b1;
+	    // wfr trigger from rob
+		tb_rob_trigger_wfr = 1'b0;
+	    // restart from rob (non-branch restarts)
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_bcb_idx = 4'h0;
+		tb_rob_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_rob_restart_asid = 16'h0000;
+		tb_rob_restart_exec_mode = corep::EXEC_MODE_M;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // wfr trigger from decode_unit
+		tb_decode_unit_trigger_wfr = 1'b0;
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_bcb_idx = 4'h0;
+		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+	    // branch update (and also restart if mispred)
+		tb_branch_update_valid = 1'b0;
+		tb_branch_update_mispred = 1'b0;
+		tb_branch_update_bcb_idx = 4'h0;
+		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_asid = 16'h0000;
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_taken = 1'b0;
+		tb_branch_update_btb_hit = 1'b0;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_asid = 16'h0000;
+		tb_mdpt_update_mdp = 8'h00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_asid = 16'h0000;
+		expected_itlb_req_exec_mode = corep::EXEC_MODE_U;
+		expected_itlb_req_virtual_mode = 1'b1;
+		expected_itlb_req_fetch_idx = 9'h2D4;
+	    // itlb resp
+		expected_itlb_resp_vpn = {23'hD2D2D2, 3'h2, 1'b0};
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_fetch_idx = 9'h3C3;
+	    // icache resp0
+		expected_icache_resp0_valid = 1'b1;
+	    // icache resp1
+	    // icache feedback hit
+		expected_icache_feedback_hit_valid = 1'b1;
+		expected_icache_feedback_hit_way = 1'b0;
+	    // icache feedback miss
+		expected_icache_feedback_miss_valid = 1'b0;
+		expected_icache_feedback_miss_fmid = 4'h4;
+		expected_icache_feedback_miss_pa39 = {23'hD2D2D2, 3'h2, 9'h2D3, 3'h0, 1'b0};
+	    // icache miss return
+	    // instr yield
+            // default: shift reg 1, lane 7
+		expected_instr_yield_valid = 1'b0;
+
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {23'hF0F0F0, 3'h0, 9'h0FB, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {23'hF0F0F0, 3'h0, 9'h0FD, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'hDEAD, 16'hDEAD};
+
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {23'hF0F0F0, 3'h0, 9'h0FB, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {23'hF0F0F0, 3'h0, 9'h0FD, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'hDEAD, 16'hDEAD};
+
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {23'hF0F0F0, 3'h0, 9'h0FB, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {23'hF0F0F0, 3'h0, 9'h0FD, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'hDEAD, 16'hDEAD};
+
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {23'hF0F0F0, 3'h0, 9'h0FB, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {23'hF0F0F0, 3'h0, 9'h0FD, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'hDEAD, 16'hDEAD};
+
+	    // instr yield feedback
+	    // wfr trigger from rob
+	    // restart from rob (non-branch restarts)
+	    // wfr trigger from decode_unit
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+	    // branch update (and also restart if mispred)
+		expected_branch_update_ready = 1'b1;
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"cycle 1B",
+            "\n\t\tREQ:         v C3C3C3,3,3C4,0",
+            "\n\t\tRESP0:       v C3C3C3,3,3C3,1",
+            "\n\t\tRESP1:       i D2D2D2,2,2D4,0",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tibuffer:     {2D3}",
+            "\n\t\tshift reg 1: 2D2 {7,i,i,i,i,i,i,i}",
+            "\n\t\tshift reg 0: ___ {i,i,i,i,i,i,i,i}",
+            "\n\t\tdeq:         {i,i,i,i}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 27'h7654321;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp0
+	    // icache resp1
+		tb_icache_resp1_valid_by_way = 2'b11;
+		tb_icache_resp1_tag_by_way = {27'hFEDCBA9, 27'h7654321};
+		tb_icache_resp1_fetch16B_by_way = {
+            16'hFFFF,
+            16'hEEEE,
+            16'hDDDD,
+            16'hCCCC,
+            16'hBBBB,
+            16'hAAAA,
+            16'h9999,
+            16'h8888,
+
+            16'h7777,
+            16'h6666,
+            16'h5555,
+            16'h4444,
+            16'h3333,
+            16'h2222,
+            16'h1111,
+            16'h0000
+        };
+	    // icache feedback hit
+	    // icache feedback miss
+		tb_icache_feedback_miss_ready = 1'b1;
+	    // icache miss return
+		tb_icache_miss_return_valid = 1'b0;
+		tb_icache_miss_return_fmid = 4'h0;
+		tb_icache_miss_return_fetch16B = {
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD
+        };
+	    // instr yield
+	    // instr yield feedback
+		tb_instr_yield_ready = 1'b1;
+	    // wfr trigger from rob
+		tb_rob_trigger_wfr = 1'b0;
+	    // restart from rob (non-branch restarts)
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_bcb_idx = 4'h0;
+		tb_rob_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_rob_restart_asid = 16'h0000;
+		tb_rob_restart_exec_mode = corep::EXEC_MODE_M;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // wfr trigger from decode_unit
+		tb_decode_unit_trigger_wfr = 1'b0;
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_bcb_idx = 4'h0;
+		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+	    // branch update (and also restart if mispred)
+		tb_branch_update_valid = 1'b0;
+		tb_branch_update_mispred = 1'b0;
+		tb_branch_update_bcb_idx = 4'h0;
+		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_asid = 16'h0000;
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_taken = 1'b0;
+		tb_branch_update_btb_hit = 1'b0;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_asid = 16'h0000;
+		tb_mdpt_update_mdp = 8'h00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_asid = 16'h0000;
+		expected_itlb_req_exec_mode = corep::EXEC_MODE_U;
+		expected_itlb_req_virtual_mode = 1'b1;
+		expected_itlb_req_fetch_idx = 9'h3C3;
+	    // itlb resp
+		expected_itlb_resp_vpn = {23'hD2D2D2, 3'h2, 1'b0};
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_fetch_idx = 9'h3C4;
+	    // icache resp0
+		expected_icache_resp0_valid = 1'b1;
+	    // icache resp1
+	    // icache feedback hit
+		expected_icache_feedback_hit_valid = 1'b0;
+		expected_icache_feedback_hit_way = 1'b0;
+	    // icache feedback miss
+		expected_icache_feedback_miss_valid = 1'b0;
+		expected_icache_feedback_miss_fmid = 4'h4;
+		expected_icache_feedback_miss_pa39 = {23'hD2D2D2, 3'h2, 9'h2D3, 3'h0, 1'b0};
+	    // icache miss return
+	    // instr yield
+            // default: shift reg 1, lane 7
+		expected_instr_yield_valid = 1'b0;
+
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[0].src_pc38 = {23'hD2D2D2, 3'h2, 9'h2D2, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {23'hD2D2D2, 3'h2, 9'h2D4, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h7777, 16'h7777};
+
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[1].src_pc38 = {23'hD2D2D2, 3'h2, 9'h2D2, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {23'hD2D2D2, 3'h2, 9'h2D4, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'h7777, 16'h7777};
+
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[2].src_pc38 = {23'hD2D2D2, 3'h2, 9'h2D2, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {23'hD2D2D2, 3'h2, 9'h2D4, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'h7777, 16'h7777};
+
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[3].src_pc38 = {23'hD2D2D2, 3'h2, 9'h2D2, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {23'hD2D2D2, 3'h2, 9'h2D4, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'h7777, 16'h7777};
+
+	    // instr yield feedback
+	    // wfr trigger from rob
+	    // restart from rob (non-branch restarts)
+	    // wfr trigger from decode_unit
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+	    // branch update (and also restart if mispred)
+		expected_branch_update_ready = 1'b1;
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"cycle 1C",
+            "\n\t\tREQ:         v C3C3C3,3,3C5,0",
+            "\n\t\tRESP0:       v C3C3C3,3,3C4,0",
+            "\n\t\tRESP1:       v C3C3C3,3,3C3,1",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tibuffer:     {}",
+            "\n\t\tshift reg 1: 2D3 {i,i,i,4,3,2,1,0}",
+            "\n\t\tshift reg 0: 2D2 {7,i,i,i,i,i,i,i}",
+            "\n\t\tdeq:         {2D33,2D32,2D31,2D27}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 27'h7654321;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp0
+	    // icache resp1
+		tb_icache_resp1_valid_by_way = 2'b11;
+		tb_icache_resp1_tag_by_way = {27'hFEDCBA9, 27'h7654321};
+		tb_icache_resp1_fetch16B_by_way = {
+            16'hFFFF,
+            16'hEEEE,
+            16'hDDDD,
+            16'hCCCC,
+            16'hBBBB,
+            16'hAAAA,
+            16'h9999,
+            16'h8888,
+
+            16'h7777,
+            16'h6666,
+            16'h5555,
+            16'h4444,
+            16'h3333,
+            16'h2222,
+            16'h1111,
+            16'h0000
+        };
+	    // icache feedback hit
+	    // icache feedback miss
+		tb_icache_feedback_miss_ready = 1'b1;
+	    // icache miss return
+		tb_icache_miss_return_valid = 1'b0;
+		tb_icache_miss_return_fmid = 4'h0;
+		tb_icache_miss_return_fetch16B = {
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD
+        };
+	    // instr yield
+	    // instr yield feedback
+		tb_instr_yield_ready = 1'b1;
+	    // wfr trigger from rob
+		tb_rob_trigger_wfr = 1'b0;
+	    // restart from rob (non-branch restarts)
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_bcb_idx = 4'h0;
+		tb_rob_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_rob_restart_asid = 16'h0000;
+		tb_rob_restart_exec_mode = corep::EXEC_MODE_M;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // wfr trigger from decode_unit
+		tb_decode_unit_trigger_wfr = 1'b0;
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_bcb_idx = 4'h0;
+		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+	    // branch update (and also restart if mispred)
+		tb_branch_update_valid = 1'b0;
+		tb_branch_update_mispred = 1'b0;
+		tb_branch_update_bcb_idx = 4'h0;
+		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_asid = 16'h0000;
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_taken = 1'b0;
+		tb_branch_update_btb_hit = 1'b0;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_asid = 16'h0000;
+		tb_mdpt_update_mdp = 8'h00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_asid = 16'h0000;
+		expected_itlb_req_exec_mode = corep::EXEC_MODE_U;
+		expected_itlb_req_virtual_mode = 1'b1;
+		expected_itlb_req_fetch_idx = 9'h3C4;
+	    // itlb resp
+		expected_itlb_resp_vpn = {23'hC3C3C3, 3'h3, 1'b1};
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_fetch_idx = 9'h3C5;
+	    // icache resp0
+		expected_icache_resp0_valid = 1'b1;
+	    // icache resp1
+	    // icache feedback hit
+		expected_icache_feedback_hit_valid = 1'b1;
+		expected_icache_feedback_hit_way = 1'b0;
+	    // icache feedback miss
+		expected_icache_feedback_miss_valid = 1'b0;
+		expected_icache_feedback_miss_fmid = 4'h4;
+		expected_icache_feedback_miss_pa39 = {23'hC3C3C3, 3'h3, 9'h3C3, 3'h1, 1'b0};
+	    // icache miss return
+	    // instr yield
+            // default: shift reg 1, lane 7
+		expected_instr_yield_valid = 1'b1;
+
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[0].src_pc38 = {23'hD2D2D2, 3'h2, 9'h2D2, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {23'hD2D2D2, 3'h2, 9'h2D3, 3'h1};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0000, 16'h7777};
+
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[1].src_pc38 = {23'hD2D2D2, 3'h2, 9'h2D3, 3'h1};
+		expected_instr_yield_by_way[1].tgt_pc38 = {23'hD2D2D2, 3'h2, 9'h2D3, 3'h2};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'h2222, 16'h1111};
+
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[2].src_pc38 = {23'hD2D2D2, 3'h2, 9'h2D3, 3'h2};
+		expected_instr_yield_by_way[2].tgt_pc38 = {23'hD2D2D2, 3'h2, 9'h2D3, 3'h3};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'h3333, 16'h2222};
+
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b1;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b1;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h2;
+		expected_instr_yield_by_way[3].src_pc38 = {23'hD2D2D2, 3'h2, 9'h2D3, 3'h3};
+		expected_instr_yield_by_way[3].tgt_pc38 = {23'hC3C3C3, 3'h3, 9'h3C3, 3'h1};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'h4444, 16'h3333};
+
+	    // instr yield feedback
+	    // wfr trigger from rob
+	    // restart from rob (non-branch restarts)
+	    // wfr trigger from decode_unit
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+	    // branch update (and also restart if mispred)
+		expected_branch_update_ready = 1'b1;
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"cycle 1D",
+            "\n\t\tREQ:         v D2D2D2,2,2D3,5",
+            "\n\t\tRESP0:       v C3C3C3,3,3C5,0",
+            "\n\t\tRESP1:       v C3C3C3,3,3C4,0",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tibuffer:     {3C3}",
+            "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
+            "\n\t\tshift reg 0: ___ {i,i,i,i,i,i,i,i}",
+            "\n\t\tdeq:         {i,i,i,i}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 27'h7654321;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp0
+	    // icache resp1
+		tb_icache_resp1_valid_by_way = 2'b11;
+		tb_icache_resp1_tag_by_way = {27'hFEDCBA9, 27'h7654321};
+		tb_icache_resp1_fetch16B_by_way = {
+            16'hFFFF,
+            16'hEEEE,
+            16'hDDDD,
+            16'hCCCC,
+            16'hBBBB,
+            16'hAAAA,
+            16'h9999,
+            16'h8888,
+
+            16'h7777,
+            16'h6666,
+            16'h5555,
+            16'h4444,
+            16'h3333,
+            16'h2222,
+            16'h1111,
+            16'h0000
+        };
+	    // icache feedback hit
+	    // icache feedback miss
+		tb_icache_feedback_miss_ready = 1'b1;
+	    // icache miss return
+		tb_icache_miss_return_valid = 1'b0;
+		tb_icache_miss_return_fmid = 4'h0;
+		tb_icache_miss_return_fetch16B = {
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD
+        };
+	    // instr yield
+	    // instr yield feedback
+		tb_instr_yield_ready = 1'b1;
+	    // wfr trigger from rob
+		tb_rob_trigger_wfr = 1'b0;
+	    // restart from rob (non-branch restarts)
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_bcb_idx = 4'h0;
+		tb_rob_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_rob_restart_asid = 16'h0000;
+		tb_rob_restart_exec_mode = corep::EXEC_MODE_M;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // wfr trigger from decode_unit
+		tb_decode_unit_trigger_wfr = 1'b0;
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_bcb_idx = 4'h0;
+		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+	    // branch update (and also restart if mispred)
+		tb_branch_update_valid = 1'b0;
+		tb_branch_update_mispred = 1'b0;
+		tb_branch_update_bcb_idx = 4'h0;
+		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_asid = 16'h0000;
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_taken = 1'b0;
+		tb_branch_update_btb_hit = 1'b0;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_asid = 16'h0000;
+		tb_mdpt_update_mdp = 8'h00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_asid = 16'h0000;
+		expected_itlb_req_exec_mode = corep::EXEC_MODE_U;
+		expected_itlb_req_virtual_mode = 1'b1;
+		expected_itlb_req_fetch_idx = 9'h3C5;
+	    // itlb resp
+		expected_itlb_resp_vpn = {23'hC3C3C3, 3'h3, 1'b1};
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_fetch_idx = 9'h2D3;
+	    // icache resp0
+		expected_icache_resp0_valid = 1'b1;
+	    // icache resp1
+	    // icache feedback hit
+		expected_icache_feedback_hit_valid = 1'b1;
+		expected_icache_feedback_hit_way = 1'b0;
+	    // icache feedback miss
+		expected_icache_feedback_miss_valid = 1'b0;
+		expected_icache_feedback_miss_fmid = 4'h4;
+		expected_icache_feedback_miss_pa39 = {23'hC3C3C3, 3'h3, 9'h3C4, 3'h0, 1'b0};
+	    // icache miss return
+	    // instr yield
+            // default: shift reg 1, lane 7
+		expected_instr_yield_valid = 1'b0;
+
+		expected_instr_yield_by_way[0].valid = 1'b0;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[0].src_pc38 = {23'hF0F0F0, 3'h0, 9'h0F5, 3'h7};
+		expected_instr_yield_by_way[0].tgt_pc38 = {23'hF0F0F0, 3'h0, 9'h0F7, 3'h0};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h0000, 16'h0000};
+
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {23'hF0F0F0, 3'h0, 9'h0F5, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {23'hF0F0F0, 3'h0, 9'h0F7, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h0000};
+
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {23'hF0F0F0, 3'h0, 9'h0F5, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {23'hF0F0F0, 3'h0, 9'h0F7, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
+
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {23'hF0F0F0, 3'h0, 9'h0F5, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {23'hF0F0F0, 3'h0, 9'h0F7, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
+
+	    // instr yield feedback
+	    // wfr trigger from rob
+	    // restart from rob (non-branch restarts)
+	    // wfr trigger from decode_unit
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+	    // branch update (and also restart if mispred)
+		expected_branch_update_ready = 1'b1;
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"cycle 1E",
+            "\n\t\tREQ:         v D2D2D2,2,2D4,0",
+            "\n\t\tRESP0:       v D2D2D2,2,2D3,5",
+            "\n\t\tRESP1:       i C3C3C3,3,3C5,0",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tibuffer:     {3C4}",
+            "\n\t\tshift reg 1: 3C3 {7,6,5,4,3,2,1,i}",
+            "\n\t\tshift reg 0: ___ {i,i,i,i,i,i,i,i}",
+            "\n\t\tdeq:         {3C35,3C33,3C32,3C31}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 27'h7654321;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp0
+	    // icache resp1
+		tb_icache_resp1_valid_by_way = 2'b11;
+		tb_icache_resp1_tag_by_way = {27'hFEDCBA9, 27'h7654321};
+		tb_icache_resp1_fetch16B_by_way = {
+            16'hFFFF,
+            16'hEEEE,
+            16'hDDDD,
+            16'hCCCC,
+            16'hBBBB,
+            16'hAAAA,
+            16'h9999,
+            16'h8888,
+
+            16'h7777,
+            16'h6666,
+            16'h5555,
+            16'h4444,
+            16'h3333,
+            16'h2222,
+            16'h1111,
+            16'h0000
+        };
+	    // icache feedback hit
+	    // icache feedback miss
+		tb_icache_feedback_miss_ready = 1'b1;
+	    // icache miss return
+		tb_icache_miss_return_valid = 1'b0;
+		tb_icache_miss_return_fmid = 4'h0;
+		tb_icache_miss_return_fetch16B = {
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD
+        };
+	    // instr yield
+	    // instr yield feedback
+		tb_instr_yield_ready = 1'b1;
+	    // wfr trigger from rob
+		tb_rob_trigger_wfr = 1'b0;
+	    // restart from rob (non-branch restarts)
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_bcb_idx = 4'h0;
+		tb_rob_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_rob_restart_asid = 16'h0000;
+		tb_rob_restart_exec_mode = corep::EXEC_MODE_M;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // wfr trigger from decode_unit
+		tb_decode_unit_trigger_wfr = 1'b0;
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_bcb_idx = 4'h0;
+		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+	    // branch update (and also restart if mispred)
+		tb_branch_update_valid = 1'b0;
+		tb_branch_update_mispred = 1'b0;
+		tb_branch_update_bcb_idx = 4'h0;
+		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_asid = 16'h0000;
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_taken = 1'b0;
+		tb_branch_update_btb_hit = 1'b0;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_asid = 16'h0000;
+		tb_mdpt_update_mdp = 8'h00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_asid = 16'h0000;
+		expected_itlb_req_exec_mode = corep::EXEC_MODE_U;
+		expected_itlb_req_virtual_mode = 1'b1;
+		expected_itlb_req_fetch_idx = 9'h2D3;
+	    // itlb resp
+		expected_itlb_resp_vpn = {23'hC3C3C3, 3'h3, 1'b1};
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_fetch_idx = 9'h2D4;
+	    // icache resp0
+		expected_icache_resp0_valid = 1'b1;
+	    // icache resp1
+	    // icache feedback hit
+		expected_icache_feedback_hit_valid = 1'b0;
+		expected_icache_feedback_hit_way = 1'b0;
+	    // icache feedback miss
+		expected_icache_feedback_miss_valid = 1'b0;
+		expected_icache_feedback_miss_fmid = 4'h4;
+		expected_icache_feedback_miss_pa39 = {23'hC3C3C3, 3'h3, 9'h3C4, 3'h0, 1'b0};
+	    // icache miss return
+	    // instr yield
+            // default: shift reg 1, lane 7
+		expected_instr_yield_valid = 1'b1;
+
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h3;
+		expected_instr_yield_by_way[0].src_pc38 = {23'hC3C3C3, 3'h3, 9'h3C3, 3'h1};
+		expected_instr_yield_by_way[0].tgt_pc38 = {23'hC3C3C3, 3'h3, 9'h3C3, 3'h2};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h2222, 16'h1111};
+
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h3;
+		expected_instr_yield_by_way[1].src_pc38 = {23'hC3C3C3, 3'h3, 9'h3C3, 3'h2};
+		expected_instr_yield_by_way[1].tgt_pc38 = {23'hC3C3C3, 3'h3, 9'h3C3, 3'h3};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'h3333, 16'h2222};
+
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h3;
+		expected_instr_yield_by_way[2].src_pc38 = {23'hC3C3C3, 3'h3, 9'h3C3, 3'h3};
+		expected_instr_yield_by_way[2].tgt_pc38 = {23'hC3C3C3, 3'h3, 9'h3C3, 3'h5};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'h4444, 16'h3333};
+
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h3;
+		expected_instr_yield_by_way[3].src_pc38 = {23'hC3C3C3, 3'h3, 9'h3C3, 3'h5};
+		expected_instr_yield_by_way[3].tgt_pc38 = {23'hC3C3C3, 3'h3, 9'h3C3, 3'h6};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'h6666, 16'h5555};
+
+	    // instr yield feedback
+	    // wfr trigger from rob
+	    // restart from rob (non-branch restarts)
+	    // wfr trigger from decode_unit
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+	    // branch update (and also restart if mispred)
+		expected_branch_update_ready = 1'b1;
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"cycle 1F",
+            "\n\t\tREQ:         v C3C3C3,3,3C4,4",
+            "\n\t\tRESP0:       v D2D2D2,2,2D4,0",
+            "\n\t\tRESP1:       v D2D2D2,2,2D3,5",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tibuffer:     {}",
+            "\n\t\tshift reg 1: 3C4 {i,i,i,i,3,2,1,0}",
+            "\n\t\tshift reg 0: 3C3 {7,6,i,i,i,i,i,i}",
+            "\n\t\tdeq:         {3C42,3C41,3C37,3C36}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 27'h7654321;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp0
+	    // icache resp1
+		tb_icache_resp1_valid_by_way = 2'b11;
+		tb_icache_resp1_tag_by_way = {27'hFEDCBA9, 27'h7654321};
+		tb_icache_resp1_fetch16B_by_way = {
+            16'hFFFF,
+            16'hEEEE,
+            16'hDDDD,
+            16'hCCCC,
+            16'hBBBB,
+            16'hAAAA,
+            16'h9999,
+            16'h8888,
+
+            16'h7777,
+            16'h6666,
+            16'h5555,
+            16'h4444,
+            16'h3333,
+            16'h2222,
+            16'h1111,
+            16'h0000
+        };
+	    // icache feedback hit
+	    // icache feedback miss
+		tb_icache_feedback_miss_ready = 1'b1;
+	    // icache miss return
+		tb_icache_miss_return_valid = 1'b0;
+		tb_icache_miss_return_fmid = 4'h0;
+		tb_icache_miss_return_fetch16B = {
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD
+        };
+	    // instr yield
+	    // instr yield feedback
+		tb_instr_yield_ready = 1'b1;
+	    // wfr trigger from rob
+		tb_rob_trigger_wfr = 1'b0;
+	    // restart from rob (non-branch restarts)
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_bcb_idx = 4'h0;
+		tb_rob_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_rob_restart_asid = 16'h0000;
+		tb_rob_restart_exec_mode = corep::EXEC_MODE_M;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // wfr trigger from decode_unit
+		tb_decode_unit_trigger_wfr = 1'b0;
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_bcb_idx = 4'h0;
+		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+	    // branch update (and also restart if mispred)
+		tb_branch_update_valid = 1'b0;
+		tb_branch_update_mispred = 1'b0;
+		tb_branch_update_bcb_idx = 4'h0;
+		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_asid = 16'h0000;
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_taken = 1'b0;
+		tb_branch_update_btb_hit = 1'b0;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_asid = 16'h0000;
+		tb_mdpt_update_mdp = 8'h00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_asid = 16'h0000;
+		expected_itlb_req_exec_mode = corep::EXEC_MODE_U;
+		expected_itlb_req_virtual_mode = 1'b1;
+		expected_itlb_req_fetch_idx = 9'h2D4;
+	    // itlb resp
+		expected_itlb_resp_vpn = {23'hD2D2D2, 3'h2, 1'b0};
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_fetch_idx = 9'h3C4;
+	    // icache resp0
+		expected_icache_resp0_valid = 1'b1;
+	    // icache resp1
+	    // icache feedback hit
+		expected_icache_feedback_hit_valid = 1'b1;
+		expected_icache_feedback_hit_way = 1'b0;
+	    // icache feedback miss
+		expected_icache_feedback_miss_valid = 1'b0;
+		expected_icache_feedback_miss_fmid = 4'h4;
+		expected_icache_feedback_miss_pa39 = {23'hD2D2D2, 3'h2, 9'h2D3, 3'h5, 1'b0};
+	    // icache miss return
+	    // instr yield
+            // default: shift reg 1, lane 7
+		expected_instr_yield_valid = 1'b1;
+
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h3;
+		expected_instr_yield_by_way[0].src_pc38 = {23'hC3C3C3, 3'h3, 9'h3C3, 3'h6};
+		expected_instr_yield_by_way[0].tgt_pc38 = {23'hC3C3C3, 3'h3, 9'h3C3, 3'h7};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h7777, 16'h6666};
+
+		expected_instr_yield_by_way[1].valid = 1'b1;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h3;
+		expected_instr_yield_by_way[1].src_pc38 = {23'hC3C3C3, 3'h3, 9'h3C3, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {23'hC3C3C3, 3'h3, 9'h3C4, 3'h1};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'h00;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h7777};
+
+		expected_instr_yield_by_way[2].valid = 1'b1;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h3;
+		expected_instr_yield_by_way[2].src_pc38 = {23'hC3C3C3, 3'h3, 9'h3C4, 3'h1};
+		expected_instr_yield_by_way[2].tgt_pc38 = {23'hC3C3C3, 3'h3, 9'h3C4, 3'h2};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'h00;
+		expected_instr_yield_by_way[2].fetch4B = {16'h2222, 16'h1111};
+
+		expected_instr_yield_by_way[3].valid = 1'b1;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h3;
+		expected_instr_yield_by_way[3].src_pc38 = {23'hC3C3C3, 3'h3, 9'h3C4, 3'h2};
+		expected_instr_yield_by_way[3].tgt_pc38 = {23'hC3C3C3, 3'h3, 9'h3C4, 3'h3};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'h00;
+		expected_instr_yield_by_way[3].fetch4B = {16'h3333, 16'h2222};
+
+	    // instr yield feedback
+	    // wfr trigger from rob
+	    // restart from rob (non-branch restarts)
+	    // wfr trigger from decode_unit
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+	    // branch update (and also restart if mispred)
+		expected_branch_update_ready = 1'b1;
+	    // mdpt update
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = {"cycle 20",
+            "\n\t\tREQ:         v C3C3C3,3,3C5,0",
+            "\n\t\tRESP0:       v C3C3C3,3,3C4,4",
+            "\n\t\tRESP1:       i D2D2D2,2,2D4,0",
+            "\n\t\tmiss ret:    i",
+            "\n\t\tibuffer:     {2D3}",
+            "\n\t\tshift reg 1: ___ {i,i,i,i,i,i,i,i}",
+            "\n\t\tshift reg 0: 3C4 {i,i,i,i,3,i,i,i}",
+            "\n\t\tdeq:         {i,i,i,3C43}"
+        };
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // itlb req
+	    // itlb resp
+		tb_itlb_resp_valid = 1'b1;
+		tb_itlb_resp_ppn = 27'h7654321;
+		tb_itlb_resp_page_fault = 1'b0;
+		tb_itlb_resp_access_fault = 1'b0;
+	    // icache req
+	    // icache resp0
+	    // icache resp1
+		tb_icache_resp1_valid_by_way = 2'b11;
+		tb_icache_resp1_tag_by_way = {27'hFEDCBA9, 27'h7654321};
+		tb_icache_resp1_fetch16B_by_way = {
+            16'hFFFF,
+            16'hEEEE,
+            16'hDDDD,
+            16'hCCCC,
+            16'hBBBB,
+            16'hAAAA,
+            16'h9999,
+            16'h8888,
+
+            16'h7777,
+            16'h6666,
+            16'h5555,
+            16'h4444,
+            16'h3333,
+            16'h2222,
+            16'h1111,
+            16'h0000
+        };
+	    // icache feedback hit
+	    // icache feedback miss
+		tb_icache_feedback_miss_ready = 1'b1;
+	    // icache miss return
+		tb_icache_miss_return_valid = 1'b0;
+		tb_icache_miss_return_fmid = 4'h0;
+		tb_icache_miss_return_fetch16B = {
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD,
+            16'hDEAD
+        };
+	    // instr yield
+	    // instr yield feedback
+		tb_instr_yield_ready = 1'b1;
+	    // wfr trigger from rob
+		tb_rob_trigger_wfr = 1'b0;
+	    // restart from rob (non-branch restarts)
+		tb_rob_restart_valid = 1'b0;
+		tb_rob_restart_bcb_idx = 4'h0;
+		tb_rob_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_rob_restart_asid = 16'h0000;
+		tb_rob_restart_exec_mode = corep::EXEC_MODE_M;
+		tb_rob_restart_virtual_mode = 1'b0;
+	    // wfr trigger from decode_unit
+		tb_decode_unit_trigger_wfr = 1'b0;
+	    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+		tb_decode_unit_restart_valid = 1'b0;
+		tb_decode_unit_restart_bcb_idx = 4'h0;
+		tb_decode_unit_restart_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+	    // branch update (and also restart if mispred)
+		tb_branch_update_valid = 1'b0;
+		tb_branch_update_mispred = 1'b0;
+		tb_branch_update_bcb_idx = 4'h0;
+		tb_branch_update_src_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_asid = 16'h0000;
+		tb_branch_update_btb_info = {5'b00000, 1'b0, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_tgt_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_branch_update_taken = 1'b0;
+		tb_branch_update_btb_hit = 1'b0;
+	    // mdpt update
+		tb_mdpt_update_valid = 1'b0;
+		tb_mdpt_update_pc38 = {23'h000000, 3'h0, 9'h000, 3'h0};
+		tb_mdpt_update_asid = 16'h0000;
+		tb_mdpt_update_mdp = 8'h00;
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // itlb req
+		expected_itlb_req_valid = 1'b1;
+		expected_itlb_req_asid = 16'h0000;
+		expected_itlb_req_exec_mode = corep::EXEC_MODE_U;
+		expected_itlb_req_virtual_mode = 1'b1;
+		expected_itlb_req_fetch_idx = 9'h3C4;
+	    // itlb resp
+		expected_itlb_resp_vpn = {23'hD2D2D2, 3'h2, 1'b0};
+	    // icache req
+		expected_icache_req_valid = 1'b1;
+		expected_icache_req_fetch_idx = 9'h3C5;
+	    // icache resp0
+		expected_icache_resp0_valid = 1'b1;
+	    // icache resp1
+	    // icache feedback hit
+		expected_icache_feedback_hit_valid = 1'b0;
+		expected_icache_feedback_hit_way = 1'b0;
+	    // icache feedback miss
+		expected_icache_feedback_miss_valid = 1'b0;
+		expected_icache_feedback_miss_fmid = 4'h4;
+		expected_icache_feedback_miss_pa39 = {23'hD2D2D2, 3'h2, 9'h2D3, 3'h5, 1'b0};
+	    // icache miss return
+	    // instr yield
+            // default: shift reg 1, lane 7
+		expected_instr_yield_valid = 1'b1;
+
+		expected_instr_yield_by_way[0].valid = 1'b1;
+		expected_instr_yield_by_way[0].btb_hit = 1'b0;
+		expected_instr_yield_by_way[0].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b1;
+		expected_instr_yield_by_way[0].bcb_idx = 4'h3;
+		expected_instr_yield_by_way[0].src_pc38 = {23'hC3C3C3, 3'h3, 9'h3C4, 3'h3};
+		expected_instr_yield_by_way[0].tgt_pc38 = {23'hD2D2D2, 3'h2, 9'h2D3, 3'h5};
+		expected_instr_yield_by_way[0].page_fault = 1'b0;
+		expected_instr_yield_by_way[0].access_fault = 1'b0;
+		expected_instr_yield_by_way[0].mdp = 8'h00;
+		expected_instr_yield_by_way[0].fetch4B = {16'h4444, 16'h3333};
+
+		expected_instr_yield_by_way[1].valid = 1'b0;
+		expected_instr_yield_by_way[1].btb_hit = 1'b0;
+		expected_instr_yield_by_way[1].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[1].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[1].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[1].src_pc38 = {23'hF0F0F0, 3'h0, 9'h0F7, 3'h7};
+		expected_instr_yield_by_way[1].tgt_pc38 = {23'hF0F0F0, 3'h0, 9'h0F9, 3'h0};
+		expected_instr_yield_by_way[1].page_fault = 1'b0;
+		expected_instr_yield_by_way[1].access_fault = 1'b0;
+		expected_instr_yield_by_way[1].mdp = 8'hF7;
+		expected_instr_yield_by_way[1].fetch4B = {16'h0000, 16'h0000};
+
+		expected_instr_yield_by_way[2].valid = 1'b0;
+		expected_instr_yield_by_way[2].btb_hit = 1'b0;
+		expected_instr_yield_by_way[2].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[2].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[2].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[2].src_pc38 = {23'hF0F0F0, 3'h0, 9'h0F7, 3'h7};
+		expected_instr_yield_by_way[2].tgt_pc38 = {23'hF0F0F0, 3'h0, 9'h0F9, 3'h0};
+		expected_instr_yield_by_way[2].page_fault = 1'b0;
+		expected_instr_yield_by_way[2].access_fault = 1'b0;
+		expected_instr_yield_by_way[2].mdp = 8'hF7;
+		expected_instr_yield_by_way[2].fetch4B = {16'h0000, 16'h0000};
+
+		expected_instr_yield_by_way[3].valid = 1'b0;
+		expected_instr_yield_by_way[3].btb_hit = 1'b0;
+		expected_instr_yield_by_way[3].redirect_taken = 1'b0;
+		expected_instr_yield_by_way[3].mid_instr_redirect = 1'b0;
+		expected_instr_yield_by_way[3].bcb_idx = 4'h0;
+		expected_instr_yield_by_way[3].src_pc38 = {23'hF0F0F0, 3'h0, 9'h0F7, 3'h7};
+		expected_instr_yield_by_way[3].tgt_pc38 = {23'hF0F0F0, 3'h0, 9'h0F9, 3'h0};
+		expected_instr_yield_by_way[3].page_fault = 1'b0;
+		expected_instr_yield_by_way[3].access_fault = 1'b0;
+		expected_instr_yield_by_way[3].mdp = 8'hF7;
+		expected_instr_yield_by_way[3].fetch4B = {16'h0000, 16'h0000};
 
 	    // instr yield feedback
 	    // wfr trigger from rob
