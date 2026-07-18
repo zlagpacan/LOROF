@@ -390,7 +390,8 @@ module ibuffer (
                 instr_yield_by_way[way].mid_instr_redirect = info_by_reg[deq_first2B_idx_by_way[way][3]].redirect_taken_by_lane[deq_first2B_idx_by_way[way][2:0]];
                 instr_yield_by_way[way].bcb_idx = info_by_reg[deq_second2B_idx_by_way[way][3]].bcb_idx;
                 if (
-                    info_by_reg[deq_second2B_idx_by_way[way][3]].redirect_taken_by_lane[deq_second2B_idx_by_way[way][2:0]]
+                    info_by_reg[deq_first2B_idx_by_way[way][3]].redirect_taken_by_lane[deq_first2B_idx_by_way[way][2:0]]
+                    | info_by_reg[deq_second2B_idx_by_way[way][3]].redirect_taken_by_lane[deq_second2B_idx_by_way[way][2:0]]
                     | deq_second2B_idx_by_way[way][2:0] == 3'h7
                 ) begin
                     instr_yield_by_way[way].tgt_pc38 = info_by_reg[deq_second2B_idx_by_way[way][3]].tgt_pc38;
