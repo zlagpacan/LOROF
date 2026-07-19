@@ -14,6 +14,11 @@
             // this gets nasty fast tho
 // TODO: decode if want checkpoint
 
+// notes:
+    // fpnew input coding
+    // fr vs. r reg's -> "is_fpreg"
+    // fmadd frd reg borrowing logic
+
 `include "core_types.vh"
 
 module decoder (

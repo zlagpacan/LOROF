@@ -397,15 +397,15 @@ package corep;
     // ibuffer entries:
         // all in one place so can easily modify
     typedef struct packed {
-        logic [FETCH_LANES-1:0]         valid_by_lane;
-        logic [FETCH_LANES-1:0]         btb_hit_by_lane;
-        logic [FETCH_LANES-1:0]         redirect_taken_by_lane;
-        bcb_idx_t                       bcb_idx;
-        pc35_t                          src_pc35;
-        pc38_t                          tgt_pc38;
-        logic                           page_fault;
-        logic                           access_fault;
-        mdp_t [FETCH_LANES-1:0]         mdp_by_lane;
+        logic [FETCH_LANES-1:0]     valid_by_lane;
+        logic [FETCH_LANES-1:0]     btb_hit_by_lane;
+        logic [FETCH_LANES-1:0]     redirect_taken_by_lane;
+        bcb_idx_t                   bcb_idx;
+        pc35_t                      src_pc35;
+        pc38_t                      tgt_pc38;
+        logic                       page_fault;
+        logic                       access_fault;
+        mdp_t [FETCH_LANES-1:0]     mdp_by_lane;
     } ibuffer_enq_info_t;
 
     typedef struct packed {
