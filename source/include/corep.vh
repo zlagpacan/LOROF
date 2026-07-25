@@ -437,13 +437,15 @@ package corep;
     parameter int unsigned FREE_LIST_UPPER_THRESHOLD = 24;
 
     // map_table
-    parameter int unsigned MAP_TABLE_ARF_READ_PORT_COUNT = 12;
-    parameter int unsigned MAP_TABLE_ARF_WRITE_PORT_COUNT = 4;
-        // for FARF, most likely want to limit the ports and force 2-beat
-            // dense FP is very uncommon
-           // map_table complexity increases very quickly
+    parameter int unsigned MAP_TABLE_IARF_READ_PORT_COUNT = 12;
+    parameter int unsigned MAP_TABLE_IARF_WRITE_PORT_COUNT = 4;
     parameter int unsigned MAP_TABLE_FARF_READ_PORT_COUNT = 16;
     parameter int unsigned MAP_TABLE_FARF_WRITE_PORT_COUNT = 4;
+
+    typedef struct packed {
+        pr_t [AR5_COUNT-1:0] far;
+        pr_t [AR5_COUNT-1:0] iar;
+    } map_table_t;
 
     // checkpoint array:
     parameter int unsigned MTCB_ENTRIES = 8;
