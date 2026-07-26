@@ -5,8 +5,7 @@
     Spec: LOROF/spec/design/map_table.md
 */
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
+`include "corep.vh"
 
 module map_table #(
     // hardcode 4-way
@@ -199,11 +198,11 @@ module map_table #(
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             // init: map AR to equivalent value PR
-            for (int iar = 0; iar < AR5_COUNT; iar++) begin
+            for (int iar = 0; iar < corep::AR5_COUNT; iar++) begin
                 map_table.iar[iar] <= iar;
             end
-            for (int far = 0; far < AR5_COUNT; far++) begin
-                map_table.far[far] <= far;
+            for (int far = 0; far < corep::AR5_COUNT; far++) begin
+                map_table.far[far] <= far + corep::AR5_COUNT;
             end
         end
         else begin

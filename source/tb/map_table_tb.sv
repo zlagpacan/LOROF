@@ -7,19 +7,16 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
+`include "corep.vh"
 
 module map_table_tb #(
-	parameter MAP_TABLE_READ_PORT_COUNT = 12,
-	parameter MAP_TABLE_WRITE_PORT_COUNT = 4
 ) ();
 
     // ----------------------------------------------------------------
     // TB setup:
 
     // parameters
-    parameter PERIOD = 10;
+    parameter int unsigned PERIOD = 10;
 
     // TB signals:
     logic CLK = 1'b1, nRST;
@@ -35,43 +32,53 @@ module map_table_tb #(
     // ----------------------------------------------------------------
     // DUT signals:
 
+    // reg reads
+	corep::ar6_t [3:0] tb_A_ar6_by_way;
+	corep::pr_t [3:0] DUT_A_pr_by_way, expected_A_pr_by_way;
 
-    // read ports
-	logic [MAP_TABLE_READ_PORT_COUNT-1:0][LOG_AR_COUNT-1:0] tb_read_AR_by_port;
-	logic [MAP_TABLE_READ_PORT_COUNT-1:0][LOG_PR_COUNT-1:0] DUT_read_PR_by_port, expected_read_PR_by_port;
+	corep::ar6_t [3:0] tb_B_ar6_by_way;
+	corep::pr_t [3:0] DUT_B_pr_by_way, expected_B_pr_by_way;
 
-    // write ports
-	logic [MAP_TABLE_WRITE_PORT_COUNT-1:0] tb_write_valid_by_port;
-	logic [MAP_TABLE_WRITE_PORT_COUNT-1:0][LOG_AR_COUNT-1:0] tb_write_AR_by_port;
-	logic [MAP_TABLE_WRITE_PORT_COUNT-1:0][LOG_PR_COUNT-1:0] tb_write_PR_by_port;
+	corep::ar5_t [3:0] tb_C_far_by_way;
+	corep::pr_t [3:0] DUT_C_pr_by_way, expected_C_pr_by_way;
+
+    // reg writes
+	logic [3:0] tb_dest_write_valid_by_way;
+	corep::ar6_t [3:0] tb_dest_ar6_by_way;
+	corep::pr_t [3:0] DUT_dest_old_pr_by_way, expected_dest_old_pr_by_way;
+	corep::pr_t [3:0] tb_dest_new_pr_by_way;
 
     // checkpoint save
-	logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] DUT_save_map_table, expected_save_map_table;
+	corep::map_table_t DUT_save_map_table, expected_save_map_table;
 
     // checkpoint restore
 	logic tb_restore_valid;
-	logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] tb_restore_map_table;
+	corep::map_table_t tb_restore_map_table;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
 
 	map_table #(
-		.MAP_TABLE_READ_PORT_COUNT(12),
-		.MAP_TABLE_WRITE_PORT_COUNT(4)
 	) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
 
+	    // reg reads
+		.A_ar6_by_way(tb_A_ar6_by_way),
+		.A_pr_by_way(DUT_A_pr_by_way),
 
-	    // 12x read ports
-		.read_AR_by_port(tb_read_AR_by_port),
-		.read_PR_by_port(DUT_read_PR_by_port),
+		.B_ar6_by_way(tb_B_ar6_by_way),
+		.B_pr_by_way(DUT_B_pr_by_way),
 
-	    // 4x write ports
-		.write_valid_by_port(tb_write_valid_by_port),
-		.write_AR_by_port(tb_write_AR_by_port),
-		.write_PR_by_port(tb_write_PR_by_port),
+		.C_far_by_way(tb_C_far_by_way),
+		.C_pr_by_way(DUT_C_pr_by_way),
+
+	    // reg writes
+		.dest_write_valid_by_way(tb_dest_write_valid_by_way),
+		.dest_ar6_by_way(tb_dest_ar6_by_way),
+		.dest_old_pr_by_way(DUT_dest_old_pr_by_way),
+		.dest_new_pr_by_way(tb_dest_new_pr_by_way),
 
 	    // checkpoint save
 		.save_map_table(DUT_save_map_table),
@@ -86,22 +93,42 @@ module map_table_tb #(
 
     task check_outputs();
     begin
-		if (expected_read_PR_by_port !== DUT_read_PR_by_port) begin
-			$display("TB ERROR: expected_read_PR_by_port (%h) != DUT_read_PR_by_port (%h)",
-				expected_read_PR_by_port, DUT_read_PR_by_port);
+		if (expected_A_pr_by_way !== DUT_A_pr_by_way) begin
+			$display("TB ERROR: expected_A_pr_by_way (%0d'h%h) != DUT_A_pr_by_way (%0d'h%h)",
+				$bits(expected_A_pr_by_way), expected_A_pr_by_way,
+				$bits(DUT_A_pr_by_way), DUT_A_pr_by_way);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_B_pr_by_way !== DUT_B_pr_by_way) begin
+			$display("TB ERROR: expected_B_pr_by_way (%0d'h%h) != DUT_B_pr_by_way (%0d'h%h)",
+				$bits(expected_B_pr_by_way), expected_B_pr_by_way,
+				$bits(DUT_B_pr_by_way), DUT_B_pr_by_way);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_C_pr_by_way !== DUT_C_pr_by_way) begin
+			$display("TB ERROR: expected_C_pr_by_way (%0d'h%h) != DUT_C_pr_by_way (%0d'h%h)",
+				$bits(expected_C_pr_by_way), expected_C_pr_by_way,
+				$bits(DUT_C_pr_by_way), DUT_C_pr_by_way);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+
+		if (expected_dest_old_pr_by_way !== DUT_dest_old_pr_by_way) begin
+			$display("TB ERROR: expected_dest_old_pr_by_way (%0d'h%h) != DUT_dest_old_pr_by_way (%0d'h%h)",
+				$bits(expected_dest_old_pr_by_way), expected_dest_old_pr_by_way,
+				$bits(DUT_dest_old_pr_by_way), DUT_dest_old_pr_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
 		if (expected_save_map_table !== DUT_save_map_table) begin
-			$display("TB ERROR: expected_save_map_table (%h) != DUT_save_map_table (%h)",
-				expected_save_map_table, DUT_save_map_table);
-			for (int i = 0; i < AR_COUNT; i++) begin
-				if (expected_save_map_table[i] !== DUT_save_map_table[i]) begin
-					$display("\t\texpected_save_map_table[%0h] = %h != DUT_save_map_tabe[%0h] = %h", 
-						i, expected_save_map_table[i], i, DUT_save_map_table[i]);
-				end
-			end
+			$display("TB ERROR: expected_save_map_table (%0d'h%h) != DUT_save_map_table (%0d'h%h)",
+				$bits(expected_save_map_table), expected_save_map_table,
+				$bits(DUT_save_map_table), DUT_save_map_table);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -128,64 +155,114 @@ module map_table_tb #(
 
 		// reset
 		nRST = 1'b0;
-	    // 12x read ports
-		tb_read_AR_by_port = {
-			5'hb,
-			5'ha,
-			5'h9,
-			5'h8,
-			5'h7,
-			5'h6,
-			5'h5,
-			5'h4,
-			5'h3,
-			5'h2,
-			5'h1,
-			5'h0
-		};
-	    // 4x write ports
-		tb_write_valid_by_port = 4'b0000;
-		tb_write_AR_by_port = {
-			5'h0,
-			5'h0,
-			5'h0,
-			5'h0
-		};
-		tb_write_PR_by_port = {
-			7'h0,
-			7'h0,
-			7'h0,
-			7'h0
-		};
+	    // reg reads
+		tb_A_ar6_by_way = {
+            {1'b0, 5'h00},
+            {1'b0, 5'h00},
+            {1'b0, 5'h00},
+            {1'b0, 5'h00}
+        };
+		tb_B_ar6_by_way = {
+            {1'b0, 5'h00},
+            {1'b0, 5'h00},
+            {1'b0, 5'h00},
+            {1'b0, 5'h00}
+        };
+		tb_C_far_by_way = {
+            5'h00,
+            5'h00,
+            5'h00,
+            5'h00
+        };
+	    // reg writes
+		tb_dest_write_valid_by_way = 4'b0000;
+		tb_dest_ar6_by_way = {
+            {1'b0, 5'h00},
+            {1'b0, 5'h00},
+            {1'b0, 5'h00},
+            {1'b0, 5'h00}
+        };
+		tb_dest_new_pr_by_way = {
+            7'h00,
+            7'h00,
+            7'h00,
+            7'h00
+        };
 	    // checkpoint save
 	    // checkpoint restore
 		tb_restore_valid = 1'b0;
-		tb_restore_map_table = '0;
+		tb_restore_map_table.iar = {
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00
+        };
+		tb_restore_map_table.far = {
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00
+        };
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-	    // 12x read ports
-		expected_read_PR_by_port = {
-			7'hb,
-			7'ha,
-			7'h9,
-			7'h8,
-			7'h7,
-			7'h6,
-			7'h5,
-			7'h4,
-			7'h3,
-			7'h2,
-			7'h1,
-			7'h0
-		};
-	    // 4x write ports
+	    // reg reads
+		expected_A_pr_by_way = {
+            7'h00,
+            7'h00,
+            7'h00,
+            7'h00
+        };
+		expected_B_pr_by_way = {
+            7'h00,
+            7'h00,
+            7'h00,
+            7'h00
+        };
+		expected_C_pr_by_way = {
+            7'h20,
+            7'h20,
+            7'h20,
+            7'h20
+        };
+	    // reg writes
+		expected_dest_old_pr_by_way = {
+            7'h00,
+            7'h00,
+            7'h00,
+            7'h00
+        };
 	    // checkpoint save
-		for (int i = 0; i < 32; i++) begin
-			expected_save_map_table[i] = i;
-		end
+		expected_save_map_table.iar = {
+            7'h1F, 7'h1E, 7'h1D, 7'h1C,
+            7'h1B, 7'h1A, 7'h19, 7'h18,
+            7'h17, 7'h16, 7'h15, 7'h14,
+            7'h13, 7'h12, 7'h11, 7'h10,
+            7'h0F, 7'h0E, 7'h0D, 7'h0C,
+            7'h0B, 7'h0A, 7'h09, 7'h08,
+            7'h07, 7'h06, 7'h05, 7'h04,
+            7'h03, 7'h02, 7'h01, 7'h00
+        };
+		expected_save_map_table.far = {
+            7'h3F, 7'h3E, 7'h3D, 7'h3C,
+            7'h3B, 7'h3A, 7'h39, 7'h38,
+            7'h37, 7'h36, 7'h35, 7'h34,
+            7'h33, 7'h32, 7'h31, 7'h30,
+            7'h2F, 7'h2E, 7'h2D, 7'h2C,
+            7'h2B, 7'h2A, 7'h29, 7'h28,
+            7'h27, 7'h26, 7'h25, 7'h24,
+            7'h23, 7'h22, 7'h21, 7'h20
+        };
 	    // checkpoint restore
 
 		check_outputs();
@@ -196,476 +273,501 @@ module map_table_tb #(
 
 		// reset
 		nRST = 1'b1;
-	    // 12x read ports
-		tb_read_AR_by_port = {
-			5'hb,
-			5'ha,
-			5'h9,
-			5'h8,
-			5'h7,
-			5'h6,
-			5'h5,
-			5'h4,
-			5'h3,
-			5'h2,
-			5'h1,
-			5'h0
-		};
-	    // 4x write ports
-		tb_write_valid_by_port = 4'b0000;
-		tb_write_AR_by_port = {
-			5'h0,
-			5'h0,
-			5'h0,
-			5'h0
-		};
-		tb_write_PR_by_port = {
-			7'h0,
-			7'h0,
-			7'h0,
-			7'h0
-		};
+	    // reg reads
+		tb_A_ar6_by_way = {
+            {1'b0, 5'h00},
+            {1'b0, 5'h00},
+            {1'b0, 5'h00},
+            {1'b0, 5'h00}
+        };
+		tb_B_ar6_by_way = {
+            {1'b0, 5'h00},
+            {1'b0, 5'h00},
+            {1'b0, 5'h00},
+            {1'b0, 5'h00}
+        };
+		tb_C_far_by_way = {
+            5'h00,
+            5'h00,
+            5'h00,
+            5'h00
+        };
+	    // reg writes
+		tb_dest_write_valid_by_way = 4'b0000;
+		tb_dest_ar6_by_way = {
+            {1'b0, 5'h00},
+            {1'b0, 5'h00},
+            {1'b0, 5'h00},
+            {1'b0, 5'h00}
+        };
+		tb_dest_new_pr_by_way = {
+            7'h00,
+            7'h00,
+            7'h00,
+            7'h00
+        };
 	    // checkpoint save
 	    // checkpoint restore
 		tb_restore_valid = 1'b0;
-		tb_restore_map_table = '0;
+		tb_restore_map_table.iar = {
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00
+        };
+		tb_restore_map_table.far = {
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00
+        };
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-	    // 12x read ports
-		expected_read_PR_by_port = {
-			7'hb,
-			7'ha,
-			7'h9,
-			7'h8,
-			7'h7,
-			7'h6,
-			7'h5,
-			7'h4,
-			7'h3,
-			7'h2,
-			7'h1,
-			7'h0
-		};
-	    // 4x write ports
+	    // reg reads
+		expected_A_pr_by_way = {
+            7'h00,
+            7'h00,
+            7'h00,
+            7'h00
+        };
+		expected_B_pr_by_way = {
+            7'h00,
+            7'h00,
+            7'h00,
+            7'h00
+        };
+		expected_C_pr_by_way = {
+            7'h20,
+            7'h20,
+            7'h20,
+            7'h20
+        };
+	    // reg writes
+		expected_dest_old_pr_by_way = {
+            7'h00,
+            7'h00,
+            7'h00,
+            7'h00
+        };
 	    // checkpoint save
-		for (int j = 0; j < 32; j++) begin
-			expected_save_map_table[j] = j;
-		end
+		expected_save_map_table.iar = {
+            7'h1F, 7'h1E, 7'h1D, 7'h1C,
+            7'h1B, 7'h1A, 7'h19, 7'h18,
+            7'h17, 7'h16, 7'h15, 7'h14,
+            7'h13, 7'h12, 7'h11, 7'h10,
+            7'h0F, 7'h0E, 7'h0D, 7'h0C,
+            7'h0B, 7'h0A, 7'h09, 7'h08,
+            7'h07, 7'h06, 7'h05, 7'h04,
+            7'h03, 7'h02, 7'h01, 7'h00
+        };
+		expected_save_map_table.far = {
+            7'h3F, 7'h3E, 7'h3D, 7'h3C,
+            7'h3B, 7'h3A, 7'h39, 7'h38,
+            7'h37, 7'h36, 7'h35, 7'h34,
+            7'h33, 7'h32, 7'h31, 7'h30,
+            7'h2F, 7'h2E, 7'h2D, 7'h2C,
+            7'h2B, 7'h2A, 7'h29, 7'h28,
+            7'h27, 7'h26, 7'h25, 7'h24,
+            7'h23, 7'h22, 7'h21, 7'h20
+        };
 	    // checkpoint restore
 
 		check_outputs();
 
         // ------------------------------------------------------------
-        // read reset vals:
-        test_case = "read reset vals";
+        // iar readout:
+        test_case = "iar readout";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		for (int i = 0; i < 32; i+=12) begin
+        for (int i = 0; i < corep::AR5_COUNT - 8; i += 4) begin
 
-			@(posedge CLK); #(PERIOD/10);
+            @(posedge CLK); #(PERIOD/10);
 
-			// inputs
-			sub_test_case = $sformatf("read %0d:%0d", i, i+7);
-			$display("\t- sub_test: %s", sub_test_case);
+            // inputs
+            sub_test_case = $sformatf("iar readout cycle %0d", i);
+            $display("\t- sub_test: %s", sub_test_case);
 
-			// reset
-			nRST = 1'b1;
-			// 12x read ports
-			tb_read_AR_by_port = {
-				{i + 11}[4:0],
-				{i + 10}[4:0],
-				{i + 9}[4:0],
-				{i + 8}[4:0],
-				{i + 7}[4:0],
-				{i + 6}[4:0],
-				{i + 5}[4:0],
-				{i + 4}[4:0],
-				{i + 3}[4:0],
-				{i + 2}[4:0],
-				{i + 1}[4:0],
-				{i + 0}[4:0]
-			};
-			// 4x write ports
-			tb_write_valid_by_port = 4'b0000;
-			tb_write_AR_by_port = {
-				5'h0,
-				5'h0,
-				5'h0,
-				5'h0
-			};
-			tb_write_PR_by_port = {
-				7'h0,
-				7'h0,
-				7'h0,
-				7'h0
-			};
-			// checkpoint save
-			// checkpoint restore
-			tb_restore_valid = 1'b0;
-			tb_restore_map_table = '0;
+            // reset
+            nRST = 1'b1;
+            // reg reads
+            tb_A_ar6_by_way = {
+                1'b0, corep::ar5_t'(i+3),
+                1'b0, corep::ar5_t'(i+2),
+                1'b0, corep::ar5_t'(i+1),
+                1'b0, corep::ar5_t'(i+0)
+            };
+            tb_B_ar6_by_way = {
+                1'b0, corep::ar5_t'(i+7),
+                1'b0, corep::ar5_t'(i+6),
+                1'b0, corep::ar5_t'(i+5),
+                1'b0, corep::ar5_t'(i+4)
+            };
+            tb_C_far_by_way = {
+                corep::ar5_t'(i+3),
+                corep::ar5_t'(i+2),
+                corep::ar5_t'(i+1),
+                corep::ar5_t'(i+0)
+            };
+            // reg writes
+            tb_dest_write_valid_by_way = 4'b0000;
+            tb_dest_ar6_by_way = {
+                1'b0, corep::ar5_t'(i+11),
+                1'b0, corep::ar5_t'(i+10),
+                1'b0, corep::ar5_t'(i+9),
+                1'b0, corep::ar5_t'(i+8)
+            };
+            tb_dest_new_pr_by_way = {
+                7'h00,
+                7'h00,
+                7'h00,
+                7'h00
+            };
+            // checkpoint save
+            // checkpoint restore
+            tb_restore_valid = 1'b0;
+            tb_restore_map_table.iar = {
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00
+            };
+            tb_restore_map_table.far = {
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00
+            };
 
-			@(negedge CLK);
+            @(negedge CLK);
 
-			// outputs:
+            // outputs:
 
-			// 12x read ports
-			expected_read_PR_by_port = {
-				{(i + 11) % 32}[6:0],
-				{(i + 10) % 32}[6:0],
-				{(i + 9) % 32}[6:0],
-				{(i + 8) % 32}[6:0],
-				{i + 7}[6:0],
-				{i + 6}[6:0],
-				{i + 5}[6:0],
-				{i + 4}[6:0],
-				{i + 3}[6:0],
-				{i + 2}[6:0],
-				{i + 1}[6:0],
-				{i + 0}[6:0]
-			};
-			// 4x write ports
-			// checkpoint save
-			for (int j = 0; j < 32; j++) begin
-				expected_save_map_table[j[4:0]] = j[6:0];
-			end
-			// checkpoint restore
+            // reg reads
+            expected_A_pr_by_way = {
+                corep::pr_t'(i+3),
+                corep::pr_t'(i+2),
+                corep::pr_t'(i+1),
+                corep::pr_t'(i+0)
+            };
+            expected_B_pr_by_way = {
+                corep::pr_t'(i+7),
+                corep::pr_t'(i+6),
+                corep::pr_t'(i+5),
+                corep::pr_t'(i+4)
+            };
+            expected_C_pr_by_way = {
+                corep::pr_t'(i+35),
+                corep::pr_t'(i+34),
+                corep::pr_t'(i+33),
+                corep::pr_t'(i+32)
+            };
+            // reg writes
+            expected_dest_old_pr_by_way = {
+                corep::pr_t'(i+11),
+                corep::pr_t'(i+10),
+                corep::pr_t'(i+9),
+                corep::pr_t'(i+8)
+            };
+            // checkpoint save
+            expected_save_map_table.iar = {
+                7'h1F, 7'h1E, 7'h1D, 7'h1C,
+                7'h1B, 7'h1A, 7'h19, 7'h18,
+                7'h17, 7'h16, 7'h15, 7'h14,
+                7'h13, 7'h12, 7'h11, 7'h10,
+                7'h0F, 7'h0E, 7'h0D, 7'h0C,
+                7'h0B, 7'h0A, 7'h09, 7'h08,
+                7'h07, 7'h06, 7'h05, 7'h04,
+                7'h03, 7'h02, 7'h01, 7'h00
+            };
+            expected_save_map_table.far = {
+                7'h3F, 7'h3E, 7'h3D, 7'h3C,
+                7'h3B, 7'h3A, 7'h39, 7'h38,
+                7'h37, 7'h36, 7'h35, 7'h34,
+                7'h33, 7'h32, 7'h31, 7'h30,
+                7'h2F, 7'h2E, 7'h2D, 7'h2C,
+                7'h2B, 7'h2A, 7'h29, 7'h28,
+                7'h27, 7'h26, 7'h25, 7'h24,
+                7'h23, 7'h22, 7'h21, 7'h20
+            };
+            // checkpoint restore
 
-			check_outputs();
-		end
+            check_outputs();
+        end
 
         // ------------------------------------------------------------
-        // set all x+32:
-        test_case = "set all x+32";
+        // far readout:
+        test_case = "far readout";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		for (int i = 0; i < 32; i+=4) begin
+        for (int i = 0; i < corep::AR5_COUNT - 12; i += 4) begin
 
-			@(posedge CLK); #(PERIOD/10);
+            @(posedge CLK); #(PERIOD/10);
 
-			// inputs
-			sub_test_case = $sformatf("write %0d:%0d", i, i+3);
-			$display("\t- sub_test: %s", sub_test_case);
+            // inputs
+            sub_test_case = $sformatf("far readout cycle %0d", i);
+            $display("\t- sub_test: %s", sub_test_case);
 
-			// reset
-			nRST = 1'b1;
-			// 12x read ports
-			tb_read_AR_by_port = {
-				5'h0,
-				5'h0,
-				5'h0,
-				5'h0,
-				5'h0,
-				5'h0,
-				5'h0,
-				5'h0,
-				5'h0,
-				5'h0,
-				5'h0,
-				5'h0
-			};
-			// 4x write ports
-			tb_write_valid_by_port = 4'b1111;
-			tb_write_AR_by_port = {
-				{i + 3}[4:0],
-				{i + 2}[4:0],
-				{i + 1}[4:0],
-				{i + 0}[4:0]
-			};
-			tb_write_PR_by_port = {
-				{i + 32 + 3}[6:0],
-				{i + 32 + 2}[6:0],
-				{i + 32 + 1}[6:0],
-				{i + 32 + 0}[6:0]
-			};
-			// checkpoint save
-			// checkpoint restore
-			tb_restore_valid = 1'b0;
-			tb_restore_map_table = '0;
+            // reset
+            nRST = 1'b1;
+            // reg reads
+            tb_A_ar6_by_way = {
+                1'b1, corep::ar5_t'(i+3),
+                1'b1, corep::ar5_t'(i+2),
+                1'b1, corep::ar5_t'(i+1),
+                1'b1, corep::ar5_t'(i+0)
+            };
+            tb_B_ar6_by_way = {
+                1'b1, corep::ar5_t'(i+7),
+                1'b1, corep::ar5_t'(i+6),
+                1'b1, corep::ar5_t'(i+5),
+                1'b1, corep::ar5_t'(i+4)
+            };
+            tb_C_far_by_way = {
+                corep::ar5_t'(i+11),
+                corep::ar5_t'(i+10),
+                corep::ar5_t'(i+9),
+                corep::ar5_t'(i+8)
+            };
+            // reg writes
+            tb_dest_write_valid_by_way = 4'b0000;
+            tb_dest_ar6_by_way = {
+                1'b1, corep::ar5_t'(i+15),
+                1'b1, corep::ar5_t'(i+14),
+                1'b1, corep::ar5_t'(i+13),
+                1'b1, corep::ar5_t'(i+12)
+            };
+            tb_dest_new_pr_by_way = {
+                7'h00,
+                7'h00,
+                7'h00,
+                7'h00
+            };
+            // checkpoint save
+            // checkpoint restore
+            tb_restore_valid = 1'b0;
+            tb_restore_map_table.iar = {
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00
+            };
+            tb_restore_map_table.far = {
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00
+            };
 
-			@(negedge CLK);
+            @(negedge CLK);
 
-			// outputs:
+            // outputs:
 
-			// 12x read ports
-			if (i > 0) begin
-				expected_read_PR_by_port = {
-					7'h20,
-					7'h20,
-					7'h20,
-					7'h20,
-					7'h20,
-					7'h20,
-					7'h20,
-					7'h20,
-					7'h20,
-					7'h20,
-					7'h20,
-					7'h20
-				};
-			end
-			else begin
-				expected_read_PR_by_port = {
-					7'h0,
-					7'h0,
-					7'h0,
-					7'h0,
-					7'h0,
-					7'h0,
-					7'h0,
-					7'h0,
-					7'h0,
-					7'h0,
-					7'h0,
-					7'h0
-				};
-			end
-			// 4x write ports
-			// checkpoint save
-			for (int j = 0; j < 32; j++) begin
-				if (j < i) begin
-					expected_save_map_table[j[4:0]] = {j + 32}[6:0];
-				end
-				else begin
-					expected_save_map_table[j[4:0]] = {j}[6:0];
-				end
-			end
-			// checkpoint restore
+            // reg reads
+            expected_A_pr_by_way = {
+                corep::pr_t'(i+35),
+                corep::pr_t'(i+34),
+                corep::pr_t'(i+33),
+                corep::pr_t'(i+32)
+            };
+            expected_B_pr_by_way = {
+                corep::pr_t'(i+39),
+                corep::pr_t'(i+38),
+                corep::pr_t'(i+37),
+                corep::pr_t'(i+36)
+            };
+            expected_C_pr_by_way = {
+                corep::pr_t'(i+43),
+                corep::pr_t'(i+42),
+                corep::pr_t'(i+41),
+                corep::pr_t'(i+40)
+            };
+            // reg writes
+            expected_dest_old_pr_by_way = {
+                corep::pr_t'(i+47),
+                corep::pr_t'(i+46),
+                corep::pr_t'(i+45),
+                corep::pr_t'(i+44)
+            };
+            // checkpoint save
+            expected_save_map_table.iar = {
+                7'h1F, 7'h1E, 7'h1D, 7'h1C,
+                7'h1B, 7'h1A, 7'h19, 7'h18,
+                7'h17, 7'h16, 7'h15, 7'h14,
+                7'h13, 7'h12, 7'h11, 7'h10,
+                7'h0F, 7'h0E, 7'h0D, 7'h0C,
+                7'h0B, 7'h0A, 7'h09, 7'h08,
+                7'h07, 7'h06, 7'h05, 7'h04,
+                7'h03, 7'h02, 7'h01, 7'h00
+            };
+            expected_save_map_table.far = {
+                7'h3F, 7'h3E, 7'h3D, 7'h3C,
+                7'h3B, 7'h3A, 7'h39, 7'h38,
+                7'h37, 7'h36, 7'h35, 7'h34,
+                7'h33, 7'h32, 7'h31, 7'h30,
+                7'h2F, 7'h2E, 7'h2D, 7'h2C,
+                7'h2B, 7'h2A, 7'h29, 7'h28,
+                7'h27, 7'h26, 7'h25, 7'h24,
+                7'h23, 7'h22, 7'h21, 7'h20
+            };
+            // checkpoint restore
 
-			check_outputs();
-		end
+            check_outputs();
+        end
 
         // ------------------------------------------------------------
-        // read x+32:
-        test_case = "read x+32";
+        // dep cases:
+        test_case = "dep cases";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		for (int i = 0; i < 32; i+=12) begin
+        @(posedge CLK); #(PERIOD/10);
 
-			@(posedge CLK); #(PERIOD/10);
+        // inputs
+        sub_test_case = "dep cases cycle 0";
+        $display("\t- sub_test: %s", sub_test_case);
 
-			// inputs
-			sub_test_case = $sformatf("read %0d:%0d", i, i+7);
-			$display("\t- sub_test: %s", sub_test_case);
+        // reset
+        nRST = 1'b1;
+        // reg reads
+        tb_A_ar6_by_way = {
+            1'b0, 5'h00,
+            1'b0, 5'h00,
+            1'b0, 5'h00,
+            1'b0, 5'h00
+        };
+        tb_B_ar6_by_way = {
+            1'b0, 5'h00,
+            1'b0, 5'h00,
+            1'b0, 5'h00,
+            1'b0, 5'h00
+        };
+        tb_C_far_by_way = {
+            5'h00,
+            5'h00,
+            5'h00,
+            5'h00
+        };
+        // reg writes
+        tb_dest_write_valid_by_way = 4'b0000;
+        tb_dest_ar6_by_way = {
+            1'b0, 5'h00,
+            1'b0, 5'h00,
+            1'b0, 5'h00,
+            1'b0, 5'h00
+        };
+        tb_dest_new_pr_by_way = {
+            7'h00,
+            7'h00,
+            7'h00,
+            7'h00
+        };
+        // checkpoint save
+        // checkpoint restore
+        tb_restore_valid = 1'b0;
+        tb_restore_map_table.iar = {
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00
+        };
+        tb_restore_map_table.far = {
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00,
+            7'h00, 7'h00, 7'h00, 7'h00
+        };
 
-			// reset
-			nRST = 1'b1;
-			// 12x read ports
-			tb_read_AR_by_port = {
-				{i + 11}[4:0],
-				{i + 10}[4:0],
-				{i + 9}[4:0],
-				{i + 8}[4:0],
-				{i + 7}[4:0],
-				{i + 6}[4:0],
-				{i + 5}[4:0],
-				{i + 4}[4:0],
-				{i + 3}[4:0],
-				{i + 2}[4:0],
-				{i + 1}[4:0],
-				{i + 0}[4:0]
-			};
-			// 4x write ports
-			tb_write_valid_by_port = 4'b0000;
-			tb_write_AR_by_port = {
-				5'h0,
-				5'h0,
-				5'h0,
-				5'h0
-			};
-			tb_write_PR_by_port = {
-				7'h0,
-				7'h0,
-				7'h0,
-				7'h0
-			};
-			// checkpoint save
-			// checkpoint restore
-			tb_restore_valid = 1'b0;
-			tb_restore_map_table = '0;
+        @(negedge CLK);
 
-			@(negedge CLK);
+        // outputs:
 
-			// outputs:
+        // reg reads
+        expected_A_pr_by_way = {
+            7'h00,
+            7'h00,
+            7'h00,
+            7'h00
+        };
+        expected_B_pr_by_way = {
+            7'h00,
+            7'h00,
+            7'h00,
+            7'h00
+        };
+        expected_C_pr_by_way = {
+            7'h20,
+            7'h20,
+            7'h20,
+            7'h20
+        };
+        // reg writes
+        expected_dest_old_pr_by_way = {
+            7'h00,
+            7'h00,
+            7'h00,
+            7'h00
+        };
+        // checkpoint save
+        expected_save_map_table.iar = {
+            7'h1F, 7'h1E, 7'h1D, 7'h1C,
+            7'h1B, 7'h1A, 7'h19, 7'h18,
+            7'h17, 7'h16, 7'h15, 7'h14,
+            7'h13, 7'h12, 7'h11, 7'h10,
+            7'h0F, 7'h0E, 7'h0D, 7'h0C,
+            7'h0B, 7'h0A, 7'h09, 7'h08,
+            7'h07, 7'h06, 7'h05, 7'h04,
+            7'h03, 7'h02, 7'h01, 7'h00
+        };
+        expected_save_map_table.far = {
+            7'h3F, 7'h3E, 7'h3D, 7'h3C,
+            7'h3B, 7'h3A, 7'h39, 7'h38,
+            7'h37, 7'h36, 7'h35, 7'h34,
+            7'h33, 7'h32, 7'h31, 7'h30,
+            7'h2F, 7'h2E, 7'h2D, 7'h2C,
+            7'h2B, 7'h2A, 7'h29, 7'h28,
+            7'h27, 7'h26, 7'h25, 7'h24,
+            7'h23, 7'h22, 7'h21, 7'h20
+        };
+        // checkpoint restore
 
-			// 12x read ports
-			expected_read_PR_by_port = {
-				{(i + 11) % 32 + 32}[6:0],
-				{(i + 10) % 32 + 32}[6:0],
-				{(i + 9) % 32 + 32}[6:0],
-				{(i + 8) % 32 + 32}[6:0],
-				{i + 32 + 7}[6:0],
-				{i + 32 + 6}[6:0],
-				{i + 32 + 5}[6:0],
-				{i + 32 + 4}[6:0],
-				{i + 32 + 3}[6:0],
-				{i + 32 + 2}[6:0],
-				{i + 32 + 1}[6:0],
-				{i + 32 + 0}[6:0]
-			};
-			// 4x write ports
-			// checkpoint save
-			for (int j = 0; j < 32; j++) begin
-				expected_save_map_table[j[4:0]] = {j + 32}[6:0];
-			end
-			// checkpoint restore
-
-			check_outputs();
-		end
-
-        // ------------------------------------------------------------
-        // restore double table:
-        test_case = "restore double table";
-        $display("\ntest %0d: %s", test_num, test_case);
-        test_num++;
-
-		@(posedge CLK); #(PERIOD/10);
-
-		// inputs
-		sub_test_case = "restore double table";
-		$display("\t- sub_test: %s", sub_test_case);
-
-		// reset
-		nRST = 1'b1;
-		// 12x read ports
-		tb_read_AR_by_port = {
-			5'h0,
-			5'h0,
-			5'h0,
-			5'h0,
-			5'h0,
-			5'h0,
-			5'h0,
-			5'h0,
-			5'h0,
-			5'h0,
-			5'h0,
-			5'h0
-		};
-		// 4x write ports
-		tb_write_valid_by_port = 4'b0000;
-		tb_write_AR_by_port = {
-			5'h0,
-			5'h0,
-			5'h0,
-			5'h0
-		};
-		tb_write_PR_by_port = {
-			7'h0,
-			7'h0,
-			7'h0,
-			7'h0
-		};
-		// checkpoint save
-		// checkpoint restore
-		tb_restore_valid = 1'b1;
-		for (int j = 0; j < 32; j++) begin
-			tb_restore_map_table[j] = {2 * j}[6:0];
-		end
-
-		@(negedge CLK);
-
-		// outputs:
-
-		// 12x read ports
-		expected_read_PR_by_port = {
-			7'h20,
-			7'h20,
-			7'h20,
-			7'h20,
-			7'h20,
-			7'h20,
-			7'h20,
-			7'h20,
-			7'h20,
-			7'h20,
-			7'h20,
-			7'h20
-		};
-		// 4x write ports
-		// checkpoint save
-		for (int j = 0; j < 32; j++) begin
-			expected_save_map_table[j[4:0]] = {j + 32}[6:0];
-		end
-		// checkpoint restore
-
-		check_outputs();
-
-        // ------------------------------------------------------------
-        // read double table:
-        test_case = "read double table";
-        $display("\ntest %0d: %s", test_num, test_case);
-        test_num++;
-
-		for (int i = 0; i < 32; i+=12) begin
-
-			@(posedge CLK); #(PERIOD/10);
-
-			// inputs
-			sub_test_case = $sformatf("read %0d:%0d", i, i+7);
-			$display("\t- sub_test: %s", sub_test_case);
-
-			// reset
-			nRST = 1'b1;
-			// 12x read ports
-			tb_read_AR_by_port = {
-				{i + 7}[4:0],
-				{i + 6}[4:0],
-				{i + 5}[4:0],
-				{i + 4}[4:0],
-				{i + 3}[4:0],
-				{i + 2}[4:0],
-				{i + 1}[4:0],
-				{i + 0}[4:0]
-			};
-			// 4x write ports
-			tb_write_valid_by_port = 4'b0000;
-			tb_write_AR_by_port = {
-				5'h0,
-				5'h0,
-				5'h0,
-				5'h0
-			};
-			tb_write_PR_by_port = {
-				7'h0,
-				7'h0,
-				7'h0,
-				7'h0
-			};
-			// checkpoint save
-			// checkpoint restore
-			tb_restore_valid = 1'b0;
-			tb_restore_map_table = '0;
-
-			@(negedge CLK);
-
-			// outputs:
-
-			// 12x read ports
-			expected_read_PR_by_port = {
-				{(i + 7) * 2}[6:0],
-				{(i + 6) * 2}[6:0],
-				{(i + 5) * 2}[6:0],
-				{(i + 4) * 2}[6:0],
-				{(i + 3) * 2}[6:0],
-				{(i + 2) * 2}[6:0],
-				{(i + 1) * 2}[6:0],
-				{(i + 0) * 2}[6:0]
-			};
-			// 4x write ports
-			// checkpoint save
-			for (int j = 0; j < 32; j++) begin
-				expected_save_map_table[j[4:0]] = {j * 2}[6:0];
-			end
-			// checkpoint restore
-
-			check_outputs();
-		end
+        check_outputs();
 
         // ------------------------------------------------------------
         // finish:
@@ -679,7 +781,7 @@ module map_table_tb #(
 
         $display();
         if (num_errors) begin
-            $display("FAIL: %d tests fail", num_errors);
+            $display("FAIL: %0d tests fail", num_errors);
         end
         else begin
             $display("SUCCESS: all tests pass");

@@ -7,59 +7,69 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
+`include "corep.vh"
 
-module map_table_wrapper (
+module map_table_wrapper #(
+) (
 
     // seq
     input logic CLK,
     input logic nRST,
 
+    // reg reads
+	input corep::ar6_t [3:0] next_A_ar6_by_way,
+	output corep::pr_t [3:0] last_A_pr_by_way,
 
-    // read ports
-	input logic [MAP_TABLE_READ_PORT_COUNT-1:0][LOG_AR_COUNT-1:0] next_read_AR_by_port,
-	output logic [MAP_TABLE_READ_PORT_COUNT-1:0][LOG_PR_COUNT-1:0] last_read_PR_by_port,
+	input corep::ar6_t [3:0] next_B_ar6_by_way,
+	output corep::pr_t [3:0] last_B_pr_by_way,
 
-    // write ports
-	input logic [MAP_TABLE_WRITE_PORT_COUNT-1:0] next_write_valid_by_port,
-	input logic [MAP_TABLE_WRITE_PORT_COUNT-1:0][LOG_AR_COUNT-1:0] next_write_AR_by_port,
-	input logic [MAP_TABLE_WRITE_PORT_COUNT-1:0][LOG_PR_COUNT-1:0] next_write_PR_by_port,
+	input corep::ar5_t [3:0] next_C_far_by_way,
+	output corep::pr_t [3:0] last_C_pr_by_way,
+
+    // reg writes
+	input logic [3:0] next_dest_write_valid_by_way,
+	input corep::ar6_t [3:0] next_dest_ar6_by_way,
+	output corep::pr_t [3:0] last_dest_old_pr_by_way,
+	input corep::pr_t [3:0] next_dest_new_pr_by_way,
 
     // checkpoint save
-	output logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] last_save_map_table,
+	output corep::map_table_t last_save_map_table,
 
     // checkpoint restore
 	input logic next_restore_valid,
-	input logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] next_restore_map_table
+	input corep::map_table_t next_restore_map_table
 );
 
     // ----------------------------------------------------------------
     // Direct Module Connections:
 
+    // reg reads
+	corep::ar6_t [3:0] A_ar6_by_way;
+	corep::pr_t [3:0] A_pr_by_way;
 
-    // read ports
-	logic [MAP_TABLE_READ_PORT_COUNT-1:0][LOG_AR_COUNT-1:0] read_AR_by_port;
-	logic [MAP_TABLE_READ_PORT_COUNT-1:0][LOG_PR_COUNT-1:0] read_PR_by_port;
+	corep::ar6_t [3:0] B_ar6_by_way;
+	corep::pr_t [3:0] B_pr_by_way;
 
-    // write ports
-	logic [MAP_TABLE_WRITE_PORT_COUNT-1:0] write_valid_by_port;
-	logic [MAP_TABLE_WRITE_PORT_COUNT-1:0][LOG_AR_COUNT-1:0] write_AR_by_port;
-	logic [MAP_TABLE_WRITE_PORT_COUNT-1:0][LOG_PR_COUNT-1:0] write_PR_by_port;
+	corep::ar5_t [3:0] C_far_by_way;
+	corep::pr_t [3:0] C_pr_by_way;
+
+    // reg writes
+	logic [3:0] dest_write_valid_by_way;
+	corep::ar6_t [3:0] dest_ar6_by_way;
+	corep::pr_t [3:0] dest_old_pr_by_way;
+	corep::pr_t [3:0] dest_new_pr_by_way;
 
     // checkpoint save
-	logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] save_map_table;
+	corep::map_table_t save_map_table;
 
     // checkpoint restore
 	logic restore_valid;
-	logic [AR_COUNT-1:0][LOG_PR_COUNT-1:0] restore_map_table;
+	corep::map_table_t restore_map_table;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    map_table #(
-		.MAP_TABLE_READ_PORT_COUNT(MAP_TABLE_READ_PORT_COUNT),
-		.MAP_TABLE_WRITE_PORT_COUNT(MAP_TABLE_WRITE_PORT_COUNT)
+	map_table #(
 	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
@@ -68,15 +78,21 @@ module map_table_wrapper (
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
 
+		    // reg reads
+			A_ar6_by_way <= '0;
+			last_A_pr_by_way <= '0;
 
-		    // read ports
-			read_AR_by_port <= '0;
-			last_read_PR_by_port <= '0;
+			B_ar6_by_way <= '0;
+			last_B_pr_by_way <= '0;
 
-		    // write ports
-			write_valid_by_port <= '0;
-			write_AR_by_port <= '0;
-			write_PR_by_port <= '0;
+			C_far_by_way <= '0;
+			last_C_pr_by_way <= '0;
+
+		    // reg writes
+			dest_write_valid_by_way <= '0;
+			dest_ar6_by_way <= '0;
+			last_dest_old_pr_by_way <= '0;
+			dest_new_pr_by_way <= '0;
 
 		    // checkpoint save
 			last_save_map_table <= '0;
@@ -87,15 +103,21 @@ module map_table_wrapper (
         end
         else begin
 
+		    // reg reads
+			A_ar6_by_way <= next_A_ar6_by_way;
+			last_A_pr_by_way <= A_pr_by_way;
 
-		    // read ports
-			read_AR_by_port <= next_read_AR_by_port;
-			last_read_PR_by_port <= read_PR_by_port;
+			B_ar6_by_way <= next_B_ar6_by_way;
+			last_B_pr_by_way <= B_pr_by_way;
 
-		    // write ports
-			write_valid_by_port <= next_write_valid_by_port;
-			write_AR_by_port <= next_write_AR_by_port;
-			write_PR_by_port <= next_write_PR_by_port;
+			C_far_by_way <= next_C_far_by_way;
+			last_C_pr_by_way <= C_pr_by_way;
+
+		    // reg writes
+			dest_write_valid_by_way <= next_dest_write_valid_by_way;
+			dest_ar6_by_way <= next_dest_ar6_by_way;
+			last_dest_old_pr_by_way <= dest_old_pr_by_way;
+			dest_new_pr_by_way <= next_dest_new_pr_by_way;
 
 		    // checkpoint save
 			last_save_map_table <= save_map_table;
