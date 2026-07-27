@@ -5,9 +5,6 @@
     Spec: LOROF/spec/design/div32_nonrestoring_skip.md
 */
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
-
 module div32_nonrestoring_skip (
 
     // seq

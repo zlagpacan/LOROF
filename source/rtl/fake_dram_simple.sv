@@ -5,9 +5,6 @@
     Spec: LOROF/spec/design/fake_dram_simple.md
 */
 
-`include "system_types_pkg.vh"
-import system_types_pkg::*;
-
 module fake_dram_simple #(
     parameter SIZE = 2**16,
     parameter INDEX_WIDTH = $clog2(SIZE),

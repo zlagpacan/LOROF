@@ -7,12 +7,6 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
-
-`include "system_types_pkg.vh"
-import system_types_pkg::*;
-
 module arbiter_rr_tb #(
 	parameter REQUESTOR_COUNT = 4,
 	parameter LOG_REQUESTOR_COUNT = $clog2(REQUESTOR_COUNT)

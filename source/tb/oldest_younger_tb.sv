@@ -7,12 +7,6 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
-
-`include "system_types_pkg.vh"
-import system_types_pkg::*;
-
 module oldest_younger_tb #(
 	parameter VECTOR_WIDTH = 8,
 	parameter INDEX_WIDTH = $clog2(VECTOR_WIDTH)

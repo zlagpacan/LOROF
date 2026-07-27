@@ -396,7 +396,7 @@ module map_table_tb #(
             @(posedge CLK); #(PERIOD/10);
 
             // inputs
-            sub_test_case = $sformatf("iar readout cycle %0d", i);
+            sub_test_case = $sformatf("cycle %0d", i);
             $display("\t- sub_test: %s", sub_test_case);
 
             // reset
@@ -525,7 +525,7 @@ module map_table_tb #(
             @(posedge CLK); #(PERIOD/10);
 
             // inputs
-            sub_test_case = $sformatf("far readout cycle %0d", i);
+            sub_test_case = $sformatf("cycle %0d", i);
             $display("\t- sub_test: %s", sub_test_case);
 
             // reset
@@ -652,17 +652,17 @@ module map_table_tb #(
         @(posedge CLK); #(PERIOD/10);
 
         // inputs
-        sub_test_case = "dep cases cycle 0";
+        sub_test_case = "all dest -> A";
         $display("\t- sub_test: %s", sub_test_case);
 
         // reset
         nRST = 1'b1;
         // reg reads
         tb_A_ar6_by_way = {
-            1'b0, 5'h00,
-            1'b0, 5'h00,
-            1'b0, 5'h00,
-            1'b0, 5'h00
+            1'b1, 5'h0D,
+            1'b0, 5'h09,
+            1'b1, 5'h05,
+            1'b0, 5'h01
         };
         tb_B_ar6_by_way = {
             1'b0, 5'h00,
@@ -677,18 +677,18 @@ module map_table_tb #(
             5'h00
         };
         // reg writes
-        tb_dest_write_valid_by_way = 4'b0000;
+        tb_dest_write_valid_by_way = 4'b1;
         tb_dest_ar6_by_way = {
-            1'b0, 5'h00,
-            1'b0, 5'h00,
-            1'b0, 5'h00,
-            1'b0, 5'h00
+            1'b1, 5'h0D,
+            1'b0, 5'h09,
+            1'b1, 5'h05,
+            1'b0, 5'h01
         };
         tb_dest_new_pr_by_way = {
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00
+            7'hD1,
+            7'h90,
+            7'h51,
+            7'h10
         };
         // checkpoint save
         // checkpoint restore

@@ -7,12 +7,6 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
-
-`include "system_types_pkg.vh"
-import system_types_pkg::*;
-
 module nearest_index_tb #(
 	parameter VECTOR_WIDTH = 32,
 	parameter INDEX_WIDTH = $clog2(VECTOR_WIDTH)

@@ -7,12 +7,6 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
-
-`include "system_types_pkg.vh"
-import system_types_pkg::*;
-
 module fake_dram_simple_tb #(
 	parameter SIZE = 2**16,
 	parameter INDEX_WIDTH = $clog2(SIZE),

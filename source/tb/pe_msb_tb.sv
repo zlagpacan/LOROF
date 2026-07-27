@@ -7,9 +7,6 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
-
 module pe_msb_tb #(
 	parameter WIDTH = 8,
 	parameter USE_ONE_HOT = 1,
