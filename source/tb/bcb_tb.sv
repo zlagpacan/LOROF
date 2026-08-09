@@ -238,6 +238,7 @@ module bcb_tb #(
         end
 
         for (int i = 0; i < 16; i++) begin
+            int i_plus_16 = i + 16;
 
             @(posedge CLK); #(PERIOD/10);
 
@@ -249,7 +250,7 @@ module bcb_tb #(
             nRST = 1'b1;
             // save control
             tb_save_valid = 1'b1;
-            tb_save_bcb_info = {{2{~{i+16}[3:0], {i+16}[3:0]}}, ~{i+16}[3:0], {i+16}[3:0]};
+            tb_save_bcb_info = {{2{~i_plus_16[3:0], i_plus_16[3:0]}}, ~i_plus_16[3:0], i_plus_16[3:0]};
             // restore control
             tb_restore_bcb_idx = i[3:0];
 
@@ -266,6 +267,7 @@ module bcb_tb #(
         end
 
         for (int i = 0; i < 16; i++) begin
+            int i_plus_16 = i + 16;
 
             @(posedge CLK); #(PERIOD/10);
 
@@ -288,7 +290,7 @@ module bcb_tb #(
             // save control
             expected_save_bcb_idx = i[3:0];
             // restore control
-            expected_restore_bcb_info = {{2{~{i+16}[3:0], {i+16}[3:0]}}, ~{i+16}[3:0], {i+16}[3:0]};
+            expected_restore_bcb_info = {{2{~i_plus_16[3:0], i_plus_16[3:0]}}, ~i_plus_16[3:0], i_plus_16[3:0]};
 
             check_outputs();
         end

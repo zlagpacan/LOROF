@@ -346,6 +346,7 @@ module upct_tb #(
         test_num++;
 
         for (int i = 0; i < 8; i++) begin
+            int i1 = 7 - i;
 
             @(posedge CLK); #(PERIOD/10);
 
@@ -372,8 +373,8 @@ module upct_tb #(
 
             // pc_gen read in
             // pc_gen read out
-            expected_read_upc_by_way[0] = (i >= 4) ? {8{{i}[3:0]}} : {9{~i[2:0]}};
-            expected_read_upc_by_way[1] = (i < 4) ? {8{{7-i}[3:0]}} : {9{i[2:0]}};
+            expected_read_upc_by_way[0] = (i >= 4) ? {8{i[3:0]}} : {9{~i[2:0]}};
+            expected_read_upc_by_way[1] = (i < 4) ? {8{i1[3:0]}} : {9{i[2:0]}};
             // update in
             // update out
             expected_update_upct_idx = (i < 4) ? i + 4 : i;

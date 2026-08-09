@@ -382,11 +382,13 @@ module btb_tb #(
         check_outputs();
 
         for (int index = 2; index < corep::BTB_SETS; index++) begin
+            int index_minus_1 = index - 1;
+            int index_minus_2 = index - 2;
 
             @(posedge CLK); #(PERIOD/10);
 
             // inputs
-            sub_test_case = $sformatf("req index = 0x%03h, resp0 index = 0x%03h, resp1 index = 0x%03h", index, index-1, index-2);
+            sub_test_case = $sformatf("req index = 0x%03h, resp0 index = 0x%03h, resp1 index = 0x%03h", index, index_minus_1, index_minus_2);
             $display("\t- sub_test: %s", sub_test_case);
 
             // reset
@@ -397,7 +399,7 @@ module btb_tb #(
 		    tb_read_req_asid = 16'h0000;
             // read resp0 stage
             tb_read_resp0_valid = 1'b1;
-            tb_read_resp0_pc38 = {26'hf0f0f0f, {index-1}[8:0], index[3] ? 3'h3 : 3'h0}; // purposelly miss on index[2:0] = 0,1,2 for index[3] == 1
+            tb_read_resp0_pc38 = {26'hf0f0f0f, index_minus_1[8:0], index[3] ? 3'h3 : 3'h0}; // purposelly miss on index[2:0] = 0,1,2 for index[3] == 1
             // read resp1 stage
             // update
             tb_update_valid = 1'b0;
@@ -412,13 +414,13 @@ module btb_tb #(
             // read req stage
             // read resp0 stage
             // read resp1 stage
-            expected_read_resp1_hit = {index-2}[3] ? {index-2}[2:0] >= 3 : {index-2}[2:0] > 0;
+            expected_read_resp1_hit = index_minus_2[3] ? index_minus_2[2:0] >= 3 : index_minus_2[2:0] > 0;
             expected_read_resp1_double_hit = 1'b0;
             expected_read_resp1_hit_way = 1'b0;
-            expected_read_resp1_hit_lane_by_way[0] = {index-2}[2:0];
-            expected_read_resp1_hit_lane_by_way[1] = {index-2}[2:0];
-            expected_read_resp1_btb_info_by_way[0] = {{index-2}[2:0], 1'b0, 15'h0f0f};
-            expected_read_resp1_btb_info_by_way[1] = {{index-2}[2:0], 1'b1, 15'h1e1e};
+            expected_read_resp1_hit_lane_by_way[0] = index_minus_2[2:0];
+            expected_read_resp1_hit_lane_by_way[1] = index_minus_2[2:0];
+            expected_read_resp1_btb_info_by_way[0] = {index_minus_2[2:0], 1'b0, 15'h0f0f};
+            expected_read_resp1_btb_info_by_way[1] = {index_minus_2[2:0], 1'b1, 15'h1e1e};
             // update
 
             check_outputs();
@@ -589,11 +591,13 @@ module btb_tb #(
         check_outputs();
 
         for (int index = 2; index < corep::BTB_SETS; index++) begin
+            int index_minus_1 = index - 1;
+            int index_minus_2 = index - 2;
 
             @(posedge CLK); #(PERIOD/10);
 
             // inputs
-            sub_test_case = $sformatf("req index = 0x%03h, resp0 index = 0x%03h, resp1 index = 0x%03h", index, index-1, index-2);
+            sub_test_case = $sformatf("req index = 0x%03h, resp0 index = 0x%03h, resp1 index = 0x%03h", index, index_minus_1, index_minus_2);
             $display("\t- sub_test: %s", sub_test_case);
 
             // reset
@@ -604,7 +608,7 @@ module btb_tb #(
 		    tb_read_req_asid = 16'h0000;
             // read resp0 stage
             tb_read_resp0_valid = 1'b1;
-            tb_read_resp0_pc38 = {26'he1e1e1e, {index-1}[8:0], index[4] ? 3'h5 : 3'h0}; // purposelly miss on index[2:0] = 0,1,2,3,4 for index[3] == 1
+            tb_read_resp0_pc38 = {26'he1e1e1e, index_minus_1[8:0], index[4] ? 3'h5 : 3'h0}; // purposelly miss on index[2:0] = 0,1,2,3,4 for index[3] == 1
             // read resp1 stage
             // update
             tb_update_valid = 1'b0;
@@ -619,13 +623,13 @@ module btb_tb #(
             // read req stage
             // read resp0 stage
             // read resp1 stage
-            expected_read_resp1_hit = {index-2}[4] ? {index-2}[2:0] >= 5 : {index-2}[2:0] > 0;
+            expected_read_resp1_hit = index_minus_2[4] ? index_minus_2[2:0] >= 5 : index_minus_2[2:0] > 0;
             expected_read_resp1_double_hit = 1'b0;
             expected_read_resp1_hit_way = expected_read_resp1_hit ? 1'b1 : 1'b0;
-            expected_read_resp1_hit_lane_by_way[0] = {index-2}[2:0];
-            expected_read_resp1_hit_lane_by_way[1] = {index-2}[2:0];
-            expected_read_resp1_btb_info_by_way[0] = {{index-2}[2:0], 1'b0, 15'h0f0f};
-            expected_read_resp1_btb_info_by_way[1] = {{index-2}[2:0], 1'b1, 15'h1e1e};
+            expected_read_resp1_hit_lane_by_way[0] = index_minus_2[2:0];
+            expected_read_resp1_hit_lane_by_way[1] = index_minus_2[2:0];
+            expected_read_resp1_btb_info_by_way[0] = {index_minus_2[2:0], 1'b0, 15'h0f0f};
+            expected_read_resp1_btb_info_by_way[1] = {index_minus_2[2:0], 1'b1, 15'h1e1e};
             // update
 
             check_outputs();
@@ -894,11 +898,13 @@ module btb_tb #(
         check_outputs();
 
         for (int index = 2; index < corep::BTB_SETS; index++) begin
+            int index_minus_1 = index - 1;
+            int index_minus_2 = index - 2;
 
             @(posedge CLK); #(PERIOD/10);
 
             // inputs
-            sub_test_case = $sformatf("req index = 0x%03h, resp0 index = 0x%03h, resp1 index = 0x%03h", index, index-1, index-2);
+            sub_test_case = $sformatf("req index = 0x%03h, resp0 index = 0x%03h, resp1 index = 0x%03h", index, index_minus_1, index_minus_2);
             $display("\t- sub_test: %s", sub_test_case);
 
             // reset
@@ -909,7 +915,7 @@ module btb_tb #(
 		    tb_read_req_asid = 16'h0000;
             // read resp0 stage
             tb_read_resp0_valid = 1'b1;
-            tb_read_resp0_pc38 = {26'h2222222, {index-1}[8:0], 3'h0};
+            tb_read_resp0_pc38 = {26'h2222222, index_minus_1[8:0], 3'h0};
             // read resp1 stage
             // update
             tb_update_valid = 1'b0;
@@ -924,13 +930,13 @@ module btb_tb #(
             // read req stage
             // read resp0 stage
             // read resp1 stage
-            expected_read_resp1_hit = {index-2}[2:0] != 7;
+            expected_read_resp1_hit = index_minus_2[2:0] != 7;
             expected_read_resp1_double_hit = 1'b0;
-            expected_read_resp1_hit_way = expected_read_resp1_hit & ({index-2} % 5 == 0) ? 1'b1 : 1'b0;
-            expected_read_resp1_hit_lane_by_way[0] = {index-2}[2:0];
-            expected_read_resp1_hit_lane_by_way[1] = {index-2}[2:0];
-            expected_read_resp1_btb_info_by_way[0] = ({index-2} % 5 != 0) ? {~{index-2}[2:0], 1'b0, 15'h2222} : {{index-2}[2:0], 1'b0, 15'h0f0f};
-            expected_read_resp1_btb_info_by_way[1] = ({index-2} % 5 != 0) ? {{index-2}[2:0], 1'b1, 15'h1e1e} : {~{index-2}[2:0], 1'b0, 15'h2222};
+            expected_read_resp1_hit_way = expected_read_resp1_hit & (index_minus_2 % 5 == 0) ? 1'b1 : 1'b0;
+            expected_read_resp1_hit_lane_by_way[0] = index_minus_2[2:0];
+            expected_read_resp1_hit_lane_by_way[1] = index_minus_2[2:0];
+            expected_read_resp1_btb_info_by_way[0] = (index_minus_2 % 5 != 0) ? {~index_minus_2[2:0], 1'b0, 15'h2222} : {index_minus_2[2:0], 1'b0, 15'h0f0f};
+            expected_read_resp1_btb_info_by_way[1] = (index_minus_2 % 5 != 0) ? {index_minus_2[2:0], 1'b1, 15'h1e1e} : {~index_minus_2[2:0], 1'b0, 15'h2222};
             // update
 
             check_outputs();

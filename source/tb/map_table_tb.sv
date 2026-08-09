@@ -93,45 +93,131 @@ module map_table_tb #(
 
     task check_outputs();
     begin
-		if (expected_A_pr_by_way !== DUT_A_pr_by_way) begin
-			$display("TB ERROR: expected_A_pr_by_way (%0d'h%h) != DUT_A_pr_by_way (%0d'h%h)",
-				$bits(expected_A_pr_by_way), expected_A_pr_by_way,
-				$bits(DUT_A_pr_by_way), DUT_A_pr_by_way);
+		if (expected_A_pr_by_way[3] !== DUT_A_pr_by_way[3]) begin
+			$display("TB ERROR: expected_A_pr_by_way[3] (%0d'h%h) != DUT_A_pr_by_way[3] (%0d'h%h)",
+				$bits(expected_A_pr_by_way[3]), expected_A_pr_by_way[3],
+				$bits(DUT_A_pr_by_way[3]), DUT_A_pr_by_way[3]);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+		if (expected_A_pr_by_way[2] !== DUT_A_pr_by_way[2]) begin
+			$display("TB ERROR: expected_A_pr_by_way[2] (%0d'h%h) != DUT_A_pr_by_way[2] (%0d'h%h)",
+				$bits(expected_A_pr_by_way[2]), expected_A_pr_by_way[2],
+				$bits(DUT_A_pr_by_way[2]), DUT_A_pr_by_way[2]);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+		if (expected_A_pr_by_way[1] !== DUT_A_pr_by_way[1]) begin
+			$display("TB ERROR: expected_A_pr_by_way[1] (%0d'h%h) != DUT_A_pr_by_way[1] (%0d'h%h)",
+				$bits(expected_A_pr_by_way[1]), expected_A_pr_by_way[1],
+				$bits(DUT_A_pr_by_way[1]), DUT_A_pr_by_way[1]);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+		if (expected_A_pr_by_way[0] !== DUT_A_pr_by_way[0]) begin
+			$display("TB ERROR: expected_A_pr_by_way[0] (%0d'h%h) != DUT_A_pr_by_way[0] (%0d'h%h)",
+				$bits(expected_A_pr_by_way[0]), expected_A_pr_by_way[0],
+				$bits(DUT_A_pr_by_way[0]), DUT_A_pr_by_way[0]);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+        
+		if (expected_B_pr_by_way[3] !== DUT_B_pr_by_way[3]) begin
+			$display("TB ERROR: expected_B_pr_by_way[3] (%0d'h%h) != DUT_B_pr_by_way[3] (%0d'h%h)",
+				$bits(expected_B_pr_by_way[3]), expected_B_pr_by_way[3],
+				$bits(DUT_B_pr_by_way[3]), DUT_B_pr_by_way[3]);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+		if (expected_B_pr_by_way[2] !== DUT_B_pr_by_way[2]) begin
+			$display("TB ERROR: expected_B_pr_by_way[2] (%0d'h%h) != DUT_B_pr_by_way[2] (%0d'h%h)",
+				$bits(expected_B_pr_by_way[2]), expected_B_pr_by_way[2],
+				$bits(DUT_B_pr_by_way[2]), DUT_B_pr_by_way[2]);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+		if (expected_B_pr_by_way[1] !== DUT_B_pr_by_way[1]) begin
+			$display("TB ERROR: expected_B_pr_by_way[1] (%0d'h%h) != DUT_B_pr_by_way[1] (%0d'h%h)",
+				$bits(expected_B_pr_by_way[1]), expected_B_pr_by_way[1],
+				$bits(DUT_B_pr_by_way[1]), DUT_B_pr_by_way[1]);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+		if (expected_B_pr_by_way[0] !== DUT_B_pr_by_way[0]) begin
+			$display("TB ERROR: expected_B_pr_by_way[0] (%0d'h%h) != DUT_B_pr_by_way[0] (%0d'h%h)",
+				$bits(expected_B_pr_by_way[0]), expected_B_pr_by_way[0],
+				$bits(DUT_B_pr_by_way[0]), DUT_B_pr_by_way[0]);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+        
+		if (expected_C_pr_by_way[3] !== DUT_C_pr_by_way[3]) begin
+			$display("TB ERROR: expected_C_pr_by_way[3] (%0d'h%h) != DUT_C_pr_by_way[3] (%0d'h%h)",
+				$bits(expected_C_pr_by_way[3]), expected_C_pr_by_way[3],
+				$bits(DUT_C_pr_by_way[3]), DUT_C_pr_by_way[3]);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+		if (expected_C_pr_by_way[2] !== DUT_C_pr_by_way[2]) begin
+			$display("TB ERROR: expected_C_pr_by_way[2] (%0d'h%h) != DUT_C_pr_by_way[2] (%0d'h%h)",
+				$bits(expected_C_pr_by_way[2]), expected_C_pr_by_way[2],
+				$bits(DUT_C_pr_by_way[2]), DUT_C_pr_by_way[2]);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+		if (expected_C_pr_by_way[1] !== DUT_C_pr_by_way[1]) begin
+			$display("TB ERROR: expected_C_pr_by_way[1] (%0d'h%h) != DUT_C_pr_by_way[1] (%0d'h%h)",
+				$bits(expected_C_pr_by_way[1]), expected_C_pr_by_way[1],
+				$bits(DUT_C_pr_by_way[1]), DUT_C_pr_by_way[1]);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+		if (expected_C_pr_by_way[0] !== DUT_C_pr_by_way[0]) begin
+			$display("TB ERROR: expected_C_pr_by_way[0] (%0d'h%h) != DUT_C_pr_by_way[0] (%0d'h%h)",
+				$bits(expected_C_pr_by_way[0]), expected_C_pr_by_way[0],
+				$bits(DUT_C_pr_by_way[0]), DUT_C_pr_by_way[0]);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+        
+		if (expected_dest_old_pr_by_way[3] !== DUT_dest_old_pr_by_way[3]) begin
+			$display("TB ERROR: expected_dest_old_pr_by_way[3] (%0d'h%h) != DUT_dest_old_pr_by_way[3] (%0d'h%h)",
+				$bits(expected_dest_old_pr_by_way[3]), expected_dest_old_pr_by_way[3],
+				$bits(DUT_dest_old_pr_by_way[3]), DUT_dest_old_pr_by_way[3]);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+		if (expected_dest_old_pr_by_way[2] !== DUT_dest_old_pr_by_way[2]) begin
+			$display("TB ERROR: expected_dest_old_pr_by_way[2] (%0d'h%h) != DUT_dest_old_pr_by_way[2] (%0d'h%h)",
+				$bits(expected_dest_old_pr_by_way[2]), expected_dest_old_pr_by_way[2],
+				$bits(DUT_dest_old_pr_by_way[2]), DUT_dest_old_pr_by_way[2]);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+		if (expected_dest_old_pr_by_way[1] !== DUT_dest_old_pr_by_way[1]) begin
+			$display("TB ERROR: expected_dest_old_pr_by_way[1] (%0d'h%h) != DUT_dest_old_pr_by_way[1] (%0d'h%h)",
+				$bits(expected_dest_old_pr_by_way[1]), expected_dest_old_pr_by_way[1],
+				$bits(DUT_dest_old_pr_by_way[1]), DUT_dest_old_pr_by_way[1]);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+		if (expected_dest_old_pr_by_way[0] !== DUT_dest_old_pr_by_way[0]) begin
+			$display("TB ERROR: expected_dest_old_pr_by_way[0] (%0d'h%h) != DUT_dest_old_pr_by_way[0] (%0d'h%h)",
+				$bits(expected_dest_old_pr_by_way[0]), expected_dest_old_pr_by_way[0],
+				$bits(DUT_dest_old_pr_by_way[0]), DUT_dest_old_pr_by_way[0]);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_B_pr_by_way !== DUT_B_pr_by_way) begin
-			$display("TB ERROR: expected_B_pr_by_way (%0d'h%h) != DUT_B_pr_by_way (%0d'h%h)",
-				$bits(expected_B_pr_by_way), expected_B_pr_by_way,
-				$bits(DUT_B_pr_by_way), DUT_B_pr_by_way);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_C_pr_by_way !== DUT_C_pr_by_way) begin
-			$display("TB ERROR: expected_C_pr_by_way (%0d'h%h) != DUT_C_pr_by_way (%0d'h%h)",
-				$bits(expected_C_pr_by_way), expected_C_pr_by_way,
-				$bits(DUT_C_pr_by_way), DUT_C_pr_by_way);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_dest_old_pr_by_way !== DUT_dest_old_pr_by_way) begin
-			$display("TB ERROR: expected_dest_old_pr_by_way (%0d'h%h) != DUT_dest_old_pr_by_way (%0d'h%h)",
-				$bits(expected_dest_old_pr_by_way), expected_dest_old_pr_by_way,
-				$bits(DUT_dest_old_pr_by_way), DUT_dest_old_pr_by_way);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_save_map_table !== DUT_save_map_table) begin
-			$display("TB ERROR: expected_save_map_table (%0d'h%h) != DUT_save_map_table (%0d'h%h)",
-				$bits(expected_save_map_table), expected_save_map_table,
-				$bits(DUT_save_map_table), DUT_save_map_table);
-			num_errors++;
-			tb_error = 1'b1;
-		end
+        for (int i = 0; i < 64; i++) begin
+            if (expected_save_map_table[i] !== DUT_save_map_table[i]) begin
+                $display("TB ERROR: expected_save_map_table[%02h] (%0d'h%h) != DUT_save_map_table[%02h] (%0d'h%h)",
+                    $bits(expected_save_map_table[i]), expected_save_map_table[i],
+                    $bits(DUT_save_map_table[i]), DUT_save_map_table[i]);
+                num_errors++;
+                tb_error = 1'b1;
+            end
+        end
 
         #(PERIOD / 10);
         tb_error = 1'b0;
@@ -659,9 +745,9 @@ module map_table_tb #(
         nRST = 1'b1;
         // reg reads
         tb_A_ar6_by_way = {
-            1'b1, 5'h0D,
-            1'b0, 5'h09,
-            1'b1, 5'h05,
+            1'b0, 5'h01,
+            1'b0, 5'h01,
+            1'b0, 5'h01,
             1'b0, 5'h01
         };
         tb_B_ar6_by_way = {
@@ -677,18 +763,18 @@ module map_table_tb #(
             5'h00
         };
         // reg writes
-        tb_dest_write_valid_by_way = 4'b1;
+        tb_dest_write_valid_by_way = 4'b1111;
         tb_dest_ar6_by_way = {
-            1'b1, 5'h0D,
-            1'b0, 5'h09,
-            1'b1, 5'h05,
+            1'b0, 5'h01,
+            1'b0, 5'h01,
+            1'b0, 5'h01,
             1'b0, 5'h01
         };
         tb_dest_new_pr_by_way = {
-            7'hD1,
-            7'h90,
-            7'h51,
-            7'h10
+            7'h31,
+            7'h21,
+            7'h11,
+            7'h01
         };
         // checkpoint save
         // checkpoint restore

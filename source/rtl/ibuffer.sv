@@ -110,6 +110,9 @@ module ibuffer (
     logic [3:0][corep::LOG_FETCH_LANES+1-1:0]   deq_first2B_idx_by_way;
     logic [3:0][corep::LOG_FETCH_LANES+1-1:0]   deq_second2B_idx_by_way;
 
+    logic [3:0][2:0] deq_first2B_idx_plus_1_by_way;
+    logic [3:0][2:0] deq_second2B_idx_plus_1_by_way;
+
     // ----------------------------------------------------------------
     // Logic:
 
@@ -383,6 +386,8 @@ module ibuffer (
     always_comb begin
         for (int way = 0; way < 4; way++) begin
             instr_yield_by_way[way].valid = deq_valid_by_way[way];
+            deq_first2B_idx_plus_1_by_way[way] = deq_first2B_idx_by_way[way][2:0] + 3'b001;
+            deq_second2B_idx_plus_1_by_way[way] = deq_second2B_idx_by_way[way][2:0] + 3'b001;
 
             if (uncompressed_vec_by_reg[deq_first2B_idx_by_way[way][3]][deq_first2B_idx_by_way[way][2:0]]) begin
                 instr_yield_by_way[way].btb_hit = info_by_reg[deq_second2B_idx_by_way[way][3]].btb_hit_by_lane[deq_second2B_idx_by_way[way][2:0]];
@@ -397,7 +402,7 @@ module ibuffer (
                     instr_yield_by_way[way].tgt_pc38 = info_by_reg[deq_second2B_idx_by_way[way][3]].tgt_pc38;
                 end
                 else begin
-                    instr_yield_by_way[way].tgt_pc38 = {info_by_reg[deq_second2B_idx_by_way[way][3]].src_pc35, {deq_second2B_idx_by_way[way][2:0] + 3'b001}[2:0]};
+                    instr_yield_by_way[way].tgt_pc38 = {info_by_reg[deq_second2B_idx_by_way[way][3]].src_pc35, deq_second2B_idx_plus_1_by_way[way]};
                 end
                 instr_yield_by_way[way].page_fault = info_by_reg[deq_first2B_idx_by_way[way][3]].page_fault | info_by_reg[deq_second2B_idx_by_way[way][3]].page_fault;
                 instr_yield_by_way[way].access_fault = info_by_reg[deq_first2B_idx_by_way[way][3]].access_fault | info_by_reg[deq_second2B_idx_by_way[way][3]].access_fault;
@@ -414,7 +419,7 @@ module ibuffer (
                     instr_yield_by_way[way].tgt_pc38 = info_by_reg[deq_first2B_idx_by_way[way][3]].tgt_pc38;
                 end
                 else begin
-                    instr_yield_by_way[way].tgt_pc38 = {info_by_reg[deq_first2B_idx_by_way[way][3]].src_pc35, {deq_first2B_idx_by_way[way][2:0] + 3'b001}[2:0]};
+                    instr_yield_by_way[way].tgt_pc38 = {info_by_reg[deq_first2B_idx_by_way[way][3]].src_pc35, deq_first2B_idx_plus_1_by_way[way]};
                 end
                 instr_yield_by_way[way].page_fault = info_by_reg[deq_first2B_idx_by_way[way][3]].page_fault;
                 instr_yield_by_way[way].access_fault = info_by_reg[deq_first2B_idx_by_way[way][3]].access_fault;

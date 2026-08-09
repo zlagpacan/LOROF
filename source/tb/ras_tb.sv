@@ -579,6 +579,7 @@ module ras_tb #(
 		check_outputs();
 
         for (int i = 0; i < 21; i++) begin
+            int i_minus_1 = i - 1;
 
             @(posedge CLK); #(PERIOD/10);
 
@@ -605,7 +606,7 @@ module ras_tb #(
             // pc_gen link control
             // pc_gen return control
             expected_ret_fallback = i > 0 ? 1'b0 : 1'b1;
-            expected_ret_pc38 = i > 0 ? {8{{i-1}[4:0]}} : 38'h0000000000;
+            expected_ret_pc38 = i > 0 ? {8{i_minus_1[4:0]}} : 38'h0000000000;
             expected_ret_ras_idx = i[3:0];
             expected_ret_ras_cnt = i <= 16 ? i : 16;
             // update control
@@ -614,6 +615,7 @@ module ras_tb #(
         end
 
         for (int i = 20; i >= 5; i--) begin
+            int i_plus_1 = i + 1;
 
             @(posedge CLK); #(PERIOD/10);
 
@@ -641,7 +643,7 @@ module ras_tb #(
             // pc_gen return control
             expected_ret_fallback = i > 0 ? 1'b0 : 1'b1;
             expected_ret_pc38 = {8{i[4:0]}};
-            expected_ret_ras_idx = {i+1}[3:0];
+            expected_ret_ras_idx = i_plus_1[4:0];
             expected_ret_ras_cnt = i - 4;
             // update control
 

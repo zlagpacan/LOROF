@@ -274,11 +274,12 @@ module mdpt_tb #(
         check_outputs();
 
         for (int index = corep::MDPT_SETS-2; index >= 0; index--) begin
+            int index_plus_1 = index + 1;
 
             @(posedge CLK); #(PERIOD/10);
 
             // inputs
-            sub_test_case = $sformatf("read req 0x%02h, read resp 0x%02h", index[6:0], {index+1}[6:0]);
+            sub_test_case = $sformatf("read req 0x%02h, read resp 0x%02h", index[6:0], index_plus_1[6:0]);
             $display("\t- sub_test: %s", sub_test_case);
 
             // reset
@@ -302,14 +303,14 @@ module mdpt_tb #(
             // read req stage
             // read resp stage
             expected_read_resp_mdp_by_lane = {
-                {1'b1, {index+1}[6:0]},
-                {1'b0, {index+1}[6:0]},
-                {1'b1, {index+1}[6:0]},
-                {1'b0, {index+1}[6:0]},
-                {1'b1, {index+1}[6:0]},
-                {1'b0, {index+1}[6:0]},
-                {1'b1, {index+1}[6:0]},
-                {1'b0, {index+1}[6:0]}
+                {1'b1, index_plus_1[6:0]},
+                {1'b0, index_plus_1[6:0]},
+                {1'b1, index_plus_1[6:0]},
+                {1'b0, index_plus_1[6:0]},
+                {1'b1, index_plus_1[6:0]},
+                {1'b0, index_plus_1[6:0]},
+                {1'b1, index_plus_1[6:0]},
+                {1'b0, index_plus_1[6:0]}
             };
             // update
 

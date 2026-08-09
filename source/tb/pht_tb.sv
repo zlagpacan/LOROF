@@ -275,11 +275,13 @@ module pht_tb #(
         for (int index = 0; index < corep::PHT_SETS; index++) begin
 
             for (int lane = (index == 0 ? 1 : 0); lane < corep::FETCH_LANES; lane++) begin
+                int index_minus_1 = index - 1;
+                int lane_minus_1 = lane - 1;
 
                 @(posedge CLK); #(PERIOD/10);
 
                 // inputs
-                sub_test_case = $sformatf("req index = 0x%03h lane = %1h, resp index = 0x%03h lane = %1h", index, lane, (lane == 0) ? index-1 : index, {lane-1}[2:0]);
+                sub_test_case = $sformatf("req index = 0x%03h lane = %1h, resp index = 0x%03h lane = %1h", index, lane, (lane == 0) ? index-1 : index, lane_minus_1[2:0]);
                 $display("\t- sub_test: %s", sub_test_case);
 
                 // reset
@@ -290,8 +292,8 @@ module pht_tb #(
                 tb_read_req_gh = {~index[10:9], {4'h0, index[4:0]}, lane[2], 1'b0, lane[0]};
                 tb_read_req_asid = 16'hffff;
                 // read resp stage
-		        tb_read_resp_redirect_lane_by_way[0] = {1'b0, {lane-1}[1], 1'b0};
-		        tb_read_resp_redirect_lane_by_way[1] = {1'b1, ~{lane-1}[1], 1'b1};
+		        tb_read_resp_redirect_lane_by_way[0] = {1'b0, lane_minus_1[1], 1'b0};
+		        tb_read_resp_redirect_lane_by_way[1] = {1'b1, ~lane_minus_1[1], 1'b1};
                 // update
                 tb_update_valid = 1'b0;
                 tb_update_pc38 = {26'h0000000, 9'h000, 3'h0};
@@ -306,8 +308,8 @@ module pht_tb #(
                 // arch state
                 // read req stage
                 // read resp stage
-                expected_read_resp_taken_by_way[0] = {lane-1}[2:0] >= {(lane == 0) ? index-1 : index}[2:0];
-                expected_read_resp_taken_by_way[1] = ~{lane-1}[2:0] >= {(lane == 0) ? index-1 : index}[2:0];
+                expected_read_resp_taken_by_way[0] = lane_minus_1[2:0] >= (lane == 0) ? index_minus_1[2:0] : index[2:0];
+                expected_read_resp_taken_by_way[1] = ~lane_minus_1[2:0] >= (lane == 0) ? index_minus_1[2:0] : index[2:0];
                 // update
 
                 check_outputs();
