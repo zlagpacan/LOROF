@@ -25,25 +25,19 @@ module oldest_younger #(
     logic [INDEX_WIDTH-1:0] all_index;
 
     pe_lsb #(
-        .WIDTH(VECTOR_WIDTH),
-        .USE_ONE_HOT(0),
-        .USE_INDEX(1)
+        .WIDTH(VECTOR_WIDTH)
     ) AND_TARGET_AND_NOT_HEAD_PE_LSB (
         .req_vec(req_vec & target_mask & ~head_mask),
         .ack_index(and_target_and_not_head_index)
     );
     pe_lsb #(
-        .WIDTH(VECTOR_WIDTH),
-        .USE_ONE_HOT(0),
-        .USE_INDEX(1)
+        .WIDTH(VECTOR_WIDTH)
     ) AND_TARGET_PE_LSB (
         .req_vec(req_vec & target_mask),
         .ack_index(and_target_index)
     );
     pe_lsb #(
-        .WIDTH(VECTOR_WIDTH),
-        .USE_ONE_HOT(0),
-        .USE_INDEX(1)
+        .WIDTH(VECTOR_WIDTH)
     ) ALL_PE_LSB (
         .req_vec(req_vec),
         .ack_index(all_index)

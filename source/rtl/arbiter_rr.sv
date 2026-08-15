@@ -48,10 +48,7 @@ module arbiter_rr #(
     end
 
     pe_lsb #(
-        .WIDTH(REQUESTOR_COUNT),
-        .USE_ONE_HOT(1),
-        .USE_COLD(1),
-        .USE_INDEX(1)
+        .WIDTH(REQUESTOR_COUNT)
     ) MASKED_PE_LSB (
         .req_vec(masked_req_vec),
         .ack_one_hot(masked_ack_one_hot),
@@ -60,10 +57,7 @@ module arbiter_rr #(
     );
 
     pe_lsb #(
-        .WIDTH(REQUESTOR_COUNT),
-        .USE_ONE_HOT(1),
-        .USE_COLD(1),
-        .USE_INDEX(1)
+        .WIDTH(REQUESTOR_COUNT)
     ) UNMASKED_PE_LSB (
         .req_vec(req_vec),
         .ack_one_hot(unmasked_ack_one_hot),

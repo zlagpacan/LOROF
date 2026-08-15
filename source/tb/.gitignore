@@ -1,1 +1,5 @@
 tb_output.txt
+*.wdb
+xelab*
+xsim*
+xvlog*

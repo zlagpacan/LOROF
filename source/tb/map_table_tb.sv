@@ -212,8 +212,8 @@ module map_table_tb #(
         for (int i = 0; i < 64; i++) begin
             if (expected_save_map_table[i] !== DUT_save_map_table[i]) begin
                 $display("TB ERROR: expected_save_map_table[%02h] (%0d'h%h) != DUT_save_map_table[%02h] (%0d'h%h)",
-                    $bits(expected_save_map_table[i]), expected_save_map_table[i],
-                    $bits(DUT_save_map_table[i]), DUT_save_map_table[i]);
+                    i, $bits(expected_save_map_table[i]), expected_save_map_table[i],
+                    i, $bits(DUT_save_map_table[i]), DUT_save_map_table[i]);
                 num_errors++;
                 tb_error = 1'b1;
             end

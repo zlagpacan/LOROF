@@ -10,8 +10,8 @@
 module pe_msb_tb #(
 	parameter WIDTH = 8,
 	parameter USE_ONE_HOT = 1,
-	parameter USE_COLD = 0,
-	parameter USE_INDEX = 0
+	parameter USE_COLD = 1,
+	parameter USE_INDEX = 1
 ) ();
 
     // ----------------------------------------------------------------

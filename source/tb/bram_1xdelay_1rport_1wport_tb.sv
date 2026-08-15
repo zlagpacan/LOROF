@@ -235,14 +235,16 @@ module bram_1xdelay_1rport_1wport_tb #(
         check_outputs();
 
         for (int i = 0; i < 29; i++) begin
+            int i_plus_2 = i + 2;
+            int i_plus_1 = i + 1;
 
             @(posedge CLK); #(PERIOD/10);
 
             // inputs
             sub_test_case = {
                 "\n\t\tupdate:  i",
-                "\n\t\tREQ:     ", $sformatf("%02h", {i+2}[4:0]),
-                "\n\t\tRESP0:   ", $sformatf("%02h", {i+1}[4:0]),
+                "\n\t\tREQ:     ", $sformatf("%02h", i_plus_2[4:0]),
+                "\n\t\tRESP0:   ", $sformatf("%02h", i_plus_1[4:0]),
                 "\n\t\tRESP1:   ", $sformatf("%02h", i[4:0])
             };
             $display("\t- sub_test: %s", sub_test_case);
@@ -251,7 +253,7 @@ module bram_1xdelay_1rport_1wport_tb #(
             nRST = 1'b1;
             tb_ren0 = 1'b1;
             tb_ren1 = 1'b1;
-            tb_rindex = {i+2}[4:0];
+            tb_rindex = i_plus_2[4:0];
             tb_wen_byte = 4'b0000;
             tb_windex = 5'h00;
             tb_wdata = 32'h00000000;
