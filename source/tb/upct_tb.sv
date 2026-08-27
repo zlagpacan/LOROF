@@ -250,7 +250,7 @@ module upct_tb #(
             expected_read_upc_by_way[1] = {9{~i[2:0]}};
             // update in
             // update out
-            expected_update_upct_idx = {3'h0, 3'h0, 3'h1, 3'h0, 3'h3, 3'h2, 3'h1, 3'h0} >> i*3;
+            expected_update_upct_idx = {3'h7, 3'h6, 3'h5, 3'h4, 3'h3, 3'h2, 3'h1, 3'h0} >> i*3;
 
             check_outputs();
         end
@@ -330,11 +330,11 @@ module upct_tb #(
 
             // pc_gen read in
             // pc_gen read out
-            expected_read_upc_by_way[0] = (i == 7) ? 26'h0000000 : 26'h7777777;
+            expected_read_upc_by_way[0] = (i == 4) ? 26'h0000000 : 26'h4444444;
             expected_read_upc_by_way[1] = 26'h3ffffff;
             // update in
             // update out
-            expected_update_upct_idx = {3'h0, 3'h1, 3'h2, 3'h3} >> (i-4)*3;
+            expected_update_upct_idx = {3'h3, 3'h2, 3'h1, 3'h0} >> (i-4)*3;
 
             check_outputs();
         end
@@ -346,7 +346,7 @@ module upct_tb #(
         test_num++;
 
         for (int i = 0; i < 8; i++) begin
-            int i1 = 7 - i;
+            int i1 = i + 4;
 
             @(posedge CLK); #(PERIOD/10);
 
@@ -373,7 +373,7 @@ module upct_tb #(
 
             // pc_gen read in
             // pc_gen read out
-            expected_read_upc_by_way[0] = (i >= 4) ? {8{i[3:0]}} : {9{~i[2:0]}};
+            expected_read_upc_by_way[0] = (i < 4) ? {9{~i[2:0]}} : {8{~i1[3:0]}};
             expected_read_upc_by_way[1] = (i < 4) ? {8{i1[3:0]}} : {9{i[2:0]}};
             // update in
             // update out
