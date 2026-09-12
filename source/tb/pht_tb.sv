@@ -26,6 +26,12 @@ module pht_tb #(
     int num_errors = 0;
     logic tb_error = 1'b0;
 
+    int index_minus_1;
+    int lane_minus_1;
+    int not_lane_minus_1;
+    int expr_0;
+    int expr_1;
+
     // clock gen
     always begin #(PERIOD/2); CLK = ~CLK; end
 
@@ -275,8 +281,11 @@ module pht_tb #(
         for (int index = 0; index < corep::PHT_SETS; index++) begin
 
             for (int lane = (index == 0 ? 1 : 0); lane < corep::FETCH_LANES; lane++) begin
-                int index_minus_1 = index - 1;
-                int lane_minus_1 = lane - 1;
+                index_minus_1 = index - 1;
+                lane_minus_1 = lane - 1;
+                not_lane_minus_1 = ~lane_minus_1;
+                expr_0 = (lane == 0) ? index_minus_1[2:0] : index[2:0];
+                expr_1 = (lane == 0) ? index_minus_1[2:0] : index[2:0];
 
                 @(posedge CLK); #(PERIOD/10);
 
@@ -308,8 +317,8 @@ module pht_tb #(
                 // arch state
                 // read req stage
                 // read resp stage
-                expected_read_resp_taken_by_way[0] = lane_minus_1[2:0] >= (lane == 0) ? index_minus_1[2:0] : index[2:0];
-                expected_read_resp_taken_by_way[1] = ~lane_minus_1[2:0] >= (lane == 0) ? index_minus_1[2:0] : index[2:0];
+                expected_read_resp_taken_by_way[0] = lane_minus_1[2:0] >= expr_0[2:0];
+                expected_read_resp_taken_by_way[1] = not_lane_minus_1[2:0] >= expr_1[2:0];
                 // update
 
                 check_outputs();
