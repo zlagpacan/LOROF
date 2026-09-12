@@ -8,7 +8,7 @@
 `timescale 1ns/100ps
 
 module nearest_index_tb #(
-	parameter VECTOR_WIDTH = 32,
+	parameter VECTOR_WIDTH = 8,
 	parameter INDEX_WIDTH = $clog2(VECTOR_WIDTH)
 ) ();
 
