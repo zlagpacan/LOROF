@@ -7,7 +7,8 @@ The goal of the LOROF project is to architect, design, verify, and validate a RI
 
 ## Current Status
 - converting core design from RV32IMAC to RV64GC
-- signficantly redesigning core frontend for area savings
+  - fp support
+- signficantly redesigning core frontend and issue queues for area/LUT savings
 
 ## Architecture Basics
 - for an intro to the computer architecture concepts involved in LOROF, check out [basics](./spec/design/basics/)
