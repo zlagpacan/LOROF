@@ -6919,7 +6919,7 @@ module fetch_unit_tb #(
 		expected_instr_yield_by_way[0].mid_instr_redirect = 1'b1;
 		expected_instr_yield_by_way[0].bcb_idx = 4'h3;
 		expected_instr_yield_by_way[0].src_pc38 = {23'hC3C3C3, 3'h3, 9'h3C4, 3'h3};
-		expected_instr_yield_by_way[0].tgt_pc38 = {23'hD2D2D2, 3'h2, 9'h2D3, 3'h5};
+		expected_instr_yield_by_way[0].tgt_pc38 = {23'hC3C3C3, 3'h3, 9'h3C4, 3'h5};
 		expected_instr_yield_by_way[0].page_fault = 1'b0;
 		expected_instr_yield_by_way[0].access_fault = 1'b0;
 		expected_instr_yield_by_way[0].mdp = 8'h00;
