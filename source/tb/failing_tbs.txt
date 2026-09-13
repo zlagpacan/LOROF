@@ -1,4 +1,3 @@
 fake_dram_simple_tb
-fetch_unit_tb
 map_table_tb (also fix map_table to final version)
 pe2_lsb_tb
