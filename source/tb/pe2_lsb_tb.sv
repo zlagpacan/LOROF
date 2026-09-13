@@ -166,9 +166,21 @@ module pe2_lsb_tb #(
 
             expected_ack_one_hot = 8'b00000000;
             expected_ack_index = 0;
+            for (int j = 1; j < WIDTH; j++) begin
+                for (int k = 0; k < j; k++) begin
+                    if (i[k] & i[j]) begin
+                        expected_ack_one_hot[j] = 1'b1;
+                        expected_ack_index = j;
+                        break;
+                    end
+                end
+                if (expected_ack_one_hot[j]) begin
+                    break;
+                end
+            end
 
-            expected_found_first = 1'b0;
-            expected_found_second = 1'b0;
+            expected_found_first = $countones(tb_req_vec) >= 1;
+            expected_found_second = $countones(tb_req_vec) >= 2;
 
             check_outputs();
         end
