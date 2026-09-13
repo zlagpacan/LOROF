@@ -1,2 +1,1 @@
-fake_dram_simple_tb
 map_table_tb (also fix map_table to final version)
