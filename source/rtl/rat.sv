@@ -1,88 +1,105 @@
 /*
-    Filename: map_table.sv
+    Filename: rat.sv
     Author: zlagpacan
-    Description: RTL for Architectural to Physical Register Map Table
-    Spec: LOROF/spec/design/map_table.md
+    Description: RTL for Register Alias Table (ar to pr)
+    Spec: LOROF/spec/design/rat.md
 */
 
 `include "corep.vh"
 
-module map_table #(
-    // hardcode 4-way
+module rat #(
+    // hardcode 4-way irat, 1-way frat
 ) (
     // seq
     input logic CLK,
     input logic nRST,
 
-    // reg reads
-    input corep::ar6_t [3:0]    A_ar6_by_way,
-    output corep::pr_t [3:0]    A_pr_by_way,
+    // irat reads
+    input corep::ar5_t [3:0]    irat_A_ar5_by_way,
+    output corep::pr_t [3:0]    irat_A_pr_by_way,
 
-    input corep::ar6_t [3:0]    B_ar6_by_way,
-    output corep::pr_t [3:0]    B_pr_by_way,
+    input corep::ar5_t [3:0]    irat_B_ar5_by_way,
+    output corep::pr_t [3:0]    irat_B_pr_by_way,
 
-    input corep::ar5_t [3:0]    C_far_by_way,
-    output corep::pr_t [3:0]    C_pr_by_way,
+    // irat writes
+    input logic [3:0]           irat_dest_write_valid_by_way,
+    input corep::ar5_t [3:0]    irat_dest_ar5_by_way,
+    output corep::pr_t [3:0]    irat_dest_old_pr_by_way,
+    input corep::pr_t [3:0]     irat_dest_new_pr_by_way,
 
-    // reg writes
-    input logic [3:0]           dest_write_valid_by_way,
-    input corep::ar6_t [3:0]    dest_ar6_by_way,
-    output corep::pr_t [3:0]    dest_old_pr_by_way,
-    input corep::pr_t [3:0]     dest_new_pr_by_way,
+    // frat reads
+    input corep::ar5_t [3:0]    frat_A_ar5_by_way,
+    output corep::pr_t [3:0]    frat_A_pr_by_way,
+
+    input corep::ar5_t [3:0]    frat_B_ar5_by_way,
+    output corep::pr_t [3:0]    frat_B_pr_by_way,
+
+    input corep::ar5_t [3:0]    frat_C_ar5_by_way,
+    output corep::pr_t [3:0]    frat_C_pr_by_way,
+
+    // frat writes
+    input logic [3:0]           frat_dest_write_valid_by_way,
+    input corep::ar5_t [3:0]    frat_dest_ar5_by_way,
+    output corep::pr_t [3:0]    frat_dest_old_pr_by_way,
+    input corep::pr_t [3:0]     frat_dest_new_pr_by_way,
+
+    // instr yields
+    input logic [3:0]   instr_is_fp_by_way,
+    output logic [3:0]  instr_yield_by_way,
 
     // checkpoint save
-    output corep::map_table_t   save_map_table,
+    output corep::irat_t    save_irat,
+    output corep::frat_t    save_frat,
 
     // checkpoint restore
-    input logic                 restore_valid,
-    input corep::map_table_t    restore_map_table
+    input logic             restore_valid,
+    input corep::irat_t     restore_irat,
+    input corep::frat_t     restore_frat
 );
 
     // ----------------------------------------------------------------
     // Signals:
 
-    // map table FF array
-    corep::map_table_t map_table;
+    // rat arrays
+    corep::irat_t irat;
 
-    // map table read values
-    corep::pr_t [3:0] read_A_pr_by_way;
-    corep::pr_t [3:0] read_B_pr_by_way;
-    corep::pr_t [3:0] read_C_pr_by_way;
-    corep::pr_t [3:0] read_dest_old_pr_by_way;
+    corep::frat_t frat;
+
+    // rat reads
+    corep::pr_t [3:0] read_irat_A_pr_by_way;
+    corep::pr_t [3:0] read_irat_B_pr_by_way;
+    corep::pr_t [3:0] read_irat_dest_old_pr_by_way;
+    
+    corep::pr_t [3:0] read_frat_A_pr_by_way;
+    corep::pr_t [3:0] read_frat_B_pr_by_way;
+    corep::pr_t [3:0] read_frat_C_pr_by_way;
+    corep::pr_t [3:0] read_frat_dest_old_pr_by_way;
 
     // ----------------------------------------------------------------
     // Logic: 
 
-    // map table reads
+    // rat reads
     always_comb begin
         for (int way = 0; way < 4; way++) begin
-
-            if (A_ar6_by_way[way].is_fp) begin
-                read_A_pr_by_way[way] = map_table.far[A_ar6_by_way[way].ar5];
-            end else begin
-                read_A_pr_by_way[way] = map_table.iar[A_ar6_by_way[way].ar5];
-            end
-
-            if (B_ar6_by_way[way].is_fp) begin
-                read_B_pr_by_way[way] = map_table.far[B_ar6_by_way[way].ar5];
-            end else begin
-                read_B_pr_by_way[way] = map_table.iar[B_ar6_by_way[way].ar5];
-            end
-
-            read_C_pr_by_way[way] = map_table.far[C_far_by_way[way]];
-
-            if (dest_ar6_by_way[way].is_fp) begin
-                read_dest_old_pr_by_way[way] = map_table.far[dest_ar6_by_way[way].ar5];
-            end else begin
-                read_dest_old_pr_by_way[way] = map_table.iar[dest_ar6_by_way[way].ar5];
-            end
+            read_irat_A_pr_by_way[way] = irat[irat_A_ar5_by_way[way]];
+            read_irat_B_pr_by_way[way] = irat[irat_B_ar5_by_way[way]];
+            read_irat_dest_old_pr_by_way[way] = irat[irat_dest_ar5_by_way[way]];
+            
+            read_frat_A_pr_by_way[way] = frat[frat_A_ar5_by_way[way]];
+            read_frat_B_pr_by_way[way] = frat[frat_B_ar5_by_way[way]];
+            read_frat_C_pr_by_way[way] = frat[frat_C_ar5_by_way[way]];
+            read_frat_dest_old_pr_by_way[way] = frat[frat_dest_ar5_by_way[way]];
         end
     end
 
-    // map table bypassing
+    // rat bypassing
     always_comb begin
         
         // no deps for way 0:
+        irat_A_pr_by_way[0] = read_irat_A_pr_by_way[0];
+        irat_B_pr_by_way[0] = read_irat_B_pr_by_way[0];
+        irat_dest_old_pr_by_way[0] = read_irat_dest_old_pr_by_way[0];
+
         A_pr_by_way[0] = read_A_pr_by_way[0];
         B_pr_by_way[0] = read_B_pr_by_way[0];
         C_pr_by_way[0] = read_C_pr_by_way[0];

@@ -436,22 +436,15 @@ package corep;
     parameter int unsigned FREE_LIST_LOWER_THRESHOLD = 8;
     parameter int unsigned FREE_LIST_UPPER_THRESHOLD = 24;
 
-    // map_table
-    parameter int unsigned MAP_TABLE_IARF_READ_PORT_COUNT = 12;
-    parameter int unsigned MAP_TABLE_IARF_WRITE_PORT_COUNT = 4;
-    parameter int unsigned MAP_TABLE_FARF_READ_PORT_COUNT = 16;
-    parameter int unsigned MAP_TABLE_FARF_WRITE_PORT_COUNT = 4;
-
-    typedef struct packed {
-        pr_t [AR5_COUNT-1:0] far;
-        pr_t [AR5_COUNT-1:0] iar;
-    } map_table_t;
+    // rat:
+    pr_t [AR5_COUNT-1:0] irat_t;
+    pr_t [AR5_COUNT-1:0] frat_t;
 
     // checkpoint array:
-    parameter int unsigned MTCB_ENTRIES = 8;
-    parameter int unsigned LOG_MTCB_ENTRIES = $clog2(MTCB_ENTRIES);
+    parameter int unsigned CHECKPOINT_ARRAY_ENTRIES = 8;
+    parameter int unsigned LOG_CHECKPOINT_ARRAY_ENTRIES = $clog2(CHECKPOINT_ARRAY_ENTRIES);
 
-    typedef logic [LOG_MTCB_ENTRIES-1:0] mtcb_idx_t;
+    typedef logic [LOG_CHECKPOINT_ARRAY_ENTRIES-1:0] checkpoint_array_idx_t;
 
     // ----------------------------------------------------------------
     // MDU:
