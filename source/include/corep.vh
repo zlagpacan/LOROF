@@ -24,7 +24,7 @@ package corep;
     typedef logic [LOG_AR5_COUNT-1:0] ar5_t;
     
     typedef struct packed {
-        logic   is_fp;
+        logic   is_freg;
         ar5_t   ar5;
     } ar6_t;
 
@@ -437,7 +437,7 @@ package corep;
     parameter int unsigned FREE_LIST_UPPER_THRESHOLD = 24;
 
     // rat:
-    pr_t [AR5_COUNT-1:0] rat_t;
+    typedef pr_t [AR5_COUNT-1:0] rat_t;
 
     // checkpoint array:
     parameter int unsigned CHECKPOINT_ARRAY_ENTRIES = 8;
