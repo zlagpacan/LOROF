@@ -1,7 +1,7 @@
 /*
     Filename: mux_one_hot.sv
     Author: zlagpacan
-    Description: RTL for 2x Round-Robin Arbiter
+    Description: RTL for One-Hot Mux
     Spec: LOROF/spec/design/mux_one_hot.md
 */
 

@@ -5,19 +5,12 @@
     Spec: LOROF/spec/design/decoder.md
 */
 
-// TODO: update for 64-bit
+// TODO: update for RV64IMAFDC
 // TODO: update for floating point
-    // big issue right now is frs3 for fuse instr's
-		// only fp side of ar map table has to support 4x reads per instr
-        // rework so decoder tells which renames need to check, and can massively limit ports to common case
-            // use register priority arbitration scheme in rename stage
-            // this gets nasty fast tho
-// TODO: decode if want checkpoint
-
-// notes:
     // fpnew input coding
-    // fr vs. r reg's -> "is_fpreg"
-    // fmadd frd reg borrowing logic
+    // tell if instr includes freg
+        // not strictly is_fpu as fp loads and stores have freg's
+// TODO: decode if want checkpoint
 
 `include "core_types.vh"
 

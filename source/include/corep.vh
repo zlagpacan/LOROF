@@ -437,8 +437,7 @@ package corep;
     parameter int unsigned FREE_LIST_UPPER_THRESHOLD = 24;
 
     // rat:
-    pr_t [AR5_COUNT-1:0] irat_t;
-    pr_t [AR5_COUNT-1:0] frat_t;
+    pr_t [AR5_COUNT-1:0] rat_t;
 
     // checkpoint array:
     parameter int unsigned CHECKPOINT_ARRAY_ENTRIES = 8;

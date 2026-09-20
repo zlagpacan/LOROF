@@ -14,92 +14,101 @@ module rat #(
     input logic CLK,
     input logic nRST,
 
-    // irat reads
-    input corep::ar5_t [3:0]    irat_A_ar5_by_way,
-    output corep::pr_t [3:0]    irat_A_pr_by_way,
+    // rat reads
+    input corep::ar6_t [3:0]    A_ar6_by_way,
+    output corep::pr_t [3:0]    A_pr_by_way,
 
-    input corep::ar5_t [3:0]    irat_B_ar5_by_way,
-    output corep::pr_t [3:0]    irat_B_pr_by_way,
+    input corep::ar6_t [3:0]    B_ar6_by_way,
+    output corep::pr_t [3:0]    B_pr_by_way,
 
-    // irat writes
-    input logic [3:0]           irat_dest_write_valid_by_way,
-    input corep::ar5_t [3:0]    irat_dest_ar5_by_way,
-    output corep::pr_t [3:0]    irat_dest_old_pr_by_way,
-    input corep::pr_t [3:0]     irat_dest_new_pr_by_way,
+    input corep::ar5_t [3:0]    C_ar5_by_way, // guranteed to be freg
+    output corep::pr_t [3:0]    C_pr_by_way,
 
-    // frat reads
-    input corep::ar5_t [3:0]    frat_A_ar5_by_way,
-    output corep::pr_t [3:0]    frat_A_pr_by_way,
-
-    input corep::ar5_t [3:0]    frat_B_ar5_by_way,
-    output corep::pr_t [3:0]    frat_B_pr_by_way,
-
-    input corep::ar5_t [3:0]    frat_C_ar5_by_way,
-    output corep::pr_t [3:0]    frat_C_pr_by_way,
-
-    // frat writes
-    input logic [3:0]           frat_dest_write_valid_by_way,
-    input corep::ar5_t [3:0]    frat_dest_ar5_by_way,
-    output corep::pr_t [3:0]    frat_dest_old_pr_by_way,
-    input corep::pr_t [3:0]     frat_dest_new_pr_by_way,
+    // rat writes
+    input logic [3:0]           dest_write_valid_by_way,
+    input corep::ar6_t [3:0]    dest_ar6_by_way,
+    output corep::pr_t [3:0]    dest_old_pr_by_way,
+    input corep::pr_t [3:0]     dest_new_pr_by_way,
 
     // instr yields
-    input logic [3:0]   instr_is_fp_by_way,
+    input logic [3:0]   instr_valid_by_way,
+    input logic [3:0]   instr_has_freg_by_way, // explicitly differentiate as can have unused fp read from irrelevant bits in instr
     output logic [3:0]  instr_yield_by_way,
 
+    // rename control
+    input logic perform_rename, // can do write dep logic early in cycle, this late in cycle
+
     // checkpoint save
-    output corep::irat_t    save_irat,
-    output corep::frat_t    save_frat,
+    output corep::rat_t     save_irat,
+    output corep::rat_t     save_frat,
 
     // checkpoint restore
     input logic             restore_valid,
-    input corep::irat_t     restore_irat,
-    input corep::frat_t     restore_frat
+    input corep::rat_t      restore_irat,
+    input corep::rat_t      restore_frat
 );
 
     // ----------------------------------------------------------------
     // Signals:
 
     // rat arrays
-    corep::irat_t irat;
-
-    corep::frat_t frat;
+    corep::rat_t irat;
+    corep::rat_t frat;
 
     // rat reads
     corep::pr_t [3:0] read_irat_A_pr_by_way;
     corep::pr_t [3:0] read_irat_B_pr_by_way;
     corep::pr_t [3:0] read_irat_dest_old_pr_by_way;
     
-    corep::pr_t [3:0] read_frat_A_pr_by_way;
-    corep::pr_t [3:0] read_frat_B_pr_by_way;
-    corep::pr_t [3:0] read_frat_C_pr_by_way;
-    corep::pr_t [3:0] read_frat_dest_old_pr_by_way;
+    corep::ar_t read_frat_A_ar5;
+    corep::ar_t read_frat_B_ar5;
+    corep::ar_t read_frat_C_ar5;
+    corep::ar_t read_frat_dest_ar5;
+    
+    corep::pr_t read_frat_A_pr;
+    corep::pr_t read_frat_B_pr;
+    corep::pr_t read_frat_C_pr;
+    corep::pr_t read_frat_dest_old_pr;
 
     // ----------------------------------------------------------------
     // Logic: 
 
-    // rat reads
+    // irat reads
     always_comb begin
         for (int way = 0; way < 4; way++) begin
-            read_irat_A_pr_by_way[way] = irat[irat_A_ar5_by_way[way]];
-            read_irat_B_pr_by_way[way] = irat[irat_B_ar5_by_way[way]];
-            read_irat_dest_old_pr_by_way[way] = irat[irat_dest_ar5_by_way[way]];
-            
-            read_frat_A_pr_by_way[way] = frat[frat_A_ar5_by_way[way]];
-            read_frat_B_pr_by_way[way] = frat[frat_B_ar5_by_way[way]];
-            read_frat_C_pr_by_way[way] = frat[frat_C_ar5_by_way[way]];
-            read_frat_dest_old_pr_by_way[way] = frat[frat_dest_ar5_by_way[way]];
+            read_irat_A_pr_by_way[way] = irat[A_ar6_by_way[way].ar5];
+            read_irat_B_pr_by_way[way] = irat[B_ar6_by_way[way].ar5];
+            read_irat_dest_old_pr_by_way[way] = irat[C_ar5_by_way[way]];
         end
     end
+    
+    // pmux to choose which way gets frat
+    pmux_lsb_for #(
+        .SEL_WIDTH(4),
+        .DATA_WIDTH($bits({read_frat_A_ar5, read_frat_B_ar5, read_frat_C_ar5, read_frat_dest_ar5}))
+    ) (
+        .req_valid_vec(instr_valid_by_way & instr_has_freg_by_way),
+        .req_data_vec({
+            A_ar6_by_way[3].ar5, B_ar6_by_way[3].ar5, C_ar5_by_way[3], dest_ar6_by_way[3].ar5,
+            A_ar6_by_way[2].ar5, B_ar6_by_way[2].ar5, C_ar5_by_way[2], dest_ar6_by_way[2].ar5,
+            A_ar6_by_way[1].ar5, B_ar6_by_way[1].ar5, C_ar5_by_way[1], dest_ar6_by_way[1].ar5,
+            A_ar6_by_way[0].ar5, B_ar6_by_way[0].ar5, C_ar5_by_way[0], dest_ar6_by_way[0].ar5
+        }),
+        .rsp_data({read_frat_A_ar5, read_frat_B_ar5, read_frat_C_ar5, read_frat_dest_ar5})
+    );
 
-    // rat bypassing
+    // frat reads
+    always_comb begin
+        read_frat_A_pr = frat[read_frat_A_ar5]; 
+        read_frat_B_pr = frat[read_frat_B_ar5];
+        read_frat_C_pr = frat[read_frat_C_ar5];
+        read_frat_dest_old_pr = frat[read_frat_dest_ar5];
+    end
+
+    // bypassing
     always_comb begin
         
         // no deps for way 0:
-        irat_A_pr_by_way[0] = read_irat_A_pr_by_way[0];
-        irat_B_pr_by_way[0] = read_irat_B_pr_by_way[0];
-        irat_dest_old_pr_by_way[0] = read_irat_dest_old_pr_by_way[0];
-
         A_pr_by_way[0] = read_A_pr_by_way[0];
         B_pr_by_way[0] = read_B_pr_by_way[0];
         C_pr_by_way[0] = read_C_pr_by_way[0];
