@@ -19,7 +19,8 @@ module pmux_lsb_for_wrapper #(
 	input logic [SEL_WIDTH-1:0] next_req_valid_vec,
 	input logic [SEL_WIDTH-1:0][DATA_WIDTH-1:0] next_req_data_vec,
 
-	output logic [DATA_WIDTH-1:0] last_rsp_data
+	output logic [SEL_WIDTH-1:0] last_resp_valid_vec,
+	output logic [DATA_WIDTH-1:0] last_resp_data
 );
 
     // ----------------------------------------------------------------
@@ -27,7 +28,8 @@ module pmux_lsb_for_wrapper #(
 	logic [SEL_WIDTH-1:0] req_valid_vec;
 	logic [SEL_WIDTH-1:0][DATA_WIDTH-1:0] req_data_vec;
 
-	logic [DATA_WIDTH-1:0] rsp_data;
+	logic [SEL_WIDTH-1:0] resp_valid_vec;
+	logic [DATA_WIDTH-1:0] resp_data;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
@@ -45,13 +47,15 @@ module pmux_lsb_for_wrapper #(
 			req_valid_vec <= '0;
 			req_data_vec <= '0;
 
-			last_rsp_data <= '0;
+			last_resp_valid_vec <= '0;
+			last_resp_data <= '0;
         end
         else begin
 			req_valid_vec <= next_req_valid_vec;
 			req_data_vec <= next_req_data_vec;
 
-			last_rsp_data <= rsp_data;
+			last_resp_valid_vec <= resp_valid_vec;
+			last_resp_data <= resp_data;
         end
     end
 

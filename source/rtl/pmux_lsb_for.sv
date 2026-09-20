@@ -11,17 +11,20 @@ module pmux_lsb_for #(
     input logic [SEL_WIDTH-1:0]                     req_valid_vec,
     input logic [SEL_WIDTH-1:0][DATA_WIDTH-1:0]     req_data_vec,
 
-    output logic [DATA_WIDTH-1:0]                   rsp_data
+    output logic [SEL_WIDTH-1:0]                    resp_valid_vec,
+    output logic [DATA_WIDTH-1:0]                   resp_data
 );
 
     logic found_data;
 
     always_comb begin
-        rsp_data = req_data_vec[SEL_WIDTH-1];
+        resp_data = req_data_vec[SEL_WIDTH-1];
+        resp_valid_vec = '0;
         
         for (int i = 0; i < SEL_WIDTH; i++) begin
             if (req_valid_vec[i]) begin
-                rsp_data = req_data_vec[i];
+                resp_valid_vec[i] = 1'b1;
+                resp_data = req_data_vec[i];
                 break;
             end
         end

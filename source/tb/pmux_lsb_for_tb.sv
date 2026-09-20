@@ -35,7 +35,8 @@ module pmux_lsb_for_tb #(
 	logic [SEL_WIDTH-1:0] tb_req_valid_vec;
 	logic [SEL_WIDTH-1:0][DATA_WIDTH-1:0] tb_req_data_vec;
 
-	logic [DATA_WIDTH-1:0] DUT_rsp_data, expected_rsp_data;
+	logic [SEL_WIDTH-1:0] DUT_resp_valid_vec, expected_resp_valid_vec;
+	logic [DATA_WIDTH-1:0] DUT_resp_data, expected_resp_data;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
@@ -47,7 +48,8 @@ module pmux_lsb_for_tb #(
 		.req_valid_vec(tb_req_valid_vec),
 		.req_data_vec(tb_req_data_vec),
 
-		.rsp_data(DUT_rsp_data)
+		.resp_valid_vec(DUT_resp_valid_vec),
+		.resp_data(DUT_resp_data)
 	);
 
     // ----------------------------------------------------------------
@@ -55,10 +57,17 @@ module pmux_lsb_for_tb #(
 
     task check_outputs();
     begin
-		if (expected_rsp_data !== DUT_rsp_data) begin
-			$display("TB ERROR: expected_rsp_data (%0d'h%h) != DUT_rsp_data (%0d'h%h)",
-				$bits(expected_rsp_data), expected_rsp_data,
-				$bits(DUT_rsp_data), DUT_rsp_data);
+		if (expected_resp_valid_vec !== DUT_resp_valid_vec) begin
+			$display("TB ERROR: expected_resp_valid_vec (%0d'h%h) != DUT_resp_valid_vec (%0d'h%h)",
+				$bits(expected_resp_valid_vec), expected_resp_valid_vec,
+				$bits(DUT_resp_valid_vec), DUT_resp_valid_vec);
+			num_errors++;
+			tb_error = 1'b1;
+		end
+		if (expected_resp_data !== DUT_resp_data) begin
+			$display("TB ERROR: expected_resp_data (%0d'h%h) != DUT_resp_data (%0d'h%h)",
+				$bits(expected_resp_data), expected_resp_data,
+				$bits(DUT_resp_data), DUT_resp_data);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -101,7 +110,8 @@ module pmux_lsb_for_tb #(
 
 		// outputs:
 
-		expected_rsp_data = 8'h87;
+		expected_resp_valid_vec = 8'b00000000;
+		expected_resp_data = 8'h87;
 
 		check_outputs();
 
@@ -127,7 +137,8 @@ module pmux_lsb_for_tb #(
 
 		// outputs:
 
-		expected_rsp_data = 8'h87;
+		expected_resp_valid_vec = 8'b00000000;
+		expected_resp_data = 8'h87;
 
 		check_outputs();
 
@@ -163,7 +174,18 @@ module pmux_lsb_for_tb #(
 
             // outputs:
 
-            expected_rsp_data = 
+		    expected_resp_valid_vec = 
+                i[0] ? 8'b00000001 :
+                i[1] ? 8'b00000010 : 
+                i[2] ? 8'b00000100 : 
+                i[3] ? 8'b00001000 : 
+                i[4] ? 8'b00010000 : 
+                i[5] ? 8'b00100000 : 
+                i[6] ? 8'b01000000 : 
+                i[7] ? 8'b10000000 : 
+                8'b00000000
+            ;
+            expected_resp_data = 
                 i[0] ? 8'hf0 :
                 i[1] ? 8'he1 : 
                 i[2] ? 8'hd2 : 
