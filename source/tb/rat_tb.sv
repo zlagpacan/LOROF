@@ -199,10 +199,10 @@ module rat_tb #(
             1'b0, 5'h00
         };
 		tb_B_ar6_by_way = {
-            1'b0, 6'h00,
-            1'b0, 6'h00,
-            1'b0, 6'h00,
-            1'b0, 6'h00
+            1'b0, 5'h00,
+            1'b0, 5'h00,
+            1'b0, 5'h00,
+            1'b0, 5'h00
         };
 		tb_C_ar5_by_way = {
             5'h00,
@@ -213,10 +213,10 @@ module rat_tb #(
 	    // rat writes
 		tb_dest_write_valid_by_way = 4'b0000;
 		tb_dest_ar6_by_way = {
-            1'b0, 6'h00,
-            1'b0, 6'h00,
-            1'b0, 6'h00,
-            1'b0, 6'h00
+            1'b0, 5'h00,
+            1'b0, 5'h00,
+            1'b0, 5'h00,
+            1'b0, 5'h00
         };
 		tb_dest_new_pr_by_way = {
             7'h00,
@@ -309,10 +309,10 @@ module rat_tb #(
             1'b0, 5'h00
         };
 		tb_B_ar6_by_way = {
-            1'b0, 6'h00,
-            1'b0, 6'h00,
-            1'b0, 6'h00,
-            1'b0, 6'h00
+            1'b0, 5'h00,
+            1'b0, 5'h00,
+            1'b0, 5'h00,
+            1'b0, 5'h00
         };
 		tb_C_ar5_by_way = {
             5'h00,
@@ -323,10 +323,10 @@ module rat_tb #(
 	    // rat writes
 		tb_dest_write_valid_by_way = 4'b0000;
 		tb_dest_ar6_by_way = {
-            1'b0, 6'h00,
-            1'b0, 6'h00,
-            1'b0, 6'h00,
-            1'b0, 6'h00
+            1'b0, 5'h00,
+            1'b0, 5'h00,
+            1'b0, 5'h00,
+            1'b0, 5'h00
         };
 		tb_dest_new_pr_by_way = {
             7'h00,
@@ -406,122 +406,250 @@ module rat_tb #(
 		check_outputs();
 
         // ------------------------------------------------------------
-        // default:
-        test_case = "default";
+        // readout:
+        test_case = "readout";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		@(posedge CLK); #(PERIOD/10);
+        for (int i = 0; i < 32; i += 4) begin
+            int i_plus_1 = i + 1;
+            int i_plus_2 = i + 2;
+            int i_plus_3 = i + 3;
 
-		// inputs
-		sub_test_case = "default";
-		$display("\t- sub_test: %s", sub_test_case);
+            int i_plus_35 = i[4:0] + 35;
 
-		// reset
-		nRST = 1'b1;
-	    // rat reads
-		tb_A_ar6_by_way = {
-            1'b0, 5'h00,
-            1'b0, 5'h00,
-            1'b0, 5'h00,
-            1'b0, 5'h00
-        };
-		tb_B_ar6_by_way = {
-            1'b0, 6'h00,
-            1'b0, 6'h00,
-            1'b0, 6'h00,
-            1'b0, 6'h00
-        };
-		tb_C_ar5_by_way = {
-            5'h00,
-            5'h00,
-            5'h00,
-            5'h00
-        };
-	    // rat writes
-		tb_dest_write_valid_by_way = 4'b0000;
-		tb_dest_ar6_by_way = {
-            1'b0, 6'h00,
-            1'b0, 6'h00,
-            1'b0, 6'h00,
-            1'b0, 6'h00
-        };
-		tb_dest_new_pr_by_way = {
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00
-        };
-	    // instr yields
-		tb_instr_valid_by_way = 4'b0000;
-		tb_instr_has_freg_by_way = 4'b0000;
-	    // decode_unit control
-		tb_perform_rename_by_way = 4'b0000;
-	    // checkpoint save
-	    // checkpoint restore
-		tb_restore_valid = 1'b0;
-		tb_restore_irat = {
-            7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
-            7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
-            7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
-            7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00
-        };
-		tb_restore_frat = {
-            7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
-            7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
-            7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
-            7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00
-        };
+            @(posedge CLK); #(PERIOD/10);
 
-		@(negedge CLK);
+            // inputs
+            sub_test_case = $sformatf("irat readout cycle 0x%0h", i / 4);
+            $display("\t- sub_test: %s", sub_test_case);
 
-		// outputs:
+            // reset
+            nRST = 1'b1;
+            // rat reads
+            tb_A_ar6_by_way = {
+                i_plus_3[5:0],
+                i_plus_2[5:0],
+                i_plus_1[5:0],
+                i[5:0]
+            };
+            tb_B_ar6_by_way = {
+                i_plus_3[5:0],
+                i_plus_2[5:0],
+                i_plus_1[5:0],
+                i[5:0]
+            };
+            tb_C_ar5_by_way = {
+                i_plus_3[4:0],
+                i_plus_2[4:0],
+                i_plus_1[4:0],
+                i[4:0]
+            };
+            // rat writes
+            tb_dest_write_valid_by_way = 4'b0000;
+            tb_dest_ar6_by_way = {
+                i_plus_3[5:0],
+                i_plus_2[5:0],
+                i_plus_1[5:0],
+                i[5:0]
+            };
+            tb_dest_new_pr_by_way = {
+                7'h00,
+                7'h00,
+                7'h00,
+                7'h00
+            };
+            // instr yields
+            tb_instr_valid_by_way = 4'b0000;
+            tb_instr_has_freg_by_way = 4'b0000;
+            // decode_unit control
+            tb_perform_rename_by_way = 4'b0000;
+            // checkpoint save
+            // checkpoint restore
+            tb_restore_valid = 1'b0;
+            tb_restore_irat = {
+                7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00
+            };
+            tb_restore_frat = {
+                7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00
+            };
 
-	    // rat reads
-		expected_A_pr_by_way = {
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00
-        };
-		expected_B_pr_by_way = {
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00
-        };
-		expected_C_pr_by_way = {
-            7'h20,
-            7'h20,
-            7'h20,
-            7'h20
-        };
-	    // rat writes
-		expected_dest_old_pr_by_way = {
-            7'h00,
-            7'h00,
-            7'h00,
-            7'h00
-        };
-	    // instr yields
-		expected_instr_yield_by_way = 4'b1111;
-	    // decode_unit control
-	    // checkpoint save
-		expected_save_irat = {
-            7'h1f, 7'h1e, 7'h1d, 7'h1c, 7'h1b, 7'h1a, 7'h19, 7'h18,
-            7'h17, 7'h16, 7'h15, 7'h14, 7'h13, 7'h12, 7'h11, 7'h10,
-            7'h0f, 7'h0e, 7'h0d, 7'h0c, 7'h0b, 7'h0a, 7'h09, 7'h08,
-            7'h07, 7'h06, 7'h05, 7'h04, 7'h03, 7'h02, 7'h01, 7'h00
-        };
-		expected_save_frat = {
-            7'h3f, 7'h3e, 7'h3d, 7'h3c, 7'h3b, 7'h3a, 7'h39, 7'h38,
-            7'h37, 7'h36, 7'h35, 7'h34, 7'h33, 7'h32, 7'h31, 7'h30,
-            7'h2f, 7'h2e, 7'h2d, 7'h2c, 7'h2b, 7'h2a, 7'h29, 7'h28,
-            7'h27, 7'h26, 7'h25, 7'h24, 7'h23, 7'h22, 7'h21, 7'h20
-        };
-	    // checkpoint restore
+            @(negedge CLK);
 
-		check_outputs();
+            // outputs:
+
+            // rat reads
+            expected_A_pr_by_way = {
+                i_plus_3[6:0],
+                i_plus_2[6:0],
+                i_plus_1[6:0],
+                i[6:0]
+            };
+            expected_B_pr_by_way = {
+                i_plus_3[6:0],
+                i_plus_2[6:0],
+                i_plus_1[6:0],
+                i[6:0]
+            };
+            expected_C_pr_by_way = {
+                i_plus_35[6:0],
+                i_plus_35[6:0],
+                i_plus_35[6:0],
+                i_plus_35[6:0]
+            };
+            // rat writes
+            expected_dest_old_pr_by_way = {
+                i_plus_3[6:0],
+                i_plus_2[6:0],
+                i_plus_1[6:0],
+                i[6:0]
+            };
+            // instr yields
+            expected_instr_yield_by_way = 4'b1111;
+            // decode_unit control
+            // checkpoint save
+            expected_save_irat = {
+                7'h1f, 7'h1e, 7'h1d, 7'h1c, 7'h1b, 7'h1a, 7'h19, 7'h18,
+                7'h17, 7'h16, 7'h15, 7'h14, 7'h13, 7'h12, 7'h11, 7'h10,
+                7'h0f, 7'h0e, 7'h0d, 7'h0c, 7'h0b, 7'h0a, 7'h09, 7'h08,
+                7'h07, 7'h06, 7'h05, 7'h04, 7'h03, 7'h02, 7'h01, 7'h00
+            };
+            expected_save_frat = {
+                7'h3f, 7'h3e, 7'h3d, 7'h3c, 7'h3b, 7'h3a, 7'h39, 7'h38,
+                7'h37, 7'h36, 7'h35, 7'h34, 7'h33, 7'h32, 7'h31, 7'h30,
+                7'h2f, 7'h2e, 7'h2d, 7'h2c, 7'h2b, 7'h2a, 7'h29, 7'h28,
+                7'h27, 7'h26, 7'h25, 7'h24, 7'h23, 7'h22, 7'h21, 7'h20
+            };
+            // checkpoint restore
+
+            check_outputs();
+        end
+
+        for (int i = 0; i < 32; i += 4) begin
+            int i_plus_1 = i + 1;
+            int i_plus_2 = i + 2;
+            int i_plus_3 = i + 3;
+
+            int i_plus_35 = i[4:0] + 35;
+
+            @(posedge CLK); #(PERIOD/10);
+
+            // inputs
+            sub_test_case = $sformatf("frat readout cycle 0x%0h", i / 4);
+            $display("\t- sub_test: %s", sub_test_case);
+
+            // reset
+            nRST = 1'b1;
+            // rat reads
+            tb_A_ar6_by_way = {
+                i_plus_3[5:0] + 6'h20,
+                i_plus_2[5:0] + 6'h20,
+                i_plus_1[5:0] + 6'h20,
+                i[5:0] + 6'h20
+            };
+            tb_B_ar6_by_way = {
+                i_plus_3[5:0] + 6'h20,
+                i_plus_2[5:0] + 6'h20,
+                i_plus_1[5:0] + 6'h20,
+                i[5:0] + 6'h20
+            };
+            tb_C_ar5_by_way = {
+                i_plus_3[4:0],
+                i_plus_2[4:0],
+                i_plus_1[4:0],
+                i[4:0]
+            };
+            // rat writes
+            tb_dest_write_valid_by_way = 4'b0000;
+            tb_dest_ar6_by_way = {
+                i_plus_3[5:0] + 6'h20,
+                i_plus_2[5:0] + 6'h20,
+                i_plus_1[5:0] + 6'h20,
+                i[5:0] + 6'h20
+            };
+            tb_dest_new_pr_by_way = {
+                7'h00,
+                7'h00,
+                7'h00,
+                7'h00
+            };
+            // instr yields
+            tb_instr_valid_by_way = 4'b0000;
+            tb_instr_has_freg_by_way = 4'b0000;
+            // decode_unit control
+            tb_perform_rename_by_way = 4'b0000;
+            // checkpoint save
+            // checkpoint restore
+            tb_restore_valid = 1'b0;
+            tb_restore_irat = {
+                7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00
+            };
+            tb_restore_frat = {
+                7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00,
+                7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00, 7'h00
+            };
+
+            @(negedge CLK);
+
+            // outputs:
+
+            // rat reads
+            expected_A_pr_by_way = {
+                i_plus_35[6:0],
+                i_plus_35[6:0],
+                i_plus_35[6:0],
+                i_plus_35[6:0]
+            };
+            expected_B_pr_by_way = {
+                i_plus_35[6:0],
+                i_plus_35[6:0],
+                i_plus_35[6:0],
+                i_plus_35[6:0]
+            };
+            expected_C_pr_by_way = {
+                i_plus_35[6:0],
+                i_plus_35[6:0],
+                i_plus_35[6:0],
+                i_plus_35[6:0]
+            };
+            // rat writes
+            expected_dest_old_pr_by_way = {
+                i_plus_35[6:0],
+                i_plus_35[6:0],
+                i_plus_35[6:0],
+                i_plus_35[6:0]
+            };
+            // instr yields
+            expected_instr_yield_by_way = 4'b1111;
+            // decode_unit control
+            // checkpoint save
+            expected_save_irat = {
+                7'h1f, 7'h1e, 7'h1d, 7'h1c, 7'h1b, 7'h1a, 7'h19, 7'h18,
+                7'h17, 7'h16, 7'h15, 7'h14, 7'h13, 7'h12, 7'h11, 7'h10,
+                7'h0f, 7'h0e, 7'h0d, 7'h0c, 7'h0b, 7'h0a, 7'h09, 7'h08,
+                7'h07, 7'h06, 7'h05, 7'h04, 7'h03, 7'h02, 7'h01, 7'h00
+            };
+            expected_save_frat = {
+                7'h3f, 7'h3e, 7'h3d, 7'h3c, 7'h3b, 7'h3a, 7'h39, 7'h38,
+                7'h37, 7'h36, 7'h35, 7'h34, 7'h33, 7'h32, 7'h31, 7'h30,
+                7'h2f, 7'h2e, 7'h2d, 7'h2c, 7'h2b, 7'h2a, 7'h29, 7'h28,
+                7'h27, 7'h26, 7'h25, 7'h24, 7'h23, 7'h22, 7'h21, 7'h20
+            };
+            // checkpoint restore
+
+            check_outputs();
+        end
 
         // ------------------------------------------------------------
         // finish:
