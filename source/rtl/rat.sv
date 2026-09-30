@@ -81,7 +81,7 @@ module rat #(
         for (int way = 0; way < 4; way++) begin
             read_irat_A_pr_by_way[way] = irat[A_ar6_by_way[way].ar5];
             read_irat_B_pr_by_way[way] = irat[B_ar6_by_way[way].ar5];
-            read_irat_dest_old_pr_by_way[way] = irat[C_ar5_by_way[way]];
+            read_irat_dest_old_pr_by_way[way] = irat[dest_ar6_by_way[way].ar5];
         end
     end
     
@@ -133,14 +133,14 @@ module rat #(
 
         // way 1 can dep on way 0:
         // A RAW
-        if (dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == A_ar6_by_way[1])) begin
+        if (instr_valid_by_way[0] & dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == A_ar6_by_way[1])) begin
             A_pr_by_way[1] = dest_new_pr_by_way[0];
         end else begin
             if (A_ar6_by_way[1].is_freg)    A_pr_by_way[1] = read_frat_A_pr;
             else                            A_pr_by_way[1] = read_irat_A_pr_by_way[1];
         end
         // B RAW
-        if (dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == B_ar6_by_way[1])) begin
+        if (instr_valid_by_way[0] & dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == B_ar6_by_way[1])) begin
             B_pr_by_way[1] = dest_new_pr_by_way[0];
         end else begin
             if (B_ar6_by_way[1].is_freg)    B_pr_by_way[1] = read_frat_B_pr;
@@ -149,7 +149,7 @@ module rat #(
         // C RAW (bypass impossible as would mean multiple instr_has_freg_by_way)
         C_pr_by_way[1] = read_frat_C_pr;
         // dest WAW
-        if (dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == dest_ar6_by_way[1])) begin
+        if (instr_valid_by_way[0] & dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == dest_ar6_by_way[1])) begin
             dest_old_pr_by_way[1] = dest_new_pr_by_way[0];
         end else begin
             if (dest_ar6_by_way[1].is_freg) dest_old_pr_by_way[1] = read_frat_dest_old_pr;
@@ -158,18 +158,18 @@ module rat #(
 
         // way 2 can dep on ways 1, 0:
         // A RAW
-        if (dest_write_valid_by_way[1] & (dest_ar6_by_way[1] == A_ar6_by_way[2])) begin
+        if (instr_valid_by_way[1] & dest_write_valid_by_way[1] & (dest_ar6_by_way[1] == A_ar6_by_way[2])) begin
             A_pr_by_way[2] = dest_new_pr_by_way[1];
-        end else if (dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == A_ar6_by_way[2])) begin
+        end else if (instr_valid_by_way[0] & dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == A_ar6_by_way[2])) begin
             A_pr_by_way[2] = dest_new_pr_by_way[0];
         end else begin
             if (A_ar6_by_way[2].is_freg)    A_pr_by_way[2] = read_frat_A_pr;
             else                            A_pr_by_way[2] = read_irat_A_pr_by_way[2];
         end
         // B RAW
-        if (dest_write_valid_by_way[1] & (dest_ar6_by_way[1] == B_ar6_by_way[2])) begin
+        if (instr_valid_by_way[1] & dest_write_valid_by_way[1] & (dest_ar6_by_way[1] == B_ar6_by_way[2])) begin
             B_pr_by_way[2] = dest_new_pr_by_way[1];
-        end else if (dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == B_ar6_by_way[2])) begin
+        end else if (instr_valid_by_way[0] & dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == B_ar6_by_way[2])) begin
             B_pr_by_way[2] = dest_new_pr_by_way[0];
         end else begin
             if (B_ar6_by_way[2].is_freg)    B_pr_by_way[2] = read_frat_B_pr;
@@ -178,9 +178,9 @@ module rat #(
         // C RAW (bypass impossible as would mean multiple instr_has_freg_by_way)
         C_pr_by_way[2] = read_frat_C_pr;
         // dest WAW
-        if (dest_write_valid_by_way[1] & (dest_ar6_by_way[1] == dest_ar6_by_way[2])) begin
+        if (instr_valid_by_way[1] & dest_write_valid_by_way[1] & (dest_ar6_by_way[1] == dest_ar6_by_way[2])) begin
             dest_old_pr_by_way[2] = dest_new_pr_by_way[1];
-        end else if (dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == dest_ar6_by_way[2])) begin
+        end else if (instr_valid_by_way[0] & dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == dest_ar6_by_way[2])) begin
             dest_old_pr_by_way[2] = dest_new_pr_by_way[0];
         end else begin
             if (dest_ar6_by_way[2].is_freg) dest_old_pr_by_way[2] = read_frat_dest_old_pr;
@@ -189,22 +189,22 @@ module rat #(
 
         // way 3 can dep on ways 2, 1, 0:
         // A RAW
-        if (dest_write_valid_by_way[2] & (dest_ar6_by_way[2] == A_ar6_by_way[3])) begin
+        if (instr_valid_by_way[2] & dest_write_valid_by_way[2] & (dest_ar6_by_way[2] == A_ar6_by_way[3])) begin
             A_pr_by_way[3] = dest_new_pr_by_way[2];
-        end else if (dest_write_valid_by_way[1] & (dest_ar6_by_way[1] == A_ar6_by_way[3])) begin
+        end else if (instr_valid_by_way[1] & dest_write_valid_by_way[1] & (dest_ar6_by_way[1] == A_ar6_by_way[3])) begin
             A_pr_by_way[3] = dest_new_pr_by_way[1];
-        end else if (dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == A_ar6_by_way[3])) begin
+        end else if (instr_valid_by_way[0] & dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == A_ar6_by_way[3])) begin
             A_pr_by_way[3] = dest_new_pr_by_way[0];
         end else begin
             if (A_ar6_by_way[3].is_freg)    A_pr_by_way[3] = read_frat_A_pr;
             else                            A_pr_by_way[3] = read_irat_A_pr_by_way[3];
         end
         // B RAW
-        if (dest_write_valid_by_way[2] & (dest_ar6_by_way[2] == B_ar6_by_way[3])) begin
+        if (instr_valid_by_way[2] & dest_write_valid_by_way[2] & (dest_ar6_by_way[2] == B_ar6_by_way[3])) begin
             B_pr_by_way[3] = dest_new_pr_by_way[2];
-        end else if (dest_write_valid_by_way[1] & (dest_ar6_by_way[1] == B_ar6_by_way[3])) begin
+        end else if (instr_valid_by_way[1] & dest_write_valid_by_way[1] & (dest_ar6_by_way[1] == B_ar6_by_way[3])) begin
             B_pr_by_way[3] = dest_new_pr_by_way[1];
-        end else if (dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == B_ar6_by_way[3])) begin
+        end else if (instr_valid_by_way[0] & dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == B_ar6_by_way[3])) begin
             B_pr_by_way[3] = dest_new_pr_by_way[0];
         end else begin
             if (B_ar6_by_way[3].is_freg)    B_pr_by_way[3] = read_frat_B_pr;
@@ -213,11 +213,11 @@ module rat #(
         // C RAW (bypass impossible as would mean multiple instr_has_freg_by_way)
         C_pr_by_way[3] = read_frat_C_pr;
         // dest WAW
-        if (dest_write_valid_by_way[2] & (dest_ar6_by_way[2] == dest_ar6_by_way[3])) begin
+        if (instr_valid_by_way[2] & dest_write_valid_by_way[2] & (dest_ar6_by_way[2] == dest_ar6_by_way[3])) begin
             dest_old_pr_by_way[3] = dest_new_pr_by_way[2];
-        end else if (dest_write_valid_by_way[1] & (dest_ar6_by_way[1] == dest_ar6_by_way[3])) begin
+        end else if (instr_valid_by_way[1] & dest_write_valid_by_way[1] & (dest_ar6_by_way[1] == dest_ar6_by_way[3])) begin
             dest_old_pr_by_way[3] = dest_new_pr_by_way[1];
-        end else if (dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == dest_ar6_by_way[3])) begin
+        end else if (instr_valid_by_way[0] & dest_write_valid_by_way[0] & (dest_ar6_by_way[0] == dest_ar6_by_way[3])) begin
             dest_old_pr_by_way[3] = dest_new_pr_by_way[0];
         end else begin
             if (dest_ar6_by_way[3].is_freg) dest_old_pr_by_way[3] = read_frat_dest_old_pr;
