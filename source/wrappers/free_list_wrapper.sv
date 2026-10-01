@@ -11,7 +11,8 @@
 
 module free_list_wrapper #(
 	parameter int unsigned INGRESS_BUFFER_ENTRIES = 16,
-	parameter int unsigned EGRESS_BUFFER_ENTRIES = 16
+	parameter int unsigned EGRESS_BUFFER_ENTRIES = 16,
+	parameter string INIT_FILES_BY_WAY [0:3] = {"free_list_way0.mem", "free_list_way1.mem", "free_list_way2.mem", "free_list_way3.mem"}
 ) (
 
     // seq
@@ -55,7 +56,8 @@ module free_list_wrapper #(
 
 	free_list #(
 		.INGRESS_BUFFER_ENTRIES(INGRESS_BUFFER_ENTRIES),
-		.EGRESS_BUFFER_ENTRIES(EGRESS_BUFFER_ENTRIES)
+		.EGRESS_BUFFER_ENTRIES(EGRESS_BUFFER_ENTRIES),
+		.[0:3]([0:3])
 	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
