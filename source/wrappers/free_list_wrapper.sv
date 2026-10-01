@@ -7,51 +7,56 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
+`include "corep.vh"
 
-module free_list_wrapper (
+module free_list_wrapper #(
+	parameter int unsigned INGRESS_BUFFER_ENTRIES = 16,
+	parameter int unsigned EGRESS_BUFFER_ENTRIES = 16
+) (
 
     // seq
     input logic CLK,
     input logic nRST,
 
-    // enqueue request
-	input logic [FREE_LIST_BANK_COUNT-1:0] next_enq_req_valid_by_bank,
-	input logic [FREE_LIST_BANK_COUNT-1:0][LOG_PR_COUNT-1:0] next_enq_req_PR_by_bank,
+    // enq
+	input logic [3:0] next_enq_valid_by_way,
+	input corep::pr_t [3:0] next_enq_pr_by_way,
 
-    // enqueue feedback
-	output logic [FREE_LIST_BANK_COUNT-1:0] last_enq_resp_ack_by_bank,
+    // enq feedback
+	output logic [3:0] last_enq_ready_by_way,
 
-    // dequeue request
-	input logic [FREE_LIST_BANK_COUNT-1:0] next_deq_req_valid_by_bank,
-	output logic [FREE_LIST_BANK_COUNT-1:0][LOG_PR_COUNT-1:0] last_deq_req_PR_by_bank,
+    // deq
+	output logic [3:0] last_deq_valid_by_way,
+	output corep::pr_t [3:0] last_deq_pr_by_way,
 
-    // dequeue feedback
-	output logic [FREE_LIST_BANK_COUNT-1:0] last_deq_resp_ready_by_bank
+    // deq feedback
+	input logic [3:0] next_deq_ready_by_way
 );
 
     // ----------------------------------------------------------------
     // Direct Module Connections:
 
-    // enqueue request
-	logic [FREE_LIST_BANK_COUNT-1:0] enq_req_valid_by_bank;
-	logic [FREE_LIST_BANK_COUNT-1:0][LOG_PR_COUNT-1:0] enq_req_PR_by_bank;
+    // enq
+	logic [3:0] enq_valid_by_way;
+	corep::pr_t [3:0] enq_pr_by_way;
 
-    // enqueue feedback
-	logic [FREE_LIST_BANK_COUNT-1:0] enq_resp_ack_by_bank;
+    // enq feedback
+	logic [3:0] enq_ready_by_way;
 
-    // dequeue request
-	logic [FREE_LIST_BANK_COUNT-1:0] deq_req_valid_by_bank;
-	logic [FREE_LIST_BANK_COUNT-1:0][LOG_PR_COUNT-1:0] deq_req_PR_by_bank;
+    // deq
+	logic [3:0] deq_valid_by_way;
+	corep::pr_t [3:0] deq_pr_by_way;
 
-    // dequeue feedback
-	logic [FREE_LIST_BANK_COUNT-1:0] deq_resp_ready_by_bank;
+    // deq feedback
+	logic [3:0] deq_ready_by_way;
 
     // ----------------------------------------------------------------
     // Module Instantiation:
 
-    free_list WRAPPED_MODULE (.*);
+	free_list #(
+		.INGRESS_BUFFER_ENTRIES(INGRESS_BUFFER_ENTRIES),
+		.EGRESS_BUFFER_ENTRIES(EGRESS_BUFFER_ENTRIES)
+	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------
     // Wrapper Registers:
@@ -59,35 +64,35 @@ module free_list_wrapper (
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
 
-		    // enqueue request
-			enq_req_valid_by_bank <= '0;
-			enq_req_PR_by_bank <= '0;
+		    // enq
+			enq_valid_by_way <= '0;
+			enq_pr_by_way <= '0;
 
-		    // enqueue feedback
-			last_enq_resp_ack_by_bank <= '0;
+		    // enq feedback
+			last_enq_ready_by_way <= '0;
 
-		    // dequeue request
-			deq_req_valid_by_bank <= '0;
-			last_deq_req_PR_by_bank <= '0;
+		    // deq
+			last_deq_valid_by_way <= '0;
+			last_deq_pr_by_way <= '0;
 
-		    // dequeue feedback
-			last_deq_resp_ready_by_bank <= '0;
+		    // deq feedback
+			deq_ready_by_way <= '0;
         end
         else begin
 
-		    // enqueue request
-			enq_req_valid_by_bank <= next_enq_req_valid_by_bank;
-			enq_req_PR_by_bank <= next_enq_req_PR_by_bank;
+		    // enq
+			enq_valid_by_way <= next_enq_valid_by_way;
+			enq_pr_by_way <= next_enq_pr_by_way;
 
-		    // enqueue feedback
-			last_enq_resp_ack_by_bank <= enq_resp_ack_by_bank;
+		    // enq feedback
+			last_enq_ready_by_way <= enq_ready_by_way;
 
-		    // dequeue request
-			deq_req_valid_by_bank <= next_deq_req_valid_by_bank;
-			last_deq_req_PR_by_bank <= deq_req_PR_by_bank;
+		    // deq
+			last_deq_valid_by_way <= deq_valid_by_way;
+			last_deq_pr_by_way <= deq_pr_by_way;
 
-		    // dequeue feedback
-			last_deq_resp_ready_by_bank <= deq_resp_ready_by_bank;
+		    // deq feedback
+			deq_ready_by_way <= next_deq_ready_by_way;
         end
     end
 

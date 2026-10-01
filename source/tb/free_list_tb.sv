@@ -7,16 +7,19 @@
 
 `timescale 1ns/100ps
 
-`include "core_types_pkg.vh"
-import core_types_pkg::*;
+`include "corep.vh"
 
-module free_list_tb ();
+module free_list_tb #(
+	parameter int unsigned INGRESS_BUFFER_ENTRIES = 16,
+	parameter int unsigned EGRESS_BUFFER_ENTRIES = 16,
+    parameter string INIT_FILES_BY_WAY [0:3] = {"free_list_way0.mem", "free_list_way1.mem", "free_list_way2.mem", "free_list_way3.mem"}
+) ();
 
     // ----------------------------------------------------------------
     // TB setup:
 
     // parameters
-    parameter PERIOD = 10;
+    parameter int unsigned PERIOD = 10;
 
     // TB signals:
     logic CLK = 1'b1, nRST;
@@ -32,49 +35,44 @@ module free_list_tb ();
     // ----------------------------------------------------------------
     // DUT signals:
 
-    // enqueue request
-	logic [FREE_LIST_BANK_COUNT-1:0] tb_enq_req_valid_by_bank;
-	logic [FREE_LIST_BANK_COUNT-1:0][LOG_PR_COUNT-1:0] tb_enq_req_PR_by_bank;
+    // enq
+	logic [3:0] tb_enq_valid_by_way;
+	corep::pr_t [3:0] tb_enq_pr_by_way;
 
-    // enqueue feedback
-	logic [FREE_LIST_BANK_COUNT-1:0] DUT_enq_resp_ack_by_bank, expected_enq_resp_ack_by_bank;
+    // enq feedback
+	logic [3:0] DUT_enq_ready_by_way, expected_enq_ready_by_way;
 
-    // dequeue request
-	logic [FREE_LIST_BANK_COUNT-1:0] tb_deq_req_valid_by_bank;
-	logic [FREE_LIST_BANK_COUNT-1:0][LOG_PR_COUNT-1:0] DUT_deq_req_PR_by_bank, expected_deq_req_PR_by_bank;
+    // deq
+	logic [3:0] DUT_deq_valid_by_way, expected_deq_valid_by_way;
+	corep::pr_t [3:0] DUT_deq_pr_by_way, expected_deq_pr_by_way;
 
-    // dequeue feedback
-	logic [FREE_LIST_BANK_COUNT-1:0] DUT_deq_resp_ready_by_bank, expected_deq_resp_ready_by_bank;
+    // deq feedback
+	logic [3:0] tb_deq_ready_by_way;
 
     // ----------------------------------------------------------------
     // DUT instantiation:
 
 	free_list #(
-		.FREE_LIST_BANK_COUNT(FREE_LIST_BANK_COUNT),
-		.LOG_FREE_LIST_BANK_COUNT(LOG_FREE_LIST_BANK_COUNT),
-		.FREE_LIST_LENGTH_PER_BANK(FREE_LIST_LENGTH_PER_BANK),
-		.LOG_FREE_LIST_LENGTH_PER_BANK(LOG_FREE_LIST_LENGTH_PER_BANK),
-		.FREE_LIST_SHIFT_REG_ENTRIES(FREE_LIST_SHIFT_REG_ENTRIES),
-		.FREE_LIST_LOWER_THRESHOLD(FREE_LIST_LOWER_THRESHOLD),
-		.FREE_LIST_UPPER_THRESHOLD(FREE_LIST_UPPER_THRESHOLD)
+		.INGRESS_BUFFER_ENTRIES(INGRESS_BUFFER_ENTRIES),
+		.EGRESS_BUFFER_ENTRIES(EGRESS_BUFFER_ENTRIES)
 	) DUT (
 		// seq
 		.CLK(CLK),
 		.nRST(nRST),
 
-	    // enqueue request
-		.enq_req_valid_by_bank(tb_enq_req_valid_by_bank),
-		.enq_req_PR_by_bank(tb_enq_req_PR_by_bank),
+	    // enq
+		.enq_valid_by_way(tb_enq_valid_by_way),
+		.enq_pr_by_way(tb_enq_pr_by_way),
 
-	    // enqueue feedback
-		.enq_resp_ack_by_bank(DUT_enq_resp_ack_by_bank),
+	    // enq feedback
+		.enq_ready_by_way(DUT_enq_ready_by_way),
 
-	    // dequeue request
-		.deq_req_valid_by_bank(tb_deq_req_valid_by_bank),
-		.deq_req_PR_by_bank(DUT_deq_req_PR_by_bank),
+	    // deq
+		.deq_valid_by_way(DUT_deq_valid_by_way),
+		.deq_pr_by_way(DUT_deq_pr_by_way),
 
-	    // dequeue feedback
-		.deq_resp_ready_by_bank(DUT_deq_resp_ready_by_bank)
+	    // deq feedback
+		.deq_ready_by_way(tb_deq_ready_by_way)
 	);
 
     // ----------------------------------------------------------------
@@ -82,23 +80,26 @@ module free_list_tb ();
 
     task check_outputs();
     begin
-		if (expected_enq_resp_ack_by_bank !== DUT_enq_resp_ack_by_bank) begin
-			$display("TB ERROR: expected_enq_resp_ack_by_bank (%h) != DUT_enq_resp_ack_by_bank (%h)",
-				expected_enq_resp_ack_by_bank, DUT_enq_resp_ack_by_bank);
+		if (expected_enq_ready_by_way !== DUT_enq_ready_by_way) begin
+			$display("TB ERROR: expected_enq_ready_by_way (%0d'h%h) != DUT_enq_ready_by_way (%0d'h%h)",
+				$bits(expected_enq_ready_by_way), expected_enq_ready_by_way,
+				$bits(DUT_enq_ready_by_way), DUT_enq_ready_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_deq_req_PR_by_bank !== DUT_deq_req_PR_by_bank) begin
-			$display("TB ERROR: expected_deq_req_PR_by_bank (%h) != DUT_deq_req_PR_by_bank (%h)",
-				expected_deq_req_PR_by_bank, DUT_deq_req_PR_by_bank);
+		if (expected_deq_valid_by_way !== DUT_deq_valid_by_way) begin
+			$display("TB ERROR: expected_deq_valid_by_way (%0d'h%h) != DUT_deq_valid_by_way (%0d'h%h)",
+				$bits(expected_deq_valid_by_way), expected_deq_valid_by_way,
+				$bits(DUT_deq_valid_by_way), DUT_deq_valid_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
 
-		if (expected_deq_resp_ready_by_bank !== DUT_deq_resp_ready_by_bank) begin
-			$display("TB ERROR: expected_deq_resp_ready_by_bank (%h) != DUT_deq_resp_ready_by_bank (%h)",
-				expected_deq_resp_ready_by_bank, DUT_deq_resp_ready_by_bank);
+		if (expected_deq_pr_by_way !== DUT_deq_pr_by_way) begin
+			$display("TB ERROR: expected_deq_pr_by_way (%0d'h%h) != DUT_deq_pr_by_way (%0d'h%h)",
+				$bits(expected_deq_pr_by_way), expected_deq_pr_by_way,
+				$bits(DUT_deq_pr_by_way), DUT_deq_pr_by_way);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -125,35 +126,25 @@ module free_list_tb ();
 
 		// reset
 		nRST = 1'b0;
-	    // enqueue request
-		tb_enq_req_valid_by_bank = 4'b0000;
-		tb_enq_req_PR_by_bank = {
-			7'h0,
-			7'h0,
-			7'h0,
-			7'h0
-		};
-	    // enqueue feedback
-	    // dequeue request
-		tb_deq_req_valid_by_bank = 4'b0000;
-	    // dequeue feedback
+	    // enq
+		tb_enq_valid_by_way = 4'b0000;
+		tb_enq_pr_by_way = {7'h00, 7'h00, 7'h00, 7'h00};
+	    // enq feedback
+	    // deq
+	    // deq feedback
+		tb_deq_ready_by_way = 4'b0000;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-	    // enqueue request
-	    // enqueue feedback
-		expected_enq_resp_ack_by_bank = 4'b0000;
-	    // dequeue request
-		expected_deq_req_PR_by_bank = {
-			7'h23,
-			7'h22,
-			7'h21,
-			7'h20
-		};
-	    // dequeue feedback
-		expected_deq_resp_ready_by_bank = 4'b1111;
+	    // enq
+	    // enq feedback
+		expected_enq_ready_by_way = 4'b1111;
+	    // deq
+		expected_deq_valid_by_way = 4'b1111;
+		expected_deq_pr_by_way = {7'h43, 7'h42, 7'h41, 7'h40};
+	    // deq feedback
 
 		check_outputs();
 
@@ -163,148 +154,63 @@ module free_list_tb ();
 
 		// reset
 		nRST = 1'b1;
-	    // enqueue request
-		tb_enq_req_valid_by_bank = 4'b0000;
-		tb_enq_req_PR_by_bank = {
-			7'h0,
-			7'h0,
-			7'h0,
-			7'h0
-		};
-	    // enqueue feedback
-	    // dequeue request
-		tb_deq_req_valid_by_bank = 4'b0000;
-	    // dequeue feedback
+	    // enq
+		tb_enq_valid_by_way = 4'b0000;
+		tb_enq_pr_by_way = {7'h00, 7'h00, 7'h00, 7'h00};
+	    // enq feedback
+	    // deq
+	    // deq feedback
+		tb_deq_ready_by_way = 4'b0000;
 
 		@(posedge CLK); #(PERIOD/10);
 
 		// outputs:
 
-	    // enqueue request
-	    // enqueue feedback
-		expected_enq_resp_ack_by_bank = 4'b0000;
-	    // dequeue request
-		expected_deq_req_PR_by_bank = {
-			7'h23,
-			7'h22,
-			7'h21,
-			7'h20
-		};
-	    // dequeue feedback
-		expected_deq_resp_ready_by_bank = 4'b1111;
+	    // enq
+	    // enq feedback
+		expected_enq_ready_by_way = 4'b1111;
+	    // deq
+		expected_deq_valid_by_way = 4'b1111;
+		expected_deq_pr_by_way = {7'h43, 7'h42, 7'h41, 7'h40};
+	    // deq feedback
 
 		check_outputs();
 
         // ------------------------------------------------------------
-        // simple deq chain:
-        test_case = "simple deq chain";
+        // default:
+        test_case = "default";
         $display("\ntest %0d: %s", test_num, test_case);
         test_num++;
 
-		for (int i = 32; i < 128; i+=4) begin
+		@(posedge CLK); #(PERIOD/10);
 
-			@(posedge CLK); #(PERIOD/10);
+		// inputs
+		sub_test_case = "default";
+		$display("\t- sub_test: %s", sub_test_case);
 
-			// inputs
-			sub_test_case = $sformatf("deq [%2h:%2h+3]", i[6:0], i[6:0]);
-			$display("\t- sub_test: %s", sub_test_case);
+		// reset
+		nRST = 1'b1;
+	    // enq
+		tb_enq_valid_by_way = 4'b0000;
+		tb_enq_pr_by_way = {7'h00, 7'h00, 7'h00, 7'h00};
+	    // enq feedback
+	    // deq
+	    // deq feedback
+		tb_deq_ready_by_way = 4'b0000;
 
-			// reset
-			nRST = 1'b1;
-			// enqueue request
-			tb_enq_req_valid_by_bank = 4'b0000;
-			tb_enq_req_PR_by_bank = {
-				7'h0,
-				7'h0,
-				7'h0,
-				7'h0
-			};
-			// enqueue feedback
-			// dequeue request
-			tb_deq_req_valid_by_bank = 4'b1111;
-			// dequeue feedback
+		@(negedge CLK);
 
-			@(negedge CLK);
+		// outputs:
 
-			// outputs:
+	    // enq
+	    // enq feedback
+		expected_enq_ready_by_way = 4'b1111;
+	    // deq
+		expected_deq_valid_by_way = 4'b1111;
+		expected_deq_pr_by_way = {7'h43, 7'h42, 7'h41, 7'h40};
+	    // deq feedback
 
-			// enqueue request
-			// enqueue feedback
-			expected_enq_resp_ack_by_bank = 4'b0000;
-			// dequeue request
-			expected_deq_req_PR_by_bank = {
-				{i+3}[6:0],
-				{i+2}[6:0],
-				{i+1}[6:0],
-				{i+0}[6:0]
-			};
-			// dequeue feedback
-			expected_deq_resp_ready_by_bank = 4'b1111;
-
-			check_outputs();
-		end
-
-        // ------------------------------------------------------------
-        // simple enq chain:
-        test_case = "simple enq chain";
-        $display("\ntest %0d: %s", test_num, test_case);
-        test_num++;
-
-		for (int i = 127; i >= 0; i-=4) begin
-
-			@(posedge CLK); #(PERIOD/10);
-
-			// inputs
-			sub_test_case = $sformatf("enq [%2h:%2h-3]", i[6:0], i[6:0]);
-			$display("\t- sub_test: %s", sub_test_case);
-
-			// reset
-			nRST = 1'b1;
-			// enqueue request
-			tb_enq_req_valid_by_bank = 4'b1111;
-			tb_enq_req_PR_by_bank = {
-				{i-3}[6:0],
-				{i-2}[6:0],
-				{i-1}[6:0],
-				{i-0}[6:0]
-			};
-			// enqueue feedback
-			// dequeue request
-			tb_deq_req_valid_by_bank = 4'b0000;
-			// dequeue feedback
-
-			@(negedge CLK);
-
-			// outputs:
-
-			// enqueue request
-			// enqueue feedback
-			expected_enq_resp_ack_by_bank = 4'b1111;
-			// dequeue request
-			if (i > 120) begin
-				expected_deq_req_PR_by_bank = {
-					7'h0,
-					7'h0,
-					7'h0,
-					7'h0
-				};
-			end else begin
-				expected_deq_req_PR_by_bank = {
-					7'h7c,
-					7'h7d,
-					7'h7e,
-					7'h7f
-				};
-			end
-			// dequeue feedback
-			if (i > 120) begin
-				expected_deq_resp_ready_by_bank = 4'b0000;
-			end else begin
-				expected_deq_resp_ready_by_bank = 4'b1111;
-			end
-
-			check_outputs();
-		end
+		check_outputs();
 
         // ------------------------------------------------------------
         // finish:
@@ -318,7 +224,7 @@ module free_list_tb ();
 
         $display();
         if (num_errors) begin
-            $display("FAIL: %d tests fail", num_errors);
+            $display("FAIL: %0d tests fail", num_errors);
         end
         else begin
             $display("SUCCESS: all tests pass");

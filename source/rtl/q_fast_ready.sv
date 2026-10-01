@@ -8,7 +8,14 @@
 module q_fast_ready #(
     parameter DATA_WIDTH = 32,
     parameter NUM_ENTRIES = 32,
-    parameter LOG_NUM_ENTRIES = $clog2(NUM_ENTRIES)
+    parameter LOG_NUM_ENTRIES = $clog2(NUM_ENTRIES),
+
+    parameter logic [LOG_NUM_ENTRIES-1:0] INIT_ENQ_PTR = 0,
+    parameter logic [LOG_NUM_ENTRIES-1:0] INIT_DEQ_PTR = 0,
+    parameter logic INIT_ENQ_READY = 1'b1,
+    parameter logic INIT_DEQ_VALID = 1'b0,
+
+    parameter INIT_FILE = ""
 ) (
     // seq
     input logic CLK,
@@ -66,10 +73,10 @@ module q_fast_ready #(
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
-            enq_ptr <= 0;
-            deq_ptr <= 0;
-            enq_ready <= 1'b1;
-            deq_valid <= 1'b0;
+            enq_ptr <= INIT_ENQ_PTR;
+            deq_ptr <= INIT_DEQ_PTR;
+            enq_ready <= INIT_ENQ_READY;
+            deq_valid <= INIT_DEQ_VALID;
         end
         else begin
             if (enq_ready & enq_valid) begin
@@ -94,7 +101,8 @@ module q_fast_ready #(
 
     distram_1rport_1wport #(
         .INNER_WIDTH(DATA_WIDTH),
-        .OUTER_WIDTH(NUM_ENTRIES)
+        .OUTER_WIDTH(NUM_ENTRIES),
+        .INIT_FILE(INIT_FILE)
     ) DISTRAM_BUFFER (
         .CLK(CLK),
         .rindex(deq_ptr),

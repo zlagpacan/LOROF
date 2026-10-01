@@ -426,15 +426,8 @@ package corep;
     // Decode Unit:
 
     // free_list:
-    parameter int unsigned FREE_LIST_BANK_COUNT = PRF_BANK_COUNT;
-    parameter int unsigned LOG_FREE_LIST_BANK_COUNT = $clog2(FREE_LIST_BANK_COUNT);
-    parameter int unsigned FREE_LIST_LENGTH_PER_BANK = PR_COUNT / FREE_LIST_BANK_COUNT;
-    parameter int unsigned LOG_FREE_LIST_LENGTH_PER_BANK = $clog2(FREE_LIST_LENGTH_PER_BANK);
-
-    parameter int unsigned FREE_LIST_SHIFT_REG_ENTRIES = 12;
-
-    parameter int unsigned FREE_LIST_LOWER_THRESHOLD = 8;
-    parameter int unsigned FREE_LIST_UPPER_THRESHOLD = 24;
+    parameter int unsigned FREE_LIST_INGRESS_BUFFER_ENTRIES = 16;
+    parameter int unsigned FREE_LIST_EGRESS_BUFFER_ENTRIES = 16;
 
     // rat:
     typedef pr_t [AR5_COUNT-1:0] rat_t;

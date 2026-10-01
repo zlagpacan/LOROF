@@ -28,7 +28,7 @@ module distram_2rport_1wport #(
     generate
         if (INIT_FILE != "") begin: use_init_file
             initial begin
-                $readmemh(INIT_FILE, distram_array, 0, (OUTER_WIDTH * INNER_WIDTH/8)-1);
+                $readmemh(INIT_FILE, distram_array);
             end
         end 
         else begin: init_distram_to_zero
