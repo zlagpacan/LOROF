@@ -57,7 +57,7 @@ module free_list_wrapper #(
 	free_list #(
 		.INGRESS_BUFFER_ENTRIES(INGRESS_BUFFER_ENTRIES),
 		.EGRESS_BUFFER_ENTRIES(EGRESS_BUFFER_ENTRIES),
-		.[0:3]([0:3])
+		.INIT_FILES_BY_WAY(INIT_FILES_BY_WAY)
 	) WRAPPED_MODULE (.*);
 
     // ----------------------------------------------------------------

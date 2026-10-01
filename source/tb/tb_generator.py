@@ -27,9 +27,10 @@ class Signal():
         self.name = name
 
 class Param():
-    def __init__(self, name, type, default_value):
+    def __init__(self, name, type, dimensions, default_value):
         self.name = name
         self.type = type
+        self.dimensions = dimensions
         self.default_value = default_value
 
 def parse_design(design_lines):
@@ -98,7 +99,7 @@ def parse_design(design_lines):
             # split line at spaces
                 # first split is input vs. output
                 # last split is signal name
-                # middle splits are type 
+                # middle splits are type
             tuple_line = tuple(stripped_line.split())
             print(tuple_line) if PRINTS else None
             design_signals.append(Signal(tuple_line[0], " ".join(tuple_line[1:-1]), tuple_line[-1]))
@@ -133,13 +134,38 @@ def parse_design(design_lines):
         # when still inside parameter section
         if inside_param:
             # expect non-empty lines to all be parameters
-            if (line.lstrip().startswith("parameter")):
-                # grab last string before " = " as param name
-                type_name_string = line[line.index("parameter ")+len("parameter "):line.index(" = ")].rstrip()
-                res = re.search(r'(\S+)$', type_name_string)
-                param_name = res.group(1)
-                param_type = type_name_string[:type_name_string.index(param_name)].rstrip()
-                design_params.append(Param(param_name, param_type, line[line.index(" = ")+len(" = "):].rstrip().rstrip(",")))
+            if line.lstrip().startswith("parameter"):
+                # grab parameter type, name, and optional unpacked dimensions
+                type_name_string = line[
+                    line.index("parameter ") + len("parameter "):
+                    line.index(" = ")
+                ].rstrip()
+
+                res = re.match(
+                    r'(?P<type>.*?)\s+'
+                    r'(?P<name>[A-Za-z_]\w*)'
+                    r'(?P<dimensions>(?:\s*\[[^\]]+\])*)$',
+                    type_name_string
+                )
+
+                assert res, f"could not parse parameter declaration: {type_name_string}"
+
+                param_type = res.group("type").rstrip()
+                param_name = res.group("name")
+                param_dimensions = res.group("dimensions").strip()
+
+                param_default_value = line[
+                    line.index(" = ") + len(" = "):
+                ].rstrip().rstrip(",")
+
+                design_params.append(
+                    Param(
+                        param_name,
+                        param_type,
+                        param_dimensions,
+                        param_default_value
+                    )
+                )
             else:
                 print("WARNING: found unexpected parameter section line:", line)
 
@@ -235,14 +261,19 @@ def generate_tb(args, tb_base_lines, design_name, design_signals, design_params,
 
             # iterate through params adding param lines
             for i, param in enumerate(design_params):
+                param_line = (
+                    f"\tparameter {param.type}"
+                    f"{' ' if param.type else ''}"
+                    f"{param.name}"
+                    f"{' ' + param.dimensions if param.dimensions else ''}"
+                    f" = {param.default_value}"
+                )
+
                 if i < len(design_params) - 1:
-                    output_lines.extend([
-                        f"\tparameter {param.type}{' ' if param.type else ''}{param.name} = {param.default_value},\n",
-                    ])
-                else:
-                    output_lines.extend([
-                        f"\tparameter {param.type}{' ' if param.type else ''}{param.name} = {param.default_value}\n",
-                    ])
+                    param_line += ","
+
+                param_line += "\n"
+                output_lines.extend([param_line])
 
             num_found += 1
             continue
