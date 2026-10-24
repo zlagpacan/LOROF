@@ -474,8 +474,7 @@ package corep;
 
     // ----------------------------------------------------------------
     // FPU:
-        // get from fpnew_pkg
-
+    
     
 
 endpackage

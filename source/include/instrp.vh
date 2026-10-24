@@ -147,8 +147,7 @@ package instrp;
     parameter sysu_op_t SYSU_CSRRCI = 3'b111;
 
     // fpu op
-        // use fpnew
-        // encode w/ op_i + op_mod_i + rnd_mode_i
+    
 
 endpackage
 
