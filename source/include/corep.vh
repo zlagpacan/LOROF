@@ -432,11 +432,11 @@ package corep;
     // rat:
     typedef pr_t [AR5_COUNT-1:0] rat_t;
 
-    // checkpoint array:
-    parameter int unsigned CHECKPOINT_ARRAY_ENTRIES = 8;
-    parameter int unsigned LOG_CHECKPOINT_ARRAY_ENTRIES = $clog2(CHECKPOINT_ARRAY_ENTRIES);
+    // rcb:
+    parameter int unsigned RCB_ENTRIES = 8;
+    parameter int unsigned LOG_RCB_ENTRIES = $clog2(RCB_ENTRIES);
 
-    typedef logic [LOG_CHECKPOINT_ARRAY_ENTRIES-1:0] checkpoint_array_idx_t;
+    typedef logic [LOG_RCB_ENTRIES-1:0] rcb_idx_t;
 
     // ----------------------------------------------------------------
     // MDU:

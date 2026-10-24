@@ -5,42 +5,6 @@
     Spec: LOROF/spec/design/fetch_unit.md
 */
 
-// TODO: RV64GC, Sv39 changes
-// TODO: REQ -> RESP0 -> RESP1 pipeline
-    // REQ:
-        // btb read req (fetch idx, asid)
-        // icache read req (fetch idx)
-    // RESP0:
-        // btb read resp0 (full pc38, get hit lanes by way)
-        // pht read req (fetch idx, updated gh, asid)
-        // itlb read req (fetch idx, asid, vpn)
-        // mdpt read req (fetch idx, asid)
-    // RESP1:
-        // btb read resp1 (both btb ways)
-        // itlb read resp (ppn, faults)
-        // icache read resp (tags by way, fetch blocks by way)
-        // pht read resp (both btb ways, give hit lanes by way)
-        // mdpt read resp
-        // upct read req (both btb ways)
-        // upct read resp (both btb ways)
-        // ibtb read req (both btb ways)
-        // ibtb read resp (both btb ways)
-        // ras link
-        // ras ret
-        // bcb save
-        // ibuffer enq
-    // valid combos
-        // iii
-            // wfr
-        // vii
-            // post-restart
-        // vvi
-            // post-restart filling or post-redirect
-        // vvv
-            // any time have RESP1, fully "efficient"
-// TODO: blocking itlb interface for simplicity
-    // stall read resp stage if no itlb hit
-    // always know if icache hit and send miss in read resp stage
 // TODO: for perf, probably want small back-to-back taken predictor table
     // predict highly taken branches so don't get bubble in RESP0 on RESP1 redirect
     // analagous to TAGE smallest table containing quick predictions
