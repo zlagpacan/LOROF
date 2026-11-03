@@ -445,6 +445,41 @@ package corep;
     parameter int unsigned LOG_MDU_RESULT_CACHE_ENTRIES = $clog2(MDU_RESULT_CACHE_ENTRIES);
 
     // ----------------------------------------------------------------
+    // FPU:
+    
+    parameter int unsigned FPU_S_EXP_WIDTH = 8;
+    parameter int unsigned FPU_S_MANT_WIDTH = 23;
+
+    typedef struct packed {
+        logic                           sign;
+        logic [FPU_S_EXP_WIDTH-1:0]     exp;
+        logic [FPU_S_MANT_WIDTH-1:0]    mant;
+    } single_t;
+
+    parameter int unsigned FPU_D_EXP_WIDTH = 11;
+    parameter int unsigned FPU_D_MANT_WIDTH = 52;
+    parameter int unsigned FPU_D_MANT_UPPER_WIDTH = 20; // 52 - 32 = 20
+
+    typedef struct packed {
+        logic [FPU_D_MANT_UPPER_WIDTH-1:0]  upper;
+        single_t                            single;
+    } double_mant_t;
+
+    typedef struct packed {
+        logic                           sign;
+        logic [FPU_D_EXP_WIDTH-1:0]     exp;
+        double_mant_t                   mant;
+    } double_t;
+
+    typedef struct packed {
+        logic NV;
+        logic DZ;
+        logic OF;
+        logic UF;
+        logic NX;
+    } fpu_except_t;
+
+    // ----------------------------------------------------------------
     // LSQ:
 
     // ldu
@@ -470,12 +505,6 @@ package corep;
     // ----------------------------------------------------------------
     // SYSU:
 
-
-
-    // ----------------------------------------------------------------
-    // FPU:
-    
-    
 
 endpackage
 
