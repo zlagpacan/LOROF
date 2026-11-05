@@ -35,6 +35,9 @@ module fpu_easy #(
     logic A_lt_B_s;
     logic A_lt_B_d;
 
+    logic A_eq_B_s;
+    logic A_eq_B_d;
+
     // ----------------------------------------------------------------
     // Logic: 
 
@@ -44,6 +47,9 @@ module fpu_easy #(
     always_comb begin
         A_lt_B_s = fpp::s_lt_s(A_s_boxed, B_s_boxed);
         A_lt_B_d = fpp::d_lt_d(A_d, B_d);
+
+        A_eq_B_s = A_s_boxed == B_s_boxed;
+        A_eq_B_d = A_d == B_d;
     end
 
     // big decoder
@@ -125,13 +131,72 @@ module fpu_easy #(
                 end
             end
 
-            // FMV.X.W
-            // FEQ.S
-            // FLT.S
-            // FLE.S
-            // FCLASS.S
+            7'b111?0?0: begin
+                // FMV.X.W, FMV.W.X -> don't check for NaN boxing
 
-            // FMV.W.X
+                // NaN boxing == sign extension, so these are equivalent
+
+                // start w/ NaN box
+                result.sign = 1'b1;
+                result.exp = 11'h7FF;
+                result.mant.upper = 20'hFFFFF;
+
+                result.mant.single = A_d.mant.single;
+            end
+
+            7'b10100?0: begin
+                // FEQ.S, FLT.S, FLE.S
+
+                // start w/ NaN box
+                result.sign = 1'b1;
+                result.exp = 11'h7FF;
+                result.mant.upper = 20'hFFFFF;
+
+                if (funct3[1]) begin
+                    // FEQ.S
+                    if (fpp::is_nan_s(A_s_boxed) | fpp::is_nan_s(B_s_boxed)) begin
+                        result.mant.single = 32'h0;
+                        except.NV = 
+                            fpp::is_nan_s(A_s_boxed) & fpp::nan_is_snan_s(A_s_boxed) 
+                            | fpp::is_nan_s(B_s_boxed) & fpp::nan_is_snan_s(B_s_boxed)
+                        ;
+                    end
+                    else if (A_eq_B_s) begin
+                        result.mant.single = 32'h1;
+                    end
+                    else begin
+                        result.mant.single = 32'h0;
+                    end
+                end
+                else if (funct3[0]) begin
+                    // FLT.S
+                    if (fpp::is_nan_s(A_s_boxed) | fpp::is_nan_s(B_s_boxed)) begin
+                        result.mant.single = 32'h0;
+                        except.NV = 1'b1;
+                    end
+                    else if (A_lt_B_s) begin
+                        result.mant.single = 32'h1;
+                    end
+                    else begin
+                        result.mant.single = 32'h0;
+                    end
+                end
+                else begin
+                    // FLE.S
+                    if (fpp::is_nan_s(A_s_boxed) | fpp::is_nan_s(B_s_boxed)) begin
+                        result.mant.single = 32'h0;
+                        except.NV = 1'b1;
+                    end
+                    else if (A_lt_B_s | A_eq_B_s) begin
+                        result.mant.single = 32'h1;
+                    end
+                    else begin
+                        result.mant.single = 32'h0;
+                    end
+                end
+            end
+
+            // FCLASS.S
 
             // FSGNJ.D
             // FSGNJN.D
@@ -141,13 +206,15 @@ module fpu_easy #(
 
             // FCVT.S.D
             // FCVT.D.S
+
             // FMV.X.D
+            // FMV.D.X
+
             // FEQ.D
             // FLT.D
             // FLE.D
-            // FCLASS.D
 
-            // FMV.D.X
+            // FCLASS.D
 
             default: begin
                 
