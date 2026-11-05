@@ -145,7 +145,7 @@ module fpu_easy #(
             end
 
             7'b10100?0: begin
-                // FEQ.S, FLT.S, FLE.S
+                // FEQ.S, FLT.S, FLE.S -> check for NaN boxing
 
                 // start w/ NaN box
                 result.sign = 1'b1;
@@ -196,7 +196,39 @@ module fpu_easy #(
                 end
             end
 
-            // FCLASS.S
+            7'b11100?0: begin
+                // FCLASS.S -> check for NaN boxing
+
+                // start w/ 0, set bit for class of interest
+                result = 64'h0;
+
+                // inf
+                if (fpp::is_inf_s(A_s_boxed)) begin
+                    if (A_s_boxed.sign)     result[0] = 1'b1; // -inf
+                    else                    result[7] = 1'b1; // +inf
+                end
+                // NaN
+                else if (fpp::is_nan_s(A_s_boxed)) begin
+                    if (fpp::nan_is_snan_s(A_s_boxed))  result[8] = 1'b1; // sNaN
+                    else                                result[9] = 1'b1; // qNaN
+                end
+                // zero and subnormal
+                else if (A_s_boxed.exp == 8'h00) begin
+                    if (A_s_boxed.mant == 23'h000000) begin
+                        if (A_s_boxed.sign)     result[3] = 1'b1; // -0.0
+                        else                    result[4] = 1'b1; // +0.0
+                    end
+                    else begin
+                        if (A_s_boxed.sign)     result[2] = 1'b1; // neg subnormal
+                        else                    result[5] = 1'b1; // pos subnormal
+                    end
+                end
+                // normal
+                else begin
+                    if (A_s_boxed.sign)     result[1] = 1'b1; // neg normal
+                    else                    result[6] = 1'b1; // pos normal
+                end
+            end
 
             // FSGNJ.D
             // FSGNJN.D

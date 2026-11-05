@@ -53,6 +53,14 @@ package fpp;
         mant:   1'b1 << (FPU_D_MANT_WIDTH-1) // msb = 1
     };
 
+    function logic is_inf_s (single_t in);
+        return (in.exp == 8'hFF) & (in.mant == 23'h0);
+    endfunction
+
+    function logic is_inf_d (single_t in);
+        return (in.exp == 11'h7FF) & (in.mant == 52'h0);
+    endfunction
+
     function logic is_nan_s (single_t in);
         return (in.exp == 8'hFF) & |in.mant;
     endfunction
