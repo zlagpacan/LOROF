@@ -5,7 +5,7 @@
     Spec: LOROF/spec/design/fpu_easy.md
 */
 
-`include "corep.vh"
+`include "fpp.vh"
 
 module fpu_easy #(
 
@@ -17,15 +17,15 @@ module fpu_easy #(
     input logic [2:0] funct3,
 
     // operands
-    input corep::double_t A_d,
-    input corep::double_t B_d,
+    input fpp::double_t A_d,
+    input fpp::double_t B_d,
 
-    input corep::single_t A_s_boxed; // post NaN-box check
-    input corep::single_t B_s_boxed; // post NaN-box check
+    input fpp::single_t A_s_boxed, // post NaN-box check
+    input fpp::single_t B_s_boxed, // post NaN-box check
 
     // outputs
-    output corep::double_t result,
-    output corep::fpu_except_t except
+    output fpp::double_t result,
+    output fpp::fpu_except_t except
 );
 
     // ----------------------------------------------------------------
@@ -42,8 +42,8 @@ module fpu_easy #(
 
     // helpers
     always_comb begin
-        A_lt_B_s = corep::s_lt_s(A_s_boxed, B_s_boxed);
-        A_lt_B_d = corep::d_lt_d(A_d, B_d);
+        A_lt_B_s = fpp::s_lt_s(A_s_boxed, B_s_boxed);
+        A_lt_B_d = fpp::d_lt_d(A_d, B_d);
     end
 
     // big decoder
@@ -56,7 +56,7 @@ module fpu_easy #(
         except.UF = 1'b0;
         except.NX = 1'b0;
 
-        unique casez (funct7)
+        casez (funct7)
 
             7'b00100?0: begin
                 // FSGNJ*.S -> don't check for NaN boxing
@@ -94,20 +94,20 @@ module fpu_easy #(
                 result.mant.upper = 20'hFFFFF;
 
                 // NaN operands
-                if (corep::is_nan_s(A_s_boxed) & corep::is_nan_s(B_s_boxed)) begin
+                if (fpp::is_nan_s(A_s_boxed) & fpp::is_nan_s(B_s_boxed)) begin
                     // output cNaN
-                    result.mant.single = CNAN_S;
-                    except.NV = corep::nan_is_snan_s(A_s_boxed) | corep::nan_is_snan_s(B_s_boxed);
+                    result.mant.single = fpp::CNAN_S;
+                    except.NV = fpp::nan_is_snan_s(A_s_boxed) | fpp::nan_is_snan_s(B_s_boxed);
                 end
-                else if (corep::is_nan_s(A_s_boxed)) begin
+                else if (fpp::is_nan_s(A_s_boxed)) begin
                     // output B which is not NaN
                     result.mant.single = B_s_boxed;
-                    except.NV = corep::nan_is_snan_s(B_s_boxed);
+                    except.NV = fpp::nan_is_snan_s(B_s_boxed);
                 end
-                else if (corep::is_nan_s(B_s_boxed)) begin
+                else if (fpp::is_nan_s(B_s_boxed)) begin
                     // output A which is not NaN
                     result.mant.single = A_s_boxed;
-                    except.NV = corep::nan_is_snan_s(A_s_boxed);
+                    except.NV = fpp::nan_is_snan_s(A_s_boxed);
                 end
 
                 // no NaN operands
@@ -148,6 +148,10 @@ module fpu_easy #(
             // FCLASS.D
 
             // FMV.D.X
+
+            default: begin
+                
+            end
 
         endcase
     end
