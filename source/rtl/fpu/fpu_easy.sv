@@ -17,8 +17,11 @@ module fpu_easy #(
     input logic [2:0] funct3,
 
     // operands
-    input corep::double_t A,
-    input corep::double_t B,
+    input corep::double_t A_d,
+    input corep::double_t B_d,
+
+    input corep::single_t A_s_boxed; // post NaN-box check
+    input corep::single_t B_s_boxed; // post NaN-box check
 
     // outputs
     output corep::double_t result,
@@ -28,89 +31,124 @@ module fpu_easy #(
     // ----------------------------------------------------------------
     // Signals:
 
-    
+    // helper signals
+    logic A_lt_B_s;
+    logic A_lt_B_d;
 
     // ----------------------------------------------------------------
     // Logic: 
 
     // can assume no illegal instr's at this point
 
+    // helpers
+    always_comb begin
+        A_lt_B_s = corep::s_lt_s(A_s_boxed, B_s_boxed);
+        A_lt_B_d = corep::d_lt_d(A_d, B_d);
+    end
+
     // big decoder
     always_comb begin
+
+        // activate exception flags where relevant in case
+        except.NV = 1'b0;
+        except.DZ = 1'b0;
+        except.OF = 1'b0;
+        except.UF = 1'b0;
+        except.NX = 1'b0;
 
         unique casez (funct7)
 
             7'b00100?0: begin
+                // FSGNJ*.S -> don't check for NaN boxing
+
+                // start w/ NaN box
+                result.sign = 1'b1;
+                result.exp = 11'h7FF;
+                result.mant.upper = 20'hFFFFF;
+
+                // guaranteed rest of result from A
+                result.mant.single.exp = A_d.mant.single.exp;
+                result.mant.single.mant = A_d.mant.single.mant;
+
                 if (funct3[0]) begin
                     // FSGNJN.S
-                    result.sign = 1'b1;
-                    result.exp = 11'h7FF;
-                    result.mant.upper = 20'hFFFFF;
-                    result.mant.single.sign = ~B.mant.single.sign;
-                    result.mant.single.exp = A.mant.single.exp;
-                    result.mant.single.mant = A.mant.single.mant;
-                    except = 5'b00000;
+                    result.mant.single.sign = ~B_d.mant.single.sign;
                 end
                 else if (funct3[1]) begin
                     // FSGNJX.S
                     result.sign = 1'b1;
-                    result.exp = 11'h7FF;
-                    result.mant.upper = 20'hFFFFF;
-                    result.mant.single.sign = A.mant.single.sign ^ B.mant.single.sign;
-                    result.mant.single.exp = A.mant.single.exp;
-                    result.mant.single.mant = A.mant.single.mant;
-                    except = 5'b00000;
+                    result.mant.single.sign = A_d.mant.single.sign ^ B_d.mant.single.sign;
                 end
                 else begin
                     // FSGNJ.S
-                    result.sign = 1'b1;
-                    result.exp = 11'h7FF;
-                    result.mant.upper = 20'hFFFFF;
-                    result.mant.single.sign = B.mant.single.sign;
-                    result.mant.single.exp = A.mant.single.exp;
-                    result.mant.single.mant = A.mant.single.mant;
-                    except = 5'b00000;
+                    result.mant.single.sign = B_d.mant.single.sign;
                 end
             end
 
             7'b00101?0: begin
-                // NAN checking
-                if () begin
+                // FMIN.S, FMAX.S -> check for NaN boxing
 
+                // start w/ NaN box
+                result.sign = 1'b1;
+                result.exp = 11'h7FF;
+                result.mant.upper = 20'hFFFFF;
+
+                // NaN operands
+                if (corep::is_nan_s(A_s_boxed) & corep::is_nan_s(B_s_boxed)) begin
+                    // output cNaN
+                    result.mant.single = CNAN_S;
+                    except.NV = corep::nan_is_snan_s(A_s_boxed) | corep::nan_is_snan_s(B_s_boxed);
                 end
+                else if (corep::is_nan_s(A_s_boxed)) begin
+                    // output B which is not NaN
+                    result.mant.single = B_s_boxed;
+                    except.NV = corep::nan_is_snan_s(B_s_boxed);
+                end
+                else if (corep::is_nan_s(B_s_boxed)) begin
+                    // output A which is not NaN
+                    result.mant.single = A_s_boxed;
+                    except.NV = corep::nan_is_snan_s(A_s_boxed);
+                end
+
+                // no NaN operands
                 else begin
                     if (funct3[0]) begin
                         // FMIN.S
+                        if (A_lt_B_s)   result.mant.single = A_s_boxed;
+                        else            result.mant.single = B_s_boxed;
                     end
                     else begin
                         // FMAX.S
+                        if (A_lt_B_s)   result.mant.single = B_s_boxed;
+                        else            result.mant.single = A_s_boxed;
                     end
                 end
             end
 
-FMV.X.W
-FEQ.S
-FLT.S
-FLE.S
-FCLASS.S
+            // FMV.X.W
+            // FEQ.S
+            // FLT.S
+            // FLE.S
+            // FCLASS.S
 
-FMV.W.X
+            // FMV.W.X
 
-FSGNJ.D
-FSGNJN.D
-FSGNJX.D
-FMIN.D
-FMAX.D
+            // FSGNJ.D
+            // FSGNJN.D
+            // FSGNJX.D
+            // FMIN.D
+            // FMAX.D
 
-FCVT.S.D
-FCVT.D.S
-FMV.X.D
-FEQ.D
-FLT.D
-FLE.D
-FCLASS.D
+            // FCVT.S.D
+            // FCVT.D.S
+            // FMV.X.D
+            // FEQ.D
+            // FLT.D
+            // FLE.D
+            // FCLASS.D
 
-FMV.D.X
+            // FMV.D.X
+
         endcase
     end
 
