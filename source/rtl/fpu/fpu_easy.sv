@@ -107,25 +107,25 @@ module fpu_easy #(
                 else if (fpp::is_nan_s(A_s_boxed)) begin
                     // output B which is not NaN
                     result_d.mant.single = B_s_boxed;
-                    except.NV = fpp::nan_is_snan_s(B_s_boxed);
+                    except.NV = fpp::nan_is_snan_s(A_s_boxed);
                 end
                 else if (fpp::is_nan_s(B_s_boxed)) begin
                     // output A which is not NaN
                     result_d.mant.single = A_s_boxed;
-                    except.NV = fpp::nan_is_snan_s(A_s_boxed);
+                    except.NV = fpp::nan_is_snan_s(B_s_boxed);
                 end
 
                 // no NaN operands
                 else begin
                     if (funct3[0]) begin
-                        // FMIN.S
-                        if (A_lt_B_s)   result_d.mant.single = A_s_boxed;
-                        else            result_d.mant.single = B_s_boxed;
-                    end
-                    else begin
                         // FMAX.S
                         if (A_lt_B_s)   result_d.mant.single = B_s_boxed;
                         else            result_d.mant.single = A_s_boxed;
+                    end
+                    else begin
+                        // FMIN.S
+                        if (A_lt_B_s)   result_d.mant.single = A_s_boxed;
+                        else            result_d.mant.single = B_s_boxed;
                     end
                 end
             end
