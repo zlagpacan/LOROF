@@ -89,6 +89,20 @@ package fpp;
         return in.sign & (in.exp == 11'h7FF) & (in.mant.upper == 20'hFFFFF);
     endfunction
 
+    function logic s_eq_s (single_t A, single_t B);
+        return (
+            A == B
+            | (A.exp == 0 & B.exp == 0 & A.mant == 0 & B.mant == 0)
+        );
+    endfunction
+
+    function logic d_eq_d (double_t A, double_t B);
+        return (
+            A == B
+            | (A.exp == 0 & B.exp == 0 & A.mant == 0 & B.mant == 0)
+        );
+    endfunction
+
     function logic s_lt_s (single_t A, single_t B);
         return (
             // negative A, positive B
