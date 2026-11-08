@@ -57,7 +57,7 @@ package fpp;
         return (in.exp == 8'hFF) & (in.mant == 23'h0);
     endfunction
 
-    function logic is_inf_d (single_t in);
+    function logic is_inf_d (double_t in);
         return (in.exp == 11'h7FF) & (in.mant == 52'h0);
     endfunction
 

@@ -266,25 +266,25 @@ module fpu_easy #(
                 else if (fpp::is_nan_d(A_d)) begin
                     // output B which is not NaN
                     result_d = B_d;
-                    except.NV = fpp::nan_is_snan_d(B_d);
+                    except.NV = fpp::nan_is_snan_d(A_d);
                 end
                 else if (fpp::is_nan_d(B_d)) begin
                     // output A which is not NaN
                     result_d = A_d;
-                    except.NV = fpp::nan_is_snan_d(A_d);
+                    except.NV = fpp::nan_is_snan_d(B_d);
                 end
 
                 // no NaN operands
                 else begin
                     if (funct3[0]) begin
-                        // FMIN.D
-                        if (A_lt_B_d)   result_d = A_d;
-                        else            result_d = B_d;
-                    end
-                    else begin
                         // FMAX.D
                         if (A_lt_B_d)   result_d = B_d;
                         else            result_d = A_d;
+                    end
+                    else begin
+                        // FMIN.D
+                        if (A_lt_B_d)   result_d = A_d;
+                        else            result_d = B_d;
                     end
                 end
             end
