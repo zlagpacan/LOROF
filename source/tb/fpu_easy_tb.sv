@@ -12771,6 +12771,886 @@ module fpu_easy_tb #(
 		check_outputs();
 
         // ------------------------------------------------------------
+        // FCLASS.S:
+        test_case = "FCLASS.S";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "FCLASS.S -inf";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // fully comb
+	    // instr components
+		tb_funct7 = 7'b1110000;
+		tb_funct3 = 3'b001;
+	    // operands
+
+		tb_A_d.sign = 1'b1;
+        tb_A_d.exp = 11'h7ff;
+        tb_A_d.mant.upper = 20'hFFFFF;
+        tb_A_d.mant.single.sign = 1'b1;
+        tb_A_d.mant.single.exp = 8'hFF;
+        tb_A_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_B_d.sign = 1'b1;
+        tb_B_d.exp = 11'h7ff;
+        tb_B_d.mant.upper = 20'hFFFFF;
+        tb_B_d.mant.single.sign = 1'b1;
+        tb_B_d.mant.single.exp = 8'hFF;
+        tb_B_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_A_s_boxed.sign = 1'b1;
+        tb_A_s_boxed.exp = 8'hFF;
+        tb_A_s_boxed.mant = 23'h000000;
+
+		tb_B_s_boxed.sign = 1'b0;
+        tb_B_s_boxed.exp = 8'h11;
+        tb_B_s_boxed.mant = 23'h222222;
+
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // fully comb
+	    // instr components
+	    // operands
+	    // outputs
+
+		expected_result_d.sign = 1'b0;
+		expected_result_d.exp = 11'h000;
+		expected_result_d.mant.upper = 20'h00000;
+		expected_result_d.mant.single.sign = 1'b0;
+		expected_result_d.mant.single.exp = 8'h00;
+		expected_result_d.mant.single.mant = 23'h000001;
+
+		expected_except.NV = 1'b0;
+		expected_except.DZ = 1'b0;
+		expected_except.OF = 1'b0;
+		expected_except.UF = 1'b0;
+		expected_except.NX = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "FCLASS.S big neg";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // fully comb
+	    // instr components
+		tb_funct7 = 7'b1110000;
+		tb_funct3 = 3'b001;
+	    // operands
+
+		tb_A_d.sign = 1'b1;
+        tb_A_d.exp = 11'h7ff;
+        tb_A_d.mant.upper = 20'hFFFFF;
+        tb_A_d.mant.single.sign = 1'b1;
+        tb_A_d.mant.single.exp = 8'hFF;
+        tb_A_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_B_d.sign = 1'b1;
+        tb_B_d.exp = 11'h7ff;
+        tb_B_d.mant.upper = 20'hFFFFF;
+        tb_B_d.mant.single.sign = 1'b1;
+        tb_B_d.mant.single.exp = 8'hFF;
+        tb_B_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_A_s_boxed.sign = 1'b1;
+        tb_A_s_boxed.exp = 8'haa;
+        tb_A_s_boxed.mant = 23'hbbbbbb;
+
+		tb_B_s_boxed.sign = 1'b0;
+        tb_B_s_boxed.exp = 8'h11;
+        tb_B_s_boxed.mant = 23'h222222;
+
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // fully comb
+	    // instr components
+	    // operands
+	    // outputs
+
+		expected_result_d.sign = 1'b0;
+		expected_result_d.exp = 11'h000;
+		expected_result_d.mant.upper = 20'h00000;
+		expected_result_d.mant.single.sign = 1'b0;
+		expected_result_d.mant.single.exp = 8'h00;
+		expected_result_d.mant.single.mant = 23'h000002;
+
+		expected_except.NV = 1'b0;
+		expected_except.DZ = 1'b0;
+		expected_except.OF = 1'b0;
+		expected_except.UF = 1'b0;
+		expected_except.NX = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "FCLASS.S small neg";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // fully comb
+	    // instr components
+		tb_funct7 = 7'b1110000;
+		tb_funct3 = 3'b001;
+	    // operands
+
+		tb_A_d.sign = 1'b1;
+        tb_A_d.exp = 11'h7ff;
+        tb_A_d.mant.upper = 20'hFFFFF;
+        tb_A_d.mant.single.sign = 1'b1;
+        tb_A_d.mant.single.exp = 8'hFF;
+        tb_A_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_B_d.sign = 1'b1;
+        tb_B_d.exp = 11'h7ff;
+        tb_B_d.mant.upper = 20'hFFFFF;
+        tb_B_d.mant.single.sign = 1'b1;
+        tb_B_d.mant.single.exp = 8'hFF;
+        tb_B_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_A_s_boxed.sign = 1'b1;
+        tb_A_s_boxed.exp = 8'h11;
+        tb_A_s_boxed.mant = 23'h222222;
+
+		tb_B_s_boxed.sign = 1'b0;
+        tb_B_s_boxed.exp = 8'h11;
+        tb_B_s_boxed.mant = 23'h222222;
+
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // fully comb
+	    // instr components
+	    // operands
+	    // outputs
+
+		expected_result_d.sign = 1'b0;
+		expected_result_d.exp = 11'h000;
+		expected_result_d.mant.upper = 20'h00000;
+		expected_result_d.mant.single.sign = 1'b0;
+		expected_result_d.mant.single.exp = 8'h00;
+		expected_result_d.mant.single.mant = 23'h000002;
+
+		expected_except.NV = 1'b0;
+		expected_except.DZ = 1'b0;
+		expected_except.OF = 1'b0;
+		expected_except.UF = 1'b0;
+		expected_except.NX = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "FCLASS.S subnormal neg";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // fully comb
+	    // instr components
+		tb_funct7 = 7'b1110000;
+		tb_funct3 = 3'b001;
+	    // operands
+
+		tb_A_d.sign = 1'b1;
+        tb_A_d.exp = 11'h7ff;
+        tb_A_d.mant.upper = 20'hFFFFF;
+        tb_A_d.mant.single.sign = 1'b1;
+        tb_A_d.mant.single.exp = 8'hFF;
+        tb_A_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_B_d.sign = 1'b1;
+        tb_B_d.exp = 11'h7ff;
+        tb_B_d.mant.upper = 20'hFFFFF;
+        tb_B_d.mant.single.sign = 1'b1;
+        tb_B_d.mant.single.exp = 8'hFF;
+        tb_B_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_A_s_boxed.sign = 1'b1;
+        tb_A_s_boxed.exp = 8'h00;
+        tb_A_s_boxed.mant = 23'h222222;
+
+		tb_B_s_boxed.sign = 1'b0;
+        tb_B_s_boxed.exp = 8'h11;
+        tb_B_s_boxed.mant = 23'h222222;
+
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // fully comb
+	    // instr components
+	    // operands
+	    // outputs
+
+		expected_result_d.sign = 1'b0;
+		expected_result_d.exp = 11'h000;
+		expected_result_d.mant.upper = 20'h00000;
+		expected_result_d.mant.single.sign = 1'b0;
+		expected_result_d.mant.single.exp = 8'h00;
+		expected_result_d.mant.single.mant = 23'h000004;
+
+		expected_except.NV = 1'b0;
+		expected_except.DZ = 1'b0;
+		expected_except.OF = 1'b0;
+		expected_except.UF = 1'b0;
+		expected_except.NX = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "FCLASS.S -0.0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // fully comb
+	    // instr components
+		tb_funct7 = 7'b1110000;
+		tb_funct3 = 3'b001;
+	    // operands
+
+		tb_A_d.sign = 1'b1;
+        tb_A_d.exp = 11'h7ff;
+        tb_A_d.mant.upper = 20'hFFFFF;
+        tb_A_d.mant.single.sign = 1'b1;
+        tb_A_d.mant.single.exp = 8'hFF;
+        tb_A_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_B_d.sign = 1'b1;
+        tb_B_d.exp = 11'h7ff;
+        tb_B_d.mant.upper = 20'hFFFFF;
+        tb_B_d.mant.single.sign = 1'b1;
+        tb_B_d.mant.single.exp = 8'hFF;
+        tb_B_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_A_s_boxed.sign = 1'b1;
+        tb_A_s_boxed.exp = 8'h00;
+        tb_A_s_boxed.mant = 23'h000000;
+
+		tb_B_s_boxed.sign = 1'b0;
+        tb_B_s_boxed.exp = 8'h11;
+        tb_B_s_boxed.mant = 23'h222222;
+
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // fully comb
+	    // instr components
+	    // operands
+	    // outputs
+
+		expected_result_d.sign = 1'b0;
+		expected_result_d.exp = 11'h000;
+		expected_result_d.mant.upper = 20'h00000;
+		expected_result_d.mant.single.sign = 1'b0;
+		expected_result_d.mant.single.exp = 8'h00;
+		expected_result_d.mant.single.mant = 23'h000008;
+
+		expected_except.NV = 1'b0;
+		expected_except.DZ = 1'b0;
+		expected_except.OF = 1'b0;
+		expected_except.UF = 1'b0;
+		expected_except.NX = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "FCLASS.S +0.0";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // fully comb
+	    // instr components
+		tb_funct7 = 7'b1110000;
+		tb_funct3 = 3'b001;
+	    // operands
+
+		tb_A_d.sign = 1'b1;
+        tb_A_d.exp = 11'h7ff;
+        tb_A_d.mant.upper = 20'hFFFFF;
+        tb_A_d.mant.single.sign = 1'b1;
+        tb_A_d.mant.single.exp = 8'hFF;
+        tb_A_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_B_d.sign = 1'b1;
+        tb_B_d.exp = 11'h7ff;
+        tb_B_d.mant.upper = 20'hFFFFF;
+        tb_B_d.mant.single.sign = 1'b1;
+        tb_B_d.mant.single.exp = 8'hFF;
+        tb_B_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_A_s_boxed.sign = 1'b0;
+        tb_A_s_boxed.exp = 8'h00;
+        tb_A_s_boxed.mant = 23'h000000;
+
+		tb_B_s_boxed.sign = 1'b0;
+        tb_B_s_boxed.exp = 8'h11;
+        tb_B_s_boxed.mant = 23'h222222;
+
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // fully comb
+	    // instr components
+	    // operands
+	    // outputs
+
+		expected_result_d.sign = 1'b0;
+		expected_result_d.exp = 11'h000;
+		expected_result_d.mant.upper = 20'h00000;
+		expected_result_d.mant.single.sign = 1'b0;
+		expected_result_d.mant.single.exp = 8'h00;
+		expected_result_d.mant.single.mant = 23'h000010;
+
+		expected_except.NV = 1'b0;
+		expected_except.DZ = 1'b0;
+		expected_except.OF = 1'b0;
+		expected_except.UF = 1'b0;
+		expected_except.NX = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "FCLASS.S subnormal pos";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // fully comb
+	    // instr components
+		tb_funct7 = 7'b1110000;
+		tb_funct3 = 3'b001;
+	    // operands
+
+		tb_A_d.sign = 1'b1;
+        tb_A_d.exp = 11'h7ff;
+        tb_A_d.mant.upper = 20'hFFFFF;
+        tb_A_d.mant.single.sign = 1'b1;
+        tb_A_d.mant.single.exp = 8'hFF;
+        tb_A_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_B_d.sign = 1'b1;
+        tb_B_d.exp = 11'h7ff;
+        tb_B_d.mant.upper = 20'hFFFFF;
+        tb_B_d.mant.single.sign = 1'b1;
+        tb_B_d.mant.single.exp = 8'hFF;
+        tb_B_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_A_s_boxed.sign = 1'b0;
+        tb_A_s_boxed.exp = 8'h00;
+        tb_A_s_boxed.mant = 23'h222222;
+
+		tb_B_s_boxed.sign = 1'b0;
+        tb_B_s_boxed.exp = 8'h11;
+        tb_B_s_boxed.mant = 23'h222222;
+
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // fully comb
+	    // instr components
+	    // operands
+	    // outputs
+
+		expected_result_d.sign = 1'b0;
+		expected_result_d.exp = 11'h000;
+		expected_result_d.mant.upper = 20'h00000;
+		expected_result_d.mant.single.sign = 1'b0;
+		expected_result_d.mant.single.exp = 8'h00;
+		expected_result_d.mant.single.mant = 23'h000020;
+
+		expected_except.NV = 1'b0;
+		expected_except.DZ = 1'b0;
+		expected_except.OF = 1'b0;
+		expected_except.UF = 1'b0;
+		expected_except.NX = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "FCLASS.S small pos";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // fully comb
+	    // instr components
+		tb_funct7 = 7'b1110000;
+		tb_funct3 = 3'b001;
+	    // operands
+
+		tb_A_d.sign = 1'b1;
+        tb_A_d.exp = 11'h7ff;
+        tb_A_d.mant.upper = 20'hFFFFF;
+        tb_A_d.mant.single.sign = 1'b1;
+        tb_A_d.mant.single.exp = 8'hFF;
+        tb_A_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_B_d.sign = 1'b1;
+        tb_B_d.exp = 11'h7ff;
+        tb_B_d.mant.upper = 20'hFFFFF;
+        tb_B_d.mant.single.sign = 1'b1;
+        tb_B_d.mant.single.exp = 8'hFF;
+        tb_B_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_A_s_boxed.sign = 1'b0;
+        tb_A_s_boxed.exp = 8'h11;
+        tb_A_s_boxed.mant = 23'h222222;
+
+		tb_B_s_boxed.sign = 1'b0;
+        tb_B_s_boxed.exp = 8'h11;
+        tb_B_s_boxed.mant = 23'h222222;
+
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // fully comb
+	    // instr components
+	    // operands
+	    // outputs
+
+		expected_result_d.sign = 1'b0;
+		expected_result_d.exp = 11'h000;
+		expected_result_d.mant.upper = 20'h00000;
+		expected_result_d.mant.single.sign = 1'b0;
+		expected_result_d.mant.single.exp = 8'h00;
+		expected_result_d.mant.single.mant = 23'h000040;
+
+		expected_except.NV = 1'b0;
+		expected_except.DZ = 1'b0;
+		expected_except.OF = 1'b0;
+		expected_except.UF = 1'b0;
+		expected_except.NX = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "FCLASS.S big pos";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // fully comb
+	    // instr components
+		tb_funct7 = 7'b1110000;
+		tb_funct3 = 3'b001;
+	    // operands
+
+		tb_A_d.sign = 1'b1;
+        tb_A_d.exp = 11'h7ff;
+        tb_A_d.mant.upper = 20'hFFFFF;
+        tb_A_d.mant.single.sign = 1'b1;
+        tb_A_d.mant.single.exp = 8'hFF;
+        tb_A_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_B_d.sign = 1'b1;
+        tb_B_d.exp = 11'h7ff;
+        tb_B_d.mant.upper = 20'hFFFFF;
+        tb_B_d.mant.single.sign = 1'b1;
+        tb_B_d.mant.single.exp = 8'hFF;
+        tb_B_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_A_s_boxed.sign = 1'b0;
+        tb_A_s_boxed.exp = 8'haa;
+        tb_A_s_boxed.mant = 23'hbbbbbb;
+
+		tb_B_s_boxed.sign = 1'b0;
+        tb_B_s_boxed.exp = 8'h11;
+        tb_B_s_boxed.mant = 23'h222222;
+
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // fully comb
+	    // instr components
+	    // operands
+	    // outputs
+
+		expected_result_d.sign = 1'b0;
+		expected_result_d.exp = 11'h000;
+		expected_result_d.mant.upper = 20'h00000;
+		expected_result_d.mant.single.sign = 1'b0;
+		expected_result_d.mant.single.exp = 8'h00;
+		expected_result_d.mant.single.mant = 23'h000040;
+
+		expected_except.NV = 1'b0;
+		expected_except.DZ = 1'b0;
+		expected_except.OF = 1'b0;
+		expected_except.UF = 1'b0;
+		expected_except.NX = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "FCLASS.S +inf";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // fully comb
+	    // instr components
+		tb_funct7 = 7'b1110000;
+		tb_funct3 = 3'b001;
+	    // operands
+
+		tb_A_d.sign = 1'b1;
+        tb_A_d.exp = 11'h7ff;
+        tb_A_d.mant.upper = 20'hFFFFF;
+        tb_A_d.mant.single.sign = 1'b1;
+        tb_A_d.mant.single.exp = 8'hFF;
+        tb_A_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_B_d.sign = 1'b1;
+        tb_B_d.exp = 11'h7ff;
+        tb_B_d.mant.upper = 20'hFFFFF;
+        tb_B_d.mant.single.sign = 1'b1;
+        tb_B_d.mant.single.exp = 8'hFF;
+        tb_B_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_A_s_boxed.sign = 1'b0;
+        tb_A_s_boxed.exp = 8'hFF;
+        tb_A_s_boxed.mant = 23'h000000;
+
+		tb_B_s_boxed.sign = 1'b0;
+        tb_B_s_boxed.exp = 8'h11;
+        tb_B_s_boxed.mant = 23'h222222;
+
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // fully comb
+	    // instr components
+	    // operands
+	    // outputs
+
+		expected_result_d.sign = 1'b0;
+		expected_result_d.exp = 11'h000;
+		expected_result_d.mant.upper = 20'h00000;
+		expected_result_d.mant.single.sign = 1'b0;
+		expected_result_d.mant.single.exp = 8'h00;
+		expected_result_d.mant.single.mant = 23'h000080;
+
+		expected_except.NV = 1'b0;
+		expected_except.DZ = 1'b0;
+		expected_except.OF = 1'b0;
+		expected_except.UF = 1'b0;
+		expected_except.NX = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "FCLASS.S sNaN";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // fully comb
+	    // instr components
+		tb_funct7 = 7'b1110000;
+		tb_funct3 = 3'b001;
+	    // operands
+
+		tb_A_d.sign = 1'b1;
+        tb_A_d.exp = 11'h7ff;
+        tb_A_d.mant.upper = 20'hFFFFF;
+        tb_A_d.mant.single.sign = 1'b1;
+        tb_A_d.mant.single.exp = 8'hFF;
+        tb_A_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_B_d.sign = 1'b1;
+        tb_B_d.exp = 11'h7ff;
+        tb_B_d.mant.upper = 20'hFFFFF;
+        tb_B_d.mant.single.sign = 1'b1;
+        tb_B_d.mant.single.exp = 8'hFF;
+        tb_B_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_A_s_boxed.sign = 1'b0;
+        tb_A_s_boxed.exp = 8'hFF;
+        tb_A_s_boxed.mant = 23'h000001;
+
+		tb_B_s_boxed.sign = 1'b0;
+        tb_B_s_boxed.exp = 8'h11;
+        tb_B_s_boxed.mant = 23'h222222;
+
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // fully comb
+	    // instr components
+	    // operands
+	    // outputs
+
+		expected_result_d.sign = 1'b0;
+		expected_result_d.exp = 11'h000;
+		expected_result_d.mant.upper = 20'h00000;
+		expected_result_d.mant.single.sign = 1'b0;
+		expected_result_d.mant.single.exp = 8'h00;
+		expected_result_d.mant.single.mant = 23'h000100;
+
+		expected_except.NV = 1'b0;
+		expected_except.DZ = 1'b0;
+		expected_except.OF = 1'b0;
+		expected_except.UF = 1'b0;
+		expected_except.NX = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "FCLASS.S qNaN";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // fully comb
+	    // instr components
+		tb_funct7 = 7'b1110000;
+		tb_funct3 = 3'b001;
+	    // operands
+
+		tb_A_d.sign = 1'b1;
+        tb_A_d.exp = 11'h7ff;
+        tb_A_d.mant.upper = 20'hFFFFF;
+        tb_A_d.mant.single.sign = 1'b1;
+        tb_A_d.mant.single.exp = 8'hFF;
+        tb_A_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_B_d.sign = 1'b1;
+        tb_B_d.exp = 11'h7ff;
+        tb_B_d.mant.upper = 20'hFFFFF;
+        tb_B_d.mant.single.sign = 1'b1;
+        tb_B_d.mant.single.exp = 8'hFF;
+        tb_B_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_A_s_boxed.sign = 1'b0;
+        tb_A_s_boxed.exp = 8'hFF;
+        tb_A_s_boxed.mant = 23'h400000;
+
+		tb_B_s_boxed.sign = 1'b0;
+        tb_B_s_boxed.exp = 8'h11;
+        tb_B_s_boxed.mant = 23'h222222;
+
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // fully comb
+	    // instr components
+	    // operands
+	    // outputs
+
+		expected_result_d.sign = 1'b0;
+		expected_result_d.exp = 11'h000;
+		expected_result_d.mant.upper = 20'h00000;
+		expected_result_d.mant.single.sign = 1'b0;
+		expected_result_d.mant.single.exp = 8'h00;
+		expected_result_d.mant.single.mant = 23'h000200;
+
+		expected_except.NV = 1'b0;
+		expected_except.DZ = 1'b0;
+		expected_except.OF = 1'b0;
+		expected_except.UF = 1'b0;
+		expected_except.NX = 1'b0;
+
+		check_outputs();
+
+        // ------------------------------------------------------------
+        // FMV.W.X:
+        test_case = "FMV.W.X";
+        $display("\ntest %0d: %s", test_num, test_case);
+        test_num++;
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "FMV.W.X big pos";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // fully comb
+	    // instr components
+		tb_funct7 = 7'b1111000;
+		tb_funct3 = 3'b000;
+	    // operands
+
+		tb_A_d.sign = 1'b0;
+        tb_A_d.exp = 11'h000;
+        tb_A_d.mant.upper = 20'h00000;
+        tb_A_d.mant.single.sign = 1'b0;
+        tb_A_d.mant.single.exp = 8'haa;
+        tb_A_d.mant.single.mant = 23'hbbbbbb;
+
+		tb_B_d.sign = 1'b1;
+        tb_B_d.exp = 11'h7ff;
+        tb_B_d.mant.upper = 20'hFFFFF;
+        tb_B_d.mant.single.sign = 1'b1;
+        tb_B_d.mant.single.exp = 8'hFF;
+        tb_B_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_A_s_boxed.sign = 1'b0;
+        tb_A_s_boxed.exp = 8'h00;
+        tb_A_s_boxed.mant = 23'h000000;
+
+		tb_B_s_boxed.sign = 1'b0;
+        tb_B_s_boxed.exp = 8'h00;
+        tb_B_s_boxed.mant = 23'h000000;
+
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // fully comb
+	    // instr components
+	    // operands
+	    // outputs
+
+		expected_result_d.sign = 1'b1;
+		expected_result_d.exp = 11'h7FF;
+		expected_result_d.mant.upper = 20'hFFFFF;
+		expected_result_d.mant.single.sign = 1'b0;
+		expected_result_d.mant.single.exp = 8'haa;
+		expected_result_d.mant.single.mant = 23'hbbbbbb;
+
+		expected_except.NV = 1'b0;
+		expected_except.DZ = 1'b0;
+		expected_except.OF = 1'b0;
+		expected_except.UF = 1'b0;
+		expected_except.NX = 1'b0;
+
+		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
+
+		// inputs
+		sub_test_case = "FMV.W.X small neg";
+		$display("\t- sub_test: %s", sub_test_case);
+
+		// reset
+		nRST = 1'b1;
+	    // fully comb
+	    // instr components
+		tb_funct7 = 7'b1111000;
+		tb_funct3 = 3'b000;
+	    // operands
+
+		tb_A_d.sign = 1'b1;
+        tb_A_d.exp = 11'h7FF;
+        tb_A_d.mant.upper = 20'hFFFFF;
+        tb_A_d.mant.single.sign = 1'b1;
+        tb_A_d.mant.single.exp = 8'h11;
+        tb_A_d.mant.single.mant = 23'h222222;
+
+		tb_B_d.sign = 1'b1;
+        tb_B_d.exp = 11'h7ff;
+        tb_B_d.mant.upper = 20'hFFFFF;
+        tb_B_d.mant.single.sign = 1'b1;
+        tb_B_d.mant.single.exp = 8'hFF;
+        tb_B_d.mant.single.mant = 23'h7FFFFF;
+
+		tb_A_s_boxed.sign = 1'b0;
+        tb_A_s_boxed.exp = 8'h00;
+        tb_A_s_boxed.mant = 23'h000000;
+
+		tb_B_s_boxed.sign = 1'b0;
+        tb_B_s_boxed.exp = 8'h00;
+        tb_B_s_boxed.mant = 23'h000000;
+
+	    // outputs
+
+		@(negedge CLK);
+
+		// outputs:
+
+	    // fully comb
+	    // instr components
+	    // operands
+	    // outputs
+
+		expected_result_d.sign = 1'b1;
+		expected_result_d.exp = 11'h7FF;
+		expected_result_d.mant.upper = 20'hFFFFF;
+		expected_result_d.mant.single.sign = 1'b1;
+		expected_result_d.mant.single.exp = 8'h11;
+		expected_result_d.mant.single.mant = 23'h222222;
+
+		expected_except.NV = 1'b0;
+		expected_except.DZ = 1'b0;
+		expected_except.OF = 1'b0;
+		expected_except.UF = 1'b0;
+		expected_except.NX = 1'b0;
+
+		check_outputs();
+
+        // ------------------------------------------------------------
         // finish:
         @(posedge CLK); #(PERIOD/10);
         

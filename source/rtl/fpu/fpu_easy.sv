@@ -131,13 +131,48 @@ module fpu_easy #(
             end
 
             7'b11100?0: begin
-                // FMV.X.W -> don't check for NaN boxing
+                if (funct3[0]) begin
+                    // FCLASS.S -> check for NaN boxing
 
-                // sign extended single
-                result_d.sign = {1{A_d.mant.single.sign}};
-                result_d.exp = {11{A_d.mant.single.sign}};
-                result_d.mant.upper = {20{A_d.mant.single.sign}};
-                result_d.mant.single = A_d.mant.single;
+                    // start w/ 0, set bit for class of interest
+                    result_d = 64'h0;
+
+                    // inf
+                    if (fpp::is_inf_s(A_s_boxed)) begin
+                        if (A_s_boxed.sign)     result_d[0] = 1'b1; // -inf
+                        else                    result_d[7] = 1'b1; // +inf
+                    end
+                    // NaN
+                    else if (fpp::is_nan_s(A_s_boxed)) begin
+                        if (fpp::nan_is_snan_s(A_s_boxed))  result_d[8] = 1'b1; // sNaN
+                        else                                result_d[9] = 1'b1; // qNaN
+                    end
+                    // zero and subnormal
+                    else if (A_s_boxed.exp == 8'h00) begin
+                        if (A_s_boxed.mant == 23'h000000) begin
+                            if (A_s_boxed.sign)     result_d[3] = 1'b1; // -0.0
+                            else                    result_d[4] = 1'b1; // +0.0
+                        end
+                        else begin
+                            if (A_s_boxed.sign)     result_d[2] = 1'b1; // neg subnormal
+                            else                    result_d[5] = 1'b1; // pos subnormal
+                        end
+                    end
+                    // normal
+                    else begin
+                        if (A_s_boxed.sign)     result_d[1] = 1'b1; // neg normal
+                        else                    result_d[6] = 1'b1; // pos normal
+                    end
+                end
+                else begin
+                    // FMV.X.W -> don't check for NaN boxing
+
+                    // sign extended single
+                    result_d.sign = {1{A_d.mant.single.sign}};
+                    result_d.exp = {11{A_d.mant.single.sign}};
+                    result_d.mant.upper = {20{A_d.mant.single.sign}};
+                    result_d.mant.single = A_d.mant.single;
+                end
             end
 
             7'b10100?0: begin
@@ -185,40 +220,6 @@ module fpu_easy #(
                     else begin
                         result_d = 64'h0;
                     end
-                end
-            end
-
-            7'b11100?0: begin
-                // FCLASS.S -> check for NaN boxing
-
-                // start w/ 0, set bit for class of interest
-                result_d = 64'h0;
-
-                // inf
-                if (fpp::is_inf_s(A_s_boxed)) begin
-                    if (A_s_boxed.sign)     result_d[0] = 1'b1; // -inf
-                    else                    result_d[7] = 1'b1; // +inf
-                end
-                // NaN
-                else if (fpp::is_nan_s(A_s_boxed)) begin
-                    if (fpp::nan_is_snan_s(A_s_boxed))  result_d[8] = 1'b1; // sNaN
-                    else                                result_d[9] = 1'b1; // qNaN
-                end
-                // zero and subnormal
-                else if (A_s_boxed.exp == 8'h00) begin
-                    if (A_s_boxed.mant == 23'h000000) begin
-                        if (A_s_boxed.sign)     result_d[3] = 1'b1; // -0.0
-                        else                    result_d[4] = 1'b1; // +0.0
-                    end
-                    else begin
-                        if (A_s_boxed.sign)     result_d[2] = 1'b1; // neg subnormal
-                        else                    result_d[5] = 1'b1; // pos subnormal
-                    end
-                end
-                // normal
-                else begin
-                    if (A_s_boxed.sign)     result_d[1] = 1'b1; // neg normal
-                    else                    result_d[6] = 1'b1; // pos normal
                 end
             end
 
@@ -289,10 +290,45 @@ module fpu_easy #(
             end
 
             7'b111?0?1: begin
-                // FMV.X.D, FMV.D.X
+                if (funct3[0]) begin
+                    // FCLASS.D
 
-                // just 64b transfer
-                result_d = A_d;
+                    // start w/ 0, set bit for class of interest
+                    result_d = 64'h0;
+
+                    // inf
+                    if (fpp::is_inf_d(A_d)) begin
+                        if (A_d.sign)   result_d[0] = 1'b1; // -inf
+                        else            result_d[7] = 1'b1; // +inf
+                    end
+                    // NaN
+                    else if (fpp::is_nan_d(A_d)) begin
+                        if (fpp::nan_is_snan_d(A_d))    result_d[8] = 1'b1; // sNaN
+                        else                            result_d[9] = 1'b1; // qNaN
+                    end
+                    // zero and subnormal
+                    else if (A_d.exp == 8'h00) begin
+                        if (A_d.mant == 23'h000000) begin
+                            if (A_d.sign)   result_d[3] = 1'b1; // -0.0
+                            else            result_d[4] = 1'b1; // +0.0
+                        end
+                        else begin
+                            if (A_d.sign)   result_d[2] = 1'b1; // neg subnormal
+                            else            result_d[5] = 1'b1; // pos subnormal
+                        end
+                    end
+                    // normal
+                    else begin
+                        if (A_d.sign)   result_d[1] = 1'b1; // neg normal
+                        else            result_d[6] = 1'b1; // pos normal
+                    end
+                end
+                else begin
+                    // FMV.X.D, FMV.D.X
+
+                    // just 64b transfer
+                    result_d = A_d;
+                end
             end
 
             7'b10100?1: begin
@@ -340,40 +376,6 @@ module fpu_easy #(
                     else begin
                         result_d = 64'h0;
                     end
-                end
-            end
-
-            7'b11100?1: begin
-                // FCLASS.D
-
-                // start w/ 0, set bit for class of interest
-                result_d = 64'h0;
-
-                // inf
-                if (fpp::is_inf_d(A_d)) begin
-                    if (A_d.sign)   result_d[0] = 1'b1; // -inf
-                    else            result_d[7] = 1'b1; // +inf
-                end
-                // NaN
-                else if (fpp::is_nan_d(A_d)) begin
-                    if (fpp::nan_is_snan_d(A_d))    result_d[8] = 1'b1; // sNaN
-                    else                            result_d[9] = 1'b1; // qNaN
-                end
-                // zero and subnormal
-                else if (A_d.exp == 8'h00) begin
-                    if (A_d.mant == 23'h000000) begin
-                        if (A_d.sign)   result_d[3] = 1'b1; // -0.0
-                        else            result_d[4] = 1'b1; // +0.0
-                    end
-                    else begin
-                        if (A_d.sign)   result_d[2] = 1'b1; // neg subnormal
-                        else            result_d[5] = 1'b1; // pos subnormal
-                    end
-                end
-                // normal
-                else begin
-                    if (A_d.sign)   result_d[1] = 1'b1; // neg normal
-                    else            result_d[6] = 1'b1; // pos normal
                 end
             end
 
