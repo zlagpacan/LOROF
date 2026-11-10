@@ -59,17 +59,10 @@ package corep;
     parameter int unsigned PRF_BANK_COUNT = 4;
     parameter int unsigned LOG_PRF_BANK_COUNT = $clog2(PRF_BANK_COUNT);
 
-    typedef logic [LOG_PR_COUNT-1:0]                        pr_t;
-    typedef logic [LOG_PRF_BANK_COUNT-1:0]                  pr_bank_t;
-    typedef logic [LOG_PR_COUNT-LOG_PRF_BANK_COUNT-1:0]     upper_pr_t;
-
-    function upper_pr_t upper_pr_bits (pr_t pr);
-        return pr[LOG_PR_COUNT-1:LOG_PRF_BANK_COUNT];
-    endfunction
-
-    function pr_bank_t pr_bank_bits (pr_t pr);
-        return pr[LOG_PRF_BANK_COUNT-1:0];
-    endfunction
+    typedef struct packed {
+        logic [(LOG_PR_COUNT-LOG_PRF_BANK_COUNT)-1:0]   upper;
+        logic [LOG_PRF_BANK_COUNT-1:0]                  bank;
+    } pr_t;
 
     parameter int unsigned IS_OC_BUFFER_SIZE = 2;
     parameter int unsigned FAST_FORWARD_PIPE_COUNT = 4;
