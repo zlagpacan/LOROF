@@ -137,6 +137,13 @@ package fpp;
         ); 
     endfunction
 
+    parameter logic [2:0] RM_RNE = 3'b000; // round to nearest, ties to even
+    parameter logic [2:0] RM_RTZ = 3'b001; // round towards zero
+    parameter logic [2:0] RM_RDN = 3'b010; // round towards -inf
+    parameter logic [2:0] RM_RUP = 3'b011; // round towards +inf
+    parameter logic [2:0] RM_RMM = 3'b100; // round to nearest, ties to max magnitude
+    parameter logic [2:0] RM_DYN = 3'b111; // dynamic -> use fcsr.RM
+
 endpackage
 
 `endif // COREP_VH

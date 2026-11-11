@@ -308,7 +308,7 @@ module fpu_easy #(
                     end
                     // zero and subnormal
                     else if (A_d.exp == 8'h00) begin
-                        if (A_d.mant == 23'h000000) begin
+                        if (A_d.mant == 52'h0_0000_0000_0000) begin
                             if (A_d.sign)   result_d[3] = 1'b1; // -0.0
                             else            result_d[4] = 1'b1; // +0.0
                         end
