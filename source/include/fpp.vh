@@ -183,14 +183,14 @@ package fpp;
         ); 
     endfunction
 
-    function logic [FPU_S_MANT_WIDTH-1:0] mant_reverse_s (logic [FPU_S_MANT_WIDTH-1:0] in_mant)
+    function logic [FPU_S_MANT_WIDTH-1:0] mant_reverse_s (logic [FPU_S_MANT_WIDTH-1:0] in_mant);
         for (int i = 0; i < FPU_S_MANT_WIDTH; i++) begin
             mant_reverse_s[FPU_S_MANT_WIDTH-i-1] = in_mant[i];
         end
         return mant_reverse_s;
     endfunction
 
-    function logic [FPU_D_MANT_WIDTH-1:0] mant_reverse_d (logic [FPU_D_MANT_WIDTH-1:0] in_mant)
+    function logic [FPU_D_MANT_WIDTH-1:0] mant_reverse_d (logic [FPU_D_MANT_WIDTH-1:0] in_mant);
         for (int i = 0; i < FPU_D_MANT_WIDTH; i++) begin
             mant_reverse_d[FPU_D_MANT_WIDTH-i-1] = in_mant[i];
         end

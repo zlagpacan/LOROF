@@ -92,7 +92,7 @@ module fpu_convert #(
         if (~nRST) begin
             out_valid <= 1'b0;
             out_dest_pr <= 0;
-            out_dest_rob_idx <= 0;
+            out_rob_idx <= 0;
 
             out_result_d <= 64'h0;
             out_except <= 5'h0;
@@ -144,7 +144,7 @@ module fpu_convert #(
         next_out_except.UF = 1'b0;
         next_out_except.NX = 1'b0;
 
-        casez (funct7)
+        casez (in_funct7)
 
             7'b0100000: begin
                 // double -> single
