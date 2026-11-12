@@ -8,6 +8,52 @@
 `define FPP_VH
 
 package fpp;
+
+    // single-precision:
+        // {sign[0], exp[7:0], mant[22:0]}
+        // exp bias = -127
+        // cases:
+            // inf:
+                // exp == 8'b1111_1111
+                // mant == 23'h000000
+            // NaN:
+                // exp == 8'b1111_1111
+                // mant != 23'h000000
+                // sNaN: mant[22] == 1'b0
+                // qNaN: mant[22] == 1'b1
+            // normal: 
+                // implicit leading 1
+                // exp == [8'b0000_0001 : 8'b1111_1110] -> [2^(-127+1) : 2^(-127+254)] -> [2^-126 : 2^127]
+            // subnormal: 
+                // no implicit leading 1
+                // exp == 8'b0000_0000 -> 2^-126
+                // mant != 23'h000000
+            // zero:
+                // exp == 8'b0000_0000
+                // mant == 23'h000000
+
+    // double-precision:
+        // {sign[0], exp[10:0], mant[51:0]}
+        // exp bias = -1023
+        // cases:
+            // inf:
+                // exp == 11'b111_1111_1111
+                // mant == 52'h0_0000_0000_0000
+            // NaN:
+                // exp == 11'b111_1111_1111
+                // mant != 52'h0_0000_0000_0000
+                // sNaN: mant[51] == 1'b0
+                // qNaN: mant[51] == 1'b1
+            // normal: 
+                // implicit leading 1
+                // exp == [11'b000_0000_0001 : 11'b111_1111_1110] -> [2^(-1023+1) : 2^(-1023+2046)] -> [2^-1022 : 2^1023]
+            // subnormal: 
+                // no implicit leading 1
+                // exp == 11'b000_0000_0000 -> 2^-1022
+                // mant != 52'h0_0000_0000_0000
+            // zero:
+                // exp == 11'b000_0000_0000
+                // mant == 52'h0_0000_0000_0000
     
     parameter int unsigned FPU_S_EXP_WIDTH = 8;
     parameter int unsigned FPU_S_MANT_WIDTH = 23;
@@ -86,7 +132,7 @@ package fpp;
     endfunction
 
     function logic is_boxed_d (double_t in);
-        return in.sign & (in.exp == 11'h7FF) & (in.mant.upper == 20'hFFFFF);
+        return (in.sign == 1'b1) & (in.exp == 11'h7FF) & (in.mant.upper == 20'hFFFFF);
     endfunction
 
     function logic s_eq_s (single_t A, single_t B);
@@ -135,6 +181,20 @@ package fpp;
                 | (A.exp == B.exp) & (A.mant < B.mant)
             )
         ); 
+    endfunction
+
+    function logic [FPU_S_MANT_WIDTH-1:0] mant_reverse_s (logic [FPU_S_MANT_WIDTH-1:0] in_mant)
+        for (int i = 0; i < FPU_S_MANT_WIDTH; i++) begin
+            mant_reverse_s[FPU_S_MANT_WIDTH-i-1] = in_mant[i];
+        end
+        return mant_reverse_s;
+    endfunction
+
+    function logic [FPU_D_MANT_WIDTH-1:0] mant_reverse_d (logic [FPU_D_MANT_WIDTH-1:0] in_mant)
+        for (int i = 0; i < FPU_D_MANT_WIDTH; i++) begin
+            mant_reverse_d[FPU_D_MANT_WIDTH-i-1] = in_mant[i];
+        end
+        return mant_reverse_d;
     endfunction
 
     parameter logic [2:0] RM_RNE = 3'b000; // round to nearest, ties to even

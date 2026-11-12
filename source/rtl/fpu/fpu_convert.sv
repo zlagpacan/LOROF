@@ -61,10 +61,24 @@ module fpu_convert #(
     // ----------------------------------------------------------------
     // Signals:
 
+    // reg signals
     logic pass_reg;
 
     fpp::double_t        next_out_result_d;
     fpp::fpu_except_t    next_out_except;
+
+    // helper signals
+    logic in_A_is_nan_s;
+    logic in_A_nan_is_snan_s;
+    logic in_A_is_inf_s;
+    logic [23-1:0] in_A_mant_reversed_s;
+    logic [$clog2(23)-1:0] in_A_first_trailing_1_s;
+
+    logic in_A_is_nan_d;
+    logic in_A_nan_is_snan_d;
+    logic in_A_is_inf_d;
+    logic [52-1:0] in_A_mant_reversed_d;
+    logic [$clog2(52)-1:0] in_A_first_trailing_1_d;
 
     // ----------------------------------------------------------------
     // Logic:
@@ -93,6 +107,33 @@ module fpu_convert #(
         end
     end
 
+    // helper logic
+    always_comb begin
+        in_A_is_nan_s = fpp::is_nan_s(in_A_s_boxed);
+        in_A_nan_is_snan_s = fpp::nan_is_snan_s(in_A_s_boxed);
+        in_A_is_inf_s = fpp::is_inf_s(in_A_s_boxed);
+        in_A_mant_reversed_s = fpp::mant_reverse_s(in_A_s_boxed.mant);
+        
+        in_A_is_nan_d = fpp::is_nan_d(in_A_d);
+        in_A_nan_is_snan_d = fpp::nan_is_snan_d(in_A_d);
+        in_A_is_inf_d = fpp::is_inf_d(in_A_d);
+        in_A_mant_reversed_d = fpp::mant_reverse_d(in_A_d.mant);
+    end
+    pe_lsb_tree #(
+        .WIDTH(23)
+    ) IN_A_FIRST_TRAILING_1_S_PE (
+        .req_vec(in_A_mant_reversed_s),
+        .ack_valid(),
+        .ack_index(in_A_first_trailing_1_s)
+    );
+    pe_lsb_tree #(
+        .WIDTH(52)
+    ) IN_A_FIRST_TRAILING_1_D_PE (
+        .req_vec(in_A_mant_reversed_d),
+        .ack_valid(),
+        .ack_index(in_A_first_trailing_1_d)
+    );
+
     // conversion logic
     always_comb begin
 
@@ -120,17 +161,41 @@ module fpu_convert #(
 
                 // funct5 = 5'b00000 but don't care
 
-                // TODO: special case NaN -> sNaN NV, output cNaN
+                // special case NaN -> sNaN NV, output cNaN
+                if (in_A_is_nan_s) begin
+                    next_out_result_d = fpp::CNAN_S;
+                    next_out_except.NV = in_A_nan_is_snan_s;
+                end
 
-                // TODO: special case inf
+                // special case inf
+                else if (in_A_is_inf_s) begin
+                    next_out_result_d.sign = in_A_s_boxed.sign;
+                    next_out_result_d.exp = 11'h7FF;
+                    next_out_result_d.mant = 52'h0_0000_0000_0000;
+                end
 
-                // TODO: special case zero
+                // special case zero or subnormal
+                else if (in_A_s_boxed.exp == 8'h00) begin
+                    if (in_A_s_boxed.mant == 23'h000000) begin
+                        // special case zero
+                        next_out_result_d.sign = in_A_s_boxed.sign;
+                        next_out_result_d.exp = 11'h000;
+                        next_out_result_d.mant = 52'h0_0000_0000_0000;
+                    end
+                    else begin
+                        // special case subnormal
+                        next_out_result_d.sign = in_A_s_boxed.sign;
+                        next_out_result_d.exp = 11'b011_1000_0000 - in_A_first_trailing_1_s;
+                        next_out_result_d.mant = in_A_s_boxed.mant << (52-23+1 + in_A_first_trailing_1_s);
+                    end
+                end
 
-                // TODO: special case subnormal
-                
-                next_out_result_d.sign = in_A_s_boxed.sign;
-                next_out_result_d.exp = in_A_s_boxed.exp + 11'b011_1000_0000;
-                next_out_result_d.mant = {in_A_s_boxed.mant, 29'h0};
+                // standard case single -> double
+                else begin
+                    next_out_result_d.sign = in_A_s_boxed.sign;
+                    next_out_result_d.exp = in_A_s_boxed.exp + 11'b011_1000_0000;
+                    next_out_result_d.mant = {in_A_s_boxed.mant, 29'h0};
+                end
             end
 
             7'b1100000: begin
@@ -147,6 +212,11 @@ module fpu_convert #(
 
             7'b1101001: begin
                 // int -> double
+            end
+
+            default: begin
+                // default to cNaN
+                next_out_result_d = fpp::CNAN_D;
             end
 
         endcase
