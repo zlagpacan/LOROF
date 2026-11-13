@@ -176,14 +176,16 @@ module fpu_convert #(
 
                 // special case zero or subnormal
                 else if (in_A_s_boxed.exp == 8'h00) begin
+
+                    // special case zero
                     if (in_A_s_boxed.mant == 23'h000000) begin
-                        // special case zero
                         next_out_result_d.sign = in_A_s_boxed.sign;
                         next_out_result_d.exp = 11'h000;
                         next_out_result_d.mant = 52'h0_0000_0000_0000;
                     end
+
+                    // special case subnormal
                     else begin
-                        // special case subnormal
                         next_out_result_d.sign = in_A_s_boxed.sign;
                         next_out_result_d.exp = 11'b011_1000_0000 - in_A_first_trailing_1_s;
                         next_out_result_d.mant = in_A_s_boxed.mant << (52-23+1 + in_A_first_trailing_1_s);
