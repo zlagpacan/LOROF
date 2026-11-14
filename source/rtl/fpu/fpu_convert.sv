@@ -80,6 +80,8 @@ module fpu_convert #(
     logic [52-1:0] in_A_mant_reversed_d;
     logic [$clog2(52)-1:0] in_A_first_trailing_1_d;
 
+    logic [2:0] final_rm;
+
     // ----------------------------------------------------------------
     // Logic:
 
@@ -104,6 +106,16 @@ module fpu_convert #(
 
             out_result_d <= next_out_result_d;
             out_except <= next_out_except;
+        end
+    end
+
+    // rounding mode select
+    always_comb begin
+        if (in_instr_rm == fpp::RM_DYN) begin
+            final_rm = in_fcsr_rm;
+        end
+        else begin
+            final_rm = in_instr_rm;
         end
     end
 
@@ -152,7 +164,60 @@ module fpu_convert #(
 
                 // funct5 = 5'b00001 but don't care
 
+                // start w/ NaN box
+                next_out_result_d.sign = 1'b1;
+                next_out_result_d.exp = 11'h7FF;
+                next_out_result_d.mant.upper = 20'hFFFFF;
 
+                // special case NaN -> sNaN NV, output cNaN
+                if (in_A_is_nan_d) begin
+                    next_out_result_d.mant.single = fpp::CNAN_S;
+                    next_out_except.NV = in_A_nan_is_snan_d;
+                end
+
+                // special case inf
+                else if (in_A_is_inf_d) begin
+                    next_out_result_d.mant.single.sign = in_A_d.sign;
+                    next_out_result_d.mant.single.exp = 8'hFF;
+                    next_out_result_d.mant.single.mant = 23'h000000;
+                end
+
+                // special case zero or subnormal
+                else if (in_A_d.exp == 11'h000) begin
+
+                    // special case zero
+                    if (in_A_d.mant == 52'h0_0000_0000_0000) begin
+                        next_out_result_d.mant.single.sign = in_A_d.sign;
+                        next_out_result_d.mant.single.exp = 8'h00;
+                        next_out_result_d.mant.single.mant = 23'h000000;
+                    end
+
+                    // special case subnormal
+                    else begin
+                        // automatic underflow
+                        next_out_result_d.mant.single.sign = in_A_d.sign;
+                        next_out_except.UF = 1'b1;
+                        next_out_except.NX = 1'b1;
+
+                        if (
+                            final_rm == fpp::RM_RDN & in_A_d.sign == 1'b1
+                            | final_rm == fpp::RM_RUP & in_A_d.sign == 1'b0
+                        ) begin
+                            // min subnormal single
+                            next_out_result_d.mant.single.exp = 8'h00;
+                            next_out_result_d.mant.single.mant = 23'h000001;
+                        end
+                        else begin
+                            // zero
+                            next_out_result_d.mant.single.exp = 8'h00;
+                            next_out_result_d.mant.single.mant = 23'h000000;
+                        end
+                    end
+                end
+
+                // TODO: subnormal singles
+
+                // TODO: normal singles
             end
 
             7'b0100001: begin
@@ -163,7 +228,7 @@ module fpu_convert #(
 
                 // special case NaN -> sNaN NV, output cNaN
                 if (in_A_is_nan_s) begin
-                    next_out_result_d = fpp::CNAN_S;
+                    next_out_result_d = fpp::CNAN_D;
                     next_out_except.NV = in_A_nan_is_snan_s;
                 end
 
