@@ -680,8 +680,8 @@ module fpu_convert #(
                         (final_rm == fpp::RM_RDN) & (in_A_d.sign == 1'b1)
                         | (final_rm == fpp::RM_RUP) & (in_A_d.sign == 1'b0)
                         | (in_A_d.exp == 11'h369) & (
-                            (final_rm == fpp::RM_RNE) & (in_A_d.mant > 52'h8_0000_0000_0000)
-                            | (final_rm == fpp::RM_RMM) & (in_A_d.mant >= 52'h8_0000_0000_0000)
+                            (final_rm == fpp::RM_RNE) & (in_A_d.mant != 52'h0_0000_0000_0000)
+                            | (final_rm == fpp::RM_RMM)
                         )
                     ) begin
                         // min subnormal single

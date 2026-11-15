@@ -1488,6 +1488,8 @@ module fpu_easy_tb #(
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
 		// inputs
 		sub_test_case = "FMIN.S qNaN big pos";
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1547,6 +1549,8 @@ module fpu_easy_tb #(
 		expected_except.NX = 1'b0;
 
 		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "FMIN.S big pos qNaN";
@@ -1608,6 +1612,8 @@ module fpu_easy_tb #(
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
 		// inputs
 		sub_test_case = "FMIN.S qNaN qNaN";
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1667,6 +1673,8 @@ module fpu_easy_tb #(
 		expected_except.NX = 1'b0;
 
 		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "FMIN.S sNaN big pos";
@@ -1728,6 +1736,8 @@ module fpu_easy_tb #(
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
 		// inputs
 		sub_test_case = "FMIN.S big pos sNaN";
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1787,6 +1797,8 @@ module fpu_easy_tb #(
 		expected_except.NX = 1'b0;
 
 		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "FMIN.S big sNaN qNaN";
@@ -1848,6 +1860,8 @@ module fpu_easy_tb #(
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
 		// inputs
 		sub_test_case = "FMIN.S qNaN sNaN";
 		$display("\t- sub_test: %s", sub_test_case);
@@ -1907,6 +1921,8 @@ module fpu_easy_tb #(
 		expected_except.NX = 1'b0;
 
 		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "FMIN.S big sNaN sNaN";
@@ -2470,6 +2486,8 @@ module fpu_easy_tb #(
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
 		// inputs
 		sub_test_case = "FMAX.S qNaN big pos";
 		$display("\t- sub_test: %s", sub_test_case);
@@ -2529,6 +2547,8 @@ module fpu_easy_tb #(
 		expected_except.NX = 1'b0;
 
 		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "FMAX.S big pos qNaN";
@@ -2590,6 +2610,8 @@ module fpu_easy_tb #(
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
 		// inputs
 		sub_test_case = "FMAX.S qNaN qNaN";
 		$display("\t- sub_test: %s", sub_test_case);
@@ -2649,6 +2671,8 @@ module fpu_easy_tb #(
 		expected_except.NX = 1'b0;
 
 		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "FMAX.S sNaN big pos";
@@ -2710,6 +2734,8 @@ module fpu_easy_tb #(
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
 		// inputs
 		sub_test_case = "FMAX.S big pos sNaN";
 		$display("\t- sub_test: %s", sub_test_case);
@@ -2769,6 +2795,8 @@ module fpu_easy_tb #(
 		expected_except.NX = 1'b0;
 
 		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "FMAX.S big sNaN qNaN";
@@ -2830,6 +2858,8 @@ module fpu_easy_tb #(
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
 		// inputs
 		sub_test_case = "FMAX.S qNaN sNaN";
 		$display("\t- sub_test: %s", sub_test_case);
@@ -2889,6 +2919,8 @@ module fpu_easy_tb #(
 		expected_except.NX = 1'b0;
 
 		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "FMAX.S big sNaN sNaN";
@@ -14734,6 +14766,8 @@ module fpu_easy_tb #(
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
 		// inputs
 		sub_test_case = "FMIN.D qNaN big pos";
 		$display("\t- sub_test: %s", sub_test_case);
@@ -14784,6 +14818,8 @@ module fpu_easy_tb #(
 		expected_except.NX = 1'b0;
 
 		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "FMIN.D big pos qNaN";
@@ -14836,6 +14872,8 @@ module fpu_easy_tb #(
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
 		// inputs
 		sub_test_case = "FMIN.D qNaN qNaN";
 		$display("\t- sub_test: %s", sub_test_case);
@@ -14886,6 +14924,8 @@ module fpu_easy_tb #(
 		expected_except.NX = 1'b0;
 
 		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "FMIN.D sNaN big pos";
@@ -14938,6 +14978,8 @@ module fpu_easy_tb #(
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
 		// inputs
 		sub_test_case = "FMIN.D big pos sNaN";
 		$display("\t- sub_test: %s", sub_test_case);
@@ -14988,6 +15030,8 @@ module fpu_easy_tb #(
 		expected_except.NX = 1'b0;
 
 		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "FMIN.D sNaN qNaN";
@@ -15040,6 +15084,8 @@ module fpu_easy_tb #(
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
 		// inputs
 		sub_test_case = "FMIN.D qNaN sNaN";
 		$display("\t- sub_test: %s", sub_test_case);
@@ -15090,6 +15136,8 @@ module fpu_easy_tb #(
 		expected_except.NX = 1'b0;
 
 		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "FMIN.D big sNaN sNaN";
@@ -15572,6 +15620,8 @@ module fpu_easy_tb #(
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
 		// inputs
 		sub_test_case = "FMAX.D qNaN big pos";
 		$display("\t- sub_test: %s", sub_test_case);
@@ -15622,6 +15672,8 @@ module fpu_easy_tb #(
 		expected_except.NX = 1'b0;
 
 		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "FMAX.D big pos qNaN";
@@ -15674,6 +15726,8 @@ module fpu_easy_tb #(
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
 		// inputs
 		sub_test_case = "FMAX.D qNaN qNaN";
 		$display("\t- sub_test: %s", sub_test_case);
@@ -15724,6 +15778,8 @@ module fpu_easy_tb #(
 		expected_except.NX = 1'b0;
 
 		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "FMAX.D sNaN big pos";
@@ -15776,6 +15832,8 @@ module fpu_easy_tb #(
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
 		// inputs
 		sub_test_case = "FMAX.D big pos sNaN";
 		$display("\t- sub_test: %s", sub_test_case);
@@ -15826,6 +15884,8 @@ module fpu_easy_tb #(
 		expected_except.NX = 1'b0;
 
 		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "FMAX.D big sNaN qNaN";
@@ -15878,6 +15938,8 @@ module fpu_easy_tb #(
 
 		check_outputs();
 
+		@(posedge CLK); #(PERIOD/10);
+
 		// inputs
 		sub_test_case = "FMAX.D qNaN sNaN";
 		$display("\t- sub_test: %s", sub_test_case);
@@ -15928,6 +15990,8 @@ module fpu_easy_tb #(
 		expected_except.NX = 1'b0;
 
 		check_outputs();
+
+		@(posedge CLK); #(PERIOD/10);
 
 		// inputs
 		sub_test_case = "FMAX.D big sNaN sNaN";
