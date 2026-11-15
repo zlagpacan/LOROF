@@ -142,13 +142,12 @@ module fpu_convert #(
     logic in_A_nan_is_snan_s;
     logic in_A_is_inf_s;
     logic [23-1:0] in_A_mant_reversed_s;
+    logic [31:0] in_A_mant_reversed_s_padded;
     logic [$clog2(23)-1:0] in_A_first_trailing_1_s;
 
     logic in_A_is_nan_d;
     logic in_A_nan_is_snan_d;
     logic in_A_is_inf_d;
-    logic [52-1:0] in_A_mant_reversed_d;
-    logic [$clog2(52)-1:0] in_A_first_trailing_1_d;
 
     logic [2:0] final_rm;
 
@@ -473,25 +472,18 @@ module fpu_convert #(
         in_A_nan_is_snan_s = fpp::nan_is_snan_s(in_A_s_boxed);
         in_A_is_inf_s = fpp::is_inf_s(in_A_s_boxed);
         in_A_mant_reversed_s = fpp::mant_reverse_s(in_A_s_boxed.mant);
+        in_A_mant_reversed_s_padded = {9'b0, in_A_mant_reversed_s};
         
         in_A_is_nan_d = fpp::is_nan_d(in_A_d);
         in_A_nan_is_snan_d = fpp::nan_is_snan_d(in_A_d);
         in_A_is_inf_d = fpp::is_inf_d(in_A_d);
-        in_A_mant_reversed_d = fpp::mant_reverse_d(in_A_d.mant);
     end
     pe_lsb_tree #(
-        .WIDTH(23)
+        .WIDTH(32)
     ) IN_A_FIRST_TRAILING_1_S_PE (
-        .req_vec(in_A_mant_reversed_s),
+        .req_vec(in_A_mant_reversed_s_padded),
         .ack_valid(),
         .ack_index(in_A_first_trailing_1_s)
-    );
-    pe_lsb_tree #(
-        .WIDTH(52)
-    ) IN_A_FIRST_TRAILING_1_D_PE (
-        .req_vec(in_A_mant_reversed_d),
-        .ack_valid(),
-        .ack_index(in_A_first_trailing_1_d)
     );
     for (genvar g = 0; g < 64; g++) begin : REVERSE_INTEGER_MAGNITUDE
         assign integer_magnitude_msb_first[g] = integer_magnitude[63-g];
