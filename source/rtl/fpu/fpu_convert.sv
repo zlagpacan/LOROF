@@ -200,8 +200,8 @@ module fpu_convert #(
                         next_out_except.NX = 1'b1;
 
                         if (
-                            final_rm == fpp::RM_RDN & in_A_d.sign == 1'b1
-                            | final_rm == fpp::RM_RUP & in_A_d.sign == 1'b0
+                            (final_rm == fpp::RM_RDN) & (in_A_d.sign == 1'b1)
+                            | (final_rm == fpp::RM_RUP) & (in_A_d.sign == 1'b0)
                         ) begin
                             // min subnormal single
                             next_out_result_d.mant.single.exp = 8'h00;
@@ -212,6 +212,61 @@ module fpu_convert #(
                             next_out_result_d.mant.single.exp = 8'h00;
                             next_out_result_d.mant.single.mant = 23'h000000;
                         end
+                    end
+                end
+
+                // too small for singles
+                    // smallest subnormal single: 2^-149
+                    // -1023 + 874 = -149
+                    // 11'd874 = 11'h36A
+                else if (in_A_d.exp < 11'h36A) begin
+                    // automatic underflow
+                    next_out_result_d.mant.single.sign = in_A_d.sign;
+                    next_out_except.UF = 1'b1;
+                    next_out_except.NX = 1'b1;
+
+                    if (
+                        (final_rm == fpp::RM_RDN) & (in_A_d.sign == 1'b1)
+                        | (final_rm == fpp::RM_RUP) & (in_A_d.sign == 1'b0)
+                        | (in_A_d.exp == 11'h369) & (
+                            (final_rm == fpp::RM_RNE) & (in_A_d.mant > 52'h8_0000_0000_0000)
+                            | (final_rm == fpp::RM_RMM) & (in_A_d.mant >= 52'h8_0000_0000_0000)
+                        )
+                    ) begin
+                        // min subnormal single
+                        next_out_result_d.mant.single.exp = 8'h00;
+                        next_out_result_d.mant.single.mant = 23'h000001;
+                    end
+                    else begin
+                        // zero
+                        next_out_result_d.mant.single.exp = 8'h00;
+                        next_out_result_d.mant.single.mant = 23'h000000;
+                    end
+                end
+
+                // too big for singles
+                    // largest normal single: 2^127
+                    // -1023 + 1150 = 127
+                    // 11'd1150 = 11'h47E
+                else if (in_A_d.exp > 11'h47E) begin
+                    // automatic overflow
+                    next_out_result_d.mant.single.sign = in_A_d.sign;
+                    next_out_except.OF = 1'b1;
+                    next_out_except.NX = 1'b1;
+
+                    if (
+                        (final_rm == fpp::RM_RTZ)
+                        | (final_rm == fpp::RM_RDN) & (in_A_d.sign == 1'b0)
+                        | (final_rm == fpp::RM_RUP) & (in_A_d.sign == 1'b1)
+                    ) begin
+                        // max normal single
+                        next_out_result_d.mant.single.exp = 8'hFE;
+                        next_out_result_d.mant.single.mant = 23'h7FFFFF;
+                    end
+                    else begin
+                        // inf
+                        next_out_result_d.mant.single.exp = 8'hFF;
+                        next_out_result_d.mant.single.mant = 23'h000000;
                     end
                 end
 
