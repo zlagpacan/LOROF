@@ -45,14 +45,23 @@ module fpu_arithmetic #(
 );
 
     typedef enum logic [2:0] {OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_SQRT, OP_BAD} op_t;
-    typedef enum logic [2:0] {
-        SLOW_IDLE, SLOW_NORM_COUNT, SLOW_NORM_SHIFT, SLOW_START, SLOW_DIV, SLOW_SQRT
-    } slow_state_t;
+    typedef enum logic [3:0] {SLOW_IDLE, SLOW_NORM_COUNT, SLOW_NORM_SHIFT, SLOW_START, SLOW_DIV, SLOW_SQRT, SLOW_PACK_PREP, SLOW_PACK_FINISH} slow_state_t;
 
     typedef struct packed {
         fpp::double_t result;
         fpp::fpu_except_t except;
     } packet_t;
+
+    typedef struct packed {
+        logic sign;
+        logic [55:0] sig;
+        logic signed [12:0] exp;
+        logic single;
+        logic subnormal;
+        logic inexact;
+        logic increment;
+        logic overflow_to_inf;
+    } round_pre_t;
 
     typedef struct packed {
         logic sign;
@@ -65,30 +74,49 @@ module fpu_arithmetic #(
     } operand_t;
 
     // Fast elastic pipeline: input/predecode, arithmetic/round, output.
-    logic s1_valid, s2_valid, s3_valid, s4_valid, s5_valid, s6_valid;
-    logic s1_ready, s2_ready, s3_ready, s4_ready, s5_ready, s6_ready, out_slot_ready;
+    logic f0_valid, f0_ready;
+    logic s1_valid, s2_valid, s3_valid, s4_valid, s5_valid, s6_valid, s7_valid;
+    logic s1_ready, s2_ready, s3_ready, s4_ready, s5_ready, s6_ready, s7_ready, out_slot_ready;
     op_t s1_op;
+    op_t f0_op;
     logic s1_single;
+    logic f0_single;
     logic [2:0] s1_rm;
+    logic [2:0] f0_rm;
     operand_t s1_A_norm, s1_B_norm;
+    operand_t f0_A_decoded, f0_B_decoded, f0_A_norm, f0_B_norm;
+    logic [5:0] f0_A_norm_count, f0_B_norm_count;
+    corep::pr_t f0_dest_pr;
+    corep::rob_idx_t f0_rob_idx;
     corep::pr_t s1_dest_pr;
     corep::rob_idx_t s1_rob_idx;
-    packet_t s2_special_packet, s3_special_packet, s4_special_packet, s5_special_packet, s6_packet, fast_packet;
-    logic s2_round_needed, s3_round_needed, s3_normalize, s4_round_needed, s4_normalize, s5_round_needed;
+    packet_t s2_special_packet, s3_special_packet, s4_special_packet, s5_special_packet, s6_special_packet, s7_packet, fast_packet;
+    round_pre_t s6_round_pre;
+    logic s2_round_needed, s3_round_needed, s3_normalize, s4_round_needed, s4_normalize, s5_round_needed, s6_round_needed;
     logic fast_round_needed, s2_single, s3_single, s4_single, s5_single;
     logic [2:0] s2_rm;
     logic [2:0] s3_rm, s4_rm, s5_rm;
     logic s2_sign, s3_sign, s4_sign, s5_sign;
     logic signed [12:0] s2_exp, s3_exp, s4_exp, s5_exp;
     logic [55:0] s2_sig, s3_sig, s4_sig, s5_sig;
-    corep::pr_t s2_dest_pr, s3_dest_pr, s4_dest_pr, s5_dest_pr, s6_dest_pr;
-    corep::rob_idx_t s2_rob_idx, s3_rob_idx, s4_rob_idx, s5_rob_idx, s6_rob_idx;
+    corep::pr_t s2_dest_pr, s3_dest_pr, s4_dest_pr, s5_dest_pr, s6_dest_pr, s7_dest_pr;
+    corep::rob_idx_t s2_rob_idx, s3_rob_idx, s4_rob_idx, s5_rob_idx, s6_rob_idx, s7_rob_idx;
     logic [5:0] s4_norm_count;
     logic s2_add_work, fast_add_work, fast_add_sign_a, fast_add_sign_b;
-    logic s2_mul_work, fast_mul_work;
+    logic s2_mul_work, s3_mul_work, fast_mul_work;
     logic s2_add_sign_a, s2_add_sign_b;
     logic [55:0] s2_add_a, s2_add_b;
-    logic [105:0] s2_mul_product;
+    logic [35:0] s2_mul_p00, s2_mul_p01, s2_mul_p02;
+    logic [35:0] s2_mul_p10, s2_mul_p11, s2_mul_p12;
+    logic [35:0] s2_mul_p20, s2_mul_p21, s2_mul_p22;
+    logic [71:0] s3_mul_row0;
+    logic [71:0] s3_mul_row1, s3_mul_row2;
+    logic [71:0] s2_mul_row0_comb;
+    logic [71:0] s2_mul_row1_comb, s2_mul_row2_comb;
+    logic [105:0] s4_mul_product;
+    logic [35:0] mul_p00, mul_p01, mul_p02;
+    logic [35:0] mul_p10, mul_p11, mul_p12;
+    logic [35:0] mul_p20, mul_p21, mul_p22;
     logic [56:0] s2_add_sum;
     logic [55:0] s2_result_sig;
     logic signed [12:0] s2_result_exp;
@@ -106,6 +134,8 @@ module fpu_arithmetic #(
     logic [5:0] slow_A_norm_count, slow_B_norm_count;
     logic [5:0] slow_A_norm_count_comb, slow_B_norm_count_comb;
     packet_t slow_packet;
+    logic [55:0] slow_pack_sig;
+    round_pre_t slow_round_pre;
     corep::pr_t slow_dest_pr;
     corep::rob_idx_t slow_rob_idx;
     logic slow_single, slow_sign;
@@ -124,14 +154,13 @@ module fpu_arithmetic #(
     logic in_single, in_slow;
     logic in_slow_special;
     logic [2:0] in_rm;
-    operand_t in_A_decoded, in_B_decoded, A_norm, B_norm;
-    logic [5:0] input_norm_count;
+    operand_t in_A_decoded, in_B_decoded;
+    logic [5:0] input_A_norm_count, input_B_norm_count;
     logic signed [12:0] calc_exp;
     logic [55:0] calc_sig;
     logic calc_sign, calc_zero;
     logic [55:0] add_A_ext, add_B_ext, add_ext;
     logic [56:0] add_sum;
-    logic [105:0] mul_product;
     logic [12:0] align_shift;
     logic add_sign_b;
     logic [55:0] shifted_value;
@@ -163,17 +192,24 @@ module fpu_arithmetic #(
     // Balanced leading-zero detection avoids a serial chain of shifts and
     // exponent decrements during normalization.
     function automatic logic [5:0] leading_zeros_53(input logic [52:0] value);
-        logic [52:0] x;
+        logic [51:0] x;
         logic [5:0] count;
         begin
-            x = value;
-            count = '0;
-            if (x[52:27] == 26'b0) begin count = count + 6'd26; x = x << 26; end
-            if (x[52:40] == 13'b0) begin count = count + 6'd13; x = x << 13; end
-            if (x[52:46] == 7'b0)  begin count = count + 6'd7;  x = x << 7;  end
-            if (x[52:49] == 4'b0)  begin count = count + 6'd4;  x = x << 4;  end
-            if (x[52:51] == 2'b0)  begin count = count + 6'd2;  x = x << 2;  end
-            if (!x[52])            begin count = count + 6'd1;  x = x << 1;  end
+            // The implicit bit is exponent-derived and used to feed the
+            // significand LZC through a deep priority chain.  Count the
+            // fraction independently, then select the normalized count.
+            if (value == '0) count = 6'd53;
+            else if (value[52]) count = '0;
+            else begin
+                x = value[51:0];
+                count = 6'd1;
+                if (x[51:26] == 26'b0) begin count = count + 6'd26; x = x << 26; end
+                if (x[51:39] == 13'b0) begin count = count + 6'd13; x = x << 13; end
+                if (x[51:45] == 7'b0)  begin count = count + 6'd7;  x = x << 7;  end
+                if (x[51:48] == 4'b0)  begin count = count + 6'd4;  x = x << 4;  end
+                if (x[51:50] == 2'b0)  begin count = count + 6'd2;  x = x << 2;  end
+                if (!x[51])            count = count + 6'd1;
+            end
             return count;
         end
     endfunction
@@ -274,102 +310,197 @@ module fpu_arithmetic #(
         packet_t p;
         logic [55:0] sig;
         logic [2:0] grs;
-        logic lost, inexact, increment, subnormal;
-        logic [24:0] rs;
-        logic [53:0] rd;
+        logic lost, inexact, increment, subnormal, overflow_to_inf;
+        logic [53:0] round_base, round_result;
         logic signed [12:0] exp;
-        integer sh, n;
+        integer sh;
         begin
             p = '0;
             sig = sig_ext;
             exp = exponent;
             lost = 1'b0;
             subnormal = 1'b0;
-            if (is_single) begin
-                if (exp < -13'sd126) begin
-                    subnormal = 1'b1;
-                    sh = -13'sd126 - exp;
-                    if (sh >= 56) begin lost = lost | (|sig); sig = '0; end
-                    else begin
-                        lost = lost | (|(sig & ((56'h1 << sh) - 1'b1)));
-                        sig = sig >> sh;
-                    end
-                    exp = -13'sd126;
+            if (is_single ? (exp < -13'sd126) : (exp < -13'sd1022)) begin
+                subnormal = 1'b1;
+                sh = is_single ? (-13'sd126 - exp) : (-13'sd1022 - exp);
+                if (sh >= 56) begin lost = |sig; sig = '0; end
+                else begin
+                    lost = |(sig & ((56'h1 << sh) - 1'b1));
+                    sig = sig >> sh;
                 end
-                grs = {sig[31], sig[30], (|sig[29:0]) | lost};
-                inexact = |grs;
-                case (rm)
-                    fpp::RM_RNE: increment = grs[2] & (grs[1] | grs[0] | sig[32]);
-                    fpp::RM_RTZ: increment = 1'b0;
-                    fpp::RM_RDN: increment = sign & inexact;
-                    fpp::RM_RUP: increment = ~sign & inexact;
-                    fpp::RM_RMM: increment = grs[2];
-                    default: increment = 1'b0;
-                endcase
-                rs = {1'b0, sig[55:32]} + increment;
-                if (!subnormal && ((exp > 127) || ((exp == 127) && (rs[24] || ((&sig[55:32]) && inexact))))) begin
-                    if ((rm == fpp::RM_RNE) || (rm == fpp::RM_RMM) || ((rm == fpp::RM_RUP) && !sign) || ((rm == fpp::RM_RDN) && sign))
+                exp = is_single ? -13'sd126 : -13'sd1022;
+            end
+
+            grs = is_single
+                ? {sig[31], sig[30], (|sig[29:0]) | lost}
+                : {sig[2], sig[1], sig[0] | lost};
+            inexact = |grs;
+            case (rm)
+                fpp::RM_RNE: increment = grs[2] & (grs[1] | grs[0] | (is_single ? sig[32] : sig[3]));
+                fpp::RM_RTZ: increment = 1'b0;
+                fpp::RM_RDN: increment = sign & inexact;
+                fpp::RM_RUP: increment = ~sign & inexact;
+                fpp::RM_RMM: increment = grs[2];
+                default: increment = 1'b0;
+            endcase
+
+            round_base = is_single ? {30'b0, sig[55:32]} : {1'b0, sig[55:3]};
+            round_result = round_base + increment;
+            overflow_to_inf = (rm == fpp::RM_RNE) || (rm == fpp::RM_RMM) ||
+                ((rm == fpp::RM_RUP) && !sign) || ((rm == fpp::RM_RDN) && sign);
+
+            if (is_single) begin
+                if (!subnormal && ((exp > 127) || ((exp == 127) &&
+                    (round_result[24] || ((&sig[55:32]) && inexact))))) begin
+                    if (overflow_to_inf)
                         p.result = {1'b1, 11'h7ff, 20'hfffff, sign, 8'hff, 23'h0};
                     else p.result = {1'b1, 11'h7ff, 20'hfffff, sign, 8'hfe, 23'h7fffff};
                     p.except.OF = 1'b1; p.except.NX = 1'b1;
                 end
-                else if (subnormal && rs[23]) begin
+                else if (subnormal && round_result[23]) begin
                     p.result = {1'b1, 11'h7ff, 20'hfffff, sign, 8'h01, 23'h0};
                     p.except.NX = inexact;
                 end
                 else if (subnormal) begin
-                    p.result = {1'b1, 11'h7ff, 20'hfffff, sign, 8'h00, rs[22:0]};
+                    p.result = {1'b1, 11'h7ff, 20'hfffff, sign, 8'h00, round_result[22:0]};
                     p.except.NX = inexact; p.except.UF = inexact;
                 end
-                else if (rs[24]) begin
+                else if (round_result[24]) begin
                     p.result = {1'b1, 11'h7ff, 20'hfffff, sign, 8'(exp + 128), 23'h0};
                     p.except.NX = inexact;
                 end
                 else begin
-                    p.result = {1'b1, 11'h7ff, 20'hfffff, sign, 8'(exp + 127), rs[22:0]};
+                    p.result = {1'b1, 11'h7ff, 20'hfffff, sign, 8'(exp + 127), round_result[22:0]};
                     p.except.NX = inexact;
                 end
             end
             else begin
-                if (exp < -13'sd1022) begin
-                    subnormal = 1'b1;
-                    sh = -13'sd1022 - exp;
-                    if (sh >= 56) begin lost = lost | (|sig); sig = '0; end
-                    else begin
-                        lost = lost | (|(sig & ((56'h1 << sh) - 1'b1)));
-                        sig = sig >> sh;
-                    end
-                    exp = -13'sd1022;
-                end
-                grs = {sig[2], sig[1], sig[0] | lost};
-                inexact = |grs;
-                case (rm)
-                    fpp::RM_RNE: increment = grs[2] & (grs[1] | grs[0] | sig[3]);
-                    fpp::RM_RTZ: increment = 1'b0;
-                    fpp::RM_RDN: increment = sign & inexact;
-                    fpp::RM_RUP: increment = ~sign & inexact;
-                    fpp::RM_RMM: increment = grs[2];
-                    default: increment = 1'b0;
-                endcase
-                rd = {1'b0, sig[55:3]} + increment;
-                if (!subnormal && ((exp > 1023) || ((exp == 1023) && (rd[53] || ((&sig[55:3]) && inexact))))) begin
-                    if ((rm == fpp::RM_RNE) || (rm == fpp::RM_RMM) || ((rm == fpp::RM_RUP) && !sign) || ((rm == fpp::RM_RDN) && sign))
-                        p.result = {sign, 11'h7ff, 52'h0};
+                if (!subnormal && ((exp > 1023) || ((exp == 1023) &&
+                    (round_result[53] || ((&sig[55:3]) && inexact))))) begin
+                    if (overflow_to_inf) p.result = {sign, 11'h7ff, 52'h0};
                     else p.result = {sign, 11'h7fe, 52'hf_ffff_ffff_ffff};
                     p.except.OF = 1'b1; p.except.NX = 1'b1;
                 end
-                else if (subnormal && rd[52]) begin
+                else if (subnormal && round_result[52]) begin
                     p.result = {sign, 11'h001, 52'h0}; p.except.NX = inexact;
                 end
                 else if (subnormal) begin
-                    p.result = {sign, 11'h000, rd[51:0]};
+                    p.result = {sign, 11'h000, round_result[51:0]};
                     p.except.NX = inexact; p.except.UF = inexact;
                 end
-                else if (rd[53]) begin
+                else if (round_result[53]) begin
                     p.result = {sign, 11'(exp + 1024), 52'h0}; p.except.NX = inexact;
                 end
                 else begin
-                    p.result = {sign, 11'(exp + 1023), rd[51:0]}; p.except.NX = inexact;
+                    p.result = {sign, 11'(exp + 1023), round_result[51:0]}; p.except.NX = inexact;
+                end
+            end
+            return p;
+        end
+    endfunction
+
+    // Split the iterative DIV/SQRT completion packer across two cycles.  The
+    // subnormal alignment, rounding decision, and final exponent/result mux
+    // otherwise form a particularly long path from slow_exp to slow_packet.
+    function automatic round_pre_t round_prepare(
+        input logic sign,
+        input logic signed [12:0] exponent,
+        input logic [55:0] sig_ext,
+        input logic is_single,
+        input logic [2:0] rm
+    );
+        round_pre_t q;
+        logic [2:0] grs;
+        logic lost;
+        integer sh;
+        begin
+            q = '0;
+            q.sign = sign;
+            q.sig = sig_ext;
+            q.exp = exponent;
+            q.single = is_single;
+            q.subnormal = 1'b0;
+            lost = 1'b0;
+            if (is_single ? (q.exp < -13'sd126) : (q.exp < -13'sd1022)) begin
+                q.subnormal = 1'b1;
+                sh = is_single ? (-13'sd126 - q.exp) : (-13'sd1022 - q.exp);
+                if (sh >= 56) begin lost = |q.sig; q.sig = '0; end
+                else begin
+                    lost = |(q.sig & ((56'h1 << sh) - 1'b1));
+                    q.sig = q.sig >> sh;
+                end
+                q.exp = is_single ? -13'sd126 : -13'sd1022;
+            end
+
+            grs = is_single
+                ? {q.sig[31], q.sig[30], (|q.sig[29:0]) | lost}
+                : {q.sig[2], q.sig[1], q.sig[0] | lost};
+            q.inexact = |grs;
+            case (rm)
+                fpp::RM_RNE: q.increment = grs[2] & (grs[1] | grs[0] | (is_single ? q.sig[32] : q.sig[3]));
+                fpp::RM_RTZ: q.increment = 1'b0;
+                fpp::RM_RDN: q.increment = sign & q.inexact;
+                fpp::RM_RUP: q.increment = ~sign & q.inexact;
+                fpp::RM_RMM: q.increment = grs[2];
+                default: q.increment = 1'b0;
+            endcase
+            q.overflow_to_inf = (rm == fpp::RM_RNE) || (rm == fpp::RM_RMM) ||
+                ((rm == fpp::RM_RUP) && !sign) || ((rm == fpp::RM_RDN) && sign);
+            return q;
+        end
+    endfunction
+
+    function automatic packet_t round_finish(input round_pre_t q);
+        packet_t p;
+        logic [53:0] round_base, round_result;
+        begin
+            p = '0;
+            round_base = q.single ? {30'b0, q.sig[55:32]} : {1'b0, q.sig[55:3]};
+            round_result = round_base + q.increment;
+            if (q.single) begin
+                if (!q.subnormal && ((q.exp > 127) || ((q.exp == 127) &&
+                    (round_result[24] || ((&q.sig[55:32]) && q.inexact))))) begin
+                    if (q.overflow_to_inf)
+                        p.result = {1'b1, 11'h7ff, 20'hfffff, q.sign, 8'hff, 23'h0};
+                    else p.result = {1'b1, 11'h7ff, 20'hfffff, q.sign, 8'hfe, 23'h7fffff};
+                    p.except.OF = 1'b1; p.except.NX = 1'b1;
+                end
+                else if (q.subnormal && round_result[23]) begin
+                    p.result = {1'b1, 11'h7ff, 20'hfffff, q.sign, 8'h01, 23'h0};
+                    p.except.NX = q.inexact;
+                end
+                else if (q.subnormal) begin
+                    p.result = {1'b1, 11'h7ff, 20'hfffff, q.sign, 8'h00, round_result[22:0]};
+                    p.except.NX = q.inexact; p.except.UF = q.inexact;
+                end
+                else if (round_result[24]) begin
+                    p.result = {1'b1, 11'h7ff, 20'hfffff, q.sign, 8'(q.exp + 128), 23'h0};
+                    p.except.NX = q.inexact;
+                end
+                else begin
+                    p.result = {1'b1, 11'h7ff, 20'hfffff, q.sign, 8'(q.exp + 127), round_result[22:0]};
+                    p.except.NX = q.inexact;
+                end
+            end
+            else begin
+                if (!q.subnormal && ((q.exp > 1023) || ((q.exp == 1023) &&
+                    (round_result[53] || ((&q.sig[55:3]) && q.inexact))))) begin
+                    if (q.overflow_to_inf) p.result = {q.sign, 11'h7ff, 52'h0};
+                    else p.result = {q.sign, 11'h7fe, 52'hf_ffff_ffff_ffff};
+                    p.except.OF = 1'b1; p.except.NX = 1'b1;
+                end
+                else if (q.subnormal && round_result[52]) begin
+                    p.result = {q.sign, 11'h001, 52'h0}; p.except.NX = q.inexact;
+                end
+                else if (q.subnormal) begin
+                    p.result = {q.sign, 11'h000, round_result[51:0]};
+                    p.except.NX = q.inexact; p.except.UF = q.inexact;
+                end
+                else if (round_result[53]) begin
+                    p.result = {q.sign, 11'(q.exp + 1024), 52'h0}; p.except.NX = q.inexact;
+                end
+                else begin
+                    p.result = {q.sign, 11'(q.exp + 1023), round_result[51:0]}; p.except.NX = q.inexact;
                 end
             end
             return p;
@@ -390,18 +521,21 @@ module fpu_arithmetic #(
         in_slow = (in_op == OP_DIV) | (in_op == OP_SQRT);
         in_A_decoded = decode_operand(in_A_d, in_A_s_boxed, in_single);
         in_B_decoded = decode_operand(in_B_d, in_B_s_boxed, in_single);
-        A_norm = in_A_decoded;
-        B_norm = in_B_decoded;
-        input_norm_count = '0;
-        if (!A_norm.nan && !A_norm.inf && !A_norm.zero && !A_norm.sig[52]) begin
-            input_norm_count = leading_zeros_53(A_norm.sig);
-            A_norm.sig = A_norm.sig << input_norm_count;
-            A_norm.exp = A_norm.exp - input_norm_count;
+        input_A_norm_count = '0;
+        input_B_norm_count = '0;
+        if (!in_A_decoded.nan && !in_A_decoded.inf && !in_A_decoded.zero)
+            input_A_norm_count = leading_zeros_53(in_A_decoded.sig);
+        if (!in_B_decoded.nan && !in_B_decoded.inf && !in_B_decoded.zero)
+            input_B_norm_count = leading_zeros_53(in_B_decoded.sig);
+        f0_A_norm = f0_A_decoded;
+        f0_B_norm = f0_B_decoded;
+        if (f0_A_norm_count != 0) begin
+            f0_A_norm.sig = f0_A_decoded.sig << f0_A_norm_count;
+            f0_A_norm.exp = f0_A_decoded.exp - $signed({7'b0,f0_A_norm_count});
         end
-        if (!B_norm.nan && !B_norm.inf && !B_norm.zero && !B_norm.sig[52]) begin
-            input_norm_count = leading_zeros_53(B_norm.sig);
-            B_norm.sig = B_norm.sig << input_norm_count;
-            B_norm.exp = B_norm.exp - input_norm_count;
+        if (f0_B_norm_count != 0) begin
+            f0_B_norm.sig = f0_B_decoded.sig << f0_B_norm_count;
+            f0_B_norm.exp = f0_B_decoded.exp - $signed({7'b0,f0_B_norm_count});
         end
         if (in_op == OP_DIV)
             in_slow_special = in_A_decoded.nan | in_B_decoded.nan |
@@ -425,7 +559,9 @@ module fpu_arithmetic #(
         align_shift = '0;
         add_sign_b = s1_B_norm.sign ^ (s1_op == OP_SUB);
         shifted_value = '0;
-        mul_product = '0;
+        mul_p00 = '0; mul_p01 = '0; mul_p02 = '0;
+        mul_p10 = '0; mul_p11 = '0; mul_p12 = '0;
+        mul_p20 = '0; mul_p21 = '0; mul_p22 = '0;
         fast_round_needed = 1'b0;
         round_sig = '0;
         round_grs = '0;
@@ -468,7 +604,15 @@ module fpu_arithmetic #(
                 fast_packet.result = s1_single ? {1'b1, 11'h7ff, 20'hfffff, calc_sign, 31'h0} : {calc_sign, 63'h0};
             end
             else if (s1_op == OP_MUL) begin
-                mul_product = {53'b0, s1_A_norm.sig} * {53'b0, s1_B_norm.sig};
+                mul_p00 = s1_A_norm.sig[17:0] * s1_B_norm.sig[17:0];
+                mul_p01 = s1_A_norm.sig[17:0] * s1_B_norm.sig[35:18];
+                mul_p02 = s1_A_norm.sig[17:0] * s1_B_norm.sig[52:36];
+                mul_p10 = s1_A_norm.sig[35:18] * s1_B_norm.sig[17:0];
+                mul_p11 = s1_A_norm.sig[35:18] * s1_B_norm.sig[35:18];
+                mul_p12 = s1_A_norm.sig[35:18] * s1_B_norm.sig[52:36];
+                mul_p20 = s1_A_norm.sig[52:36] * s1_B_norm.sig[17:0];
+                mul_p21 = s1_A_norm.sig[52:36] * s1_B_norm.sig[35:18];
+                mul_p22 = s1_A_norm.sig[52:36] * s1_B_norm.sig[52:36];
                 calc_exp = s1_A_norm.exp + s1_B_norm.exp;
                 calc_sign = s1_A_norm.sign ^ s1_B_norm.sign;
                 fast_mul_work = 1'b1;
@@ -502,6 +646,17 @@ module fpu_arithmetic #(
     // Add/subtract after alignment, allowing the wide add/sub to occupy its
     // own pipeline stage.
     always_comb begin
+        s2_mul_row0_comb = '0;
+        s2_mul_row1_comb = '0;
+        s2_mul_row2_comb = '0;
+        if (s2_mul_work) begin
+            s2_mul_row0_comb = {{36{1'b0}},s2_mul_p00}
+                + {18'b0,s2_mul_p01,18'b0} + {1'b0,s2_mul_p02[34:0],36'b0};
+            s2_mul_row1_comb = {{36{1'b0}},s2_mul_p10}
+                + {18'b0,s2_mul_p11,18'b0} + {1'b0,s2_mul_p12[34:0],36'b0};
+            s2_mul_row2_comb = {{36{1'b0}},s2_mul_p20}
+                + {18'b0,s2_mul_p21,18'b0} + {2'b0,s2_mul_p22[33:0],36'b0};
+        end
         s2_add_sum = '0;
         s2_result_sig = s2_sig;
         s2_result_exp = s2_exp;
@@ -509,19 +664,7 @@ module fpu_arithmetic #(
         s2_result_round_needed = s2_round_needed;
         s2_result_packet = s2_special_packet;
 
-        if (s2_mul_work) begin
-            s2_result_round_needed = 1'b1;
-            if (s2_mul_product[105]) begin
-                s2_result_sig = s2_mul_product[105:50];
-                s2_result_sig[0] = s2_result_sig[0] | (|s2_mul_product[49:0]);
-                s2_result_exp = s2_exp + 1'b1;
-            end
-            else begin
-                s2_result_sig = s2_mul_product[104:49];
-                s2_result_sig[0] = s2_result_sig[0] | (|s2_mul_product[48:0]);
-            end
-        end
-        else if (s2_add_work) begin
+        if (s2_add_work) begin
             if (s2_add_sign_a == s2_add_sign_b) begin
                 s2_add_sum = {1'b0, s2_add_a} + {1'b0, s2_add_b};
                 if (s2_add_sum[56]) begin
@@ -554,6 +697,9 @@ module fpu_arithmetic #(
 
     // Normalize in a separate stage, before the rounding/packing stage.
     always_comb begin
+        s4_mul_product = {{34{1'b0}}, s3_mul_row0}
+            + {{16{1'b0}}, s3_mul_row1, 18'b0}
+            + {s3_mul_row2[69:0], 36'b0};
         normalize_count = '0;
         if (s3_normalize && (s3_sig != 0)) begin
             normalize_count = leading_zeros_56(s3_sig);
@@ -590,22 +736,24 @@ module fpu_arithmetic #(
         end
 
         out_slot_ready = ~out_valid | out_ready;
-        s6_ready = ~s6_valid | (out_slot_ready & ~slow_pending);
+        s7_ready = ~s7_valid | (out_slot_ready & ~slow_pending);
+        s6_ready = ~s6_valid | s7_ready;
         s5_ready = ~s5_valid | s6_ready;
         s4_ready = ~s4_valid | s5_ready;
         s3_ready = ~s3_valid | s4_ready;
         s2_ready = ~s2_valid | s3_ready;
         s1_ready = ~s1_valid | s2_ready;
+        f0_ready = ~f0_valid | s1_ready;
         in_ready = in_slow
             ? ((slow_state == SLOW_IDLE) & ~slow_pending)
-            : s1_ready;
+            : f0_ready;
         div_rem_initial = '0;
         div_exp_initial = slow_A_norm.exp - slow_B_norm.exp;
         slow_A_norm_count_comb = '0;
         slow_B_norm_count_comb = '0;
-        if ((slow_A_norm.sig != 0) && !slow_A_norm.sig[52])
+        if (slow_A_norm.sig != 0)
             slow_A_norm_count_comb = leading_zeros_53(slow_A_norm.sig);
-        if ((slow_B_norm.sig != 0) && !slow_B_norm.sig[52])
+        if (slow_B_norm.sig != 0)
             slow_B_norm_count_comb = leading_zeros_53(slow_B_norm.sig);
         if (slow_A_norm.sig < slow_B_norm.sig) begin
             div_rem_initial = {slow_A_norm.sig,1'b0} - {1'b0,slow_B_norm.sig};
@@ -619,17 +767,26 @@ module fpu_arithmetic #(
 
     always_ff @(posedge CLK or negedge nRST) begin
         if (!nRST) begin
+            f0_valid <= 1'b0; f0_op <= OP_BAD; f0_single <= 1'b0; f0_rm <= '0;
+            f0_A_decoded <= '0; f0_B_decoded <= '0;
+            f0_A_norm_count <= '0; f0_B_norm_count <= '0;
+            f0_dest_pr <= '0; f0_rob_idx <= '0;
             s1_valid <= 1'b0; s2_valid <= 1'b0; s3_valid <= 1'b0;
-            s4_valid <= 1'b0; s5_valid <= 1'b0; s6_valid <= 1'b0;
+            s4_valid <= 1'b0; s5_valid <= 1'b0; s6_valid <= 1'b0; s7_valid <= 1'b0;
             s1_op <= OP_BAD; s1_single <= 1'b0; s1_rm <= '0;
             s1_A_norm <= '0; s1_B_norm <= '0;
             s1_dest_pr <= '0; s1_rob_idx <= '0;
             s2_special_packet <= '0; s2_round_needed <= 1'b0; s2_sign <= 1'b0; s2_exp <= '0;
             s2_sig <= '0; s2_single <= 1'b0; s2_rm <= '0; s2_dest_pr <= '0; s2_rob_idx <= '0;
             s2_add_work <= 1'b0; s2_add_a <= '0; s2_add_b <= '0;
-            s2_mul_work <= 1'b0; s2_mul_product <= '0;
+            s2_mul_work <= 1'b0;
+            s2_mul_p00 <= '0; s2_mul_p01 <= '0; s2_mul_p02 <= '0;
+            s2_mul_p10 <= '0; s2_mul_p11 <= '0; s2_mul_p12 <= '0;
+            s2_mul_p20 <= '0; s2_mul_p21 <= '0; s2_mul_p22 <= '0;
             s2_add_sign_a <= 1'b0; s2_add_sign_b <= 1'b0;
             s3_special_packet <= '0; s3_round_needed <= 1'b0; s3_normalize <= 1'b0;
+            s3_mul_work <= 1'b0;
+            s3_mul_row0 <= '0; s3_mul_row1 <= '0; s3_mul_row2 <= '0;
             s3_sign <= 1'b0; s3_exp <= '0; s3_sig <= '0; s3_single <= 1'b0; s3_rm <= '0;
             s3_dest_pr <= '0; s3_rob_idx <= '0;
             s4_special_packet <= '0; s4_round_needed <= 1'b0; s4_normalize <= 1'b0; s4_norm_count <= '0;
@@ -638,9 +795,11 @@ module fpu_arithmetic #(
             s5_special_packet <= '0; s5_round_needed <= 1'b0;
             s5_sign <= 1'b0; s5_exp <= '0; s5_sig <= '0; s5_single <= 1'b0; s5_rm <= '0;
             s5_dest_pr <= '0; s5_rob_idx <= '0;
-            s6_packet <= '0; s6_dest_pr <= '0; s6_rob_idx <= '0;
+            s6_special_packet <= '0; s6_round_pre <= '0; s6_round_needed <= 1'b0; s6_dest_pr <= '0; s6_rob_idx <= '0;
+            s7_packet <= '0; s7_dest_pr <= '0; s7_rob_idx <= '0;
             out_valid <= 1'b0; out_dest_pr <= '0; out_rob_idx <= '0; out_result_d <= '0; out_except <= '0;
             slow_state <= SLOW_IDLE; slow_pending <= 1'b0; slow_packet <= '0; slow_op <= OP_BAD;
+            slow_pack_sig <= '0; slow_round_pre <= '0;
             slow_A_norm <= '0; slow_B_norm <= '0;
             slow_A_norm_count <= '0; slow_B_norm_count <= '0;
             slow_dest_pr <= '0; slow_rob_idx <= '0; slow_single <= 1'b0; slow_sign <= 1'b0;
@@ -649,12 +808,21 @@ module fpu_arithmetic #(
             slow_sqrt_remainder <= '0; slow_count <= '0;
         end
         else begin
-            if (s1_ready) begin
-                s1_valid <= in_valid & in_ready & ~in_slow;
+            if (f0_ready) begin
+                f0_valid <= in_valid & in_ready & ~in_slow;
                 if (in_valid && in_ready && !in_slow) begin
-                    s1_op <= in_op; s1_single <= in_single; s1_rm <= in_rm;
-                    s1_A_norm <= A_norm; s1_B_norm <= B_norm;
-                    s1_dest_pr <= in_dest_pr; s1_rob_idx <= in_rob_idx;
+                    f0_op <= in_op; f0_single <= in_single; f0_rm <= in_rm;
+                    f0_A_decoded <= in_A_decoded; f0_B_decoded <= in_B_decoded;
+                    f0_A_norm_count <= input_A_norm_count; f0_B_norm_count <= input_B_norm_count;
+                    f0_dest_pr <= in_dest_pr; f0_rob_idx <= in_rob_idx;
+                end
+            end
+            if (s1_ready) begin
+                s1_valid <= f0_valid;
+                if (f0_valid) begin
+                    s1_op <= f0_op; s1_single <= f0_single; s1_rm <= f0_rm;
+                    s1_A_norm <= f0_A_norm; s1_B_norm <= f0_B_norm;
+                    s1_dest_pr <= f0_dest_pr; s1_rob_idx <= f0_rob_idx;
                 end
             end
             if (s2_ready) begin
@@ -663,7 +831,10 @@ module fpu_arithmetic #(
                     s2_special_packet <= fast_packet; s2_round_needed <= fast_round_needed;
                     s2_sign <= calc_sign; s2_exp <= calc_exp; s2_sig <= calc_sig;
                     s2_add_work <= fast_add_work; s2_add_a <= add_A_ext; s2_add_b <= shifted_value;
-                    s2_mul_work <= fast_mul_work; s2_mul_product <= mul_product;
+                    s2_mul_work <= fast_mul_work;
+                    s2_mul_p00 <= mul_p00; s2_mul_p01 <= mul_p01; s2_mul_p02 <= mul_p02;
+                    s2_mul_p10 <= mul_p10; s2_mul_p11 <= mul_p11; s2_mul_p12 <= mul_p12;
+                    s2_mul_p20 <= mul_p20; s2_mul_p21 <= mul_p21; s2_mul_p22 <= mul_p22;
                     s2_add_sign_a <= fast_add_sign_a; s2_add_sign_b <= fast_add_sign_b;
                     s2_single <= s1_single; s2_rm <= s1_rm;
                     s2_dest_pr <= s1_dest_pr; s2_rob_idx <= s1_rob_idx;
@@ -675,6 +846,10 @@ module fpu_arithmetic #(
                     s3_special_packet <= s2_result_packet;
                     s3_round_needed <= s2_result_round_needed;
                     s3_normalize <= s2_add_work & s2_result_round_needed;
+                    s3_mul_work <= s2_mul_work;
+                    s3_mul_row0 <= s2_mul_row0_comb;
+                    s3_mul_row1 <= s2_mul_row1_comb;
+                    s3_mul_row2 <= s2_mul_row2_comb;
                     s3_sign <= s2_result_sign; s3_exp <= s2_result_exp; s3_sig <= s2_result_sig;
                     s3_single <= s2_single; s3_rm <= s2_rm;
                     s3_dest_pr <= s2_dest_pr; s3_rob_idx <= s2_rob_idx;
@@ -683,9 +858,26 @@ module fpu_arithmetic #(
             if (s4_ready) begin
                 s4_valid <= s3_valid;
                 if (s3_valid) begin
-                    s4_special_packet <= s3_special_packet; s4_round_needed <= s3_round_needed;
-                    s4_normalize <= s3_normalize; s4_norm_count <= normalize_count;
-                    s4_sign <= s3_sign; s4_exp <= s3_exp; s4_sig <= s3_sig;
+                    s4_special_packet <= s3_special_packet;
+                    s4_round_needed <= s3_mul_work ? 1'b1 : s3_round_needed;
+                    s4_normalize <= s3_mul_work ? 1'b0 : s3_normalize;
+                    s4_norm_count <= normalize_count;
+                    s4_sign <= s3_sign;
+                    if (s3_mul_work) begin
+                        if (s4_mul_product[105]) begin
+                            s4_sig <= s4_mul_product[105:50];
+                            s4_sig[0] <= s4_mul_product[50] | (|s4_mul_product[49:0]);
+                            s4_exp <= s3_exp + 1'b1;
+                        end
+                        else begin
+                            s4_sig <= s4_mul_product[104:49];
+                            s4_sig[0] <= s4_mul_product[49] | (|s4_mul_product[48:0]);
+                            s4_exp <= s3_exp;
+                        end
+                    end
+                    else begin
+                        s4_exp <= s3_exp; s4_sig <= s3_sig;
+                    end
                     s4_single <= s3_single; s4_rm <= s3_rm;
                     s4_dest_pr <= s3_dest_pr; s4_rob_idx <= s3_rob_idx;
                 end
@@ -702,10 +894,20 @@ module fpu_arithmetic #(
             if (s6_ready) begin
                 s6_valid <= s5_valid;
                 if (s5_valid) begin
-                    s6_packet <= s5_round_needed
-                        ? round_pack(s5_sign, s5_exp, s5_sig, s5_single, s5_rm)
-                        : s5_special_packet;
+                    s6_special_packet <= s5_special_packet;
+                    s6_round_needed <= s5_round_needed;
+                    s6_round_pre <= s5_round_needed
+                        ? round_prepare(s5_sign, s5_exp, s5_sig, s5_single, s5_rm)
+                        : '0;
                     s6_dest_pr <= s5_dest_pr; s6_rob_idx <= s5_rob_idx;
+                end
+            end
+            if (s7_ready) begin
+                s7_valid <= s6_valid;
+                if (s6_valid) begin
+                    s7_packet <= s6_round_needed
+                        ? round_finish(s6_round_pre) : s6_special_packet;
+                    s7_dest_pr <= s6_dest_pr; s7_rob_idx <= s6_rob_idx;
                 end
             end
             if (out_slot_ready) begin
@@ -713,9 +915,9 @@ module fpu_arithmetic #(
                     out_valid <= 1'b1; out_result_d <= slow_packet.result; out_except <= slow_packet.except;
                     out_dest_pr <= slow_dest_pr; out_rob_idx <= slow_rob_idx; slow_pending <= 1'b0;
                 end
-                else if (s6_valid) begin
-                    out_valid <= 1'b1; out_result_d <= s6_packet.result; out_except <= s6_packet.except;
-                    out_dest_pr <= s6_dest_pr; out_rob_idx <= s6_rob_idx;
+                else if (s7_valid) begin
+                    out_valid <= 1'b1; out_result_d <= s7_packet.result; out_except <= s7_packet.except;
+                    out_dest_pr <= s7_dest_pr; out_rob_idx <= s7_rob_idx;
                 end
                 else out_valid <= 1'b0;
             end
@@ -816,10 +1018,8 @@ module fpu_arithmetic #(
                 slow_remainder <= div_remainder_next;
                 slow_quotient <= div_quotient_next;
                 if (slow_count == 54) begin
-                    slow_state <= SLOW_IDLE; slow_pending <= 1'b1;
-                    slow_packet <= round_pack(slow_sign, slow_exp,
-                        {div_quotient_next[55:1], (div_quotient_next[0] | (|div_remainder_next))},
-                        slow_single, slow_rm);
+                    slow_pack_sig <= {div_quotient_next[55:1], (div_quotient_next[0] | (|div_remainder_next))};
+                    slow_state <= SLOW_PACK_PREP;
                 end
                 else slow_count <= slow_count + 1'b1;
             end
@@ -827,12 +1027,20 @@ module fpu_arithmetic #(
                 slow_sqrt_remainder <= sqrt_remainder_next; slow_root <= sqrt_root_next;
                 slow_radicand <= {slow_radicand[109:0],2'b0};
                 if (slow_count == 55) begin
-                    slow_state <= SLOW_IDLE; slow_pending <= 1'b1;
-                    slow_packet <= round_pack(1'b0, slow_exp,
-                        {sqrt_root_next[55:1], (sqrt_root_next[0] | (|sqrt_remainder_next))},
-                        slow_single, slow_rm);
+                    slow_pack_sig <= {sqrt_root_next[55:1], (sqrt_root_next[0] | (|sqrt_remainder_next))};
+                    slow_state <= SLOW_PACK_PREP;
                 end
                 else slow_count <= slow_count + 1'b1;
+            end
+            else if (slow_state == SLOW_PACK_PREP) begin
+                slow_round_pre <= round_prepare(slow_op == OP_SQRT ? 1'b0 : slow_sign,
+                    slow_exp, slow_pack_sig, slow_single, slow_rm);
+                slow_state <= SLOW_PACK_FINISH;
+            end
+            else if (slow_state == SLOW_PACK_FINISH) begin
+                slow_packet <= round_finish(slow_round_pre);
+                slow_state <= SLOW_IDLE;
+                slow_pending <= 1'b1;
             end
         end
     end
