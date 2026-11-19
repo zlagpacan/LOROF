@@ -58,7 +58,7 @@ module fpu_arithmetic_tb #(
 		fpp::fpu_except_t except;
 	} expected_packet_t;
 	logic delay_fast_outputs, delay_slow_outputs;
-	expected_packet_t expected_packet_now, expected_packet_d1, expected_packet_d2, expected_packet_d3, expected_packet_d4, expected_packet_d5;
+	expected_packet_t expected_packet_now, expected_packet_d1, expected_packet_d2, expected_packet_d3, expected_packet_d4, expected_packet_d5, expected_packet_d6;
 	expected_packet_t expected_packet_slow_d1;
 	expected_packet_t expected_packet_check;
 
@@ -79,7 +79,8 @@ module fpu_arithmetic_tb #(
 		expected_packet_now = {expected_out_valid, expected_out_dest_pr, expected_out_rob_idx,
 			expected_out_result_d, expected_out_except};
 		if (delay_fast_outputs) begin
-			expected_packet_check = expected_packet_d5;
+			expected_packet_check = expected_packet_d6;
+			expected_packet_d6 = expected_packet_d5;
 			expected_packet_d5 = expected_packet_d4;
 			expected_packet_d4 = expected_packet_d3;
 			expected_packet_d3 = expected_packet_d2;
@@ -147,6 +148,7 @@ module fpu_arithmetic_tb #(
 		expected_packet_d3 = '0;
 		expected_packet_d4 = '0;
 		expected_packet_d5 = '0;
+		expected_packet_d6 = '0;
 		expected_packet_slow_d1 = '0;
 
 		test_case = "reset";
@@ -1583,6 +1585,9 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b0; check_outputs();
 		delay_fast_outputs = 1'b0;
+		@(posedge CLK); #(PERIOD/10);
+		expected_in_ready = 1'b1; expected_out_valid = 1'b0;
+		check_outputs();
 
 		test_case = "fast-pipeline output backpressure";
 		$display("\ntest %0d: %s", test_num, test_case);
@@ -1610,6 +1615,8 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b0; check_outputs();
 		@(negedge CLK); tb_in_valid = 1'b0;
+		@(posedge CLK); #(PERIOD/10);
+		expected_in_ready = 1'b1; expected_out_valid = 1'b0; check_outputs();
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b0; check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2294,11 +2301,13 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b0; expected_out_valid = 1'b0; check_outputs();
 		@(posedge CLK); #(PERIOD/10);
+		expected_in_ready = 1'b0; expected_out_valid = 1'b0; check_outputs();
+		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b0; expected_out_valid = 1'b1;
 		expected_out_dest_pr = 7'h62; expected_out_rob_idx = 7'h32;
 		expected_out_result_d = 64'hffffffff40400000; expected_out_except = 5'b00000;
 		check_outputs();
-		repeat (51) begin
+		repeat (50) begin
 			@(posedge CLK); #(PERIOD/10);
 			expected_in_ready = 1'b0; expected_out_valid = 1'b0; check_outputs();
 		end

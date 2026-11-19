@@ -208,17 +208,10 @@ initial begin
 	tb_in_A_d = 64'h0;
 	tb_in_A_s_boxed = 32'h40000000;
 	@(posedge CLK); #(PERIOD / 10);
-	expected_in_ready = 1'b0;
-	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h11;
-	expected_out_rob_idx = 7'h21;
-	expected_out_result_d = 64'h3ff0000000000000;
-	expected_out_except = 5'b00000;
-	check_outputs();
 	@(negedge CLK);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
-	expected_in_ready = 1'b0;
+	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
 	expected_out_dest_pr = 7'h11;
 	expected_out_rob_idx = 7'h21;
@@ -226,7 +219,7 @@ initial begin
 	expected_out_except = 5'b00000;
 	check_outputs();
 	@(posedge CLK); #(PERIOD / 10);
-	expected_in_ready = 1'b0;
+	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
 	expected_out_dest_pr = 7'h11;
 	expected_out_rob_idx = 7'h21;
@@ -234,7 +227,15 @@ initial begin
 	expected_out_except = 5'b00000;
 	check_outputs();
 	@(posedge CLK); #(PERIOD / 10);
-	expected_in_ready = 1'b0;
+	expected_in_ready = 1'b1;
+	expected_out_valid = 1'b1;
+	expected_out_dest_pr = 7'h11;
+	expected_out_rob_idx = 7'h21;
+	expected_out_result_d = 64'h3ff0000000000000;
+	expected_out_except = 5'b00000;
+	check_outputs();
+	@(posedge CLK); #(PERIOD / 10);
+	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
 	expected_out_dest_pr = 7'h11;
 	expected_out_rob_idx = 7'h21;
@@ -276,6 +277,9 @@ initial begin
 	tb_in_rob_idx = 7'h42;
 	tb_in_A_s_boxed = 32'h40000000;
 	@(posedge CLK); #(PERIOD / 10);
+	@(negedge CLK);
+	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
 	expected_out_dest_pr = 7'h31;
@@ -283,8 +287,6 @@ initial begin
 	expected_out_result_d = 64'h3ff0000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
-	@(negedge CLK);
-	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -319,6 +321,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -350,6 +353,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -383,6 +387,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -414,6 +419,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -447,6 +453,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -478,6 +485,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -511,6 +519,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -542,6 +551,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -575,6 +585,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -606,6 +617,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -639,6 +651,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -671,6 +684,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -702,6 +716,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -738,6 +753,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -769,6 +785,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -802,6 +819,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -833,6 +851,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -866,6 +885,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -897,6 +917,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -930,6 +951,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -961,6 +983,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -994,6 +1017,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -1025,6 +1049,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -1058,6 +1083,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -1089,6 +1115,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -1122,6 +1149,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -1153,6 +1181,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -1186,6 +1215,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -1217,6 +1247,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -1250,6 +1281,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -1281,6 +1313,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -1314,6 +1347,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -1345,6 +1379,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -1378,6 +1413,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -1409,6 +1445,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -1442,6 +1479,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -1473,6 +1511,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -1506,6 +1545,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -1537,6 +1577,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -1570,6 +1611,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -1601,6 +1643,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -1634,6 +1677,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -1665,6 +1709,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -1698,6 +1743,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -1729,6 +1775,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -1762,6 +1809,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -1793,6 +1841,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -1826,6 +1875,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -1857,6 +1907,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -1890,6 +1941,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -1921,6 +1973,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -1954,6 +2007,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -1985,6 +2039,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -2018,6 +2073,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -2049,6 +2105,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -2082,6 +2139,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -2114,6 +2172,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -2145,6 +2204,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -2181,6 +2241,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -2212,6 +2273,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -2245,6 +2307,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -2276,6 +2339,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -2309,6 +2373,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -2340,6 +2405,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -2373,6 +2439,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -2404,6 +2471,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -2437,6 +2505,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -2468,6 +2537,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -2501,6 +2571,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -2532,6 +2603,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -2565,6 +2637,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -2596,6 +2669,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -2629,6 +2703,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -2660,6 +2735,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -2693,6 +2769,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -2724,6 +2801,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -2757,6 +2835,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -2788,6 +2867,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -2821,6 +2901,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -2852,6 +2933,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -2885,6 +2967,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -2916,6 +2999,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -2949,6 +3033,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -2980,6 +3065,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -3013,6 +3099,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -3044,6 +3131,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -3077,6 +3165,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -3109,6 +3198,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -3140,6 +3230,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -3176,6 +3267,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -3207,6 +3299,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -3240,6 +3333,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -3271,6 +3365,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -3304,6 +3399,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -3335,6 +3431,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -3368,6 +3465,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -3399,6 +3497,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -3432,6 +3531,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -3463,6 +3563,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -3496,6 +3597,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -3527,6 +3629,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -3560,6 +3663,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -3591,6 +3695,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -3624,6 +3729,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -3655,6 +3761,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -3688,6 +3795,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -3719,6 +3827,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -3752,6 +3861,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -3783,6 +3893,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -3816,6 +3927,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -3847,6 +3959,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -3880,6 +3993,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -3911,6 +4025,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -3944,6 +4059,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -3975,6 +4091,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -4008,6 +4125,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -4039,6 +4157,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -4072,6 +4191,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -4103,6 +4223,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -4136,6 +4257,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -4167,6 +4289,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -4200,6 +4323,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -4231,6 +4355,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -4264,6 +4389,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -4295,6 +4421,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -4328,6 +4455,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -4359,6 +4487,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -4392,6 +4521,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -4423,6 +4553,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -4456,6 +4587,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -4487,6 +4619,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -4520,6 +4653,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -4551,6 +4685,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -4584,6 +4719,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -4615,6 +4751,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -4648,6 +4785,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -4679,6 +4817,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -4712,6 +4851,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -4743,6 +4883,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -4776,6 +4917,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -4808,6 +4950,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
+	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
@@ -4839,6 +4982,7 @@ initial begin
 
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;
@@ -4873,6 +5017,7 @@ initial begin
 	tb_out_ready = 1'b1;
 	@(posedge CLK); #(PERIOD / 10);
 	tb_in_valid = 1'b0;
+	@(posedge CLK); #(PERIOD / 10);
 	@(posedge CLK); #(PERIOD / 10);
 	// outputs
 	expected_in_ready = 1'b1;

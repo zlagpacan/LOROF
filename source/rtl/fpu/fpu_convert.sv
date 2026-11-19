@@ -44,7 +44,7 @@ module fpu_convert #(
     output fpp::fpu_except_t    out_except
 );
 
-    // 2x elastic pipeline registers
+    // 3x elastic pipeline registers
 
     // possible exceptions
         // fp -> int
@@ -61,10 +61,13 @@ module fpu_convert #(
     // ----------------------------------------------------------------
     // Signals:
 
-    // Two-stage elastic pipeline control
+    // Three-stage elastic pipeline control. Integer-to-float normalization
+    // is registered separately from rounding/packing to shorten its path.
+    logic output_ready;
     logic stage1_ready;
     logic stage2_ready;
     logic stage1_valid;
+    logic stage2_valid;
     logic stage1_int_to_fp;
     logic stage1_int_single;
     logic stage1_int_sign;
@@ -122,7 +125,24 @@ module fpu_convert #(
     corep::pr_t stage1_dest_pr;
     corep::rob_idx_t stage1_rob_idx;
 
-    logic [63:0] stage2_normalized_integer;
+    logic stage2_int_to_fp;
+    logic stage2_int_single;
+    logic stage2_int_sign;
+    logic stage2_int_nonzero;
+    logic [5:0] stage2_int_msb_index;
+    logic [2:0] stage2_int_rm;
+    logic [63:0] stage2_normalized_int_reg;
+    fpp::double_t stage2_result_reg;
+    fpp::fpu_except_t stage2_except_reg;
+    corep::pr_t stage2_dest_pr;
+    corep::rob_idx_t stage2_rob_idx;
+    fpp::double_t stage3_result;
+    fpp::fpu_except_t stage3_except;
+    logic [24:0] stage3_rounded_sig_s;
+    logic [53:0] stage3_rounded_sig_d;
+    logic stage3_guard, stage3_round, stage3_sticky;
+    logic stage3_inexact, stage3_round_up;
+
     logic [24:0] stage2_rounded_sig_s;
     logic [53:0] stage2_rounded_sig_d;
     logic [63:0] stage2_integer_result;
@@ -150,6 +170,11 @@ module fpu_convert #(
     logic in_A_is_inf_d;
 
     logic [2:0] final_rm;
+
+    // The middle format bit is fixed by supported encodings. Decode only the
+    // operation bits and the low format bit that distinguish supported ops.
+    logic [6:0] in_funct7_decode;
+    assign in_funct7_decode = {in_funct7[6:2], 1'b0, in_funct7[0]};
 
     // Shared conversion datapath temporaries. Keep these at module scope so
     // the combinational block remains compatible with the project tool flow.
@@ -184,7 +209,8 @@ module fpu_convert #(
 
     // Control logic
     always_comb begin
-        stage2_ready = ~out_valid | out_ready;
+        output_ready = ~out_valid | out_ready;
+        stage2_ready = ~stage2_valid | output_ready;
         stage1_ready = ~stage1_valid | stage2_ready;
         in_ready = stage1_ready;
     end
@@ -196,13 +222,120 @@ module fpu_convert #(
             out_result_d <= 64'h0;
             out_except <= 5'h0;
         end
+        else if (output_ready) begin
+            out_valid <= stage2_valid;
+            if (stage2_valid) begin
+                out_dest_pr <= stage2_dest_pr;
+                out_rob_idx <= stage2_rob_idx;
+                out_result_d <= stage3_result;
+                out_except <= stage3_except;
+            end
+        end
+    end
+
+    always_ff @ (posedge CLK, negedge nRST) begin
+        if (~nRST) begin
+            stage2_valid <= 1'b0;
+            stage2_int_to_fp <= 1'b0;
+            stage2_int_single <= 1'b0;
+            stage2_int_sign <= 1'b0;
+            stage2_int_nonzero <= 1'b0;
+            stage2_int_msb_index <= '0;
+            stage2_int_rm <= '0;
+            stage2_normalized_int_reg <= '0;
+            stage2_result_reg <= '0;
+            stage2_except_reg <= '0;
+            stage2_dest_pr <= '0;
+            stage2_rob_idx <= '0;
+        end
         else if (stage2_ready) begin
-            out_valid <= stage1_valid;
+            stage2_valid <= stage1_valid;
             if (stage1_valid) begin
-                out_dest_pr <= stage1_dest_pr;
-                out_rob_idx <= stage1_rob_idx;
-                out_result_d <= stage2_result;
-                out_except <= stage2_except;
+                stage2_int_to_fp <= stage1_int_to_fp;
+                stage2_int_single <= stage1_int_single;
+                stage2_int_sign <= stage1_int_sign;
+                stage2_int_nonzero <= stage1_int_nonzero;
+                stage2_int_msb_index <= stage1_int_msb_index;
+                stage2_int_rm <= stage1_int_rm;
+                stage2_normalized_int_reg <= stage1_int_nonzero
+                    ? (stage1_int_magnitude << (63-stage1_int_msb_index)) : '0;
+                stage2_result_reg <= stage2_result;
+                stage2_except_reg <= stage2_except;
+                stage2_dest_pr <= stage1_dest_pr;
+                stage2_rob_idx <= stage1_rob_idx;
+            end
+        end
+    end
+
+    always_comb begin
+        stage3_result = stage2_result_reg;
+        stage3_except = stage2_except_reg;
+        stage3_rounded_sig_s = '0;
+        stage3_rounded_sig_d = '0;
+        stage3_guard = 1'b0;
+        stage3_round = 1'b0;
+        stage3_sticky = 1'b0;
+        stage3_inexact = 1'b0;
+        stage3_round_up = 1'b0;
+
+        if (stage2_int_to_fp) begin
+            stage3_except = '0;
+            if (stage2_int_single) begin
+                stage3_result.sign = 1'b1;
+                stage3_result.exp = 11'h7FF;
+                stage3_result.mant.upper = 20'hFFFFF;
+                stage3_result.mant.single.sign = stage2_int_sign;
+                if (stage2_int_nonzero) begin
+                    stage3_guard = stage2_normalized_int_reg[39];
+                    stage3_round = stage2_normalized_int_reg[38];
+                    stage3_sticky = |stage2_normalized_int_reg[37:0];
+                    stage3_inexact = stage3_guard | stage3_round | stage3_sticky;
+                    case (stage2_int_rm)
+                        fpp::RM_RNE: stage3_round_up = stage3_guard & (stage3_round | stage3_sticky | stage2_normalized_int_reg[40]);
+                        fpp::RM_RTZ: stage3_round_up = 1'b0;
+                        fpp::RM_RDN: stage3_round_up = stage2_int_sign & stage3_inexact;
+                        fpp::RM_RUP: stage3_round_up = ~stage2_int_sign & stage3_inexact;
+                        fpp::RM_RMM: stage3_round_up = stage3_guard;
+                        default: stage3_round_up = 1'b0;
+                    endcase
+                    stage3_rounded_sig_s = {1'b0,stage2_normalized_int_reg[63:40]} + stage3_round_up;
+                    stage3_result.mant.single.exp = stage3_rounded_sig_s[24]
+                        ? stage2_int_msb_index + 8'd128
+                        : stage2_int_msb_index + 8'd127;
+                    stage3_result.mant.single.mant = stage3_rounded_sig_s[24]
+                        ? stage3_rounded_sig_s[23:1]
+                        : stage3_rounded_sig_s[22:0];
+                    stage3_except.NX = stage3_inexact;
+                end
+                else begin
+                    stage3_result.mant.single.exp = 8'h00;
+                    stage3_result.mant.single.mant = '0;
+                end
+            end
+            else begin
+                stage3_result.sign = stage2_int_sign;
+                if (stage2_int_nonzero) begin
+                    stage3_guard = stage2_normalized_int_reg[10];
+                    stage3_round = stage2_normalized_int_reg[9];
+                    stage3_sticky = |stage2_normalized_int_reg[8:0];
+                    stage3_inexact = stage3_guard | stage3_round | stage3_sticky;
+                    case (stage2_int_rm)
+                        fpp::RM_RNE: stage3_round_up = stage3_guard & (stage3_round | stage3_sticky | stage2_normalized_int_reg[11]);
+                        fpp::RM_RTZ: stage3_round_up = 1'b0;
+                        fpp::RM_RDN: stage3_round_up = stage2_int_sign & stage3_inexact;
+                        fpp::RM_RUP: stage3_round_up = ~stage2_int_sign & stage3_inexact;
+                        fpp::RM_RMM: stage3_round_up = stage3_guard;
+                        default: stage3_round_up = 1'b0;
+                    endcase
+                    stage3_rounded_sig_d = {1'b0,stage2_normalized_int_reg[63:11]} + stage3_round_up;
+                    stage3_result.exp = stage2_int_msb_index + 11'd1023 + stage3_rounded_sig_d[53];
+                    stage3_result.mant = stage3_rounded_sig_d[53] ? 52'b0 : stage3_rounded_sig_d[51:0];
+                    stage3_except.NX = stage3_inexact;
+                end
+                else begin
+                    stage3_result.exp = '0;
+                    stage3_result.mant = '0;
+                end
             end
         end
     end
@@ -281,7 +414,6 @@ module fpu_convert #(
     always_comb begin
         stage2_result = stage1_result;
         stage2_except = stage1_except;
-        stage2_normalized_integer = '0;
         stage2_rounded_sig_s = '0;
         stage2_rounded_sig_d = '0;
         stage2_integer_result = '0;
@@ -394,65 +526,8 @@ module fpu_convert #(
         end
         else if (stage1_int_to_fp) begin
             stage2_except = '0;
-            if (stage1_int_single) begin
-                stage2_result.sign = 1'b1;
-                stage2_result.exp = 11'h7FF;
-                stage2_result.mant.upper = 20'hFFFFF;
-                stage2_result.mant.single.sign = stage1_int_sign;
-                if (stage1_int_nonzero) begin
-                    stage2_normalized_integer = stage1_int_magnitude << (63-stage1_int_msb_index);
-                    stage2_guard = stage2_normalized_integer[39];
-                    stage2_round = stage2_normalized_integer[38];
-                    stage2_sticky = |stage2_normalized_integer[37:0];
-                    stage2_inexact = stage2_guard | stage2_round | stage2_sticky;
-                    case (stage1_int_rm)
-                        fpp::RM_RNE: stage2_round_up = stage2_guard & (stage2_round | stage2_sticky | stage2_normalized_integer[40]);
-                        fpp::RM_RTZ: stage2_round_up = 1'b0;
-                        fpp::RM_RDN: stage2_round_up = stage1_int_sign & stage2_inexact;
-                        fpp::RM_RUP: stage2_round_up = ~stage1_int_sign & stage2_inexact;
-                        fpp::RM_RMM: stage2_round_up = stage2_guard;
-                        default: stage2_round_up = 1'b0;
-                    endcase
-                    stage2_rounded_sig_s = {1'b0, stage2_normalized_integer[63:40]} + stage2_round_up;
-                    stage2_result.mant.single.exp = stage2_rounded_sig_s[24]
-                        ? stage1_int_msb_index + 8'd128
-                        : stage1_int_msb_index + 8'd127;
-                    stage2_result.mant.single.mant = stage2_rounded_sig_s[24]
-                        ? stage2_rounded_sig_s[23:1]
-                        : stage2_rounded_sig_s[22:0];
-                    stage2_except.NX = stage2_inexact;
-                end
-                else begin
-                    stage2_result.mant.single.exp = 8'h00;
-                    stage2_result.mant.single.mant = 23'b0;
-                end
-            end
-            else begin
-                stage2_result.sign = stage1_int_sign;
-                if (stage1_int_nonzero) begin
-                    stage2_normalized_integer = stage1_int_magnitude << (63-stage1_int_msb_index);
-                    stage2_guard = stage2_normalized_integer[10];
-                    stage2_round = stage2_normalized_integer[9];
-                    stage2_sticky = |stage2_normalized_integer[8:0];
-                    stage2_inexact = stage2_guard | stage2_round | stage2_sticky;
-                    case (stage1_int_rm)
-                        fpp::RM_RNE: stage2_round_up = stage2_guard & (stage2_round | stage2_sticky | stage2_normalized_integer[11]);
-                        fpp::RM_RTZ: stage2_round_up = 1'b0;
-                        fpp::RM_RDN: stage2_round_up = stage1_int_sign & stage2_inexact;
-                        fpp::RM_RUP: stage2_round_up = ~stage1_int_sign & stage2_inexact;
-                        fpp::RM_RMM: stage2_round_up = stage2_guard;
-                        default: stage2_round_up = 1'b0;
-                    endcase
-                    stage2_rounded_sig_d = {1'b0, stage2_normalized_integer[63:11]} + stage2_round_up;
-                    stage2_result.exp = stage1_int_msb_index + 11'd1023 + stage2_rounded_sig_d[53];
-                    stage2_result.mant = stage2_rounded_sig_d[53] ? 52'b0 : stage2_rounded_sig_d[51:0];
-                    stage2_except.NX = stage2_inexact;
-                end
-                else begin
-                    stage2_result.exp = '0;
-                    stage2_result.mant = '0;
-                end
-            end
+            // The integer normalization shift is captured in stage2. Rounding
+            // and final exponent/mantissa packing happen in stage3.
         end
     end
 
@@ -552,10 +627,10 @@ module fpu_convert #(
         next_out_except.UF = 1'b0;
         next_out_except.NX = 1'b0;
 
-        if ((in_funct7 == 7'b1100000) | (in_funct7 == 7'b1100001)) begin
+        if ((in_funct7_decode == 7'b1100000) | (in_funct7_decode == 7'b1100001)) begin
             integer_signed = (in_funct5 == 5'b00000) | (in_funct5 == 5'b00010);
             integer_is_32 = (in_funct5 == 5'b00000) | (in_funct5 == 5'b00001);
-            if (in_funct7 == 7'b1100000) begin
+            if (in_funct7_decode == 7'b1100000) begin
                 fp_src_sign = in_A_s_boxed.sign;
                 fp_src_is_nan = in_A_is_nan_s;
                 fp_src_is_inf = in_A_is_inf_s;
@@ -607,7 +682,7 @@ module fpu_convert #(
             stage1_fp_rm_next = final_rm;
         end
         else begin
-        casez (in_funct7)
+        casez (in_funct7_decode)
 
             7'b0100000: begin
                 // double -> single
@@ -810,7 +885,7 @@ module fpu_convert #(
                 integer_sign = integer_signed && integer_input[63];
 
                 stage1_int_to_fp_next = 1'b1;
-                stage1_int_single_next = (in_funct7 == 7'b1101000);
+                stage1_int_single_next = (in_funct7_decode == 7'b1101000);
                 stage1_int_sign_next = integer_sign;
                 stage1_int_nonzero_next = integer_magnitude_nonzero;
                 stage1_int_magnitude_next = integer_magnitude;

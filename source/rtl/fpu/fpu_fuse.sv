@@ -225,12 +225,12 @@ module fpu_fuse #(
         end
     endfunction
 
-    function automatic op_t decode_op(input logic [6:0] opcode7);
-        case (opcode7)
-            7'b1000011: return OP_MADD;
-            7'b1000111: return OP_MSUB;
-            7'b1001011: return OP_NMSUB;
-            7'b1001111: return OP_NMADD;
+    function automatic op_t decode_op(input logic [1:0] fuse_op);
+        case (fuse_op)
+            2'b00: return OP_MADD;
+            2'b01: return OP_MSUB;
+            2'b10: return OP_NMSUB;
+            2'b11: return OP_NMADD;
             default: return OP_BAD;
         endcase
     endfunction
@@ -409,8 +409,8 @@ module fpu_fuse #(
         operand_t A, B, C;
         logic invalid_product, invalid_inf_sum;
         input_txn = '0;
-        op = decode_op(in_opcode7);
-        single = (in_funct2 == 2'b00);
+        op = decode_op(in_opcode7[3:2]);
+        single = ~in_funct2[0];
         negate_product = (op == OP_NMSUB) || (op == OP_NMADD);
         negate_c = (op == OP_MSUB) || (op == OP_NMADD);
         A = decode_operand(in_A_d, in_A_s_boxed, single);
@@ -426,7 +426,7 @@ module fpu_fuse #(
         input_txn.meta.C = C;
         input_txn.meta.dest_pr = in_dest_pr;
         input_txn.meta.rob_idx = in_rob_idx;
-        if (op == OP_BAD || !(in_funct2 inside {2'b00,2'b01})) begin
+        if (op == OP_BAD) begin
             if (single) input_txn.meta.special_packet.result = 64'hffffffff7fc00000;
             else input_txn.meta.special_packet.result = 64'h7ff8000000000000;
         end

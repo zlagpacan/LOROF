@@ -73,19 +73,27 @@ module fpu_arithmetic #(
         logic signed [12:0] exp;
     } operand_t;
 
-    // Fast elastic pipeline: input/predecode, arithmetic/round, output.
+    // Fast elastic pipeline: decode, normalize-count, arithmetic/round, output.
+    logic p0_valid, p0_ready;
     logic f0_valid, f0_ready;
     logic s1_valid, s2_valid, s3_valid, s4_valid, s5_valid, s6_valid, s7_valid;
     logic s1_ready, s2_ready, s3_ready, s4_ready, s5_ready, s6_ready, s7_ready, out_slot_ready;
     op_t s1_op;
+    op_t p0_op;
     op_t f0_op;
     logic s1_single;
+    logic p0_single;
     logic f0_single;
     logic [2:0] s1_rm;
+    logic [2:0] p0_rm;
     logic [2:0] f0_rm;
     operand_t s1_A_norm, s1_B_norm;
+    operand_t p0_A_decoded, p0_B_decoded;
     operand_t f0_A_decoded, f0_B_decoded, f0_A_norm, f0_B_norm;
+    logic [5:0] p0_A_norm_count, p0_B_norm_count;
     logic [5:0] f0_A_norm_count, f0_B_norm_count;
+    corep::pr_t p0_dest_pr;
+    corep::rob_idx_t p0_rob_idx;
     corep::pr_t f0_dest_pr;
     corep::rob_idx_t f0_rob_idx;
     corep::pr_t s1_dest_pr;
@@ -155,7 +163,6 @@ module fpu_arithmetic #(
     logic in_slow_special;
     logic [2:0] in_rm;
     operand_t in_A_decoded, in_B_decoded;
-    logic [5:0] input_A_norm_count, input_B_norm_count;
     logic signed [12:0] calc_exp;
     logic [55:0] calc_sig;
     logic calc_sign, calc_zero;
@@ -178,13 +185,13 @@ module fpu_arithmetic #(
     logic round_lost, round_inexact, round_inc, round_subnormal;
     logic signed [12:0] round_exp;
 
-    function automatic op_t decode_op(input logic [6:0] funct7);
-        case (funct7)
-            7'b0000000, 7'b0000001: return OP_ADD;
-            7'b0000100, 7'b0000101: return OP_SUB;
-            7'b0001000, 7'b0001001: return OP_MUL;
-            7'b0001100, 7'b0001101: return OP_DIV;
-            7'b0101100, 7'b0101101: return OP_SQRT;
+    function automatic op_t decode_op(input logic [4:0] funct5);
+        case (funct5)
+            5'b00000: return OP_ADD;
+            5'b00001: return OP_SUB;
+            5'b00010: return OP_MUL;
+            5'b00011: return OP_DIV;
+            5'b01011: return OP_SQRT;
             default: return OP_BAD;
         endcase
     endfunction
@@ -514,19 +521,19 @@ module fpu_arithmetic #(
 
     // Decode and shared operand preparation.
     always_comb begin
-        in_op = decode_op(in_funct7);
+        in_op = decode_op(in_funct7[6:2]);
         if ((in_op == OP_SQRT) && (in_funct5 != 5'b00000)) in_op = OP_BAD;
         in_single = ~in_funct7[0];
         in_rm = (in_instr_rm == fpp::RM_DYN) ? in_fcsr_rm : in_instr_rm;
         in_slow = (in_op == OP_DIV) | (in_op == OP_SQRT);
         in_A_decoded = decode_operand(in_A_d, in_A_s_boxed, in_single);
         in_B_decoded = decode_operand(in_B_d, in_B_s_boxed, in_single);
-        input_A_norm_count = '0;
-        input_B_norm_count = '0;
-        if (!in_A_decoded.nan && !in_A_decoded.inf && !in_A_decoded.zero)
-            input_A_norm_count = leading_zeros_53(in_A_decoded.sig);
-        if (!in_B_decoded.nan && !in_B_decoded.inf && !in_B_decoded.zero)
-            input_B_norm_count = leading_zeros_53(in_B_decoded.sig);
+        p0_A_norm_count = '0;
+        p0_B_norm_count = '0;
+        if (!p0_A_decoded.nan && !p0_A_decoded.inf && !p0_A_decoded.zero)
+            p0_A_norm_count = leading_zeros_53(p0_A_decoded.sig);
+        if (!p0_B_decoded.nan && !p0_B_decoded.inf && !p0_B_decoded.zero)
+            p0_B_norm_count = leading_zeros_53(p0_B_decoded.sig);
         f0_A_norm = f0_A_decoded;
         f0_B_norm = f0_B_decoded;
         if (f0_A_norm_count != 0) begin
@@ -744,9 +751,10 @@ module fpu_arithmetic #(
         s2_ready = ~s2_valid | s3_ready;
         s1_ready = ~s1_valid | s2_ready;
         f0_ready = ~f0_valid | s1_ready;
+        p0_ready = ~p0_valid | f0_ready;
         in_ready = in_slow
             ? ((slow_state == SLOW_IDLE) & ~slow_pending)
-            : f0_ready;
+            : p0_ready;
         div_rem_initial = '0;
         div_exp_initial = slow_A_norm.exp - slow_B_norm.exp;
         slow_A_norm_count_comb = '0;
@@ -767,6 +775,9 @@ module fpu_arithmetic #(
 
     always_ff @(posedge CLK or negedge nRST) begin
         if (!nRST) begin
+            p0_valid <= 1'b0; p0_op <= OP_BAD; p0_single <= 1'b0; p0_rm <= '0;
+            p0_A_decoded <= '0; p0_B_decoded <= '0;
+            p0_dest_pr <= '0; p0_rob_idx <= '0;
             f0_valid <= 1'b0; f0_op <= OP_BAD; f0_single <= 1'b0; f0_rm <= '0;
             f0_A_decoded <= '0; f0_B_decoded <= '0;
             f0_A_norm_count <= '0; f0_B_norm_count <= '0;
@@ -809,12 +820,20 @@ module fpu_arithmetic #(
         end
         else begin
             if (f0_ready) begin
-                f0_valid <= in_valid & in_ready & ~in_slow;
+                f0_valid <= p0_valid;
+                if (p0_valid) begin
+                    f0_op <= p0_op; f0_single <= p0_single; f0_rm <= p0_rm;
+                    f0_A_decoded <= p0_A_decoded; f0_B_decoded <= p0_B_decoded;
+                    f0_A_norm_count <= p0_A_norm_count; f0_B_norm_count <= p0_B_norm_count;
+                    f0_dest_pr <= p0_dest_pr; f0_rob_idx <= p0_rob_idx;
+                end
+            end
+            if (p0_ready) begin
+                p0_valid <= in_valid & in_ready & ~in_slow;
                 if (in_valid && in_ready && !in_slow) begin
-                    f0_op <= in_op; f0_single <= in_single; f0_rm <= in_rm;
-                    f0_A_decoded <= in_A_decoded; f0_B_decoded <= in_B_decoded;
-                    f0_A_norm_count <= input_A_norm_count; f0_B_norm_count <= input_B_norm_count;
-                    f0_dest_pr <= in_dest_pr; f0_rob_idx <= in_rob_idx;
+                    p0_op <= in_op; p0_single <= in_single; p0_rm <= in_rm;
+                    p0_A_decoded <= in_A_decoded; p0_B_decoded <= in_B_decoded;
+                    p0_dest_pr <= in_dest_pr; p0_rob_idx <= in_rob_idx;
                 end
             end
             if (s1_ready) begin
