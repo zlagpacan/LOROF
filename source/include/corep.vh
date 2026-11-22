@@ -72,8 +72,11 @@ package corep;
         // ALU reg-imm
     parameter int unsigned LOG_FAST_FORWARD_PIPE_COUNT = $clog2(FAST_FORWARD_PIPE_COUNT);
 
-    parameter int unsigned PRF_RR_COUNT = 9;
+    parameter int unsigned PRF_RR_COUNT = 12;
         // LDU A
+        // FPU A
+        // FPU B
+        // FPU C
         // ALU Reg-Reg / MDU A
         // ALU Reg-Reg / MDU B
         // ALU Reg-Imm A
@@ -85,12 +88,13 @@ package corep;
     parameter int unsigned PRF_RR_INPUT_BUFFER_SIZE = IS_OC_BUFFER_SIZE;
     parameter int unsigned OC_ENTRIES = IS_OC_BUFFER_SIZE + 1;
     
-    parameter int unsigned PRF_WR_COUNT = 8;
+    parameter int unsigned PRF_WR_COUNT = 9;
         // WR_BUF
         // LDU bank 0
         // LDU bank 1
-        // ALU Reg-Reg
+        // FPU
         // MDU
+        // ALU Reg-Reg
         // ALU Reg-Imm
         // BRU
         // SYSU
