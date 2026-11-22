@@ -38,8 +38,9 @@ def parse_design(design_lines):
     # iterate through design lines looking for design name
     design_name = None
     for line in design_lines:
-        if line.lstrip().startswith("module"):
-            design_name = line[len("module"):].lstrip().rstrip().rstrip("(#").rstrip()
+        match = re.match(r"\s*module\s+(?:(?:automatic|static)\s+)?([a-zA-Z_][\w$]*)", line)
+        if match:
+            design_name = match.group(1)
             break
 
     assert design_name, "could not find design name"
@@ -473,6 +474,9 @@ if __name__ == "__main__":
             
     # parse design
     design_name, design_signals, design_params, design_includes_and_imports = parse_design(design_lines)
+    file_name = os.path.basename(args.design_file_path)
+    if design_name != os.path.splitext(file_name)[0]:
+        parser.error(f"module name {design_name!r} does not match file name {file_name!r}")
 
     # generate wrapper
     output_lines = generate_wrapper(wrapper_base_lines, design_name, design_signals, design_params, design_includes_and_imports)

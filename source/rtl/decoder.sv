@@ -315,7 +315,7 @@ module decoder (
                             // C.ADDI4SPN
                                 // ADDI rd', sp/x2, uimm
                             is_alu_imm = 1'b1;
-                            is_reg_write = 1'b1;
+                            dest_write = 1'b1;
                         end
                     end
 
@@ -570,8 +570,8 @@ module decoder (
                 endcase
             end
             
-            2'b10: // compressed 10
-            begin
+            2'b10: begin
+                // compressed 10
 
                 case (cinstr_funct3)
 
@@ -710,46 +710,42 @@ module decoder (
                     end
                 endcase
             end
-            
-            2'b11: // uncompressed
-            begin
+
+            2'b11: begin
+                // uncompressed 11
 
                 case (uncinstr_opcode_msbs) 
 
-                    5'b01101:
-                    begin
+                    5'b01101: begin
                         // LUI:
                         is_bru = 1'b1;
-                        op = 4'b0110;
-                        is_reg_write = 1'b1;
+                        op = instrp::BRU_LUI;
+                        dest_write = 1'b1;
                     end
 
-                    5'b00101:
-                    begin
+                    5'b00101: begin
                         // AUIPC:
                         is_bru = 1'b1;
-                        op = 4'b0111;
-                        is_reg_write = 1'b1;
+                        op = instrp::BRU_AUIPC;
+                        dest_write = 1'b1;
                     end
 
-                    5'b11011:
-                    begin
+                    5'b11011: begin
                         // JAL:
                         is_bru = 1'b1;
-                        op = 4'b0010;
-                        is_reg_write = 1'b1;
-                        use_pred_info = 1'b1;
+                        op = instrp::BRU_JAL;
+                        dest_write = 1'b1;
+                        instr_can_redirect = 1'b1;
                     end
 
-                    5'b11001:
-                    begin
+                    5'b11001: begin
                         if (uncinstr_funct3 == 3'b000) begin
                             // JALR:
                             is_bru = 1'b1;
-                            op = 4'b0000;
-                            is_reg_write = 1'b1;
+                            op = instrp::BRU_JALR;
+                            dest_write = 1'b1;
                             A_unneeded = 1'b0;
-                            use_pred_info = 1'b1;
+                            instr_can_redirect = 1'b1;
                         end
                         else begin
                             is_illegal_instr = 1'b1;
@@ -759,19 +755,47 @@ module decoder (
                     5'b11000:
                     begin
                         // Branch:
-                        op[3] = 1'b1;
-                        op[2:0] = uncinstr_funct3;
                         A_unneeded = 1'b0;
                         B_unneeded = 1'b0;
-                        use_pred_info = 1'b1;
+                        instr_can_redirect = 1'b1;
                         uncimm_type = 1'b1;
 
                         case (uncinstr_funct3)
 
-                            3'b000, 3'b001, 3'b100, 3'b101, 3'b110, 3'b111:
-                            begin
-                                // BEQ, BNE, BLT, BGE, BLTU, BGEU
+                            3'b000: begin
+                                // BEQ
                                 is_bru = 1'b1;
+                                op = instrp::BRU_BEQ;
+                            end
+
+                            3'b001: begin
+                                // BNE
+                                is_bru = 1'b1;
+                                op = instrp::BRU_BNE;
+                            end
+
+                            3'b100: begin
+                                // BLT
+                                is_bru = 1'b1;
+                                op = instrp::BRU_BLT;
+                            end
+
+                            3'b101: begin
+                                // BGE
+                                is_bru = 1'b1;
+                                op = instrp::BRU_BGE;
+                            end
+
+                            3'b110: begin
+                                // BLTU
+                                is_bru = 1'b1;
+                                op = instrp::BRU_BLTU;
+                            end
+
+                            3'b111: begin
+                                // BGEU
+                                is_bru = 1'b1;
+                                op = instrp::BRU_BGEU;
                             end
 
                             default:
@@ -781,19 +805,58 @@ module decoder (
                         endcase
                     end
 
-                    5'b00000:
-                    begin
+                    5'b00000: begin
                         // Load
-                        is_ldu = 1'b0;
-                        op[2:0] = uncinstr_funct3;
 
                         case (uncinstr_funct3)
 
-                            3'b000, 3'b001, 3'b010, 3'b100, 3'b101:
-                            begin
-                                // LB, LH, LW, LBU, LHU
+                            3'b000: begin
+                                // LB 
                                 is_ldu = 1'b1;
-                                is_reg_write = 1'b1;
+                                op = instrp::LDU_B_S;
+                                dest_write = 1'b1;
+                            end
+
+                            3'b001: begin
+                                // LH
+                                is_ldu = 1'b1;
+                                op = instrp::LDU_H_S;
+                                dest_write = 1'b1;
+                            end
+
+                            3'b010: begin
+                                // LW
+                                is_ldu = 1'b1;
+                                op = instrp::LDU_W_S;
+                                dest_write = 1'b1;
+                            end
+
+                            3'b011: begin
+                                // LD
+                                is_ldu = 1'b1;
+                                op = instrp::LDU_D_U;
+                                dest_write = 1'b1;
+                            end
+
+                            3'b100: begin
+                                // LBU
+                                is_ldu = 1'b1;
+                                op = instrp::LDU_B_U;
+                                dest_write = 1'b1;
+                            end
+
+                            3'b101: begin
+                                // LHU
+                                is_ldu = 1'b1;
+                                op = instrp::LDU_H_U;
+                                dest_write = 1'b1;
+                            end
+
+                            3'b110: begin
+                                // LWU
+                                is_ldu = 1'b1;
+                                op = instrp::LDU_W_U;
+                                dest_write = 1'b1;
                             end
 
                             default:
@@ -803,10 +866,9 @@ module decoder (
                         endcase
                     end
 
-                    5'b01000:
-                    begin
+                    5'b01000: begin
                         // Store
-                        op[2:0] = uncinstr_funct3;
+
                         uncimm_type = 1'b1;
 
                         case (uncinstr_funct3)
@@ -817,6 +879,30 @@ module decoder (
                                 is_store = 1'b1;
                             end
 
+                            3'b000: begin
+                                // SB
+                                is_store = 1'b1;
+                                op = instrp::ST_B;
+                            end
+
+                            3'b001: begin
+                                // SH
+                                is_store = 1'b1;
+                                op = instrp::ST_H;
+                            end
+
+                            3'b010: begin
+                                // SW
+                                is_store = 1'b1;
+                                op = instrp::ST_W;
+                            end
+
+                            3'b011: begin
+                                // SD
+                                is_store = 1'b1;
+                                op = instrp::ST_D;
+                            end
+
                             default:
                             begin
                                 is_illegal_instr = 1'b1;
@@ -824,210 +910,368 @@ module decoder (
                         endcase
                     end
 
-                    5'b00100:
-                    begin
+                    5'b00100: begin
                         // ALU Reg-Imm
-                        op[3] = uncfunct7_is_0bx1xxxxx;
-                        op[2:0] = uncinstr_funct3;
 
                         case (uncinstr_funct3)
 
-                            3'b000:
-                            begin
+                            3'b000: begin
                                 // ADDI
                                 is_alu_imm = 1'b1;
-                                is_reg_write = 1'b1;
+                                op = instrp::ALU_ADD;
+                                dest_write = 1'b1;
                             end
 
-                            3'b001:
-                            begin
+                            3'b001: begin
                                 if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
                                     is_illegal_instr = 1'b1;
                                 end
                                 else begin
                                     // SLLI
                                     is_alu_imm = 1'b1;
-                                    is_reg_write = 1'b1;
+                                    op = instrp::ALU_SLL;
+                                    dest_write = 1'b1;
                                 end
                             end
 
-                            3'b010:
-                            begin
+                            3'b010: begin
                                 // SLTI
                                 is_alu_imm = 1'b1;
-                                is_reg_write = 1'b1;
+                                op = instrp::ALU_SLT;
+                                dest_write = 1'b1;
                             end
 
-                            3'b011:
-                            begin
+                            3'b011: begin
                                 // SLTIU
                                 is_alu_imm = 1'b1;
-                                is_reg_write = 1'b1;
+                                op = instrp::ALU_SLTU;
+                                dest_write = 1'b1;
                             end
 
-                            3'b100:
-                            begin
+                            3'b100: begin
                                 // XORI
                                 is_alu_imm = 1'b1;
-                                is_reg_write = 1'b1;
+                                op = instrp::ALU_XOR;
+                                dest_write = 1'b1;
                             end
 
-                            3'b101:
-                            begin
+                            3'b101: begin
                                 if (uncfunct7_not_0b0x00000) begin
                                     is_illegal_instr = 1'b1;
                                 end 
                                 else if (uncfunct7_is_0bx0xxxxx) begin
                                     // SRLI
                                     is_alu_imm = 1'b1;
-                                    is_reg_write = 1'b1; 
+                                    op = instrp::ALU_SRL;
+                                    dest_write = 1'b1; 
                                 end
                                 else begin
                                     // SRAI
                                     is_alu_imm = 1'b1;
-                                    is_reg_write = 1'b1;
+                                    op = instrp::ALU_SRA;
+                                    dest_write = 1'b1;
                                 end
                             end
 
-                            3'b110:
-                            begin
+                            3'b110: begin
                                 // ORI
                                 is_alu_imm = 1'b1;
-                                is_reg_write = 1'b1;
+                                op = instrp::ALU_OR;
+                                dest_write = 1'b1;
                             end
 
-                            3'b111:
-                            begin
+                            3'b111: begin
                                 // ANDI
                                 is_alu_imm = 1'b1;
-                                is_reg_write = 1'b1;
+                                op = instrp::ALU_AND;
+                                dest_write = 1'b1;
                             end
                         endcase
                     end
 
-                    5'b01100:
-                    begin
+                    5'b00110: begin
+                        // ALU Reg-Imm W
+
+                        case (uncinstr_funct3)
+
+                            3'b000: begin
+                                // ADDIW
+                                is_alu_imm = 1'b1;
+                                op = instrp::ALU_ADDW;
+                                dest_write = 1'b1;
+                            end
+
+                            3'b001: begin
+                                if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                    is_illegal_instr = 1'b1;
+                                end
+                                else begin
+                                    // SLLIW
+                                    is_alu_imm = 1'b1;
+                                    op = instrp::ALU_SLLW;
+                                    dest_write = 1'b1;
+                                end
+                            end
+
+                            3'b101: begin
+                                if (uncfunct7_not_0b0x00000) begin
+                                    is_illegal_instr = 1'b1;
+                                end 
+                                else if (uncfunct7_is_0bx0xxxxx) begin
+                                    // SRLIW
+                                    is_alu_imm = 1'b1;
+                                    op = instrp::ALU_SRLW;
+                                    dest_write = 1'b1; 
+                                end
+                                else begin
+                                    // SRAIW
+                                    is_alu_imm = 1'b1;
+                                    op = instrp::ALU_SRAW;
+                                    dest_write = 1'b1;
+                                end
+                            end
+
+                            default: begin
+                                is_illegal_instr = 1'b1;
+                            end
+                        endcase
+                    end
+
+                    5'b01100: begin
                         // ALU Reg-Reg + M-Ext
-                        op[3] = uncfunct7_is_0bx1xxxxx;
-                        op[2:0] = uncinstr_funct3;
 
                         if (uncinstr_funct7 == 7'b0000001) begin
-                            // M-Ext
-                                // MUL, MULH, MULHSU, MULHU, DIV, DIVU, REM, REMU
-                            is_mdu = 1'b1;
-                            is_reg_write = 1'b1;
+
+                            case (uncinstr_funct3)
+
+                                3'b000: begin
+                                    // MUL
+                                    is_mdu = 1'b1;
+                                    op = instrp::MDU_MUL;
+                                    dest_write = 1'b1;
+                                end
+
+                                3'b001: begin
+                                    // MULH
+                                    is_mdu = 1'b1;
+                                    op = instrp::MDU_MULH;
+                                    dest_write = 1'b1;
+                                end
+
+                                3'b010: begin
+                                    // MULHSU
+                                    is_mdu = 1'b1;
+                                    op = instrp::MDU_MULHSU;
+                                    dest_write = 1'b1;
+                                end
+
+                                3'b011: begin
+                                    // MULHU
+                                    is_mdu = 1'b1;
+                                    op = instrp::MDU_MULHU;
+                                    dest_write = 1'b1;
+                                end
+
+                                3'b100: begin
+                                    // DIV
+                                    is_mdu = 1'b1;
+                                    op = instrp::MDU_DIV;
+                                    dest_write = 1'b1;
+                                end
+
+                                3'b101: begin
+                                    // DIVU
+                                    is_mdu = 1'b1;
+                                    op = instrp::MDU_DIVU;
+                                    dest_write = 1'b1;
+                                end
+
+                                3'b110: begin
+                                    // REM
+                                    is_mdu = 1'b1;
+                                    op = instrp::MDU_REM;
+                                    dest_write = 1'b1;
+                                end
+
+                                3'b111: begin
+                                    // REMU
+                                    is_mdu = 1'b1;
+                                    op = instrp::MDU_REMU;
+                                    dest_write = 1'b1;
+                                end
+
+                            endcase
                         end
                         else begin
                             // ALU Reg-Reg
 
                             case (uncinstr_funct3)
 
-                                3'b000:
-                                begin
+                                3'b000: begin
                                     if (uncfunct7_not_0b0x00000) begin
                                         is_illegal_instr = 1'b1;
                                     end
                                     else if (uncfunct7_is_0bx0xxxxx) begin
                                         // ADD
                                         is_alu_reg = 1'b1;
-                                        is_reg_write = 1'b1;
+                                        op = instrp::ALU_ADD;
+                                        dest_write = 1'b1;
                                     end
                                     else begin
                                         // SUB
                                         is_alu_reg = 1'b1;
-                                        is_reg_write = 1'b1;
+                                        op = instrp::ALU_SUB;
+                                        dest_write = 1'b1;
                                     end
                                 end
 
-                                3'b001:
-                                begin
+                                3'b001: begin
                                     if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
                                         is_illegal_instr = 1'b1;
                                     end
                                     else begin
                                         // SLL
                                         is_alu_reg = 1'b1;
-                                        is_reg_write = 1'b1;
+                                        op = instrp::ALU_SLL;
+                                        dest_write = 1'b1;
                                     end
                                 end
 
-                                3'b010:
-                                begin
+                                3'b010: begin
                                     if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
                                         is_illegal_instr = 1'b1;
                                     end
                                     else begin
                                         // SLT
                                         is_alu_reg = 1'b1;
-                                        is_reg_write = 1'b1;
+                                        op = instrp::ALU_SLT;
+                                        dest_write = 1'b1;
                                     end
                                 end
 
-                                3'b011:
-                                begin
+                                3'b011: begin
                                     if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
                                         is_illegal_instr = 1'b1;
                                     end
                                     else begin
                                         // SLTU
                                         is_alu_reg = 1'b1;
-                                        is_reg_write = 1'b1;
+                                        op = instrp::ALU_SLTU;
+                                        dest_write = 1'b1;
                                     end
                                 end
 
-                                3'b100:
-                                begin
+                                3'b100: begin
                                     if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
                                         is_illegal_instr = 1'b1;
                                     end
                                     else begin
                                         // XOR
                                         is_alu_reg = 1'b1;
-                                        is_reg_write = 1'b1;
+                                        op = instrp::ALU_XOR;
+                                        dest_write = 1'b1;
                                     end
                                 end
 
-                                3'b101:
-                                begin
+                                3'b101: begin
                                     if (uncfunct7_not_0b0x00000) begin
                                         is_illegal_instr = 1'b1;
                                     end
                                     else if (uncfunct7_is_0bx0xxxxx) begin
                                         // SRL
                                         is_alu_reg = 1'b1;
-                                        is_reg_write = 1'b1;
+                                        op = instrp::ALU_SRL;
+                                        dest_write = 1'b1;
                                     end
                                     else begin
                                         // SRA
                                         is_alu_reg = 1'b1;
-                                        is_reg_write = 1'b1;
+                                        op = instrp::ALU_SRA;
+                                        dest_write = 1'b1;
                                     end
                                 end
 
-                                3'b110:
-                                begin
+                                3'b110: begin
                                     if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
                                         is_illegal_instr = 1'b1;
                                     end
                                     else begin
                                         // OR
                                         is_alu_reg = 1'b1;
-                                        is_reg_write = 1'b1;
+                                        op = instrp::ALU_OR;
+                                        dest_write = 1'b1;
                                     end
                                 end
 
-                                3'b111:
-                                begin
+                                3'b111: begin
                                     if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
                                         is_illegal_instr = 1'b1;
                                     end
                                     else begin
                                         // AND
                                         is_alu_reg = 1'b1;
-                                        is_reg_write = 1'b1;
+                                        op = instrp::ALU_AND;
+                                        dest_write = 1'b1;
                                     end
                                 end
                             endcase
+                        end
+                    end
+
+                    5'b01110: begin
+                        // ALU Reg-Reg W + M-Ext W
+                        
+                        if (uncinstr_funct7 == 7'b0000001) begin
+                            // M-Ext W
+                            
+                            case (uncinstr_funct3)
+
+                                3'b000: begin
+                                    // MULW
+                                    is_mdu = 1'b1;
+                                    op = instrp::MDU_MULW;
+                                    dest_write = 1'b1;
+                                end
+
+                                3'b100: begin
+                                    // DIVW
+                                    is_mdu = 1'b1;
+                                    op = instrp::MDU_DIVW;
+                                    dest_write = 1'b1;
+                                end
+
+                                3'b101: begin
+                                    // DIVUW
+                                    is_mdu = 1'b1;
+                                    op = instrp::MDU_DIVUW;
+                                    dest_write = 1'b1;
+                                end
+
+                                3'b110: begin
+                                    // REMW
+                                    is_mdu = 1'b1;
+                                    op = instrp::MDU_REMW;
+                                    dest_write = 1'b1;
+                                end
+
+                                3'b111: begin
+                                    // REMUW
+                                    is_mdu = 1'b1;
+                                    op = instrp::MDU_REMUW;
+                                    dest_write = 1'b1;
+                                end
+
+                                default: begin
+                                    is_illegal_instr = 1'b1;
+                                end
+
+                            endcase
+                        end
+
+                        else begin
+                            // ALU Reg-Reg W
+
+                            // bookmark
                         end
                     end
 
