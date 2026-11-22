@@ -73,6 +73,7 @@ module decoder (
     output logic [19:0] imm20,
 
     // ordering
+    output logic wait_for_restart,
     output logic mem_aq,
     output logic io_aq,
     output logic mem_rl,
@@ -271,6 +272,7 @@ module decoder (
         A_unneeded = 1'b1;
         B_unneeded = 1'b1;
 
+        wait_for_restart = 1'b0;
         mem_aq = 1'b0;
         io_aq = 1'b0;
         mem_rl = 1'b0;
@@ -385,8 +387,6 @@ module decoder (
                     end
                 endcase
             end
-
-            // bookmark
 
             2'b01: begin
                 // compressed 01
@@ -569,59 +569,76 @@ module decoder (
                     end
                 endcase
             end
-
-            // bookmark
             
             2'b10: // compressed 10
             begin
 
                 case (cinstr_funct3)
 
-                    3'b000:
-                    begin
+                    3'b000: begin
                         // C.SLLI
                             // SLLI rd, rd, uimm
                         is_alu_imm = 1'b1;
-                        op[2:0] = 3'b001;
-                        is_reg_write = 1'b1;
-                        cA_AR = cinstr_rhigh;
-                        cdest_AR = cinstr_rhigh;
+                        op = instrp::ALU_SLL;
+                        dest_write = 1'b1;
+                        cA_ar6 = {1'b0, cinstr_rhigh};
+                        cdest_ar6 = {1'b0, cinstr_rhigh};
                         cimm20 = {14'h0, instr32[12], instr32[6:2]};
                     end
 
-                    3'b010:
-                    begin
+                    3'b001: begin
+                        // C.FLDSP
+                            // FLD frd, uimm(sp/x2)
+                        is_ldu = 1'b1;
+                        op = instrp::LDU_D_U;
+                        dest_write = 1'b1;
+                        cA_ar6 = {1'b0, 5'h02}; // sp
+                        cdest_ar6 = {1'b1, cinstr_rhigh};
+                        cimm20 = {11'h000, instr32[4:2], instr32[12], instr32[6:5], 3'h0};
+                    end
+
+                    3'b010: begin
                         // C.LWSP
                             // LW rd, uimm(sp/x2)
                         is_ldu = 1'b1;
-                        op[2:0] = 3'b010;
-                        is_reg_write = 1'b1;
-                        cA_AR = 5'h2;
-                        cdest_AR = cinstr_rhigh;
-                        cimm20 = {12'h0, instr32[3:2], instr32[12], instr32[6:4], 2'h0};
+                        op = instrp::LDU_W_S;
+                        dest_write = 1'b1;
+                        cA_ar6 = {1'b0, 5'h02}; // sp
+                        cdest_ar6 = {1'b0, cinstr_rhigh};
+                        cimm20 = {12'h000, instr32[3:2], instr32[12], instr32[6:4], 2'h0};
                     end
 
-                    3'b100:
-                    begin
+                    3'b011: begin
+                        // C.LDSP
+                            // LD rd, uimm(sp/x2)
+                        is_ldu = 1'b1;
+                        op = isntrp::LDU_D_U;
+                        dest_write = 1'b1;
+                        cA_ar6 = {1'b0, 5'h02}; // sp
+                        cdest_ar6 = {1'b1, cinstr_rhigh};
+                        cimm20 = {11'h000, instr32[4:2], instr32[12], instr32[6:5], 3'h0};
+                    end
+
+                    3'b100: begin
                         if (~cinstr_funct1) begin
                             if (cinstr_rlow == 5'h0) begin
                                 // C.JR
                                     // JALR x0, 0(rs1)
                                 is_bru = 1'b1;
-                                op = 4'b0101;
+                                op = instrp::BRU_C_JR;
                                 A_unneeded = 1'b0;
-                                use_pred_info = 1'b1;
-                                cA_AR = cinstr_rhigh;
+                                instr_can_redirect = 1'b1;
+                                cA_ar6 = {1'b0, cinstr_rhigh};
                             end
                             else begin
                                 // C.MV
                                     // ADD rd, x0, rs2
                                 is_alu_reg = 1'b1;
-                                op = 4'b0000;
-                                is_reg_write = 1'b1;
-                                cA_AR = 5'h0;
-                                cB_AR = cinstr_rlow;
-                                cdest_AR = cinstr_rhigh;
+                                op = instrp::ALU_ADD;
+                                dest_write = 1'b1;
+                                cA_ar6 = {1'b0, 5'h00};
+                                cB_ar6 = {1'b0, cinstr_rlow};
+                                cdest_ar6 = {1'b0, cinstr_rhigh};
                             end
                         end
                         else begin
@@ -629,7 +646,7 @@ module decoder (
                                 // C.EBREAK
                                     // EBREAK
                                 is_sysu = 1'b1;
-                                op[2:0] = 3'b000;
+                                op[2:0] = instrp::SYSU_MISC;
                                 wait_for_restart = 1'b1;
                                 cimm20 = {8'b00000000, 7'b0000000, 5'b00001};
                             end
@@ -637,35 +654,54 @@ module decoder (
                                 // C.JALR
                                     // JALR ra/x1, 0(rs1)
                                 is_bru = 1'b1;
-                                op = 4'b0001;
-                                is_reg_write = 1'b1;
+                                op = instrp::BRU_C_JALR;
+                                dest_write = 1'b1;
                                 A_unneeded = 1'b0;
-                                use_pred_info = 1'b1;
-                                cA_AR = cinstr_rhigh;
-                                cdest_AR = 5'h1;
+                                instr_can_redirect = 1'b1;
+                                cA_ar6 = {1'b0, cinstr_rhigh};
+                                cdest_ar6 = {1'b0, 5'h01}; // ra
                             end
                             else begin
                                 // C.ADD
                                     // ADD rd, rd, rs2
                                 is_alu_reg = 1'b1;
-                                op = 4'b0000;
-                                is_reg_write = 1'b1;
-                                cA_AR = cinstr_rhigh;
-                                cB_AR = cinstr_rlow;
-                                cdest_AR = cinstr_rhigh;
+                                op = instrp::ALU_ADD;
+                                dest_write = 1'b1;
+                                cA_ar6 = {1'b0, cinstr_rhigh};
+                                cB_ar6 = {1'b0, cinstr_rlow};
+                                cdest_ar6 = {1'b0, cinstr_rhigh};
                             end
                         end
                     end
 
-                    3'b110:
-                    begin
+                    3'b101: begin
+                        // C.FSDSP
+                            // FSD frs2, uimm(sp/x2)
+                        is_store = 1'b1;
+                        op[1:0] = instrp::ST_D;
+                        cA_ar6 = {1'b0, 5'h02}; // sp
+                        cB_ar6 = {1'b1, cinstr_rlow};
+                        cimm20 = {11'h000, instr32[9:7], instr32[12:10], 3'h0};
+                    end
+
+                    3'b110: begin
                         // C.SWSP
                             // SW rs2, uimm(sp/x2)
                         is_store = 1'b1;
-                        op[1:0] = 2'b10;
-                        cA_AR = 5'h2;
-                        cB_AR = cinstr_rlow;
+                        op[1:0] = instrp::ST_W;
+                        cA_ar6 = {1'b0, 5'h02}; // sp
+                        cB_ar6 = {1'b0, cinstr_rlow};
                         cimm20 = {12'h0, instr32[8:7], instr32[12:9], 2'h0};
+                    end
+
+                    3'b111: begin
+                        // C.SDSP
+                            // SD rs2, uimm(sp/x2)
+                        is_store = 1'b1;
+                        op[1:0] = instrp::ST_D;
+                        cA_ar6 = {1'b0, 5'h02}; // sp
+                        cB_ar6 = {1'b0, cinstr_rlow};
+                        cimm20 = {11'h000, instr32[9:7], instr32[12:10], 3'h0};
                     end
 
                     default:
