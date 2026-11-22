@@ -553,7 +553,7 @@ rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
     - {3'b011, uimm[5:3], rs1'[2:0], uimm[7:6], rd'[2:0], 2'b00}
     - FU: ldu
 - C.FSD frs2', uimm(rs1')
-    - FSD rs2', uimm(rs1')
+    - FSD frs2', uimm(rs1')
     - {3'b101, uimm[5:3], rs1'[2:0], uimm[7:6], rs2'[2:0], 2'b00}
     - FU: stamofu
 - C.SW rs2', uimm(rs1')

@@ -44,6 +44,7 @@ package instrp;
 
     // alu op
     typedef logic [3:0] alu_op_t;
+
     // funct3 following:
     parameter alu_op_t ALU_ADD      = 4'b0000;
     parameter alu_op_t ALU_SLL      = 4'b0001;
@@ -64,6 +65,7 @@ package instrp;
 
     // mdu op
     typedef logic [3:0] mdu_op_t;
+
     parameter mdu_op_t MDU_MUL      = 4'b0000;
     parameter mdu_op_t MDU_MULH     = 4'b0001;
     parameter mdu_op_t MDU_MULHSU   = 4'b0010;
@@ -80,6 +82,7 @@ package instrp;
 
     // bru op
     typedef logic [3:0] bru_op_t;
+
     parameter bru_op_t BRU_JALR     = 4'b0000;
     parameter bru_op_t BRU_C_JALR   = 4'b0001;
     parameter bru_op_t BRU_JAL      = 4'b0010;
@@ -98,19 +101,43 @@ package instrp;
     parameter bru_op_t BRU_BGEU     = 4'b1111;
 
     // ldu op
-        // + access width modifier
-    typedef logic ldu_op_t;
-    parameter logic [1:0] LDU_U     = 2'b00; // unsigned (zero-extend)
-    parameter logic [1:0] LDU_S     = 2'b01; // signed (sign-extend)
-    parameter logic [1:0] LDU_N     = 2'b10; // NaN-boxed (one-extend)
-        // upper bits: from mem? mem bit : ldu_op[1] | ldu_op[0] & msb
+        // msb extension: op[3:2]
+            // unsigned (zero-extend)
+            // signed (sign-extend)
+            // NaN-boxed (one-extend)
+        // access width modifier: op[1:0]
+        // upper bits: from mem? mem bit : ldu_op[3] | ldu_op[2] & msb
+    typedef logic [3:0] ldu_op_t;
+
+    parameter ldu_op_t LDU_B_U = 4'b0000;
+    parameter ldu_op_t LDU_B_S = 4'b0100;
+    parameter ldu_op_t LDU_B_N = 4'b1000;
+
+    parameter ldu_op_t LDU_H_U = 4'b0001;
+    parameter ldu_op_t LDU_H_S = 4'b0101;
+    parameter ldu_op_t LDU_H_N = 4'b1001;
+
+    parameter ldu_op_t LDU_W_U = 4'b0010;
+    parameter ldu_op_t LDU_W_S = 4'b0110;
+    parameter ldu_op_t LDU_W_N = 4'b1010;
+
+    parameter ldu_op_t LDU_D_U = 4'b0011; // double msb extension doesn't matter, use this one
+    parameter ldu_op_t LDU_D_S = 4'b0111;
+    parameter ldu_op_t LDU_D_N = 4'b1011;
 
     // st op
         // only access width modifier
+    typedef logic [1:0] st_op_t;
+
+    parameter st_op_t ST_B = 2'b00;
+    parameter st_op_t ST_H = 2'b01;
+    parameter st_op_t ST_W = 2'b10;
+    parameter st_op_t ST_D = 2'b11;
 
     // amo op
         // + access width modifier
     typedef logic [3:0] amo_op_t;
+
     parameter amo_op_t AMO_LR       = 4'b0010;
     parameter amo_op_t AMO_SC       = 4'b0011;
     parameter amo_op_t AMO_SWAP     = 4'b0111;
@@ -123,21 +150,16 @@ package instrp;
     parameter amo_op_t AMO_MINU     = 4'b0001;
     parameter amo_op_t AMO_MAXU     = 4'b0101;
 
-    // access width
-    typedef logic [1:0] aw_t;
-    parameter aw_t AW_B = 2'b00;
-    parameter aw_t AW_H = 2'b01;
-    parameter aw_t AW_W = 2'b10;
-    parameter aw_t AW_D = 2'b11;
-
     // fence op
     typedef logic [1:0] fence_op_t;
+
     parameter fence_op_t FENCE      = 2'b00;
     parameter fence_op_t FENCE_I    = 2'b01;
     parameter fence_op_t SFENCE_VMA = 2'b10;
 
     // sysu op
     typedef logic [2:0] sysu_op_t;
+
     parameter sysu_op_t SYSU_MISC   = 3'b000;
     parameter sysu_op_t SYSU_CSRRW  = 3'b001;
     parameter sysu_op_t SYSU_CSRRS  = 3'b010;
