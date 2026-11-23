@@ -74,6 +74,7 @@ module decoder (
 
     // ordering
     output logic wait_for_restart,
+    output logic amo_is_double,
     output logic mem_aq,
     output logic io_aq,
     output logic mem_rl,
@@ -127,7 +128,6 @@ module decoder (
     logic uncfunct7_is_0bxxxxxx1;
     logic uncfm_not_0bx000;
     logic uncimm_type;
-    logic [3:0] uncamoop;
 
     corep::ar6_t    uncA_ar6;
     corep::ar6_t    uncB_ar6;
@@ -273,6 +273,7 @@ module decoder (
         B_unneeded = 1'b1;
 
         wait_for_restart = 1'b0;
+        amo_is_double = 1'b0;
         mem_aq = 1'b0;
         io_aq = 1'b0;
         mem_rl = 1'b0;
@@ -1034,6 +1035,7 @@ module decoder (
                             default: begin
                                 is_illegal_instr = 1'b1;
                             end
+
                         endcase
                     end
 
@@ -1214,6 +1216,7 @@ module decoder (
                                         dest_write = 1'b1;
                                     end
                                 end
+
                             endcase
                         end
                     end
@@ -1271,14 +1274,66 @@ module decoder (
                         else begin
                             // ALU Reg-Reg W
 
-                            // bookmark
+                            case (uncinstr_funct3)
+
+                                3'b000: begin
+                                    if (uncfunct7_not_0b0x00000) begin
+                                        is_illegal_instr = 1'b1;
+                                    end
+                                    else if (uncfunct7_is_0bx0xxxxx) begin
+                                        // ADDW
+                                        is_alu_reg = 1'b1;
+                                        op = instrp::ALU_ADDW;
+                                        dest_write = 1'b1;
+                                    end
+                                    else begin
+                                        // SUBW
+                                        is_alu_reg = 1'b1;
+                                        op = instrp::ALU_SUBW;
+                                        dest_write = 1'b1;
+                                    end
+                                end
+
+                                3'b001: begin
+                                    if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                        is_illegal_instr = 1'b1;
+                                    end
+                                    else begin
+                                        // SLLW
+                                        is_alu_reg = 1'b1;
+                                        op = instrp::ALU_SLLW;
+                                        dest_write = 1'b1;
+                                    end
+                                end
+
+                                3'b101: begin
+                                    if (uncfunct7_not_0b0x00000) begin
+                                        is_illegal_instr = 1'b1;
+                                    end
+                                    else if (uncfunct7_is_0bx0xxxxx) begin
+                                        // SRLW
+                                        is_alu_reg = 1'b1;
+                                        op = instrp::ALU_SRLW;
+                                        dest_write = 1'b1;
+                                    end
+                                    else begin
+                                        // SRAW
+                                        is_alu_reg = 1'b1;
+                                        op = instrp::ALU_SRAW;
+                                        dest_write = 1'b1;
+                                    end
+                                end
+
+                                default: begin
+                                    is_illegal_instr = 1'b1;
+                                end
+
+                            endcase
                         end
                     end
 
-                    5'b00011:
-                    begin
+                    5'b00011: begin
                         // FENCE's
-                        op[2:0] = uncinstr_funct3;
 
                         // R in succ set
                         if (uncinstr_succ_set[1]) mem_aq = 1'b1;
@@ -1300,59 +1355,56 @@ module decoder (
                         
                         case (uncinstr_funct3) 
 
-                            3'b000:
-                            begin
+                            3'b000: begin
                                 if (uncfm_not_0bx000) begin
                                     is_illegal_instr = 1'b1;
                                 end
                                 else begin
                                     // FENCE, FENCE.TSO
                                     is_fence = 1'b1;
+                                    op[1:0] = instrp::FENCE;
                                 end
                             end
 
-                            3'b001:
-                            begin
+                            3'b001: begin
                                 // FENCE.I
                                     // make sure writes propagate to icache when eventually does reads
                                     // op will tell stamofu to perform icache flush when committed
                                 is_fence = 1'b1;
+                                op[1:0] = instrp::FENCE_I;
                                 wait_for_restart = 1'b1;
                                 mem_rl = 1'b1;
                                     // need local hart stores in front of the FENCE.I to be visible to this hart's icache
                                     // instruction stream after fence.i expects normal program order of stores, not global order
                             end
 
-                            default:
-                            begin
+                            default: begin
                                 is_illegal_instr = 1'b1;
                             end
+
                         endcase
                     end
 
-                    5'b11100:
-                    begin
+                    5'b11100: begin
                         // sysu + SFENCE.VMA
 
                         case (uncinstr_funct3)
                         
-                            3'b000:
-                            begin
+                            3'b000: begin
 
                                 case (uncinstr_funct7)
 
-                                    7'b0000000:
-                                    begin
+                                    7'b0000000: begin
                                         if (uncinstr_rs2 == 5'b00000) begin
                                             // ECALL
                                             is_sysu = 1'b1;
-                                            op[2:0] = uncinstr_funct3;
+                                            op[2:0] = instrp::SYSU_MISC;
                                             wait_for_restart = 1'b1;
                                         end
                                         else if (uncinstr_rs2 == 5'b00001) begin
                                             // EBREAK
                                             is_sysu = 1'b1;
-                                            op[2:0] = uncinstr_funct3;
+                                            op[2:0] = instrp::SYSU_MISC;
                                             wait_for_restart = 1'b1;
                                         end
                                         else begin
@@ -1360,8 +1412,7 @@ module decoder (
                                         end
                                     end
 
-                                    7'b0001000:
-                                    begin
+                                    7'b0001000: begin
                                         if (uncinstr_rs2 == 5'b00010) begin
                                             // SRET
                                             if (
@@ -1373,7 +1424,7 @@ module decoder (
                                             end 
                                             else begin
                                                 is_sysu = 1'b1;
-                                                op[2:0] = uncinstr_funct3;
+                                                op[2:0] = instrp::SYSU_MISC;
                                                 wait_for_restart = 1'b1; 
                                             end
                                         end
@@ -1390,7 +1441,7 @@ module decoder (
                                                 // flush fetch to be resumed after interrupt
                                                 // rob takes care of WFI stall state
                                                 is_sysu = 1'b1;
-                                                op[2:0] = uncinstr_funct3;
+                                                op[2:0] = instrp::SYSU_MISC;
                                                 wait_for_restart = 1'b1;
                                             end
                                         end
@@ -1399,8 +1450,7 @@ module decoder (
                                         end
                                     end
 
-                                    7'b0001001:
-                                    begin
+                                    7'b0001001: begin
                                         // SFENCE.VMA
                                         if (
                                             env_exec_mode == U_MODE
@@ -1418,13 +1468,12 @@ module decoder (
                                                     // currently no mechanism to stop stores or AMO's from grabbing a translation
                                                 // just do a restart 
                                             is_fence = 1'b1;
-                                            op[1:0] = 2'b10;
+                                            op[1:0] = instrp::SFENCE_VMA;
                                             wait_for_restart = 1'b1;
                                         end
                                     end
 
-                                    7'b0011000:
-                                    begin
+                                    7'b0011000: begin
                                         if (uncinstr_rs2 == 5'b00010) begin
                                             // MRET
                                             if (env_exec_mode != M_MODE)
@@ -1433,7 +1482,7 @@ module decoder (
                                             end
                                             else begin
                                                 is_sysu = 1'b1;
-                                                op[2:0] = uncinstr_funct3;
+                                                op[2:0] = instrp::SYSU_MISC;
                                                 wait_for_restart = 1'b1;
                                             end
                                         end
@@ -1442,190 +1491,170 @@ module decoder (
                                         end
                                     end
 
-                                    default:
-                                    begin
+                                    default: begin
                                         is_illegal_instr = 1'b1;
                                     end
+
                                 endcase
                             end
 
-                            3'b001, 3'b010, 3'b011, 3'b101, 3'b110, 3'b111:
-                            begin
-                                // CSRRW, CSRRS, CSRRC, CSRRWI, CSRRSI, CSRRCI
+                            3'b001: begin
                                 is_sysu = 1'b1;
-                                op[2:0] = uncinstr_funct3;
-                                is_reg_write = 1'b1;
+                                op[2:0] = instrp::SYSU_CSRRW;
+                                dest_write = 1'b1;
                             end
 
-                            default:
-                            begin
+                            3'b010: begin
+                                is_sysu = 1'b1;
+                                op[2:0] = instrp::SYSU_CSRRS;
+                                dest_write = 1'b1;
+                            end
+
+                            3'b011: begin
+                                is_sysu = 1'b1;
+                                op[2:0] = instrp::SYSU_CSRRC;
+                                dest_write = 1'b1;
+                            end
+
+                            3'b101: begin
+                                is_sysu = 1'b1;
+                                op[2:0] = instrp::SYSU_CSRRWI;
+                                dest_write = 1'b1;
+                            end
+
+                            3'b110: begin
+                                is_sysu = 1'b1;
+                                op[2:0] = instrp::SYSU_CSRRSI;
+                                dest_write = 1'b1;
+                            end
+
+                            3'b111: begin
+                                is_sysu = 1'b1;
+                                op[2:0] = instrp::SYSU_CSRRCI;
+                                dest_write = 1'b1;
+                            end
+
+                            default: begin
                                 is_illegal_instr = 1'b1;
                             end
+
                         endcase
                     end
 
-                    5'b01011:
-                    begin
+                    5'b01011: begin
                         // AMO
-                        op = uncamoop;
 
-                        // don't know io vs. mem, mark both aq's and rl's
+                        amo_is_double = uncinstr_funct3[0];
+
+                        // don't know io vs. mem, mark both aq's and rl's (can be relaxed after translation)
                         mem_aq = uncinstr_aq;
                         io_aq = uncinstr_aq;
                         mem_rl = uncinstr_rl;
                         io_rl = uncinstr_rl;
                         
-                        if (uncinstr_funct3 != 3'b010) begin
+                        if (uncinstr_funct3[2:1] != 2'b01) begin
                             is_illegal_instr = 1'b1;
                         end
                         else begin
                             
                             case (uncinstr_funct5)
 
-                                5'b00010:
-                                begin
-                                    // LR.W
+                                5'b00010: begin
+                                    // LR.W/D
                                     is_amo = 1'b1;
-                                    is_reg_write = 1'b1;
+                                    op = instrp::AMO_LR;
+                                    dest_write = 1'b1;
                                 end
 
-                                5'b00011:
-                                begin
+                                5'b00011: begin
                                     // SC.W
                                     is_amo = 1'b1;
-                                    is_reg_write = 1'b1;
-
-                                    // don't know io vs. mem, mark both aq's and rl's
-                                    mem_aq = uncinstr_aq;
-                                    io_aq = uncinstr_aq;
-                                    mem_rl = uncinstr_rl;
-                                    io_rl = uncinstr_rl;
+                                    op = instrp::AMO_SC;
+                                    dest_write = 1'b1;
                                 end
 
                                 5'b00001:
                                 begin
                                     // AMOSWAP.W
                                     is_amo = 1'b1;
-                                    is_reg_write = 1'b1;
-
-                                    // don't know io vs. mem, mark both aq's and rl's
-                                    mem_aq = uncinstr_aq;
-                                    io_aq = uncinstr_aq;
-                                    mem_rl = uncinstr_rl;
-                                    io_rl = uncinstr_rl;
+                                    op = instrp::AMO_SWAP;
+                                    dest_write = 1'b1;
                                 end
 
                                 5'b00000:
                                 begin
                                     // AMOADD.W
                                     is_amo = 1'b1;
-                                    is_reg_write = 1'b1;
-
-                                    // don't know io vs. mem, mark both aq's and rl's
-                                    mem_aq = uncinstr_aq;
-                                    io_aq = uncinstr_aq;
-                                    mem_rl = uncinstr_rl;
-                                    io_rl = uncinstr_rl;
+                                    op = instrp::AMO_ADD;
+                                    dest_write = 1'b1;
                                 end
 
                                 5'b00100:
                                 begin
                                     // AMOXOR.W
                                     is_amo = 1'b1;
-                                    is_reg_write = 1'b1;
-
-                                    // don't know io vs. mem, mark both aq's and rl's
-                                    mem_aq = uncinstr_aq;
-                                    io_aq = uncinstr_aq;
-                                    mem_rl = uncinstr_rl;
-                                    io_rl = uncinstr_rl;
+                                    op = instrp::AMO_XOR;
+                                    dest_write = 1'b1;
                                 end
 
                                 5'b01100:
                                 begin
                                     // AMOAND.W
                                     is_amo = 1'b1;
-                                    is_reg_write = 1'b1;
-
-                                    // don't know io vs. mem, mark both aq's and rl's
-                                    mem_aq = uncinstr_aq;
-                                    io_aq = uncinstr_aq;
-                                    mem_rl = uncinstr_rl;
-                                    io_rl = uncinstr_rl;
+                                    op = instrp::AMO_AND;
+                                    dest_write = 1'b1;
                                 end
 
                                 5'b01000:
                                 begin
                                     // AMOOR.W
                                     is_amo = 1'b1;
-                                    is_reg_write = 1'b1;
-
-                                    // don't know io vs. mem, mark both aq's and rl's
-                                    mem_aq = uncinstr_aq;
-                                    io_aq = uncinstr_aq;
-                                    mem_rl = uncinstr_rl;
-                                    io_rl = uncinstr_rl;
+                                    op = instrp::AMO_OR;
+                                    dest_write = 1'b1;
                                 end
 
                                 5'b10000:
                                 begin
                                     // AMOMIN.W
                                     is_amo = 1'b1;
-                                    is_reg_write = 1'b1;
-
-                                    // don't know io vs. mem, mark both aq's and rl's
-                                    mem_aq = uncinstr_aq;
-                                    io_aq = uncinstr_aq;
-                                    mem_rl = uncinstr_rl;
-                                    io_rl = uncinstr_rl;
+                                    op = instrp::AMO_MIN;
+                                    dest_write = 1'b1;
                                 end
 
                                 5'b10100:
                                 begin
                                     // AMOMAX.W
                                     is_amo = 1'b1;
-                                    is_reg_write = 1'b1;
-
-                                    // don't know io vs. mem, mark both aq's and rl's
-                                    mem_aq = uncinstr_aq;
-                                    io_aq = uncinstr_aq;
-                                    mem_rl = uncinstr_rl;
-                                    io_rl = uncinstr_rl;
+                                    op = instrp::AMO_MAX;
+                                    dest_write = 1'b1;
                                 end
 
                                 5'b11000:
                                 begin
                                     // AMOMINU.W
                                     is_amo = 1'b1;
-                                    is_reg_write = 1'b1;
-
-                                    // don't know io vs. mem, mark both aq's and rl's
-                                    mem_aq = uncinstr_aq;
-                                    io_aq = uncinstr_aq;
-                                    mem_rl = uncinstr_rl;
-                                    io_rl = uncinstr_rl;
+                                    op = instrp::AMO_MINU;
+                                    dest_write = 1'b1;
                                 end
 
                                 5'b11100:
                                 begin
                                     // AMOMAXU.W
                                     is_amo = 1'b1;
-                                    is_reg_write = 1'b1;
-
-                                    // don't know io vs. mem, mark both aq's and rl's
-                                    mem_aq = uncinstr_aq;
-                                    io_aq = uncinstr_aq;
-                                    mem_rl = uncinstr_rl;
-                                    io_rl = uncinstr_rl;
+                                    op = instrp::AMO_MAXU;
+                                    dest_write = 1'b1;
                                 end
 
                                 default:
                                 begin
                                     is_illegal_instr = 1'b1;
                                 end
+
                             endcase
                         end
                     end
+
+                    // bookmark
 
                     default:
                     begin
