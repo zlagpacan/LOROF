@@ -8,7 +8,6 @@
 `timescale 1ns/100ps
 
 `include "fpp.vh"
-`include "corep.vh"
 
 module fpu_top_tb #(
 ) ();
@@ -41,8 +40,7 @@ module fpu_top_tb #(
 	logic tb_in_fmt;
 	logic [4:0] tb_in_rs2;
 	logic [2:0] tb_in_funct3;
-	corep::pr_t tb_in_dest_pr;
-	corep::rob_idx_t tb_in_rob_idx;
+	fpp::fp_tag_t tb_in_fp_tag;
 	logic [2:0] tb_in_fcsr_rm;
 
     // Decoded operands, with single precision values already NaN-box checked
@@ -56,8 +54,7 @@ module fpu_top_tb #(
     // Unified result interface
 	logic DUT_out_valid, expected_out_valid;
 	logic tb_out_ready;
-	corep::pr_t DUT_out_dest_pr, expected_out_dest_pr;
-	corep::rob_idx_t DUT_out_rob_idx, expected_out_rob_idx;
+	fpp::fp_tag_t DUT_out_fp_tag, expected_out_fp_tag;
 	fpp::double_t DUT_out_result_d, expected_out_result_d;
 	fpp::fpu_except_t DUT_out_except, expected_out_except;
 
@@ -78,8 +75,7 @@ module fpu_top_tb #(
 		.in_fmt(tb_in_fmt),
 		.in_rs2(tb_in_rs2),
 		.in_funct3(tb_in_funct3),
-		.in_dest_pr(tb_in_dest_pr),
-		.in_rob_idx(tb_in_rob_idx),
+		.in_fp_tag(tb_in_fp_tag),
 		.in_fcsr_rm(tb_in_fcsr_rm),
 
 	    // Decoded operands, with single precision values already NaN-box checked
@@ -93,8 +89,7 @@ module fpu_top_tb #(
 	    // Unified result interface
 		.out_valid(DUT_out_valid),
 		.out_ready(tb_out_ready),
-		.out_dest_pr(DUT_out_dest_pr),
-		.out_rob_idx(DUT_out_rob_idx),
+		.out_fp_tag(DUT_out_fp_tag),
 		.out_result_d(DUT_out_result_d),
 		.out_except(DUT_out_except)
 	);
@@ -120,18 +115,10 @@ module fpu_top_tb #(
 			tb_error = 1'b1;
 		end
 
-		if (expected_out_dest_pr !== DUT_out_dest_pr) begin
-			$display("TB ERROR: expected_out_dest_pr (%0d'h%h) != DUT_out_dest_pr (%0d'h%h)",
-				$bits(expected_out_dest_pr), expected_out_dest_pr,
-				$bits(DUT_out_dest_pr), DUT_out_dest_pr);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_out_rob_idx !== DUT_out_rob_idx) begin
-			$display("TB ERROR: expected_out_rob_idx (%0d'h%h) != DUT_out_rob_idx (%0d'h%h)",
-				$bits(expected_out_rob_idx), expected_out_rob_idx,
-				$bits(DUT_out_rob_idx), DUT_out_rob_idx);
+		if (expected_out_fp_tag !== DUT_out_fp_tag) begin
+			$display("TB ERROR: expected_out_fp_tag (%0d'h%h) != DUT_out_fp_tag (%0d'h%h)",
+				$bits(expected_out_fp_tag), expected_out_fp_tag,
+				$bits(DUT_out_fp_tag), DUT_out_fp_tag);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -178,8 +165,7 @@ module fpu_top_tb #(
         tb_in_fmt = 1'b0;
         tb_in_rs2 = 5'b00000;
         tb_in_funct3 = fpp::RM_RNE;
-        tb_in_dest_pr = '0;
-        tb_in_rob_idx = '0;
+        tb_in_fp_tag = '0;
         tb_in_fcsr_rm = fpp::RM_RNE;
         tb_in_A_d = '0;
         tb_in_A_s_boxed = '0;
@@ -190,8 +176,7 @@ module fpu_top_tb #(
         tb_out_ready = 1'b1;
         expected_in_ready = 1'b1;
         expected_out_valid = 1'b0;
-        expected_out_dest_pr = '0;
-        expected_out_rob_idx = '0;
+        expected_out_fp_tag = '0;
         expected_out_result_d = '0;
         expected_out_except = '0;
 
@@ -214,8 +199,7 @@ module fpu_top_tb #(
         tb_in_fmt = 1'b0;
         tb_in_rs2 = 5'b00000;
         tb_in_funct3 = fpp::RM_RNE;
-        tb_in_dest_pr = 7'h11;
-        tb_in_rob_idx = 7'h21;
+        tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h11, rob_idx: 7'h21};
         tb_in_A_s_boxed = 32'h3f800000;
         tb_in_B_s_boxed = 32'h40000000;
         tb_out_ready = 1'b1;
@@ -223,8 +207,7 @@ module fpu_top_tb #(
         @(posedge CLK); #(PERIOD/10);
         expected_in_ready = 1'b1;
         expected_out_valid = 1'b0;
-        expected_out_dest_pr = '0;
-        expected_out_rob_idx = '0;
+        expected_out_fp_tag = '0;
         expected_out_result_d = '0;
         expected_out_except = '0;
         check_outputs();
@@ -234,8 +217,7 @@ module fpu_top_tb #(
             @(posedge CLK); #(PERIOD/10);
             expected_in_ready = 1'b1;
             expected_out_valid = 1'b0;
-            expected_out_dest_pr = '0;
-            expected_out_rob_idx = '0;
+            expected_out_fp_tag = '0;
             expected_out_result_d = '0;
             expected_out_except = '0;
             check_outputs();
@@ -243,15 +225,13 @@ module fpu_top_tb #(
         @(posedge CLK); #(PERIOD/10);
         expected_in_ready = 1'b1;
         expected_out_valid = 1'b1;
-        expected_out_dest_pr = 7'h11;
-        expected_out_rob_idx = 7'h21;
+        expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h11, rob_idx: 7'h21};
         expected_out_result_d = 64'hffffffff40400000;
         expected_out_except = '0;
         check_outputs();
         @(posedge CLK); #(PERIOD/10);
         expected_out_valid = 1'b0;
-        expected_out_dest_pr = '0;
-        expected_out_rob_idx = '0;
+        expected_out_fp_tag = '0;
         expected_out_result_d = '0;
         expected_out_except = '0;
         check_outputs();
@@ -271,15 +251,13 @@ module fpu_top_tb #(
         tb_in_fmt = 1'b1;
         tb_in_rs2 = 5'b00001;
         tb_in_funct3 = fpp::RM_RNE;
-        tb_in_dest_pr = 7'h12;
-        tb_in_rob_idx = 7'h22;
+        tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h12, rob_idx: 7'h22};
         tb_in_A_s_boxed = 32'h3fc00000;
 
         @(posedge CLK); #(PERIOD/10);
         expected_in_ready = 1'b1;
         expected_out_valid = 1'b0;
-        expected_out_dest_pr = '0;
-        expected_out_rob_idx = '0;
+        expected_out_fp_tag = '0;
         expected_out_result_d = '0;
         expected_out_except = '0;
         check_outputs();
@@ -288,22 +266,19 @@ module fpu_top_tb #(
         @(posedge CLK); #(PERIOD/10);
         expected_in_ready = 1'b1;
         expected_out_valid = 1'b0;
-        expected_out_dest_pr = '0;
-        expected_out_rob_idx = '0;
+        expected_out_fp_tag = '0;
         expected_out_result_d = '0;
         expected_out_except = '0;
         check_outputs();
         @(posedge CLK); #(PERIOD/10);
         expected_out_valid = 1'b1;
-        expected_out_dest_pr = 7'h12;
-        expected_out_rob_idx = 7'h22;
+        expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h12, rob_idx: 7'h22};
         expected_out_result_d = 64'h3ff8000000000000;
         expected_out_except = '0;
         check_outputs();
         @(posedge CLK); #(PERIOD/10);
         expected_out_valid = 1'b0;
-        expected_out_dest_pr = '0;
-        expected_out_rob_idx = '0;
+        expected_out_fp_tag = '0;
         expected_out_result_d = '0;
         expected_out_except = '0;
         check_outputs();
@@ -323,8 +298,7 @@ module fpu_top_tb #(
         tb_in_fmt = 1'b0;
         tb_in_rs2 = 5'b00000;
         tb_in_funct3 = fpp::RM_RNE;
-        tb_in_dest_pr = 7'h13;
-        tb_in_rob_idx = 7'h23;
+        tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h13, rob_idx: 7'h23};
         tb_in_A_s_boxed = 32'h40000000;
         tb_in_B_s_boxed = 32'h40400000;
         tb_in_C_s_boxed = 32'h40800000;
@@ -333,8 +307,7 @@ module fpu_top_tb #(
         @(posedge CLK); #(PERIOD/10);
         expected_in_ready = 1'b1;
         expected_out_valid = 1'b0;
-        expected_out_dest_pr = '0;
-        expected_out_rob_idx = '0;
+        expected_out_fp_tag = '0;
         expected_out_result_d = '0;
         expected_out_except = '0;
         check_outputs();
@@ -344,8 +317,7 @@ module fpu_top_tb #(
             @(posedge CLK); #(PERIOD/10);
             expected_in_ready = 1'b1;
             expected_out_valid = 1'b0;
-            expected_out_dest_pr = '0;
-            expected_out_rob_idx = '0;
+            expected_out_fp_tag = '0;
             expected_out_result_d = '0;
             expected_out_except = '0;
             check_outputs();
@@ -353,8 +325,7 @@ module fpu_top_tb #(
         @(posedge CLK); #(PERIOD/10);
         expected_in_ready = 1'b1;
         expected_out_valid = 1'b1;
-        expected_out_dest_pr = 7'h13;
-        expected_out_rob_idx = 7'h23;
+        expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h13, rob_idx: 7'h23};
         expected_out_result_d = 64'hffffffff41200000;
         expected_out_except = '0;
         check_outputs();
@@ -365,8 +336,7 @@ module fpu_top_tb #(
             @(posedge CLK); #(PERIOD/10);
             expected_in_ready = 1'b1;
             expected_out_valid = 1'b1;
-            expected_out_dest_pr = 7'h13;
-            expected_out_rob_idx = 7'h23;
+            expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h13, rob_idx: 7'h23};
             expected_out_result_d = 64'hffffffff41200000;
             expected_out_except = '0;
             check_outputs();
@@ -376,8 +346,7 @@ module fpu_top_tb #(
         @(posedge CLK); #(PERIOD/10);
         expected_in_ready = 1'b1;
         expected_out_valid = 1'b0;
-        expected_out_dest_pr = '0;
-        expected_out_rob_idx = '0;
+        expected_out_fp_tag = '0;
         expected_out_result_d = '0;
         expected_out_except = '0;
         check_outputs();
@@ -397,8 +366,7 @@ module fpu_top_tb #(
         tb_in_fmt = 1'b0;
         tb_in_rs2 = 5'b00000;
         tb_in_funct3 = 3'b000;
-        tb_in_dest_pr = 7'h14;
-        tb_in_rob_idx = 7'h24;
+        tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h14, rob_idx: 7'h24};
         tb_in_A_d = 64'hffffffff3f800000;
         tb_in_A_s_boxed = 32'h3f800000;
         tb_in_B_d = 64'hffffffffc0000000;
@@ -408,8 +376,7 @@ module fpu_top_tb #(
         @(posedge CLK); #(PERIOD/10);
         expected_in_ready = 1'b1;
         expected_out_valid = 1'b1;
-        expected_out_dest_pr = 7'h14;
-        expected_out_rob_idx = 7'h24;
+        expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h14, rob_idx: 7'h24};
         expected_out_result_d = 64'hffffffffbf800000;
         expected_out_except = '0;
         check_outputs();
@@ -418,8 +385,7 @@ module fpu_top_tb #(
         @(posedge CLK); #(PERIOD/10);
         expected_in_ready = 1'b1;
         expected_out_valid = 1'b0;
-        expected_out_dest_pr = '0;
-        expected_out_rob_idx = '0;
+        expected_out_fp_tag = '0;
         expected_out_result_d = '0;
         expected_out_except = '0;
         check_outputs();

@@ -6,7 +6,6 @@
 */
 
 `include "fpp.vh"
-`include "corep.vh"
 
 module fpu_top #(
 
@@ -23,8 +22,7 @@ module fpu_top #(
     input logic                 in_fmt,          // instruction[25], S=0/D=1
     input logic [4:0]           in_rs2,          // instruction[24:20], conversion subtype
     input logic [2:0]           in_funct3,
-    input corep::pr_t           in_dest_pr,
-    input corep::rob_idx_t      in_rob_idx,
+    input fpp::fp_tag_t         in_fp_tag,
     input logic [2:0]           in_fcsr_rm,
 
     // Decoded operands, with single precision values already NaN-box checked
@@ -38,8 +36,7 @@ module fpu_top #(
     // Unified result interface
     output logic                out_valid,
     input logic                 out_ready,
-    output corep::pr_t          out_dest_pr,
-    output corep::rob_idx_t     out_rob_idx,
+    output fpp::fp_tag_t out_fp_tag,
     output fpp::double_t        out_result_d,
     output fpp::fpu_except_t    out_except
 );
@@ -64,24 +61,21 @@ module fpu_top #(
     logic fu_out_valid, fu_out_ready;
     logic easy_out_valid, easy_out_ready;
 
-    corep::pr_t ar_out_dest_pr, cv_out_dest_pr, fu_out_dest_pr;
-    corep::rob_idx_t ar_out_rob_idx, cv_out_rob_idx, fu_out_rob_idx;
+    fpp::fp_tag_t ar_out_fp_tag, cv_out_fp_tag, fu_out_fp_tag;
     fpp::double_t ar_out_result_d, cv_out_result_d, fu_out_result_d;
     fpp::fpu_except_t ar_out_except, cv_out_except, fu_out_except;
 
     fpp::double_t easy_result_d;
     fpp::fpu_except_t easy_except;
     logic easy_valid;
-    corep::pr_t easy_dest_pr;
-    corep::rob_idx_t easy_rob_idx;
+    fpp::fp_tag_t easy_fp_tag;
     fpp::double_t easy_result_reg;
     fpp::fpu_except_t easy_except_reg;
 
     logic [3:0] response_valid;
     logic [3:0] response_ready;
     logic [3:0] response_grant;
-    corep::pr_t response_dest_pr [0:3];
-    corep::rob_idx_t response_rob_idx [0:3];
+    fpp::fp_tag_t response_fp_tag [0:3];
     fpp::double_t response_result_d [0:3];
     fpp::fpu_except_t response_except [0:3];
     logic [1:0] rr_pointer;
@@ -133,8 +127,7 @@ module fpu_top #(
         .CLK(CLK),
         .nRST(nRST),
         .in_valid(ar_in_valid),
-        .in_dest_pr(in_dest_pr),
-        .in_rob_idx(in_rob_idx),
+        .in_fp_tag(in_fp_tag),
         .in_ready(ar_in_ready),
         .in_funct7(unit_funct7),
         .in_funct5(5'b0),
@@ -145,8 +138,7 @@ module fpu_top #(
         .in_B_d(in_B_d),
         .in_B_s_boxed(in_B_s_boxed),
         .out_valid(ar_out_valid),
-        .out_dest_pr(ar_out_dest_pr),
-        .out_rob_idx(ar_out_rob_idx),
+        .out_fp_tag(ar_out_fp_tag),
         .out_ready(ar_out_ready),
         .out_result_d(ar_out_result_d),
         .out_except(ar_out_except)
@@ -156,8 +148,7 @@ module fpu_top #(
         .CLK(CLK),
         .nRST(nRST),
         .in_valid(cv_in_valid),
-        .in_dest_pr(in_dest_pr),
-        .in_rob_idx(in_rob_idx),
+        .in_fp_tag(in_fp_tag),
         .in_ready(cv_in_ready),
         .in_funct7(unit_funct7),
         .in_funct5(in_rs2),
@@ -166,8 +157,7 @@ module fpu_top #(
         .in_A_d(in_A_d),
         .in_A_s_boxed(in_A_s_boxed),
         .out_valid(cv_out_valid),
-        .out_dest_pr(cv_out_dest_pr),
-        .out_rob_idx(cv_out_rob_idx),
+        .out_fp_tag(cv_out_fp_tag),
         .out_ready(cv_out_ready),
         .out_result_d(cv_out_result_d),
         .out_except(cv_out_except)
@@ -177,8 +167,7 @@ module fpu_top #(
         .CLK(CLK),
         .nRST(nRST),
         .in_valid(fu_in_valid),
-        .in_dest_pr(in_dest_pr),
-        .in_rob_idx(in_rob_idx),
+        .in_fp_tag(in_fp_tag),
         .in_ready(fu_in_ready),
         .in_opcode7(unit_opcode7),
         .in_funct2(unit_funct2),
@@ -191,8 +180,7 @@ module fpu_top #(
         .in_C_d(in_C_d),
         .in_C_s_boxed(in_C_s_boxed),
         .out_valid(fu_out_valid),
-        .out_dest_pr(fu_out_dest_pr),
-        .out_rob_idx(fu_out_rob_idx),
+        .out_fp_tag(fu_out_fp_tag),
         .out_ready(fu_out_ready),
         .out_result_d(fu_out_result_d),
         .out_except(fu_out_except)
@@ -214,14 +202,10 @@ module fpu_top #(
     assign response_valid[2] = fu_out_valid;
     assign response_valid[3] = easy_valid;
 
-    assign response_dest_pr[0] = ar_out_dest_pr;
-    assign response_dest_pr[1] = cv_out_dest_pr;
-    assign response_dest_pr[2] = fu_out_dest_pr;
-    assign response_dest_pr[3] = easy_dest_pr;
-    assign response_rob_idx[0] = ar_out_rob_idx;
-    assign response_rob_idx[1] = cv_out_rob_idx;
-    assign response_rob_idx[2] = fu_out_rob_idx;
-    assign response_rob_idx[3] = easy_rob_idx;
+    assign response_fp_tag[0] = ar_out_fp_tag;
+    assign response_fp_tag[1] = cv_out_fp_tag;
+    assign response_fp_tag[2] = fu_out_fp_tag;
+    assign response_fp_tag[3] = easy_fp_tag;
     assign response_result_d[0] = ar_out_result_d;
     assign response_result_d[1] = cv_out_result_d;
     assign response_result_d[2] = fu_out_result_d;
@@ -254,13 +238,11 @@ module fpu_top #(
         end
 
         out_valid = selected_response_valid;
-        out_dest_pr = '0;
-        out_rob_idx = '0;
+        out_fp_tag = '0;
         out_result_d = '0;
         out_except = '0;
         if (selected_response_valid) begin
-            out_dest_pr = response_dest_pr[selected_response];
-            out_rob_idx = response_rob_idx[selected_response];
+            out_fp_tag = response_fp_tag[selected_response];
             out_result_d = response_result_d[selected_response];
             out_except = response_except[selected_response];
         end
@@ -283,8 +265,7 @@ module fpu_top #(
     always_ff @(posedge CLK or negedge nRST) begin
         if (!nRST) begin
             easy_valid <= 1'b0;
-            easy_dest_pr <= '0;
-            easy_rob_idx <= '0;
+            easy_fp_tag <= '0;
             easy_result_reg <= '0;
             easy_except_reg <= '0;
             rr_pointer <= 2'd0;
@@ -294,8 +275,7 @@ module fpu_top #(
         else begin
             if (in_valid && in_ready && (in_route == ROUTE_EASY)) begin
                 easy_valid <= 1'b1;
-                easy_dest_pr <= in_dest_pr;
-                easy_rob_idx <= in_rob_idx;
+                easy_fp_tag <= in_fp_tag;
                 easy_result_reg <= easy_result_d;
                 easy_except_reg <= easy_except;
             end

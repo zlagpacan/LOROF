@@ -1720,10 +1720,10 @@ module decoder (
                     5'b10100: begin
                         // FP
                             // do specific op decoding in FPU (too much for here)
+                            // bits will be in imm20 w/ uncimm_type = 1'b0
 
                         casez (uncinstr_funct7) 
                                 
-                            // no further decoding
                             7'b000000?: begin
                                 // FADD.*
                                 is_fpu = 1'b1;

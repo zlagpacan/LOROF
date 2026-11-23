@@ -8,7 +8,6 @@
 `timescale 1ns/100ps
 
 `include "fpp.vh"
-`include "corep.vh"
 
 module fpu_arithmetic_tb #(
 ) ();
@@ -30,8 +29,7 @@ module fpu_arithmetic_tb #(
 	// DUT signals:
 
 	logic tb_in_valid;
-	corep::pr_t tb_in_dest_pr;
-	corep::rob_idx_t tb_in_rob_idx;
+	fpp::fp_tag_t tb_in_fp_tag;
 	logic DUT_in_ready, expected_in_ready;
 
 	logic [6:0] tb_in_funct7;
@@ -43,8 +41,7 @@ module fpu_arithmetic_tb #(
 	fpp::single_t tb_in_A_s_boxed, tb_in_B_s_boxed;
 
 	logic DUT_out_valid, expected_out_valid;
-	corep::pr_t DUT_out_dest_pr, expected_out_dest_pr;
-	corep::rob_idx_t DUT_out_rob_idx, expected_out_rob_idx;
+	fpp::fp_tag_t DUT_out_fp_tag, expected_out_fp_tag;
 	logic tb_out_ready;
 
 	fpp::double_t DUT_out_result_d, expected_out_result_d;
@@ -52,8 +49,7 @@ module fpu_arithmetic_tb #(
 	// Delay enumerated fast/slow expectations to match the added RTL stages.
 	typedef struct packed {
 		logic valid;
-		corep::pr_t dest_pr;
-		corep::rob_idx_t rob_idx;
+		fpp::fp_tag_t fp_tag;
 		fpp::double_t result_d;
 		fpp::fpu_except_t except;
 	} expected_packet_t;
@@ -64,19 +60,19 @@ module fpu_arithmetic_tb #(
 
 	fpu_arithmetic DUT (
 		.CLK(CLK), .nRST(nRST),
-		.in_valid(tb_in_valid), .in_dest_pr(tb_in_dest_pr), .in_rob_idx(tb_in_rob_idx),
+		.in_valid(tb_in_valid), .in_fp_tag(tb_in_fp_tag),
 		.in_ready(DUT_in_ready),
 		.in_funct7(tb_in_funct7), .in_funct5(tb_in_funct5),
 		.in_instr_rm(tb_in_instr_rm), .in_fcsr_rm(tb_in_fcsr_rm),
 		.in_A_d(tb_in_A_d), .in_A_s_boxed(tb_in_A_s_boxed),
 		.in_B_d(tb_in_B_d), .in_B_s_boxed(tb_in_B_s_boxed),
-		.out_valid(DUT_out_valid), .out_dest_pr(DUT_out_dest_pr), .out_rob_idx(DUT_out_rob_idx),
+		.out_valid(DUT_out_valid), .out_fp_tag(DUT_out_fp_tag),
 		.out_ready(tb_out_ready), .out_result_d(DUT_out_result_d), .out_except(DUT_out_except)
 	);
 
 	task check_outputs();
 	begin
-		expected_packet_now = {expected_out_valid, expected_out_dest_pr, expected_out_rob_idx,
+		expected_packet_now = {expected_out_valid, expected_out_fp_tag,
 			expected_out_result_d, expected_out_except};
 		if (delay_fast_outputs) begin
 			expected_packet_check = expected_packet_d6;
@@ -100,12 +96,8 @@ module fpu_arithmetic_tb #(
 			$display("TB ERROR: expected_out_valid (%b) != DUT_out_valid (%b)", expected_packet_check.valid, DUT_out_valid);
 			num_errors++; tb_error = 1'b1;
 		end
-		if (expected_packet_check.dest_pr !== DUT_out_dest_pr) begin
-			$display("TB ERROR: expected_out_dest_pr (%h) != DUT_out_dest_pr (%h)", expected_packet_check.dest_pr, DUT_out_dest_pr);
-			num_errors++; tb_error = 1'b1;
-		end
-		if (expected_packet_check.rob_idx !== DUT_out_rob_idx) begin
-			$display("TB ERROR: expected_out_rob_idx (%h) != DUT_out_rob_idx (%h)", expected_packet_check.rob_idx, DUT_out_rob_idx);
+		if (expected_packet_check.fp_tag !== DUT_out_fp_tag) begin
+			$display("TB ERROR: expected_out_fp_tag (%h) != DUT_out_fp_tag (%h)", expected_packet_check.fp_tag, DUT_out_fp_tag);
 			num_errors++; tb_error = 1'b1;
 		end
 		if (expected_packet_check.result_d !== DUT_out_result_d) begin
@@ -124,8 +116,7 @@ module fpu_arithmetic_tb #(
 	initial begin
 		nRST = 1'b0;
 		tb_in_valid = 1'b0;
-		tb_in_dest_pr = '0;
-		tb_in_rob_idx = '0;
+		tb_in_fp_tag = '0;
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -137,8 +128,7 @@ module fpu_arithmetic_tb #(
 		tb_out_ready = 1'b1;
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b0;
-		expected_out_dest_pr = '0;
-		expected_out_rob_idx = '0;
+		expected_out_fp_tag = '0;
 		expected_out_result_d = '0;
 		expected_out_except = '0;
 		delay_fast_outputs = 1'b0;
@@ -169,8 +159,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.S exact";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h10;
-		tb_in_rob_idx = 7'h20;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h10, rob_idx: 7'h20};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -189,8 +178,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.S tie RNE";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h11;
-		tb_in_rob_idx = 7'h21;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h11, rob_idx: 7'h21};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -209,8 +197,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.S tie RTZ";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h12;
-		tb_in_rob_idx = 7'h22;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h12, rob_idx: 7'h22};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RTZ;
@@ -229,8 +216,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.S tie RDN";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h13;
-		tb_in_rob_idx = 7'h23;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h13, rob_idx: 7'h23};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RDN;
@@ -244,8 +230,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.S exact";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h10;
-		expected_out_rob_idx = 7'h20;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h10, rob_idx: 7'h20};
 		expected_out_result_d = 64'hffffffff40400000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -254,8 +239,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.S tie RUP";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h14;
-		tb_in_rob_idx = 7'h24;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h14, rob_idx: 7'h24};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RUP;
@@ -269,8 +253,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.S tie RNE";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h11;
-		expected_out_rob_idx = 7'h21;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h11, rob_idx: 7'h21};
 		expected_out_result_d = 64'hffffffff3f800000;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -279,8 +262,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.S tie RMM";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h15;
-		tb_in_rob_idx = 7'h25;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h15, rob_idx: 7'h25};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RMM;
@@ -294,8 +276,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.S tie RTZ";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h12;
-		expected_out_rob_idx = 7'h22;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h12, rob_idx: 7'h22};
 		expected_out_result_d = 64'hffffffff3f800000;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -304,8 +285,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.S dynamic RM";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h16;
-		tb_in_rob_idx = 7'h26;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h16, rob_idx: 7'h26};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_DYN;
@@ -319,8 +299,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.S tie RDN";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h13;
-		expected_out_rob_idx = 7'h23;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h13, rob_idx: 7'h23};
 		expected_out_result_d = 64'hffffffff3f800000;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -329,8 +308,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.S negative tie RDN";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h17;
-		tb_in_rob_idx = 7'h27;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h17, rob_idx: 7'h27};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RDN;
@@ -344,8 +322,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.S tie RUP";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h14;
-		expected_out_rob_idx = 7'h24;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h14, rob_idx: 7'h24};
 		expected_out_result_d = 64'hffffffff3f800001;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -354,8 +331,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.S negative tie RUP";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h18;
-		tb_in_rob_idx = 7'h28;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h18, rob_idx: 7'h28};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RUP;
@@ -369,8 +345,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.S tie RMM";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h15;
-		expected_out_rob_idx = 7'h25;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h15, rob_idx: 7'h25};
 		expected_out_result_d = 64'hffffffff3f800001;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -379,8 +354,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.S cancellation";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h19;
-		tb_in_rob_idx = 7'h29;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h19, rob_idx: 7'h29};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -394,8 +368,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.S dynamic RM";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h16;
-		expected_out_rob_idx = 7'h26;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h16, rob_idx: 7'h26};
 		expected_out_result_d = 64'hffffffff3f800001;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -404,8 +377,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.S zero sign RDN";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h1a;
-		tb_in_rob_idx = 7'h2a;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h1a, rob_idx: 7'h2a};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RDN;
@@ -419,8 +391,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.S negative tie RDN";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h17;
-		expected_out_rob_idx = 7'h27;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h17, rob_idx: 7'h27};
 		expected_out_result_d = 64'hffffffffbf800001;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -429,8 +400,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.S subnormal exact";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h1b;
-		tb_in_rob_idx = 7'h2b;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h1b, rob_idx: 7'h2b};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -444,8 +414,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.S negative tie RUP";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h18;
-		expected_out_rob_idx = 7'h28;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h18, rob_idx: 7'h28};
 		expected_out_result_d = 64'hffffffffbf800000;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -454,8 +423,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.S qNaN";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h1c;
-		tb_in_rob_idx = 7'h2c;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h1c, rob_idx: 7'h2c};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -469,8 +437,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.S cancellation";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h19;
-		expected_out_rob_idx = 7'h29;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h19, rob_idx: 7'h29};
 		expected_out_result_d = 64'hffffffff00000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -479,8 +446,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.S sNaN";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h1d;
-		tb_in_rob_idx = 7'h2d;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h1d, rob_idx: 7'h2d};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -494,8 +460,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.S zero sign RDN";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h1a;
-		expected_out_rob_idx = 7'h2a;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h1a, rob_idx: 7'h2a};
 		expected_out_result_d = 64'hffffffff80000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -504,8 +469,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.S opposite infinities";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h1e;
-		tb_in_rob_idx = 7'h2e;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h1e, rob_idx: 7'h2e};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -519,8 +483,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.S subnormal exact";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h1b;
-		expected_out_rob_idx = 7'h2b;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h1b, rob_idx: 7'h2b};
 		expected_out_result_d = 64'hffffffff00000002;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -529,8 +492,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.S overflow";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h1f;
-		tb_in_rob_idx = 7'h2f;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h1f, rob_idx: 7'h2f};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -544,8 +506,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.S qNaN";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h1c;
-		expected_out_rob_idx = 7'h2c;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h1c, rob_idx: 7'h2c};
 		expected_out_result_d = 64'hffffffff7fc00000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -554,8 +515,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.D exact";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h20;
-		tb_in_rob_idx = 7'h30;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h20, rob_idx: 7'h30};
 		tb_in_funct7 = 7'b0000001;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -569,8 +529,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.S sNaN";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h1d;
-		expected_out_rob_idx = 7'h2d;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h1d, rob_idx: 7'h2d};
 		expected_out_result_d = 64'hffffffff7fc00000;
 		expected_out_except = 5'b10000;
 		check_outputs();
@@ -579,8 +538,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.D tie RNE";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h21;
-		tb_in_rob_idx = 7'h31;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h21, rob_idx: 7'h31};
 		tb_in_funct7 = 7'b0000001;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -594,8 +552,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.S opposite infinities";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h1e;
-		expected_out_rob_idx = 7'h2e;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h1e, rob_idx: 7'h2e};
 		expected_out_result_d = 64'hffffffff7fc00000;
 		expected_out_except = 5'b10000;
 		check_outputs();
@@ -604,8 +561,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.D tie RTZ";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h22;
-		tb_in_rob_idx = 7'h32;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h22, rob_idx: 7'h32};
 		tb_in_funct7 = 7'b0000001;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RTZ;
@@ -619,8 +575,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.S overflow";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h1f;
-		expected_out_rob_idx = 7'h2f;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h1f, rob_idx: 7'h2f};
 		expected_out_result_d = 64'hffffffff7f800000;
 		expected_out_except = 5'b00101;
 		check_outputs();
@@ -629,8 +584,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.D tie RUP";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h23;
-		tb_in_rob_idx = 7'h33;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h23, rob_idx: 7'h33};
 		tb_in_funct7 = 7'b0000001;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RUP;
@@ -644,8 +598,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.D exact";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h20;
-		expected_out_rob_idx = 7'h30;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h20, rob_idx: 7'h30};
 		expected_out_result_d = 64'h4008000000000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -654,8 +607,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.D tie RMM";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h24;
-		tb_in_rob_idx = 7'h34;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h24, rob_idx: 7'h34};
 		tb_in_funct7 = 7'b0000001;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RMM;
@@ -669,8 +621,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.D tie RNE";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h21;
-		expected_out_rob_idx = 7'h31;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h21, rob_idx: 7'h31};
 		expected_out_result_d = 64'h3ff0000000000000;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -679,8 +630,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.D cancellation RDN";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h25;
-		tb_in_rob_idx = 7'h35;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h25, rob_idx: 7'h35};
 		tb_in_funct7 = 7'b0000001;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RDN;
@@ -694,8 +644,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.D tie RTZ";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h22;
-		expected_out_rob_idx = 7'h32;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h22, rob_idx: 7'h32};
 		expected_out_result_d = 64'h3ff0000000000000;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -704,8 +653,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.D subnormal exact";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h26;
-		tb_in_rob_idx = 7'h36;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h26, rob_idx: 7'h36};
 		tb_in_funct7 = 7'b0000001;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -719,8 +667,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.D tie RUP";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h23;
-		expected_out_rob_idx = 7'h33;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h23, rob_idx: 7'h33};
 		expected_out_result_d = 64'h3ff0000000000001;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -729,8 +676,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.D qNaN";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h27;
-		tb_in_rob_idx = 7'h37;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h27, rob_idx: 7'h37};
 		tb_in_funct7 = 7'b0000001;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -744,8 +690,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.D tie RMM";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h24;
-		expected_out_rob_idx = 7'h34;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h24, rob_idx: 7'h34};
 		expected_out_result_d = 64'h3ff0000000000001;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -754,8 +699,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.D sNaN";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h28;
-		tb_in_rob_idx = 7'h38;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h28, rob_idx: 7'h38};
 		tb_in_funct7 = 7'b0000001;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -769,8 +713,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.D cancellation RDN";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h25;
-		expected_out_rob_idx = 7'h35;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h25, rob_idx: 7'h35};
 		expected_out_result_d = 64'h8000000000000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -779,8 +722,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.D opposite infinities";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h29;
-		tb_in_rob_idx = 7'h39;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h29, rob_idx: 7'h39};
 		tb_in_funct7 = 7'b0000001;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -794,8 +736,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.D subnormal exact";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h26;
-		expected_out_rob_idx = 7'h36;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h26, rob_idx: 7'h36};
 		expected_out_result_d = 64'h0000000000000002;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -804,8 +745,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FADD.D overflow";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h2a;
-		tb_in_rob_idx = 7'h3a;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h2a, rob_idx: 7'h3a};
 		tb_in_funct7 = 7'b0000001;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -819,8 +759,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.D qNaN";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h27;
-		expected_out_rob_idx = 7'h37;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h27, rob_idx: 7'h37};
 		expected_out_result_d = 64'h7ff8000000000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -829,8 +768,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FSUB.S 1 - 2";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h2b;
-		tb_in_rob_idx = 7'h3b;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h2b, rob_idx: 7'h3b};
 		tb_in_funct7 = 7'b0000100;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -844,8 +782,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.D sNaN";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h28;
-		expected_out_rob_idx = 7'h38;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h28, rob_idx: 7'h38};
 		expected_out_result_d = 64'h7ff8000000000000;
 		expected_out_except = 5'b10000;
 		check_outputs();
@@ -854,8 +791,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FSUB.S 2 - 1";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h2c;
-		tb_in_rob_idx = 7'h3c;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h2c, rob_idx: 7'h3c};
 		tb_in_funct7 = 7'b0000100;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -869,8 +805,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.D opposite infinities";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h29;
-		expected_out_rob_idx = 7'h39;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h29, rob_idx: 7'h39};
 		expected_out_result_d = 64'h7ff8000000000000;
 		expected_out_except = 5'b10000;
 		check_outputs();
@@ -879,8 +814,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FSUB.S negative result";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h2d;
-		tb_in_rob_idx = 7'h3d;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h2d, rob_idx: 7'h3d};
 		tb_in_funct7 = 7'b0000100;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -894,8 +828,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FADD.D overflow";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h2a;
-		expected_out_rob_idx = 7'h3a;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h2a, rob_idx: 7'h3a};
 		expected_out_result_d = 64'h7ff0000000000000;
 		expected_out_except = 5'b00101;
 		check_outputs();
@@ -904,8 +837,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FSUB.S equal";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h2e;
-		tb_in_rob_idx = 7'h3e;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h2e, rob_idx: 7'h3e};
 		tb_in_funct7 = 7'b0000100;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -919,8 +851,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FSUB.S 1 - 2";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h2b;
-		expected_out_rob_idx = 7'h3b;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h2b, rob_idx: 7'h3b};
 		expected_out_result_d = 64'hffffffffbf800000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -929,8 +860,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FSUB.S inf - inf";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h2f;
-		tb_in_rob_idx = 7'h3f;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h2f, rob_idx: 7'h3f};
 		tb_in_funct7 = 7'b0000100;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -944,8 +874,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FSUB.S 2 - 1";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h2c;
-		expected_out_rob_idx = 7'h3c;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h2c, rob_idx: 7'h3c};
 		expected_out_result_d = 64'hffffffff3f800000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -954,8 +883,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FSUB.D 1 - 2";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h30;
-		tb_in_rob_idx = 7'h40;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h30, rob_idx: 7'h40};
 		tb_in_funct7 = 7'b0000101;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -969,8 +897,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FSUB.S negative result";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h2d;
-		expected_out_rob_idx = 7'h3d;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h2d, rob_idx: 7'h3d};
 		expected_out_result_d = 64'hffffffffc0000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -979,8 +906,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FSUB.D equal";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h31;
-		tb_in_rob_idx = 7'h41;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h31, rob_idx: 7'h41};
 		tb_in_funct7 = 7'b0000101;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -994,8 +920,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FSUB.S equal";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h2e;
-		expected_out_rob_idx = 7'h3e;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h2e, rob_idx: 7'h3e};
 		expected_out_result_d = 64'hffffffff00000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -1004,8 +929,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FSUB.D inf - inf";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h32;
-		tb_in_rob_idx = 7'h42;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h32, rob_idx: 7'h42};
 		tb_in_funct7 = 7'b0000101;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1019,8 +943,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FSUB.S inf - inf";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h2f;
-		expected_out_rob_idx = 7'h3f;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h2f, rob_idx: 7'h3f};
 		expected_out_result_d = 64'hffffffff7fc00000;
 		expected_out_except = 5'b10000;
 		check_outputs();
@@ -1029,8 +952,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FMUL.S product below 2";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h33;
-		tb_in_rob_idx = 7'h43;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h33, rob_idx: 7'h43};
 		tb_in_funct7 = 7'b0001000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1044,8 +966,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FSUB.D 1 - 2";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h30;
-		expected_out_rob_idx = 7'h40;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h30, rob_idx: 7'h40};
 		expected_out_result_d = 64'hbff0000000000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -1054,8 +975,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FMUL.S product above 2";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h34;
-		tb_in_rob_idx = 7'h44;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h34, rob_idx: 7'h44};
 		tb_in_funct7 = 7'b0001000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1069,8 +989,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FSUB.D equal";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h31;
-		expected_out_rob_idx = 7'h41;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h31, rob_idx: 7'h41};
 		expected_out_result_d = 64'h0000000000000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -1079,8 +998,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FMUL.S negative";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h35;
-		tb_in_rob_idx = 7'h45;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h45};
 		tb_in_funct7 = 7'b0001000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1094,8 +1012,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FSUB.D inf - inf";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h32;
-		expected_out_rob_idx = 7'h42;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h32, rob_idx: 7'h42};
 		expected_out_result_d = 64'h7ff8000000000000;
 		expected_out_except = 5'b10000;
 		check_outputs();
@@ -1104,8 +1021,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FMUL.S zero";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h36;
-		tb_in_rob_idx = 7'h46;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h36, rob_idx: 7'h46};
 		tb_in_funct7 = 7'b0001000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1119,8 +1035,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FMUL.S product below 2";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h33;
-		expected_out_rob_idx = 7'h43;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h33, rob_idx: 7'h43};
 		expected_out_result_d = 64'hffffffff3f400000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -1129,8 +1044,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FMUL.S zero times infinity";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h37;
-		tb_in_rob_idx = 7'h47;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h37, rob_idx: 7'h47};
 		tb_in_funct7 = 7'b0001000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1144,8 +1058,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FMUL.S product above 2";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h34;
-		expected_out_rob_idx = 7'h44;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h34, rob_idx: 7'h44};
 		expected_out_result_d = 64'hffffffff40100000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -1154,8 +1067,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FMUL.S overflow";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h38;
-		tb_in_rob_idx = 7'h48;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h38, rob_idx: 7'h48};
 		tb_in_funct7 = 7'b0001000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1169,8 +1081,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FMUL.S negative";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h35;
-		expected_out_rob_idx = 7'h45;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h45};
 		expected_out_result_d = 64'hffffffffc0000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -1179,8 +1090,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FMUL.S minsub exact";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h39;
-		tb_in_rob_idx = 7'h49;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h39, rob_idx: 7'h49};
 		tb_in_funct7 = 7'b0001000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1194,8 +1104,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FMUL.S zero";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h36;
-		expected_out_rob_idx = 7'h46;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h36, rob_idx: 7'h46};
 		expected_out_result_d = 64'hffffffff80000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -1204,8 +1113,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FMUL.S half minsub RNE";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h3a;
-		tb_in_rob_idx = 7'h4a;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h3a, rob_idx: 7'h4a};
 		tb_in_funct7 = 7'b0001000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1219,8 +1127,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FMUL.S zero times infinity";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h37;
-		expected_out_rob_idx = 7'h47;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h37, rob_idx: 7'h47};
 		expected_out_result_d = 64'hffffffff7fc00000;
 		expected_out_except = 5'b10000;
 		check_outputs();
@@ -1229,8 +1136,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FMUL.S half minsub RUP";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h3b;
-		tb_in_rob_idx = 7'h4b;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h3b, rob_idx: 7'h4b};
 		tb_in_funct7 = 7'b0001000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RUP;
@@ -1244,8 +1150,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FMUL.S overflow";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h38;
-		expected_out_rob_idx = 7'h48;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h38, rob_idx: 7'h48};
 		expected_out_result_d = 64'hffffffff7f800000;
 		expected_out_except = 5'b00101;
 		check_outputs();
@@ -1254,8 +1159,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FMUL.S qNaN";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h3c;
-		tb_in_rob_idx = 7'h4c;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h3c, rob_idx: 7'h4c};
 		tb_in_funct7 = 7'b0001000;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1269,8 +1173,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FMUL.S minsub exact";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h39;
-		expected_out_rob_idx = 7'h49;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h39, rob_idx: 7'h49};
 		expected_out_result_d = 64'hffffffff00000001;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -1279,8 +1182,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FMUL.D product above 2";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h3d;
-		tb_in_rob_idx = 7'h4d;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h3d, rob_idx: 7'h4d};
 		tb_in_funct7 = 7'b0001001;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1294,8 +1196,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FMUL.S half minsub RNE";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h3a;
-		expected_out_rob_idx = 7'h4a;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h3a, rob_idx: 7'h4a};
 		expected_out_result_d = 64'hffffffff00000000;
 		expected_out_except = 5'b00011;
 		check_outputs();
@@ -1304,8 +1205,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FMUL.D zero times infinity";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h3e;
-		tb_in_rob_idx = 7'h4e;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h3e, rob_idx: 7'h4e};
 		tb_in_funct7 = 7'b0001001;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1319,8 +1219,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FMUL.S half minsub RUP";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h3b;
-		expected_out_rob_idx = 7'h4b;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h3b, rob_idx: 7'h4b};
 		expected_out_result_d = 64'hffffffff00000001;
 		expected_out_except = 5'b00011;
 		check_outputs();
@@ -1329,8 +1228,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FMUL.D overflow";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h3f;
-		tb_in_rob_idx = 7'h4f;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h3f, rob_idx: 7'h4f};
 		tb_in_funct7 = 7'b0001001;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1344,8 +1242,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FMUL.S qNaN";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h3c;
-		expected_out_rob_idx = 7'h4c;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h3c, rob_idx: 7'h4c};
 		expected_out_result_d = 64'hffffffff7fc00000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -1354,8 +1251,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FMUL.D half minsub RNE";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h40;
-		tb_in_rob_idx = 7'h50;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h40, rob_idx: 7'h50};
 		tb_in_funct7 = 7'b0001001;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1369,8 +1265,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FMUL.D product above 2";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h3d;
-		expected_out_rob_idx = 7'h4d;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h3d, rob_idx: 7'h4d};
 		expected_out_result_d = 64'h4002000000000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -1379,8 +1274,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FMUL.D half minsub RUP";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h41;
-		tb_in_rob_idx = 7'h51;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h41, rob_idx: 7'h51};
 		tb_in_funct7 = 7'b0001001;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RUP;
@@ -1394,8 +1288,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1;
 		sub_test_case = "complete: FMUL.D zero times infinity";
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h3e;
-		expected_out_rob_idx = 7'h4e;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h3e, rob_idx: 7'h4e};
 		expected_out_result_d = 64'h7ff8000000000000;
 		expected_out_except = 5'b10000;
 		check_outputs();
@@ -1405,8 +1298,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "drain: FMUL.D overflow";
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h3f;
-		expected_out_rob_idx = 7'h4f;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h3f, rob_idx: 7'h4f};
 		expected_out_result_d = 64'h7ff0000000000000;
 		expected_out_except = 5'b00101;
 		check_outputs();
@@ -1414,8 +1306,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "drain: FMUL.D half minsub RNE";
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h40;
-		expected_out_rob_idx = 7'h50;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h40, rob_idx: 7'h50};
 		expected_out_result_d = 64'h0000000000000000;
 		expected_out_except = 5'b00011;
 		check_outputs();
@@ -1423,8 +1314,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "drain: FMUL.D half minsub RUP";
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h41;
-		expected_out_rob_idx = 7'h51;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h41, rob_idx: 7'h51};
 		expected_out_result_d = 64'h0000000000000001;
 		expected_out_except = 5'b00011;
 		check_outputs();
@@ -1438,7 +1328,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FADD.S overflow RTZ returns maximum finite";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h05; tb_in_rob_idx = 7'h15;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h05, rob_idx: 7'h15};
 		tb_in_funct7 = 7'b0000000; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RTZ; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_s_boxed = 32'h7f7fffff; tb_in_B_s_boxed = 32'h7f7fffff;
@@ -1451,7 +1341,7 @@ module fpu_arithmetic_tb #(
 		end
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h05; expected_out_rob_idx = 7'h15;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h05, rob_idx: 7'h15};
 		expected_out_result_d = 64'hffffffff7f7fffff; expected_out_except = 5'b00101;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -1462,7 +1352,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FMUL.S rounds into minimum normal";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h06; tb_in_rob_idx = 7'h16;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h06, rob_idx: 7'h16};
 		tb_in_funct7 = 7'b0001000; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_s_boxed = 32'h00800000; tb_in_B_s_boxed = 32'h3f7fffff;
@@ -1474,7 +1364,7 @@ module fpu_arithmetic_tb #(
 			expected_in_ready = 1'b1; expected_out_valid = 1'b0; check_outputs();
 		end
 		@(posedge CLK); #(PERIOD/10);
-		expected_out_valid = 1'b1; expected_out_dest_pr = 7'h06; expected_out_rob_idx = 7'h16;
+		expected_out_valid = 1'b1; expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h06, rob_idx: 7'h16};
 		expected_out_result_d = 64'hffffffff00800000; expected_out_except = 5'b00001;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10); expected_out_valid = 1'b0; check_outputs();
@@ -1482,7 +1372,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FMUL.D rounds into minimum normal";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h07; tb_in_rob_idx = 7'h17;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h07, rob_idx: 7'h17};
 		tb_in_funct7 = 7'b0001001; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h0010000000000000; tb_in_B_d = 64'h3fefffffffffffff;
@@ -1494,7 +1384,7 @@ module fpu_arithmetic_tb #(
 			expected_in_ready = 1'b1; expected_out_valid = 1'b0; check_outputs();
 		end
 		@(posedge CLK); #(PERIOD/10);
-		expected_out_valid = 1'b1; expected_out_dest_pr = 7'h07; expected_out_rob_idx = 7'h17;
+		expected_out_valid = 1'b1; expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h07, rob_idx: 7'h17};
 		expected_out_result_d = 64'h0010000000000000; expected_out_except = 5'b00001;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10); expected_out_valid = 1'b0; check_outputs();
@@ -1502,7 +1392,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "unsupported funct7 returns double cNaN";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h08; tb_in_rob_idx = 7'h18;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h08, rob_idx: 7'h18};
 		tb_in_funct7 = 7'b1111111; tb_in_funct5 = 5'b00000;
 		tb_in_A_d = 64'h3ff0000000000000; tb_in_B_d = 64'h3ff0000000000000;
 		@(posedge CLK); #(PERIOD/10);
@@ -1513,7 +1403,7 @@ module fpu_arithmetic_tb #(
 			expected_in_ready = 1'b1; expected_out_valid = 1'b0; check_outputs();
 		end
 		@(posedge CLK); #(PERIOD/10);
-		expected_out_valid = 1'b1; expected_out_dest_pr = 7'h08; expected_out_rob_idx = 7'h18;
+		expected_out_valid = 1'b1; expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h08, rob_idx: 7'h18};
 		expected_out_result_d = 64'h7ff8000000000000; expected_out_except = 5'b00000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10); expected_out_valid = 1'b0; check_outputs();
@@ -1521,7 +1411,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FSQRT requires funct5 zero";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h09; tb_in_rob_idx = 7'h19;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h09, rob_idx: 7'h19};
 		tb_in_funct7 = 7'b0101100; tb_in_funct5 = 5'b00001;
 		tb_in_A_s_boxed = 32'h40800000; tb_in_B_s_boxed = 32'h00000000;
 		@(posedge CLK); #(PERIOD/10);
@@ -1532,7 +1422,7 @@ module fpu_arithmetic_tb #(
 			expected_in_ready = 1'b1; expected_out_valid = 1'b0; check_outputs();
 		end
 		@(posedge CLK); #(PERIOD/10);
-		expected_out_valid = 1'b1; expected_out_dest_pr = 7'h09; expected_out_rob_idx = 7'h19;
+		expected_out_valid = 1'b1; expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h09, rob_idx: 7'h19};
 		expected_out_result_d = 64'hffffffff7fc00000; expected_out_except = 5'b00000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10); expected_out_valid = 1'b0; check_outputs();
@@ -1540,7 +1430,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FADD.S finite plus positive infinity";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h0a; tb_in_rob_idx = 7'h1a;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h0a, rob_idx: 7'h1a};
 		tb_in_funct7 = 7'b0000000; tb_in_funct5 = 5'b00000;
 		tb_in_A_s_boxed = 32'h3f800000; tb_in_B_s_boxed = 32'h7f800000;
 		@(posedge CLK); #(PERIOD/10);
@@ -1551,7 +1441,7 @@ module fpu_arithmetic_tb #(
 			expected_in_ready = 1'b1; expected_out_valid = 1'b0; check_outputs();
 		end
 		@(posedge CLK); #(PERIOD/10);
-		expected_out_valid = 1'b1; expected_out_dest_pr = 7'h0a; expected_out_rob_idx = 7'h1a;
+		expected_out_valid = 1'b1; expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h0a, rob_idx: 7'h1a};
 		expected_out_result_d = 64'hffffffff7f800000; expected_out_except = 5'b00000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10); expected_out_valid = 1'b0; check_outputs();
@@ -1559,7 +1449,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FMUL.D negative infinity";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h0b; tb_in_rob_idx = 7'h1b;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h0b, rob_idx: 7'h1b};
 		tb_in_funct7 = 7'b0001001; tb_in_funct5 = 5'b00000;
 		tb_in_A_d = 64'hfff0000000000000; tb_in_B_d = 64'h4000000000000000;
 		@(posedge CLK); #(PERIOD/10);
@@ -1570,7 +1460,7 @@ module fpu_arithmetic_tb #(
 			expected_in_ready = 1'b1; expected_out_valid = 1'b0; check_outputs();
 		end
 		@(posedge CLK); #(PERIOD/10);
-		expected_out_valid = 1'b1; expected_out_dest_pr = 7'h0b; expected_out_rob_idx = 7'h1b;
+		expected_out_valid = 1'b1; expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h0b, rob_idx: 7'h1b};
 		expected_out_result_d = 64'hfff0000000000000; expected_out_except = 5'b00000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10); expected_out_valid = 1'b0; check_outputs();
@@ -1594,23 +1484,23 @@ module fpu_arithmetic_tb #(
 		test_num++;
 		@(negedge CLK);
 		tb_out_ready = 1'b0;
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h01; tb_in_rob_idx = 7'h11;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h01, rob_idx: 7'h11};
 		tb_in_funct7 = 7'b0000000; tb_in_instr_rm = fpp::RM_RNE;
 		tb_in_A_s_boxed = 32'h3f800000; tb_in_B_s_boxed = 32'h40000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b0; check_outputs();
 		@(negedge CLK);
-		tb_in_dest_pr = 7'h02; tb_in_rob_idx = 7'h12;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h02, rob_idx: 7'h12};
 		tb_in_A_s_boxed = 32'h40000000; tb_in_B_s_boxed = 32'h40000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b0; check_outputs();
 		@(negedge CLK);
-		tb_in_dest_pr = 7'h03; tb_in_rob_idx = 7'h13;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h03, rob_idx: 7'h13};
 		tb_in_A_s_boxed = 32'h40400000; tb_in_B_s_boxed = 32'h40000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b0; check_outputs();
 		@(negedge CLK);
-		tb_in_dest_pr = 7'h04; tb_in_rob_idx = 7'h14;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h04, rob_idx: 7'h14};
 		tb_in_A_s_boxed = 32'h40400000; tb_in_B_s_boxed = 32'h40400000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b0; check_outputs();
@@ -1627,23 +1517,23 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b1; expected_out_valid = 1'b0; check_outputs();
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h01; expected_out_rob_idx = 7'h11;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h01, rob_idx: 7'h11};
 		expected_out_result_d = 64'hffffffff40400000; expected_out_except = 5'b00000;
 		check_outputs();
 		@(negedge CLK); tb_out_ready = 1'b1;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h02; expected_out_rob_idx = 7'h12;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h02, rob_idx: 7'h12};
 		expected_out_result_d = 64'hffffffff40800000; expected_out_except = 5'b00000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h03; expected_out_rob_idx = 7'h13;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h03, rob_idx: 7'h13};
 		expected_out_result_d = 64'hffffffff40a00000; expected_out_except = 5'b00000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h04; expected_out_rob_idx = 7'h14;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h04, rob_idx: 7'h14};
 		expected_out_result_d = 64'hffffffff40c00000; expected_out_except = 5'b00000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -1653,14 +1543,13 @@ module fpu_arithmetic_tb #(
 		$display("\ntest %0d: %s", test_num, test_case);
 		test_num++;
 		delay_slow_outputs = 1'b1;
-		expected_packet_slow_d1 = {expected_out_valid, expected_out_dest_pr, expected_out_rob_idx,
+		expected_packet_slow_d1 = {expected_out_valid, expected_out_fp_tag,
 			expected_out_result_d, expected_out_except};
 		@(negedge CLK);
 		sub_test_case = "FDIV.S 1/2 exact";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h50;
-		tb_in_rob_idx = 7'h70;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h50, rob_idx: 7'h70};
 		tb_in_funct7 = 7'b0001100;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1686,8 +1575,7 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h50;
-		expected_out_rob_idx = 7'h70;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h50, rob_idx: 7'h70};
 		expected_out_result_d = 64'hffffffff3f000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -1699,8 +1587,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FDIV.S 2/1 exact";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h51;
-		tb_in_rob_idx = 7'h71;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h51, rob_idx: 7'h71};
 		tb_in_funct7 = 7'b0001100;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1726,8 +1613,7 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h51;
-		expected_out_rob_idx = 7'h71;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h51, rob_idx: 7'h71};
 		expected_out_result_d = 64'hffffffff40000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -1739,8 +1625,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FDIV.S 1/3 RNE";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h52;
-		tb_in_rob_idx = 7'h72;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h52, rob_idx: 7'h72};
 		tb_in_funct7 = 7'b0001100;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1766,8 +1651,7 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h52;
-		expected_out_rob_idx = 7'h72;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h52, rob_idx: 7'h72};
 		expected_out_result_d = 64'hffffffff3eaaaaab;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -1779,8 +1663,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FDIV.S 1/3 RTZ";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h53;
-		tb_in_rob_idx = 7'h73;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h53, rob_idx: 7'h73};
 		tb_in_funct7 = 7'b0001100;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RTZ;
@@ -1806,8 +1689,7 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h53;
-		expected_out_rob_idx = 7'h73;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h53, rob_idx: 7'h73};
 		expected_out_result_d = 64'hffffffff3eaaaaaa;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -1819,8 +1701,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FDIV.S 1/3 RDN";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h54;
-		tb_in_rob_idx = 7'h74;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h54, rob_idx: 7'h74};
 		tb_in_funct7 = 7'b0001100;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RDN;
@@ -1846,8 +1727,7 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h54;
-		expected_out_rob_idx = 7'h74;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h54, rob_idx: 7'h74};
 		expected_out_result_d = 64'hffffffff3eaaaaaa;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -1859,8 +1739,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FDIV.S 1/3 RUP";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h55;
-		tb_in_rob_idx = 7'h75;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h55, rob_idx: 7'h75};
 		tb_in_funct7 = 7'b0001100;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RUP;
@@ -1886,8 +1765,7 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h55;
-		expected_out_rob_idx = 7'h75;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h55, rob_idx: 7'h75};
 		expected_out_result_d = 64'hffffffff3eaaaaab;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -1899,8 +1777,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FDIV.S 1/3 RMM";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h56;
-		tb_in_rob_idx = 7'h76;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h56, rob_idx: 7'h76};
 		tb_in_funct7 = 7'b0001100;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RMM;
@@ -1926,8 +1803,7 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h56;
-		expected_out_rob_idx = 7'h76;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h56, rob_idx: 7'h76};
 		expected_out_result_d = 64'hffffffff3eaaaaab;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -1939,8 +1815,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FDIV.S negative";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h57;
-		tb_in_rob_idx = 7'h77;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h57, rob_idx: 7'h77};
 		tb_in_funct7 = 7'b0001100;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -1966,8 +1841,7 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h57;
-		expected_out_rob_idx = 7'h77;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h57, rob_idx: 7'h77};
 		expected_out_result_d = 64'hffffffffbf000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -1979,8 +1853,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FDIV.D 1/3 RNE";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h58;
-		tb_in_rob_idx = 7'h78;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h58, rob_idx: 7'h78};
 		tb_in_funct7 = 7'b0001101;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -2006,8 +1879,7 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h58;
-		expected_out_rob_idx = 7'h78;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h58, rob_idx: 7'h78};
 		expected_out_result_d = 64'h3fd5555555555555;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -2019,8 +1891,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FDIV.D 1/3 RUP";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h59;
-		tb_in_rob_idx = 7'h79;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h59, rob_idx: 7'h79};
 		tb_in_funct7 = 7'b0001101;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RUP;
@@ -2046,8 +1917,7 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h59;
-		expected_out_rob_idx = 7'h79;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h59, rob_idx: 7'h79};
 		expected_out_result_d = 64'h3fd5555555555556;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -2059,8 +1929,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FDIV.D 2/1 exact";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h5a;
-		tb_in_rob_idx = 7'h7a;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h5a, rob_idx: 7'h7a};
 		tb_in_funct7 = 7'b0001101;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -2086,8 +1955,7 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h5a;
-		expected_out_rob_idx = 7'h7a;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h5a, rob_idx: 7'h7a};
 		expected_out_result_d = 64'h4000000000000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -2099,8 +1967,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FSQRT.S four";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h5b;
-		tb_in_rob_idx = 7'h7b;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h5b, rob_idx: 7'h7b};
 		tb_in_funct7 = 7'b0101100;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -2126,8 +1993,7 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h5b;
-		expected_out_rob_idx = 7'h7b;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h5b, rob_idx: 7'h7b};
 		expected_out_result_d = 64'hffffffff40000000;
 		expected_out_except = 5'b00000;
 		check_outputs();
@@ -2139,8 +2005,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FSQRT.S two RNE";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h5c;
-		tb_in_rob_idx = 7'h7c;
+		tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h5c, rob_idx: 7'h7c};
 		tb_in_funct7 = 7'b0101100;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -2166,8 +2031,7 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h5c;
-		expected_out_rob_idx = 7'h7c;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h5c, rob_idx: 7'h7c};
 		expected_out_result_d = 64'hffffffff3fb504f3;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -2179,8 +2043,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FSQRT.S two RUP";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h5d;
-		tb_in_rob_idx = 7'h7d;
+		tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h5d, rob_idx: 7'h7d};
 		tb_in_funct7 = 7'b0101100;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RUP;
@@ -2206,8 +2069,7 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h5d;
-		expected_out_rob_idx = 7'h7d;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h5d, rob_idx: 7'h7d};
 		expected_out_result_d = 64'hffffffff3fb504f4;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -2219,8 +2081,7 @@ module fpu_arithmetic_tb #(
 		sub_test_case = "FSQRT.D two";
 		$display("\t- sub_test: %s", sub_test_case);
 		tb_in_valid = 1'b1;
-		tb_in_dest_pr = 7'h5e;
-		tb_in_rob_idx = 7'h7e;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h5e, rob_idx: 7'h7e};
 		tb_in_funct7 = 7'b0101101;
 		tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE;
@@ -2246,8 +2107,7 @@ module fpu_arithmetic_tb #(
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1;
 		expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h5e;
-		expected_out_rob_idx = 7'h7e;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h5e, rob_idx: 7'h7e};
 		expected_out_result_d = 64'h3ff6a09e667f3bcd;
 		expected_out_except = 5'b00001;
 		check_outputs();
@@ -2264,7 +2124,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FDIV.S remains in flight while FADD.S bypasses";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h61; tb_in_rob_idx = 7'h31;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h61, rob_idx: 7'h31};
 		tb_in_funct7 = 7'b0001100; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_s_boxed = 32'h3f800000; tb_in_B_s_boxed = 32'h40400000;
@@ -2274,7 +2134,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "fast FADD.S accepted during FDIV.S";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_dest_pr = 7'h62; tb_in_rob_idx = 7'h32;
+		tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h62, rob_idx: 7'h32};
 		tb_in_funct7 = 7'b0000000;
 		tb_in_A_s_boxed = 32'h3f800000; tb_in_B_s_boxed = 32'h40000000;
 		@(posedge CLK); #(PERIOD/10);
@@ -2283,7 +2143,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FSQRT.S held while divider is busy";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_dest_pr = 7'h63; tb_in_rob_idx = 7'h33;
+		tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h63, rob_idx: 7'h33};
 		tb_in_funct7 = 7'b0101100; tb_in_funct5 = 5'b00000;
 		tb_in_A_s_boxed = 32'h40800000; tb_in_B_s_boxed = 32'h00000000;
 		@(posedge CLK); #(PERIOD/10);
@@ -2304,7 +2164,7 @@ module fpu_arithmetic_tb #(
 		expected_in_ready = 1'b0; expected_out_valid = 1'b0; check_outputs();
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b0; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h62; expected_out_rob_idx = 7'h32;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h62, rob_idx: 7'h32};
 		expected_out_result_d = 64'hffffffff40400000; expected_out_except = 5'b00000;
 		check_outputs();
 		repeat (50) begin
@@ -2313,7 +2173,7 @@ module fpu_arithmetic_tb #(
 		end
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h61; expected_out_rob_idx = 7'h31;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h61, rob_idx: 7'h31};
 		expected_out_result_d = 64'hffffffff3eaaaaab; expected_out_except = 5'b00001;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2325,7 +2185,7 @@ module fpu_arithmetic_tb #(
 		end
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h63; expected_out_rob_idx = 7'h33;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h63, rob_idx: 7'h33};
 		expected_out_result_d = 64'hffffffff40000000; expected_out_except = 5'b00000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2336,12 +2196,12 @@ module fpu_arithmetic_tb #(
 		test_num++;
 		delay_slow_outputs = 1'b1;
 		expected_packet_slow_d1 = '0;
-		expected_packet_slow_d1 = {expected_out_valid, expected_out_dest_pr, expected_out_rob_idx,
+		expected_packet_slow_d1 = {expected_out_valid, expected_out_fp_tag,
 			expected_out_result_d, expected_out_except};
 		@(negedge CLK);
 		sub_test_case = "FDIV.S divide by zero";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h40; tb_in_rob_idx = 7'h50;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h40, rob_idx: 7'h50};
 		tb_in_funct7 = 7'b0001100; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h0; tb_in_A_s_boxed = 32'h3f800000;
@@ -2351,7 +2211,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h40; expected_out_rob_idx = 7'h50;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h40, rob_idx: 7'h50};
 		expected_out_result_d = 64'hffffffff7f800000; expected_out_except = 5'b01000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2360,7 +2220,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FDIV.S zero / zero";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h41; tb_in_rob_idx = 7'h51;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h41, rob_idx: 7'h51};
 		tb_in_funct7 = 7'b0001100; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h0; tb_in_A_s_boxed = 32'h00000000;
@@ -2370,7 +2230,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h41; expected_out_rob_idx = 7'h51;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h41, rob_idx: 7'h51};
 		expected_out_result_d = 64'hffffffff7fc00000; expected_out_except = 5'b10000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2379,7 +2239,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FDIV.S infinity / infinity";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h42; tb_in_rob_idx = 7'h52;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h42, rob_idx: 7'h52};
 		tb_in_funct7 = 7'b0001100; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h0; tb_in_A_s_boxed = 32'h7f800000;
@@ -2389,7 +2249,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h42; expected_out_rob_idx = 7'h52;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h42, rob_idx: 7'h52};
 		expected_out_result_d = 64'hffffffff7fc00000; expected_out_except = 5'b10000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2398,7 +2258,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FDIV.S qNaN";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h43; tb_in_rob_idx = 7'h53;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h43, rob_idx: 7'h53};
 		tb_in_funct7 = 7'b0001100; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h0; tb_in_A_s_boxed = 32'h7fc00000;
@@ -2408,7 +2268,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h43; expected_out_rob_idx = 7'h53;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h43, rob_idx: 7'h53};
 		expected_out_result_d = 64'hffffffff7fc00000; expected_out_except = 5'b00000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2417,7 +2277,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FDIV.S sNaN";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h44; tb_in_rob_idx = 7'h54;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h44, rob_idx: 7'h54};
 		tb_in_funct7 = 7'b0001100; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h0; tb_in_A_s_boxed = 32'h7f800001;
@@ -2427,7 +2287,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h44; expected_out_rob_idx = 7'h54;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h44, rob_idx: 7'h54};
 		expected_out_result_d = 64'hffffffff7fc00000; expected_out_except = 5'b10000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2436,7 +2296,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FDIV.S finite / infinity";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h45; tb_in_rob_idx = 7'h55;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h45, rob_idx: 7'h55};
 		tb_in_funct7 = 7'b0001100; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h0; tb_in_A_s_boxed = 32'h3f800000;
@@ -2446,7 +2306,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h45; expected_out_rob_idx = 7'h55;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h45, rob_idx: 7'h55};
 		expected_out_result_d = 64'hffffffff00000000; expected_out_except = 5'b00000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2455,7 +2315,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FDIV.D divide by zero";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h46; tb_in_rob_idx = 7'h56;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h46, rob_idx: 7'h56};
 		tb_in_funct7 = 7'b0001101; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h3ff0000000000000; tb_in_A_s_boxed = 32'h0;
@@ -2465,7 +2325,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h46; expected_out_rob_idx = 7'h56;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h46, rob_idx: 7'h56};
 		expected_out_result_d = 64'h7ff0000000000000; expected_out_except = 5'b01000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2474,7 +2334,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FDIV.D zero / zero";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h47; tb_in_rob_idx = 7'h57;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h47, rob_idx: 7'h57};
 		tb_in_funct7 = 7'b0001101; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h0000000000000000; tb_in_A_s_boxed = 32'h0;
@@ -2484,7 +2344,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h47; expected_out_rob_idx = 7'h57;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h47, rob_idx: 7'h57};
 		expected_out_result_d = 64'h7ff8000000000000; expected_out_except = 5'b10000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2493,7 +2353,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FDIV.D infinity / infinity";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h48; tb_in_rob_idx = 7'h58;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h48, rob_idx: 7'h58};
 		tb_in_funct7 = 7'b0001101; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h7ff0000000000000; tb_in_A_s_boxed = 32'h0;
@@ -2503,7 +2363,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h48; expected_out_rob_idx = 7'h58;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h48, rob_idx: 7'h58};
 		expected_out_result_d = 64'h7ff8000000000000; expected_out_except = 5'b10000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2512,7 +2372,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FDIV.D sNaN";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h49; tb_in_rob_idx = 7'h59;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h49, rob_idx: 7'h59};
 		tb_in_funct7 = 7'b0001101; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h7ff0000000000001; tb_in_A_s_boxed = 32'h0;
@@ -2522,7 +2382,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h49; expected_out_rob_idx = 7'h59;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h49, rob_idx: 7'h59};
 		expected_out_result_d = 64'h7ff8000000000000; expected_out_except = 5'b10000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2531,7 +2391,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FSQRT.S positive infinity";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h4a; tb_in_rob_idx = 7'h5a;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h4a, rob_idx: 7'h5a};
 		tb_in_funct7 = 7'b0101100; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h0; tb_in_A_s_boxed = 32'h7f800000;
@@ -2541,7 +2401,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h4a; expected_out_rob_idx = 7'h5a;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h4a, rob_idx: 7'h5a};
 		expected_out_result_d = 64'hffffffff7f800000; expected_out_except = 5'b00000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2550,7 +2410,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FSQRT.S negative zero";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h4b; tb_in_rob_idx = 7'h5b;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h4b, rob_idx: 7'h5b};
 		tb_in_funct7 = 7'b0101100; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h0; tb_in_A_s_boxed = 32'h80000000;
@@ -2560,7 +2420,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h4b; expected_out_rob_idx = 7'h5b;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h4b, rob_idx: 7'h5b};
 		expected_out_result_d = 64'hffffffff80000000; expected_out_except = 5'b00000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2569,7 +2429,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FSQRT.S negative finite";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h4c; tb_in_rob_idx = 7'h5c;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h4c, rob_idx: 7'h5c};
 		tb_in_funct7 = 7'b0101100; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h0; tb_in_A_s_boxed = 32'hbf800000;
@@ -2579,7 +2439,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h4c; expected_out_rob_idx = 7'h5c;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h4c, rob_idx: 7'h5c};
 		expected_out_result_d = 64'hffffffff7fc00000; expected_out_except = 5'b10000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2588,7 +2448,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FSQRT.S qNaN";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h4d; tb_in_rob_idx = 7'h5d;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h4d, rob_idx: 7'h5d};
 		tb_in_funct7 = 7'b0101100; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h0; tb_in_A_s_boxed = 32'h7fc00000;
@@ -2598,7 +2458,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h4d; expected_out_rob_idx = 7'h5d;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h4d, rob_idx: 7'h5d};
 		expected_out_result_d = 64'hffffffff7fc00000; expected_out_except = 5'b00000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2607,7 +2467,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FSQRT.S sNaN";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h4e; tb_in_rob_idx = 7'h5e;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h4e, rob_idx: 7'h5e};
 		tb_in_funct7 = 7'b0101100; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h0; tb_in_A_s_boxed = 32'h7f800001;
@@ -2617,7 +2477,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h4e; expected_out_rob_idx = 7'h5e;
+		expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h4e, rob_idx: 7'h5e};
 		expected_out_result_d = 64'hffffffff7fc00000; expected_out_except = 5'b10000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2626,7 +2486,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FSQRT.D negative infinity";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h4f; tb_in_rob_idx = 7'h5f;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h4f, rob_idx: 7'h5f};
 		tb_in_funct7 = 7'b0101101; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'hfff0000000000000; tb_in_A_s_boxed = 32'h0;
@@ -2636,7 +2496,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h4f; expected_out_rob_idx = 7'h5f;
+		expected_out_fp_tag = '{hart_id: 2'd3, dest_pr: 7'h4f, rob_idx: 7'h5f};
 		expected_out_result_d = 64'h7ff8000000000000; expected_out_except = 5'b10000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2645,7 +2505,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FSQRT.D qNaN";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h50; tb_in_rob_idx = 7'h60;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h50, rob_idx: 7'h60};
 		tb_in_funct7 = 7'b0101101; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h7ff8000000000000; tb_in_A_s_boxed = 32'h0;
@@ -2655,7 +2515,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h50; expected_out_rob_idx = 7'h60;
+		expected_out_fp_tag = '{hart_id: 2'd0, dest_pr: 7'h50, rob_idx: 7'h60};
 		expected_out_result_d = 64'h7ff8000000000000; expected_out_except = 5'b00000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);
@@ -2664,7 +2524,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK);
 		sub_test_case = "FSQRT.D sNaN";
 		$display("\t- sub_test: %s", sub_test_case);
-		tb_in_valid = 1'b1; tb_in_dest_pr = 7'h51; tb_in_rob_idx = 7'h61;
+		tb_in_valid = 1'b1; tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h51, rob_idx: 7'h61};
 		tb_in_funct7 = 7'b0101101; tb_in_funct5 = 5'b00000;
 		tb_in_instr_rm = fpp::RM_RNE; tb_in_fcsr_rm = fpp::RM_RNE;
 		tb_in_A_d = 64'h7ff0000000000001; tb_in_A_s_boxed = 32'h0;
@@ -2674,7 +2534,7 @@ module fpu_arithmetic_tb #(
 		@(negedge CLK); tb_in_valid = 1'b0; tb_in_funct7 = 7'b0000000;
 		@(posedge CLK); #(PERIOD/10);
 		expected_in_ready = 1'b1; expected_out_valid = 1'b1;
-		expected_out_dest_pr = 7'h51; expected_out_rob_idx = 7'h61;
+		expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h51, rob_idx: 7'h61};
 		expected_out_result_d = 64'h7ff8000000000000; expected_out_except = 5'b10000;
 		check_outputs();
 		@(posedge CLK); #(PERIOD/10);

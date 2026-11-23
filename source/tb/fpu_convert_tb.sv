@@ -8,7 +8,6 @@
 `timescale 1ns/100ps
 
 `include "fpp.vh"
-`include "corep.vh"
 
 module fpu_convert_tb #(
 ) ();
@@ -35,8 +34,7 @@ module fpu_convert_tb #(
 
 	// input control
 	logic tb_in_valid;
-	corep::pr_t tb_in_dest_pr;
-	corep::rob_idx_t tb_in_rob_idx;
+	fpp::fp_tag_t tb_in_fp_tag;
 
 	logic DUT_in_ready, expected_in_ready;
 
@@ -52,8 +50,7 @@ module fpu_convert_tb #(
 
 	// output control
 	logic DUT_out_valid, expected_out_valid;
-	corep::pr_t DUT_out_dest_pr, expected_out_dest_pr;
-	corep::rob_idx_t DUT_out_rob_idx, expected_out_rob_idx;
+	fpp::fp_tag_t DUT_out_fp_tag, expected_out_fp_tag;
 
 	logic tb_out_ready;
 
@@ -72,8 +69,7 @@ module fpu_convert_tb #(
 
 	    // input control
 		.in_valid(tb_in_valid),
-		.in_dest_pr(tb_in_dest_pr),
-		.in_rob_idx(tb_in_rob_idx),
+		.in_fp_tag(tb_in_fp_tag),
 
 		.in_ready(DUT_in_ready),
 
@@ -89,8 +85,7 @@ module fpu_convert_tb #(
 
 	    // output control
 		.out_valid(DUT_out_valid),
-		.out_dest_pr(DUT_out_dest_pr),
-		.out_rob_idx(DUT_out_rob_idx),
+		.out_fp_tag(DUT_out_fp_tag),
 
 		.out_ready(tb_out_ready),
 
@@ -120,18 +115,10 @@ module fpu_convert_tb #(
 			tb_error = 1'b1;
 		end
 
-		if (expected_out_dest_pr !== DUT_out_dest_pr) begin
-			$display("TB ERROR: expected_out_dest_pr (%0d'h%h) != DUT_out_dest_pr (%0d'h%h)",
-				$bits(expected_out_dest_pr), expected_out_dest_pr,
-				$bits(DUT_out_dest_pr), DUT_out_dest_pr);
-			num_errors++;
-			tb_error = 1'b1;
-		end
-
-		if (expected_out_rob_idx !== DUT_out_rob_idx) begin
-			$display("TB ERROR: expected_out_rob_idx (%0d'h%h) != DUT_out_rob_idx (%0d'h%h)",
-				$bits(expected_out_rob_idx), expected_out_rob_idx,
-				$bits(DUT_out_rob_idx), DUT_out_rob_idx);
+		if (expected_out_fp_tag !== DUT_out_fp_tag) begin
+			$display("TB ERROR: expected_out_fp_tag (%0d'h%h) != DUT_out_fp_tag (%0d'h%h)",
+				$bits(expected_out_fp_tag), expected_out_fp_tag,
+				$bits(DUT_out_fp_tag), DUT_out_fp_tag);
 			num_errors++;
 			tb_error = 1'b1;
 		end
@@ -161,8 +148,7 @@ module fpu_convert_tb #(
 initial begin
 	nRST = 1'b0;
 	tb_in_valid = 1'b0;
-	tb_in_dest_pr = '0;
-	tb_in_rob_idx = '0;
+	tb_in_fp_tag = '0;
 	tb_in_funct7 = '0;
 	tb_in_funct5 = '0;
 	tb_in_instr_rm = fpp::RM_DYN;
@@ -172,8 +158,7 @@ initial begin
 	tb_out_ready = 1'b1;
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b0;
-	expected_out_dest_pr = '0;
-	expected_out_rob_idx = '0;
+	expected_out_fp_tag = '0;
 	expected_out_result_d = '0;
 	expected_out_except = '0;
 
@@ -192,8 +177,7 @@ initial begin
 	test_num++;
 	@(negedge CLK);
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h11;
-	tb_in_rob_idx = 7'h21;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h11, rob_idx: 7'h21};
 	tb_in_funct7 = 7'b0100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -203,8 +187,7 @@ initial begin
 	tb_out_ready = 1'b0;
 	@(posedge CLK); #(PERIOD / 10);
 	@(negedge CLK);
-	tb_in_dest_pr = 7'h12;
-	tb_in_rob_idx = 7'h22;
+	tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h12, rob_idx: 7'h22};
 	tb_in_A_d = 64'h0;
 	tb_in_A_s_boxed = 32'h40000000;
 	@(posedge CLK); #(PERIOD / 10);
@@ -213,32 +196,28 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h11;
-	expected_out_rob_idx = 7'h21;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h11, rob_idx: 7'h21};
 	expected_out_result_d = 64'h3ff0000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
 	@(posedge CLK); #(PERIOD / 10);
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h11;
-	expected_out_rob_idx = 7'h21;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h11, rob_idx: 7'h21};
 	expected_out_result_d = 64'h3ff0000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
 	@(posedge CLK); #(PERIOD / 10);
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h11;
-	expected_out_rob_idx = 7'h21;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h11, rob_idx: 7'h21};
 	expected_out_result_d = 64'h3ff0000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
 	@(posedge CLK); #(PERIOD / 10);
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h11;
-	expected_out_rob_idx = 7'h21;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h11, rob_idx: 7'h21};
 	expected_out_result_d = 64'h3ff0000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -247,8 +226,7 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h12;
-	expected_out_rob_idx = 7'h22;
+	expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h12, rob_idx: 7'h22};
 	expected_out_result_d = 64'h4000000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -262,8 +240,7 @@ initial begin
 	test_num++;
 	@(negedge CLK);
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h31;
-	tb_in_rob_idx = 7'h41;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h31, rob_idx: 7'h41};
 	tb_in_funct7 = 7'b0100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -273,8 +250,7 @@ initial begin
 	tb_out_ready = 1'b1;
 	@(posedge CLK); #(PERIOD / 10);
 	@(negedge CLK);
-	tb_in_dest_pr = 7'h32;
-	tb_in_rob_idx = 7'h42;
+	tb_in_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h32, rob_idx: 7'h42};
 	tb_in_A_s_boxed = 32'h40000000;
 	@(posedge CLK); #(PERIOD / 10);
 	@(negedge CLK);
@@ -282,16 +258,14 @@ initial begin
 	@(posedge CLK); #(PERIOD / 10);
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h31;
-	expected_out_rob_idx = 7'h41;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h31, rob_idx: 7'h41};
 	expected_out_result_d = 64'h3ff0000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
 	@(posedge CLK); #(PERIOD / 10);
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h32;
-	expected_out_rob_idx = 7'h42;
+	expected_out_fp_tag = '{hart_id: 2'd2, dest_pr: 7'h32, rob_idx: 7'h42};
 	expected_out_result_d = 64'h4000000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -308,8 +282,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -325,8 +298,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -341,8 +313,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -358,8 +329,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h8000000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -374,8 +344,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -391,8 +360,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h3ff0000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -407,8 +375,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -424,8 +391,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hc000000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -440,8 +406,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -457,8 +422,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h3810000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -473,8 +437,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -490,8 +453,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h47efffffe0000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -506,8 +468,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -523,8 +484,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h36a0000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -539,8 +499,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -556,8 +515,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h3800000040000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -572,8 +530,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -589,8 +546,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h380fffffc0000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -605,8 +561,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -622,8 +577,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h7ff0000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -638,8 +592,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -655,8 +608,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hfff0000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -671,8 +623,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -688,8 +639,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h7ff8000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -704,8 +654,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -721,8 +670,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h7ff8000000000000;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -740,8 +688,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -757,8 +704,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -773,8 +719,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -790,8 +735,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff80000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -806,8 +750,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -823,8 +766,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff3f800000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -839,8 +781,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -856,8 +797,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffc0000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -872,8 +812,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -889,8 +828,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff7f800000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -905,8 +843,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -922,8 +859,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffff800000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -938,8 +874,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -955,8 +890,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff7fc00000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -971,8 +905,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -988,8 +921,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff7fc00000;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -1004,8 +936,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -1021,8 +952,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00000000;
 	expected_out_except = 5'b00011;
 	check_outputs();
@@ -1037,8 +967,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RUP;
@@ -1054,8 +983,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00000001;
 	expected_out_except = 5'b00011;
 	check_outputs();
@@ -1070,8 +998,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RDN;
@@ -1087,8 +1014,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff80000001;
 	expected_out_except = 5'b00011;
 	check_outputs();
@@ -1103,8 +1029,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RUP;
@@ -1120,8 +1045,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff80000000;
 	expected_out_except = 5'b00011;
 	check_outputs();
@@ -1136,8 +1060,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -1153,8 +1076,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00000000;
 	expected_out_except = 5'b00011;
 	check_outputs();
@@ -1169,8 +1091,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -1186,8 +1107,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00000001;
 	expected_out_except = 5'b00011;
 	check_outputs();
@@ -1202,8 +1122,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RTZ;
@@ -1219,8 +1138,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00000000;
 	expected_out_except = 5'b00011;
 	check_outputs();
@@ -1235,8 +1153,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RDN;
@@ -1252,8 +1169,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00000000;
 	expected_out_except = 5'b00011;
 	check_outputs();
@@ -1268,8 +1184,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RUP;
@@ -1285,8 +1200,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00000001;
 	expected_out_except = 5'b00011;
 	check_outputs();
@@ -1301,8 +1215,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RMM;
@@ -1318,8 +1231,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00000001;
 	expected_out_except = 5'b00011;
 	check_outputs();
@@ -1334,8 +1246,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -1351,8 +1262,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00000002;
 	expected_out_except = 5'b00011;
 	check_outputs();
@@ -1367,8 +1277,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RTZ;
@@ -1384,8 +1293,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00000001;
 	expected_out_except = 5'b00011;
 	check_outputs();
@@ -1400,8 +1308,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RDN;
@@ -1417,8 +1324,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00000001;
 	expected_out_except = 5'b00011;
 	check_outputs();
@@ -1433,8 +1339,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RUP;
@@ -1450,8 +1355,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00000002;
 	expected_out_except = 5'b00011;
 	check_outputs();
@@ -1466,8 +1370,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RMM;
@@ -1483,8 +1386,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00000002;
 	expected_out_except = 5'b00011;
 	check_outputs();
@@ -1499,8 +1401,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -1516,8 +1417,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00800000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -1532,8 +1432,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -1549,8 +1448,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00800000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -1565,8 +1463,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -1582,8 +1479,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff7f7fffff;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -1598,8 +1494,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -1615,8 +1510,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff7f7fffff;
 	expected_out_except = 5'b00101;
 	check_outputs();
@@ -1631,8 +1525,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -1648,8 +1541,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff3f800000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -1664,8 +1556,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RTZ;
@@ -1681,8 +1572,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff3f800000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -1697,8 +1587,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RDN;
@@ -1714,8 +1603,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff3f800000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -1730,8 +1618,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RUP;
@@ -1747,8 +1634,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff3f800001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -1763,8 +1649,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RMM;
@@ -1780,8 +1665,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff3f800001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -1796,8 +1680,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -1813,8 +1696,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffbf800000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -1829,8 +1711,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RTZ;
@@ -1846,8 +1727,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffbf800000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -1862,8 +1742,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RDN;
@@ -1879,8 +1758,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffbf800001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -1895,8 +1773,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RUP;
@@ -1912,8 +1789,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffbf800000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -1928,8 +1804,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RMM;
@@ -1945,8 +1820,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffbf800001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -1961,8 +1835,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_DYN;
@@ -1978,8 +1851,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff3f800001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -1994,8 +1866,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2011,8 +1882,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff40000000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -2027,8 +1897,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2044,8 +1913,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff7f800000;
 	expected_out_except = 5'b00101;
 	check_outputs();
@@ -2060,8 +1928,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RTZ;
@@ -2077,8 +1944,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff7f7fffff;
 	expected_out_except = 5'b00101;
 	check_outputs();
@@ -2093,8 +1959,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RDN;
@@ -2110,8 +1975,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff7f7fffff;
 	expected_out_except = 5'b00101;
 	check_outputs();
@@ -2126,8 +1990,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RUP;
@@ -2143,8 +2006,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff7f800000;
 	expected_out_except = 5'b00101;
 	check_outputs();
@@ -2159,8 +2021,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RDN;
@@ -2176,8 +2037,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffff800000;
 	expected_out_except = 5'b00101;
 	check_outputs();
@@ -2192,8 +2052,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RUP;
@@ -2209,8 +2068,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffff7fffff;
 	expected_out_except = 5'b00101;
 	check_outputs();
@@ -2228,8 +2086,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2245,8 +2102,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff00000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -2261,8 +2117,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2278,8 +2133,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff3f800000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -2294,8 +2148,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2311,8 +2164,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffbf800000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -2327,8 +2179,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2344,8 +2195,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffcf000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -2360,8 +2210,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2377,8 +2226,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff4f000000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -2393,8 +2241,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00001;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2410,8 +2257,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff4f800000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -2426,8 +2272,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101001;
 	tb_in_funct5 = 5'b00001;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2443,8 +2288,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h41efffffffe00000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -2459,8 +2303,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2476,8 +2319,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hc000000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -2492,8 +2334,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2509,8 +2350,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -2525,8 +2365,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101001;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2542,8 +2381,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hc3e0000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -2558,8 +2396,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101001;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2575,8 +2412,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h43e0000000000000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -2591,8 +2427,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101001;
 	tb_in_funct5 = 5'b00011;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2608,8 +2443,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h43f0000000000000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -2624,8 +2458,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2641,8 +2474,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffdf000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -2657,8 +2489,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2674,8 +2505,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff5f000000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -2690,8 +2520,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00011;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2707,8 +2536,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff5f800000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -2723,8 +2551,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2740,8 +2567,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff4b800000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -2756,8 +2582,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RTZ;
@@ -2773,8 +2598,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff4b800000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -2789,8 +2613,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RDN;
@@ -2806,8 +2629,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff4b800000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -2822,8 +2644,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RUP;
@@ -2839,8 +2660,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff4b800001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -2855,8 +2675,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RMM;
@@ -2872,8 +2691,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff4b800001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -2888,8 +2706,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -2905,8 +2722,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffcb800000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -2921,8 +2737,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RTZ;
@@ -2938,8 +2753,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffcb800000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -2954,8 +2768,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RDN;
@@ -2971,8 +2784,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffcb800001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -2987,8 +2799,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RUP;
@@ -3004,8 +2815,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffcb800000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3020,8 +2830,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RMM;
@@ -3037,8 +2846,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffcb800001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3053,8 +2861,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101001;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -3070,8 +2877,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h4340000000000000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3086,8 +2892,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101001;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RTZ;
@@ -3103,8 +2908,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h4340000000000000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3119,8 +2923,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101001;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RDN;
@@ -3136,8 +2939,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h4340000000000000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3152,8 +2954,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101001;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RUP;
@@ -3169,8 +2970,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h4340000000000001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3185,8 +2985,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101001;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RMM;
@@ -3202,8 +3001,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h4340000000000001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3218,8 +3016,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1101000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_DYN;
@@ -3235,8 +3032,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff4b800001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3254,8 +3050,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -3271,8 +3066,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -3287,8 +3081,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -3304,8 +3097,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -3320,8 +3112,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -3337,8 +3128,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3353,8 +3143,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RTZ;
@@ -3370,8 +3159,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3386,8 +3174,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RDN;
@@ -3403,8 +3190,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3419,8 +3205,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RUP;
@@ -3436,8 +3221,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3452,8 +3236,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RMM;
@@ -3469,8 +3252,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3485,8 +3267,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -3502,8 +3283,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000002;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3518,8 +3298,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RTZ;
@@ -3535,8 +3314,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3551,8 +3329,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RDN;
@@ -3568,8 +3345,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3584,8 +3360,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RUP;
@@ -3601,8 +3376,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000002;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3617,8 +3391,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RMM;
@@ -3634,8 +3407,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000002;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3650,8 +3422,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_DYN;
@@ -3667,8 +3438,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000002;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3683,8 +3453,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -3700,8 +3469,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hfffffffffffffffe;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3716,8 +3484,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RTZ;
@@ -3733,8 +3500,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffffffffff;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3749,8 +3515,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RDN;
@@ -3766,8 +3531,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hfffffffffffffffe;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3782,8 +3546,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RUP;
@@ -3799,8 +3562,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffffffffff;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3815,8 +3577,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RMM;
@@ -3832,8 +3593,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hfffffffffffffffe;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3848,8 +3608,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -3865,8 +3624,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3881,8 +3639,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RUP;
@@ -3898,8 +3655,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000001;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3914,8 +3670,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -3931,8 +3686,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000002;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3947,8 +3701,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100000;
 	tb_in_funct5 = 5'b00001;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -3964,8 +3717,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000002;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -3980,8 +3732,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -3997,8 +3748,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000002;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -4013,8 +3763,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00001;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4030,8 +3779,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -4046,8 +3794,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00001;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4063,8 +3810,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000000;
 	expected_out_except = 5'b00001;
 	check_outputs();
@@ -4079,8 +3825,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00001;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4096,8 +3841,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000000;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4112,8 +3856,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4129,8 +3872,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h000000007fffffff;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -4145,8 +3887,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4162,8 +3903,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h000000007fffffff;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4178,8 +3918,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4195,8 +3934,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff80000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -4211,8 +3949,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4228,8 +3965,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff80000000;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4244,8 +3980,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00001;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4261,8 +3996,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffffffffff;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -4277,8 +4011,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00001;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4294,8 +4027,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffffffffff;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4310,8 +4042,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4327,8 +4058,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h7ffffffffffffc00;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -4343,8 +4073,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4360,8 +4089,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h7fffffffffffffff;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4376,8 +4104,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4393,8 +4120,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h8000000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -4409,8 +4135,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4426,8 +4151,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h8000000000000000;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4442,8 +4166,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00011;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4459,8 +4182,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hfffffffffffff800;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -4475,8 +4197,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00011;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4492,8 +4213,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffffffffff;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4508,8 +4228,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00011;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4525,8 +4244,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();
@@ -4541,8 +4259,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00011;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4558,8 +4275,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000000;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4574,8 +4290,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4591,8 +4306,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h000000007fffffff;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4607,8 +4321,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4624,8 +4337,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h000000007fffffff;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4640,8 +4352,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00001;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4657,8 +4368,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffffffffff;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4673,8 +4383,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4690,8 +4399,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h7fffffffffffffff;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4706,8 +4414,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00011;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4723,8 +4430,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffffffffff;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4739,8 +4445,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4756,8 +4461,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h000000007fffffff;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4772,8 +4476,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4789,8 +4492,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffff80000000;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4805,8 +4507,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00001;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4822,8 +4523,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffffffffff;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4838,8 +4538,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00001;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4855,8 +4554,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000000;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4871,8 +4569,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4888,8 +4585,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h7fffffffffffffff;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4904,8 +4600,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00010;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4921,8 +4616,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h8000000000000000;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4937,8 +4631,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00011;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4954,8 +4647,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'hffffffffffffffff;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -4970,8 +4662,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b1100001;
 	tb_in_funct5 = 5'b00011;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -4987,8 +4678,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h0000000000000000;
 	expected_out_except = 5'b10000;
 	check_outputs();
@@ -5006,8 +4696,7 @@ initial begin
 	$display("\t- sub_test: %s", sub_test_case);
 	nRST = 1'b1;
 	tb_in_valid = 1'b1;
-	tb_in_dest_pr = 7'h35;
-	tb_in_rob_idx = 7'h52;
+	tb_in_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	tb_in_funct7 = 7'b0000000;
 	tb_in_funct5 = 5'b00000;
 	tb_in_instr_rm = fpp::RM_RNE;
@@ -5022,8 +4711,7 @@ initial begin
 	// outputs
 	expected_in_ready = 1'b1;
 	expected_out_valid = 1'b1;
-	expected_out_dest_pr = 7'h35;
-	expected_out_rob_idx = 7'h52;
+	expected_out_fp_tag = '{hart_id: 2'd1, dest_pr: 7'h35, rob_idx: 7'h52};
 	expected_out_result_d = 64'h7ff8000000000000;
 	expected_out_except = 5'b00000;
 	check_outputs();

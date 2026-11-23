@@ -6,7 +6,6 @@
 */
 
 `include "fpp.vh"
-`include "corep.vh"
 
 module fpu_convert #(
 
@@ -17,8 +16,7 @@ module fpu_convert #(
 
     // input control
     input logic             in_valid,
-    input corep::pr_t       in_dest_pr,
-    input corep::rob_idx_t  in_rob_idx,
+    input fpp::fp_tag_t in_fp_tag,
 
     output logic            in_ready,
 
@@ -34,8 +32,7 @@ module fpu_convert #(
 
     // output control
     output logic                out_valid,
-    output corep::pr_t          out_dest_pr,
-    output corep::rob_idx_t     out_rob_idx,
+    output fpp::fp_tag_t out_fp_tag,
 
     input logic                 out_ready,
 
@@ -122,8 +119,7 @@ module fpu_convert #(
     logic [2:0] stage1_fp_rm_next;
     logic [63:0] stage1_result;
     fpp::fpu_except_t stage1_except;
-    corep::pr_t stage1_dest_pr;
-    corep::rob_idx_t stage1_rob_idx;
+    fpp::fp_tag_t stage1_fp_tag;
 
     logic stage2_int_to_fp;
     logic stage2_int_single;
@@ -134,8 +130,7 @@ module fpu_convert #(
     logic [63:0] stage2_normalized_int_reg;
     fpp::double_t stage2_result_reg;
     fpp::fpu_except_t stage2_except_reg;
-    corep::pr_t stage2_dest_pr;
-    corep::rob_idx_t stage2_rob_idx;
+    fpp::fp_tag_t stage2_fp_tag;
     fpp::double_t stage3_result;
     fpp::fpu_except_t stage3_except;
     logic [24:0] stage3_rounded_sig_s;
@@ -217,16 +212,14 @@ module fpu_convert #(
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             out_valid <= 1'b0;
-            out_dest_pr <= 0;
-            out_rob_idx <= 0;
+            out_fp_tag <= 0;
             out_result_d <= 64'h0;
             out_except <= 5'h0;
         end
         else if (output_ready) begin
             out_valid <= stage2_valid;
             if (stage2_valid) begin
-                out_dest_pr <= stage2_dest_pr;
-                out_rob_idx <= stage2_rob_idx;
+                out_fp_tag <= stage2_fp_tag;
                 out_result_d <= stage3_result;
                 out_except <= stage3_except;
             end
@@ -245,8 +238,7 @@ module fpu_convert #(
             stage2_normalized_int_reg <= '0;
             stage2_result_reg <= '0;
             stage2_except_reg <= '0;
-            stage2_dest_pr <= '0;
-            stage2_rob_idx <= '0;
+            stage2_fp_tag <= '0;
         end
         else if (stage2_ready) begin
             stage2_valid <= stage1_valid;
@@ -261,8 +253,7 @@ module fpu_convert #(
                     ? (stage1_int_magnitude << (63-stage1_int_msb_index)) : '0;
                 stage2_result_reg <= stage2_result;
                 stage2_except_reg <= stage2_except;
-                stage2_dest_pr <= stage1_dest_pr;
-                stage2_rob_idx <= stage1_rob_idx;
+                stage2_fp_tag <= stage1_fp_tag;
             end
         end
     end
@@ -371,8 +362,7 @@ module fpu_convert #(
             stage1_fp_rm <= '0;
             stage1_result <= '0;
             stage1_except <= '0;
-            stage1_dest_pr <= '0;
-            stage1_rob_idx <= '0;
+            stage1_fp_tag <= '0;
         end
         else if (stage1_ready) begin
             stage1_valid <= in_valid;
@@ -405,8 +395,7 @@ module fpu_convert #(
                 stage1_fp_rm <= stage1_fp_rm_next;
                 stage1_result <= next_out_result_d;
                 stage1_except <= next_out_except;
-                stage1_dest_pr <= in_dest_pr;
-                stage1_rob_idx <= in_rob_idx;
+                stage1_fp_tag <= in_fp_tag;
             end
         end
     end

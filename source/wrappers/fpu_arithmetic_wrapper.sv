@@ -8,7 +8,6 @@
 `timescale 1ns/100ps
 
 `include "fpp.vh"
-`include "corep.vh"
 
 module fpu_arithmetic_wrapper #(
 ) (
@@ -19,8 +18,7 @@ module fpu_arithmetic_wrapper #(
 
     // input control
 	input logic next_in_valid,
-	input corep::pr_t next_in_dest_pr,
-	input corep::rob_idx_t next_in_rob_idx,
+	input fpp::fp_tag_t next_in_fp_tag,
 	output logic last_in_ready,
 
     // instr components
@@ -37,8 +35,7 @@ module fpu_arithmetic_wrapper #(
 
     // output control
 	output logic last_out_valid,
-	output corep::pr_t last_out_dest_pr,
-	output corep::rob_idx_t last_out_rob_idx,
+	output fpp::fp_tag_t last_out_fp_tag,
 	input logic next_out_ready,
 
     // fp output
@@ -51,8 +48,7 @@ module fpu_arithmetic_wrapper #(
 
     // input control
 	logic in_valid;
-	corep::pr_t in_dest_pr;
-	corep::rob_idx_t in_rob_idx;
+	fpp::fp_tag_t in_fp_tag;
 	logic in_ready;
 
     // instr components
@@ -69,8 +65,7 @@ module fpu_arithmetic_wrapper #(
 
     // output control
 	logic out_valid;
-	corep::pr_t out_dest_pr;
-	corep::rob_idx_t out_rob_idx;
+	fpp::fp_tag_t out_fp_tag;
 	logic out_ready;
 
     // fp output
@@ -91,8 +86,7 @@ module fpu_arithmetic_wrapper #(
 
 		    // input control
 			in_valid <= '0;
-			in_dest_pr <= '0;
-			in_rob_idx <= '0;
+			in_fp_tag <= '0;
 			last_in_ready <= '0;
 
 		    // instr components
@@ -109,8 +103,7 @@ module fpu_arithmetic_wrapper #(
 
 		    // output control
 			last_out_valid <= '0;
-			last_out_dest_pr <= '0;
-			last_out_rob_idx <= '0;
+			last_out_fp_tag <= '0;
 			out_ready <= '0;
 
 		    // fp output
@@ -121,8 +114,7 @@ module fpu_arithmetic_wrapper #(
 
 		    // input control
 			in_valid <= next_in_valid;
-			in_dest_pr <= next_in_dest_pr;
-			in_rob_idx <= next_in_rob_idx;
+			in_fp_tag <= next_in_fp_tag;
 			last_in_ready <= in_ready;
 
 		    // instr components
@@ -139,8 +131,7 @@ module fpu_arithmetic_wrapper #(
 
 		    // output control
 			last_out_valid <= out_valid;
-			last_out_dest_pr <= out_dest_pr;
-			last_out_rob_idx <= out_rob_idx;
+			last_out_fp_tag <= out_fp_tag;
 			out_ready <= next_out_ready;
 
 		    // fp output

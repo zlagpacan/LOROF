@@ -6,7 +6,6 @@
 */
 
 `include "fpp.vh"
-`include "corep.vh"
 
 module fpu_fuse #(
 
@@ -17,8 +16,7 @@ module fpu_fuse #(
 
     // input control
     input logic             in_valid,
-    input corep::pr_t       in_dest_pr,
-    input corep::rob_idx_t  in_rob_idx,
+    input fpp::fp_tag_t in_fp_tag,
     output logic            in_ready,
 
     // instr components
@@ -37,8 +35,7 @@ module fpu_fuse #(
 
     // output control
     output logic                out_valid,
-    output corep::pr_t          out_dest_pr,
-    output corep::rob_idx_t     out_rob_idx,
+    output fpp::fp_tag_t out_fp_tag,
     input logic                 out_ready,
 
     // fp output
@@ -73,8 +70,7 @@ module fpu_fuse #(
         operand_t C;
         logic round_needed;
         packet_t special_packet;
-        corep::pr_t dest_pr;
-        corep::rob_idx_t rob_idx;
+        fpp::fp_tag_t fp_tag;
     } meta_t;
 
     typedef struct packed {
@@ -424,8 +420,7 @@ module fpu_fuse #(
         input_txn.meta.product_sign = A.sign ^ B.sign ^ negate_product;
         input_txn.meta.product_exp = A.exp + B.exp;
         input_txn.meta.C = C;
-        input_txn.meta.dest_pr = in_dest_pr;
-        input_txn.meta.rob_idx = in_rob_idx;
+        input_txn.meta.fp_tag = in_fp_tag;
         if (op == OP_BAD) begin
             if (single) input_txn.meta.special_packet.result = 64'hffffffff7fc00000;
             else input_txn.meta.special_packet.result = 64'h7ff8000000000000;
@@ -643,8 +638,7 @@ module fpu_fuse #(
         if (!nRST) begin
             valid_pipe <= '0;
             out_valid <= 1'b0;
-            out_dest_pr <= '0;
-            out_rob_idx <= '0;
+            out_fp_tag <= '0;
             out_result_d <= '0;
             out_except <= '0;
             partial_reg <= '0;
@@ -724,8 +718,7 @@ module fpu_fuse #(
                     out_valid <= 1'b1;
                     out_result_d <= packet_reg.result;
                     out_except <= packet_reg.except;
-                    out_dest_pr <= meta_pipe.dest_pr;
-                    out_rob_idx <= meta_pipe.rob_idx;
+                    out_fp_tag <= meta_pipe.fp_tag;
                 end
                 else out_valid <= 1'b0;
             end

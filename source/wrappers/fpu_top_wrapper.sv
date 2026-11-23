@@ -8,7 +8,6 @@
 `timescale 1ns/100ps
 
 `include "fpp.vh"
-`include "corep.vh"
 
 module fpu_top_wrapper #(
 ) (
@@ -25,8 +24,7 @@ module fpu_top_wrapper #(
 	input logic next_in_fmt,
 	input logic [4:0] next_in_rs2,
 	input logic [2:0] next_in_funct3,
-	input corep::pr_t next_in_dest_pr,
-	input corep::rob_idx_t next_in_rob_idx,
+	input fpp::fp_tag_t next_in_fp_tag,
 	input logic [2:0] next_in_fcsr_rm,
 
     // Decoded operands, with single precision values already NaN-box checked
@@ -40,8 +38,7 @@ module fpu_top_wrapper #(
     // Unified result interface
 	output logic last_out_valid,
 	input logic next_out_ready,
-	output corep::pr_t last_out_dest_pr,
-	output corep::rob_idx_t last_out_rob_idx,
+	output fpp::fp_tag_t last_out_fp_tag,
 	output fpp::double_t last_out_result_d,
 	output fpp::fpu_except_t last_out_except
 );
@@ -57,8 +54,7 @@ module fpu_top_wrapper #(
 	logic in_fmt;
 	logic [4:0] in_rs2;
 	logic [2:0] in_funct3;
-	corep::pr_t in_dest_pr;
-	corep::rob_idx_t in_rob_idx;
+	fpp::fp_tag_t in_fp_tag;
 	logic [2:0] in_fcsr_rm;
 
     // Decoded operands, with single precision values already NaN-box checked
@@ -72,8 +68,7 @@ module fpu_top_wrapper #(
     // Unified result interface
 	logic out_valid;
 	logic out_ready;
-	corep::pr_t out_dest_pr;
-	corep::rob_idx_t out_rob_idx;
+	fpp::fp_tag_t out_fp_tag;
 	fpp::double_t out_result_d;
 	fpp::fpu_except_t out_except;
 
@@ -97,8 +92,7 @@ module fpu_top_wrapper #(
 			in_fmt <= '0;
 			in_rs2 <= '0;
 			in_funct3 <= '0;
-			in_dest_pr <= '0;
-			in_rob_idx <= '0;
+			in_fp_tag <= '0;
 			in_fcsr_rm <= '0;
 
 		    // Decoded operands, with single precision values already NaN-box checked
@@ -112,8 +106,7 @@ module fpu_top_wrapper #(
 		    // Unified result interface
 			last_out_valid <= '0;
 			out_ready <= '0;
-			last_out_dest_pr <= '0;
-			last_out_rob_idx <= '0;
+			last_out_fp_tag <= '0;
 			last_out_result_d <= '0;
 			last_out_except <= '0;
         end
@@ -127,8 +120,7 @@ module fpu_top_wrapper #(
 			in_fmt <= next_in_fmt;
 			in_rs2 <= next_in_rs2;
 			in_funct3 <= next_in_funct3;
-			in_dest_pr <= next_in_dest_pr;
-			in_rob_idx <= next_in_rob_idx;
+			in_fp_tag <= next_in_fp_tag;
 			in_fcsr_rm <= next_in_fcsr_rm;
 
 		    // Decoded operands, with single precision values already NaN-box checked
@@ -142,8 +134,7 @@ module fpu_top_wrapper #(
 		    // Unified result interface
 			last_out_valid <= out_valid;
 			out_ready <= next_out_ready;
-			last_out_dest_pr <= out_dest_pr;
-			last_out_rob_idx <= out_rob_idx;
+			last_out_fp_tag <= out_fp_tag;
 			last_out_result_d <= out_result_d;
 			last_out_except <= out_except;
         end

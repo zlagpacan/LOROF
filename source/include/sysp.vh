@@ -10,6 +10,13 @@
 package sysp;
 
     // ----------------------------------------------------------------
+    // Cores:
+
+    parameter int unsigned HART_COUNT = 4;
+
+    typedef logic [$clog2(HART_COUNT)-1:0] hart_id_t;
+
+    // ----------------------------------------------------------------
     // Virtual Memory:
 
     parameter int unsigned VA_WIDTH = 39;

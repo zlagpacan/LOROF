@@ -6,7 +6,6 @@
 */
 
 `include "fpp.vh"
-`include "corep.vh"
 
 module fpu_arithmetic #(
 
@@ -17,8 +16,7 @@ module fpu_arithmetic #(
 
     // input control
     input logic             in_valid,
-    input corep::pr_t       in_dest_pr,
-    input corep::rob_idx_t  in_rob_idx,
+    input fpp::fp_tag_t in_fp_tag,
     output logic            in_ready,
 
     // instr components
@@ -35,8 +33,7 @@ module fpu_arithmetic #(
 
     // output control
     output logic                out_valid,
-    output corep::pr_t          out_dest_pr,
-    output corep::rob_idx_t     out_rob_idx,
+    output fpp::fp_tag_t out_fp_tag,
     input logic                 out_ready,
 
     // fp output
@@ -92,12 +89,9 @@ module fpu_arithmetic #(
     operand_t f0_A_decoded, f0_B_decoded, f0_A_norm, f0_B_norm;
     logic [5:0] p0_A_norm_count, p0_B_norm_count;
     logic [5:0] f0_A_norm_count, f0_B_norm_count;
-    corep::pr_t p0_dest_pr;
-    corep::rob_idx_t p0_rob_idx;
-    corep::pr_t f0_dest_pr;
-    corep::rob_idx_t f0_rob_idx;
-    corep::pr_t s1_dest_pr;
-    corep::rob_idx_t s1_rob_idx;
+    fpp::fp_tag_t p0_fp_tag;
+    fpp::fp_tag_t f0_fp_tag;
+    fpp::fp_tag_t s1_fp_tag;
     packet_t s2_special_packet, s3_special_packet, s4_special_packet, s5_special_packet, s6_special_packet, s7_packet, fast_packet;
     round_pre_t s6_round_pre;
     logic s2_round_needed, s3_round_needed, s3_normalize, s4_round_needed, s4_normalize, s5_round_needed, s6_round_needed;
@@ -107,8 +101,7 @@ module fpu_arithmetic #(
     logic s2_sign, s3_sign, s4_sign, s5_sign;
     logic signed [12:0] s2_exp, s3_exp, s4_exp, s5_exp;
     logic [55:0] s2_sig, s3_sig, s4_sig, s5_sig;
-    corep::pr_t s2_dest_pr, s3_dest_pr, s4_dest_pr, s5_dest_pr, s6_dest_pr, s7_dest_pr;
-    corep::rob_idx_t s2_rob_idx, s3_rob_idx, s4_rob_idx, s5_rob_idx, s6_rob_idx, s7_rob_idx;
+    fpp::fp_tag_t s2_fp_tag, s3_fp_tag, s4_fp_tag, s5_fp_tag, s6_fp_tag, s7_fp_tag;
     logic [5:0] s4_norm_count;
     logic s2_add_work, fast_add_work, fast_add_sign_a, fast_add_sign_b;
     logic s2_mul_work, s3_mul_work, fast_mul_work;
@@ -144,8 +137,7 @@ module fpu_arithmetic #(
     packet_t slow_packet;
     logic [55:0] slow_pack_sig;
     round_pre_t slow_round_pre;
-    corep::pr_t slow_dest_pr;
-    corep::rob_idx_t slow_rob_idx;
+    fpp::fp_tag_t slow_fp_tag;
     logic slow_single, slow_sign;
     logic [2:0] slow_rm;
     logic signed [12:0] slow_exp;
@@ -777,18 +769,18 @@ module fpu_arithmetic #(
         if (!nRST) begin
             p0_valid <= 1'b0; p0_op <= OP_BAD; p0_single <= 1'b0; p0_rm <= '0;
             p0_A_decoded <= '0; p0_B_decoded <= '0;
-            p0_dest_pr <= '0; p0_rob_idx <= '0;
+            p0_fp_tag <= '0;
             f0_valid <= 1'b0; f0_op <= OP_BAD; f0_single <= 1'b0; f0_rm <= '0;
             f0_A_decoded <= '0; f0_B_decoded <= '0;
             f0_A_norm_count <= '0; f0_B_norm_count <= '0;
-            f0_dest_pr <= '0; f0_rob_idx <= '0;
+            f0_fp_tag <= '0;
             s1_valid <= 1'b0; s2_valid <= 1'b0; s3_valid <= 1'b0;
             s4_valid <= 1'b0; s5_valid <= 1'b0; s6_valid <= 1'b0; s7_valid <= 1'b0;
             s1_op <= OP_BAD; s1_single <= 1'b0; s1_rm <= '0;
             s1_A_norm <= '0; s1_B_norm <= '0;
-            s1_dest_pr <= '0; s1_rob_idx <= '0;
+            s1_fp_tag <= '0;
             s2_special_packet <= '0; s2_round_needed <= 1'b0; s2_sign <= 1'b0; s2_exp <= '0;
-            s2_sig <= '0; s2_single <= 1'b0; s2_rm <= '0; s2_dest_pr <= '0; s2_rob_idx <= '0;
+            s2_sig <= '0; s2_single <= 1'b0; s2_rm <= '0; s2_fp_tag <= '0;
             s2_add_work <= 1'b0; s2_add_a <= '0; s2_add_b <= '0;
             s2_mul_work <= 1'b0;
             s2_mul_p00 <= '0; s2_mul_p01 <= '0; s2_mul_p02 <= '0;
@@ -799,21 +791,21 @@ module fpu_arithmetic #(
             s3_mul_work <= 1'b0;
             s3_mul_row0 <= '0; s3_mul_row1 <= '0; s3_mul_row2 <= '0;
             s3_sign <= 1'b0; s3_exp <= '0; s3_sig <= '0; s3_single <= 1'b0; s3_rm <= '0;
-            s3_dest_pr <= '0; s3_rob_idx <= '0;
+            s3_fp_tag <= '0;
             s4_special_packet <= '0; s4_round_needed <= 1'b0; s4_normalize <= 1'b0; s4_norm_count <= '0;
             s4_sign <= 1'b0; s4_exp <= '0; s4_sig <= '0; s4_single <= 1'b0; s4_rm <= '0;
-            s4_dest_pr <= '0; s4_rob_idx <= '0;
+            s4_fp_tag <= '0;
             s5_special_packet <= '0; s5_round_needed <= 1'b0;
             s5_sign <= 1'b0; s5_exp <= '0; s5_sig <= '0; s5_single <= 1'b0; s5_rm <= '0;
-            s5_dest_pr <= '0; s5_rob_idx <= '0;
-            s6_special_packet <= '0; s6_round_pre <= '0; s6_round_needed <= 1'b0; s6_dest_pr <= '0; s6_rob_idx <= '0;
-            s7_packet <= '0; s7_dest_pr <= '0; s7_rob_idx <= '0;
-            out_valid <= 1'b0; out_dest_pr <= '0; out_rob_idx <= '0; out_result_d <= '0; out_except <= '0;
+            s5_fp_tag <= '0;
+            s6_special_packet <= '0; s6_round_pre <= '0; s6_round_needed <= 1'b0; s6_fp_tag <= '0;
+            s7_packet <= '0; s7_fp_tag <= '0;
+            out_valid <= 1'b0; out_fp_tag <= '0; out_result_d <= '0; out_except <= '0;
             slow_state <= SLOW_IDLE; slow_pending <= 1'b0; slow_packet <= '0; slow_op <= OP_BAD;
             slow_pack_sig <= '0; slow_round_pre <= '0;
             slow_A_norm <= '0; slow_B_norm <= '0;
             slow_A_norm_count <= '0; slow_B_norm_count <= '0;
-            slow_dest_pr <= '0; slow_rob_idx <= '0; slow_single <= 1'b0; slow_sign <= 1'b0;
+            slow_fp_tag <= '0; slow_single <= 1'b0; slow_sign <= 1'b0;
             slow_rm <= '0; slow_exp <= '0; slow_divisor <= '0; slow_remainder <= '0;
             slow_quotient <= '0; slow_root <= '0; slow_radicand <= '0;
             slow_sqrt_remainder <= '0; slow_count <= '0;
@@ -825,7 +817,7 @@ module fpu_arithmetic #(
                     f0_op <= p0_op; f0_single <= p0_single; f0_rm <= p0_rm;
                     f0_A_decoded <= p0_A_decoded; f0_B_decoded <= p0_B_decoded;
                     f0_A_norm_count <= p0_A_norm_count; f0_B_norm_count <= p0_B_norm_count;
-                    f0_dest_pr <= p0_dest_pr; f0_rob_idx <= p0_rob_idx;
+                    f0_fp_tag <= p0_fp_tag;
                 end
             end
             if (p0_ready) begin
@@ -833,7 +825,7 @@ module fpu_arithmetic #(
                 if (in_valid && in_ready && !in_slow) begin
                     p0_op <= in_op; p0_single <= in_single; p0_rm <= in_rm;
                     p0_A_decoded <= in_A_decoded; p0_B_decoded <= in_B_decoded;
-                    p0_dest_pr <= in_dest_pr; p0_rob_idx <= in_rob_idx;
+                    p0_fp_tag <= in_fp_tag;
                 end
             end
             if (s1_ready) begin
@@ -841,7 +833,7 @@ module fpu_arithmetic #(
                 if (f0_valid) begin
                     s1_op <= f0_op; s1_single <= f0_single; s1_rm <= f0_rm;
                     s1_A_norm <= f0_A_norm; s1_B_norm <= f0_B_norm;
-                    s1_dest_pr <= f0_dest_pr; s1_rob_idx <= f0_rob_idx;
+                    s1_fp_tag <= f0_fp_tag;
                 end
             end
             if (s2_ready) begin
@@ -856,7 +848,7 @@ module fpu_arithmetic #(
                     s2_mul_p20 <= mul_p20; s2_mul_p21 <= mul_p21; s2_mul_p22 <= mul_p22;
                     s2_add_sign_a <= fast_add_sign_a; s2_add_sign_b <= fast_add_sign_b;
                     s2_single <= s1_single; s2_rm <= s1_rm;
-                    s2_dest_pr <= s1_dest_pr; s2_rob_idx <= s1_rob_idx;
+                    s2_fp_tag <= s1_fp_tag;
                 end
             end
             if (s3_ready) begin
@@ -871,7 +863,7 @@ module fpu_arithmetic #(
                     s3_mul_row2 <= s2_mul_row2_comb;
                     s3_sign <= s2_result_sign; s3_exp <= s2_result_exp; s3_sig <= s2_result_sig;
                     s3_single <= s2_single; s3_rm <= s2_rm;
-                    s3_dest_pr <= s2_dest_pr; s3_rob_idx <= s2_rob_idx;
+                    s3_fp_tag <= s2_fp_tag;
                 end
             end
             if (s4_ready) begin
@@ -898,7 +890,7 @@ module fpu_arithmetic #(
                         s4_exp <= s3_exp; s4_sig <= s3_sig;
                     end
                     s4_single <= s3_single; s4_rm <= s3_rm;
-                    s4_dest_pr <= s3_dest_pr; s4_rob_idx <= s3_rob_idx;
+                    s4_fp_tag <= s3_fp_tag;
                 end
             end
             if (s5_ready) begin
@@ -907,7 +899,7 @@ module fpu_arithmetic #(
                     s5_special_packet <= s4_special_packet; s5_round_needed <= s4_round_needed;
                     s5_sign <= s4_sign; s5_exp <= s5_norm_exp; s5_sig <= s5_norm_sig;
                     s5_single <= s4_single; s5_rm <= s4_rm;
-                    s5_dest_pr <= s4_dest_pr; s5_rob_idx <= s4_rob_idx;
+                    s5_fp_tag <= s4_fp_tag;
                 end
             end
             if (s6_ready) begin
@@ -918,7 +910,7 @@ module fpu_arithmetic #(
                     s6_round_pre <= s5_round_needed
                         ? round_prepare(s5_sign, s5_exp, s5_sig, s5_single, s5_rm)
                         : '0;
-                    s6_dest_pr <= s5_dest_pr; s6_rob_idx <= s5_rob_idx;
+                    s6_fp_tag <= s5_fp_tag;
                 end
             end
             if (s7_ready) begin
@@ -926,17 +918,17 @@ module fpu_arithmetic #(
                 if (s6_valid) begin
                     s7_packet <= s6_round_needed
                         ? round_finish(s6_round_pre) : s6_special_packet;
-                    s7_dest_pr <= s6_dest_pr; s7_rob_idx <= s6_rob_idx;
+                    s7_fp_tag <= s6_fp_tag;
                 end
             end
             if (out_slot_ready) begin
                 if (slow_pending) begin
                     out_valid <= 1'b1; out_result_d <= slow_packet.result; out_except <= slow_packet.except;
-                    out_dest_pr <= slow_dest_pr; out_rob_idx <= slow_rob_idx; slow_pending <= 1'b0;
+                    out_fp_tag <= slow_fp_tag; slow_pending <= 1'b0;
                 end
                 else if (s7_valid) begin
                     out_valid <= 1'b1; out_result_d <= s7_packet.result; out_except <= s7_packet.except;
-                    out_dest_pr <= s7_dest_pr; out_rob_idx <= s7_rob_idx;
+                    out_fp_tag <= s7_fp_tag;
                 end
                 else out_valid <= 1'b0;
             end
@@ -947,7 +939,7 @@ module fpu_arithmetic #(
                 slow_A_norm <= in_A_decoded; slow_B_norm <= in_B_decoded;
                 slow_single <= in_single; slow_rm <= in_rm;
                 slow_sign <= in_A_decoded.sign ^ in_B_decoded.sign;
-                slow_dest_pr <= in_dest_pr; slow_rob_idx <= in_rob_idx;
+                slow_fp_tag <= in_fp_tag;
             end
             else if (slow_state == SLOW_NORM_COUNT) begin
                 slow_A_norm_count <= slow_A_norm_count_comb;

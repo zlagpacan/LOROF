@@ -7,6 +7,9 @@
 `ifndef FPP_VH
 `define FPP_VH
 
+`include "corep.vh"
+`include "sysp.vh"
+
 package fpp;
 
     // single-precision:
@@ -203,6 +206,16 @@ package fpp;
     parameter logic [2:0] RM_RUP = 3'b011; // round towards +inf
     parameter logic [2:0] RM_RMM = 3'b100; // round to nearest, ties to max magnitude
     parameter logic [2:0] RM_DYN = 3'b111; // dynamic -> use fcsr.RM
+
+    import sysp::hart_id_t;
+    import corep::pr_t;
+    import corep::rob_idx_t;
+
+    typedef struct packed {
+        hart_id_t   hart_id;
+        pr_t        dest_pr;
+        rob_idx_t   rob_idx;
+    } fp_tag_t;
 
 endpackage
 
