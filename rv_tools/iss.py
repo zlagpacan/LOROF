@@ -273,7 +273,7 @@ class Hart:
             frs1 = rs1
             frs2 = rs2
             frs3 = bits(instr, 31, 27)
-            rm_num = bits(instr, 15, 13)
+            rm_num = bits(instr, 14, 12)
             rm_str = ("RNE", "RTZ", "RDN", "RUP", "RMM", "Reserved", "Reserved", "DYN")[rm_num]
 
             # LUI
@@ -310,14 +310,21 @@ class Hart:
 
             # JALR
             elif opcode5 == 0b11001:
-                imm12 = bits(instr, 31, 20)
-                imm64 = signed64(imm12, 12)
-                self.log.write(f"JALR x{rd}, 0x{imm12:03X}(x{rs1})\n")
-                result = signed64(self.pc + 4)
-                npc = signed64(self.read_arf(rs1) + imm64)
-                self.write_arf(rd, result)
-                self.write_pc(npc)
-                self.perf_counters.incr("bru instr")
+
+                if funct3 == 0b000:
+                    imm12 = bits(instr, 31, 20)
+                    imm64 = signed64(imm12, 12)
+                    self.log.write(f"JALR x{rd}, 0x{imm12:03X}(x{rs1})\n")
+                    result = signed64(self.pc + 4)
+                    npc = signed64((self.read_arf(rs1) + imm64)) & 0XFFFFFFFF_FFFFFFFE
+                    self.write_arf(rd, result)
+                    self.write_pc(npc)
+                    self.perf_counters.incr("bru instr")
+
+                else:
+                    self.log.write(f"illegal JALR instr\n")
+                    self.log.write(f"\n< Exiting Execution >\n")
+                    return False
 
             # B-Type
             elif opcode5 == 0b11000:
@@ -1145,7 +1152,7 @@ class Hart:
                 if funct3 == 0b010:
 
                     # LR.W
-                    if funct5 == 0b00010:
+                    if funct5 == 0b00010 and rs2 == 0b00000:
                         self.log.write(f"LR.W{aqrl_str} x{rd}, (x{rs1})\n")
                         R_rs1 = self.read_arf(rs1)
                         if R_rs1 % 4 != 0:
@@ -1321,7 +1328,7 @@ class Hart:
                 elif funct3 == 0b011:
 
                     # LR.D
-                    if funct5 == 0b00010:
+                    if funct5 == 0b00010 and rs2 == 0b00000:
                         self.log.write(f"LR.D{aqrl_str} x{rd}, (x{rs1})\n")
                         R_rs1 = self.read_arf(rs1)
                         if R_rs1 % 8 != 0:
@@ -1691,35 +1698,43 @@ class Hart:
                     result = np.float64(self.read_farf(frs1)) * np.float64(self.read_farf(frs2))
                     self.write_farf(frd, result)
 
-                # FDIV.S, FSQRT.S
+                # FDIV.S
                 elif funct7 == 0b0001100:
+                    self.log.write(f"FDIV.S f{frd}, f{frs1}, f{frs2}, {rm_str}\n")
+                    result = np.float32(self.read_farf(frs1)) / np.float32(self.read_farf(frs2))
+                    self.write_farf(frd, result)
 
-                    # FSQRT.S
+                # FSQRT.S
+                elif funct7 == 0b0101100:
+
                     if frs2 == 0b00000:
                         self.log.write(f"FSQRT.S f{frd}, f{frs1}, {rm_str}\n")
                         result = np.sqrt(np.float32(self.read_farf(frs1)))
                         self.write_farf(frd, result)
-
-                    # FDIV.S
+                        
                     else:
-                        self.log.write(f"FDIV.S f{frd}, f{frs1}, f{frs2}, {rm_str}\n")
-                        result = np.float32(self.read_farf(frs1)) / np.float32(self.read_farf(frs2))
-                        self.write_farf(frd, result)
+                        self.log.write(f"illegal FSQRT.S instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
 
-                # FDIV.D, FSQRT.D
+                # FDIV.D
                 elif funct7 == 0b0001101:
+                    self.log.write(f"FDIV.D f{frd}, f{frs1}, f{frs2}, {rm_str}\n")
+                    result = np.float64(self.read_farf(frs1)) / np.float64(self.read_farf(frs2))
+                    self.write_farf(frd, result)
 
-                    # FSQRT.D
+                # FSQRT.D
+                elif funct7 == 0b0101101:
+
                     if frs2 == 0b00000:
                         self.log.write(f"FSQRT.D f{frd}, f{frs1}, {rm_str}\n")
                         result = np.sqrt(np.float64(self.read_farf(frs1)))
                         self.write_farf(frd, result)
-
-                    # FDIV.D
+                        
                     else:
-                        self.log.write(f"FDIV.D f{frd}, f{frs1}, f{frs2}, {rm_str}\n")
-                        result = np.float64(self.read_farf(frs1)) / np.float64(self.read_farf(frs2))
-                        self.write_farf(frd, result)
+                        self.log.write(f"illegal FSQRT.D instr\n")
+                        self.log.write(f"\n< Exiting Execution >\n")
+                        return False
 
                 # FSGNJ*.S
                 elif funct7 == 0b0010000:
@@ -2549,7 +2564,7 @@ class Hart:
                         # C.JR
                         if rs2 == 0:
                             self.log.write(f"C.JR x{rd_rs1}\n")
-                            npc = self.read_arf(rd_rs1)
+                            npc = self.read_arf(rd_rs1) & 0XFFFFFFFF_FFFFFFFE
                             self.write_pc(npc)
                             self.perf_counters.incr("bru instr")
 
@@ -2574,8 +2589,9 @@ class Hart:
                         elif rs2 == 0:
                             self.log.write(f"C.JALR\n")
                             result = signed32(self.pc + 2)
+                            npc = self.read_arf(rd_rs1) & 0XFFFFFFFF_FFFFFFFE
                             self.write_arf(1, result)
-                            self.write_pc(self.read_arf(rd_rs1))
+                            self.write_pc(npc)
                             self.perf_counters.incr("bru instr")
 
                         # C.ADD

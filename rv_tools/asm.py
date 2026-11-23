@@ -875,7 +875,7 @@ def instr_to_hex(instr):
         if "w" in first(instr):
             binary += 1 << 24
             interpreted_instr += "w"
-        interpreted_instr += ", "
+            interpreted_instr += ", "
         if "i" in last(instr):
             binary += 1 << 23
             interpreted_instr += "i"
@@ -2024,7 +2024,7 @@ def instr_to_hex(instr):
     elif instr.startswith("fsqrt.s "):
         binary += 0b_10100_11
         interpreted_instr += "FSQRT.S"
-        binary += 0b0001100 << 25
+        binary += 0b0101100 << 25
         binary += 0b00000 << 20
         frd = get_freg(instr, first)
         binary += bin_frd(frd)
@@ -2494,7 +2494,7 @@ def instr_to_hex(instr):
     elif instr.startswith("fsqrt.d "):
         binary += 0b_10100_11
         interpreted_instr += "FSQRT.D"
-        binary += 0b0001101 << 25
+        binary += 0b0101101 << 25
         binary += 0b00000 << 20
         frd = get_freg(instr, first)
         binary += bin_frd(frd)
@@ -2914,7 +2914,7 @@ def instr_to_hex(instr):
     elif instr.startswith("c.sd "):
         compressed = True
         binary += 0b00
-        binary += 0b101 << 13
+        binary += 0b111 << 13
         interpreted_instr += "C.SD"
         rs2p = get_regp(instr, first)
         binary += bits(rs2p, 2, 0) << 2
@@ -3322,7 +3322,7 @@ def instr_to_hex(instr):
         binary += rs2 << 2
         interpreted_instr += f" x{rs2}"
         uimm = get_num(instr, last, 8, 3, unsigned=True)
-        binary += bits(uimm, 5, 3) << 9
+        binary += bits(uimm, 5, 3) << 10
         binary += bits(uimm, 8, 6) << 7
         interpreted_instr += f", {uimm}"
 

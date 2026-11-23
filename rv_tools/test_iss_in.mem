@@ -423,7 +423,7 @@ CB 05 73 40 // 0x407305CB: FNMSUB.S f11, f6, f7, f8, RNE
 D3 26 10 00 // 0x001026D3: FADD.S f13, f0, f1, RDN
 53 B7 50 08 // 0x0850B753: FSUB.S f14, f1, f5, RUP
 D3 C7 62 10 // 0x1062C7D3: FMUL.S f15, f5, f6, RMM
-53 88 03 18 // 0x18038853: FSQRT.S f16, f7, RNE
+53 88 03 58 // 0x58038853: FSQRT.S f16, f7, RNE
 D3 F8 06 19 // 0x1906F8D3: FDIV.S f17, f13, f16, DYN
 
 53 09 00 20 // 0x20000953: FSGNJ.S f18, f0, f0
@@ -538,7 +538,7 @@ CB 05 73 42 // 0x427305CB: FNMSUB.D f11, f6, f7, f8, RNE
 D3 26 10 02 // 0x021026D3: FADD.D f13, f0, f1, RDN
 53 B7 50 0A // 0x0A50B753: FSUB.D f14, f1, f5, RUP
 D3 C7 62 12 // 0x1262C7D3: FMUL.D f15, f5, f6, RMM
-53 88 03 1A // 0x1A038853: FSQRT.D f16, f7, RNE
+53 88 03 5A // 0x5A038853: FSQRT.D f16, f7, RNE
 D3 F8 06 1B // 0x1B06F8D3: FDIV.D f17, f13, f16, DYN
 
 53 09 00 22 // 0x22000953: FSGNJ.D f18, f0, f0
@@ -648,7 +648,7 @@ D3 A1 10 40 // 0x4010A1D3: FCVT.S.D f3, f1, RDN
 13 04 44 06 // 0x06440413: ADDI x8, x8, 100
 04 7C       //     0x7C04: C.LD x9, 56(x8)
 2C AC       //     0xAC2C: C.FSD f11, 88(x8)
-6C A4       //     0xA46C: C.SD x11, 200(x8)
+6C E4       //     0xE46C: C.SD x11, 200(x8)
 59 36       //     0x3659: C.ADDIW x12, 54
 2D 93       //     0x932D: C.SRLI x14, 43
 D1 94       //     0x94D1: C.SRAI x9, 52
@@ -664,7 +664,7 @@ D1 94       //     0x94D1: C.SRAI x9, 52
 82 3F       //     0x3F82: C.FLDSP f31, 32
 A2 7F       //     0x7FA2: C.LDSP x31, 40
 7E B4       //     0xB47E: C.FSDSP f31, 40
-7E EC       //     0xEC7E: C.SDSP x31, 48
+7E F8       //     0xF87E: C.SDSP x31, 48
 
 // Zicsr (exits execution for now)
 73 10 04 00 // 0x00041073: CSRRW x0, 0x0, x8

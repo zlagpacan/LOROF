@@ -86,7 +86,7 @@ Internally-encoded signals for instr's in instr_types package
     - {6'b0<mark>0</mark>0000, shamt[5:0], rs1[4:0], 3'b101, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
 - SRAI rd, rs1, shamt
-    - {6'b0<mark>1</mark>0000, shamt[4:0], rs1[4:0], 3'b101, rd[4:0], 5'b00100, 2'b11}
+    - {6'b0<mark>1</mark>0000, shamt[5:0], rs1[4:0], 3'b101, rd[4:0], 5'b00100, 2'b11}
     - FU: alu_imm
 - ORI rd, rs1, imm
     - {imm[11:0], rs1[4:0], 3'b110, rd[4:0], 5'b00100, 2'b11}
@@ -211,7 +211,7 @@ Internally-encoded signals for instr's in instr_types package
     - FU: sysu
 - FSFLAGS rd, rs1
     - CSRRW rd, 0x001, rs1
-    - {12'h001, rs1[4:0], 3'b010, rd[4:0], 5'b11100, 2'b11}
+    - {12'h001, rs1[4:0], 3'b001, rd[4:0], 5'b11100, 2'b11}
     - FU: sysu
 - FRRM rd
     - CSRRS rd, 0x002, x0
@@ -219,7 +219,7 @@ Internally-encoded signals for instr's in instr_types package
     - FU: sysu
 - FSRM rd, rs1
     - CSRRW rd, 0x002, rs1
-    - {12'h002, rs1[4:0], 3'b010, rd[4:0], 5'b11100, 2'b11}
+    - {12'h002, rs1[4:0], 3'b001, rd[4:0], 5'b11100, 2'b11}
     - FU: sysu
 - FRCSR rd
     - CSRRS rd, 0x003, x0
@@ -227,7 +227,7 @@ Internally-encoded signals for instr's in instr_types package
     - FU: sysu
 - FSCSR rd, rs1
     - CSRRW rd, 0x003, rs1
-    - {12'h003, rs1[4:0], 3'b010, rd[4:0], 5'b11100, 2'b11}
+    - {12'h003, rs1[4:0], 3'b001, rd[4:0], 5'b11100, 2'b11}
     - FU: sysu
 
 ## M Extension
@@ -369,10 +369,9 @@ Internally-encoded signals for instr's in instr_types package
     - FU: fpu
 - FDIV.S frd, frs1, frs2, rm
     - {7'b0001100, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
-        - (frs2 == 5'b00000) -> FSQRT.S
     - FU: fpu
 - FSQRT.S frd, frs1, rm
-    - {7'b0001100, 5'b00000, frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - {7'b0101100, 5'b00000, frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
     - FU: fpu
 - FSGNJ.S frd, frs1, frs2
     - {7'b0010000, frs2[4:0], frs1[4:0], 3'b000, frd[4:0], 5'b10100, 2'b11}
@@ -464,10 +463,9 @@ Internally-encoded signals for instr's in instr_types package
     - FU: fpu
 - FDIV.D frd, frs1, frs2, rm
     - {7'b0001101, frs2[4:0], frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
-        - (frs2 == 5'b00000) -> FSQRT.D
     - FU: fpu
 - FSQRT.D frd, frs1, rm
-    - {7'b0001101, 5'b00000, frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
+    - {7'b0101101, 5'b00000, frs1[4:0], rm[2:0], frd[4:0], 5'b10100, 2'b11}
     - FU: fpu
 - FSGNJ.D frd, frs1, frs2
     - {7'b0010001, frs2[4:0], frs1[4:0], 3'b000, frd[4:0], 5'b10100, 2'b11}
@@ -534,7 +532,7 @@ Internally-encoded signals for instr's in instr_types package
     - FU: fpu
 
 ## C Extension
-rd'/rs1'/rs2' map to arch reg following {2'b10, rd'/rs1'/rs2'}
+rd'/rs1'/rs2' map to arch reg following {2'b01, rd'/rs1'/rs2'}
 
 - C.ADDI4SPN rd', uimm
     - ADDI rd', sp/x2, uimm
