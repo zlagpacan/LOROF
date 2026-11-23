@@ -12,6 +12,8 @@
         // not strictly is_fpu as fp loads and stores have freg's
 // TODO: decode if want checkpoint
 
+// further decoding
+
 `include "corep.vh"
 `include "instrp.vh"
 
@@ -268,6 +270,7 @@ module decoder (
         op[3] = uncfunct7_is_0bx1xxxxx;
         op[2:0] = uncinstr_funct3;
         dest_write = 1'b0;
+        has_freg = 1'b1;
 
         A_unneeded = 1'b1;
         B_unneeded = 1'b1;
@@ -873,12 +876,6 @@ module decoder (
                         uncimm_type = 1'b1;
 
                         case (uncinstr_funct3)
-
-                            3'b000, 3'b001, 3'b010:
-                            begin
-                                // SB, SH, SW
-                                is_store = 1'b1;
-                            end
 
                             3'b000: begin
                                 // SB
@@ -1654,12 +1651,206 @@ module decoder (
                         end
                     end
 
-                    // bookmark
+                    5'b00001: begin
+                        // FP Load
+
+                        uncdest_ar6.is_freg = 1'b1;
+
+                        if (uncinstr_funct3[2:1] != 2'b01) begin
+                            is_illegal_instr = 1'b1;
+                        end
+                        else if (uncinstr_funct3[0]) begin
+                            // FLD
+                            is_ldu = 1'b1;
+                            op = instrp::LDU_W_N;
+                            dest_write = 1'b1;
+                            has_freg = 1'b1;
+                        end
+                        else begin
+                            // FLW
+                            is_ldu = 1'b1;
+                            op = instrp::LDU_D_U;
+                            dest_write = 1'b1;
+                            has_freg = 1'b1;
+                        end
+                    end
+
+                    5'b01001: begin
+                        // FP Store
+
+                        uncB_ar6.is_freg = 1'b1;
+
+                        uncimm_type = 1'b1;
+
+                        if (uncinstr_funct3[2:1] != 2'b01) begin
+                            is_illegal_instr = 1'b1;
+                        end
+                        else if (uncinstr_funct3[0]) begin
+                            // FSD
+                            is_store = 1'b1;
+                            op = instrp::ST_D;
+                            has_freg = 1'b1;
+                        end
+                        else begin
+                            // FSW
+                            is_store = 1'b1;
+                            op = instrp::ST_W;
+                            has_freg = 1'b1;
+                        end
+                    end
+
+                    5'b10000, 5'b10001, 5'b10010, 5'b10011: begin
+                        // FMADD's
+
+                        uncA_ar6.is_freg = 1'b1;
+                        uncB_ar6.is_freg = 1'b1;
+                        uncdest_ar6.is_freg = 1'b1;
+
+                        if (~uncinstr_funct7[1]) begin
+                            // FMADD.*, FMSUB.*, FNMSUB.*, FNMADD.*
+                            is_fpu = 1'b1;
+                            dest_write = 1'b1;
+                            has_freg = 1'b1;
+                        end
+                        else begin
+                            is_illegal_instr = 1'b1;
+                        end
+                    end
+
+                    5'b10100: begin
+                        // FP
+                            // do specific op decoding in FPU (too much for here)
+
+                        casez (uncinstr_funct7) 
+                                
+                            // no further decoding
+                            7'b000000?: begin
+                                // FADD.*
+                                is_fpu = 1'b1;
+                                dest_write = 1'b1;
+                                has_freg = 1'b1;
+
+                                uncA_ar6.is_freg = 1'b1;
+                                uncB_ar6.is_freg = 1'b1;
+                                uncdest_ar6.is_freg = 1'b1;
+                            end
+
+                            7'b000010?: begin
+                                // FSUB.*
+                                is_fpu = 1'b1;
+                                dest_write = 1'b1;
+                                has_freg = 1'b1;
+
+                                uncA_ar6.is_freg = 1'b1;
+                                uncB_ar6.is_freg = 1'b1;
+                                uncdest_ar6.is_freg = 1'b1;
+                            end
+
+                            7'b000100?: begin
+                                // FMUL.*
+                                is_fpu = 1'b1;
+                                dest_write = 1'b1;
+                                has_freg = 1'b1;
+
+                                uncA_ar6.is_freg = 1'b1;
+                                uncB_ar6.is_freg = 1'b1;
+                                uncdest_ar6.is_freg = 1'b1;
+                            end
+                            7'b000110?: begin
+                                // FDIV.*
+                                is_fpu = 1'b1;
+                                dest_write = 1'b1;
+                                has_freg = 1'b1;
+
+                                uncA_ar6.is_freg = 1'b1;
+                                uncB_ar6.is_freg = 1'b1;
+                                uncdest_ar6.is_freg = 1'b1;
+                            end
+                            7'b010110?: begin
+                                // FSQRT.*
+
+                                uncA_ar6.is_freg = 1'b1;
+                                uncdest_ar6.is_freg = 1'b1;
+
+                                if (uncinstr_rs2 == 5'h00) begin
+                                    is_fpu = 1'b1;
+                                    dest_write = 1'b1;
+                                    has_freg = 1'b1;
+                                end
+                                else begin
+                                    is_illegal_instr = 1'b1;
+                                end
+                            end
+
+                            7'b001000?: begin
+                                // FSGNJ*.*
+
+                                uncA_ar6.is_freg = 1'b1;
+                                uncB_ar6.is_freg = 1'b1;
+                                uncdest_ar6.is_freg = 1'b1;
+
+                                case (uncinstr_funct3)
+                                    3'b000, 3'b001, 3'b010: begin
+                                        is_fpu = 1'b1;
+                                        dest_write = 1'b1;
+                                        has_freg = 1'b1;
+                                    end
+                                    default: begin
+                                        is_illegal_instr = 1'b1;
+                                    end
+                                endcase
+                            end
+
+                            7'b001010?: begin
+                                // FMIN.*, FMAX.*
+
+                                uncA_ar6.is_freg = 1'b1;
+                                uncB_ar6.is_freg = 1'b1;
+                                uncdest_ar6.is_freg = 1'b1;
+
+                                case (uncinstr_funct3)
+                                    3'b000, 3'b001: begin
+                                        is_fpu = 1'b1;
+                                        dest_write = 1'b1;
+                                        has_freg = 1'b1;
+                                    end
+                                    default: begin
+                                        is_illegal_instr = 1'b1;
+                                    end
+                                endcase
+                            end
+
+                            7'b110000?: begin
+                                // FCVT.int.float
+
+                                uncA_ar6.is_freg = 1'b1;
+                                
+                                case (uncinstr_rs2)
+                                    5'b00000, 5'b00001, 5'b00010, 5'b00011: begin
+                                        is_fpu = 1'b1;
+                                        dest_write = 1'b1;
+                                        has_freg = 1'b1;
+                                    end
+                                    default: begin
+                                        is_illegal_instr = 1'b1;
+                                    end
+                                endcase
+                            end
+
+                            // bookmark
+
+                            7'b111000?: begin
+
+                            end
+
+                        endcase
+                    end
 
                     default:
                     begin
                         is_illegal_instr = 1'b1;
                     end
+
                 endcase
             end
         endcase
