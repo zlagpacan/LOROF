@@ -5,11 +5,6 @@
     Spec: LOROF/spec/design/decoder.md
 */
 
-// TODO: update for RV64IMAFDC
-// TODO: update for floating point
-    // fpnew input coding
-    // tell if instr includes freg
-        // not strictly is_fpu as fp loads and stores have freg's
 // TODO: decode if want checkpoint
 
 // further decoding
@@ -32,7 +27,6 @@ module decoder (
     input logic             btb_hit,
     input logic             redirect_taken,
     input logic             mid_instr_redirect,
-    input corep::mdp_t      mdp,
 
     // FU select
     output logic is_alu_reg,
@@ -41,7 +35,9 @@ module decoder (
     output logic is_mdu,
     output logic is_fpu,
     output logic is_ldu,
-    output logic is_stamofu,
+    output logic is_store,
+    output logic is_amo,
+    output logic is_fence,
     output logic is_sysu,
     output logic is_illegal_instr,
 
@@ -49,8 +45,9 @@ module decoder (
     output logic [3:0]  op,
     output logic        dest_write,
     output logic        has_freg,
-    output logic        has_imm,
-    output logic        wfr,
+    output logic        trigger_wfr,
+    output logic        strong_want_checkpoint,
+    output logic        weak_want_checkpoint,
     
     // A operand
     output corep::ar6_t A_ar6,
@@ -75,7 +72,6 @@ module decoder (
     output logic [19:0] imm20,
 
     // ordering
-    output logic wait_for_restart,
     output logic amo_is_double,
     output logic mem_aq,
     output logic io_aq,
@@ -85,8 +81,7 @@ module decoder (
     // yielding
     output logic        instr_yield,
     output logic        restart_valid,
-    output logic [1:0]  restart_pc38_offset,
-    output logic        unrecoverable_fault // not sure if will use
+    output logic [1:0]  restart_pc38_offset
 );
 
     // ----------------------------------------------------------------
@@ -127,7 +122,6 @@ module decoder (
     logic uncfunct7_is_0bx1xxxxx;
     logic uncfunct7_is_0bx0xxxxx;
     logic uncfunct7_not_0b0x00000;
-    logic uncfunct7_is_0bxxxxxx1;
     logic uncfm_not_0bx000;
     logic uncimm_type;
 
@@ -189,59 +183,59 @@ module decoder (
     // ----------------------------------------------------------------
     // Helper Logic: 
 
-    assign instr_opcode_lsbs = instr32[1:0];
-    assign uncompressed = instr_opcode_lsbs == 2'b11;
+    assign instr_opcode_lsbs = fetch4B[1:0];
+    assign uncompressed = (instr_opcode_lsbs == 2'b11);
 
-    assign uncinstr_opcode_msbs = instr32[6:2];
-    assign uncinstr_funct3 = instr32[14:12];
-    assign uncinstr_funct7 = instr32[31:25];
-    assign uncinstr_funct5 = instr32[31:27];
-    assign uncinstr_rs1 = instr32[19:15];
-    assign uncinstr_rs2 = instr32[24:20];
-    assign uncinstr_rd = instr32[11:7];
-    assign uncinstr_aq = instr32[26];
-    assign uncinstr_rl = instr32[25];
-    assign uncinstr_fm = instr32[31:28];
-    assign uncinstr_pred_set = instr32[27:24];
-    assign uncinstr_succ_set = instr32[23:20];
-    assign uncinstr_csr = instr32[31:20];
+    assign uncinstr_opcode_msbs = fetch4B[6:2];
+    assign uncinstr_funct3 = fetch4B[14:12];
+    assign uncinstr_funct7 = fetch4B[31:25];
+    assign uncinstr_funct5 = fetch4B[31:27];
+    assign uncinstr_rs1 = fetch4B[19:15];
+    assign uncinstr_rs2 = fetch4B[24:20];
+    assign uncinstr_rs3 = fetch4B[31:27];
+    assign uncinstr_rd = fetch4B[11:7];
+    assign uncinstr_aq = fetch4B[26];
+    assign uncinstr_rl = fetch4B[25];
+    assign uncinstr_fm = fetch4B[31:28];
+    assign uncinstr_pred_set = fetch4B[27:24];
+    assign uncinstr_succ_set = fetch4B[23:20];
 
-    assign cinstr_funct3 = instr32[15:13];
-    assign cinstr_rlow = instr32[6:2];
-    assign cinstr_rhigh = instr32[11:7];
-    assign cinstr_funct2_low = instr32[6:5];
-    assign cinstr_funct2_high = instr32[11:10];
-    assign cinstr_funct1 = instr32[12];
+    assign cinstr_funct3 = fetch4B[15:13];
+    assign cinstr_rlow = fetch4B[6:2];
+    assign cinstr_rhigh = fetch4B[11:7];
+    assign cinstr_funct2_low = fetch4B[6:5];
+    assign cinstr_funct2_high = fetch4B[11:10];
+    assign cinstr_funct1 = fetch4B[12];
     
     assign uncfunct7_is_0bx0xxxxx = ~uncinstr_funct7[5];
     assign uncfunct7_is_0bx1xxxxx = uncinstr_funct7[5];
     assign uncfunct7_not_0b0x00000 = {uncinstr_funct7[6], uncinstr_funct7[4:0]} != 6'b000000;
-    assign uncfunct7_is_0bxxxxxx1 = uncinstr_funct7[0];
     assign uncfm_not_0bx000 = uncinstr_fm[2:0] != 3'b000;
-    assign uncamoop[3] = uncinstr_funct5[3] ^ uncinstr_funct5[4];
-    assign uncamoop[2] = uncinstr_funct5[2] | (~uncinstr_funct5[1] & uncinstr_funct5[0]);
-    assign uncamoop[1] = uncinstr_funct5[1] | (~uncinstr_funct5[1] & uncinstr_funct5[0]);
-    assign uncamoop[0] = uncinstr_funct5[0] | uncinstr_funct5[4];
 
     assign A_ar6 = uncompressed ? uncA_ar6 : cA_ar6;
-    assign A_is_zero == (A_ar6 == 6'h00);
-    assign A_is_ret_ra == (A_ar6 == 6'h01) | (A_AR == 6'h05);
+    assign A_is_zero = (A_ar6 == {1'b0, 5'h00});
+    assign A_is_ret_ra = (A_ar6 == {1'b0, 5'h01}) | (A_ar6 == {1'b0, 5'h05});
 
     assign B_ar6 = uncompressed ? uncB_ar6 : cB_ar6;
-    assign B_is_zero = (B_ar6 == 6'h00);
+    assign B_is_zero = (B_ar6 == {1'b0, 5'h00});
+
+    assign C_ar5 = uncinstr_rs3;
 
     assign dest_ar6 = uncompressed ? uncdest_ar6 : cdest_ar6;
-    assign dest_is_zero = (dest_ar6 == 6'h00);
-    assign dest_is_link_ra = (dest_ar6 == 6'h01) : (dest_ar6 == 6'h05);
+    assign dest_is_zero = (dest_ar6 == {1'b0, 5'h00});
+    assign dest_is_link_ra = (dest_ar6 == {1'b0, 5'h01}) | (dest_ar6 == {1'b0, 5'h05});
+
+    assign strong_want_checkpoint = instr_can_redirect & ~btb_hit;
+    assign weak_want_checkpoint = instr_can_redirect & btb_hit;
 
     always_comb begin
         if (uncompressed & uncimm_type) begin
             // S-Type, B-Type Imm
-            imm20 = {instr32[19:12], instr32[31], instr32[30:25], instr32[11:8], instr32[7]};
+            imm20 = {fetch4B[19:12], fetch4B[31], fetch4B[30:25], fetch4B[11:8], fetch4B[7]};
         end
         else if (uncompressed) begin
             // I-Type, U-Type, J-Type Imm
-            imm20 = {instr32[19:12], instr32[31], instr32[30:25], instr32[24:21], instr32[20]};
+            imm20 = {fetch4B[19:12], fetch4B[31], fetch4B[30:25], fetch4B[24:21], fetch4B[20]};
         end
         else begin
             // Compressed Imm
@@ -267,15 +261,14 @@ module decoder (
         is_sysu = 1'b0;
         is_illegal_instr = 1'b0;
 
-        op[3] = uncfunct7_is_0bx1xxxxx;
-        op[2:0] = uncinstr_funct3;
+        op = instrp::ALU_ADD;
         dest_write = 1'b0;
-        has_freg = 1'b1;
+        has_freg = 1'b0;
+        trigger_wfr = 1'b0;
 
         A_unneeded = 1'b1;
         B_unneeded = 1'b1;
 
-        wait_for_restart = 1'b0;
         amo_is_double = 1'b0;
         mem_aq = 1'b0;
         io_aq = 1'b0;
@@ -293,7 +286,7 @@ module decoder (
         cA_ar6 = {1'b0, cinstr_rhigh};
         cB_ar6 = {1'b0, cinstr_rlow};
         cdest_ar6 = {1'b0, cinstr_rhigh};
-        cimm20 = {{15{instr32[12]}}, instr32[6:2]};
+        cimm20 = {{15{fetch4B[12]}}, fetch4B[6:2]};
 
         case (instr_opcode_lsbs)
 
@@ -310,9 +303,10 @@ module decoder (
                         op = instrp::ALU_ADD;
                         cA_ar6 = {1'b0, 5'h02}; // sp
                         cdest_ar6 = {1'b0, 2'b01, cinstr_rlow[2:0]};
-                        cimm20 = {10'h0, instr32[10:7], instr32[12:11], instr32[5], instr32[6], 2'b00};
+                        cimm20 = {10'h0, fetch4B[10:7], fetch4B[12:11], fetch4B[5], fetch4B[6], 2'b00};
 
                         if ({cinstr_rhigh, cinstr_rlow} == '0) begin
+                            trigger_wfr = 1'b1;
                             is_illegal_instr = 1'b1;
                         end
                         else begin
@@ -331,7 +325,7 @@ module decoder (
                         dest_write = 1'b1;
                         cA_ar6 = {1'b0, 2'b01, cinstr_rhigh[2:0]};
                         cdest_ar6 = {1'b1, 2'b01, cinstr_rlow[2:0]};
-                        cimm20 = {12'h000, instr32[6:5], instr32[12:10], 3'b000};
+                        cimm20 = {12'h000, fetch4B[6:5], fetch4B[12:10], 3'b000};
                     end
 
                     3'b010: begin
@@ -342,7 +336,7 @@ module decoder (
                         dest_write = 1'b1;
                         cA_ar6 = {1'b0, 2'b01, cinstr_rhigh[2:0]};
                         cdest_ar6 = {1'b0, 2'b01, cinstr_rlow[2:0]};
-                        cimm20 = {13'h0000, instr32[5], instr32[12:10], instr32[6], 2'b00};
+                        cimm20 = {13'h0000, fetch4B[5], fetch4B[12:10], fetch4B[6], 2'b00};
                     end
 
                     3'b011: begin
@@ -353,7 +347,7 @@ module decoder (
                         dest_write = 1'b1;
                         cA_ar6 = {1'b0, 2'b01, cinstr_rhigh[2:0]};
                         cdest_ar6 = {1'b0, 2'b01, cinstr_rlow[2:0]};
-                        cimm20 = {12'h000, instr32[6:5], instr32[12:10], 3'b000};
+                        cimm20 = {12'h000, fetch4B[6:5], fetch4B[12:10], 3'b000};
                     end
 
                     3'b101: begin
@@ -363,7 +357,7 @@ module decoder (
                         op[1:0] = instrp::ST_D;
                         cA_ar6 = {1'b0, 2'b01, cinstr_rhigh[2:0]};
                         cB_ar6 = {1'b1, 2'b01, cinstr_rlow[2:0]};
-                        cimm20 = {12'h000, instr32[6:5], instr32[12:10], 3'b000};
+                        cimm20 = {12'h000, fetch4B[6:5], fetch4B[12:10], 3'b000};
                     end
 
                     3'b110: begin
@@ -373,7 +367,7 @@ module decoder (
                         op[1:0] = instrp::ST_W;
                         cA_ar6 = {1'b0, 2'b01, cinstr_rhigh[2:0]};
                         cB_ar6 = {1'b0, 2'b01, cinstr_rlow[2:0]};
-                        cimm20 = {13'h0, instr32[5], instr32[12:10], instr32[6], 2'b00};
+                        cimm20 = {13'h0, fetch4B[5], fetch4B[12:10], fetch4B[6], 2'b00};
                     end
 
                     3'b111: begin
@@ -383,10 +377,11 @@ module decoder (
                         op[1:0] = instrp::ST_D;
                         cA_ar6 = {1'b0, 2'b01, cinstr_rhigh[2:0]};
                         cB_ar6 = {1'b0, 2'b01, cinstr_rlow[2:0]};
-                        cimm20 = {12'h000, instr32[6:5], instr32[12:10], 3'b000};
+                        cimm20 = {12'h000, fetch4B[6:5], fetch4B[12:10], 3'b000};
                     end
 
                     default: begin
+                        trigger_wfr = 1'b1;
                         is_illegal_instr = 1'b1;
                     end
                 endcase
@@ -405,7 +400,7 @@ module decoder (
                         dest_write = 1'b1;
                         cA_ar6 = {1'b0, cinstr_rhigh};
                         cdest_ar6 = {1'b0, cinstr_rhigh};
-                        cimm20 = {{15{instr32[12]}}, instr32[6:2]};
+                        cimm20 = {{15{fetch4B[12]}}, fetch4B[6:2]};
                     end
 
                     3'b001: begin
@@ -416,7 +411,7 @@ module decoder (
                         dest_write = 1'b1;
                         cA_ar6 = {1'b0, cinstr_rhigh};
                         cdest_ar6 = {1'b0, cinstr_rhigh};
-                        cimm20 = {{15{instr32[12]}}, instr32[6:2]};
+                        cimm20 = {{15{fetch4B[12]}}, fetch4B[6:2]};
                     end
 
                     3'b010: begin
@@ -427,7 +422,7 @@ module decoder (
                         dest_write = 1'b1;
                         cA_ar6 = {1'b0, 5'h00}; // x0
                         cdest_ar6 = {1'b0, cinstr_rhigh};
-                        cimm20 = {{15{instr32[12]}}, instr32[6:2]};
+                        cimm20 = {{15{fetch4B[12]}}, fetch4B[6:2]};
                     end
 
                     3'b011: begin
@@ -440,14 +435,14 @@ module decoder (
                                 // ADDI sp/x2, sp/x2, imm
                             is_alu_imm = 1'b1;
                             op = instrp::ALU_ADD;
-                            cimm20 = {{11{instr32[12]}}, instr32[4:3], instr32[5], instr32[2], instr32[6], 4'h0};
+                            cimm20 = {{11{fetch4B[12]}}, fetch4B[4:3], fetch4B[5], fetch4B[2], fetch4B[6], 4'h0};
                         end
                         else begin
                             // C.LUI
                                 // LUI rd, imm
                             is_bru = 1'b1;
                             op = instrp::BRU_LUI;
-                            cimm20 = {{3{instr32[12]}}, instr32[6:2], {12{instr32[12]}}};
+                            cimm20 = {{3{fetch4B[12]}}, fetch4B[6:2], {12{fetch4B[12]}}};
                         end
                     end
 
@@ -464,7 +459,7 @@ module decoder (
                                     // SRLI rd', rd', uimm
                                 is_alu_imm = 1'b1;
                                 op = instrp::ALU_SRL;
-                                cimm20 = {14'h0, instr32[12], instr32[6:2]};
+                                cimm20 = {14'h0, fetch4B[12], fetch4B[6:2]};
                             end
 
                             2'b01: begin
@@ -472,7 +467,7 @@ module decoder (
                                     // SRAI rd', rd', uimm
                                 is_alu_imm = 1'b1;
                                 op = instrp::ALU_SRA;
-                                cimm20 = {14'h0, instr32[12], instr32[6:2]};
+                                cimm20 = {14'h0, fetch4B[12], fetch4B[6:2]};
                             end
 
                             2'b10: begin
@@ -480,7 +475,7 @@ module decoder (
                                     // ANDI rd', rd', imm
                                 is_alu_imm = 1'b1;
                                 op = instrp::ALU_AND;
-                                cimm20 = {{15{instr32[12]}}, instr32[6:2]};
+                                cimm20 = {{15{fetch4B[12]}}, fetch4B[6:2]};
                             end
 
                             2'b11: begin
@@ -514,8 +509,8 @@ module decoder (
                                             op = instrp::ALU_AND;
                                         end
                                     endcase
-
-                                end else begin
+                                end 
+                                else begin
 
                                     case (cinstr_funct2_low)
 
@@ -532,7 +527,8 @@ module decoder (
                                         end
 
                                         default: begin
-                                            // fine with default op
+                                            trigger_wfr = 1'b1;
+                                            is_illegal_instr = 1'b1;
                                         end
                                     endcase
                                 end
@@ -546,7 +542,7 @@ module decoder (
                         is_bru = 1'b1;
                         op = instrp::BRU_C_J;
                         instr_can_redirect = 1'b1;
-                        cimm20 = {{9{instr32[12]}}, instr32[8], instr32[10:9], instr32[6], instr32[7], instr32[2], instr32[11], instr32[5:3], instr32[12]};
+                        cimm20 = {{9{fetch4B[12]}}, fetch4B[8], fetch4B[10:9], fetch4B[6], fetch4B[7], fetch4B[2], fetch4B[11], fetch4B[5:3], fetch4B[12]};
                     end
 
                     3'b110: begin
@@ -557,11 +553,10 @@ module decoder (
                         instr_can_redirect = 1'b1;
                         A_unneeded = 1'b0;
                         cA_ar6 = {1'b0, 2'b01, cinstr_rhigh[2:0]};
-                        cimm20 = {{12{instr32[12]}}, instr32[6:5], instr32[2], instr32[11:10], instr32[4:3], instr32[12]};
+                        cimm20 = {{12{fetch4B[12]}}, fetch4B[6:5], fetch4B[2], fetch4B[11:10], fetch4B[4:3], fetch4B[12]};
                     end
 
-                    3'b111:
-                    begin
+                    3'b111: begin
                         // C.BNEZ
                             // BNE rs1', x0, imm
                         is_bru = 1'b1;
@@ -569,7 +564,7 @@ module decoder (
                         instr_can_redirect = 1'b1;
                         A_unneeded = 1'b0;
                         cA_ar6 = {1'b0, 2'b01, cinstr_rhigh[2:0]};
-                        cimm20 = {{12{instr32[12]}}, instr32[6:5], instr32[2], instr32[11:10], instr32[4:3], instr32[12]};
+                        cimm20 = {{12{fetch4B[12]}}, fetch4B[6:5], fetch4B[2], fetch4B[11:10], fetch4B[4:3], fetch4B[12]};
                     end
                 endcase
             end
@@ -587,7 +582,7 @@ module decoder (
                         dest_write = 1'b1;
                         cA_ar6 = {1'b0, cinstr_rhigh};
                         cdest_ar6 = {1'b0, cinstr_rhigh};
-                        cimm20 = {14'h0, instr32[12], instr32[6:2]};
+                        cimm20 = {14'h0, fetch4B[12], fetch4B[6:2]};
                     end
 
                     3'b001: begin
@@ -598,7 +593,7 @@ module decoder (
                         dest_write = 1'b1;
                         cA_ar6 = {1'b0, 5'h02}; // sp
                         cdest_ar6 = {1'b1, cinstr_rhigh};
-                        cimm20 = {11'h000, instr32[4:2], instr32[12], instr32[6:5], 3'h0};
+                        cimm20 = {11'h000, fetch4B[4:2], fetch4B[12], fetch4B[6:5], 3'h0};
                     end
 
                     3'b010: begin
@@ -609,18 +604,18 @@ module decoder (
                         dest_write = 1'b1;
                         cA_ar6 = {1'b0, 5'h02}; // sp
                         cdest_ar6 = {1'b0, cinstr_rhigh};
-                        cimm20 = {12'h000, instr32[3:2], instr32[12], instr32[6:4], 2'h0};
+                        cimm20 = {12'h000, fetch4B[3:2], fetch4B[12], fetch4B[6:4], 2'h0};
                     end
 
                     3'b011: begin
                         // C.LDSP
                             // LD rd, uimm(sp/x2)
                         is_ldu = 1'b1;
-                        op = isntrp::LDU_D_U;
+                        op = instrp::LDU_D_U;
                         dest_write = 1'b1;
                         cA_ar6 = {1'b0, 5'h02}; // sp
                         cdest_ar6 = {1'b1, cinstr_rhigh};
-                        cimm20 = {11'h000, instr32[4:2], instr32[12], instr32[6:5], 3'h0};
+                        cimm20 = {11'h000, fetch4B[4:2], fetch4B[12], fetch4B[6:5], 3'h0};
                     end
 
                     3'b100: begin
@@ -651,7 +646,7 @@ module decoder (
                                     // EBREAK
                                 is_sysu = 1'b1;
                                 op[2:0] = instrp::SYSU_MISC;
-                                wait_for_restart = 1'b1;
+                                trigger_wfr = 1'b1;
                                 cimm20 = {8'b00000000, 7'b0000000, 5'b00001};
                             end
                             else if (cinstr_rlow == 5'h0) begin
@@ -685,7 +680,7 @@ module decoder (
                         op[1:0] = instrp::ST_D;
                         cA_ar6 = {1'b0, 5'h02}; // sp
                         cB_ar6 = {1'b1, cinstr_rlow};
-                        cimm20 = {11'h000, instr32[9:7], instr32[12:10], 3'h0};
+                        cimm20 = {11'h000, fetch4B[9:7], fetch4B[12:10], 3'h0};
                     end
 
                     3'b110: begin
@@ -695,7 +690,7 @@ module decoder (
                         op[1:0] = instrp::ST_W;
                         cA_ar6 = {1'b0, 5'h02}; // sp
                         cB_ar6 = {1'b0, cinstr_rlow};
-                        cimm20 = {12'h0, instr32[8:7], instr32[12:9], 2'h0};
+                        cimm20 = {12'h0, fetch4B[8:7], fetch4B[12:9], 2'h0};
                     end
 
                     3'b111: begin
@@ -705,11 +700,11 @@ module decoder (
                         op[1:0] = instrp::ST_D;
                         cA_ar6 = {1'b0, 5'h02}; // sp
                         cB_ar6 = {1'b0, cinstr_rlow};
-                        cimm20 = {11'h000, instr32[9:7], instr32[12:10], 3'h0};
+                        cimm20 = {11'h000, fetch4B[9:7], fetch4B[12:10], 3'h0};
                     end
 
-                    default:
-                    begin
+                    default: begin
+                        trigger_wfr = 1'b1;
                         is_illegal_instr = 1'b1;
                     end
                 endcase
@@ -752,12 +747,12 @@ module decoder (
                             instr_can_redirect = 1'b1;
                         end
                         else begin
+                            trigger_wfr = 1'b1;
                             is_illegal_instr = 1'b1;
                         end
                     end
 
-                    5'b11000:
-                    begin
+                    5'b11000: begin
                         // Branch:
                         A_unneeded = 1'b0;
                         B_unneeded = 1'b0;
@@ -802,8 +797,8 @@ module decoder (
                                 op = instrp::BRU_BGEU;
                             end
 
-                            default:
-                            begin
+                            default: begin
+                                trigger_wfr = 1'b1;
                                 is_illegal_instr = 1'b1;
                             end
                         endcase
@@ -863,8 +858,8 @@ module decoder (
                                 dest_write = 1'b1;
                             end
 
-                            default:
-                            begin
+                            default: begin
+                                trigger_wfr = 1'b1;
                                 is_illegal_instr = 1'b1;
                             end
                         endcase
@@ -901,8 +896,8 @@ module decoder (
                                 op = instrp::ST_D;
                             end
 
-                            default:
-                            begin
+                            default: begin
+                                trigger_wfr = 1'b1;
                                 is_illegal_instr = 1'b1;
                             end
                         endcase
@@ -922,6 +917,7 @@ module decoder (
 
                             3'b001: begin
                                 if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                    trigger_wfr = 1'b1;
                                     is_illegal_instr = 1'b1;
                                 end
                                 else begin
@@ -955,6 +951,7 @@ module decoder (
 
                             3'b101: begin
                                 if (uncfunct7_not_0b0x00000) begin
+                                    trigger_wfr = 1'b1;
                                     is_illegal_instr = 1'b1;
                                 end 
                                 else if (uncfunct7_is_0bx0xxxxx) begin
@@ -1001,6 +998,7 @@ module decoder (
 
                             3'b001: begin
                                 if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                    trigger_wfr = 1'b1;
                                     is_illegal_instr = 1'b1;
                                 end
                                 else begin
@@ -1013,6 +1011,7 @@ module decoder (
 
                             3'b101: begin
                                 if (uncfunct7_not_0b0x00000) begin
+                                    trigger_wfr = 1'b1;
                                     is_illegal_instr = 1'b1;
                                 end 
                                 else if (uncfunct7_is_0bx0xxxxx) begin
@@ -1030,9 +1029,9 @@ module decoder (
                             end
 
                             default: begin
+                                trigger_wfr = 1'b1;
                                 is_illegal_instr = 1'b1;
                             end
-
                         endcase
                     end
 
@@ -1098,7 +1097,6 @@ module decoder (
                                     op = instrp::MDU_REMU;
                                     dest_write = 1'b1;
                                 end
-
                             endcase
                         end
                         else begin
@@ -1108,6 +1106,7 @@ module decoder (
 
                                 3'b000: begin
                                     if (uncfunct7_not_0b0x00000) begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
                                     else if (uncfunct7_is_0bx0xxxxx) begin
@@ -1126,6 +1125,7 @@ module decoder (
 
                                 3'b001: begin
                                     if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
                                     else begin
@@ -1138,6 +1138,7 @@ module decoder (
 
                                 3'b010: begin
                                     if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
                                     else begin
@@ -1150,6 +1151,7 @@ module decoder (
 
                                 3'b011: begin
                                     if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
                                     else begin
@@ -1162,6 +1164,7 @@ module decoder (
 
                                 3'b100: begin
                                     if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
                                     else begin
@@ -1174,6 +1177,7 @@ module decoder (
 
                                 3'b101: begin
                                     if (uncfunct7_not_0b0x00000) begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
                                     else if (uncfunct7_is_0bx0xxxxx) begin
@@ -1192,6 +1196,7 @@ module decoder (
 
                                 3'b110: begin
                                     if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
                                     else begin
@@ -1204,6 +1209,7 @@ module decoder (
 
                                 3'b111: begin
                                     if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
                                     else begin
@@ -1213,7 +1219,6 @@ module decoder (
                                         dest_write = 1'b1;
                                     end
                                 end
-
                             endcase
                         end
                     end
@@ -1262,9 +1267,9 @@ module decoder (
                                 end
 
                                 default: begin
+                                    trigger_wfr = 1'b1;
                                     is_illegal_instr = 1'b1;
                                 end
-
                             endcase
                         end
 
@@ -1275,6 +1280,7 @@ module decoder (
 
                                 3'b000: begin
                                     if (uncfunct7_not_0b0x00000) begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
                                     else if (uncfunct7_is_0bx0xxxxx) begin
@@ -1293,6 +1299,7 @@ module decoder (
 
                                 3'b001: begin
                                     if (uncfunct7_not_0b0x00000 | uncfunct7_is_0bx1xxxxx) begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
                                     else begin
@@ -1305,6 +1312,7 @@ module decoder (
 
                                 3'b101: begin
                                     if (uncfunct7_not_0b0x00000) begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
                                     else if (uncfunct7_is_0bx0xxxxx) begin
@@ -1322,9 +1330,9 @@ module decoder (
                                 end
 
                                 default: begin
+                                    trigger_wfr = 1'b1;
                                     is_illegal_instr = 1'b1;
                                 end
-
                             endcase
                         end
                     end
@@ -1340,8 +1348,8 @@ module decoder (
                         if (
                             uncinstr_succ_set[3]
                             & (
-                                (env_exec_mode == S_MODE) & (env_menvconfig_FIOM)
-                                | (env_exec_mode == U_MODE) & (env_menvconfig_FIOM | env_senvconfig_FIOM)
+                                (env_exec_mode == corep::EXEC_MODE_S) & (env_menvconfig_FIOM)
+                                | (env_exec_mode == corep::EXEC_MODE_U) & (env_menvconfig_FIOM | env_senvconfig_FIOM)
                             )        
                         ) mem_aq = 1'b1;
 
@@ -1354,6 +1362,7 @@ module decoder (
 
                             3'b000: begin
                                 if (uncfm_not_0bx000) begin
+                                    trigger_wfr = 1'b1;
                                     is_illegal_instr = 1'b1;
                                 end
                                 else begin
@@ -1369,16 +1378,16 @@ module decoder (
                                     // op will tell stamofu to perform icache flush when committed
                                 is_fence = 1'b1;
                                 op[1:0] = instrp::FENCE_I;
-                                wait_for_restart = 1'b1;
+                                trigger_wfr = 1'b1;
                                 mem_rl = 1'b1;
                                     // need local hart stores in front of the FENCE.I to be visible to this hart's icache
                                     // instruction stream after fence.i expects normal program order of stores, not global order
                             end
 
                             default: begin
+                                trigger_wfr = 1'b1;
                                 is_illegal_instr = 1'b1;
                             end
-
                         endcase
                     end
 
@@ -1396,15 +1405,16 @@ module decoder (
                                             // ECALL
                                             is_sysu = 1'b1;
                                             op[2:0] = instrp::SYSU_MISC;
-                                            wait_for_restart = 1'b1;
+                                            trigger_wfr = 1'b1;
                                         end
                                         else if (uncinstr_rs2 == 5'b00001) begin
                                             // EBREAK
                                             is_sysu = 1'b1;
                                             op[2:0] = instrp::SYSU_MISC;
-                                            wait_for_restart = 1'b1;
+                                            trigger_wfr = 1'b1;
                                         end
                                         else begin
+                                            trigger_wfr = 1'b1;
                                             is_illegal_instr = 1'b1;
                                         end
                                     end
@@ -1413,25 +1423,27 @@ module decoder (
                                         if (uncinstr_rs2 == 5'b00010) begin
                                             // SRET
                                             if (
-                                                env_exec_mode == U_MODE 
+                                                env_exec_mode == corep::EXEC_MODE_U 
                                                 | 
-                                                (env_exec_mode == S_MODE & env_trap_sret)
+                                                (env_exec_mode == corep::EXEC_MODE_S & env_trap_sret)
                                             ) begin
+                                                trigger_wfr = 1'b1;
                                                 is_illegal_instr = 1'b1;
                                             end 
                                             else begin
                                                 is_sysu = 1'b1;
                                                 op[2:0] = instrp::SYSU_MISC;
-                                                wait_for_restart = 1'b1; 
+                                                trigger_wfr = 1'b1; 
                                             end
                                         end
                                         else if (uncinstr_rs2 == 5'b00101) begin
                                             // WFI
                                             if (
-                                                env_exec_mode == U_MODE
+                                                env_exec_mode == corep::EXEC_MODE_U
                                                 |
-                                                env_exec_mode == S_MODE & env_trap_wfi
+                                                env_exec_mode == corep::EXEC_MODE_S & env_trap_wfi
                                             ) begin
+                                                trigger_wfr = 1'b1;
                                                 is_illegal_instr = 1'b1;
                                             end
                                             else begin
@@ -1439,10 +1451,11 @@ module decoder (
                                                 // rob takes care of WFI stall state
                                                 is_sysu = 1'b1;
                                                 op[2:0] = instrp::SYSU_MISC;
-                                                wait_for_restart = 1'b1;
+                                                trigger_wfr = 1'b1;
                                             end
                                         end
                                         else begin
+                                            trigger_wfr = 1'b1;
                                             is_illegal_instr = 1'b1;
                                         end
                                     end
@@ -1450,10 +1463,11 @@ module decoder (
                                     7'b0001001: begin
                                         // SFENCE.VMA
                                         if (
-                                            env_exec_mode == U_MODE
+                                            env_exec_mode == corep::EXEC_MODE_U
                                             |
-                                            env_exec_mode == S_MODE & env_trap_sfence
+                                            env_exec_mode == corep::EXEC_MODE_S & env_trap_sfence
                                         ) begin
+                                            trigger_wfr = 1'b1;
                                             is_illegal_instr = 1'b1;
                                         end
                                         else begin
@@ -1466,32 +1480,34 @@ module decoder (
                                                 // just do a restart 
                                             is_fence = 1'b1;
                                             op[1:0] = instrp::SFENCE_VMA;
-                                            wait_for_restart = 1'b1;
+                                            trigger_wfr = 1'b1;
                                         end
                                     end
 
                                     7'b0011000: begin
                                         if (uncinstr_rs2 == 5'b00010) begin
                                             // MRET
-                                            if (env_exec_mode != M_MODE)
+                                            if (env_exec_mode != corep::EXEC_MODE_M)
                                             begin
+                                                trigger_wfr = 1'b1;
                                                 is_illegal_instr = 1'b1;
                                             end
                                             else begin
                                                 is_sysu = 1'b1;
                                                 op[2:0] = instrp::SYSU_MISC;
-                                                wait_for_restart = 1'b1;
+                                                trigger_wfr = 1'b1;
                                             end
                                         end
                                         else begin
+                                            trigger_wfr = 1'b1;
                                             is_illegal_instr = 1'b1;
                                         end
                                     end
 
                                     default: begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
-
                                 endcase
                             end
 
@@ -1532,14 +1548,14 @@ module decoder (
                             end
 
                             default: begin
+                                trigger_wfr = 1'b1;
                                 is_illegal_instr = 1'b1;
                             end
-
                         endcase
                     end
 
                     5'b01011: begin
-                        // AMO
+                        // AMO's
 
                         amo_is_double = uncinstr_funct3[0];
 
@@ -1550,6 +1566,7 @@ module decoder (
                         io_rl = uncinstr_rl;
                         
                         if (uncinstr_funct3[2:1] != 2'b01) begin
+                            trigger_wfr = 1'b1;
                             is_illegal_instr = 1'b1;
                         end
                         else begin
@@ -1557,96 +1574,86 @@ module decoder (
                             case (uncinstr_funct5)
 
                                 5'b00010: begin
-                                    // LR.W/D
+                                    // LR.*
                                     is_amo = 1'b1;
                                     op = instrp::AMO_LR;
                                     dest_write = 1'b1;
                                 end
 
                                 5'b00011: begin
-                                    // SC.W
+                                    // SC.*
                                     is_amo = 1'b1;
                                     op = instrp::AMO_SC;
                                     dest_write = 1'b1;
                                 end
 
-                                5'b00001:
-                                begin
-                                    // AMOSWAP.W
+                                5'b00001: begin
+                                    // AMOSWAP.*
                                     is_amo = 1'b1;
                                     op = instrp::AMO_SWAP;
                                     dest_write = 1'b1;
                                 end
 
-                                5'b00000:
-                                begin
-                                    // AMOADD.W
+                                5'b00000: begin
+                                    // AMOADD.*
                                     is_amo = 1'b1;
                                     op = instrp::AMO_ADD;
                                     dest_write = 1'b1;
                                 end
 
-                                5'b00100:
-                                begin
-                                    // AMOXOR.W
+                                5'b00100: begin
+                                    // AMOXOR.*
                                     is_amo = 1'b1;
                                     op = instrp::AMO_XOR;
                                     dest_write = 1'b1;
                                 end
 
-                                5'b01100:
-                                begin
-                                    // AMOAND.W
+                                5'b01100: begin
+                                    // AMOAND.*
                                     is_amo = 1'b1;
                                     op = instrp::AMO_AND;
                                     dest_write = 1'b1;
                                 end
 
-                                5'b01000:
-                                begin
-                                    // AMOOR.W
+                                5'b01000: begin
+                                    // AMOOR.*
                                     is_amo = 1'b1;
                                     op = instrp::AMO_OR;
                                     dest_write = 1'b1;
                                 end
 
-                                5'b10000:
-                                begin
-                                    // AMOMIN.W
+                                5'b10000: begin
+                                    // AMOMIN.*
                                     is_amo = 1'b1;
                                     op = instrp::AMO_MIN;
                                     dest_write = 1'b1;
                                 end
 
-                                5'b10100:
-                                begin
-                                    // AMOMAX.W
+                                5'b10100: begin
+                                    // AMOMAX.*
                                     is_amo = 1'b1;
                                     op = instrp::AMO_MAX;
                                     dest_write = 1'b1;
                                 end
 
-                                5'b11000:
-                                begin
-                                    // AMOMINU.W
+                                5'b11000: begin
+                                    // AMOMINU.*
                                     is_amo = 1'b1;
                                     op = instrp::AMO_MINU;
                                     dest_write = 1'b1;
                                 end
 
-                                5'b11100:
-                                begin
-                                    // AMOMAXU.W
+                                5'b11100: begin
+                                    // AMOMAXU.*
                                     is_amo = 1'b1;
                                     op = instrp::AMO_MAXU;
                                     dest_write = 1'b1;
                                 end
 
-                                default:
-                                begin
+                                default: begin
+                                    trigger_wfr = 1'b1;
                                     is_illegal_instr = 1'b1;
                                 end
-
                             endcase
                         end
                     end
@@ -1657,6 +1664,7 @@ module decoder (
                         uncdest_ar6.is_freg = 1'b1;
 
                         if (uncinstr_funct3[2:1] != 2'b01) begin
+                            trigger_wfr = 1'b1;
                             is_illegal_instr = 1'b1;
                         end
                         else if (uncinstr_funct3[0]) begin
@@ -1683,6 +1691,7 @@ module decoder (
                         uncimm_type = 1'b1;
 
                         if (uncinstr_funct3[2:1] != 2'b01) begin
+                            trigger_wfr = 1'b1;
                             is_illegal_instr = 1'b1;
                         end
                         else if (uncinstr_funct3[0]) begin
@@ -1713,6 +1722,7 @@ module decoder (
                             has_freg = 1'b1;
                         end
                         else begin
+                            trigger_wfr = 1'b1;
                             is_illegal_instr = 1'b1;
                         end
                     end
@@ -1756,6 +1766,7 @@ module decoder (
                                 uncB_ar6.is_freg = 1'b1;
                                 uncdest_ar6.is_freg = 1'b1;
                             end
+                            
                             7'b000110?: begin
                                 // FDIV.*
                                 is_fpu = 1'b1;
@@ -1766,6 +1777,7 @@ module decoder (
                                 uncB_ar6.is_freg = 1'b1;
                                 uncdest_ar6.is_freg = 1'b1;
                             end
+
                             7'b010110?: begin
                                 // FSQRT.*
 
@@ -1778,6 +1790,7 @@ module decoder (
                                     has_freg = 1'b1;
                                 end
                                 else begin
+                                    trigger_wfr = 1'b1;
                                     is_illegal_instr = 1'b1;
                                 end
                             end
@@ -1796,6 +1809,7 @@ module decoder (
                                         has_freg = 1'b1;
                                     end
                                     default: begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
                                 endcase
@@ -1815,6 +1829,7 @@ module decoder (
                                         has_freg = 1'b1;
                                     end
                                     default: begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
                                 endcase
@@ -1832,6 +1847,7 @@ module decoder (
                                         has_freg = 1'b1;
                                     end
                                     default: begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
                                 endcase
@@ -1849,6 +1865,7 @@ module decoder (
                                     has_freg = 1'b1;
                                 end
                                 else begin
+                                    trigger_wfr = 1'b1;
                                     is_illegal_instr = 1'b1;
                                 end
                             end
@@ -1865,6 +1882,7 @@ module decoder (
                                     has_freg = 1'b1;
                                 end
                                 else begin
+                                    trigger_wfr = 1'b1;
                                     is_illegal_instr = 1'b1;
                                 end
                             end
@@ -1882,11 +1900,13 @@ module decoder (
                                             has_freg = 1'b1;
                                         end
                                         default: begin
+                                            trigger_wfr = 1'b1;
                                             is_illegal_instr = 1'b1;
                                         end
                                     endcase
                                 end
                                 else begin
+                                    trigger_wfr = 1'b1;
                                     is_illegal_instr = 1'b1;
                                 end
                             end
@@ -1904,6 +1924,7 @@ module decoder (
                                         has_freg = 1'b1;
                                     end
                                     default: begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
                                 endcase
@@ -1921,6 +1942,7 @@ module decoder (
                                         has_freg = 1'b1;
                                     end
                                     default: begin
+                                        trigger_wfr = 1'b1;
                                         is_illegal_instr = 1'b1;
                                     end
                                 endcase
@@ -1935,25 +1957,24 @@ module decoder (
                                     is_fpu = 1'b1;
                                     dest_write = 1'b1;
                                     has_freg = 1'b1;
-                                    is_illegal_instr = 1'b1;
                                 end
                                 else begin
+                                    trigger_wfr = 1'b1;
                                     is_illegal_instr = 1'b1;
                                 end
                             end
 
                             default: begin
+                                trigger_wfr = 1'b1;
                                 is_illegal_instr = 1'b1;
                             end
-
                         endcase
                     end
 
-                    default:
-                    begin
+                    default: begin
+                        trigger_wfr = 1'b1;
                         is_illegal_instr = 1'b1;
                     end
-
                 endcase
             end
         endcase

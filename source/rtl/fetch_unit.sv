@@ -82,7 +82,7 @@ module fetch_unit (
     // wfr trigger from decode_unit
     input logic decode_unit_trigger_wfr,
 
-    // restart from decode_unit (due to erroneous btb hit -> also implies clearing update to btb)
+    // restart from decode_unit (due to erroneous redirect_taken -> also implies clearing update to btb)
     input logic             decode_unit_restart_valid,
     input corep::bcb_idx_t  decode_unit_restart_bcb_idx,
     input corep::pc38_t     decode_unit_restart_pc38,
